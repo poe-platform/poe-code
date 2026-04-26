@@ -91,6 +91,8 @@ export interface DefaultOAuthClientProviderOptions {
   client:
     | {
         mode: "dynamic";
+        clientId?: string;
+        clientSecret?: string;
         metadata?: OAuthClientMetadata;
       }
     | {

@@ -880,9 +880,9 @@ tasks:
           client_id, re-registration on `invalid_client`, every error
           code surfaced as `OAuthError`, terminal vs retriable mapping.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: audit-no-mcp-sdk-in-production

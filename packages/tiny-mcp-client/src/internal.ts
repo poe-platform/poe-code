@@ -2740,7 +2740,7 @@ export class HttpTransport implements McpTransport {
   }
 
   private readOAuthChallengeError(response: Response): OAuthError | null {
-    if (response.status !== 401) {
+    if (response.status !== 401 && response.status !== 403) {
       return null;
     }
 

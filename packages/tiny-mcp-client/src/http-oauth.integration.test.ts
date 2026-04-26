@@ -777,4 +777,47 @@ describe("HttpTransport OAuth integration", () => {
     });
     expect((caughtError as Error).message).toBe("audience mismatch");
   });
+
+  it("maps insufficient_scope bearer challenges to a typed OAuthError", async () => {
+    const harness = await createHarness({
+      responseTransform: async ({ handle, record, response }) => {
+        if (
+          record.method !== "POST"
+          || record.url !== `${handle.oauth.issuer}/token`
+          || parseFormBody(record).get("grant_type") !== "authorization_code"
+        ) {
+          return undefined;
+        }
+
+        const payload = await response.clone().json() as Record<string, unknown>;
+        const insufficientScopeToken = await handle.oauth.issueTokenFor({
+          clientId: parseFormBody(record).get("client_id") ?? "unknown-client",
+          resource: handle.mcpUrl,
+          scopes: ["mcp.write"],
+        });
+
+        payload.access_token = insufficientScopeToken;
+        delete payload.refresh_token;
+
+        return cloneResponse(response, JSON.stringify(payload));
+      },
+    });
+    cleanups.add(harness.close);
+
+    let caughtError: unknown;
+
+    try {
+      await harness.client.connect(harness.transport);
+    } catch (error) {
+      caughtError = error;
+    }
+
+    expect(caughtError).toBeInstanceOf(OAuthError);
+    expect(caughtError).toMatchObject({
+      error: "insufficient_scope",
+      errorDescription: "insufficient scope",
+      status: 403,
+    });
+    expect((caughtError as Error).message).toBe("insufficient scope");
+  });
 });

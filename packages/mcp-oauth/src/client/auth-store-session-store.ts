@@ -14,6 +14,20 @@ import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 const DEFAULT_FILE_SALT = "poe-code:mcp-oauth:v1";
 const DEFAULT_FILE_DIRECTORY = ".poe-code/mcp-oauth";
 const DEFAULT_KEYCHAIN_SERVICE = "poe-code-mcp-oauth";
+const DEFAULT_CLIENT_FILE_SALT = "poe-code:mcp-oauth:clients:v1";
+const DEFAULT_CLIENT_FILE_DIRECTORY = ".poe-code/mcp-oauth/clients";
+const DEFAULT_CLIENT_KEYCHAIN_SERVICE = "poe-code-mcp-oauth-clients";
+
+interface StoredOAuthClient {
+  clientId: string;
+  clientSecret?: string;
+}
+
+export interface OAuthClientStore {
+  load(issuer: string): Promise<StoredOAuthClient | null>;
+  save(issuer: string, client: StoredOAuthClient): Promise<void>;
+  clear(issuer: string): Promise<void>;
+}
 
 export function createAuthStoreSessionStore(
   options: CreateSecretStoreInput = {}
@@ -44,19 +58,56 @@ export function createAuthStoreSessionStore(
   };
 }
 
-function createResourceSecretStore(resource: string, options: CreateSecretStoreInput): SecretStore {
-  const canonicalResource = canonicalizeResourceIndicator(resource);
-  const hash = crypto.createHash("sha256").update(canonicalResource).digest("hex");
+export function createAuthStoreClientStore(
+  options: CreateSecretStoreInput
+): OAuthClientStore {
+  return {
+    async load(issuer: string): Promise<StoredOAuthClient | null> {
+      const store = createIssuerSecretStore(issuer, options);
+      const value = await store.get();
+      if (value === null) {
+        return null;
+      }
+
+      const parsed = JSON.parse(value);
+      if (
+        typeof parsed === "object"
+        && parsed !== null
+        && !Array.isArray(parsed)
+        && typeof parsed.clientId === "string"
+      ) {
+        return parsed as StoredOAuthClient;
+      }
+
+      throw new Error("Stored OAuth client must be a JSON object with clientId");
+    },
+    async save(issuer: string, client: StoredOAuthClient): Promise<void> {
+      const store = createIssuerSecretStore(issuer, options);
+      await store.set(JSON.stringify(client));
+    },
+    async clear(issuer: string): Promise<void> {
+      const store = createIssuerSecretStore(issuer, options);
+      await store.delete();
+    },
+  };
+}
+
+function createNamedSecretStore(
+  key: string,
+  options: CreateSecretStoreInput,
+  defaults: { salt: string; directory: string; service: string; accountPrefix: string }
+): SecretStore {
+  const hash = crypto.createHash("sha256").update(key).digest("hex");
   const parsedFilePath =
     options.fileStore?.filePath === undefined ? null : path.parse(options.fileStore.filePath);
 
   const fileStore = {
     ...options.fileStore,
-    salt: options.fileStore?.salt ?? DEFAULT_FILE_SALT,
+    salt: options.fileStore?.salt ?? defaults.salt,
     defaultDirectory:
       parsedFilePath?.dir ||
       options.fileStore?.defaultDirectory ||
-      DEFAULT_FILE_DIRECTORY,
+      defaults.directory,
     defaultFileName:
       parsedFilePath === null
         ? `${hash}.enc`
@@ -64,13 +115,35 @@ function createResourceSecretStore(resource: string, options: CreateSecretStoreI
   };
   const keychainStore = {
     ...options.keychainStore,
-    service: options.keychainStore?.service ?? DEFAULT_KEYCHAIN_SERVICE,
-    account: `${options.keychainStore?.account ?? "provider"}:${hash}`,
+    service: options.keychainStore?.service ?? defaults.service,
+    account: `${options.keychainStore?.account ?? defaults.accountPrefix}:${hash}`,
   };
 
-  return createSecretStore({
-    ...options,
-    fileStore,
-    keychainStore,
-  }).store;
+  return createSecretStore({ ...options, fileStore, keychainStore }).store;
+}
+
+function createResourceSecretStore(resource: string, options: CreateSecretStoreInput): SecretStore {
+  return createNamedSecretStore(
+    canonicalizeResourceIndicator(resource),
+    options,
+    {
+      salt: DEFAULT_FILE_SALT,
+      directory: DEFAULT_FILE_DIRECTORY,
+      service: DEFAULT_KEYCHAIN_SERVICE,
+      accountPrefix: "provider",
+    }
+  );
+}
+
+function createIssuerSecretStore(issuer: string, options: CreateSecretStoreInput): SecretStore {
+  return createNamedSecretStore(
+    issuer,
+    options,
+    {
+      salt: DEFAULT_CLIENT_FILE_SALT,
+      directory: DEFAULT_CLIENT_FILE_DIRECTORY,
+      service: DEFAULT_CLIENT_KEYCHAIN_SERVICE,
+      accountPrefix: "issuer",
+    }
+  );
 }

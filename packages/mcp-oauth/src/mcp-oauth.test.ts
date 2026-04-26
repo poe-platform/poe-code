@@ -5,6 +5,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import {
   createAuthStoreSessionStore,
   createDefaultOAuthClientProvider,
+  OAuthError,
   type OAuthClientProvider,
   type OAuthDiscoveryResult,
   type OAuthSessionStore,
@@ -59,6 +60,35 @@ function createMemorySessionStore(): OAuthSessionStore & { sessions: Map<string,
     },
     async clear(resource: string): Promise<void> {
       sessions.delete(resource);
+    },
+  };
+}
+
+type MemFsPromises = {
+  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  readdir?(path: string): Promise<string[]>;
+  writeFile(
+    path: string,
+    data: string | NodeJS.ArrayBufferView,
+    options?: { encoding?: BufferEncoding }
+  ): Promise<void>;
+  mkdir(
+    path: string,
+    options?: { recursive?: boolean }
+  ): Promise<void | string | undefined>;
+  unlink(path: string): Promise<void>;
+  chmod(path: string, mode: number): Promise<void>;
+};
+
+function createAuthStoreConfig(fs: MemFsPromises) {
+  return {
+    backend: "file" as const,
+    fileStore: {
+      fs,
+      salt: "poe-code:test:mcp-oauth:v1",
+      defaultDirectory: ".test-mcp-oauth",
+      getHomeDirectory: () => "/home/test",
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
     },
   };
 }
@@ -1045,6 +1075,563 @@ describe("createDefaultOAuthClientProvider", () => {
         refreshToken: "refresh-2",
       },
     });
+  });
+
+  it("persists dynamically registered clients in auth-store by issuer and reuses them across runs", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
+    const authStore = createAuthStoreConfig(fs);
+    const pair = createOAuthPair();
+
+    const provider1 = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "poe-code test",
+          scope: "mcp.read mcp.write",
+          softwareId: "poe-code",
+          softwareVersion: "1.0.0",
+        },
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider1, pair.fetchMock as typeof fetch);
+
+    const provider2 = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "poe-code test",
+          scope: "mcp.read mcp.write",
+          softwareId: "poe-code",
+          softwareVersion: "1.0.0",
+        },
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider2, pair.fetchMock as typeof fetch);
+
+    expect(pair.registrationBodies).toHaveLength(1);
+    expect(pair.registrationBodies[0]).toMatchObject({
+      client_name: "poe-code test",
+      redirect_uris: [expect.stringMatching(/^http:\/\/127\.0\.0\.1:\d+\/callback$/)],
+      grant_types: ["authorization_code", "refresh_token"],
+      response_types: ["code"],
+      token_endpoint_auth_method: "none",
+      scope: "mcp.read mcp.write",
+      software_id: "poe-code",
+      software_version: "1.0.0",
+    });
+    expect(pair.authorizationRequests).toHaveLength(2);
+    expect(pair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("client-1");
+    expect(pair.authorizationRequests[1]?.searchParams.get("client_id")).toBe("client-1");
+  });
+
+  it("falls back to a configured static client_id when registration_endpoint is missing", async () => {
+    const pair = createOAuthPair({
+      includeRegistrationEndpoint: false,
+    });
+    const sessionStore = createMemorySessionStore();
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(
+      provider,
+      pair.fetchMock as typeof fetch,
+      createDiscoveryResult({
+        authorizationServerMetadata: {
+          issuer: AUTHORIZATION_SERVER,
+          authorization_endpoint: AUTHORIZATION_ENDPOINT,
+          token_endpoint: TOKEN_ENDPOINT,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+        },
+      })
+    );
+
+    expect(pair.registrationBodies).toHaveLength(0);
+    expect(pair.authorizationRequests).toHaveLength(1);
+    expect(pair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("static-client");
+    expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
+      client: {
+        clientId: "static-client",
+      },
+      tokens: {
+        accessToken: "access-1",
+      },
+    });
+  });
+
+  it("prefers a configured static client_id over a stored dynamic registration when registration_endpoint is missing", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
+    const authStore = createAuthStoreConfig(fs);
+    const registrationPair = createOAuthPair();
+
+    const provider1 = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "poe-code test",
+        },
+      },
+      browser: {
+        openBrowser: registrationPair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider1, registrationPair.fetchMock as typeof fetch);
+
+    const fallbackPair = createOAuthPair({
+      includeRegistrationEndpoint: false,
+    });
+    const provider2 = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: fallbackPair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(
+      provider2,
+      fallbackPair.fetchMock as typeof fetch,
+      createDiscoveryResult({
+        authorizationServerMetadata: {
+          issuer: AUTHORIZATION_SERVER,
+          authorization_endpoint: AUTHORIZATION_ENDPOINT,
+          token_endpoint: TOKEN_ENDPOINT,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+        },
+      })
+    );
+
+    expect(fallbackPair.registrationBodies).toHaveLength(0);
+    expect(fallbackPair.authorizationRequests).toHaveLength(1);
+    expect(fallbackPair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("static-client");
+  });
+
+  it("surfaces dynamic client registration endpoint errors as OAuthError", async () => {
+    const pair = createOAuthPair();
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (input.toString() === REGISTRATION_ENDPOINT) {
+        return new Response(
+          JSON.stringify({
+            error: "invalid_client_metadata",
+            error_description: "token_endpoint_auth_method client_secret_basic is not supported",
+            error_uri: "https://errors.example.com/invalid_client_metadata",
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
+
+      return pair.fetchMock(input, init);
+    });
+
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "poe-code test",
+        },
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, {
+        status: 401,
+      }),
+      challenge: null,
+      discovery: createDiscoveryResult(),
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error).toBeInstanceOf(OAuthError);
+      expect(result.error).toMatchObject({
+        error: "invalid_client_metadata",
+        errorDescription: "token_endpoint_auth_method client_secret_basic is not supported",
+        errorUri: "https://errors.example.com/invalid_client_metadata",
+        status: 400,
+        retryable: false,
+        terminal: true,
+      });
+    }
+    expect(pair.authorizationRequests).toHaveLength(0);
+  });
+
+  it("clears a stored dynamic client after invalid_client, re-registers once, and succeeds with the new client_id", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
+    const authStore = createAuthStoreConfig(fs);
+    const pair = createOAuthPair();
+    let rejectStoredClient = false;
+    let authorizationCodeTokenAttempts = 0;
+
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      const url = input.toString();
+      if (url === TOKEN_ENDPOINT) {
+        const body = new URLSearchParams(String(init?.body ?? ""));
+        if (body.get("grant_type") === "authorization_code") {
+          authorizationCodeTokenAttempts += 1;
+        }
+        if (
+          rejectStoredClient
+          && body.get("grant_type") === "authorization_code"
+          && body.get("client_id") === "client-1"
+        ) {
+          rejectStoredClient = false;
+          return new Response(
+            JSON.stringify({
+              error: "invalid_client",
+              error_description: "stored client registration was revoked",
+              error_uri: "https://errors.example.com/invalid_client",
+            }),
+            {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+      }
+
+      return pair.fetchMock(input, init);
+    });
+
+    const provider1 = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "poe-code test",
+        },
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider1, fetchMock as typeof fetch);
+    rejectStoredClient = true;
+
+    const provider2 = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "poe-code test",
+        },
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider2, fetchMock as typeof fetch);
+
+    expect(pair.registrationBodies).toHaveLength(2);
+    expect(pair.authorizationRequests).toHaveLength(3);
+    expect(pair.authorizationRequests[1]?.searchParams.get("client_id")).toBe("client-1");
+    expect(pair.authorizationRequests[2]?.searchParams.get("client_id")).toBe("client-2");
+    expect(authorizationCodeTokenAttempts).toBe(3);
+  });
+
+  it("re-registers only once after invalid_client and then fails", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
+    const authStore = createAuthStoreConfig(fs);
+    const pair = createOAuthPair();
+    let authorizationCodeTokenAttempts = 0;
+
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      const url = input.toString();
+      if (url === TOKEN_ENDPOINT) {
+        const body = new URLSearchParams(String(init?.body ?? ""));
+        if (body.get("grant_type") === "authorization_code") {
+          authorizationCodeTokenAttempts += 1;
+          return new Response(
+            JSON.stringify({
+              error: "invalid_client",
+              error_description: `client ${body.get("client_id")} is rejected`,
+              error_uri: "https://errors.example.com/invalid_client",
+            }),
+            {
+              status: 401,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+      }
+
+      return pair.fetchMock(input, init);
+    });
+
+    const provider1 = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "poe-code test",
+        },
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider1, pair.fetchMock as typeof fetch);
+
+    const provider2 = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: {
+          clientName: "poe-code test",
+        },
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    const result = await provider2.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, {
+        status: 401,
+      }),
+      challenge: null,
+      discovery: createDiscoveryResult(),
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error).toBeInstanceOf(OAuthError);
+      expect(result.error).toMatchObject({
+        error: "invalid_client",
+        errorDescription: "client client-2 is rejected",
+        status: 401,
+        retryable: false,
+        terminal: true,
+      });
+    }
+    expect(pair.registrationBodies).toHaveLength(2);
+    expect(pair.authorizationRequests).toHaveLength(3);
+    expect(pair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("client-1");
+    expect(pair.authorizationRequests[1]?.searchParams.get("client_id")).toBe("client-1");
+    expect(pair.authorizationRequests[2]?.searchParams.get("client_id")).toBe("client-2");
+    expect(authorizationCodeTokenAttempts).toBe(2);
+  });
+
+  it("surfaces every token endpoint OAuth error code as OAuthError", async () => {
+    const cases = [
+      { error: "invalid_request", status: 400, retries: 1 },
+      { error: "invalid_client", status: 401, retries: 1 },
+      { error: "invalid_grant", status: 400, retries: 1 },
+      { error: "unauthorized_client", status: 400, retries: 1 },
+      { error: "unsupported_grant_type", status: 400, retries: 1 },
+      { error: "invalid_scope", status: 400, retries: 1 },
+      { error: "server_error", status: 500, retries: 2 },
+      { error: "temporarily_unavailable", status: 503, retries: 2 },
+    ] as const;
+
+    for (const testCase of cases) {
+      const pair = createOAuthPair();
+      let tokenAttempts = 0;
+      const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+        if (input.toString() === TOKEN_ENDPOINT) {
+          const body = new URLSearchParams(String(init?.body ?? ""));
+          if (body.get("grant_type") === "authorization_code") {
+            tokenAttempts += 1;
+            return new Response(
+              JSON.stringify({
+                error: testCase.error,
+                error_description: `${testCase.error} description`,
+                error_uri: `https://errors.example.com/${testCase.error}`,
+              }),
+              {
+                status: testCase.status,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+        }
+
+        return pair.fetchMock(input, init);
+      });
+
+      const provider = createDefaultOAuthClientProvider({
+        client: {
+          mode: "static",
+          clientId: "static-client",
+        },
+        browser: {
+          openBrowser: pair.openBrowser,
+        },
+        sessionStore: createMemorySessionStore(),
+        now: () => 10_000,
+      });
+
+      const result = await provider.handleUnauthorized({
+        requestUrl: new URL(RESOURCE_URL),
+        response: new Response(null, {
+          status: 401,
+        }),
+        challenge: null,
+        discovery: createDiscoveryResult(),
+        fetch: fetchMock as typeof fetch,
+      });
+
+      expect(result.action).toBe("fail");
+      if (result.action === "fail") {
+        expect(result.error).toBeInstanceOf(OAuthError);
+        expect(result.error).toMatchObject({
+          error: testCase.error,
+          errorDescription: `${testCase.error} description`,
+          errorUri: `https://errors.example.com/${testCase.error}`,
+          error_description: `${testCase.error} description`,
+          error_uri: `https://errors.example.com/${testCase.error}`,
+          status: testCase.status,
+        });
+      }
+      expect(tokenAttempts).toBe(testCase.retries);
+    }
+  });
+
+  it("retries transient authorization server failures once and does not retry terminal OAuth errors", async () => {
+    const transientPair = createOAuthPair();
+    let transientAttempts = 0;
+    const transientFetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (input.toString() === TOKEN_ENDPOINT) {
+        const body = new URLSearchParams(String(init?.body ?? ""));
+        if (body.get("grant_type") === "authorization_code") {
+          transientAttempts += 1;
+          if (transientAttempts === 1) {
+            return new Response(
+              JSON.stringify({
+                error: "server_error",
+                error_description: "temporary authorization server failure",
+              }),
+              {
+                status: 500,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+        }
+      }
+
+      return transientPair.fetchMock(input, init);
+    });
+
+    const transientProvider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: transientPair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(transientProvider, transientFetchMock as typeof fetch);
+    expect(transientAttempts).toBe(2);
+    expect(transientPair.authorizationRequests).toHaveLength(2);
+
+    const terminalPair = createOAuthPair();
+    let terminalAttempts = 0;
+    const terminalFetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (input.toString() === TOKEN_ENDPOINT) {
+        const body = new URLSearchParams(String(init?.body ?? ""));
+        if (body.get("grant_type") === "authorization_code") {
+          terminalAttempts += 1;
+          return new Response(
+            JSON.stringify({
+              error: "invalid_scope",
+              error_description: "requested scope is not allowed",
+            }),
+            {
+              status: 400,
+              headers: { "Content-Type": "application/json" },
+            }
+          );
+        }
+      }
+
+      return terminalPair.fetchMock(input, init);
+    });
+
+    const terminalProvider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: terminalPair.openBrowser,
+      },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    const terminalResult = await terminalProvider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, {
+        status: 401,
+      }),
+      challenge: null,
+      discovery: createDiscoveryResult(),
+      fetch: terminalFetchMock as typeof fetch,
+    });
+
+    expect(terminalResult.action).toBe("fail");
+    expect(terminalAttempts).toBe(1);
+    expect(terminalPair.authorizationRequests).toHaveLength(1);
   });
 });
 

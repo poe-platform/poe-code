@@ -365,6 +365,69 @@ describe("tiny-oauth-test-server", () => {
     expect(verified.payload.exp).toBe(verified.payload.iat! + 60);
   });
 
+  it("validates dynamic client registration requests and returns a canonical public-client response", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43140/callback";
+    const response = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        client_name: "poe-code test",
+        redirect_uris: [redirectUri],
+        grant_types: ["authorization_code", "refresh_token"],
+        response_types: ["code"],
+        token_endpoint_auth_method: "none",
+        scope: "mcp.read mcp.write",
+        software_id: "poe-code",
+        software_version: "1.0.0",
+      }),
+    });
+
+    expect(response.status).toBe(201);
+    const payload = await response.json() as Record<string, unknown>;
+
+    expect(payload).toMatchObject({
+      client_id: expect.stringMatching(/^client_\d{6}$/),
+      client_name: "poe-code test",
+      redirect_uris: [redirectUri],
+      grant_types: ["authorization_code", "refresh_token"],
+      response_types: ["code"],
+      token_endpoint_auth_method: "none",
+      scope: "mcp.read mcp.write",
+      software_id: "poe-code",
+      software_version: "1.0.0",
+    });
+    expect(typeof payload.client_id_issued_at).toBe("number");
+    expect(payload.client_secret).toBeUndefined();
+    expect(payload.client_secret_expires_at).toBeUndefined();
+  });
+
+  it("rejects unsupported token_endpoint_auth_method values during registration", async () => {
+    const { server } = await listenServer();
+    const response = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        client_name: "poe-code test",
+        redirect_uris: ["http://127.0.0.1:43141/callback"],
+        grant_types: ["authorization_code", "refresh_token"],
+        response_types: ["code"],
+        token_endpoint_auth_method: "client_secret_basic",
+        scope: "mcp.read",
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "invalid_client_metadata",
+      error_description: "token_endpoint_auth_method client_secret_basic is not supported",
+    });
+  });
+
   it("accepts a valid PKCE verifier that uses the full RFC 7636 unreserved alphabet", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43130/callback";

@@ -14,7 +14,11 @@ export class OAuthError extends Error {
   readonly error: string;
   readonly errorDescription: string | undefined;
   readonly errorUri: string | undefined;
+  readonly error_description: string | undefined;
+  readonly error_uri: string | undefined;
   readonly status: number;
+  readonly retryable: boolean;
+  readonly terminal: boolean;
 
   constructor(shape: OAuthErrorShape, status: number) {
     super(shape.error_description ?? shape.error);
@@ -22,8 +26,23 @@ export class OAuthError extends Error {
     this.error = shape.error;
     this.errorDescription = shape.error_description;
     this.errorUri = shape.error_uri;
+    this.error_description = shape.error_description;
+    this.error_uri = shape.error_uri;
     this.status = status;
+    this.retryable = isRetryableOAuthError(this);
+    this.terminal = !this.retryable;
   }
+}
+
+export function isRetryableOAuthError(error: unknown): error is OAuthError {
+  return (
+    error instanceof OAuthError
+    && (
+      error.status >= 500
+      || error.error === "server_error"
+      || error.error === "temporarily_unavailable"
+    )
+  );
 }
 
 export async function exchangeAuthorizationCode(input: {
@@ -104,11 +123,7 @@ async function requestTokens(input: {
     },
     body: body.toString(),
   });
-  const payload = await parseJsonResponse(response);
-
-  if (!response.ok) {
-    throw new OAuthError(readOAuthError(payload), response.status);
-  }
+  const payload = await readOAuthJsonObjectResponse(response);
 
   if (typeof payload.access_token !== "string" || payload.access_token.length === 0) {
     throw new Error("OAuth token response missing access_token");
@@ -137,28 +152,42 @@ async function requestTokens(input: {
   };
 }
 
-async function parseJsonResponse(response: Response): Promise<Record<string, unknown>> {
+export async function readOAuthJsonObjectResponse(
+  response: Response
+): Promise<Record<string, unknown>> {
+  const fallbackError = createFallbackOAuthError(response.status);
+  let payload: unknown;
+
   try {
-    const payload = await response.json();
-    if (typeof payload === "object" && payload !== null && !Array.isArray(payload)) {
-      return payload as Record<string, unknown>;
-    }
+    payload = await response.json();
   } catch {
     if (!response.ok) {
-      throw new Error(`OAuth request failed (${response.status})`);
+      throw fallbackError;
     }
+    throw new Error("OAuth response must be a JSON object");
   }
 
+  if (typeof payload !== "object" || payload === null || Array.isArray(payload)) {
+    if (!response.ok) {
+      throw fallbackError;
+    }
+    throw new Error("OAuth response must be a JSON object");
+  }
+
+  const record = payload as Record<string, unknown>;
   if (!response.ok) {
-    throw new Error(`OAuth request failed (${response.status})`);
+    throw new OAuthError(readOAuthError(record, fallbackError.error), response.status);
   }
 
-  throw new Error("OAuth response must be a JSON object");
+  return record;
 }
 
-function readOAuthError(payload: Record<string, unknown>): OAuthErrorShape {
+function readOAuthError(
+  payload: Record<string, unknown>,
+  fallbackError = "server_error"
+): OAuthErrorShape {
   return {
-    error: typeof payload.error === "string" ? payload.error : "server_error",
+    error: typeof payload.error === "string" ? payload.error : fallbackError,
     error_description:
       typeof payload.error_description === "string"
         ? payload.error_description
@@ -168,6 +197,11 @@ function readOAuthError(payload: Record<string, unknown>): OAuthErrorShape {
         ? payload.error_uri
         : undefined,
   };
+}
+
+function createFallbackOAuthError(status: number): OAuthError {
+  const error = status === 503 ? "temporarily_unavailable" : "server_error";
+  return new OAuthError({ error }, status);
 }
 
 function normalizeBearerTokenType(value: unknown): "Bearer" | null {

@@ -553,6 +553,37 @@ function parseJsonObjectBody(body: string): ObjectRecord {
   }
 }
 
+function requireJsonContentType(headers: Record<string, string>): void {
+  const contentType = headers["content-type"]?.split(";")[0]?.trim().toLowerCase();
+  if (contentType !== "application/json") {
+    throw new OAuthRequestError(
+      400,
+      "invalid_request",
+      "Content-Type must be application/json"
+    );
+  }
+}
+
+function normalizeRegistrationStringArray(
+  value: unknown,
+  field: string,
+  fallback: string[]
+): string[] {
+  if (value === undefined) {
+    return [...fallback];
+  }
+
+  if (!isStringArray(value) || value.length === 0) {
+    throw new OAuthRequestError(
+      400,
+      "invalid_client_metadata",
+      `${field} must be a non-empty array of strings`
+    );
+  }
+
+  return [...value];
+}
+
 function readSingleParam(params: URLSearchParams, name: string): string | null {
   const values = params.getAll(name);
   if (values.length === 0) {
@@ -832,6 +863,7 @@ export function createOAuthTestServer(
       if (method === "POST" && paths.registerPaths.includes(url.pathname)) {
         const body = await readBody(request);
         appendRequestLog(body);
+        requireJsonContentType(requestHeaders);
         const payload = parseJsonObjectBody(body);
         sendJson(response, 201, handleRegister(payload), {
           Location: paths.registerUrl,
@@ -887,30 +919,100 @@ export function createOAuthTestServer(
   }
 
   function handleRegister(payload: ObjectRecord): ObjectRecord {
-    const redirectUris = isStringArray(payload.redirect_uris) ? payload.redirect_uris : [];
+    const redirectUris = isStringArray(payload.redirect_uris) ? payload.redirect_uris : null;
+    if (redirectUris === null || redirectUris.length === 0) {
+      throw new OAuthRequestError(
+        400,
+        "invalid_redirect_uri",
+        "redirect_uris must be a non-empty array"
+      );
+    }
+
     const normalizedRedirectUris = redirectUris.map((redirectUri) =>
       parseAbsoluteUrl(redirectUri, "redirect_uris[]")
     );
-    const scope =
-      typeof payload.scope === "string" ? parseScope(payload.scope) : undefined;
+    const grantTypes = normalizeRegistrationStringArray(
+      payload.grant_types,
+      "grant_types",
+      ["authorization_code", "refresh_token"]
+    );
+    const responseTypes = normalizeRegistrationStringArray(
+      payload.response_types,
+      "response_types",
+      ["code"]
+    );
+    const tokenEndpointAuthMethod =
+      typeof payload.token_endpoint_auth_method === "string"
+        ? payload.token_endpoint_auth_method
+        : "none";
+    if (tokenEndpointAuthMethod !== "none") {
+      throw new OAuthRequestError(
+        400,
+        "invalid_client_metadata",
+        `token_endpoint_auth_method ${tokenEndpointAuthMethod} is not supported`
+      );
+    }
+
+    for (const grantType of grantTypes) {
+      if (grantType !== "authorization_code" && grantType !== "refresh_token") {
+        throw new OAuthRequestError(
+          400,
+          "invalid_client_metadata",
+          `grant_types ${grantType} is not supported`
+        );
+      }
+    }
+
+    for (const responseType of responseTypes) {
+      if (responseType !== "code") {
+        throw new OAuthRequestError(
+          400,
+          "invalid_client_metadata",
+          `response_types ${responseType} is not supported`
+        );
+      }
+    }
+
+    const scope = typeof payload.scope === "string" ? parseScope(payload.scope) : undefined;
+    const clientName =
+      typeof payload.client_name === "string" && payload.client_name.length > 0
+        ? payload.client_name
+        : undefined;
+    const softwareId =
+      typeof payload.software_id === "string" && payload.software_id.length > 0
+        ? payload.software_id
+        : undefined;
+    const softwareVersion =
+      typeof payload.software_version === "string" && payload.software_version.length > 0
+        ? payload.software_version
+        : undefined;
     const clientId = `client_${nextClientId.toString().padStart(6, "0")}`;
+    const clientIdIssuedAt = nowInSeconds();
     nextClientId += 1;
 
     registeredClients.set(clientId, {
       clientId,
       redirectUris: normalizedRedirectUris,
       scopes: scope,
-      metadata: { ...payload },
+      metadata: {
+        ...(clientName === undefined ? {} : { client_name: clientName }),
+        ...(scope === undefined ? {} : { scope: formatScope(scope) }),
+        ...(softwareId === undefined ? {} : { software_id: softwareId }),
+        ...(softwareVersion === undefined ? {} : { software_version: softwareVersion }),
+      },
     });
 
     return {
-      ...payload,
       client_id: clientId,
+      client_id_issued_at: clientIdIssuedAt,
+      ...(clientName === undefined ? {} : { client_name: clientName }),
       redirect_uris: normalizedRedirectUris,
       ...(scope === undefined ? {} : { scope: formatScope(scope) }),
-      token_endpoint_auth_method: "none",
-      grant_types: ["authorization_code", "refresh_token"],
-      response_types: ["code"],
+      token_endpoint_auth_method: tokenEndpointAuthMethod,
+      grant_types: grantTypes,
+      response_types: responseTypes,
+      ...(softwareId === undefined ? {} : { software_id: softwareId }),
+      ...(softwareVersion === undefined ? {} : { software_version: softwareVersion }),
     };
   }
 

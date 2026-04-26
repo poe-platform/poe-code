@@ -423,7 +423,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-spawn-runner
     title: toolcraft — spawn.ts detached re-exec
@@ -467,9 +467,9 @@ tasks:
 
       Reference: docs/plans/toolcraft-human-in-loop.md §3 "Re-exec details".
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: toolcraft-runner-and-approvals-commands
     title: toolcraft — runner.ts and approvals built-in commands

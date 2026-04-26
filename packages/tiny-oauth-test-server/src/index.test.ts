@@ -291,24 +291,34 @@ describe("tiny-oauth-test-server", () => {
   });
 
   it("serves RFC 8414 metadata only from the path-based well-known location for pathful issuers", async () => {
-    const issuerPort = await reservePort("127.0.0.1");
-    const issuer = `http://127.0.0.1:${issuerPort}/oauth`;
-    const server = createOAuthTestServer({
-      issuer,
-      signingKeySeed: "tiny-oauth-test-server:pathful-issuer",
-    });
-    const handle = await server.listen({ hostname: "127.0.0.1", port: issuerPort });
-    cleanups.add(handle.close);
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const issuerPort = await reservePort("127.0.0.1");
+      const issuer = `http://127.0.0.1:${issuerPort}/oauth`;
+      const server = createOAuthTestServer({
+        issuer,
+        signingKeySeed: "tiny-oauth-test-server:pathful-issuer",
+      });
 
-    const pathResponse = await nodeFetch(
-      `http://127.0.0.1:${issuerPort}/.well-known/oauth-authorization-server/oauth`
-    );
-    const rootResponse = await nodeFetch(
-      `http://127.0.0.1:${issuerPort}/.well-known/oauth-authorization-server`
-    );
+      try {
+        const handle = await server.listen({ hostname: "127.0.0.1", port: issuerPort });
+        cleanups.add(handle.close);
 
-    expect(pathResponse.status).toBe(200);
-    expect(rootResponse.status).toBe(404);
+        const pathResponse = await nodeFetch(
+          `http://127.0.0.1:${issuerPort}/.well-known/oauth-authorization-server/oauth`
+        );
+        const rootResponse = await nodeFetch(
+          `http://127.0.0.1:${issuerPort}/.well-known/oauth-authorization-server`
+        );
+
+        expect(pathResponse.status).toBe(200);
+        expect(rootResponse.status).toBe(404);
+        return;
+      } catch (error) {
+        if ((error as { code?: unknown }).code !== "EADDRINUSE" || attempt === 4) {
+          throw error;
+        }
+      }
+    }
   });
 
   it("round-trips register, authorize, and token into a verifiable JWT", async () => {

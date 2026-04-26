@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { openTaskList } from "../open.js";
 import { MalformedTaskError } from "../types.js";
 import { markdownDirBackend } from "./markdown-dir.js";
-import { createDeferred, createFs, flushMicrotasks, waitForCondition } from "./test-helpers.js";
+import { createDeferred, createFs, waitForCondition } from "./test-helpers.js";
 
 function parseFrontmatter(content: string): Record<string, unknown> {
   const lines = content.split("\n");

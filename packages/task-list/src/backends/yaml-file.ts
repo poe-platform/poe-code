@@ -18,7 +18,6 @@ import {
   type TaskUpdate
 } from "../types.js";
 import {
-  hasErrorCode,
   isRecord,
   sortStrings,
   sortTasks,

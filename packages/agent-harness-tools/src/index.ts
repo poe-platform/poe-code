@@ -8,6 +8,7 @@ export {
   selectParticipantAgent,
   type WorkflowParticipant
 } from "./participant.js";
+export { resolveLoopAgent, type ResolveLoopAgentInput } from "./select-agent.js";
 export {
   runWorkflowHook,
   type HookContext,

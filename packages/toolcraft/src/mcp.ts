@@ -10,6 +10,7 @@ import {
 import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
 
@@ -486,11 +487,10 @@ function toToolError(error: unknown): ToolError {
   return new ToolError(JSON_RPC_ERROR_CODES.INTERNAL_ERROR, String(error));
 }
 
-export function createMCPServer<TServices extends object = Record<string, unknown>>(
-  roots: Group<TServices> | Group<TServices>[],
+function createResolvedMCPServer<TServices extends object = Record<string, unknown>>(
+  root: Group<TServices>,
   options: RunMCPOptions<TServices>
 ): CmdkitServer {
-  const root = normalizeRoots(roots);
   const casing = options.casing ?? "snake";
   const services = (options.services ?? {}) as TServices;
   validateServices(services as Record<string, unknown>);
@@ -541,10 +541,61 @@ export function createMCPServer<TServices extends object = Record<string, unknow
   };
 }
 
+function createDeferredMCPServer<TServices extends object = Record<string, unknown>>(
+  root: Group<TServices>,
+  options: RunMCPOptions<TServices>
+): CmdkitServer {
+  let serverPromise: Promise<CmdkitServer> | undefined;
+
+  const resolveServer = (): Promise<CmdkitServer> => {
+    serverPromise ??= (async () => {
+      await resolveMcpProxies(root);
+      return createResolvedMCPServer(root, options);
+    })();
+
+    return serverPromise;
+  };
+
+  return new Proxy(
+    {
+      listen(): Promise<void> {
+        return resolveServer().then((server) => server.listen());
+      },
+      connect(transport: SDKTransport): Promise<void> {
+        return resolveServer().then((server) => server.connect(transport));
+      },
+    } as CmdkitServer,
+    {
+      get(target, property, receiver) {
+        if (property === "then") {
+          return resolveServer().then.bind(resolveServer());
+        }
+
+        return Reflect.get(target, property, receiver);
+      },
+    }
+  );
+}
+
+export function createMCPServer<TServices extends object = Record<string, unknown>>(
+  roots: Group<TServices> | Group<TServices>[],
+  options: RunMCPOptions<TServices>
+): CmdkitServer {
+  const root = normalizeRoots(roots);
+
+  if (!hasMcpProxyGroups(root)) {
+    return createResolvedMCPServer(root, options);
+  }
+
+  return createDeferredMCPServer(root, options);
+}
+
 export async function runMCP<TServices extends object = Record<string, unknown>>(
   roots: Group<TServices> | Group<TServices>[],
   options: RunMCPOptions<TServices>
 ): Promise<void> {
-  const server = createMCPServer(roots, options);
+  const root = normalizeRoots(roots);
+  await resolveMcpProxies(root);
+  const server = createResolvedMCPServer(root, options);
   await server.listen();
 }

@@ -290,7 +290,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: wire-resolve-into-entry-points
     title: Wire resolveMcpProxies into runCLI / runMCP / SDK constructor
@@ -319,9 +319,9 @@ tasks:
 
       Run `npm run test --workspace toolcraft` before committing.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: cli-flag-rendering-new-kinds
     title: Extend toolcraft CLI flag rendering for OneOf, Union, Record,

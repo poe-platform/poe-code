@@ -418,6 +418,10 @@ function collectProxyGroups(root: Group<any>): Group<any>[] {
   return groups;
 }
 
+export function hasMcpProxyGroups(root: Group<any>): boolean {
+  return collectProxyGroups(root).length > 0;
+}
+
 export function resolveCachePath(name: string, projectRoot?: string): string {
   if (projectRoot !== undefined) {
     return path.join(projectRoot, ".toolcraft", "mcp", `${name}.json`);

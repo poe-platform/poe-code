@@ -29,6 +29,7 @@ import type {
   Scope,
 } from "./index.js";
 import { UserError, assertCommandRequirements, getCommandSourcePath, resolveCommandSecrets } from "./index.js";
+import { resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
@@ -1856,6 +1857,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
   const root = normalizeRoots(roots, process.argv);
+  await resolveMcpProxies(root);
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;
   const requirementOptions = {

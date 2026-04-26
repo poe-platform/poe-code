@@ -2,6 +2,7 @@ import { access, readFile, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
 
@@ -388,6 +389,17 @@ export function createSDK(
   root: Group<any>,
   options: CreateSDKOptions<any> = {}
 ): Record<string, unknown> {
+  if (!hasMcpProxyGroups(root)) {
+    return createResolvedSDK(root, options);
+  }
+
+  return createDeferredSDK(root, options);
+}
+
+function createResolvedSDK(
+  root: Group<any>,
+  options: CreateSDKOptions<any> = {}
+): Record<string, unknown> {
   const services = options.services ?? {};
   void options.casing;
   validateServices(services as Record<string, unknown>);
@@ -445,4 +457,56 @@ export function createSDK(
   }
 
   return build(root) as Record<string, unknown>;
+}
+
+function createDeferredSDK(
+  root: Group<any>,
+  options: CreateSDKOptions<any>
+): Record<string, unknown> {
+  let sdkPromise: Promise<Record<string, unknown>> | undefined;
+
+  const resolveSDK = (): Promise<Record<string, unknown>> => {
+    sdkPromise ??= (async () => {
+      await resolveMcpProxies(root);
+      return createResolvedSDK(root, options);
+    })();
+
+    return sdkPromise;
+  };
+
+  const resolvePath = async (path: PropertyKey[]): Promise<unknown> => {
+    let current: unknown = await resolveSDK();
+
+    for (const segment of path) {
+      if (typeof segment !== "string" && typeof segment !== "number") {
+        return undefined;
+      }
+
+      current = (current as Record<string | number, unknown>)[segment];
+    }
+
+    return current;
+  };
+
+  const createPathProxy = (path: PropertyKey[]): unknown =>
+    new Proxy(() => undefined, {
+      apply(_target, _thisArg, argumentsList) {
+        return resolvePath(path).then((value) => {
+          if (typeof value !== "function") {
+            throw new TypeError(`SDK member "${path.map(String).join(".")}" is not callable.`);
+          }
+
+          return value(...argumentsList);
+        });
+      },
+      get(_target, property) {
+        if (property === "then") {
+          return path.length === 0 ? resolveSDK().then.bind(resolveSDK()) : undefined;
+        }
+
+        return createPathProxy([...path, property]);
+      },
+    });
+
+  return createPathProxy([]) as Record<string, unknown>;
 }

@@ -83,6 +83,7 @@
     "poe-codex": "dist/bin/poe-codex.js",
     "poe-opencode": "dist/bin/poe-opencode.js",
     "poe-agent": "dist/bin/poe-agent.js",
+    "tiny-oauth-test-server": "packages/tiny-oauth-test-server/dist/cli.js",
     "tiny-stdio-mcp-test-server": "packages/tiny-stdio-mcp-test-server/dist/cli.js"
   },
   "files": [
@@ -171,6 +172,7 @@
     "terminal-png": "*",
     "tiny-http-mcp-server": "*",
     "tiny-mcp-client": "*",
+    "tiny-oauth-test-server": "*",
     "tiny-stdio-mcp-server": "*",
     "tiny-stdio-mcp-test-server": "*",
     "tokenfill": "*",

@@ -1,0 +1,43 @@
+{
+  "name": "tiny-oauth-test-server",
+  "version": "0.1.0",
+  "description": "Spec-compliant OAuth authorization server fixture for tests and demos",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "tiny-oauth-test-server": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-oauth-test-server"
+  },
+  "license": "MIT",
+  "keywords": [
+    "oauth",
+    "oauth2",
+    "mcp",
+    "test",
+    "server"
+  ],
+  "dependencies": {
+    "jose": "^6.1.2"
+  }
+}

@@ -363,7 +363,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: tiny-oauth-test-server-package
     title: Add tiny-oauth-test-server package
@@ -447,10 +447,10 @@ tasks:
         - Authorization codes are single-use (second exchange is rejected).
         - `issueTokenFor` produces tokens that pass JWKS verification.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: tiny-http-mcp-oauth-test-server-package
     title: Add tiny-http-mcp-oauth-test-server package

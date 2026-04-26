@@ -1,7 +1,7 @@
 import path from "node:path";
 import { acquireFileLock } from "@poe-code/file-lock";
 import { parseDocument, stringify } from "yaml";
-import taskSchema from "../schema/task.schema.json";
+import taskSchema from "../schema/task.schema.json" with { type: "json" };
 import { assertTransition } from "../state.js";
 import {
   MalformedTaskError,
@@ -578,46 +578,54 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
   await ensureRootPath(deps);
 
-  return {
-    list(name: string): Tasks {
-      const listName = validateListName(name);
-      return createTasksView(deps, listName);
-    },
-    async lists(): Promise<string[]> {
-      const entries = await readDirectoryNames(deps.fs, deps.path);
-      const lists: string[] = [];
+  const list = (name: string): Tasks => {
+    const listName = validateListName(name);
+    return createTasksView(deps, listName);
+  };
 
-      for (const entryName of entries) {
-        if (
-          entryName === ARCHIVE_DIRECTORY_NAME ||
-          isHiddenEntry(entryName) ||
-          isLockFile(entryName)
-        ) {
-          continue;
-        }
+  const lists = async (): Promise<string[]> => {
+    const entries = await readDirectoryNames(deps.fs, deps.path);
+    const result: string[] = [];
 
-        const entryPath = path.join(deps.path, entryName);
-        const entryStat = await statIfExists(deps.fs, entryPath);
-        if (entryStat?.isDirectory()) {
-          lists.push(entryName);
-        }
+    for (const entryName of entries) {
+      if (
+        entryName === ARCHIVE_DIRECTORY_NAME ||
+        isHiddenEntry(entryName) ||
+        isLockFile(entryName)
+      ) {
+        continue;
       }
 
-      return sortStrings(lists);
-    },
-    async allTasks(filter?: ListFilter): Promise<Task[]> {
-      const lists = await this.lists();
-      const tasks: Task[] = [];
-
-      for (const list of lists) {
-        tasks.push(...(await this.list(list).all(filter)));
+      const entryPath = path.join(deps.path, entryName);
+      const entryStat = await statIfExists(deps.fs, entryPath);
+      if (entryStat?.isDirectory()) {
+        result.push(entryName);
       }
-
-      return sortTasks(tasks);
-    },
-    async get(qualifiedId: string): Promise<Task> {
-      const { list, id } = parseQualifiedId(qualifiedId);
-      return this.list(list).get(id);
     }
+
+    return sortStrings(result);
+  };
+
+  const allTasks = async (filter?: ListFilter): Promise<Task[]> => {
+    const allLists = await lists();
+    const tasks: Task[] = [];
+
+    for (const taskListName of allLists) {
+      tasks.push(...(await list(taskListName).all(filter)));
+    }
+
+    return sortTasks(tasks);
+  };
+
+  const get = async (qualifiedId: string): Promise<Task> => {
+    const { list: listName, id } = parseQualifiedId(qualifiedId);
+    return list(listName).get(id);
+  };
+
+  return {
+    list,
+    lists,
+    allTasks,
+    get
   };
 }

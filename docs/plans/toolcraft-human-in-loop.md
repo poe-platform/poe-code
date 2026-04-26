@@ -282,8 +282,8 @@ tasks:
       Reference: docs/plans/toolcraft-human-in-loop.md §2 "Default provider"
       and §3 "The gate — sync path".
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-gate-sync

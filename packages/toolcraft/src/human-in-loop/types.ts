@@ -1,13 +1,6 @@
+import type { HumanInLoopProvider } from "@poe-code/agent-human-in-loop";
 import type { ObjectSchema, Static } from "toolcraft-schema";
 import { UserError } from "../user-error.js";
-
-type HumanInLoopProvider = {
-  readonly id: string;
-  requestApproval(request: {
-    message: string;
-    declineInputPrompt?: string;
-  }): Promise<{ outcome: "approved" } | { outcome: "declined"; reason?: string }>;
-};
 
 type HumanInLoopTaskList = {
   list(name: string): {
@@ -73,3 +66,5 @@ export class ApprovalDeclinedError extends UserError {
     this.commandPath = options.commandPath;
   }
 }
+
+export type { HumanInLoopProvider } from "@poe-code/agent-human-in-loop";

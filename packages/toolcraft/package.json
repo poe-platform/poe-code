@@ -17,6 +17,10 @@
       "types": "./dist/mcp.d.ts",
       "import": "./dist/mcp.js"
     },
+    "./mcp-proxy": {
+      "types": "./dist/mcp-proxy.d.ts",
+      "import": "./dist/mcp-proxy.js"
+    },
     "./sdk": {
       "types": "./dist/sdk.d.ts",
       "import": "./dist/sdk.js"

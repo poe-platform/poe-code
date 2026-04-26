@@ -1,0 +1,495 @@
+import { existsSync } from "node:fs";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import path from "node:path";
+import { createLogger } from "@poe-code/design-system";
+import type { McpServerConfig } from "@poe-code/agent-mcp-config";
+import { HttpTransport, McpClient, StdioTransport } from "tiny-mcp-client";
+import type { Tool } from "tiny-mcp-client";
+import type { Command, Group, Scope } from "./index.js";
+import { convertJsonSchema } from "./json-schema-converter.js";
+import type { ObjectSchema } from "toolcraft-schema";
+
+const GROUP_CONFIG_SYMBOL_DESCRIPTION = "toolcraft.group.config";
+const MCP_PROXY_SCHEMA_URL =
+  "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json";
+const DEFAULT_CLIENT_INFO = {
+  name: "toolcraft",
+  version: "0.0.1",
+} as const;
+const proxyNodeSymbol = Symbol("toolcraft.mcpProxyNode");
+const shutdownDisposers = new Set<() => Promise<void>>();
+
+interface InternalGroupConfig<TServices extends object = Record<string, never>> {
+  mcp?: McpServerConfig;
+  tools?: string[];
+  rename?: Record<string, string>;
+  children?: Array<Command<TServices, any, any, any> | Group<TServices>>;
+}
+
+interface HotProxyConnection {
+  client?: McpClient;
+  connecting?: Promise<McpClient>;
+  config: McpServerConfig;
+  dispose: () => Promise<void>;
+  name: string;
+}
+
+interface McpProxyCache {
+  $schema: string;
+  fetchedAt: string;
+  tools: Tool[];
+  upstream: {
+    name: string;
+    version: string;
+  };
+  version: 1;
+}
+
+type GroupChild<TServices extends object = Record<string, never>> =
+  | Command<TServices, any, any, any>
+  | Group<TServices>;
+
+function getInternalGroupConfig<TServices extends object>(
+  group: Group<TServices>
+): InternalGroupConfig<TServices> {
+  const symbol = Object.getOwnPropertySymbols(group).find(
+    (candidate) => candidate.description === GROUP_CONFIG_SYMBOL_DESCRIPTION
+  );
+
+  if (symbol === undefined) {
+    return {};
+  }
+
+  return (((group as unknown) as Record<PropertyKey, unknown>)[symbol] ??
+    {}) as InternalGroupConfig<TServices>;
+}
+
+function isProxyNode(node: GroupChild<any>): boolean {
+  return (node as GroupChild<any> & { [proxyNodeSymbol]?: true })[proxyNodeSymbol] === true;
+}
+
+function markProxyNode<TNode extends GroupChild<any>>(node: TNode): TNode {
+  Object.defineProperty(node, proxyNodeSymbol, {
+    configurable: false,
+    enumerable: false,
+    value: true,
+    writable: false,
+  });
+
+  return node;
+}
+
+function cloneSecrets(secrets: Record<string, { env: string; description?: string; optional?: boolean }>) {
+  return { ...secrets };
+}
+
+function cloneScope(scope: Scope[] | undefined): Scope[] | undefined {
+  return scope === undefined ? undefined : [...scope];
+}
+
+function registerShutdownDispose(dispose: () => Promise<void>): void {
+  shutdownDisposers.add(dispose);
+}
+
+function createProxyGroup(
+  parent: Group<any>,
+  name: string
+): Group<any> {
+  return markProxyNode<Group<any>>({
+    kind: "group",
+    name,
+    description: undefined,
+    aliases: [],
+    scope: cloneScope(parent.scope),
+    secrets: cloneSecrets(parent.secrets),
+    requires: parent.requires,
+    children: [],
+    default: undefined,
+  });
+}
+
+function createProxyCommand(
+  parent: Group<any>,
+  tool: Tool,
+  commandName: string,
+  connection: HotProxyConnection
+): Command<any, ObjectSchema<any>, undefined, unknown> {
+  const params = convertJsonSchema(tool.inputSchema as Parameters<typeof convertJsonSchema>[0]);
+
+  if (params.kind !== "object") {
+    throw new Error(`upstream tool "${tool.name}" must define an object input schema`);
+  }
+
+  return markProxyNode({
+    kind: "command",
+    name: commandName,
+    description: tool.description,
+    aliases: [],
+    positional: [],
+    params,
+    secrets: cloneSecrets(parent.secrets),
+    scope: cloneScope(parent.scope) ?? (["cli", "sdk"] satisfies Scope[]),
+    confirm: false,
+    requires: parent.requires,
+    handler: async (ctx) => {
+      const client = await ensureConnected(connection);
+      return client.callTool({
+        name: tool.name,
+        arguments: ctx.params as Record<string, unknown>,
+      });
+    },
+    render: undefined,
+  });
+}
+
+function removeProxyChildren(group: Group<any>): void {
+  group.children = group.children.filter((child) => !isProxyNode(child));
+
+  for (const child of group.children) {
+    if (child.kind === "group") {
+      removeProxyChildren(child);
+    }
+  }
+}
+
+function findChild(group: Group<any>, name: string): GroupChild<any> | undefined {
+  return group.children.find((child) => child.name === name);
+}
+
+function filterAllowlistedTools(tools: Tool[], allowlist: string[] | undefined): Tool[] {
+  if (allowlist === undefined) {
+    return tools;
+  }
+
+  const allowedNames = new Set(allowlist);
+  return tools.filter((tool) => allowedNames.has(tool.name));
+}
+
+function validateRenameMap(name: string, tools: Tool[], rename: Record<string, string> | undefined): void {
+  if (rename === undefined) {
+    return;
+  }
+
+  const toolNames = new Set(tools.map((tool) => tool.name));
+
+  for (const upstreamToolName of Object.keys(rename)) {
+    if (!toolNames.has(upstreamToolName)) {
+      throw new Error(
+        `couldn't discover MCP ${name}: rename references unknown upstream tool "${upstreamToolName}"`
+      );
+    }
+  }
+}
+
+function createConnection(name: string, config: McpServerConfig): HotProxyConnection {
+  const connection: HotProxyConnection = {
+    name,
+    config,
+    async dispose(): Promise<void> {
+      connection.connecting = undefined;
+
+      if (connection.client === undefined) {
+        return;
+      }
+
+      const client = connection.client;
+      connection.client = undefined;
+      await client.close();
+    },
+  };
+
+  registerShutdownDispose(connection.dispose);
+  return connection;
+}
+
+async function ensureConnected(connection: HotProxyConnection): Promise<McpClient> {
+  if (connection.client !== undefined && connection.client.state === "ready") {
+    return connection.client;
+  }
+
+  if (connection.connecting !== undefined) {
+    return connection.connecting;
+  }
+
+  connection.connecting = dialUpstream(connection.name, connection.config)
+    .then((client) => {
+      connection.client = client;
+      return client;
+    })
+    .finally(() => {
+      connection.connecting = undefined;
+    });
+
+  return connection.connecting;
+}
+
+async function readCache(cachePath: string): Promise<McpProxyCache | undefined> {
+  try {
+    const raw = await readFile(cachePath, "utf8");
+    const parsed = JSON.parse(raw) as Partial<McpProxyCache>;
+
+    if (
+      parsed === null ||
+      typeof parsed !== "object" ||
+      !Array.isArray(parsed.tools) ||
+      parsed.upstream === undefined ||
+      typeof parsed.upstream.name !== "string" ||
+      typeof parsed.upstream.version !== "string"
+    ) {
+      return undefined;
+    }
+
+    return {
+      $schema: typeof parsed.$schema === "string" ? parsed.$schema : MCP_PROXY_SCHEMA_URL,
+      fetchedAt: typeof parsed.fetchedAt === "string" ? parsed.fetchedAt : new Date(0).toISOString(),
+      tools: parsed.tools,
+      upstream: parsed.upstream,
+      version: parsed.version === 1 ? 1 : 1,
+    };
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+
+    if (code === "ENOENT" || error instanceof SyntaxError) {
+      return undefined;
+    }
+
+    return undefined;
+  }
+}
+
+async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void> {
+  const directory = path.dirname(cachePath);
+  const tempPath = `${cachePath}.tmp`;
+
+  await mkdir(directory, { recursive: true });
+  await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`);
+  await rename(tempPath, cachePath);
+}
+
+async function fetchCache(
+  name: string,
+  config: McpServerConfig,
+  cachePath: string
+): Promise<McpProxyCache> {
+  const logger = createLogger((message) => {
+    process.stderr.write(`${message}\n`);
+  });
+  logger.info(`MCP ${name}: connecting`);
+  const client = await dialUpstream(name, config);
+
+  try {
+    logger.info(`MCP ${name}: listing tools`);
+
+    const tools: Tool[] = [];
+    let cursor: string | undefined;
+
+    do {
+      const page = await client.listTools(cursor === undefined ? {} : { cursor });
+      tools.push(...page.tools);
+      cursor = page.nextCursor;
+    } while (cursor !== undefined);
+
+    logger.info(`MCP ${name}: found ${tools.length} tools`);
+
+    const upstream = client.serverInfo ?? {
+      name,
+      version: "unknown",
+    };
+    const cache: McpProxyCache = {
+      $schema: MCP_PROXY_SCHEMA_URL,
+      version: 1,
+      upstream,
+      fetchedAt: new Date().toISOString(),
+      tools,
+    };
+
+    await writeCache(cachePath, cache);
+    logger.info(`MCP ${name}: wrote ${cachePath}`);
+
+    return cache;
+  } finally {
+    await client.close();
+  }
+}
+
+function populateGroupFromTools(
+  group: Group<any>,
+  tools: Tool[],
+  rename: Record<string, string> | undefined,
+  connection: HotProxyConnection
+): void {
+  removeProxyChildren(group);
+
+  for (const tool of tools) {
+    const targetPath = rename?.[tool.name] ?? tool.name;
+    const segments =
+      rename !== undefined && Object.prototype.hasOwnProperty.call(rename, tool.name)
+        ? targetPath.split(".")
+        : [tool.name];
+    const commandName = segments[segments.length - 1];
+
+    if (commandName === undefined || commandName.length === 0) {
+      throw new Error(`command path "${targetPath}" collides with an existing child`);
+    }
+
+    let parent = group;
+
+    for (const segment of segments.slice(0, -1)) {
+      const existing = findChild(parent, segment);
+
+      if (existing === undefined) {
+        const created = createProxyGroup(parent, segment);
+        parent.children.push(created);
+        parent = created;
+        continue;
+      }
+
+      if (existing.kind !== "group") {
+        throw new Error(`command path "${targetPath}" collides with an existing child`);
+      }
+
+      parent = existing;
+    }
+
+    if (findChild(parent, commandName) !== undefined) {
+      throw new Error(`command path "${targetPath}" collides with an existing child`);
+    }
+
+    parent.children.push(createProxyCommand(parent, tool, commandName, connection));
+  }
+}
+
+function isRefreshRequested(name: string, refresh: "all" | Set<string> | undefined): boolean {
+  if (refresh === "all") {
+    return true;
+  }
+
+  return refresh?.has(name) === true;
+}
+
+async function resolveSingleProxy(group: Group<any>): Promise<void> {
+  const internal = getInternalGroupConfig(group);
+  const config = internal.mcp;
+
+  if (config === undefined) {
+    return;
+  }
+
+  const name = group.name;
+
+  try {
+    const cachePath = resolveCachePath(name);
+    const refresh = parseRefreshEnv(process.env.TOOLCRAFT_MCP_REFRESH);
+    const cache =
+      isRefreshRequested(name, refresh)
+        ? await fetchCache(name, config, cachePath)
+        : ((await readCache(cachePath)) ?? (await fetchCache(name, config, cachePath)));
+    const tools = filterAllowlistedTools(cache.tools, internal.tools);
+
+    validateRenameMap(name, tools, internal.rename);
+    populateGroupFromTools(group, tools, internal.rename, createConnection(name, config));
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith(`couldn't discover MCP ${name}:`)) {
+      throw error;
+    }
+
+    throw new Error(
+      `couldn't discover MCP ${name}: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
+
+function collectProxyGroups(root: Group<any>): Group<any>[] {
+  const groups: Group<any>[] = [];
+
+  function visit(group: Group<any>): void {
+    if (getInternalGroupConfig(group).mcp !== undefined) {
+      groups.push(group);
+    }
+
+    for (const child of group.children) {
+      if (child.kind === "group") {
+        visit(child);
+      }
+    }
+  }
+
+  visit(root);
+  return groups;
+}
+
+export function resolveCachePath(name: string, projectRoot?: string): string {
+  if (projectRoot !== undefined) {
+    return path.join(projectRoot, ".toolcraft", "mcp", `${name}.json`);
+  }
+
+  let current = process.cwd();
+
+  while (true) {
+    if (existsSync(path.join(current, "package.json"))) {
+      return path.join(current, ".toolcraft", "mcp", `${name}.json`);
+    }
+
+    const parent = path.dirname(current);
+
+    if (parent === current) {
+      throw new Error(
+        `Could not find package.json above "${process.cwd()}" while resolving MCP cache path.`
+      );
+    }
+
+    current = parent;
+  }
+}
+
+export function parseRefreshEnv(
+  value: string | undefined
+): "all" | Set<string> | undefined {
+  const trimmed = value?.trim();
+
+  if (trimmed === undefined || trimmed.length === 0) {
+    return undefined;
+  }
+
+  if (trimmed === "1" || trimmed === "true") {
+    return "all";
+  }
+
+  const names = trimmed
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+
+  return names.length === 0 ? undefined : new Set(names);
+}
+
+export async function dialUpstream(
+  name: string,
+  config: McpServerConfig
+): Promise<McpClient> {
+  const client = new McpClient({
+    clientInfo: {
+      name: `${DEFAULT_CLIENT_INFO.name}-${name}`,
+      version: DEFAULT_CLIENT_INFO.version,
+    },
+  });
+  const transport =
+    config.transport === "stdio"
+      ? new StdioTransport({
+          command: config.command,
+          ...(config.args === undefined ? {} : { args: config.args }),
+          ...(config.env === undefined ? {} : { env: config.env }),
+        })
+      : new HttpTransport({
+          url: config.url,
+          ...(config.headers === undefined ? {} : { headers: config.headers }),
+        });
+
+  await client.connect(transport);
+  return client;
+}
+
+export async function resolveMcpProxies(root: Group<any>): Promise<void> {
+  const groups = collectProxyGroups(root);
+  await Promise.all(groups.map((group) => resolveSingleProxy(group)));
+}

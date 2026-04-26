@@ -170,7 +170,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: mcp-proxy-runtime-core
     title: Implement mcp-proxy runtime in toolcraft (no entry-point wiring yet)
@@ -288,8 +288,8 @@ tasks:
       Run `npm run test --workspace toolcraft -- mcp-proxy` before committing.
       Existing toolcraft tests must continue to pass.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: wire-resolve-into-entry-points

@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { superintendentMcpGroup } from "./commands/index.js";
 import type { SuperintendentDoc } from "./document/parse.js";
+import type { parseSuperintendentDoc } from "./document/parse.js";
 import { createWorkflowTool } from "./runtime/workflow-tool.js";
 import { createBuilderTool, createInspectorTool } from "./runtime/agentic-tools.js";
-import type { SuperintendentToolsPayload } from "./mcp.js";
+import type { runBuilder } from "./runtime/run-builder.js";
+import type { runInspector } from "./runtime/run-inspector.js";
+import type { McpRunners, SuperintendentToolsPayload } from "./mcp.js";
 
 const {
   createMCPServerMock,
@@ -11,10 +15,6 @@ const {
   mcpListenMock,
   serverListenMock,
   serverToolMock,
-  superintendentMcpGroupMock,
-  runBuilderMock,
-  runInspectorMock,
-  parseSuperintendentDocMock,
   readFileMock
 } = vi.hoisted(() => {
   const mcpListenMock = vi.fn<() => Promise<void>>();
@@ -42,13 +42,23 @@ const {
     mcpListenMock,
     serverListenMock,
     serverToolMock,
-    superintendentMcpGroupMock: { name: "superintendent" },
-    runBuilderMock: vi.fn(),
-    runInspectorMock: vi.fn(),
-    parseSuperintendentDocMock: vi.fn(),
     readFileMock: vi.fn()
   };
 });
+
+const superintendentMcpGroupSentinel = {
+  name: "superintendent"
+} as unknown as typeof superintendentMcpGroup;
+const runBuilderMock = vi.fn<typeof runBuilder>();
+const runInspectorMock = vi.fn<typeof runInspector>();
+const parseSuperintendentDocMock = vi.fn<typeof parseSuperintendentDoc>();
+
+const runners: McpRunners = {
+  superintendentMcpGroup: superintendentMcpGroupSentinel,
+  runBuilder: runBuilderMock,
+  runInspector: runInspectorMock,
+  parseSuperintendentDoc: parseSuperintendentDocMock
+};
 
 const originalArgv = [...process.argv];
 
@@ -62,22 +72,6 @@ vi.mock("toolcraft/mcp", () => ({
 
 vi.mock("tiny-stdio-mcp-server", () => ({
   createServer: createServerMock
-}));
-
-vi.mock("./commands/index.js", () => ({
-  superintendentMcpGroup: superintendentMcpGroupMock
-}));
-
-vi.mock("./runtime/run-builder.js", () => ({
-  runBuilder: runBuilderMock
-}));
-
-vi.mock("./runtime/run-inspector.js", () => ({
-  runInspector: runInspectorMock
-}));
-
-vi.mock("./document/parse.js", () => ({
-  parseSuperintendentDoc: parseSuperintendentDocMock
 }));
 
 vi.mock("node:fs/promises", () => ({
@@ -117,10 +111,10 @@ describe("superintendent MCP entry point", () => {
   it("starts toolcraft MCP with the superintendent MCP command group", async () => {
     const { main } = await import("./mcp.js");
 
-    await main();
+    await main(undefined, { runners });
 
     expect(createMCPServerMock).toHaveBeenCalledTimes(1);
-    expect(createMCPServerMock).toHaveBeenCalledWith([superintendentMcpGroupMock], {
+    expect(createMCPServerMock).toHaveBeenCalledWith([superintendentMcpGroupSentinel], {
       name: "superintendent",
       version: "0.0.1"
     });
@@ -136,7 +130,7 @@ describe("superintendent MCP entry point", () => {
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
       encodePayload(PAYLOAD)
-    ]);
+    ], { runners });
 
     expect(createMCPServerMock).not.toHaveBeenCalled();
     expect(mcpListenMock).not.toHaveBeenCalled();
@@ -182,7 +176,7 @@ describe("superintendent MCP entry point", () => {
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
       encodePayload(PAYLOAD)
-    ]);
+    ], { runners });
 
     const workflowHandler = serverToolMock.mock.calls[0]?.[3] as (
       input: unknown
@@ -213,7 +207,7 @@ describe("superintendent MCP entry point", () => {
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
       encodePayload(PAYLOAD)
-    ]);
+    ], { runners });
 
     const builderHandler = serverToolMock.mock.calls[1]?.[3] as (
       input: unknown
@@ -256,7 +250,7 @@ describe("superintendent MCP entry point", () => {
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
       encodePayload(PAYLOAD)
-    ]);
+    ], { runners });
 
     const inspectorHandler = serverToolMock.mock.calls[2]?.[3] as (
       input: unknown
@@ -288,7 +282,7 @@ describe("superintendent MCP entry point", () => {
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
       encodePayload(PAYLOAD)
-    ]);
+    ], { runners });
 
     const inspectorHandler = serverToolMock.mock.calls[2]?.[3] as (
       input: unknown
@@ -308,7 +302,7 @@ describe("superintendent MCP entry point", () => {
         "/repo/packages/superintendent/dist/mcp.js",
         "superintendent-tools",
         "not-base64"
-      ])
+      ], { runners })
     ).rejects.toThrow("Invalid superintendent-tools payload");
     expect(createMCPServerMock).not.toHaveBeenCalled();
     expect(mcpListenMock).not.toHaveBeenCalled();
@@ -326,7 +320,7 @@ describe("superintendent MCP entry point", () => {
       "/repo/packages/superintendent/dist/mcp.js",
       "workflow-transition",
       encodedTool
-    ]);
+    ], { runners });
 
     expect(createMCPServerMock).not.toHaveBeenCalled();
     expect(mcpListenMock).not.toHaveBeenCalled();
@@ -355,7 +349,7 @@ describe("superintendent MCP entry point", () => {
       "/repo/packages/superintendent/dist/mcp.js",
       "workflow-transition",
       encodedTool
-    ]);
+    ], { runners });
 
     const handler = serverToolMock.mock.calls[0]?.[3] as (input: unknown) => Promise<unknown>;
 
@@ -381,7 +375,7 @@ describe("superintendent MCP entry point", () => {
         "/repo/packages/superintendent/dist/mcp.js",
         "workflow-transition",
         "not-base64"
-      ])
+      ], { runners })
     ).rejects.toThrow("Invalid workflow-transition payload");
     expect(createMCPServerMock).not.toHaveBeenCalled();
     expect(createServerMock).not.toHaveBeenCalled();
@@ -399,9 +393,10 @@ describe("superintendent MCP entry point", () => {
     isDirectExecutionMock.mockResolvedValue(true);
 
     await import("./mcp.js");
+    const { superintendentMcpGroup } = await import("./commands/index.js");
 
     expect(createMCPServerMock).toHaveBeenCalledTimes(1);
-    expect(createMCPServerMock).toHaveBeenCalledWith([superintendentMcpGroupMock], {
+    expect(createMCPServerMock).toHaveBeenCalledWith([superintendentMcpGroup], {
       name: "superintendent",
       version: "0.0.1"
     });

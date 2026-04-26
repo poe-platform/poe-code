@@ -87,6 +87,13 @@ export type LoopCallbacks = {
   shouldStop?: () => boolean;
 };
 
+export type LoopRunners = {
+  builder?: typeof runBuilder;
+  inspector?: typeof runInspector;
+  superintendent?: typeof runSuperintendent;
+  ownerReview?: typeof runOwnerReview;
+};
+
 export type RunLoopOptions = {
   docPath: string;
   cwd: string;
@@ -94,8 +101,16 @@ export type RunLoopOptions = {
   fs?: SuperintendentFileSystem;
   callbacks?: LoopCallbacks;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  runners?: LoopRunners;
   signal?: AbortSignal;
   logDir?: string;
+};
+
+type ResolvedRunners = {
+  builder: typeof runBuilder;
+  inspector: typeof runInspector;
+  superintendent: typeof runSuperintendent;
+  ownerReview: typeof runOwnerReview;
 };
 
 type LoopRuntime = {
@@ -105,6 +120,7 @@ type LoopRuntime = {
   fs: SuperintendentFileSystem;
   callbacks: LoopCallbacks;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  runners: ResolvedRunners;
   signal?: AbortSignal;
   logDir?: string;
 };
@@ -169,7 +185,7 @@ export async function runLoop(
 
           let builderResult: BuilderResult;
           try {
-            builderResult = await runBuilder(
+            builderResult = await options.runners.builder(
               await readDocument(options.fs, options.docPath),
               createTemplateContext(context),
               buildRoleOptions(options, "builder")
@@ -208,7 +224,7 @@ export async function runLoop(
 
             let inspectorResult: InspectorResult;
             try {
-              inspectorResult = await runInspector(
+              inspectorResult = await options.runners.inspector(
                 name,
                 config,
                 await readDocument(options.fs, options.docPath),
@@ -325,7 +341,7 @@ export async function runLoop(
         const ownerSnapshot = await readDocumentContent(options.fs, options.docPath);
         let ownerResult: OwnerResult;
         try {
-          ownerResult = await runOwnerReview(
+          ownerResult = await options.runners.ownerReview(
             await readDocument(options.fs, options.docPath),
             createTemplateContext(context),
             buildRoleOptions(options, "owner")
@@ -386,6 +402,7 @@ function normalizeOptions(input: string | RunLoopOptions, callbacks?: LoopCallba
       homeDir: input.homeDir,
       fs: input.fs ?? createDefaultFs(),
       callbacks: input.callbacks ?? {},
+      runners: resolveRunners(input.runners),
       ...(input.runAgent ? { runAgent: input.runAgent } : {}),
       ...(input.signal ? { signal: input.signal } : {}),
       ...(input.logDir ? { logDir: input.logDir } : {})
@@ -400,7 +417,17 @@ function normalizeOptions(input: string | RunLoopOptions, callbacks?: LoopCallba
     cwd,
     homeDir,
     fs: createDefaultFs(),
-    callbacks: callbacks ?? {}
+    callbacks: callbacks ?? {},
+    runners: resolveRunners()
+  };
+}
+
+function resolveRunners(overrides?: LoopRunners): ResolvedRunners {
+  return {
+    builder: overrides?.builder ?? runBuilder,
+    inspector: overrides?.inspector ?? runInspector,
+    superintendent: overrides?.superintendent ?? runSuperintendent,
+    ownerReview: overrides?.ownerReview ?? runOwnerReview
   };
 }
 
@@ -540,7 +567,7 @@ async function executeSuperintendent(
   const snapshot = await readDocumentContent(options.fs, options.docPath);
   try {
     const doc = await readDocument(options.fs, options.docPath);
-    const result = await runSuperintendent(
+    const result = await options.runners.superintendent(
       doc,
       createTemplateContext(context),
       buildRoleOptions(options, "superintendent")

@@ -167,31 +167,40 @@ export const runCommand = defineCommand({
   }
 });
 
-export const runMcpCommand = defineCommand({
-  name: "run",
-  description: "Run the full superintendent loop without the dashboard UI.",
-  positional: ["doc"],
-  params: runParams,
-  scope: ["mcp"],
-  handler: async ({ params }) => {
-    const cwd = process.cwd();
-    const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
-    const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
+export type RunMcpCommandRunners = {
+  runLoop?: (options: RunLoopOptions) => Promise<SuperintendentRunResult>;
+};
 
-    return runSuperintendentCommand({
-      cwd,
-      homeDir,
-      docPath: params.doc,
-      ...(params.agent ? { builderAgent: params.agent } : {}),
-      assumeYes: true,
-      interactive: false,
-      useDashboard: false,
-      env: process.env,
-      ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
-    });
-  },
-  render: runCommand.render
-});
+export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
+  return defineCommand({
+    name: "run",
+    description: "Run the full superintendent loop without the dashboard UI.",
+    positional: ["doc"],
+    params: runParams,
+    scope: ["mcp"],
+    handler: async ({ params }) => {
+      const cwd = process.cwd();
+      const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
+      const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
+
+      return runSuperintendentCommand({
+        cwd,
+        homeDir,
+        docPath: params.doc,
+        ...(params.agent ? { builderAgent: params.agent } : {}),
+        assumeYes: true,
+        interactive: false,
+        useDashboard: false,
+        env: process.env,
+        ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
+        ...(runners?.runLoop ? { runLoop: runners.runLoop } : {})
+      });
+    },
+    render: runCommand.render
+  });
+}
+
+export const runMcpCommand = createRunMcpCommand();
 
 async function resolveSuperintendentCommandConfig(
   cwd: string,

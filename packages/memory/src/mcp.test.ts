@@ -1,25 +1,31 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { listPages, readPage } from "./pages.js";
+import type { searchMemory } from "./search.js";
+import type { statusOf } from "./status.js";
+import type { appendToPage } from "./write.js";
+import { printMcpConfig, startMemoryMcpServer, type MemoryMcpRunners } from "./mcp.js";
 
-const listPages = vi.fn();
-const readPage = vi.fn();
-const searchMemory = vi.fn();
-const statusOf = vi.fn();
-const appendToPage = vi.fn();
+const listPagesMock = vi.fn<typeof listPages>();
+const readPageMock = vi.fn<typeof readPage>();
+const searchMemoryMock = vi.fn<typeof searchMemory>();
+const statusOfMock = vi.fn<typeof statusOf>();
+const appendToPageMock = vi.fn<typeof appendToPage>();
 
-vi.mock("./pages.js", () => ({ listPages, readPage }));
-vi.mock("./search.js", () => ({ searchMemory }));
-vi.mock("./status.js", () => ({ statusOf }));
-vi.mock("./write.js", () => ({ appendToPage }));
-
-const { printMcpConfig, startMemoryMcpServer } = await import("./mcp.js");
+const runners: MemoryMcpRunners = {
+  listPages: listPagesMock,
+  readPage: readPageMock,
+  searchMemory: searchMemoryMock,
+  statusOf: statusOfMock,
+  appendToPage: appendToPageMock
+};
 
 describe("memory MCP helpers", () => {
   beforeEach(() => {
-    listPages.mockReset();
-    readPage.mockReset();
-    searchMemory.mockReset();
-    statusOf.mockReset();
-    appendToPage.mockReset();
+    listPagesMock.mockReset();
+    readPageMock.mockReset();
+    searchMemoryMock.mockReset();
+    statusOfMock.mockReset();
+    appendToPageMock.mockReset();
   });
 
   it("prints the expected stdio MCP config snippet", () => {
@@ -35,7 +41,10 @@ describe("memory MCP helpers", () => {
   });
 
   it("hides append_to_page when writes are disabled", async () => {
-    const { server } = await startMemoryMcpServer({ root: "/repo/.poe-code/memory", allowWrites: false });
+    const { server } = await startMemoryMcpServer(
+      { root: "/repo/.poe-code/memory", allowWrites: false },
+      runners
+    );
     await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
     const result = await server.handleMessage("tools/list");
     expect(result.error).toBeUndefined();
@@ -53,7 +62,10 @@ describe("memory MCP helpers", () => {
   });
 
   it("advertises append_to_page when writes are enabled", async () => {
-    const { server } = await startMemoryMcpServer({ root: "/repo/.poe-code/memory", allowWrites: true });
+    const { server } = await startMemoryMcpServer(
+      { root: "/repo/.poe-code/memory", allowWrites: true },
+      runners
+    );
     await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
     const result = await server.handleMessage("tools/list");
     expect((result.result as { tools: Array<{ name: string }> }).tools).toEqual(

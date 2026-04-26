@@ -104,34 +104,33 @@ describe("supportedAgents", () => {
 });
 
 describe("resolveAgentSupport", () => {
+  const claudeConfig = { globalSkillDir: "/test/global/claude", localSkillDir: "test/local/claude" };
+  const gooseConfig = { globalSkillDir: "/test/global/goose", localSkillDir: "test/local/goose" };
+  const fixtureRegistry = { "claude-code": claudeConfig, goose: gooseConfig };
+
   it("returns supported for direct agent id", () => {
-    const result = resolveAgentSupport("claude-code");
+    const result = resolveAgentSupport("claude-code", fixtureRegistry);
     expect(result.status).toBe("supported");
     expect(result.id).toBe("claude-code");
-    expect(result.config).toEqual({
-      globalSkillDir: "~/.claude/skills",
-      localSkillDir: ".claude/skills"
-    });
+    expect(result.config).toBe(claudeConfig);
   });
 
   it("returns supported for aliases resolved via resolveAgentId", () => {
-    const result = resolveAgentSupport("CLAUDE");
+    const result = resolveAgentSupport("CLAUDE", fixtureRegistry);
     expect(result.status).toBe("supported");
     expect(result.id).toBe("claude-code");
+    expect(result.config).toBe(claudeConfig);
   });
 
   it("returns supported for goose", () => {
-    const result = resolveAgentSupport("goose");
+    const result = resolveAgentSupport("goose", fixtureRegistry);
     expect(result.status).toBe("supported");
     expect(result.id).toBe("goose");
-    expect(result.config).toEqual({
-      globalSkillDir: "~/.agents/skills",
-      localSkillDir: ".agents/skills"
-    });
+    expect(result.config).toBe(gooseConfig);
   });
 
   it("returns unknown when no agent matches", () => {
-    const result = resolveAgentSupport("unknown");
+    const result = resolveAgentSupport("unknown", fixtureRegistry);
     expect(result).toEqual({ status: "unknown", input: "unknown" });
   });
 });

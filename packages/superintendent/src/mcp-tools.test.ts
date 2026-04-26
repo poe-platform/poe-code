@@ -1,20 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { fs, vol } from "memfs";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
-
-const {
-  runAllInspectorsMock,
-  runBuilderMock,
-  runInspectorMock,
-  runLoopMock
-} = vi.hoisted(() => {
-  return {
-    runLoopMock: vi.fn(),
-    runBuilderMock: vi.fn(),
-    runInspectorMock: vi.fn(),
-    runAllInspectorsMock: vi.fn()
-  };
-});
+import { createMCPServer } from "toolcraft/mcp";
+import { createSuperintendentMcpGroup } from "./commands/index.js";
+import type { runLoop } from "./runtime/loop.js";
+import type { runBuilder } from "./runtime/run-builder.js";
+import type { runAllInspectors, runInspector } from "./runtime/run-inspector.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -32,18 +23,10 @@ vi.mock("node:fs/promises", async () => {
   };
 });
 
-vi.mock("./runtime/loop.js", () => ({
-  runLoop: runLoopMock
-}));
-
-vi.mock("./runtime/run-builder.js", () => ({
-  runBuilder: runBuilderMock
-}));
-
-vi.mock("./runtime/run-inspector.js", () => ({
-  runAllInspectors: runAllInspectorsMock,
-  runInspector: runInspectorMock
-}));
+const runLoopMock = vi.fn<typeof runLoop>();
+const runBuilderMock = vi.fn<typeof runBuilder>();
+const runInspectorMock = vi.fn<typeof runInspector>();
+const runAllInspectorsMock = vi.fn<typeof runAllInspectors>();
 
 const EXPECTED_TOOL_NAMES = [
   "superintendent__run",
@@ -122,16 +105,23 @@ describe("superintendent MCP tool surface", () => {
         summary: "Inspector completed"
       }
     ]);
-    vi.resetModules();
   });
 
-  it("starts the MCP server without errors", async () => {
-    const { createMCPServer } = await import("toolcraft/mcp");
-    const { superintendentMcpGroup } = await import("./commands/index.js");
-    const server = createMCPServer([superintendentMcpGroup], {
+  function buildServer() {
+    const group = createSuperintendentMcpGroup({
+      runLoop: runLoopMock,
+      runBuilder: runBuilderMock,
+      runInspector: runInspectorMock,
+      runAllInspectors: runAllInspectorsMock
+    });
+    return createMCPServer([group], {
       name: "superintendent",
       version: "0.0.1"
     });
+  }
+
+  it("starts the MCP server without errors", async () => {
+    const server = buildServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
       new McpClient({
         clientInfo: {
@@ -152,12 +142,7 @@ describe("superintendent MCP tool surface", () => {
   }, 15_000);
 
   it("lists the expected superintendent MCP tool names", async () => {
-    const { createMCPServer } = await import("toolcraft/mcp");
-    const { superintendentMcpGroup } = await import("./commands/index.js");
-    const server = createMCPServer([superintendentMcpGroup], {
-      name: "superintendent",
-      version: "0.0.1"
-    });
+    const server = buildServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
       new McpClient({
         clientInfo: {
@@ -178,12 +163,7 @@ describe("superintendent MCP tool surface", () => {
   });
 
   it("exposes all superintendent commands through MCP", async () => {
-    const { createMCPServer } = await import("toolcraft/mcp");
-    const { superintendentMcpGroup } = await import("./commands/index.js");
-    const server = createMCPServer([superintendentMcpGroup], {
-      name: "superintendent",
-      version: "0.0.1"
-    });
+    const server = buildServer();
     const { client, cleanup } = await createSdkTestPair(server, () =>
       new McpClient({
         clientInfo: {

@@ -10,6 +10,7 @@ import {
   renderLabelDocument
 } from "../tools/label-generator.js";
 import { createPromptLibrary } from "./prompts.js";
+import { DEFAULT_REASONING } from "./constants.js";
 import { createLoggerFactory } from "./logger.js";
 import { createMutationReporter } from "../services/mutation-events.js";
 import { createCliContainer } from "./container.js";
@@ -181,10 +182,10 @@ describe("prompt library", () => {
     const library = createPromptLibrary();
     const descriptor = library.reasoningEffort({
       label: "Codex reasoning effort",
-      defaultValue: "medium"
+      defaultValue: DEFAULT_REASONING
     });
     expect(descriptor.message).toBe("Codex reasoning effort");
-    expect(descriptor.initial).toBe("medium");
+    expect(descriptor.initial).toBe(DEFAULT_REASONING);
   });
 });
 

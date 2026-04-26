@@ -7,6 +7,7 @@ import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createProviderStub } from "../../../tests/provider-stub.js";
 import type { AuthProvider } from "@poe-code/providers";
 import type { FileSystem } from "../../utils/file-system.js";
+import { PROVIDER_NAME } from "../constants.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -65,7 +66,7 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(), container, "claude-code", {});
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
-    expect(services["claude-code"]?.provider).toBe("poe");
+    expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
   });
 
   it("prompts when >1 eligible providers are logged in", async () => {
@@ -113,7 +114,7 @@ describe("configure provider resolution", () => {
       expect.any(Object)
     );
     const services = await loadConfiguredServices({ fs, filePath: configPath });
-    expect(services["claude-code"]?.provider).toBe("poe");
+    expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
   });
 
   it("prompts to pick a provider then triggers login when none logged in", async () => {
@@ -245,7 +246,7 @@ describe("configure provider resolution", () => {
     });
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
-    expect(services["claude-code"]?.provider).toBe("poe");
+    expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
   });
 
   it("errors when --yes is given with >1 eligible providers and no flag or env", async () => {

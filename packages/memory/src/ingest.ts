@@ -12,7 +12,41 @@ export const INGEST_PROMPT_VERSION = "v1";
 
 type SpawnResult = { exitCode: number; durationMs: number };
 
-export async function ingest(root: MemoryRoot, opts: IngestOptions): Promise<IngestResult> {
+export type IngestRunners = {
+  computeIngestKey?: typeof computeIngestKey;
+  readCacheEntry?: typeof readCacheEntry;
+  writeCacheEntry?: typeof writeCacheEntry;
+  computeTokenStats?: typeof computeTokenStats;
+  snapshot?: typeof snapshot;
+  reconcile?: typeof reconcile;
+};
+
+type ResolvedIngestRunners = {
+  computeIngestKey: typeof computeIngestKey;
+  readCacheEntry: typeof readCacheEntry;
+  writeCacheEntry: typeof writeCacheEntry;
+  computeTokenStats: typeof computeTokenStats;
+  snapshot: typeof snapshot;
+  reconcile: typeof reconcile;
+};
+
+function resolveRunners(overrides?: IngestRunners): ResolvedIngestRunners {
+  return {
+    computeIngestKey: overrides?.computeIngestKey ?? computeIngestKey,
+    readCacheEntry: overrides?.readCacheEntry ?? readCacheEntry,
+    writeCacheEntry: overrides?.writeCacheEntry ?? writeCacheEntry,
+    computeTokenStats: overrides?.computeTokenStats ?? computeTokenStats,
+    snapshot: overrides?.snapshot ?? snapshot,
+    reconcile: overrides?.reconcile ?? reconcile
+  };
+}
+
+export async function ingest(
+  root: MemoryRoot,
+  opts: IngestOptions,
+  runners?: IngestRunners
+): Promise<IngestResult> {
+  const resolved = resolveRunners(runners);
   const source = await materializeSource(opts.source);
   const indexMdBytes = await fs.readFile(path.join(root, MEMORY_INDEX_RELPATH));
   const configOptions = {
@@ -21,7 +55,7 @@ export async function ingest(root: MemoryRoot, opts: IngestOptions): Promise<Ing
   } satisfies MemoryConfigOptions;
   const agentId =
     (await resolveAgent(configOptions, opts.agent ?? null)) ?? opts.agent ?? "claude-code";
-  const key = computeIngestKey({
+  const key = resolved.computeIngestKey({
     sourceBytes: source.bytes,
     indexMdBytes,
     promptTemplateVersion: INGEST_PROMPT_VERSION,
@@ -29,14 +63,14 @@ export async function ingest(root: MemoryRoot, opts: IngestOptions): Promise<Ing
   });
 
   if (!opts.force && (await cacheEnabled(configOptions))) {
-    const hit = await readCacheEntry(root, key);
+    const hit = await resolved.readCacheEntry(root, key);
     if (hit !== null) {
       return {
         diff: { created: [], updated: [], deleted: [] },
         exitCode: 0,
         durationMs: 0,
         cacheHit: true,
-        tokens: await computeTokenStats(root)
+        tokens: await resolved.computeTokenStats(root)
       };
     }
   }
@@ -49,11 +83,11 @@ export async function ingest(root: MemoryRoot, opts: IngestOptions): Promise<Ing
       exitCode: 0,
       durationMs: 0,
       cacheHit: false,
-      tokens: await computeTokenStats(root)
+      tokens: await resolved.computeTokenStats(root)
     };
   }
 
-  const before = await snapshot(root);
+  const before = await resolved.snapshot(root);
 
   let exitCode = 1;
   let durationMs = 0;
@@ -71,15 +105,15 @@ export async function ingest(root: MemoryRoot, opts: IngestOptions): Promise<Ing
     timeoutError = error instanceof Error ? error : new Error(String(error));
   }
 
-  const diff = await reconcile(root, before, "ingest", opts.reason ?? `ingest ${source.label}`);
-  const tokens = await computeTokenStats(root);
+  const diff = await resolved.reconcile(root, before, "ingest", opts.reason ?? `ingest ${source.label}`);
+  const tokens = await resolved.computeTokenStats(root);
 
   if (timeoutError !== undefined) {
     throw timeoutError;
   }
 
   if (!opts.noCacheWrite && (await cacheEnabled(configOptions)) && exitCode === 0) {
-    await writeCacheEntry(root, {
+    await resolved.writeCacheEntry(root, {
       key,
       ingestedAt: new Date().toISOString(),
       sourceLabel: source.label,

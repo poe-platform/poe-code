@@ -2,12 +2,25 @@ import { S, UserError, defineCommand, defineGroup } from "toolcraft";
 import { text } from "@poe-code/design-system";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { hasTaskBoard, parseTaskBoard } from "../document/tasks.js";
-import { builderGroup } from "./builder-group.js";
+import {
+  builderGroup,
+  createBuilderGroup,
+  type BuilderGroupRunners
+} from "./builder-group.js";
 import { completeCommand } from "./complete.js";
 import { installCommand } from "./install.js";
-import { inspectorGroup } from "./inspector-group.js";
+import {
+  inspectorGroup,
+  createInspectorGroup,
+  type InspectorGroupRunners
+} from "./inspector-group.js";
 import { planPathCommand } from "./plan-path.js";
-import { runCommand, runMcpCommand } from "./run.js";
+import {
+  runCommand,
+  runMcpCommand,
+  createRunMcpCommand,
+  type RunMcpCommandRunners
+} from "./run.js";
 
 export type ValidationProblem = {
   level: "error" | "warning";
@@ -72,12 +85,25 @@ export const superintendentGroup = defineGroup({
   children: [runCommand, validateCommand, completeCommand, installCommand, planPathCommand, builderGroup, inspectorGroup]
 });
 
-export const superintendentMcpGroup = defineGroup({
-  name: "superintendent",
-  description: "Superintendent workflow commands.",
-  scope: ["mcp"],
-  children: [runMcpCommand, validateCommand, completeCommand, builderGroup, inspectorGroup]
-});
+export type SuperintendentMcpGroupRunners =
+  RunMcpCommandRunners & BuilderGroupRunners & InspectorGroupRunners;
+
+export function createSuperintendentMcpGroup(runners?: SuperintendentMcpGroupRunners) {
+  return defineGroup({
+    name: "superintendent",
+    description: "Superintendent workflow commands.",
+    scope: ["mcp"],
+    children: [
+      createRunMcpCommand(runners),
+      validateCommand,
+      completeCommand,
+      createBuilderGroup(runners),
+      createInspectorGroup(runners)
+    ]
+  });
+}
+
+export const superintendentMcpGroup = createSuperintendentMcpGroup();
 
 export function validateSuperintendentDocument(
   filePath: string,

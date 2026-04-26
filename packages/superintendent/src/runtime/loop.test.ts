@@ -3,35 +3,23 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import type { LoopState } from "../state/machine.js";
-import type { SuperintendentFileSystem } from "./loop.js";
+import { runLoop, type LoopRunners, type SuperintendentFileSystem } from "./loop.js";
+import type { runBuilder } from "./run-builder.js";
+import type { runInspector } from "./run-inspector.js";
+import type { runSuperintendent } from "./run-superintendent.js";
+import type { runOwnerReview } from "./run-owner-review.js";
 
-const {
-  runBuilderMock,
-  runInspectorMock,
-  runSuperintendentMock,
-  runOwnerReviewMock
-} = vi.hoisted(() => ({
-  runBuilderMock: vi.fn<() => Promise<{ summary: string; log: string }>>(),
-  runInspectorMock: vi.fn<() => Promise<{ name: string; summary: string }>>(),
-  runSuperintendentMock: vi.fn<() => Promise<{ summary: string; transition?: unknown }>>(),
-  runOwnerReviewMock: vi.fn<() => Promise<{ transition: unknown }>>()
-}));
+const runBuilderMock = vi.fn();
+const runInspectorMock = vi.fn();
+const runSuperintendentMock = vi.fn();
+const runOwnerReviewMock = vi.fn();
 
-vi.mock("./run-builder.js", () => ({
-  runBuilder: runBuilderMock
-}));
-
-vi.mock("./run-inspector.js", () => ({
-  runInspector: runInspectorMock
-}));
-
-vi.mock("./run-superintendent.js", () => ({
-  runSuperintendent: runSuperintendentMock
-}));
-
-vi.mock("./run-owner-review.js", () => ({
-  runOwnerReview: runOwnerReviewMock
-}));
+const runners: LoopRunners = {
+  builder: runBuilderMock as unknown as typeof runBuilder,
+  inspector: runInspectorMock as unknown as typeof runInspector,
+  superintendent: runSuperintendentMock as unknown as typeof runSuperintendent,
+  ownerReview: runOwnerReviewMock as unknown as typeof runOwnerReview
+};
 
 type TestFs = {
   rawFs: ReturnType<typeof createFsFromVolume>["promises"];
@@ -158,7 +146,6 @@ describe("runLoop", () => {
     runInspectorMock.mockReset();
     runSuperintendentMock.mockReset();
     runOwnerReviewMock.mockReset();
-    vi.resetModules();
   });
 
   it("passes logPath through spawn.autonomous into AgentRunInput", async () => {
@@ -208,7 +195,6 @@ describe("runLoop", () => {
       }
     });
 
-    const { runLoop } = await import("./loop.js");
 
     await expect(
       runLoop({
@@ -217,7 +203,8 @@ describe("runLoop", () => {
         homeDir: "/home/test",
         fs,
         logDir: "/tmp/superintendent-logs",
-        runAgent
+        runAgent,
+        runners
       })
     ).resolves.toMatchObject({
       state: "completed",
@@ -327,12 +314,12 @@ describe("runLoop", () => {
         };
       });
 
-      const { runLoop } = await import("./loop.js");
       const result = await runLoop({
         docPath,
         cwd: "/repo",
         homeDir: "/home/test",
         fs,
+        runners,
         callbacks: {
           onBuilderStart: () => events.push("builder:start"),
           onBuilderComplete: () => events.push("builder:complete"),
@@ -450,12 +437,12 @@ describe("runLoop", () => {
         }
       });
 
-    const { runLoop } = await import("./loop.js");
     const result = await runLoop({
       docPath,
       cwd: "/repo",
       homeDir: "/home/test",
-      fs
+      fs,
+      runners
     });
 
     expect(result).toEqual({
@@ -492,7 +479,6 @@ describe("runLoop", () => {
       throw new Error("builder failed");
     });
 
-    const { runLoop } = await import("./loop.js");
 
     await expect(
       runLoop({
@@ -500,6 +486,7 @@ describe("runLoop", () => {
         cwd: "/repo",
         homeDir: "/home/test",
         fs,
+        runners,
         callbacks: {
           onBuilderFailed
         }
@@ -538,7 +525,6 @@ describe("runLoop", () => {
       throw new Error(`inspector failed: ${name}`);
     });
 
-    const { runLoop } = await import("./loop.js");
 
     await expect(
       runLoop({
@@ -546,6 +532,7 @@ describe("runLoop", () => {
         cwd: "/repo",
         homeDir: "/home/test",
         fs,
+        runners,
         callbacks: {
           onInspectorFailed
         }
@@ -580,12 +567,12 @@ describe("runLoop", () => {
       .mockResolvedValueOnce({ summary: "Need more work" })
       .mockResolvedValueOnce({ summary: "Still not done" });
 
-    const { runLoop } = await import("./loop.js");
     const result = await runLoop({
       docPath,
       cwd: "/repo",
       homeDir: "/home/test",
       fs,
+      runners,
       callbacks: {
         onRoundComplete: (round) => rounds.push(round)
       }
@@ -615,12 +602,12 @@ describe("runLoop", () => {
     const docPath = "/repo/docs/plans/feature.md";
     const { fs } = createFs({ [docPath]: createDocument({ withInspectors: false }) });
 
-    const { runLoop } = await import("./loop.js");
     const result = await runLoop({
       docPath,
       cwd: "/repo",
       homeDir: "/home/test",
       fs,
+      runners,
       callbacks: {
         shouldPause: () => true
       }
@@ -657,12 +644,12 @@ describe("runLoop", () => {
       };
     });
 
-    const { runLoop } = await import("./loop.js");
     const result = await runLoop({
       docPath,
       cwd: "/repo",
       homeDir: "/home/test",
       fs,
+      runners,
       callbacks: {
         shouldStop: () => shouldStop
       }
@@ -717,8 +704,7 @@ describe("runLoop", () => {
       transition: { action: "approve_completion" }
     });
 
-    const { runLoop } = await import("./loop.js");
-    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs });
+    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs, runners });
 
     expect(runInspectorMock).toHaveBeenCalledTimes(1);
     expect(runInspectorMock.mock.calls[0]?.[0]).toBe("code-quality");
@@ -753,8 +739,7 @@ describe("runLoop", () => {
       transition: { action: "approve_completion" }
     });
 
-    const { runLoop } = await import("./loop.js");
-    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs });
+    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs, runners });
 
     expect(runInspectorMock).toHaveBeenCalledTimes(2);
     expect(runInspectorMock.mock.calls.map((call) => call[0])).toEqual([
@@ -825,8 +810,7 @@ describe("runLoop", () => {
       };
     });
 
-    const { runLoop } = await import("./loop.js");
-    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs });
+    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs, runners });
 
     expect(runInspectorMock).toHaveBeenCalledTimes(2);
     expect(runSuperintendentMock).toHaveBeenCalledTimes(1);
@@ -853,8 +837,7 @@ describe("runLoop", () => {
       transition: { action: "approve_completion" }
     });
 
-    const { runLoop } = await import("./loop.js");
-    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs });
+    await runLoop({ docPath, cwd: "/repo", homeDir: "/home/test", fs, runners });
 
     expect(runInspectorMock).not.toHaveBeenCalled();
   });

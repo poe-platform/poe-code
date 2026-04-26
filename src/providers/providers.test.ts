@@ -29,6 +29,7 @@ import {
   DEFAULT_CODEX_MODEL,
   DEFAULT_KIMI_MODEL,
   DEFAULT_GOOSE_MODEL,
+  DEFAULT_REASONING,
   KIMI_MODELS,
   DEFAULT_FRONTIER_MODEL,
   FRONTIER_MODELS,
@@ -96,6 +97,16 @@ describe("provider filtering", () => {
   });
 });
 
+describe("constant pins", () => {
+  it("pins the canonical provider id used across configs and templates", () => {
+    expect(PROVIDER_NAME).toBe("poe");
+  });
+
+  it("pins the default reasoning effort used in passthrough fixtures and assertions", () => {
+    expect(DEFAULT_REASONING).toBe("medium");
+  });
+});
+
 describe("claude-code service", () => {
   let mockFsObj: FileSystem;
   const home = "/home/user";
@@ -155,7 +166,7 @@ describe("claude-code service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
+    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
     model: CLAUDE_MODEL_SONNET,
     ...overrides
   });
@@ -271,7 +282,7 @@ describe("claude-code service", () => {
 
   it("uses provider.baseUrl override for ANTHROPIC_BASE_URL", async () => {
     await configureClaude({
-      provider: { id: "poe", baseUrl: "https://proxy.example.com", credential: "sk-test", extraEnv: {} }
+      provider: { id: PROVIDER_NAME, baseUrl: "https://proxy.example.com", credential: "sk-test", extraEnv: {} }
     });
 
     const content = await mockFsObj.readFile(settingsPath, "utf8");
@@ -454,9 +465,9 @@ describe("codex service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
+    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
     model: DEFAULT_CODEX_MODEL,
-    reasoningEffort: "medium",
+    reasoningEffort: DEFAULT_REASONING,
     ...overrides
   });
 
@@ -498,7 +509,7 @@ describe("codex service", () => {
     const codexProfile = profiles[defaultProfileName];
     expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
     expect(codexProfile["model_provider"]).toBe("poe");
-    expect(codexProfile["model_reasoning_effort"]).toBe("medium");
+    expect(codexProfile["model_reasoning_effort"]).toBe(DEFAULT_REASONING);
     expect(codexProfile["model_verbosity"]).toBe("medium");
 
     const providers = doc["model_providers"] as Record<string, Record<string, unknown>>;
@@ -544,7 +555,7 @@ describe("codex service", () => {
 
   it("uses provider.baseUrl when writing base_url", async () => {
     await configureCodex({
-      provider: { id: "poe", baseUrl: "https://proxy.example.com", credential: "sk-test", extraEnv: {} }
+      provider: { id: PROVIDER_NAME, baseUrl: "https://proxy.example.com", credential: "sk-test", extraEnv: {} }
     });
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
@@ -746,7 +757,7 @@ describe("codex service", () => {
     const codexProfile = profiles[defaultProfileName];
     expect(codexProfile["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
     expect(codexProfile["model_provider"]).toBe("poe");
-    expect(codexProfile["model_reasoning_effort"]).toBe("medium");
+    expect(codexProfile["model_reasoning_effort"]).toBe(DEFAULT_REASONING);
     expect(codexProfile["model_verbosity"]).toBe("medium");
 
     const providers = doc["model_providers"] as Record<string, unknown>;
@@ -883,7 +894,7 @@ describe("kimi service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
+    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
     model: DEFAULT_KIMI_MODEL,
     ...overrides
   });
@@ -1220,7 +1231,7 @@ describe("opencode service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
+    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
     model: DEFAULT_FRONTIER_MODEL,
     ...overrides
   });
@@ -1573,7 +1584,7 @@ describe("goose service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: "poe", baseUrl: "https://api.poe.com", credential: "sk-goose", extraEnv: {} },
+    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-goose", extraEnv: {} },
     model: DEFAULT_GOOSE_MODEL,
     modelContextLimits: buildGooseModelContextLimitsFixture(),
     ...overrides
@@ -1641,7 +1652,7 @@ describe("goose service", () => {
 
   it("uses provider.baseUrl when building the custom provider config", async () => {
     await configureGoose({
-      provider: { id: "poe", baseUrl: "https://proxy.example.test/gateway", credential: "sk-goose", extraEnv: {} }
+      provider: { id: PROVIDER_NAME, baseUrl: "https://proxy.example.test/gateway", credential: "sk-goose", extraEnv: {} }
     });
 
     const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<

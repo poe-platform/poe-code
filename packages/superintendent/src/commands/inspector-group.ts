@@ -12,6 +12,11 @@ export type InspectorListItem = {
   mode?: string;
 };
 
+export type InspectorGroupRunners = {
+  runInspector?: typeof runInspector;
+  runAllInspectors?: typeof runAllInspectors;
+};
+
 const inspectorListParams = S.Object({
   path: S.String({ description: "Path to the superintendent markdown document" })
 });
@@ -65,54 +70,65 @@ export const inspectorListCommand = defineCommand({
   }
 });
 
-export const inspectorRunCommand = defineCommand({
-  name: "run",
-  description: "Run one configured inspector, or all inspectors when no name is provided.",
-  positional: ["path", "name"],
-  params: inspectorRunParams,
-  scope: ["cli", "mcp", "sdk"],
-  handler: async ({ params, fs }) => {
-    const content = await readDocument(params.path, fs);
-    const document = parseSuperintendentDoc(params.path, content);
+export function createInspectorRunCommand(runners?: InspectorGroupRunners) {
+  const runInspectorImpl = runners?.runInspector ?? runInspector;
+  const runAllInspectorsImpl = runners?.runAllInspectors ?? runAllInspectors;
 
-    const defaultCwd = process.cwd();
+  return defineCommand({
+    name: "run",
+    description: "Run one configured inspector, or all inspectors when no name is provided.",
+    positional: ["path", "name"],
+    params: inspectorRunParams,
+    scope: ["cli", "mcp", "sdk"],
+    handler: async ({ params, fs }) => {
+      const content = await readDocument(params.path, fs);
+      const document = parseSuperintendentDoc(params.path, content);
 
-    if (params.name === undefined) {
-      return runAllInspectors(document, {}, { defaultCwd });
-    }
+      const defaultCwd = process.cwd();
 
-    const config = document.frontmatter.inspectors?.[params.name];
-
-    if (config === undefined) {
-      throw new UserError(`Inspector not found: ${params.name}`);
-    }
-
-    return [await runInspector(params.name, config, document, {}, { defaultCwd })];
-  },
-  render: {
-    rich: (result, { logger }) => {
-      if (result.length === 0) {
-        logger.message("No inspectors configured.");
-        return;
+      if (params.name === undefined) {
+        return runAllInspectorsImpl(document, {}, { defaultCwd });
       }
 
-      logger.success(`Completed ${result.length} inspector run${result.length === 1 ? "" : "s"}.`);
+      const config = document.frontmatter.inspectors?.[params.name];
 
-      for (const inspector of result) {
-        logger.message(`${inspector.name}: ${inspector.summary || "(no output)"}`);
+      if (config === undefined) {
+        throw new UserError(`Inspector not found: ${params.name}`);
       }
+
+      return [await runInspectorImpl(params.name, config, document, {}, { defaultCwd })];
     },
-    markdown: (result) => renderInspectorRunMarkdown(result),
-    json: (result) => result
-  }
-});
+    render: {
+      rich: (result, { logger }) => {
+        if (result.length === 0) {
+          logger.message("No inspectors configured.");
+          return;
+        }
 
-export const inspectorGroup = defineGroup({
-  name: "inspector",
-  description: "Inspector commands.",
-  scope: ["cli", "mcp", "sdk"],
-  children: [inspectorListCommand, inspectorRunCommand]
-});
+        logger.success(`Completed ${result.length} inspector run${result.length === 1 ? "" : "s"}.`);
+
+        for (const inspector of result) {
+          logger.message(`${inspector.name}: ${inspector.summary || "(no output)"}`);
+        }
+      },
+      markdown: (result) => renderInspectorRunMarkdown(result),
+      json: (result) => result
+    }
+  });
+}
+
+export const inspectorRunCommand = createInspectorRunCommand();
+
+export function createInspectorGroup(runners?: InspectorGroupRunners) {
+  return defineGroup({
+    name: "inspector",
+    description: "Inspector commands.",
+    scope: ["cli", "mcp", "sdk"],
+    children: [inspectorListCommand, createInspectorRunCommand(runners)]
+  });
+}
+
+export const inspectorGroup = createInspectorGroup();
 
 async function readDocument(
   filePath: string,

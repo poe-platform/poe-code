@@ -33,20 +33,52 @@ export type SuperintendentToolsPayload = {
   inspectorNames: string[];
 };
 
-export function createSuperintendentMcpServer() {
-  return createMCPServer([superintendentMcpGroup], {
+export type McpRunners = {
+  superintendentMcpGroup?: typeof superintendentMcpGroup;
+  runBuilder?: typeof runBuilder;
+  runInspector?: typeof runInspector;
+  parseSuperintendentDoc?: typeof parseSuperintendentDoc;
+};
+
+type ResolvedMcpRunners = {
+  superintendentMcpGroup: typeof superintendentMcpGroup;
+  runBuilder: typeof runBuilder;
+  runInspector: typeof runInspector;
+  parseSuperintendentDoc: typeof parseSuperintendentDoc;
+};
+
+export type MainOptions = {
+  runners?: McpRunners;
+};
+
+function resolveMcpRunners(overrides?: McpRunners): ResolvedMcpRunners {
+  return {
+    superintendentMcpGroup: overrides?.superintendentMcpGroup ?? superintendentMcpGroup,
+    runBuilder: overrides?.runBuilder ?? runBuilder,
+    runInspector: overrides?.runInspector ?? runInspector,
+    parseSuperintendentDoc: overrides?.parseSuperintendentDoc ?? parseSuperintendentDoc
+  };
+}
+
+export function createSuperintendentMcpServer(runners?: McpRunners) {
+  const resolved = resolveMcpRunners(runners);
+  return createMCPServer([resolved.superintendentMcpGroup], {
     name: MCP_NAME,
     version: MCP_VERSION
   });
 }
 
-export async function main(argv: string[] = process.argv): Promise<void> {
+export async function main(
+  argv: string[] = process.argv,
+  options: MainOptions = {}
+): Promise<void> {
+  const runners = resolveMcpRunners(options.runners);
   const originalArgv = process.argv;
   process.argv = argv;
 
   try {
     if (argv[2] === SUPERINTENDENT_TOOLS_SUBCOMMAND) {
-      await runSuperintendentToolsServer(argv[3]);
+      await runSuperintendentToolsServer(argv[3], runners);
       return;
     }
 
@@ -55,13 +87,16 @@ export async function main(argv: string[] = process.argv): Promise<void> {
       return;
     }
 
-    await createSuperintendentMcpServer().listen();
+    await createSuperintendentMcpServer(options.runners).listen();
   } finally {
     process.argv = originalArgv;
   }
 }
 
-async function runSuperintendentToolsServer(encodedPayload: string | undefined): Promise<void> {
+async function runSuperintendentToolsServer(
+  encodedPayload: string | undefined,
+  runners: ResolvedMcpRunners
+): Promise<void> {
   const payload = decodeSuperintendentToolsPayload(encodedPayload);
 
   const server = createServer({
@@ -70,8 +105,8 @@ async function runSuperintendentToolsServer(encodedPayload: string | undefined):
   });
 
   registerWorkflowTool(server, payload.state);
-  registerBuilderTool(server, payload.docPath);
-  registerInspectorTool(server, payload.docPath, payload.inspectorNames);
+  registerBuilderTool(server, payload.docPath, runners);
+  registerInspectorTool(server, payload.docPath, payload.inspectorNames, runners);
 
   await server.listen();
 }
@@ -103,13 +138,17 @@ function registerWorkflowToolDefinition(server: Server, tool: WorkflowToolDefini
   });
 }
 
-function registerBuilderTool(server: Server, docPath: string): void {
+function registerBuilderTool(
+  server: Server,
+  docPath: string,
+  runners: ResolvedMcpRunners
+): void {
   const tool = createBuilderTool();
 
   server.tool(tool.name, tool.description, tool.inputSchema, async (input) => {
     const { prompt } = parseBuilderRunInput(input);
-    const freshDoc = await readSuperintendentDoc(docPath);
-    const result = await runBuilder(freshDoc, {}, {
+    const freshDoc = await readSuperintendentDoc(docPath, runners);
+    const result = await runners.runBuilder(freshDoc, {}, {
       promptOverride: prompt,
       defaultCwd: process.cwd()
     });
@@ -120,20 +159,21 @@ function registerBuilderTool(server: Server, docPath: string): void {
 function registerInspectorTool(
   server: Server,
   docPath: string,
-  inspectorNames: string[]
+  inspectorNames: string[],
+  runners: ResolvedMcpRunners
 ): void {
   const tool = createInspectorTool(inspectorNames);
 
   server.tool(tool.name, tool.description, tool.inputSchema, async (input) => {
     const parsed = parseInspectorRunInput(input, inspectorNames);
-    const freshDoc = await readSuperintendentDoc(docPath);
+    const freshDoc = await readSuperintendentDoc(docPath, runners);
     const config = freshDoc.frontmatter.inspectors?.[parsed.name];
 
     if (!config) {
       throw new Error(`Inspector "${parsed.name}" is not configured in ${docPath}`);
     }
 
-    const result = await runInspector(
+    const result = await runners.runInspector(
       parsed.name,
       config,
       freshDoc,
@@ -147,9 +187,12 @@ function registerInspectorTool(
   });
 }
 
-async function readSuperintendentDoc(docPath: string): Promise<SuperintendentDoc> {
+async function readSuperintendentDoc(
+  docPath: string,
+  runners: ResolvedMcpRunners
+): Promise<SuperintendentDoc> {
   const content = await fsPromises.readFile(docPath, "utf8");
-  return parseSuperintendentDoc(docPath, content);
+  return runners.parseSuperintendentDoc(docPath, content);
 }
 
 function decodeSuperintendentToolsPayload(

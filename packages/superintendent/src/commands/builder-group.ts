@@ -3,41 +3,55 @@ import { text } from "@poe-code/design-system";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import { runBuilder, type BuilderResult } from "../runtime/run-builder.js";
 
+export type BuilderGroupRunners = {
+  runBuilder?: typeof runBuilder;
+};
+
 const builderRunParams = S.Object({
   path: S.String({ description: "Path to the superintendent markdown document" })
 });
 
-export const builderRunCommand = defineCommand({
-  name: "run",
-  description: "Run the configured builder agent.",
-  positional: ["path"],
-  params: builderRunParams,
-  scope: ["cli", "mcp", "sdk"],
-  handler: async ({ params, fs }) => {
-    const content = await readDocument(params.path, fs);
-    const document = parseSuperintendentDoc(params.path, content);
+export function createBuilderRunCommand(runners?: BuilderGroupRunners) {
+  const runBuilderImpl = runners?.runBuilder ?? runBuilder;
 
-    return runBuilder(document, {}, { defaultCwd: process.cwd() });
-  },
-  render: {
-    rich: (result, { logger }) => {
-      logger.success("Builder run completed.");
-      logger.message(text.section("Summary:"));
-      logger.message(result.summary);
-      logger.message(text.section("Log:"));
-      logger.message(result.log || "(no output)");
+  return defineCommand({
+    name: "run",
+    description: "Run the configured builder agent.",
+    positional: ["path"],
+    params: builderRunParams,
+    scope: ["cli", "mcp", "sdk"],
+    handler: async ({ params, fs }) => {
+      const content = await readDocument(params.path, fs);
+      const document = parseSuperintendentDoc(params.path, content);
+
+      return runBuilderImpl(document, {}, { defaultCwd: process.cwd() });
     },
-    markdown: (result) => renderBuilderMarkdown(result),
-    json: (result) => result
-  }
-});
+    render: {
+      rich: (result, { logger }) => {
+        logger.success("Builder run completed.");
+        logger.message(text.section("Summary:"));
+        logger.message(result.summary);
+        logger.message(text.section("Log:"));
+        logger.message(result.log || "(no output)");
+      },
+      markdown: (result) => renderBuilderMarkdown(result),
+      json: (result) => result
+    }
+  });
+}
 
-export const builderGroup = defineGroup({
-  name: "builder",
-  description: "Builder commands.",
-  scope: ["cli", "mcp", "sdk"],
-  children: [builderRunCommand]
-});
+export const builderRunCommand = createBuilderRunCommand();
+
+export function createBuilderGroup(runners?: BuilderGroupRunners) {
+  return defineGroup({
+    name: "builder",
+    description: "Builder commands.",
+    scope: ["cli", "mcp", "sdk"],
+    children: [createBuilderRunCommand(runners)]
+  });
+}
+
+export const builderGroup = createBuilderGroup();
 
 async function readDocument(
   filePath: string,

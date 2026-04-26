@@ -43,13 +43,13 @@ jobs:
           NEXT="${{ steps.version.outputs.next }}"
           cd packages/toolcraft && npm version --no-git-tag-version --allow-same-version "$NEXT"
           cd ../toolcraft-openapi && npm version --no-git-tag-version --allow-same-version "$NEXT"
+      - name: Build toolcraft packages and dependencies
+        run: npx turbo build --filter=toolcraft-openapi...
       - name: Update cross-package dependency versions
         run: |
           NEXT="${{ steps.version.outputs.next }}"
           cd packages/toolcraft && npm pkg set "dependencies.toolcraft-schema=^${NEXT}"
           cd ../toolcraft-openapi && npm pkg set "dependencies.toolcraft=^${NEXT}"
-      - name: Build toolcraft packages and dependencies
-        run: npx turbo build --filter=toolcraft-openapi...
       - name: Publish toolcraft-schema
         working-directory: packages/toolcraft-schema
         run: npm publish --provenance --access public

@@ -5,6 +5,7 @@ import type {
   OAuthProtectedResourceMetadata,
   OAuthUnauthorizedChallenge,
 } from "mcp-oauth";
+import { canonicalizeResourceIndicator } from "mcp-oauth";
 
 export type {
   OAuthAuthorizationServerMetadata,
@@ -78,7 +79,9 @@ function validateProtectedResourceMetadata(
     throw new Error("Protected resource metadata must include a resource string");
   }
 
-  if (value.resource !== resourceUrl) {
+  const normalizedResource = canonicalizeResourceIndicator(value.resource);
+
+  if (normalizedResource !== resourceUrl) {
     throw new Error(
       `Protected resource metadata resource mismatch: expected ${resourceUrl}, received ${value.resource}`
     );
@@ -90,7 +93,10 @@ function validateProtectedResourceMetadata(
     );
   }
 
-  return value as OAuthProtectedResourceMetadata;
+  return {
+    ...value,
+    resource: normalizedResource,
+  } as OAuthProtectedResourceMetadata;
 }
 
 function validateAuthorizationServerMetadata(
@@ -169,7 +175,7 @@ export function resolveProtectedResourceMetadataUrl(
   resourceUrl: string | URL,
   resourceMetadataUrl?: string | URL
 ): string {
-  const resource = new URL(typeof resourceUrl === "string" ? resourceUrl : resourceUrl.toString());
+  const resource = new URL(canonicalizeResourceIndicator(resourceUrl));
   assertSecureUrl(resource, "Protected resource URL");
 
   if (resourceMetadataUrl !== undefined) {
@@ -225,9 +231,9 @@ export class OAuthMetadataDiscovery {
     resourceUrl: string | URL,
     { resourceMetadataUrl }: OAuthMetadataLookupOptions = {}
   ): Promise<OAuthDiscoveryResult> {
-    const cacheKey = typeof resourceUrl === "string" ? resourceUrl : resourceUrl.toString();
+    const cacheKey = canonicalizeResourceIndicator(resourceUrl);
     const resourceMetadataLocation = resolveProtectedResourceMetadataUrl(
-      resourceUrl,
+      cacheKey,
       resourceMetadataUrl
     );
     const memoryCachedResult = this.memoryCache.get(cacheKey);

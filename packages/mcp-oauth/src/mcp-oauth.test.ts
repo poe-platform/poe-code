@@ -12,6 +12,7 @@ import {
 } from "./index.js";
 
 const RESOURCE_URL = "https://resource.example.com/mcp";
+const NON_CANONICAL_RESOURCE_URL = "HTTPS://RESOURCE.EXAMPLE.COM:443/mcp#ignored";
 const RESOURCE_METADATA_URL =
   "https://resource.example.com/.well-known/oauth-protected-resource/mcp";
 const AUTHORIZATION_SERVER = "https://auth.example.com";
@@ -346,10 +347,11 @@ function matchesRegisteredLoopbackRedirect(registered: string, requested: string
 async function authorizeProvider(
   provider: OAuthClientProvider,
   fetchMock: typeof fetch,
-  discovery = createDiscoveryResult()
+  discovery = createDiscoveryResult(),
+  requestUrl = RESOURCE_URL
 ): Promise<void> {
   const result = await provider.handleUnauthorized({
-    requestUrl: new URL(RESOURCE_URL),
+    requestUrl: new URL(requestUrl),
     response: new Response(null, {
       status: 401,
       headers: {
@@ -435,6 +437,61 @@ describe("createAuthStoreSessionStore", () => {
 
     await sessionStore.clear(RESOURCE_URL);
     expect(await sessionStore.load(RESOURCE_URL)).toBeNull();
+  });
+
+  it("keys sessions by the canonical resource URI", async () => {
+    const fs = createFsFromVolume(new Volume()).promises as {
+      readFile(path: string, encoding: BufferEncoding): Promise<string>;
+      writeFile(
+        path: string,
+        data: string | NodeJS.ArrayBufferView,
+        options?: { encoding?: BufferEncoding }
+      ): Promise<void>;
+      mkdir(
+        path: string,
+        options?: { recursive?: boolean }
+      ): Promise<void | string | undefined>;
+      unlink(path: string): Promise<void>;
+      chmod(path: string, mode: number): Promise<void>;
+    };
+
+    const sessionStore = createAuthStoreSessionStore({
+      backend: "file",
+      fileStore: {
+        fs,
+        salt: "poe-code:test:mcp-oauth:v1",
+        defaultDirectory: ".test-mcp-oauth",
+        getHomeDirectory: () => "/home/test",
+        getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" }),
+      },
+    });
+
+    const session: StoredOAuthSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: {
+        clientId: "client-1",
+      },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: {
+          resource: RESOURCE_URL,
+          authorization_servers: [AUTHORIZATION_SERVER],
+        },
+        authorizationServerMetadata: {
+          issuer: AUTHORIZATION_SERVER,
+          authorization_endpoint: AUTHORIZATION_ENDPOINT,
+          token_endpoint: TOKEN_ENDPOINT,
+          response_types_supported: ["code"],
+          code_challenge_methods_supported: ["S256"],
+        },
+      },
+    };
+
+    await sessionStore.save(NON_CANONICAL_RESOURCE_URL, session);
+
+    expect(await sessionStore.load(RESOURCE_URL)).toEqual(session);
+    expect(await sessionStore.load(NON_CANONICAL_RESOURCE_URL)).toEqual(session);
   });
 });
 
@@ -556,6 +613,98 @@ describe("createDefaultOAuthClientProvider", () => {
       tokens: {
         accessToken: "access-1",
         refreshToken: "refresh-1",
+      },
+    });
+  });
+
+  it("canonicalizes the resource indicator across request mapping, authorize, code exchange, and refresh", async () => {
+    const pair = createOAuthPair({
+      includeRegistrationEndpoint: true,
+    });
+    const sessionStore = createMemorySessionStore();
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: pair.openBrowser,
+      },
+      sessionStore,
+      now: () => 10_000,
+    });
+
+    const nonCanonicalDiscovery = createDiscoveryResult({
+      resource: NON_CANONICAL_RESOURCE_URL,
+      resourceMetadata: {
+        resource: NON_CANONICAL_RESOURCE_URL,
+        authorization_servers: [AUTHORIZATION_SERVER],
+      },
+    });
+
+    await authorizeProvider(
+      provider,
+      pair.fetchMock as typeof fetch,
+      nonCanonicalDiscovery,
+      NON_CANONICAL_RESOURCE_URL
+    );
+
+    expect(pair.authorizationRequests).toHaveLength(1);
+    expect(pair.authorizationRequests[0]?.searchParams.get("resource")).toBe(RESOURCE_URL);
+    expect(pair.tokenBodies).toHaveLength(1);
+    expect(pair.tokenBodies[0]?.get("resource")).toBe(RESOURCE_URL);
+
+    const headers = new Headers();
+    await provider.authorizeRequest({
+      requestUrl: new URL(RESOURCE_URL),
+      headers,
+      fetch: pair.fetchMock as typeof fetch,
+    });
+
+    expect(headers.get("Authorization")).toBe("Bearer access-1");
+
+    const refreshResult = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, {
+        status: 401,
+        headers: {
+          "WWW-Authenticate":
+            `Bearer realm="mcp", error="invalid_token", ` +
+            `resource_metadata="${RESOURCE_METADATA_URL}"`,
+        },
+      }),
+      challenge: {
+        scheme: "Bearer",
+        raw: "",
+        params: {
+          error: "invalid_token",
+          resource_metadata: RESOURCE_METADATA_URL,
+        },
+      },
+      discovery: nonCanonicalDiscovery,
+      fetch: pair.fetchMock as typeof fetch,
+    });
+
+    expect(refreshResult).toEqual({ action: "retry" });
+    expect(
+      pair.tokenBodies.filter((body) => body.get("grant_type") === "refresh_token")
+    ).toHaveLength(1);
+    expect(
+      pair.tokenBodies.filter((body) => body.get("grant_type") === "refresh_token")[0]?.get("resource")
+    ).toBe(RESOURCE_URL);
+
+    const refreshedHeaders = new Headers();
+    await provider.authorizeRequest({
+      requestUrl: new URL(NON_CANONICAL_RESOURCE_URL),
+      headers: refreshedHeaders,
+      fetch: pair.fetchMock as typeof fetch,
+    });
+
+    expect(refreshedHeaders.get("Authorization")).toBe("Bearer access-2");
+    expect(await sessionStore.load(RESOURCE_URL)).toMatchObject({
+      resource: RESOURCE_URL,
+      tokens: {
+        accessToken: "access-2",
       },
     });
   });

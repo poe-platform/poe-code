@@ -9,6 +9,7 @@ import type {
   OAuthSessionStore,
   StoredOAuthSession,
 } from "./types.js";
+import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 
 const DEFAULT_FILE_SALT = "poe-code:mcp-oauth:v1";
 const DEFAULT_FILE_DIRECTORY = ".poe-code/mcp-oauth";
@@ -44,7 +45,8 @@ export function createAuthStoreSessionStore(
 }
 
 function createResourceSecretStore(resource: string, options: CreateSecretStoreInput): SecretStore {
-  const hash = crypto.createHash("sha256").update(resource).digest("hex");
+  const canonicalResource = canonicalizeResourceIndicator(resource);
+  const hash = crypto.createHash("sha256").update(canonicalResource).digest("hex");
   const parsedFilePath =
     options.fileStore?.filePath === undefined ? null : path.parse(options.fileStore.filePath);
 

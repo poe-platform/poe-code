@@ -6,6 +6,7 @@ import {
   type JSONWebKeySet,
   type JWTPayload,
 } from "jose";
+import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 
 const DEFAULT_ALLOWED_ALGORITHMS = [
   "ES256",
@@ -94,6 +95,30 @@ function normalizeAudience(value: unknown): string[] {
   return isStringArray(value) ? [...value] : [];
 }
 
+function normalizeVerifiedAudience(
+  value: unknown,
+  expectedResource: string
+): string[] {
+  const audiences = normalizeAudience(value);
+  if (audiences.length !== 1) {
+    throw createInvalidTokenError("audience mismatch");
+  }
+
+  let normalizedAudience: string;
+
+  try {
+    normalizedAudience = canonicalizeResourceIndicator(audiences[0] ?? "");
+  } catch {
+    throw createInvalidTokenError("audience mismatch");
+  }
+
+  if (normalizedAudience !== expectedResource) {
+    throw createInvalidTokenError("audience mismatch");
+  }
+
+  return [normalizedAudience];
+}
+
 function parseScopes(payload: JWTPayload): string[] {
   if (typeof payload.scope === "string") {
     return payload.scope
@@ -114,12 +139,13 @@ function parseScopes(payload: JWTPayload): string[] {
 
 function toVerifiedAccessToken(
   token: string,
-  payload: JWTPayload
+  payload: JWTPayload,
+  audience = normalizeAudience(payload.aud)
 ): JwksVerifiedAccessToken {
   return {
     token,
     issuer: typeof payload.iss === "string" ? payload.iss : "",
-    audience: normalizeAudience(payload.aud),
+    audience,
     scopes: parseScopes(payload),
     expiresAt: typeof payload.exp === "number" ? payload.exp : 0,
     claims: { ...payload },
@@ -257,16 +283,17 @@ export function createJwksTokenVerifier(
 
   return {
     async verify(input): Promise<JwksVerifiedAccessToken> {
+      const expectedResource = canonicalizeResourceIndicator(input.resource);
       resolveAlgorithm(input.token, allowedAlgorithms);
 
       try {
         const jwks = await loadJwks(jwksUrl, fetchImplementation);
         const verified = await jwtVerify(input.token, createLocalJWKSet(jwks), {
-          audience: input.resource,
           issuer: [...input.authorizationServers],
           clockTolerance: clockSkewSeconds,
         });
-        const accessToken = toVerifiedAccessToken(input.token, verified.payload);
+        const audience = normalizeVerifiedAudience(verified.payload.aud, expectedResource);
+        const accessToken = toVerifiedAccessToken(input.token, verified.payload, audience);
 
         if (
           input.requiredScopes.length > 0

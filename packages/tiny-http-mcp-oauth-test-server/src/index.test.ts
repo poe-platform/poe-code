@@ -182,6 +182,32 @@ describe("createMcpOAuthTestServer", () => {
     });
   });
 
+  it("rejects a direct token whose audience is bound to a different resource", async () => {
+    const server = createMcpOAuthTestServer({
+      autoApprove: true,
+      scopes: ["mcp.read"],
+      resource: "https://resource.example.com/mcp",
+    });
+    const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
+    cleanups.add(handle.close);
+
+    const token = await handle.oauth.issueTokenFor({
+      clientId: "wrong-audience-client",
+      resource: "https://resource.example.com/other",
+      scopes: ["mcp.read"],
+    });
+
+    const initialize = await initializeSession({
+      url: handle.mcpUrl,
+      token,
+    });
+
+    expect(initialize.response.status).toBe(401);
+    expect(initialize.response.headers.get("www-authenticate")).toContain(
+      'error_description="audience mismatch"'
+    );
+  });
+
   it("honors an explicit issuer URL for both discovery and direct-token verification", async () => {
     const issuerPort = await reservePort("127.0.0.1");
     const issuer = `http://127.0.0.1:${issuerPort}/oauth`;

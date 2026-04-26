@@ -17,6 +17,7 @@ import {
   OAuthError,
   refreshAccessToken,
 } from "./token-endpoint.js";
+import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 
 export function createOAuthClientProvider(
   options: OAuthClientProviderOptions
@@ -40,7 +41,8 @@ export function createDefaultOAuthClientProvider(
 
   return {
     async authorizeRequest(input): Promise<void> {
-      const resource = requestResourceMap.get(input.requestUrl.toString());
+      const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
+      const resource = requestResourceMap.get(requestUrl);
       if (resource === undefined) {
         return;
       }
@@ -55,15 +57,20 @@ export function createDefaultOAuthClientProvider(
     },
 
     async handleUnauthorized(input) {
-      requestResourceMap.set(input.requestUrl.toString(), input.discovery.resource);
+      const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
+      const resource = canonicalizeResourceIndicator(input.discovery.resource);
+      requestResourceMap.set(requestUrl, resource);
 
       try {
         const forceRefresh =
-          hasCachedAccessToken(await loadSession(input.discovery.resource))
+          hasCachedAccessToken(await loadSession(resource))
           && input.challenge?.params.error === "invalid_token";
         const session = await ensureAuthorizedSession(
-          input.discovery.resource,
-          input.discovery,
+          resource,
+          {
+            ...input.discovery,
+            resource,
+          },
           input.fetch,
           true,
           forceRefresh
@@ -90,7 +97,8 @@ export function createDefaultOAuthClientProvider(
     allowInteractive: boolean,
     forceRefresh = false
   ): Promise<StoredOAuthSession | null> {
-    let session = await loadSession(resource);
+    const canonicalResource = canonicalizeResourceIndicator(resource);
+    let session = await loadSession(canonicalResource);
     const sessionDiscovery = resolveDiscovery(discovery, session);
 
     if (session?.tokens !== undefined && !forceRefresh && !isExpired(session.tokens, now)) {
@@ -102,7 +110,7 @@ export function createDefaultOAuthClientProvider(
       && sessionDiscovery !== undefined
       && (forceRefresh || isExpired(session.tokens, now))
     ) {
-      session = await refreshSession(resource, session, sessionDiscovery, fetch);
+      session = await refreshSession(canonicalResource, session, sessionDiscovery, fetch);
       if (session?.tokens !== undefined && !isExpired(session.tokens, now)) {
         return session;
       }
@@ -116,7 +124,7 @@ export function createDefaultOAuthClientProvider(
       return session;
     }
 
-    return authorizeSession(resource, session, sessionDiscovery, fetch);
+    return authorizeSession(canonicalResource, session, sessionDiscovery, fetch);
   }
 
   async function refreshSession(
@@ -329,7 +337,10 @@ function resolveDiscovery(
   session: StoredOAuthSession | null
 ): OAuthDiscoveryResult | undefined {
   if (discovery !== undefined) {
-    return discovery;
+    return {
+      ...discovery,
+      resource: canonicalizeResourceIndicator(discovery.resource),
+    };
   }
 
   if (session === null) {
@@ -348,7 +359,7 @@ function resolveDiscovery(
   }
 
   return {
-    resource: session.resource,
+    resource: canonicalizeResourceIndicator(session.resource),
     resourceMetadataUrl: session.discovery.resourceMetadataUrl,
     resourceMetadata: session.discovery.resourceMetadata as OAuthDiscoveryResult["resourceMetadata"],
     authorizationServer: session.authorizationServer,
@@ -384,12 +395,13 @@ function buildAuthorizationUrl(input: {
   clientMetadata: OAuthClientMetadata | undefined;
 }): string {
   const url = new URL(input.metadata.authorization_endpoint);
+  const resource = canonicalizeResourceIndicator(input.resource);
   url.searchParams.set("response_type", "code");
   url.searchParams.set("client_id", input.clientId);
   url.searchParams.set("redirect_uri", input.redirectUri);
   url.searchParams.set("code_challenge", input.codeChallenge);
   url.searchParams.set("code_challenge_method", "S256");
-  url.searchParams.set("resource", input.resource);
+  url.searchParams.set("resource", resource);
 
   if (input.clientMetadata?.scope !== undefined && input.clientMetadata.scope.length > 0) {
     url.searchParams.set("scope", input.clientMetadata.scope);

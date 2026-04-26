@@ -734,7 +734,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: audit-resource-indicator
     title: Spec audit — RFC 8707 resource indicator binding
@@ -773,9 +773,9 @@ tasks:
         - Unit tests including the canonical-URI vector set and an end-
           to-end test where a token with the wrong audience is rejected.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: audit-token-validation-and-storage

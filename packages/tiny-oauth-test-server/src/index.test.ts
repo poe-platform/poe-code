@@ -526,6 +526,37 @@ describe("tiny-oauth-test-server", () => {
     });
   });
 
+  it("rejects a fragment-bearing resource indicator", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43136/callback";
+    const clientId = await registerClient({
+      baseUrl: server.issuer,
+      redirectUris: [redirectUri],
+    });
+
+    const authorizeResponse = await nodeFetch(
+      new URL(
+        `/authorize?client_id=${encodeURIComponent(clientId)}`
+        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
+        + "&response_type=code"
+        + `&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("fragment-verifier")))}`
+        + "&code_challenge_method=S256"
+        + `&resource=${encodeURIComponent("https://resource.example.com/mcp#fragment")}`
+        + "&auto_approve=1",
+        server.issuer
+      ),
+      {
+        redirect: "manual",
+      }
+    );
+
+    expect(authorizeResponse.status).toBe(400);
+    await expect(authorizeResponse.json()).resolves.toMatchObject({
+      error: "invalid_request",
+      error_description: "resource must not include a fragment",
+    });
+  });
+
   it("rejects code_challenge_method=plain", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43133/callback";

@@ -2,6 +2,7 @@ import type {
   OAuthMetadataFetch,
   StoredOAuthTokens,
 } from "./types.js";
+import { canonicalizeResourceIndicator } from "../resource-indicator.js";
 
 interface OAuthErrorShape {
   error: string;
@@ -36,6 +37,8 @@ export async function exchangeAuthorizationCode(input: {
   fetch: OAuthMetadataFetch;
   now: () => number;
 }): Promise<StoredOAuthTokens> {
+  const resource = canonicalizeResourceIndicator(input.resource);
+
   return requestTokens({
     tokenEndpoint: input.tokenEndpoint,
     clientId: input.clientId,
@@ -45,7 +48,7 @@ export async function exchangeAuthorizationCode(input: {
       code: input.code,
       code_verifier: input.codeVerifier,
       redirect_uri: input.redirectUri,
-      resource: input.resource,
+      resource,
     },
     fetch: input.fetch,
     now: input.now,
@@ -61,6 +64,8 @@ export async function refreshAccessToken(input: {
   fetch: OAuthMetadataFetch;
   now: () => number;
 }): Promise<StoredOAuthTokens> {
+  const resource = canonicalizeResourceIndicator(input.resource);
+
   return requestTokens({
     tokenEndpoint: input.tokenEndpoint,
     clientId: input.clientId,
@@ -68,7 +73,7 @@ export async function refreshAccessToken(input: {
     params: {
       grant_type: "refresh_token",
       refresh_token: input.refreshToken,
-      resource: input.resource,
+      resource,
     },
     fetch: input.fetch,
     now: input.now,

@@ -147,11 +147,19 @@ function nowInSeconds(): number {
 }
 
 function parseAbsoluteUrl(value: string, label: string): string {
+  let url: URL;
+
   try {
-    return new URL(value).toString();
+    url = new URL(value);
   } catch {
     throw new OAuthRequestError(400, "invalid_request", `${label} must be an absolute URL`);
   }
+
+  if (url.hash.length > 0) {
+    throw new OAuthRequestError(400, "invalid_request", `${label} must not include a fragment`);
+  }
+
+  return url.toString();
 }
 
 function normalizeHostForComparison(hostname: string): string {

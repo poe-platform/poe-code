@@ -18,6 +18,9 @@ export {
   OAuthError,
 } from "./client/token-endpoint.js";
 export {
+  canonicalizeResourceIndicator,
+} from "./resource-indicator.js";
+export {
   createJwksTokenVerifier,
 } from "./server/jwks-token-verifier.js";
 export type {

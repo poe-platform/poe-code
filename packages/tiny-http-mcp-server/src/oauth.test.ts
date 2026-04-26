@@ -487,6 +487,41 @@ describe("OAuth protected resource", () => {
     );
   });
 
+  it("does not trust forwarded hosts when comparing audience against the configured resource", async () => {
+    const { oauth, verifier } = createProtectedResourceMetadata();
+    const token = verifier.issueToken({
+      token: "forwarded-host-audience-token",
+      issuer: AUTHORIZATION_SERVER,
+      audience: ["https://public.example.com/mcp"],
+      scopes: [REQUIRED_SCOPE],
+      expiresAt: TEST_NOW + 300,
+    });
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "X-Forwarded-Host": "public.example.com",
+        "X-Forwarded-Proto": "https",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      'Bearer realm="mcp", resource_metadata="https://public.example.com/.well-known/oauth-protected-resource/mcp", error="invalid_token", error_description="audience mismatch"'
+    );
+  });
+
   it("returns invalid_token when the bearer token issuer does not match the configured authorization server", async () => {
     const { oauth, verifier } = createProtectedResourceMetadata();
     const token = verifier.issueToken({

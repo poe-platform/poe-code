@@ -503,9 +503,9 @@ tasks:
 
       - Don't introduce unused abstractions.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
   - id: yaml-file-backend
     title: Implement yaml-file backend

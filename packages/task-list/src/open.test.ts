@@ -26,15 +26,6 @@ afterEach(() => {
 });
 
 describe("openTaskList", () => {
-  it('uses the "markdown-dir" placeholder backend by default', async () => {
-    await expect(
-      openTaskList({
-        type: "markdown-dir",
-        path: "/repo/tasks"
-      })
-    ).rejects.toThrow("not yet implemented");
-  });
-
   it('routes "markdown-dir" to the markdown backend factory', async () => {
     const taskList = createTaskList();
     const fs = createFs();

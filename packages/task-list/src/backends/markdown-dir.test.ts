@@ -1,0 +1,203 @@
+import { createFsFromVolume, Volume } from "memfs";
+import { parseDocument } from "yaml";
+import { describe, expect, it } from "vitest";
+import { openTaskList } from "../open.js";
+import { MalformedTaskError, type TaskListFs } from "../types.js";
+import { markdownDirBackend } from "./markdown-dir.js";
+
+type TestFs = ReturnType<typeof createFsFromVolume>["promises"];
+
+function createFs(files: Record<string, string> = {}): {
+  fs: TaskListFs;
+  rawFs: TestFs;
+  volume: Volume;
+} {
+  const volume = Volume.fromJSON(files, "/");
+  const rawFs = createFsFromVolume(volume).promises;
+
+  return {
+    fs: rawFs as unknown as TaskListFs,
+    rawFs,
+    volume
+  };
+}
+
+function parseFrontmatter(content: string): Record<string, unknown> {
+  const lines = content.split("\n");
+  const closingIndex = lines.indexOf("---", 1);
+
+  if (closingIndex === -1) {
+    throw new Error("Missing frontmatter terminator.");
+  }
+
+  const document = parseDocument(lines.slice(1, closingIndex).join("\n"));
+
+  return document.toJS() as Record<string, unknown>;
+}
+
+describe("markdownDirBackend", () => {
+  it("creates the root directory only when create is true", async () => {
+    const missingRoot = createFs();
+
+    await expect(
+      openTaskList({
+        type: "markdown-dir",
+        path: "/repo/tasks",
+        fs: missingRoot.fs
+      })
+    ).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+
+    await expect(
+      openTaskList({
+        type: "markdown-dir",
+        path: "/repo/tasks",
+        create: true,
+        fs: missingRoot.fs
+      })
+    ).resolves.toBeDefined();
+    await expect(missingRoot.rawFs.stat("/repo/tasks")).resolves.toMatchObject({
+      isDirectory: expect.any(Function)
+    });
+  });
+
+  it("keeps list directories lazy until the first create", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/.keep": ""
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        state: "draft",
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    taskList.list("planning");
+
+    await expect(rawFs.stat("/repo/tasks/planning")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+
+    await taskList.list("planning").create({
+      id: "lazy",
+      name: "Lazy create"
+    });
+
+    await expect(rawFs.stat("/repo/tasks/planning")).resolves.toMatchObject({
+      isDirectory: expect.any(Function)
+    });
+  });
+
+  it("preserves unknown frontmatter keys during updates", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/planning/custom.md": `---
+$schema: https://poe-platform.github.io/poe-code/schemas/task-list/task.schema.json
+kind: task
+version: 1
+name: Custom task
+state: draft
+owner: kj
+estimate: 3
+---
+
+Initial body`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        state: "draft",
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("planning").update("custom", {
+      name: "Updated custom",
+      metadata: {
+        owner: "pm"
+      }
+    });
+
+    const content = await rawFs.readFile("/repo/tasks/planning/custom.md", "utf8");
+
+    expect(parseFrontmatter(content)).toMatchObject({
+      owner: "pm",
+      estimate: 3
+    });
+  });
+
+  it("throws MalformedTaskError with the file path and field name", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/planning/bad.md": `---
+name: Bad task
+state: not-a-real-state
+---
+
+Broken`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        state: "draft",
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("planning").get("bad")).rejects.toEqual(
+      expect.objectContaining({
+        name: "MalformedTaskError",
+        message: expect.stringContaining("/repo/tasks/planning/bad.md")
+      })
+    );
+    await expect(taskList.list("planning").get("bad")).rejects.toThrow('"state"');
+    await expect(taskList.list("planning").get("bad")).rejects.toBeInstanceOf(MalformedTaskError);
+  });
+
+  it("ignores hidden entries, lockfiles, and the reserved archive directory at the root", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/alpha/one.md": `---
+name: One
+state: draft
+---
+`,
+      "/repo/tasks/archive/ignored.md": `---
+name: Ignored
+state: archived
+---
+`,
+      "/repo/tasks/.hidden/file.md": `---
+name: Hidden
+state: draft
+---
+`,
+      "/repo/tasks/beta.md.lock": "",
+      "/repo/tasks/readme.txt": "not a list"
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        state: "draft",
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.lists()).resolves.toEqual(["alpha"]);
+  });
+});

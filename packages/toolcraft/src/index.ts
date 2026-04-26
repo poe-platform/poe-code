@@ -2,6 +2,10 @@ import { fileURLToPath } from "node:url";
 import type { McpServerConfig } from "@poe-code/agent-mcp-config";
 import type { ObjectSchema, Static } from "toolcraft-schema";
 import type { LoggerOutput, RenderTableOptions, ThemePalette } from "@poe-code/design-system";
+import { ApprovalDeclinedError } from "./human-in-loop/types.js";
+import type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/types.js";
+import { mergeHumanInLoopFromGroup, validateHumanInLoopOnDefine } from "./human-in-loop/config.js";
+import { UserError } from "./user-error.js";
 
 const commandConfigSymbol = Symbol("toolcraft.command.config");
 const groupConfigSymbol = Symbol("toolcraft.group.config");
@@ -121,6 +125,7 @@ export interface CommandConfig<
   secrets?: TSecrets;
   scope?: Scope[];
   confirm?: boolean;
+  humanInLoop?: HumanInLoopConfig<TParamsSchema> | null;
   requires?: Requires<CommandCheckContext<TParamsSchema, TSecrets, TServices>>;
   handler: (ctx: HandlerContext<TParamsSchema, TSecrets, TServices>) => Promise<TResult>;
   render?: Renderers<TResult>;
@@ -141,6 +146,7 @@ export interface Command<
   secrets: SecretDeclarations;
   scope: Scope[];
   confirm: boolean;
+  humanInLoop?: HumanInLoopConfig<TParamsSchema> | null;
   requires?: Requires<any>;
   handler: (ctx: HandlerContext<TParamsSchema, TSecrets, TServices>) => Promise<TResult>;
   render?: Renderers<TResult>;
@@ -152,6 +158,7 @@ export interface GroupConfig<TServices extends object> {
   aliases?: string[];
   mcp?: McpServerConfig;
   scope?: Scope[];
+  humanInLoop?: HumanInLoopConfig<AnyObjectSchema> | null;
   secrets?: SecretDeclarations;
   tools?: string[];
   rename?: Record<string, string>;
@@ -166,6 +173,7 @@ export interface Group<TServices extends object = EmptyServices> {
   description?: string;
   aliases: string[];
   scope?: Scope[];
+  humanInLoop?: HumanInLoopConfig<AnyObjectSchema> | null;
   secrets: SecretDeclarations;
   requires?: Requires<any>;
   children: Array<CommandNode<TServices>>;
@@ -219,6 +227,7 @@ type TypedGroupMetadata<
 
 interface InternalCommandConfig {
   scope?: Scope[];
+  humanInLoop?: HumanInLoopConfig<ObjectSchema<any>> | null;
   secrets: SecretDeclarations;
   requires?: Requires<any>;
   sourcePath?: string;
@@ -227,6 +236,7 @@ interface InternalCommandConfig {
 interface InternalGroupConfig<TServices extends object> {
   mcp?: McpServerConfig;
   scope?: Scope[];
+  humanInLoop?: HumanInLoopConfig<AnyObjectSchema> | null;
   secrets: SecretDeclarations;
   tools?: string[];
   rename?: Record<string, string>;
@@ -237,15 +247,9 @@ interface InternalGroupConfig<TServices extends object> {
 
 interface InheritedMetadata {
   scope?: Scope[];
+  humanInLoop?: HumanInLoopConfig<AnyObjectSchema> | null;
   secrets: SecretDeclarations;
   requires?: Requires<any>;
-}
-
-export class UserError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "UserError";
-  }
 }
 
 export interface CommandRequirementOptions {
@@ -623,6 +627,7 @@ function createBaseCommand<
     secrets: cloneSecrets(config.secrets),
     scope: resolveCommandScope(config.scope, undefined),
     confirm: config.confirm ?? false,
+    humanInLoop: config.humanInLoop,
     requires: cloneRequires(config.requires),
     handler: config.handler,
     render: config.render,
@@ -631,6 +636,7 @@ function createBaseCommand<
   Object.defineProperty(command, commandConfigSymbol, {
     value: {
       scope: cloneScope(config.scope),
+      humanInLoop: config.humanInLoop,
       secrets: cloneSecrets(config.secrets),
       requires: cloneRequires(config.requires),
       sourcePath: inferCommandSourcePath(),
@@ -647,6 +653,7 @@ function createBaseGroup<TServices extends object>(config: GroupConfig<TServices
     description: config.description,
     aliases: [...(config.aliases ?? [])],
     scope: resolveGroupScope(config.scope, undefined),
+    humanInLoop: config.humanInLoop,
     secrets: cloneSecrets(config.secrets),
     requires: cloneRequires(config.requires),
     children: [],
@@ -657,6 +664,7 @@ function createBaseGroup<TServices extends object>(config: GroupConfig<TServices
     value: {
       mcp: cloneMcpServerConfig(config.mcp),
       scope: cloneScope(config.scope),
+      humanInLoop: config.humanInLoop,
       secrets: cloneSecrets(config.secrets),
       tools: cloneStringArray(config.tools),
       rename: cloneRenameMap(config.rename),
@@ -702,6 +710,7 @@ function materializeCommand<
     secrets: mergeSecrets(inherited.secrets, internal.secrets),
     scope: resolveCommandScope(internal.scope, inherited.scope),
     confirm: command.confirm,
+    humanInLoop: mergeHumanInLoopFromGroup(inherited.humanInLoop, internal.humanInLoop),
     requires: mergeRequires(inherited.requires, internal.requires),
     handler: command.handler,
     render: command.render,
@@ -710,6 +719,7 @@ function materializeCommand<
   Object.defineProperty(materialized, commandConfigSymbol, {
     value: {
       scope: cloneScope(internal.scope),
+      humanInLoop: internal.humanInLoop,
       secrets: cloneSecrets(internal.secrets),
       requires: cloneRequires(internal.requires),
       sourcePath: internal.sourcePath,
@@ -723,21 +733,25 @@ function materializeCommand<
   return materialized;
 }
 
+function mergeInheritedMetadata<TServices extends object>(
+  group: InternalGroupConfig<TServices>,
+  inherited: InheritedMetadata
+): InheritedMetadata {
+  return {
+    scope: resolveGroupScope(group.scope, inherited.scope),
+    humanInLoop: mergeHumanInLoopFromGroup(inherited.humanInLoop, group.humanInLoop),
+    secrets: mergeSecrets(inherited.secrets, group.secrets),
+    requires: mergeRequires(inherited.requires, group.requires),
+  };
+}
+
 function materializeGroup<TServices extends object>(
   group: Group<TServices>,
   inherited: InheritedMetadata
 ): Group<TServices> {
   const internal = getInternalGroupConfig(group);
-  const scope = resolveGroupScope(internal.scope, inherited.scope);
-  const secrets = mergeSecrets(inherited.secrets, internal.secrets);
-  const requires = mergeRequires(inherited.requires, internal.requires);
-  const materializedChildren = internal.children.map((child) =>
-    materializeNode(child, {
-      scope,
-      secrets,
-      requires,
-    })
-  );
+  const mergedInherited = mergeInheritedMetadata(internal, inherited);
+  const materializedChildren = internal.children.map((child) => materializeNode(child, mergedInherited));
 
   let defaultChild: Command<TServices, any, any, any> | undefined;
 
@@ -761,9 +775,10 @@ function materializeGroup<TServices extends object>(
     name: group.name,
     description: group.description,
     aliases: [...group.aliases],
-    scope,
-    secrets,
-    requires,
+    scope: mergedInherited.scope,
+    humanInLoop: mergedInherited.humanInLoop,
+    secrets: mergedInherited.secrets,
+    requires: mergedInherited.requires,
     children: materializedChildren,
     default: defaultChild,
   };
@@ -772,6 +787,7 @@ function materializeGroup<TServices extends object>(
     value: {
       mcp: cloneMcpServerConfig(internal.mcp),
       scope: cloneScope(internal.scope),
+      humanInLoop: internal.humanInLoop,
       secrets: cloneSecrets(internal.secrets),
       tools: cloneStringArray(internal.tools),
       rename: cloneRenameMap(internal.rename),
@@ -809,8 +825,11 @@ export function defineCommand<
   }
 ): Command<TServices, TParamsSchema, TSecrets, TResult> &
   TypedCommandMetadata<TName, TParamsSchema, TResult, TOwnScope> {
+  validateHumanInLoopOnDefine(config);
+
   return materializeCommand(createBaseCommand(config as CommandConfig<TServices, TParamsSchema, TSecrets, TResult>), {
     scope: undefined,
+    humanInLoop: undefined,
     secrets: {},
     requires: undefined,
   }) as Command<TServices, TParamsSchema, TSecrets, TResult> &
@@ -830,9 +849,11 @@ export function defineGroup<
   }
 ): Group<TServices> & TypedGroupMetadata<TServices, TName, TChildren, TOwnScope> {
   validateRenameMap(config.rename);
+  validateHumanInLoopOnDefine(config);
 
   return materializeGroup(createBaseGroup(config as unknown as GroupConfig<TServices>), {
     scope: undefined,
+    humanInLoop: undefined,
     secrets: {},
     requires: undefined,
   }) as Group<TServices> & TypedGroupMetadata<TServices, TName, TChildren, TOwnScope>;
@@ -845,4 +866,6 @@ export function getCommandSourcePath(command: Command<any, any, any, any>): stri
 }
 
 export { S, toJsonSchema } from "toolcraft-schema";
+export { ApprovalDeclinedError, UserError };
 export type { AnySchema, ArraySchema, BooleanSchema, EnumSchema, JsonSchema, NumberSchema, ObjectSchema, OptionalSchema, Static, StringSchema } from "toolcraft-schema";
+export type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntimeOptions };

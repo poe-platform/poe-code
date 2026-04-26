@@ -1,9 +1,12 @@
 import { S } from "toolcraft-schema";
-import { UserError, defineCommand, defineGroup } from "./index.js";
+import { ApprovalDeclinedError, UserError, defineCommand, defineGroup } from "./index.js";
 import type {
   Command,
   Group,
   HandlerContext,
+  HumanInLoopConfig,
+  HumanInLoopPending,
+  HumanInLoopRuntimeOptions,
   InferSecrets,
   Renderers,
   Requires,
@@ -102,6 +105,7 @@ type ignoredToolsGroupExport = AssertAssignable<Group<any>, typeof ignoredToolsG
 type ignoredRenameGroupExport = AssertAssignable<Group<any>, typeof ignoredRenameGroup>;
 type ignoredPlainGroupExport = AssertAssignable<Group<any>, typeof ignoredPlainGroup>;
 type ignoredUserErrorExport = AssertAssignable<Error, UserError>;
+type ignoredApprovalDeclinedErrorExport = AssertAssignable<UserError, ApprovalDeclinedError>;
 type ignoredScopeExport = AssertAssignable<Scope[], typeof ignoredScope>;
 type ignoredRequiresExport = AssertAssignable<
   Requires<any>,
@@ -134,6 +138,47 @@ type ignoredHandlerContextExport = AssertAssignable<
   },
   Parameters<typeof ignoredCommand.handler>[0]
 >;
+type ignoredHumanInLoopRuntimeOptionsExport = AssertAssignable<
+  {
+    provider?: {
+      id: string;
+      requestApproval(request: {
+        message: string;
+        declineInputPrompt?: string;
+      }): Promise<{ outcome: "approved" } | { outcome: "declined"; reason?: string }>;
+    };
+    taskList?:
+      | {
+          list(name: string): {
+            all(filter?: { state?: string; includeArchived?: boolean }): Promise<unknown[]>;
+            get(id: string): Promise<unknown>;
+            create(input: {
+              id: string;
+              name: string;
+              description?: string;
+              metadata?: Record<string, unknown>;
+            }): Promise<unknown>;
+            fire(id: string, event: string, opts?: { metadataPatch?: Record<string, unknown> }): Promise<unknown>;
+            canFire(id: string, event: string): Promise<boolean>;
+            events(id: string): Promise<readonly string[]>;
+          };
+          lists(): Promise<string[]>;
+          allTasks(filter?: { state?: string; includeArchived?: boolean }): Promise<unknown[]>;
+          get(qualifiedId: string): Promise<unknown>;
+        }
+      | {
+          dir: string;
+          format: "markdown-dir" | "yaml-file";
+        };
+    listName?: string;
+    binPath?: { execPath: string; entryArgs: readonly string[] };
+  },
+  HumanInLoopRuntimeOptions
+>;
+type ignoredHumanInLoopPendingExport = AssertAssignable<
+  { status: "pending-approval"; approvalId: string; message: string; enqueuedAt: string },
+  HumanInLoopPending
+>;
 
 const ignoredStringSchema = S.String();
 const ignoredNumberSchema = S.Number();
@@ -145,6 +190,15 @@ const ignoredObjectSchema = S.Object({
   enabled: S.Optional(S.Boolean()),
 });
 const ignoredOptionalSchema = S.Optional(S.Number());
+
+type ignoredHumanInLoopConfigExport = AssertAssignable<
+  {
+    mode: "sync" | "async";
+    message: ({ params, commandPath }: { params: { name: string }; commandPath: string }) => string;
+    declineInputPrompt?: string;
+  },
+  HumanInLoopConfig<typeof ignoredObjectSchema>
+>;
 
 type ignoredAnySchemaExport = AssertAssignable<AnySchema, typeof ignoredStringSchema>;
 type ignoredStringSchemaExport = AssertAssignable<StringSchema, typeof ignoredStringSchema>;

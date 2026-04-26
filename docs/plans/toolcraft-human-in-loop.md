@@ -173,7 +173,7 @@ tasks:
       list. Per project rule, do not add anything outside what changed.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: toolcraft-humaninloop-config
     title: toolcraft — humanInLoop field on CommandConfig + group inheritance
@@ -217,8 +217,8 @@ tasks:
 
       Reference: docs/plans/toolcraft-human-in-loop.md §3 / §4 (Module-boundary types).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-approval-state-machine

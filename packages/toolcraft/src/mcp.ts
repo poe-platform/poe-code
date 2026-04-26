@@ -11,7 +11,12 @@ import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
-import type { HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
+import {
+  ApprovalDeclinedError,
+  invokeWithHumanInLoop,
+  type HumanInLoopPending,
+  type HumanInLoopRuntimeOptions,
+} from "./human-in-loop/index.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
@@ -35,6 +40,7 @@ type ToolContent =
 
 interface ToolDefinition<TServices extends object> {
   command: Command<TServices, any, any, any>;
+  commandPath: string;
   description: string;
   inputSchema: JsonSchema;
   name: string;
@@ -277,13 +283,17 @@ function enumerateTools<TServices extends object>(
 ): ToolDefinition<TServices>[] {
   const tools: ToolDefinition<TServices>[] = [];
 
-  function visit(node: Command<TServices, any, any, any> | Group<TServices>, path: string[]): void {
+  function visit(
+    node: Command<TServices, any, any, any> | Group<TServices>,
+    toolPath: string[],
+    commandPath: string[]
+  ): void {
     if (node.kind === "command") {
       if (!node.scope.includes("mcp")) {
         return;
       }
 
-      const name = formatToolName([...path, node.name]);
+      const name = formatToolName([...toolPath, node.name]);
       const params = filterSchemaForScope(node.params, "mcp");
       if (!matchesAllowlist(name, allowlist)) {
         return;
@@ -295,6 +305,7 @@ function enumerateTools<TServices extends object>(
 
       tools.push({
         command: node,
+        commandPath: [...commandPath, node.name].join("."),
         name,
         description: buildToolDescription(node.description, params, casing),
         inputSchema: applySchemaCasing(toJsonSchema(params), casing),
@@ -302,20 +313,74 @@ function enumerateTools<TServices extends object>(
       return;
     }
 
-    const nextPath = [...path, node.name];
+    const nextToolPath = [...toolPath, node.name];
+    const nextCommandPath = [...commandPath, node.name];
 
     for (const child of node.children) {
-      visit(child, nextPath);
+      visit(child, nextToolPath, nextCommandPath);
     }
   }
 
   const rootPath = root.name.length === 0 ? [] : [root.name];
 
   for (const child of root.children) {
-    visit(child, rootPath);
+    visit(child, rootPath, []);
   }
 
   return tools;
+}
+
+function isHumanInLoopPending(result: unknown): result is HumanInLoopPending {
+  return (
+    typeof result === "object" &&
+    result !== null &&
+    (result as { status?: unknown }).status === "pending-approval" &&
+    typeof (result as { approvalId?: unknown }).approvalId === "string" &&
+    typeof (result as { message?: unknown }).message === "string" &&
+    typeof (result as { enqueuedAt?: unknown }).enqueuedAt === "string"
+  );
+}
+
+function renderPendingApproval(pending: HumanInLoopPending): {
+  isError: false;
+  content: ToolContent[];
+} {
+  return {
+    isError: false,
+    content: [
+      {
+        type: "text",
+        text: `Queued for human approval (id: ${pending.approvalId}). Track with \`toolcraft approvals show ${pending.approvalId}\`.`,
+      },
+      {
+        type: "text",
+        text: JSON.stringify(pending),
+      },
+    ],
+  };
+}
+
+function renderDeclinedApproval(error: ApprovalDeclinedError): {
+  isError: true;
+  content: ToolContent[];
+} {
+  return {
+    isError: true,
+    content: [
+      {
+        type: "text",
+        text: error.reason === undefined ? "Declined." : `Declined: ${error.reason}`,
+      },
+      {
+        type: "text",
+        text: JSON.stringify({
+          outcome: "declined",
+          reason: error.reason,
+          commandPath: error.commandPath,
+        }),
+      },
+    ],
+  };
 }
 
 function validateEnum(value: unknown, schema: Extract<AnySchema, { kind: "enum" }>, label: string): string | number | boolean {
@@ -529,13 +594,26 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
           await assertCommandRequirements(tool.command, { ...baseContext, params: undefined });
 
           const params = validateToolArguments(tool.command.params, argumentsValue, casing);
-          const result = await tool.command.handler({
-            ...baseContext,
-            params,
-          } as Parameters<typeof tool.command.handler>[0]);
+          const result = await invokeWithHumanInLoop(
+            tool.command,
+            {
+              ...baseContext,
+              params,
+            } as Parameters<typeof tool.command.handler>[0],
+            runtimeOptions,
+            tool.commandPath,
+          );
+
+          if (isHumanInLoopPending(result)) {
+            return renderPendingApproval(result);
+          }
 
           return toToolContent(result);
         } catch (error) {
+          if (error instanceof ApprovalDeclinedError) {
+            return renderDeclinedApproval(error);
+          }
+
           throw toToolError(error);
         }
       }

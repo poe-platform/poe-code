@@ -103,7 +103,7 @@ import type { ToolReturn } from "./content/index.js";
 
 export type ToolHandler<T = Record<string, unknown>> = (
   args: T
-) => Promise<ToolReturn> | ToolReturn;
+) => Promise<ToolReturn | CallToolResult> | ToolReturn | CallToolResult;
 
 export interface ToolDefinition<T = Record<string, unknown>> {
   name: string;

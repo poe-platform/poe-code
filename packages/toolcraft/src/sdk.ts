@@ -3,7 +3,8 @@ import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
-import type { HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
+import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
+import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
@@ -11,6 +12,8 @@ import { filterSchemaForScope } from "./schema-scope.js";
 const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
 
 type ScopeInput = readonly Scope[] | undefined;
+type HumanInLoopMode = "sync" | "async";
+type HumanInLoopModeInput = HumanInLoopMode | null | undefined;
 type Primitive = string | number | boolean | bigint | symbol | null | undefined;
 type EmptyRecord = Record<never, never>;
 
@@ -37,6 +40,24 @@ type IncludesSDK<TScope> = TScope extends readonly Scope[]
     ? true
     : false
   : false;
+
+type EffectiveCommandHumanInLoopMode<
+  TOwnHumanInLoopMode extends HumanInLoopModeInput,
+  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined,
+> = TOwnHumanInLoopMode extends HumanInLoopMode
+  ? TOwnHumanInLoopMode
+  : TOwnHumanInLoopMode extends null
+    ? undefined
+    : TInheritedHumanInLoopMode;
+
+type EffectiveGroupHumanInLoopMode<
+  TOwnHumanInLoopMode extends HumanInLoopModeInput,
+  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined,
+> = TOwnHumanInLoopMode extends HumanInLoopMode
+  ? TOwnHumanInLoopMode
+  : TOwnHumanInLoopMode extends null
+    ? undefined
+    : TInheritedHumanInLoopMode;
 
 type Separator = "-" | "_" | " " | ".";
 
@@ -109,6 +130,10 @@ type Camelize<TValue> = TValue extends Primitive
         }
       : TValue;
 
+type SDKResult<TResult, THumanInLoopMode extends HumanInLoopMode | undefined> = THumanInLoopMode extends "async"
+  ? HumanInLoopPending
+  : TResult;
+
 type SDKMethod<TParamsSchema extends ObjectSchema<any>, TResult> = (
   params: Camelize<Static<TParamsSchema>>
 ) => Promise<TResult>;
@@ -123,7 +148,11 @@ type Simplify<TValue> = { [TKey in keyof TValue]: TValue[TKey] };
 
 type RawChildrenValue<TChildren> = TChildren extends readonly unknown[] ? TChildren[number] : never;
 
-type SDKNodeShape<TNode, TInheritedScope extends ScopeInput> =
+type SDKNodeShape<
+  TNode,
+  TInheritedScope extends ScopeInput,
+  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined,
+> =
   TNode extends {
     kind: "command";
     readonly __agentKitCommandTypeInfo: {
@@ -131,10 +160,16 @@ type SDKNodeShape<TNode, TInheritedScope extends ScopeInput> =
       params: infer TParamsSchema extends ObjectSchema<any>;
       result: infer TResult;
       ownScope: infer TOwnScope extends ScopeInput;
+      ownHumanInLoopMode: infer TOwnHumanInLoopMode extends HumanInLoopModeInput;
     };
   }
     ? IncludesSDK<EffectiveCommandScope<TOwnScope, TInheritedScope>> extends true
-      ? { [TKey in CamelCase<TName>]: SDKMethod<TParamsSchema, TResult> }
+      ? {
+          [TKey in CamelCase<TName>]: SDKMethod<
+            TParamsSchema,
+            SDKResult<TResult, EffectiveCommandHumanInLoopMode<TOwnHumanInLoopMode, TInheritedHumanInLoopMode>>
+          >;
+        }
       : EmptyRecord
     : TNode extends {
           kind: "group";
@@ -142,17 +177,26 @@ type SDKNodeShape<TNode, TInheritedScope extends ScopeInput> =
             name: infer TName extends string;
             children: infer TChildren extends readonly unknown[];
             ownScope: infer TOwnScope extends ScopeInput;
+            ownHumanInLoopMode: infer TOwnHumanInLoopMode extends HumanInLoopModeInput;
           };
         }
-      ? SDKChildrenShape<TChildren, EffectiveGroupScope<TOwnScope, TInheritedScope>> extends infer TChildShape extends object
+      ? SDKChildrenShape<
+          TChildren,
+          EffectiveGroupScope<TOwnScope, TInheritedScope>,
+          EffectiveGroupHumanInLoopMode<TOwnHumanInLoopMode, TInheritedHumanInLoopMode>
+        > extends infer TChildShape extends object
         ? keyof TChildShape extends never
           ? EmptyRecord
           : { [TKey in CamelCase<TName>]: TChildShape }
         : never
       : EmptyRecord;
 
-type SDKChildrenShape<TChildren, TInheritedScope extends ScopeInput> = Simplify<
-  UnionToIntersection<SDKNodeShape<RawChildrenValue<TChildren>, TInheritedScope>>
+type SDKChildrenShape<
+  TChildren,
+  TInheritedScope extends ScopeInput,
+  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined,
+> = Simplify<
+  UnionToIntersection<SDKNodeShape<RawChildrenValue<TChildren>, TInheritedScope, TInheritedHumanInLoopMode>>
 >;
 
 export interface CreateSDKOptions<TServices extends object = Record<string, unknown>> {
@@ -386,7 +430,7 @@ export function createSDK<
   },
   options?: CreateSDKOptions<TServices>
 ): TRootInfo extends { children: infer TChildren extends readonly unknown[] }
-  ? SDKChildrenShape<TChildren, undefined>
+  ? SDKChildrenShape<TChildren, undefined, undefined>
   : EmptyRecord;
 export function createSDK(
   root: Group<any>,
@@ -410,7 +454,7 @@ function createResolvedSDK(
   void options.casing;
   validateServices(services as Record<string, unknown>);
 
-  function build(node: Group<any> | Command<any, any, any, any>): unknown {
+  function build(node: Group<any> | Command<any, any, any, any>, path: string[]): unknown {
     if (node.kind === "command") {
       return async (params: Record<string, unknown> | undefined) => {
         const secrets = resolveCommandSecrets(node);
@@ -436,14 +480,20 @@ function createResolvedSDK(
         }
 
         const validatedParams = validateSDKArguments(paramsSchema, params);
-        return node.handler({
-          ...baseContext,
-          params: validatedParams,
-        } as Parameters<typeof node.handler>[0]);
+        return invokeWithHumanInLoop(
+          node,
+          {
+            ...baseContext,
+            params: validatedParams,
+          } as Parameters<typeof node.handler>[0],
+          runtimeOptions,
+          [...path, node.name].join(".")
+        );
       };
     }
 
     const output: Record<string, unknown> = {};
+    const nextPath = node === root ? path : [...path, node.name];
 
     for (const child of node.children) {
       if (child.kind === "command") {
@@ -451,11 +501,11 @@ function createResolvedSDK(
           continue;
         }
 
-        defineMember(output, formatSegment(child.name), build(child));
+        defineMember(output, formatSegment(child.name), build(child, nextPath));
         continue;
       }
 
-      const childValue = build(child);
+      const childValue = build(child, nextPath);
       if (isPlainObject(childValue) && Object.keys(childValue).length > 0) {
         defineMember(output, formatSegment(child.name), childValue);
       }
@@ -464,7 +514,7 @@ function createResolvedSDK(
     return output;
   }
 
-  return build(root) as Record<string, unknown>;
+  return build(root, []) as Record<string, unknown>;
 }
 
 function createDeferredSDK(

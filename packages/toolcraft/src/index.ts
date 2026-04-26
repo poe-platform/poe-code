@@ -15,8 +15,16 @@ type ScopeValue = "cli" | "mcp" | "sdk";
 type AnyObjectSchema = ObjectSchema<Record<string, never>>;
 type EmptyServices = Record<string, never>;
 type ScopeInput = readonly Scope[] | undefined;
+type HumanInLoopMode = "sync" | "async";
+type HumanInLoopModeInput = HumanInLoopMode | null | undefined;
 
 export type Scope = ScopeValue;
+
+type ResolveOwnHumanInLoopMode<TValue> = TValue extends { mode: infer TMode extends HumanInLoopMode }
+  ? TMode
+  : TValue extends null
+    ? null
+    : undefined;
 
 export interface SecretDefinition {
   env: string;
@@ -189,11 +197,13 @@ export interface CommandTypeInfo<
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TResult = unknown,
   TOwnScope extends ScopeInput = ScopeInput,
+  TOwnHumanInLoopMode extends HumanInLoopModeInput = undefined,
 > {
   name: TName;
   params: TParamsSchema;
   result: TResult;
   ownScope: TOwnScope;
+  ownHumanInLoopMode: TOwnHumanInLoopMode;
 }
 
 export interface GroupTypeInfo<
@@ -201,10 +211,12 @@ export interface GroupTypeInfo<
   TName extends string = string,
   TChildren extends readonly unknown[] = readonly CommandNode<TServices>[],
   TOwnScope extends ScopeInput = ScopeInput,
+  TOwnHumanInLoopMode extends HumanInLoopModeInput = undefined,
 > {
   name: TName;
   children: TChildren;
   ownScope: TOwnScope;
+  ownHumanInLoopMode: TOwnHumanInLoopMode;
 }
 
 type TypedCommandMetadata<
@@ -212,8 +224,15 @@ type TypedCommandMetadata<
   TParamsSchema extends ObjectSchema<any>,
   TResult,
   TOwnScope extends ScopeInput,
+  TOwnHumanInLoopMode extends HumanInLoopModeInput,
 > = {
-  readonly __agentKitCommandTypeInfo: CommandTypeInfo<TName, TParamsSchema, TResult, TOwnScope>;
+  readonly __agentKitCommandTypeInfo: CommandTypeInfo<
+    TName,
+    TParamsSchema,
+    TResult,
+    TOwnScope,
+    TOwnHumanInLoopMode
+  >;
 };
 
 type TypedGroupMetadata<
@@ -221,8 +240,15 @@ type TypedGroupMetadata<
   TName extends string,
   TChildren extends readonly unknown[],
   TOwnScope extends ScopeInput,
+  TOwnHumanInLoopMode extends HumanInLoopModeInput,
 > = {
-  readonly __agentKitGroupTypeInfo: GroupTypeInfo<TServices, TName, TChildren, TOwnScope>;
+  readonly __agentKitGroupTypeInfo: GroupTypeInfo<
+    TServices,
+    TName,
+    TChildren,
+    TOwnScope,
+    TOwnHumanInLoopMode
+  >;
 };
 
 interface InternalCommandConfig {
@@ -818,13 +844,15 @@ export function defineCommand<
   TSecrets extends SecretDeclarations | undefined = undefined,
   TResult = unknown,
   TOwnScope extends ScopeInput = undefined,
+  TOwnHumanInLoop extends HumanInLoopConfig<TParamsSchema> | null | undefined = undefined,
 >(
-  config: Omit<CommandConfig<TServices, TParamsSchema, TSecrets, TResult>, "name" | "scope"> & {
+  config: Omit<CommandConfig<TServices, TParamsSchema, TSecrets, TResult>, "name" | "scope" | "humanInLoop"> & {
     name: TName;
     scope?: TOwnScope;
+    humanInLoop?: TOwnHumanInLoop;
   }
 ): Command<TServices, TParamsSchema, TSecrets, TResult> &
-  TypedCommandMetadata<TName, TParamsSchema, TResult, TOwnScope> {
+  TypedCommandMetadata<TName, TParamsSchema, TResult, TOwnScope, ResolveOwnHumanInLoopMode<TOwnHumanInLoop>> {
   validateHumanInLoopOnDefine(config);
 
   return materializeCommand(createBaseCommand(config as CommandConfig<TServices, TParamsSchema, TSecrets, TResult>), {
@@ -833,7 +861,7 @@ export function defineCommand<
     secrets: {},
     requires: undefined,
   }) as Command<TServices, TParamsSchema, TSecrets, TResult> &
-    TypedCommandMetadata<TName, TParamsSchema, TResult, TOwnScope>;
+    TypedCommandMetadata<TName, TParamsSchema, TResult, TOwnScope, ResolveOwnHumanInLoopMode<TOwnHumanInLoop>>;
 }
 
 export function defineGroup<
@@ -841,13 +869,16 @@ export function defineGroup<
   TName extends string = string,
   TChildren extends readonly unknown[] = readonly CommandNode<TServices>[],
   TOwnScope extends ScopeInput = undefined,
+  TOwnHumanInLoop extends HumanInLoopConfig<AnyObjectSchema> | null | undefined = undefined,
 >(
-  config: Omit<GroupConfig<TServices>, "name" | "children" | "scope"> & {
+  config: Omit<GroupConfig<TServices>, "name" | "children" | "scope" | "humanInLoop"> & {
     name: TName;
     children: TChildren & readonly CommandNode<TServices>[];
     scope?: TOwnScope;
+    humanInLoop?: TOwnHumanInLoop;
   }
-): Group<TServices> & TypedGroupMetadata<TServices, TName, TChildren, TOwnScope> {
+): Group<TServices> &
+  TypedGroupMetadata<TServices, TName, TChildren, TOwnScope, ResolveOwnHumanInLoopMode<TOwnHumanInLoop>> {
   validateRenameMap(config.rename);
   validateHumanInLoopOnDefine(config);
 
@@ -856,7 +887,8 @@ export function defineGroup<
     humanInLoop: undefined,
     secrets: {},
     requires: undefined,
-  }) as Group<TServices> & TypedGroupMetadata<TServices, TName, TChildren, TOwnScope>;
+  }) as Group<TServices> &
+    TypedGroupMetadata<TServices, TName, TChildren, TOwnScope, ResolveOwnHumanInLoopMode<TOwnHumanInLoop>>;
 }
 
 export function getCommandSourcePath(command: Command<any, any, any, any>): string | undefined {

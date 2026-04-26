@@ -1730,6 +1730,33 @@ describe("server protocol handlers", () => {
       });
     });
 
+    it('R5a: handleMessage("tools/call") preserves CallToolResult returned by the handler', async () => {
+      const schema = defineSchema({ name: { type: "string" } });
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "greet",
+        "Greets",
+        schema,
+        async ({ name }: { name: string }) => ({
+          content: [{ type: "text", text: `Queued ${name}` }],
+          isError: true,
+        })
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "greet",
+          arguments: { name: "World" },
+        })
+      ).resolves.toEqual({
+        result: {
+          content: [{ type: "text", text: "Queued World" }],
+          isError: true,
+        },
+      });
+    });
+
     it('R6: handleMessage("tools/call", { name: "missing" }) returns tool not found error', async () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 

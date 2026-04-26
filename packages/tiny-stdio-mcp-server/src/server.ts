@@ -135,7 +135,9 @@ export function createServer(options: ServerOptions): Server {
 
       try {
         const handlerResult = await tool.handler(toolArgs);
-        const result: CallToolResult = { content: toContentBlocks(handlerResult) };
+        const result: CallToolResult = isCallToolResult(handlerResult)
+          ? handlerResult
+          : { content: toContentBlocks(handlerResult) };
         return { result };
       } catch (err) {
         if (err instanceof ToolError) {
@@ -323,4 +325,12 @@ export function createServer(options: ServerOptions): Server {
   };
 
   return server;
+}
+
+function isCallToolResult(value: unknown): value is CallToolResult {
+  if (typeof value !== "object" || value === null || !("content" in value)) {
+    return false;
+  }
+
+  return Array.isArray((value as { content: unknown }).content);
 }

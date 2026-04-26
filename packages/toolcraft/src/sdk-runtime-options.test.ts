@@ -1,0 +1,54 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { S } from "toolcraft-schema";
+import { defineCommand, defineGroup } from "./index.js";
+
+const invokeWithHumanInLoopMock = vi.hoisted(() => vi.fn());
+
+vi.mock("./human-in-loop/index.js", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("./human-in-loop/index.js")>();
+
+  return {
+    ...actual,
+    invokeWithHumanInLoop: invokeWithHumanInLoopMock,
+  };
+});
+
+const { createSDK } = await import("./sdk.js");
+
+describe("createSDK human-in-loop runtime options plumbing", () => {
+  beforeEach(() => {
+    invokeWithHumanInLoopMock.mockReset();
+  });
+
+  it("passes the normalized runtime options object to the gate when options.humanInLoop is omitted", async () => {
+    invokeWithHumanInLoopMock.mockImplementation(async (_command, context, runtimeOptions) => {
+      expect(runtimeOptions).toBe(context.runtimeOptions);
+      expect(runtimeOptions).toEqual({});
+
+      return {
+        deployed: context.params.target,
+      };
+    });
+
+    const sdk = createSDK(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "deploy",
+            params: S.Object({
+              target: S.String(),
+            }),
+            handler: async () => "should not run",
+          }),
+        ],
+      })
+    ) as {
+      deploy(params: { target: string }): Promise<{ deployed: string }>;
+    };
+
+    await expect(sdk.deploy({ target: "prod" })).resolves.toEqual({
+      deployed: "prod",
+    });
+  });
+});

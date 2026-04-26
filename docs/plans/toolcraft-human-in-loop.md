@@ -544,7 +544,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-mcp-sdk-wiring
     title: toolcraft — wire gate into MCP and SDK runtimes
@@ -590,8 +590,8 @@ tasks:
       Reference: docs/plans/toolcraft-human-in-loop.md §2
       "Caller-facing behaviour" and §4 "Integration tests".
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-readme-and-qa

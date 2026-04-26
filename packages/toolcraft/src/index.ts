@@ -1,4 +1,5 @@
 import { fileURLToPath } from "node:url";
+import type { McpServerConfig } from "@poe-code/agent-mcp-config";
 import type { ObjectSchema, Static } from "toolcraft-schema";
 import type { LoggerOutput, RenderTableOptions, ThemePalette } from "@poe-code/design-system";
 
@@ -149,8 +150,11 @@ export interface GroupConfig<TServices extends object> {
   name: string;
   description?: string;
   aliases?: string[];
+  mcp?: McpServerConfig;
   scope?: Scope[];
   secrets?: SecretDeclarations;
+  tools?: string[];
+  rename?: Record<string, string>;
   requires?: Requires<GroupCheckContext<TServices>>;
   children: Array<CommandNode<TServices>>;
   default?: Command<TServices, any, any, any>;
@@ -221,8 +225,11 @@ interface InternalCommandConfig {
 }
 
 interface InternalGroupConfig<TServices extends object> {
+  mcp?: McpServerConfig;
   scope?: Scope[];
   secrets: SecretDeclarations;
+  tools?: string[];
+  rename?: Record<string, string>;
   requires?: Requires<any>;
   children: Array<CommandNode<TServices>>;
   default?: Command<TServices, any, any, any>;
@@ -279,6 +286,68 @@ function cloneRequires<TContext>(requires: Requires<TContext> | undefined): Requ
     apiVersion: requires.apiVersion,
     check: requires.check,
   };
+}
+
+function cloneStringArray(values: string[] | undefined): string[] | undefined {
+  return values === undefined ? undefined : [...values];
+}
+
+function cloneStringRecord(values: Record<string, string> | undefined): Record<string, string> | undefined {
+  return values === undefined ? undefined : { ...values };
+}
+
+function cloneMcpServerConfig(config: McpServerConfig | undefined): McpServerConfig | undefined {
+  if (config === undefined) {
+    return undefined;
+  }
+
+  if (config.transport === "stdio") {
+    return {
+      transport: "stdio",
+      command: config.command,
+      args: cloneStringArray(config.args),
+      env: cloneStringRecord(config.env),
+    };
+  }
+
+  return {
+    transport: "http",
+    url: config.url,
+    headers: cloneStringRecord(config.headers),
+  };
+}
+
+function cloneRenameMap(rename: Record<string, string> | undefined): Record<string, string> | undefined {
+  return rename === undefined ? undefined : { ...rename };
+}
+
+function validateRenameMap(rename: Record<string, string> | undefined): void {
+  if (rename === undefined) {
+    return;
+  }
+
+  const seenTargets = new Map<string, string>();
+
+  for (const [upstreamName, targetPath] of Object.entries(rename)) {
+    if (targetPath.length === 0) {
+      throw new UserError(`Invalid rename target for upstream tool "${upstreamName}": path cannot be empty.`);
+    }
+
+    if (targetPath.split(".").some((segment) => segment.length === 0)) {
+      throw new UserError(
+        `Invalid rename target for upstream tool "${upstreamName}": "${targetPath}" contains an empty segment.`
+      );
+    }
+
+    const existingUpstreamName = seenTargets.get(targetPath);
+    if (existingUpstreamName !== undefined) {
+      throw new UserError(
+        `Duplicate rename target "${targetPath}" for upstream tools "${existingUpstreamName}" and "${upstreamName}".`
+      );
+    }
+
+    seenTargets.set(targetPath, upstreamName);
+  }
 }
 
 function parseStackPath(candidate: string): string | undefined {
@@ -586,8 +655,11 @@ function createBaseGroup<TServices extends object>(config: GroupConfig<TServices
 
   Object.defineProperty(group, groupConfigSymbol, {
     value: {
+      mcp: cloneMcpServerConfig(config.mcp),
       scope: cloneScope(config.scope),
       secrets: cloneSecrets(config.secrets),
+      tools: cloneStringArray(config.tools),
+      rename: cloneRenameMap(config.rename),
       requires: cloneRequires(config.requires),
       children: [...config.children],
       default: config.default,
@@ -698,8 +770,11 @@ function materializeGroup<TServices extends object>(
 
   Object.defineProperty(materialized, groupConfigSymbol, {
     value: {
+      mcp: cloneMcpServerConfig(internal.mcp),
       scope: cloneScope(internal.scope),
       secrets: cloneSecrets(internal.secrets),
+      tools: cloneStringArray(internal.tools),
+      rename: cloneRenameMap(internal.rename),
       requires: cloneRequires(internal.requires),
       children: [...internal.children],
       default: internal.default,
@@ -754,6 +829,8 @@ export function defineGroup<
     scope?: TOwnScope;
   }
 ): Group<TServices> & TypedGroupMetadata<TServices, TName, TChildren, TOwnScope> {
+  validateRenameMap(config.rename);
+
   return materializeGroup(createBaseGroup(config as unknown as GroupConfig<TServices>), {
     scope: undefined,
     secrets: {},

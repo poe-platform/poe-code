@@ -67,8 +67,40 @@ const ignoredGroup = defineGroup({
   default: ignoredCommand,
 });
 
+const ignoredMcpGroup = defineGroup({
+  name: "mcp-root",
+  mcp: {
+    transport: "stdio",
+    command: "server",
+  },
+  children: [],
+});
+
+const ignoredToolsGroup = defineGroup({
+  name: "tools-root",
+  tools: ["usage"],
+  children: [],
+});
+
+const ignoredRenameGroup = defineGroup({
+  name: "rename-root",
+  rename: {
+    usage: "bot.create",
+  },
+  children: [],
+});
+
+const ignoredPlainGroup = defineGroup({
+  name: "plain-root",
+  children: [],
+});
+
 type ignoredCommandExport = AssertAssignable<Command<any, any, any, any>, typeof ignoredCommand>;
 type ignoredGroupExport = AssertAssignable<Group<any>, typeof ignoredGroup>;
+type ignoredMcpGroupExport = AssertAssignable<Group<any>, typeof ignoredMcpGroup>;
+type ignoredToolsGroupExport = AssertAssignable<Group<any>, typeof ignoredToolsGroup>;
+type ignoredRenameGroupExport = AssertAssignable<Group<any>, typeof ignoredRenameGroup>;
+type ignoredPlainGroupExport = AssertAssignable<Group<any>, typeof ignoredPlainGroup>;
 type ignoredUserErrorExport = AssertAssignable<Error, UserError>;
 type ignoredScopeExport = AssertAssignable<Scope[], typeof ignoredScope>;
 type ignoredRequiresExport = AssertAssignable<

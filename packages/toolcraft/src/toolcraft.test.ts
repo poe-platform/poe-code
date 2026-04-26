@@ -94,6 +94,77 @@ describe("toolcraft", () => {
     );
   });
 
+  it("rejects invalid rename paths at group definition time", () => {
+    expect(() =>
+      defineGroup({
+        name: "root",
+        rename: {
+          create_issue: "",
+        },
+        children: [],
+      })
+    ).toThrowError(new UserError('Invalid rename target for upstream tool "create_issue": path cannot be empty.'));
+
+    expect(() =>
+      defineGroup({
+        name: "root",
+        rename: {
+          create_issue: ".issues.create",
+        },
+        children: [],
+      })
+    ).toThrowError(
+      new UserError(
+        'Invalid rename target for upstream tool "create_issue": ".issues.create" contains an empty segment.'
+      )
+    );
+
+    expect(() =>
+      defineGroup({
+        name: "root",
+        rename: {
+          create_issue: "issues.create.",
+        },
+        children: [],
+      })
+    ).toThrowError(
+      new UserError(
+        'Invalid rename target for upstream tool "create_issue": "issues.create." contains an empty segment.'
+      )
+    );
+
+    expect(() =>
+      defineGroup({
+        name: "root",
+        rename: {
+          create_issue: "issues..create",
+        },
+        children: [],
+      })
+    ).toThrowError(
+      new UserError(
+        'Invalid rename target for upstream tool "create_issue": "issues..create" contains an empty segment.'
+      )
+    );
+  });
+
+  it("rejects duplicate rename targets at group definition time", () => {
+    expect(() =>
+      defineGroup({
+        name: "root",
+        rename: {
+          create_issue: "issues.create",
+          open_issue: "issues.create",
+        },
+        children: [],
+      })
+    ).toThrowError(
+      new UserError(
+        'Duplicate rename target "issues.create" for upstream tools "create_issue" and "open_issue".'
+      )
+    );
+  });
+
   it("ignores installed toolcraft stack frames when inferring a command source path", () => {
     const OriginalError = globalThis.Error;
 

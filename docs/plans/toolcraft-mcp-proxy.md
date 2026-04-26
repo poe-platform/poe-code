@@ -168,8 +168,8 @@ tasks:
 
       Run `npm run test --workspace toolcraft` before committing.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: mcp-proxy-runtime-core

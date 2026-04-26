@@ -1,0 +1,42 @@
+{
+  "name": "tiny-http-mcp-oauth-test-server",
+  "version": "0.1.0",
+  "description": "OAuth-protected MCP HTTP fixture that bundles tiny-http-mcp-server with tiny-oauth-test-server",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "tiny-http-mcp-oauth-test-server": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "tsc"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/poe-platform/poe-code.git",
+    "directory": "packages/tiny-http-mcp-oauth-test-server"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "mcp-oauth": "*",
+    "tiny-http-mcp-server": "*",
+    "tiny-oauth-test-server": "*"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "tiny-mcp-client": "*"
+  }
+}

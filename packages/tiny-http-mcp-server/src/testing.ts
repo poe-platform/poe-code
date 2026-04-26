@@ -263,6 +263,7 @@ export function createTestMcpServer(
     version: string;
     enableJsonResponse: boolean;
     sessionIdGenerator: (() => string) | undefined;
+    oauth: import("./http-server.js").TinyHttpMcpServerOAuthOptions;
   }> = {}
 ): HttpServer {
   const emptySchema = defineSchema({});
@@ -275,6 +276,7 @@ export function createTestMcpServer(
     version: options.version ?? "1.0.0",
     ...("enableJsonResponse" in options ? { enableJsonResponse: options.enableJsonResponse } : {}),
     ...("sessionIdGenerator" in options ? { sessionIdGenerator: options.sessionIdGenerator } : {}),
+    ...("oauth" in options ? { oauth: options.oauth } : {}),
   })
     .tool("echo", "Echo input text", textSchema, ({ text }) => String(text))
     .tool("reverse", "Reverse input text", textSchema, ({ text }) =>

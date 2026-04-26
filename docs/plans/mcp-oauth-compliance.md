@@ -522,9 +522,9 @@ tasks:
         - The bundled CLI starts up, prints the documented URLs, and exits
           cleanly on SIGTERM.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: e2e-tiny-mcp-client

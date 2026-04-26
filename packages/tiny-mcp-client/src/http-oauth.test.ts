@@ -425,6 +425,7 @@ describe("HttpTransport OAuth authorization", () => {
       string,
       { clientId: string; redirectUri: string; codeChallenge: string }
     >();
+    const storedSessions = new Map<string, StoredOAuthSession>();
     let nextAuthorizationCode = 0;
 
     const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
@@ -520,6 +521,18 @@ describe("HttpTransport OAuth authorization", () => {
       await requestLoopbackCallback(`${url.searchParams.get("redirect_uri")}?code=${code}`);
     });
 
+    const sessionStore: OAuthSessionStore = {
+      async load(resource: string): Promise<StoredOAuthSession | null> {
+        return storedSessions.get(resource) ?? null;
+      },
+      async save(resource: string, session: StoredOAuthSession): Promise<void> {
+        storedSessions.set(resource, session);
+      },
+      async clear(resource: string): Promise<void> {
+        storedSessions.delete(resource);
+      },
+    };
+
     const transport = new HttpTransport({
       url: requestUrl,
       fetch: fetchMock,
@@ -533,6 +546,7 @@ describe("HttpTransport OAuth authorization", () => {
         browser: {
           openBrowser,
         },
+        sessionStore,
       },
     });
 

@@ -171,6 +171,7 @@
     "terminal-pilot-mcp": "*",
     "terminal-png": "*",
     "tiny-http-mcp-server": "*",
+    "tiny-http-mcp-oauth-test-server": "*",
     "tiny-mcp-client": "*",
     "tiny-oauth-test-server": "*",
     "tiny-stdio-mcp-server": "*",

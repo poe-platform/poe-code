@@ -17,6 +17,13 @@ OAuth client primitives for MCP HTTP transports.
 - `authStore` optional `auth-store` backend config for the default session store
 - `now()` optional clock override
 
+`createJwksTokenVerifier(options)` accepts:
+
+- `jwksUrl`
+- `clockSkewSeconds` optional, defaults to `30`
+- `allowedAlgorithms` optional asymmetric allow-list
+- `fetch` optional override
+
 `createAuthStoreSessionStore(options)` accepts the standard `auth-store` config.
 
 ## Environment Variables

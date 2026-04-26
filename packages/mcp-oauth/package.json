@@ -14,7 +14,11 @@
     "build": "tsc"
   },
   "dependencies": {
-    "auth-store": "*"
+    "auth-store": "*",
+    "jose": "^6.1.2"
+  },
+  "devDependencies": {
+    "tiny-oauth-test-server": "*"
   },
   "files": [
     "dist"

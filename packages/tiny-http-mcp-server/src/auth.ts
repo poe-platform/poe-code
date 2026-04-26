@@ -31,6 +31,14 @@ export interface BearerChallengeOptions {
   scope?: readonly string[];
 }
 
+function isBearerChallengeErrorCode(value: unknown): value is BearerChallengeErrorCode {
+  return value === "invalid_token" || value === "insufficient_scope";
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === "string");
+}
+
 export class TokenVerificationError extends Error {
   readonly error: BearerChallengeErrorCode;
   readonly errorDescription?: string;
@@ -161,6 +169,38 @@ function normalizeTokenVerificationError(
   error: unknown,
   requiredScopes: readonly string[]
 ): BearerChallengeOptions {
+  if (typeof error === "object" && error !== null) {
+    const challengeError = error as {
+      error?: unknown;
+      errorDescription?: unknown;
+      scope?: unknown;
+    };
+
+    if (
+      isBearerChallengeErrorCode(challengeError.error)
+      && (challengeError.errorDescription === undefined
+        || typeof challengeError.errorDescription === "string")
+      && (challengeError.scope === undefined || isStringArray(challengeError.scope))
+    ) {
+      const scope = challengeError.scope ?? [];
+
+      return {
+        error: challengeError.error,
+        ...(challengeError.errorDescription === undefined
+          ? {}
+          : {
+              errorDescription: challengeError.errorDescription,
+            }),
+        scope:
+          scope.length > 0
+            ? [...scope]
+            : challengeError.error === "insufficient_scope"
+              ? requiredScopes
+              : undefined,
+      };
+    }
+  }
+
   if (error instanceof TokenVerificationError) {
     return {
       error: error.error,

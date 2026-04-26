@@ -17,6 +17,9 @@ export {
 export {
   OAuthError,
 } from "./client/token-endpoint.js";
+export {
+  createJwksTokenVerifier,
+} from "./server/jwks-token-verifier.js";
 export type {
   DefaultOAuthClientProviderOptions,
   OAuthAuthorizationServerMetadata,
@@ -31,6 +34,11 @@ export type {
   StoredOAuthSession,
   StoredOAuthTokens,
 } from "./client/types.js";
+export type {
+  JwksTokenVerifier,
+  JwksTokenVerifierOptions,
+  JwksVerifiedAccessToken,
+} from "./server/jwks-token-verifier.js";
 export type {
   LoopbackAuthorizationOptions,
   LoopbackAuthorizationSession,

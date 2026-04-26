@@ -414,6 +414,47 @@ describe("OAuth protected resource", () => {
     );
   });
 
+  it("accepts verifier errors from external packages when they expose the Bearer challenge fields", async () => {
+    const oauth = {
+      resource: PROTECTED_RESOURCE,
+      authorizationServers: [AUTHORIZATION_SERVER],
+      bearerMethodsSupported: ["header"] as const,
+      scopesSupported: [REQUIRED_SCOPE],
+      requiredScopes: [REQUIRED_SCOPE],
+      verifier: {
+        async verify() {
+          throw Object.assign(new Error("insufficient scope"), {
+            error: "insufficient_scope" as const,
+            errorDescription: "insufficient scope",
+            scope: [REQUIRED_SCOPE],
+          });
+        },
+      },
+    };
+    const handle = await createHttpServer({
+      name: "oauth-http-server",
+      version: "1.0.0",
+      oauth,
+      enableJsonResponse: true,
+    }).listenHttp({ port: 0 });
+    trackCleanup(handle.close);
+
+    const response = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: "Bearer verifier-error-token",
+        "Content-Type": "application/json",
+      },
+      body: createInitializeRequestBody(),
+    });
+
+    expect(response.status).toBe(401);
+    expect(response.headers.get("www-authenticate")).toBe(
+      `Bearer realm="mcp", resource_metadata="http://127.0.0.1:${handle.port}/.well-known/oauth-protected-resource", error="insufficient_scope", error_description="insufficient scope", scope="${REQUIRED_SCOPE}"`
+    );
+  });
+
   it("passes verified token claims to tools through request.auth", async () => {
     const { oauth, verifier } = createProtectedResourceMetadata();
     const token = verifier.issueToken({

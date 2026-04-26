@@ -202,7 +202,7 @@ function parseStoreDocument(filePath: string, content: string) {
 
   try {
     document = parseDocument(content, { keepSourceTokens: true, prettyErrors: false });
-  } catch (error) {
+  } catch {
     throw malformedStore(filePath, "yaml");
   }
 

@@ -697,6 +697,48 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
+  it("rejects preset values that violate string patterns", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        slug: S.String({
+          pattern: "^[a-z]+$",
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy],
+    });
+
+    vol.fromJSON({
+      "/presets/invalid-pattern.json": JSON.stringify({
+        slug: "bad-value",
+      }),
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "deploy",
+      "--preset",
+      "/presets/invalid-pattern.json",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Preset file "/presets/invalid-pattern.json" has an invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".',
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
   it("reports a clear error when the preset file does not exist", async () => {
     const handler = vi.fn(async () => null);
 
@@ -1269,6 +1311,479 @@ describe("runCLI", () => {
     expect(realStore.writeValue).not.toHaveBeenCalled();
   });
 
+  it("parses oneOf params using the discriminator flag and selected branch fields", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const send = defineCommand({
+      name: "send",
+      params: S.Object({
+        destination: S.OneOf({
+          discriminator: "kind",
+          branches: {
+            email: S.Object({
+              address: S.String(),
+            }),
+            webhook: S.Object({
+              url: S.String(),
+            }),
+          },
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [send],
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "send",
+      "--destination.kind",
+      "email",
+      "--destination.address",
+      "alerts@example.com",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          destination: {
+            kind: "email",
+            address: "alerts@example.com",
+          },
+        },
+      })
+    );
+  });
+
+  it("rejects oneOf flags from branches other than the selected discriminator", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const send = defineCommand({
+      name: "send",
+      params: S.Object({
+        destination: S.OneOf({
+          discriminator: "kind",
+          branches: {
+            email: S.Object({
+              address: S.String(),
+            }),
+            webhook: S.Object({
+              url: S.String(),
+            }),
+          },
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [send],
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "send",
+      "--destination.kind",
+      "email",
+      "--destination.address",
+      "alerts@example.com",
+      "--destination.url",
+      "https://example.com/hook",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Parameter "destination.url" is not valid when "destination.kind" is "email".',
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("parses unions using the synthesized kind flag", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const notify = defineCommand({
+      name: "notify",
+      params: S.Object({
+        contact: S.Union([
+          S.Object({
+            email: S.String(),
+          }),
+          S.Object({
+            phone: S.String(),
+          }),
+        ]),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [notify],
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "notify",
+      "--contact-kind",
+      "email",
+      "--contact.email",
+      "alerts@example.com",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          contact: {
+            email: "alerts@example.com",
+          },
+        },
+      })
+    );
+  });
+
+  it("rejects union flags from branches other than the selected kind", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const notify = defineCommand({
+      name: "notify",
+      params: S.Object({
+        contact: S.Union([
+          S.Object({
+            email: S.String(),
+          }),
+          S.Object({
+            phone: S.String(),
+          }),
+        ]),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [notify],
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "notify",
+      "--contact-kind",
+      "phone",
+      "--contact.email",
+      "alerts@example.com",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Parameter "contact.email" is not valid when "contact-kind" is "phone".',
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("parses record flags with dynamic keys", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const configure = defineCommand({
+      name: "configure",
+      params: S.Object({
+        weights: S.Record(S.Number()),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [configure],
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "configure",
+      "--weights.primary",
+      "3",
+      "--weights.secondary",
+      "7",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          weights: {
+            primary: 3,
+            secondary: 7,
+          },
+        },
+      })
+    );
+  });
+
+  it("parses arrays of objects from indexed flags", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const invite = defineCommand({
+      name: "invite",
+      params: S.Object({
+        recipients: S.Array(
+          S.Object({
+            name: S.String(),
+            email: S.String(),
+          })
+        ),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [invite],
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "invite",
+      "--recipients.0.name",
+      "Ada",
+      "--recipients.0.email",
+      "ada@example.com",
+      "--recipients.1.name",
+      "Linus",
+      "--recipients.1.email",
+      "linus@example.com",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          recipients: [
+            {
+              name: "Ada",
+              email: "ada@example.com",
+            },
+            {
+              name: "Linus",
+              email: "linus@example.com",
+            },
+          ],
+        },
+      })
+    );
+  });
+
+  it("rejects arrays of objects when indices are not contiguous", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const invite = defineCommand({
+      name: "invite",
+      params: S.Object({
+        recipients: S.Array(
+          S.Object({
+            name: S.String(),
+          })
+        ),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [invite],
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "invite",
+      "--recipients.1.name",
+      "Linus",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Array parameter "recipients" must use contiguous indices starting at 0.',
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("parses nullable values from the literal null", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const update = defineCommand({
+      name: "update",
+      params: S.Object({
+        nickname: S.String({
+          nullable: true,
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [update],
+    });
+
+    process.argv = ["node", "toolcraft", "update", "--nickname=null", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          nickname: null,
+        },
+      })
+    );
+  });
+
+  it("validates string patterns before invoking the handler", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        slug: S.String({
+          pattern: "^[a-z]+$",
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy],
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "--slug", "bad-value", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".',
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("supports dot-path flags nested deeper than two levels", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const connect = defineCommand({
+      name: "connect",
+      params: S.Object({
+        network: S.Object({
+          database: S.Object({
+            primary: S.Object({
+              host: S.String(),
+            }),
+          }),
+        }),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [connect],
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "connect",
+      "--network.database.primary.host",
+      "db.internal",
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          network: {
+            database: {
+              primary: {
+                host: "db.internal",
+              },
+            },
+          },
+        },
+      })
+    );
+  });
+
+  it("parses json schema fields from a single json string flag", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const publish = defineCommand({
+      name: "publish",
+      params: S.Object({
+        payload: S.Json(),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [publish],
+    });
+
+    process.argv = [
+      "node",
+      "toolcraft",
+      "publish",
+      "--payload",
+      '{"topic":"release","meta":{"count":2}}',
+      "--yes",
+    ];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledWith(
+      expect.objectContaining({
+        params: {
+          payload: {
+            topic: "release",
+            meta: {
+              count: 2,
+            },
+          },
+        },
+      })
+    );
+  });
+
   it("renders root help with breadcrumb path", async () => {
     const deploy = defineCommand({
       name: "deploy",
@@ -1655,6 +2170,65 @@ describe("runCLI", () => {
     expect(output).toContain("Secrets (via environment):");
     expect(output).toContain("POE_API_KEY");
     expect(output).toContain("Inherited from generate group");
+  });
+
+  it("renders help for oneOf, union, record, array-object, and json params", async () => {
+    const publish = defineCommand({
+      name: "publish",
+      params: S.Object({
+        destination: S.OneOf({
+          discriminator: "kind",
+          branches: {
+            email: S.Object({
+              address: S.String(),
+            }),
+            webhook: S.Object({
+              url: S.String(),
+            }),
+          },
+        }),
+        contact: S.Union([
+          S.Object({
+            email: S.String(),
+          }),
+          S.Object({
+            phone: S.String(),
+          }),
+        ]),
+        weights: S.Record(S.Number()),
+        recipients: S.Array(
+          S.Object({
+            name: S.String(),
+            email: S.String(),
+          })
+        ),
+        payload: S.Json(),
+      }),
+      handler: async () => null,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [publish],
+    });
+
+    process.argv = ["node", "toolcraft", "publish", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("--destination.kind <value>");
+    expect(output).toContain("--destination.address <string>");
+    expect(output).toContain("--destination.url <string>");
+    expect(output).toContain("--contact-kind <value>");
+    expect(output).toContain("--contact.email <string>");
+    expect(output).toContain("--contact.phone <string>");
+    expect(output).toContain("--weights.<key> <number>");
+    expect(output).toContain("--recipients.<index>.name <string>");
+    expect(output).toContain("--recipients.<index>.email <string>");
+    expect(output).toContain("--payload <json>");
   });
 
   it("filters help command listings to the cli scope", async () => {

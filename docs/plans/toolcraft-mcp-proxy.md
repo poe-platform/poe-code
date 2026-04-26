@@ -372,8 +372,8 @@ tasks:
       Visual check: `npm run screenshot-poe-code -- <test-cli-using-new-kinds>
       --help` to verify the help output renders cleanly with the design system.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integration-tests-tiny-stdio-mcp

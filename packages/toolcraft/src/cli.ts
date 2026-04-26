@@ -1,7 +1,14 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { Command as CommanderCommand, CommanderError, InvalidArgumentError, Option } from "commander";
-import type { AnySchema, ArraySchema, ObjectSchema } from "toolcraft-schema";
+import type {
+  AnySchema,
+  ArraySchema,
+  EnumSchema,
+  JsonValueSchema,
+  ObjectSchema,
+  RecordSchema,
+} from "toolcraft-schema";
 import {
   cancel,
   confirm,
@@ -35,11 +42,11 @@ import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 
 const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
+const NULL_OPTION_VALUE = Symbol("toolcraft.cli.null");
 
 type Casing = "kebab" | "snake";
-type PrimitiveSchema = Exclude<AnySchema, ObjectSchema<any>>;
-type ScalarSchema = Exclude<PrimitiveSchema, ArraySchema<any>>;
-type FieldSchema = Exclude<PrimitiveSchema, { kind: "optional" }>;
+type ScalarSchema = Extract<AnySchema, { kind: "string" | "number" | "boolean" | "enum" }>;
+type FieldSchema = ScalarSchema | ArraySchema<any> | JsonValueSchema;
 
 interface ResolvedFlags {
   json?: boolean;
@@ -50,6 +57,7 @@ interface ResolvedFlags {
 }
 
 interface FieldDefinition {
+  id: string;
   path: string[];
   displayPath: string;
   optionAttribute: string;
@@ -61,15 +69,62 @@ interface FieldDefinition {
   optional: boolean;
   hasDefault: boolean;
   defaultValue: unknown;
+  requiredWhenActive: boolean;
+  synthetic?: boolean;
+  variantId?: string;
+  variantBranchId?: string;
   positionalIndex?: number;
   variadicPosition?: boolean;
 }
 
+interface DynamicFieldDefinition {
+  id: string;
+  path: string[];
+  displayPath: string;
+  optionPath: string[];
+  optionPathDisplay: string;
+  optionFlag: string;
+  description?: string;
+  optional: boolean;
+  hasDefault: boolean;
+  defaultValue: unknown;
+  requiredWhenActive: boolean;
+  schema: RecordSchema<any> | ArraySchema<ObjectSchema<any>>;
+  variantId?: string;
+  variantBranchId?: string;
+}
+
+interface VariantBranchDefinition {
+  branchId: string;
+  dynamicFieldIds: string[];
+  fieldIds: string[];
+  requiredDynamicFieldIds: string[];
+  requiredFieldIds: string[];
+}
+
+interface VariantDefinition {
+  id: string;
+  controlDisplayPath: string;
+  controlFieldId: string;
+  optional: boolean;
+  branches: VariantBranchDefinition[];
+}
+
+interface CollectedCliSchema {
+  dynamicFields: DynamicFieldDefinition[];
+  fields: FieldDefinition[];
+  variants: VariantDefinition[];
+}
+
 interface ExecutionState<TServices extends object> {
   command: Command<TServices, any, any, any>;
+  casing: Casing;
+  dynamicFields: DynamicFieldDefinition[];
   fields: FieldDefinition[];
   positionalValues: unknown[];
+  rawArgv: string[];
   actionCommand: CommanderCommand;
+  variants: VariantDefinition[];
 }
 
 interface FixtureFetchRequest {
@@ -237,25 +292,228 @@ function toDisplayPath(path: string[]): string {
   return path.join(".");
 }
 
+function toUnionKindControlPath(path: string[]): string[] {
+  if (path.length === 0) {
+    return ["kind"];
+  }
+
+  const head = path.slice(0, -1);
+  const tail = path[path.length - 1] ?? "";
+  return [...head, `${tail}Kind`];
+}
+
+function toUnionKindDisplayPath(path: string[]): string {
+  if (path.length === 0) {
+    return "kind";
+  }
+
+  const head = path.slice(0, -1);
+  const tail = path[path.length - 1] ?? "";
+  return [...head, `${tail}-kind`].join(".");
+}
+
+function createSyntheticEnumSchema(values: string[]): EnumSchema<[string, ...string[]]> {
+  if (values.length === 0) {
+    throw new Error("Synthetic enum schema requires at least one value.");
+  }
+
+  return {
+    kind: "enum",
+    values: values as [string, ...string[]],
+  };
+}
+
+function getRequiredBranchFingerprint(branch: ObjectSchema<any>, casing: Casing): string {
+  const requiredKeys = (Object.entries(branch.shape) as Array<[string, AnySchema]>)
+    .filter(([, schema]) => schema.kind !== "optional")
+    .map(([key]) => formatSegment(key, casing))
+    .sort();
+
+  return requiredKeys.join("+");
+}
+
 function collectFields(
   schema: ObjectSchema<any>,
   casing: Casing,
   path: string[] = [],
-  inheritedOptional = false
-): FieldDefinition[] {
-  const fields: FieldDefinition[] = [];
+  inheritedOptional = false,
+  variantContext?: {
+    branchId: string;
+    id: string;
+  }
+): CollectedCliSchema {
+  const collected: CollectedCliSchema = {
+    dynamicFields: [],
+    fields: [],
+    variants: [],
+  };
 
   for (const [key, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
     const nextPath = [...path, key];
-    const optional = inheritedOptional || rawChildSchema.kind === "optional";
+    const runtimeOptional = inheritedOptional || rawChildSchema.kind === "optional";
     const childSchema = unwrapOptional(rawChildSchema);
+    const requiredWhenActive = rawChildSchema.kind !== "optional" && childSchema.default === undefined;
 
     if (childSchema.kind === "object") {
-      fields.push(...collectFields(childSchema, casing, nextPath, optional));
+      const nested = collectFields(childSchema, casing, nextPath, runtimeOptional, variantContext);
+      collected.dynamicFields.push(...nested.dynamicFields);
+      collected.fields.push(...nested.fields);
+      collected.variants.push(...nested.variants);
       continue;
     }
 
-    fields.push({
+    if (childSchema.kind === "oneOf") {
+      const variantId = `${toDisplayPath(nextPath)}:oneOf`;
+      const branchIds = Object.keys(childSchema.branches);
+      const controlField: FieldDefinition = {
+        id: toDisplayPath([...nextPath, childSchema.discriminator]),
+        path: [...nextPath, childSchema.discriminator],
+        displayPath: toDisplayPath([...nextPath, childSchema.discriminator]),
+        optionAttribute: toOptionAttribute([...nextPath, childSchema.discriminator], casing),
+        commanderOptionAttribute: toCommanderOptionAttribute([...nextPath, childSchema.discriminator], casing),
+        optionFlag: toOptionFlag([...nextPath, childSchema.discriminator], casing),
+        shortFlag: undefined,
+        schema: createSyntheticEnumSchema(branchIds),
+        description: childSchema.description,
+        optional: runtimeOptional,
+        hasDefault: false,
+        defaultValue: undefined,
+        requiredWhenActive,
+      };
+      collected.fields.push(controlField);
+
+      const branches: VariantBranchDefinition[] = [];
+
+      for (const [branchId, branchSchema] of Object.entries(childSchema.branches)) {
+        const branch = collectFields(branchSchema, casing, nextPath, true, {
+          id: variantId,
+          branchId,
+        });
+        collected.dynamicFields.push(...branch.dynamicFields);
+        collected.fields.push(...branch.fields);
+        collected.variants.push(...branch.variants);
+        branches.push({
+          branchId,
+          dynamicFieldIds: branch.dynamicFields.map((field) => field.id),
+          fieldIds: branch.fields.map((field) => field.id),
+          requiredDynamicFieldIds: branch.dynamicFields
+            .filter((field) => field.requiredWhenActive)
+            .map((field) => field.id),
+          requiredFieldIds: branch.fields
+            .filter((field) => field.requiredWhenActive)
+            .map((field) => field.id),
+        });
+      }
+
+      collected.variants.push({
+        id: variantId,
+        controlDisplayPath: controlField.displayPath,
+        controlFieldId: controlField.id,
+        optional: runtimeOptional,
+        branches,
+      });
+      continue;
+    }
+
+    if (childSchema.kind === "union") {
+      const variantId = `${toDisplayPath(nextPath)}:union`;
+      const controlPath = toUnionKindControlPath(nextPath);
+      const controlDisplayPath = toUnionKindDisplayPath(nextPath);
+      const branchIds = childSchema.branches.map((branch) => getRequiredBranchFingerprint(branch, casing));
+      const controlField: FieldDefinition = {
+        id: controlDisplayPath,
+        path: controlPath,
+        displayPath: controlDisplayPath,
+        optionAttribute: toOptionAttribute(controlPath, casing),
+        commanderOptionAttribute: toCommanderOptionAttribute(controlPath, casing),
+        optionFlag: toOptionFlag(controlPath, casing),
+        shortFlag: undefined,
+        schema: createSyntheticEnumSchema(branchIds),
+        description: childSchema.description,
+        optional: runtimeOptional,
+        hasDefault: false,
+        defaultValue: undefined,
+        requiredWhenActive,
+        synthetic: true,
+      };
+      collected.fields.push(controlField);
+
+      const branches: VariantBranchDefinition[] = [];
+
+      childSchema.branches.forEach((branchSchema, index) => {
+        const branchId = branchIds[index] ?? "";
+        const branch = collectFields(branchSchema, casing, nextPath, true, {
+          id: variantId,
+          branchId,
+        });
+        collected.dynamicFields.push(...branch.dynamicFields);
+        collected.fields.push(...branch.fields);
+        collected.variants.push(...branch.variants);
+        branches.push({
+          branchId,
+          dynamicFieldIds: branch.dynamicFields.map((field) => field.id),
+          fieldIds: branch.fields.map((field) => field.id),
+          requiredDynamicFieldIds: branch.dynamicFields
+            .filter((field) => field.requiredWhenActive)
+            .map((field) => field.id),
+          requiredFieldIds: branch.fields
+            .filter((field) => field.requiredWhenActive)
+            .map((field) => field.id),
+        });
+      });
+
+      collected.variants.push({
+        id: variantId,
+        controlDisplayPath,
+        controlFieldId: controlField.id,
+        optional: runtimeOptional,
+        branches,
+      });
+      continue;
+    }
+
+    if (childSchema.kind === "record") {
+      collected.dynamicFields.push({
+        id: toDisplayPath(nextPath),
+        path: nextPath,
+        displayPath: toDisplayPath(nextPath),
+        optionPath: nextPath,
+        optionPathDisplay: `${toDisplayPath(nextPath)}.<key>`,
+        optionFlag: `${toOptionFlag(nextPath, casing)}.<key>`,
+        description: childSchema.description,
+        optional: runtimeOptional,
+        hasDefault: childSchema.default !== undefined,
+        defaultValue: childSchema.default,
+        requiredWhenActive,
+        schema: childSchema,
+        variantId: variantContext?.id,
+        variantBranchId: variantContext?.branchId,
+      });
+      continue;
+    }
+
+    if (childSchema.kind === "array" && unwrapOptional(childSchema.item).kind === "object") {
+      collected.dynamicFields.push({
+        id: toDisplayPath(nextPath),
+        path: nextPath,
+        displayPath: toDisplayPath(nextPath),
+        optionPath: nextPath,
+        optionPathDisplay: `${toDisplayPath(nextPath)}.<index>`,
+        optionFlag: `${toOptionFlag(nextPath, casing)}.<index>`,
+        description: childSchema.description,
+        optional: runtimeOptional,
+        hasDefault: childSchema.default !== undefined,
+        defaultValue: childSchema.default,
+        requiredWhenActive,
+        schema: childSchema as ArraySchema<ObjectSchema<any>>,
+        variantId: variantContext?.id,
+        variantBranchId: variantContext?.branchId,
+      });
+      continue;
+    }
+
+    collected.fields.push({
+      id: toDisplayPath(nextPath),
       path: nextPath,
       displayPath: toDisplayPath(nextPath),
       optionAttribute: toOptionAttribute(nextPath, casing),
@@ -264,13 +522,16 @@ function collectFields(
       shortFlag: childSchema.short,
       schema: childSchema as FieldSchema,
       description: childSchema.description,
-      optional,
+      optional: runtimeOptional,
       hasDefault: childSchema.default !== undefined,
       defaultValue: childSchema.default,
+      requiredWhenActive,
+      variantId: variantContext?.id,
+      variantBranchId: variantContext?.branchId,
     });
   }
 
-  return fields;
+  return collected;
 }
 
 function toCommanderOptionAttribute(path: string[], casing: Casing): string {
@@ -374,10 +635,44 @@ function parseEnumValue(value: string, values: ReadonlyArray<string | number | b
   return match;
 }
 
+function validateStringPattern(value: string, schema: Extract<ScalarSchema, { kind: "string" }>, label: string): string {
+  if (schema.pattern === undefined) {
+    return value;
+  }
+
+  if (!matchesStringPattern(value, schema.pattern)) {
+    throw new UserError(
+      `Invalid value for "${label}": "${value}" does not match pattern "${schema.pattern}".`
+    );
+  }
+
+  return value;
+}
+
+function matchesStringPattern(value: string, pattern: string): boolean {
+  return new RegExp(pattern).test(value);
+}
+
+function parseJsonText(value: string, label: string): unknown {
+  try {
+    return JSON.parse(value);
+  } catch {
+    throw new InvalidArgumentError(`Invalid value for "${label}". Expected valid JSON.`);
+  }
+}
+
+function normalizeCommanderOptionValue(value: unknown): unknown {
+  return value === NULL_OPTION_VALUE ? null : value;
+}
+
 function parseScalarValue(value: string, schema: ScalarSchema, label: string): string | number | boolean {
+  if (value === "null" && schema.nullable === true) {
+    return null as unknown as string | number | boolean;
+  }
+
   switch (schema.kind) {
     case "string":
-      return value;
+      return validateStringPattern(value, schema, label);
 
     case "number": {
       const parsed = Number(value);
@@ -395,9 +690,9 @@ function parseScalarValue(value: string, schema: ScalarSchema, label: string): s
     case "enum":
       return parseEnumValue(value, schema.values, label);
 
-    default:
-      throw new UserError(`Unsupported CLI schema kind "${schema.kind}".`);
   }
+
+  throw new UserError("Unsupported CLI schema kind.");
 }
 
 function splitArrayInput(value: string): string[] {
@@ -428,6 +723,10 @@ function splitArrayInput(value: string): string[] {
 }
 
 function parseArrayValue(value: string, schema: ArraySchema<any>, label: string): unknown[] {
+  if (value === "null" && schema.nullable === true) {
+    return null as unknown as unknown[];
+  }
+
   const itemSchema = unwrapOptional(schema.item);
 
   if (itemSchema.kind === "array" || itemSchema.kind === "object") {
@@ -440,6 +739,7 @@ function parseArrayValue(value: string, schema: ArraySchema<any>, label: string)
 function createOption(field: FieldDefinition): Option[] {
   const flags = formatOptionFlags(field);
   const collidesWithGlobalFlag = GLOBAL_LONG_OPTION_FLAGS.has(field.optionFlag);
+  const commanderValue = (value: unknown): unknown => (value === null ? NULL_OPTION_VALUE : value);
 
   if (field.schema.kind === "boolean") {
     if (collidesWithGlobalFlag) {
@@ -450,7 +750,7 @@ function createOption(field: FieldDefinition): Option[] {
     mainOption.preset(true);
     // Commander v14 passes the preset value through argParser too, so guard with typeof check
     mainOption.argParser((value: string | boolean) =>
-      typeof value === "boolean" ? value : parseBooleanText(value, field.displayPath)
+      typeof value === "boolean" ? value : commanderValue(parseBooleanText(value, field.displayPath))
     );
 
     return [
@@ -462,10 +762,22 @@ function createOption(field: FieldDefinition): Option[] {
   if (field.schema.kind === "array") {
     return [
       createCommanderOption(`${flags} <value...>`, field.description, field).argParser(
-        (value: string, previous: unknown[] = []) => [
-          ...previous,
-          ...parseArrayValue(value, field.schema as ArraySchema<any>, field.displayPath),
-        ]
+        (value: string, previous: unknown[] | null = []) => {
+          const parsed = parseArrayValue(value, field.schema as ArraySchema<any>, field.displayPath);
+          if (parsed === null) {
+            return NULL_OPTION_VALUE as unknown as null;
+          }
+
+          return [...(previous ?? []), ...parsed];
+        }
+      ),
+    ];
+  }
+
+  if (field.schema.kind === "json") {
+    return [
+      createCommanderOption(`${flags} <json>`, field.description, field).argParser((value: string) =>
+        commanderValue(parseJsonText(value, field.displayPath))
       ),
     ];
   }
@@ -476,7 +788,9 @@ function createOption(field: FieldDefinition): Option[] {
     option.choices([...field.schema.values] as string[]);
   }
 
-  option.argParser((value: string) => parseScalarValue(value, field.schema as ScalarSchema, field.displayPath));
+  option.argParser((value: string) =>
+    commanderValue(parseScalarValue(value, field.schema as ScalarSchema, field.displayPath))
+  );
   return [option];
 }
 
@@ -613,6 +927,9 @@ function describeSchemaType(schema: FieldSchema): string {
     case "array":
       return `${describeSchemaType(unwrapOptional(schema.item) as FieldSchema)}...`;
 
+    case "json":
+      return "json";
+
     default:
       throw new UserError("Unsupported CLI schema kind.");
   }
@@ -655,6 +972,144 @@ function formatHelpFieldDescription(field: FieldDefinition): string {
   }
 
   return appendHelpMetadata(description, metadata);
+}
+
+function describeDynamicFieldType(field: DynamicFieldDefinition): string {
+  if (field.schema.kind === "record") {
+    const valueSchema = unwrapOptional(field.schema.value);
+
+    if (valueSchema.kind === "json") {
+      return "json";
+    }
+
+    if (valueSchema.kind === "array") {
+      return `${describeSchemaType(valueSchema as FieldSchema)}`;
+    }
+
+    if (valueSchema.kind === "object") {
+      return "value";
+    }
+
+    return describeSchemaType(valueSchema as FieldSchema);
+  }
+
+  return "value";
+}
+
+function formatDynamicHelpMetadata(field: DynamicFieldDefinition): string[] {
+  const metadata: string[] = [];
+
+  if (!field.optional && !field.hasDefault) {
+    metadata.push("required");
+  }
+
+  if (field.hasDefault) {
+    metadata.push(`default: ${formatResolvedValue(field.defaultValue)}`);
+  }
+
+  return metadata;
+}
+
+function collectDynamicObjectHelpRows(
+  schema: ObjectSchema<any>,
+  casing: Casing,
+  optionPrefix: string,
+  displayPrefix: string,
+  metadata: string[]
+): HelpOptionRow[] {
+  const rows: HelpOptionRow[] = [];
+
+  for (const [key, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
+    const childSchema = unwrapOptional(rawChildSchema);
+    const optionFlag = `${optionPrefix}.${formatSegment(key, casing)}`;
+    const displayPath = `${displayPrefix}.${key}`;
+    const description = childSchema.description ?? displayPath;
+
+    if (childSchema.kind === "object") {
+      rows.push(...collectDynamicObjectHelpRows(childSchema, casing, optionFlag, displayPath, metadata));
+      continue;
+    }
+
+    if (childSchema.kind === "record") {
+      rows.push({
+        flags: `${optionFlag}.<key> <${describeDynamicFieldType({
+          ...({
+            id: displayPath,
+            path: [],
+            displayPath,
+            optionPath: [],
+            optionPathDisplay: `${displayPath}.<key>`,
+            optionFlag: `${optionFlag}.<key>`,
+            optional: false,
+            hasDefault: false,
+            defaultValue: undefined,
+            requiredWhenActive: false,
+            schema: childSchema,
+          } satisfies DynamicFieldDefinition),
+        })}>`,
+        description: appendHelpMetadata(description, metadata),
+      });
+      continue;
+    }
+
+    if (childSchema.kind === "array" && unwrapOptional(childSchema.item).kind === "object") {
+      rows.push(
+        ...collectDynamicObjectHelpRows(
+          unwrapOptional(childSchema.item) as ObjectSchema<any>,
+          casing,
+          `${optionFlag}.<index>`,
+          `${displayPath}.<index>`,
+          metadata
+        )
+      );
+      continue;
+    }
+
+    rows.push({
+      flags:
+        childSchema.kind === "boolean"
+          ? `${optionFlag} [value]`
+          : `${optionFlag} <${describeSchemaType(childSchema as FieldSchema)}>`,
+      description: appendHelpMetadata(description, metadata),
+    });
+  }
+
+  return rows;
+}
+
+function formatDynamicHelpFields(field: DynamicFieldDefinition, casing: Casing): HelpOptionRow[] {
+  const metadata = formatDynamicHelpMetadata(field);
+
+  if (field.schema.kind === "record") {
+    const valueSchema = unwrapOptional(field.schema.value);
+    if (valueSchema.kind === "object") {
+      return collectDynamicObjectHelpRows(
+        valueSchema,
+        casing,
+        `${field.optionFlag}`,
+        `${field.optionPathDisplay}`,
+        metadata
+      );
+    }
+  }
+
+  if (field.schema.kind === "array") {
+    const itemSchema = unwrapOptional(field.schema.item);
+    if (itemSchema.kind === "object") {
+      return collectDynamicObjectHelpRows(
+        itemSchema,
+        casing,
+        `${field.optionFlag}`,
+        `${field.optionPathDisplay}`,
+        metadata
+      );
+    }
+  }
+
+  return [{
+    flags: `${field.optionFlag} <${describeDynamicFieldType(field)}>`,
+    description: appendHelpMetadata(field.description ?? field.optionPathDisplay, metadata),
+  }];
 }
 
 function formatSecretRows(secrets: SecretDeclarations): HelpOptionRow[] {
@@ -753,11 +1208,12 @@ function renderLeafHelp<TServices extends object>(
   rootUsageName?: string
 ): string {
   const sections: string[] = [];
-  const fields = assignPositionals(collectFields(command.params, casing), command.positional);
+  const collected = collectFields(command.params, casing);
+  const fields = assignPositionals(collected.fields, command.positional);
   const optionRows = fields.map((field) => ({
     flags: formatHelpFieldFlags(field),
     description: formatHelpFieldDescription(field),
-  }));
+  })).concat(collected.dynamicFields.flatMap((field) => formatDynamicHelpFields(field, casing)));
 
   if (optionRows.length > 0) {
     sections.push(`${text.section("Options:")}\n${formatOptionList(optionRows)}`);
@@ -844,7 +1300,8 @@ function createNodeCommand<TServices extends object>(
     }
 
     const command = new CommanderCommand(node.name);
-    const fields = assignPositionals(collectFields(node.params, casing), node.positional);
+    const collected = collectFields(node.params, casing);
+    const fields = assignPositionals(collected.fields, node.positional);
 
     if (node.description !== undefined) {
       command.description(node.description);
@@ -853,6 +1310,11 @@ function createNodeCommand<TServices extends object>(
     node.aliases.forEach((alias) => command.alias(alias));
     command.addHelpCommand(false);
     addGlobalOptions(command);
+    command.allowExcessArguments(true);
+
+    if (collected.dynamicFields.length > 0) {
+      command.allowUnknownOption(true);
+    }
 
     for (const field of fields) {
       if (field.positionalIndex !== undefined) {
@@ -871,9 +1333,13 @@ function createNodeCommand<TServices extends object>(
 
       await execute({
         command: node,
+        casing,
+        dynamicFields: collected.dynamicFields,
         fields,
         positionalValues,
+        rawArgv: actionCommand.args,
         actionCommand,
+        variants: collected.variants,
       });
     });
 
@@ -1024,6 +1490,14 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
     return parseArrayValue(entered, field.schema, field.displayPath);
   }
 
+  if (field.schema.kind === "json") {
+    if (entered === "null" && field.schema.nullable === true) {
+      return null;
+    }
+
+    return parseJsonText(entered, field.displayPath);
+  }
+
   return parseScalarValue(entered, field.schema as ScalarSchema, field.displayPath);
 }
 
@@ -1113,6 +1587,10 @@ function describeExpectedPresetValue(schema: FieldSchema): string {
     return "an array";
   }
 
+  if (schema.kind === "json") {
+    return "valid JSON";
+  }
+
   if (schema.kind === "enum") {
     return `one of: ${schema.values.map((value) => JSON.stringify(value)).join(", ")}`;
   }
@@ -1134,6 +1612,11 @@ function validatePresetScalarValue(
     case "string":
       if (typeof value !== "string") {
         break;
+      }
+      if (schema.pattern !== undefined && !matchesStringPattern(value, schema.pattern)) {
+        throw new UserError(
+          `Preset file "${presetPath}" has an invalid value for "${fieldPath}": "${value}" does not match pattern "${schema.pattern}".`
+        );
       }
       return value;
 
@@ -1157,8 +1640,6 @@ function validatePresetScalarValue(
       break;
     }
 
-    default:
-      throw new UserError(`Unsupported CLI schema kind "${schema.kind}".`);
   }
 
   throw new UserError(
@@ -1171,6 +1652,10 @@ function validatePresetFieldValue(
   field: FieldDefinition,
   presetPath: string
 ): unknown {
+  if (field.schema.kind === "json") {
+    return value;
+  }
+
   if (field.schema.kind !== "array") {
     return validatePresetScalarValue(value, field.schema as ScalarSchema, field.displayPath, presetPath);
   }
@@ -1654,10 +2139,480 @@ function validateServices(services: Record<string, unknown>): void {
   }
 }
 
+function getNestedValue(target: Record<string, unknown>, path: string[]): unknown {
+  return path.reduce<unknown>(
+    (current, segment) =>
+      current !== null && typeof current === "object"
+        ? (current as Record<string, unknown>)[segment]
+        : undefined,
+    target
+  );
+}
+
+function parseFieldInputValue(value: string, schema: FieldSchema, label: string): unknown {
+  if (schema.kind === "array") {
+    return parseArrayValue(value, schema, label);
+  }
+
+  if (schema.kind === "json") {
+    if (value === "null" && schema.nullable === true) {
+      return null;
+    }
+
+    return parseJsonText(value, label);
+  }
+
+  return parseScalarValue(value, schema, label);
+}
+
+function consumeFieldValue(
+  args: string[],
+  index: number,
+  schema: FieldSchema,
+  label: string,
+  inlineValue?: string
+): {
+  nextIndex: number;
+  value: unknown;
+} {
+  if (schema.kind === "boolean") {
+    if (inlineValue !== undefined) {
+      return {
+        nextIndex: index,
+        value: parseScalarValue(inlineValue, schema, label),
+      };
+    }
+
+    const next = args[index + 1];
+    if (next === "true" || next === "false" || (schema.nullable === true && next === "null")) {
+      return {
+        nextIndex: index + 1,
+        value: parseScalarValue(next, schema, label),
+      };
+    }
+
+    return {
+      nextIndex: index,
+      value: true,
+    };
+  }
+
+  if (inlineValue !== undefined) {
+    return {
+      nextIndex: index,
+      value: parseFieldInputValue(inlineValue, schema, label),
+    };
+  }
+
+  if (schema.kind === "array") {
+    const values: unknown[] = [];
+    let nextIndex = index;
+    let cursor = index + 1;
+
+    while (cursor < args.length) {
+      const token = args[cursor] ?? "";
+      if (token.startsWith("-")) {
+        break;
+      }
+
+      const parsed = parseArrayValue(token, schema, label);
+      if (parsed === null) {
+        return {
+          nextIndex: cursor,
+          value: null,
+        };
+      }
+
+      values.push(...parsed);
+      nextIndex = cursor;
+      cursor += 1;
+    }
+
+    if (values.length === 0) {
+      throw new InvalidArgumentError(`option '${label}' argument missing`);
+    }
+
+    return {
+      nextIndex,
+      value: values,
+    };
+  }
+
+  const next = args[index + 1];
+  if (next === undefined) {
+    throw new InvalidArgumentError(`option '${label}' argument missing`);
+  }
+
+  return {
+    nextIndex: index + 1,
+    value: parseFieldInputValue(next, schema, label),
+  };
+}
+
+function resolveDynamicLeaf(
+  schema: AnySchema,
+  rawSegments: string[],
+  casing: Casing,
+  outputPath: string[] = [],
+  displayPath: string[] = []
+): {
+  displayPath: string;
+  path: string[];
+  schema: FieldSchema;
+} {
+  const unwrappedSchema = unwrapOptional(schema);
+
+  if (rawSegments.length === 0) {
+    if (
+      unwrappedSchema.kind === "json" ||
+      unwrappedSchema.kind === "array" ||
+      unwrappedSchema.kind === "string" ||
+      unwrappedSchema.kind === "number" ||
+      unwrappedSchema.kind === "boolean" ||
+      unwrappedSchema.kind === "enum"
+    ) {
+      return {
+        displayPath: toDisplayPath(displayPath),
+        path: outputPath,
+        schema: unwrappedSchema as FieldSchema,
+      };
+    }
+
+    throw new UserError(`Unsupported dynamic CLI schema kind "${unwrappedSchema.kind}".`);
+  }
+
+  switch (unwrappedSchema.kind) {
+    case "object": {
+      const [head, ...rest] = rawSegments;
+
+      for (const [key, childSchema] of Object.entries(unwrappedSchema.shape) as Array<[string, AnySchema]>) {
+        if (formatSegment(key, casing) !== head) {
+          continue;
+        }
+
+        return resolveDynamicLeaf(childSchema, rest, casing, [...outputPath, key], [...displayPath, key]);
+      }
+
+      throw new UserError(`Unknown parameter "${[...displayPath, head].join(".")}".`);
+    }
+
+    case "record": {
+      const [head, ...rest] = rawSegments;
+      return resolveDynamicLeaf(
+        unwrappedSchema.value,
+        rest,
+        casing,
+        [...outputPath, head ?? ""],
+        [...displayPath, head ?? ""]
+      );
+    }
+
+    case "array": {
+      const itemSchema = unwrapOptional(unwrappedSchema.item);
+      if (itemSchema.kind !== "object") {
+        throw new UserError(`Array parameter "${toDisplayPath(displayPath)}" must use object items.`);
+      }
+
+      const [head, ...rest] = rawSegments;
+      if (head === undefined || !isNumericFixtureSelector(head)) {
+        throw new UserError(`Array parameter "${toDisplayPath(displayPath)}" must use numeric indices.`);
+      }
+
+      return resolveDynamicLeaf(itemSchema, rest, casing, [...outputPath, head], [...displayPath, head]);
+    }
+
+    default:
+      throw new UserError(`Unknown parameter "${[...displayPath, ...rawSegments].join(".")}".`);
+  }
+}
+
+function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: string): unknown {
+  const unwrappedSchema = unwrapOptional(schema);
+
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === null && unwrappedSchema.nullable === true) {
+    return null;
+  }
+
+  switch (unwrappedSchema.kind) {
+    case "string":
+    case "number":
+    case "boolean":
+    case "enum":
+    case "json":
+      return value;
+
+    case "array": {
+      const itemSchema = unwrapOptional(unwrappedSchema.item);
+      if (itemSchema.kind !== "object") {
+        return value;
+      }
+
+      if (!isPlainObject(value)) {
+        throw new UserError(`Invalid value for "${displayPath}". Expected indexed object entries.`);
+      }
+
+      const entries = Object.entries(value);
+      const indices = entries.map(([key]) => Number(key)).sort((left, right) => left - right);
+
+      if (indices.some((index) => !Number.isInteger(index) || index < 0)) {
+        throw new UserError(`Array parameter "${displayPath}" must use numeric indices.`);
+      }
+
+      for (let index = 0; index < indices.length; index += 1) {
+        if (indices[index] !== index) {
+          throw new UserError(`Array parameter "${displayPath}" must use contiguous indices starting at 0.`);
+        }
+      }
+
+      return indices.map((index) =>
+        finalizeDynamicValue(
+          unwrappedSchema.item,
+          (value as Record<string, unknown>)[String(index)],
+          `${displayPath}.${index}`
+        )
+      );
+    }
+
+    case "object": {
+      if (!isPlainObject(value)) {
+        throw new UserError(`Invalid value for "${displayPath}". Expected an object.`);
+      }
+
+      const result: Record<string, unknown> = {};
+      for (const [key, rawChildSchema] of Object.entries(unwrappedSchema.shape) as Array<[string, AnySchema]>) {
+        const childSchema = unwrapOptional(rawChildSchema);
+        const childValue = value[key];
+        const childDisplayPath = displayPath.length === 0 ? key : `${displayPath}.${key}`;
+
+        if (childValue === undefined) {
+          if (childSchema.default !== undefined) {
+            result[key] = childSchema.default;
+            continue;
+          }
+
+          if (rawChildSchema.kind === "optional") {
+            continue;
+          }
+
+          throw new UserError(`Missing required parameter "${childDisplayPath}".`);
+        }
+
+        result[key] = finalizeDynamicValue(rawChildSchema, childValue, childDisplayPath);
+      }
+
+      return result;
+    }
+
+    case "record": {
+      if (!isPlainObject(value)) {
+        throw new UserError(`Invalid value for "${displayPath}". Expected an object.`);
+      }
+
+      return Object.fromEntries(
+        Object.entries(value).map(([key, entryValue]) => [
+          key,
+          finalizeDynamicValue(
+            unwrappedSchema.value,
+            entryValue,
+            displayPath.length === 0 ? key : `${displayPath}.${key}`
+          ),
+        ])
+      );
+    }
+
+    default:
+      throw new UserError(`Unsupported dynamic CLI schema kind "${unwrappedSchema.kind}".`);
+  }
+}
+
+function parseDynamicValues(
+  dynamicFields: DynamicFieldDefinition[],
+  rawArgv: string[],
+  casing: Casing
+): {
+  providedFieldIds: Set<string>;
+  values: Map<string, unknown>;
+} {
+  const rawValues = new Map<string, Record<string, unknown>>();
+  const providedFieldIds = new Set<string>();
+  const sortedFields = [...dynamicFields].sort((left, right) => right.optionPath.length - left.optionPath.length);
+
+  for (let index = 0; index < rawArgv.length; index += 1) {
+    const token = rawArgv[index] ?? "";
+    if (!token.startsWith("--")) {
+      continue;
+    }
+
+    const negated = token.startsWith("--no-");
+    const normalized = negated ? `--${token.slice("--no-".length)}` : token;
+    const equalsIndex = normalized.indexOf("=");
+    const flagName = equalsIndex >= 0 ? normalized.slice(2, equalsIndex) : normalized.slice(2);
+    const inlineValue = equalsIndex >= 0 ? normalized.slice(equalsIndex + 1) : undefined;
+    const flagPath = flagName.split(".");
+    const match = sortedFields.find((field) => {
+      const optionPath = field.optionPath.map((segment) => formatSegment(segment, casing));
+      return (
+        flagPath.length > optionPath.length &&
+        optionPath.every((segment, segmentIndex) => flagPath[segmentIndex] === segment)
+      );
+    });
+
+    if (match === undefined) {
+      throw new UserError(`Unknown parameter "${flagName}".`);
+    }
+
+    const optionPath = match.optionPath.map((segment) => formatSegment(segment, casing));
+    const remainder = flagPath.slice(optionPath.length);
+    const leaf = resolveDynamicLeaf(match.schema, remainder, casing);
+    const rawStore = rawValues.get(match.id) ?? {};
+    const label = `${match.displayPath}.${leaf.displayPath}`.replace(/^\./u, "");
+    const parsed =
+      negated && leaf.schema.kind === "boolean"
+        ? {
+            nextIndex: index,
+            value: false,
+          }
+        : consumeFieldValue(rawArgv, index, leaf.schema, label, inlineValue);
+
+    setNestedValue(rawStore, leaf.path, parsed.value);
+    rawValues.set(match.id, rawStore);
+    providedFieldIds.add(match.id);
+    index = parsed.nextIndex;
+  }
+
+  return {
+    providedFieldIds,
+    values: new Map(
+      dynamicFields
+        .filter((field) => rawValues.has(field.id))
+        .map((field) => [
+          field.id,
+          finalizeDynamicValue(
+            field.schema.kind === "record" ? field.schema : field.schema,
+            rawValues.get(field.id),
+            field.displayPath
+          ),
+        ])
+    ),
+  };
+}
+
+async function enforceVariantConstraints(
+  params: Record<string, unknown>,
+  fields: FieldDefinition[],
+  dynamicFields: DynamicFieldDefinition[],
+  variants: VariantDefinition[],
+  resolvedFieldValues: Map<string, unknown>,
+  providedDynamicFieldIds: Set<string>,
+  providedFieldIds: Set<string>,
+  shouldPrompt: boolean
+): Promise<void> {
+  const fieldById = new Map(fields.map((field) => [field.id, field]));
+  const dynamicFieldById = new Map(dynamicFields.map((field) => [field.id, field]));
+
+  for (const variant of variants) {
+    let selectedBranchId = resolvedFieldValues.get(variant.controlFieldId);
+
+    if (selectedBranchId === undefined && shouldPrompt) {
+      const controlField = fieldById.get(variant.controlFieldId);
+      if (controlField !== undefined) {
+        selectedBranchId = await promptForField(controlField);
+        resolvedFieldValues.set(controlField.id, selectedBranchId);
+        if (!controlField.synthetic) {
+          setNestedValue(params, controlField.path, selectedBranchId);
+        }
+      }
+    }
+
+    if (selectedBranchId === undefined) {
+      if (variant.optional) {
+        continue;
+      }
+
+      throw new UserError(`Missing required parameter "${variant.controlDisplayPath}".`);
+    }
+
+    const selectedBranch = variant.branches.find((branch) => branch.branchId === selectedBranchId);
+    if (selectedBranch === undefined) {
+      throw new UserError(
+        `Invalid value for "${variant.controlDisplayPath}". Expected one of: ${variant.branches.map((branch) => branch.branchId).join(", ")}.`
+      );
+    }
+
+    for (const branch of variant.branches) {
+      if (branch.branchId === selectedBranch.branchId) {
+        continue;
+      }
+
+      const invalidFieldId = branch.fieldIds.find((fieldId) => providedFieldIds.has(fieldId));
+      if (invalidFieldId !== undefined) {
+        const field = fieldById.get(invalidFieldId);
+        if (field !== undefined) {
+          throw new UserError(
+            `Parameter "${field.displayPath}" is not valid when "${variant.controlDisplayPath}" is "${selectedBranch.branchId}".`
+          );
+        }
+      }
+
+      const invalidDynamicFieldId = branch.dynamicFieldIds.find((fieldId) => providedDynamicFieldIds.has(fieldId));
+      if (invalidDynamicFieldId !== undefined) {
+        const field = dynamicFieldById.get(invalidDynamicFieldId);
+        if (field !== undefined) {
+          throw new UserError(
+            `Parameter "${field.displayPath}" is not valid when "${variant.controlDisplayPath}" is "${selectedBranch.branchId}".`
+          );
+        }
+      }
+    }
+
+    for (const fieldId of selectedBranch.requiredFieldIds) {
+      const field = fieldById.get(fieldId);
+      if (field === undefined || field.synthetic) {
+        continue;
+      }
+
+      if (getNestedValue(params, field.path) !== undefined) {
+        continue;
+      }
+
+      if (shouldPrompt) {
+        const promptedValue = await promptForField(field);
+        resolvedFieldValues.set(field.id, promptedValue);
+        setNestedValue(params, field.path, promptedValue);
+        providedFieldIds.add(field.id);
+        continue;
+      }
+
+      throw new UserError(`Missing required parameter "${field.displayPath}".`);
+    }
+
+    for (const fieldId of selectedBranch.requiredDynamicFieldIds) {
+      const field = dynamicFieldById.get(fieldId);
+      if (field === undefined) {
+        continue;
+      }
+
+      if (getNestedValue(params, field.path) !== undefined) {
+        continue;
+      }
+
+      throw new UserError(`Missing required parameter "${field.displayPath}".`);
+    }
+  }
+}
+
 async function resolveParams(
   fields: FieldDefinition[],
+  dynamicFields: DynamicFieldDefinition[],
+  variants: VariantDefinition[],
   positionalValues: unknown[],
   optionValues: Record<string, unknown>,
+  rawArgv: string[],
+  casing: Casing,
   presetPath: string | undefined,
   shouldPrompt: boolean
 ): Promise<Record<string, unknown>> {
@@ -1666,9 +2621,12 @@ async function resolveParams(
     typeof presetPath === "string" && presetPath.length > 0
       ? await loadPresetValues(fields, presetPath)
       : {};
+  const providedFieldIds = new Set<string>();
+  const resolvedFieldValues = new Map<string, unknown>();
 
   for (const field of fields) {
     let value: unknown;
+    let source: "default" | "option" | "positional" | "preset" | "prompt" | undefined;
 
     if (field.positionalIndex !== undefined) {
       const positionalValue = positionalValues[field.positionalIndex];
@@ -1684,9 +2642,11 @@ async function resolveParams(
           value = positionalValue.map((item) =>
             parseScalarValue(String(item), itemSchema as ScalarSchema, field.displayPath)
           );
+          source = "positional";
         }
       } else if (typeof positionalValue === "string" && positionalValue.length > 0) {
-        value = parseScalarValue(positionalValue, field.schema as ScalarSchema, field.displayPath);
+        value = parseFieldInputValue(positionalValue, field.schema, field.displayPath);
+        source = "positional";
       }
     }
 
@@ -1695,7 +2655,8 @@ async function resolveParams(
       Object.prototype.hasOwnProperty.call(optionValues, field.commanderOptionAttribute) &&
       hasFieldValue(optionValues[field.commanderOptionAttribute])
     ) {
-      value = optionValues[field.commanderOptionAttribute];
+      value = normalizeCommanderOptionValue(optionValues[field.commanderOptionAttribute]);
+      source = "option";
     }
 
     if (
@@ -1704,7 +2665,8 @@ async function resolveParams(
       Object.prototype.hasOwnProperty.call(optionValues, field.optionAttribute) &&
       hasFieldValue(optionValues[field.optionAttribute])
     ) {
-      value = optionValues[field.optionAttribute];
+      value = normalizeCommanderOptionValue(optionValues[field.optionAttribute]);
+      source = "option";
     }
 
     if (
@@ -1712,14 +2674,17 @@ async function resolveParams(
       Object.prototype.hasOwnProperty.call(presetValues, field.optionAttribute)
     ) {
       value = presetValues[field.optionAttribute];
+      source = "preset";
     }
 
     if (value === undefined && shouldPrompt && !field.optional) {
       value = await promptForField(field);
+      source = "prompt";
     }
 
     if (value === undefined && field.hasDefault) {
       value = field.defaultValue;
+      source = "default";
     }
 
     if (value === undefined) {
@@ -1730,8 +2695,52 @@ async function resolveParams(
       throw new UserError(`Missing required parameter "${field.displayPath}".`);
     }
 
+    resolvedFieldValues.set(field.id, value);
+    if (source !== undefined && source !== "default") {
+      providedFieldIds.add(field.id);
+    }
+
+    if (!field.synthetic) {
+      setNestedValue(params, field.path, value);
+    }
+  }
+
+  const dynamicResults =
+    dynamicFields.length > 0
+      ? parseDynamicValues(dynamicFields, rawArgv, casing)
+      : {
+          providedFieldIds: new Set<string>(),
+          values: new Map<string, unknown>(),
+        };
+
+  for (const field of dynamicFields) {
+    let value = dynamicResults.values.get(field.id);
+
+    if (value === undefined && field.hasDefault) {
+      value = field.defaultValue;
+    }
+
+    if (value === undefined) {
+      if (field.optional || field.variantId !== undefined) {
+        continue;
+      }
+
+      throw new UserError(`Missing required parameter "${field.displayPath}".`);
+    }
+
     setNestedValue(params, field.path, value);
   }
+
+  await enforceVariantConstraints(
+    params,
+    fields,
+    dynamicFields,
+    variants,
+    resolvedFieldValues,
+    dynamicResults.providedFieldIds,
+    providedFieldIds,
+    shouldPrompt
+  );
 
   return params;
 }
@@ -1774,8 +2783,12 @@ async function executeCommand<TServices extends object>(
 
     const params = await resolveParams(
       state.fields,
+      state.dynamicFields,
+      state.variants,
       state.positionalValues,
       optionValues,
+      state.rawArgv,
+      state.casing,
       resolvedFlags.preset,
       shouldPrompt
     );

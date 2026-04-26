@@ -23,7 +23,11 @@ function isStateList(value: unknown): value is readonly string[] {
 }
 
 function canFireFromState<TState extends string>(event: EventDef<TState>, fromState: string): boolean {
-  return event.from === "*" || event.from.includes(fromState as TState);
+  if (event.from === "*") {
+    return event.to !== fromState;
+  }
+
+  return event.from.includes(fromState as TState);
 }
 
 export function validateMachine(machine: StateMachineDef): void {
@@ -66,15 +70,11 @@ export function validateMachine(machine: StateMachineDef): void {
       throw new Error(`Event "${eventName}" references unknown target state "${event.to}".`);
     }
 
-    if (event.from === "*") {
-      throw new Error(
-        `Event "${eventName}" cannot use "*" because it would allow the no-op transition "${event.to}" -> "${event.to}".`
-      );
-    }
-
-    for (const fromState of event.from) {
-      if (!states.has(fromState)) {
-        throw new Error(`Event "${eventName}" references unknown source state "${fromState}".`);
+    if (event.from !== "*") {
+      for (const fromState of event.from) {
+        if (!states.has(fromState)) {
+          throw new Error(`Event "${eventName}" references unknown source state "${fromState}".`);
+        }
       }
     }
   }

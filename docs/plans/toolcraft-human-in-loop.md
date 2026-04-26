@@ -34,7 +34,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: task-list-default-machine
     title: task-list — convert hardcoded LEGAL_TRANSITIONS to defaultStateMachine
@@ -62,9 +62,9 @@ tasks:
 
       Reference: docs/plans/toolcraft-human-in-loop.md §3 "Task-list state machine extension".
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: task-list-fire-api
     title: task-list — fire / canFire / events on Tasks

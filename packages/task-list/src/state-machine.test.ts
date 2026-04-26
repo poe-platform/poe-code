@@ -70,7 +70,7 @@ describe("validateMachine", () => {
     );
   });
 
-  it('rejects wildcard events that would allow a no-op self-loop', () => {
+  it("accepts wildcard events and excludes the target state from legal sources", () => {
     const machine = {
       ...defaultShapedMachine,
       events: {
@@ -82,9 +82,11 @@ describe("validateMachine", () => {
       }
     } as const satisfies StateMachineDef<TaskState, TaskEvent>;
 
-    expect(() => validateMachine(machine)).toThrow(
-      'Event "archive" cannot use "*" because it would allow the no-op transition "archived" -> "archived".'
-    );
+    expect(() => validateMachine(machine)).not.toThrow();
+    expect(eventsFromState(machine, "done")).toEqual(["archive"]);
+    expect(eventsFromState(machine, "archived")).toEqual([]);
+    expect(findEvent(machine, "done", "archive")).toEqual(machine.events.archive);
+    expect(findEvent(machine, "archived", "archive")).toBeUndefined();
   });
 });
 

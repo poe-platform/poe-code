@@ -1,5 +1,5 @@
 export { openTaskList } from "./open.js";
-export { LEGAL_TRANSITIONS, assertTransition } from "./state.js";
+export { assertEvent, assertTransition, defaultStateMachine, type TaskEvent } from "./state.js";
 export {
   eventsFromState,
   findEvent,

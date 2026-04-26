@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { LEGAL_TRANSITIONS } from "../state.js";
+import { assertEvent, defaultStateMachine, type TaskEvent } from "../state.js";
 import {
   InvalidTransitionError,
   TaskAlreadyExistsError,
@@ -16,6 +16,34 @@ type BackendFactoryUnderTest = (deps: BackendDeps) => Promise<TaskList>;
 type BackendPaths = {
   taskPath: string;
 };
+const TASK_EVENTS: TaskEvent[] = ["plan", "start", "complete", "archive"];
+
+function allowedTargets(from: TaskState): readonly TaskState[] {
+  const targets: TaskState[] = [];
+  const archived = defaultStateMachine.events.archive.to;
+  const workflowStates = defaultStateMachine.states.filter((state) => state !== archived);
+  const index = workflowStates.indexOf(from);
+
+  if (from === archived) {
+    return targets;
+  }
+
+  for (const eventName of TASK_EVENTS) {
+    try {
+      targets.push(assertEvent(defaultStateMachine, from, eventName).to);
+    } catch (error) {
+      if (!(error instanceof InvalidTransitionError)) {
+        throw error;
+      }
+    }
+  }
+
+  if (index > 0) {
+    targets.push(workflowStates[index - 1]);
+  }
+
+  return targets;
+}
 
 async function openBackend(
   factory: BackendFactoryUnderTest,
@@ -207,11 +235,8 @@ function describeBackendConformance(
     });
 
     it("allows every legal transition", async () => {
-      for (const [from, allowedTargets] of Object.entries(LEGAL_TRANSITIONS) as [
-        TaskState,
-        ReadonlySet<TaskState>
-      ][]) {
-        for (const to of allowedTargets) {
+      for (const from of defaultStateMachine.states) {
+        for (const to of allowedTargets(from)) {
           const { taskList } = await openBackend(factory, { path: rootPath });
           const tasks = taskList.list("planning");
 
@@ -229,9 +254,11 @@ function describeBackendConformance(
     });
 
     it("rejects every illegal transition", async () => {
-      for (const from of Object.keys(LEGAL_TRANSITIONS) as TaskState[]) {
-        for (const to of Object.keys(LEGAL_TRANSITIONS) as TaskState[]) {
-          if (LEGAL_TRANSITIONS[from].has(to)) {
+      for (const from of defaultStateMachine.states) {
+        const legalTargets = new Set(allowedTargets(from));
+
+        for (const to of defaultStateMachine.states) {
+          if (legalTargets.has(to)) {
             continue;
           }
 

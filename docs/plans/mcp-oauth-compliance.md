@@ -605,10 +605,10 @@ tasks:
       versions, pin the version that the survey was written against and
       document the pinned version in the test file's leading comment.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: e2e-mcp-inspector
     title: E2E conformance — mcp-inspector smoke
@@ -639,10 +639,10 @@ tasks:
       existing CI npm cache. Skip the test on platforms where inspector
       cannot run headlessly rather than failing.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: audit-discovery-and-www-authenticate
     title: Spec audit — PRM + AS metadata + WWW-Authenticate

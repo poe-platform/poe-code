@@ -49,6 +49,7 @@
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@types/express": "^5.0.6",
     "express": "^5.1.0",
+    "tiny-http-mcp-oauth-test-server": "*",
     "tiny-mcp-client": "*"
   }
 }

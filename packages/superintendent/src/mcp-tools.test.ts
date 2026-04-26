@@ -34,7 +34,9 @@ const EXPECTED_TOOL_NAMES = [
   "superintendent__complete",
   "superintendent__builder__run",
   "superintendent__inspector__run",
-  "superintendent__inspector__list"
+  "superintendent__inspector__list",
+  "approvals__list",
+  "approvals__show"
 ];
 
 const documentPath = "/repo/.poe-code/superintendent/plan.md";
@@ -155,7 +157,7 @@ describe("superintendent MCP tool surface", () => {
     try {
       const result = await client.listTools();
 
-      expect(result.tools).toHaveLength(6);
+      expect(result.tools).toHaveLength(EXPECTED_TOOL_NAMES.length);
       expect(result.tools.map((tool) => tool.name).sort()).toEqual([...EXPECTED_TOOL_NAMES].sort());
     } finally {
       await cleanup();

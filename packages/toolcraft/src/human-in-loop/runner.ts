@@ -1,0 +1,252 @@
+import { access, readFile, writeFile } from "node:fs/promises";
+import type { Task } from "@poe-code/task-list";
+import type { Command, CommandNode, HandlerEnv, HandlerFs, HandlerContext } from "../index.js";
+import { UserError, resolveCommandSecrets } from "../index.js";
+import { ensureApprovalList } from "./approval-tasks.js";
+import { resolveProvider } from "./gate.js";
+import type { ApprovalPayload } from "./approval-tasks.js";
+import type { HumanInLoopRuntimeOptions } from "./types.js";
+
+interface SerializedJsonResult {
+  ok: true;
+  value: unknown;
+}
+
+interface UnserializableJsonResult {
+  ok: false;
+}
+
+export async function runApproval(
+  approvalId: string,
+  runtimeOptions: HumanInLoopRuntimeOptions,
+  root: CommandNode<any>,
+): Promise<void> {
+  const { tasks } = await ensureApprovalList(runtimeOptions);
+  const task = await tasks.get(approvalId);
+
+  if (task.state !== "pending") {
+    return;
+  }
+
+  const approval = readApprovalPayload(task);
+  const provider = resolveProvider(runtimeOptions);
+
+  try {
+    const approvalResult = await provider.requestApproval({
+      message: approval.message,
+      declineInputPrompt: approval.declineInputPrompt ?? undefined,
+    });
+
+    if (approvalResult.outcome === "declined") {
+      await tasks.fire(approvalId, "decline", {
+        metadataPatch: {
+          error: {
+            reason: approvalResult.reason,
+          },
+        },
+      });
+      return;
+    }
+  } catch (error) {
+    await failPendingApproval(tasks, approvalId, error);
+    return;
+  }
+
+  await tasks.fire(approvalId, "start", {
+    metadataPatch: {
+      pid: process.pid,
+    },
+  });
+
+  try {
+    const command = findCommand(root, approval.commandPath);
+    const ctx = createHandlerContext(command, approval.params);
+    const result = await command.handler(ctx);
+    const serializedResult = serializeJsonResult(result);
+
+    if (!serializedResult.ok) {
+      await tasks.fire(approvalId, "fail", {
+        metadataPatch: {
+          error: {
+            message: "result not JSON-serializable",
+          },
+        },
+      });
+      return;
+    }
+
+    await tasks.fire(approvalId, "succeed", {
+      metadataPatch: {
+        result: serializedResult.value,
+      },
+    });
+  } catch (error) {
+    await tasks.fire(approvalId, "fail", {
+      metadataPatch: {
+        error: errorMetadataFromUnknown(error),
+      },
+    });
+  }
+}
+
+function readApprovalPayload(task: Task): ApprovalPayload {
+  const metadata = task.metadata;
+
+  if (typeof metadata !== "object" || metadata === null) {
+    throw new UserError(`Malformed approval metadata for "${task.qualifiedId}".`);
+  }
+
+  if (metadata.schemaVersion !== 1) {
+    throw new UserError(`Malformed approval metadata for "${task.qualifiedId}".`);
+  }
+
+  if (
+    typeof metadata.commandPath !== "string" ||
+    typeof metadata.message !== "string" ||
+    typeof metadata.params !== "object" ||
+    metadata.params === null
+  ) {
+    throw new UserError(`Malformed approval metadata for "${task.qualifiedId}".`);
+  }
+
+  const declineInputPrompt =
+    typeof metadata.declineInputPrompt === "string" || metadata.declineInputPrompt === null
+      ? metadata.declineInputPrompt
+      : undefined;
+
+  return {
+    approvalId: typeof metadata.approvalId === "string" ? metadata.approvalId : undefined,
+    commandPath: metadata.commandPath,
+    params: metadata.params as Record<string, unknown>,
+    message: metadata.message,
+    declineInputPrompt,
+    enqueuedAt: typeof metadata.enqueuedAt === "string" ? metadata.enqueuedAt : undefined,
+    pid: typeof metadata.pid === "number" || metadata.pid === null ? metadata.pid : undefined,
+    result: metadata.result,
+    error: metadata.error,
+  };
+}
+
+function findCommand(root: CommandNode<any>, commandPath: string): Command<any, any, any, any> {
+  const pathSegments = commandPath.split(".").filter((segment) => segment.length > 0);
+
+  if (pathSegments.length === 0) {
+    throw new UserError(`Unknown approval command path "${commandPath}".`);
+  }
+
+  let current: CommandNode<any> = root;
+
+  for (const segment of pathSegments) {
+    if (current.kind !== "group") {
+      throw new UserError(`Unknown approval command path "${commandPath}".`);
+    }
+
+    const next = current.children.find((child) => child.name === segment);
+
+    if (next === undefined) {
+      throw new UserError(`Unknown approval command path "${commandPath}".`);
+    }
+
+    current = next;
+  }
+
+  if (current.kind !== "command") {
+    throw new UserError(`Unknown approval command path "${commandPath}".`);
+  }
+
+  return current;
+}
+
+function createHandlerContext(
+  command: Command<any, any, any, any>,
+  params: Record<string, unknown>
+): HandlerContext<any, any, any> {
+  return {
+    params,
+    secrets: resolveCommandSecrets(command),
+    fetch: globalThis.fetch,
+    fs: createFs(),
+    env: createEnv(),
+    progress(): void {
+      return undefined;
+    },
+  };
+}
+
+function createFs(): HandlerFs {
+  return {
+    readFile: async (path: string, encoding = "utf8") => readFile(path, { encoding }),
+    writeFile: async (path: string, contents: string) => {
+      await writeFile(path, contents);
+    },
+    exists: async (path: string) => {
+      try {
+        await access(path);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+  };
+}
+
+function createEnv(values: Record<string, string | undefined> = process.env): HandlerEnv {
+  return {
+    get(key: string): string | undefined {
+      return values[key];
+    },
+  };
+}
+
+function serializeJsonResult(value: unknown): SerializedJsonResult | UnserializableJsonResult {
+  try {
+    const serialized = JSON.stringify(value);
+
+    if (serialized === undefined) {
+      return {
+        ok: false,
+      };
+    }
+
+    return {
+      ok: true,
+      value: JSON.parse(serialized) as unknown,
+    };
+  } catch {
+    return {
+      ok: false,
+    };
+  }
+}
+
+function errorMetadataFromUnknown(error: unknown): {
+  name: string;
+  message: string;
+  stack?: string;
+} {
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    };
+  }
+
+  return {
+    name: "Error",
+    message: String(error),
+  };
+}
+
+async function failPendingApproval(tasks: Awaited<ReturnType<typeof ensureApprovalList>>["tasks"], approvalId: string, error: unknown): Promise<void> {
+  await tasks.fire(approvalId, "start", {
+    metadataPatch: {
+      pid: process.pid,
+    },
+  });
+  await tasks.fire(approvalId, "fail", {
+    metadataPatch: {
+      error: errorMetadataFromUnknown(error),
+    },
+  });
+}

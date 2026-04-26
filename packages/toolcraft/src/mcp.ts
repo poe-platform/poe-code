@@ -10,6 +10,8 @@ import {
 import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
+import type { HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
@@ -41,6 +43,7 @@ interface ToolDefinition<TServices extends object> {
 export interface RunMCPOptions<TServices extends object = Record<string, unknown>> {
   name: string;
   version: string;
+  humanInLoop?: HumanInLoopRuntimeOptions;
   /**
    * Optional allowlist of MCP tool names or group prefixes.
    *
@@ -493,6 +496,12 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
 ): CmdkitServer {
   const casing = options.casing ?? "snake";
   const services = (options.services ?? {}) as TServices;
+  const runtimeOptions = options.humanInLoop ?? {};
+  const servicesWithBuiltIns = {
+    ...services,
+    runtimeOptions,
+    root,
+  } as TServices;
   validateServices(services as Record<string, unknown>);
 
   const tools = enumerateTools(root, casing, options.tools);
@@ -507,7 +516,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
         try {
           const secrets = resolveCommandSecrets(tool.command);
           const baseContext = {
-            ...services,
+            ...servicesWithBuiltIns,
             secrets,
             fetch: globalThis.fetch,
             fs: createFs(),
@@ -581,7 +590,7 @@ export function createMCPServer<TServices extends object = Record<string, unknow
   roots: Group<TServices> | Group<TServices>[],
   options: RunMCPOptions<TServices>
 ): CmdkitServer {
-  const root = normalizeRoots(roots);
+  const root = mergeApprovalsGroup(normalizeRoots(roots));
 
   if (!hasMcpProxyGroups(root)) {
     return createResolvedMCPServer(root, options);
@@ -594,7 +603,7 @@ export async function runMCP<TServices extends object = Record<string, unknown>>
   roots: Group<TServices> | Group<TServices>[],
   options: RunMCPOptions<TServices>
 ): Promise<void> {
-  const root = normalizeRoots(roots);
+  const root = mergeApprovalsGroup(normalizeRoots(roots));
   await resolveMcpProxies(root);
   const server = createResolvedMCPServer(root, options);
   await server.listen();

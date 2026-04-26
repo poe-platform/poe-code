@@ -8,7 +8,7 @@ import type { HumanInLoopPending, HumanInLoopProvider, HumanInLoopRuntimeOptions
 const providersByRuntime = new WeakMap<HumanInLoopRuntimeOptions, HumanInLoopProvider>();
 let providerWithoutRuntime: HumanInLoopProvider | undefined;
 
-function resolveProvider(runtimeOptions: HumanInLoopRuntimeOptions | undefined): HumanInLoopProvider {
+export function resolveProvider(runtimeOptions: HumanInLoopRuntimeOptions | undefined): HumanInLoopProvider {
   if (runtimeOptions?.provider !== undefined) {
     return runtimeOptions.provider;
   }

@@ -129,7 +129,11 @@ describe("defineClient", () => {
     try {
       const result = await mcpClient.listTools();
 
-      expect(result.tools.map((tool) => tool.name)).toEqual(["internal_agent__bots__list"]);
+      expect(result.tools.map((tool) => tool.name)).toEqual([
+        "internal_agent__bots__list",
+        "internal_agent__approvals__list",
+        "internal_agent__approvals__show",
+      ]);
     } finally {
       await cleanup();
     }

@@ -3,7 +3,12 @@ import { describe, expect, it } from "vitest";
 import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 import { markdownGroup } from "./group.js";
 
-const EXPECTED_TOOL_NAMES = ["markdown_reader__read", "markdown_reader__read_section"];
+const EXPECTED_TOOL_NAMES = [
+  "markdown_reader__read",
+  "markdown_reader__read_section",
+  "markdown_reader__approvals__list",
+  "markdown_reader__approvals__show"
+];
 const FIXTURE_PATH = "packages/markdown-reader/src/testing/fixtures/with-frontmatter.md";
 
 async function createClientPair() {

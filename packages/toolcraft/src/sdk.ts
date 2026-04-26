@@ -2,6 +2,8 @@ import { access, readFile, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
 import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
+import type { HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
@@ -156,6 +158,7 @@ type SDKChildrenShape<TChildren, TInheritedScope extends ScopeInput> = Simplify<
 export interface CreateSDKOptions<TServices extends object = Record<string, unknown>> {
   services?: TServices;
   casing?: "camel";
+  humanInLoop?: HumanInLoopRuntimeOptions;
 }
 
 function splitWords(value: string): string[] {
@@ -389,11 +392,13 @@ export function createSDK(
   root: Group<any>,
   options: CreateSDKOptions<any> = {}
 ): Record<string, unknown> {
-  if (!hasMcpProxyGroups(root)) {
-    return createResolvedSDK(root, options);
+  const mergedRoot = mergeApprovalsGroup(root);
+
+  if (!hasMcpProxyGroups(mergedRoot)) {
+    return createResolvedSDK(mergedRoot, options);
   }
 
-  return createDeferredSDK(root, options);
+  return createDeferredSDK(mergedRoot, options);
 }
 
 function createResolvedSDK(
@@ -401,6 +406,7 @@ function createResolvedSDK(
   options: CreateSDKOptions<any> = {}
 ): Record<string, unknown> {
   const services = options.services ?? {};
+  const runtimeOptions = options.humanInLoop ?? {};
   void options.casing;
   validateServices(services as Record<string, unknown>);
 
@@ -410,6 +416,8 @@ function createResolvedSDK(
         const secrets = resolveCommandSecrets(node);
         const baseContext = {
           ...services,
+          runtimeOptions,
+          root,
           secrets,
           fetch: globalThis.fetch,
           fs: createFs(),

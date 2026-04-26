@@ -36,6 +36,7 @@ import type {
   Scope,
 } from "./index.js";
 import { ApprovalDeclinedError, UserError, assertCommandRequirements, getCommandSourcePath, resolveCommandSecrets } from "./index.js";
+import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
 import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
 import { resolveMcpProxies } from "./mcp-proxy.js";
@@ -2908,10 +2909,16 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   roots: Group<TServices> | Group<TServices>[],
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
-  const root = normalizeRoots(roots, process.argv);
+  const root = mergeApprovalsGroup(normalizeRoots(roots, process.argv));
   await resolveMcpProxies(root);
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;
+  const runtimeOptions = options.humanInLoop ?? {};
+  const servicesWithBuiltIns = {
+    ...services,
+    runtimeOptions,
+    root,
+  } as TServices;
   const requirementOptions = {
     apiVersion: options.apiVersion,
   } satisfies CommandRequirementOptions;
@@ -2937,7 +2944,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   let lastActionCommand: CommanderCommand | undefined;
   const execute = async (state: ExecutionState<TServices>) => {
     lastActionCommand = state.actionCommand;
-    await executeCommand(state, services, requirementOptions, options.humanInLoop);
+    await executeCommand(state, servicesWithBuiltIns, requirementOptions, runtimeOptions);
   };
 
   for (const child of root.children) {

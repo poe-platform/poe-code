@@ -960,7 +960,8 @@ describe("createMCPServer", () => {
     try {
       const result = await client.listTools();
 
-      expect(result.tools).toHaveLength(1);
+      expect(result.tools).toHaveLength(3);
+      expect(result.tools[0]?.name).toBe("root__run");
       expect(result.tools[0]?.inputSchema).toEqual({
         type: "object",
         properties: {
@@ -1239,6 +1240,8 @@ describe("createMCPServer", () => {
       expect(result.tools.map((tool) => tool.name)).toEqual([
         "terminal_pilot__create_session",
         "terminal_png__render",
+        "approvals__list",
+        "approvals__show",
       ]);
 
       const callResult = await client.callTool({

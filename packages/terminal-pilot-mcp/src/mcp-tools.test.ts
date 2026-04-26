@@ -17,7 +17,9 @@ const EXPECTED_TOOL_NAMES = [
   "terminal_pilot__resize",
   "terminal_pilot__close_session",
   "terminal_pilot__get_session",
-  "terminal_pilot__list_sessions"
+  "terminal_pilot__list_sessions",
+  "terminal_pilot__approvals__list",
+  "terminal_pilot__approvals__show"
 ];
 
 const runtime: TerminalPilotRuntime = {
@@ -121,7 +123,7 @@ describe("terminal-pilot-mcp tool surface", () => {
 
       const result = await client.listTools();
 
-      expect(result.tools).toHaveLength(13);
+      expect(result.tools).toHaveLength(EXPECTED_TOOL_NAMES.length);
       expect(result.tools.map((tool) => tool.name)).toEqual(EXPECTED_TOOL_NAMES);
     } finally {
       await cleanup();

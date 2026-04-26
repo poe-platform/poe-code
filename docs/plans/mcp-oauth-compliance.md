@@ -89,7 +89,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: design-mcp-oauth-package
     title: Design mcp-oauth package shape
@@ -144,9 +144,9 @@ tasks:
       Produce a short open-questions list at the end if anything is still
       ambiguous; do not block on them.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: prm-discovery-server

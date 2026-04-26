@@ -109,19 +109,21 @@ describe("experiment-loop agent-kit locking", () => {
       },
       readdir: async (filePath) => baseFs.readdir(filePath),
       stat: async (filePath) => baseFs.stat(filePath),
-      mkdir: async (filePath, options) => {
-        operations.push(`mkdir:${filePath}`);
-        await baseFs.mkdir(filePath, options);
+      mkdir: async (filePath, options) => baseFs.mkdir(filePath, options),
+      rmdir: async (filePath) => baseFs.rmdir(filePath),
+      open: async (filePath, flags) => {
+        operations.push(`open:${filePath}`);
+        return baseFs.open(filePath, flags);
       },
-      rmdir: async (filePath) => {
-        operations.push(`rmdir:${filePath}`);
-        await baseFs.rmdir(filePath);
+      unlink: async (filePath) => {
+        operations.push(`unlink:${filePath}`);
+        await baseFs.unlink(filePath);
       },
       appendFile: async (filePath, content) => {
         operations.push(`appendFile:${filePath}`);
         await baseFs.appendFile(filePath, content);
       }
-    };
+    } as ExperimentFileSystem;
 
     await runExperimentLoop({
       cwd,
@@ -134,11 +136,11 @@ describe("experiment-loop agent-kit locking", () => {
       runAgent: vi.fn()
     });
 
-    expect(operations.indexOf(`mkdir:${lockPath}`)).toBeGreaterThanOrEqual(0);
-    expect(operations.indexOf(`mkdir:${lockPath}`)).toBeLessThan(
+    expect(operations.indexOf(`open:${lockPath}`)).toBeGreaterThanOrEqual(0);
+    expect(operations.indexOf(`open:${lockPath}`)).toBeLessThan(
       operations.indexOf(`writeFile:${journalPath}`)
     );
-    expect(operations.at(-1)).toBe(`rmdir:${lockPath}`);
+    expect(operations.at(-1)).toBe(`unlink:${lockPath}`);
     await expect(fs.stat(lockPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 

@@ -145,10 +145,10 @@ tasks:
 
       - Conventional commits.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
   - id: task-list-skeleton
     title: Create @poe-code/task-list skeleton with state machine
     prompt: >

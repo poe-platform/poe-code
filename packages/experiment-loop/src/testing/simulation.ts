@@ -137,13 +137,14 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
   const volume = Volume.fromJSON(files, "/");
   const rawFs = createFsFromVolume(volume).promises;
 
-  const fs: SimulationFs = {
+  const fs = {
     readFile: (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
     writeFile: async (filePath, content) => {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
       await rawFs.writeFile(filePath, content, { encoding: "utf8" });
     },
     readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
+    open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
     stat: async (filePath) => {
       const stat = await rawFs.stat(filePath);
 
@@ -152,6 +153,9 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
         isDirectory: () => stat.isDirectory(),
         mtimeMs: Number(stat.mtimeMs)
       };
+    },
+    unlink: async (filePath: string) => {
+      await rawFs.unlink(filePath);
     },
     mkdir: async (filePath, mkdirOptions) => {
       await rawFs.mkdir(filePath, mkdirOptions);
@@ -163,7 +167,7 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
       await rawFs.mkdir(path.dirname(filePath), { recursive: true });
       await rawFs.appendFile(filePath, content, { encoding: "utf8" });
     }
-  };
+  } as SimulationFs;
 
   return {
     fs,

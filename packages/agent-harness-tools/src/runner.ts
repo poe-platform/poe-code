@@ -110,6 +110,20 @@ function parseWorkflowHook(value: unknown, fieldName: string): WorkflowHook | un
   };
 }
 
+type LockCapableWorkflowFs = {
+  open(path: string, flags: string): Promise<{
+    close(): Promise<void>;
+    writeFile(
+      data: string,
+      options?: BufferEncoding | { encoding?: BufferEncoding }
+    ): Promise<void>;
+  }>;
+  stat(path: string): Promise<{
+    mtimeMs: number;
+  }>;
+  unlink(path: string): Promise<void>;
+};
+
 function parseWorkflowStage(value: unknown, index: number): WorkflowStage {
   if (!isRecord(value)) {
     throw new Error(`Workflow stage at index ${index} must be an object.`);
@@ -242,7 +256,9 @@ export async function runDocumentWorkflow(
   };
 
   const initialWorkflow = await readWorkflow();
-  const releaseLock = await lockWorkflow(options.docPath, { fs: options.fs });
+  const releaseLock = await lockWorkflow(options.docPath, {
+    fs: options.fs as unknown as LockCapableWorkflowFs
+  });
 
   let pendingError: unknown;
   let currentWorkflow = initialWorkflow;

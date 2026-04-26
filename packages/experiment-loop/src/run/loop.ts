@@ -28,11 +28,27 @@ import type {
   RunConfig
 } from "../types.js";
 
+type LockCapableExperimentFs = {
+  open(path: string, flags: string): Promise<{
+    close(): Promise<void>;
+    writeFile(
+      data: string,
+      options?: BufferEncoding | { encoding?: BufferEncoding }
+    ): Promise<void>;
+  }>;
+  stat(path: string): Promise<{
+    mtimeMs: number;
+  }>;
+  unlink(path: string): Promise<void>;
+};
+
 function createDefaultFs(): ExperimentFileSystem {
-  return {
+  const fs = {
     readFile: fsPromises.readFile as ExperimentFileSystem["readFile"],
-    writeFile: (filePath, content) => fsPromises.writeFile(filePath, content, "utf8"),
+    writeFile: (filePath: string, content: string) =>
+      fsPromises.writeFile(filePath, content, "utf8"),
     readdir: fsPromises.readdir,
+    open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -41,16 +57,21 @@ function createDefaultFs(): ExperimentFileSystem {
         mtimeMs: stat.mtimeMs
       };
     },
-    mkdir: async (filePath, options) => {
+    unlink: async (filePath: string) => {
+      await fsPromises.unlink(filePath);
+    },
+    mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, options);
     },
-    rmdir: async (filePath) => {
+    rmdir: async (filePath: string) => {
       await fsPromises.rmdir(filePath);
     },
-    appendFile: async (filePath, content) => {
+    appendFile: async (filePath: string, content: string) => {
       await fsPromises.appendFile(filePath, content, "utf8");
     }
   };
+
+  return fs as ExperimentFileSystem;
 }
 
 function createDefaultExec(): ExecFn {
@@ -300,7 +321,9 @@ export async function runExperimentLoop(
 
   try {
     assertNotAborted(options.signal);
-    releaseLock = await lockWorkflow(absoluteDocPath, { fs });
+    releaseLock = await lockWorkflow(absoluteDocPath, {
+      fs: fs as unknown as LockCapableExperimentFs
+    });
 
     const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
     await journal.init();

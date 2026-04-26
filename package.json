@@ -133,6 +133,7 @@
     "@poe-code/design-system": "*",
     "@poe-code/e2e-test-runner": "*",
     "@poe-code/experiment-loop": "*",
+    "@poe-code/file-lock": "*",
     "@poe-code/github-workflows": "*",
     "@poe-code/markdown-reader": "*",
     "@poe-code/memory": "*",

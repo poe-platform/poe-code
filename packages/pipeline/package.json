@@ -16,7 +16,8 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/pipeline/src"
   },
   "files": [
     "dist"

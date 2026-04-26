@@ -42,7 +42,7 @@ function createRunFs(files: Record<string, string>) {
 
   return {
     rawFs,
-    fs: {
+    fs: ({
       readFile: (filePath: string, encoding: BufferEncoding) =>
         rawFs.readFile(filePath, encoding) as Promise<string>,
       writeFile: async (filePath: string, content: string) => {
@@ -52,6 +52,7 @@ function createRunFs(files: Record<string, string>) {
         await rawFs.writeFile(filePath, content, { encoding: "utf8" });
       },
       readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
+      open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
       stat: async (filePath: string) => {
         const stat = await rawFs.stat(filePath);
         return {
@@ -59,6 +60,9 @@ function createRunFs(files: Record<string, string>) {
           isDirectory: () => stat.isDirectory(),
           mtimeMs: Number(stat.mtimeMs)
         };
+      },
+      unlink: async (filePath: string) => {
+        await rawFs.unlink(filePath);
       },
       mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
         await rawFs.mkdir(filePath, options);
@@ -72,7 +76,7 @@ function createRunFs(files: Record<string, string>) {
         });
         await rawFs.rename(oldPath, newPath);
       }
-    }
+    }) as RalphRunOptions["fs"]
   };
 }
 
@@ -870,7 +874,7 @@ describe("createRalphSimulation", () => {
     });
     const runAgent = vi.fn(async () => {
       const stat = await rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock");
-      expect(stat.isDirectory()).toBe(true);
+      expect(stat.isFile()).toBe(true);
       return {
         stdout: "",
         stderr: "",

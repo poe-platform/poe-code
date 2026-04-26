@@ -1170,10 +1170,11 @@ function displayPath(filePath: string, cwd: string, homeDir: string): string {
 }
 
 function createDefaultFs(): SuperintendentFileSystem {
-  return {
+  const fs = {
     readFile: fsPromises.readFile as SuperintendentFileSystem["readFile"],
     writeFile: fsPromises.writeFile as SuperintendentFileSystem["writeFile"],
     readdir: fsPromises.readdir,
+    open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -1182,16 +1183,21 @@ function createDefaultFs(): SuperintendentFileSystem {
         mtimeMs: stat.mtimeMs
       };
     },
-    mkdir: async (filePath, mkdirOptions) => {
+    unlink: async (filePath: string) => {
+      await fsPromises.unlink(filePath);
+    },
+    mkdir: async (filePath: string, mkdirOptions?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, mkdirOptions);
     },
-    rmdir: async (filePath) => {
+    rmdir: async (filePath: string) => {
       await fsPromises.rmdir(filePath);
     },
-    rename: async (oldPath, newPath) => {
+    rename: async (oldPath: string, newPath: string) => {
       await fsPromises.rename(oldPath, newPath);
     }
   };
+
+  return fs as SuperintendentFileSystem;
 }
 
 function toError(error: unknown): Error {

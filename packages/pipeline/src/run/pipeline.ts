@@ -26,10 +26,11 @@ import type {
 import { assertNotAborted } from "../utils.js";
 
 function createDefaultFs(): PipelineFileSystem {
-  return {
+  const fs = {
     readFile: fsPromises.readFile as PipelineFileSystem["readFile"],
     writeFile: fsPromises.writeFile as PipelineFileSystem["writeFile"],
     readdir: fsPromises.readdir,
+    open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -38,13 +39,33 @@ function createDefaultFs(): PipelineFileSystem {
         mtimeMs: stat.mtimeMs
       } satisfies PipelineFileStat;
     },
-    mkdir: async (filePath, options) => {
+    unlink: fsPromises.unlink,
+    mkdir: async (
+      filePath: string,
+      options?: { recursive?: boolean }
+    ) => {
       await fsPromises.mkdir(filePath, options);
     },
     rmdir: fsPromises.rmdir,
     rename: fsPromises.rename
   };
+
+  return fs as PipelineFileSystem;
 }
+
+type LockCapablePipelineFs = {
+  open(path: string, flags: string): Promise<{
+    close(): Promise<void>;
+    writeFile(
+      data: string,
+      options?: BufferEncoding | { encoding?: BufferEncoding }
+    ): Promise<void>;
+  }>;
+  stat(path: string): Promise<{
+    mtimeMs: number;
+  }>;
+  unlink(path: string): Promise<void>;
+};
 
 function isTaskDone(status: PipelineTask["status"]): boolean {
   if (typeof status === "string") {
@@ -94,7 +115,7 @@ async function acquirePipelineLock(options: {
 
   try {
     const release = await lockWorkflow(options.absolutePlanPath, {
-      fs: options.fs,
+      fs: options.fs as unknown as LockCapablePipelineFs,
       retries: Number.POSITIVE_INFINITY,
       ...(options.signal ? { signal: options.signal } : {})
     });

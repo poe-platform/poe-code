@@ -159,21 +159,23 @@ describe("runDocumentWorkflow", () => {
   it("acquires the lock before execution and releases it after", async () => {
     const operations: string[] = [];
     const baseFs = createFs({ "/repo/workflow.md": "# workflow" }).fs;
-    const fs: WorkflowFileSystem = {
+    const fs = {
       readFile: async (filePath, encoding) => {
         operations.push(`readFile:${filePath}`);
         return baseFs.readFile(filePath, encoding);
       },
-      mkdir: async (filePath, options) => {
-        operations.push(`mkdir:${filePath}`);
-        await baseFs.mkdir(filePath, options);
+      mkdir: async (filePath, options) => baseFs.mkdir(filePath, options),
+      rmdir: async (filePath) => baseFs.rmdir(filePath),
+      stat: async (filePath) => baseFs.stat(filePath),
+      open: async (filePath, flags) => {
+        operations.push(`open:${filePath}`);
+        return baseFs.open(filePath, flags);
       },
-      rmdir: async (filePath) => {
-        operations.push(`rmdir:${filePath}`);
-        await baseFs.rmdir(filePath);
-      },
-      stat: async (filePath) => baseFs.stat(filePath)
-    };
+      unlink: async (filePath) => {
+        operations.push(`unlink:${filePath}`);
+        await baseFs.unlink(filePath);
+      }
+    } as WorkflowFileSystem;
     const options = createOptions({
       fs,
       frontmatter: {
@@ -208,11 +210,11 @@ describe("runDocumentWorkflow", () => {
 
     expect(operations).toEqual([
       "readFile:/repo/workflow.md",
-      "mkdir:/repo/workflow.md.lock",
+      "open:/repo/workflow.md.lock",
       "run:Setup workspace",
       "run:Draft changes",
       "run:Clean up",
-      "rmdir:/repo/workflow.md.lock"
+      "unlink:/repo/workflow.md.lock"
     ]);
   });
 

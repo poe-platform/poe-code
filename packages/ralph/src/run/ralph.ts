@@ -26,6 +26,20 @@ import type {
 } from "../types.js";
 import { interpolateVariables } from "../variables/variables.js";
 
+type LockCapableRalphFs = {
+  open(path: string, flags: string): Promise<{
+    close(): Promise<void>;
+    writeFile(
+      data: string,
+      options?: BufferEncoding | { encoding?: BufferEncoding }
+    ): Promise<void>;
+  }>;
+  stat(path: string): Promise<{
+    mtimeMs: number;
+  }>;
+  unlink(path: string): Promise<void>;
+};
+
 class RalphWorkflowStopError extends Error {
   constructor(readonly kind: "failed" | "cancelled" | "fatal") {
     super(`Ralph workflow stopped: ${kind}`);
@@ -362,11 +376,12 @@ function createWorkflowFrontmatter(
 }
 
 function createDefaultFs(): RalphFileSystem {
-  return {
+  const fs = {
     readFile: fsPromises.readFile as RalphFileSystem["readFile"],
-    writeFile: (filePath, content) =>
+    writeFile: (filePath: string, content: string) =>
       fsPromises.writeFile(filePath, content, "utf8"),
     readdir: fsPromises.readdir,
+    open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -375,14 +390,21 @@ function createDefaultFs(): RalphFileSystem {
         mtimeMs: stat.mtimeMs
       } satisfies RalphFileStat;
     },
-    mkdir: async (filePath, options) => {
+    unlink: async (filePath: string) => {
+      await fsPromises.unlink(filePath);
+    },
+    mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, options);
     },
-    rmdir: async (filePath) => {
+    rmdir: async (filePath: string) => {
       await fsPromises.rmdir(filePath);
     },
-    rename: fsPromises.rename
+    rename: async (oldPath: string, newPath: string) => {
+      await fsPromises.rename(oldPath, newPath);
+    }
   };
+
+  return fs as RalphFileSystem;
 }
 
 function normalizeAgents(

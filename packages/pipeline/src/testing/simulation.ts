@@ -106,11 +106,12 @@ function createSimulationFs(options: SimulationOptions): { fs: SimulationFs; pla
 
   const volume = Volume.fromJSON(files, "/");
   const rawFs = createFsFromVolume(volume).promises;
-  const fs: SimulationFs = {
+  const fs = {
     readFile: (filePath, encoding) => rawFs.readFile(filePath, encoding) as Promise<string>,
     writeFile: (filePath, data, writeOptions) =>
       rawFs.writeFile(filePath, data, writeOptions) as Promise<void>,
     readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
+    open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
     stat: async (filePath) => {
       const stat = await rawFs.stat(filePath);
       return {
@@ -119,10 +120,11 @@ function createSimulationFs(options: SimulationOptions): { fs: SimulationFs; pla
         mtimeMs: Number(stat.mtimeMs)
       };
     },
+    unlink: (filePath: string) => rawFs.unlink(filePath) as Promise<void>,
     mkdir: (filePath, mkdirOptions) => rawFs.mkdir(filePath, mkdirOptions) as Promise<void>,
     rmdir: (filePath) => rawFs.rmdir(filePath) as Promise<void>,
     rename: (oldPath, newPath) => rawFs.rename(oldPath, newPath) as Promise<void>
-  };
+  } as SimulationFs;
 
   return { fs, planPath };
 }

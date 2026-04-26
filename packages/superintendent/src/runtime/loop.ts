@@ -143,6 +143,20 @@ type AutonomousOptions = {
   logPath?: string;
 };
 
+type LockCapableSuperintendentFs = {
+  open(path: string, flags: string): Promise<{
+    close(): Promise<void>;
+    writeFile(
+      data: string,
+      options?: BufferEncoding | { encoding?: BufferEncoding }
+    ): Promise<void>;
+  }>;
+  stat(path: string): Promise<{
+    mtimeMs: number;
+  }>;
+  unlink(path: string): Promise<void>;
+};
+
 type SpawnWithAutonomous = typeof spawn & {
   autonomous?: (agent: string, options: AutonomousOptions) => Promise<unknown>;
 };
@@ -157,7 +171,9 @@ export async function runLoop(
   callbacks?: LoopCallbacks
 ): Promise<SuperintendentRunResult> {
   const options = normalizeOptions(input, callbacks);
-  const releaseLock = await lockWorkflow(options.docPath, { fs: options.fs });
+  const releaseLock = await lockWorkflow(options.docPath, {
+    fs: options.fs as unknown as LockCapableSuperintendentFs
+  });
 
   try {
     return await withInjectedAgentRunner(options, async () => {
@@ -432,10 +448,11 @@ function resolveRunners(overrides?: LoopRunners): ResolvedRunners {
 }
 
 function createDefaultFs(): SuperintendentFileSystem {
-  return {
+  const fs = {
     readFile: fsPromises.readFile as SuperintendentFileSystem["readFile"],
     writeFile: fsPromises.writeFile as SuperintendentFileSystem["writeFile"],
     readdir: fsPromises.readdir,
+    open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -444,16 +461,21 @@ function createDefaultFs(): SuperintendentFileSystem {
         mtimeMs: stat.mtimeMs
       };
     },
-    mkdir: async (filePath, options) => {
+    unlink: async (filePath: string) => {
+      await fsPromises.unlink(filePath);
+    },
+    mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, options);
     },
-    rmdir: async (filePath) => {
+    rmdir: async (filePath: string) => {
       await fsPromises.rmdir(filePath);
     },
-    rename: async (oldPath, newPath) => {
+    rename: async (oldPath: string, newPath: string) => {
       await fsPromises.rename(oldPath, newPath);
     }
   };
+
+  return fs as SuperintendentFileSystem;
 }
 
 async function readDocument(

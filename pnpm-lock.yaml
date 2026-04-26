@@ -99,6 +99,9 @@ importers:
       '@poe-code/experiment-loop':
         specifier: '*'
         version: link:packages/experiment-loop
+      '@poe-code/file-lock':
+        specifier: '*'
+        version: link:packages/file-lock
       '@poe-code/github-workflows':
         specifier: '*'
         version: link:packages/github-workflows
@@ -248,6 +251,9 @@ importers:
       '@poe-code/agent-defs':
         specifier: '*'
         version: link:../agent-defs
+      '@poe-code/file-lock':
+        specifier: '*'
+        version: link:../file-lock
 
   packages/toolcraft:
     dependencies:

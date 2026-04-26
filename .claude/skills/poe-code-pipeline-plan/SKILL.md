@@ -3,38 +3,24 @@ name: poe-code-pipeline-plan
 description: 'Generate a Pipeline plan markdown file with YAML frontmatter from a user request. Triggers on: create a pipeline plan, write plan for, plan this feature, pipeline plan.'
 ---
 
-## If The Request Is Empty
+# Pipeline plan
 
-Ask the user for a one-sentence description of what they want to build.
+Write the plan as YAML frontmatter. Each task's `prompt` must be self-contained — no relying on the markdown body or earlier tasks at runtime.
 
-## Goal
+## Where to write (first match wins)
 
-Write a markdown pipeline plan with YAML frontmatter. Before writing, decide where it goes:
+1. Request mentions an `.md` file → edit it in place.
+2. A file in the plan directory has `kind:` frontmatter matching the topic → edit it in place.
+3. Otherwise → create `<plan-directory>/<name>.md`.
 
-1. If the user points you at an existing source Markdown doc, add the frontmatter to that file in place. Leave the existing body as the context section below the frontmatter. Do not create a second plan file.
-2. Otherwise write a new file at `<plan-directory>/plan-<name>.md` (see Plan Directory section below).
-3. Find the `steps.yaml` file. Check these locations in order and use the first one found:
-   a. `<project-root>/.poe-code/pipeline/steps.yaml` (project-level)
-   b. `~/.poe-code/pipeline/steps.yaml` (user-global)
-   If found, read it to determine available steps and note any `setup`/`teardown` hooks defined there. If not found in either location, use stepless tasks.
+## Steps
 
-## Rules
+Read the first `steps.yaml` found at `<project-root>/.poe-code/pipeline/steps.yaml` then `~/.poe-code/pipeline/steps.yaml`.
 
-- Each task must be self-contained. Put all context needed to execute the task inside that task's `prompt`.
-- Do not create tasks that depend on hidden state from previous tasks.
-- Use short kebab-case ids.
-- Keep titles concise and descriptive.
-- The available steps come from the `steps.yaml` file you found (project or global). Use the current step names instead of inventing hardcoded ones.
-- If no step configuration is present, use stepless tasks with scalar `status: open`.
-- If step configuration is present, start every configured step status at `open`.
-- `setup` and `teardown` defined in `steps.yaml` are inherited automatically.
-- To disable an inherited hook for a specific plan, set `setup: false` or `teardown: false`.
-- To override an inherited hook, define the full block with a `prompt` field.
-- The markdown body is for context, notes, acceptance criteria, or the design doc. Keep executable pipeline config in the YAML frontmatter.
-- Do not rely on the body alone for runtime context. Each task prompt must still include everything it needs directly.
-- Start the frontmatter with canonical metadata: `$schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json`, `kind: pipeline`, and `version: 1`.
+- Without one: stepless tasks, scalar `status: open`.
+- With one: per task, use judgement to pick only the configured steps that genuinely apply (e.g. a docs-only task probably doesn't need `test`; a config bump may not need its own `commit` step). Set every step you include to `open`. `setup`/`teardown` are inherited; set `setup: false` to disable or define a full block to override.
 
-## Output Format
+## Format
 
 ```markdown
 ---
@@ -42,41 +28,67 @@ $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.j
 kind: pipeline
 version: 1
 
-# setup/teardown are inherited from steps.yaml automatically.
-# Include them only to disable or override:
-#
-# setup: false              # disable the inherited setup hook
-# teardown: false           # disable the inherited teardown hook
-# setup:                    # override with a different prompt
-#   prompt: Custom setup
-#   mode: yolo
-
 tasks:
-  - id: auth-hardening
-    title: Harden auth flow
+  - id: validate-signup-input
+    title: Validate signup request body
     prompt: |
-      Improve auth validation and session handling.
-    # scalar when no steps.yaml steps are defined:
-    status: open
-    # stepped when steps.yaml defines steps:
-    # status:
-    #   implement: open
-    #   test: open
-    #   commit: open
+      In src/api/signup.ts, validate the request body before the handler
+      runs. Reject when email is missing, malformed, or > 254 chars, or
+      password is < 8 chars. Return 400 with a JSON `{ code }` on reject.
+    status:
+      implement: open
+      test: open
+
+  - id: rate-limit-signup
+    title: Rate-limit signup to 5/hour per IP
+    prompt: |
+      Add a 5/hour-per-IP limit to src/api/signup.ts using the existing
+      limiter in src/middleware/rate-limit.ts. On exceed return 429 with
+      a Retry-After header.
+    status:
+      implement: open
+      test: open
+
+  - id: audit-failed-signups
+    title: Log failed signups to the audit log
+    prompt: |
+      When signup fails validation or rate limiting, write {ip, ts, reason}
+      via src/audit/logger.ts. Never log the password attempt.
+    status:
+      implement: open
+      test: open
+
+  - id: document-signup-limits
+    title: Document signup validation and rate limits
+    prompt: |
+      Add a "Signup limits" section to docs/api/signup.md covering email
+      length, password length, and the 5/hour-per-IP rate limit.
+    status:
+      implement: open
 ---
 
 # Context
 
-Paste the design doc, notes, acceptance criteria, or implementation details here.
-This body is for human-readable context and future tooling.
-Any context needed at runtime must still appear in each task prompt.
+Design notes or acceptance criteria.
 ```
 
-## After Writing
+Stepless variant — when no `steps.yaml` is present, `status` is a scalar instead of a per-step map:
 
-Run `poe-code pipeline validate <path>` to check the plan is valid before running it.
+```yaml
+tasks:
+  - id: bump-node-version
+    title: Bump Node engine to 20
+    prompt: |
+      Update `engines.node` in package.json to `>=20`. Update the same
+      pin in .nvmrc and the Node version in .github/workflows/ci.yml.
+    status: open
 
-## Notes
+  - id: drop-deprecated-flag
+    title: Remove the deprecated --legacy-render flag
+    prompt: |
+      In src/cli/render.ts remove the `--legacy-render` flag and any
+      branches that read it. The flag has been a no-op since v3.2.
+    status: open
+```
 
-- Match the uncommented step names and order from whichever `steps.yaml` file you find.
-- If `poe-code` is not available as a global command, use `npx poe-code` instead.
+Validate with `poe-code pipeline validate <path>` (or `npx poe-code …`).

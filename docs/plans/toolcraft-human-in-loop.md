@@ -130,7 +130,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: task-list-drop-transition
     title: task-list — drop transition; restrict create/update mutations
@@ -155,8 +155,8 @@ tasks:
 
       Reference: docs/plans/toolcraft-human-in-loop.md §3 / §5.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: task-list-readme

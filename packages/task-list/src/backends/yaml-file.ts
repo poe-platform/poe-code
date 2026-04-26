@@ -3,7 +3,7 @@ import { parseDocument } from "yaml";
 import storeSchema from "../schema/store.schema.json" with { type: "json" };
 import taskSchema from "../schema/task.schema.json" with { type: "json" };
 import { eventsFromState, findEvent } from "../state-machine.js";
-import { assertTransition, resolveStateMachine } from "../state.js";
+import { resolveStateMachine } from "../state.js";
 import {
   InvalidTransitionError,
   MalformedTaskError,
@@ -121,10 +121,14 @@ function matchesFilter(task: Task, filter?: ListFilter): boolean {
   return true;
 }
 
-function createTaskRecord(defaults: BackendDeps["defaults"], input: TaskCreate): TaskRecord {
+function createTaskRecord(
+  defaults: BackendDeps["defaults"],
+  input: TaskCreate,
+  initialState: string
+): TaskRecord {
   const taskRecord: TaskRecord = {
     name: input.name,
-    state: input.state ?? defaults.state,
+    state: initialState,
     description: input.description ?? ""
   };
 
@@ -141,6 +145,20 @@ function createTaskRecord(defaults: BackendDeps["defaults"], input: TaskCreate):
   }
 
   return taskRecord;
+}
+
+function assertCreateDoesNotSetState(input: TaskCreate): void {
+  if (Object.prototype.hasOwnProperty.call(input, "state")) {
+    throw new Error(
+      'Tasks.create() does not accept "state"; new tasks always start at stateMachine.initial.'
+    );
+  }
+}
+
+function assertUpdateDoesNotSetState(patch: TaskUpdate): void {
+  if (Object.prototype.hasOwnProperty.call(patch, "state")) {
+    throw new Error('Tasks.update() does not accept "state"; use fire() to change task state.');
+  }
 }
 
 function buildUpdatedTaskRecord(existing: TaskRecord, patch: TaskUpdate): TaskRecord {
@@ -395,12 +413,6 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
   const stateMachine = resolveStateMachine(deps.stateMachine);
   const validStates = new Set(stateMachine.states);
 
-  function assertValidTaskState(state: string): void {
-    if (!validStates.has(state)) {
-      throw new Error(`Invalid task state "${state}".`);
-    }
-  }
-
   async function readTasks(filter?: ListFilter): Promise<Task[]> {
     const { store } = await readStore(deps.fs, deps.path, validStates);
     const listRecord = getListRecord(store, list);
@@ -441,8 +453,8 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       return createTask(list, id, getTaskOrThrow(store, list, id));
     },
     async create(input: TaskCreate): Promise<Task> {
+      assertCreateDoesNotSetState(input);
       validateTaskId(input.id);
-      assertValidTaskState(input.state ?? deps.defaults.state);
 
       return withStoreLock(deps, async () => {
         const { document, store } = await readStore(deps.fs, deps.path, validStates);
@@ -450,7 +462,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
           throw new TaskAlreadyExistsError(`Task "${list}/${input.id}" already exists.`);
         }
 
-        const taskRecord = createTaskRecord(deps.defaults, input);
+        const taskRecord = createTaskRecord(deps.defaults, input, stateMachine.initial);
         document.setIn(["lists", list, input.id], taskRecord);
         await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
@@ -458,6 +470,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       });
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
+      assertUpdateDoesNotSetState(patch);
       validateTaskId(id);
 
       return withStoreLock(deps, async () => {
@@ -540,22 +553,6 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       const task = createTask(list, id, getTaskOrThrow(store, list, id));
 
       return eventsFromState(stateMachine, task.state);
-    },
-    async transition(id: string, to: string): Promise<Task> {
-      validateTaskId(id);
-      assertValidTaskState(to);
-
-      return withStoreLock(deps, async () => {
-        const { document, store } = await readStore(deps.fs, deps.path, validStates);
-        const existing = getTaskOrThrow(store, list, id);
-
-        assertTransition(stateMachine, existing.state as string, to);
-
-        document.setIn(["lists", list, id, "state"], to);
-        await writeAtomically(deps.fs, deps.path, serializeDocument(document));
-
-        return createTask(list, id, buildTransitionedTaskRecord(existing, to));
-      });
     },
     async delete(id: string): Promise<void> {
       validateTaskId(id);

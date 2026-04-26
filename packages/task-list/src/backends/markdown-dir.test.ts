@@ -57,7 +57,6 @@ describe("markdownDirBackend", () => {
     const taskList = await markdownDirBackend({
       path: "/repo/tasks",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -99,7 +98,6 @@ Initial body`
     const taskList = await markdownDirBackend({
       path: "/repo/tasks",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -135,7 +133,6 @@ Broken`
     const taskList = await markdownDirBackend({
       path: "/repo/tasks",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -177,7 +174,6 @@ state: draft
     const taskList = await markdownDirBackend({
       path: "/repo/tasks",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -196,7 +192,6 @@ state: draft
     const taskList = await markdownDirBackend({
       path: "/repo/tasks",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -215,7 +210,6 @@ state: draft
     const taskList = await markdownDirBackend({
       path: "/repo/tasks",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -226,10 +220,9 @@ state: draft
 
     await taskList.list("planning").create({
       id: "archive-me",
-      name: "Archive me",
-      state: "done"
+      name: "Archive me"
     });
-    await taskList.list("planning").transition("archive-me", "archived");
+    await taskList.list("planning").fire("archive-me", "archive");
 
     await expect(rawFs.stat("/repo/tasks/planning/archive-me.md")).rejects.toMatchObject({
       code: "ENOENT"
@@ -263,7 +256,6 @@ state: draft
     const taskList = await markdownDirBackend({
       path: "/repo/tasks",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,

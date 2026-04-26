@@ -3,7 +3,7 @@ import { acquireFileLock } from "@poe-code/file-lock";
 import { parseDocument, stringify } from "yaml";
 import taskSchema from "../schema/task.schema.json" with { type: "json" };
 import { eventsFromState, findEvent } from "../state-machine.js";
-import { assertTransition, resolveStateMachine } from "../state.js";
+import { resolveStateMachine } from "../state.js";
 import {
   InvalidTransitionError,
   MalformedTaskError,
@@ -325,13 +325,17 @@ async function readTaskAtLocation(
   return readTaskFile(fs, list, id, location.path, validStates);
 }
 
-function createdFrontmatter(defaults: BackendDeps["defaults"], input: TaskCreate): TaskRecord {
+function createdFrontmatter(
+  defaults: BackendDeps["defaults"],
+  input: TaskCreate,
+  initialState: string
+): TaskRecord {
   const frontmatter: TaskRecord = {
     $schema: TASK_SCHEMA_ID,
     kind: TASK_KIND,
     version: TASK_VERSION,
     name: input.name,
-    state: input.state ?? defaults.state
+    state: initialState
   };
 
   for (const [key, value] of Object.entries(defaults.metadata)) {
@@ -400,16 +404,24 @@ function firedFrontmatter(
   return nextFrontmatter;
 }
 
+function assertCreateDoesNotSetState(input: TaskCreate): void {
+  if (Object.prototype.hasOwnProperty.call(input, "state")) {
+    throw new Error(
+      'Tasks.create() does not accept "state"; new tasks always start at stateMachine.initial.'
+    );
+  }
+}
+
+function assertUpdateDoesNotSetState(patch: TaskUpdate): void {
+  if (Object.prototype.hasOwnProperty.call(patch, "state")) {
+    throw new Error('Tasks.update() does not accept "state"; use fire() to change task state.');
+  }
+}
+
 function createTasksView(deps: BackendDeps, list: string): Tasks {
   const listDirectoryPath = listPath(deps.path, list);
   const stateMachine = resolveStateMachine(deps.stateMachine);
   const validStates = new Set(stateMachine.states);
-
-  function assertValidTaskState(state: string): void {
-    if (!validStates.has(state)) {
-      throw new Error(`Invalid task state "${state}".`);
-    }
-  }
 
   async function listFiles(directoryPath: string): Promise<Task[]> {
     const entries = await readDirectoryNames(deps.fs, directoryPath);
@@ -488,8 +500,8 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       return (await getTaskFile(id)).task;
     },
     async create(input: TaskCreate): Promise<Task> {
+      assertCreateDoesNotSetState(input);
       validateTaskId(input.id);
-      assertValidTaskState(input.state ?? deps.defaults.state);
       await deps.fs.mkdir(listDirectoryPath, { recursive: true });
 
       return withTaskLock(input.id, async () => {
@@ -499,7 +511,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
         }
 
         const targetPath = activeTaskPath(deps.path, list, input.id);
-        const frontmatter = createdFrontmatter(deps.defaults, input);
+        const frontmatter = createdFrontmatter(deps.defaults, input, stateMachine.initial);
         const description = input.description ?? "";
 
         await writeAtomically(deps.fs, targetPath, serializeTaskDocument(frontmatter, description));
@@ -508,6 +520,8 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       });
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
+      assertUpdateDoesNotSetState(patch);
+
       return withTaskLock(id, async () => {
         const existing = await getTaskFile(id);
         const nextFrontmatter = updatedFrontmatter(existing.frontmatter, existing.task, patch);
@@ -578,36 +592,6 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     async events(id: string): Promise<readonly string[]> {
       const task = (await getTaskFile(id)).task;
       return eventsFromState(stateMachine, task.state);
-    },
-    async transition(id: string, to: string): Promise<Task> {
-      assertValidTaskState(to);
-
-      return withTaskLock(id, async () => {
-        const existing = await getTaskFile(id);
-
-        assertTransition(stateMachine, existing.task.state, to);
-
-        const nextFrontmatter = transitionedFrontmatter(existing.frontmatter, existing.task, to);
-        const serializedTask = serializeTaskDocument(nextFrontmatter, existing.task.description);
-
-        if (to === "archived") {
-          const targetPath = archivedTaskPath(deps.path, list, id);
-          const archivedTargetExists = await statIfExists(deps.fs, targetPath);
-          if (archivedTargetExists?.isFile()) {
-            throw new TaskAlreadyExistsError(`Task "${list}/${id}" already exists in archive.`);
-          }
-
-          await writeAtomically(deps.fs, existing.path, serializedTask);
-          await deps.fs.mkdir(archiveDirectoryPath(deps.path, list), { recursive: true });
-          await deps.fs.rename(existing.path, targetPath);
-
-          return createTask(list,id, nextFrontmatter, existing.task.description);
-        }
-
-        await writeAtomically(deps.fs, existing.path, serializedTask);
-
-        return createTask(list,id, nextFrontmatter, existing.task.description);
-      });
     },
     async delete(id: string): Promise<void> {
       await withTaskLock(id, async () => {

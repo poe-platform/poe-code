@@ -98,7 +98,6 @@ describe("yamlFileBackend", () => {
     const taskList = await yamlFileBackend({
       path: "/repo/tasks.yaml",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -148,7 +147,6 @@ describe("yamlFileBackend", () => {
     const taskList = await yamlFileBackend({
       path: "/repo/tasks.yaml",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -180,7 +178,6 @@ describe("yamlFileBackend", () => {
     const taskList = await yamlFileBackend({
       path: "/repo/tasks.yaml",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -245,7 +242,6 @@ describe("yamlFileBackend", () => {
     const taskList = await yamlFileBackend({
       path: "/repo/tasks.yaml",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,

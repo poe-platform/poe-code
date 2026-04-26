@@ -15,7 +15,6 @@ export interface Task {
 export interface TaskCreate {
   id: string;
   name: string;
-  state?: string;
   description?: string;
   metadata?: Record<string, unknown>;
 }
@@ -24,6 +23,7 @@ export interface TaskUpdate {
   name?: string;
   description?: string;
   metadata?: Record<string, unknown>;
+  state?: never;
 }
 
 export interface TaskFireOptions {
@@ -45,7 +45,6 @@ export interface Tasks {
   fire(id: string, event: string, opts?: TaskFireOptions): Promise<Task>;
   canFire(id: string, event: string): Promise<boolean>;
   events(id: string): Promise<readonly string[]>;
-  transition(id: string, to: string): Promise<Task>;
   delete(id: string): Promise<void>;
 }
 
@@ -57,7 +56,6 @@ export interface TaskList {
 }
 
 export interface TaskDefaults {
-  state?: string;
   metadata?: Record<string, unknown>;
 }
 

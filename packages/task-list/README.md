@@ -15,10 +15,10 @@ The task lifecycle is `draft -> planned -> in-progress -> done -> archived`. `ar
 
 - `openTaskList(options)`: opens a task store and returns a `TaskList`
 - `TaskList`: top-level interface for listing lists, querying all tasks, and resolving qualified IDs
-- `Tasks`: per-list interface for create, update, transition, delete, and list operations
+- `Tasks`: per-list interface for create, update, `fire`, `canFire`, `events`, delete, and list operations
 - `Task`: normalized task record with `list`, `id`, `qualifiedId`, `name`, `state`, `description`, and `metadata`
 - `TaskState`: `"draft" | "planned" | "in-progress" | "done" | "archived"`
-- `TaskDefaults`: default `state` and `metadata` applied when creating new tasks
+- `TaskDefaults`: default `metadata` applied when creating new tasks
 - Error classes: `TaskNotFoundError`, `TaskAlreadyExistsError`, `InvalidTransitionError`, `MalformedTaskError`
 
 ## Options
@@ -27,7 +27,7 @@ The task lifecycle is `draft -> planned -> in-progress -> done -> archived`. `ar
 | --- | --- | --- | --- |
 | `type` | `"markdown-dir" \| "yaml-file"` | required | Selects the backend implementation. |
 | `path` | `string` | required | Root directory for `markdown-dir` or YAML file path for `yaml-file`. |
-| `defaults` | `TaskDefaults` | `{ state: "draft", metadata: {} }` | Seeds omitted fields on new tasks only. |
+| `defaults` | `TaskDefaults` | `{ metadata: {} }` | Seeds omitted metadata on new tasks only. New tasks always start at the configured state machine's initial state. |
 | `create` | `boolean` | `false` | Creates missing storage for the selected backend when enabled. |
 | `lockStaleMs` | `number` | `30_000` | Stale threshold passed to backend file locking. |
 | `lockRetries` | `number` | `20` | Retry count passed to backend file locking. |
@@ -57,7 +57,7 @@ await planning.create({
   name: "Ship package README"
 });
 
-await planning.transition("ship-readme", "planned");
+await planning.fire("ship-readme", "plan");
 ```
 
 ### `yaml-file`
@@ -78,9 +78,10 @@ await planning.create({
   name: "Review release checklist"
 });
 
-await planning.transition("review-release", "in-progress");
+await planning.fire("review-release", "plan");
+await planning.fire("review-release", "start");
 ```
 
 ## Notes
 
-The package never overwrites existing task files or store files. `defaults` are applied only when creating new tasks and do not retroactively update existing tasks.
+The package never overwrites existing task files or store files. `defaults.metadata` is applied only when creating new tasks and does not retroactively update existing tasks.

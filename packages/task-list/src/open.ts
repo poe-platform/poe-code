@@ -36,7 +36,6 @@ export async function openTaskList(options: OpenTaskListOptions): Promise<TaskLi
   const deps: BackendDeps = {
     path: options.path,
     defaults: {
-      state: options.defaults?.state ?? "draft",
       metadata: { ...(options.defaults?.metadata ?? {}) }
     },
     lockStaleMs: options.lockStaleMs ?? DEFAULT_LOCK_STALE_MS,

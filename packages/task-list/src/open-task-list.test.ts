@@ -70,7 +70,6 @@ describe("openTaskList", () => {
     expect(spy).toHaveBeenCalledWith({
       path: "/repo/tasks",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -95,7 +94,6 @@ describe("openTaskList", () => {
     expect(spy).toHaveBeenCalledWith({
       path: "/repo/tasks.yaml",
       defaults: {
-        state: "draft",
         metadata: {}
       },
       lockStaleMs: 30_000,
@@ -130,7 +128,6 @@ describe("openTaskList", () => {
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         defaults: {
-          state: "draft",
           metadata: {}
         }
       })
@@ -149,7 +146,6 @@ describe("openTaskList", () => {
       type: "yaml-file",
       path: "/repo/tasks.yaml",
       defaults: {
-        state: "planned",
         metadata
       },
       fs
@@ -160,7 +156,6 @@ describe("openTaskList", () => {
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
         defaults: {
-          state: "planned",
           metadata: {
             owner: "kj"
           }
@@ -208,8 +203,7 @@ describe("openTaskList", () => {
       await expect(
         tasks.create({
           id: "ship",
-          name: "Ship",
-          state: "draft"
+          name: "Ship"
         })
       ).resolves.toMatchObject({
         state: "draft"
@@ -247,8 +241,7 @@ describe("openTaskList", () => {
       await expect(
         tasks.create({
           id: "approval",
-          name: "Approval",
-          state: "pending"
+          name: "Approval"
         })
       ).resolves.toMatchObject({
         state: "pending"
@@ -263,7 +256,7 @@ describe("openTaskList", () => {
       });
     });
 
-    it(`validates task.state against the configured machine for ${backend.name}`, async () => {
+    it(`starts new tasks at the configured machine initial state for ${backend.name}`, async () => {
       const defaultFs = createFs();
       const defaultTaskList = await openTaskList({
         type: backend.type,
@@ -275,10 +268,11 @@ describe("openTaskList", () => {
       await expect(
         defaultTaskList.list("planning").create({
           id: "invalid-default",
-          name: "Invalid default",
-          state: "pending"
+          name: "Invalid default"
         })
-      ).rejects.toThrow('Invalid task state "pending".');
+      ).resolves.toMatchObject({
+        state: "draft"
+      });
 
       const customFs = createFs();
       const customMachine = createApprovalMachine();
@@ -293,15 +287,14 @@ describe("openTaskList", () => {
       await expect(
         customTaskList.list("approvals").create({
           id: "valid-custom",
-          name: "Valid custom",
-          state: "pending"
+          name: "Valid custom"
         })
       ).resolves.toMatchObject({
         state: "pending"
       });
     });
 
-    it(`uses the configured machine states for transition() in ${backend.name}`, async () => {
+    it(`uses the configured machine states for fire() in ${backend.name}`, async () => {
       const { fs } = createFs();
       const stateMachine = createApprovalMachine();
       const taskList = await openTaskList({
@@ -309,9 +302,6 @@ describe("openTaskList", () => {
         path: backend.path,
         create: true,
         fs,
-        defaults: {
-          state: "pending"
-        },
         stateMachine
       });
       const tasks = taskList.list("approvals");
@@ -325,11 +315,11 @@ describe("openTaskList", () => {
         state: "pending"
       });
 
-      await expect(tasks.transition("approval", "running")).resolves.toMatchObject({
+      await expect(tasks.fire("approval", "start")).resolves.toMatchObject({
         state: "running"
       });
-      await expect(tasks.transition("approval", "archived")).rejects.toThrow(
-        'Invalid task state "archived".'
+      await expect(tasks.fire("approval", "archive")).rejects.toThrow(
+        'Cannot fire event "archive" from task state "running".'
       );
     });
   }

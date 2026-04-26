@@ -74,6 +74,24 @@ async function openTasks(
   return taskList.list("planning");
 }
 
+async function createTaskAndFire(
+  tasks: Awaited<ReturnType<typeof openTasks>>,
+  id: string,
+  name: string,
+  events: readonly WorkflowEvent[],
+  metadata?: Record<string, unknown>
+): Promise<void> {
+  await tasks.create({
+    id,
+    name,
+    metadata
+  });
+
+  for (const eventName of events) {
+    await tasks.fire(id, eventName);
+  }
+}
+
 describe("Tasks.fire", () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -86,8 +104,7 @@ describe("Tasks.fire", () => {
 
         await tasks.create({
           id: "ship",
-          name: "Ship",
-          state: "draft"
+          name: "Ship"
         });
 
         await expect(tasks.fire("ship", "plan")).resolves.toMatchObject({
@@ -125,11 +142,7 @@ describe("Tasks.fire", () => {
           })
         );
 
-        await tasks.create({
-          id: "guarded",
-          name: "Guarded",
-          state: "planned"
-        });
+        await createTaskAndFire(tasks, "guarded", "Guarded", ["plan"]);
 
         await expect(tasks.fire("guarded", "complete")).rejects.toEqual(
           expect.objectContaining({
@@ -151,15 +164,10 @@ describe("Tasks.fire", () => {
       it("shallow-merges metadataPatch into metadata", async () => {
         const tasks = await openTasks(backend, createWorkflowMachine());
 
-        await tasks.create({
-          id: "metadata",
-          name: "Metadata",
-          state: "planned",
-          metadata: {
-            owner: "kj",
-            nested: {
-              before: true
-            }
+        await createTaskAndFire(tasks, "metadata", "Metadata", ["plan"], {
+          owner: "kj",
+          nested: {
+            before: true
           }
         });
 
@@ -221,11 +229,7 @@ describe("Tasks.fire", () => {
           })
         );
 
-        await tasks.create({
-          id: "callbacks",
-          name: "Callbacks",
-          state: "planned"
-        });
+        await createTaskAndFire(tasks, "callbacks", "Callbacks", ["plan"]);
 
         const firePromise = tasks.fire("callbacks", "complete");
         await waitForCondition(() => steps.includes("exit:planned"));
@@ -269,11 +273,7 @@ describe("Tasks.fire", () => {
           })
         );
 
-        await failingExitTasks.create({
-          id: "exit-failure",
-          name: "Exit failure",
-          state: "planned"
-        });
+        await createTaskAndFire(failingExitTasks, "exit-failure", "Exit failure", ["plan"]);
 
         await expect(failingExitTasks.fire("exit-failure", "complete")).rejects.toThrow(
           "Exit failed"
@@ -299,11 +299,7 @@ describe("Tasks.fire", () => {
           })
         );
 
-        await failingEnterTasks.create({
-          id: "enter-failure",
-          name: "Enter failure",
-          state: "planned"
-        });
+        await createTaskAndFire(failingEnterTasks, "enter-failure", "Enter failure", ["plan"]);
 
         await expect(failingEnterTasks.fire("enter-failure", "complete")).rejects.toThrow(
           "Enter failed"
@@ -329,23 +325,13 @@ describe("Tasks.fire", () => {
           })
         );
 
-        await tasks.create({
-          id: "allowed",
-          name: "Allowed",
-          state: "planned",
-          metadata: {
-            approved: true
-          }
+        await createTaskAndFire(tasks, "allowed", "Allowed", ["plan"], {
+          approved: true
         });
-        await tasks.create({
-          id: "blocked",
-          name: "Blocked",
-          state: "planned"
-        });
+        await createTaskAndFire(tasks, "blocked", "Blocked", ["plan"]);
         await tasks.create({
           id: "drafted",
           name: "Drafted",
-          state: "draft"
         });
 
         await expect(tasks.canFire("allowed", "complete")).resolves.toBe(true);
@@ -381,18 +367,9 @@ describe("Tasks.fire", () => {
         await tasks.create({
           id: "drafted",
           name: "Drafted",
-          state: "draft"
         });
-        await tasks.create({
-          id: "planned",
-          name: "Planned",
-          state: "planned"
-        });
-        await tasks.create({
-          id: "archived",
-          name: "Archived",
-          state: "archived"
-        });
+        await createTaskAndFire(tasks, "planned", "Planned", ["plan"]);
+        await createTaskAndFire(tasks, "archived", "Archived", ["archive"]);
 
         await expect(tasks.events("drafted")).resolves.toEqual(["plan", "archive"]);
         await expect(tasks.events("planned")).resolves.toEqual(["complete", "archive"]);
@@ -409,8 +386,7 @@ describe("Tasks.fire", () => {
         await expect(
           tasks.create({
             id: "approval",
-            name: "Approval",
-            state: "pending" as TaskState
+            name: "Approval"
           })
         ).resolves.toMatchObject({
           state: "pending"
@@ -433,8 +409,7 @@ describe("Tasks.fire", () => {
 
     await tasks.create({
       id: "ship",
-      name: "Ship",
-      state: "draft"
+      name: "Ship"
     });
 
     const error = await tasks.fire("ship", "complete").catch((caught) => caught);

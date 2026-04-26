@@ -1,3 +1,4 @@
+import type { Volume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { assertEvent, defaultStateMachine, type TaskEvent } from "../state.js";
 import {
@@ -5,7 +6,10 @@ import {
   TaskAlreadyExistsError,
   TaskNotFoundError,
   type BackendDeps,
+  type TaskCreate,
   type TaskList,
+  type TaskListFs,
+  type Tasks,
   type TaskState
 } from "../types.js";
 import { markdownDirBackend } from "./markdown-dir.js";
@@ -18,19 +22,23 @@ type BackendPaths = {
 };
 const TASK_EVENTS: TaskEvent[] = ["plan", "start", "complete", "archive"];
 
-function allowedTargets(from: TaskState): readonly TaskState[] {
-  const targets: TaskState[] = [];
-  const archived = defaultStateMachine.events.archive.to;
-  const workflowStates = defaultStateMachine.states.filter((state) => state !== archived);
-  const index = workflowStates.indexOf(from);
+type TestFs = ReturnType<typeof createFs>["rawFs"];
 
-  if (from === archived) {
-    return targets;
-  }
+const EVENTS_TO_REACH_STATE: Record<TaskState, readonly TaskEvent[]> = {
+  draft: [],
+  planned: ["plan"],
+  "in-progress": ["plan", "start"],
+  done: ["plan", "start", "complete"],
+  archived: ["archive"]
+};
+
+function allowedEvents(from: TaskState): readonly TaskEvent[] {
+  const events: TaskEvent[] = [];
 
   for (const eventName of TASK_EVENTS) {
     try {
-      targets.push(assertEvent(defaultStateMachine, from, eventName).to);
+      assertEvent(defaultStateMachine, from, eventName);
+      events.push(eventName);
     } catch (error) {
       if (!(error instanceof InvalidTransitionError)) {
         throw error;
@@ -38,11 +46,15 @@ function allowedTargets(from: TaskState): readonly TaskState[] {
     }
   }
 
-  if (index > 0) {
-    targets.push(workflowStates[index - 1]);
-  }
+  return events;
+}
 
-  return targets;
+async function createTaskInState(tasks: Tasks, input: TaskCreate, state: TaskState): Promise<void> {
+  await tasks.create(input);
+
+  for (const eventName of EVENTS_TO_REACH_STATE[state]) {
+    await tasks.fire(input.id, eventName);
+  }
 }
 
 async function openBackend(
@@ -66,7 +78,6 @@ async function openBackend(
   const taskList = await factory({
     path: options.path ?? "/repo/tasks",
     defaults: {
-      state: options.defaults?.state ?? "draft",
       metadata: { ...(options.defaults?.metadata ?? {}) }
     },
     lockStaleMs: 30_000,
@@ -103,7 +114,6 @@ function describeBackendConformance(
       const created = await tasks.create({
         id: "ship-it",
         name: "Ship it",
-        state: "planned",
         description: "Document the release flow.",
         metadata: {
           owner: "kj",
@@ -116,7 +126,7 @@ function describeBackendConformance(
         id: "ship-it",
         qualifiedId: "planning/ship-it",
         name: "Ship it",
-        state: "planned",
+        state: "draft",
         description: "Document the release flow.",
         metadata: {
           owner: "kj",
@@ -132,7 +142,6 @@ function describeBackendConformance(
       const { taskList } = await openBackend(factory, {
         path: rootPath,
         defaults: {
-          state: "planned",
           metadata: {
             owner: "default-owner",
             priority: "medium"
@@ -153,7 +162,7 @@ function describeBackendConformance(
         id: "defaulted",
         qualifiedId: "planning/defaulted",
         name: "Defaulted task",
-        state: "planned",
+        state: "draft",
         description: "",
         metadata: {
           owner: "default-owner",
@@ -170,7 +179,7 @@ function describeBackendConformance(
         id: "duplicate",
         name: "First"
       });
-      await tasks.transition("duplicate", "archived");
+      await tasks.fire("duplicate", "archive");
 
       await expect(
         tasks.create({
@@ -234,44 +243,73 @@ function describeBackendConformance(
       await expect(tasks.get("crud")).rejects.toBeInstanceOf(TaskNotFoundError);
     });
 
-    it("allows every legal transition", async () => {
+    it("rejects state at the type boundary", () => {
+      // @ts-expect-error create does not accept state
+      const createInput: TaskCreate = { id: "typed-create", name: "Typed create", state: "planned" };
+
+      expect(createInput.id).toBe("typed-create");
+    });
+
+    it("rejects state mutations outside fire()", async () => {
+      const { taskList } = await openBackend(factory, { path: rootPath });
+      const tasks = taskList.list("planning");
+
+      await tasks.create({
+        id: "state-guard",
+        name: "State guard"
+      });
+
+      await expect(
+        tasks.create({
+          id: "illegal-create",
+          name: "Illegal create",
+          state: "planned"
+        } as TaskCreate)
+      ).rejects.toThrow('Tasks.create() does not accept "state"; new tasks always start at stateMachine.initial.');
+      await expect(
+        tasks.update("state-guard", {
+          state: "planned"
+        } as never)
+      ).rejects.toThrow('Tasks.update() does not accept "state"; use fire() to change task state.');
+    });
+
+    it("allows every legal event from every reachable state", async () => {
       for (const from of defaultStateMachine.states) {
-        for (const to of allowedTargets(from)) {
+        for (const eventName of allowedEvents(from)) {
           const { taskList } = await openBackend(factory, { path: rootPath });
           const tasks = taskList.list("planning");
+          const expectedState = assertEvent(defaultStateMachine, from, eventName).to;
 
-          await tasks.create({
-            id: `${from}-to-${to}`,
-            name: `${from} to ${to}`,
-            state: from
-          });
+          await createTaskInState(tasks, {
+            id: `${from}-${eventName}`,
+            name: `${from} ${eventName}`
+          }, from);
 
-          await expect(tasks.transition(`${from}-to-${to}`, to)).resolves.toMatchObject({
-            state: to
+          await expect(tasks.fire(`${from}-${eventName}`, eventName)).resolves.toMatchObject({
+            state: expectedState
           });
         }
       }
     });
 
-    it("rejects every illegal transition", async () => {
+    it("rejects every illegal event from every reachable state", async () => {
       for (const from of defaultStateMachine.states) {
-        const legalTargets = new Set(allowedTargets(from));
+        const legalEvents = new Set(allowedEvents(from));
 
-        for (const to of defaultStateMachine.states) {
-          if (legalTargets.has(to)) {
+        for (const eventName of TASK_EVENTS) {
+          if (legalEvents.has(eventName)) {
             continue;
           }
 
           const { taskList } = await openBackend(factory, { path: rootPath });
           const tasks = taskList.list("planning");
 
-          await tasks.create({
-            id: `${from}-illegal-${to}`,
-            name: `${from} illegal ${to}`,
-            state: from
-          });
+          await createTaskInState(tasks, {
+            id: `${from}-illegal-${eventName}`,
+            name: `${from} illegal ${eventName}`
+          }, from);
 
-          await expect(tasks.transition(`${from}-illegal-${to}`, to)).rejects.toBeInstanceOf(
+          await expect(tasks.fire(`${from}-illegal-${eventName}`, eventName)).rejects.toBeInstanceOf(
             InvalidTransitionError
           );
         }
@@ -284,18 +322,16 @@ function describeBackendConformance(
 
       await tasks.create({
         id: "archive-me",
-        name: "Archive me",
-        state: "done"
+        name: "Archive me"
       });
 
-      await expect(tasks.transition("archive-me", "archived")).resolves.toMatchObject({
+      await expect(tasks.fire("archive-me", "archive")).resolves.toMatchObject({
         state: "archived"
       });
 
       const reopened = await factory({
         path: rootPath,
         defaults: {
-          state: "draft",
           metadata: {}
         },
         lockStaleMs: 30_000,
@@ -314,20 +350,24 @@ function describeBackendConformance(
 
       await taskList.list("alpha").create({
         id: "one",
-        name: "Alpha one",
-        state: "planned"
+        name: "Alpha one"
       });
       await taskList.list("beta").create({
         id: "two",
-        name: "Beta two",
-        state: "done"
+        name: "Beta two"
       });
       await taskList.list("beta").create({
         id: "three",
-        name: "Beta three",
-        state: "done"
+        name: "Beta three"
       });
-      await taskList.list("beta").transition("three", "archived");
+      await taskList.list("alpha").fire("one", "plan");
+      await taskList.list("beta").fire("two", "plan");
+      await taskList.list("beta").fire("two", "start");
+      await taskList.list("beta").fire("two", "complete");
+      await taskList.list("beta").fire("three", "plan");
+      await taskList.list("beta").fire("three", "start");
+      await taskList.list("beta").fire("three", "complete");
+      await taskList.list("beta").fire("three", "archive");
 
       await expect(taskList.lists()).resolves.toEqual(["alpha", "beta"]);
       await expect(taskList.allTasks()).resolves.toEqual([
@@ -358,15 +398,17 @@ function describeBackendConformance(
       });
       await tasks.create({
         id: "planned-task",
-        name: "Planned task",
-        state: "planned"
+        name: "Planned task"
       });
       await tasks.create({
         id: "done-task",
-        name: "Done task",
-        state: "done"
+        name: "Done task"
       });
-      await tasks.transition("done-task", "archived");
+      await tasks.fire("planned-task", "plan");
+      await tasks.fire("done-task", "plan");
+      await tasks.fire("done-task", "start");
+      await tasks.fire("done-task", "complete");
+      await tasks.fire("done-task", "archive");
 
       await expect(tasks.all()).resolves.toEqual([
         expect.objectContaining({ id: "draft-task", state: "draft" }),

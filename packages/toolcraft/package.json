@@ -35,8 +35,8 @@
     "test": "cd ../.. && vitest run packages/toolcraft/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft/src",
     "lint": "cd ../.. && eslint packages/toolcraft/src --ext ts && tsc -p packages/toolcraft/tsconfig.json --noEmit",
-    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list tiny-mcp-client mcp-oauth auth-store",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list tiny-mcp-client mcp-oauth auth-store"
+    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/file-lock @poe-code/agent-defs @poe-code/config-mutations tiny-mcp-client mcp-oauth auth-store",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list @poe-code/file-lock @poe-code/agent-defs @poe-code/config-mutations tiny-mcp-client mcp-oauth auth-store"
   },
   "dependencies": {
     "@clack/core": "^1.0.0",
@@ -63,6 +63,9 @@
     "@poe-code/agent-mcp-config",
     "@poe-code/agent-human-in-loop",
     "@poe-code/task-list",
+    "@poe-code/file-lock",
+    "@poe-code/agent-defs",
+    "@poe-code/config-mutations",
     "tiny-mcp-client",
     "mcp-oauth",
     "auth-store"
@@ -72,6 +75,9 @@
     "@poe-code/agent-mcp-config": "*",
     "@poe-code/agent-human-in-loop": "*",
     "@poe-code/task-list": "*",
+    "@poe-code/file-lock": "*",
+    "@poe-code/agent-defs": "*",
+    "@poe-code/config-mutations": "*",
     "tiny-mcp-client": "*",
     "mcp-oauth": "*",
     "auth-store": "*"

@@ -3,6 +3,7 @@ import type { CliContainer } from "../container.js";
 import {
   buildProviderContext,
   createExecutionResources,
+  resolveActiveProviderForService,
   resolveCommandFlags,
   resolveServiceAdapter,
   formatServiceList,
@@ -75,12 +76,17 @@ export async function executeTest(
     { model: options.model }
   );
 
+  const activeProvider = options.isolated
+    ? await resolveActiveProviderForService(container, canonicalService)
+    : undefined;
+
   const isolatedDetails =
     options.isolated && adapter.isolatedEnv
       ? await resolveIsolatedEnvDetails(
           container.env,
           adapter.isolatedEnv,
-          adapter.name
+          adapter.name,
+          activeProvider
         )
       : null;
 

@@ -411,7 +411,7 @@ describe("poe-code command runner", () => {
       await fs.readFile("/home/test/.poe-code/goose/.config/goose/secrets.yaml", "utf8")
     ) as Record<string, unknown>;
     expect(secrets).toEqual({
-      CUSTOM_PROVIDER_API_KEY: "sk-test"
+      CUSTOM_POE_API_KEY: "sk-test"
     });
 
     expect(result).toEqual({ stdout: "OK\n", stderr: "", exitCode: 0 });

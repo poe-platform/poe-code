@@ -36,7 +36,7 @@ const CUSTOM_PROVIDER_ID = "custom_poe";
 const CUSTOM_PROVIDER_FILE = "~/.config/goose/custom_providers/custom_poe.json";
 const GOOSE_CONFIG_FILE = "~/.config/goose/config.yaml";
 const GOOSE_SECRETS_FILE = "~/.config/goose/secrets.yaml";
-const CUSTOM_PROVIDER_API_KEY_ENV = "CUSTOM_PROVIDER_API_KEY";
+const CUSTOM_PROVIDER_API_KEY_ENV = "CUSTOM_POE_API_KEY";
 const HEALTH_CHECK_PROMPT = "Reply with exactly: GOOSE_OK";
 type GooseModelsResponse = {
   data?: unknown;

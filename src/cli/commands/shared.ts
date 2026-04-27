@@ -28,7 +28,8 @@ import {
   parseAgentSpecifier,
   resolveAgentId
 } from "@poe-code/agent-defs";
-import { knownConfigScopes } from "../../services/config.js";
+import { knownConfigScopes, loadConfiguredServices } from "../../services/config.js";
+import type { AuthProvider } from "@poe-code/providers";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 
 export interface CommandFlags {
@@ -50,6 +51,46 @@ export function buildActiveProvider(
   credential: string
 ): ActiveProvider {
   return { id, baseUrl, credential, extraEnv: {} };
+}
+
+export async function resolveActiveProviderForService(
+  container: CliContainer,
+  serviceName: string
+): Promise<ActiveProvider | undefined> {
+  const configuredServices = await loadConfiguredServices({
+    fs: container.fs,
+    filePath: container.env.configPath,
+    projectFilePath: container.env.projectConfigPath
+  });
+  const configuredProviderId = configuredServices[serviceName]?.provider;
+  const provider = configuredProviderId
+    ? container.providerRegistry.get(configuredProviderId)
+    : resolveSingleProviderCandidate(container, serviceName);
+  if (!provider || provider.auth.kind !== "api-key") {
+    return undefined;
+  }
+
+  const envCredential = container.env.getVariable(provider.auth.envVar);
+  const credential =
+    typeof envCredential === "string" && envCredential.trim().length > 0
+      ? envCredential
+      : await container.readApiKey();
+  if (!credential || credential.trim().length === 0) {
+    return undefined;
+  }
+
+  return buildActiveProvider(provider.id, provider.baseUrl, credential);
+}
+
+function resolveSingleProviderCandidate(
+  container: CliContainer,
+  serviceName: string
+): AuthProvider | undefined {
+  const candidates = container.providerRegistry.forAgent(serviceName);
+  if (candidates.length === 1) {
+    return candidates[0];
+  }
+  return undefined;
 }
 
 export interface ExecutionResources {

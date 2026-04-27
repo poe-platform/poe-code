@@ -279,7 +279,7 @@ describe("configure command", () => {
       await fs.readFile(`${homeDir}/.config/goose/custom_providers/custom_poe.json`, "utf8")
     ) as Record<string, unknown>;
     expect(provider.name).toBe("custom_poe");
-    expect(provider.api_key_env).toBe("CUSTOM_PROVIDER_API_KEY");
+    expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
     expect(provider.models).toEqual([
       { name: "anthropic/claude-opus-4.7", context_limit: 983040 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 983040 },
@@ -292,7 +292,7 @@ describe("configure command", () => {
       await fs.readFile(`${homeDir}/.config/goose/secrets.yaml`, "utf8")
     ) as Record<string, unknown>;
     expect(secrets).toEqual({
-      CUSTOM_PROVIDER_API_KEY: "sk-goose"
+      CUSTOM_POE_API_KEY: "sk-goose"
     });
 
     const content = JSON.parse(await fs.readFile(configPath, "utf8"));
@@ -1404,6 +1404,36 @@ describe("test command", () => {
     await program.parseAsync(["node", "cli", "test", "demo-service"]);
 
     expect(receivedModel).toBeUndefined();
+  });
+
+  it("resolves provider-backed isolated env for --isolated tests", async () => {
+    const commandRunner = vi.fn().mockResolvedValue({
+      stdout: "CLAUDE_CODE_OK\n",
+      stderr: "",
+      exitCode: 0
+    });
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-env" } },
+      commandRunner,
+      logger: () => {}
+    });
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "test", "claude-code", "--isolated"]);
+
+    expect(commandRunner).toHaveBeenCalledWith(
+      "claude",
+      expect.any(Array),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          POE_CODE_API_KEY: "sk-env"
+        })
+      })
+    );
   });
 
   it("uses core.defaultAgent for test without prompting and drops the model portion", async () => {

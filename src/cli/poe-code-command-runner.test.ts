@@ -1,7 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../utils/file-system.js";
-import { createProviderStub } from "../../tests/provider-stub.js";
 
 vi.mock("./isolated-env.js", () => ({
   applyIsolatedEnvRepairs: vi.fn(async () => {}),
@@ -31,16 +30,6 @@ function createMemFs(): FileSystem {
   return createFsFromVolume(vol).promises as unknown as FileSystem;
 }
 
-const isolatedServiceAdapter = createProviderStub({
-  name: "test-service",
-  label: "Test",
-  isolatedEnv: {
-    agentBinary: "demo-agent",
-    configProbe: { kind: "isolatedFile" as const, relativePath: "probe.txt" },
-    env: {}
-  }
-});
-
 describe("poe-code-command-runner credential resolution", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -54,10 +43,8 @@ describe("poe-code-command-runner credential resolution", () => {
       env: { cwd, homeDir, variables: { POE_API_KEY: "sk-from-env" } },
       logger: () => {}
     });
-    container.registry.register(isolatedServiceAdapter);
-
     const runner = createPoeCodeCommandRunner({ getContainer: () => container, baseRunner });
-    await runner("poe-code", ["wrap", "test-service"], {});
+    await runner("poe-code", ["wrap", "claude-code"], {});
 
     expect(isolatedEnv.resolveIsolatedEnvDetails).toHaveBeenCalledWith(
       expect.anything(),
@@ -76,10 +63,8 @@ describe("poe-code-command-runner credential resolution", () => {
       logger: () => {}
     });
     vi.spyOn(container, "readApiKey").mockResolvedValue("sk-stored-key");
-    container.registry.register(isolatedServiceAdapter);
-
     const runner = createPoeCodeCommandRunner({ getContainer: () => container, baseRunner });
-    await runner("poe-code", ["wrap", "test-service"], {});
+    await runner("poe-code", ["wrap", "claude-code"], {});
 
     expect(isolatedEnv.resolveIsolatedEnvDetails).toHaveBeenCalledWith(
       expect.anything(),

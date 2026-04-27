@@ -1616,7 +1616,7 @@ describe("goose service", () => {
     >;
     expect(provider.name).toBe("custom_poe");
     expect(provider.base_url).toBe("https://api.poe.com/v1/chat/completions");
-    expect(provider.api_key_env).toBe("CUSTOM_PROVIDER_API_KEY");
+    expect(provider.api_key_env).toBe("CUSTOM_POE_API_KEY");
     expect(provider.headers).toBeUndefined();
     expect(provider.models).toEqual(buildCustomProviderModelsFixture());
 
@@ -1625,7 +1625,7 @@ describe("goose service", () => {
       unknown
     >;
     expect(secrets).toEqual({
-      CUSTOM_PROVIDER_API_KEY: "sk-goose"
+      CUSTOM_POE_API_KEY: "sk-goose"
     });
   });
 
@@ -1789,7 +1789,7 @@ describe("goose service", () => {
     );
     await mockFsObj.writeFile(
       secretsPath,
-      ["CUSTOM_PROVIDER_API_KEY: sk-goose", "OPENAI_API_KEY: openai-key"].join("\n"),
+      ["CUSTOM_POE_API_KEY: sk-goose", "OPENAI_API_KEY: openai-key"].join("\n"),
       { encoding: "utf8" }
     );
 
@@ -2006,7 +2006,7 @@ function buildCustomProviderFixture(): Record<string, unknown> {
     engine: "openai",
     display_name: "Poe",
     description: "Poe OpenAI-compatible API",
-    api_key_env: "CUSTOM_PROVIDER_API_KEY",
+    api_key_env: "CUSTOM_POE_API_KEY",
     base_url: "https://api.poe.com/v1/chat/completions",
     models: buildCustomProviderModelsFixture(),
     supports_streaming: true,

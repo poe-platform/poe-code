@@ -12,8 +12,7 @@ import {
 import { buildArgsWithMergedSettings } from "../utils/cli-settings-merge.js";
 import type { CliContainer } from "./container.js";
 import { ensureIsolatedConfigForService } from "./commands/ensure-isolated-config.js";
-import { buildActiveProvider } from "./commands/shared.js";
-import { POE_PROVIDER_ID } from "@poe-code/providers";
+import { resolveActiveProviderForService } from "./commands/shared.js";
 
 export function createPoeCodeCommandRunner(input: {
   getContainer: () => CliContainer;
@@ -42,12 +41,7 @@ export function createPoeCodeCommandRunner(input: {
       return input.baseRunner(command, args, options);
     }
 
-    const envApiKey = container.env.getVariable("POE_API_KEY");
-    const credential =
-      typeof envApiKey === "string" && envApiKey.trim().length > 0
-        ? envApiKey
-        : (await container.readApiKey()) ?? "";
-    const activeProvider = buildActiveProvider(POE_PROVIDER_ID, container.providerRegistry.get(POE_PROVIDER_ID)!.baseUrl, credential);
+    const activeProvider = await resolveActiveProviderForService(container, adapter.name);
 
     const details = await resolveIsolatedEnvDetails(
       container.env,

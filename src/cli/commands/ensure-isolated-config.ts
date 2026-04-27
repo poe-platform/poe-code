@@ -4,6 +4,7 @@ import {
   buildProviderContext,
   createExecutionResources,
   applyIsolatedConfiguration,
+  resolveActiveProviderForService,
   type CommandFlags
 } from "./shared.js";
 import {
@@ -41,10 +42,15 @@ export async function ensureIsolatedConfigForService(input: {
   if (isolated.requiresConfig === false) {
     return;
   }
+  const activeProvider = await resolveActiveProviderForService(
+    container,
+    canonicalService
+  );
   const details = await resolveIsolatedEnvDetails(
     container.env,
     isolated,
-    adapter.name
+    adapter.name,
+    activeProvider
   );
   const hasConfig = await isolatedConfigExists(
     container.fs,

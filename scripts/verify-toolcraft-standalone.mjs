@@ -25,6 +25,10 @@ function listTarEntries(tarballPath) {
     .filter(Boolean);
 }
 
+function readTarJson(tarballPath, entryPath) {
+  return JSON.parse(execFileSync("tar", ["-xOzf", tarballPath, entryPath], { encoding: "utf8" }));
+}
+
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
@@ -136,7 +140,13 @@ try {
       requiredEntries: [
         "package/dist/index.js",
         "package/dist/cli.js",
-        "package/node_modules/@poe-code/design-system/package.json"
+        "package/node_modules/@poe-code/design-system/package.json",
+        "package/node_modules/@poe-code/agent-mcp-config/package.json",
+        "package/node_modules/@poe-code/agent-human-in-loop/package.json",
+        "package/node_modules/@poe-code/task-list/package.json",
+        "package/node_modules/tiny-mcp-client/package.json",
+        "package/node_modules/mcp-oauth/package.json",
+        "package/node_modules/auth-store/package.json"
       ]
     },
     {
@@ -159,6 +169,27 @@ try {
     for (const requiredEntry of requiredEntries) {
       assert(entries.has(requiredEntry), `Expected ${path.basename(tarball)} to include ${requiredEntry}.`);
     }
+  }
+
+  const toolcraftPackageJson = readTarJson(tarballs.agentKit, "package/package.json");
+  const bundledRuntimeDependencies = [
+    "@poe-code/design-system",
+    "@poe-code/agent-mcp-config",
+    "@poe-code/agent-human-in-loop",
+    "@poe-code/task-list",
+    "tiny-mcp-client",
+    "mcp-oauth",
+    "auth-store"
+  ];
+  for (const dependencyName of bundledRuntimeDependencies) {
+    assert(
+      toolcraftPackageJson.optionalDependencies?.[dependencyName],
+      `Expected bundled ${dependencyName} to be an optional dependency for standalone installers.`
+    );
+    assert(
+      !toolcraftPackageJson.dependencies?.[dependencyName],
+      `Expected bundled ${dependencyName} to be omitted from required dependencies.`
+    );
   }
 
   writeConsumerFixture(consumerDir);

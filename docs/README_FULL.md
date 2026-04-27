@@ -20,6 +20,7 @@
   - [logout](#logout)
   - [auth](#auth)
   - [provider](#provider)
+  - [approvals](#approvals)
   - [spawn](#spawn)
   - [research](#research)
   - [wrap](#wrap)
@@ -335,6 +336,34 @@ poe-code provider login poe
 POE_API_KEY=pb-xxx poe-code provider login poe --yes
 poe-code provider login anthropic --api-key sk-ant-xxx
 poe-code provider logout anthropic
+```
+
+---
+
+### approvals
+
+Inspect and execute Toolcraft human-in-loop approval tasks queued by CLI, SDK, or MCP runs.
+
+```bash
+poe-code approvals <subcommand>
+```
+
+`poe-code approvals` is a forwarded Toolcraft command. Poe Code wires it to a repo-local YAML task list at `.poe-code/approvals.yaml`, so asynchronous approvals can be reviewed and executed from the project where they were created.
+
+**Subcommands:**
+
+| Subcommand | Description |
+|------------|-------------|
+| `list [--state <state>]` | List queued approval tasks, optionally filtered by state. |
+| `show --approval-id <id>` | Show one queued approval task. |
+| `run --approval-id <id>` | Ask the configured approval provider, then execute one pending queued task when approved. |
+
+**Examples:**
+
+```bash
+poe-code approvals list
+poe-code approvals show --approval-id task_123
+poe-code approvals run --approval-id task_123
 ```
 
 ---
@@ -2470,7 +2499,7 @@ The CLI forwards the agent's exit code. A non-zero exit code from a spawned agen
 ## Project Structure
 
 ```
-poe-setup-scripts/
+poe-code/
 ├── .claude/                         # Committed Claude Code project skills + sync hook
 ├── src/
 │   ├── index.ts                    # Entry point: SDK exports + CLI bootstrap
@@ -2534,18 +2563,31 @@ poe-setup-scripts/
 │   └── templates/                  # Mustache templates for configs
 ├── packages/
 │   ├── agent-defs/                 # Agent definitions and metadata
+│   ├── agent-harness-tools/        # Shared loop runner, locks, and agent selection helpers
+│   ├── agent-human-in-loop/        # Approval prompt providers for human-in-loop workflows
 │   ├── agent-spawn/                # Agent spawning and streaming
 │   ├── agent-mcp-config/           # MCP configuration per agent
 │   ├── agent-skill-config/         # Skill configuration
+│   ├── auth-store/                 # Shared credential/session storage
+│   ├── cached-resource/            # Resource caching
 │   ├── config-mutations/           # Declarative file mutation DSL
 │   ├── design-system/              # CLI UI components and themes
+│   ├── file-lock/                  # Cross-process file locking
 │   ├── github-workflows/           # GitHub automation prompt/workflow helpers
+│   ├── mcp-oauth/                  # OAuth client/server primitives for MCP HTTP transports
+│   ├── memory/                     # Repo-scoped memory files and MCP helpers
+│   ├── pipeline/                   # Fixed-step pipeline plan execution
+│   ├── poe-oauth/                  # Poe OAuth client and auth checks
 │   ├── providers/                  # Auth-provider registry and strategies
+│   ├── task-list/                  # Markdown/YAML task-list backends and state machines
+│   ├── tiny-http-mcp-server/       # HTTP MCP fixture/server
+│   ├── tiny-http-mcp-oauth-test-server/ # OAuth-protected HTTP MCP fixture
+│   ├── tiny-mcp-client/            # Minimal MCP client with HTTP OAuth discovery
+│   ├── tiny-oauth-test-server/     # OAuth test authorization server
 │   ├── worktree/                   # Git worktree utilities
 │   ├── tiny-stdio-mcp-server/      # MCP server framework
 │   ├── tiny-stdio-mcp-test-server/ # MCP test server
 │   ├── tokenfill/                  # Token filling utilities
-│   ├── cached-resource/            # Resource caching
 │   └── e2e-test-runner/            # Docker-based E2E test framework
 ├── e2e/                            # End-to-end tests
 ├── tests/                          # Unit/integration tests
@@ -2567,6 +2609,8 @@ poe-setup-scripts/
 | `login` | — | Store API key |
 | `logout` | — | Remove all config + credentials |
 | `auth` | `status`, `api-key`, `whoami`, `login`, `logout` | Poe account authentication commands |
+| `provider` | `list`, `login`, `logout` | Provider authentication management |
+| `approvals` | `list`, `show`, `run` | Toolcraft human-in-loop approval queue |
 | `spawn <agent> [prompt]` | — | Run agent with prompt |
 | `research [prompt]` | — | Research codebase (read mode) |
 | `wrap <agent>` | — | One-off isolated session |
@@ -2579,7 +2623,6 @@ poe-setup-scripts/
 | `skill` | `configure`, `unconfigure` | Agent skill management |
 | `pipeline` | `run`, `init`, `validate`, `plan-path`, `install` | Pipeline plan generation, validation, and execution |
 | `memory` | `init`, `ls`, `show`, `search`, `status`, `clear` | Repo-scoped persistent memory operations |
-| `provider` | `list`, `login`, `logout` | Provider authentication management |
 
 
 ### SDK Exports Summary

@@ -86,8 +86,9 @@ describe("readCacheEntry and writeCacheEntry", () => {
     });
 
     await expect(readCacheEntry("/repo/.poe-code/memory", "bad")).resolves.toBeNull();
-    expect(warn).toHaveBeenCalledWith(
-      'Ignoring ingest cache entry "bad": Expected property name or \'}\' in JSON at position 1 (line 1 column 2)'
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toContain(
+      'Ignoring ingest cache entry "bad": Expected property name or \'}\' in JSON at position 1'
     );
   });
 

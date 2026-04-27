@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useContainer } from '@poe-code/e2e-test-runner';
+import { DEFAULT_CODEX_MODEL, stripModelNamespace } from '../src/cli/constants.js';
 
 describe('codex', () => {
   const container = useContainer({ testName: 'codex' });
@@ -16,7 +17,7 @@ describe('codex', () => {
     await expect(container).toHaveFile(`${container.home}/.codex/config.toml`);
     const config = await container.readFile(`${container.home}/.codex/config.toml`);
     expect(config).toContain('model_provider');
-    expect(config).toContain('model = "gpt-5.4"');
+    expect(config).toContain(`model = "${stripModelNamespace(DEFAULT_CODEX_MODEL)}"`);
     expect(config).toContain('model_verbosity = "medium"');
     expect(config).toContain('base_url');
 

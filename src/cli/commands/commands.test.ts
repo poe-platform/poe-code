@@ -257,7 +257,7 @@ describe("configure command", () => {
           { id: "claude-opus-4.7", context_window: { context_length: 983040 } },
           { id: "claude-sonnet-4.6", context_window: { context_length: 983040 } },
           { id: "gpt-5.3-codex", context_window: { context_length: 400000 } },
-          { id: "gpt-5.4", context_window: { context_length: 1050000 } },
+          { id: "gpt-5.5", context_window: { context_length: 1050000 } },
           { id: "gemini-3.1-pro", context_window: { context_length: 1048576 } }
         ]
       })
@@ -284,7 +284,7 @@ describe("configure command", () => {
       { name: "anthropic/claude-opus-4.7", context_limit: 983040 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 983040 },
       { name: "openai/gpt-5.3-codex", context_limit: 400000 },
-      { name: "openai/gpt-5.4", context_limit: 1050000 },
+      { name: "openai/gpt-5.5", context_limit: 1050000 },
       { name: "google/gemini-3.1-pro", context_limit: 1048576 }
     ]);
 
@@ -336,7 +336,7 @@ describe("configure command", () => {
       { name: "anthropic/claude-opus-4.7", context_limit: 200_000 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 200_000 },
       { name: "openai/gpt-5.3-codex", context_limit: 128_000 },
-      { name: "openai/gpt-5.4", context_limit: 1_050_000 },
+      { name: "openai/gpt-5.5", context_limit: 128_000 },
       { name: "google/gemini-3.1-pro", context_limit: 1_000_000 }
     ]);
   });

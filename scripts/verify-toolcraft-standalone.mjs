@@ -44,7 +44,7 @@ function writeConsumerFixture(projectDir) {
         get: {
           operationId: "listPets",
           responses: {
-            "200": {
+            200: {
               description: "ok",
               content: {
                 "application/json": {
@@ -70,9 +70,13 @@ function writeConsumerFixture(projectDir) {
 
   writeFileSync(
     path.join(projectDir, "package.json"),
-    JSON.stringify({ name: "toolcraft-consumer-smoke", private: true, type: "module" }, null, 2) + "\n"
+    JSON.stringify({ name: "toolcraft-consumer-smoke", private: true, type: "module" }, null, 2) +
+      "\n"
   );
-  writeFileSync(path.join(projectDir, "openapi.json"), JSON.stringify(openApiDocument, null, 2) + "\n");
+  writeFileSync(
+    path.join(projectDir, "openapi.json"),
+    JSON.stringify(openApiDocument, null, 2) + "\n"
+  );
   writeFileSync(
     path.join(projectDir, "tsconfig.json"),
     JSON.stringify(
@@ -96,6 +100,16 @@ function writeConsumerFixture(projectDir) {
 function runConsumerSmoke(projectDir, tarballs) {
   execFileSync("npm", ["install", ...tarballs], { cwd: projectDir, stdio: "inherit" });
 
+  execFileSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "--eval",
+      ['await import("toolcraft");', 'await import("toolcraft/human-in-loop");'].join("\n")
+    ],
+    { cwd: projectDir, stdio: "inherit" }
+  );
+
   const generatorPath = path.join(
     projectDir,
     "node_modules",
@@ -109,14 +123,29 @@ function runConsumerSmoke(projectDir, tarballs) {
     { cwd: projectDir, stdio: "inherit" }
   );
 
-  assert(existsSync(path.join(projectDir, "src", "generated", "index.ts")), "Expected generated index.ts.");
+  assert(
+    existsSync(path.join(projectDir, "src", "generated", "index.ts")),
+    "Expected generated index.ts."
+  );
   assert(existsSync(path.join(projectDir, "openapi.lock")), "Expected openapi.lock.");
 
-  const generatedIndex = readFileSync(path.join(projectDir, "src", "generated", "index.ts"), "utf8");
-  assert(generatedIndex.includes('from "toolcraft"'), 'Expected generated code to import "toolcraft".');
+  const generatedIndex = readFileSync(
+    path.join(projectDir, "src", "generated", "index.ts"),
+    "utf8"
+  );
+  assert(
+    generatedIndex.includes('from "toolcraft"'),
+    'Expected generated code to import "toolcraft".'
+  );
 
-  const generatedCommand = readFileSync(path.join(projectDir, "src", "generated", "pets", "list.ts"), "utf8");
-  assert(generatedCommand.includes('from "toolcraft-openapi"'), 'Expected generated code to import "toolcraft-openapi".');
+  const generatedCommand = readFileSync(
+    path.join(projectDir, "src", "generated", "pets", "list.ts"),
+    "utf8"
+  );
+  assert(
+    generatedCommand.includes('from "toolcraft-openapi"'),
+    'Expected generated code to import "toolcraft-openapi".'
+  );
 
   execFileSync(process.execPath, [rootTscPath, "-p", "tsconfig.json"], {
     cwd: projectDir,
@@ -134,19 +163,22 @@ try {
     agentKitOpenApi: packPackage("packages/toolcraft-openapi", packDir)
   };
 
+  const toolcraftPackageJson = readTarJson(tarballs.agentKit, "package/package.json");
+  const bundledRuntimeDependencies = toolcraftPackageJson.bundleDependencies ?? [];
+  assert(
+    Array.isArray(bundledRuntimeDependencies) && bundledRuntimeDependencies.length > 0,
+    "Expected toolcraft to declare bundled runtime dependencies."
+  );
+
   const packAssertions = [
     {
       tarball: tarballs.agentKit,
       requiredEntries: [
         "package/dist/index.js",
         "package/dist/cli.js",
-        "package/node_modules/@poe-code/design-system/package.json",
-        "package/node_modules/@poe-code/agent-mcp-config/package.json",
-        "package/node_modules/@poe-code/agent-human-in-loop/package.json",
-        "package/node_modules/@poe-code/task-list/package.json",
-        "package/node_modules/tiny-mcp-client/package.json",
-        "package/node_modules/mcp-oauth/package.json",
-        "package/node_modules/auth-store/package.json"
+        ...bundledRuntimeDependencies.map(
+          (dependencyName) => `package/node_modules/${dependencyName}/package.json`
+        )
       ]
     },
     {
@@ -167,20 +199,13 @@ try {
   for (const { tarball, requiredEntries } of packAssertions) {
     const entries = new Set(listTarEntries(tarball));
     for (const requiredEntry of requiredEntries) {
-      assert(entries.has(requiredEntry), `Expected ${path.basename(tarball)} to include ${requiredEntry}.`);
+      assert(
+        entries.has(requiredEntry),
+        `Expected ${path.basename(tarball)} to include ${requiredEntry}.`
+      );
     }
   }
 
-  const toolcraftPackageJson = readTarJson(tarballs.agentKit, "package/package.json");
-  const bundledRuntimeDependencies = [
-    "@poe-code/design-system",
-    "@poe-code/agent-mcp-config",
-    "@poe-code/agent-human-in-loop",
-    "@poe-code/task-list",
-    "tiny-mcp-client",
-    "mcp-oauth",
-    "auth-store"
-  ];
   for (const dependencyName of bundledRuntimeDependencies) {
     assert(
       toolcraftPackageJson.optionalDependencies?.[dependencyName],

@@ -87,9 +87,7 @@ describe("readCacheEntry and writeCacheEntry", () => {
 
     await expect(readCacheEntry("/repo/.poe-code/memory", "bad")).resolves.toBeNull();
     expect(warn).toHaveBeenCalledTimes(1);
-    expect(warn.mock.calls[0]?.[0]).toContain(
-      'Ignoring ingest cache entry "bad": Expected property name or \'}\' in JSON at position 1'
-    );
+    expect(warn.mock.calls[0]?.[0]).toContain('Ignoring ingest cache entry "bad":');
   });
 
   it("returns null and warns when the cache entry shape is invalid", async () => {

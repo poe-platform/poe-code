@@ -35,7 +35,7 @@ const INSPECTOR_MINIMUM_NODE_VERSION = {
   minor: 7,
   patch: 5,
 } as const;
-const INSPECTOR_TIMEOUT_MS = 9_000;
+const INSPECTOR_TIMEOUT_MS = 30_000;
 const inspectorIt = supportsHeadlessInspector(process.versions.node) ? it : it.skip;
 
 function supportsHeadlessInspector(version: string): boolean {

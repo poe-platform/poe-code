@@ -899,5 +899,7 @@ export function getCommandSourcePath(command: Command<any, any, any, any>): stri
 
 export { S, toJsonSchema } from "toolcraft-schema";
 export { ApprovalDeclinedError, UserError };
+export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
+export type { PackageMetadata } from "./package-metadata.js";
 export type { AnySchema, ArraySchema, BooleanSchema, EnumSchema, JsonSchema, NumberSchema, ObjectSchema, OptionalSchema, Static, StringSchema } from "toolcraft-schema";
 export type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntimeOptions };

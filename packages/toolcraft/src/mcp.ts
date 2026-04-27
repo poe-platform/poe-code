@@ -19,6 +19,7 @@ import {
 } from "./human-in-loop/index.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
+import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { filterSchemaForScope } from "./schema-scope.js";
 
 const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
@@ -48,7 +49,7 @@ interface ToolDefinition<TServices extends object> {
 
 export interface RunMCPOptions<TServices extends object = Record<string, unknown>> {
   name: string;
-  version: string;
+  version?: string;
   humanInLoop?: HumanInLoopRuntimeOptions;
   /**
    * Optional allowlist of MCP tool names or group prefixes.
@@ -570,7 +571,8 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
   validateServices(services as Record<string, unknown>);
 
   const tools = enumerateTools(root, casing, options.tools);
-  const server = createServer({ name: options.name, version: options.version });
+  const version = resolveMCPVersion(options.version);
+  const server = createServer({ name: options.name, version });
 
   for (const tool of tools) {
     server.tool(
@@ -626,6 +628,16 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
       return server.connectSDK(transport);
     },
   };
+}
+
+function resolveMCPVersion(version: string | undefined): string {
+  const resolvedVersion = version ?? findEntrypointPackageMetadata(process.argv[1])?.version;
+
+  if (resolvedVersion === undefined) {
+    throw new Error("MCP version is required when no package.json version can be inferred from the entrypoint.");
+  }
+
+  return resolvedVersion;
 }
 
 function createDeferredMCPServer<TServices extends object = Record<string, unknown>>(

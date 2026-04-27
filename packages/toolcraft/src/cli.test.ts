@@ -63,6 +63,11 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
+vi.mock("node:fs", async () => {
+  const { fs } = await import("memfs");
+  return fs;
+});
+
 const { runCLI } = await import("./cli.js");
 
 const fixtureFilePath = fileURLToPath(new URL("./cli.test.fixture.json", import.meta.url));
@@ -1811,6 +1816,36 @@ describe("runCLI", () => {
 
     expect(readStdout(stdoutWrite)).toContain("poe-code\n");
     expect(process.exitCode).toBeUndefined();
+  });
+
+  it("enables --version from the nearest package metadata for absolute entrypoints", async () => {
+    const root = defineGroup({
+      name: "mytool",
+      children: [
+        defineCommand({
+          name: "noop",
+          params: S.Object({}),
+          handler: async () => null,
+        }),
+      ],
+    });
+
+    vol.fromJSON({
+      [fixtureFilePath]: fixtureFileContents,
+      "/repo/package.json": JSON.stringify({ name: "workspace", version: "0.0.1" }),
+      "/repo/packages/mytool/package.json": JSON.stringify({
+        name: "mytool",
+        version: "2.3.4",
+      }),
+      "/repo/packages/mytool/dist/bin.js": "",
+    });
+    process.argv = ["node", "/repo/packages/mytool/dist/bin.js", "--version"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toContain("2.3.4");
   });
 
   it("accepts short option flags defined on params", async () => {

@@ -51,6 +51,7 @@ export interface RunMCPOptions<TServices extends object = Record<string, unknown
   name: string;
   version?: string;
   humanInLoop?: HumanInLoopRuntimeOptions;
+  projectRoot?: string;
   /**
    * Optional allowlist of MCP tool names or group prefixes.
    *
@@ -648,7 +649,7 @@ function createDeferredMCPServer<TServices extends object = Record<string, unkno
 
   const resolveServer = (): Promise<CmdkitServer> => {
     serverPromise ??= (async () => {
-      await resolveMcpProxies(root);
+      await resolveMcpProxies(root, { projectRoot: options.projectRoot });
       return createResolvedMCPServer(root, options);
     })();
 
@@ -694,7 +695,7 @@ export async function runMCP<TServices extends object = Record<string, unknown>>
   options: RunMCPOptions<TServices>
 ): Promise<void> {
   const root = mergeApprovalsGroup(normalizeRoots(roots));
-  await resolveMcpProxies(root);
+  await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const server = createResolvedMCPServer(root, options);
   await server.listen();
 }

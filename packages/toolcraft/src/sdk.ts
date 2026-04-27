@@ -203,6 +203,7 @@ export interface CreateSDKOptions<TServices extends object = Record<string, unkn
   services?: TServices;
   casing?: "camel";
   humanInLoop?: HumanInLoopRuntimeOptions;
+  projectRoot?: string;
 }
 
 function splitWords(value: string): string[] {
@@ -525,7 +526,7 @@ function createDeferredSDK(
 
   const resolveSDK = (): Promise<Record<string, unknown>> => {
     sdkPromise ??= (async () => {
-      await resolveMcpProxies(root);
+      await resolveMcpProxies(root, { projectRoot: options.projectRoot });
       return createResolvedSDK(root, options);
     })();
 

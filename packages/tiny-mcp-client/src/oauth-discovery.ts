@@ -4,8 +4,8 @@ import type {
   OAuthMetadataFetch,
   OAuthProtectedResourceMetadata,
   OAuthUnauthorizedChallenge,
-} from "mcp-oauth";
-import { canonicalizeResourceIndicator } from "mcp-oauth";
+} from "../../mcp-oauth/dist/index.js";
+import { canonicalizeResourceIndicator } from "../../mcp-oauth/dist/index.js";
 
 export type {
   OAuthAuthorizationServerMetadata,

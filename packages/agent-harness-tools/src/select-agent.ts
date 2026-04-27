@@ -14,22 +14,21 @@ export interface ResolveLoopAgentInput {
   isCancel: IsCancel;
 }
 
-const supportedAgents = allAgents.map((agent) => agent.id).join(", ");
+const loopAgents = allAgents.filter(
+  (agent) => agent.binaryName !== undefined || agent.id === "poe-agent"
+);
+const supportedAgents = loopAgents.map((agent) => agent.id).join(", ");
 
 function resolveSelectedAgent(agent: string): { agent: string } {
   const specifier = parseAgentSpecifier(agent);
   const resolvedAgentId = resolveAgentId(specifier.agent);
 
-  if (!resolvedAgentId) {
-    throw new Error(
-      `Unsupported agent "${agent}". Supported agents: ${supportedAgents}`
-    );
+  if (!resolvedAgentId || !loopAgents.some((agent) => agent.id === resolvedAgentId)) {
+    throw new Error(`Unsupported agent "${agent}". Supported agents: ${supportedAgents}`);
   }
 
   return {
-    agent: specifier.model
-      ? `${resolvedAgentId}:${specifier.model}`
-      : resolvedAgentId
+    agent: specifier.model ? `${resolvedAgentId}:${specifier.model}` : resolvedAgentId
   };
 }
 
@@ -58,7 +57,7 @@ export async function resolveLoopAgent(
 
   const selectedAgent = await input.select({
     message: input.message,
-    options: allAgents.map((agent) => ({
+    options: loopAgents.map((agent) => ({
       value: agent.id,
       label: agent.label,
       hint: agent.summary

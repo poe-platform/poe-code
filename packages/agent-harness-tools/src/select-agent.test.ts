@@ -114,9 +114,7 @@ describe("resolveLoopAgent", () => {
     let receivedOptions:
       | Parameters<Parameters<typeof resolveLoopAgent>[0]["select"]>[0]
       | undefined;
-    const select: Parameters<typeof resolveLoopAgent>[0]["select"] = async (
-      options
-    ) => {
+    const select: Parameters<typeof resolveLoopAgent>[0]["select"] = async (options) => {
       selectCalls += 1;
       receivedOptions = options;
       return "claude";
@@ -141,15 +139,32 @@ describe("resolveLoopAgent", () => {
         })
       ])
     });
+    expect(receivedOptions?.options).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: "claude-desktop"
+        })
+      ])
+    );
+  });
+
+  it("rejects GUI-only agents for loop execution", async () => {
+    await expect(
+      resolveLoopAgent(
+        createInput({
+          providedAgent: "claude-desktop"
+        })
+      )
+    ).rejects.toThrow(
+      'Unsupported agent "claude-desktop". Supported agents: claude-code, codex, opencode, kimi, goose, poe-agent'
+    );
   });
 
   it("returns cancelled when the interactive prompt is cancelled", async () => {
     const cancelled = Symbol("cancelled");
-    const select: Parameters<typeof resolveLoopAgent>[0]["select"] = async () =>
-      cancelled;
-    const isCancel: Parameters<typeof resolveLoopAgent>[0]["isCancel"] = (
-      value
-    ) => value === cancelled;
+    const select: Parameters<typeof resolveLoopAgent>[0]["select"] = async () => cancelled;
+    const isCancel: Parameters<typeof resolveLoopAgent>[0]["isCancel"] = (value) =>
+      value === cancelled;
 
     const result = await resolveLoopAgent(
       createInput({
@@ -169,7 +184,7 @@ describe("resolveLoopAgent", () => {
         })
       )
     ).rejects.toThrow(
-      "Unsupported agent \"not-an-agent\". Supported agents: claude-code, claude-desktop, codex, opencode, kimi, goose, poe-agent"
+      'Unsupported agent "not-an-agent". Supported agents: claude-code, codex, opencode, kimi, goose, poe-agent'
     );
   });
 });

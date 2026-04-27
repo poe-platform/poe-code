@@ -1,6 +1,6 @@
 export { checkAuth } from "./check-auth.js";
 export { createOAuthClient } from "./oauth-client.js";
-export type { OAuthLandingPage } from "mcp-oauth";
+export type { OAuthLandingPage } from "../../mcp-oauth/dist/index.js";
 export type { AuthIdentity, CheckAuthOptions } from "./check-auth.js";
 export type {
   OAuthClient,

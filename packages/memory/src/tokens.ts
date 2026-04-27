@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
-import { countTokens } from "tokenfill";
+import { countTokens } from "../../tokenfill/dist/index.js";
 import { listPages } from "./pages.js";
 import type { MemoryRoot, TokenStats } from "./types.js";
 
@@ -83,4 +83,3 @@ function isMissing(error: unknown): boolean {
     error.code === "ENOENT"
   );
 }
-

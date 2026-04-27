@@ -4,7 +4,7 @@ import {
   generateCodeChallenge as generatePkceCodeChallenge,
   generateCodeVerifier as generatePkceCodeVerifier,
   type OAuthLandingPage,
-} from "mcp-oauth";
+} from "../../mcp-oauth/dist/index.js";
 
 const DEFAULT_AUTHORIZATION_ENDPOINT = "https://poe.com/oauth/authorize";
 const DEFAULT_TOKEN_ENDPOINT = "https://api.poe.com/token";

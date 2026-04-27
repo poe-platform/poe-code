@@ -127,6 +127,7 @@ interface ExecutionState<TServices extends object> {
   dynamicFields: DynamicFieldDefinition[];
   fields: FieldDefinition[];
   positionalValues: unknown[];
+  presetsEnabled: boolean;
   rawArgv: string[];
   actionCommand: CommanderCommand;
   variants: VariantDefinition[];
@@ -186,6 +187,7 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   rootUsageName?: string;
   services?: TServices;
   version?: string;
+  presets?: boolean;
 }
 
 function inferProgramName(argv: string[]): string {
@@ -341,6 +343,7 @@ function getRequiredBranchFingerprint(branch: ObjectSchema<any>, casing: Casing)
 function collectFields(
   schema: ObjectSchema<any>,
   casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>,
   path: string[] = [],
   inheritedOptional = false,
   variantContext?: {
@@ -361,7 +364,7 @@ function collectFields(
     const requiredWhenActive = rawChildSchema.kind !== "optional" && childSchema.default === undefined;
 
     if (childSchema.kind === "object") {
-      const nested = collectFields(childSchema, casing, nextPath, runtimeOptional, variantContext);
+      const nested = collectFields(childSchema, casing, globalLongOptionFlags, nextPath, runtimeOptional, variantContext);
       collected.dynamicFields.push(...nested.dynamicFields);
       collected.fields.push(...nested.fields);
       collected.variants.push(...nested.variants);
@@ -376,7 +379,7 @@ function collectFields(
         path: [...nextPath, childSchema.discriminator],
         displayPath: toDisplayPath([...nextPath, childSchema.discriminator]),
         optionAttribute: toOptionAttribute([...nextPath, childSchema.discriminator], casing),
-        commanderOptionAttribute: toCommanderOptionAttribute([...nextPath, childSchema.discriminator], casing),
+        commanderOptionAttribute: toCommanderOptionAttribute([...nextPath, childSchema.discriminator], casing, globalLongOptionFlags),
         optionFlag: toOptionFlag([...nextPath, childSchema.discriminator], casing),
         shortFlag: undefined,
         schema: createSyntheticEnumSchema(branchIds),
@@ -391,7 +394,7 @@ function collectFields(
       const branches: VariantBranchDefinition[] = [];
 
       for (const [branchId, branchSchema] of Object.entries(childSchema.branches)) {
-        const branch = collectFields(branchSchema, casing, nextPath, true, {
+        const branch = collectFields(branchSchema, casing, globalLongOptionFlags, nextPath, true, {
           id: variantId,
           branchId,
         });
@@ -431,7 +434,7 @@ function collectFields(
         path: controlPath,
         displayPath: controlDisplayPath,
         optionAttribute: toOptionAttribute(controlPath, casing),
-        commanderOptionAttribute: toCommanderOptionAttribute(controlPath, casing),
+        commanderOptionAttribute: toCommanderOptionAttribute(controlPath, casing, globalLongOptionFlags),
         optionFlag: toOptionFlag(controlPath, casing),
         shortFlag: undefined,
         schema: createSyntheticEnumSchema(branchIds),
@@ -448,7 +451,7 @@ function collectFields(
 
       childSchema.branches.forEach((branchSchema, index) => {
         const branchId = branchIds[index] ?? "";
-        const branch = collectFields(branchSchema, casing, nextPath, true, {
+        const branch = collectFields(branchSchema, casing, globalLongOptionFlags, nextPath, true, {
           id: variantId,
           branchId,
         });
@@ -523,7 +526,7 @@ function collectFields(
       path: nextPath,
       displayPath: toDisplayPath(nextPath),
       optionAttribute: toOptionAttribute(nextPath, casing),
-      commanderOptionAttribute: toCommanderOptionAttribute(nextPath, casing),
+      commanderOptionAttribute: toCommanderOptionAttribute(nextPath, casing, globalLongOptionFlags),
       optionFlag: toOptionFlag(nextPath, casing),
       shortFlag: childSchema.short,
       schema: childSchema as FieldSchema,
@@ -540,11 +543,15 @@ function collectFields(
   return collected;
 }
 
-function toCommanderOptionAttribute(path: string[], casing: Casing): string {
+function toCommanderOptionAttribute(
+  path: string[],
+  casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>
+): string {
   const optionAttribute = toOptionAttribute(path, casing);
   const optionFlag = toOptionFlag(path, casing);
 
-  if (!GLOBAL_LONG_OPTION_FLAGS.has(optionFlag)) {
+  if (!globalLongOptionFlags.has(optionFlag)) {
     return optionAttribute;
   }
 
@@ -585,8 +592,8 @@ function assignPositionals(fields: FieldDefinition[], positional: string[]): Fie
   return fields;
 }
 
-function formatOptionFlags(field: FieldDefinition): string {
-  const collidesWithGlobalFlag = GLOBAL_LONG_OPTION_FLAGS.has(field.optionFlag);
+function formatOptionFlags(field: FieldDefinition, globalLongOptionFlags: ReadonlySet<string>): string {
+  const collidesWithGlobalFlag = globalLongOptionFlags.has(field.optionFlag);
 
   if (collidesWithGlobalFlag) {
     if (field.shortFlag === undefined) {
@@ -742,9 +749,9 @@ function parseArrayValue(value: string, schema: ArraySchema<any>, label: string)
   return splitArrayInput(value).map((item) => parseScalarValue(item, itemSchema as ScalarSchema, label));
 }
 
-function createOption(field: FieldDefinition): Option[] {
-  const flags = formatOptionFlags(field);
-  const collidesWithGlobalFlag = GLOBAL_LONG_OPTION_FLAGS.has(field.optionFlag);
+function createOption(field: FieldDefinition, globalLongOptionFlags: ReadonlySet<string>): Option[] {
+  const flags = formatOptionFlags(field, globalLongOptionFlags);
+  const collidesWithGlobalFlag = globalLongOptionFlags.has(field.optionFlag);
   const commanderValue = (value: unknown): unknown => (value === null ? NULL_OPTION_VALUE : value);
 
   if (field.schema.kind === "boolean") {
@@ -800,7 +807,11 @@ function createOption(field: FieldDefinition): Option[] {
   return [option];
 }
 
-const GLOBAL_LONG_OPTION_FLAGS = new Set(["--preset", "--yes", "--output", "--verbose"]);
+const ALWAYS_GLOBAL_LONG_OPTION_FLAGS = ["--yes", "--output", "--verbose"] as const;
+
+function getGlobalLongOptionFlags(presetsEnabled: boolean): ReadonlySet<string> {
+  return new Set(presetsEnabled ? ["--preset", ...ALWAYS_GLOBAL_LONG_OPTION_FLAGS] : ALWAYS_GLOBAL_LONG_OPTION_FLAGS);
+}
 
 function createCommanderOption(
   flags: string,
@@ -941,16 +952,16 @@ function describeSchemaType(schema: FieldSchema): string {
   }
 }
 
-function formatHelpFieldFlags(field: FieldDefinition): string {
+function formatHelpFieldFlags(field: FieldDefinition, globalLongOptionFlags: ReadonlySet<string>): string {
   if (field.positionalIndex !== undefined) {
     return formatPositionalToken(field);
   }
 
   if (field.schema.kind === "boolean") {
-    return `${formatOptionFlags(field)} [value]`;
+    return `${formatOptionFlags(field, globalLongOptionFlags)} [value]`;
   }
 
-  return `${formatOptionFlags(field)} <${describeSchemaType(field.schema)}>`;
+  return `${formatOptionFlags(field, globalLongOptionFlags)} <${describeSchemaType(field.schema)}>`;
 }
 
 function appendHelpMetadata(description: string, metadata: string[]): string {
@@ -1140,12 +1151,17 @@ function formatCommandRows<TServices extends object>(group: Group<TServices>, sc
   }));
 }
 
-function formatGlobalOptionRows(showVersion: boolean): HelpOptionRow[] {
-  const rows: HelpOptionRow[] = [
-    {
+function formatGlobalOptionRows(showVersion: boolean, presetsEnabled: boolean): HelpOptionRow[] {
+  const rows: HelpOptionRow[] = [];
+
+  if (presetsEnabled) {
+    rows.push({
       flags: "--preset <path>",
       description: "Load parameter defaults from a JSON file",
-    },
+    });
+  }
+
+  rows.push(
     {
       flags: "--yes",
       description: "Accept defaults, skip prompts",
@@ -1157,8 +1173,8 @@ function formatGlobalOptionRows(showVersion: boolean): HelpOptionRow[] {
     {
       flags: "-h, --help",
       description: "Show help",
-    },
-  ];
+    }
+  );
 
   if (showVersion) {
     rows.push({
@@ -1187,6 +1203,7 @@ function renderGroupHelp<TServices extends object>(
   breadcrumb: string[],
   scope: Scope,
   showVersion: boolean,
+  presetsEnabled: boolean,
   rootUsageName?: string
 ): string {
   const sections: string[] = [];
@@ -1196,7 +1213,7 @@ function renderGroupHelp<TServices extends object>(
     sections.push(`${text.section("Commands:")}\n${formatCommandList(commandRows)}`);
   }
 
-  sections.push(`${text.section("Global options:")}\n${formatOptionList(formatGlobalOptionRows(showVersion))}`);
+  sections.push(`${text.section("Global options:")}\n${formatOptionList(formatGlobalOptionRows(showVersion, presetsEnabled))}`);
 
   return renderHelpDocument({
     breadcrumb,
@@ -1211,13 +1228,15 @@ function renderLeafHelp<TServices extends object>(
   command: Command<TServices, any, any, any>,
   breadcrumb: string[],
   casing: Casing,
+  presetsEnabled: boolean,
   rootUsageName?: string
 ): string {
   const sections: string[] = [];
-  const collected = collectFields(command.params, casing);
+  const globalLongOptionFlags = getGlobalLongOptionFlags(presetsEnabled);
+  const collected = collectFields(command.params, casing, globalLongOptionFlags);
   const fields = assignPositionals(collected.fields, command.positional);
   const optionRows = fields.map((field) => ({
-    flags: formatHelpFieldFlags(field),
+    flags: formatHelpFieldFlags(field, globalLongOptionFlags),
     description: formatHelpFieldDescription(field),
   })).concat(collected.dynamicFields.flatMap((field) => formatDynamicHelpFields(field, casing)));
 
@@ -1225,7 +1244,7 @@ function renderLeafHelp<TServices extends object>(
     sections.push(`${text.section("Options:")}\n${formatOptionList(optionRows)}`);
   }
 
-  sections.push(`${text.section("Global options:")}\n${formatOptionList(formatGlobalOptionRows(false))}`);
+  sections.push(`${text.section("Global options:")}\n${formatOptionList(formatGlobalOptionRows(false, presetsEnabled))}`);
 
   const secretRows = formatSecretRows(command.secrets);
   if (secretRows.length > 0) {
@@ -1288,8 +1307,15 @@ async function renderGeneratedHelp<TServices extends object>(
   await withOutputFormat(output, async () => {
     const rendered =
       target.node.kind === "group"
-        ? renderGroupHelp(target.node, target.breadcrumb, "cli", options.version !== undefined, options.rootUsageName)
-        : renderLeafHelp(target.node, target.breadcrumb, casing, options.rootUsageName);
+        ? renderGroupHelp(
+            target.node,
+            target.breadcrumb,
+            "cli",
+            options.version !== undefined,
+            options.presets === true,
+            options.rootUsageName
+          )
+        : renderLeafHelp(target.node, target.breadcrumb, casing, options.presets === true, options.rootUsageName);
 
     process.stdout.write(rendered);
   });
@@ -1298,7 +1324,9 @@ async function renderGeneratedHelp<TServices extends object>(
 function createNodeCommand<TServices extends object>(
   node: Command<TServices, any, any, any> | Group<TServices>,
   casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>,
   execute: (state: ExecutionState<TServices>) => Promise<void>,
+  presetsEnabled: boolean,
   pathSegments: string[] = []
 ): CommanderCommand | null {
   const nextPathSegments = [...pathSegments, node.name];
@@ -1309,7 +1337,7 @@ function createNodeCommand<TServices extends object>(
     }
 
     const command = new CommanderCommand(node.name);
-    const collected = collectFields(node.params, casing);
+    const collected = collectFields(node.params, casing, globalLongOptionFlags);
     const fields = assignPositionals(collected.fields, node.positional);
 
     if (node.description !== undefined) {
@@ -1318,7 +1346,7 @@ function createNodeCommand<TServices extends object>(
 
     node.aliases.forEach((alias) => command.alias(alias));
     command.addHelpCommand(false);
-    addGlobalOptions(command);
+    addGlobalOptions(command, presetsEnabled);
     command.allowExcessArguments(true);
 
     if (collected.dynamicFields.length > 0) {
@@ -1331,7 +1359,7 @@ function createNodeCommand<TServices extends object>(
         continue;
       }
 
-      for (const option of createOption(field)) {
+      for (const option of createOption(field, globalLongOptionFlags)) {
         command.addOption(option);
       }
     }
@@ -1347,6 +1375,7 @@ function createNodeCommand<TServices extends object>(
         dynamicFields: collected.dynamicFields,
         fields,
         positionalValues,
+        presetsEnabled,
         rawArgv: actionCommand.args,
         actionCommand,
         variants: collected.variants,
@@ -1361,7 +1390,7 @@ function createNodeCommand<TServices extends object>(
   }
 
   const visibleChildren = node.children
-    .map((child) => createNodeCommand(child, casing, execute, nextPathSegments))
+    .map((child) => createNodeCommand(child, casing, globalLongOptionFlags, execute, presetsEnabled, nextPathSegments))
     .filter((child): child is CommanderCommand => child !== null);
 
   const group = new CommanderCommand(node.name);
@@ -1372,7 +1401,7 @@ function createNodeCommand<TServices extends object>(
 
   node.aliases.forEach((alias) => group.alias(alias));
   group.addHelpCommand(false);
-  addGlobalOptions(group);
+  addGlobalOptions(group, presetsEnabled);
   for (const child of visibleChildren) {
     const isDefaultChild =
       node.default !== undefined &&
@@ -1385,9 +1414,12 @@ function createNodeCommand<TServices extends object>(
   return group;
 }
 
-function addGlobalOptions(command: CommanderCommand): void {
+function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): void {
+  if (presetsEnabled) {
+    command.option("--preset <path>", "Load parameter defaults from a JSON file.");
+  }
+
   command
-    .option("--preset <path>", "Load parameter defaults from a JSON file.")
     .option("--yes", "Accept defaults and skip prompts.")
     .option("--output <format>", "Output format.", (value: string) => {
       if (value === "rich" || value === "md" || value === "json") {
@@ -2825,7 +2857,7 @@ async function executeCommand<TServices extends object>(
       optionValues,
       state.rawArgv,
       state.casing,
-      resolvedFlags.preset,
+      state.presetsEnabled ? resolvedFlags.preset : undefined,
       shouldPrompt
     );
 
@@ -2937,7 +2969,9 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   program.exitOverride();
   program.showHelpAfterError();
   program.addHelpCommand(false);
-  addGlobalOptions(program);
+  const presetsEnabled = options.presets === true;
+  const globalLongOptionFlags = getGlobalLongOptionFlags(presetsEnabled);
+  addGlobalOptions(program, presetsEnabled);
 
   if (version !== undefined) {
     program.version(version, "--version");
@@ -2950,7 +2984,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   };
 
   for (const child of root.children) {
-    const command = createNodeCommand(child, casing, execute);
+    const command = createNodeCommand(child, casing, globalLongOptionFlags, execute, presetsEnabled);
     if (command === null) {
       continue;
     }

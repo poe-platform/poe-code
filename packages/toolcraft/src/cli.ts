@@ -41,6 +41,7 @@ import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
 import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
 import { resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
+import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 
@@ -2914,6 +2915,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;
   const runtimeOptions = options.humanInLoop ?? {};
+  const version = options.version ?? findEntrypointPackageMetadata(process.argv[1])?.version;
   const servicesWithBuiltIns = {
     ...services,
     runtimeOptions,
@@ -2926,7 +2928,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   validateServices(services as Record<string, unknown>);
 
   if (hasHelpFlag(process.argv)) {
-    await renderGeneratedHelp(root, process.argv, options);
+    await renderGeneratedHelp(root, process.argv, { ...options, version });
     return;
   }
 
@@ -2937,8 +2939,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   program.addHelpCommand(false);
   addGlobalOptions(program);
 
-  if (options.version !== undefined) {
-    program.version(options.version, "--version");
+  if (version !== undefined) {
+    program.version(version, "--version");
   }
 
   let lastActionCommand: CommanderCommand | undefined;

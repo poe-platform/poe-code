@@ -277,6 +277,36 @@ describe("MCP proxy entrypoints", () => {
     ]);
   });
 
+  it("infers MCP version from the nearest package metadata for absolute entrypoints", () => {
+    vol.fromJSON(
+      {
+        "/repo/package.json": JSON.stringify({ name: "workspace", version: "0.0.1" }),
+        "/repo/packages/mytool/package.json": JSON.stringify({
+          name: "mytool",
+          version: "3.4.5",
+        }),
+        "/repo/packages/mytool/dist/bin.js": "",
+      },
+      "/"
+    );
+    process.argv = ["node", "/repo/packages/mytool/dist/bin.js"];
+
+    createMCPServer(
+      defineGroup({
+        name: "root",
+        children: [],
+      }),
+      {
+        name: "mytool",
+      }
+    );
+
+    expect(serverState.created[0]?.options).toEqual({
+      name: "mytool",
+      version: "3.4.5",
+    });
+  });
+
   it("resolves proxy children before the SDK surface is returned", async () => {
     const root = createProxyRoot();
     writeCache();

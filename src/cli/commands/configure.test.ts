@@ -69,6 +69,22 @@ describe("configure provider resolution", () => {
     expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
   });
 
+  it("treats POE_API_KEY as logged-in Poe provider with --yes", async () => {
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" });
+    mockOptions(container);
+    stubInvoke(container);
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--yes"]),
+      container,
+      "codex",
+      {}
+    );
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services.codex?.provider).toBe(PROVIDER_NAME);
+  });
+
   it("prompts when >1 eligible providers are logged in", async () => {
     const fakeAnthropicProvider = createFakeProvider("anthropic", "Anthropic");
     const promptsMock = vi.fn().mockResolvedValue({ serviceSelection: "anthropic" });

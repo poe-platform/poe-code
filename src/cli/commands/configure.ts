@@ -210,7 +210,10 @@ async function resolveProvider(
 
   const loggedIn: AuthProvider[] = [];
   for (const candidate of candidates) {
-    if (await container.providerRegistry.isLoggedIn(candidate.id)) {
+    if (
+      await container.providerRegistry.isLoggedIn(candidate.id) ||
+      hasProviderEnvCredential(candidate, container)
+    ) {
       loggedIn.push(candidate);
     }
   }
@@ -241,6 +244,17 @@ async function resolveProvider(
 
   await triggerProviderLogin(container, chosen, options.apiKey);
   return chosen;
+}
+
+function hasProviderEnvCredential(
+  provider: AuthProvider,
+  container: CliContainer
+): boolean {
+  if (provider.auth.kind !== "api-key") {
+    return false;
+  }
+  const value = container.env.getVariable(provider.auth.envVar);
+  return typeof value === "string" && value.trim().length > 0;
 }
 
 async function promptForProviderChoice(

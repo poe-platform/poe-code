@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: 20
       - run: npm ci
+      - run: npm run build
       - run: npm run codegen:plan-schemas
       - name: Check generated plan schemas are fresh
         run: |
@@ -28,7 +29,6 @@ jobs:
             git diff -- docs/schemas/plans
             exit 1
           fi
-      - run: npm run build
       - run: npm run lint
       - run: npm run lint:mcp-sdk-deps --workspace @poe-code/github-workflows
       - run: npm run typecheck

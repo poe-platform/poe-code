@@ -347,6 +347,12 @@ A built-in `approvals` group is auto-merged into every root:
 
 The name `approvals` is reserved. Defining your own `approvals` group fails at startup.
 
+CLI wrappers that do not expose human-in-loop approvals can opt out of this built-in group:
+
+```ts
+await runCLI(root, { approvals: false });
+```
+
 The async runner re-execs your binary (`process.execPath` + `process.argv[1]` by default; override via `humanInLoop.binPath`). Re-exec calls the same toolcraft entrypoint with the same `humanInLoop` options — do not branch on `argv` before calling `runCLI`/`runMCP`/`createSDK`.
 
 Async results must be JSON-serializable; non-serializable returns mark the approval as failed instead of being persisted.

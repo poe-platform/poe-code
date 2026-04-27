@@ -180,6 +180,7 @@ interface HelpOptionRow {
 
 export interface RunCLIOptions<TServices extends object = Record<string, unknown>> {
   apiVersion?: string;
+  approvals?: boolean;
   casing?: Casing;
   humanInLoop?: HumanInLoopRuntimeOptions;
   rootDisplayName?: string;
@@ -2910,7 +2911,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   roots: Group<TServices> | Group<TServices>[],
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
-  const root = mergeApprovalsGroup(normalizeRoots(roots, process.argv));
+  const normalizedRoot = normalizeRoots(roots, process.argv);
+  const root = options.approvals === false ? normalizedRoot : mergeApprovalsGroup(normalizedRoot);
   await resolveMcpProxies(root);
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;

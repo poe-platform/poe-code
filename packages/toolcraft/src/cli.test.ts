@@ -2304,6 +2304,66 @@ describe("runCLI", () => {
     expect(output).not.toContain("invoke");
   });
 
+  it("omits the built-in approvals group when approvals are disabled", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      description: "Deploy an app.",
+      params: S.Object({}),
+      handler: async () => null,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy],
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root, {
+      approvals: false,
+    });
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("deploy");
+    expect(output).not.toContain("approvals");
+    expect(output).not.toContain("Inspect and execute queued approvals.");
+  });
+
+  it("allows user-defined approvals groups when built-in approvals are disabled", async () => {
+    const customList = defineCommand({
+      name: "list",
+      description: "List custom approval records.",
+      params: S.Object({}),
+      handler: async () => "custom approvals",
+    });
+
+    const approvals = defineGroup({
+      name: "approvals",
+      description: "Custom approval commands.",
+      children: [customList],
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [approvals],
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root, {
+      approvals: false,
+    });
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("approvals");
+    expect(output).toContain("Custom approval commands.");
+    expect(output).not.toContain("Inspect and execute queued approvals.");
+  });
+
   it("renders empty cli groups in help output", async () => {
     const builder = defineGroup({
       name: "builder",

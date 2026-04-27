@@ -39,7 +39,7 @@ import {
   resolveScope
 } from "@poe-code/poe-code-config";
 import { superintendentConfigScope } from "../config-scope.js";
-import { parseSuperintendentDoc } from "../document/parse.js";
+import { parseSuperintendentDoc, readExplicitBuilderAgent } from "../document/parse.js";
 import {
   runLoop,
   type AgentRunInput,
@@ -339,10 +339,13 @@ export async function runSuperintendentCommand(
     runner: "superintendent",
     homeDir: options.homeDir
   });
-  const document = parseSuperintendentDoc(selectedDocPath, await fs.readFile(selectedDocPath, "utf8"));
+  const documentContent = await fs.readFile(selectedDocPath, "utf8");
+  const document = parseSuperintendentDoc(selectedDocPath, documentContent);
   const selectedBuilder = await resolveLoopAgent({
     providedAgent: normalizeAgentSelection(options.builderAgent),
-    frontmatterAgent: normalizeAgentSelection(document.frontmatter.builder.agent),
+    frontmatterAgent: normalizeAgentSelection(
+      readExplicitBuilderAgent(selectedDocPath, documentContent)
+    ),
     configuredDefaultAgent: normalizeAgentSelection(options.configuredDefaultAgent) ?? null,
     assumeYes,
     fallbackAgent: "claude-code",

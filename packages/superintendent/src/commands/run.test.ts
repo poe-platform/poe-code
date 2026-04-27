@@ -261,6 +261,46 @@ describe("superintendent run command", () => {
     expect(result.builderAgent).toBe("codex");
   });
 
+  it("prompts for a builder agent when frontmatter omits builder.agent", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDocWithBuilderSection([
+        "  prompt: |",
+        "    Build {{plan.path}}"
+      ])
+    });
+    const selectPrompt = vi.fn(async () => "codex");
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      interactive: true,
+      useDashboard: false,
+      fs,
+      selectPrompt,
+      runLoop: runLoopMock,
+      now: () => 0,
+      stderr: { write: vi.fn() } as unknown as NodeJS.WritableStream,
+      env: {}
+    });
+
+    expect(selectPrompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        message: "Select agent to run Superintendent builder with:"
+      })
+    );
+    expect(result.builderAgent).toBe("codex");
+  });
+
   it("cancels cleanly when builder agent selection is cancelled", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([

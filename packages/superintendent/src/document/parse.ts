@@ -285,6 +285,22 @@ export function parseSuperintendentDoc(filePath: string, content: string): Super
   };
 }
 
+export function readExplicitBuilderAgent(filePath: string, content: string): string | undefined {
+  const resolvedFilePath = path.resolve(filePath);
+  const { frontmatterText } = splitFrontmatter(resolvedFilePath, content);
+  const parsedFrontmatter = parseYamlFrontmatter(resolvedFilePath, frontmatterText);
+  const frontmatter = expectRecord(parsedFrontmatter, "frontmatter", resolvedFilePath);
+
+  if (frontmatter.builder === undefined) {
+    return undefined;
+  }
+
+  const builder = expectRecord(frontmatter.builder, "builder", resolvedFilePath);
+  return builder.agent === undefined
+    ? undefined
+    : expectString(builder.agent, "builder.agent", resolvedFilePath);
+}
+
 function splitFrontmatter(
   filePath: string,
   content: string

@@ -285,7 +285,7 @@ defineGroup({
 
 - `tools` filters by upstream tool name.
 - `rename` remaps to dotted toolcraft paths; missing intermediate groups are created.
-- Proxy discovery is eager: `runCLI`, `runMCP`, and SDK creation resolve every `defineGroup({ mcp })` proxy in the root tree before routing, command execution, or CLI help rendering.
+- Proxy discovery is eager for `runCLI` and `runMCP`: they resolve every `defineGroup({ mcp })` proxy in the root tree before routing, command execution, or CLI help rendering. SDK proxies resolve when the deferred SDK is awaited or first used.
 - On a first run without cached schemas, even `my-cli --help` or `my-cli some-group --help` may connect to every configured upstream MCP server.
 - Discovery is cached at `<projectRoot>/.toolcraft/mcp/<group>.json` (project root = nearest ancestor with `package.json`), so successful discovery avoids repeated upstream connects unless refreshed.
 - `TOOLCRAFT_MCP_REFRESH=1` refreshes all proxies; `TOOLCRAFT_MCP_REFRESH=github,linear` refreshes specific ones.

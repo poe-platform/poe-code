@@ -1145,22 +1145,58 @@ function formatSecretDescription(secret: SecretDefinition): string {
   return secret.optional === true ? "Optional secret" : "Required secret";
 }
 
+function wrapOptionalCommandParameterToken(token: string, optional: boolean): string {
+  return optional ? `[${token}]` : token;
+}
+
+function formatCommandDynamicParameterTokens(field: DynamicFieldDefinition, casing: Casing): string[] {
+  const optional = field.optional || field.hasDefault;
+  return formatDynamicHelpFields(field, casing).map((row) =>
+    wrapOptionalCommandParameterToken(row.flags, optional)
+  );
+}
+
+function formatCommandParameterTokens<TServices extends object>(
+  command: Command<TServices, any, any, any>,
+  casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>
+): string[] {
+  const collected = collectFields(command.params, casing, globalLongOptionFlags);
+  const fields = assignPositionals(collected.fields, command.positional);
+
+  return fields
+    .map((field) =>
+      wrapOptionalCommandParameterToken(
+        formatHelpFieldFlags(field, globalLongOptionFlags),
+        field.optional || field.hasDefault
+      )
+    )
+    .concat(collected.dynamicFields.flatMap((field) => formatCommandDynamicParameterTokens(field, casing)));
+}
+
 function formatCommandRowName<TServices extends object>(
   node: Command<TServices, any, any, any> | Group<TServices>,
-  depth: number
+  depth: number,
+  casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>
 ): string {
-  const name = node.aliases.length === 0 ? node.name : `${node.name} (${node.aliases.join(", ")})`;
+  const baseName = node.aliases.length === 0 ? node.name : `${node.name} (${node.aliases.join(", ")})`;
+  const parameterTokens =
+    node.kind === "command" ? formatCommandParameterTokens(node, casing, globalLongOptionFlags) : [];
+  const name = parameterTokens.length === 0 ? baseName : `${baseName} ${parameterTokens.join(" ")}`;
   return `${"  ".repeat(depth)}${name}`;
 }
 
 function formatCommandRows<TServices extends object>(
   group: Group<TServices>,
   scope: Scope,
+  casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>,
   depth = 0
 ): HelpCommandRow[] {
   return getVisibleChildren(group, scope).flatMap((child) => {
     const row = {
-      name: formatCommandRowName(child, depth),
+      name: formatCommandRowName(child, depth, casing, globalLongOptionFlags),
       description: child.description ?? "",
     };
 
@@ -1168,7 +1204,7 @@ function formatCommandRows<TServices extends object>(
       return [row];
     }
 
-    return [row, ...formatCommandRows(child, scope, depth + 1)];
+    return [row, ...formatCommandRows(child, scope, casing, globalLongOptionFlags, depth + 1)];
   });
 }
 
@@ -1223,12 +1259,14 @@ function renderGroupHelp<TServices extends object>(
   group: Group<TServices>,
   breadcrumb: string[],
   scope: Scope,
+  casing: Casing,
   showVersion: boolean,
   presetsEnabled: boolean,
   rootUsageName?: string
 ): string {
   const sections: string[] = [];
-  const commandRows = formatCommandRows(group, scope);
+  const globalLongOptionFlags = getGlobalLongOptionFlags(presetsEnabled);
+  const commandRows = formatCommandRows(group, scope, casing, globalLongOptionFlags);
 
   if (commandRows.length > 0) {
     sections.push(`${text.section("Commands:")}\n${formatCommandList(commandRows)}`);
@@ -1332,6 +1370,7 @@ async function renderGeneratedHelp<TServices extends object>(
             target.node,
             target.breadcrumb,
             "cli",
+            casing,
             options.version !== undefined,
             options.presets === true,
             options.rootUsageName

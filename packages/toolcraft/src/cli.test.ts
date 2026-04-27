@@ -1895,6 +1895,43 @@ describe("runCLI", () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  it("renders command parameters in group help listings", async () => {
+    const listTasks = defineCommand({
+      name: "list-tasks",
+      description: "List tasks",
+      params: S.Object({
+        section: S.Optional(S.String()),
+      }),
+      handler: async () => null,
+    });
+    const details = defineCommand({
+      name: "details",
+      description: "Get task details",
+      params: S.Object({
+        taskGid: S.String(),
+      }),
+      handler: async () => null,
+    });
+    const asana = defineGroup({
+      name: "asana",
+      children: [listTasks, details],
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [asana],
+    });
+
+    process.argv = ["node", "toolcraft", "asana", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("list-tasks [--section <string>]");
+    expect(output).toContain("details --task-gid <string>");
+  });
+
   it("renders nested command groups in root help", async () => {
     const listEvents = defineCommand({
       name: "list",

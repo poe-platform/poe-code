@@ -182,6 +182,7 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   apiVersion?: string;
   casing?: Casing;
   humanInLoop?: HumanInLoopRuntimeOptions;
+  projectRoot?: string;
   rootDisplayName?: string;
   rootUsageName?: string;
   services?: TServices;
@@ -2911,7 +2912,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
   const root = mergeApprovalsGroup(normalizeRoots(roots, process.argv));
-  await resolveMcpProxies(root);
+  await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const casing = options.casing ?? "kebab";
   const services = (options.services ?? {}) as TServices;
   const runtimeOptions = options.humanInLoop ?? {};

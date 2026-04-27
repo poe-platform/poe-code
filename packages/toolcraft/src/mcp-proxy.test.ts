@@ -234,6 +234,14 @@ describe("resolveCachePath", () => {
       'Could not find package.json above "/missing/project" while resolving MCP cache path.'
     );
   });
+
+  it("uses an explicit project root without reading process.cwd()", () => {
+    vi.spyOn(process, "cwd").mockReturnValue("/caller/project");
+
+    expect(resolveCachePath("github", "/cli-package")).toBe(
+      "/cli-package/.toolcraft/mcp/github.json"
+    );
+  });
 });
 
 describe("resolveMcpProxies", () => {
@@ -293,6 +301,40 @@ describe("resolveMcpProxies", () => {
     });
     expect(clientState.instances).toHaveLength(0);
     expect(loggerState.info).toEqual([]);
+  });
+
+  it("loads proxy tools from an explicit project root independent of caller cwd", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({
+      name: "root",
+      children: [group],
+    });
+    const proxyGroup = root.children[0];
+
+    expect(proxyGroup?.kind).toBe("group");
+    if (proxyGroup?.kind !== "group") {
+      throw new Error("Expected proxy group.");
+    }
+
+    vi.spyOn(process, "cwd").mockReturnValue("/caller/project");
+    vol.fromJSON(
+      {
+        ["/cli-package/.toolcraft/mcp/github.json"]: JSON.stringify({
+          $schema:
+            "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
+          version: 1,
+          upstream: { name: "mock-upstream", version: "1.0.0" },
+          fetchedAt: "2026-04-26T12:00:00.000Z",
+          tools: [tool("create_issue")],
+        }),
+      },
+      "/"
+    );
+
+    await resolveMcpProxies(root, { projectRoot: "/cli-package" });
+
+    expect(proxyGroup.children.map((child) => child.name)).toEqual(["create_issue"]);
+    expect(clientState.instances).toHaveLength(0);
   });
 
   it("filters non-allowlisted tools from the in-memory group while keeping the cache verbatim", async () => {

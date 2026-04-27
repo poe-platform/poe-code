@@ -46,6 +46,10 @@ interface McpProxyCache {
   version: 1;
 }
 
+export interface ResolveMcpProxyOptions {
+  projectRoot?: string;
+}
+
 type GroupChild<TServices extends object = Record<string, never>> =
   | Command<TServices, any, any, any>
   | Group<TServices>;
@@ -394,7 +398,10 @@ function isRefreshRequested(name: string, refresh: "all" | Set<string> | undefin
   return refresh?.has(name) === true;
 }
 
-async function resolveSingleProxy(group: Group<any>): Promise<void> {
+async function resolveSingleProxy(
+  group: Group<any>,
+  options: ResolveMcpProxyOptions
+): Promise<void> {
   const internal = getInternalGroupConfig(group);
   const config = internal.mcp;
 
@@ -405,7 +412,7 @@ async function resolveSingleProxy(group: Group<any>): Promise<void> {
   const name = group.name;
 
   try {
-    const cachePath = resolveCachePath(name);
+    const cachePath = resolveCachePath(name, options.projectRoot);
     const refresh = parseRefreshEnv(process.env.TOOLCRAFT_MCP_REFRESH);
     let cache: McpProxyCache;
 
@@ -538,7 +545,10 @@ export async function dialUpstream(
   return client;
 }
 
-export async function resolveMcpProxies(root: Group<any>): Promise<void> {
+export async function resolveMcpProxies(
+  root: Group<any>,
+  options: ResolveMcpProxyOptions = {}
+): Promise<void> {
   const groups = collectProxyGroups(root);
-  await Promise.all(groups.map((group) => resolveSingleProxy(group)));
+  await Promise.all(groups.map((group) => resolveSingleProxy(group, options)));
 }

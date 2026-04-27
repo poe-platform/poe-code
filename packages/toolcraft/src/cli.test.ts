@@ -1945,6 +1945,55 @@ describe("runCLI", () => {
     expect(output).toContain("Create meeting");
   });
 
+  it("resolves MCP proxy caches from the configured project root", async () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    vi.spyOn(process, "cwd").mockReturnValue("/caller/project");
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineGroup({
+          name: "github",
+          scope: ["cli", "sdk", "mcp"],
+          mcp: {
+            transport: "stdio",
+            command: "mock-server",
+          },
+          children: [],
+        }),
+      ],
+    });
+
+    vol.fromJSON(
+      {
+        [fixtureFilePath]: fixtureFileContents,
+        ["/cli-package/.toolcraft/mcp/github.json"]: JSON.stringify({
+          $schema:
+            "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
+          version: 1,
+          upstream: { name: "mock-upstream", version: "1.0.0" },
+          fetchedAt: "2026-04-26T12:00:00.000Z",
+          tools: [
+            {
+              name: "create_issue",
+              description: "Create an issue",
+              inputSchema: {
+                type: "object",
+                properties: {},
+                additionalProperties: false,
+              },
+            },
+          ],
+        }),
+      },
+      "/"
+    );
+    process.argv = ["node", "toolcraft", "github", "--help"];
+
+    await runCLI(root, { projectRoot: "/cli-package" });
+
+    expect(readStdout(stdoutWrite)).toContain("create_issue");
+  });
+
   it("enables --version from the nearest package metadata for absolute entrypoints", async () => {
     const root = defineGroup({
       name: "mytool",

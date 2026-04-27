@@ -444,17 +444,20 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.
 - `apiVersion?: string` — for `requires.apiVersion`.
 - `humanInLoop?: HumanInLoopRuntimeOptions`
+- `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 
 ### `createSDK(root, options)`
 
 - `casing?: "camel"` — generated SDK member style.
 - `services?` / `humanInLoop?` / `apiVersion?`
+- `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 
 ### `createMCPServer(root, options)` / `runMCP(root, options)`
 
 - `name: string`
 - `version: string`
 - `services?` / `humanInLoop?` / `apiVersion?`
+- `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 - `tools?: string[]` — allowlist of MCP tool names or group prefixes. Tool names are `__`-joined snake_case path segments (`root__bot__create`); a prefix like `root__bot` includes every descendant tool.
 - `casing?: "snake" | "camel"` — affects MCP **input-schema property names** only. Tool names always stay `__`-joined snake_case.
 

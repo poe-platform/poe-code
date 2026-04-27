@@ -1818,6 +1818,56 @@ describe("runCLI", () => {
     expect(process.exitCode).toBeUndefined();
   });
 
+  it("renders nested command groups in root help", async () => {
+    const listEvents = defineCommand({
+      name: "list",
+      description: "List calendar events",
+      params: S.Object({}),
+      handler: async () => null,
+    });
+    const createMeeting = defineCommand({
+      name: "create",
+      description: "Create meeting",
+      params: S.Object({}),
+      handler: async () => null,
+    });
+    const calendar = defineGroup({
+      name: "calendar",
+      description: "Google Calendar events.",
+      children: [
+        defineGroup({
+          name: "events",
+          children: [listEvents],
+        }),
+        defineGroup({
+          name: "meeting",
+          children: [createMeeting],
+        }),
+      ],
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [calendar],
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("Commands:");
+    expect(output).toContain("calendar");
+    expect(output).toContain("  events");
+    expect(output).toContain("    list");
+    expect(output).toContain("List calendar events");
+    expect(output).toContain("  meeting");
+    expect(output).toContain("    create");
+    expect(output).toContain("Create meeting");
+  });
+
   it("enables --version from the nearest package metadata for absolute entrypoints", async () => {
     const root = defineGroup({
       name: "mytool",

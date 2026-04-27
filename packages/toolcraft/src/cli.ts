@@ -1133,11 +1133,31 @@ function formatSecretDescription(secret: SecretDefinition): string {
   return secret.optional === true ? "Optional secret" : "Required secret";
 }
 
-function formatCommandRows<TServices extends object>(group: Group<TServices>, scope: Scope): HelpCommandRow[] {
-  return getVisibleChildren(group, scope).map((child) => ({
-    name: child.aliases.length === 0 ? child.name : `${child.name} (${child.aliases.join(", ")})`,
-    description: child.description ?? "",
-  }));
+function formatCommandRowName<TServices extends object>(
+  node: Command<TServices, any, any, any> | Group<TServices>,
+  depth: number
+): string {
+  const name = node.aliases.length === 0 ? node.name : `${node.name} (${node.aliases.join(", ")})`;
+  return `${"  ".repeat(depth)}${name}`;
+}
+
+function formatCommandRows<TServices extends object>(
+  group: Group<TServices>,
+  scope: Scope,
+  depth = 0
+): HelpCommandRow[] {
+  return getVisibleChildren(group, scope).flatMap((child) => {
+    const row = {
+      name: formatCommandRowName(child, depth),
+      description: child.description ?? "",
+    };
+
+    if (child.kind === "command") {
+      return [row];
+    }
+
+    return [row, ...formatCommandRows(child, scope, depth + 1)];
+  });
 }
 
 function formatGlobalOptionRows(showVersion: boolean): HelpOptionRow[] {

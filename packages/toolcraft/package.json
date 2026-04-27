@@ -35,21 +35,16 @@
     "test": "cd ../.. && vitest run packages/toolcraft/src",
     "test:unit": "cd ../.. && vitest run packages/toolcraft/src",
     "lint": "cd ../.. && eslint packages/toolcraft/src --ext ts && tsc -p packages/toolcraft/tsconfig.json --noEmit",
-    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list",
-    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list"
+    "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list tiny-mcp-client mcp-oauth auth-store",
+    "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system @poe-code/agent-mcp-config @poe-code/agent-human-in-loop @poe-code/task-list tiny-mcp-client mcp-oauth auth-store"
   },
   "dependencies": {
-    "@poe-code/agent-human-in-loop": "*",
     "@clack/core": "^1.0.0",
     "@clack/prompts": "^1.0.0",
-    "@poe-code/agent-mcp-config": "*",
-    "@poe-code/design-system": "^0.0.1",
-    "@poe-code/task-list": "*",
     "toolcraft-schema": "^0.0.1",
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
     "console-table-printer": "^2.15.0",
-    "tiny-mcp-client": "*",
     "tiny-stdio-mcp-server": "^0.1.0"
   },
   "files": [
@@ -67,6 +62,18 @@
     "@poe-code/design-system",
     "@poe-code/agent-mcp-config",
     "@poe-code/agent-human-in-loop",
-    "@poe-code/task-list"
-  ]
+    "@poe-code/task-list",
+    "tiny-mcp-client",
+    "mcp-oauth",
+    "auth-store"
+  ],
+  "optionalDependencies": {
+    "@poe-code/design-system": "^0.0.1",
+    "@poe-code/agent-mcp-config": "*",
+    "@poe-code/agent-human-in-loop": "*",
+    "@poe-code/task-list": "*",
+    "tiny-mcp-client": "*",
+    "mcp-oauth": "*",
+    "auth-store": "*"
+  }
 }

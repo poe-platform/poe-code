@@ -84,11 +84,13 @@ function createBaseProgram(): Command {
 }
 
 function getExperimentAgentOptions() {
-  return allAgents.map((agent) => ({
-    label: agent.label,
-    value: agent.id,
-    hint: agent.summary
-  }));
+  return allAgents
+    .filter((agent) => agent.binaryName !== undefined || agent.id === "poe-agent")
+    .map((agent) => ({
+      label: agent.label,
+      value: agent.id,
+      hint: agent.summary
+    }));
 }
 
 function withMockedTerminal<T>(

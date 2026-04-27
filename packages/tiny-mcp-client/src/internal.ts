@@ -8,7 +8,7 @@ import {
   OAuthError,
   type OAuthClientProvider,
   type OAuthClientProviderOptions,
-} from "mcp-oauth";
+} from "../../mcp-oauth/dist/index.js";
 import type { Server as TinyStdioMcpServer } from "tiny-stdio-mcp-server";
 import {
   OAuthMetadataDiscovery,
@@ -28,7 +28,7 @@ export {
 export {
   createAuthStoreSessionStore,
   createDefaultOAuthClientProvider,
-} from "mcp-oauth";
+} from "../../mcp-oauth/dist/index.js";
 export type {
   OAuthDiscoveryCache,
 } from "./oauth-discovery.js";
@@ -39,7 +39,7 @@ export type {
   OAuthClientProviderOptions,
   OAuthSessionStore,
   StoredOAuthSession,
-} from "mcp-oauth";
+} from "../../mcp-oauth/dist/index.js";
 
 export type RequestId = number | string;
 

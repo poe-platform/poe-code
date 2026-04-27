@@ -4,7 +4,7 @@ import {
   OAuthError,
   type OAuthSessionStore,
   type StoredOAuthSession,
-} from "mcp-oauth";
+} from "../../mcp-oauth/dist/index.js";
 import { nodeFetch } from "tiny-http-mcp-server/testing";
 import {
   createMcpOAuthTestServer,

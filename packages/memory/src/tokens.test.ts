@@ -6,7 +6,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-vi.mock("tokenfill", () => ({
+vi.mock("../../tokenfill/dist/index.js", () => ({
   countTokens: (input: string) => {
     let count = 0;
     let inToken = false;

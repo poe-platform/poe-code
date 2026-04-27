@@ -37,7 +37,7 @@ describe('goose', () => {
       await container.readFile(`${container.home}/.config/goose/custom_providers/custom_poe.json`)
     ) as Record<string, unknown>;
     expect(provider.name).toBe('custom_poe');
-    expect(provider.api_key_env).toBe('CUSTOM_PROVIDER_API_KEY');
+    expect(provider.api_key_env).toBe('CUSTOM_POE_API_KEY');
     expect(provider.base_url).toBe('https://api.poe.com/v1/chat/completions');
     expect(provider.headers).toBeUndefined();
 
@@ -45,7 +45,7 @@ describe('goose', () => {
     const secrets = parseYaml(
       await container.readFile(`${container.home}/.config/goose/secrets.yaml`)
     ) as Record<string, unknown>;
-    expect(secrets.CUSTOM_PROVIDER_API_KEY).toBeTypeOf('string');
+    expect(secrets.CUSTOM_POE_API_KEY).toBeTypeOf('string');
 
     const testResult = await container.exec('env -u POE_API_KEY poe-code test goose');
     expect(testResult).toSucceedWith('Tested Goose.');
@@ -59,7 +59,7 @@ describe('goose', () => {
     const isolatedSecrets = parseYaml(
       await container.readFile(`${container.home}/.poe-code/goose/.config/goose/secrets.yaml`)
     ) as Record<string, unknown>;
-    expect(isolatedSecrets.CUSTOM_PROVIDER_API_KEY).toBeTypeOf('string');
+    expect(isolatedSecrets.CUSTOM_POE_API_KEY).toBeTypeOf('string');
   });
 
   it('spawn creates a file', async () => {

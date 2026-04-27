@@ -641,7 +641,7 @@ describe("runCLI", () => {
       "5",
     ];
 
-    await runCLI(root);
+    await runCLI(root, { presets: true });
 
     expect(promptState.text).not.toHaveBeenCalled();
     expect(promptState.select).toHaveBeenCalledWith({
@@ -658,6 +658,83 @@ describe("runCLI", () => {
       region: "us-east-1",
       replicas: 5,
       mode: "fast",
+    });
+  });
+
+  it("hides --preset from generated help unless presets are enabled", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String(),
+      }),
+      handler: vi.fn(),
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy],
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("Global options:");
+    expect(output).not.toContain("--preset");
+    expect(output).toContain("--yes");
+  });
+
+  it("shows --preset in generated help when presets are enabled", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String(),
+      }),
+      handler: vi.fn(),
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy],
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root, { presets: true });
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("Global options:");
+    expect(output).toContain("--preset <path>");
+  });
+
+  it("allows a command parameter named preset when presets are not enabled", async () => {
+    const handler = vi.fn(async (ctx: { params: { preset: string } }) => ctx.params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        preset: S.String(),
+      }),
+      handler,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy],
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "--preset", "custom", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0]?.[0].params).toEqual({
+      preset: "custom",
     });
   });
 
@@ -693,7 +770,7 @@ describe("runCLI", () => {
       "--yes",
     ];
 
-    await runCLI(root);
+    await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
@@ -735,7 +812,7 @@ describe("runCLI", () => {
       "--yes",
     ];
 
-    await runCLI(root);
+    await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
@@ -769,7 +846,7 @@ describe("runCLI", () => {
       "--yes",
     ];
 
-    await runCLI(root);
+    await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
@@ -807,7 +884,7 @@ describe("runCLI", () => {
       "--yes",
     ];
 
-    await runCLI(root);
+    await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
@@ -845,7 +922,7 @@ describe("runCLI", () => {
       "--yes",
     ];
 
-    await runCLI(root);
+    await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toHaveLength(1);
@@ -2200,7 +2277,7 @@ describe("runCLI", () => {
     expect(output).toContain("--model <string>");
     expect(output).toContain("Model identifier (default: GPT-4.1)");
     expect(output).toContain("Global options:");
-    expect(output).toContain("--preset");
+    expect(output).not.toContain("--preset");
     expect(output).toContain("--yes");
     expect(output).toContain("Secrets (via environment):");
     expect(output).toContain("POE_API_KEY");

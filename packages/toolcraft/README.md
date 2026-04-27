@@ -441,6 +441,7 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 - `casing?: "kebab" | "snake"` — generated CLI flag style.
 - `services?: TServices` — merged into every handler context.
 - `version?: string` — surfaced via `--version`.
+- `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.
 - `apiVersion?: string` — for `requires.apiVersion`.
 - `humanInLoop?: HumanInLoopRuntimeOptions`
 

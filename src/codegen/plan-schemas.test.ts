@@ -1,4 +1,5 @@
 import { Volume, createFsFromVolume } from "memfs";
+import { readFileSync } from "node:fs";
 import {
   planSchemaDocuments,
   runPlanSchemaCodegen,
@@ -89,5 +90,14 @@ describe("plan schema codegen", () => {
   ],
   "additionalProperties": false
 }\n`);
+  });
+
+  it("imports schema modules directly so codegen works before package builds", () => {
+    const source = readFileSync("scripts/generate-plan-schemas.ts", "utf8");
+
+    expect(source).not.toContain("../packages/pipeline/src/index.js");
+    expect(source).not.toContain("../packages/experiment-loop/src/index.js");
+    expect(source).not.toContain("../packages/ralph/src/index.js");
+    expect(source).not.toContain("../packages/superintendent/src/index.js");
   });
 });

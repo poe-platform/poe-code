@@ -3,13 +3,13 @@ import * as nodeFs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { planDocumentSchema } from "../src/plan/document-schema.js";
-import { pipelineDocumentSchema } from "../packages/pipeline/src/index.js";
-import { experimentDocumentSchema } from "../packages/experiment-loop/src/index.js";
-import { ralphDocumentSchema } from "../packages/ralph/src/index.js";
+import { experimentDocumentSchema } from "../packages/experiment-loop/src/frontmatter/frontmatter.js";
+import { pipelineDocumentSchema } from "../packages/pipeline/src/plan/parser.js";
+import { ralphDocumentSchema } from "../packages/ralph/src/frontmatter/frontmatter.js";
 import {
   superintendentBaseDocumentSchema,
   superintendentDocumentSchema
-} from "../packages/superintendent/src/index.js";
+} from "../packages/superintendent/src/document/parse.js";
 
 interface PlanSchemaFileSystem {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;

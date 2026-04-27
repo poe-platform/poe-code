@@ -1,3 +1,4 @@
+import * as os from "node:os";
 import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
@@ -125,6 +126,28 @@ describe("acquireFileLock", () => {
     await release();
   });
 
+  it("uses a 1s default stale lock window", async () => {
+    vi.setSystemTime(new Date("2026-04-26T12:00:02.000Z"));
+    const { fs, rawFs, volume } = createFs({
+      "/repo/workflow.md": "# workflow\n",
+      "/repo/workflow.md.lock": "{\"pid\":1}\n"
+    });
+
+    volume.utimesSync(
+      "/repo/workflow.md.lock",
+      new Date("2026-04-26T12:00:00.999Z"),
+      new Date("2026-04-26T12:00:00.999Z")
+    );
+
+    const release = await acquireFileLock("/repo/workflow.md", { fs });
+
+    await expect(rawFs.readFile("/repo/workflow.md.lock", "utf8")).resolves.toContain(
+      `"pid":${process.pid}`
+    );
+
+    await release();
+  });
+
   it("reclaims a stale lock even when retries is zero", async () => {
     vi.setSystemTime(new Date("2026-04-26T12:00:00.000Z"));
     const { fs, rawFs, volume } = createFs({
@@ -144,6 +167,101 @@ describe("acquireFileLock", () => {
       retries: 0
     });
 
+    await expect(rawFs.readFile("/repo/workflow.md.lock", "utf8")).resolves.toContain(
+      `"pid":${process.pid}`
+    );
+
+    await release();
+  });
+
+  it("reclaims a lock immediately when metadata points at a stopped local pid", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/workflow.md": "# workflow\n",
+      "/repo/workflow.md.lock": JSON.stringify({
+        pid: 999,
+        host: os.hostname(),
+        acquiredAt: "2026-04-26T12:00:00.000Z"
+      })
+    });
+
+    const release = await acquireFileLock("/repo/workflow.md", {
+      fs,
+      staleMs: Number.POSITIVE_INFINITY,
+      isPidRunning: () => false
+    });
+
+    await expect(rawFs.readFile("/repo/workflow.md.lock", "utf8")).resolves.toContain(
+      `"pid":${process.pid}`
+    );
+
+    await release();
+  });
+
+  it("keeps an mtime-stale lock when metadata points at a running local pid", async () => {
+    vi.setSystemTime(new Date("2026-04-26T12:00:00.000Z"));
+    const { fs, rawFs, volume } = createFs({
+      "/repo/workflow.md": "# workflow\n",
+      "/repo/workflow.md.lock": JSON.stringify({
+        pid: 123,
+        host: os.hostname(),
+        acquiredAt: "2026-04-26T11:58:00.000Z"
+      })
+    });
+
+    volume.utimesSync(
+      "/repo/workflow.md.lock",
+      new Date("2026-04-26T11:58:00.000Z"),
+      new Date("2026-04-26T11:58:00.000Z")
+    );
+
+    await expect(
+      acquireFileLock("/repo/workflow.md", {
+        fs,
+        staleMs: 30_000,
+        retries: 0,
+        isPidRunning: (pid) => pid === 123
+      })
+    ).rejects.toBeInstanceOf(LockTimeoutError);
+
+    await expect(rawFs.readFile("/repo/workflow.md.lock", "utf8")).resolves.toContain(
+      '"pid":123'
+    );
+  });
+
+  it("retries transient EPERM errors while removing a stale lock", async () => {
+    vi.setSystemTime(new Date("2026-04-26T12:00:00.000Z"));
+    const { fs, rawFs, volume } = createFs({
+      "/repo/workflow.md": "# workflow\n",
+      "/repo/workflow.md.lock": "{\"pid\":1}\n"
+    });
+    let unlinkAttempts = 0;
+    const flakyFs: FileLockFs = {
+      ...fs,
+      unlink: async (filePath) => {
+        unlinkAttempts += 1;
+        if (unlinkAttempts === 1) {
+          const error = new Error("operation not permitted") as NodeJS.ErrnoException;
+          error.code = "EPERM";
+          throw error;
+        }
+
+        await fs.unlink(filePath);
+      }
+    };
+
+    volume.utimesSync(
+      "/repo/workflow.md.lock",
+      new Date("2026-04-26T11:58:00.000Z"),
+      new Date("2026-04-26T11:58:00.000Z")
+    );
+
+    const release = await acquireFileLock("/repo/workflow.md", {
+      fs: flakyFs,
+      staleMs: 30_000,
+      minTimeout: 0
+    });
+
+    expect(unlinkAttempts).toBe(2);
     await expect(rawFs.readFile("/repo/workflow.md.lock", "utf8")).resolves.toContain(
       `"pid":${process.pid}`
     );

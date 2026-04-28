@@ -1653,20 +1653,20 @@ Config probe: `.kimi/config.toml`
 
 **Models:**
 
-Uses `FRONTIER_MODELS` with default `anthropic/claude-sonnet-4.6`.
+Uses `FRONTIER_MODELS` with default `anthropic/claude-opus-4.7`.
 
 **Configuration mutations (configure):**
 
 1. Ensure `~/.config/goose/custom_providers/` exists
 2. Write custom provider JSON to `~/.config/goose/custom_providers/custom_poe.json`
 3. Merge `GOOSE_PROVIDER`, `GOOSE_MODEL`, and `GOOSE_DISABLE_KEYRING` into `~/.config/goose/config.yaml`
-4. Store `CUSTOM_PROVIDER_API_KEY` in `~/.config/goose/secrets.yaml`
+4. Store `CUSTOM_POE_API_KEY` in `~/.config/goose/secrets.yaml`
 
 **Unconfigure mutations:**
 
 - Remove `custom_poe.json`
 - Prune Goose-specific keys from `config.yaml`
-- Remove `CUSTOM_PROVIDER_API_KEY` from `secrets.yaml`
+- Remove `CUSTOM_POE_API_KEY` from `secrets.yaml`
 
 **Isolated environment:**
 
@@ -2301,11 +2301,11 @@ Output shows:
 | `DEFAULT_IMAGE_BOT` | `google/nano-banana-pro` | `generate image` |
 | `DEFAULT_VIDEO_BOT` | `google/veo-3.1` | `generate video` |
 | `DEFAULT_AUDIO_BOT` | `elevenlabs/elevenlabs-v3` | `generate audio` |
-| `DEFAULT_FRONTIER_MODEL` | `anthropic/claude-sonnet-4.6` | OpenCode default |
+| `DEFAULT_FRONTIER_MODEL` | `anthropic/claude-opus-4.7` | OpenCode and Goose defaults |
 | `DEFAULT_CLAUDE_CODE_MODEL` | `anthropic/claude-sonnet-4.6` | Claude Code default |
-| `DEFAULT_CODEX_MODEL` | `openai/gpt-5.4` | Codex default |
+| `DEFAULT_CODEX_MODEL` | `openai/gpt-5.5` | Codex default |
 | `DEFAULT_KIMI_MODEL` | `novitaai/kimi-k2.5` | Kimi default |
-| `DEFAULT_GOOSE_MODEL` | `anthropic/claude-sonnet-4.6` | Goose default |
+| `DEFAULT_GOOSE_MODEL` | `anthropic/claude-opus-4.7` | Goose default |
 | `DEFAULT_REASONING` | `medium` | Codex reasoning effort |
 | `PROVIDER_NAME` | `poe` | Provider identifier in configs |
 
@@ -2316,7 +2316,7 @@ const FRONTIER_MODELS = [
   "anthropic/claude-opus-4.7",
   "anthropic/claude-sonnet-4.6",
   "openai/gpt-5.3-codex",
-  "openai/gpt-5.4",
+  "openai/gpt-5.5",
   "google/gemini-3.1-pro"
 ];
 ```
@@ -2335,12 +2335,17 @@ const CLAUDE_CODE_VARIANTS = {
 
 ```typescript
 const CODEX_MODELS = [
+  "openai/gpt-5.5",
+  "openai/gpt-5.4",
+  "openai/gpt-5.3-codex",
+  "openai/gpt-5.3-codex-spark",
   "openai/gpt-5.2-codex",
   "openai/gpt-5.2",
   "openai/gpt-5.2-chat",
   "openai/gpt-5.2-pro",
   "openai/gpt-5.1",
-  "openai/gpt-5.1-codex-mini"
+  "openai/gpt-5.1-codex-mini",
+  "anthropic/claude-opus-4.7"
 ];
 ```
 
@@ -2349,7 +2354,8 @@ const CODEX_MODELS = [
 ```typescript
 const KIMI_MODELS = [
   "novitaai/kimi-k2.5",
-  "novitaai/kimi-k2-thinking"
+  "novitaai/kimi-k2-thinking",
+  "novitaai/kimi-k2.5-fw"
 ];
 ```
 

@@ -11,7 +11,7 @@ const result = await spawn("codex", {
   prompt: "Fix the failing tests",
   cwd: process.cwd(),
   mode: "edit",
-  model: "openai/gpt-5.4",
+  model: "openai/gpt-5.5",
   mcpServers: {
     fs: { command: "node", args: ["./mcp/fs.js"], timeout: 30 },
   },

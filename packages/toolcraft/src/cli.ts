@@ -1168,7 +1168,7 @@ function formatCommandParameterTokens<TServices extends object>(
     .map((field) =>
       wrapOptionalCommandParameterToken(
         formatHelpFieldFlags(field, globalLongOptionFlags),
-        field.optional || field.hasDefault
+        field.positionalIndex === undefined && (field.optional || field.hasDefault)
       )
     )
     .concat(collected.dynamicFields.flatMap((field) => formatCommandDynamicParameterTokens(field, casing)));

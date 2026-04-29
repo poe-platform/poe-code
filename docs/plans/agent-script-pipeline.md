@@ -312,7 +312,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as012-disallowed-method-args
@@ -326,8 +326,9 @@ tasks:
       the runtime also enforces these.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as013-reserved-names
     title: Lint AS013 — reserved module-name shadowing

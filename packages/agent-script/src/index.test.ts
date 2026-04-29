@@ -140,6 +140,118 @@ describe("@poe-code/agent-script public exports", () => {
     ]);
   });
 
+  it("includes unsupported method argument diagnostics in lint results", () => {
+    const source = [
+      "const value = 'abba';",
+      "const values = [2, 1];",
+      "const compare = 0;",
+      "value.replace('a', () => 'b');",
+      "values.sort(compare);"
+    ].join("\n");
+
+    expect(
+      lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS012")
+    ).toEqual([
+      {
+        code: "AS012",
+        severity: "error",
+        message: "String#replace does not support function replacers or regex search values.",
+        filename: "rule.js",
+        line: 4,
+        column: 20,
+        span: {
+          start: { line: 4, column: 20, offset: source.indexOf("() => 'b'") },
+          end: { line: 4, column: 29, offset: source.indexOf("() => 'b'") + "() => 'b'".length }
+        }
+      },
+      {
+        code: "AS012",
+        severity: "error",
+        message: "Array#sort only supports comparators that are arrows returning a number.",
+        filename: "rule.js",
+        line: 5,
+        column: 13,
+        span: {
+          start: { line: 5, column: 13, offset: source.lastIndexOf("compare") },
+          end: { line: 5, column: 20, offset: source.lastIndexOf("compare") + "compare".length }
+        }
+      }
+    ]);
+  });
+
+  it("keeps linting when regex literals appear in unsupported method calls", () => {
+    const source = [
+      "const value = 'abba';",
+      "const parts = value.split(/b+/);",
+      "const fixed = value.replace(/a/g, () => 'b');"
+    ].join("\n");
+
+    expect(
+      lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS001" || diagnostic.code === "AS012")
+    ).toEqual([
+      {
+        code: "AS001",
+        severity: "error",
+        message: "Disallowed syntax: regex literal.",
+        filename: "rule.js",
+        line: 2,
+        column: 27,
+        span: {
+          start: { line: 2, column: 27, offset: source.indexOf("/b+/") },
+          end: { line: 2, column: 31, offset: source.indexOf("/b+/") + "/b+/".length }
+        }
+      },
+      {
+        code: "AS012",
+        severity: "error",
+        message: "String#split does not support regex separator values.",
+        filename: "rule.js",
+        line: 2,
+        column: 27,
+        span: {
+          start: { line: 2, column: 27, offset: source.indexOf("/b+/") },
+          end: { line: 2, column: 31, offset: source.indexOf("/b+/") + "/b+/".length }
+        }
+      },
+      {
+        code: "AS001",
+        severity: "error",
+        message: "Disallowed syntax: regex literal.",
+        filename: "rule.js",
+        line: 3,
+        column: 29,
+        span: {
+          start: { line: 3, column: 29, offset: source.indexOf("/a/g") },
+          end: { line: 3, column: 33, offset: source.indexOf("/a/g") + "/a/g".length }
+        }
+      },
+      {
+        code: "AS012",
+        severity: "error",
+        message: "String#replace does not support function replacers or regex search values.",
+        filename: "rule.js",
+        line: 3,
+        column: 29,
+        span: {
+          start: { line: 3, column: 29, offset: source.indexOf("/a/g") },
+          end: { line: 3, column: 33, offset: source.indexOf("/a/g") + "/a/g".length }
+        }
+      },
+      {
+        code: "AS012",
+        severity: "error",
+        message: "String#replace does not support function replacers or regex search values.",
+        filename: "rule.js",
+        line: 3,
+        column: 35,
+        span: {
+          start: { line: 3, column: 35, offset: source.indexOf("() => 'b'") },
+          end: { line: 3, column: 44, offset: source.indexOf("() => 'b'") + "() => 'b'".length }
+        }
+      }
+    ]);
+  });
+
   it("accepts the lint modules Map API and sorts diagnostics by source position", () => {
     const source = [
       'import value from "api";',

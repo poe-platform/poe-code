@@ -34,6 +34,7 @@ export type {
   ParseResult,
   PatternTarget,
   Property,
+  RegexLiteral,
   RestElement,
   ReturnStatement,
   SourceSpan,

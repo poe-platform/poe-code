@@ -37,6 +37,11 @@ export type StringLiteral = BaseNode & {
   value: string;
 };
 
+export type RegexLiteral = BaseNode & {
+  type: "RegexLiteral";
+  raw: string;
+};
+
 export type BooleanLiteral = BaseNode & {
   type: "BooleanLiteral";
   raw: "true" | "false";
@@ -354,6 +359,7 @@ export type Expression =
   | NullLiteral
   | NumericLiteral
   | ObjectExpression
+  | RegexLiteral
   | StringLiteral
   | TemplateLiteral
   | UnaryExpression
@@ -390,7 +396,14 @@ const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
 
 export function parse(source: string, filename = "<input>"): ParseResult {
   try {
-    return assignIds(parseTokens(tokenize(source)));
+    const result = assignIds(parseTokens(tokenize(source, { allowRegexLiterals: true })));
+    const regexLiteral = findRegexLiteral(result);
+    if (regexLiteral !== undefined) {
+      throw new Error(
+        `Regular expression literals are not supported at line ${regexLiteral.span.start.line}, column ${regexLiteral.span.start.column}.`
+      );
+    }
+    return result;
   } catch (error) {
     if (error instanceof DisallowedSyntaxError) {
       throw error;
@@ -404,7 +417,7 @@ export function parse(source: string, filename = "<input>"): ParseResult {
 
 export function parseModule(source: string, filename = "<input>"): Module {
   try {
-    return assignIds(parseModuleTokens(tokenize(source)));
+    return assignIds(parseModuleTokens(tokenize(source, { allowRegexLiterals: true })));
   } catch (error) {
     if (error instanceof DisallowedSyntaxError) {
       throw error;
@@ -1872,6 +1885,14 @@ class Parser {
       };
     }
 
+    if (token.type === "regex") {
+      this.index += 1;
+      return {
+        node: createRegexLiteral(token),
+        parenthesized: false
+      };
+    }
+
     if (token.type === "template") {
       this.index += 1;
       return {
@@ -2611,6 +2632,14 @@ function createStringLiteral(token: Token): StringLiteral {
   };
 }
 
+function createRegexLiteral(token: Token): RegexLiteral {
+  return {
+    type: "RegexLiteral",
+    raw: token.value,
+    span: createTokenSpan(token)
+  };
+}
+
 function createKeywordLiteral(token: Token): BooleanLiteral | NullLiteral | UndefinedLiteral {
   if (token.value === "true" || token.value === "false") {
     return {
@@ -2931,12 +2960,45 @@ function decodeEscapedText(value: string): string {
 }
 
 function parseEmbeddedExpression(source: string, base: Position): Expression {
-  const tokens = tokenize(source).map(token => ({
+  const tokens = tokenize(source, { allowRegexLiterals: true }).map(token => ({
     ...token,
     start: rebasePosition(token.start, base),
     end: rebasePosition(token.end, base)
   }));
   return parseExpressionTokens(tokens);
+}
+
+function findRegexLiteral(node: unknown): RegexLiteral | undefined {
+  if (node === null || node === undefined) {
+    return undefined;
+  }
+
+  if (Array.isArray(node)) {
+    for (const value of node) {
+      const match = findRegexLiteral(value);
+      if (match !== undefined) {
+        return match;
+      }
+    }
+    return undefined;
+  }
+
+  if (typeof node !== "object") {
+    return undefined;
+  }
+
+  if ("type" in node && node.type === "RegexLiteral") {
+    return node as RegexLiteral;
+  }
+
+  for (const value of Object.values(node)) {
+    const match = findRegexLiteral(value);
+    if (match !== undefined) {
+      return match;
+    }
+  }
+
+  return undefined;
 }
 
 function decodeEscapeCharacter(char: string): string {

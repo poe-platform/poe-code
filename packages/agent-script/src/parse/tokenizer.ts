@@ -4,13 +4,17 @@ export type Position = {
   offset: number;
 };
 
-export type TokenType = "identifier" | "keyword" | "numeric" | "string" | "template" | "punctuator" | "eof";
+export type TokenType = "identifier" | "keyword" | "numeric" | "regex" | "string" | "template" | "punctuator" | "eof";
 
 export type Token = {
   type: TokenType;
   value: string;
   start: Position;
   end: Position;
+};
+
+export type TokenizeOptions = {
+  allowRegexLiterals?: boolean;
 };
 
 const KEYWORDS = new Set([
@@ -104,8 +108,8 @@ const PUNCTUATORS = [
   "="
 ];
 
-export function tokenize(source: string): Token[] {
-  const lexer = new Lexer(source);
+export function tokenize(source: string, options: TokenizeOptions = {}): Token[] {
+  const lexer = new Lexer(source, options);
   return lexer.tokenize();
 }
 
@@ -122,7 +126,10 @@ class Lexer {
   private readonly groupingStack: GroupingContext[] = [];
   private lastClosedControlParenthesis = false;
 
-  constructor(private readonly source: string) {}
+  constructor(
+    private readonly source: string,
+    private readonly options: TokenizeOptions
+  ) {}
 
   tokenize(): Token[] {
     while (!this.isAtEnd()) {
@@ -347,7 +354,15 @@ class Lexer {
       }
 
       if (char === "/" && this.peekChar(1) !== "=" && shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedControlParenthesis)) {
-        this.syntaxError("Regular expression literals are not supported", this.position());
+        if (!this.options.allowRegexLiterals) {
+          this.syntaxError("Regular expression literals are not supported", this.position());
+        }
+
+        const start = this.position();
+        const value = this.scanRegexLiteral(start);
+        tokens.push({ type: "regex", value });
+        lastClosedControlParenthesis = false;
+        continue;
       }
 
       const punctuator = matchPunctuator(this.source, this.index);
@@ -628,7 +643,12 @@ class Lexer {
 
   private readSlashOrPunctuator(start: Position): void {
     if (this.currentChar() === "/" && this.peekChar(1) !== "=" && shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedControlParenthesis)) {
-      this.syntaxError("Regular expression literals are not supported", start);
+      if (!this.options.allowRegexLiterals) {
+        this.syntaxError("Regular expression literals are not supported", start);
+      }
+
+      this.pushToken("regex", start, this.scanRegexLiteral(start));
+      return;
     }
 
     const punctuator = matchPunctuator(this.source, this.index);
@@ -649,6 +669,47 @@ class Lexer {
       }
     }
     return undefined;
+  }
+
+  private scanRegexLiteral(start: Position): string {
+    this.advance();
+    let inCharacterClass = false;
+
+    while (!this.isAtEnd()) {
+      const char = this.currentChar();
+
+      if (char === "\\") {
+        this.advance();
+        if (!this.isAtEnd()) {
+          this.advance();
+        }
+        continue;
+      }
+
+      if (char === "[" && !inCharacterClass) {
+        inCharacterClass = true;
+        this.advance();
+        continue;
+      }
+
+      if (char === "]" && inCharacterClass) {
+        inCharacterClass = false;
+        this.advance();
+        continue;
+      }
+
+      if (char === "/" && !inCharacterClass) {
+        this.advance();
+        while (!this.isAtEnd() && isAsciiLetter(this.currentChar())) {
+          this.advance();
+        }
+        break;
+      }
+
+      this.advance();
+    }
+
+    return this.source.slice(start.offset, this.index);
   }
 
   private pushToken(type: TokenType, start: Position, value: string): void {

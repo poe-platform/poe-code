@@ -98,7 +98,7 @@ export async function clearCache(
   return { removed };
 }
 
-function parseCacheEntry(value: unknown, key: string): IngestCacheEntry {
+function parseCacheEntry(value: unknown, _key: string): IngestCacheEntry {
   const object = expectRecord(value);
 
   return {

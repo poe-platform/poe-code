@@ -811,7 +811,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: snapshot-periodic
@@ -824,8 +824,9 @@ tasks:
       snapshotPath is omitted.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: snapshot-signal-dump
     title: SIGINT/SIGTERM and explicit dump() at next yield

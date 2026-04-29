@@ -606,8 +606,9 @@ describe("superintendent run command", () => {
       await dispatch(0);
     });
     const renderAcpStreamMock = vi.fn(async (events: AsyncIterable<unknown>) => {
-      for await (const _event of events) {
+      for await (const ignoredEvent of events) {
         // exhaust stream
+        void ignoredEvent;
       }
     });
     const spawnStreamingMock = vi.fn(() =>

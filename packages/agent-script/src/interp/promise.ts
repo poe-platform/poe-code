@@ -4,7 +4,6 @@ import {
   createSandboxPromise,
   isSandboxClosure,
   isSandboxPromise,
-  type SandboxArray,
   type SandboxObject,
   type SandboxValue
 } from "./values.js";

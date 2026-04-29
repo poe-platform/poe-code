@@ -6,7 +6,7 @@ import {
   type TokenVerifier,
   type VerifiedAccessToken,
 } from "./auth.js";
-import { createTestMcpServer, nodeFetch } from "./test-support.js";
+import { nodeFetch } from "./test-support.js";
 
 export { createTestMcpServer, nodeFetch } from "./test-support.js";
 

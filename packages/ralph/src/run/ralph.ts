@@ -26,20 +26,6 @@ import type {
 } from "../types.js";
 import { interpolateVariables } from "../variables/variables.js";
 
-type LockCapableRalphFs = {
-  open(path: string, flags: string): Promise<{
-    close(): Promise<void>;
-    writeFile(
-      data: string,
-      options?: BufferEncoding | { encoding?: BufferEncoding }
-    ): Promise<void>;
-  }>;
-  stat(path: string): Promise<{
-    mtimeMs: number;
-  }>;
-  unlink(path: string): Promise<void>;
-};
-
 class RalphWorkflowStopError extends Error {
   constructor(readonly kind: "failed" | "cancelled" | "fatal") {
     super(`Ralph workflow stopped: ${kind}`);

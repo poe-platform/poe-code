@@ -13,7 +13,6 @@ import type {
 import {
   createAuthStoreClientStore,
   createAuthStoreSessionStore,
-  type OAuthClientStore,
 } from "./auth-store-session-store.js";
 import { createLoopbackAuthorizationSession } from "./loopback-authorization.js";
 import { createAuthorizationState } from "./authorization-state.js";

@@ -83,7 +83,7 @@ describe("makeMcpModule", () => {
 
   it("trims user input for commands and tool names and omits undefined tool args", async () => {
     const callTool = vi.fn(async (params: unknown) => params);
-    const connectMcp = vi.fn(async (server: unknown) => ({
+    const connectMcp = vi.fn(async () => ({
       async listTools() {
         return {
           tools: []

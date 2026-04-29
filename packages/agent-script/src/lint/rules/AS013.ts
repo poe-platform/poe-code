@@ -4,7 +4,6 @@ import {
   type AssignmentPattern,
   type Identifier,
   type MemberExpression,
-  type Module,
   type ObjectPattern,
   type RestElement,
   type SourceSpan,

@@ -13,7 +13,6 @@ import {
   type CatchClause,
   type ConditionalExpression,
   type Expression,
-  type ExpressionStatement,
   type ForOfStatement,
   type ForStatement,
   type Identifier,

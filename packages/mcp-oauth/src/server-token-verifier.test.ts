@@ -174,7 +174,7 @@ describe("createJwksTokenVerifier", () => {
   });
 
   it("tries every matching kid in the JWKS until one verifies the signature", async () => {
-    const { privateKey: wrongPrivateKey, publicKey: wrongPublicKey } = await generateKeyPair("ES256");
+    const { publicKey: wrongPublicKey } = await generateKeyPair("ES256");
     const { privateKey: correctPrivateKey, publicKey: correctPublicKey } = await generateKeyPair("ES256");
     const [wrongPublicJwk, correctPublicJwk] = await Promise.all([
       exportJWK(wrongPublicKey),

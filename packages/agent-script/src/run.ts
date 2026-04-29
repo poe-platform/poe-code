@@ -12,6 +12,7 @@ import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "./interp
 import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
 import { createPromiseGlobals } from "./interp/promise.js";
 import { resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
+import { createSnapshotScheduler } from "./snapshot/scheduler.js";
 
 export type RunOptions = {
   bindings?: Record<string, CallerInjectedBinding>;
@@ -20,6 +21,8 @@ export type RunOptions = {
   randomSeed?: number;
   signal?: AbortSignal;
   snapshot?: AgentScriptSnapshot;
+  snapshotIntervalMs?: number;
+  snapshotPath?: string;
   sink?: ConsoleSink;
 };
 
@@ -40,6 +43,7 @@ export async function run(source: string, options: RunOptions = {}): Promise<Run
     options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
   const budget = options.budget ?? new Budget();
   const module = parseModule(source);
+  const sourceHash = hashSource(source);
   const random = createRandomState(restoredSnapshot, options.randomSeed);
   const callerBindings =
     options.bindings === undefined
@@ -71,24 +75,32 @@ export async function run(source: string, options: RunOptions = {}): Promise<Run
   );
 
   const scope = new Scope(bindings).child(resolveModuleImports(module, options.modules, { budget }));
+  const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
+    snapshotIntervalMs: options.snapshotIntervalMs,
+    snapshotPath: options.snapshotPath
+  });
   const result = await interpret(createExecutableNode(module), {
     budget,
+    onYield: (yieldPoint) => {
+      snapshotScheduler.onYield(() =>
+        createRunSnapshot({
+          bindings: yieldPoint.snapshot.bindings,
+          random,
+          sourceHash
+        })
+      );
+    },
     scope
   });
+  await snapshotScheduler.finish();
 
   return {
     ...result,
-    snapshot: {
-      sourceHash: hashSource(source),
+    snapshot: createRunSnapshot({
       bindings: result.snapshot.bindings,
-      random:
-        random === undefined
-          ? undefined
-          : {
-              seed: random.seed,
-              state: random.generator.snapshot()
-            }
-    }
+      random,
+      sourceHash
+    })
   };
 }
 
@@ -135,5 +147,28 @@ function createExecutableNode(module: Module): ParseResult {
     type: "BlockStatement",
     body: executableStatements,
     span: module.span
+  };
+}
+
+function createRunSnapshot(input: {
+  bindings: InterpreterResult["snapshot"]["bindings"];
+  random:
+    | {
+        seed: number;
+        generator: ReturnType<typeof createSeededRandom>;
+      }
+    | undefined;
+  sourceHash: string;
+}): RunSnapshot {
+  return {
+    sourceHash: input.sourceHash,
+    bindings: input.bindings,
+    random:
+      input.random === undefined
+        ? undefined
+        : {
+            seed: input.random.seed,
+            state: input.random.generator.snapshot()
+          }
   };
 }

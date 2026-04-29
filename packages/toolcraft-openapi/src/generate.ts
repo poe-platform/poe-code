@@ -19,7 +19,6 @@ type OpenApiOperation = OpenApiOperationObject | OpenApiReferenceObject;
 type OpenApiOperationMap = Partial<Record<HttpMethod, OpenApiOperation>>;
 type OpenApiParameterLocation = "path" | "query" | "header" | "cookie";
 type SupportedOpenApiParameterLocation = "path" | "query";
-type ParamKind = "string" | "number" | "boolean" | "enum" | "array";
 type OpenApiScalarType = "string" | "number" | "integer" | "boolean";
 export type GeneratedRequestLocation = Exclude<GeneratedParam["location"], "transport">;
 type FieldSchemaKind = "array" | "object" | "scalar";

@@ -7,6 +7,7 @@ import type {
 } from "../parse.js";
 import type { Budget } from "./budget.js";
 import type { EvaluationResult } from "./exceptions.js";
+import type { InterpreterSnapshot } from "./interpreter.js";
 import type { Scope } from "./scope.js";
 import {
   createSandboxClosure,
@@ -18,6 +19,7 @@ import {
 export type InterpreterYieldPoint = {
   kind: "await";
   nodeId?: number;
+  snapshot: InterpreterSnapshot;
   span: SourceSpan;
 };
 
@@ -93,6 +95,7 @@ export async function evaluateAwaitExpression(
   context.onYield?.({
     kind: "await",
     nodeId: node.nodeId,
+    snapshot: context.scope.snapshot(),
     span: node.span
   });
 

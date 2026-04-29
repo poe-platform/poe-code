@@ -100,7 +100,8 @@ function createLintModules(
   };
 
   if (isRawScript) {
-    const { harness: _harness, ...rawModules } = modules;
+    const { harness: ignoredHarness, ...rawModules } = modules;
+    void ignoredHarness;
     return rawModules;
   }
 

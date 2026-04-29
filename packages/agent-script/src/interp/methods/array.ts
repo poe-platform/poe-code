@@ -1,0 +1,597 @@
+import { Budget } from "../budget.js";
+import {
+  createSandboxClosure,
+  isSandboxClosure,
+  isSandboxPromise,
+  type SandboxArray,
+  type SandboxClosure,
+  type SandboxValue
+} from "../values.js";
+
+const flatArray = Array.prototype.flat as unknown as (
+  this: SandboxArray,
+  depth?: number
+) => SandboxArray;
+
+export type ArrayMethodName =
+  | "map"
+  | "filter"
+  | "find"
+  | "findIndex"
+  | "some"
+  | "every"
+  | "reduce"
+  | "reduceRight"
+  | "forEach"
+  | "flatMap"
+  | "flat"
+  | "includes"
+  | "indexOf"
+  | "lastIndexOf"
+  | "join"
+  | "slice"
+  | "concat"
+  | "sort"
+  | "reverse"
+  | "push"
+  | "pop"
+  | "shift"
+  | "unshift";
+
+export type ArrayMethodOptions = {
+  budget: Budget;
+  callClosure: (
+    closure: SandboxClosure,
+    args: readonly SandboxValue[],
+    stack: readonly string[]
+  ) => Promise<SandboxValue>;
+};
+
+const arrayMethodNames = new Set<ArrayMethodName>([
+  "map",
+  "filter",
+  "find",
+  "findIndex",
+  "some",
+  "every",
+  "reduce",
+  "reduceRight",
+  "forEach",
+  "flatMap",
+  "flat",
+  "includes",
+  "indexOf",
+  "lastIndexOf",
+  "join",
+  "slice",
+  "concat",
+  "sort",
+  "reverse",
+  "push",
+  "pop",
+  "shift",
+  "unshift"
+]);
+
+export function getArrayMember(
+  value: SandboxArray,
+  property: string | number,
+  options: ArrayMethodOptions
+): SandboxValue | undefined {
+  if (property === "length") {
+    return value.length;
+  }
+
+  if (!isArrayMethodName(property)) {
+    return undefined;
+  }
+
+  return createSandboxClosure({
+    name: `Array#${property}`,
+    call: (args, context) => callArrayMethod(value, property, args, options, context?.stack ?? [])
+  });
+}
+
+export function isArrayMethodName(property: string | number): property is ArrayMethodName {
+  return typeof property === "string" && arrayMethodNames.has(property as ArrayMethodName);
+}
+
+export async function callArrayMethod(
+  value: SandboxArray,
+  methodName: ArrayMethodName,
+  args: readonly SandboxValue[],
+  options: ArrayMethodOptions,
+  stack: readonly string[] = []
+): Promise<SandboxValue> {
+  switch (methodName) {
+    case "map":
+      return budgetProducedValue(
+        await mapArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        options.budget
+      );
+    case "filter":
+      return budgetProducedValue(
+        await filterArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        options.budget
+      );
+    case "find":
+      return budgetProducedValue(
+        await findInArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        options.budget
+      );
+    case "findIndex":
+      return await findIndexInArray(value, getRequiredCallback(methodName, args[0]), options, stack);
+    case "some":
+      return await someInArray(value, getRequiredCallback(methodName, args[0]), options, stack);
+    case "every":
+      return await everyInArray(value, getRequiredCallback(methodName, args[0]), options, stack);
+    case "reduce":
+      return budgetProducedValue(
+        await reduceArray(
+          value,
+          getRequiredCallback(methodName, args[0]),
+          args.length > 1,
+          args[1],
+          options,
+          stack
+        ),
+        options.budget
+      );
+    case "reduceRight":
+      return budgetProducedValue(
+        await reduceRightArray(
+          value,
+          getRequiredCallback(methodName, args[0]),
+          args.length > 1,
+          args[1],
+          options,
+          stack
+        ),
+        options.budget
+      );
+    case "forEach":
+      await forEachArray(value, getRequiredCallback(methodName, args[0]), options, stack);
+      return undefined;
+    case "flatMap":
+      return budgetProducedValue(
+        await flatMapArray(value, getRequiredCallback(methodName, args[0]), options, stack),
+        options.budget
+      );
+    case "flat":
+      return budgetProducedValue(flatArray.call(value, asNumberOrUndefined(args[0]) ?? 1), options.budget);
+    case "includes":
+      return Reflect.apply(Array.prototype.includes, value, [...args]);
+    case "indexOf":
+      return Reflect.apply(Array.prototype.indexOf, value, [...args]);
+    case "lastIndexOf":
+      return Reflect.apply(Array.prototype.lastIndexOf, value, [...args]);
+    case "join":
+      return options.budget.allocateString(Reflect.apply(Array.prototype.join, value, [...args]));
+    case "slice":
+      return budgetProducedValue(Reflect.apply(Array.prototype.slice, value, [...args]), options.budget);
+    case "concat":
+      return budgetProducedValue(Reflect.apply(Array.prototype.concat, value, [...args]), options.budget);
+    case "sort":
+      if (args[0] === undefined) {
+        value.sort();
+        budgetProducedValue(value, options.budget);
+        return value;
+      }
+
+      await sortArray(value, getRequiredCallback(methodName, args[0]), options, stack);
+      budgetProducedValue(value, options.budget);
+      return value;
+    case "reverse":
+      value.reverse();
+      budgetProducedValue(value, options.budget);
+      return value;
+    case "push": {
+      const nextLength = value.push(...args);
+      budgetProducedValue(value, options.budget);
+      return nextLength;
+    }
+    case "pop":
+      return budgetProducedValue(value.pop(), options.budget);
+    case "shift":
+      return budgetProducedValue(value.shift(), options.budget);
+    case "unshift": {
+      const nextLength = value.unshift(...args);
+      budgetProducedValue(value, options.budget);
+      return nextLength;
+    }
+  }
+}
+
+function getRequiredCallback(methodName: ArrayMethodName, value: SandboxValue | undefined): SandboxClosure {
+  if (!isSandboxClosure(value)) {
+    throw new TypeError(`Array#${methodName} requires a sandbox closure callback.`);
+  }
+
+  return value;
+}
+
+async function mapArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxArray> {
+  const length = value.length;
+  const result = new Array(length) as SandboxArray;
+
+  for (let index = 0; index < length; index += 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    result[index] = await callArrayCallback(callback, value[index], index, value, options, stack);
+  }
+
+  return result;
+}
+
+async function filterArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxArray> {
+  const length = value.length;
+  const result: SandboxArray = [];
+
+  for (let index = 0; index < length; index += 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    if (await callArrayCallback(callback, value[index], index, value, options, stack)) {
+      result.push(value[index]);
+    }
+  }
+
+  return result;
+}
+
+async function findInArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxValue> {
+  const index = await findIndexInArray(value, callback, options, stack);
+  return index < 0 ? undefined : value[index];
+}
+
+async function findIndexInArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<number> {
+  const length = value.length;
+
+  for (let index = 0; index < length; index += 1) {
+    const entry = index in value ? value[index] : undefined;
+    if (await callArrayCallback(callback, entry, index, value, options, stack)) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+async function someInArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<boolean> {
+  const length = value.length;
+
+  for (let index = 0; index < length; index += 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    if (await callArrayCallback(callback, value[index], index, value, options, stack)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+async function everyInArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<boolean> {
+  const length = value.length;
+
+  for (let index = 0; index < length; index += 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    if (!(await callArrayCallback(callback, value[index], index, value, options, stack))) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+async function reduceArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  hasInitialValue: boolean,
+  initialValue: SandboxValue | undefined,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxValue> {
+  const length = value.length;
+  const start = findNextDefinedIndex(value, 0, 1, length);
+
+  if (hasInitialValue) {
+    return reduceFromLeft(value, callback, initialValue, start, length, options, stack);
+  }
+
+  if (start < 0) {
+    throw new TypeError("Reduce of empty array with no initial value.");
+  }
+
+  return reduceFromLeft(value, callback, value[start], start + 1, length, options, stack);
+}
+
+async function reduceRightArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  hasInitialValue: boolean,
+  initialValue: SandboxValue | undefined,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxValue> {
+  const length = value.length;
+  const start = findNextDefinedIndex(value, length - 1, -1, length);
+
+  if (hasInitialValue) {
+    return reduceFromRight(value, callback, initialValue, start, length, options, stack);
+  }
+
+  if (start < 0) {
+    throw new TypeError("Reduce of empty array with no initial value.");
+  }
+
+  return reduceFromRight(value, callback, value[start], start - 1, length, options, stack);
+}
+
+async function reduceFromLeft(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  accumulator: SandboxValue,
+  startIndex: number,
+  length: number,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxValue> {
+  let current = accumulator;
+
+  for (let index = startIndex; index < length; index += 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    current = await options.callClosure(callback, [current, value[index], index, value], stack);
+  }
+
+  return current;
+}
+
+async function reduceFromRight(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  accumulator: SandboxValue,
+  startIndex: number,
+  length: number,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxValue> {
+  let current = accumulator;
+
+  for (let index = Math.min(startIndex, length - 1); index >= 0; index -= 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    current = await options.callClosure(callback, [current, value[index], index, value], stack);
+  }
+
+  return current;
+}
+
+async function forEachArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<void> {
+  const length = value.length;
+
+  for (let index = 0; index < length; index += 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    await callArrayCallback(callback, value[index], index, value, options, stack);
+  }
+}
+
+async function flatMapArray(
+  value: SandboxArray,
+  callback: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxArray> {
+  const length = value.length;
+  const result: SandboxArray = [];
+
+  for (let index = 0; index < length; index += 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    const mapped = await callArrayCallback(callback, value[index], index, value, options, stack);
+    if (Array.isArray(mapped)) {
+      for (let mappedIndex = 0; mappedIndex < mapped.length; mappedIndex += 1) {
+        if (!(mappedIndex in mapped)) {
+          continue;
+        }
+
+        result.push(mapped[mappedIndex]);
+      }
+
+      continue;
+    }
+
+    result.push(mapped);
+  }
+
+  return result;
+}
+
+async function sortArray(
+  value: SandboxArray,
+  comparator: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<void> {
+  const definedValues: SandboxValue[] = [];
+  let undefinedCount = 0;
+
+  for (let index = 0; index < value.length; index += 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    const entry = value[index];
+    if (entry === undefined) {
+      undefinedCount += 1;
+      continue;
+    }
+
+    definedValues.push(entry);
+  }
+
+  for (let index = 1; index < definedValues.length; index += 1) {
+    const entry = definedValues[index];
+    let cursor = index - 1;
+
+    while (
+      cursor >= 0 &&
+      (await compareEntries(definedValues[cursor], entry, comparator, options, stack)) > 0
+    ) {
+      definedValues[cursor + 1] = definedValues[cursor];
+      cursor -= 1;
+    }
+
+    definedValues[cursor + 1] = entry;
+  }
+
+  for (let index = 0; index < definedValues.length; index += 1) {
+    value[index] = definedValues[index];
+  }
+
+  for (let index = 0; index < undefinedCount; index += 1) {
+    value[definedValues.length + index] = undefined;
+  }
+
+  for (let index = definedValues.length + undefinedCount; index < value.length; index += 1) {
+    delete value[index];
+  }
+}
+
+async function compareEntries(
+  left: SandboxValue,
+  right: SandboxValue,
+  comparator: SandboxClosure,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<number> {
+  const result = Number(await options.callClosure(comparator, [left, right], stack));
+  return Number.isNaN(result) ? 0 : result;
+}
+
+async function callArrayCallback(
+  callback: SandboxClosure,
+  value: SandboxValue,
+  index: number,
+  array: SandboxArray,
+  options: ArrayMethodOptions,
+  stack: readonly string[]
+): Promise<SandboxValue> {
+  return options.callClosure(callback, [value, index, array], stack);
+}
+
+function findNextDefinedIndex(
+  value: SandboxArray,
+  startIndex: number,
+  direction: 1 | -1,
+  length: number
+): number {
+  for (
+    let index = startIndex;
+    direction > 0 ? index < length : index >= 0;
+    index += direction
+  ) {
+    if (index in value) {
+      return index;
+    }
+  }
+
+  return -1;
+}
+
+function budgetProducedValue(value: SandboxValue, budget: Budget): SandboxValue {
+  allocateProducedValue(value, budget, new WeakSet());
+  return value;
+}
+
+function allocateProducedValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {
+  if (typeof value === "string") {
+    budget.allocateString(value);
+    return;
+  }
+
+  if (Array.isArray(value)) {
+    budget.allocateArrayLength(value.length);
+
+    if (seen.has(value)) {
+      return;
+    }
+
+    seen.add(value);
+    for (const entry of value) {
+      allocateProducedValue(entry, budget, seen);
+    }
+
+    return;
+  }
+
+  if (typeof value !== "object" || value === null || isSandboxClosure(value) || isSandboxPromise(value)) {
+    return;
+  }
+
+  if (seen.has(value)) {
+    return;
+  }
+
+  seen.add(value);
+  for (const entry of Object.values(value)) {
+    allocateProducedValue(entry, budget, seen);
+  }
+}
+
+function asNumberOrUndefined(value: SandboxValue | undefined): number | undefined {
+  return value === undefined ? undefined : Number(value);
+}

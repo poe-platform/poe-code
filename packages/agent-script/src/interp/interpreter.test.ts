@@ -5,6 +5,7 @@ import { Budget, SandboxError } from "./budget.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
 import { createMathGlobals, createSeededRandom } from "./globals/math.js";
 import { interpret, Scope } from "./interpreter.js";
+import { createSandboxClosure } from "./values.js";
 
 describe("interpret", () => {
   it("evaluates primitive literals and returns stats plus a snapshot", async () => {
@@ -335,6 +336,75 @@ describe("interpret", () => {
       })
     ).rejects.toThrow(
       "String#replaceAll does not support function replacers or regex search values."
+    );
+  });
+
+  it("evaluates intercepted array members and methods through member expressions", async () => {
+    await expect(
+      interpret(parse("return values.length"), {
+        bindings: {
+          values: [1, 2, 3]
+        }
+      })
+    ).resolves.toEqual({
+      ok: true,
+      returnValue: 3,
+      snapshot: {
+        bindings: {
+          values: [1, 2, 3]
+        }
+      },
+      stats: {
+        nodeVisits: 3
+      }
+    });
+
+    await expect(
+      interpret(parse("return values.map(double)"), {
+        bindings: {
+          values: [1, 2, 3],
+          double: createSandboxClosure({
+            call: ([value]) => Number(value) * 2,
+            name: "double"
+          })
+        }
+      })
+    ).resolves.toEqual({
+      ok: true,
+      returnValue: [2, 4, 6],
+      snapshot: {
+        bindings: {
+          values: [1, 2, 3],
+          double: expect.any(Object)
+        }
+      },
+      stats: {
+        nodeVisits: 5
+      }
+    });
+  });
+
+  it("re-enters callback closures under the same budget for intercepted array methods", async () => {
+    await expect(
+      interpret(parse("return values.map(identity)"), {
+        bindings: {
+          values: [1],
+          identity: createSandboxClosure({
+            call: ([value]) => value,
+            name: "identity"
+          })
+        },
+        budget: new Budget({
+          maxCallDepth: 1
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        budget: "callDepth",
+        current: 2,
+        limit: 1
+      } satisfies Partial<SandboxError>)
     );
   });
 

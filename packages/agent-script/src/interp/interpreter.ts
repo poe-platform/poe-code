@@ -18,6 +18,13 @@ import type {
 } from "../parse.js";
 import { Budget } from "./budget.js";
 import {
+  callArrayMethod,
+  getArrayMember,
+  isArrayMethodName,
+  type ArrayMethodName,
+  type ArrayMethodOptions
+} from "./methods/array.js";
+import {
   callStringMethod,
   getStringMember,
   isStringMethodName,
@@ -318,6 +325,17 @@ async function evaluateMemberExpression(
     };
   }
 
+  if (Array.isArray(member.object)) {
+    const arrayMember = getArrayMember(member.object, member.property, createArrayMethodOptions(context));
+    if (arrayMember !== undefined) {
+      return {
+        kind: "normal",
+        hasValue: true,
+        value: arrayMember
+      };
+    }
+  }
+
   if (!isIndexableSandboxValue(member.object)) {
     throw new TypeError("Attempted to read a property from a non-object value.");
   }
@@ -473,6 +491,10 @@ async function evaluateMemberCallExpression(
     return evaluateStringMethodCall(node, member.object, member.property, context);
   }
 
+  if (Array.isArray(member.object) && isArrayMethodName(member.property)) {
+    return evaluateArrayMethodCall(node, member.object, member.property, context);
+  }
+
   if (typeof member.object === "string") {
     return evaluateResolvedCallExpression(
       node,
@@ -515,6 +537,39 @@ async function evaluateStringMethodCall(
       kind: "normal",
       hasValue: true,
       value: callStringMethod(target, methodName, args.value, context.budget)
+    };
+  } finally {
+    leaveCall();
+  }
+}
+
+async function evaluateArrayMethodCall(
+  node: CallExpression,
+  target: SandboxArray,
+  methodName: ArrayMethodName,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const args = await evaluateCallArguments(node.arguments, context);
+  if (!args.ok) {
+    return {
+      kind: "error",
+      error: args.error
+    };
+  }
+
+  const leaveCall = context.budget.enterCall();
+
+  try {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: await callArrayMethod(
+        target,
+        methodName,
+        args.value,
+        createArrayMethodOptions(context),
+        context.callStack
+      )
     };
   } finally {
     leaveCall();
@@ -591,27 +646,41 @@ async function evaluateResolvedCallExpression(
     };
   }
 
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: await invokeSandboxClosure(callee, args.value, context, [
+      ...context.callStack,
+      formatStackFrame(node, callee.name)
+    ])
+  };
+}
+
+function createArrayMethodOptions(context: EvaluationContext): ArrayMethodOptions {
+  return {
+    budget: context.budget,
+    callClosure: (
+      closure: Extract<InterpreterValue, { kind: "fn" }>,
+      args: readonly SandboxValue[],
+      stack: readonly string[]
+    ) => invokeSandboxClosure(closure, args, context, stack)
+  };
+}
+
+async function invokeSandboxClosure(
+  callee: Extract<InterpreterValue, { kind: "fn" }>,
+  args: readonly SandboxValue[],
+  context: EvaluationContext,
+  stack: readonly string[]
+): Promise<SandboxValue> {
   const leaveCall = context.budget.enterCall();
-  const stack = [...context.callStack, formatStackFrame(node, callee.name)];
 
   try {
-    const result = await callee.call(args.value, {
+    const result = await callee.call(args, {
       stack
     });
 
-    if (isSandboxPromise(result)) {
-      return {
-        kind: "normal",
-        hasValue: true,
-        value: await result.promise
-      };
-    }
-
-    return {
-      kind: "normal",
-      hasValue: true,
-      value: result
-    };
+    return isSandboxPromise(result) ? await result.promise : result;
   } finally {
     leaveCall();
   }

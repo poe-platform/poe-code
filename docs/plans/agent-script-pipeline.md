@@ -522,8 +522,9 @@ tasks:
       callbacks re-enter the interpreter under the same budget.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-number-methods
     title: Number prototype method interception

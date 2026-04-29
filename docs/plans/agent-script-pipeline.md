@@ -354,7 +354,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as015-promise-race-single
@@ -365,8 +365,9 @@ tasks:
       iterable literal. Hint suggests `await` instead.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-driver-and-types
     title: Lint driver, diagnostic shape, and CLI export

@@ -218,6 +218,48 @@ describe("@poe-code/agent-script public exports", () => {
     ]);
   });
 
+  it("includes single-element Promise.race diagnostics in lint results", () => {
+    const source = "const result = Promise.race([runTask()]);";
+
+    expect(lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS015")).toEqual([
+      {
+        code: "AS015",
+        severity: "warning",
+        message: "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
+        filename: "rule.js",
+        line: 1,
+        column: 16,
+        span: {
+          start: { line: 1, column: 16, offset: source.indexOf("Promise.race") },
+          end: { line: 1, column: 41, offset: source.indexOf("Promise.race([runTask()])") + "Promise.race([runTask()])".length }
+        }
+      }
+    ]);
+  });
+
+  it("includes single-element Promise['race'] diagnostics in lint results", () => {
+    const source = 'const result = Promise["race"]([runTask()]);';
+
+    expect(lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS015")).toEqual([
+      {
+        code: "AS015",
+        severity: "warning",
+        message: "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
+        filename: "rule.js",
+        line: 1,
+        column: 16,
+        span: {
+          start: { line: 1, column: 16, offset: source.indexOf('Promise["race"]') },
+          end: {
+            line: 1,
+            column: 44,
+            offset: source.indexOf('Promise["race"]([runTask()])') + 'Promise["race"]([runTask()])'.length
+          }
+        }
+      }
+    ]);
+  });
+
   it("includes cyclic import diagnostics for source-backed modules", () => {
     const alphaSource = ['import { run } from "beta";', "const start = () => run();"].join("\n");
     const betaSource = ['import { start } from "alpha";', "const run = () => start();"].join("\n");

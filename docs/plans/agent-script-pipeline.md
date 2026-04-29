@@ -652,7 +652,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: module-harness
@@ -666,8 +666,9 @@ tasks:
       the harness's own state.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: module-git
     title: makeGitModule factory (head/checkpoint/commit/revert/diff)

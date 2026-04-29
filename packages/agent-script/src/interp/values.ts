@@ -145,7 +145,7 @@ function copyToSandbox(value: unknown, state: CopyState<SandboxValue>, path = "<
     state.seen.set(value, copy);
 
     for (const entry of getEnumerableObjectEntries(value, path)) {
-      copy[entry.key] = copyToSandbox(entry.value, state, joinPath(path, entry.key));
+      defineOwnDataProperty(copy, entry.key, copyToSandbox(entry.value, state, joinPath(path, entry.key)));
     }
 
     return copy;
@@ -213,7 +213,11 @@ function copyFromSandbox(
     state.seen.set(value, copy);
 
     for (const entry of getEnumerableObjectEntries(value, path)) {
-      copy[entry.key] = copyFromSandbox(entry.value, state, joinPath(path, entry.key), options);
+      defineOwnDataProperty(
+        copy,
+        entry.key,
+        copyFromSandbox(entry.value, state, joinPath(path, entry.key), options)
+      );
     }
 
     return copy;
@@ -245,6 +249,15 @@ function isPlainArray(value: unknown): value is unknown[] {
 
 function createPlainObject(useNullPrototype: boolean): SandboxObject {
   return (useNullPrototype ? Object.create(null) : {}) as SandboxObject;
+}
+
+function defineOwnDataProperty(target: object, key: string, value: unknown): void {
+  Object.defineProperty(target, key, {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  });
 }
 
 function getEnumerableObjectEntries<TValue>(

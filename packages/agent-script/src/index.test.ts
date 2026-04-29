@@ -5,6 +5,7 @@ import { dump } from "./dump.js";
 import { lint } from "./lint.js";
 import { lint as lintFromIndex } from "./lint/index.js";
 import { makeAgentModule } from "./modules/agent.js";
+import { makeHarnessModule } from "./modules/harness.js";
 import { parse } from "./parse.js";
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
@@ -19,10 +20,12 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.dump).toBe(dump);
     expect(api.restore).toBe(restore);
     expect(api.makeAgentModule).toBe(makeAgentModule);
+    expect(api.makeHarnessModule).toBe(makeHarnessModule);
     expect(Object.keys(api).sort()).toEqual([
       "dump",
       "lint",
       "makeAgentModule",
+      "makeHarnessModule",
       "parse",
       "restore",
       "run"

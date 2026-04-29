@@ -4,3 +4,4 @@ export { run } from "./run.js";
 export { dump } from "./dump.js";
 export { restore } from "./restore.js";
 export { makeAgentModule } from "./modules/agent.js";
+export { makeHarnessModule } from "./modules/harness.js";

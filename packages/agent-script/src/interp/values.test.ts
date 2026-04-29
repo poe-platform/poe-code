@@ -82,6 +82,35 @@ describe("sandbox values", () => {
     });
   });
 
+  it("preserves own __proto__ keys as data in both directions", () => {
+    const source = {
+      safe: 1
+    } as Record<string, unknown>;
+
+    Object.defineProperty(source, "__proto__", {
+      enumerable: true,
+      value: {
+        polluted: true
+      }
+    });
+
+    const sandboxCopy = deepCopyToSandbox(source);
+    const hostCopy = deepCopyFromSandbox(sandboxCopy) as Record<string, unknown>;
+
+    expect(Object.hasOwn(sandboxCopy, "__proto__")).toBe(true);
+    expect(sandboxCopy.__proto__).toEqual({
+      polluted: true
+    });
+    expect(Object.getPrototypeOf(sandboxCopy)).toBe(Object.prototype);
+
+    expect(Object.hasOwn(hostCopy, "__proto__")).toBe(true);
+    expect(hostCopy.__proto__).toEqual({
+      polluted: true
+    });
+    expect(Object.getPrototypeOf(hostCopy)).toBe(Object.prototype);
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined();
+  });
+
   it("preserves shared references and cycles when copying to sandbox", () => {
     const shared = {
       answer: 42

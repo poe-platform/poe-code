@@ -1,0 +1,360 @@
+import { describe, expect, it } from "vitest";
+
+import { hashSource } from "../parse/hash.js";
+import { serialize } from "./serialize.js";
+
+describe("serialize", () => {
+  it("serializes resumable interpreter state without host references", () => {
+    const source = "await task()";
+    const hostPromise = Promise.resolve("done");
+
+    expect(
+      serialize({
+        source,
+        currentAstNodeId: 42,
+        scopeChain: [
+          {
+            id: 1,
+            bindings: {
+              answer: 42,
+              callback: {
+                kind: "fn",
+                astNodeId: 11,
+                capturedScopeId: 1,
+                call: () => 42
+              },
+              pending: {
+                kind: "promise",
+                id: 7,
+                promise: hostPromise,
+                moduleId: "git"
+              }
+            }
+          },
+          {
+            id: 2,
+            parentId: 1,
+            bindings: {
+              nested: {
+                items: [
+                  "ok",
+                  {
+                    kind: "fn",
+                    astNodeId: 12,
+                    capturedScopeId: 2,
+                    call: () => "nested"
+                  }
+                ]
+              }
+            }
+          }
+        ],
+        callStack: [
+          {
+            astNodeId: 11,
+            scopeId: 1
+          },
+          {
+            astNodeId: 42,
+            scopeId: 2,
+            awaitingPromiseId: 7
+          }
+        ],
+        pendingPromises: [
+          {
+            id: 7,
+            promise: hostPromise,
+            moduleId: "git",
+            operation: "commit",
+            context: {
+              attempt: 1
+            }
+          }
+        ],
+        moduleBindings: {
+          git: "git",
+          log: "log"
+        }
+      })
+    ).toEqual({
+      sourceHash: hashSource(source),
+      currentAstNodeId: 42,
+      scopeChain: [
+        {
+          id: 1,
+          bindings: {
+            answer: 42,
+            callback: {
+              kind: "fn",
+              astNodeId: 11,
+              capturedScopeId: 1
+            },
+            pending: {
+              kind: "promise",
+              id: 7
+            }
+          }
+        },
+        {
+          id: 2,
+          parentId: 1,
+          bindings: {
+            nested: {
+              items: [
+                "ok",
+                {
+                  kind: "fn",
+                  astNodeId: 12,
+                  capturedScopeId: 2
+                }
+              ]
+            }
+          }
+        }
+      ],
+      callStack: [
+        {
+          astNodeId: 11,
+          scopeId: 1
+        },
+        {
+          astNodeId: 42,
+          scopeId: 2,
+          awaitingPromiseId: 7
+        }
+      ],
+      pendingPromises: [
+        {
+          id: 7,
+          moduleId: "git",
+          operation: "commit",
+          context: {
+            attempt: 1
+          }
+        }
+      ],
+      moduleBindings: {
+        git: "git",
+        log: "log"
+      }
+    });
+  });
+
+  it("rejects host references captured in serialized values", () => {
+    expect(() =>
+      serialize({
+        source: "await task()",
+        currentAstNodeId: 1,
+        scopeChain: [
+          {
+            id: 1,
+            bindings: {
+              bad: () => "host"
+            }
+          }
+        ],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {}
+      })
+    ).toThrowError("Cannot serialize host reference at scopeChain[0].bindings.bad.");
+  });
+
+  it("serializes undefined, non-finite numbers, null-prototype objects, and string ids", () => {
+    const source = "await task()";
+
+    expect(
+      serialize({
+        source,
+        currentAstNodeId: 9,
+        scopeChain: [
+          {
+            id: "root",
+            bindings: {
+              nil: undefined,
+              nan: Number.NaN,
+              infinity: Number.POSITIVE_INFINITY,
+              negativeInfinity: Number.NEGATIVE_INFINITY,
+              plain: Object.assign(Object.create(null) as Record<string, unknown>, {
+                answer: 42
+              }),
+              closure: {
+                kind: "fn",
+                astNodeId: 3,
+                capturedScopeId: "root",
+                call: () => undefined
+              },
+              pending: {
+                kind: "promise",
+                id: "promise-1",
+                promise: Promise.resolve("ignored")
+              }
+            }
+          }
+        ],
+        callStack: [
+          {
+            astNodeId: 9,
+            scopeId: "root",
+            awaitingPromiseId: "promise-1"
+          }
+        ],
+        pendingPromises: [
+          {
+            id: "promise-1",
+            state: "pending",
+            result: undefined
+          }
+        ],
+        moduleBindings: {
+          time: "time"
+        }
+      })
+    ).toEqual({
+      sourceHash: hashSource(source),
+      currentAstNodeId: 9,
+      scopeChain: [
+        {
+          id: "root",
+          bindings: {
+            nil: {
+              kind: "undefined"
+            },
+            nan: {
+              kind: "number",
+              value: "NaN"
+            },
+            infinity: {
+              kind: "number",
+              value: "Infinity"
+            },
+            negativeInfinity: {
+              kind: "number",
+              value: "-Infinity"
+            },
+            plain: Object.assign(Object.create(null) as Record<string, unknown>, {
+              answer: 42
+            }),
+            closure: {
+              kind: "fn",
+              astNodeId: 3,
+              capturedScopeId: "root"
+            },
+            pending: {
+              kind: "promise",
+              id: "promise-1"
+            }
+          }
+        }
+      ],
+      callStack: [
+        {
+          astNodeId: 9,
+          scopeId: "root",
+          awaitingPromiseId: "promise-1"
+        }
+      ],
+      pendingPromises: [
+        {
+          id: "promise-1",
+          state: "pending",
+          result: {
+            kind: "undefined"
+          }
+        }
+      ],
+      moduleBindings: {
+        time: "time"
+      }
+    });
+  });
+
+  it("copies stack and module metadata without retaining caller-owned references", () => {
+    const callStack = [
+      {
+        astNodeId: 1,
+        scopeId: "scope-1",
+        awaitingPromiseId: "promise-1"
+      }
+    ];
+    const moduleBindings = {
+      env: "env"
+    };
+
+    const snapshot = serialize({
+      source: "await env.get()",
+      currentAstNodeId: 1,
+      scopeChain: [
+        {
+          id: "scope-1",
+          bindings: {}
+        }
+      ],
+      callStack,
+      pendingPromises: [],
+      moduleBindings
+    });
+
+    callStack[0].scopeId = "mutated";
+    moduleBindings.env = "mutated";
+
+    expect(snapshot.callStack).toEqual([
+      {
+        astNodeId: 1,
+        scopeId: "scope-1",
+        awaitingPromiseId: "promise-1"
+      }
+    ]);
+    expect(snapshot.moduleBindings).toEqual({
+      env: "env"
+    });
+  });
+
+  it("rejects host references nested inside pending promise metadata", () => {
+    expect(() =>
+      serialize({
+        source: "await task()",
+        currentAstNodeId: 1,
+        scopeChain: [
+          {
+            id: 1,
+            bindings: {}
+          }
+        ],
+        callStack: [],
+        pendingPromises: [
+          {
+            id: 7,
+            metadata: {
+              bad: new Map([["x", 1]])
+            }
+          }
+        ],
+        moduleBindings: {}
+      })
+    ).toThrowError("Cannot serialize host reference at pendingPromises[0].metadata.bad.");
+  });
+
+  it("rejects cyclic values with a stable path instead of overflowing the stack", () => {
+    const cyclic = { nested: {} as Record<string, unknown> };
+    cyclic.nested.self = cyclic;
+
+    expect(() =>
+      serialize({
+        source: "await task()",
+        currentAstNodeId: 1,
+        scopeChain: [
+          {
+            id: 1,
+            bindings: {
+              cyclic
+            }
+          }
+        ],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {}
+      })
+    ).toThrowError("Cannot serialize cyclic value at scopeChain[0].bindings.cyclic.nested.self.");
+  });
+});

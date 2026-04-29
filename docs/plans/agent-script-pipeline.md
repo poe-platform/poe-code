@@ -779,8 +779,9 @@ tasks:
       name → moduleId. No host references serialized.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: snapshot-restore
     title: Restore interpreter state from a snapshot

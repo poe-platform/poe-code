@@ -607,7 +607,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: host-callback-rewrap
@@ -621,8 +621,9 @@ tasks:
       calls back twice.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: module-registry
     title: Module registry and import binding

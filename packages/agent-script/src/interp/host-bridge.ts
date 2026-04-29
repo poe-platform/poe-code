@@ -1,3 +1,4 @@
+import { normalizeClosureResult } from "./async.js";
 import type { Budget } from "./budget.js";
 import { createSubsetErrorValue } from "./exceptions.js";
 import {
@@ -5,6 +6,9 @@ import {
   createSandboxPromise,
   deepCopyFromSandbox,
   deepCopyToSandbox,
+  isSandboxClosure,
+  isSandboxPromise,
+  type SandboxClosure,
   type SandboxObject,
   type SandboxValue
 } from "./values.js";
@@ -38,11 +42,16 @@ function wrapCallerInjectedValue(
     ...(isAsyncFunction(value) ? { async: true as const } : {}),
     call: (args, context) => {
       try {
-        const hostArgs = args.map((arg) => deepCopyFromSandbox(arg));
+        const stackFrames = context?.stack ?? [];
+        const hostArgs = args.map((arg) =>
+          deepCopyFromSandbox(arg, {
+            wrapClosure: (closure) => wrapSandboxClosureForHost(closure, stackFrames, budget)
+          })
+        );
 
         return copyHostResultToSandbox(
           Reflect.apply(value, undefined, hostArgs),
-          context?.stack ?? [],
+          stackFrames,
           budget
         );
       } catch (error) {
@@ -91,6 +100,69 @@ function createHostErrorValue(
     stackFrames,
     budget
   );
+}
+
+function wrapSandboxClosureForHost(
+  closure: SandboxClosure,
+  stackFrames: readonly string[],
+  budget: Budget
+): (...args: readonly unknown[]) => Promise<unknown> {
+  return async (...args) => {
+    const leaveCall = budget.enterCall();
+    const wrapClosure = (nestedClosure: SandboxClosure) =>
+      wrapSandboxClosureForHost(nestedClosure, stackFrames, budget);
+
+    try {
+      const sandboxArgs = args.map((arg) => deepCopyToSandbox(arg));
+      let result: ReturnType<SandboxClosure["call"]>;
+      try {
+        result = closure.call(sandboxArgs, {
+          stack: stackFrames
+        });
+      } catch (error) {
+        if (isSandboxLikeValue(error)) {
+          throw deepCopyFromSandbox(error, {
+            wrapClosure
+          });
+        }
+
+        throw error;
+      }
+
+      return await (deepCopyFromSandbox(normalizeClosureResult(result), {
+        wrapClosure
+      }) as Promise<unknown>);
+    } finally {
+      leaveCall();
+    }
+  };
+}
+
+function isSandboxLikeValue(value: unknown): value is SandboxValue {
+  if (
+    value === null ||
+    value === undefined ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return true;
+  }
+
+  if (isSandboxClosure(value) || isSandboxPromise(value)) {
+    return true;
+  }
+
+  if (Array.isArray(value)) {
+    return Object.getPrototypeOf(value) === Array.prototype;
+  }
+
+  if (typeof value !== "object") {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }
 
 function isAsyncFunction(value: (...args: readonly unknown[]) => unknown): boolean {

@@ -4,6 +4,7 @@ import { Budget } from "./budget.js";
 import { wrapCallerInjectedBindings } from "./host-bridge.js";
 import {
   createSandboxClosure,
+  createSandboxPromise,
   deepCopyToSandbox,
   isSandboxPromise,
   type SandboxClosure,
@@ -132,11 +133,90 @@ describe("host bridge", () => {
     });
   });
 
-  it("converts sandbox argument copy failures into subset errors with sandbox-only stacks", () => {
+  it("wraps sandbox callbacks passed into host calls and re-enters them under the same budget", async () => {
+    const budget = new Budget({
+      maxSteps: 1
+    });
     const wrapped = wrapCallerInjectedBindings(
       {
-        inspect(value: unknown) {
-          return value;
+        async inspect(callback: (value: number) => Promise<number>) {
+          const first = await callback(1);
+
+          try {
+            await callback(2);
+            return {
+              first,
+              second: "ok"
+            };
+          } catch (error) {
+            return {
+              first,
+              second:
+                error instanceof Error
+                  ? {
+                      budget: "budget" in error ? error.budget : undefined,
+                      current: "current" in error ? error.current : undefined,
+                      limit: "limit" in error ? error.limit : undefined,
+                      message: error.message,
+                      name: error.name
+                    }
+                  : error
+            };
+          }
+        }
+      },
+      {
+        budget
+      }
+    ).inspect as SandboxClosure;
+
+    const result = wrapped.call(
+      [
+        createSandboxClosure({
+          async: true,
+          call: ([value]) => {
+            budget.visitNode();
+            return value;
+          },
+          name: "callback"
+        })
+      ],
+      {
+        stack: ["    at inspect (line 1, column 7)"]
+      }
+    );
+
+    expect(isSandboxPromise(result)).toBe(true);
+    await expect(result.promise).resolves.toEqual({
+      first: 1,
+      second: {
+        budget: "steps",
+        current: 2,
+        limit: 1,
+        message: "Sandbox budget exceeded for steps: 2 > 1.",
+        name: "SandboxError"
+      }
+    });
+  });
+
+  it("copies callback rejection reasons back to host values, including nested closures", async () => {
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        async inspect(callback: (value: number) => Promise<unknown>) {
+          try {
+            await callback(1);
+            return "ok";
+          } catch (error) {
+            const retry = (error as { retry?: unknown }).retry;
+
+            return {
+              retryType: typeof retry,
+              retried:
+                typeof retry === "function"
+                  ? await (retry as (value: number) => Promise<number>)(3)
+                  : null
+            };
+          }
         }
       },
       {
@@ -144,29 +224,28 @@ describe("host bridge", () => {
       }
     ).inspect as SandboxClosure;
 
-    try {
-      wrapped.call(
-        [
-          createSandboxClosure({
-            call: () => undefined,
-            name: "callback"
-          })
-        ],
-        {
-          stack: ["    at inspect (line 1, column 7)"]
-        }
-      );
-      expect.unreachable("expected throw");
-    } catch (error) {
-      expect(error).toEqual({
-        name: "TypeError",
-        message: "Sandbox closures cannot cross into host values without an explicit wrapper.",
-        stack:
-          "TypeError: Sandbox closures cannot cross into host values without an explicit wrapper.\n" +
-          "    at inspect (line 1, column 7)"
-      });
-      expect((error as { stack: string }).stack).not.toContain("host-bridge.test.ts");
-    }
+    const result = wrapped.call([
+      createSandboxClosure({
+        async: true,
+        call: () =>
+          createSandboxPromise(
+            Promise.reject({
+              retry: createSandboxClosure({
+                async: true,
+                call: ([value]) => value,
+                name: "retry"
+              })
+            })
+          ),
+        name: "callback"
+      })
+    ]);
+
+    expect(isSandboxPromise(result)).toBe(true);
+    await expect(result.promise).resolves.toEqual({
+      retryType: "function",
+      retried: 3
+    });
   });
 
   it("converts async copy failures into subset errors when host results cannot enter sandbox space", async () => {

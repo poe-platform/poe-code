@@ -29,6 +29,10 @@ export type SandboxPromise = {
   readonly [sandboxPromiseBrand]: true;
 };
 
+type CopyFromSandboxOptions = {
+  wrapClosure?: (value: SandboxClosure) => unknown;
+};
+
 type CopyState<TValue> = {
   seen: WeakMap<object, TValue>;
 };
@@ -81,12 +85,20 @@ export function deepCopyToSandbox(value: unknown): SandboxValue {
   });
 }
 
-export function deepCopyFromSandbox(value: SandboxPromise): Promise<unknown>;
-export function deepCopyFromSandbox(value: SandboxValue): unknown;
-export function deepCopyFromSandbox(value: SandboxValue): unknown {
-  return copyFromSandbox(value, {
-    seen: new WeakMap()
-  });
+export function deepCopyFromSandbox(
+  value: SandboxPromise,
+  options?: CopyFromSandboxOptions
+): Promise<unknown>;
+export function deepCopyFromSandbox(value: SandboxValue, options?: CopyFromSandboxOptions): unknown;
+export function deepCopyFromSandbox(value: SandboxValue, options: CopyFromSandboxOptions = {}): unknown {
+  return copyFromSandbox(
+    value,
+    {
+      seen: new WeakMap()
+    },
+    "<root>",
+    options
+  );
 }
 
 function copyToSandbox(value: unknown, state: CopyState<SandboxValue>, path = "<root>"): SandboxValue {
@@ -142,19 +154,36 @@ function copyToSandbox(value: unknown, state: CopyState<SandboxValue>, path = "<
   throw new TypeError(`Unsupported sandbox value at ${path}: ${describeValue(value)}`);
 }
 
-function copyFromSandbox(value: SandboxValue, state: CopyState<unknown>, path = "<root>"): unknown {
+function copyFromSandbox(
+  value: SandboxValue,
+  state: CopyState<unknown>,
+  path = "<root>",
+  options: CopyFromSandboxOptions
+): unknown {
   if (isSandboxPrimitive(value)) {
     return value;
   }
 
   if (isSandboxClosure(value)) {
-    throw new TypeError("Sandbox closures cannot cross into host values without an explicit wrapper.");
+    if (options.wrapClosure === undefined) {
+      throw new TypeError("Sandbox closures cannot cross into host values without an explicit wrapper.");
+    }
+
+    const existing = state.seen.get(value);
+    if (existing !== undefined) {
+      return existing;
+    }
+
+    const wrapped = options.wrapClosure(value);
+    state.seen.set(value, wrapped);
+    return wrapped;
   }
 
   if (isSandboxPromise(value)) {
     return value.promise.then(
-      (resolved) => copyFromSandbox(resolved, { seen: new WeakMap() }),
-      (reason: SandboxValue) => Promise.reject(copyFromSandbox(reason, { seen: new WeakMap() }))
+      (resolved) => copyFromSandbox(resolved, { seen: new WeakMap() }, "<root>", options),
+      (reason: SandboxValue) =>
+        Promise.reject(copyFromSandbox(reason, { seen: new WeakMap() }, "<root>", options))
     );
   }
 
@@ -168,7 +197,7 @@ function copyFromSandbox(value: SandboxValue, state: CopyState<unknown>, path = 
     state.seen.set(value, copy);
 
     for (const entry of getEnumerableArrayEntries(value, path)) {
-      copy[entry.index] = copyFromSandbox(entry.value, state, `${path}[${entry.index}]`);
+      copy[entry.index] = copyFromSandbox(entry.value, state, `${path}[${entry.index}]`, options);
     }
 
     return copy;
@@ -184,7 +213,7 @@ function copyFromSandbox(value: SandboxValue, state: CopyState<unknown>, path = 
     state.seen.set(value, copy);
 
     for (const entry of getEnumerableObjectEntries(value, path)) {
-      copy[entry.key] = copyFromSandbox(entry.value, state, joinPath(path, entry.key));
+      copy[entry.key] = copyFromSandbox(entry.value, state, joinPath(path, entry.key), options);
     }
 
     return copy;

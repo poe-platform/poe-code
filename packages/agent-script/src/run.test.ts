@@ -207,27 +207,25 @@ try {
     expect((result.ok ? result.returnValue : "") as string).not.toContain("run.test.ts");
   });
 
-  it("converts caller-injected argument copy failures into subset errors through run()", async () => {
+  it("wraps caller-injected callback arguments so host code can await them repeatedly", async () => {
+    const host = vi.fn(async (callback: (value: number) => Promise<number>) => [
+      await callback(1),
+      await callback(2)
+    ]);
     const result = await run(
-      "try { inspect(async () => 1); } catch ({ name, message, stack }) { return JSON.stringify(Array.of(name, message, stack)); }",
+      "return await inspect(async (value) => value)",
       {
         bindings: {
-          inspect() {
-            return "ok";
-          }
+          inspect: host
         }
       }
     );
 
     expect(result).toMatchObject({
       ok: true,
-      returnValue: JSON.stringify([
-        "TypeError",
-        "Sandbox closures cannot cross into host values without an explicit wrapper.",
-        "TypeError: Sandbox closures cannot cross into host values without an explicit wrapper.\n    at inspect (line 1, column 7)"
-      ])
+      returnValue: [1, 2]
     });
-    expect((result.ok ? result.returnValue : "") as string).not.toContain("run.test.ts");
+    expect(host).toHaveBeenCalledTimes(1);
   });
 
   it("treats async caller-injected host functions as subset promises with copied values", async () => {

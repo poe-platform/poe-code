@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { extname } from "node:path";
 
 import { extractBlock } from "../loader/extract-block.js";
 import { splitFrontmatter } from "../loader/frontmatter.js";
@@ -29,19 +30,14 @@ export class LintError extends Error {
 }
 
 export async function runHarness(filepath: string, options: RunHarnessOptions): Promise<RunResult> {
-  const markdown = await readFile(filepath, "utf8");
-  const normalizedMarkdown = stripByteOrderMark(markdown);
-  const { frontmatter, body } = splitFrontmatter(normalizedMarkdown);
-  const { source, lineOffset } = extractBlock(body);
-  const absoluteLineOffset =
-    countLineBreaks(normalizedMarkdown.slice(0, normalizedMarkdown.length - body.length)) + lineOffset;
-  const executableSource = createLineOffsetSource(source, absoluteLineOffset);
+  const rawSource = stripByteOrderMark(await readFile(filepath, "utf8"));
+  const { executableSource, frontmatter, isRawScript } = loadExecutableSource(filepath, rawSource);
   const meta = {
     filepath,
     kind: frontmatter.kind,
     version: frontmatter.version
   };
-  const modules = options.modulesFor(frontmatter, meta);
+  const modules = excludeHarnessModule(options.modulesFor(frontmatter, meta), isRawScript);
   const diagnostics = lint(executableSource, {
     filename: filepath,
     modules: createLintModules(modules)
@@ -57,6 +53,52 @@ export async function runHarness(filepath: string, options: RunHarnessOptions): 
     signal: options.signal,
     snapshotPath: options.snapshotPath
   });
+}
+
+function loadExecutableSource(filepath: string, source: string): {
+  executableSource: string;
+  frontmatter: Record<string, unknown>;
+  isRawScript: boolean;
+} {
+  if (extname(filepath) === ".ajs") {
+    return {
+      executableSource: source,
+      frontmatter: {},
+      isRawScript: true
+    };
+  }
+
+  const { frontmatter, body } = splitFrontmatter(source);
+  const { source: executableBlock, lineOffset } = extractBlock(body);
+  const absoluteLineOffset = countLineBreaks(source.slice(0, source.length - body.length)) + lineOffset;
+
+  return {
+    executableSource: createLineOffsetSource(executableBlock, absoluteLineOffset),
+    frontmatter,
+    isRawScript: false
+  };
+}
+
+function excludeHarnessModule(modules: ModuleRegistry, isRawScript: boolean): ModuleRegistry {
+  if (!isRawScript) {
+    return modules;
+  }
+
+  if (modules instanceof Map) {
+    const rawModules = new Map(modules);
+    rawModules.delete("harness");
+    return rawModules;
+  }
+
+  const rawModules: Record<string, ModuleExports> = {};
+
+  for (const [moduleName, moduleExports] of Object.entries(modules)) {
+    if (moduleName !== "harness") {
+      rawModules[moduleName] = moduleExports;
+    }
+  }
+
+  return rawModules;
 }
 
 function createLintModules(modules: ModuleRegistry): NonNullable<LintOptions["modules"]> {

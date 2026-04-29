@@ -884,7 +884,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: runHarness-pure-ajs
@@ -897,8 +897,9 @@ tasks:
       embedded data.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: cli-lint
     title: CLI — agent-script lint

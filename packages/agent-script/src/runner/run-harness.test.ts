@@ -222,6 +222,83 @@ describe("runHarness", () => {
     });
   });
 
+  it("treats .ajs files as raw scripts without frontmatter or markdown block extraction", async () => {
+    const filepath = "/repo/scripts/raw.ajs";
+    const modulesFor = vi.fn((frontmatter, meta) => ({
+      api: {
+        run: createSandboxClosure({
+          call: () => [Object.keys(frontmatter).length, meta.kind, meta.version, meta.filepath].join("|"),
+          name: "run"
+        })
+      }
+    }));
+
+    vol.fromJSON({
+      [filepath]: [
+        "/*",
+        "```js",
+        "return 'extracted';",
+        "```",
+        "*/",
+        "",
+        'import { run } from "api";',
+        "return run();"
+      ].join("\n")
+    });
+
+    const result = await runHarness(filepath, { modulesFor });
+
+    expect(modulesFor).toHaveBeenCalledTimes(1);
+    expect(modulesFor).toHaveBeenCalledWith(
+      {},
+      {
+        filepath,
+        kind: undefined,
+        version: undefined
+      }
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: `0|||${filepath}`
+    });
+  });
+
+  it("does not register the harness module for .ajs files", async () => {
+    const filepath = "/repo/scripts/no-harness.ajs";
+
+    vol.fromJSON({
+      [filepath]: [
+        'import { meta } from "harness";',
+        "return meta.filepath;"
+      ].join("\n")
+    });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: (frontmatter, meta) => ({
+          api: {
+            run: createSandboxClosure({
+              call: () => "ok",
+              name: "run"
+            })
+          },
+          harness: makeHarnessModule(frontmatter, meta)
+        })
+      })
+    ).rejects.toMatchObject({
+      diagnostics: [
+        expect.objectContaining({
+          code: "AS004",
+          filename: filepath,
+          line: 1,
+          message: "Unknown module 'harness'. Available modules: api.",
+          severity: "error"
+        })
+      ],
+      name: "LintError"
+    });
+  });
+
   it("passes an already-aborted signal through to execution", async () => {
     const filepath = "/repo/docs/plans/abort.md";
     const controller = new AbortController();

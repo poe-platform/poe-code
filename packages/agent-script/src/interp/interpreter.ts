@@ -12,6 +12,7 @@ import type {
   ExpressionStatement
 } from "../parse.js";
 import type { SandboxValue } from "./values.js";
+import { Scope } from "./scope.js";
 
 export type InterpreterValue = SandboxValue;
 
@@ -74,43 +75,6 @@ type DispatchTable = Partial<{
   [K in ParseResult["type"]]: NodeHandler<Extract<ParseResult, { type: K }>>;
 }>;
 
-export class Scope {
-  readonly #bindings: Map<string, InterpreterValue>;
-
-  constructor(bindings: Record<string, InterpreterValue> = {}, private readonly parent?: Scope) {
-    this.#bindings = new Map(Object.entries(bindings));
-  }
-
-  child(bindings: Record<string, InterpreterValue> = {}): Scope {
-    return new Scope(bindings, this);
-  }
-
-  lookup(name: string): { found: true; value: InterpreterValue } | { found: false } {
-    if (this.#bindings.has(name)) {
-      return {
-        found: true,
-        value: this.#bindings.get(name)
-      };
-    }
-
-    if (this.parent !== undefined) {
-      return this.parent.lookup(name);
-    }
-
-    return { found: false };
-  }
-
-  snapshot(): InterpreterSnapshot {
-    const inheritedBindings = this.parent?.snapshot().bindings ?? {};
-    return {
-      bindings: {
-        ...inheritedBindings,
-        ...Object.fromEntries(this.#bindings)
-      }
-    };
-  }
-}
-
 const dispatchTable: DispatchTable = {
   BlockStatement: evaluateBlockStatement,
   BooleanLiteral: evaluatePrimitiveLiteral,
@@ -158,6 +122,8 @@ export async function interpret(node: ParseResult, options: InterpretOptions = {
     stats
   };
 }
+
+export { Scope } from "./scope.js";
 
 async function evaluateNode(node: ParseResult, context: EvaluationContext): Promise<EvaluationResult> {
   context.stats.nodeVisits += 1;

@@ -408,7 +408,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-scope
@@ -421,8 +421,9 @@ tasks:
       modeled as a child Scope with its own bindings.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-budgets
     title: Step, time, depth, and size budget enforcement

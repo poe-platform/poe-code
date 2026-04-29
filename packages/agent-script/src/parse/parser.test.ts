@@ -1061,6 +1061,191 @@ describe("parse", () => {
     });
   });
 
+  it("parses control-flow statements in block bodies", () => {
+    expect(
+      parse(
+        "() => { if (ready) { return value; } else { while (pending) { continue; } } for (let index = 0; index < total; index = index + 1) work(index); for (const item of items) { break; } }"
+      )
+    ).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: false,
+      body: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "IfStatement",
+            test: {
+              type: "Identifier",
+              name: "ready"
+            },
+            consequent: {
+              type: "BlockStatement",
+              body: [
+                {
+                  type: "ReturnStatement",
+                  argument: {
+                    type: "Identifier",
+                    name: "value"
+                  }
+                }
+              ]
+            },
+            alternate: {
+              type: "BlockStatement",
+              body: [
+                {
+                  type: "WhileStatement",
+                  test: {
+                    type: "Identifier",
+                    name: "pending"
+                  },
+                  body: {
+                    type: "BlockStatement",
+                    body: [
+                      {
+                        type: "ContinueStatement"
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          {
+            type: "ForStatement",
+            init: {
+              type: "VariableDeclaration",
+              kind: "let"
+            },
+            test: {
+              type: "BinaryExpression",
+              operator: "<"
+            },
+            update: {
+              type: "AssignmentExpression",
+              operator: "="
+            },
+            body: {
+              type: "ExpressionStatement",
+              expression: {
+                type: "CallExpression"
+              }
+            }
+          },
+          {
+            type: "ForOfStatement",
+            left: {
+              type: "VariableDeclaration",
+              kind: "const"
+            },
+            right: {
+              type: "Identifier",
+              name: "items"
+            },
+            body: {
+              type: "BlockStatement",
+              body: [
+                {
+                  type: "BreakStatement"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    });
+  });
+
+  it("parses statement edge cases users will hit in scripts", () => {
+    expect(
+      parse("() => { if (ready) return; else return value; for (;;) { break; } for ({ item } of items) continue; }")
+    ).toMatchObject({
+      type: "ArrowFunctionExpression",
+      expression: false,
+      body: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "IfStatement",
+            consequent: {
+              type: "ReturnStatement",
+              argument: undefined
+            },
+            alternate: {
+              type: "ReturnStatement",
+              argument: {
+                type: "Identifier",
+                name: "value"
+              }
+            }
+          },
+          {
+            type: "ForStatement",
+            init: undefined,
+            test: undefined,
+            update: undefined,
+            body: {
+              type: "BlockStatement",
+              body: [
+                {
+                  type: "BreakStatement"
+                }
+              ]
+            }
+          },
+          {
+            type: "ForOfStatement",
+            left: {
+              type: "ObjectPattern",
+              properties: [
+                {
+                  type: "AssignmentProperty",
+                  shorthand: true,
+                  key: {
+                    type: "Identifier",
+                    name: "item"
+                  },
+                  value: {
+                    type: "Identifier",
+                    name: "item"
+                  }
+                }
+              ]
+            },
+            right: {
+              type: "Identifier",
+              name: "items"
+            },
+            body: {
+              type: "ContinueStatement"
+            }
+          }
+        ]
+      }
+    });
+
+    expect(parse("() => { return\nvalue; }")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      body: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ReturnStatement",
+            argument: undefined
+          },
+          {
+            type: "ExpressionStatement",
+            expression: {
+              type: "Identifier",
+              name: "value"
+            }
+          }
+        ]
+      }
+    });
+  });
+
   it("parses destructuring in let/const declarations", () => {
     expect(
       parse(
@@ -1562,5 +1747,54 @@ describe("parse", () => {
         name: "this"
       }
     });
+  });
+
+  it("rejects disallowed statement syntax", () => {
+    expect(() => parse("() => { do { work(); } while (ready); }")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("() => { do { work(); } while (ready); }")).toThrowError(
+      "Disallowed syntax 'do/while' at line 1, column 9."
+    );
+
+    expect(() => parse("() => { switch (value) {} }")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("() => { switch (value) {} }")).toThrowError(
+      "Disallowed syntax 'switch' at line 1, column 9."
+    );
+
+    expect(() => parse("() => { for (item in items) work(item); }")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("() => { for (item in items) work(item); }")).toThrowError(
+      "Disallowed syntax 'for...in' at line 1, column 19."
+    );
+
+    expect(() => parse("() => { label: work(); }")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("() => { label: work(); }")).toThrowError(
+      "Disallowed syntax 'label' at line 1, column 9."
+    );
+
+    expect(() => parse("var value = 1")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("var value = 1")).toThrowError(
+      "Disallowed syntax 'var' at line 1, column 1."
+    );
+
+    expect(() => parse("() => { for (var value = 1; ready; value = value + 1) work(value); }")).toThrowError(
+      DisallowedSyntaxError
+    );
+    expect(() => parse("() => { for (var value = 1; ready; value = value + 1) work(value); }")).toThrowError(
+      "Disallowed syntax 'var' at line 1, column 14."
+    );
+
+    expect(() => parse("() => { for (var item of items) work(item); }")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("() => { for (var item of items) work(item); }")).toThrowError(
+      "Disallowed syntax 'var' at line 1, column 14."
+    );
+
+    expect(() => parse("() => { break label; }")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("() => { break label; }")).toThrowError(
+      "Disallowed syntax 'label' at line 1, column 15."
+    );
+
+    expect(() => parse("() => { continue label; }")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("() => { continue label; }")).toThrowError(
+      "Disallowed syntax 'label' at line 1, column 18."
+    );
   });
 });

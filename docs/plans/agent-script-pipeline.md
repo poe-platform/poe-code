@@ -117,8 +117,9 @@ tasks:
       `var` with DisallowedSyntaxError naming the offending construct.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: parser-try-catch-throw
     title: Parse try/catch/finally and throw

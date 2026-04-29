@@ -9,11 +9,16 @@ export type {
   BinaryExpression,
   BlockStatement,
   BooleanLiteral,
+  BreakStatement,
   CallExpression,
   ConditionalExpression,
+  ContinueStatement,
   Expression,
   ExpressionStatement,
+  ForOfStatement,
+  ForStatement,
   Identifier,
+  IfStatement,
   LogicalExpression,
   MemberExpression,
   NullLiteral,
@@ -35,5 +40,6 @@ export type {
   UndefinedLiteral,
   VariableDeclaration,
   VariableDeclarationKind,
-  VariableDeclarator
+  VariableDeclarator,
+  WhileStatement
 } from "./parse/parser.js";

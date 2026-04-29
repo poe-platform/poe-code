@@ -217,17 +217,63 @@ export type ReturnStatement = BaseNode & {
   argument?: Expression;
 };
 
+export type BreakStatement = BaseNode & {
+  type: "BreakStatement";
+};
+
+export type ContinueStatement = BaseNode & {
+  type: "ContinueStatement";
+};
+
 export type ExpressionStatement = BaseNode & {
   type: "ExpressionStatement";
   expression: Expression;
 };
 
-export type Statement = ExpressionStatement | ReturnStatement | VariableDeclaration;
-
 export type BlockStatement = BaseNode & {
   type: "BlockStatement";
   body: Statement[];
 };
+
+export type IfStatement = BaseNode & {
+  type: "IfStatement";
+  test: Expression;
+  consequent: Statement;
+  alternate?: Statement;
+};
+
+export type ForStatement = BaseNode & {
+  type: "ForStatement";
+  init?: Expression | VariableDeclaration;
+  test?: Expression;
+  update?: Expression;
+  body: Statement;
+};
+
+export type ForOfStatement = BaseNode & {
+  type: "ForOfStatement";
+  left: PatternTarget | VariableDeclaration;
+  right: Expression;
+  body: Statement;
+};
+
+export type WhileStatement = BaseNode & {
+  type: "WhileStatement";
+  test: Expression;
+  body: Statement;
+};
+
+export type Statement =
+  | BlockStatement
+  | BreakStatement
+  | ContinueStatement
+  | ExpressionStatement
+  | ForOfStatement
+  | ForStatement
+  | IfStatement
+  | ReturnStatement
+  | VariableDeclaration
+  | WhileStatement;
 
 export type ArrowFunctionExpression = BaseNode & {
   type: "ArrowFunctionExpression";
@@ -256,7 +302,7 @@ export type Expression =
   | UnaryExpression
   | UndefinedLiteral;
 
-export type ParseResult = Expression | VariableDeclaration;
+export type ParseResult = Expression | Statement;
 
 type ParsedExpression = {
   node: Expression;
@@ -271,6 +317,7 @@ const MULTIPLICATIVE_OPERATORS = new Set<BinaryOperator>(["*", "/", "%"]);
 const BITWISE_OR_OPERATORS = new Set<BinaryOperator>(["|"]);
 const BITWISE_XOR_OPERATORS = new Set<BinaryOperator>(["^"]);
 const BITWISE_AND_OPERATORS = new Set<BinaryOperator>(["&"]);
+const TOP_LEVEL_STATEMENT_KEYWORDS = new Set(["break", "const", "continue", "for", "if", "let", "return", "while"]);
 
 export function parse(source: string): ParseResult {
   return parseTokens(tokenize(source));
@@ -290,11 +337,7 @@ class Parser {
   constructor(private readonly tokens: Token[]) {}
 
   parseTopLevel(): ParseResult {
-    const node =
-      this.currentToken().type === "keyword" &&
-      (this.currentToken().value === "const" || this.currentToken().value === "let")
-        ? this.parseVariableDeclaration()
-        : this.parseExpression().node;
+    const node = this.shouldParseTopLevelStatement() ? this.parseStatement() : this.parseExpression().node;
     while (this.consumePunctuator(";") !== undefined) {
       continue;
     }
@@ -445,11 +488,31 @@ class Parser {
 
   private parseStatement(): Statement {
     const token = this.currentToken();
+    this.assertAllowedStatementStart(token);
+
+    if (token.type === "punctuator" && token.value === "{") {
+      return this.parseBlockStatement();
+    }
+
+    if (token.type === "keyword" && token.value === "if") {
+      return this.parseIfStatement();
+    }
+
+    if (token.type === "keyword" && token.value === "for") {
+      return this.parseForStatement();
+    }
+
+    if (token.type === "keyword" && token.value === "while") {
+      return this.parseWhileStatement();
+    }
+
     if (token.type === "keyword" && token.value === "return") {
       this.index += 1;
       const hasArgument = !(
+        hasLineBreakBetween(token, this.currentToken()) ||
         this.currentToken().type === "punctuator" &&
-        (this.currentToken().value === ";" || this.currentToken().value === "}")
+        (this.currentToken().value === ";" || this.currentToken().value === "}") ||
+        this.currentToken().type === "eof"
       );
       const argument = hasArgument ? this.parseExpression().node : undefined;
       const end = argument?.span.end ?? token.end;
@@ -464,11 +527,172 @@ class Parser {
       return this.parseVariableDeclaration();
     }
 
+    if (token.type === "keyword" && token.value === "break") {
+      this.index += 1;
+      this.assertNoLabel(token);
+      return {
+        type: "BreakStatement",
+        span: createSpan(token.start, token.end)
+      };
+    }
+
+    if (token.type === "keyword" && token.value === "continue") {
+      this.index += 1;
+      this.assertNoLabel(token);
+      return {
+        type: "ContinueStatement",
+        span: createSpan(token.start, token.end)
+      };
+    }
+
     const expression = this.parseExpression().node;
     return {
       type: "ExpressionStatement",
       expression,
       span: createSpan(expression.span.start, expression.span.end)
+    };
+  }
+
+  private parseIfStatement(): IfStatement {
+    const ifToken = this.expectKeyword("if");
+    this.expectPunctuator("(");
+    const test = this.parseExpression().node;
+    this.expectPunctuator(")");
+    const consequent = this.parseStatement();
+    if (consequent.type !== "BlockStatement") {
+      while (
+        this.currentToken().type === "punctuator" &&
+        this.currentToken().value === ";" &&
+        this.peekToken(1).type === "keyword" &&
+        this.peekToken(1).value === "else"
+      ) {
+        this.index += 1;
+      }
+    }
+    const elseToken = this.consumeKeyword("else");
+    const alternate = elseToken === undefined ? undefined : this.parseStatement();
+    return {
+      type: "IfStatement",
+      test,
+      consequent,
+      alternate,
+      span: createSpan(ifToken.start, alternate?.span.end ?? consequent.span.end)
+    };
+  }
+
+  private parseForStatement(): ForOfStatement | ForStatement {
+    const forToken = this.expectKeyword("for");
+    this.expectPunctuator("(");
+    if (this.currentToken().type === "identifier" && this.currentToken().value === "var") {
+      throw new DisallowedSyntaxError("var", this.currentToken().start);
+    }
+    const iterationOperator = this.findTopLevelForIterationOperator(this.index);
+
+    if (iterationOperator?.value === "in") {
+      throw new DisallowedSyntaxError("for...in", iterationOperator.start);
+    }
+
+    if (iterationOperator?.value === "of") {
+      const left = this.parseForOfLeft();
+      this.expectKeyword("of");
+      const right = this.parseExpression().node;
+      this.expectPunctuator(")");
+      const body = this.parseStatement();
+      return {
+        type: "ForOfStatement",
+        left,
+        right,
+        body,
+        span: createSpan(forToken.start, body.span.end)
+      };
+    }
+
+    let init: Expression | VariableDeclaration | undefined;
+    if (this.consumePunctuator(";") === undefined) {
+      init =
+        this.currentToken().type === "keyword" &&
+        (this.currentToken().value === "const" || this.currentToken().value === "let")
+          ? this.parseVariableDeclaration()
+          : this.parseExpression().node;
+      this.expectPunctuator(";");
+    }
+
+    let test: Expression | undefined;
+    if (this.consumePunctuator(";") === undefined) {
+      test = this.parseExpression().node;
+      this.expectPunctuator(";");
+    }
+
+    const update =
+      this.currentToken().type === "punctuator" && this.currentToken().value === ")" ? undefined : this.parseExpression().node;
+
+    this.expectPunctuator(")");
+    const body = this.parseStatement();
+    return {
+      type: "ForStatement",
+      init,
+      test,
+      update,
+      body,
+      span: createSpan(forToken.start, body.span.end)
+    };
+  }
+
+  private parseForOfLeft(): PatternTarget | VariableDeclaration {
+    if (
+      this.currentToken().type === "keyword" &&
+      (this.currentToken().value === "const" || this.currentToken().value === "let")
+    ) {
+      return this.parseForOfDeclaration();
+    }
+
+    return this.parseAssignmentTarget();
+  }
+
+  private parseForOfDeclaration(): VariableDeclaration {
+    const kindToken = this.currentToken();
+    if (kindToken.type !== "keyword" || (kindToken.value !== "const" && kindToken.value !== "let")) {
+      throw unexpectedTokenError(kindToken);
+    }
+
+    this.index += 1;
+    const id = this.parseBindingTarget();
+    if (this.currentToken().type === "punctuator" && this.currentToken().value === "=") {
+      throw new Error(
+        `for...of declarations cannot include an initializer at line ${kindToken.start.line}, column ${kindToken.start.column}.`
+      );
+    }
+    if (this.currentToken().type === "punctuator" && this.currentToken().value === ",") {
+      throw new Error(
+        `for...of declarations must include exactly one declarator at line ${kindToken.start.line}, column ${kindToken.start.column}.`
+      );
+    }
+
+    const declarator: VariableDeclarator = {
+      type: "VariableDeclarator",
+      id,
+      span: id.span
+    };
+
+    return {
+      type: "VariableDeclaration",
+      declarations: [declarator],
+      kind: kindToken.value,
+      span: createSpan(kindToken.start, id.span.end)
+    };
+  }
+
+  private parseWhileStatement(): WhileStatement {
+    const whileToken = this.expectKeyword("while");
+    this.expectPunctuator("(");
+    const test = this.parseExpression().node;
+    this.expectPunctuator(")");
+    const body = this.parseStatement();
+    return {
+      type: "WhileStatement",
+      test,
+      body,
+      span: createSpan(whileToken.start, body.span.end)
     };
   }
 
@@ -1921,6 +2145,83 @@ class Parser {
     return undefined;
   }
 
+  private findTopLevelForIterationOperator(startIndex: number): Token | undefined {
+    let depth = 0;
+    let previousToken: Token | undefined;
+
+    for (let index = startIndex; index < this.tokens.length; index += 1) {
+      const token = this.tokens[index];
+      if (token.type === "punctuator") {
+        if (token.value === "(" || token.value === "[" || token.value === "{") {
+          depth += 1;
+        } else if (token.value === ")" || token.value === "]" || token.value === "}") {
+          if (depth === 0 && token.value === ")") {
+            return undefined;
+          }
+          depth -= 1;
+        } else if (depth === 0 && token.value === ";") {
+          return undefined;
+        }
+      }
+
+      if (
+        depth === 0 &&
+        token.type === "keyword" &&
+        (token.value === "of" || token.value === "in") &&
+        previousToken?.value !== "." &&
+        previousToken?.value !== "?."
+      ) {
+        return token;
+      }
+
+      previousToken = token;
+    }
+
+    return undefined;
+  }
+
+  private shouldParseTopLevelStatement(): boolean {
+    const token = this.currentToken();
+    if (token.type === "keyword" && TOP_LEVEL_STATEMENT_KEYWORDS.has(token.value)) {
+      return true;
+    }
+
+    return (
+      token.type === "identifier" &&
+      (token.value === "do" ||
+        token.value === "switch" ||
+        token.value === "var" ||
+        (this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":"))
+    );
+  }
+
+  private assertAllowedStatementStart(token: Token): void {
+    if (token.type === "identifier" && token.value === "do") {
+      throw new DisallowedSyntaxError("do/while", token.start);
+    }
+
+    if (token.type === "identifier" && token.value === "switch") {
+      throw new DisallowedSyntaxError("switch", token.start);
+    }
+
+    if (token.type === "identifier" && token.value === "var") {
+      throw new DisallowedSyntaxError("var", token.start);
+    }
+
+    if (token.type === "identifier" && this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":") {
+      throw new DisallowedSyntaxError("label", token.start);
+    }
+  }
+
+  private assertNoLabel(token: Token): void {
+    if (
+      this.currentToken().type === "identifier" &&
+      !hasLineBreakBetween(token, this.currentToken())
+    ) {
+      throw new DisallowedSyntaxError("label", this.currentToken().start);
+    }
+  }
+
   private consumePunctuator(value: string): Token | undefined {
     const token = this.currentToken();
     if (token.type !== "punctuator" || token.value !== value) {
@@ -1933,6 +2234,24 @@ class Parser {
   private expectPunctuator(value: string): Token {
     const token = this.currentToken();
     if (token.type !== "punctuator" || token.value !== value) {
+      throw new Error(`Expected '${value}' at line ${token.start.line}, column ${token.start.column}.`);
+    }
+    this.index += 1;
+    return token;
+  }
+
+  private consumeKeyword(value: string): Token | undefined {
+    const token = this.currentToken();
+    if (token.type !== "keyword" || token.value !== value) {
+      return undefined;
+    }
+    this.index += 1;
+    return token;
+  }
+
+  private expectKeyword(value: string): Token {
+    const token = this.currentToken();
+    if (token.type !== "keyword" || token.value !== value) {
       throw new Error(`Expected '${value}' at line ${token.start.line}, column ${token.start.column}.`);
     }
     this.index += 1;

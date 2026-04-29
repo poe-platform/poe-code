@@ -1,4 +1,4 @@
-export { parse } from "./parse/parser.js";
+export { DisallowedSyntaxError, parse } from "./parse/parser.js";
 export type {
   ArrayExpression,
   BinaryExpression,

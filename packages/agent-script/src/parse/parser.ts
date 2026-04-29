@@ -5,6 +5,13 @@ export type SourceSpan = {
   end: Position;
 };
 
+export class DisallowedSyntaxError extends Error {
+  constructor(syntax: string, position: Position) {
+    super(`Disallowed syntax '${syntax}' at line ${position.line}, column ${position.column}.`);
+    this.name = "DisallowedSyntaxError";
+  }
+}
+
 type BaseNode = {
   type: string;
   span: SourceSpan;
@@ -185,7 +192,11 @@ const BITWISE_XOR_OPERATORS = new Set<BinaryOperator>(["^"]);
 const BITWISE_AND_OPERATORS = new Set<BinaryOperator>(["&"]);
 
 export function parse(source: string): Expression {
-  return new Parser(tokenize(source)).parse();
+  return parseTokens(tokenize(source));
+}
+
+function parseTokens(tokens: Token[]): Expression {
+  return new Parser(tokens).parse();
 }
 
 class Parser {
@@ -466,6 +477,7 @@ class Parser {
     const token = this.currentToken();
 
     if (token.type === "identifier") {
+      assertAllowedIdentifierReference(token);
       this.index += 1;
       return {
         node: createIdentifier(token),
@@ -647,6 +659,7 @@ class Parser {
       this.index += 1;
       const key = createIdentifier(token);
       if (this.consumePunctuator(":") === undefined) {
+        assertAllowedIdentifierReference(token);
         return {
           type: "Property",
           computed: false,
@@ -939,8 +952,12 @@ function createTemplateLiteral(token: Token): TemplateLiteral {
       quasis.push(createTemplateElement(token.start, raw, quasiStart, cursor, false));
       const expressionStart = cursor + 2;
       const expressionEnd = findTemplateExpressionEnd(raw, expressionStart);
-      const expression = parse(raw.slice(expressionStart, expressionEnd));
-      expressions.push(rebaseExpression(expression, token.start, raw, expressionStart));
+      expressions.push(
+        parseEmbeddedExpression(
+          raw.slice(expressionStart, expressionEnd),
+          positionWithinRaw(token.start, raw, expressionStart)
+        )
+      );
       quasiStart = expressionEnd + 1;
       cursor = expressionEnd + 1;
       continue;
@@ -1143,6 +1160,15 @@ function decodeEscapedText(value: string): string {
   return decoded;
 }
 
+function parseEmbeddedExpression(source: string, base: Position): Expression {
+  const tokens = tokenize(source).map(token => ({
+    ...token,
+    start: rebasePosition(token.start, base),
+    end: rebasePosition(token.end, base)
+  }));
+  return parseTokens(tokens);
+}
+
 function decodeEscapeCharacter(char: string): string {
   if (char === "n") {
     return "\n";
@@ -1202,114 +1228,11 @@ function positionWithinRaw(base: Position, raw: string, index: number): Position
   return { line, column, offset };
 }
 
-function rebaseExpression(
-  expression: Expression,
-  templateStart: Position,
-  rawTemplate: string,
-  rawOffset: number
-): Expression {
-  expression.span = rebaseSpan(expression.span, templateStart, rawTemplate, rawOffset);
-
-  if (expression.type === "ArrayExpression") {
-    expression.elements = expression.elements.map(element => rebaseNode(element, templateStart, rawTemplate, rawOffset));
-    return expression;
-  }
-
-  if (expression.type === "BinaryExpression" || expression.type === "LogicalExpression") {
-    expression.left = rebaseExpression(expression.left, templateStart, rawTemplate, rawOffset);
-    expression.right = rebaseExpression(expression.right, templateStart, rawTemplate, rawOffset);
-    return expression;
-  }
-
-  if (expression.type === "CallExpression") {
-    expression.callee = rebaseExpression(expression.callee, templateStart, rawTemplate, rawOffset);
-    expression.arguments = expression.arguments.map(argument =>
-      rebaseNode(argument, templateStart, rawTemplate, rawOffset)
-    );
-    return expression;
-  }
-
-  if (expression.type === "ConditionalExpression") {
-    expression.test = rebaseExpression(expression.test, templateStart, rawTemplate, rawOffset);
-    expression.consequent = rebaseExpression(expression.consequent, templateStart, rawTemplate, rawOffset);
-    expression.alternate = rebaseExpression(expression.alternate, templateStart, rawTemplate, rawOffset);
-    return expression;
-  }
-
-  if (expression.type === "MemberExpression") {
-    expression.object = rebaseExpression(expression.object, templateStart, rawTemplate, rawOffset);
-    expression.property = rebaseExpression(expression.property, templateStart, rawTemplate, rawOffset);
-    return expression;
-  }
-
-  if (expression.type === "ObjectExpression") {
-    expression.properties = expression.properties.map(property =>
-      rebaseNode(property, templateStart, rawTemplate, rawOffset)
-    );
-    return expression;
-  }
-
-  if (expression.type === "TemplateLiteral") {
-    expression.expressions = expression.expressions.map(item =>
-      rebaseExpression(item, templateStart, rawTemplate, rawOffset)
-    );
-    expression.quasis = expression.quasis.map(quasi => rebaseTemplateElement(quasi, templateStart, rawTemplate, rawOffset));
-    return expression;
-  }
-
-  if (expression.type === "UnaryExpression") {
-    expression.argument = rebaseExpression(expression.argument, templateStart, rawTemplate, rawOffset);
-    return expression;
-  }
-
-  return expression;
-}
-
-function rebaseNode<T extends Expression | Property | SpreadElement | TemplateElement>(
-  node: T,
-  templateStart: Position,
-  rawTemplate: string,
-  rawOffset: number
-): T {
-  if (node.type === "SpreadElement") {
-    node.argument = rebaseExpression(node.argument, templateStart, rawTemplate, rawOffset);
-    node.span = rebaseSpan(node.span, templateStart, rawTemplate, rawOffset);
-    return node as T;
-  }
-
-  if (node.type === "Property") {
-    node.key = rebaseExpression(node.key, templateStart, rawTemplate, rawOffset);
-    node.value = rebaseExpression(node.value, templateStart, rawTemplate, rawOffset);
-    node.span = rebaseSpan(node.span, templateStart, rawTemplate, rawOffset);
-    return node as T;
-  }
-
-  if (node.type === "TemplateElement") {
-    return rebaseTemplateElement(node, templateStart, rawTemplate, rawOffset) as T;
-  }
-
-  return rebaseExpression(node as Expression, templateStart, rawTemplate, rawOffset) as T;
-}
-
-function rebaseTemplateElement(
-  quasi: TemplateElement,
-  templateStart: Position,
-  rawTemplate: string,
-  rawOffset: number
-): TemplateElement {
-  quasi.span = rebaseSpan(quasi.span, templateStart, rawTemplate, rawOffset);
-  return quasi;
-}
-
-function rebaseSpan(
-  span: SourceSpan,
-  templateStart: Position,
-  rawTemplate: string,
-  rawOffset: number
-): SourceSpan {
+function rebasePosition(position: Position, base: Position): Position {
   return {
-    start: positionWithinRaw(templateStart, rawTemplate, rawOffset + span.start.offset),
-    end: positionWithinRaw(templateStart, rawTemplate, rawOffset + span.end.offset)
+    line: base.line + position.line - 1,
+    column: position.line === 1 ? base.column + position.column - 1 : position.column,
+    offset: base.offset + position.offset
   };
 }
 
@@ -1326,6 +1249,12 @@ function isLiteralPropertyKey(token: Token): boolean {
 
 function createTokenSpan(token: Token): SourceSpan {
   return createSpan(token.start, token.end);
+}
+
+function assertAllowedIdentifierReference(token: Token): void {
+  if (token.value === "new" || token.value === "this") {
+    throw new DisallowedSyntaxError(token.value, token.start);
+  }
 }
 
 function createSpan(start: Position, end: Position): SourceSpan {

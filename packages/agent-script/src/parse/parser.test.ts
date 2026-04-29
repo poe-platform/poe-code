@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { parse } from "../parse.js";
+import { DisallowedSyntaxError, parse } from "../parse.js";
 
 describe("parse", () => {
   it("tracks closing delimiters in empty arrays and objects", () => {
@@ -783,6 +783,86 @@ describe("parse", () => {
         }
       ]
     });
+
+    expect(parse("service.api[method](user, ...extraArgs)")).toMatchObject({
+      type: "CallExpression",
+      optional: false,
+      callee: {
+        type: "MemberExpression",
+        optional: false,
+        computed: true,
+        object: {
+          type: "MemberExpression",
+          optional: false,
+          computed: false,
+          object: {
+            type: "Identifier",
+            name: "service"
+          },
+          property: {
+            type: "Identifier",
+            name: "api"
+          }
+        },
+        property: {
+          type: "Identifier",
+          name: "method"
+        }
+      },
+      arguments: [
+        {
+          type: "Identifier",
+          name: "user"
+        },
+        {
+          type: "SpreadElement",
+          argument: {
+            type: "Identifier",
+            name: "extraArgs"
+          }
+        }
+      ]
+    });
+
+    expect(parse("service?.api?.[method]?.(...args, tail)")).toMatchObject({
+      type: "CallExpression",
+      optional: true,
+      callee: {
+        type: "MemberExpression",
+        optional: true,
+        computed: true,
+        object: {
+          type: "MemberExpression",
+          optional: true,
+          computed: false,
+          object: {
+            type: "Identifier",
+            name: "service"
+          },
+          property: {
+            type: "Identifier",
+            name: "api"
+          }
+        },
+        property: {
+          type: "Identifier",
+          name: "method"
+        }
+      },
+      arguments: [
+        {
+          type: "SpreadElement",
+          argument: {
+            type: "Identifier",
+            name: "args"
+          }
+        },
+        {
+          type: "Identifier",
+          name: "tail"
+        }
+      ]
+    });
   });
 
   it("rejects nullish coalescing mixed with logical operators without parentheses", () => {
@@ -908,5 +988,44 @@ describe("parse", () => {
     expect(() => parse("`${/foo/}`")).toThrowError(
       "Regular expression literals are not supported at line 1, column 4."
     );
+  });
+
+  it("rejects disallowed syntax for new and this", () => {
+    expect(() => parse("new Service()")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("new Service()")).toThrowError(
+      "Disallowed syntax 'new' at line 1, column 1."
+    );
+
+    expect(() => parse("this.value")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("this.value")).toThrowError(
+      "Disallowed syntax 'this' at line 1, column 1."
+    );
+
+    expect(() => parse("`${this}`")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("`${this}`")).toThrowError(
+      "Disallowed syntax 'this' at line 1, column 4."
+    );
+
+    expect(() => parse("`${new Service()}`")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("`${new Service()}`")).toThrowError(
+      "Disallowed syntax 'new' at line 1, column 4."
+    );
+
+    expect(() => parse("`prefix ${\n  this\n}`")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("`prefix ${\n  this\n}`")).toThrowError(
+      "Disallowed syntax 'this' at line 2, column 3."
+    );
+
+    expect(parse("service.this")).toMatchObject({
+      type: "MemberExpression",
+      object: {
+        type: "Identifier",
+        name: "service"
+      },
+      property: {
+        type: "Identifier",
+        name: "this"
+      }
+    });
   });
 });

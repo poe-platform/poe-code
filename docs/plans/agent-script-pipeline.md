@@ -61,7 +61,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: parser-member-call-spread
@@ -74,8 +74,9 @@ tasks:
       DisallowedSyntaxError.
     status:
       "impl ement": open
-      test: open
-      commit: open
+      test: done
+      commit: done
+      implement: done
 
   - id: parser-arrow-functions
     title: Parse sync and async arrow functions

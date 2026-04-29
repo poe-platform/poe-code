@@ -1001,7 +1001,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: package-readme
@@ -1016,6 +1016,7 @@ tasks:
     status:
       "impl ement": open
       commit: open
+      implement: done
 
   - id: package-examples
     title: Worked examples in agent-script package

@@ -437,7 +437,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-globals-console-json
@@ -450,8 +450,9 @@ tasks:
       input larger than the string-length budget.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-globals-math
     title: Built-in globals — Math

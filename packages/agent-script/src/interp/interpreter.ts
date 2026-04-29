@@ -1,18 +1,21 @@
 import type {
   BlockStatement,
   BooleanLiteral,
+  CallExpression,
   Identifier,
+  MemberExpression,
   NullLiteral,
   NumericLiteral,
   ParseResult,
   ReturnStatement,
   SourceSpan,
+  SpreadElement,
   StringLiteral,
   UndefinedLiteral,
   ExpressionStatement
 } from "../parse.js";
 import { Budget } from "./budget.js";
-import type { SandboxValue } from "./values.js";
+import { isSandboxClosure, isSandboxPromise, type SandboxArray, type SandboxObject, type SandboxValue } from "./values.js";
 import { Scope } from "./scope.js";
 
 export type InterpreterValue = SandboxValue;
@@ -72,6 +75,16 @@ type EvaluationResult =
       error: InterpreterError;
     };
 
+type HelperResult<TValue> =
+  | {
+      ok: true;
+      value: TValue;
+    }
+  | {
+      ok: false;
+      error: InterpreterError;
+    };
+
 type NodeHandler<TNode extends ParseResult> = (node: TNode, context: EvaluationContext) => Promise<EvaluationResult>;
 
 type DispatchTable = Partial<{
@@ -81,8 +94,10 @@ type DispatchTable = Partial<{
 const dispatchTable: DispatchTable = {
   BlockStatement: evaluateBlockStatement,
   BooleanLiteral: evaluatePrimitiveLiteral,
+  CallExpression: evaluateCallExpression,
   ExpressionStatement: evaluateExpressionStatement,
   Identifier: evaluateIdentifier,
+  MemberExpression: evaluateMemberExpression,
   NullLiteral: evaluatePrimitiveLiteral,
   NumericLiteral: evaluatePrimitiveLiteral,
   ReturnStatement: evaluateReturnStatement,
@@ -218,6 +233,100 @@ async function evaluateReturnStatement(node: ReturnStatement, context: Evaluatio
   };
 }
 
+async function evaluateMemberExpression(node: MemberExpression, context: EvaluationContext): Promise<EvaluationResult> {
+  const object = await evaluateNode(node.object, context);
+  if (object.kind === "error") {
+    return object;
+  }
+
+  if (object.value === null || object.value === undefined) {
+    if (node.optional) {
+      return {
+        kind: "normal",
+        hasValue: true,
+        value: undefined
+      };
+    }
+
+    throw new TypeError("Cannot read properties of null or undefined.");
+  }
+
+  if (!isIndexableSandboxValue(object.value)) {
+    throw new TypeError("Attempted to read a property from a non-object value.");
+  }
+
+  const property: HelperResult<string | number> = node.computed
+    ? await evaluateMemberProperty(node.property, context)
+    : { ok: true, value: getStaticPropertyName(node.property) };
+  if (!property.ok) {
+    return {
+      kind: "error",
+      error: property.error
+    };
+  }
+
+  const value = getMemberValue(object.value, property.value);
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value
+  };
+}
+
+async function evaluateCallExpression(node: CallExpression, context: EvaluationContext): Promise<EvaluationResult> {
+  const callee = await evaluateNode(node.callee, context);
+  if (callee.kind === "error") {
+    return callee;
+  }
+
+  if (callee.value === null || callee.value === undefined) {
+    if (node.optional) {
+      return {
+        kind: "normal",
+        hasValue: true,
+        value: undefined
+      };
+    }
+
+    throw new TypeError("Attempted to call a non-function value.");
+  }
+
+  if (!isSandboxClosure(callee.value)) {
+    throw new TypeError("Attempted to call a non-function value.");
+  }
+
+  const args = await evaluateCallArguments(node.arguments, context);
+  if (!args.ok) {
+    return {
+      kind: "error",
+      error: args.error
+    };
+  }
+
+  const leaveCall = context.budget.enterCall();
+
+  try {
+    const result = await callee.value.call(args.value);
+
+    if (isSandboxPromise(result)) {
+      return {
+        kind: "normal",
+        hasValue: true,
+        value: await result.promise
+      };
+    }
+
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: result
+    };
+  } finally {
+    leaveCall();
+  }
+}
+
 function createError(code: InterpreterErrorCode, node: ParseResult, message: string): InterpreterError {
   return {
     code,
@@ -225,5 +334,108 @@ function createError(code: InterpreterErrorCode, node: ParseResult, message: str
     nodeId: node.nodeId,
     nodeType: node.type,
     span: node.span
+  };
+}
+
+async function evaluateMemberProperty(
+  node: MemberExpression["property"],
+  context: EvaluationContext
+): Promise<HelperResult<string | number>> {
+  const property = await evaluateNode(node, context);
+  if (property.kind === "error") {
+    return {
+      ok: false,
+      error: property.error
+    };
+  }
+
+  if (typeof property.value === "string" || typeof property.value === "number") {
+    return {
+      ok: true,
+      value: property.value
+    };
+  }
+
+  throw new TypeError("Computed property access requires a string or number key.");
+}
+
+function getStaticPropertyName(node: MemberExpression["property"]): string | number {
+  if (node.type === "Identifier") {
+    return node.name;
+  }
+
+  if (node.type === "StringLiteral" || node.type === "NumericLiteral") {
+    return node.value;
+  }
+
+  throw new TypeError(`Unsupported static property node '${node.type}'.`);
+}
+
+function isIndexableSandboxValue(value: SandboxValue): value is SandboxArray | SandboxObject {
+  return Array.isArray(value) || isPlainSandboxObject(value);
+}
+
+function isPlainSandboxObject(value: SandboxValue): value is SandboxObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value) && !isSandboxClosure(value) && !isSandboxPromise(value);
+}
+
+function getMemberValue(target: SandboxArray | SandboxObject, property: string | number): SandboxValue {
+  if (Array.isArray(target)) {
+    return target[typeof property === "number" ? property : Number(property)];
+  }
+
+  return target[String(property)];
+}
+
+async function evaluateCallArguments(
+  args: CallExpression["arguments"],
+  context: EvaluationContext
+): Promise<HelperResult<SandboxValue[]>> {
+  const values: SandboxValue[] = [];
+
+  for (const arg of args) {
+    if (arg.type === "SpreadElement") {
+      const spreadValues = await evaluateSpreadElement(arg, context);
+      if (!spreadValues.ok) {
+        return spreadValues;
+      }
+
+      values.push(...spreadValues.value);
+      continue;
+    }
+
+    const result = await evaluateNode(arg, context);
+    if (result.kind === "error") {
+      return {
+        ok: false,
+        error: result.error
+      };
+    }
+
+    values.push(result.value);
+  }
+
+  return {
+    ok: true,
+    value: values
+  };
+}
+
+async function evaluateSpreadElement(node: SpreadElement, context: EvaluationContext): Promise<HelperResult<SandboxValue[]>> {
+  const value = await evaluateNode(node.argument, context);
+  if (value.kind === "error") {
+    return {
+      ok: false,
+      error: value.error
+    };
+  }
+
+  if (!Array.isArray(value.value)) {
+    throw new TypeError("Spread arguments must evaluate to an array.");
+  }
+
+  return {
+    ok: true,
+    value: value.value
   };
 }

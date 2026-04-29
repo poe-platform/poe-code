@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { parse } from "../parse.js";
 import { Budget, SandboxError } from "./budget.js";
+import { createConsoleJsonGlobals } from "./globals/console-json.js";
 import { interpret, Scope } from "./interpreter.js";
 
 describe("interpret", () => {
@@ -234,5 +235,37 @@ describe("interpret", () => {
         limit: 4
       } satisfies Partial<SandboxError>)
     );
+  });
+
+  it("evaluates console and JSON globals through member calls", async () => {
+    const sink = {
+      error: vi.fn(),
+      log: vi.fn()
+    };
+    const budget = new Budget();
+
+    await expect(
+      interpret(parse(`console.log(JSON.stringify(JSON.parse('{"name":"poe"}'), null, 2))`), {
+        bindings: createConsoleJsonGlobals({
+          budget,
+          sink
+        }),
+        budget
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      snapshot: {
+        bindings: expect.objectContaining({
+          JSON: expect.any(Object),
+          console: expect.any(Object)
+        })
+      },
+      stats: {
+        nodeVisits: 12
+      }
+    });
+
+    expect(sink.log).toHaveBeenCalledWith('{\n  "name": "poe"\n}');
+    expect(sink.error).not.toHaveBeenCalled();
   });
 });

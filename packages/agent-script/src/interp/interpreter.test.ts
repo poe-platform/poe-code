@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { parse } from "../parse.js";
+import { Budget, SandboxError } from "./budget.js";
 import { interpret, Scope } from "./interpreter.js";
 
 describe("interpret", () => {
@@ -198,5 +199,40 @@ describe("interpret", () => {
         nodeVisits: 3
       }
     });
+  });
+
+  it("throws a sandbox error when the step budget is exceeded", async () => {
+    await expect(
+      interpret(parse("return answer"), {
+        bindings: { answer: 42 },
+        budget: new Budget({
+          maxSteps: 1
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        budget: "steps",
+        current: 2,
+        limit: 1
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
+  it("throws a sandbox error when a string literal exceeds the allocation budget", async () => {
+    await expect(
+      interpret(parse("'hello'"), {
+        budget: new Budget({
+          stringLength: 4
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        budget: "stringLength",
+        current: 5,
+        limit: 4
+      } satisfies Partial<SandboxError>)
+    );
   });
 });

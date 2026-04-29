@@ -1,0 +1,144 @@
+export type BudgetName = "steps" | "deadline" | "callDepth" | "stringLength" | "arrayLength";
+
+export type BudgetOptions = {
+  maxSteps?: number;
+  deadline?: number | Date;
+  maxCallDepth?: number;
+  stringLength?: number;
+  arrayLength?: number;
+};
+
+export class SandboxError extends Error {
+  readonly budget: BudgetName;
+  readonly current: number;
+  readonly limit: number;
+
+  constructor(input: { budget: BudgetName; current: number; limit: number }) {
+    super(`Sandbox budget exceeded for ${input.budget}: ${input.current} > ${input.limit}.`);
+    this.name = "SandboxError";
+    this.budget = input.budget;
+    this.current = input.current;
+    this.limit = input.limit;
+  }
+}
+
+type BudgetLimits = {
+  maxSteps?: number;
+  maxCallDepth?: number;
+  stringLength?: number;
+  arrayLength?: number;
+};
+
+export class Budget {
+  readonly deadline?: number;
+  readonly limits: Readonly<BudgetLimits>;
+  stepsUsed = 0;
+  peakCallDepth = 0;
+
+  currentCallDepth = 0;
+
+  constructor(options: BudgetOptions = {}) {
+    this.deadline = normalizeDeadline(options.deadline);
+    this.limits = Object.freeze({
+      maxSteps: options.maxSteps,
+      maxCallDepth: options.maxCallDepth,
+      stringLength: options.stringLength,
+      arrayLength: options.arrayLength
+    });
+  }
+
+  visitNode(): void {
+    this.stepsUsed += 1;
+    this.checkDeadline();
+
+    if (this.limits.maxSteps !== undefined && this.stepsUsed > this.limits.maxSteps) {
+      throw new SandboxError({
+        budget: "steps",
+        current: this.stepsUsed,
+        limit: this.limits.maxSteps
+      });
+    }
+  }
+
+  allocateString(value: string): string {
+    if (this.limits.stringLength !== undefined && value.length > this.limits.stringLength) {
+      throw new SandboxError({
+        budget: "stringLength",
+        current: value.length,
+        limit: this.limits.stringLength
+      });
+    }
+
+    return value;
+  }
+
+  allocateArrayLength(length: number): void {
+    if (this.limits.arrayLength !== undefined && length > this.limits.arrayLength) {
+      throw new SandboxError({
+        budget: "arrayLength",
+        current: length,
+        limit: this.limits.arrayLength
+      });
+    }
+  }
+
+  enterCall(): () => void {
+    return this.enterDepth();
+  }
+
+  enterAwait(): () => void {
+    return this.enterDepth();
+  }
+
+  private checkDeadline(): void {
+    if (this.deadline === undefined) {
+      return;
+    }
+
+    const now = Date.now();
+    if (now <= this.deadline) {
+      return;
+    }
+
+    throw new SandboxError({
+      budget: "deadline",
+      current: now,
+      limit: this.deadline
+    });
+  }
+
+  private enterDepth(): () => void {
+    const nextDepth = this.currentCallDepth + 1;
+
+    if (this.limits.maxCallDepth !== undefined && nextDepth > this.limits.maxCallDepth) {
+      throw new SandboxError({
+        budget: "callDepth",
+        current: nextDepth,
+        limit: this.limits.maxCallDepth
+      });
+    }
+
+    this.currentCallDepth = nextDepth;
+    if (nextDepth > this.peakCallDepth) {
+      this.peakCallDepth = nextDepth;
+    }
+
+    let left = false;
+    return () => {
+      if (left) {
+        return;
+      }
+
+      left = true;
+      this.currentCallDepth -= 1;
+    };
+  }
+}
+
+function normalizeDeadline(deadline: BudgetOptions["deadline"]): number | undefined {
+  if (deadline === undefined) {
+    return undefined;
+  }
+
+  return deadline instanceof Date ? deadline.getTime() : deadline;
+}

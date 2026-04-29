@@ -11,6 +11,7 @@ import type {
   UndefinedLiteral,
   ExpressionStatement
 } from "../parse.js";
+import { Budget } from "./budget.js";
 import type { SandboxValue } from "./values.js";
 import { Scope } from "./scope.js";
 
@@ -50,10 +51,12 @@ export type InterpreterResult =
 
 export type InterpretOptions = {
   bindings?: Record<string, InterpreterValue>;
+  budget?: Budget;
   scope?: Scope;
 };
 
 type EvaluationContext = {
+  budget: Budget;
   scope: Scope;
   stats: InterpreterStats;
 };
@@ -88,11 +91,13 @@ const dispatchTable: DispatchTable = {
 };
 
 export async function interpret(node: ParseResult, options: InterpretOptions = {}): Promise<InterpreterResult> {
+  const budget = options.budget ?? new Budget();
   const scope = options.scope?.child(options.bindings ?? {}) ?? new Scope(options.bindings);
   const stats: InterpreterStats = {
     nodeVisits: 0
   };
   const evaluation = await evaluateNode(node, {
+    budget,
     scope,
     stats
   });
@@ -126,6 +131,7 @@ export async function interpret(node: ParseResult, options: InterpretOptions = {
 export { Scope } from "./scope.js";
 
 async function evaluateNode(node: ParseResult, context: EvaluationContext): Promise<EvaluationResult> {
+  context.budget.visitNode();
   context.stats.nodeVisits += 1;
 
   const handler = dispatchTable[node.type];
@@ -140,12 +146,15 @@ async function evaluateNode(node: ParseResult, context: EvaluationContext): Prom
 }
 
 async function evaluatePrimitiveLiteral(
-  node: BooleanLiteral | NullLiteral | NumericLiteral | StringLiteral | UndefinedLiteral
+  node: BooleanLiteral | NullLiteral | NumericLiteral | StringLiteral | UndefinedLiteral,
+  context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const value = typeof node.value === "string" ? context.budget.allocateString(node.value) : node.value;
+
   return {
     kind: "normal",
     hasValue: true,
-    value: node.value
+    value
   };
 }
 

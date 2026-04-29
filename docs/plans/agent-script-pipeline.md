@@ -422,7 +422,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-budgets
@@ -436,8 +436,9 @@ tasks:
       hit and the current count.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-globals-console-json
     title: Built-in globals — console and JSON

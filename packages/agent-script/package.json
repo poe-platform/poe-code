@@ -23,8 +23,8 @@
     "example:experiment": "node --experimental-strip-types src/cli.ts examples/experiment.md",
     "example:pipeline": "node --experimental-strip-types src/cli.ts examples/pipeline.md",
     "example:superintendent": "node --experimental-strip-types src/cli.ts examples/superintendent.md",
-    "test": "cd ../.. && vitest run packages/agent-script/src",
-    "test:unit": "cd ../.. && vitest run packages/agent-script/src"
+    "test": "cd ../.. && vitest run packages/agent-script/src packages/agent-script/test",
+    "test:unit": "cd ../.. && vitest run packages/agent-script/src packages/agent-script/test"
   },
   "files": [
     "dist",

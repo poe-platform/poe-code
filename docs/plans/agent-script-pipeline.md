@@ -1030,7 +1030,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: integration-snapshot-roundtrip
@@ -1044,8 +1044,9 @@ tasks:
       filesystem and a stub agent module.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: integration-budget-enforcement
     title: Integration test — budget enforcement

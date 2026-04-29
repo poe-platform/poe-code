@@ -11,6 +11,7 @@ import type {
   SourceSpan,
   SpreadElement,
   StringLiteral,
+  UnaryExpression,
   UndefinedLiteral,
   ExpressionStatement
 } from "../parse.js";
@@ -102,6 +103,7 @@ const dispatchTable: DispatchTable = {
   NumericLiteral: evaluatePrimitiveLiteral,
   ReturnStatement: evaluateReturnStatement,
   StringLiteral: evaluatePrimitiveLiteral,
+  UnaryExpression: evaluateUnaryExpression,
   UndefinedLiteral: evaluatePrimitiveLiteral
 };
 
@@ -230,6 +232,23 @@ async function evaluateReturnStatement(node: ReturnStatement, context: Evaluatio
     kind: "return",
     hasValue: argument.hasValue,
     value: argument.value
+  };
+}
+
+async function evaluateUnaryExpression(node: UnaryExpression, context: EvaluationContext): Promise<EvaluationResult> {
+  const argument = await evaluateNode(node.argument, context);
+  if (argument.kind === "error") {
+    return argument;
+  }
+
+  if (node.operator !== "!" && typeof argument.value !== "number") {
+    throw new TypeError(`Unary operator '${node.operator}' requires a numeric operand.`);
+  }
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: applyUnaryOperator(node.operator, argument.value)
   };
 }
 
@@ -369,6 +388,19 @@ function getStaticPropertyName(node: MemberExpression["property"]): string | num
   }
 
   throw new TypeError(`Unsupported static property node '${node.type}'.`);
+}
+
+function applyUnaryOperator(operator: UnaryExpression["operator"], value: InterpreterValue): InterpreterValue {
+  switch (operator) {
+    case "!":
+      return !value;
+    case "+":
+      return +(value as number);
+    case "-":
+      return -(value as number);
+    case "~":
+      return ~(value as number);
+  }
 }
 
 function isIndexableSandboxValue(value: SandboxValue): value is SandboxArray | SandboxObject {

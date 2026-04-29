@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { parse } from "../parse.js";
 import { Budget, SandboxError } from "./budget.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
+import { createMathGlobals, createSeededRandom } from "./globals/math.js";
 import { interpret, Scope } from "./interpreter.js";
 
 describe("interpret", () => {
@@ -81,6 +82,21 @@ describe("interpret", () => {
       },
       stats: {
         nodeVisits: 1
+      }
+    });
+  });
+
+  it("evaluates unary operators used by numeric expressions", async () => {
+    await expect(interpret(parse("return Math.abs(-4)"), { bindings: createMathGlobals() })).resolves.toEqual({
+      ok: true,
+      returnValue: 4,
+      snapshot: {
+        bindings: {
+          Math: expect.any(Object)
+        }
+      },
+      stats: {
+        nodeVisits: 6
       }
     });
   });
@@ -267,5 +283,74 @@ describe("interpret", () => {
 
     expect(sink.log).toHaveBeenCalledWith('{\n  "name": "poe"\n}');
     expect(sink.error).not.toHaveBeenCalled();
+  });
+
+  it("evaluates Math globals including deterministic random when seeded", async () => {
+    await expect(
+      interpret(parse("return Math.min(Math.PI, Math.E)"), {
+        bindings: createMathGlobals({ random: createSeededRandom(123).next })
+      })
+    ).resolves.toEqual({
+      ok: true,
+      returnValue: Math.E,
+      snapshot: {
+        bindings: {
+          Math: expect.any(Object)
+        }
+      },
+      stats: {
+        nodeVisits: 8
+      }
+    });
+
+    await expect(
+      interpret(parse("return Math.PI"), {
+        bindings: createMathGlobals({ random: createSeededRandom(123).next })
+      })
+    ).resolves.toEqual({
+      ok: true,
+      returnValue: Math.PI,
+      snapshot: {
+        bindings: {
+          Math: expect.any(Object)
+        }
+      },
+      stats: {
+        nodeVisits: 3
+      }
+    });
+
+    const seededRandom = createSeededRandom(123);
+    const firstRandom = await interpret(parse("return Math.random()"), {
+      bindings: createMathGlobals({ random: seededRandom.next })
+    });
+    const secondRandom = await interpret(parse("return Math.random()"), {
+      bindings: createMathGlobals({ random: seededRandom.next })
+    });
+
+    expect(firstRandom).toEqual({
+      ok: true,
+      returnValue: 0.2837369213812053,
+      snapshot: {
+        bindings: {
+          Math: expect.any(Object)
+        }
+      },
+      stats: {
+        nodeVisits: 4
+      }
+    });
+    expect(secondRandom).toEqual({
+      ok: true,
+      returnValue: 0.4351300236303359,
+      snapshot: {
+        bindings: {
+          Math: expect.any(Object)
+        }
+      },
+      stats: {
+        nodeVisits: 4
+      }
+    });
   });
 });

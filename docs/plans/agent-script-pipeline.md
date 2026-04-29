@@ -451,7 +451,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-globals-math
@@ -463,8 +463,9 @@ tasks:
       seedable from the runner so snapshots can replay if requested.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-globals-object-array
     title: Built-in globals — Object, Array, coercion fns

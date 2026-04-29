@@ -20,7 +20,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(Object.keys(api).sort()).toEqual(["dump", "lint", "parse", "restore", "run"]);
   });
 
-  it("keeps unimplemented entrypoints explicit while validating restore hashes", () => {
+  it("keeps restore hashes explicit while exporting runnable entrypoints", async () => {
     expect(api.parse("1")).toEqual({
       type: "NumericLiteral",
       raw: "1",
@@ -64,8 +64,23 @@ describe("@poe-code/agent-script public exports", () => {
         }
       }
     ]);
-    expect(() => api.run()).toThrowError("Not implemented");
-    expect(() => api.dump()).toThrowError("Not implemented");
+    await expect(api.run("return Math.PI")).resolves.toMatchObject({
+      ok: true,
+      returnValue: Math.PI
+    });
+    expect(
+      api.dump({
+        ok: true,
+        snapshot: {
+          sourceHash: hashSource("1")
+        },
+        stats: {
+          nodeVisits: 1
+        }
+      })
+    ).toEqual({
+      sourceHash: hashSource("1")
+    });
     expect(
       api.restore(
         {

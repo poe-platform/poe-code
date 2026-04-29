@@ -622,7 +622,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: module-registry
@@ -636,8 +636,9 @@ tasks:
       lint, but also defensively at runtime.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: module-agent
     title: makeAgentModule factory (spawn)

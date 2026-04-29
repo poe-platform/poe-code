@@ -1,5 +1,6 @@
 import { hashSource } from "./parse/hash.js";
-import { parse } from "./parse.js";
+import type { ParseResult } from "./parse.js";
+import { parseModule, type Module, type Statement } from "./parse/parser.js";
 import { restore, type AgentScriptSnapshot } from "./restore.js";
 import { Budget } from "./interp/budget.js";
 import { wrapCancelableBindings } from "./interp/cancel.js";
@@ -8,12 +9,14 @@ import { createErrorGlobals } from "./interp/globals/error.js";
 import { createMathGlobals, createSeededRandom } from "./interp/globals/math.js";
 import { createObjectArrayGlobals } from "./interp/globals/object-array.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "./interp/host-bridge.js";
-import { interpret, type InterpreterResult } from "./interp/interpreter.js";
+import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
 import { createPromiseGlobals } from "./interp/promise.js";
+import { resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
 
 export type RunOptions = {
   bindings?: Record<string, CallerInjectedBinding>;
   budget?: Budget;
+  modules?: ModuleRegistry;
   randomSeed?: number;
   signal?: AbortSignal;
   snapshot?: AgentScriptSnapshot;
@@ -36,6 +39,7 @@ export async function run(source: string, options: RunOptions = {}): Promise<Run
   const restoredSnapshot =
     options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
   const budget = options.budget ?? new Budget();
+  const module = parseModule(source);
   const random = createRandomState(restoredSnapshot, options.randomSeed);
   const callerBindings =
     options.bindings === undefined
@@ -65,9 +69,11 @@ export async function run(source: string, options: RunOptions = {}): Promise<Run
     },
     options.signal
   );
-  const result = await interpret(parse(source), {
-    bindings,
-    budget
+
+  const scope = new Scope(bindings).child(resolveModuleImports(module, options.modules, { budget }));
+  const result = await interpret(createExecutableNode(module), {
+    budget,
+    scope
   });
 
   return {
@@ -104,5 +110,30 @@ function createRandomState(
   return {
     seed: Math.trunc(randomSeed),
     generator: createSeededRandom(randomSeed)
+  };
+}
+
+function createExecutableNode(module: Module): ParseResult {
+  const executableStatements = module.body.filter(
+    (statement): statement is Exclude<Statement, { type: "ImportDeclaration" }> => statement.type !== "ImportDeclaration"
+  );
+
+  if (executableStatements.length === 0) {
+    return {
+      type: "BlockStatement",
+      body: [],
+      span: module.span
+    };
+  }
+
+  if (executableStatements.length === 1) {
+    const [statement] = executableStatements;
+    return statement.type === "ExpressionStatement" ? statement.expression : statement;
+  }
+
+  return {
+    type: "BlockStatement",
+    body: executableStatements,
+    span: module.span
   };
 }

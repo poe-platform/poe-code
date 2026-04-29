@@ -14,6 +14,93 @@ describe("run", () => {
     });
   });
 
+  it("resolves named, default, and namespace imports from the module registry", async () => {
+    const request = vi.fn(() => "named");
+    const result = await run(
+      [
+        'import fallback from "api";',
+        'import { request as call } from "api";',
+        'import * as api from "api";',
+        "return JSON.stringify(Array.of(fallback, call(), api.request(), api.default));"
+      ].join("\n"),
+      {
+        modules: {
+          api: {
+            default: "default-export",
+            request
+          }
+        }
+      }
+    );
+
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["default-export", "named", "named", "default-export"])
+    });
+  });
+
+  it("accepts Map-based registries and module export maps at runtime", async () => {
+    const result = await run('import { answer } from "numbers"; return answer;', {
+      modules: new Map([
+        [
+          "numbers",
+          new Map([
+            ["answer", 42]
+          ])
+        ]
+      ])
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: 42
+    });
+  });
+
+  it("throws the lint-style unknown module error when a module import is missing at runtime", async () => {
+    await expect(run('import { request } from "htp"; return request();', { modules: {} })).rejects.toThrow(
+      "Unknown module 'htp'. No modules are registered."
+    );
+  });
+
+  it("throws the lint-style unknown export error when an imported export is missing at runtime", async () => {
+    await expect(
+      run('import value from "api"; return value;', {
+        modules: {
+          api: {
+            request: vi.fn(() => "ok")
+          }
+        }
+      })
+    ).rejects.toThrow("Module 'api' does not export 'default'. Available exports: request.");
+  });
+
+  it("supports edge-case import local names without leaking inherited namespace members", async () => {
+    const result = await run(
+      [
+        'import { first as toString } from "api";',
+        'import { second as __proto__ } from "api";',
+        'import * as api from "api";',
+        "return JSON.stringify(Array.of(toString, __proto__, api.value, api.toString));"
+      ].join("\n"),
+      {
+        modules: {
+          api: {
+            first: 1,
+            second: 2,
+            value: 3
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([1, 2, 3, null])
+    });
+  });
+
   it("registers Object, Array, and coercion globals by default", async () => {
     const result = await run(`return JSON.stringify(Array.of(
       Object.keys(JSON.parse('{"alpha":1,"beta":2}')),

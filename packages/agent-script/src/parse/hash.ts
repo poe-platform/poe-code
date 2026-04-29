@@ -1,4 +1,4 @@
-import { parse, type ParseResult } from "./parser.js";
+import { parse, parseModule, type Module, type ParseResult } from "./parser.js";
 
 const FNV_OFFSET_BASIS = 0x811c9dc5;
 const FNV_PRIME = 0x01000193;
@@ -6,10 +6,14 @@ const FNV_PRIME = 0x01000193;
 const IGNORED_KEYS = new Set(["nodeId", "raw", "span"]);
 
 export function hashSource(source: string): string {
-  return hashParsedAst(parse(source));
+  try {
+    return hashParsedAst(parse(source));
+  } catch {
+    return hashParsedAst(parseModule(source));
+  }
 }
 
-export function hashParsedAst(ast: ParseResult): string {
+export function hashParsedAst(ast: Module | ParseResult): string {
   let hash = FNV_OFFSET_BASIS;
 
   visit(ast);

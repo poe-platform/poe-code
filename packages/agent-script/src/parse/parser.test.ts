@@ -1061,6 +1061,268 @@ describe("parse", () => {
     });
   });
 
+  it("parses destructuring in let/const declarations", () => {
+    expect(
+      parse(
+        "const { [key]: renamed = 1, nested: { value }, list: [head, ...tail], ...rest } = source"
+      )
+    ).toMatchObject({
+      type: "VariableDeclaration",
+      kind: "const",
+      declarations: [
+        {
+          type: "VariableDeclarator",
+          id: {
+            type: "ObjectPattern",
+            properties: [
+              {
+                type: "AssignmentProperty",
+                computed: true,
+                key: {
+                  type: "Identifier",
+                  name: "key"
+                },
+                value: {
+                  type: "AssignmentPattern",
+                  left: {
+                    type: "Identifier",
+                    name: "renamed"
+                  },
+                  right: {
+                    type: "NumericLiteral",
+                    value: 1
+                  }
+                }
+              },
+              {
+                type: "AssignmentProperty",
+                computed: false,
+                key: {
+                  type: "Identifier",
+                  name: "nested"
+                },
+                value: {
+                  type: "ObjectPattern",
+                  properties: [
+                    {
+                      type: "AssignmentProperty",
+                      shorthand: true,
+                      key: {
+                        type: "Identifier",
+                        name: "value"
+                      },
+                      value: {
+                        type: "Identifier",
+                        name: "value"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                type: "AssignmentProperty",
+                computed: false,
+                key: {
+                  type: "Identifier",
+                  name: "list"
+                },
+                value: {
+                  type: "ArrayPattern",
+                  elements: [
+                    {
+                      type: "Identifier",
+                      name: "head"
+                    },
+                    {
+                      type: "RestElement",
+                      argument: {
+                        type: "Identifier",
+                        name: "tail"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                type: "RestElement",
+                argument: {
+                  type: "Identifier",
+                  name: "rest"
+                }
+              }
+            ]
+          },
+          init: {
+            type: "Identifier",
+            name: "source"
+          }
+        }
+      ]
+    });
+  });
+
+  it("parses array pattern elisions across declarations, params, and assignments", () => {
+    expect(parse("const [, second = fallback, ...rest] = values")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ArrayPattern",
+            elements: [
+              null,
+              {
+                type: "AssignmentPattern",
+                left: {
+                  type: "Identifier",
+                  name: "second"
+                },
+                right: {
+                  type: "Identifier",
+                  name: "fallback"
+                }
+              },
+              {
+                type: "RestElement",
+                argument: {
+                  type: "Identifier",
+                  name: "rest"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("([, second = fallback, ...rest]) => second")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      params: [
+        {
+          type: "ArrayPattern",
+          elements: [
+            null,
+            {
+              type: "AssignmentPattern",
+              left: {
+                type: "Identifier",
+                name: "second"
+              },
+              right: {
+                type: "Identifier",
+                name: "fallback"
+              }
+            },
+            {
+              type: "RestElement",
+              argument: {
+                type: "Identifier",
+                name: "rest"
+              }
+            }
+          ]
+        }
+      ]
+    });
+
+    expect(parse("([, second = fallback, ...rest] = values)")).toMatchObject({
+      type: "AssignmentExpression",
+      left: {
+        type: "ArrayPattern",
+        elements: [
+          null,
+          {
+            type: "AssignmentPattern",
+            left: {
+              type: "Identifier",
+              name: "second"
+            },
+            right: {
+              type: "Identifier",
+              name: "fallback"
+            }
+          },
+          {
+            type: "RestElement",
+            argument: {
+              type: "Identifier",
+              name: "rest"
+            }
+          }
+        ]
+      },
+      right: {
+        type: "Identifier",
+        name: "values"
+      }
+    });
+  });
+
+  it("parses destructuring assignment targets", () => {
+    expect(
+      parse("({ [key]: renamed = 1, nested: { value }, list: [head, ...tail], ...rest } = source)")
+    ).toMatchObject({
+      type: "AssignmentExpression",
+      operator: "=",
+      left: {
+        type: "ObjectPattern",
+        properties: [
+          {
+            type: "AssignmentProperty",
+            computed: true,
+            key: {
+              type: "Identifier",
+              name: "key"
+            },
+            value: {
+              type: "AssignmentPattern",
+              left: {
+                type: "Identifier",
+                name: "renamed"
+              },
+              right: {
+                type: "NumericLiteral",
+                value: 1
+              }
+            }
+          },
+          {
+            type: "AssignmentProperty",
+            computed: false,
+            key: {
+              type: "Identifier",
+              name: "nested"
+            },
+            value: {
+              type: "ObjectPattern"
+            }
+          },
+          {
+            type: "AssignmentProperty",
+            computed: false,
+            key: {
+              type: "Identifier",
+              name: "list"
+            },
+            value: {
+              type: "ArrayPattern"
+            }
+          },
+          {
+            type: "RestElement",
+            argument: {
+              type: "Identifier",
+              name: "rest"
+            }
+          }
+        ]
+      },
+      right: {
+        type: "Identifier",
+        name: "source"
+      }
+    });
+  });
+
   it("parses empty parameter lists and trailing commas before the arrow", () => {
     expect(parse("() => 1")).toMatchObject({
       type: "ArrowFunctionExpression",
@@ -1106,11 +1368,23 @@ describe("parse", () => {
     expect(() => parse("({ ...{ value } }) => value")).toThrowError(
       "Object rest element must bind to an identifier at line 1, column 7."
     );
+    expect(() => parse("({ [key + suffix]: value }) => value")).toThrowError(
+      "Computed property names in patterns must use an identifier at line 1, column 5."
+    );
     expect(() => parse("x\n=> x")).toThrowError(
       "Unexpected line break before '=>' at line 2, column 1."
     );
     expect(() => parse("async\n(x) => x")).toThrowError(
       "Unexpected line break after 'async' at line 2, column 1."
+    );
+  });
+
+  it("rejects non-identifier computed property sources in declarations and assignments", () => {
+    expect(() => parse("const { [key + suffix]: value } = source")).toThrowError(
+      "Computed property names in patterns must use an identifier at line 1, column 10."
+    );
+    expect(() => parse("({ [key + suffix]: value } = source)")).toThrowError(
+      "Computed property names in patterns must use an identifier at line 1, column 5."
     );
   });
 

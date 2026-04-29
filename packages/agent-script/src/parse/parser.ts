@@ -80,15 +80,17 @@ export type Property = BaseNode & {
   value: Expression;
 };
 
+export type PatternTarget = ArrayPattern | Identifier | MemberExpression | ObjectPattern;
+
 export type AssignmentPattern = BaseNode & {
   type: "AssignmentPattern";
-  left: ArrayPattern | Identifier | ObjectPattern;
+  left: PatternTarget;
   right: Expression;
 };
 
 export type RestElement = BaseNode & {
   type: "RestElement";
-  argument: ArrayPattern | Identifier | ObjectPattern;
+  argument: PatternTarget;
 };
 
 export type AssignmentProperty = BaseNode & {
@@ -96,12 +98,12 @@ export type AssignmentProperty = BaseNode & {
   computed: boolean;
   shorthand: boolean;
   key: Expression;
-  value: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern;
+  value: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern;
 };
 
 export type ArrayPattern = BaseNode & {
   type: "ArrayPattern";
-  elements: Array<AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement>;
+  elements: Array<AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement | null>;
 };
 
 export type ObjectPattern = BaseNode & {
@@ -182,11 +184,32 @@ export type MemberExpression = BaseNode & {
   property: Expression;
 };
 
+export type AssignmentExpression = BaseNode & {
+  type: "AssignmentExpression";
+  operator: "=";
+  left: PatternTarget;
+  right: Expression;
+};
+
 export type CallExpression = BaseNode & {
   type: "CallExpression";
   arguments: Array<Expression | SpreadElement>;
   callee: Expression;
   optional: boolean;
+};
+
+export type VariableDeclarator = BaseNode & {
+  type: "VariableDeclarator";
+  id: ArrayPattern | Identifier | ObjectPattern;
+  init?: Expression;
+};
+
+export type VariableDeclarationKind = "const" | "let";
+
+export type VariableDeclaration = BaseNode & {
+  type: "VariableDeclaration";
+  declarations: VariableDeclarator[];
+  kind: VariableDeclarationKind;
 };
 
 export type ReturnStatement = BaseNode & {
@@ -199,7 +222,7 @@ export type ExpressionStatement = BaseNode & {
   expression: Expression;
 };
 
-export type Statement = ExpressionStatement | ReturnStatement;
+export type Statement = ExpressionStatement | ReturnStatement | VariableDeclaration;
 
 export type BlockStatement = BaseNode & {
   type: "BlockStatement";
@@ -216,6 +239,7 @@ export type ArrowFunctionExpression = BaseNode & {
 
 export type Expression =
   | ArrowFunctionExpression
+  | AssignmentExpression
   | ArrayExpression
   | BinaryExpression
   | BooleanLiteral
@@ -232,6 +256,8 @@ export type Expression =
   | UnaryExpression
   | UndefinedLiteral;
 
+export type ParseResult = Expression | VariableDeclaration;
+
 type ParsedExpression = {
   node: Expression;
   parenthesized: boolean;
@@ -246,12 +272,16 @@ const BITWISE_OR_OPERATORS = new Set<BinaryOperator>(["|"]);
 const BITWISE_XOR_OPERATORS = new Set<BinaryOperator>(["^"]);
 const BITWISE_AND_OPERATORS = new Set<BinaryOperator>(["&"]);
 
-export function parse(source: string): Expression {
+export function parse(source: string): ParseResult {
   return parseTokens(tokenize(source));
 }
 
-function parseTokens(tokens: Token[]): Expression {
-  return new Parser(tokens).parse();
+function parseTokens(tokens: Token[]): ParseResult {
+  return new Parser(tokens).parseTopLevel();
+}
+
+function parseExpressionTokens(tokens: Token[]): Expression {
+  return new Parser(tokens).parseExpressionOnly();
 }
 
 class Parser {
@@ -259,7 +289,20 @@ class Parser {
 
   constructor(private readonly tokens: Token[]) {}
 
-  parse(): Expression {
+  parseTopLevel(): ParseResult {
+    const node =
+      this.currentToken().type === "keyword" &&
+      (this.currentToken().value === "const" || this.currentToken().value === "let")
+        ? this.parseVariableDeclaration()
+        : this.parseExpression().node;
+    while (this.consumePunctuator(";") !== undefined) {
+      continue;
+    }
+    this.expectEof();
+    return node;
+  }
+
+  parseExpressionOnly(): Expression {
     const expression = this.parseExpression().node;
     while (this.consumePunctuator(";") !== undefined) {
       continue;
@@ -277,7 +320,34 @@ class Parser {
       };
     }
 
-    return this.parseConditionalExpression();
+    return this.parseAssignmentExpression();
+  }
+
+  private parseAssignmentExpression(): ParsedExpression {
+    const patternAssignment = this.tryParsePatternAssignmentExpression();
+    if (patternAssignment !== undefined) {
+      return {
+        node: patternAssignment,
+        parenthesized: false
+      };
+    }
+
+    const left = this.parseConditionalExpression();
+    if (this.consumePunctuator("=") === undefined) {
+      return left;
+    }
+
+    const right = this.parseAssignmentExpression();
+    return {
+      node: {
+        type: "AssignmentExpression",
+        operator: "=",
+        left: this.toAssignmentTarget(left.node),
+        right: right.node,
+        span: createSpan(left.node.span.start, right.node.span.end)
+      },
+      parenthesized: false
+    };
   }
 
   private tryParseArrowFunctionExpression(): ArrowFunctionExpression | undefined {
@@ -390,11 +460,67 @@ class Parser {
       };
     }
 
+    if (token.type === "keyword" && (token.value === "const" || token.value === "let")) {
+      return this.parseVariableDeclaration();
+    }
+
     const expression = this.parseExpression().node;
     return {
       type: "ExpressionStatement",
       expression,
       span: createSpan(expression.span.start, expression.span.end)
+    };
+  }
+
+  private parseVariableDeclaration(): VariableDeclaration {
+    const kindToken = this.currentToken();
+    if (kindToken.type !== "keyword" || (kindToken.value !== "const" && kindToken.value !== "let")) {
+      throw unexpectedTokenError(kindToken);
+    }
+
+    this.index += 1;
+    const declarations: VariableDeclaration["declarations"] = [];
+
+    while (true) {
+      declarations.push(this.parseVariableDeclarator(kindToken.value));
+      if (this.consumePunctuator(",") === undefined) {
+        break;
+      }
+    }
+
+    return {
+      type: "VariableDeclaration",
+      declarations,
+      kind: kindToken.value,
+      span: createSpan(kindToken.start, declarations[declarations.length - 1]!.span.end)
+    };
+  }
+
+  private parseVariableDeclarator(kind: VariableDeclarationKind): VariableDeclarator {
+    const id = this.parseBindingTarget();
+    let init: Expression | undefined;
+
+    if (this.consumePunctuator("=") !== undefined) {
+      init = this.parseExpression().node;
+    }
+
+    if (kind === "const" && init === undefined) {
+      throw new Error(
+        `Missing initializer in const declaration at line ${id.span.start.line}, column ${id.span.start.column}.`
+      );
+    }
+
+    if (init === undefined && id.type !== "Identifier") {
+      throw new Error(
+        `Destructuring declarations require an initializer at line ${id.span.start.line}, column ${id.span.start.column}.`
+      );
+    }
+
+    return {
+      type: "VariableDeclarator",
+      id,
+      init,
+      span: createSpan(id.span.start, init?.span.end ?? id.span.end)
     };
   }
 
@@ -504,6 +630,15 @@ class Parser {
     }
 
     while (true) {
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === ",") {
+        this.index += 1;
+        elements.push(null);
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === "]") {
+          break;
+        }
+        continue;
+      }
+
       const element = this.parseBindingElement();
       elements.push(element);
 
@@ -596,8 +731,7 @@ class Parser {
 
     if (this.consumePunctuator("[") !== undefined) {
       const start = this.previousToken().start;
-      const key = this.parseExpression().node;
-      this.expectPunctuator("]");
+      const key = this.parsePatternComputedKey();
       this.expectPunctuator(":");
       const value = this.parseBindingElement();
       if (value.type === "RestElement") {
@@ -671,6 +805,285 @@ class Parser {
     }
 
     throw unexpectedTokenError(token);
+  }
+
+  private tryParsePatternAssignmentExpression(): AssignmentExpression | undefined {
+    const token = this.currentToken();
+    if (
+      token.type !== "punctuator" ||
+      (token.value !== "[" && token.value !== "{") ||
+      !this.isPatternAssignmentStart(this.index)
+    ) {
+      return undefined;
+    }
+
+    const left = token.value === "[" ? this.parseAssignmentArrayPattern() : this.parseAssignmentObjectPattern();
+    this.expectPunctuator("=");
+    const right = this.parseAssignmentExpression().node;
+    return {
+      type: "AssignmentExpression",
+      operator: "=",
+      left,
+      right,
+      span: createSpan(left.span.start, right.span.end)
+    };
+  }
+
+  private parseAssignmentPatternElement():
+    | AssignmentPattern
+    | ArrayPattern
+    | Identifier
+    | MemberExpression
+    | ObjectPattern
+    | RestElement {
+    if (this.consumePunctuator("...") !== undefined) {
+      const start = this.previousToken().start;
+      const argument = this.parseAssignmentTarget();
+      return {
+        type: "RestElement",
+        argument,
+        span: createSpan(start, argument.span.end)
+      };
+    }
+
+    const left = this.parseAssignmentTarget();
+    if (this.consumePunctuator("=") === undefined) {
+      return left;
+    }
+
+    const right = this.parseAssignmentExpression().node;
+    return {
+      type: "AssignmentPattern",
+      left,
+      right,
+      span: createSpan(left.span.start, right.span.end)
+    };
+  }
+
+  private parseAssignmentTarget(): PatternTarget {
+    const token = this.currentToken();
+
+    if (token.type === "punctuator" && token.value === "[") {
+      return this.parseAssignmentArrayPattern();
+    }
+
+    if (token.type === "punctuator" && token.value === "{") {
+      return this.parseAssignmentObjectPattern();
+    }
+
+    const expression = this.parseLeftHandSideExpression().node;
+    if (expression.type === "Identifier") {
+      return expression;
+    }
+
+    if (expression.type === "MemberExpression" && !expression.optional) {
+      return expression;
+    }
+
+    throw invalidAssignmentTargetError(expression.span.start);
+  }
+
+  private parseAssignmentArrayPattern(): ArrayPattern {
+    const start = this.expectPunctuator("[");
+    const elements: ArrayPattern["elements"] = [];
+
+    if (this.consumePunctuator("]") !== undefined) {
+      return {
+        type: "ArrayPattern",
+        elements,
+        span: createSpan(start.start, this.previousToken().end)
+      };
+    }
+
+    while (true) {
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === ",") {
+        this.index += 1;
+        elements.push(null);
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === "]") {
+          break;
+        }
+        continue;
+      }
+
+      const element = this.parseAssignmentPatternElement();
+      elements.push(element);
+
+      const comma = this.consumePunctuator(",");
+      if (comma === undefined) {
+        break;
+      }
+
+      if (element.type === "RestElement") {
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === "]") {
+          throw unexpectedTokenError(comma);
+        }
+        throw new Error(
+          `Rest element must be the last element in an array pattern at line ${comma.start.line}, column ${comma.start.column}.`
+        );
+      }
+
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === "]") {
+        break;
+      }
+    }
+
+    const end = this.expectPunctuator("]");
+    return {
+      type: "ArrayPattern",
+      elements,
+      span: createSpan(start.start, end.end)
+    };
+  }
+
+  private parseAssignmentObjectPattern(): ObjectPattern {
+    const start = this.expectPunctuator("{");
+    const properties: ObjectPattern["properties"] = [];
+
+    if (this.consumePunctuator("}") !== undefined) {
+      return {
+        type: "ObjectPattern",
+        properties,
+        span: createSpan(start.start, this.previousToken().end)
+      };
+    }
+
+    while (true) {
+      const property = this.parseAssignmentObjectPatternProperty();
+      properties.push(property);
+
+      const comma = this.consumePunctuator(",");
+      if (comma === undefined) {
+        break;
+      }
+
+      if (property.type === "RestElement") {
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === "}") {
+          throw unexpectedTokenError(comma);
+        }
+        throw new Error(
+          `Rest element must be the last property in an object pattern at line ${comma.start.line}, column ${comma.start.column}.`
+        );
+      }
+
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === "}") {
+        break;
+      }
+    }
+
+    const end = this.expectPunctuator("}");
+    return {
+      type: "ObjectPattern",
+      properties,
+      span: createSpan(start.start, end.end)
+    };
+  }
+
+  private parseAssignmentObjectPatternProperty(): AssignmentProperty | RestElement {
+    if (this.consumePunctuator("...") !== undefined) {
+      const start = this.previousToken().start;
+      const token = this.currentToken();
+      if (token.type !== "identifier") {
+        throw new Error(
+          `Object rest element must bind to an identifier at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
+      const argument = this.parseBindingIdentifier();
+      return {
+        type: "RestElement",
+        argument,
+        span: createSpan(start, argument.span.end)
+      };
+    }
+
+    if (this.consumePunctuator("[") !== undefined) {
+      const start = this.previousToken().start;
+      const key = this.parsePatternComputedKey();
+      this.expectPunctuator(":");
+      const value = this.parseAssignmentPatternElement();
+      if (value.type === "RestElement") {
+        throw unexpectedTokenError(this.previousToken());
+      }
+      return {
+        type: "AssignmentProperty",
+        computed: true,
+        shorthand: false,
+        key,
+        value,
+        span: createSpan(start, value.span.end)
+      };
+    }
+
+    const token = this.currentToken();
+    if (token.type === "identifier") {
+      this.index += 1;
+      const key = createIdentifier(token);
+      if (this.consumePunctuator(":") !== undefined) {
+        const value = this.parseAssignmentPatternElement();
+        if (value.type === "RestElement") {
+          throw unexpectedTokenError(this.previousToken());
+        }
+        return {
+          type: "AssignmentProperty",
+          computed: false,
+          shorthand: false,
+          key,
+          value,
+          span: createSpan(key.span.start, value.span.end)
+        };
+      }
+
+      let value: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern = key;
+      if (this.consumePunctuator("=") !== undefined) {
+        const right = this.parseAssignmentExpression().node;
+        value = {
+          type: "AssignmentPattern",
+          left: createIdentifier(token),
+          right,
+          span: createSpan(key.span.start, right.span.end)
+        };
+      }
+      return {
+        type: "AssignmentProperty",
+        computed: false,
+        shorthand: true,
+        key,
+        value,
+        span: createSpan(key.span.start, value.span.end)
+      };
+    }
+
+    if (isLiteralPropertyKey(token)) {
+      this.index += 1;
+      const key = createLiteralFromToken(token);
+      this.expectPunctuator(":");
+      const value = this.parseAssignmentPatternElement();
+      if (value.type === "RestElement") {
+        throw unexpectedTokenError(this.previousToken());
+      }
+      return {
+        type: "AssignmentProperty",
+        computed: false,
+        shorthand: false,
+        key,
+        value,
+        span: createSpan(key.span.start, value.span.end)
+      };
+    }
+
+    throw unexpectedTokenError(token);
+  }
+
+  private parsePatternComputedKey(): Identifier {
+    const key = this.parseExpression().node;
+    this.expectPunctuator("]");
+
+    if (key.type !== "Identifier") {
+      throw new Error(
+        `Computed property names in patterns must use an identifier at line ${key.span.start.line}, column ${key.span.start.column}.`
+      );
+    }
+
+    return key;
   }
 
   private parseCoalesceExpression(): ParsedExpression {
@@ -1255,6 +1668,150 @@ class Parser {
     }
   }
 
+  private toAssignmentTarget(node: Expression): PatternTarget {
+    if (node.type === "Identifier") {
+      return node;
+    }
+
+    if (node.type === "MemberExpression" && !node.optional) {
+      return node;
+    }
+
+    if (node.type === "ArrayExpression") {
+      return this.arrayExpressionToPattern(node);
+    }
+
+    if (node.type === "ObjectExpression") {
+      return this.objectExpressionToPattern(node);
+    }
+
+    throw invalidAssignmentTargetError(node.span.start);
+  }
+
+  private arrayExpressionToPattern(node: ArrayExpression): ArrayPattern {
+    return {
+      type: "ArrayPattern",
+      elements: node.elements.map(element => this.toArrayPatternElement(element)),
+      span: node.span
+    };
+  }
+
+  private toArrayPatternElement(
+    element: Expression | SpreadElement
+  ): AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement {
+    if (element.type === "SpreadElement") {
+      const argument = this.toAssignmentTarget(element.argument);
+      return {
+        type: "RestElement",
+        argument,
+        span: element.span
+      };
+    }
+
+    if (element.type === "AssignmentExpression" && element.operator === "=") {
+      return {
+        type: "AssignmentPattern",
+        left: element.left,
+        right: element.right,
+        span: element.span
+      };
+    }
+
+    return this.toAssignmentTarget(element);
+  }
+
+  private objectExpressionToPattern(node: ObjectExpression): ObjectPattern {
+    return {
+      type: "ObjectPattern",
+      properties: node.properties.map(property => this.toObjectPatternProperty(property)),
+      span: node.span
+    };
+  }
+
+  private toObjectPatternProperty(property: Property | SpreadElement): AssignmentProperty | RestElement {
+    if (property.type === "SpreadElement") {
+      if (property.argument.type !== "Identifier") {
+        throw new Error(
+          `Object rest element must bind to an identifier at line ${property.argument.span.start.line}, column ${property.argument.span.start.column}.`
+        );
+      }
+
+      return {
+        type: "RestElement",
+        argument: property.argument,
+        span: property.span
+      };
+    }
+
+    if (property.computed && property.key.type !== "Identifier") {
+      throw new Error(
+        `Computed property names in patterns must use an identifier at line ${property.key.span.start.line}, column ${property.key.span.start.column}.`
+      );
+    }
+
+    const value =
+      property.shorthand && property.value.type === "Identifier"
+        ? property.value
+        : this.toObjectPropertyValue(property.value);
+
+    return {
+      type: "AssignmentProperty",
+      computed: property.computed,
+      shorthand: property.shorthand,
+      key: property.key,
+      value,
+      span: property.span
+    };
+  }
+
+  private toObjectPropertyValue(
+    value: Expression
+  ): AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern {
+    if (value.type === "AssignmentExpression" && value.operator === "=") {
+      return {
+        type: "AssignmentPattern",
+        left: value.left,
+        right: value.right,
+        span: value.span
+      };
+    }
+
+    return this.toAssignmentTarget(value);
+  }
+
+  private isPatternAssignmentStart(startIndex: number): boolean {
+    const startToken = this.tokens[startIndex];
+    if (startToken?.type !== "punctuator" || (startToken.value !== "[" && startToken.value !== "{")) {
+      return false;
+    }
+
+    const stack: string[] = [];
+    for (let index = startIndex; index < this.tokens.length; index += 1) {
+      const token = this.tokens[index];
+      if (token.type !== "punctuator") {
+        continue;
+      }
+
+      if (token.value === "(" || token.value === "[" || token.value === "{") {
+        stack.push(token.value);
+        continue;
+      }
+
+      if (token.value === ")" || token.value === "]" || token.value === "}") {
+        const expected = matchingOpeningPunctuator(token.value);
+        if (stack[stack.length - 1] === expected) {
+          stack.pop();
+        }
+
+        if (stack.length === 0) {
+          return this.tokens[index + 1]?.type === "punctuator" && this.tokens[index + 1]?.value === "=";
+        }
+      }
+    }
+
+    return false;
+  }
+
   private isSingleParamArrowFunction(): boolean {
     const token = this.currentToken();
     if (token.type !== "identifier" || this.peekToken(1).value !== "=>") {
@@ -1714,7 +2271,7 @@ function parseEmbeddedExpression(source: string, base: Position): Expression {
     start: rebasePosition(token.start, base),
     end: rebasePosition(token.end, base)
   }));
-  return parseTokens(tokens);
+  return parseExpressionTokens(tokens);
 }
 
 function decodeEscapeCharacter(char: string): string {
@@ -1822,4 +2379,20 @@ function unexpectedTokenError(token: Token): Error {
   }
 
   return new Error(`Unexpected token '${token.value}' at line ${token.start.line}, column ${token.start.column}.`);
+}
+
+function invalidAssignmentTargetError(position: Position): Error {
+  return new Error(`Invalid assignment target at line ${position.line}, column ${position.column}.`);
+}
+
+function matchingOpeningPunctuator(value: ")" | "]" | "}"): "(" | "[" | "{" {
+  if (value === ")") {
+    return "(";
+  }
+
+  if (value === "]") {
+    return "[";
+  }
+
+  return "{";
 }

@@ -3,6 +3,7 @@ export type {
   ArrayPattern,
   ArrayExpression,
   ArrowFunctionExpression,
+  AssignmentExpression,
   AssignmentPattern,
   AssignmentProperty,
   BinaryExpression,
@@ -19,6 +20,8 @@ export type {
   NumericLiteral,
   ObjectExpression,
   ObjectPattern,
+  ParseResult,
+  PatternTarget,
   Property,
   RestElement,
   ReturnStatement,
@@ -29,5 +32,8 @@ export type {
   TemplateElement,
   TemplateLiteral,
   UnaryExpression,
-  UndefinedLiteral
+  UndefinedLiteral,
+  VariableDeclaration,
+  VariableDeclarationKind,
+  VariableDeclarator
 } from "./parse/parser.js";

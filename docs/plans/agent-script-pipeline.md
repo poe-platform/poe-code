@@ -89,7 +89,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: parser-destructuring
@@ -103,8 +103,9 @@ tasks:
       names without an identifier source.
     status:
       "impl ement": open
-      test: open
-      commit: open
+      test: done
+      commit: done
+      implement: done
 
   - id: parser-control-flow
     title: Parse if/else, for, for-of, while, return, break, continue

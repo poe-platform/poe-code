@@ -986,7 +986,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: migrate-experiment-loop
@@ -1000,8 +1000,9 @@ tasks:
       (agents, metric, maxKept).
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: package-readme
     title: README for @poe-code/agent-script

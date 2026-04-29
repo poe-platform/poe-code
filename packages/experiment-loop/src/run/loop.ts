@@ -1,31 +1,29 @@
 import { exec as execCallback } from "node:child_process";
 import * as fsPromises from "node:fs/promises";
-import path from "node:path";
 import {
   lockWorkflow,
   makeRunLogFileName,
   resolveRunLogDir,
   resolveWorkflowPath
 } from "@poe-code/agent-harness-tools";
-import { resolve } from "@poe-code/config-extends";
 import {
-  parseExperimentFrontmatterData,
-  type ExperimentFrontmatter
-} from "../frontmatter/frontmatter.js";
-import { createDefaultGit } from "../git/git.js";
-import { baselineFromEntry, ExperimentJournal } from "../journal/journal.js";
-import { evaluateChain } from "../evaluator/evaluator.js";
-import { loadInstructions, loadRunConfig } from "../config/loader.js";
-import { parseAgentSpecifier, type AgentSpecifier } from "@poe-code/agent-defs";
+  makeAgentModule,
+  makeGitModule,
+  makeHarnessModule,
+  makeLogModule,
+  makeMetricModule,
+  makeTimeModule,
+  runHarness
+} from "@poe-code/agent-script";
+import { parseExperimentFrontmatter } from "../frontmatter/frontmatter.js";
+import { parseExperimentFrontmatterData } from "../frontmatter/frontmatter.js";
 import type {
-  EvalResult,
   ExecFn,
   ExperimentFileSystem,
   ExperimentRunOptions,
   ExperimentRunResult,
   JournalEntry,
-  MetricDef,
-  RunConfig
+  MetricDef
 } from "../types.js";
 
 type LockCapableExperimentFs = {
@@ -41,6 +39,9 @@ type LockCapableExperimentFs = {
   }>;
   unlink(path: string): Promise<void>;
 };
+
+type LogModuleEntry = Parameters<NonNullable<Parameters<typeof makeLogModule>[0]>>[0];
+type ExperimentHarnessModules = ReturnType<Parameters<typeof runHarness>[1]["modulesFor"]>;
 
 function createDefaultFs(): ExperimentFileSystem {
   const fs = {
@@ -103,59 +104,6 @@ function createDefaultExec(): ExecFn {
     });
 }
 
-function resolveJournalPath(docPath: string): string {
-  return path.join(
-    path.dirname(docPath),
-    `${path.basename(docPath, path.extname(docPath))}.journal.jsonl`
-  );
-}
-
-function normalizeMetrics(metric: MetricDef | MetricDef[] | undefined): MetricDef[] {
-  if (!metric) {
-    throw new Error("Experiment doc is missing metric frontmatter.");
-  }
-
-  return Array.isArray(metric) ? metric : [metric];
-}
-
-function normalizeAgents(agent: string | string[] | undefined): AgentSpecifier[] {
-  if (!agent) {
-    throw new Error("Experiment doc is missing agent frontmatter.");
-  }
-
-  const raw = typeof agent === "string" ? [agent] : agent;
-
-  if (raw.length === 0) {
-    throw new Error("agent must contain at least one entry.");
-  }
-
-  return raw.map(parseAgentSpecifier);
-}
-
-function validateMaxExperiments(maxExperiments: number | undefined): number {
-  if (maxExperiments === undefined) {
-    return Number.POSITIVE_INFINITY;
-  }
-
-  if (!Number.isInteger(maxExperiments) || maxExperiments < 0) {
-    throw new Error("max_experiments must be a non-negative integer.");
-  }
-
-  return maxExperiments;
-}
-
-function normalizeResolvedBody(prompt: unknown): string {
-  if (prompt === undefined) {
-    return "";
-  }
-
-  if (typeof prompt !== "string") {
-    throw new Error("Experiment doc prompt must be a string.");
-  }
-
-  return prompt;
-}
-
 function assertNotAborted(signal: AbortSignal | undefined): void {
   if (!signal?.aborted) {
     return;
@@ -174,91 +122,310 @@ function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
 }
 
-function interpolate(template: string, values: Record<string, string>): string {
-  let output = template;
-  for (const [key, value] of Object.entries(values)) {
-    output = output.split(`{{${key}}}`).join(value);
-  }
-  return output;
+function shellEscape(value: string): string {
+  return `'${value.replaceAll("'", `'\\''`)}'`;
 }
 
-function formatMetrics(metrics: MetricDef[], baseline: Record<string, number> | null): string {
-  return metrics
-    .map((m) => {
-      const parts = [`- ${m.name}: ${m.direction}`];
-      if (m.delta !== undefined) {
-        parts.push(`±${m.delta}`);
-      }
-      parts.push(`script: \`${m.script}\``);
-      const score = baseline?.[m.name];
-      if (score !== undefined) {
-        parts.push(`(baseline: ${score})`);
-      }
-      return parts.join(", ");
-    })
-    .join("\n");
-}
+function createMetricRunner(
+  exec: ExecFn,
+  cwd: string,
+  options: ExperimentRunOptions,
+  metrics: MetricDef[]
+) {
+  return async (scriptName: string): Promise<string> => {
+    const result = await exec(`npm run --silent ${shellEscape(scriptName)}`, { cwd });
+    const score = readMetricScore(result.stdout, scriptName);
 
-function buildPrompt(options: {
-  runConfig: RunConfig;
-  instructions: string;
-  body: string;
-  journal: string;
-  metrics: MetricDef[];
-  experimentIndex: number;
-  baseline: Record<string, number> | null;
-  docPath: string;
-  docName: string;
-}): string {
-  const vars = {
-    body: options.body.trim(),
-    journal: options.journal,
-    metrics: formatMetrics(options.metrics, options.baseline),
-    experiment_index: String(options.experimentIndex),
-    baseline: options.baseline ? JSON.stringify(options.baseline) : "",
-    doc_path: options.docPath,
-    doc_name: options.docName
+    options.onMetricResult?.(readMetricDefinition(scriptName, metrics), {
+      score,
+      passed: result.exitCode === 0,
+      output: result.stdout
+    });
+
+    if (result.exitCode !== 0) {
+      throw new Error(result.stderr || result.stdout || `Metric run failed: ${scriptName}`);
+    }
+
+    return result.stdout;
   };
-
-  const context = interpolate(options.runConfig.prompt, vars).trim();
-  const instructions = interpolate(options.instructions, vars).trim();
-
-  return `${context}\n\n${instructions}`;
 }
 
-function allMetricsPassed(metrics: MetricDef[], results: EvalResult[]): boolean {
-  return results.length === metrics.length && results.every((result) => result.passed);
+function readMetricScore(stdout: string, scriptName: string): number {
+  const scoreLine = stdout
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0)
+    .at(-1);
+
+  if (scoreLine === undefined) {
+    throw new Error(`Metric script "${scriptName}" must print a numeric score.`);
+  }
+
+  const score = Number(scoreLine);
+
+  if (!Number.isFinite(score)) {
+    throw new Error(`Metric script "${scriptName}" must print a numeric score.`);
+  }
+
+  return score;
 }
 
-function baselineFromResults(metrics: MetricDef[], results: EvalResult[]): Record<string, number> {
-  return Object.fromEntries(
-    metrics.map((metric, index) => {
-      const score = results[index]?.score;
+function readMetricDefinition(scriptName: string, metrics: MetricDef[]): MetricDef {
+  const name = scriptName.startsWith("metric:") ? scriptName.slice("metric:".length) : scriptName;
+  return metrics.find((metric) => metric.name === name) ?? {
+    name,
+    direction: "maximize"
+  };
+}
 
-      if (score === null || score === undefined) {
-        throw new Error(`Metric "${metric.name}" is missing a numeric score.`);
-      }
+function readErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
 
-      return [metric.name, score] as const;
-    })
+  if (isRecord(error) && typeof error.message === "string") {
+    return error.message;
+  }
+
+  return String(error);
+}
+
+function toError(message: string): Error {
+  return new Error(message);
+}
+
+function normalizeFrontmatter(
+  frontmatter: Record<string, unknown>,
+  agentOverride: ExperimentRunOptions["agent"]
+): Record<string, unknown> {
+  if (!agentOverride) {
+    return frontmatter;
+  }
+
+  const parsed = parseExperimentFrontmatterData(frontmatter);
+  const overrideAgents = Array.isArray(agentOverride) ? agentOverride : [agentOverride];
+  const existingAgents = parsed.agents ?? {};
+  const existingEntries = Object.entries(existingAgents);
+
+  if (existingEntries.length === 0) {
+    return {
+      ...frontmatter,
+      agents: Object.fromEntries(
+        overrideAgents.map((agent, index) => [
+          index === 0 ? "experimenter" : `experimenter${index + 1}`,
+          { agent }
+        ])
+      )
+    };
+  }
+
+  return {
+    ...frontmatter,
+    agents: Object.fromEntries(
+      existingEntries.map(([name, definition], index) => [
+        name,
+        typeof definition === "string"
+          ? overrideAgents[index % overrideAgents.length] ?? definition
+          : {
+              ...definition,
+              agent: overrideAgents[index % overrideAgents.length] ?? definition.agent
+            }
+      ])
+    )
+  };
+}
+
+function withRuntimeOverrides(
+  frontmatter: Record<string, unknown>,
+  options: Pick<ExperimentRunOptions, "agent" | "maxExperiments">
+): Record<string, unknown> {
+  const normalizedFrontmatter = normalizeFrontmatter(frontmatter, options.agent);
+
+  if (options.maxExperiments === undefined) {
+    return normalizedFrontmatter;
+  }
+
+  return {
+    ...normalizedFrontmatter,
+    maxExperiments: options.maxExperiments
+  };
+}
+
+function assertExperimentScriptBlock(content: string, docPath: string): void {
+  const { body } = parseExperimentFrontmatter(content);
+
+  if (containsExperimentScriptBlock(body)) {
+    return;
+  }
+
+  throw new Error(
+    `Experiment doc "${docPath}" must include a fenced \`js\` block with the loop body.`
   );
 }
 
-function deriveStateFromJournal(entries: JournalEntry[]): {
-  experimentsCompleted: number;
-  experimentsKept: number;
-  baseline: Record<string, number> | null;
-  baselineHash: string | undefined;
-} {
-  const keepEntries = entries.filter((e) => e.status === "keep");
-  const lastKeep = keepEntries[keepEntries.length - 1];
+function containsExperimentScriptBlock(body: string): boolean {
+  for (const line of body.split("\n")) {
+    if (matchesExperimentScriptFence(line)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function matchesExperimentScriptFence(line: string): boolean {
+  const trimmedLine = line.trimStart();
+
+  if (!trimmedLine.startsWith("```")) {
+    return false;
+  }
+
+  const info = trimmedLine.slice(3).trimStart();
+  return matchesScriptInfoWord(info, "js") || matchesScriptInfoWord(info, "ajs");
+}
+
+function matchesScriptInfoWord(info: string, expected: string): boolean {
+  if (!info.startsWith(expected)) {
+    return false;
+  }
+
+  const nextCharacter = info[expected.length];
+  return nextCharacter === undefined || nextCharacter === " " || nextCharacter === "\t";
+}
+
+function handleLogEntry(entry: LogModuleEntry, options: ExperimentRunOptions): void {
+  if (entry.type !== "event") {
+    return;
+  }
+
+  if (entry.name === "experiment.start") {
+    const payload = isRecord(entry.payload) ? entry.payload : undefined;
+    if (typeof payload?.index === "number" && typeof payload.agent === "string") {
+      options.onExperimentStart?.(payload.index, payload.agent);
+    }
+    return;
+  }
+
+  if (entry.name === "baseline.collected") {
+    const baseline = isRecord(entry.payload)
+      ? readNumberRecord(entry.payload)
+      : isRecord((entry.payload as { baseline?: unknown } | undefined)?.baseline)
+        ? readNumberRecord((entry.payload as { baseline: Record<string, unknown> }).baseline)
+        : undefined;
+    if (baseline !== undefined) {
+      options.onBaselineCollected?.(baseline);
+    }
+    return;
+  }
+
+  if (entry.name === "experiment.commit") {
+    const payload = isRecord(entry.payload) ? entry.payload : undefined;
+    const commitHash =
+      typeof entry.payload === "string"
+        ? entry.payload
+        : typeof payload?.commitHash === "string"
+          ? payload.commitHash
+          : typeof payload?.commit === "string"
+            ? payload.commit
+            : undefined;
+    if (commitHash !== undefined) {
+      options.onCommit?.(commitHash);
+    }
+    return;
+  }
+
+  if (entry.name === "experiment.reset") {
+    const payload = isRecord(entry.payload) ? entry.payload : undefined;
+    const targetHash =
+      typeof entry.payload === "string"
+        ? entry.payload
+        : typeof payload?.targetHash === "string"
+          ? payload.targetHash
+          : typeof payload?.target === "string"
+            ? payload.target
+            : undefined;
+    if (targetHash !== undefined) {
+      options.onReset?.(targetHash);
+    }
+    return;
+  }
+
+  if (entry.name === "experiment.complete") {
+    const payload = isRecord(entry.payload) ? entry.payload : undefined;
+    const index = typeof payload?.index === "number" ? payload.index : undefined;
+    const entryValue = isJournalEntry(payload?.entry) ? payload.entry : undefined;
+    if (index !== undefined && entryValue !== undefined) {
+      options.onExperimentComplete?.(index, entryValue);
+    }
+  }
+}
+
+function readRunResult(
+  value: unknown,
+  docPath: string,
+  totalDurationMs: number
+): ExperimentRunResult {
+  if (!isRecord(value)) {
+    throw new Error("Experiment harness must return an object result.");
+  }
+
+  const stopReason = typeof value.stopReason === "string" ? value.stopReason : "completed";
+  const experimentsCompleted =
+    typeof value.experimentsCompleted === "number" && Number.isFinite(value.experimentsCompleted)
+      ? value.experimentsCompleted
+      : 0;
+  const experimentsKept =
+    typeof value.experimentsKept === "number" && Number.isFinite(value.experimentsKept)
+      ? value.experimentsKept
+      : 0;
+  const duration =
+    typeof value.totalDurationMs === "number" && Number.isFinite(value.totalDurationMs)
+      ? value.totalDurationMs
+      : totalDurationMs;
 
   return {
-    experimentsCompleted: entries.length,
-    experimentsKept: keepEntries.length,
-    baseline: lastKeep ? baselineFromEntry(lastKeep) : null,
-    baselineHash: lastKeep?.commit
+    stopReason:
+      stopReason === "cancelled"
+      || stopReason === "completed"
+      || stopReason === "max_experiments"
+      || stopReason === "max_kept"
+        ? stopReason
+        : "completed",
+    docPath,
+    experimentsCompleted,
+    experimentsKept,
+    totalDurationMs: duration
   };
+}
+
+function isJournalEntry(value: unknown): value is JournalEntry {
+  return (
+    isRecord(value)
+    && typeof value.commit === "string"
+    && (value.status === "keep" || value.status === "discard")
+    && typeof value.output === "string"
+    && typeof value.agentOutput === "string"
+    && typeof value.durationMs === "number"
+    && typeof value.timestamp === "string"
+  );
+}
+
+function readNumberRecord(value: Record<string, unknown>): Record<string, number> | undefined {
+  const entries = Object.entries(value).map(([key, entryValue]) =>
+    typeof entryValue === "number" && Number.isFinite(entryValue)
+      ? ([key, entryValue] as const)
+      : undefined
+  );
+
+  if (entries.some((entry) => entry === undefined)) {
+    return undefined;
+  }
+
+  return Object.fromEntries(entries.filter((entry): entry is readonly [string, number] => entry !== undefined));
+}
+
+function isRecord(value: unknown): value is Record<string, any> {
+  return typeof value === "object" && value !== null;
 }
 
 export async function runExperimentLoop(
@@ -266,7 +433,6 @@ export async function runExperimentLoop(
 ): Promise<ExperimentRunResult> {
   const fs = options.fs ?? createDefaultFs();
   const exec = options.exec ?? createDefaultExec();
-  const git = options.git ?? createDefaultGit(exec);
   const runAgent = options.runAgent;
 
   if (!runAgent) {
@@ -279,197 +445,84 @@ export async function runExperimentLoop(
     runner: "experiment",
     homeDir: options.homeDir
   });
-  const startTime = Date.now();
+  const startedAt = Date.now();
   let releaseLock: (() => Promise<void>) | undefined;
-
-  async function readDoc(): Promise<{ frontmatter: ExperimentFrontmatter; body: string }> {
-    const rawContent = await fs.readFile(absoluteDocPath, "utf8");
-    const resolved = await resolve(
-      [
-        { source: "cli", data: { agent: options.agent } },
-        { source: "document", filePath: absoluteDocPath, content: rawContent },
-        { source: "base", path: path.join(options.cwd, ".poe-code/experiments/bases") },
-        { source: "base", path: path.join(options.homeDir, ".poe-code/experiments/bases") },
-        { source: "defaults", data: { agent: "claude-code" } }
-      ],
-      { fs }
-    );
-    const { prompt, ...frontmatterData } = resolved.data;
-
-    return {
-      frontmatter: parseExperimentFrontmatterData(frontmatterData),
-      body: normalizeResolvedBody(prompt)
-    };
-  }
-
-  let experimentsCompleted = 0;
-  let experimentsKept = 0;
-  let baselineHash: string | undefined;
-  let baseline: Record<string, number> | null = null;
-
-  async function finalize(
-    stopReason: ExperimentRunResult["stopReason"]
-  ): Promise<ExperimentRunResult> {
-    return {
-      stopReason,
-      docPath: options.docPath,
-      experimentsCompleted,
-      experimentsKept,
-      totalDurationMs: Date.now() - startTime
-    };
-  }
 
   try {
     assertNotAborted(options.signal);
     releaseLock = await lockWorkflow(absoluteDocPath, {
       fs: fs as unknown as LockCapableExperimentFs
     });
+    assertExperimentScriptBlock(await fs.readFile(absoluteDocPath, "utf8"), options.docPath);
 
-    const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
-    await journal.init();
-    const [runConfig, instructions] = await Promise.all([
-      loadRunConfig({ cwd: options.cwd, homeDir: options.homeDir, fs }),
-      loadInstructions()
-    ]);
-    const { frontmatter: initialFrontmatter } = await readDoc();
-    const initialMetrics = normalizeMetrics(initialFrontmatter.metric);
-    const journalEntries = await journal.readAll();
-    const journalState = deriveStateFromJournal(journalEntries);
+    const result = await runHarness(absoluteDocPath, {
+      modulesFor: (frontmatter, meta): ExperimentHarnessModules => {
+        const effectiveFrontmatter = withRuntimeOverrides(frontmatter, options);
+        const parsedFrontmatter = parseExperimentFrontmatterData(effectiveFrontmatter);
+        const metrics = parsedFrontmatter.metric
+          ? Array.isArray(parsedFrontmatter.metric)
+            ? parsedFrontmatter.metric
+            : [parsedFrontmatter.metric]
+          : [];
 
-    experimentsCompleted = journalState.experimentsCompleted;
-    experimentsKept = journalState.experimentsKept;
-    baselineHash = journalState.baselineHash;
-    // Journal's last keep takes priority; fall back to frontmatter seed if no keeps yet
-    baseline = journalState.baseline ?? initialFrontmatter.baseline;
+        return {
+          agent: makeAgentModule(async (input) => {
+            const result = await runAgent({
+              agent: input.agent,
+              prompt: input.prompt,
+              cwd: input.cwd ?? options.cwd,
+              ...(input.model ? { model: input.model } : {}),
+              ...(options.signal ? { signal: options.signal } : {}),
+              logDir: runLogDir,
+              logFileName: makeRunLogFileName(`experiment-${input.agent}`)
+            });
 
-    if (baseline === null) {
-      const metricTimeoutMs = initialFrontmatter.metric_timeout
-        ? initialFrontmatter.metric_timeout * 1000
-        : undefined;
-      const baselineResults = await evaluateChain(
-        initialMetrics,
-        options.cwd,
-        exec,
-        options.onMetricResult,
-        metricTimeoutMs
-      );
-      if (allMetricsPassed(initialMetrics, baselineResults)) {
-        baseline = baselineFromResults(initialMetrics, baselineResults);
-        options.onBaselineCollected?.(baseline);
-      }
+            return {
+              exitCode: result.exitCode,
+              stdout: result.stdout,
+              stderr: result.stderr,
+              summary: result.stdout.trim(),
+              durationMs: 0
+            };
+          }),
+          git: makeGitModule(options.cwd),
+          harness: makeHarnessModule(effectiveFrontmatter, {
+            filepath: meta.filepath,
+            kind: effectiveFrontmatter.kind,
+            version: effectiveFrontmatter.version
+          }),
+          log: makeLogModule((entry) => {
+            handleLogEntry(entry, options);
+          }),
+          metric: makeMetricModule(createMetricRunner(exec, options.cwd, options, metrics)),
+          time: makeTimeModule()
+        } as ExperimentHarnessModules;
+      },
+      ...(options.signal ? { signal: options.signal } : {})
+    });
+
+    if (result.ok !== true) {
+      throw toError(readErrorMessage((result as unknown as { error: unknown }).error));
     }
 
-    while (true) {
-      assertNotAborted(options.signal);
-
-      // runDocumentWorkflow does not fit yet because experiment-loop rebuilds the
-      // single-stage prompt from the latest doc + journal every iteration and then
-      // decides keep/reset state from experiment-specific journal + git handling.
-      const doc = await readDoc();
-      const { body, frontmatter } = doc;
-
-      const maxExperiments = validateMaxExperiments(
-        options.maxExperiments ?? frontmatter.max_experiments
-      );
-      if (experimentsCompleted >= maxExperiments) {
-        break;
-      }
-
-      const metrics = normalizeMetrics(frontmatter.metric);
-      const agents = normalizeAgents(options.agent ?? frontmatter.agent);
-
-      const experimentIndex = experimentsCompleted + 1;
-      baselineHash ??= await git.currentHash(options.cwd);
-      const preExperimentHash = baselineHash;
-
-      const journalLengthBefore = (await journal.readAll()).length;
-
-      const prompt = buildPrompt({
-        runConfig,
-        instructions,
-        body,
-        journal: await journal.format(),
-        metrics,
-        experimentIndex,
-        baseline,
-        docPath: options.docPath,
-        docName: path.basename(absoluteDocPath, path.extname(absoluteDocPath))
-      });
-
-      const currentSpecifier = agents[(experimentIndex - 1) % agents.length]!;
-      const model = currentSpecifier.model;
-      options.onExperimentStart?.(experimentIndex, currentSpecifier.agent);
-
-      try {
-        await runAgent({
-          agent: currentSpecifier.agent,
-          prompt,
-          cwd: options.cwd,
-          logDir: runLogDir,
-          logFileName: makeRunLogFileName(
-            `experiment-${experimentIndex}-${currentSpecifier.agent}`
-          ),
-          ...(model ? { model } : {}),
-          ...(options.signal ? { signal: options.signal } : {})
-        });
-      } catch (error) {
-        if (isAbortError(error)) {
-          return finalize("cancelled");
-        }
-
-        throw error;
-      }
-
-      const journalAfter = await journal.readAll();
-      let newEntry =
-        journalAfter.length > journalLengthBefore ? journalAfter[journalAfter.length - 1]! : null;
-
-      experimentsCompleted += 1;
-
-      if (newEntry && !newEntry.scores && metrics.length > 0) {
-        const metricTimeoutMs = frontmatter.metric_timeout
-          ? frontmatter.metric_timeout * 1000
-          : undefined;
-        const results = await evaluateChain(
-          metrics,
-          options.cwd,
-          exec,
-          options.onMetricResult,
-          metricTimeoutMs
-        );
-        if (allMetricsPassed(metrics, results)) {
-          const scores = baselineFromResults(metrics, results);
-          newEntry = (await journal.updateLast({ scores })) ?? newEntry;
-        }
-      }
-
-      if (newEntry) {
-        if (newEntry.status === "keep") {
-          experimentsKept += 1;
-          baselineHash = newEntry.commit;
-          baseline = baselineFromEntry(newEntry) ?? baseline;
-          options.onCommit?.(newEntry.commit);
-        } else {
-          await git.reset(preExperimentHash, options.cwd);
-          options.onReset?.(preExperimentHash);
-        }
-
-        options.onExperimentComplete?.(experimentIndex, newEntry);
-      } else {
-        // Agent exited without writing a journal entry — reset silently.
-        await git.reset(preExperimentHash, options.cwd);
-        options.onReset?.(preExperimentHash);
-      }
-    }
+    return readRunResult(
+      (result as { returnValue?: unknown }).returnValue,
+      options.docPath,
+      Date.now() - startedAt
+    );
   } catch (error) {
     if (isAbortError(error)) {
-      return finalize("cancelled");
+      return {
+        stopReason: "cancelled",
+        docPath: options.docPath,
+        experimentsCompleted: 0,
+        experimentsKept: 0,
+        totalDurationMs: Date.now() - startedAt
+      };
     }
 
     throw error;
   } finally {
     await releaseLock?.();
   }
-
-  return finalize("max_experiments");
 }

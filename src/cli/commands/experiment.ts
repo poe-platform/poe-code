@@ -160,8 +160,8 @@ async function pathExists(fs: CliContainer["fs"], targetPath: string): Promise<b
 function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
   const errors: string[] = [];
 
-  if (!frontmatter.agent) {
-    errors.push("Missing required field: agent");
+  if (!frontmatter.agents || Object.keys(frontmatter.agents).length === 0) {
+    errors.push("Missing required field: agents");
   }
 
   if (!frontmatter.metric) {
@@ -172,9 +172,6 @@ function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
     for (const metric of metrics) {
       if (!metric.name || metric.name.trim().length === 0) {
         errors.push("Metric is missing required field: name");
-      }
-      if (!metric.script || metric.script.trim().length === 0) {
-        errors.push(`Metric "${metric.name ?? "(unnamed)"}" is missing required field: script`);
       }
       if (
         metric.direction !== "minimize" &&
@@ -189,6 +186,32 @@ function validateExperimentDoc(frontmatter: ExperimentFrontmatter): string[] {
   }
 
   return errors;
+}
+
+function readFrontmatterAgents(frontmatter: ExperimentFrontmatter): string | string[] | undefined {
+  if (!frontmatter.agents) {
+    return undefined;
+  }
+
+  const agents = Object.values(frontmatter.agents)
+    .map((definition) => (typeof definition === "string" ? definition : definition.agent))
+    .filter((agent): agent is string => typeof agent === "string" && agent.trim().length > 0);
+
+  if (agents.length === 0) {
+    return undefined;
+  }
+
+  return agents.length === 1 ? agents[0] : agents;
+}
+
+function formatFrontmatterAgents(frontmatter: ExperimentFrontmatter): string {
+  if (!frontmatter.agents) {
+    return "";
+  }
+
+  return Object.entries(frontmatter.agents)
+    .map(([name, definition]) => `${name}=${typeof definition === "string" ? definition : definition.agent}`)
+    .join(", ");
 }
 
 function formatExperimentAgentSummary(agent: string | string[]): string {
@@ -647,7 +670,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
           container,
           program,
           providedAgent: options.agent,
-          frontmatterAgent: doc.frontmatter.agent
+          frontmatterAgent: readFrontmatterAgents(doc.frontmatter)
         });
         if (!agent) {
           return;
@@ -906,13 +929,10 @@ export function registerExperimentCommand(program: Command, container: CliContai
           : [];
 
         resources.logger.resolved("Doc", docPath);
-        const agentDisplay = Array.isArray(doc.frontmatter.agent)
-          ? doc.frontmatter.agent.join(", ")
-          : doc.frontmatter.agent!;
-        resources.logger.resolved("Agent", agentDisplay);
+        resources.logger.resolved("Agents", formatFrontmatterAgents(doc.frontmatter));
         resources.logger.resolved(
           "Metrics",
-          metrics.map((m) => `${m.name}: ${m.script} (${m.direction})`).join(", ")
+          metrics.map((m) => `${m.name} (${m.direction})`).join(", ")
         );
         resources.logger.success("Experiment doc is valid.");
       } finally {

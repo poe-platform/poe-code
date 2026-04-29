@@ -329,7 +329,9 @@ describe("experiment run command", () => {
     const fs = createMemFs({
       "/repo/docs/loop.md": [
         "---",
-        "agent: claude:anthropic/claude-sonnet-4.6",
+        "agents:",
+        "  experimenter:",
+        "    agent: claude:anthropic/claude-sonnet-4.6",
         "---",
         "# Loop"
       ].join("\n")
@@ -434,9 +436,9 @@ describe("experiment run command", () => {
       fs: createMemFs({
         "/repo/docs/loop.md": [
           "---",
-          "agent:",
-          "  - claude",
-          "  - codex",
+          "agents:",
+          "  experimenter: claude",
+          "  reviewer: codex",
           "---",
           "# Loop"
         ].join("\n")
@@ -523,7 +525,8 @@ describe("experiment run command", () => {
       fs: createMemFs({
         "/repo/docs/loop.md": [
           "---",
-          "agent: mystery-agent",
+          "agents:",
+          "  experimenter: mystery-agent",
           "---",
           "# Loop"
         ].join("\n")
@@ -1221,16 +1224,13 @@ describe("experiment validate command", () => {
       fs: createMemFs({
         "/repo/docs/loop.md": [
           "---",
-          "agent: claude-code",
+          "agents:",
+          "  experimenter:",
+          "    agent: claude-code",
           "metric:",
           "  name: tests",
-          "  script: npm test",
           "  direction: maximize",
-          "baseline: null",
-          "status:",
-          "  state: open",
-          "  experiment: 0",
-          "  kept: 0",
+          "maxKept: 2",
           "---",
           "# Loop"
         ].join("\n")
@@ -1247,7 +1247,7 @@ describe("experiment validate command", () => {
     await program.parseAsync(["node", "cli", "experiment", "validate", "docs/loop.md"]);
 
     expect(loggerOutput).toContain("claude-code");
-    expect(loggerOutput).toContain("tests: npm test (maximize)");
+    expect(loggerOutput).toContain("tests (maximize)");
     expect(loggerOutput).toContain("valid");
   });
 
@@ -1313,19 +1313,15 @@ describe("experiment validate command", () => {
       fs: createMemFs({
         "/repo/docs/chain.md": [
           "---",
-          "agent: claude-code",
+          "agents:",
+          "  experimenter:",
+          "    agent: claude-code",
           "metric:",
           "  - name: tests",
-          "    script: npm test",
           "    direction: maximize",
           "  - name: test_duration",
-          "    script: npm run measure:duration",
           "    direction: minimize",
-          "baseline: null",
-          "status:",
-          "  state: open",
-          "  experiment: 0",
-          "  kept: 0",
+          "maxKept: 3",
           "---",
           "# Chain"
         ].join("\n")
@@ -1341,8 +1337,8 @@ describe("experiment validate command", () => {
 
     await program.parseAsync(["node", "cli", "experiment", "validate", "docs/chain.md"]);
 
-    expect(loggerOutput).toContain("tests: npm test (maximize)");
-    expect(loggerOutput).toContain("test_duration: npm run measure:duration (minimize)");
+    expect(loggerOutput).toContain("tests (maximize)");
+    expect(loggerOutput).toContain("test_duration (minimize)");
     expect(loggerOutput).toContain("valid");
   });
 
@@ -1352,16 +1348,13 @@ describe("experiment validate command", () => {
       fs: createMemFs({
         "/repo/docs/plans/plan-a.md": [
           "---",
-          "agent: claude-code",
+          "agents:",
+          "  experimenter:",
+          "    agent: claude-code",
           "metric:",
           "  name: tests",
-          "  script: npm test",
           "  direction: maximize",
-          "baseline: null",
-          "status:",
-          "  state: open",
-          "  experiment: 0",
-          "  kept: 0",
+          "maxKept: 1",
           "---",
           "# A"
         ].join("\n")

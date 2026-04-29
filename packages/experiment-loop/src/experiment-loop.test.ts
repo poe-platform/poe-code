@@ -1,164 +1,51 @@
-import { describe, expect, it, vi } from "vitest";
+import { execFileSync } from "node:child_process";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { loadRunConfig } from "./config/loader.js";
-import { evaluate, evaluateChain } from "./evaluator/evaluator.js";
 import {
   experimentDocumentSchema,
   experimentDocumentSchemaId,
   parseExperimentFrontmatter,
   writeExperimentFrontmatter
 } from "./frontmatter/frontmatter.js";
-import { createDefaultGit } from "./git/git.js";
-import { ExperimentJournal } from "./journal/journal.js";
 import { runExperimentLoop } from "./run/loop.js";
-import {
-  agentMakesChanges,
-  createExperimentDoc,
-  createExperimentLoopSimulation,
-  metricResult
-} from "./testing/simulation.js";
-import type {
-  AgentRunInput,
-  AgentRunResult,
-  ExecFn,
-  ExperimentFileSystem,
-  ExperimentGit,
-  JournalEntry,
-  MetricDef
-} from "./types.js";
+import type { ExecFn, ExperimentFileSystem } from "./types.js";
 
 function createFs(files: Record<string, string> = {}): ExperimentFileSystem {
   const volume = Volume.fromJSON(files, "/");
   return createFsFromVolume(volume).promises as unknown as ExperimentFileSystem;
 }
 
-function createEvalExec(
-  responses: Array<{
-    stdout: string;
-    stderr: string;
-    exitCode: number;
-  }>
-) {
-  const execMock = vi.fn(async () => {
-    const response = responses.shift();
+async function createGitRepo(): Promise<string> {
+  const repoRoot = await fs.mkdtemp(path.join(os.tmpdir(), "poe-code-experiment-loop-"));
 
-    if (!response) {
-      throw new Error("Unexpected exec call");
-    }
-
-    return response;
+  execFileSync("git", ["init"], { cwd: repoRoot, stdio: "ignore" });
+  execFileSync("git", ["config", "user.name", "Codex"], { cwd: repoRoot, stdio: "ignore" });
+  execFileSync("git", ["config", "user.email", "codex@example.com"], {
+    cwd: repoRoot,
+    stdio: "ignore"
   });
 
-  return {
-    exec: execMock as ExecFn,
-    execMock
-  };
+  await fs.writeFile(path.join(repoRoot, "README.md"), "# Repo\n", "utf8");
+  execFileSync("git", ["add", "README.md"], { cwd: repoRoot, stdio: "ignore" });
+  execFileSync("git", ["commit", "-m", "chore: init"], { cwd: repoRoot, stdio: "ignore" });
+
+  return repoRoot;
 }
 
-function createGitExec(
-  responses: Array<{
-    stdout: string;
-    stderr: string;
-    exitCode: number;
-  }>
-) {
-  const commands: Array<{ command: string; options?: { cwd?: string; timeout?: number } }> = [];
+const tempDirs: string[] = [];
 
-  const exec = vi.fn(async (command: string, options?: { cwd?: string; timeout?: number }) => {
-    commands.push({ command, options });
-
-    const response = responses.shift();
-
-    if (!response) {
-      throw new Error(`Unexpected exec call: ${command}`);
-    }
-
-    return response;
-  });
-
-  return {
-    exec: exec as ExecFn,
-    commands
-  };
-}
-
-function createLoopExec(
-  responses: Array<{ stdout: string; stderr: string; exitCode: number }>
-): ExecFn {
-  return vi.fn(async () => {
-    const response = responses.shift();
-
-    if (!response) {
-      throw new Error("Unexpected exec call");
-    }
-
-    return response;
-  }) as ExecFn;
-}
-
-function createLoopGit(overrides: Partial<ExperimentGit> = {}): ExperimentGit {
-  return {
-    reset: vi.fn(async () => undefined),
-    currentHash: vi.fn(async () => "base-1"),
-    ...overrides
-  };
-}
-
-function journalFilePath(docPath: string): string {
-  return docPath.replace(/\.md$/, ".journal.jsonl");
-}
-
-async function appendJournalEntry(
-  fs: ExperimentFileSystem,
-  docPath: string,
-  entry: Omit<JournalEntry, "timestamp">
-): Promise<void> {
-  await fs.appendFile(
-    journalFilePath(docPath),
-    JSON.stringify({ ...entry, timestamp: new Date().toISOString() }) + "\n"
+afterEach(async () => {
+  await Promise.all(
+    tempDirs.splice(0).map(async (dirPath) => {
+      await fs.rm(dirPath, { recursive: true, force: true });
+    })
   );
-}
-
-function createDoc(options?: { baseline?: number | null }): string {
-  const baseline = options?.baseline === undefined ? 1 : options.baseline;
-
-  return [
-    "---",
-    "agent: claude-code",
-    "metric:",
-    "  name: tests",
-    "  script: node scripts/metric-tests.mjs",
-    "  direction: maximize",
-    `baseline: ${baseline === null ? "null" : `{ tests: ${baseline} }`}`,
-    "---",
-    "# Improve the tests",
-    "",
-    "Make the implementation better."
-  ].join("\n");
-}
-
-function createJournalEntry(overrides: Partial<JournalEntry> = {}): JournalEntry {
-  return {
-    commit: "a1b2c3d",
-    status: "keep",
-    scores: { tests: 1.04 },
-    output: "test_duration: 1.04",
-    agentOutput: "optimized hot path",
-    durationMs: 5023,
-    timestamp: "2026-03-30T10:00:00.000Z",
-    ...overrides
-  };
-}
+});
 
 describe("@poe-code/experiment-loop public exports", () => {
-  it("re-exports the experiment document schema from the package entrypoint", async () => {
-    const pkg = await import("./index.js");
-    const frontmatter = await import("./frontmatter/frontmatter.js");
-
-    expect(pkg.experimentDocumentSchema).toBe(frontmatter.experimentDocumentSchema);
-    expect(pkg.experimentDocumentSchemaId).toBe(frontmatter.experimentDocumentSchemaId);
-  });
-
   it("exports the experiment document schema", () => {
     expect(experimentDocumentSchemaId).toBe(
       "https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json"
@@ -169,2612 +56,320 @@ describe("@poe-code/experiment-loop public exports", () => {
       properties: {
         kind: { const: "experiment" },
         version: { type: "integer" },
-        baseline: {},
-        max_experiments: { type: "integer" },
-        metric_timeout: { type: "integer" }
+        agents: { type: "object" },
+        metric: {},
+        maxKept: { type: "integer" }
       },
-      required: ["kind", "version", "baseline"]
+      required: ["kind", "version"]
     });
-  });
-});
-
-describe("loadRunConfig", () => {
-  it("uses bundled default when no project run.yaml exists", async () => {
-    const config = await loadRunConfig({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/home/test/.poe-code/experiments/run.yaml": ["prompt: |", "  Global: {{body}}", ""].join(
-          "\n"
-        )
-      })
-    });
-
-    expect(config.prompt).toContain("{{body}}");
-    expect(config.prompt).toContain("{{journal}}");
-    expect(config.prompt).toContain("{{metrics}}");
-  });
-
-  it("fully replaces bundled default when project run.yaml does not extend", async () => {
-    const config = await loadRunConfig({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/home/test/.poe-code/experiments/run.yaml": [
-          "prompt: |",
-          "  Global: {{body}}",
-          "  Journal: {{journal}}",
-          ""
-        ].join("\n"),
-        "/repo/.poe-code/experiments/run.yaml": [
-          "prompt: |",
-          "  Do this: {{body}}",
-          "  History: {{journal}}",
-          ""
-        ].join("\n")
-      })
-    });
-
-    expect(config.prompt).toBe("Do this: {{body}}\nHistory: {{journal}}\n");
-  });
-
-  it("merges with bundled default when project run.yaml sets extends true", async () => {
-    const config = await loadRunConfig({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/repo/.poe-code/experiments/run.yaml": "extends: true\n"
-      })
-    });
-
-    expect(config.prompt).toContain("{{body}}");
-    expect(config.prompt).toContain("{{journal}}");
-    expect(config.prompt).toContain("{{metrics}}");
-  });
-
-  it("uses global run.yaml as the base when project run.yaml extends", async () => {
-    const config = await loadRunConfig({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/home/test/.poe-code/experiments/run.yaml": [
-          "prompt: |",
-          "  Global: {{body}}",
-          "  Journal: {{journal}}",
-          ""
-        ].join("\n"),
-        "/repo/.poe-code/experiments/run.yaml": "extends: true\n"
-      })
-    });
-
-    expect(config.prompt).toBe("Global: {{body}}\nJournal: {{journal}}\n");
-  });
-
-  it("returns default when run.yaml is comment-only", async () => {
-    const config = await loadRunConfig({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      fs: createFs({
-        "/repo/.poe-code/experiments/run.yaml": [
-          "# This file is all comments",
-          "# No actual config",
-          ""
-        ].join("\n")
-      })
-    });
-
-    expect(config.prompt).toContain("{{body}}");
-  });
-
-  it("throws for invalid yaml", async () => {
-    await expect(
-      loadRunConfig({
-        cwd: "/repo",
-        homeDir: "/home/test",
-        fs: createFs({
-          "/repo/.poe-code/experiments/run.yaml": "prompt: ["
-        })
-      })
-    ).rejects.toThrow(/invalid.*yaml/i);
-  });
-
-  it("throws when prompt field is missing", async () => {
-    await expect(
-      loadRunConfig({
-        cwd: "/repo",
-        homeDir: "/home/test",
-        fs: createFs({
-          "/repo/.poe-code/experiments/run.yaml": "other: value\n"
-        })
-      })
-    ).rejects.toThrow(/missing.*prompt/i);
-  });
-
-  it("throws when prompt field is not a string", async () => {
-    await expect(
-      loadRunConfig({
-        cwd: "/repo",
-        homeDir: "/home/test",
-        fs: createFs({
-          "/repo/.poe-code/experiments/run.yaml": "prompt: 42\n"
-        })
-      })
-    ).rejects.toThrow(/prompt.*string/i);
-  });
-});
-
-describe("evaluate", () => {
-  it("returns a passing result when the metric exits 0 with a valid score", async () => {
-    const { exec, execMock } = createEvalExec([
-      {
-        stdout: "42\n",
-        stderr: "",
-        exitCode: 0
-      }
-    ]);
-
-    await expect(evaluate("node scripts/metric-tests.mjs", "/repo", exec)).resolves.toEqual({
-      score: 42,
-      passed: true,
-      output: "42\n"
-    });
-
-    expect(execMock).toHaveBeenCalledWith("node scripts/metric-tests.mjs", {
-      cwd: "/repo",
-      timeout: 180_000
-    });
-  });
-
-  it("returns a failing result when the metric exits non-zero", async () => {
-    const { exec } = createEvalExec([
-      {
-        stdout: "0\n",
-        stderr: "metric failed\n",
-        exitCode: 1
-      }
-    ]);
-
-    await expect(evaluate("node scripts/metric-tests.mjs", "/repo", exec)).resolves.toEqual({
-      score: 0,
-      passed: false,
-      output: "0\nmetric failed\n"
-    });
-  });
-
-  it("treats non-numeric stdout as a failure", async () => {
-    const { exec } = createEvalExec([
-      {
-        stdout: "not-a-number\n",
-        stderr: "",
-        exitCode: 0
-      }
-    ]);
-
-    await expect(evaluate("node scripts/metric-tests.mjs", "/repo", exec)).resolves.toEqual({
-      score: null,
-      passed: false,
-      output: "not-a-number\n"
-    });
-  });
-
-  it("parses the score from the last non-empty stdout line", async () => {
-    const { exec } = createEvalExec([
-      {
-        stdout: "Running benchmark\nIntermediate note\n\n12.5\n\n",
-        stderr: "",
-        exitCode: 0
-      }
-    ]);
-
-    await expect(evaluate("node scripts/metric-benchmark.mjs", "/repo", exec)).resolves.toEqual({
-      score: 12.5,
-      passed: true,
-      output: "Running benchmark\nIntermediate note\n\n12.5\n\n"
-    });
-  });
-});
-
-describe("evaluateChain", () => {
-  const metrics: MetricDef[] = [
-    {
-      name: "tests",
-      script: "node scripts/metric-tests.mjs",
-      direction: "maximize"
-    },
-    {
-      name: "duration",
-      script: "node scripts/metric-duration.mjs",
-      direction: "minimize"
-    },
-    {
-      name: "size",
-      script: "node scripts/metric-size.mjs",
-      direction: "minimize"
-    }
-  ];
-
-  it("returns all results when every metric passes", async () => {
-    const { exec, execMock } = createEvalExec([
-      {
-        stdout: "1\n",
-        stderr: "",
-        exitCode: 0
-      },
-      {
-        stdout: "10\n",
-        stderr: "",
-        exitCode: 0
-      },
-      {
-        stdout: "20\n",
-        stderr: "",
-        exitCode: 0
-      }
-    ]);
-
-    await expect(evaluateChain(metrics, "/repo", exec)).resolves.toEqual([
-      {
-        score: 1,
-        passed: true,
-        output: "1\n"
-      },
-      {
-        score: 10,
-        passed: true,
-        output: "10\n"
-      },
-      {
-        score: 20,
-        passed: true,
-        output: "20\n"
-      }
-    ]);
-
-    expect(execMock).toHaveBeenCalledTimes(3);
-  });
-
-  it("short-circuits when the first metric fails", async () => {
-    const { exec, execMock } = createEvalExec([
-      {
-        stdout: "0\n",
-        stderr: "failed\n",
-        exitCode: 1
-      }
-    ]);
-
-    await expect(evaluateChain(metrics, "/repo", exec)).resolves.toEqual([
-      {
-        score: 0,
-        passed: false,
-        output: "0\nfailed\n"
-      }
-    ]);
-
-    expect(execMock).toHaveBeenCalledTimes(1);
-  });
-
-  it("continues after a parse failure when the metric still exits 0", async () => {
-    const { exec, execMock } = createEvalExec([
-      {
-        stdout: "not-a-number\n",
-        stderr: "",
-        exitCode: 0
-      },
-      {
-        stdout: "10\n",
-        stderr: "",
-        exitCode: 0
-      },
-      {
-        stdout: "20\n",
-        stderr: "",
-        exitCode: 0
-      }
-    ]);
-
-    await expect(evaluateChain(metrics, "/repo", exec)).resolves.toEqual([
-      {
-        score: null,
-        passed: false,
-        output: "not-a-number\n"
-      },
-      {
-        score: 10,
-        passed: true,
-        output: "10\n"
-      },
-      {
-        score: 20,
-        passed: true,
-        output: "20\n"
-      }
-    ]);
-
-    expect(execMock).toHaveBeenCalledTimes(3);
-  });
-
-  it("returns results through the first failing metric", async () => {
-    const { exec, execMock } = createEvalExec([
-      {
-        stdout: "1\n",
-        stderr: "",
-        exitCode: 0
-      },
-      {
-        stdout: "10\n",
-        stderr: "boom\n",
-        exitCode: 1
-      }
-    ]);
-
-    await expect(evaluateChain(metrics, "/repo", exec)).resolves.toEqual([
-      {
-        score: 1,
-        passed: true,
-        output: "1\n"
-      },
-      {
-        score: 10,
-        passed: false,
-        output: "10\nboom\n"
-      }
-    ]);
-
-    expect(execMock).toHaveBeenCalledTimes(2);
   });
 });
 
 describe("parseExperimentFrontmatter", () => {
-  it("parses a single metric with script and direction", () => {
+  it("parses declarative harness data and preserves the script body", () => {
     const content = [
       "---",
-      "agent: claude-code",
-      "metric:",
-      "  name: test_duration",
-      "  script: node scripts/metric-test-duration.mjs",
-      "  direction: minimize",
-      "---",
-      "# Experiment",
-      "",
-      "Body"
-    ].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.metric).toEqual({
-      name: "test_duration",
-      script: "node scripts/metric-test-duration.mjs",
-      direction: "minimize"
-    });
-    expect(result.body).toBe("# Experiment\n\nBody");
-  });
-
-  it("parses a metric with stable direction", () => {
-    const content = [
-      "---",
-      "metric:",
-      "  name: test_count",
-      "  script: node scripts/metric-test-count.mjs",
-      "  direction: stable",
-      "---",
-      "Body"
-    ].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.metric).toEqual({
-      name: "test_count",
-      script: "node scripts/metric-test-count.mjs",
-      direction: "stable"
-    });
-  });
-
-  it("parses metric_timeout from frontmatter", () => {
-    const content = ["---", "metric_timeout: 120", "baseline: null", "---", "Body"].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.metric_timeout).toBe(120);
-  });
-
-  it("ignores legacy camelCase metricTimeout frontmatter", () => {
-    const content = ["---", "metricTimeout: 120", "baseline: null", "---", "Body"].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.metric_timeout).toBeUndefined();
-  });
-
-  it("parses extends from frontmatter", () => {
-    const content = ["---", "extends: true", "baseline: null", "---", "Body"].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.extends).toBe(true);
-  });
-
-  it("parses agent as a single string", () => {
-    const content = ["---", "agent: claude-code", "baseline: null", "---", "Body"].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.agent).toBe("claude-code");
-  });
-
-  it("parses agent as an array of strings", () => {
-    const content = [
-      "---",
-      "agent:",
-      "  - claude-code",
-      "  - codex",
-      "baseline: null",
-      "---",
-      "Body"
-    ].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.agent).toEqual(["claude-code", "codex"]);
-  });
-
-  it("parses max_experiments from frontmatter", () => {
-    const content = [
-      "---",
-      "agent: claude-code",
-      "metric:",
-      "  name: tests",
-      "  script: npm test",
-      "  direction: maximize",
-      "max_experiments: 10",
-      "baseline: null",
-      "---",
-      "Body"
-    ].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.max_experiments).toBe(10);
-  });
-
-  it("ignores legacy camelCase maxExperiments frontmatter", () => {
-    const content = ["---", "maxExperiments: 10", "baseline: null", "---", "Body"].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.max_experiments).toBeUndefined();
-  });
-
-  it("omits max_experiments when not present", () => {
-    const content = ["---", "baseline: null", "---", "Body"].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.max_experiments).toBeUndefined();
-  });
-
-  it("parses a metric chain", () => {
-    const content = [
-      "---",
+      "$schema: https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json",
+      "kind: experiment",
+      "version: 1",
+      "agents:",
+      "  experimenter:",
+      "    agent: claude-code",
+      "    prompt: Improve the tests",
       "metric:",
       "  - name: tests",
-      "    script: npm test",
       "    direction: maximize",
-      "  - name: test_duration",
-      "    script: node scripts/metric-test-duration.mjs",
+      "  - name: duration",
       "    direction: minimize",
+      "maxKept: 3",
       "---",
-      "Body"
+      "```js",
+      'return "ok";',
+      "```"
     ].join("\n");
 
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.metric).toEqual<MetricDef[]>([
-      {
-        name: "tests",
-        script: "npm test",
-        direction: "maximize"
+    expect(parseExperimentFrontmatter(content)).toEqual({
+      frontmatter: {
+        agents: {
+          experimenter: {
+            agent: "claude-code",
+            prompt: "Improve the tests"
+          }
+        },
+        metric: [
+          {
+            name: "tests",
+            direction: "maximize"
+          },
+          {
+            name: "duration",
+            direction: "minimize"
+          }
+        ],
+        maxKept: 3
       },
-      {
-        name: "test_duration",
-        script: "node scripts/metric-test-duration.mjs",
-        direction: "minimize"
-      }
-    ]);
-  });
-
-  it("parses baseline as a record of numbers", () => {
-    const content = ["---", "baseline:", "  tests: 1", "  test_duration: 42.5", "---", "Body"].join(
-      "\n"
-    );
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.baseline).toEqual({
-      tests: 1,
-      test_duration: 42.5
+      body: ['```js', 'return "ok";', "```"].join("\n")
     });
   });
 
-  it("parses baseline as null", () => {
-    const content = ["---", "baseline: null", "---", "Body"].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter.baseline).toBeNull();
-  });
-
-  it("returns null baseline when the markdown has no frontmatter", () => {
-    const content = ["# Experiment", "", "Body"].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result).toEqual({
-      frontmatter: { baseline: null },
-      body: "# Experiment\n\nBody"
+  it("returns empty frontmatter when the markdown has no frontmatter", () => {
+    expect(parseExperimentFrontmatter("# Experiment\n")).toEqual({
+      frontmatter: {},
+      body: "# Experiment\n"
     });
-  });
-
-  it("returns all frontmatter config fields with the expected types", () => {
-    const content = [
-      "---",
-      "agent: claude-code",
-      "metric:",
-      "  name: tests",
-      "  script: npm test",
-      "  direction: maximize",
-      "baseline:",
-      "  tests: 1",
-      "---",
-      "# Experiment"
-    ].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter).toEqual({
-      agent: "claude-code",
-      metric: {
-        name: "tests",
-        script: "npm test",
-        direction: "maximize"
-      },
-      baseline: {
-        tests: 1
-      }
-    });
-  });
-
-  it("ignores legacy status fields", () => {
-    const content = [
-      "---",
-      "agent: claude-code",
-      "baseline: null",
-      "status:",
-      "  state: open",
-      "  experiment: 3",
-      "  kept: 2",
-      "---",
-      "Body"
-    ].join("\n");
-
-    const result = parseExperimentFrontmatter(content);
-
-    expect(result.frontmatter).toEqual({ agent: "claude-code", baseline: null });
   });
 });
 
 describe("writeExperimentFrontmatter", () => {
-  it("round-trips parsed frontmatter through write", async () => {
+  it("round-trips the declarative frontmatter and body", async () => {
     const fs = createFs();
-    const docPath = "/repo/experiment.md";
-    const original = [
-      "---",
-      "agent: claude-code",
-      "metric:",
-      "  - name: tests",
-      "    script: npm test",
-      "    direction: maximize",
-      "  - name: test_duration",
-      "    script: node scripts/metric-test-duration.mjs",
-      "    direction: minimize",
-      "baseline:",
-      "  tests: 1",
-      "  test_duration: 42.5",
-      "---",
-      "# Experiment",
-      "",
-      "Body"
-    ].join("\n");
-
-    const parsed = parseExperimentFrontmatter(original);
-
-    await writeExperimentFrontmatter(docPath, parsed.frontmatter, parsed.body, fs);
-
-    const written = await fs.readFile(docPath, "utf8");
-    const reparsed = parseExperimentFrontmatter(written);
-
-    expect(reparsed).toEqual(parsed);
-  });
-
-  it("writes canonical YAML frontmatter with snake_case fields and no status fields", async () => {
-    const fs = createFs();
-    const docPath = "/repo/experiment.md";
+    const docPath = "/repo/docs/plans/experiment.md";
 
     await writeExperimentFrontmatter(
       docPath,
       {
-        baseline: null,
-        max_experiments: 3,
-        metric_timeout: 120
+        agents: {
+          experimenter: {
+            agent: "claude-code",
+            prompt: "Ship a focused improvement"
+          }
+        },
+        metric: {
+          name: "tests",
+          direction: "maximize"
+        },
+        maxKept: 5
       },
-      "# Experiment\n",
+      ['```js', 'return "done";', "```", ""].join("\n"),
       fs
     );
 
     const written = await fs.readFile(docPath, "utf8");
 
-    expect(written).toContain("---\n");
-    expect(written).toContain(
-      `$schema: ${experimentDocumentSchemaId}\nkind: experiment\nversion: 1\n`
-    );
-    expect(written).toContain("baseline: null\n");
-    expect(written).toContain("max_experiments: 3\n");
-    expect(written).toContain("metric_timeout: 120\n");
-    expect(written).not.toContain("maxExperiments");
-    expect(written).not.toContain("metricTimeout");
-    expect(written).not.toContain("status");
-    expect(written.endsWith("# Experiment\n")).toBe(true);
-  });
-
-  it("drops legacy camelCase aliases when rewriting a parsed document", async () => {
-    const fs = createFs();
-    const docPath = "/repo/experiment.md";
-    const original = [
-      "---",
-      "maxExperiments: 3",
-      "metricTimeout: 120",
-      "baseline: null",
-      "---",
-      "# Experiment",
-      ""
-    ].join("\n");
-
-    const parsed = parseExperimentFrontmatter(original);
-
-    await writeExperimentFrontmatter(docPath, parsed.frontmatter, parsed.body, fs);
-
-    const written = await fs.readFile(docPath, "utf8");
-
-    expect(written).toContain(
-      `$schema: ${experimentDocumentSchemaId}\nkind: experiment\nversion: 1\n`
-    );
-    expect(written).toContain("baseline: null\n");
-    expect(written).not.toContain("maxExperiments");
-    expect(written).not.toContain("metricTimeout");
-    expect(written).not.toContain("max_experiments");
-    expect(written).not.toContain("metric_timeout");
-  });
-});
-
-describe("createDefaultGit", () => {
-  it("reset stashes experiment docs, resets, and restores them", async () => {
-    const { exec, commands } = createGitExec([
-      { stdout: "", stderr: "", exitCode: 0 },
-      { stdout: "", stderr: "", exitCode: 0 },
-      { stdout: "", stderr: "", exitCode: 0 }
-    ]);
-    const git = createDefaultGit(exec);
-
-    await git.reset("abc123", "/repo");
-
-    expect(commands).toEqual([
-      {
-        command: "git stash push -q --include-untracked -- .poe-code/experiments",
-        options: { cwd: "/repo" }
+    expect(written).toContain("agents:\n");
+    expect(written).toContain("maxKept: 5\n");
+    expect(parseExperimentFrontmatter(written)).toEqual({
+      frontmatter: {
+        agents: {
+          experimenter: {
+            agent: "claude-code",
+            prompt: "Ship a focused improvement"
+          }
+        },
+        metric: {
+          name: "tests",
+          direction: "maximize"
+        },
+        maxKept: 5
       },
-      { command: "git reset --hard 'abc123'", options: { cwd: "/repo" } },
-      { command: "git stash pop -q", options: { cwd: "/repo" } }
-    ]);
-  });
-
-  it("reset skips stash pop when there was nothing to stash", async () => {
-    const { exec, commands } = createGitExec([
-      { stdout: "", stderr: "No local changes to save", exitCode: 1 },
-      { stdout: "", stderr: "", exitCode: 0 }
-    ]);
-    const git = createDefaultGit(exec);
-
-    await git.reset("abc123", "/repo");
-
-    expect(commands).toEqual([
-      {
-        command: "git stash push -q --include-untracked -- .poe-code/experiments",
-        options: { cwd: "/repo" }
-      },
-      { command: "git reset --hard 'abc123'", options: { cwd: "/repo" } }
-    ]);
-  });
-
-  it("currentHash returns short hash", async () => {
-    const { exec, commands } = createGitExec([{ stdout: "fedcba\n", stderr: "", exitCode: 0 }]);
-    const git = createDefaultGit(exec);
-
-    await expect(git.currentHash("/repo")).resolves.toBe("fedcba");
-    expect(commands).toEqual([
-      { command: "git rev-parse --short HEAD", options: { cwd: "/repo" } }
-    ]);
-  });
-});
-
-describe("ExperimentJournal", () => {
-  it("initializes a missing journal file without clobbering future entries", async () => {
-    const fs = createFs();
-    const journalPath = "/repo/experiment.journal.jsonl";
-    const journal = new ExperimentJournal(journalPath, fs);
-
-    await journal.init();
-
-    await expect(fs.readFile(journalPath, "utf8")).resolves.toBe("");
-
-    const entry = createJournalEntry();
-    await journal.log(entry);
-
-    await expect(fs.readFile(journalPath, "utf8")).resolves.toBe(`${JSON.stringify(entry)}\n`);
-  });
-
-  it("logs a single entry and reads it back", async () => {
-    const fs = createFs();
-    const journalPath = "/repo/docs/experiment.journal.jsonl";
-    const journal = new ExperimentJournal(journalPath, fs);
-    const entry = createJournalEntry();
-
-    await journal.log(entry);
-
-    await expect(fs.readFile(journalPath, "utf8")).resolves.toBe(`${JSON.stringify(entry)}\n`);
-    await expect(journal.readAll()).resolves.toEqual([entry]);
-  });
-
-  it("logs multiple entries and returns them in order", async () => {
-    const fs = createFs();
-    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
-    const first = createJournalEntry();
-    const second = createJournalEntry({
-      commit: "e4f5g6h",
-      status: "discard",
-      scores: { tests: 1.12 },
-      output: "test_duration: 1.12",
-      durationMs: 4987,
-      timestamp: "2026-03-30T10:11:00.000Z"
+      body: ['```js', 'return "done";', "```", ""].join("\n")
     });
-    const third = createJournalEntry({
-      commit: "f7g8h9i",
-      status: "keep",
-      scores: { tests: 0.98 },
-      output: "test_duration: 0.98",
-      durationMs: 4700,
-      timestamp: "2026-03-30T10:22:00.000Z"
-    });
-
-    await journal.log(first);
-    await journal.log(second);
-    await journal.log(third);
-
-    await expect(journal.readAll()).resolves.toEqual([first, second, third]);
-  });
-
-  it("returns an empty array when the journal file is missing", async () => {
-    const fs = createFs();
-    const journal = new ExperimentJournal("/repo/missing.journal.jsonl", fs);
-
-    await expect(journal.readAll()).resolves.toEqual([]);
-  });
-
-  it("formats entries as a readable TSV table", async () => {
-    const fs = createFs();
-    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
-
-    await journal.log(
-      createJournalEntry({
-        output: "line 1\nline\t2"
-      })
-    );
-    await journal.log(
-      createJournalEntry({
-        commit: "e4f5g6h",
-        status: "discard",
-        scores: { tests: 1.12 },
-        output: "test_duration: 1.12",
-        durationMs: 4987,
-        timestamp: "2026-03-30T10:11:00.000Z"
-      })
-    );
-
-    await expect(journal.format()).resolves.toBe(
-      [
-        "commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput",
-        `a1b2c3d\tkeep\t${JSON.stringify({ tests: 1.04 })}\t5023\t2026-03-30T10:00:00.000Z\tline 1\\nline\\t2\toptimized hot path`,
-        `e4f5g6h\tdiscard\t${JSON.stringify({ tests: 1.12 })}\t4987\t2026-03-30T10:11:00.000Z\ttest_duration: 1.12\toptimized hot path`
-      ].join("\n")
-    );
-  });
-
-  it("formats a missing journal as a header-only TSV table", async () => {
-    const fs = createFs();
-    const journal = new ExperimentJournal("/repo/missing.journal.jsonl", fs);
-
-    await expect(journal.format()).resolves.toBe(
-      "commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput"
-    );
-  });
-
-  it("escapes carriage returns and backslashes in formatted output", async () => {
-    const fs = createFs();
-    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
-
-    await journal.log(
-      createJournalEntry({
-        output: String.raw`path\to\file\rnext line`
-      })
-    );
-
-    await expect(journal.format()).resolves.toContain(
-      `a1b2c3d\tkeep\t${JSON.stringify({ tests: 1.04 })}\t5023\t2026-03-30T10:00:00.000Z\tpath\\\\to\\\\file\\\\rnext line\toptimized hot path`
-    );
-  });
-
-  it("reads concatenated JSON objects on a single line", async () => {
-    const first = createJournalEntry({ commit: "aaa1111" });
-    const second = createJournalEntry({ commit: "bbb2222", status: "discard" });
-    const fs = createFs({
-      "/repo/experiment.journal.jsonl": `${JSON.stringify(first)}${JSON.stringify(second)}\n`
-    });
-    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
-
-    await expect(journal.readAll()).resolves.toEqual([first, second]);
-  });
-
-  it("updateLast patches the last entry and preserves earlier entries", async () => {
-    const fs = createFs();
-    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
-    const first = createJournalEntry({ commit: "aaa1111" });
-    const second = createJournalEntry({ commit: "bbb2222", scores: undefined });
-
-    await journal.log(first);
-    await journal.log(second);
-
-    const updated = await journal.updateLast({ scores: { tests: 42 } });
-
-    expect(updated).toEqual({ ...second, scores: { tests: 42 } });
-
-    const entries = await journal.readAll();
-    expect(entries).toHaveLength(2);
-    expect(entries[0]).toEqual(first);
-    expect(entries[1]!.scores).toEqual({ tests: 42 });
-  });
-
-  it("updateLast returns null on empty journal", async () => {
-    const fs = createFs();
-    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
-
-    await journal.init();
-    const result = await journal.updateLast({ scores: { tests: 1 } });
-
-    expect(result).toBeNull();
-  });
-
-  it("handles discard entries without scores", async () => {
-    const fs = createFs();
-    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
-    const entry = createJournalEntry({
-      commit: "d1sc4rd",
-      status: "discard",
-      scores: undefined,
-      output: "no improvement found",
-      durationMs: 102,
-      timestamp: "2026-03-30T10:05:30.000Z"
-    });
-
-    await journal.log(entry);
-
-    await expect(journal.readAll()).resolves.toEqual([entry]);
-    await expect(journal.format()).resolves.toContain(
-      "d1sc4rd\tdiscard\t-\t102\t2026-03-30T10:05:30.000Z\tno improvement found\toptimized hot path"
-    );
   });
 });
 
 describe("runExperimentLoop", () => {
-  it("keeps an experiment when the agent writes a keep journal entry", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 1 })
-    });
-    const git = createLoopGit({
-      currentHash: vi.fn(async () => "base-1")
-    });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
+  it("runs the markdown js block through runHarness with the registered modules", async () => {
+    const cwd = await createGitRepo();
+    tempDirs.push(cwd);
+    const homeDir = path.join(cwd, ".home");
+    const docPath = path.join(cwd, ".poe-code/experiments/plan.md");
     const onExperimentStart = vi.fn();
-    const onExperimentComplete = vi.fn();
-    const onCommit = vi.fn();
+    const onMetricResult = vi.fn();
+
+    await fs.mkdir(path.dirname(docPath), { recursive: true });
+    await fs.writeFile(
+      docPath,
+      [
+        "---",
+        "$schema: https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json",
+        "kind: experiment",
+        "version: 1",
+        "agents:",
+        "  experimenter:",
+        "    agent: claude-code",
+        "    prompt: Improve the metric",
+        "metric:",
+        "  name: tests",
+        "  direction: maximize",
+        "maxKept: 2",
+        "---",
+        "",
+        "```js",
+        'import { spawn } from "agent";',
+        'import { agents, meta } from "harness";',
+        'import { head } from "git";',
+        'import { event } from "log";',
+        'import { run as runMetric } from "metric";',
+        'import { now, uuid } from "time";',
+        "",
+        'event("experiment.start", { index: 1, agent: agents.experimenter.agent });',
+        "return {",
+        '  stopReason: "max_kept",',
+        "  experimentsCompleted: 1,",
+        "  experimentsKept: 1,",
+        "  totalDurationMs: 7,",
+        "  gitHead: await head(),",
+        "  metricScore: await runMetric(meta.frontmatter.metric.name),",
+        '  summary: (await spawn(agents.experimenter, { prompt: "Run the experiment" })).summary,',
+        "  maxKept: meta.frontmatter.maxKept,",
+        "  hasUuid: uuid()",
+        "};",
+        "```",
+        ""
+      ].join("\n"),
+      "utf8"
+    );
+
+    const exec = vi.fn(async (command: string) => {
+      if (command === "npm run --silent 'metric:tests'") {
+        return {
+          stdout: "42\n",
+          stderr: "",
+          exitCode: 0
+        };
+      }
+
+      throw new Error(`Unexpected exec call: ${command}`);
+    }) as ExecFn;
 
     const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
+      cwd,
+      homeDir,
       docPath,
-      maxExperiments: 1,
-      fs,
-      git,
       exec,
-      runAgent,
       onExperimentStart,
-      onExperimentComplete,
-      onCommit
+      onMetricResult,
+      runAgent: vi.fn(async (input) => ({
+        stdout: `agent:${input.agent}`,
+        stderr: "",
+        exitCode: 0
+      }))
     });
 
-    expect(result.stopReason).toBe("max_experiments");
-    expect(result.docPath).toBe(docPath);
-    expect(result.experimentsCompleted).toBe(1);
-    expect(result.experimentsKept).toBe(1);
-    expect(result.totalDurationMs).toBeGreaterThanOrEqual(0);
-
+    expect(result).toEqual({
+      stopReason: "max_kept",
+      docPath,
+      experimentsCompleted: 1,
+      experimentsKept: 1,
+      totalDurationMs: 7
+    });
     expect(onExperimentStart).toHaveBeenCalledWith(1, "claude-code");
-    expect(onExperimentComplete).toHaveBeenCalledTimes(1);
-    expect(onExperimentComplete.mock.calls[0]?.[0]).toBe(1);
-    expect((onExperimentComplete.mock.calls[0]?.[1] as JournalEntry).status).toBe("keep");
-    expect(onCommit).toHaveBeenCalledWith("keep-1");
-
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "claude-code",
-        cwd: "/repo"
-      })
+    expect(onMetricResult).toHaveBeenCalledWith(
+      {
+        name: "tests",
+        direction: "maximize"
+      },
+      {
+        score: 42,
+        passed: true,
+        output: "42\n"
+      }
     );
-
-    const prompt = runAgent.mock.calls[0]?.[0].prompt as string;
-    expect(prompt).toContain("# Improve the tests");
-    expect(prompt).toContain("commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput");
-    expect(prompt).toContain("You are autonomous, do not stop or ask for input.");
-
-    expect(git.currentHash).toHaveBeenCalledWith("/repo");
-
-    const journalContent = await fs.readFile(journalFilePath(docPath), "utf8");
-    const [entry] = journalContent
-      .trim()
-      .split("\n")
-      .map((line) => JSON.parse(line) as JournalEntry);
-
-    expect(entry).toEqual(
-      expect.objectContaining({
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 }
-      })
-    );
-    expect(entry?.output).toContain("tests: score=2, passed=true");
-    expect(entry?.agentOutput).toBe("done");
+    expect(exec).toHaveBeenCalledWith("npm run --silent 'metric:tests'", {
+      cwd
+    });
   });
 
-  it("resets to pre-experiment hash when agent exits without journaling", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 1 })
-    });
-    const git = createLoopGit({
-      currentHash: vi.fn(async () => "base-1")
-    });
-    const exec = createLoopExec([]);
-    const onReset = vi.fn();
-    const runAgent = vi.fn(
-      async (): Promise<AgentRunResult> => ({
+  it("exposes runtime overrides to the harness script", async () => {
+    const cwd = await createGitRepo();
+    tempDirs.push(cwd);
+    const homeDir = path.join(cwd, ".home");
+    const docPath = path.join(cwd, ".poe-code/experiments/plan.md");
+
+    await fs.mkdir(path.dirname(docPath), { recursive: true });
+    await fs.writeFile(
+      docPath,
+      [
+        "---",
+        "$schema: https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json",
+        "kind: experiment",
+        "version: 1",
+        "agents:",
+        "  experimenter:",
+        "    agent: claude-code",
+        "metric:",
+        "  name: tests",
+        "  direction: maximize",
+        "maxKept: 2",
+        "---",
+        "",
+        "```js",
+        'import { agents, meta } from "harness";',
+        "return {",
+        '  stopReason: "max_experiments",',
+        "  experimentsCompleted: meta.frontmatter.maxExperiments,",
+        "  experimentsKept: meta.frontmatter.maxKept,",
+        "  totalDurationMs: meta.frontmatter.maxExperiments,",
+        "  agent: agents.experimenter.agent",
+        "};",
+        "```",
+        ""
+      ].join("\n"),
+      "utf8"
+    );
+
+    const result = await runExperimentLoop({
+      cwd,
+      homeDir,
+      docPath,
+      agent: "codex",
+      maxExperiments: 3,
+      runAgent: vi.fn(async () => ({
         stdout: "",
         stderr: "",
         exitCode: 0
-      })
-    );
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent,
-      onReset
-    });
-
-    expect(result.experimentsCompleted).toBe(1);
-    expect(result.experimentsKept).toBe(0);
-    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
-    expect(onReset).toHaveBeenCalledWith("base-1");
-
-    const journalContent = await fs.readFile(journalFilePath(docPath), "utf8");
-    expect(journalContent).toBe("");
-  });
-
-  it("discards experiments when the agent writes a discard journal entry and resets to pre-experiment hash", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 5 })
-    });
-    const git = createLoopGit({
-      currentHash: vi.fn(async () => "baseline-abc")
-    });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "discard-xyz",
-        status: "discard",
-        scores: { tests: 4 },
-        output: "tests: score=4, passed=false",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(result.experimentsCompleted).toBe(1);
-    expect(result.experimentsKept).toBe(0);
-    expect(git.reset).toHaveBeenCalledWith("baseline-abc", "/repo");
-
-    const [entry] = (await fs.readFile(journalFilePath(docPath), "utf8"))
-      .trim()
-      .split("\n")
-      .map((line) => JSON.parse(line) as JournalEntry);
-
-    expect(entry).toEqual(
-      expect.objectContaining({
-        commit: "discard-xyz",
-        status: "discard",
-        scores: { tests: 4 },
-        agentOutput: "done"
-      })
-    );
-  });
-
-  it("computes scores via evaluator when agent logs entry without scores", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 5 })
-    });
-    const git = createLoopGit({
-      currentHash: vi.fn(async () => "baseline-abc")
-    });
-    const exec = createLoopExec([{ stdout: "42\n", stderr: "", exitCode: 0 }]);
-    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        output: "done",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    const [entry] = (await fs.readFile(journalFilePath(docPath), "utf8"))
-      .trim()
-      .split("\n")
-      .map((line) => JSON.parse(line) as JournalEntry);
-
-    expect(entry).toEqual(
-      expect.objectContaining({
-        scores: { tests: 42 }
-      })
-    );
-  });
-
-  it("skips score computation when agent already provides scores", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 5 })
-    });
-    const git = createLoopGit({
-      currentHash: vi.fn(async () => "baseline-abc")
-    });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 99 },
-        output: "done",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(exec).not.toHaveBeenCalled();
-
-    const [entry] = (await fs.readFile(journalFilePath(docPath), "utf8"))
-      .trim()
-      .split("\n")
-      .map((line) => JSON.parse(line) as JournalEntry);
-
-    expect(entry).toEqual(
-      expect.objectContaining({
-        scores: { tests: 99 }
-      })
-    );
-  });
-
-  it("lets explicit agent option override frontmatter", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: codex",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "baseline: { tests: 1 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
-        "---",
-        "# Improve the tests"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      agent: "claude-code:anthropic/claude-opus-4.6",
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "claude-code",
-        model: "anthropic/claude-opus-4.6"
-      })
-    );
-  });
-
-  it("inherits metric and body from a matching base when extends is true", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: ["---", "extends: true", "baseline: { tests: 1 }", "---", ""].join("\n"),
-      "/repo/.poe-code/experiments/bases/test-duration.md": [
-        "---",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "---",
-        "# Base prompt",
-        "",
-        "Use the shared instructions."
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "claude-code"
-      })
-    );
-    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Base prompt");
-    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Use the shared instructions.");
-    expect(exec).not.toHaveBeenCalled();
-  });
-
-  it("falls back to the home base when no matching project base exists", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: ["---", "extends: true", "baseline: { tests: 1 }", "---", ""].join("\n"),
-      "/home/user/.poe-code/experiments/bases/test-duration.md": [
-        "---",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "---",
-        "# Global base prompt",
-        "",
-        "Use the home-level instructions."
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "claude-code"
-      })
-    );
-    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Global base prompt");
-    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Use the home-level instructions.");
-    expect(exec).not.toHaveBeenCalled();
-  });
-
-  it("keeps the document body while inheriting missing frontmatter from the base", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "extends: true",
-        "baseline: { tests: 1 }",
-        "---",
-        "# Document prompt",
-        "",
-        "Prefer the local instructions."
-      ].join("\n"),
-      "/repo/.poe-code/experiments/bases/test-duration.md": [
-        "---",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "---",
-        "# Base prompt",
-        "",
-        "This body should stay a fallback only."
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "claude-code"
-      })
-    );
-    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Document prompt");
-    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Prefer the local instructions.");
-    expect(runAgent.mock.calls[0]?.[0].prompt).not.toContain("# Base prompt");
-    expect(exec).not.toHaveBeenCalled();
-  });
-
-  it("lets document agent override the defaults agent", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: codex",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "baseline: { tests: 1 }",
-        "---",
-        "# Improve the tests"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "codex"
-      })
-    );
-  });
-
-  it("ignores matching bases when the document does not set extends", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: claude-code",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "baseline: { tests: 1 }",
-        "---",
-        "# Document prompt",
-        "",
-        "Use the local instructions."
-      ].join("\n"),
-      "/repo/.poe-code/experiments/bases/test-duration.md": [
-        "---",
-        "agent: codex",
-        "metric:",
-        "  name: duration",
-        "  script: node scripts/metric-duration.mjs",
-        "  direction: minimize",
-        "---",
-        "# Base prompt",
-        "",
-        "This should not be used."
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "claude-code"
-      })
-    );
-    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("# Document prompt");
-    expect(runAgent.mock.calls[0]?.[0].prompt).toContain("Use the local instructions.");
-    expect(runAgent.mock.calls[0]?.[0].prompt).not.toContain("# Base prompt");
-    expect(exec).not.toHaveBeenCalled();
-  });
-
-  it("initializes the journal file even when no experiments are run", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 1 })
-    });
-    const git = createLoopGit();
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn();
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 0,
-      fs,
-      git,
-      exec,
-      runAgent
+      }))
     });
 
     expect(result).toEqual({
       stopReason: "max_experiments",
       docPath,
-      experimentsCompleted: 0,
-      experimentsKept: 0,
-      totalDurationMs: expect.any(Number)
+      experimentsCompleted: 3,
+      experimentsKept: 2,
+      totalDurationMs: 3
     });
-    expect(git.currentHash).not.toHaveBeenCalled();
-    expect(runAgent).not.toHaveBeenCalled();
-    await expect(fs.readFile(journalFilePath(docPath), "utf8")).resolves.toBe("");
   });
 
-  it("returns cancelled immediately when the signal is already aborted", async () => {
-    const controller = new AbortController();
-    controller.abort();
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 1 })
-    });
-    const git = createLoopGit();
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn();
+  it("rejects experiment docs without a fenced js block", async () => {
+    const cwd = await createGitRepo();
+    tempDirs.push(cwd);
+    const homeDir = path.join(cwd, ".home");
+    const docPath = path.join(cwd, ".poe-code/experiments/legacy.md");
 
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
+    await fs.mkdir(path.dirname(docPath), { recursive: true });
+    await fs.writeFile(
       docPath,
-      maxExperiments: 2,
-      fs,
-      git,
-      exec,
-      runAgent,
-      signal: controller.signal
-    });
-
-    expect(result).toEqual({
-      stopReason: "cancelled",
-      docPath,
-      experimentsCompleted: 0,
-      experimentsKept: 0,
-      totalDurationMs: expect.any(Number)
-    });
-    expect(runAgent).not.toHaveBeenCalled();
-  });
-
-  it("keeps an experiment when a stable metric stays equal to baseline", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
+      [
         "---",
-        "agent: claude-code",
-        "metric:",
-        "  name: test_count",
-        "  script: node scripts/metric-test-count.mjs",
-        "  direction: stable",
-        "baseline: { test_count: 100 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
-        "---",
-        "# Keep test count stable"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { test_count: 100 },
-        output: "test_count: score=100, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(result.experimentsKept).toBe(1);
-  });
-
-  it("discards an experiment when a stable metric changes from baseline", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: claude-code",
-        "metric:",
-        "  name: test_count",
-        "  script: node scripts/metric-test-count.mjs",
-        "  direction: stable",
-        "baseline: { test_count: 100 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
-        "---",
-        "# Keep test count stable"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "base-1",
-        status: "discard",
-        scores: { test_count: 99 },
-        output: "test_count: score=99, passed=false",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(result.experimentsKept).toBe(0);
-    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
-  });
-
-  it("keeps a stable metric within delta tolerance", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: claude-code",
-        "metric:",
-        "  name: test_count",
-        "  script: node scripts/metric-test-count.mjs",
-        "  direction: stable",
-        "  delta: 5",
-        "baseline: { test_count: 100 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
-        "---",
-        "# Keep test count stable"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { test_count: 103 },
-        output: "test_count: score=103, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(result.experimentsKept).toBe(1);
-  });
-
-  it("discards a stable metric that exceeds delta tolerance", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: claude-code",
-        "metric:",
-        "  name: test_count",
-        "  script: node scripts/metric-test-count.mjs",
-        "  direction: stable",
-        "  delta: 5",
-        "baseline: { test_count: 100 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
-        "---",
-        "# Keep test count stable"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "base-1",
-        status: "discard",
-        scores: { test_count: 106 },
-        output: "test_count: score=106, passed=false",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(result.experimentsKept).toBe(0);
-    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
-  });
-
-  it("keeps a maximize metric with slight regression within delta", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: claude-code",
+        "$schema: https://poe-platform.github.io/poe-code/schemas/plans/experiment.schema.json",
+        "kind: experiment",
+        "version: 1",
+        "agents:",
+        "  experimenter:",
+        "    agent: claude-code",
         "metric:",
         "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
         "  direction: maximize",
-        "  delta: 2",
-        "baseline: { tests: 10 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
         "---",
-        "# Maximize with tolerance"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 9 },
-        output: "tests: score=9, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
+        "",
+        "# Legacy brief",
+        "",
+        "This used to be prose, not a harness script."
+      ].join("\n"),
+      "utf8"
+    );
 
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(result.experimentsKept).toBe(1);
-  });
-
-  it("uses inline model from agent specifier notation", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: claude-code:anthropic/claude-opus-4.6",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "baseline: { tests: 1 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
-        "---",
-        "# Improve the tests"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "claude-code",
-        model: "anthropic/claude-opus-4.6"
+    await expect(
+      runExperimentLoop({
+        cwd,
+        homeDir,
+        docPath,
+        runAgent: vi.fn(async () => ({
+          stdout: "",
+          stderr: "",
+          exitCode: 0
+        }))
       })
-    );
-  });
-
-  it("per-agent inline models work with agent arrays", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent:",
-        "  - claude-code:anthropic/claude-opus-4.6",
-        "  - codex:openai/gpt-5.4",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "baseline: { tests: 1 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
-        "---",
-        "# Improve the tests"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    let callIndex = 0;
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      callIndex += 1;
-      await appendJournalEntry(fs, docPath, {
-        commit: `keep-${callIndex}`,
-        status: "keep",
-        scores: { tests: callIndex + 1 },
-        output: `tests: score=${callIndex + 1}, passed=true`,
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 2,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "claude-code",
-        model: "anthropic/claude-opus-4.6"
-      })
-    );
-    expect(runAgent).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "codex",
-        model: "openai/gpt-5.4"
-      })
-    );
-  });
-
-  it("reports agent id without model in onExperimentStart", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: claude-code:anthropic/claude-opus-4.6",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "baseline: { tests: 1 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
-        "---",
-        "# Improve the tests"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-    const onExperimentStart = vi.fn();
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent,
-      onExperimentStart
-    });
-
-    expect(onExperimentStart).toHaveBeenCalledWith(1, "claude-code");
-  });
-
-  it("keeps a minimize metric with slight regression within delta", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: claude-code",
-        "metric:",
-        "  name: duration",
-        "  script: node scripts/metric-duration.mjs",
-        "  direction: minimize",
-        "  delta: 100",
-        "baseline: { duration: 5000 }",
-        "status:",
-        "  state: open",
-        "  experiment: 0",
-        "  kept: 0",
-        "---",
-        "# Minimize with tolerance"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { duration: 5050 },
-        output: "duration: score=5050, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(result.experimentsKept).toBe(1);
-  });
-
-  it("measures baseline automatically when baseline is null, then uses agent journal entry", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: null })
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([{ stdout: "5\n", stderr: "", exitCode: 0 }]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 7 },
-        output: "tests: score=7, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(result.experimentsCompleted).toBe(1);
-    expect(result.experimentsKept).toBe(1);
-
-    const keepEntry = JSON.parse(
-      (await fs.readFile(journalFilePath(docPath), "utf8")).trim()
-    ) as JournalEntry;
-    expect(keepEntry.scores).toEqual({ tests: 7 });
-  });
-
-  it("uses max_experiments from frontmatter when not provided via options", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: [
-        "---",
-        "agent: claude-code",
-        "metric:",
-        "  name: tests",
-        "  script: node scripts/metric-tests.mjs",
-        "  direction: maximize",
-        "baseline: { tests: 1 }",
-        "max_experiments: 2",
-        "---",
-        "# Improve the tests"
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    let callIndex = 0;
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      callIndex += 1;
-      await appendJournalEntry(fs, docPath, {
-        commit: `keep-${callIndex}`,
-        status: "keep",
-        scores: { tests: callIndex + 1 },
-        output: `tests: score=${callIndex + 1}, passed=true`,
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    const result = await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    expect(result.stopReason).toBe("max_experiments");
-    expect(result.experimentsCompleted).toBe(2);
-  });
-
-  it("includes agent output in the journal fed to subsequent experiments", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 1 })
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    let callIndex = 0;
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      callIndex += 1;
-      await appendJournalEntry(fs, docPath, {
-        commit: `keep-${callIndex}`,
-        status: "keep",
-        scores: { tests: callIndex + 1 },
-        output: `tests: score=${callIndex + 1}, passed=true`,
-        agentOutput: "I refactored the parser module to reduce allocations",
-        durationMs: 100
-      });
-      return {
-        stdout: "I refactored the parser module to reduce allocations",
-        stderr: "",
-        exitCode: 0
-      };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 2,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    const secondPrompt = runAgent.mock.calls[1]?.[0].prompt as string;
-    expect(secondPrompt).toContain("I refactored the parser module to reduce allocations");
-  });
-
-  it("uses custom run.yaml prompt template when present", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 1 }),
-      "/repo/.poe-code/experiments/run.yaml": [
-        "prompt: |",
-        "  CUSTOM: {{body}}",
-        "  INDEX: {{experiment_index}}",
-        ""
-      ].join("\n")
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    const prompt = runAgent.mock.calls[0]?.[0].prompt as string;
-    expect(prompt).toContain("CUSTOM:");
-    expect(prompt).toContain("# Improve the tests");
-    expect(prompt).toContain("INDEX: 1");
-  });
-
-  it("includes doc_path in the prompt", async () => {
-    const docPath = "/repo/.poe-code/experiments/test-duration.md";
-    const fs = createFs({
-      [docPath]: createDoc({ baseline: 1 })
-    });
-    const git = createLoopGit({ currentHash: vi.fn(async () => "abc1234") });
-    const exec = createLoopExec([]);
-    const runAgent = vi.fn(async (_input: AgentRunInput): Promise<AgentRunResult> => {
-      await appendJournalEntry(fs, docPath, {
-        commit: "keep-1",
-        status: "keep",
-        scores: { tests: 2 },
-        output: "tests: score=2, passed=true",
-        agentOutput: "done",
-        durationMs: 100
-      });
-      return { stdout: "done", stderr: "", exitCode: 0 };
-    });
-
-    await runExperimentLoop({
-      cwd: "/repo",
-      homeDir: "/home/user",
-      docPath,
-      maxExperiments: 1,
-      fs,
-      git,
-      exec,
-      runAgent
-    });
-
-    const prompt = runAgent.mock.calls[0]?.[0].prompt as string;
-    expect(prompt).toContain(docPath);
-  });
-});
-
-describe("createExperimentLoopSimulation", () => {
-  it("keeps a single-metric experiment when the score improves", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 1,
-      docContent: createExperimentDoc({
-        baseline: { tests: 1 }
-      }),
-      files: {
-        "src/index.ts": "export const value = 1;\n"
-      },
-      turns: [
-        agentMakesChanges({
-          "src/index.ts": "export const value = 2;\n"
-        })
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": metricResult({ score: 2 })
-      }
-    });
-
-    const { result, readFile, readJournal } = await sim.run();
-    const entries = await readJournal();
-
-    expect(result).toMatchObject({
-      stopReason: "max_experiments",
-      experimentsCompleted: 1,
-      experimentsKept: 1
-    });
-    expect(entries).toHaveLength(1);
-    expect(entries[0]).toEqual(
-      expect.objectContaining({
-        status: "keep",
-        scores: { tests: 2 }
-      })
-    );
-    expect(await readFile("src/index.ts")).toBe("export const value = 2;\n");
-  });
-
-  it("applies agent file changes when paths are absolute", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 1,
-      docContent: createExperimentDoc({
-        baseline: { tests: 1 }
-      }),
-      files: {
-        "src/index.ts": "export const value = 1;\n"
-      },
-      turns: [
-        agentMakesChanges({
-          "/repo/src/index.ts": "export const value = 2;\n"
-        })
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": metricResult({ score: 2 })
-      }
-    });
-
-    const { readFile } = await sim.run();
-
-    expect(await readFile("src/index.ts")).toBe("export const value = 2;\n");
-  });
-
-  it("discards a single-metric experiment when the score does not improve", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 1,
-      docContent: createExperimentDoc({
-        baseline: { tests: 2 }
-      }),
-      files: {
-        "src/index.ts": "export const value = 1;\n"
-      },
-      turns: [
-        agentMakesChanges({
-          "src/index.ts": "export const value = 99;\n"
-        })
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": metricResult({ score: 2 })
-      }
-    });
-
-    const { result, git, readFile, readJournal } = await sim.run();
-    const entries = await readJournal();
-
-    expect(result.experimentsKept).toBe(0);
-    expect(entries).toHaveLength(1);
-    expect(entries[0]).toEqual(
-      expect.objectContaining({
-        status: "discard",
-        scores: { tests: 2 }
-      })
-    );
-    expect(await readFile("src/index.ts")).toBe("export const value = 1;\n");
-    expect(git.resetCalls).toEqual([{ commitHash: "base-1", cwd: "/repo" }]);
-  });
-
-  it("keeps a metric chain when every score passes and improves", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 1,
-      docContent: createExperimentDoc({
-        metric: [
-          { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
-          {
-            name: "test_duration",
-            script: "node scripts/metric-duration.mjs",
-            direction: "minimize"
-          }
-        ],
-        baseline: {
-          tests: 1,
-          test_duration: 10
-        }
-      }),
-      turns: [
-        agentMakesChanges({
-          "src/index.ts": "export const faster = true;\n"
-        })
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": metricResult({ score: 2 }),
-        "node scripts/metric-duration.mjs": metricResult({ score: 9 })
-      }
-    });
-
-    const { result, execCalls, readJournal } = await sim.run();
-    const [entry] = await readJournal();
-
-    expect(result.experimentsKept).toBe(1);
-    expect(entry).toEqual(
-      expect.objectContaining({
-        status: "keep",
-        scores: { tests: 2, test_duration: 9 }
-      })
-    );
-    expect(execCalls.map((call) => call.command)).toEqual([
-      "node scripts/metric-tests.mjs",
-      "node scripts/metric-duration.mjs"
-    ]);
-  });
-
-  it("short-circuits a metric chain when the first metric fails", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 1,
-      docContent: createExperimentDoc({
-        metric: [
-          { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
-          {
-            name: "test_duration",
-            script: "node scripts/metric-duration.mjs",
-            direction: "minimize"
-          }
-        ],
-        baseline: {
-          tests: 1,
-          test_duration: 10
-        }
-      }),
-      turns: [agentMakesChanges()],
-      metricResults: {
-        "node scripts/metric-tests.mjs": metricResult({ score: 0, exitCode: 1 }),
-        "node scripts/metric-duration.mjs": metricResult({ score: 9 })
-      }
-    });
-
-    const { execCalls, readJournal } = await sim.run();
-    const [entry] = await readJournal();
-
-    expect(entry?.status).toBe("discard");
-    expect(execCalls.map((call) => call.command)).toEqual(["node scripts/metric-tests.mjs"]);
-  });
-
-  it("discards a metric chain when the second metric fails", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 1,
-      docContent: createExperimentDoc({
-        metric: [
-          { name: "tests", script: "node scripts/metric-tests.mjs", direction: "maximize" },
-          {
-            name: "test_duration",
-            script: "node scripts/metric-duration.mjs",
-            direction: "minimize"
-          }
-        ],
-        baseline: {
-          tests: 1,
-          test_duration: 10
-        }
-      }),
-      turns: [agentMakesChanges()],
-      metricResults: {
-        "node scripts/metric-tests.mjs": metricResult({ score: 2 }),
-        "node scripts/metric-duration.mjs": metricResult({ score: 11, exitCode: 1 })
-      }
-    });
-
-    const { execCalls, readJournal } = await sim.run();
-    const [entry] = await readJournal();
-
-    expect(entry?.status).toBe("discard");
-    expect(execCalls.map((call) => call.command)).toEqual([
-      "node scripts/metric-tests.mjs",
-      "node scripts/metric-duration.mjs"
-    ]);
-  });
-
-  it("injects prior journal entries into later agent prompts", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 2,
-      docContent: createExperimentDoc({
-        baseline: { tests: 1 }
-      }),
-      turns: [
-        agentMakesChanges({
-          "src/index.ts": "export const step = 1;\n"
-        }),
-        agentMakesChanges(
-          {
-            "src/index.ts": "export const step = 2;\n"
-          },
-          {
-            assertPrompt: (prompt) => {
-              expect(prompt).toContain(
-                "commit\tstatus\tscores\tdurationMs\ttimestamp\toutput\tagentOutput"
-              );
-              expect(prompt).toContain("commit-1\tkeep\t{");
-            }
-          }
-        )
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": [metricResult({ score: 2 }), metricResult({ score: 3 })]
-      }
-    });
-
-    const { result } = await sim.run();
-
-    expect(result.experimentsKept).toBe(2);
-  });
-
-  it("returns a cancelled stop reason when the abort signal fires", async () => {
-    const controller = new AbortController();
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 3,
-      signal: controller.signal,
-      docContent: createExperimentDoc({
-        baseline: { tests: 1 }
-      }),
-      turns: [
-        agentMakesChanges(
-          {
-            "src/index.ts": "export const done = true;\n"
-          },
-          {
-            assertPrompt: () => {
-              controller.abort();
-            }
-          }
-        )
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": metricResult({ score: 2 })
-      }
-    });
-
-    const { result } = await sim.run();
-
-    expect(result).toMatchObject({
-      stopReason: "cancelled",
-      experimentsCompleted: 1,
-      experimentsKept: 1
-    });
-  });
-
-  it("re-reads the prompt from disk on each iteration", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 2,
-      docContent: createExperimentDoc({
-        baseline: { tests: 1 },
-        body: "# Original prompt\n\nDo the original thing.\n"
-      }),
-      turns: [
-        agentMakesChanges(
-          { "src/a.ts": "1" },
-          {
-            assertPrompt: async (_prompt, ctx) => {
-              const doc = await ctx.readFile("/repo/.poe-code/experiments/plan.md");
-              const updated = doc.replace("Original prompt", "Updated prompt");
-              await ctx.writeFile("/repo/.poe-code/experiments/plan.md", updated);
-            }
-          }
-        ),
-        agentMakesChanges(
-          { "src/b.ts": "2" },
-          {
-            assertPrompt: (prompt) => {
-              expect(prompt).toContain("Updated prompt");
-            }
-          }
-        )
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": [metricResult({ score: 2 }), metricResult({ score: 3 })]
-      }
-    });
-
-    const { result } = await sim.run();
-
-    expect(result.experimentsKept).toBe(2);
-  });
-
-  it("preserves user edits when persistDoc writes back", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 2,
-      docContent: createExperimentDoc({
-        baseline: { tests: 1 },
-        body: "# Speed up tests\n\nOriginal constraints.\n"
-      }),
-      turns: [
-        agentMakesChanges(
-          { "src/a.ts": "1" },
-          {
-            assertPrompt: async (_prompt, ctx) => {
-              const doc = await ctx.readFile("/repo/.poe-code/experiments/plan.md");
-              const updated = doc.replace("Original constraints", "New constraints added by user");
-              await ctx.writeFile("/repo/.poe-code/experiments/plan.md", updated);
-            }
-          }
-        ),
-        agentMakesChanges({ "src/b.ts": "2" })
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": [metricResult({ score: 2 }), metricResult({ score: 3 })]
-      }
-    });
-
-    const { readDoc } = await sim.run();
-    const doc = await readDoc();
-
-    expect(doc).toContain("New constraints added by user");
-  });
-
-  it("collects baseline from metrics when baseline is null", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 1,
-      docContent: createExperimentDoc({
-        baseline: null
-      }),
-      turns: [agentMakesChanges({ "src/a.ts": "1" })],
-      metricResults: {
-        "node scripts/metric-tests.mjs": [metricResult({ score: 5 }), metricResult({ score: 6 })]
-      }
-    });
-
-    const { result, readJournal } = await sim.run();
-    const entries = await readJournal();
-
-    expect(entries.at(-1)).toEqual(
-      expect.objectContaining({ status: "keep", scores: { tests: 6 } })
-    );
-    expect(result.experimentsKept).toBe(1);
-  });
-
-  it("cycles agents round-robin across experiments", async () => {
-    const sim = createExperimentLoopSimulation({
-      maxExperiments: 4,
-      docContent: createExperimentDoc({
-        agent: ["claude-code", "codex"],
-        baseline: { tests: 1 }
-      }),
-      turns: [
-        agentMakesChanges({ "src/a.ts": "1" }),
-        agentMakesChanges({ "src/b.ts": "2" }),
-        agentMakesChanges({ "src/c.ts": "3" }),
-        agentMakesChanges({ "src/d.ts": "4" })
-      ],
-      metricResults: {
-        "node scripts/metric-tests.mjs": [
-          metricResult({ score: 2 }),
-          metricResult({ score: 3 }),
-          metricResult({ score: 4 }),
-          metricResult({ score: 5 })
-        ]
-      }
-    });
-
-    const { runs } = await sim.run();
-
-    expect(runs.map((run) => run.agent)).toEqual(["claude-code", "codex", "claude-code", "codex"]);
+    ).rejects.toThrow(/fenced `js` block/i);
   });
 });

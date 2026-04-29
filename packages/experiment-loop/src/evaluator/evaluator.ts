@@ -71,7 +71,8 @@ export async function evaluateChain(
   const results: EvalResult[] = [];
 
   for (const metric of metrics) {
-    const { exitCode, result } = await runMetric(metric.script, cwd, exec, timeoutMs);
+    const script = metric.script ?? `npm run --silent 'metric:${metric.name}'`;
+    const { exitCode, result } = await runMetric(script, cwd, exec, timeoutMs);
     results.push(result);
     onMetricResult?.(metric, result);
 

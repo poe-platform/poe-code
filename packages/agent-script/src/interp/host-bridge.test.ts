@@ -95,6 +95,34 @@ describe("host bridge", () => {
     }
   });
 
+  it("prefers named default-export callables in subset stacks", () => {
+    function fail() {
+      throw new Error("stop now");
+    }
+
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        default: fail
+      },
+      {
+        budget: new Budget()
+      }
+    ).default as SandboxClosure;
+
+    try {
+      wrapped.call([], {
+        stack: ["    at fail (line 3, column 3)"]
+      });
+      expect.unreachable("expected throw");
+    } catch (error) {
+      expect(error).toEqual({
+        name: "Error",
+        message: "stop now",
+        stack: "Error: stop now\n    at fail (line 3, column 3)"
+      });
+    }
+  });
+
   it("wraps async host functions as subset promises", async () => {
     const observedArgs: unknown[] = [];
     const load = vi.fn(async (input: { value: number }) => {

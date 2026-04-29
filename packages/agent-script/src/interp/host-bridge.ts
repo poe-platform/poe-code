@@ -38,6 +38,8 @@ function wrapCallerInjectedValue(
     return deepCopyToSandbox(value);
   }
 
+  const bindingName = name === "default" && value.name.length > 0 ? value.name : name;
+
   return createSandboxClosure({
     ...(isAsyncFunction(value) ? { async: true as const } : {}),
     call: (args, context) => {
@@ -58,7 +60,7 @@ function wrapCallerInjectedValue(
         throw createHostErrorValue(error, context?.stack ?? [], budget);
       }
     },
-    name
+    name: bindingName
   });
 }
 

@@ -750,8 +750,9 @@ tasks:
       surfaces this as a non-zero exit with the message.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: module-time
     title: makeTimeModule factory (random/now/uuid)

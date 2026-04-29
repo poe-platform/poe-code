@@ -5,6 +5,7 @@ import { Budget, SandboxError } from "./interp/budget.js";
 import { createSandboxClosure, createSandboxPromise } from "./interp/values.js";
 import { makeAgentModule } from "./modules/agent.js";
 import { makeEnvModule } from "./modules/env.js";
+import { makeFailModule } from "./modules/fail.js";
 import { makeMcpModule } from "./modules/mcp.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
@@ -89,6 +90,69 @@ describe("run", () => {
       ok: true,
       returnValue: JSON.stringify(["default-export", "named", "named", "default-export"])
     });
+  });
+
+  it("converts fail module throws into catchable HarnessFailure subset errors", async () => {
+    const result = await run(
+      [
+        'import fail from "fail";',
+        "try {",
+        '  fail("stop now");',
+        "} catch ({ name, message, stack }) {",
+        "  return JSON.stringify(Array.of(name, message, stack));",
+        "}"
+      ].join("\n"),
+      {
+        modules: {
+          fail: makeFailModule()
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([
+        "HarnessFailure",
+        "stop now",
+        "HarnessFailure: stop now\n    at fail (line 3, column 3)"
+      ])
+    });
+  });
+
+  it("rejects unhandled fail module throws with a HarnessFailure subset error", async () => {
+    await expect(
+      run(
+        ['import fail from "fail";', 'fail("stop now");'].join("\n"),
+        {
+          modules: {
+            fail: makeFailModule()
+          }
+        }
+      )
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "HarnessFailure",
+        message: "stop now"
+      })
+    );
+  });
+
+  it("preserves fail module message whitespace through unhandled runner failures", async () => {
+    await expect(
+      run(
+        ['import fail from "fail";', 'fail("  stop now  ");'].join("\n"),
+        {
+          modules: {
+            fail: makeFailModule()
+          }
+        }
+      )
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "HarnessFailure",
+        message: "  stop now  "
+      })
+    );
   });
 
   it("accepts Map-based registries and module export maps at runtime", async () => {

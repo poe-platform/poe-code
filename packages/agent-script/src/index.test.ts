@@ -6,6 +6,7 @@ import { lint } from "./lint.js";
 import { lint as lintFromIndex } from "./lint/index.js";
 import { makeAgentModule } from "./modules/agent.js";
 import { makeEnvModule } from "./modules/env.js";
+import { makeFailModule } from "./modules/fail.js";
 import { makeGitModule } from "./modules/git.js";
 import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule } from "./modules/log.js";
@@ -26,6 +27,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.restore).toBe(restore);
     expect(api.makeAgentModule).toBe(makeAgentModule);
     expect(api.makeEnvModule).toBe(makeEnvModule);
+    expect(api.makeFailModule).toBe(makeFailModule);
     expect(api.makeGitModule).toBe(makeGitModule);
     expect(api.makeHarnessModule).toBe(makeHarnessModule);
     expect(api.makeLogModule).toBe(makeLogModule);
@@ -36,6 +38,7 @@ describe("@poe-code/agent-script public exports", () => {
       "lint",
       "makeAgentModule",
       "makeEnvModule",
+      "makeFailModule",
       "makeGitModule",
       "makeHarnessModule",
       "makeLogModule",

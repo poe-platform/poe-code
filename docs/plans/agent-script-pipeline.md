@@ -232,7 +232,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as004-005-modules
@@ -246,8 +246,9 @@ tasks:
       `modules` map of name → exported names.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as006-007-unused
     title: Lint AS006/AS007 — unused imports and bindings

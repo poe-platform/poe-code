@@ -134,6 +134,157 @@ try {
     expect(after).not.toHaveBeenCalled();
   });
 
+  it("wraps caller-injected host function arguments and return values across the sandbox boundary", async () => {
+    const observedArgs: unknown[] = [];
+    const host = vi.fn((input: { nested: { value: number } }, items: number[]) => {
+      observedArgs.push([structuredClone(input), structuredClone(items)]);
+      input.nested.value = 7;
+      items.push(3);
+
+      return {
+        seen: input,
+        items
+      };
+    });
+
+    const result = await run(
+      `return JSON.stringify(Array.of(
+        host(JSON.parse('{"nested":{"value":1}}'), Array.of(1, 2)).seen.nested.value,
+        host(JSON.parse('{"nested":{"value":1}}'), Array.of(1, 2)).items.length
+      ))`,
+      {
+        bindings: {
+          host
+        }
+      }
+    );
+
+    expect(observedArgs).toEqual([
+      [
+        {
+          nested: {
+            value: 1
+          }
+        },
+        [1, 2]
+      ],
+      [
+        {
+          nested: {
+            value: 1
+          }
+        },
+        [1, 2]
+      ]
+    ]);
+    expect(host).toHaveBeenCalledTimes(2);
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([7, 3])
+    });
+  });
+
+  it("converts caller-injected host throws into subset errors without host stack frames", async () => {
+    const result = await run(
+      "try { explode(); } catch ({ name, message, stack }) { return JSON.stringify(Array.of(name, message, stack)); }",
+      {
+        bindings: {
+          explode() {
+            throw new TypeError("boom");
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([
+        "TypeError",
+        "boom",
+        "TypeError: boom\n    at explode (line 1, column 7)"
+      ])
+    });
+    expect((result.ok ? result.returnValue : "") as string).not.toContain("run.test.ts");
+  });
+
+  it("converts caller-injected argument copy failures into subset errors through run()", async () => {
+    const result = await run(
+      "try { inspect(async () => 1); } catch ({ name, message, stack }) { return JSON.stringify(Array.of(name, message, stack)); }",
+      {
+        bindings: {
+          inspect() {
+            return "ok";
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([
+        "TypeError",
+        "Sandbox closures cannot cross into host values without an explicit wrapper.",
+        "TypeError: Sandbox closures cannot cross into host values without an explicit wrapper.\n    at inspect (line 1, column 7)"
+      ])
+    });
+    expect((result.ok ? result.returnValue : "") as string).not.toContain("run.test.ts");
+  });
+
+  it("treats async caller-injected host functions as subset promises with copied values", async () => {
+    const observedArgs: unknown[] = [];
+    const load = vi.fn(async (input: { value: number }) => {
+      observedArgs.push(structuredClone(input));
+      input.value = 2;
+
+      return {
+        input
+      };
+    });
+
+    const result = await run(
+      `return JSON.stringify(Array.of((await load(JSON.parse('{"value":1}'))).input.value))`,
+      {
+        bindings: {
+          load
+        }
+      }
+    );
+
+    expect(observedArgs).toEqual([
+      {
+        value: 1
+      }
+    ]);
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([2])
+    });
+  });
+
+  it("converts async caller-injected copy failures into subset errors through run()", async () => {
+    const result = await run(
+      "try { await load(); } catch ({ name, message, stack }) { return JSON.stringify(Array.of(name, message, stack)); }",
+      {
+        bindings: {
+          async load() {
+            return new Date("2026-04-28T12:00:00Z");
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([
+        "TypeError",
+        "Unsupported sandbox value at <root>: Date",
+        "TypeError: Unsupported sandbox value at <root>: Date\n    at load (line 1, column 13)"
+      ])
+    });
+    expect((result.ok ? result.returnValue : "") as string).not.toContain("run.test.ts");
+  });
+
   it("supports empty Promise iterables and enforces budgets through run()", async () => {
     const emptyResult = await run(`return JSON.stringify(Array.of(
       await Promise.all(Array.of()),

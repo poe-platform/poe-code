@@ -7,11 +7,12 @@ import { createConsoleJsonGlobals, type ConsoleSink } from "./interp/globals/con
 import { createErrorGlobals } from "./interp/globals/error.js";
 import { createMathGlobals, createSeededRandom } from "./interp/globals/math.js";
 import { createObjectArrayGlobals } from "./interp/globals/object-array.js";
-import { interpret, type InterpreterResult, type InterpreterValue } from "./interp/interpreter.js";
+import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "./interp/host-bridge.js";
+import { interpret, type InterpreterResult } from "./interp/interpreter.js";
 import { createPromiseGlobals } from "./interp/promise.js";
 
 export type RunOptions = {
-  bindings?: Record<string, InterpreterValue>;
+  bindings?: Record<string, CallerInjectedBinding>;
   budget?: Budget;
   randomSeed?: number;
   signal?: AbortSignal;
@@ -32,9 +33,16 @@ export type RunResult = Omit<InterpreterResult, "snapshot"> & {
 };
 
 export async function run(source: string, options: RunOptions = {}): Promise<RunResult> {
-  const restoredSnapshot = options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
+  const restoredSnapshot =
+    options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
   const budget = options.budget ?? new Budget();
   const random = createRandomState(restoredSnapshot, options.randomSeed);
+  const callerBindings =
+    options.bindings === undefined
+      ? {}
+      : wrapCallerInjectedBindings(options.bindings, {
+          budget
+        });
   const bindings = wrapCancelableBindings(
     {
       ...createConsoleJsonGlobals({
@@ -53,7 +61,7 @@ export async function run(source: string, options: RunOptions = {}): Promise<Run
       ...createPromiseGlobals({
         budget
       }),
-      ...options.bindings
+      ...callerBindings
     },
     options.signal
   );
@@ -78,7 +86,10 @@ export async function run(source: string, options: RunOptions = {}): Promise<Run
   };
 }
 
-function createRandomState(snapshot: AgentScriptSnapshot | undefined, randomSeed: number | undefined) {
+function createRandomState(
+  snapshot: AgentScriptSnapshot | undefined,
+  randomSeed: number | undefined
+) {
   if (snapshot?.random !== undefined) {
     return {
       seed: snapshot.random.seed,

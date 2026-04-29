@@ -606,8 +606,9 @@ tasks:
       ever cross the boundary.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: host-callback-rewrap
     title: Wrap subset closures passed to host as callbacks

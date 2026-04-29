@@ -6,6 +6,7 @@ export type {
   AssignmentExpression,
   AssignmentPattern,
   AssignmentProperty,
+  AwaitExpression,
   BinaryExpression,
   BlockStatement,
   BooleanLiteral,

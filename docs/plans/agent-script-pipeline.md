@@ -260,7 +260,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as008-await-scope
@@ -272,8 +272,9 @@ tasks:
       depth during AST traversal.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as009-async-no-await
     title: Lint AS009 — async arrow returning host promise without await

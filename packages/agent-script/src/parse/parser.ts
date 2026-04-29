@@ -133,6 +133,11 @@ export type UnaryExpression = BaseNode & {
   argument: Expression;
 };
 
+export type AwaitExpression = BaseNode & {
+  type: "AwaitExpression";
+  argument: Expression;
+};
+
 export type BinaryOperator =
   | "!="
   | "!=="
@@ -338,6 +343,7 @@ export type Expression =
   | ArrowFunctionExpression
   | AssignmentExpression
   | ArrayExpression
+  | AwaitExpression
   | BinaryExpression
   | BooleanLiteral
   | CallExpression
@@ -1711,6 +1717,19 @@ class Parser {
 
   private parseUnaryExpression(): ParsedExpression {
     const token = this.currentToken();
+    if (token.type === "keyword" && token.value === "await") {
+      this.index += 1;
+      const argument = this.parseUnaryExpression();
+      return {
+        node: {
+          type: "AwaitExpression",
+          argument: argument.node,
+          span: createSpan(token.start, argument.node.span.end)
+        },
+        parenthesized: false
+      };
+    }
+
     if (
       token.type === "punctuator" &&
       (token.value === "!" || token.value === "+" || token.value === "-" || token.value === "~")

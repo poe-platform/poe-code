@@ -6,6 +6,7 @@ import {
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
+  type AwaitExpression,
   type BinaryExpression,
   type BlockStatement,
   type CallExpression,
@@ -223,6 +224,9 @@ class AS003Scanner {
       case "ArrowFunctionExpression":
         this.visitArrowFunction(node);
         return;
+      case "AwaitExpression":
+        this.visitAwaitExpression(node);
+        return;
       case "ArrayExpression":
         this.visitArrayExpression(node);
         return;
@@ -274,6 +278,10 @@ class AS003Scanner {
         this.visitExpression(node.body);
       }
     });
+  }
+
+  private visitAwaitExpression(node: AwaitExpression): void {
+    this.visitExpression(node.argument);
   }
 
   private visitArrayExpression(node: ArrayExpression): void {

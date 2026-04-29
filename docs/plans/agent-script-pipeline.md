@@ -697,7 +697,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: module-metric
@@ -710,8 +710,9 @@ tasks:
       error. Used by experiment-loop.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: module-log
     title: makeLogModule factory (info/error/event channel)

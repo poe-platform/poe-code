@@ -5,18 +5,29 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "bin": {
+    "poe-agent-script": "dist/cli.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
     }
   },
   "scripts": {
     "build": "tsc",
+    "example:experiment": "node --experimental-strip-types src/cli.ts examples/experiment.md",
+    "example:pipeline": "node --experimental-strip-types src/cli.ts examples/pipeline.md",
+    "example:superintendent": "node --experimental-strip-types src/cli.ts examples/superintendent.md",
     "test": "cd ../.. && vitest run packages/agent-script/src",
     "test:unit": "cd ../.. && vitest run packages/agent-script/src"
   },
   "files": [
-    "dist"
+    "dist",
+    "examples"
   ]
 }

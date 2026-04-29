@@ -1015,7 +1015,7 @@ tasks:
       project's package-readme conventions.
     status:
       "impl ement": open
-      commit: open
+      commit: done
       implement: done
 
   - id: package-examples
@@ -1029,8 +1029,9 @@ tasks:
       common module shapes.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: integration-snapshot-roundtrip
     title: Integration test — snapshot roundtrip across pause/resume

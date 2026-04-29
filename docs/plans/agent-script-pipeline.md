@@ -366,7 +366,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-driver-and-types
@@ -379,8 +379,9 @@ tasks:
       Order diagnostics by (line, column, code).
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-scaffold
     title: Async tree-walking interpreter scaffolding

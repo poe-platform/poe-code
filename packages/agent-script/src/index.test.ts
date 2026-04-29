@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import * as api from "./index.js";
 import { dump } from "./dump.js";
 import { lint } from "./lint.js";
+import { lint as lintFromIndex } from "./lint/index.js";
 import { parse } from "./parse.js";
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
@@ -12,6 +13,7 @@ describe("@poe-code/agent-script public exports", () => {
   it("re-exports the placeholder entrypoints", () => {
     expect(api.parse).toBe(parse);
     expect(api.lint).toBe(lint);
+    expect(lint).toBe(lintFromIndex);
     expect(api.run).toBe(run);
     expect(api.dump).toBe(dump);
     expect(api.restore).toBe(restore);

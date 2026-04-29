@@ -188,8 +188,9 @@ tasks:
       it to the rehashed source and rejects on mismatch.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as001-disallowed-syntax
     title: Lint AS001 — disallowed syntax

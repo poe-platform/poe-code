@@ -4,6 +4,7 @@ import * as api from "./index.js";
 import { dump } from "./dump.js";
 import { lint } from "./lint.js";
 import { parse } from "./parse.js";
+import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
 
@@ -17,7 +18,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(Object.keys(api).sort()).toEqual(["dump", "lint", "parse", "restore", "run"]);
   });
 
-  it("keeps unimplemented entrypoints explicit", () => {
+  it("keeps unimplemented entrypoints explicit while validating restore hashes", () => {
     expect(api.parse("1")).toEqual({
       type: "NumericLiteral",
       raw: "1",
@@ -30,6 +31,15 @@ describe("@poe-code/agent-script public exports", () => {
     expect(() => api.lint()).toThrowError("Not implemented");
     expect(() => api.run()).toThrowError("Not implemented");
     expect(() => api.dump()).toThrowError("Not implemented");
-    expect(() => api.restore()).toThrowError("Not implemented");
+    expect(
+      api.restore(
+        {
+          sourceHash: hashSource("1")
+        },
+        { source: "1" }
+      )
+    ).toEqual({
+      sourceHash: hashSource("1")
+    });
   });
 });

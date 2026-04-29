@@ -4,6 +4,7 @@ import { dump } from "./dump.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { createSandboxClosure, createSandboxPromise } from "./interp/values.js";
 import { makeAgentModule } from "./modules/agent.js";
+import { makeMcpModule } from "./modules/mcp.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
 
@@ -200,6 +201,98 @@ describe("run", () => {
     expect(result).toMatchObject({
       ok: true,
       returnValue: "Agent spawn failed with exit code 23: tool call timed out"
+    });
+  });
+
+  it("supports MCP clients returned from module calls inside the sandbox", async () => {
+    const connectMcp = vi.fn(async (server: unknown) => ({
+      async listTools() {
+        return {
+          tools: [
+            {
+              name: "sum",
+              description: "Add numbers",
+              inputSchema: {
+                type: "object",
+                properties: {
+                  a: { type: "number" },
+                  b: { type: "number" }
+                }
+              }
+            }
+          ]
+        };
+      },
+      async callTool(params: unknown) {
+        return {
+          server,
+          params
+        };
+      }
+    }));
+
+    const result = await run(
+      [
+        'import { server, client } from "mcp";',
+        "return JSON.stringify({",
+        '  tools: await (await client(server({ command: "calc-mcp", args: ["serve"], env: { TOKEN: "abc" } }))).tools(),',
+        '  result: await (await client(server({ command: "calc-mcp", args: ["serve"], env: { TOKEN: "abc" } }))).tool("sum", { a: 2, b: 3 })',
+        "});"
+      ].join("\n"),
+      {
+        modules: {
+          mcp: makeMcpModule(connectMcp)
+        }
+      }
+    );
+
+    expect(connectMcp).toHaveBeenNthCalledWith(1, {
+      command: "calc-mcp",
+      args: ["serve"],
+      env: {
+        TOKEN: "abc"
+      }
+    });
+    expect(connectMcp).toHaveBeenNthCalledWith(2, {
+      command: "calc-mcp",
+      args: ["serve"],
+      env: {
+        TOKEN: "abc"
+      }
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify({
+        tools: [
+          {
+            name: "sum",
+            description: "Add numbers",
+            schema: {
+              type: "object",
+              properties: {
+                a: { type: "number" },
+                b: { type: "number" }
+              }
+            }
+          }
+        ],
+        result: {
+          server: {
+            command: "calc-mcp",
+            args: ["serve"],
+            env: {
+              TOKEN: "abc"
+            }
+          },
+          params: {
+            name: "sum",
+            arguments: {
+              a: 2,
+              b: 3
+            }
+          }
+        }
+      })
     });
   });
 

@@ -682,7 +682,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: module-mcp
@@ -696,8 +696,9 @@ tasks:
       @poe-code/tiny-mcp-client directly.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: module-metric
     title: makeMetricModule factory (npm metric:* runner)

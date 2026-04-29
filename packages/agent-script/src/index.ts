@@ -6,3 +6,4 @@ export { restore } from "./restore.js";
 export { makeAgentModule } from "./modules/agent.js";
 export { makeGitModule } from "./modules/git.js";
 export { makeHarnessModule } from "./modules/harness.js";
+export { makeMcpModule } from "./modules/mcp.js";

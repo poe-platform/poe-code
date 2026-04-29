@@ -174,3 +174,261 @@ describe("agent-script lint command", () => {
     writeSpy.mockRestore();
   });
 });
+
+describe("agent-script run command", () => {
+  beforeEach(() => {
+    vol.reset();
+    vol.mkdirSync(cwd, { recursive: true });
+    vol.mkdirSync(homeDir, { recursive: true });
+    process.exitCode = undefined;
+  });
+
+  it("runs the harness with the default module bundle and default snapshot path", async () => {
+    vol.fromJSON({
+      "/repo/scripts/example.ajs": "return 1;"
+    });
+
+    const runHarness = vi.fn(async (_filepath: string, options: { modulesFor: (frontmatter: Record<string, unknown>, meta: { filepath: string; kind: unknown; version: unknown }) => Record<string, unknown>; snapshotPath?: string }) => {
+      const modules = options.modulesFor(
+        {
+          kind: "pipeline",
+          version: 1
+        },
+        {
+          filepath: "/repo/scripts/example.ajs",
+          kind: "pipeline",
+          version: 1
+        }
+      );
+
+      expect(modules).toMatchObject({
+        agent: expect.any(Object),
+        env: expect.any(Object),
+        fail: expect.any(Object),
+        git: expect.any(Object),
+        harness: expect.any(Object),
+        log: expect.any(Object),
+        mcp: expect.any(Object),
+        metric: expect.any(Object),
+        time: expect.any(Object)
+      });
+
+      return {
+        ok: true,
+        returnValue: {
+          ok: true
+        },
+        snapshot: {
+          sourceHash: "hash"
+        },
+        stats: {
+          nodeVisits: 1
+        }
+      };
+    });
+
+    const program = createBaseProgram();
+    registerAgentScriptCommand(program, createContainer(), {
+      runHarness
+    });
+    const writeSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "agent-script", "run", "scripts/example.ajs"]);
+
+    expect(runHarness).toHaveBeenCalledWith(
+      "/repo/scripts/example.ajs",
+      expect.objectContaining({
+        snapshotPath: "/repo/scripts/example.ajs.snapshot.json"
+      })
+    );
+    expect(writeSpy).toHaveBeenCalledWith('{"ok":true}\n');
+    expect(process.exitCode).toBe(0);
+    writeSpy.mockRestore();
+  });
+
+  it("resets the overridden snapshot before running", async () => {
+    vol.fromJSON({
+      "/repo/scripts/example.ajs": "return 1;",
+      "/repo/scripts/example.ajs.snapshot.json": '{"stale":true}',
+      "/repo/state/run.json": '{"stale":true}'
+    });
+
+    const runHarness = vi.fn(async () => ({
+      ok: true,
+      snapshot: {
+        sourceHash: "hash"
+      },
+      stats: {
+        nodeVisits: 1
+      }
+    }));
+
+    const program = createBaseProgram();
+    registerAgentScriptCommand(program, createContainer(), {
+      runHarness
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "agent-script",
+      "run",
+      "scripts/example.ajs",
+      "--snapshot",
+      "state/run.json",
+      "--reset"
+    ]);
+
+    expect(runHarness).toHaveBeenCalledWith(
+      "/repo/scripts/example.ajs",
+      expect.objectContaining({
+        snapshotPath: "/repo/state/run.json"
+      })
+    );
+    expect(vol.existsSync("/repo/state/run.json")).toBe(false);
+    expect(vol.existsSync("/repo/scripts/example.ajs.snapshot.json")).toBe(true);
+    expect(process.exitCode).toBe(0);
+  });
+
+  it("disables checkpointing when --no-snapshot is passed", async () => {
+    vol.fromJSON({
+      "/repo/scripts/example.ajs": "return 1;"
+    });
+
+    const runHarness = vi.fn(async () => ({
+      ok: true,
+      snapshot: {
+        sourceHash: "hash"
+      },
+      stats: {
+        nodeVisits: 1
+      }
+    }));
+
+    const program = createBaseProgram();
+    registerAgentScriptCommand(program, createContainer(), {
+      runHarness
+    });
+
+    await program.parseAsync(["node", "cli", "agent-script", "run", "scripts/example.ajs", "--no-snapshot"]);
+
+    expect(runHarness).toHaveBeenCalledWith(
+      "/repo/scripts/example.ajs",
+      expect.objectContaining({
+        snapshotPath: undefined
+      })
+    );
+    expect(process.exitCode).toBe(0);
+  });
+
+  it("prints runtime errors and exits 1 when the harness reports a failed result", async () => {
+    vol.fromJSON({
+      "/repo/scripts/example.ajs": "return 1;"
+    });
+
+    const runHarness = vi.fn(async () => ({
+      ok: false,
+      error: {
+        code: "UNBOUND_IDENTIFIER",
+        message: "Identifier 'missing' is not defined.",
+        nodeType: "Identifier",
+        span: {
+          start: {
+            line: 3,
+            column: 5,
+            offset: 10
+          },
+          end: {
+            line: 3,
+            column: 12,
+            offset: 17
+          }
+        }
+      },
+      snapshot: {
+        sourceHash: "hash"
+      },
+      stats: {
+        nodeVisits: 1
+      }
+    }));
+
+    const program = createBaseProgram();
+    registerAgentScriptCommand(program, createContainer(), {
+      runHarness
+    });
+    const stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "agent-script", "run", "scripts/example.ajs"]);
+
+    expect(stderrSpy).toHaveBeenCalledWith(
+      "/repo/scripts/example.ajs:3:5 Identifier 'missing' is not defined.\n"
+    );
+    expect(process.exitCode).toBe(1);
+    stderrSpy.mockRestore();
+  });
+
+  it("prints lint diagnostics and exits 1 when runHarness rejects with diagnostics", async () => {
+    vol.fromJSON({
+      "/repo/scripts/example.ajs": "return 1;"
+    });
+
+    const runHarness = vi.fn(async () => {
+      throw {
+        diagnostics: [
+          {
+            filename: "/repo/scripts/example.ajs",
+            line: 1,
+            column: 8,
+            code: "AS999",
+            message: "Boom.",
+            severity: "error"
+          }
+        ]
+      };
+    });
+
+    const program = createBaseProgram();
+    registerAgentScriptCommand(program, createContainer(), {
+      runHarness
+    });
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "agent-script", "run", "scripts/example.ajs"]);
+
+    expect(stdoutSpy).toHaveBeenCalledWith("/repo/scripts/example.ajs:1:8 AS999 Boom.\n");
+    expect(process.exitCode).toBe(1);
+    stdoutSpy.mockRestore();
+  });
+
+  it("ignores missing snapshots when --reset is passed", async () => {
+    vol.fromJSON({
+      "/repo/scripts/example.ajs": "return 1;"
+    });
+
+    const runHarness = vi.fn(async () => ({
+      ok: true,
+      snapshot: {
+        sourceHash: "hash"
+      },
+      stats: {
+        nodeVisits: 1
+      }
+    }));
+
+    const program = createBaseProgram();
+    registerAgentScriptCommand(program, createContainer(), {
+      runHarness
+    });
+
+    await program.parseAsync(["node", "cli", "agent-script", "run", "scripts/example.ajs", "--reset"]);
+
+    expect(runHarness).toHaveBeenCalledWith(
+      "/repo/scripts/example.ajs",
+      expect.objectContaining({
+        snapshotPath: "/repo/scripts/example.ajs.snapshot.json"
+      })
+    );
+    expect(process.exitCode).toBe(0);
+  });
+});

@@ -71,4 +71,18 @@ describe("createProgram", () => {
     const agentScriptCommand = program.commands.find((c) => c.name() === "agent-script");
     expect(agentScriptCommand).toBeDefined();
   });
+
+  it("lists agent-script run in root help", () => {
+    const fs = createMemFs(homeDir);
+    const program = createProgram({
+      fs,
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    expect(program.helpInformation()).toContain("agent-script run");
+  });
 });

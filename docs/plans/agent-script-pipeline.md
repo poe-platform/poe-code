@@ -913,7 +913,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: cli-run
@@ -926,8 +926,9 @@ tasks:
       Implement in src/cli/commands/agent-script-command.ts.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: error-formatter
     title: Render runtime errors with code excerpt and caret

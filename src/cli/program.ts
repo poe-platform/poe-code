@@ -70,6 +70,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["auth"] },
   { path: ["agent"] },
   { path: ["agent-script", "lint"], args: "<path>" },
+  { path: ["agent-script", "run"], args: "<path>" },
   { path: ["spawn"] },
   { path: ["wrap"] },
   { path: ["test"] },

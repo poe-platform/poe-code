@@ -4,6 +4,7 @@ import { createCliContainer } from "../container.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import { createExecutionResources, buildProviderContext, type CommandFlags } from "./shared.js";
 import type { FileSystem } from "../../utils/file-system.js";
+import { createProviderStub } from "../../../tests/provider-stub.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -94,7 +95,11 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
     const container = createContainer(fs);
     const resolveApiKeySpy = vi.spyOn(container.options, "resolveApiKey");
 
-    const adapter = container.registry.require("tiny-http-mcp-server");
+    const adapter = createProviderStub({
+      name: "providerless-tool",
+      label: "Providerless Tool",
+      requiresProvider: false
+    });
     const resources = createExecutionResources(container, defaultFlags, "test");
     const context = buildProviderContext(container, adapter, resources);
 

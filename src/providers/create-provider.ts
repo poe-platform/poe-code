@@ -21,10 +21,6 @@ const templateImports: Record<string, () => Promise<{ default: string }>> = {
   "py-poe-spawn/main.py.mustache": () => import("../templates/py-poe-spawn/main.py.mustache"),
   "py-poe-spawn/requirements.txt.mustache": () => import("../templates/py-poe-spawn/requirements.txt.mustache"),
   "codex/config.toml.mustache": () => import("../templates/codex/config.toml.mustache"),
-  "tiny-http-mcp-server/server.mjs.mustache": () =>
-    import("../templates/tiny-http-mcp-server/server.mjs.mustache"),
-  "tiny-http-mcp-server/verify-token.mjs.mustache": () =>
-    import("../templates/tiny-http-mcp-server/verify-token.mjs.mustache"),
 };
 
 async function loadTemplate(templateId: string): Promise<string> {

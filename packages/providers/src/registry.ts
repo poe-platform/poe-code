@@ -7,6 +7,11 @@ import type { PromptForSecret } from "./auth/types.js";
 export interface LoginContext {
   promptForSecret?: PromptForSecret;
   envVars?: Record<string, string | undefined>;
+  resolvePreferredLogin?: (input: {
+    provider: AuthProvider;
+    apiKey?: string;
+    envValue?: string;
+  }) => Promise<string>;
 }
 
 export type ProviderStoreFactory = (providerId: string) => SecretStore;
@@ -77,6 +82,15 @@ export class ProviderRegistry {
     const resolvedApiKey =
       options.apiKey ??
       (typeof envApiKey === "string" && envApiKey.trim() ? envApiKey : undefined);
+    if (auth.preferredLogin && context?.resolvePreferredLogin) {
+      const apiKey = await context.resolvePreferredLogin({
+        provider,
+        apiKey: options.apiKey,
+        envValue: typeof envApiKey === "string" ? envApiKey : undefined
+      });
+      await store.set(apiKey);
+      return;
+    }
     await apiKeyAuthStrategy.login(
       provider,
       { apiKey: resolvedApiKey },

@@ -85,7 +85,7 @@ describe("buildProviderContext", () => {
 });
 
 describe("provider filtering", () => {
-  it("omits disabled providers from the registry list", () => {
+  it("omits non-agent utilities from the registry list", () => {
     const container = createCliContainer({
       fs: createMockFs({}, homeDir),
       prompts: async () => ({}),
@@ -94,6 +94,7 @@ describe("provider filtering", () => {
     });
     const names = container.registry.list().map((adapter) => adapter.name);
     expect(names).not.toContain("roo-code");
+    expect(names).not.toContain("tiny-http-mcp-server");
   });
 });
 
@@ -1673,7 +1674,7 @@ describe("goose service", () => {
       { name: "anthropic/claude-opus-4.7", context_limit: 200_000 },
       { name: "anthropic/claude-sonnet-4.6", context_limit: 200_000 },
       { name: "openai/gpt-5.3-codex", context_limit: 128_000 },
-      { name: "openai/gpt-5.5", context_limit: 128_000 },
+      { name: "openai/gpt-5.5", context_limit: 1_050_000 },
       { name: "google/gemini-3.1-pro", context_limit: 1_000_000 }
     ]);
   });
@@ -1752,7 +1753,7 @@ describe("goose service", () => {
         "anthropic/claude-opus-4.7": 983040,
         "anthropic/claude-sonnet-4.6": 200_000,
         "openai/gpt-5.3-codex": 128_000,
-        "openai/gpt-5.5": 128_000,
+        "openai/gpt-5.5": 1_050_000,
         "google/gemini-3.1-pro": 1_000_000
       }
     });

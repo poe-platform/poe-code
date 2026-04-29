@@ -31,13 +31,6 @@ export interface ConfigureCommandOptions {
   model?: string;
   reasoningEffort?: string;
   provider?: string;
-  oauthResource?: string;
-  oauthAuthorizationServer?: string[];
-  oauthRequiredScope?: string[];
-  oauthSupportedScope?: string[];
-  oauthBearerMethod?: string[];
-  oauthVerifierModule?: string;
-  oauthVerifierExport?: string;
 }
 
 export function registerConfigureCommand(program: Command, container: CliContainer): Command {
@@ -53,33 +46,6 @@ export function registerConfigureCommand(program: Command, container: CliContain
     .option("--model <model>", "Model identifier")
     .option("--reasoning-effort <level>", "Reasoning effort level")
     .option("--provider <id>", "Provider to use for this agent")
-    .option("--oauth-resource <uri>", "OAuth protected resource URI")
-    .option(
-      "--oauth-authorization-server <issuer>",
-      "OAuth authorization server issuer URL",
-      collectValues,
-      []
-    )
-    .option(
-      "--oauth-supported-scope <scope>",
-      "OAuth supported scope published in metadata",
-      collectValues,
-      []
-    )
-    .option(
-      "--oauth-required-scope <scope>",
-      "OAuth scope required on MCP requests",
-      collectValues,
-      []
-    )
-    .option(
-      "--oauth-bearer-method <method>",
-      "OAuth bearer transport published in metadata",
-      collectValues,
-      []
-    )
-    .option("--oauth-verifier-module <path>", "OAuth verifier module path or specifier")
-    .option("--oauth-verifier-export <name>", "OAuth verifier export name")
     .action(async (service: string | undefined, options: ConfigureCommandOptions) => {
       const resolved = await resolveServiceArgument(program, container, service, {
         action: "configure"
@@ -203,7 +169,7 @@ async function resolveProvider(
 
   if (explicit) {
     if (!(await container.providerRegistry.isLoggedIn(explicit))) {
-      await triggerProviderLogin(container, explicit, options.apiKey);
+      await triggerProviderLogin(container, explicit, options.apiKey, flags);
     }
     return explicit;
   }
@@ -242,7 +208,7 @@ async function resolveProvider(
       ? candidates[0]!.id
       : await promptForProviderChoice(agentId, candidates, container);
 
-  await triggerProviderLogin(container, chosen, options.apiKey);
+  await triggerProviderLogin(container, chosen, options.apiKey, flags);
   return chosen;
 }
 
@@ -278,14 +244,23 @@ async function promptForProviderChoice(
 async function triggerProviderLogin(
   container: CliContainer,
   providerId: string,
-  apiKey: string | undefined
+  apiKey: string | undefined,
+  flags: CommandFlags
 ): Promise<void> {
   await container.providerRegistry.login(
     providerId,
     { apiKey },
     {
       envVars: container.env.variables,
-      promptForSecret: createSecretPrompter(container)
+      promptForSecret: createSecretPrompter(container),
+      resolvePreferredLogin: async (input) =>
+        container.options.resolveApiKey({
+          value: input.apiKey,
+          envValue: input.envValue,
+          dryRun: flags.dryRun,
+          assumeYes: flags.assumeYes,
+          allowStored: false
+        })
     }
   );
 }
@@ -361,8 +336,4 @@ export async function resolveServiceArgument(
     throw new Error("Invalid agent selection.");
   }
   return resolved.name;
-}
-
-function collectValues(value: string, previous: string[]): string[] {
-  return [...previous, value];
 }

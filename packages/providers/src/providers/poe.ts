@@ -12,7 +12,8 @@ export const poeProvider: AuthProvider = {
     kind: "api-key",
     envVar: "POE_API_KEY",
     storageKey: "provider:poe",
-    prompt: { title: "Poe API key" }
+    prompt: { title: "Poe API key" },
+    preferredLogin: "oauth"
   },
   supportsAgents: allAgents.map((a) => a.id)
 };

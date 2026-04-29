@@ -1,5 +1,7 @@
 import { createSecretStore } from "auth-store";
 
+let cachedApiKey: string | null = null;
+
 function normalizeApiKey(key: string | undefined): string | null {
   if (typeof key !== "string") {
     return null;
@@ -11,7 +13,12 @@ function normalizeApiKey(key: string | undefined): string | null {
 export async function getApiKey(): Promise<string | null> {
   const envKey = normalizeApiKey(process.env.POE_API_KEY);
   if (envKey) {
+    cachedApiKey = envKey;
     return envKey;
+  }
+
+  if (cachedApiKey) {
+    return cachedApiKey;
   }
 
   try {
@@ -26,7 +33,8 @@ export async function getApiKey(): Promise<string | null> {
       }
     });
     const storedKey = await store.get();
-    return normalizeApiKey(storedKey ?? undefined);
+    cachedApiKey = normalizeApiKey(storedKey ?? undefined);
+    return cachedApiKey;
   } catch {
     return null;
   }

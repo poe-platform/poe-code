@@ -89,7 +89,15 @@ async function executeProviderLogin(
   if (!flags.dryRun) {
     await container.providerRegistry.login(id, { apiKey: options.apiKey }, {
       envVars: container.env.variables,
-      promptForSecret: createSecretPrompter(container)
+      promptForSecret: createSecretPrompter(container),
+      resolvePreferredLogin: async (input) =>
+        container.options.resolveApiKey({
+          value: input.apiKey,
+          envValue: input.envValue,
+          dryRun: flags.dryRun,
+          assumeYes: flags.assumeYes,
+          allowStored: false
+        })
     });
   }
 

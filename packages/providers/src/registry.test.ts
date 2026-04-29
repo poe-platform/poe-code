@@ -113,4 +113,37 @@ describe("ProviderRegistry", () => {
     const registry = new ProviderRegistry([poe], () => store);
     await expect(registry.isLoggedIn("poe")).resolves.toBe(true);
   });
+
+  it("uses preferred login resolver instead of the generic api-key prompt", async () => {
+    const promptForSecret = async () => {
+      throw new Error("generic prompt should not run");
+    };
+    const store = {
+      get: async () => null,
+      set: async (value: string) => {
+        stored = value;
+      },
+      delete: async () => undefined
+    };
+    let stored: string | null = null;
+    const registry = new ProviderRegistry([
+      makeProvider({
+        id: "poe",
+        auth: {
+          kind: "api-key",
+          envVar: "POE_API_KEY",
+          storageKey: "provider:poe",
+          prompt: { title: "Poe API key" },
+          preferredLogin: "oauth"
+        }
+      })
+    ], () => store);
+
+    await registry.login("poe", {}, {
+      promptForSecret,
+      resolvePreferredLogin: async () => "sk-from-oauth"
+    });
+
+    expect(stored).toBe("sk-from-oauth");
+  });
 });

@@ -14,6 +14,7 @@ export interface ApiKeyAuth {
   envVar: string;
   storageKey: string;
   prompt: ApiKeyPrompt;
+  preferredLogin?: "oauth";
 }
 
 export interface OAuthAuth {

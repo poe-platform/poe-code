@@ -12,6 +12,7 @@ import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "./interp
 import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
 import { createPromiseGlobals } from "./interp/promise.js";
 import { resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
+import { attachDumpController, createDumpController } from "./snapshot/dump.js";
 import { createSnapshotScheduler } from "./snapshot/scheduler.js";
 
 export type RunOptions = {
@@ -38,70 +39,87 @@ export type RunResult = Omit<InterpreterResult, "snapshot"> & {
   snapshot: RunSnapshot;
 };
 
-export async function run(source: string, options: RunOptions = {}): Promise<RunResult> {
-  const restoredSnapshot =
-    options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
-  const budget = options.budget ?? new Budget();
-  const module = parseModule(source);
-  const sourceHash = hashSource(source);
-  const random = createRandomState(restoredSnapshot, options.randomSeed);
-  const callerBindings =
-    options.bindings === undefined
-      ? {}
-      : wrapCallerInjectedBindings(options.bindings, {
+export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
+  const dumpController = createDumpController();
+  const result = (async () => {
+    const restoredSnapshot =
+      options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
+    const budget = options.budget ?? new Budget();
+    const module = parseModule(source);
+    const sourceHash = hashSource(source);
+    const random = createRandomState(restoredSnapshot, options.randomSeed);
+    const callerBindings =
+      options.bindings === undefined
+        ? {}
+        : wrapCallerInjectedBindings(options.bindings, {
+            budget
+          });
+    const bindings = wrapCancelableBindings(
+      {
+        ...createConsoleJsonGlobals({
+          budget,
+          sink: options.sink
+        }),
+        ...createErrorGlobals({
           budget
-        });
-  const bindings = wrapCancelableBindings(
-    {
-      ...createConsoleJsonGlobals({
+        }),
+        ...createMathGlobals({
+          random: random?.generator.next
+        }),
+        ...createObjectArrayGlobals({
+          budget
+        }),
+        ...createPromiseGlobals({
+          budget
+        }),
+        ...callerBindings
+      },
+      options.signal
+    );
+
+    const scope = new Scope(bindings).child(resolveModuleImports(module, options.modules, { budget }));
+    const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
+      snapshotIntervalMs: options.snapshotIntervalMs,
+      snapshotPath: options.snapshotPath
+    });
+
+    try {
+      const result = await interpret(createExecutableNode(module), {
         budget,
-        sink: options.sink
-      }),
-      ...createErrorGlobals({
-        budget
-      }),
-      ...createMathGlobals({
-        random: random?.generator.next
-      }),
-      ...createObjectArrayGlobals({
-        budget
-      }),
-      ...createPromiseGlobals({
-        budget
-      }),
-      ...callerBindings
-    },
-    options.signal
-  );
+        onYield: (yieldPoint) => {
+          let snapshot: RunSnapshot | undefined;
+          const createSnapshot = () =>
+            (snapshot ??= createRunSnapshot({
+              bindings: yieldPoint.snapshot.bindings,
+              random,
+              sourceHash
+            }));
 
-  const scope = new Scope(bindings).child(resolveModuleImports(module, options.modules, { budget }));
-  const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
-    snapshotIntervalMs: options.snapshotIntervalMs,
-    snapshotPath: options.snapshotPath
-  });
-  const result = await interpret(createExecutableNode(module), {
-    budget,
-    onYield: (yieldPoint) => {
-      snapshotScheduler.onYield(() =>
-        createRunSnapshot({
-          bindings: yieldPoint.snapshot.bindings,
-          random,
-          sourceHash
-        })
-      );
-    },
-    scope
-  });
-  await snapshotScheduler.finish();
+          snapshotScheduler.onYield(createSnapshot);
+          dumpController.onYield(createSnapshot);
+        },
+        scope
+      });
+      await snapshotScheduler.finish();
 
-  return {
-    ...result,
-    snapshot: createRunSnapshot({
-      bindings: result.snapshot.bindings,
-      random,
-      sourceHash
-    })
-  };
+      const snapshot = createRunSnapshot({
+        bindings: result.snapshot.bindings,
+        random,
+        sourceHash
+      });
+      dumpController.finalize(snapshot);
+
+      return {
+        ...result,
+        snapshot
+      };
+    } catch (error) {
+      dumpController.fail(error);
+      throw error;
+    }
+  })();
+
+  return attachDumpController(result, dumpController);
 }
 
 function createRandomState(

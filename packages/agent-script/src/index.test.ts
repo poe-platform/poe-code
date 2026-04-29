@@ -101,7 +101,7 @@ describe("@poe-code/agent-script public exports", () => {
       ok: true,
       returnValue: Math.PI
     });
-    expect(
+    await expect(
       api.dump({
         ok: true,
         snapshot: {
@@ -111,9 +111,15 @@ describe("@poe-code/agent-script public exports", () => {
           nodeVisits: 1
         }
       })
-    ).toEqual({
-      sourceHash: hashSource("1")
-    });
+    ).resolves.toBe(
+      JSON.stringify(
+        {
+          sourceHash: hashSource("1")
+        },
+        null,
+        2
+      )
+    );
     expect(
       api.restore(
         {

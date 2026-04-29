@@ -6,6 +6,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
+const { dump } = await import("./dump.js");
 const { createSandboxClosure, createSandboxPromise } = await import("./interp/values.js");
 const { run } = await import("./run.js");
 
@@ -108,6 +109,141 @@ describe("run snapshot checkpointing", () => {
       returnValue: "done"
     });
     expect(vol.existsSync("/checkpoints/agent-script.json")).toBe(false);
+  });
+
+  it("resolves dump() with the next yielded snapshot when requested mid-run", async () => {
+    const first = createDeferred<string>();
+    const second = createDeferred<string>();
+    let waitCalls = 0;
+
+    const result = run(
+      ["return await (async () => { await wait(); await wait(); return 'done'; })();"].join("\n"),
+      {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise((waitCalls += 1) === 1 ? first.promise : second.promise),
+            name: "wait"
+          })
+        }
+      }
+    );
+
+    await flushMicrotasks();
+    expect(waitCalls).toBe(1);
+
+    const dumpPromise = dump(result);
+    const onDump = vi.fn();
+    void dumpPromise.then(onDump);
+
+    await flushMicrotasks();
+    expect(onDump).not.toHaveBeenCalled();
+
+    first.resolve("alpha");
+    await flushMicrotasks();
+
+    expect(waitCalls).toBe(2);
+    expect(onDump).toHaveBeenCalledTimes(1);
+    expect(JSON.parse(onDump.mock.calls[0][0] as string)).toMatchObject({
+      bindings: {
+        wait: {
+          async: true,
+          kind: "fn",
+          name: "wait"
+        }
+      },
+      sourceHash: expect.any(String)
+    });
+
+    second.resolve("omega");
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "done"
+    });
+  });
+
+  it("waits for a later yield when dump() is requested again", async () => {
+    const first = createDeferred<string>();
+    const second = createDeferred<string>();
+    const third = createDeferred<string>();
+    let waitCalls = 0;
+
+    const result = run(
+      ["await wait();", "await wait();", "await wait();", "return 'done';"].join("\n"),
+      {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => {
+              waitCalls += 1;
+
+              if (waitCalls === 1) {
+                return createSandboxPromise(first.promise);
+              }
+
+              if (waitCalls === 2) {
+                return createSandboxPromise(second.promise);
+              }
+
+              return createSandboxPromise(third.promise);
+            },
+            name: "wait"
+          })
+        }
+      }
+    );
+
+    await flushMicrotasks();
+    expect(waitCalls).toBe(1);
+
+    const firstDump = dump(result);
+    first.resolve("alpha");
+    const firstSnapshot = JSON.parse(await firstDump) as {
+      sourceHash: string;
+    };
+
+    expect(waitCalls).toBe(2);
+
+    const secondDump = dump(result);
+    const onSecondDump = vi.fn();
+    void secondDump.then(onSecondDump);
+
+    await flushMicrotasks();
+    expect(onSecondDump).not.toHaveBeenCalled();
+
+    second.resolve("beta");
+    const secondSnapshot = JSON.parse(await secondDump) as {
+      sourceHash: string;
+    };
+
+    expect(waitCalls).toBe(3);
+    expect(secondSnapshot).toEqual(firstSnapshot);
+
+    third.resolve("gamma");
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "done"
+    });
+  });
+
+  it("rejects dump() after the run has already failed", async () => {
+    const failure = new Error("boom");
+    const result = run("return await wait();", {
+      bindings: {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(Promise.reject(failure)),
+          name: "wait"
+        })
+      }
+    });
+
+    await expect(result).rejects.toMatchObject({
+      message: "boom"
+    });
+    await expect(dump(result)).rejects.toMatchObject({
+      message: "boom"
+    });
   });
 });
 

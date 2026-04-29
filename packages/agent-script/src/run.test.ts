@@ -958,7 +958,7 @@ try {
     const first = await run(source, {
       randomSeed: 123
     });
-    const snapshot = dump(first);
+    const snapshot = JSON.parse(await dump(first));
     const restored = restore(snapshot, { source });
     const second = await run(source, {
       randomSeed: 999,

@@ -825,7 +825,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: snapshot-signal-dump
@@ -838,8 +838,9 @@ tasks:
       SIGTERM in the runner to call dump and then exit gracefully.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: file-format-frontmatter
     title: Markdown + YAML frontmatter splitter

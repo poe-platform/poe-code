@@ -263,15 +263,35 @@ export type WhileStatement = BaseNode & {
   body: Statement;
 };
 
+export type ThrowStatement = BaseNode & {
+  type: "ThrowStatement";
+  argument: Expression;
+};
+
+export type CatchClause = BaseNode & {
+  type: "CatchClause";
+  param?: ArrayPattern | Identifier | ObjectPattern;
+  body: BlockStatement;
+};
+
+export type TryStatement = BaseNode & {
+  type: "TryStatement";
+  block: BlockStatement;
+  handler?: CatchClause;
+  finalizer?: BlockStatement;
+};
+
 export type Statement =
   | BlockStatement
   | BreakStatement
+  | TryStatement
   | ContinueStatement
   | ExpressionStatement
   | ForOfStatement
   | ForStatement
   | IfStatement
   | ReturnStatement
+  | ThrowStatement
   | VariableDeclaration
   | WhileStatement;
 
@@ -317,7 +337,18 @@ const MULTIPLICATIVE_OPERATORS = new Set<BinaryOperator>(["*", "/", "%"]);
 const BITWISE_OR_OPERATORS = new Set<BinaryOperator>(["|"]);
 const BITWISE_XOR_OPERATORS = new Set<BinaryOperator>(["^"]);
 const BITWISE_AND_OPERATORS = new Set<BinaryOperator>(["&"]);
-const TOP_LEVEL_STATEMENT_KEYWORDS = new Set(["break", "const", "continue", "for", "if", "let", "return", "while"]);
+const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
+  "break",
+  "const",
+  "continue",
+  "for",
+  "if",
+  "let",
+  "return",
+  "throw",
+  "try",
+  "while"
+]);
 
 export function parse(source: string): ParseResult {
   return parseTokens(tokenize(source));
@@ -506,6 +537,10 @@ class Parser {
       return this.parseWhileStatement();
     }
 
+    if (token.type === "keyword" && token.value === "try") {
+      return this.parseTryStatement();
+    }
+
     if (token.type === "keyword" && token.value === "return") {
       this.index += 1;
       const hasArgument = !(
@@ -520,6 +555,28 @@ class Parser {
         type: "ReturnStatement",
         argument,
         span: createSpan(token.start, end)
+      };
+    }
+
+    if (token.type === "keyword" && token.value === "throw") {
+      this.index += 1;
+      if (hasLineBreakBetween(token, this.currentToken())) {
+        throw new Error(`Illegal newline after throw at line ${token.start.line}, column ${token.start.column}.`);
+      }
+      if (
+        this.currentToken().type === "punctuator" &&
+        (this.currentToken().value === ";" || this.currentToken().value === "}")
+      ) {
+        throw unexpectedTokenError(this.currentToken());
+      }
+      if (this.currentToken().type === "eof") {
+        throw unexpectedTokenError(this.currentToken());
+      }
+      const argument = this.parseExpression().node;
+      return {
+        type: "ThrowStatement",
+        argument,
+        span: createSpan(token.start, argument.span.end)
       };
     }
 
@@ -693,6 +750,51 @@ class Parser {
       test,
       body,
       span: createSpan(whileToken.start, body.span.end)
+    };
+  }
+
+  private parseTryStatement(): TryStatement {
+    const tryToken = this.expectKeyword("try");
+    const block = this.parseBlockStatement();
+    const handler =
+      this.currentToken().type === "keyword" && this.currentToken().value === "catch"
+        ? this.parseCatchClause()
+        : undefined;
+
+    let finalizer: BlockStatement | undefined;
+    if (this.currentToken().type === "keyword" && this.currentToken().value === "finally") {
+      this.index += 1;
+      finalizer = this.parseBlockStatement();
+    }
+
+    if (handler === undefined && finalizer === undefined) {
+      throw new Error(
+        `Expected 'catch' or 'finally' at line ${this.currentToken().start.line}, column ${this.currentToken().start.column}.`
+      );
+    }
+
+    return {
+      type: "TryStatement",
+      block,
+      handler,
+      finalizer,
+      span: createSpan(tryToken.start, finalizer?.span.end ?? handler?.span.end ?? block.span.end)
+    };
+  }
+
+  private parseCatchClause(): CatchClause {
+    const catchToken = this.expectKeyword("catch");
+    let param: ArrayPattern | Identifier | ObjectPattern | undefined;
+    if (this.consumePunctuator("(") !== undefined) {
+      param = this.parseBindingTarget();
+      this.expectPunctuator(")");
+    }
+    const body = this.parseBlockStatement();
+    return {
+      type: "CatchClause",
+      param,
+      body,
+      span: createSpan(catchToken.start, body.span.end)
     };
   }
 

@@ -1246,6 +1246,165 @@ describe("parse", () => {
     });
   });
 
+  it("parses try/catch, try/finally, and throw statements", () => {
+    expect(parse("try { work(); } catch { throw error; }")).toMatchObject({
+      type: "TryStatement",
+      block: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ExpressionStatement",
+            expression: {
+              type: "CallExpression",
+              callee: {
+                type: "Identifier",
+                name: "work"
+              }
+            }
+          }
+        ]
+      },
+      handler: {
+        type: "CatchClause",
+        param: undefined,
+        body: {
+          type: "BlockStatement",
+          body: [
+            {
+              type: "ThrowStatement",
+              argument: {
+                type: "Identifier",
+                name: "error"
+              }
+            }
+          ]
+        }
+      },
+      finalizer: undefined
+    });
+
+    expect(parse("try { work(); } catch (e) { handle(e); }")).toMatchObject({
+      type: "TryStatement",
+      handler: {
+        type: "CatchClause",
+        param: {
+          type: "Identifier",
+          name: "e"
+        },
+        body: {
+          type: "BlockStatement",
+          body: [
+            {
+              type: "ExpressionStatement",
+              expression: {
+                type: "CallExpression",
+                callee: {
+                  type: "Identifier",
+                  name: "handle"
+                },
+                arguments: [
+                  {
+                    type: "Identifier",
+                    name: "e"
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      },
+      finalizer: undefined
+    });
+
+    expect(parse("try { work(); } finally { cleanup(); }")).toMatchObject({
+      type: "TryStatement",
+      handler: undefined,
+      finalizer: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ExpressionStatement",
+            expression: {
+              type: "CallExpression",
+              callee: {
+                type: "Identifier",
+                name: "cleanup"
+              }
+            }
+          }
+        ]
+      }
+    });
+  });
+
+  it("parses try/catch/finally with identifier and destructured catch bindings", () => {
+    expect(parse("try { work(); } catch (e) { handle(e); } finally { cleanup(); }")).toMatchObject({
+      type: "TryStatement",
+      handler: {
+        type: "CatchClause",
+        param: {
+          type: "Identifier",
+          name: "e"
+        }
+      },
+      finalizer: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ExpressionStatement",
+            expression: {
+              type: "CallExpression",
+              callee: {
+                type: "Identifier",
+                name: "cleanup"
+              }
+            }
+          }
+        ]
+      }
+    });
+
+    expect(parse("try { work(); } catch ({ message }) { handle(message); }")).toMatchObject({
+      type: "TryStatement",
+      handler: {
+        type: "CatchClause",
+        param: {
+          type: "ObjectPattern",
+          properties: [
+            {
+              type: "AssignmentProperty",
+              shorthand: true,
+              key: {
+                type: "Identifier",
+                name: "message"
+              },
+              value: {
+                type: "Identifier",
+                name: "message"
+              }
+            }
+          ]
+        }
+      }
+    });
+
+    expect(parse("try { work(); } catch ([error]) { handle(error); }")).toMatchObject({
+      type: "TryStatement",
+      handler: {
+        type: "CatchClause",
+        param: {
+          type: "ArrayPattern",
+          elements: [
+            {
+              type: "Identifier",
+              name: "error"
+            }
+          ]
+        }
+      }
+    });
+  });
+
   it("parses destructuring in let/const declarations", () => {
     expect(
       parse(
@@ -1796,5 +1955,15 @@ describe("parse", () => {
     expect(() => parse("() => { continue label; }")).toThrowError(
       "Disallowed syntax 'label' at line 1, column 18."
     );
+  });
+
+  it("rejects invalid try/catch/finally forms and invalid throw statements", () => {
+    expect(() => parse("try { work(); }")).toThrowError("Expected 'catch' or 'finally'");
+    expect(() => parse("try { work(); } catch () { cleanup(); }")).toThrowError("Unexpected token ')'");
+    expect(() => parse("try { work(); } catch (error = fallback) { cleanup(); }")).toThrowError(
+      "Expected ')'"
+    );
+    expect(() => parse("throw;")).toThrowError("Unexpected token ';'");
+    expect(() => parse("throw\nerror;")).toThrowError("Illegal newline after throw");
   });
 });

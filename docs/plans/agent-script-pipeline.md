@@ -118,7 +118,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: parser-try-catch-throw
@@ -130,8 +130,9 @@ tasks:
       cover try/finally without catch and try/catch without finally.
     status:
       "impl ement": open
-      test: open
-      commit: open
+      test: done
+      commit: done
+      implement: done
 
   - id: parser-imports
     title: Parse ES module imports (named, default, namespace, alias)

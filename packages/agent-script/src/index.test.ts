@@ -4,6 +4,7 @@ import * as api from "./index.js";
 import { dump } from "./dump.js";
 import { lint } from "./lint.js";
 import { lint as lintFromIndex } from "./lint/index.js";
+import { makeAgentModule } from "./modules/agent.js";
 import { parse } from "./parse.js";
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
@@ -17,7 +18,15 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.run).toBe(run);
     expect(api.dump).toBe(dump);
     expect(api.restore).toBe(restore);
-    expect(Object.keys(api).sort()).toEqual(["dump", "lint", "parse", "restore", "run"]);
+    expect(api.makeAgentModule).toBe(makeAgentModule);
+    expect(Object.keys(api).sort()).toEqual([
+      "dump",
+      "lint",
+      "makeAgentModule",
+      "parse",
+      "restore",
+      "run"
+    ]);
   });
 
   it("keeps restore hashes explicit while exporting runnable entrypoints", async () => {

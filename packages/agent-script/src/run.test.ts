@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { dump } from "./dump.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { createSandboxClosure, createSandboxPromise } from "./interp/values.js";
+import { makeAgentModule } from "./modules/agent.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
 
@@ -99,6 +100,160 @@ describe("run", () => {
       ok: true,
       returnValue: JSON.stringify([1, 2, 3, null])
     });
+  });
+
+  it("runs agent spawns through the injected module and returns the full spawn result", async () => {
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: "patched files",
+      stderr: "",
+      summary: "Applied the requested fix",
+      durationMs: 2750
+    }));
+
+    const result = await run(
+      [
+        'import { spawn } from "agent";',
+        "return JSON.stringify(await spawn({",
+        '  agent: "codex",',
+        '  prompt: "You are careful.",',
+        '  model: "openai/gpt-5.4",',
+        '  mode: "read",',
+        '  cwd: "/defaults",',
+        "  mcp: {",
+        "    search: {",
+        '      command: "mcp-search",',
+        '      args: ["serve"],',
+        '      env: { TOKEN: "secret" },',
+        "      timeout: 30",
+        "    }",
+        "  }",
+        "}, {",
+        '  prompt: "Inspect the diff.",',
+        '  mode: "edit",',
+        '  cwd: "/workspace",',
+        "  timeoutMs: 5000",
+        "}));"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent)
+        }
+      }
+    );
+
+    expect(spawnAgent).toHaveBeenCalledWith({
+      agent: "codex",
+      prompt: "You are careful.\n\n# Task\n\nInspect the diff.",
+      model: "openai/gpt-5.4",
+      mode: "edit",
+      cwd: "/workspace",
+      mcp: {
+        search: {
+          command: "mcp-search",
+          args: ["serve"],
+          env: {
+            TOKEN: "secret"
+          },
+          timeout: 30
+        }
+      },
+      timeoutMs: 5000
+    });
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify({
+        exitCode: 0,
+        stdout: "patched files",
+        stderr: "",
+        summary: "Applied the requested fix",
+        durationMs: 2750
+      })
+    });
+  });
+
+  it("surfaces agent spawn failures as catchable sandbox errors", async () => {
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 23,
+      stdout: "",
+      stderr: "",
+      summary: "tool call timed out",
+      durationMs: 99
+    }));
+
+    const result = await run(
+      [
+        'import { spawn } from "agent";',
+        "try {",
+        '  await spawn("codex", { prompt: "Do the thing." });',
+        "} catch ({ message }) {",
+        "  return message;",
+        "}"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent)
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "Agent spawn failed with exit code 23: tool call timed out"
+    });
+  });
+
+  it("validates malformed agent spawn calls from scripts with explicit errors", async () => {
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      summary: "",
+      durationMs: 1
+    }));
+
+    const invalidAgentResult = await run(
+      [
+        'import { spawn } from "agent";',
+        "try {",
+        '  await spawn({ prompt: "missing agent" }, { prompt: "Do the thing." });',
+        "} catch ({ message }) {",
+        "  return message;",
+        "}"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent)
+        }
+      }
+    );
+
+    expect(invalidAgentResult).toMatchObject({
+      ok: true,
+      returnValue: "Agent definition must define a non-empty agent."
+    });
+
+    const invalidPromptResult = await run(
+      [
+        'import { spawn } from "agent";',
+        "try {",
+        '  await spawn("codex", {});',
+        "} catch ({ message }) {",
+        "  return message;",
+        "}"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent)
+        }
+      }
+    );
+
+    expect(invalidPromptResult).toMatchObject({
+      ok: true,
+      returnValue: "Agent spawn options must define a non-empty prompt."
+    });
+    expect(spawnAgent).not.toHaveBeenCalled();
   });
 
   it("registers Object, Array, and coercion globals by default", async () => {

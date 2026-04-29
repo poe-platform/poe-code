@@ -1,4 +1,5 @@
 import type {
+  ArrayExpression,
   ArrowFunctionExpression,
   AwaitExpression,
   BlockStatement,
@@ -10,7 +11,9 @@ import type {
   MemberExpression,
   NullLiteral,
   NumericLiteral,
+  ObjectExpression,
   ParseResult,
+  Property,
   BreakStatement,
   ReturnStatement,
   SourceSpan,
@@ -131,6 +134,7 @@ type DispatchTable = Partial<{
 }>;
 
 const dispatchTable: DispatchTable = {
+  ArrayExpression: evaluateArrayExpression,
   ArrowFunctionExpression: evaluateArrowFunction,
   AwaitExpression: evaluateAwait,
   BlockStatement: evaluateBlockStatement,
@@ -142,6 +146,7 @@ const dispatchTable: DispatchTable = {
   MemberExpression: evaluateMemberExpression,
   NullLiteral: evaluatePrimitiveLiteral,
   NumericLiteral: evaluatePrimitiveLiteral,
+  ObjectExpression: evaluateObjectExpression,
   BreakStatement: evaluateBreakStatement,
   ReturnStatement: evaluateReturnStatement,
   StringLiteral: evaluatePrimitiveLiteral,
@@ -252,6 +257,77 @@ async function evaluatePrimitiveLiteral(
     kind: "normal",
     hasValue: true,
     value
+  };
+}
+
+async function evaluateArrayExpression(
+  node: ArrayExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const values: SandboxArray = [];
+
+  for (const element of node.elements) {
+    if (element.type === "SpreadElement") {
+      const spreadValues = await evaluateSpreadElement(element, context);
+      if (!spreadValues.ok) {
+        return spreadValues.result;
+      }
+
+      values.push(...spreadValues.value);
+      continue;
+    }
+
+    const result = await evaluateNode(element, context);
+    if (result.kind !== "normal") {
+      return result;
+    }
+
+    values.push(result.value);
+  }
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: values
+  };
+}
+
+async function evaluateObjectExpression(
+  node: ObjectExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const object = Object.create(null) as SandboxObject;
+
+  for (const property of node.properties) {
+    if (property.type === "SpreadElement") {
+      const spreadEntries = await evaluateObjectSpread(property, context);
+      if (!spreadEntries.ok) {
+        return spreadEntries.result;
+      }
+
+      for (const [key, value] of spreadEntries.value) {
+        defineSandboxProperty(object, key, value);
+      }
+      continue;
+    }
+
+    const key = await evaluateObjectPropertyKey(property, context);
+    if (!key.ok) {
+      return key.result;
+    }
+
+    const value = await evaluateNode(property.value, context);
+    if (value.kind !== "normal") {
+      return value;
+    }
+
+    defineSandboxProperty(object, String(key.value), value.value);
+  }
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: object
   };
 }
 
@@ -569,6 +645,20 @@ async function evaluateMemberProperty(
   }
 
   throw new TypeError("Computed property access requires a string or number key.");
+}
+
+async function evaluateObjectPropertyKey(
+  node: Property,
+  context: EvaluationContext
+): Promise<HelperResult<string | number>> {
+  if (!node.computed) {
+    return {
+      ok: true,
+      value: getStaticPropertyName(node.key)
+    };
+  }
+
+  return evaluateMemberProperty(node.key, context);
 }
 
 function getStaticPropertyName(node: MemberExpression["property"]): string | number {
@@ -913,6 +1003,39 @@ async function evaluateSpreadElement(
     ok: true,
     value: value.value
   };
+}
+
+async function evaluateObjectSpread(
+  node: SpreadElement,
+  context: EvaluationContext
+): Promise<HelperResult<Array<readonly [string, SandboxValue]>>> {
+  const value = await evaluateNode(node.argument, context);
+  if (value.kind !== "normal") {
+    return {
+      ok: false,
+      result: value
+    };
+  }
+
+  if (!isIndexableSandboxValue(value.value)) {
+    throw new TypeError("Spread properties must evaluate to an object or array.");
+  }
+
+  const spreadValue = value.value;
+
+  return {
+    ok: true,
+    value: Object.keys(spreadValue).map((key) => [key, getMemberValue(spreadValue, key)] as const)
+  };
+}
+
+function defineSandboxProperty(target: SandboxObject, key: string, value: SandboxValue): void {
+  Object.defineProperty(target, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 function isInterpreterError(value: unknown): value is InterpreterError {

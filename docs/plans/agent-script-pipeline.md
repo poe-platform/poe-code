@@ -637,7 +637,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: module-agent
@@ -651,8 +651,9 @@ tasks:
       injected by the harness package.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: module-harness
     title: makeHarnessModule factory (frontmatter access)

@@ -667,7 +667,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: module-git
@@ -681,8 +681,9 @@ tasks:
       separate makeGitModule package consumer.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: module-mcp
     title: makeMcpModule factory (server/client)

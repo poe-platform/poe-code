@@ -6,6 +6,7 @@ import { AS005, type Diagnostic as AS005Diagnostic } from "./lint/rules/AS005.js
 import { AS006_007, type Diagnostic as AS006007Diagnostic } from "./lint/rules/AS006-007.js";
 import { AS008, type Diagnostic as AS008Diagnostic } from "./lint/rules/AS008.js";
 import { AS009, type Diagnostic as AS009Diagnostic } from "./lint/rules/AS009.js";
+import { AS010, type Diagnostic as AS010Diagnostic } from "./lint/rules/AS010.js";
 import type { Modules } from "./lint/rules/module-registry.js";
 
 export type Diagnostic =
@@ -16,10 +17,11 @@ export type Diagnostic =
   | AS005Diagnostic
   | AS006007Diagnostic
   | AS008Diagnostic
-  | AS009Diagnostic;
+  | AS009Diagnostic
+  | AS010Diagnostic;
 
 export function lint(source: string, options: { filename?: string; modules?: Modules } = {}): Diagnostic[] {
-  return [
+  const diagnostics = [
     ...AS001(source, options),
     ...AS002(source, options),
     ...AS003(source, options),
@@ -27,8 +29,19 @@ export function lint(source: string, options: { filename?: string; modules?: Mod
     ...AS005(source, options),
     ...AS006_007(source, options),
     ...AS008(source, options),
-    ...AS009(source, options)
-  ].sort(compareDiagnostics);
+    ...AS009(source, options),
+    ...AS010(source, options)
+  ];
+
+  const as010Keys = new Set(
+    diagnostics
+      .filter((diagnostic): diagnostic is AS010Diagnostic => diagnostic.code === "AS010")
+      .map((diagnostic) => createSpanKey(diagnostic.span))
+  );
+
+  return diagnostics
+    .filter((diagnostic) => diagnostic.code !== "AS007" || !as010Keys.has(createSpanKey(diagnostic.span)))
+    .sort(compareDiagnostics);
 }
 
 function compareDiagnostics(left: Diagnostic, right: Diagnostic): number {
@@ -37,4 +50,8 @@ function compareDiagnostics(left: Diagnostic, right: Diagnostic): number {
     left.span.end.offset - right.span.end.offset ||
     left.code.localeCompare(right.code)
   );
+}
+
+function createSpanKey(span: Diagnostic["span"]): string {
+  return `${span.start.offset}:${span.end.offset}`;
 }

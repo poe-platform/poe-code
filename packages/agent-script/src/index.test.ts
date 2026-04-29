@@ -307,4 +307,30 @@ describe("@poe-code/agent-script public exports", () => {
       }
     ]);
   });
+
+  it("prefers AS010 over the generic unread-binding warning for unread top-level host results", () => {
+    const source = ['import { spawn } from "agent";', "let handle = spawn();"].join("\n");
+
+    expect(
+      lint(source, {
+        filename: "rule.js",
+        modules: {
+          agent: ["spawn"]
+        }
+      })
+    ).toEqual([
+      {
+        code: "AS010",
+        severity: "warning",
+        message: "Top-level let 'handle' stores a host call result but is never read again.",
+        filename: "rule.js",
+        line: 2,
+        column: 5,
+        span: {
+          start: { line: 2, column: 5, offset: source.indexOf("handle") },
+          end: { line: 2, column: 11, offset: source.indexOf("handle") + "handle".length }
+        }
+      }
+    ]);
+  });
 });

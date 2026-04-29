@@ -286,7 +286,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as010-unread-let
@@ -298,8 +298,9 @@ tasks:
       or referenced anywhere else in the script.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as011-prototype-access
     title: Lint AS011 — prototype access

@@ -751,7 +751,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: module-time
@@ -764,8 +764,9 @@ tasks:
       replay; otherwise non-deterministic.
     status:
       "impl ement": open
-      test: open
-      commit: open
+      test: done
+      commit: done
+      implement: done
 
   - id: snapshot-serialize
     title: Serialize live interpreter state to JSON

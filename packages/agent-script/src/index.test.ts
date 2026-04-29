@@ -12,6 +12,7 @@ import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule } from "./modules/log.js";
 import { makeMetricModule } from "./modules/metric.js";
 import { makeMcpModule } from "./modules/mcp.js";
+import { makeTimeModule } from "./modules/time.js";
 import { parse } from "./parse.js";
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
@@ -33,6 +34,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.makeLogModule).toBe(makeLogModule);
     expect(api.makeMetricModule).toBe(makeMetricModule);
     expect(api.makeMcpModule).toBe(makeMcpModule);
+    expect(api.makeTimeModule).toBe(makeTimeModule);
     expect(Object.keys(api).sort()).toEqual([
       "dump",
       "lint",
@@ -44,6 +46,7 @@ describe("@poe-code/agent-script public exports", () => {
       "makeLogModule",
       "makeMcpModule",
       "makeMetricModule",
+      "makeTimeModule",
       "parse",
       "restore",
       "run"

@@ -11,3 +11,4 @@ export { makeHarnessModule } from "./modules/harness.js";
 export { makeLogModule } from "./modules/log.js";
 export { makeMetricModule } from "./modules/metric.js";
 export { makeMcpModule } from "./modules/mcp.js";
+export { makeTimeModule } from "./modules/time.js";

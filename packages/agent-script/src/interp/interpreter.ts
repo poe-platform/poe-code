@@ -61,6 +61,7 @@ export type InterpretOptions = {
 
 type EvaluationContext = {
   budget: Budget;
+  callStack: string[];
   scope: Scope;
   stats: InterpreterStats;
 };
@@ -115,6 +116,7 @@ export async function interpret(node: ParseResult, options: InterpretOptions = {
   };
   const evaluation = await evaluateNode(node, {
     budget,
+    callStack: [],
     scope,
     stats
   });
@@ -324,9 +326,12 @@ async function evaluateCallExpression(node: CallExpression, context: EvaluationC
   }
 
   const leaveCall = context.budget.enterCall();
+  const stack = [...context.callStack, formatStackFrame(node, callee.value.name)];
 
   try {
-    const result = await callee.value.call(args.value);
+    const result = await callee.value.call(args.value, {
+      stack
+    });
 
     if (isSandboxPromise(result)) {
       return {
@@ -344,6 +349,10 @@ async function evaluateCallExpression(node: CallExpression, context: EvaluationC
   } finally {
     leaveCall();
   }
+}
+
+function formatStackFrame(node: CallExpression, name: string | undefined): string {
+  return `    at ${name ?? "<anonymous>"} (line ${node.span.start.line}, column ${node.span.start.column})`;
 }
 
 function createError(code: InterpreterErrorCode, node: ParseResult, message: string): InterpreterError {

@@ -490,8 +490,9 @@ tasks:
       and stack (sandbox stack only — host frames stripped).
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-string-methods
     title: String prototype method interception

@@ -59,6 +59,33 @@ describe("run", () => {
     ]);
   });
 
+  it("registers Error globals by default", async () => {
+    const result = await run(`return JSON.stringify(Array.of(
+      Error('boom').name,
+      Error('boom').message,
+      Error().message,
+      Error().stack,
+      TypeError(42).name,
+      TypeError(42).message,
+      Error('boom').stack
+    ))`);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(JSON.parse(result.returnValue as string)).toEqual([
+      "Error",
+      "boom",
+      "",
+      "Error\n    at Error (line 5, column 7)",
+      "TypeError",
+      "42",
+      "Error: boom\n    at Error (line 8, column 7)"
+    ]);
+  });
+
   it("keeps coercion helpers opaque when used as Object sources", async () => {
     const result = await run(`return JSON.stringify(Array.of(
       Object.keys(String),

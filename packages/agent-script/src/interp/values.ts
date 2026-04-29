@@ -11,10 +11,14 @@ export type SandboxObject = {
 
 export type SandboxArray = SandboxValue[];
 
+export type SandboxCallContext = {
+  readonly stack: readonly string[];
+};
+
 export type SandboxClosure = {
   readonly kind: "fn";
   readonly name?: string;
-  readonly call: (args: readonly SandboxValue[]) => SandboxValue | Promise<SandboxValue>;
+  readonly call: (args: readonly SandboxValue[], context?: SandboxCallContext) => SandboxValue | Promise<SandboxValue>;
   readonly [sandboxClosureBrand]: true;
 };
 
@@ -29,7 +33,7 @@ type CopyState<TValue> = {
 };
 
 export function createSandboxClosure(input: {
-  call: (args: readonly SandboxValue[]) => SandboxValue | Promise<SandboxValue>;
+  call: (args: readonly SandboxValue[], context?: SandboxCallContext) => SandboxValue | Promise<SandboxValue>;
   name?: string;
 }): SandboxClosure {
   const closure = {

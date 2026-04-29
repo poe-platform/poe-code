@@ -1,24 +1,8 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { discoverExperimentDocs } from "./discovery/discovery.js";
-import type { ExperimentFileSystem } from "./types.js";
-
-const { runHarnessMock } = vi.hoisted(() => ({
-  runHarnessMock: vi.fn()
-}));
-
-vi.mock("@poe-code/agent-script", async () => {
-  const actual = await vi.importActual<typeof import("@poe-code/agent-script")>(
-    "@poe-code/agent-script"
-  );
-
-  return {
-    ...actual,
-    runHarness: runHarnessMock
-  };
-});
-
-const { runExperimentLoop } = await import("./run/loop.js");
+import { runExperimentLoop } from "./run/loop.js";
+import type { ExecFn, ExperimentFileSystem, ExperimentGit } from "./types.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -27,8 +11,34 @@ function createFs(files: Record<string, string> = {}): ExperimentFileSystem {
   const volume = Volume.fromJSON(files, "/");
   volume.mkdirSync(cwd, { recursive: true });
   volume.mkdirSync(homeDir, { recursive: true });
-  volume.mkdirSync("/repo/.poe-code/experiments", { recursive: true });
   return createFsFromVolume(volume).promises as unknown as ExperimentFileSystem;
+}
+
+function createDoc(): string {
+  return [
+    "---",
+    "agent: claude-code",
+    "metric:",
+    "  name: tests",
+    "  script: node scripts/metric-tests.mjs",
+    "  direction: maximize",
+    "baseline: { tests: 1 }",
+    "---",
+    "# Improve tests"
+  ].join("\n");
+}
+
+function createGit(): ExperimentGit {
+  return {
+    reset: vi.fn(async () => undefined),
+    currentHash: vi.fn(async () => "base-1")
+  };
+}
+
+function createExec(): ExecFn {
+  return vi.fn(async () => {
+    throw new Error("Unexpected exec call");
+  }) as ExecFn;
 }
 
 describe("experiment-loop agent-kit discovery", () => {
@@ -80,31 +90,19 @@ describe("experiment-loop agent-kit discovery", () => {
 });
 
 describe("experiment-loop agent-kit locking", () => {
-  it("locks the doc before invoking the harness and releases the lock after the run", async () => {
+  it("locks the doc before initializing the journal and releases the lock after the run", async () => {
     const docPath = "/repo/.poe-code/experiments/plan.md";
+    const journalPath = "/repo/.poe-code/experiments/plan.journal.jsonl";
     const lockPath = `${docPath}.lock`;
     const baseFs = createFs({
-      [docPath]: [
-        "---",
-        "kind: experiment",
-        "version: 1",
-        "agents:",
-        "  experimenter:",
-        "    agent: claude-code",
-        "metric:",
-        "  name: tests",
-        "  direction: maximize",
-        "---",
-        "",
-        "```js",
-        "return {};",
-        "```",
-        ""
-      ].join("\n")
+      [docPath]: createDoc()
     });
     const operations: string[] = [];
     const fs: ExperimentFileSystem = {
-      readFile: async (filePath, encoding) => baseFs.readFile(filePath, encoding),
+      readFile: async (filePath, encoding) => {
+        operations.push(`readFile:${filePath}`);
+        return baseFs.readFile(filePath, encoding);
+      },
       writeFile: async (filePath, content) => {
         operations.push(`writeFile:${filePath}`);
         await baseFs.writeFile(filePath, content);
@@ -127,63 +125,45 @@ describe("experiment-loop agent-kit locking", () => {
       }
     } as ExperimentFileSystem;
 
-    runHarnessMock.mockResolvedValueOnce({
-      ok: true,
-      returnValue: {
-        stopReason: "completed",
-        experimentsCompleted: 0,
-        experimentsKept: 0,
-        totalDurationMs: 1
-      }
-    });
-
     await runExperimentLoop({
       cwd,
       homeDir,
       docPath,
+      maxExperiments: 0,
       fs,
+      git: createGit(),
+      exec: createExec(),
       runAgent: vi.fn()
     });
 
     expect(operations.indexOf(`open:${lockPath}`)).toBeGreaterThanOrEqual(0);
-    expect(runHarnessMock).toHaveBeenCalledWith(docPath, expect.any(Object));
+    expect(operations.indexOf(`open:${lockPath}`)).toBeLessThan(
+      operations.indexOf(`writeFile:${journalPath}`)
+    );
     expect(operations.at(-1)).toBe(`unlink:${lockPath}`);
     await expect(fs.stat(lockPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
-  it("releases the lock when the harness run fails", async () => {
+  it("releases the lock when the experiment run fails", async () => {
     const docPath = "/repo/.poe-code/experiments/plan.md";
     const fs = createFs({
-      [docPath]: [
-        "---",
-        "kind: experiment",
-        "version: 1",
-        "agents:",
-        "  experimenter:",
-        "    agent: claude-code",
-        "metric:",
-        "  name: tests",
-        "  direction: maximize",
-        "---",
-        "",
-        "```js",
-        "return {};",
-        "```",
-        ""
-      ].join("\n")
+      [docPath]: createDoc()
     });
-
-    runHarnessMock.mockRejectedValueOnce(new Error("harness failed"));
 
     await expect(
       runExperimentLoop({
         cwd,
         homeDir,
         docPath,
+        maxExperiments: 1,
         fs,
-        runAgent: vi.fn()
+        git: createGit(),
+        exec: createExec(),
+        runAgent: vi.fn(async () => {
+          throw new Error("agent failed");
+        })
       })
-    ).rejects.toThrow("harness failed");
+    ).rejects.toThrow("agent failed");
 
     await expect(fs.stat(`${docPath}.lock`)).rejects.toMatchObject({
       code: "ENOENT"

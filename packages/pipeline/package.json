@@ -23,12 +23,9 @@
     "dist"
   ],
   "dependencies": {
-    "@poe-code/agent-script": "*",
     "@poe-code/agent-harness-tools": "*",
-    "@poe-code/agent-spawn": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/design-system": "*",
-    "tiny-mcp-client": "*",
     "yaml": "^2.8.2"
   }
 }

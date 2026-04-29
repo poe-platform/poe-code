@@ -11,16 +11,8 @@ import pipelineStepsTemplate from "../../templates/pipeline/steps.yaml.mustache"
 import { resolveLoopAgent, skillPlanConfigSection } from "@poe-code/agent-harness-tools";
 import type { Dashboard } from "@poe-code/design-system";
 
-const {
-  selectMock,
-  multiselectMock,
-  promptTextMock,
-  cancelMock,
-  resolvePipelineLoopAgentMock
-} = vi.hoisted(() => ({
+const { selectMock, cancelMock, resolvePipelineLoopAgentMock } = vi.hoisted(() => ({
   selectMock: vi.fn(),
-  multiselectMock: vi.fn(),
-  promptTextMock: vi.fn(),
   cancelMock: vi.fn(),
   resolvePipelineLoopAgentMock: vi.fn()
 }));
@@ -64,8 +56,6 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
     ...actual,
     createDashboard: vi.fn(),
     select: selectMock,
-    multiselect: multiselectMock,
-    promptText: promptTextMock,
     isCancel: (value: unknown) => value === "__cancel__",
     cancel: cancelMock
   };
@@ -205,7 +195,6 @@ describe("pipeline run command", () => {
       "--yes",
       "pipeline",
       "run",
-      "--reset",
       "--plan",
       "custom-plan.yaml",
       "--task",
@@ -227,8 +216,7 @@ describe("pipeline run command", () => {
         task: "auth-hardening",
         agent: "codex",
         model: "gpt-5.2",
-        maxRuns: 3,
-        reset: true
+        maxRuns: 3
       })
     );
   });
@@ -268,126 +256,6 @@ describe("pipeline run command", () => {
         agent: "codex",
         plan: "custom-plan.yaml",
         planDirectory: "custom/plans"
-      })
-    );
-  });
-
-  it("shows multi-select when pipeline plan files are discovered recursively", async () => {
-    multiselectMock.mockResolvedValueOnce(["docs/plans/archive/plan-demo.md"]);
-    const fs = createMemFs({
-      "/repo/docs/plans/archive/plan-demo.md": PIPELINE_MD_EMPTY
-    });
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPipelineCommand(program, container);
-
-    await program.parseAsync(["node", "cli", "pipeline", "run", "--agent", "codex"]);
-
-    expect(multiselectMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        message: "Select pipeline plans to run",
-        options: [
-          {
-            label: "docs/plans/archive/plan-demo.md (0/0)",
-            value: "docs/plans/archive/plan-demo.md"
-          }
-        ],
-        required: true
-      })
-    );
-    expect(promptTextMock).not.toHaveBeenCalled();
-    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "codex",
-        plan: "docs/plans/archive/plan-demo.md"
-      })
-    );
-  });
-
-  it("does not show completed pipeline plans in the run selection", async () => {
-    multiselectMock.mockResolvedValueOnce(["docs/plans/archive/open.md"]);
-    const fs = createMemFs({
-      "/repo/docs/plans/archive/done.md": [
-        "---",
-        "kind: pipeline",
-        "tasks:",
-        "  - id: done",
-        "    title: Done",
-        "    prompt: Already done",
-        "    status: done",
-        "---",
-        ""
-      ].join("\n"),
-      "/repo/docs/plans/archive/open.md": [
-        "---",
-        "kind: pipeline",
-        "tasks:",
-        "  - id: open",
-        "    title: Open",
-        "    prompt: Still open",
-        "    status: open",
-        "---",
-        ""
-      ].join("\n")
-    });
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPipelineCommand(program, container);
-
-    await program.parseAsync(["node", "cli", "pipeline", "run", "--agent", "codex"]);
-
-    expect(multiselectMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: [
-          {
-            label: "docs/plans/archive/open.md (0/1)",
-            value: "docs/plans/archive/open.md"
-          }
-        ]
-      })
-    );
-    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        plan: "docs/plans/archive/open.md"
-      })
-    );
-  });
-
-  it("asks for direct plan input when no pipeline plan files are discovered", async () => {
-    promptTextMock.mockResolvedValueOnce("manual-plan.md");
-    const fs = createMemFs({
-      "/repo/manual-plan.md": PIPELINE_MD_EMPTY
-    });
-    const container = createCliContainer({
-      fs,
-      prompts: vi.fn().mockResolvedValue({}),
-      env: { cwd, homeDir },
-      logger: () => {}
-    });
-    const program = createBaseProgram();
-    registerPipelineCommand(program, container);
-
-    await program.parseAsync(["node", "cli", "pipeline", "run", "--agent", "codex"]);
-
-    expect(multiselectMock).not.toHaveBeenCalled();
-    expect(promptTextMock).toHaveBeenCalledWith({
-      message: "Enter the pipeline plan path",
-      placeholder: "docs/plans/plan.md"
-    });
-    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
-      expect.objectContaining({
-        agent: "codex",
-        plan: "manual-plan.md"
       })
     );
   });
@@ -1999,9 +1867,6 @@ describe("pipeline install command", () => {
     expect(pipelineSkillPlan).toContain("kind: pipeline");
     expect(pipelineSkillPlan).toContain("version: 1");
     expect(pipelineSkillPlan).toContain("```markdown");
-    expect(pipelineSkillPlan).toContain('import { spawn } from "agent";');
-    expect(pipelineSkillPlan).toContain('import { tasks, agents } from "harness";');
-    expect(pipelineSkillPlan).toContain('import { event } from "log";');
     expect(pipelineSkillPlan).toContain("# Context");
   });
 

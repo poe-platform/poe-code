@@ -47,7 +47,6 @@ import {
   type LoopCallbacks,
   type RunLoopOptions,
   type SuperintendentFileSystem,
-  type SuperintendentLogEntry,
   type SuperintendentRunResult
 } from "../runtime/loop.js";
 import { createLoopState, type LoopState } from "../state/machine.js";
@@ -553,22 +552,6 @@ export async function runSuperintendentCommand(
     onRoundComplete: (round) => {
       appendEvent("success", `Round ${round} completed`);
       syncStats();
-    },
-    onLogEntry: (entry) => {
-      if (entry.type === "event") {
-        return;
-      }
-
-      const text = formatLogEntryArgs(entry.args);
-      if (!text) {
-        return;
-      }
-
-      session.dashboard.appendOutput({
-        kind: entry.type,
-        text: `${formatTimestamp(readLogEntryTimestamp(entry, now))} ${text}`,
-        ts: readLogEntryTimestamp(entry, now)
-      });
     },
     onLoopComplete: (result) => {
       session.state = stripStopReason(result);
@@ -1127,50 +1110,6 @@ function formatTimestamp(timestamp: number): string {
   const minutes = String(date.getMinutes()).padStart(2, "0");
   const seconds = String(date.getSeconds()).padStart(2, "0");
   return `[${hours}:${minutes}:${seconds}]`;
-}
-
-function readLogEntryTimestamp(
-  entry: SuperintendentLogEntry,
-  now: () => number
-): number {
-  const parsed = Date.parse(entry.ts);
-  return Number.isNaN(parsed) ? now() : parsed;
-}
-
-function formatLogEntryArgs(args: unknown[]): string {
-  return args
-    .map((arg) => formatLogEntryArg(arg))
-    .filter((segment) => segment.length > 0)
-    .join(" ")
-    .trim();
-}
-
-function formatLogEntryArg(arg: unknown): string {
-  if (typeof arg === "string") {
-    return arg;
-  }
-
-  if (
-    typeof arg === "number"
-    || typeof arg === "boolean"
-    || typeof arg === "bigint"
-  ) {
-    return String(arg);
-  }
-
-  if (arg === null || arg === undefined) {
-    return "";
-  }
-
-  if (arg instanceof Error) {
-    return arg.message;
-  }
-
-  try {
-    return JSON.stringify(arg);
-  } catch {
-    return String(arg);
-  }
 }
 
 function editPlan(

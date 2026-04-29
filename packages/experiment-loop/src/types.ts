@@ -30,32 +30,9 @@ export type MetricDirection = "minimize" | "maximize" | "stable";
 
 export interface MetricDef {
   name: string;
+  script: string;
   direction: MetricDirection;
   delta?: number;
-  script?: string;
-}
-
-export type ExperimentAgentDefinition =
-  | string
-  | {
-      agent: string;
-      prompt?: string;
-      model?: string;
-      mode?: "read" | "edit" | "yolo";
-      cwd?: string;
-      mcp?: Record<
-        string,
-        {
-          command: string;
-          args?: string[];
-          env?: Record<string, string>;
-          timeout?: number;
-        }
-      >;
-    };
-
-export interface ExperimentMetricResult {
-  score: number;
 }
 
 export interface AgentRunInput {
@@ -93,11 +70,7 @@ export interface ExperimentRunOptions {
   signal?: AbortSignal;
 }
 
-export type ExperimentStopReason =
-  | "completed"
-  | "max_experiments"
-  | "max_kept"
-  | "cancelled";
+export type ExperimentStopReason = "max_experiments" | "cancelled";
 
 export interface ExperimentRunResult {
   stopReason: ExperimentStopReason;

@@ -67,24 +67,6 @@ tasks:
       implement: open
 ---
 
-```js
-import { spawn } from "agent";
-import { tasks, agents } from "harness";
-import { event } from "log";
-
-await tasks.reduce(async (previous, task) => {
-  await previous;
-  event("task.started", { id: task.id, title: task.title });
-  event("task.completed", {
-    id: task.id,
-    title: task.title,
-    durationMs: (await spawn(agents.builder ?? "claude-code", {
-      prompt: `${task.id}: ${task.title}\n\n${task.prompt}`,
-    })).durationMs,
-  });
-}, (async () => {})());
-```
-
 # Context
 
 Design notes or acceptance criteria.

@@ -84,13 +84,11 @@ function createBaseProgram(): Command {
 }
 
 function getExperimentAgentOptions() {
-  return allAgents
-    .filter((agent) => agent.binaryName !== undefined || agent.id === "poe-agent")
-    .map((agent) => ({
-      label: agent.label,
-      value: agent.id,
-      hint: agent.summary
-    }));
+  return allAgents.map((agent) => ({
+    label: agent.label,
+    value: agent.id,
+    hint: agent.summary
+  }));
 }
 
 function withMockedTerminal<T>(
@@ -329,9 +327,7 @@ describe("experiment run command", () => {
     const fs = createMemFs({
       "/repo/docs/loop.md": [
         "---",
-        "agents:",
-        "  experimenter:",
-        "    agent: claude:anthropic/claude-sonnet-4.6",
+        "agent: claude:anthropic/claude-sonnet-4.6",
         "---",
         "# Loop"
       ].join("\n")
@@ -436,9 +432,9 @@ describe("experiment run command", () => {
       fs: createMemFs({
         "/repo/docs/loop.md": [
           "---",
-          "agents:",
-          "  experimenter: claude",
-          "  reviewer: codex",
+          "agent:",
+          "  - claude",
+          "  - codex",
           "---",
           "# Loop"
         ].join("\n")
@@ -525,8 +521,7 @@ describe("experiment run command", () => {
       fs: createMemFs({
         "/repo/docs/loop.md": [
           "---",
-          "agents:",
-          "  experimenter: mystery-agent",
+          "agent: mystery-agent",
           "---",
           "# Loop"
         ].join("\n")
@@ -1224,13 +1219,16 @@ describe("experiment validate command", () => {
       fs: createMemFs({
         "/repo/docs/loop.md": [
           "---",
-          "agents:",
-          "  experimenter:",
-          "    agent: claude-code",
+          "agent: claude-code",
           "metric:",
           "  name: tests",
+          "  script: npm test",
           "  direction: maximize",
-          "maxKept: 2",
+          "baseline: null",
+          "status:",
+          "  state: open",
+          "  experiment: 0",
+          "  kept: 0",
           "---",
           "# Loop"
         ].join("\n")
@@ -1247,7 +1245,7 @@ describe("experiment validate command", () => {
     await program.parseAsync(["node", "cli", "experiment", "validate", "docs/loop.md"]);
 
     expect(loggerOutput).toContain("claude-code");
-    expect(loggerOutput).toContain("tests (maximize)");
+    expect(loggerOutput).toContain("tests: npm test (maximize)");
     expect(loggerOutput).toContain("valid");
   });
 
@@ -1313,15 +1311,19 @@ describe("experiment validate command", () => {
       fs: createMemFs({
         "/repo/docs/chain.md": [
           "---",
-          "agents:",
-          "  experimenter:",
-          "    agent: claude-code",
+          "agent: claude-code",
           "metric:",
           "  - name: tests",
+          "    script: npm test",
           "    direction: maximize",
           "  - name: test_duration",
+          "    script: npm run measure:duration",
           "    direction: minimize",
-          "maxKept: 3",
+          "baseline: null",
+          "status:",
+          "  state: open",
+          "  experiment: 0",
+          "  kept: 0",
           "---",
           "# Chain"
         ].join("\n")
@@ -1337,8 +1339,8 @@ describe("experiment validate command", () => {
 
     await program.parseAsync(["node", "cli", "experiment", "validate", "docs/chain.md"]);
 
-    expect(loggerOutput).toContain("tests (maximize)");
-    expect(loggerOutput).toContain("test_duration (minimize)");
+    expect(loggerOutput).toContain("tests: npm test (maximize)");
+    expect(loggerOutput).toContain("test_duration: npm run measure:duration (minimize)");
     expect(loggerOutput).toContain("valid");
   });
 
@@ -1348,13 +1350,16 @@ describe("experiment validate command", () => {
       fs: createMemFs({
         "/repo/docs/plans/plan-a.md": [
           "---",
-          "agents:",
-          "  experimenter:",
-          "    agent: claude-code",
+          "agent: claude-code",
           "metric:",
           "  name: tests",
+          "  script: npm test",
           "  direction: maximize",
-          "maxKept: 1",
+          "baseline: null",
+          "status:",
+          "  state: open",
+          "  experiment: 0",
+          "  kept: 0",
           "---",
           "# A"
         ].join("\n")

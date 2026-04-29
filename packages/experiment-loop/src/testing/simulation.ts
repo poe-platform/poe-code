@@ -403,36 +403,19 @@ function scoresPassBaseline(
 }
 
 export function createExperimentDoc(options: CreateExperimentDocOptions = {}): string {
-  const body = options.body ?? [
-    "# Improve the implementation",
-    "",
-    "```js",
-    'import { spawn } from "agent";',
-    'import { agents } from "harness";',
-    "",
-    'await spawn(agents.experimenter, { prompt: "Ship a better change." });',
-    "return {",
-    '  stopReason: "completed",',
-    "  experimentsCompleted: 1,",
-    "  experimentsKept: 0,",
-    "  totalDurationMs: 0",
-    "};",
-    "```",
-    ""
-  ].join("\n");
+  const body = options.body ?? "# Improve the implementation\n\nShip a better change.\n";
 
   const yaml = stringify({
     $schema: experimentDocumentSchemaId,
     kind: "experiment",
     version: 1,
-    agents: {
-      experimenter: typeof options.agent === "string" ? options.agent : "claude-code"
-    },
+    agent: options.agent ?? "claude-code",
     metric: options.metric ?? {
       name: "tests",
+      script: "node scripts/metric-tests.mjs",
       direction: "maximize"
     },
-    maxKept: 1
+    baseline: options.baseline ?? null
   }).trimEnd();
 
   return `---\n${yaml}\n---\n${body}`;
@@ -564,10 +547,12 @@ export function createExperimentLoopSimulation(options: ExperimentLoopSimulation
               ? [frontmatter.metric]
               : [];
 
-          // Derive current baseline from the last keep, falling back to any collected baseline.
+          // Derive current baseline: journal's last keep → frontmatter seed → collected baseline.
           const allJournalEntries = await new ExperimentJournal(journalPath, fs).readAll();
           const lastKeep = allJournalEntries.filter((e) => e.status === "keep").at(-1);
-          const currentBaseline = lastKeep ? baselineFromEntry(lastKeep) : collectedBaseline;
+          const currentBaseline = lastKeep
+            ? baselineFromEntry(lastKeep)
+            : (frontmatter.baseline ?? collectedBaseline);
 
           const experimentStart = Date.now();
           const preHash = await git.currentHash(cwd);

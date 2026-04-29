@@ -31,7 +31,6 @@
     "dist"
   ],
   "dependencies": {
-    "@poe-code/agent-script": "*",
     "@poe-code/agent-defs": "*",
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-skill-config": "*",
@@ -39,7 +38,6 @@
     "toolcraft": "*",
     "@poe-code/design-system": "*",
     "@poe-code/poe-agent": "*",
-    "@poe-code/poe-code-config": "*",
-    "tiny-mcp-client": "*"
+    "@poe-code/poe-code-config": "*"
   }
 }

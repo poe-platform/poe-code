@@ -1,11 +1,7 @@
 import matter from "gray-matter";
 import { dirname } from "node:path";
 import { stringify } from "yaml";
-import type {
-  ExperimentAgentDefinition,
-  ExperimentFileSystem,
-  MetricDef
-} from "../types.js";
+import type { ExperimentFileSystem, MetricDef } from "../types.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
 
@@ -29,9 +25,12 @@ type JsonSchema = {
 };
 
 export interface ExperimentFrontmatter {
-  agents?: Record<string, ExperimentAgentDefinition>;
+  agent?: string | string[];
+  extends?: boolean;
   metric?: MetricDef | MetricDef[];
-  maxKept?: number;
+  baseline: Record<string, number> | null;
+  max_experiments?: number;
+  metric_timeout?: number;
 }
 
 export const experimentDocumentSchemaId =
@@ -44,6 +43,10 @@ const metricDefinitionSchema: JsonSchema = {
       type: "string",
       minLength: 1
     },
+    script: {
+      type: "string",
+      minLength: 1
+    },
     direction: {
       type: "string",
       enum: ["minimize", "maximize", "stable"]
@@ -53,71 +56,8 @@ const metricDefinitionSchema: JsonSchema = {
       minimum: 0
     }
   },
-  required: ["name", "direction"],
+  required: ["name", "script", "direction"],
   additionalProperties: false
-};
-
-const agentDefinitionSchema: JsonSchema = {
-  anyOf: [
-    {
-      type: "string",
-      minLength: 1
-    },
-    {
-      type: "object",
-      properties: {
-        agent: {
-          type: "string",
-          minLength: 1
-        },
-        prompt: {
-          type: "string"
-        },
-        model: {
-          type: "string"
-        },
-        mode: {
-          type: "string",
-          enum: ["read", "edit", "yolo"]
-        },
-        cwd: {
-          type: "string"
-        },
-        mcp: {
-          type: "object",
-          additionalProperties: {
-            type: "object",
-            properties: {
-              command: {
-                type: "string",
-                minLength: 1
-              },
-              args: {
-                type: "array",
-                items: {
-                  type: "string"
-                }
-              },
-              env: {
-                type: "object",
-                additionalProperties: {
-                  type: "string"
-                }
-              },
-              timeout: {
-                type: "number",
-                minimum: 0
-              }
-            },
-            required: ["command"],
-            additionalProperties: false
-          }
-        }
-      },
-      required: ["agent"],
-      additionalProperties: false
-    }
-  ]
 };
 
 export const experimentDocumentSchema: JsonSchema = {
@@ -138,9 +78,24 @@ export const experimentDocumentSchema: JsonSchema = {
       type: "integer",
       const: 1
     },
-    agents: {
-      type: "object",
-      additionalProperties: agentDefinitionSchema
+    agent: {
+      anyOf: [
+        {
+          type: "string",
+          minLength: 1
+        },
+        {
+          type: "array",
+          minItems: 1,
+          items: {
+            type: "string",
+            minLength: 1
+          }
+        }
+      ]
+    },
+    extends: {
+      type: "boolean"
     },
     metric: {
       anyOf: [
@@ -152,12 +107,29 @@ export const experimentDocumentSchema: JsonSchema = {
         }
       ]
     },
-    maxKept: {
+    baseline: {
+      anyOf: [
+        {
+          type: "null"
+        },
+        {
+          type: "object",
+          additionalProperties: {
+            type: "number"
+          }
+        }
+      ]
+    },
+    max_experiments: {
+      type: "integer",
+      minimum: 0
+    },
+    metric_timeout: {
       type: "integer",
       minimum: 0
     }
   },
-  required: ["kind", "version"],
+  required: ["kind", "version", "baseline"],
   additionalProperties: false
 };
 
@@ -191,14 +163,19 @@ export async function writeExperimentFrontmatter(
 
 export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontmatter {
   const parsed = isRecord(value) ? value : undefined;
-  const agents = parseAgents(parsed?.agents);
+  const agent = parseAgent(parsed?.agent);
+  const extendsValue = parseBoolean(parsed?.extends);
   const metric = parseMetric(parsed?.metric);
-  const maxKept = parseNonNegativeInteger(parsed?.maxKept);
+  const max_experiments = parseNonNegativeInteger(parsed?.max_experiments);
+  const metric_timeout = parseNonNegativeInteger(parsed?.metric_timeout);
 
   return {
-    ...(agents !== undefined ? { agents } : {}),
+    ...(agent !== undefined ? { agent } : {}),
+    ...(extendsValue !== undefined ? { extends: extendsValue } : {}),
     ...(metric !== undefined ? { metric } : {}),
-    ...(maxKept !== undefined ? { maxKept } : {})
+    baseline: parseBaseline(parsed?.baseline),
+    ...(max_experiments !== undefined ? { max_experiments } : {}),
+    ...(metric_timeout !== undefined ? { metric_timeout } : {})
   };
 }
 
@@ -207,125 +184,19 @@ function serializeFrontmatter(frontmatter: ExperimentFrontmatter): Record<string
     $schema: experimentDocumentSchemaId,
     kind: "experiment",
     version: 1,
-    ...(frontmatter.agents !== undefined ? { agents: frontmatter.agents } : {}),
+    ...(frontmatter.agent !== undefined ? { agent: frontmatter.agent } : {}),
+    ...(frontmatter.extends !== undefined ? { extends: frontmatter.extends } : {}),
     ...(frontmatter.metric !== undefined ? { metric: frontmatter.metric } : {}),
-    ...(frontmatter.maxKept !== undefined ? { maxKept: frontmatter.maxKept } : {})
+    baseline: frontmatter.baseline,
+    // Frontmatter is declarative config only. Runtime experiment outcomes live in the
+    // journal sidecar, so we intentionally do not persist any derived status here.
+    ...(frontmatter.max_experiments !== undefined
+      ? { max_experiments: frontmatter.max_experiments }
+      : {}),
+    ...(frontmatter.metric_timeout !== undefined
+      ? { metric_timeout: frontmatter.metric_timeout }
+      : {})
   };
-}
-
-function parseAgents(value: unknown): Record<string, ExperimentAgentDefinition> | undefined {
-  if (!isRecord(value)) {
-    return undefined;
-  }
-
-  const entries = Object.entries(value).map(([name, definition]) => {
-    const parsedDefinition = parseAgentDefinition(definition);
-
-    if (parsedDefinition === undefined) {
-      return undefined;
-    }
-
-    return [name, parsedDefinition] as const;
-  });
-
-  if (entries.some((entry) => entry === undefined)) {
-    return undefined;
-  }
-
-  return Object.fromEntries(
-    entries.filter(
-      (entry): entry is readonly [string, ExperimentAgentDefinition] => entry !== undefined
-    )
-  );
-}
-
-function parseAgentDefinition(value: unknown): ExperimentAgentDefinition | undefined {
-  if (typeof value === "string") {
-    return parseString(value);
-  }
-
-  if (!isRecord(value)) {
-    return undefined;
-  }
-
-  const agent = parseString(value.agent);
-
-  if (agent === undefined) {
-    return undefined;
-  }
-
-  const prompt = parseString(value.prompt);
-  const model = parseString(value.model);
-  const cwd = parseString(value.cwd);
-  const mode = parseMode(value.mode);
-  const mcp = parseMcp(value.mcp);
-
-  return {
-    agent,
-    ...(prompt !== undefined ? { prompt } : {}),
-    ...(model !== undefined ? { model } : {}),
-    ...(mode !== undefined ? { mode } : {}),
-    ...(cwd !== undefined ? { cwd } : {}),
-    ...(mcp !== undefined ? { mcp } : {})
-  };
-}
-
-function parseMcp(
-  value: unknown
-): ExperimentAgentDefinition extends infer T
-  ? T extends { mcp?: infer TMcp }
-    ? TMcp
-    : never
-  : never {
-  if (!isRecord(value)) {
-    return undefined as never;
-  }
-
-  const entries = Object.entries(value).map(([name, server]) => {
-    if (!isRecord(server)) {
-      return undefined;
-    }
-
-    const command = parseString(server.command);
-
-    if (command === undefined) {
-      return undefined;
-    }
-
-    const args = parseStringArray(server.args);
-    const env = parseStringRecord(server.env);
-    const timeout = parseNonNegativeFiniteNumber(server.timeout);
-
-    return [
-      name,
-      {
-        command,
-        ...(args !== undefined ? { args } : {}),
-        ...(env !== undefined ? { env } : {}),
-        ...(timeout !== undefined ? { timeout } : {})
-      }
-    ] as const;
-  });
-
-  if (entries.some((entry) => entry === undefined)) {
-    return undefined as never;
-  }
-
-  return Object.fromEntries(
-    entries.filter(
-      (
-        entry
-      ): entry is readonly [
-        string,
-        {
-          command: string;
-          args?: string[];
-          env?: Record<string, string>;
-          timeout?: number;
-        }
-      ] => entry !== undefined
-    )
-  ) as never;
 }
 
 function parseMetric(value: unknown): MetricDef | MetricDef[] | undefined {
@@ -343,16 +214,18 @@ function parseMetric(value: unknown): MetricDef | MetricDef[] | undefined {
 function parseMetricDefinition(value: unknown): MetricDef | undefined {
   const parsed = isRecord(value) ? value : undefined;
   const name = parseString(parsed?.name);
+  const script = parseString(parsed?.script);
   const direction = parseMetricDirection(parsed?.direction);
 
-  if (name === undefined || direction === undefined) {
+  if (name === undefined || script === undefined || direction === undefined) {
     return undefined;
   }
 
-  const delta = parseNonNegativeFiniteNumber(parsed?.delta);
+  const delta = typeof parsed?.delta === "number" && parsed.delta >= 0 ? parsed.delta : undefined;
 
   return {
     name,
+    script,
     direction,
     ...(delta !== undefined ? { delta } : {})
   };
@@ -362,53 +235,66 @@ function parseMetricDirection(value: unknown): MetricDef["direction"] | undefine
   return value === "minimize" || value === "maximize" || value === "stable" ? value : undefined;
 }
 
-function parseMode(
-  value: unknown
-): Extract<ExperimentAgentDefinition, { mode?: unknown }>["mode"] | undefined {
-  return value === "read" || value === "edit" || value === "yolo" ? value : undefined;
-}
+function parseBaseline(value: unknown): Record<string, number> | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
 
-function parseStringRecord(value: unknown): Record<string, string> | undefined {
   if (!isRecord(value)) {
-    return undefined;
+    return null;
   }
 
-  const entries = Object.entries(value).map(([key, entryValue]) => {
-    const parsedValue = parseString(entryValue);
-    return parsedValue === undefined ? undefined : ([key, parsedValue] as const);
-  });
+  const baselineEntries = Object.entries(value)
+    .map(([key, entryValue]) => {
+      if (typeof entryValue !== "number" || !Number.isFinite(entryValue)) {
+        return undefined;
+      }
 
-  if (entries.some((entry) => entry === undefined)) {
-    return undefined;
-  }
+      return [key, entryValue] as const;
+    })
+    .filter((entry): entry is readonly [string, number] => entry !== undefined);
 
-  return Object.fromEntries(entries.filter((entry): entry is readonly [string, string] => entry !== undefined));
+  return baselineEntries.length === Object.keys(value).length
+    ? Object.fromEntries(baselineEntries)
+    : null;
 }
 
-function parseStringArray(value: unknown): string[] | undefined {
+function parseAgent(value: unknown): string | string[] | undefined {
+  if (typeof value === "string") {
+    return parseString(value);
+  }
+
   if (!Array.isArray(value)) {
     return undefined;
   }
 
-  const entries = value.map((entry) => parseString(entry));
-
-  if (entries.some((entry) => entry === undefined)) {
-    return undefined;
+  const agents: string[] = [];
+  for (const item of value) {
+    const parsed = parseString(item);
+    if (parsed === undefined) {
+      return undefined;
+    }
+    agents.push(parsed);
   }
 
-  return entries.filter((entry): entry is string => entry !== undefined);
+  return agents.length > 0 ? agents : undefined;
 }
 
 function parseString(value: unknown): string | undefined {
-  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+  if (typeof value !== "string") {
+    return undefined;
+  }
+
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
 }
 
 function parseNonNegativeInteger(value: unknown): number | undefined {
   return typeof value === "number" && Number.isInteger(value) && value >= 0 ? value : undefined;
 }
 
-function parseNonNegativeFiniteNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined;
+function parseBoolean(value: unknown): boolean | undefined {
+  return typeof value === "boolean" ? value : undefined;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

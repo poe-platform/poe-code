@@ -8,7 +8,6 @@ import { createCliContainer, type CliContainer, type CliDependencies } from "./c
 import { text } from "@poe-code/design-system";
 import { registerConfigureCommand } from "./commands/configure.js";
 import { registerAgentCommand } from "./commands/agent.js";
-import { registerAgentScriptCommand } from "./commands/agent-script-command.js";
 import { registerSpawnCommand } from "./commands/spawn.js";
 import { createPoeAgentSpawnHandler } from "./commands/spawn-poe-agent.js";
 import { registerWrapCommand } from "./commands/wrap.js";
@@ -69,8 +68,6 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["logout"] },
   { path: ["auth"] },
   { path: ["agent"] },
-  { path: ["agent-script", "lint"], args: "<path>" },
-  { path: ["agent-script", "run"], args: "<path>" },
   { path: ["spawn"] },
   { path: ["wrap"] },
   { path: ["test"] },
@@ -456,7 +453,6 @@ function bootstrapProgram(container: CliContainer): Command {
   registerInstallCommand(program, container);
   registerConfigureCommand(program, container);
   registerAgentCommand(program, container);
-  registerAgentScriptCommand(program, container);
   registerSpawnCommand(program, container, {
     handlers: { "poe-agent": createPoeAgentSpawnHandler() },
     extraServices: ["poe-agent"]

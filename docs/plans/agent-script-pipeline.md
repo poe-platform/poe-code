@@ -839,7 +839,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: file-format-frontmatter
@@ -853,8 +853,9 @@ tasks:
       with a clear error pointing at the line.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: file-format-fenced-block
     title: Extract first js/ajs fenced block from markdown body

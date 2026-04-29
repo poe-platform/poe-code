@@ -86,7 +86,12 @@ function cloneResponse(response: Response, body: string): Response {
   });
 }
 
-async function reservePort(hostname: string): Promise<number> {
+interface BoundLoopbackServerFactory {
+  createServer(): http.Server;
+  port: number;
+}
+
+async function createBoundLoopbackServerFactory(hostname: string): Promise<BoundLoopbackServerFactory> {
   const server = http.createServer();
 
   await new Promise<void>((resolve, reject) => {
@@ -106,43 +111,23 @@ async function reservePort(hostname: string): Promise<number> {
         resolve();
       });
     });
-    throw new Error("Expected temporary port reservation to bind to a TCP port");
+    throw new Error("Expected loopback test server to bind to a TCP port");
   }
 
-  const port = address.port;
-  await new Promise<void>((resolve, reject) => {
-    server.close((error) => {
-      if (error !== undefined) {
-        reject(error);
-        return;
-      }
-
-      resolve();
-    });
-  });
-  return port;
-}
-
-function createFixedPortServerFactory(port: number): () => http.Server {
-  return () => {
-    const server = http.createServer();
-    const originalListen = server.listen.bind(server);
-
-    server.listen = ((...args: unknown[]) => {
-      let callback: (() => void) | undefined;
-
-      for (let index = args.length - 1; index >= 0; index -= 1) {
-        const value = args[index];
-        if (typeof value === "function") {
-          callback = value as () => void;
-          break;
-        }
-      }
-
-      return originalListen(port, "127.0.0.1", callback);
-    }) as typeof server.listen;
+  server.listen = ((...args: Parameters<http.Server["listen"]>) => {
+    const callback = [...args].reverse().find((value) => typeof value === "function");
+    if (typeof callback === "function") {
+      queueMicrotask(() => callback());
+    }
 
     return server;
+  }) as typeof server.listen;
+
+  return {
+    createServer(): http.Server {
+      return server;
+    },
+    port: address.port,
   };
 }
 
@@ -557,10 +542,10 @@ describe("HttpTransport OAuth integration", () => {
   });
 
   it("skips DCR for a configured static client and still completes the PKCE flow", async () => {
-    const redirectPort = await reservePort("127.0.0.1");
-    const redirectUri = `http://127.0.0.1:${redirectPort}/callback`;
+    const loopbackServer = await createBoundLoopbackServerFactory("127.0.0.1");
+    const redirectUri = `http://127.0.0.1:${loopbackServer.port}/callback`;
     const harness = await createHarness({
-      createServer: createFixedPortServerFactory(redirectPort),
+      createServer: loopbackServer.createServer,
       oauthClient: {
         mode: "static",
         clientId: "static-client",

@@ -4,6 +4,7 @@ import { restore, type AgentScriptSnapshot } from "./restore.js";
 import { Budget } from "./interp/budget.js";
 import { createConsoleJsonGlobals, type ConsoleSink } from "./interp/globals/console-json.js";
 import { createMathGlobals, createSeededRandom } from "./interp/globals/math.js";
+import { createObjectArrayGlobals } from "./interp/globals/object-array.js";
 import { interpret, type InterpreterResult, type InterpreterValue } from "./interp/interpreter.js";
 
 export type RunOptions = {
@@ -37,6 +38,9 @@ export async function run(source: string, options: RunOptions = {}): Promise<Run
     }),
     ...createMathGlobals({
       random: random?.generator.next
+    }),
+    ...createObjectArrayGlobals({
+      budget
     }),
     ...options.bindings
   };

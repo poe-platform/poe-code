@@ -464,7 +464,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-globals-object-array
@@ -477,8 +477,9 @@ tasks:
       with `new` is already rejected by parser/lint).
     status:
       "impl ement": open
-      test: open
-      commit: open
+      test: done
+      commit: done
+      implement: done
 
   - id: interpreter-globals-error
     title: Built-in globals — Error, TypeError factories

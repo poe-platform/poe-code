@@ -1,4 +1,5 @@
 import { tokenize, type Position, type Token } from "./tokenizer.js";
+import { formatParseError } from "./format-error.js";
 
 export type SourceSpan = {
   start: Position;
@@ -374,8 +375,18 @@ const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
   "while"
 ]);
 
-export function parse(source: string): ParseResult {
-  return parseTokens(tokenize(source));
+export function parse(source: string, filename = "<input>"): ParseResult {
+  try {
+    return parseTokens(tokenize(source));
+  } catch (error) {
+    if (error instanceof DisallowedSyntaxError) {
+      throw error;
+    }
+    if (error instanceof Error) {
+      throw formatParseError(source, filename, error);
+    }
+    throw error;
+  }
 }
 
 function parseTokens(tokens: Token[]): ParseResult {

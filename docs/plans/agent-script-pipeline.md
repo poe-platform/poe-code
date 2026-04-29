@@ -146,7 +146,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: parser-error-format
@@ -159,8 +159,9 @@ tasks:
       offending column. Used by the parser's throw path.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: ast-node-ids
     title: Assign stable AST node IDs for snapshots

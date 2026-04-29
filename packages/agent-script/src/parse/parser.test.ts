@@ -2161,4 +2161,66 @@ describe("parse", () => {
     expect(() => parse("throw;")).toThrowError("Unexpected token ';'");
     expect(() => parse("throw\nerror;")).toThrowError("Illegal newline after throw");
   });
+
+  it("rethrows generic parser failures as structured parse diagnostics", () => {
+    try {
+      parse(["() => {", "  const alpha = 1;", "  const beta = );", "  const delta = 4;", "}"].join("\n"), "flow.agent.ts");
+      throw new Error("Expected parse to fail.");
+    } catch (error) {
+      expect(error).toMatchObject({
+        kind: "ParseError",
+        filename: "flow.agent.ts",
+        line: 3,
+        column: 16,
+        message: "Unexpected token ')' at line 3, column 16.",
+        excerpt: ["1 | () => {", "2 |   const alpha = 1;", "3 |   const beta = );", "4 |   const delta = 4;"].join("\n"),
+        caret: "  |                ^"
+      });
+    }
+  });
+
+  it("formats parser diagnostics at file boundaries and keeps tab-aligned carets", () => {
+    try {
+      parse(
+        [
+          "() => {",
+          "  step1();",
+          "  step2();",
+          "  step3();",
+          "  step4();",
+          "  step5();",
+          "  step6();",
+          "  step7();",
+          "  step8();",
+          "\t\tvalue = );",
+          "}"
+        ].join("\n"),
+        "flow.agent.ts"
+      );
+      throw new Error("Expected parse to fail.");
+    } catch (error) {
+      expect(error).toMatchObject({
+        kind: "ParseError",
+        filename: "flow.agent.ts",
+        line: 10,
+        column: 11,
+        excerpt: [" 8 |   step7();", " 9 |   step8();", "10 | \t\tvalue = );", "11 | }"].join("\n"),
+        caret: "   | \t\t        ^"
+      });
+    }
+
+    try {
+      parse("throw", "flow.agent.ts");
+      throw new Error("Expected parse to fail.");
+    } catch (error) {
+      expect(error).toMatchObject({
+        kind: "ParseError",
+        filename: "flow.agent.ts",
+        line: 1,
+        column: 6,
+        excerpt: "1 | throw",
+        caret: "  |      ^"
+      });
+    }
+  });
 });

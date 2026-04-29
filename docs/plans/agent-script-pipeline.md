@@ -971,7 +971,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: migrate-superintendent
@@ -985,8 +985,9 @@ tasks:
       in the script body, not the harness.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: migrate-experiment-loop
     title: Migrate @poe-code/experiment-loop to runHarness

@@ -469,6 +469,86 @@ describe("runLoop", () => {
     });
   });
 
+  it("continues the review exchange without starting another builder round when all tasks are done", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs, rawFs } = createFs({ [docPath]: createDocument({ withInspectors: false }) });
+
+    runBuilderMock.mockImplementationOnce(async () => {
+      const updated = (await rawFs.readFile(docPath, "utf8"))
+        .toString()
+        .replace("- [ ] Task 1", "- [x] Task 1")
+        .replace("- [ ] Task 2", "- [x] Task 2");
+      await rawFs.writeFile(docPath, updated, { encoding: "utf8" });
+
+      return {
+        summary: "Builder completed everything",
+        log: "All tasks are done"
+      };
+    });
+
+    runSuperintendentMock
+      .mockResolvedValueOnce({
+        summary: "Ready for owner",
+        transition: {
+          action: "request_review",
+          summary: "Ready for owner"
+        }
+      })
+      .mockImplementationOnce(async (_doc, context) => {
+        expect(context.owner).toEqual({
+          feedback: "Tighten the explanation"
+        });
+
+        return {
+          summary: "Updated for owner",
+          transition: {
+            action: "request_review",
+            summary: "Updated for owner"
+          }
+        };
+      });
+
+    runOwnerReviewMock
+      .mockResolvedValueOnce({
+        transition: {
+          action: "request_changes",
+          feedback: "Tighten the explanation"
+        }
+      })
+      .mockResolvedValueOnce({
+        transition: {
+          action: "approve_completion"
+        }
+      });
+
+    const result = await runLoop({
+      docPath,
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs,
+      runners
+    });
+
+    expect(result).toEqual({
+      state: "completed",
+      round: 1,
+      reviewTurn: 1,
+      maxRounds: 10,
+      maxReviewTurns: 5,
+      stopReason: "completed"
+    });
+    expect(runBuilderMock).toHaveBeenCalledTimes(1);
+    expect(runSuperintendentMock).toHaveBeenCalledTimes(2);
+    expect(runOwnerReviewMock).toHaveBeenCalledTimes(2);
+
+    const finalDoc = await readDoc(rawFs, docPath);
+    expect(finalDoc.frontmatter.status).toEqual({
+      state: "completed",
+      round: 1,
+      review_turn: 1
+    });
+  });
+
   it("fires the builder failure callback, restores the last valid document, and halts the round", async () => {
     const docPath = "/repo/docs/plans/feature.md";
     const original = createDocument({ withInspectors: false });

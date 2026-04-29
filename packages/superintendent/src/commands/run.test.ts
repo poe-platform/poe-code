@@ -945,6 +945,75 @@ describe("superintendent run command", () => {
     expect(errKind).toBeDefined();
   });
 
+  it("subscribes the dashboard to raw harness log entries", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDoc("codex")
+    });
+    const dashboardMock = createDashboardMock();
+    const runLoopMock = vi.fn(
+      async (options: {
+        callbacks?: {
+          onLogEntry?: (entry: {
+            ts: string;
+            type: "info" | "error" | "event";
+            args?: unknown[];
+            name?: string;
+            payload?: unknown;
+          }) => void;
+        };
+      }) => {
+        options.callbacks?.onLogEntry?.({
+          ts: "1970-01-01T00:00:00.000Z",
+          type: "info",
+          args: ["Harness note"]
+        });
+        options.callbacks?.onLogEntry?.({
+          ts: "1970-01-01T00:00:00.000Z",
+          type: "error",
+          args: ["Harness error"]
+        });
+
+        return {
+          state: "completed" as const,
+          round: 1,
+          reviewTurn: 0,
+          maxRounds: 100,
+          maxReviewTurns: 5,
+          stopReason: "completed" as const
+        };
+      }
+    );
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      assumeYes: true,
+      interactive: true,
+      useDashboard: true,
+      fs,
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: {}
+    });
+
+    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+      kind: "info",
+      text: `${expectedTimestamp} Harness note`,
+      ts: 0
+    });
+    expect(dashboardMock.appendOutput).toHaveBeenCalledWith({
+      kind: "error",
+      text: `${expectedTimestamp} Harness error`,
+      ts: 0
+    });
+  });
+
   it("routes poe-agent through shared ACP middleware and captures logs, usage, and tool calls", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDoc("poe-agent:openai/gpt-5.4")

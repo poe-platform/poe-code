@@ -151,6 +151,7 @@ export interface PipelineRunOptions {
   cwd: string;
   homeDir: string;
   logDir?: string;
+  reset?: boolean;
   model?: string;
   plan?: string;
   planDirectory?: string;

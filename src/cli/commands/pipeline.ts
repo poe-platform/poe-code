@@ -689,6 +689,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     )
     .option("--agent <name>", "Agent to run each pipeline step with")
     .option("--model <model>", "Model override passed to the agent")
+    .option("--reset", "Discard the existing snapshot before running")
     .option("--tui", "Show a live dashboard while the pipeline is running")
     .option("--no-tui", "Disable the live dashboard for this pipeline run")
     .option("--task <id>", "Run only the specified task")
@@ -701,6 +702,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       const options = this.opts<{
         agent?: string;
         model?: string;
+        reset?: boolean;
         tui?: boolean;
         task?: string;
         plan?: string;
@@ -781,6 +783,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             homeDir: container.env.homeDir,
             planDirectory: commandConfig.planDirectory,
             ...(options.model ? { model: options.model } : {}),
+            ...(options.reset === true ? { reset: true } : {}),
             ...(options.task ? { task: options.task } : {}),
             plan: planPath,
             ...(maxRuns != null ? { maxRuns } : {}),

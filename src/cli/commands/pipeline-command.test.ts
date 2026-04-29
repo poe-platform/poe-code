@@ -205,6 +205,7 @@ describe("pipeline run command", () => {
       "--yes",
       "pipeline",
       "run",
+      "--reset",
       "--plan",
       "custom-plan.yaml",
       "--task",
@@ -226,7 +227,8 @@ describe("pipeline run command", () => {
         task: "auth-hardening",
         agent: "codex",
         model: "gpt-5.2",
-        maxRuns: 3
+        maxRuns: 3,
+        reset: true
       })
     );
   });
@@ -1997,6 +1999,9 @@ describe("pipeline install command", () => {
     expect(pipelineSkillPlan).toContain("kind: pipeline");
     expect(pipelineSkillPlan).toContain("version: 1");
     expect(pipelineSkillPlan).toContain("```markdown");
+    expect(pipelineSkillPlan).toContain('import { spawn } from "agent";');
+    expect(pipelineSkillPlan).toContain('import { tasks, agents } from "harness";');
+    expect(pipelineSkillPlan).toContain('import { event } from "log";');
     expect(pipelineSkillPlan).toContain("# Context");
   });
 

@@ -954,7 +954,7 @@ tasks:
       example in the README.
     status:
       "impl ement": open
-      commit: open
+      commit: done
       implement: done
 
   - id: migrate-pipeline
@@ -970,8 +970,9 @@ tasks:
       from registered module names.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: migrate-superintendent
     title: Migrate @poe-code/superintendent to runHarness with TUI
@@ -1057,6 +1058,24 @@ tasks:
       test: open
       commit: open
 ---
+
+```js
+import { spawn } from "agent";
+import { tasks, agents } from "harness";
+import { event } from "log";
+
+await tasks.reduce(async (previous, task) => {
+  await previous;
+  event("task.started", { id: task.id, title: task.title });
+  event("task.completed", {
+    id: task.id,
+    title: task.title,
+    durationMs: (await spawn(agents.builder ?? "claude-code", {
+      prompt: `${task.id}: ${task.title}\n\n${task.prompt}`,
+    })).durationMs,
+  });
+}, (async () => {})());
+```
 
 # Context
 

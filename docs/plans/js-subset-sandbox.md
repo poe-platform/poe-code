@@ -301,19 +301,23 @@ import { spawn } from "agent";
 import { tasks, agents } from "harness";
 import { server } from "mcp";
 import { commit } from "git";
+import { event } from "log";
 
 const search = server({ command: "npx", args: ["-y", "@modelcontextprotocol/server-everything"] });
 
 await spawn(agents.builder, { prompt: "Install deps." });
 
-for (const t of tasks) {
+await tasks.reduce(async (previous, task) => {
+  await previous;
+  event("task.started", { id: task.id, title: task.title });
   await spawn(agents.builder, {
-    prompt: `${t.id}: ${t.title}\n\n${t.prompt}`,
-    mcp: { search },
+    prompt: `${task.id}: ${task.title}\n\n${task.prompt}`,
+    mcp: { search }
   });
-  await spawn(agents.reviewer, { prompt: `Review the changes for ${t.id}.` });
-  await commit({ message: `feat: ${t.id} — ${t.title}` });
-}
+  await spawn(agents.reviewer, { prompt: `Review the changes for ${task.id}.` });
+  await commit({ message: `feat: ${task.id} - ${task.title}` });
+  event("task.completed", { id: task.id, title: task.title });
+}, (async () => {})());
 \```
 ```
 
@@ -430,19 +434,23 @@ import { spawn } from "agent";
 import { tasks, agents } from "harness";
 import { server } from "mcp";
 import { commit } from "git";
+import { event } from "log";
 
 const search = server({ command: "npx", args: ["-y", "@modelcontextprotocol/server-everything"] });
 
 await spawn(agents.builder, { prompt: "Install deps and run migrations." });
 
-for (const t of tasks) {
+await tasks.reduce(async (previous, task) => {
+  await previous;
+  event("task.started", { id: task.id, title: task.title });
   await spawn(agents.builder, {
-    prompt: `${t.id}: ${t.title}\n\n${t.prompt}`,
-    mcp: { search },
+    prompt: `${task.id}: ${task.title}\n\n${task.prompt}`,
+    mcp: { search }
   });
-  await spawn(agents.reviewer, { prompt: `Review the changes for ${t.id}.` });
-  await commit({ message: `feat: ${t.id} — ${t.title}` });
-}
+  await spawn(agents.reviewer, { prompt: `Review the changes for ${task.id}.` });
+  await commit({ message: `feat: ${task.id} - ${task.title}` });
+  event("task.completed", { id: task.id, title: task.title });
+}, (async () => {})());
 ```
 
 ### 2.9 Example — superintendent (`superintendent.md`)

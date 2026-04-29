@@ -6,6 +6,7 @@ import type {
   SourceSpan
 } from "../parse.js";
 import type { Budget } from "./budget.js";
+import type { EvaluationResult } from "./exceptions.js";
 import type { Scope } from "./scope.js";
 import {
   createSandboxClosure,
@@ -28,16 +29,7 @@ export type AsyncInterpreterError = {
   span: SourceSpan;
 };
 
-export type AsyncEvaluationResult =
-  | {
-      kind: "normal" | "return";
-      hasValue: boolean;
-      value: SandboxValue;
-    }
-  | {
-      kind: "error";
-      error: AsyncInterpreterError;
-    };
+export type AsyncEvaluationResult = EvaluationResult<AsyncInterpreterError>;
 
 export type AsyncEvaluationContext = {
   budget: Budget;
@@ -94,7 +86,7 @@ export async function evaluateAwaitExpression(
   evaluateNode: EvaluateAsyncNode
 ): Promise<AsyncEvaluationResult> {
   const argument = await evaluateNode(node.argument, context);
-  if (argument.kind === "error") {
+  if (argument.kind !== "normal") {
     return argument;
   }
 
@@ -133,6 +125,10 @@ async function executeAsyncArrow(
 
   if (result.kind === "error") {
     throw result.error;
+  }
+
+  if (result.kind === "throw") {
+    throw result.value;
   }
 
   if (node.body.type === "BlockStatement") {

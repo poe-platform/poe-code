@@ -1,9 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { parse } from "../parse.js";
+import { parse, type ParseResult } from "../parse.js";
 import { Budget, SandboxError } from "./budget.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
+import { createErrorGlobals } from "./globals/error.js";
 import { createMathGlobals, createSeededRandom } from "./globals/math.js";
+import { createObjectArrayGlobals } from "./globals/object-array.js";
 import { interpret, Scope } from "./interpreter.js";
 import { createSandboxClosure, createSandboxPromise, isSandboxPromise } from "./values.js";
 
@@ -424,14 +426,18 @@ describe("interpret", () => {
     });
   });
 
-  it("throws RangeError for intercepted number methods with out-of-range arguments", async () => {
+  it("returns subset RangeError values for intercepted number methods with out-of-range arguments", async () => {
     await expect(
       interpret(parse("return value.toString(1)"), {
         bindings: {
           value: 10
         }
       })
-    ).rejects.toThrow(RangeError);
+    ).rejects.toMatchObject({
+      name: "RangeError",
+      message: "Number#toString radix must be between 2 and 36.",
+      stack: "RangeError: Number#toString radix must be between 2 and 36.\n    at toString (line 1, column 8)"
+    });
 
     await expect(
       interpret(parse("return value.toFixed(101)"), {
@@ -439,7 +445,11 @@ describe("interpret", () => {
           value: 10
         }
       })
-    ).rejects.toThrow(RangeError);
+    ).rejects.toMatchObject({
+      name: "RangeError",
+      message: "Number#toFixed digits must be between 0 and 100.",
+      stack: "RangeError: Number#toFixed digits must be between 0 and 100.\n    at toFixed (line 1, column 8)"
+    });
 
     await expect(
       interpret(parse("return value.toPrecision(0)"), {
@@ -447,7 +457,12 @@ describe("interpret", () => {
           value: 10
         }
       })
-    ).rejects.toThrow(RangeError);
+    ).rejects.toMatchObject({
+      name: "RangeError",
+      message: "Number#toPrecision precision must be between 1 and 100.",
+      stack:
+        "RangeError: Number#toPrecision precision must be between 1 and 100.\n    at toPrecision (line 1, column 8)"
+    });
   });
 
   it("re-enters callback closures under the same budget for intercepted array methods", async () => {
@@ -690,4 +705,284 @@ describe("interpret", () => {
       })
     ).rejects.toBe("boom");
   });
+
+  it("catches subset errors thrown from host closures", async () => {
+    const budget = new Budget();
+
+    await expect(
+      interpret(
+        parse(
+          "try { explode(); } catch ({ name, message, stack }) { return JSON.stringify(Array.of(name, message, stack)); }"
+        ),
+        {
+          bindings: {
+            ...createConsoleJsonGlobals({
+              budget
+            }),
+            ...createObjectArrayGlobals({
+              budget
+            }),
+            explode: createSandboxClosure({
+              call: () => {
+                throw new TypeError("boom");
+              },
+              name: "explode"
+            })
+          },
+          budget
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([
+        "TypeError",
+        "boom",
+        "TypeError: boom\n    at explode (line 1, column 7)"
+      ])
+    });
+  });
+
+  it("rejects uncaught host errors as subset sandbox values", async () => {
+    await expect(
+      interpret(parse("return explode()"), {
+        bindings: {
+          explode: createSandboxClosure({
+            call: () => {
+              throw new RangeError("boom");
+            },
+            name: "explode"
+          })
+        }
+      })
+    ).rejects.toMatchObject({
+      name: "RangeError",
+      message: "boom",
+      stack: "RangeError: boom\n    at explode (line 1, column 8)"
+    });
+  });
+
+  it("catches host promise rejections from sync closures as subset sandbox errors", async () => {
+    const budget = new Budget();
+
+    await expect(
+      interpret(
+        parse(
+          "try { explode(); } catch ({ name, message, stack }) { return JSON.stringify(Array.of(name, message, stack)); }"
+        ),
+        {
+          bindings: {
+            ...createConsoleJsonGlobals({
+              budget
+            }),
+            ...createObjectArrayGlobals({
+              budget
+            }),
+            explode: createSandboxClosure({
+              call: () => Promise.reject(new TypeError("boom")),
+              name: "explode"
+            })
+          },
+          budget
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([
+        "TypeError",
+        "boom",
+        "TypeError: boom\n    at explode (line 1, column 7)"
+      ])
+    });
+  });
+
+  it("runs finally before returning from try blocks", async () => {
+    const cleanup = vi.fn();
+
+    await expect(
+      interpret(parse("try { return answer; } finally { cleanup(); }"), {
+        bindings: {
+          answer: 42,
+          cleanup: createSandboxClosure({
+            call: () => {
+              cleanup();
+              return undefined;
+            },
+            name: "cleanup"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 42
+    });
+
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("runs finally before propagating throws and lets finally override prior exits", async () => {
+    const cleanup = vi.fn();
+
+    await expect(
+      interpret(parse("try { throw 'boom'; } finally { cleanup(); }"), {
+        bindings: {
+          cleanup: createSandboxClosure({
+            call: () => {
+              cleanup();
+              return undefined;
+            },
+            name: "cleanup"
+          })
+        }
+      })
+    ).rejects.toBe("boom");
+
+    expect(cleanup).toHaveBeenCalledTimes(1);
+
+    await expect(
+      interpret(parse("try { return 1; } finally { throw 'override'; }"))
+    ).rejects.toBe("override");
+  });
+
+  it("runs finally on break and continue completions", async () => {
+    const cleanup = vi.fn();
+    const cleanupClosure = createSandboxClosure({
+      call: () => {
+        cleanup();
+        return undefined;
+      },
+      name: "cleanup"
+    });
+
+    const breakProgram = {
+      type: "TryStatement",
+      block: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "BreakStatement",
+            span: span(1, 7, 12)
+          }
+        ],
+        span: span(1, 1, 14)
+      },
+      handler: undefined,
+      finalizer: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ExpressionStatement",
+            expression: {
+              type: "CallExpression",
+              callee: {
+                type: "Identifier",
+                name: "cleanup",
+                span: span(1, 25, 32)
+              },
+              arguments: [],
+              optional: false,
+              span: span(1, 25, 34)
+            },
+            span: span(1, 25, 35)
+          }
+        ],
+        span: span(1, 23, 37)
+      },
+      span: span(1, 1, 37)
+    } satisfies ParseResult;
+
+    const continueProgram = {
+      type: "TryStatement",
+      block: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ContinueStatement",
+            span: span(1, 7, 15)
+          }
+        ],
+        span: span(1, 1, 17)
+      },
+      handler: undefined,
+      finalizer: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ExpressionStatement",
+            expression: {
+              type: "CallExpression",
+              callee: {
+                type: "Identifier",
+                name: "cleanup",
+                span: span(1, 28, 35)
+              },
+              arguments: [],
+              optional: false,
+              span: span(1, 28, 37)
+            },
+            span: span(1, 28, 38)
+          }
+        ],
+        span: span(1, 26, 40)
+      },
+      span: span(1, 1, 40)
+    } satisfies ParseResult;
+
+    await expect(
+      interpret(breakProgram, {
+        bindings: {
+          cleanup: cleanupClosure
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true
+    });
+
+    await expect(
+      interpret(continueProgram, {
+        bindings: {
+          cleanup: cleanupClosure
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true
+    });
+
+    expect(cleanup).toHaveBeenCalledTimes(2);
+  });
+
+  it("binds catch parameters in a dedicated catch scope", async () => {
+    const budget = new Budget();
+
+    await expect(
+      interpret(
+        parse("try { throw Error('boom'); } catch ({ message }) { return message; }"),
+        {
+          bindings: {
+            ...createErrorGlobals({
+              budget
+            })
+          },
+          budget
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "boom"
+    });
+  });
 });
+
+function span(line: number, column: number, offset: number) {
+  return {
+    start: {
+      line,
+      column,
+      offset
+    },
+    end: {
+      line,
+      column,
+      offset
+    }
+  };
+}

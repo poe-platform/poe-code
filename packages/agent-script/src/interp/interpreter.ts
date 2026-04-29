@@ -4,16 +4,20 @@ import type {
   BlockStatement,
   BooleanLiteral,
   CallExpression,
+  ContinueStatement,
   Expression,
   Identifier,
   MemberExpression,
   NullLiteral,
   NumericLiteral,
   ParseResult,
+  BreakStatement,
   ReturnStatement,
   SourceSpan,
   SpreadElement,
   StringLiteral,
+  ThrowStatement,
+  TryStatement,
   UnaryExpression,
   UndefinedLiteral,
   ExpressionStatement
@@ -27,7 +31,14 @@ import {
   type AsyncEvaluationResult,
   type InterpreterYieldPoint
 } from "./async.js";
-import { Budget } from "./budget.js";
+import { Budget, SandboxError } from "./budget.js";
+import {
+  coerceThrownValue,
+  createCapturedException,
+  evaluateThrowStatement as evaluateThrowStatementResult,
+  evaluateTryStatement as evaluateTryStatementResult,
+  isCapturedException
+} from "./exceptions.js";
 import {
   callArrayMethod,
   getArrayMember,
@@ -107,7 +118,7 @@ type HelperResult<TValue> =
     }
   | {
       ok: false;
-      error: InterpreterError;
+      result: EvaluationResult;
     };
 
 type NodeHandler<TNode extends ParseResult> = (
@@ -125,13 +136,17 @@ const dispatchTable: DispatchTable = {
   BlockStatement: evaluateBlockStatement,
   BooleanLiteral: evaluatePrimitiveLiteral,
   CallExpression: evaluateCallExpression,
+  ContinueStatement: evaluateContinueStatement,
   ExpressionStatement: evaluateExpressionStatement,
   Identifier: evaluateIdentifier,
   MemberExpression: evaluateMemberExpression,
   NullLiteral: evaluatePrimitiveLiteral,
   NumericLiteral: evaluatePrimitiveLiteral,
+  BreakStatement: evaluateBreakStatement,
   ReturnStatement: evaluateReturnStatement,
   StringLiteral: evaluatePrimitiveLiteral,
+  ThrowStatement: evaluateThrowStatement,
+  TryStatement: evaluateTryStatement,
   UnaryExpression: evaluateUnaryExpression,
   UndefinedLiteral: evaluatePrimitiveLiteral
 };
@@ -161,6 +176,10 @@ export async function interpret(
       snapshot,
       stats
     };
+  }
+
+  if (evaluation.kind === "throw") {
+    throw evaluation.value;
   }
 
   if (evaluation.hasValue) {
@@ -196,7 +215,30 @@ async function evaluateNode(
     };
   }
 
-  return handler(node as never, context);
+  try {
+    return await handler(node as never, context);
+  } catch (error) {
+    if (error instanceof SandboxError) {
+      throw error;
+    }
+
+    if (isInterpreterError(error)) {
+      return {
+        kind: "error",
+        error
+      };
+    }
+
+    const exception = isCapturedException(error)
+      ? coerceThrownValue(error.reason, context.budget, error.stackFrames)
+      : coerceThrownValue(error, context.budget, context.callStack);
+
+    return {
+      kind: "throw",
+      hasValue: true,
+      value: exception
+    };
+  }
 }
 
 async function evaluatePrimitiveLiteral(
@@ -272,6 +314,28 @@ async function evaluateExpressionStatement(
   return evaluateNode(node.expression, context);
 }
 
+async function evaluateBreakStatement(
+  _node: BreakStatement,
+  _context: EvaluationContext
+): Promise<EvaluationResult> {
+  return {
+    kind: "break",
+    hasValue: false,
+    value: undefined
+  };
+}
+
+async function evaluateContinueStatement(
+  _node: ContinueStatement,
+  _context: EvaluationContext
+): Promise<EvaluationResult> {
+  return {
+    kind: "continue",
+    hasValue: false,
+    value: undefined
+  };
+}
+
 async function evaluateReturnStatement(
   node: ReturnStatement,
   context: EvaluationContext
@@ -285,7 +349,7 @@ async function evaluateReturnStatement(
   }
 
   const argument = await evaluateNode(node.argument, context);
-  if (argument.kind === "error") {
+  if (argument.kind !== "normal") {
     return argument;
   }
 
@@ -296,12 +360,26 @@ async function evaluateReturnStatement(
   };
 }
 
+async function evaluateThrowStatement(
+  node: ThrowStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  return evaluateThrowStatementResult(node, context, evaluateNode);
+}
+
+async function evaluateTryStatement(
+  node: TryStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  return evaluateTryStatementResult(node, context, evaluateNode);
+}
+
 async function evaluateUnaryExpression(
   node: UnaryExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   const argument = await evaluateNode(node.argument, context);
-  if (argument.kind === "error") {
+  if (argument.kind !== "normal") {
     return argument;
   }
 
@@ -323,6 +401,9 @@ async function evaluateMemberExpression(
   const member = await evaluateMemberAccess(node, context);
   if (member.kind === "error") {
     return member;
+  }
+  if (member.kind === "completion") {
+    return member.result;
   }
 
   if (member.kind === "nullish") {
@@ -386,7 +467,7 @@ async function evaluateCallExpression(
   }
 
   const callee = await evaluateNode(node.callee, context);
-  if (callee.kind === "error") {
+  if (callee.kind !== "normal") {
     return callee;
   }
 
@@ -420,6 +501,10 @@ async function evaluateMemberAccess(
       error: InterpreterError;
     }
   | {
+      kind: "completion";
+      result: EvaluationResult;
+    }
+  | {
       kind: "nullish";
     }
   | {
@@ -429,8 +514,11 @@ async function evaluateMemberAccess(
     }
 > {
   const object = await evaluateNode(node.object, context);
-  if (object.kind === "error") {
-    return object;
+  if (object.kind !== "normal") {
+    return {
+      kind: "completion",
+      result: object
+    };
   }
 
   if (object.value === null || object.value === undefined) {
@@ -443,10 +531,15 @@ async function evaluateMemberAccess(
     ? await evaluateMemberProperty(node.property, context)
     : { ok: true, value: getStaticPropertyName(node.property) };
   if (!property.ok) {
-    return {
-      kind: "error",
-      error: property.error
-    };
+    return property.result.kind === "error"
+      ? {
+          kind: "error",
+          error: property.result.error
+        }
+      : {
+          kind: "completion",
+          result: property.result
+        };
   }
 
   return {
@@ -461,10 +554,10 @@ async function evaluateMemberProperty(
   context: EvaluationContext
 ): Promise<HelperResult<string | number>> {
   const property = await evaluateNode(node, context);
-  if (property.kind === "error") {
+  if (property.kind !== "normal") {
     return {
       ok: false,
-      error: property.error
+      result: property
     };
   }
 
@@ -501,6 +594,9 @@ async function evaluateMemberCallExpression(
   const member = await evaluateMemberAccess(node.callee, context);
   if (member.kind === "error") {
     return member;
+  }
+  if (member.kind === "completion") {
+    return member.result;
   }
 
   if (member.kind === "nullish") {
@@ -564,10 +660,7 @@ async function evaluateStringMethodCall(
 
   const args = await evaluateCallArguments(node.arguments, context);
   if (!args.ok) {
-    return {
-      kind: "error",
-      error: args.error
-    };
+    return args.result;
   }
 
   const leaveCall = context.budget.enterCall();
@@ -578,6 +671,12 @@ async function evaluateStringMethodCall(
       hasValue: true,
       value: callStringMethod(target, methodName, args.value, context.budget)
     };
+  } catch (error) {
+    if (error instanceof SandboxError) {
+      throw error;
+    }
+
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
   } finally {
     leaveCall();
   }
@@ -591,10 +690,7 @@ async function evaluateArrayMethodCall(
 ): Promise<EvaluationResult> {
   const args = await evaluateCallArguments(node.arguments, context);
   if (!args.ok) {
-    return {
-      kind: "error",
-      error: args.error
-    };
+    return args.result;
   }
 
   const leaveCall = context.budget.enterCall();
@@ -611,6 +707,12 @@ async function evaluateArrayMethodCall(
         context.callStack
       )
     };
+  } catch (error) {
+    if (error instanceof SandboxError) {
+      throw error;
+    }
+
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
   } finally {
     leaveCall();
   }
@@ -680,10 +782,7 @@ async function evaluateResolvedCallExpression(
 
   const args = await evaluateCallArguments(node.arguments, context);
   if (!args.ok) {
-    return {
-      kind: "error",
-      error: args.error
-    };
+    return args.result;
   }
 
   return {
@@ -704,17 +803,22 @@ async function evaluateNumberMethodCall(
 ): Promise<EvaluationResult> {
   const args = await evaluateCallArguments(node.arguments, context);
   if (!args.ok) {
-    return {
-      kind: "error",
-      error: args.error
-    };
+    return args.result;
   }
 
-  return {
-    kind: "normal",
-    hasValue: true,
-    value: callNumberMethod(target, methodName, args.value, context.budget)
-  };
+  try {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: callNumberMethod(target, methodName, args.value, context.budget)
+    };
+  } catch (error) {
+    if (error instanceof SandboxError) {
+      throw error;
+    }
+
+    throw captureException(error, [...context.callStack, formatStackFrame(node, methodName)]);
+  }
 }
 
 function createArrayMethodOptions(context: EvaluationContext): ArrayMethodOptions {
@@ -741,7 +845,15 @@ async function invokeSandboxClosure(
       stack
     });
 
-    return callee.async === true ? normalizeClosureResult(result) : await resolveClosureResult(result);
+    return callee.async === true
+      ? normalizeClosureResult(wrapHostResult(result, stack))
+      : await resolveClosureResult(wrapHostResult(result, stack));
+  } catch (error) {
+    if (error instanceof SandboxError) {
+      throw error;
+    }
+
+    throw captureException(error, stack);
   } finally {
     leaveCall();
   }
@@ -765,10 +877,10 @@ async function evaluateCallArguments(
     }
 
     const result = await evaluateNode(arg, context);
-    if (result.kind === "error") {
+    if (result.kind !== "normal") {
       return {
         ok: false,
-        error: result.error
+        result
       };
     }
 
@@ -786,10 +898,10 @@ async function evaluateSpreadElement(
   context: EvaluationContext
 ): Promise<HelperResult<SandboxValue[]>> {
   const value = await evaluateNode(node.argument, context);
-  if (value.kind === "error") {
+  if (value.kind !== "normal") {
     return {
       ok: false,
-      error: value.error
+      result: value
     };
   }
 
@@ -801,4 +913,46 @@ async function evaluateSpreadElement(
     ok: true,
     value: value.value
   };
+}
+
+function isInterpreterError(value: unknown): value is InterpreterError {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "code" in value &&
+    "message" in value &&
+    "nodeType" in value &&
+    "span" in value &&
+    (((value as { code: unknown }).code === "UNBOUND_IDENTIFIER") ||
+      ((value as { code: unknown }).code === "UNSUPPORTED_NODE"))
+  );
+}
+
+function wrapHostResult(
+  result: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>,
+  stack: readonly string[]
+): InterpreterValue | Promise<InterpreterValue> {
+  if (!isPromiseLikeResult(result)) {
+    return result;
+  }
+
+  return Promise.resolve(result).then(
+    (value) => value,
+    (reason) =>
+      Promise.reject(
+        isInterpreterError(reason) || reason instanceof SandboxError || isCapturedException(reason)
+          ? reason
+          : createCapturedException(reason, stack)
+      )
+  );
+}
+
+function captureException(error: unknown, stack: readonly string[]) {
+  return isCapturedException(error) ? error : createCapturedException(error, stack);
+}
+
+function isPromiseLikeResult(
+  value: InterpreterValue | Promise<InterpreterValue> | PromiseLike<InterpreterValue>
+): value is PromiseLike<InterpreterValue> {
+  return typeof value === "object" && value !== null && "then" in value;
 }

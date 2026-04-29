@@ -564,7 +564,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-try-catch-throw
@@ -577,8 +577,9 @@ tasks:
       continue exits.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-cancellation
     title: AbortSignal-driven cancellation

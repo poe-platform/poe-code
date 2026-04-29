@@ -1,4 +1,5 @@
 import type { Budget } from "../budget.js";
+import { createSubsetErrorValue } from "../exceptions.js";
 import { createSandboxClosure, type SandboxObject, type SandboxValue } from "../values.js";
 
 export type ErrorGlobals = Record<"Error" | "TypeError", ReturnType<typeof createSandboxClosure>>;
@@ -22,13 +23,5 @@ function createSubsetError(
   stackFrames: readonly string[],
   budget: Budget
 ): SandboxObject {
-  const errorMessage = budget.allocateString(message === undefined ? "" : String(message));
-  const header = errorMessage === "" ? name : `${name}: ${errorMessage}`;
-  const stack = budget.allocateString([header, ...[...stackFrames].reverse()].join("\n"));
-
-  return {
-    name: budget.allocateString(name),
-    message: errorMessage,
-    stack
-  };
+  return createSubsetErrorValue(name, message, stackFrames, budget);
 }

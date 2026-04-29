@@ -81,6 +81,9 @@ importers:
       '@poe-code/agent-mcp-config':
         specifier: '*'
         version: link:packages/agent-mcp-config
+      '@poe-code/agent-script':
+        specifier: '*'
+        version: link:packages/agent-script
       '@poe-code/agent-skill-config':
         specifier: '*'
         version: link:packages/agent-skill-config
@@ -289,6 +292,8 @@ importers:
       yaml:
         specifier: ^2.8.3
         version: 2.8.3
+
+  packages/agent-script: {}
 
   packages/agent-skill-config:
     dependencies:

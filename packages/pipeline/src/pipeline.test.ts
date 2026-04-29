@@ -934,6 +934,124 @@ describe("resolvePlanPaths", () => {
     );
     expect(result).toEqual(["docs/plans/plan-alpha.md", "docs/plans/plan-beta.md"]);
   });
+
+  it("discovers pipeline plans in nested plan directories", async () => {
+    const selectPlans = vi.fn().mockResolvedValue(["docs/plans/archive/plan-demo.md"]);
+
+    const result = await resolvePlanPaths({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/docs/plans/archive/plan-demo.md": PIPELINE_MD_EMPTY
+      }),
+      selectPlans
+    });
+
+    expect(selectPlans).toHaveBeenCalledWith(
+      expect.objectContaining({
+        required: true,
+        options: [
+          {
+            label: "docs/plans/archive/plan-demo.md (0/0)",
+            value: "docs/plans/archive/plan-demo.md"
+          }
+        ]
+      })
+    );
+    expect(result).toEqual(["docs/plans/archive/plan-demo.md"]);
+  });
+
+  it("excludes completed discovered plans from the run selection", async () => {
+    const selectPlans = vi.fn().mockResolvedValue(["docs/plans/archive/open.md"]);
+
+    const result = await resolvePlanPaths({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/docs/plans/archive/done.md": [
+          "---",
+          "kind: pipeline",
+          "tasks:",
+          "  - id: done",
+          "    title: Done",
+          "    prompt: Already done",
+          "    status: done",
+          "---",
+          ""
+        ].join("\n"),
+        "/repo/docs/plans/archive/open.md": [
+          "---",
+          "kind: pipeline",
+          "tasks:",
+          "  - id: open",
+          "    title: Open",
+          "    prompt: Still open",
+          "    status: open",
+          "---",
+          ""
+        ].join("\n")
+      }),
+      selectPlans
+    });
+
+    expect(selectPlans).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [
+          {
+            label: "docs/plans/archive/open.md (0/1)",
+            value: "docs/plans/archive/open.md"
+          }
+        ]
+      })
+    );
+    expect(result).toEqual(["docs/plans/archive/open.md"]);
+  });
+
+  it("prompts for direct input when discovery finds no pipeline plans", async () => {
+    const promptForPath = vi.fn().mockResolvedValue("manual-plan.md");
+
+    const result = await resolvePlanPaths({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/docs/plans/notes.md": "kind: plan\n"
+      }),
+      promptForPath
+    });
+
+    expect(promptForPath).toHaveBeenCalledWith({
+      message: "Enter the pipeline plan path",
+      placeholder: "docs/plans/plan.md"
+    });
+    expect(result).toEqual(["manual-plan.md"]);
+  });
+
+  it("does not emit YAML warnings while skipping non-pipeline markdown files", async () => {
+    const emitWarning = vi.spyOn(process, "emitWarning").mockImplementation(() => true);
+    const selectPlans = vi.fn().mockResolvedValue(["docs/plans/archive/plan-demo.md"]);
+
+    try {
+      const result = await resolvePlanPaths({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/docs/plans/archive/notes.md": [
+            "# Notes",
+            "",
+            "**File**: `src/sdk/types.ts`",
+            ""
+          ].join("\n"),
+          "/repo/docs/plans/archive/plan-demo.md": PIPELINE_MD_EMPTY
+        }),
+        selectPlans
+      });
+
+      expect(result).toEqual(["docs/plans/archive/plan-demo.md"]);
+      expect(emitWarning).not.toHaveBeenCalled();
+    } finally {
+      emitWarning.mockRestore();
+    }
+  });
 });
 
 describe("resolvePlanDirectory", () => {

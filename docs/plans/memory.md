@@ -1,4 +1,5 @@
 ---
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/superintendent.schema.json
 kind: superintendent
 version: 1
 
@@ -58,7 +59,7 @@ max_rounds: 100
 
 status:
   state: in_progress
-  round: 37
+  round: 38
   review_turn: 0
 ---
 

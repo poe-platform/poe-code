@@ -35,7 +35,7 @@ function isMarkdownFile(name: string): boolean {
 function isPipelinePlan(content: string): boolean {
   let parsed: unknown;
   try {
-    parsed = parseYaml(getYamlContent(content));
+    parsed = parseYaml(getYamlContent(content), { logLevel: "silent" });
   } catch {
     return false;
   }
@@ -58,6 +58,10 @@ function countCompletedTasks(planPath: string, content: string): PlanCandidate {
     done,
     total
   };
+}
+
+function hasRunnableTasks(candidate: PlanCandidate): boolean {
+  return candidate.total === 0 || candidate.done < candidate.total;
 }
 
 async function ensurePlanExists(fs: DiscoveryFs, cwd: string, planPath: string): Promise<void> {
@@ -93,13 +97,15 @@ async function scanPlansDir(
 
   const candidates: PlanCandidate[] = [];
   for (const entry of entries) {
-    if (!isMarkdownFile(entry)) {
+    const absolutePath = path.join(plansDir, entry);
+    const stat = await fs.stat(absolutePath);
+
+    if (stat.isDirectory()) {
+      candidates.push(...await scanPlansDir(fs, absolutePath, path.join(displayPrefix, entry)));
       continue;
     }
 
-    const absolutePath = path.join(plansDir, entry);
-    const stat = await fs.stat(absolutePath);
-    if (!stat.isFile()) {
+    if (!stat.isFile() || !isMarkdownFile(entry)) {
       continue;
     }
 
@@ -121,7 +127,7 @@ async function listPlanCandidates(
   planDirectory?: string
 ): Promise<PlanCandidate[]> {
   const dir = planDirectory?.trim() || "docs/plans";
-  const candidates = await scanCustomPlanDir(fs, dir, cwd, homeDir);
+  const candidates = (await scanCustomPlanDir(fs, dir, cwd, homeDir)).filter(hasRunnableTasks);
   candidates.sort((left, right) => left.path.localeCompare(right.path));
   return candidates;
 }

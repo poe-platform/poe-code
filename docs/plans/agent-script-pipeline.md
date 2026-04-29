@@ -854,7 +854,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: file-format-fenced-block
@@ -867,8 +867,9 @@ tasks:
       diagnostic reporting against the original file.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: runHarness
     title: runHarness orchestrator (load, lint, run, snapshot)

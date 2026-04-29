@@ -327,7 +327,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as013-reserved-names
@@ -339,8 +339,9 @@ tasks:
       reserved names is taken from the registered module map.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as014-cyclic-import
     title: Lint AS014 — cyclic import detection

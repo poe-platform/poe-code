@@ -179,6 +179,45 @@ describe("@poe-code/agent-script public exports", () => {
     ]);
   });
 
+  it("includes top-level module shadowing diagnostics in lint results", () => {
+    const source = ["const agent = createAgent();", "const { git } = repo;"].join("\n");
+
+    expect(
+      lint(source, {
+        filename: "rule.js",
+        modules: {
+          agent: ["run"],
+          git: ["status"]
+        }
+      }).filter((diagnostic) => diagnostic.code === "AS013")
+    ).toEqual([
+      {
+        code: "AS013",
+        severity: "error",
+        message: "Top-level binding 'agent' shadows registered module 'agent'.",
+        filename: "rule.js",
+        line: 1,
+        column: 7,
+        span: {
+          start: { line: 1, column: 7, offset: source.indexOf("agent") },
+          end: { line: 1, column: 12, offset: source.indexOf("agent") + "agent".length }
+        }
+      },
+      {
+        code: "AS013",
+        severity: "error",
+        message: "Top-level binding 'git' shadows registered module 'git'.",
+        filename: "rule.js",
+        line: 2,
+        column: 9,
+        span: {
+          start: { line: 2, column: 9, offset: source.lastIndexOf("git") },
+          end: { line: 2, column: 12, offset: source.lastIndexOf("git") + "git".length }
+        }
+      }
+    ]);
+  });
+
   it("keeps linting when regex literals appear in unsupported method calls", () => {
     const source = [
       "const value = 'abba';",

@@ -1,0 +1,104 @@
+import {
+  parseModule,
+  type ArrayPattern,
+  type AssignmentPattern,
+  type Identifier,
+  type MemberExpression,
+  type Module,
+  type ObjectPattern,
+  type RestElement,
+  type SourceSpan,
+  type VariableDeclaration
+} from "../../parse/parser.js";
+import { normalizeModules, type Modules } from "./module-registry.js";
+
+export type Diagnostic = {
+  code: "AS013";
+  severity: "error";
+  message: string;
+  filename: string;
+  line: number;
+  column: number;
+  span: SourceSpan;
+};
+
+export function AS013(source: string, options: { filename?: string; modules?: Modules } = {}): Diagnostic[] {
+  const filename = options.filename ?? "<input>";
+  const reservedNames = new Set(normalizeModules(options.modules).keys());
+
+  if (reservedNames.size === 0) {
+    return [];
+  }
+
+  const diagnostics: Diagnostic[] = [];
+  const module = parseModule(source, filename);
+
+  for (const statement of module.body) {
+    if (statement.type !== "VariableDeclaration") {
+      continue;
+    }
+
+    collectShadowedBindings(statement, reservedNames, diagnostics, filename);
+  }
+
+  return diagnostics;
+}
+
+function collectShadowedBindings(
+  declaration: VariableDeclaration,
+  reservedNames: ReadonlySet<string>,
+  diagnostics: Diagnostic[],
+  filename: string
+): void {
+  for (const declarator of declaration.declarations) {
+    collectPatternDiagnostics(declarator.id, reservedNames, diagnostics, filename);
+  }
+}
+
+function collectPatternDiagnostics(
+  pattern: ArrayPattern | AssignmentPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
+  reservedNames: ReadonlySet<string>,
+  diagnostics: Diagnostic[],
+  filename: string
+): void {
+  switch (pattern.type) {
+    case "Identifier":
+      if (reservedNames.has(pattern.name)) {
+        diagnostics.push({
+          code: "AS013",
+          severity: "error",
+          message: `Top-level binding '${pattern.name}' shadows registered module '${pattern.name}'.`,
+          filename,
+          line: pattern.span.start.line,
+          column: pattern.span.start.column,
+          span: pattern.span
+        });
+      }
+      return;
+    case "AssignmentPattern":
+      collectPatternDiagnostics(pattern.left, reservedNames, diagnostics, filename);
+      return;
+    case "RestElement":
+      collectPatternDiagnostics(pattern.argument, reservedNames, diagnostics, filename);
+      return;
+    case "ArrayPattern":
+      for (const element of pattern.elements) {
+        if (element !== null) {
+          collectPatternDiagnostics(element, reservedNames, diagnostics, filename);
+        }
+      }
+      return;
+    case "ObjectPattern":
+      for (const property of pattern.properties) {
+        collectPatternDiagnostics(
+          property.type === "RestElement" ? property : property.value,
+          reservedNames,
+          diagnostics,
+          filename
+        );
+      }
+      return;
+    case "MemberExpression":
+      return;
+  }
+}

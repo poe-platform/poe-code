@@ -218,7 +218,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as003-unknown-identifier
@@ -231,8 +231,9 @@ tasks:
       match.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as004-005-modules
     title: Lint AS004/AS005 — unknown module and unknown export

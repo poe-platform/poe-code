@@ -550,7 +550,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-promise-builtins
@@ -563,8 +563,9 @@ tasks:
       finally chaining; the subset is await-only.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-try-catch-throw
     title: Runtime try/catch/finally and throw

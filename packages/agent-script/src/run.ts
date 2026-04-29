@@ -7,6 +7,7 @@ import { createErrorGlobals } from "./interp/globals/error.js";
 import { createMathGlobals, createSeededRandom } from "./interp/globals/math.js";
 import { createObjectArrayGlobals } from "./interp/globals/object-array.js";
 import { interpret, type InterpreterResult, type InterpreterValue } from "./interp/interpreter.js";
+import { createPromiseGlobals } from "./interp/promise.js";
 
 export type RunOptions = {
   bindings?: Record<string, InterpreterValue>;
@@ -44,6 +45,9 @@ export async function run(source: string, options: RunOptions = {}): Promise<Run
       random: random?.generator.next
     }),
     ...createObjectArrayGlobals({
+      budget
+    }),
+    ...createPromiseGlobals({
       budget
     }),
     ...options.bindings

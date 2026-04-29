@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { dump } from "./dump.js";
+import { Budget, SandboxError } from "./interp/budget.js";
 import { createSandboxClosure } from "./interp/values.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
@@ -58,6 +59,69 @@ describe("run", () => {
       42.5,
       false
     ]);
+  });
+
+  it("registers subset Promise helpers by default", async () => {
+    const result = await run(`return JSON.stringify(Array.of(
+      await Promise.resolve('ready'),
+      await Promise.all(Array.of(Promise.resolve(1), 2)),
+      await Promise.race(Array.of(Promise.resolve('first'))),
+      await Promise.allSettled(Array.of(Promise.resolve('ok'), Promise.reject('no'))),
+      await Promise.any(Array.of(Promise.reject('left'), Promise.resolve('right')))
+    ))`);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(JSON.parse(result.returnValue as string)).toEqual([
+      "ready",
+      [1, 2],
+      "first",
+      [
+        {
+          status: "fulfilled",
+          value: "ok"
+        },
+        {
+          reason: "no",
+          status: "rejected"
+        }
+      ],
+      "right"
+    ]);
+  });
+
+  it("supports empty Promise iterables and enforces budgets through run()", async () => {
+    const emptyResult = await run(`return JSON.stringify(Array.of(
+      await Promise.all(Array.of()),
+      await Promise.allSettled(Array.of())
+    ))`);
+
+    expect(emptyResult.ok).toBe(true);
+    if (!emptyResult.ok) {
+      return;
+    }
+
+    expect(JSON.parse(emptyResult.returnValue as string)).toEqual([[], []]);
+
+    await expect(
+      run("return await Promise.resolve(value)", {
+        bindings: {
+          value: "ready"
+        },
+        budget: new Budget({
+          stringLength: 4
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        budget: "stringLength",
+        current: 5,
+        limit: 4
+      } satisfies Partial<SandboxError>)
+    );
   });
 
   it("registers Error globals by default", async () => {

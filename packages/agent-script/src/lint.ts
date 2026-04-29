@@ -5,6 +5,7 @@ import { AS004, type Diagnostic as AS004Diagnostic } from "./lint/rules/AS004.js
 import { AS005, type Diagnostic as AS005Diagnostic } from "./lint/rules/AS005.js";
 import { AS006_007, type Diagnostic as AS006007Diagnostic } from "./lint/rules/AS006-007.js";
 import { AS008, type Diagnostic as AS008Diagnostic } from "./lint/rules/AS008.js";
+import { AS009, type Diagnostic as AS009Diagnostic } from "./lint/rules/AS009.js";
 import type { Modules } from "./lint/rules/module-registry.js";
 
 export type Diagnostic =
@@ -14,7 +15,8 @@ export type Diagnostic =
   | AS004Diagnostic
   | AS005Diagnostic
   | AS006007Diagnostic
-  | AS008Diagnostic;
+  | AS008Diagnostic
+  | AS009Diagnostic;
 
 export function lint(source: string, options: { filename?: string; modules?: Modules } = {}): Diagnostic[] {
   return [
@@ -24,7 +26,8 @@ export function lint(source: string, options: { filename?: string; modules?: Mod
     ...AS004(source, options),
     ...AS005(source, options),
     ...AS006_007(source, options),
-    ...AS008(source, options)
+    ...AS008(source, options),
+    ...AS009(source, options)
   ].sort(compareDiagnostics);
 }
 

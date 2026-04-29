@@ -280,4 +280,31 @@ describe("@poe-code/agent-script public exports", () => {
       }
     ]);
   });
+
+  it("includes async host promise return diagnostics in lint results", () => {
+    const source = ['import { spawn } from "agent";', "const run = async () => spawn();", "run;"].join("\n");
+
+    expect(
+      lint(source, {
+        filename: "rule.js",
+        modules: {
+          agent: ["spawn"]
+        }
+      })
+    ).toEqual([
+      {
+        code: "AS009",
+        severity: "error",
+        message:
+          "Async arrow returns a host call without awaiting it. Add 'await' or document that this function intentionally returns a Promise.",
+        filename: "rule.js",
+        line: 2,
+        column: 25,
+        span: {
+          start: { line: 2, column: 25, offset: source.indexOf("spawn()") },
+          end: { line: 2, column: 32, offset: source.indexOf("spawn()") + "spawn()".length }
+        }
+      }
+    ]);
+  });
 });

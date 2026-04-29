@@ -273,7 +273,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as009-async-no-await
@@ -285,8 +285,9 @@ tasks:
       adding `await` or documenting an explicit Promise return.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as010-unread-let
     title: Lint AS010 — top-level let with unread host result (warning)

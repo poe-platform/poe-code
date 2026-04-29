@@ -14,7 +14,7 @@ tasks:
       it into the workspace package list and the build pipeline.
     status:
       "impl ement": open
-      commit: open
+      commit: done
       implement: done
 
   - id: parser-tokenizer
@@ -30,8 +30,9 @@ tasks:
       with each token. Reject regex literals and BigInt suffix.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: parser-literals-identifiers
     title: Parse literals, identifiers, template strings

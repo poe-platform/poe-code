@@ -4,6 +4,7 @@ export { run } from "./run.js";
 export { dump } from "./dump.js";
 export { restore } from "./restore.js";
 export { formatInterpreterError, type InterpreterDiagnostic } from "./error/format.js";
+export { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
 export { runHarness } from "./runner/run-harness.js";
 export { extractBlock } from "./loader/extract-block.js";
 export { splitFrontmatter } from "./loader/frontmatter.js";

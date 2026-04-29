@@ -941,7 +941,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: package-deep-copy-helpers
@@ -955,6 +955,7 @@ tasks:
     status:
       "impl ement": open
       commit: open
+      implement: done
 
   - id: migrate-pipeline
     title: Migrate @poe-code/pipeline to runHarness

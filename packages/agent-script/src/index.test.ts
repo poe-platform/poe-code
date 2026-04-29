@@ -5,6 +5,7 @@ import { dump } from "./dump.js";
 import { extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
 import { formatInterpreterError } from "./error/format.js";
+import { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
 import { lint } from "./lint.js";
 import { lint as lintFromIndex } from "./lint/index.js";
 import { makeAgentModule } from "./modules/agent.js";
@@ -34,6 +35,8 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.extractBlock).toBe(extractBlock);
     expect(api.splitFrontmatter).toBe(splitFrontmatter);
     expect(api.formatInterpreterError).toBe(formatInterpreterError);
+    expect(api.deepCopyToSandbox).toBe(deepCopyToSandbox);
+    expect(api.deepCopyFromSandbox).toBe(deepCopyFromSandbox);
     expect(api.makeAgentModule).toBe(makeAgentModule);
     expect(api.makeEnvModule).toBe(makeEnvModule);
     expect(api.makeFailModule).toBe(makeFailModule);
@@ -44,6 +47,8 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.makeMcpModule).toBe(makeMcpModule);
     expect(api.makeTimeModule).toBe(makeTimeModule);
     expect(Object.keys(api).sort()).toEqual([
+      "deepCopyFromSandbox",
+      "deepCopyToSandbox",
       "dump",
       "extractBlock",
       "formatInterpreterError",

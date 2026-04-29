@@ -340,7 +340,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as014-cyclic-import
@@ -353,8 +353,9 @@ tasks:
       multi-file support.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as015-promise-race-single
     title: Lint AS015 — Promise.race with a single argument (warning)

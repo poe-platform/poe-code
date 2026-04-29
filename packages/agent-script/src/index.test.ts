@@ -218,6 +218,42 @@ describe("@poe-code/agent-script public exports", () => {
     ]);
   });
 
+  it("includes cyclic import diagnostics for source-backed modules", () => {
+    const alphaSource = ['import { run } from "beta";', "const start = () => run();"].join("\n");
+    const betaSource = ['import { start } from "alpha";', "const run = () => start();"].join("\n");
+
+    expect(
+      lint(alphaSource, {
+        filename: "/agents/alpha.ajs",
+        modules: {
+          alpha: {
+            exports: ["start"],
+            filename: "/agents/alpha.ajs",
+            source: alphaSource
+          },
+          beta: {
+            exports: ["run"],
+            filename: "/agents/beta.ajs",
+            source: betaSource
+          }
+        }
+      }).filter((diagnostic) => diagnostic.code === "AS014")
+    ).toEqual([
+      {
+        code: "AS014",
+        severity: "error",
+        message: "Import from 'beta' participates in a cyclic dependency: alpha -> beta -> alpha.",
+        filename: "/agents/alpha.ajs",
+        line: 1,
+        column: 21,
+        span: {
+          start: { line: 1, column: 21, offset: alphaSource.indexOf('"beta"') },
+          end: { line: 1, column: 27, offset: alphaSource.indexOf('"beta"') + '"beta"'.length }
+        }
+      }
+    ]);
+  });
+
   it("keeps linting when regex literals appear in unsupported method calls", () => {
     const source = [
       "const value = 'abba';",

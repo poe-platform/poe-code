@@ -1,6 +1,27 @@
 import { parseModule, type ImportDeclaration } from "../../parse/parser.js";
 
-export type Modules = ReadonlyMap<string, readonly string[]> | Record<string, readonly string[]>;
+export type ModuleRegistration =
+  | readonly string[]
+  | {
+      exports?: readonly string[];
+      filename?: string;
+      source?: string;
+    };
+
+export type Modules = ReadonlyMap<string, ModuleRegistration> | Record<string, ModuleRegistration>;
+
+export type NormalizedModuleRegistration = {
+  exports: string[];
+  filename?: string;
+  source?: string;
+};
+
+export type AgentScriptSourceModule = {
+  moduleName: string;
+  exports: readonly string[];
+  filename: string;
+  source: string;
+};
 
 export function collectImportDeclarations(source: string, filename: string): ImportDeclaration[] {
   const module = parseModule(source, filename);
@@ -28,18 +49,59 @@ export function createUnknownExportMessage(
 }
 
 export function normalizeModules(modules: Modules | undefined): Map<string, string[]> {
+  return new Map(
+    [...normalizeModuleRegistrations(modules).entries()].map(([moduleName, registration]) => [moduleName, registration.exports])
+  );
+}
+
+export function normalizeModuleRegistrations(modules: Modules | undefined): Map<string, NormalizedModuleRegistration> {
   if (modules === undefined) {
     return new Map();
   }
 
   const entries = modules instanceof Map ? [...modules.entries()] : Object.entries(modules);
-  const normalized = new Map<string, string[]>();
+  const normalized = new Map<string, NormalizedModuleRegistration>();
 
-  for (const [moduleName, exportedNames] of entries) {
-    normalized.set(moduleName, dedupeAndSort(exportedNames));
+  for (const [moduleName, registration] of entries) {
+    normalized.set(moduleName, normalizeModuleRegistration(registration));
   }
 
   return normalized;
+}
+
+export function collectAgentScriptSourceModules(modules: Modules | undefined): Map<string, AgentScriptSourceModule> {
+  return new Map(
+    [...normalizeModuleRegistrations(modules).entries()].flatMap(([moduleName, registration]) =>
+      registration.filename !== undefined && registration.source !== undefined
+        ? [
+            {
+              moduleName,
+              exports: registration.exports,
+              filename: registration.filename,
+              source: registration.source
+            } satisfies AgentScriptSourceModule
+          ].map((sourceModule) => [moduleName, sourceModule] as const)
+        : []
+    )
+  );
+}
+
+function normalizeModuleRegistration(registration: ModuleRegistration): NormalizedModuleRegistration {
+  if (isExportList(registration)) {
+    return {
+      exports: dedupeAndSort(registration)
+    };
+  }
+
+  return {
+    exports: dedupeAndSort(registration.exports ?? []),
+    filename: registration.filename,
+    source: registration.source
+  };
+}
+
+function isExportList(registration: ModuleRegistration): registration is readonly string[] {
+  return Array.isArray(registration);
 }
 
 function dedupeAndSort(exportedNames: readonly string[]): string[] {

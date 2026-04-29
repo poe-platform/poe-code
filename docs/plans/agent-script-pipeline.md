@@ -380,7 +380,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-scaffold
@@ -393,8 +393,9 @@ tasks:
       calls yet — implement literal evaluation and identifier lookup.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-value-model
     title: Sandbox value space (no host references leak in)

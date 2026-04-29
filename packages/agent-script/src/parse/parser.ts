@@ -83,17 +83,106 @@ export type ObjectExpression = BaseNode & {
   properties: Array<Property | SpreadElement>;
 };
 
+export type UnaryOperator = "!" | "+" | "-" | "~";
+
+export type UnaryExpression = BaseNode & {
+  type: "UnaryExpression";
+  operator: UnaryOperator;
+  prefix: true;
+  argument: Expression;
+};
+
+export type BinaryOperator =
+  | "!="
+  | "!=="
+  | "%"
+  | "&"
+  | "*"
+  | "**"
+  | "+"
+  | "-"
+  | "/"
+  | "<"
+  | "<<"
+  | "<="
+  | "=="
+  | "==="
+  | ">"
+  | ">="
+  | ">>"
+  | ">>>"
+  | "in"
+  | "^"
+  | "|";
+
+export type BinaryExpression = BaseNode & {
+  type: "BinaryExpression";
+  operator: BinaryOperator;
+  left: Expression;
+  right: Expression;
+};
+
+export type LogicalOperator = "&&" | "??" | "||";
+
+export type LogicalExpression = BaseNode & {
+  type: "LogicalExpression";
+  operator: LogicalOperator;
+  left: Expression;
+  right: Expression;
+};
+
+export type ConditionalExpression = BaseNode & {
+  type: "ConditionalExpression";
+  test: Expression;
+  consequent: Expression;
+  alternate: Expression;
+};
+
+export type MemberExpression = BaseNode & {
+  type: "MemberExpression";
+  computed: boolean;
+  object: Expression;
+  optional: boolean;
+  property: Expression;
+};
+
+export type CallExpression = BaseNode & {
+  type: "CallExpression";
+  arguments: Array<Expression | SpreadElement>;
+  callee: Expression;
+  optional: boolean;
+};
+
 export type Expression =
   | ArrayExpression
+  | BinaryExpression
   | BooleanLiteral
+  | CallExpression
+  | ConditionalExpression
   | Identifier
+  | LogicalExpression
+  | MemberExpression
   | NullLiteral
   | NumericLiteral
   | ObjectExpression
-  | SpreadElement
   | StringLiteral
   | TemplateLiteral
+  | UnaryExpression
   | UndefinedLiteral;
+
+type ParsedExpression = {
+  node: Expression;
+  parenthesized: boolean;
+};
+
+const EQUALITY_OPERATORS = new Set<BinaryOperator>(["==", "!=", "===", "!=="]);
+const RELATIONAL_OPERATORS = new Set<BinaryOperator>(["<", "<=", ">", ">=", "in"]);
+const SHIFT_OPERATORS = new Set<BinaryOperator>(["<<", ">>", ">>>"]);
+const ADDITIVE_OPERATORS = new Set<BinaryOperator>(["+", "-"]);
+const MULTIPLICATIVE_OPERATORS = new Set<BinaryOperator>(["*", "/", "%"]);
+const BITWISE_OR_OPERATORS = new Set<BinaryOperator>(["|"]);
+const BITWISE_XOR_OPERATORS = new Set<BinaryOperator>(["^"]);
+const BITWISE_AND_OPERATORS = new Set<BinaryOperator>(["&"]);
 
 export function parse(source: string): Expression {
   return new Parser(tokenize(source)).parse();
@@ -105,7 +194,7 @@ class Parser {
   constructor(private readonly tokens: Token[]) {}
 
   parse(): Expression {
-    const expression = this.parseExpression();
+    const expression = this.parseExpression().node;
     while (this.consumePunctuator(";") !== undefined) {
       continue;
     }
@@ -113,40 +202,332 @@ class Parser {
     return expression;
   }
 
-  private parseExpression(): Expression {
+  private parseExpression(): ParsedExpression {
+    return this.parseConditionalExpression();
+  }
+
+  private parseConditionalExpression(): ParsedExpression {
+    const test = this.parseCoalesceExpression();
+    if (this.consumePunctuator("?") === undefined) {
+      return test;
+    }
+
+    const consequent = this.parseExpression();
+    this.expectPunctuator(":");
+    const alternate = this.parseConditionalExpression();
+    return {
+      node: {
+        type: "ConditionalExpression",
+        test: test.node,
+        consequent: consequent.node,
+        alternate: alternate.node,
+        span: createSpan(test.node.span.start, alternate.node.span.end)
+      },
+      parenthesized: false
+    };
+  }
+
+  private parseCoalesceExpression(): ParsedExpression {
+    let left = this.parseLogicalOrExpression();
+
+    while (this.consumePunctuator("??") !== undefined) {
+      this.assertNullishOperand(left);
+      const right = this.parseLogicalOrExpression();
+      this.assertNullishOperand(right);
+      left = {
+        node: {
+          type: "LogicalExpression",
+          operator: "??",
+          left: left.node,
+          right: right.node,
+          span: createSpan(left.node.span.start, right.node.span.end)
+        },
+        parenthesized: false
+      };
+    }
+
+    return left;
+  }
+
+  private parseLogicalOrExpression(): ParsedExpression {
+    return this.parseLogicalExpression(
+      () => this.parseLogicalAndExpression(),
+      "||"
+    );
+  }
+
+  private parseLogicalAndExpression(): ParsedExpression {
+    return this.parseLogicalExpression(
+      () => this.parseBitwiseOrExpression(),
+      "&&"
+    );
+  }
+
+  private parseBitwiseOrExpression(): ParsedExpression {
+    return this.parseBinaryExpression(
+      () => this.parseBitwiseXorExpression(),
+      BITWISE_OR_OPERATORS
+    );
+  }
+
+  private parseBitwiseXorExpression(): ParsedExpression {
+    return this.parseBinaryExpression(
+      () => this.parseBitwiseAndExpression(),
+      BITWISE_XOR_OPERATORS
+    );
+  }
+
+  private parseBitwiseAndExpression(): ParsedExpression {
+    return this.parseBinaryExpression(
+      () => this.parseEqualityExpression(),
+      BITWISE_AND_OPERATORS
+    );
+  }
+
+  private parseEqualityExpression(): ParsedExpression {
+    return this.parseBinaryExpression(
+      () => this.parseRelationalExpression(),
+      EQUALITY_OPERATORS
+    );
+  }
+
+  private parseRelationalExpression(): ParsedExpression {
+    return this.parseBinaryExpression(
+      () => this.parseShiftExpression(),
+      RELATIONAL_OPERATORS
+    );
+  }
+
+  private parseShiftExpression(): ParsedExpression {
+    return this.parseBinaryExpression(
+      () => this.parseAdditiveExpression(),
+      SHIFT_OPERATORS
+    );
+  }
+
+  private parseAdditiveExpression(): ParsedExpression {
+    return this.parseBinaryExpression(
+      () => this.parseMultiplicativeExpression(),
+      ADDITIVE_OPERATORS
+    );
+  }
+
+  private parseMultiplicativeExpression(): ParsedExpression {
+    return this.parseBinaryExpression(
+      () => this.parseExponentiationExpression(),
+      MULTIPLICATIVE_OPERATORS
+    );
+  }
+
+  private parseExponentiationExpression(): ParsedExpression {
+    const left = this.parseUnaryExpression();
+
+    if (this.consumePunctuator("**") === undefined) {
+      return left;
+    }
+
+    if (!left.parenthesized && left.node.type === "UnaryExpression") {
+      const operator = this.previousToken();
+      throw new Error(
+        `Unary expressions cannot be used as the left-hand side of '**' without parentheses at line ${operator.start.line}, column ${operator.start.column}.`
+      );
+    }
+
+    const right = this.parseExponentiationExpression();
+    return {
+      node: {
+        type: "BinaryExpression",
+        operator: "**",
+        left: left.node,
+        right: right.node,
+        span: createSpan(left.node.span.start, right.node.span.end)
+      },
+      parenthesized: false
+    };
+  }
+
+  private parseUnaryExpression(): ParsedExpression {
+    const token = this.currentToken();
+    if (
+      token.type === "punctuator" &&
+      (token.value === "!" || token.value === "+" || token.value === "-" || token.value === "~")
+    ) {
+      this.index += 1;
+      const argument = this.parseUnaryExpression();
+      return {
+        node: {
+          type: "UnaryExpression",
+          operator: token.value as UnaryOperator,
+          prefix: true,
+          argument: argument.node,
+          span: createSpan(token.start, argument.node.span.end)
+        },
+        parenthesized: false
+      };
+    }
+
+    return this.parseLeftHandSideExpression();
+  }
+
+  private parseLeftHandSideExpression(): ParsedExpression {
+    let expression = this.parsePrimaryExpression();
+
+    while (true) {
+      const optionalChain = this.consumePunctuator("?.");
+      if (optionalChain !== undefined) {
+        if (this.consumePunctuator("(") !== undefined) {
+          expression = {
+            node: this.createCallExpression(expression.node, true),
+            parenthesized: false
+          };
+          continue;
+        }
+
+        if (this.consumePunctuator("[") !== undefined) {
+          const property = this.parseExpression();
+          const end = this.expectPunctuator("]");
+          expression = {
+            node: {
+              type: "MemberExpression",
+              computed: true,
+              object: expression.node,
+              optional: true,
+              property: property.node,
+              span: createSpan(expression.node.span.start, end.end)
+            },
+            parenthesized: false
+          };
+          continue;
+        }
+
+        const property = this.parseIdentifierName();
+        expression = {
+          node: {
+            type: "MemberExpression",
+            computed: false,
+            object: expression.node,
+            optional: true,
+            property,
+            span: createSpan(expression.node.span.start, property.span.end)
+          },
+          parenthesized: false
+        };
+        continue;
+      }
+
+      if (this.consumePunctuator(".") !== undefined) {
+        const property = this.parseIdentifierName();
+        expression = {
+          node: {
+            type: "MemberExpression",
+            computed: false,
+            object: expression.node,
+            optional: false,
+            property,
+            span: createSpan(expression.node.span.start, property.span.end)
+          },
+          parenthesized: false
+        };
+        continue;
+      }
+
+      if (this.consumePunctuator("[") !== undefined) {
+        const property = this.parseExpression();
+        const end = this.expectPunctuator("]");
+        expression = {
+          node: {
+            type: "MemberExpression",
+            computed: true,
+            object: expression.node,
+            optional: false,
+            property: property.node,
+            span: createSpan(expression.node.span.start, end.end)
+          },
+          parenthesized: false
+        };
+        continue;
+      }
+
+      if (this.consumePunctuator("(") !== undefined) {
+        expression = {
+          node: this.createCallExpression(expression.node, false),
+          parenthesized: false
+        };
+        continue;
+      }
+
+      break;
+    }
+
+    return expression;
+  }
+
+  private parsePrimaryExpression(): ParsedExpression {
     const token = this.currentToken();
 
     if (token.type === "identifier") {
       this.index += 1;
-      return createIdentifier(token);
+      return {
+        node: createIdentifier(token),
+        parenthesized: false
+      };
     }
 
     if (token.type === "numeric") {
       this.index += 1;
-      return createNumericLiteral(token);
+      return {
+        node: createNumericLiteral(token),
+        parenthesized: false
+      };
     }
 
     if (token.type === "string") {
       this.index += 1;
-      return createStringLiteral(token);
+      return {
+        node: createStringLiteral(token),
+        parenthesized: false
+      };
     }
 
     if (token.type === "template") {
       this.index += 1;
-      return createTemplateLiteral(token);
+      return {
+        node: createTemplateLiteral(token),
+        parenthesized: false
+      };
     }
 
     if (token.type === "keyword") {
       this.index += 1;
-      return createKeywordLiteral(token);
+      return {
+        node: createKeywordLiteral(token),
+        parenthesized: false
+      };
+    }
+
+    if (token.type === "punctuator" && token.value === "(") {
+      const start = this.expectPunctuator("(");
+      const expression = this.parseExpression();
+      const end = this.expectPunctuator(")");
+      expression.node.span = createSpan(start.start, end.end);
+      return {
+        node: expression.node,
+        parenthesized: true
+      };
     }
 
     if (token.type === "punctuator" && token.value === "[") {
-      return this.parseArrayExpression();
+      return {
+        node: this.parseArrayExpression(),
+        parenthesized: false
+      };
     }
 
     if (token.type === "punctuator" && token.value === "{") {
-      return this.parseObjectExpression();
+      return {
+        node: this.parseObjectExpression(),
+        parenthesized: false
+      };
     }
 
     throw unexpectedTokenError(token);
@@ -175,11 +556,11 @@ class Parser {
         const argument = this.parseExpression();
         elements.push({
           type: "SpreadElement",
-          argument,
-          span: createSpan(spreadStart.start, argument.span.end)
+          argument: argument.node,
+          span: createSpan(spreadStart.start, argument.node.span.end)
         });
       } else {
-        elements.push(this.parseExpression());
+        elements.push(this.parseExpression().node);
       }
 
       if (this.consumePunctuator(",") !== undefined) {
@@ -219,8 +600,8 @@ class Parser {
         const argument = this.parseExpression();
         properties.push({
           type: "SpreadElement",
-          argument,
-          span: createSpan(spreadStart.start, argument.span.end)
+          argument: argument.node,
+          span: createSpan(spreadStart.start, argument.node.span.end)
         });
       } else {
         properties.push(this.parseObjectProperty());
@@ -255,9 +636,9 @@ class Parser {
         type: "Property",
         computed: true,
         shorthand: false,
-        key,
-        value,
-        span: createSpan(propertyStart.start, value.span.end)
+        key: key.node,
+        value: value.node,
+        span: createSpan(propertyStart.start, value.node.span.end)
       };
     }
 
@@ -281,8 +662,8 @@ class Parser {
         computed: false,
         shorthand: false,
         key,
-        value,
-        span: createSpan(key.span.start, value.span.end)
+        value: value.node,
+        span: createSpan(key.span.start, value.node.span.end)
       };
     }
 
@@ -296,12 +677,134 @@ class Parser {
         computed: false,
         shorthand: false,
         key,
-        value,
-        span: createSpan(key.span.start, value.span.end)
+        value: value.node,
+        span: createSpan(key.span.start, value.node.span.end)
       };
     }
 
     throw unexpectedTokenError(token);
+  }
+
+  private parseIdentifierName(): Identifier {
+    const token = this.currentToken();
+    if (token.type !== "identifier" && token.type !== "keyword") {
+      throw unexpectedTokenError(token);
+    }
+    this.index += 1;
+    return createIdentifierName(token);
+  }
+
+  private parseArguments(): Array<Expression | SpreadElement> {
+    const args: Array<Expression | SpreadElement> = [];
+
+    const emptyEnd = this.consumePunctuator(")");
+    if (emptyEnd !== undefined) {
+      return args;
+    }
+
+    while (true) {
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === ",") {
+        throw unexpectedTokenError(this.currentToken());
+      }
+
+      if (this.consumePunctuator("...") !== undefined) {
+        const spreadStart = this.previousToken();
+        const argument = this.parseExpression();
+        args.push({
+          type: "SpreadElement",
+          argument: argument.node,
+          span: createSpan(spreadStart.start, argument.node.span.end)
+        });
+      } else {
+        args.push(this.parseExpression().node);
+      }
+
+      if (this.consumePunctuator(",") !== undefined) {
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
+          break;
+        }
+        continue;
+      }
+
+      break;
+    }
+
+    this.expectPunctuator(")");
+    return args;
+  }
+
+  private createCallExpression(callee: Expression, optional: boolean): CallExpression {
+    const args = this.parseArguments();
+    const end = this.previousToken();
+    return {
+      type: "CallExpression",
+      arguments: args,
+      callee,
+      optional,
+      span: createSpan(callee.span.start, end.end)
+    };
+  }
+
+  private parseLogicalExpression(
+    parseOperand: () => ParsedExpression,
+    operator: Exclude<LogicalOperator, "??">
+  ): ParsedExpression {
+    let left = parseOperand();
+
+    while (this.consumePunctuator(operator) !== undefined) {
+      const right = parseOperand();
+      left = {
+        node: {
+          type: "LogicalExpression",
+          operator,
+          left: left.node,
+          right: right.node,
+          span: createSpan(left.node.span.start, right.node.span.end)
+        },
+        parenthesized: false
+      };
+    }
+
+    return left;
+  }
+
+  private parseBinaryExpression(
+    parseOperand: () => ParsedExpression,
+    operators: ReadonlySet<BinaryOperator>
+  ): ParsedExpression {
+    let left = parseOperand();
+
+    while (true) {
+      const token = this.currentToken();
+      if (!operators.has(token.value as BinaryOperator)) {
+        return left;
+      }
+
+      this.index += 1;
+      const right = parseOperand();
+      left = {
+        node: {
+          type: "BinaryExpression",
+          operator: token.value as BinaryOperator,
+          left: left.node,
+          right: right.node,
+          span: createSpan(left.node.span.start, right.node.span.end)
+        },
+        parenthesized: false
+      };
+    }
+  }
+
+  private assertNullishOperand(expression: ParsedExpression): void {
+    if (
+      !expression.parenthesized &&
+      expression.node.type === "LogicalExpression" &&
+      (expression.node.operator === "&&" || expression.node.operator === "||")
+    ) {
+      throw new Error(
+        `Cannot mix '??' with '&&' or '||' without parentheses at line ${expression.node.right.span.start.line}, column ${expression.node.right.span.start.column}.`
+      );
+    }
   }
 
   private consumePunctuator(value: string): Token | undefined {
@@ -339,6 +842,14 @@ class Parser {
 }
 
 function createIdentifier(token: Token): Identifier {
+  return {
+    type: "Identifier",
+    name: token.value,
+    span: createTokenSpan(token)
+  };
+}
+
+function createIdentifierName(token: Token): Identifier {
   return {
     type: "Identifier",
     name: token.value,
@@ -704,6 +1215,33 @@ function rebaseExpression(
     return expression;
   }
 
+  if (expression.type === "BinaryExpression" || expression.type === "LogicalExpression") {
+    expression.left = rebaseExpression(expression.left, templateStart, rawTemplate, rawOffset);
+    expression.right = rebaseExpression(expression.right, templateStart, rawTemplate, rawOffset);
+    return expression;
+  }
+
+  if (expression.type === "CallExpression") {
+    expression.callee = rebaseExpression(expression.callee, templateStart, rawTemplate, rawOffset);
+    expression.arguments = expression.arguments.map(argument =>
+      rebaseNode(argument, templateStart, rawTemplate, rawOffset)
+    );
+    return expression;
+  }
+
+  if (expression.type === "ConditionalExpression") {
+    expression.test = rebaseExpression(expression.test, templateStart, rawTemplate, rawOffset);
+    expression.consequent = rebaseExpression(expression.consequent, templateStart, rawTemplate, rawOffset);
+    expression.alternate = rebaseExpression(expression.alternate, templateStart, rawTemplate, rawOffset);
+    return expression;
+  }
+
+  if (expression.type === "MemberExpression") {
+    expression.object = rebaseExpression(expression.object, templateStart, rawTemplate, rawOffset);
+    expression.property = rebaseExpression(expression.property, templateStart, rawTemplate, rawOffset);
+    return expression;
+  }
+
   if (expression.type === "ObjectExpression") {
     expression.properties = expression.properties.map(property =>
       rebaseNode(property, templateStart, rawTemplate, rawOffset)
@@ -716,6 +1254,11 @@ function rebaseExpression(
       rebaseExpression(item, templateStart, rawTemplate, rawOffset)
     );
     expression.quasis = expression.quasis.map(quasi => rebaseTemplateElement(quasi, templateStart, rawTemplate, rawOffset));
+    return expression;
+  }
+
+  if (expression.type === "UnaryExpression") {
+    expression.argument = rebaseExpression(expression.argument, templateStart, rawTemplate, rawOffset);
     return expression;
   }
 

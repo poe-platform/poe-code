@@ -46,7 +46,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: parser-expressions
@@ -60,8 +60,9 @@ tasks:
       (e.g. `a ?? b && c`).
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: parser-member-call-spread
     title: Parse member access, function calls, spread/rest

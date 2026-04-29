@@ -567,6 +567,335 @@ describe("parse", () => {
     });
   });
 
+  it("parses operator precedence and associativity like JavaScript", () => {
+    expect(parse("a + b * c ** d")).toMatchObject({
+      type: "BinaryExpression",
+      operator: "+",
+      left: {
+        type: "Identifier",
+        name: "a"
+      },
+      right: {
+        type: "BinaryExpression",
+        operator: "*",
+        left: {
+          type: "Identifier",
+          name: "b"
+        },
+        right: {
+          type: "BinaryExpression",
+          operator: "**",
+          left: {
+            type: "Identifier",
+            name: "c"
+          },
+          right: {
+            type: "Identifier",
+            name: "d"
+          }
+        }
+      }
+    });
+
+    expect(parse("a ? b : c ? d : e")).toMatchObject({
+      type: "ConditionalExpression",
+      test: {
+        type: "Identifier",
+        name: "a"
+      },
+      consequent: {
+        type: "Identifier",
+        name: "b"
+      },
+      alternate: {
+        type: "ConditionalExpression",
+        test: {
+          type: "Identifier",
+          name: "c"
+        },
+        consequent: {
+          type: "Identifier",
+          name: "d"
+        },
+        alternate: {
+          type: "Identifier",
+          name: "e"
+        }
+      }
+    });
+
+    expect(parse("!flag || left && right")).toMatchObject({
+      type: "LogicalExpression",
+      operator: "||",
+      left: {
+        type: "UnaryExpression",
+        operator: "!",
+        prefix: true,
+        argument: {
+          type: "Identifier",
+          name: "flag"
+        }
+      },
+      right: {
+        type: "LogicalExpression",
+        operator: "&&",
+        left: {
+          type: "Identifier",
+          name: "left"
+        },
+        right: {
+          type: "Identifier",
+          name: "right"
+        }
+      }
+    });
+
+    expect(parse("value in fallback || ready")).toMatchObject({
+      type: "LogicalExpression",
+      operator: "||",
+      left: {
+        type: "BinaryExpression",
+        operator: "in",
+        left: {
+          type: "Identifier",
+          name: "value"
+        },
+        right: {
+          type: "Identifier",
+          name: "fallback"
+        }
+      },
+      right: {
+        type: "Identifier",
+        name: "ready"
+      }
+    });
+
+    expect(parse("left + right in source")).toMatchObject({
+      type: "BinaryExpression",
+      operator: "in",
+      left: {
+        type: "BinaryExpression",
+        operator: "+",
+        left: {
+          type: "Identifier",
+          name: "left"
+        },
+        right: {
+          type: "Identifier",
+          name: "right"
+        }
+      },
+      right: {
+        type: "Identifier",
+        name: "source"
+      }
+    });
+  });
+
+  it("parses member access, calls, and optional chaining", () => {
+    expect(parse("service.api?.getUser(userId)?.(fallback)")).toMatchObject({
+      type: "CallExpression",
+      optional: true,
+      callee: {
+        type: "CallExpression",
+        optional: false,
+        callee: {
+          type: "MemberExpression",
+          optional: true,
+          computed: false,
+          object: {
+            type: "MemberExpression",
+            optional: false,
+            computed: false,
+            object: {
+              type: "Identifier",
+              name: "service"
+            },
+            property: {
+              type: "Identifier",
+              name: "api"
+            }
+          },
+          property: {
+            type: "Identifier",
+            name: "getUser"
+          }
+        },
+        arguments: [
+          {
+            type: "Identifier",
+            name: "userId"
+          }
+        ]
+      },
+      arguments: [
+        {
+          type: "Identifier",
+          name: "fallback"
+        }
+      ]
+    });
+
+    expect(parse("user?.profile[role]")).toMatchObject({
+      type: "MemberExpression",
+      optional: false,
+      computed: true,
+      object: {
+        type: "MemberExpression",
+        optional: true,
+        computed: false,
+        object: {
+          type: "Identifier",
+          name: "user"
+        },
+        property: {
+          type: "Identifier",
+          name: "profile"
+        }
+      },
+      property: {
+        type: "Identifier",
+        name: "role"
+      }
+    });
+
+    expect(parse("user?.[role](fallback)")).toMatchObject({
+      type: "CallExpression",
+      optional: false,
+      callee: {
+        type: "MemberExpression",
+        optional: true,
+        computed: true,
+        object: {
+          type: "Identifier",
+          name: "user"
+        },
+        property: {
+          type: "Identifier",
+          name: "role"
+        }
+      },
+      arguments: [
+        {
+          type: "Identifier",
+          name: "fallback"
+        }
+      ]
+    });
+  });
+
+  it("rejects nullish coalescing mixed with logical operators without parentheses", () => {
+    expect(() => parse("a ?? b && c")).toThrowError(
+      "Cannot mix '??' with '&&' or '||' without parentheses"
+    );
+
+    expect(() => parse("a || b ?? c")).toThrowError(
+      "Cannot mix '??' with '&&' or '||' without parentheses"
+    );
+
+    expect(() => parse("a && b ?? c")).toThrowError(
+      "Cannot mix '??' with '&&' or '||' without parentheses"
+    );
+  });
+
+  it("accepts parenthesized nullish and exponentiation edge cases", () => {
+    expect(parse("a ?? (b && c)")).toMatchObject({
+      type: "LogicalExpression",
+      operator: "??",
+      left: {
+        type: "Identifier",
+        name: "a"
+      },
+      right: {
+        type: "LogicalExpression",
+        operator: "&&",
+        left: {
+          type: "Identifier",
+          name: "b"
+        },
+        right: {
+          type: "Identifier",
+          name: "c"
+        }
+      }
+    });
+
+    expect(parse("(-a) ** b")).toMatchObject({
+      type: "BinaryExpression",
+      operator: "**",
+      left: {
+        type: "UnaryExpression",
+        operator: "-",
+        argument: {
+          type: "Identifier",
+          name: "a"
+        }
+      },
+      right: {
+        type: "Identifier",
+        name: "b"
+      }
+    });
+
+    expect(() => parse("-a ** b")).toThrowError(
+      "Unary expressions cannot be used as the left-hand side of '**' without parentheses at line 1, column 4."
+    );
+
+    expect(parse("a && (b ?? c)")).toMatchObject({
+      type: "LogicalExpression",
+      operator: "&&",
+      left: {
+        type: "Identifier",
+        name: "a"
+      },
+      right: {
+        type: "LogicalExpression",
+        operator: "??",
+        left: {
+          type: "Identifier",
+          name: "b"
+        },
+        right: {
+          type: "Identifier",
+          name: "c"
+        }
+      }
+    });
+
+    expect(parse("a ? b ?? c : d && e")).toMatchObject({
+      type: "ConditionalExpression",
+      test: {
+        type: "Identifier",
+        name: "a"
+      },
+      consequent: {
+        type: "LogicalExpression",
+        operator: "??",
+        left: {
+          type: "Identifier",
+          name: "b"
+        },
+        right: {
+          type: "Identifier",
+          name: "c"
+        }
+      },
+      alternate: {
+        type: "LogicalExpression",
+        operator: "&&",
+        left: {
+          type: "Identifier",
+          name: "d"
+        },
+        right: {
+          type: "Identifier",
+          name: "e"
+        }
+      }
+    });
+  });
+
   it("rejects regex literals with a parse-time error", () => {
     expect(() => parse("/foo/")).toThrowError(
       "Regular expression literals are not supported at line 1, column 1."

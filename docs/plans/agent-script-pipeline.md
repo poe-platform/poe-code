@@ -394,7 +394,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-value-model
@@ -407,8 +407,9 @@ tasks:
       helpers used at the host boundary.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-scope
     title: Scope chain with const/let semantics

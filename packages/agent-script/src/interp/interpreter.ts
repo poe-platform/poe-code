@@ -11,8 +11,9 @@ import type {
   UndefinedLiteral,
   ExpressionStatement
 } from "../parse.js";
+import type { SandboxValue } from "./values.js";
 
-export type InterpreterValue = unknown;
+export type InterpreterValue = SandboxValue;
 
 export type InterpreterStats = {
   nodeVisits: number;

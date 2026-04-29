@@ -16,6 +16,7 @@ export type SandboxCallContext = {
 };
 
 export type SandboxClosure = {
+  readonly async?: true;
   readonly kind: "fn";
   readonly name?: string;
   readonly call: (args: readonly SandboxValue[], context?: SandboxCallContext) => SandboxValue | Promise<SandboxValue>;
@@ -33,13 +34,15 @@ type CopyState<TValue> = {
 };
 
 export function createSandboxClosure(input: {
+  async?: boolean;
   call: (args: readonly SandboxValue[], context?: SandboxCallContext) => SandboxValue | Promise<SandboxValue>;
   name?: string;
 }): SandboxClosure {
   const closure = {
     kind: "fn" as const,
     call: input.call,
-    name: input.name
+    name: input.name,
+    ...(input.async === true ? { async: true as const } : {})
   } as SandboxClosure;
 
   Object.defineProperty(closure, sandboxClosureBrand, {

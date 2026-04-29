@@ -536,7 +536,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-async-await
@@ -549,8 +549,9 @@ tasks:
       the snapshot system.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-promise-builtins
     title: Promise built-ins (all/race/allSettled/any/resolve/reject)

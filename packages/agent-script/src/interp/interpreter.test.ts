@@ -5,7 +5,7 @@ import { Budget, SandboxError } from "./budget.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
 import { createMathGlobals, createSeededRandom } from "./globals/math.js";
 import { interpret, Scope } from "./interpreter.js";
-import { createSandboxClosure } from "./values.js";
+import { createSandboxClosure, createSandboxPromise, isSandboxPromise } from "./values.js";
 
 describe("interpret", () => {
   it("evaluates primitive literals and returns stats plus a snapshot", async () => {
@@ -541,5 +541,153 @@ describe("interpret", () => {
         nodeVisits: 4
       }
     });
+  });
+
+  it("returns a subset Promise when calling an async arrow", async () => {
+    const result = await interpret(parse("return (async () => await load())()"), {
+      bindings: {
+        load: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(Promise.resolve("ready")),
+          name: "load"
+        })
+      }
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.snapshot).toMatchObject({
+      bindings: {
+        load: expect.any(Object)
+      }
+    });
+    expect(isSandboxPromise(result.ok ? result.returnValue : undefined)).toBe(true);
+    await expect((result.ok ? result.returnValue : undefined)!.promise).resolves.toBe("ready");
+  });
+
+  it("supports top-level await and reports each await as a yield point", async () => {
+    const program = parse("await (async () => await load())()");
+    const topLevelAwait = program;
+
+    if (topLevelAwait.type !== "AwaitExpression") {
+      throw new Error("Expected top-level await expression.");
+    }
+
+    if (
+      topLevelAwait.argument.type !== "CallExpression" ||
+      topLevelAwait.argument.callee.type !== "ArrowFunctionExpression" ||
+      topLevelAwait.argument.callee.body.type !== "AwaitExpression"
+    ) {
+      throw new Error("Expected nested async arrow await expression.");
+    }
+
+    const yieldNodeIds: Array<number | undefined> = [];
+
+    await expect(
+      interpret(program, {
+        bindings: {
+          load: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(Promise.resolve("done")),
+            name: "load"
+          })
+        },
+        onYield: (yieldPoint) => {
+          yieldNodeIds.push(yieldPoint.nodeId);
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "done",
+      snapshot: {
+        bindings: {
+          load: expect.any(Object)
+        }
+      }
+    });
+
+    expect(yieldNodeIds).toEqual([
+      topLevelAwait.nodeId,
+      topLevelAwait.argument.callee.body.nodeId
+    ]);
+  });
+
+  it("treats await on plain values as a yield point and returns the original value", async () => {
+    const yieldNodeIds: Array<number | undefined> = [];
+    const program = parse("await value");
+
+    await expect(
+      interpret(program, {
+        bindings: {
+          value: 42
+        },
+        onYield: (yieldPoint) => {
+          yieldNodeIds.push(yieldPoint.nodeId);
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 42,
+      snapshot: {
+        bindings: {
+          value: 42
+        }
+      }
+    });
+
+    expect(yieldNodeIds).toEqual([program.nodeId]);
+  });
+
+  it("returns subset Promises from async arrow block bodies and lets await unwrap them", async () => {
+    const promiseResult = await interpret(parse("return (async () => { return value; })()"), {
+      bindings: {
+        value: "ready"
+      }
+    });
+
+    expect(promiseResult.ok).toBe(true);
+    expect(isSandboxPromise(promiseResult.ok ? promiseResult.returnValue : undefined)).toBe(true);
+    await expect((promiseResult.ok ? promiseResult.returnValue : undefined)!.promise).resolves.toBe(
+      "ready"
+    );
+
+    await expect(
+      interpret(parse("return await (async () => { return value; })()"), {
+        bindings: {
+          value: "ready"
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "ready",
+      snapshot: {
+        bindings: {
+          value: "ready"
+        }
+      }
+    });
+
+    await expect(
+      interpret(parse("return await (async () => { return; })()"))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: undefined,
+      snapshot: {
+        bindings: {}
+      }
+    });
+  });
+
+  it("throws the rejection reason when awaiting a rejected subset Promise", async () => {
+    await expect(
+      interpret(parse("return await fail()"), {
+        bindings: {
+          fail: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(Promise.reject("boom")),
+            name: "fail"
+          })
+        }
+      })
+    ).rejects.toBe("boom");
   });
 });

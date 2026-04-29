@@ -1,4 +1,6 @@
 import type {
+  ArrowFunctionExpression,
+  AwaitExpression,
   BlockStatement,
   BooleanLiteral,
   CallExpression,
@@ -16,6 +18,15 @@ import type {
   UndefinedLiteral,
   ExpressionStatement
 } from "../parse.js";
+import {
+  evaluateArrowFunctionExpression,
+  evaluateAwaitExpression,
+  normalizeClosureResult,
+  resolveClosureResult,
+  type AsyncEvaluationContext,
+  type AsyncEvaluationResult,
+  type InterpreterYieldPoint
+} from "./async.js";
 import { Budget } from "./budget.js";
 import {
   callArrayMethod,
@@ -81,26 +92,13 @@ export type InterpreterResult =
 export type InterpretOptions = {
   bindings?: Record<string, InterpreterValue>;
   budget?: Budget;
+  onYield?: (yieldPoint: InterpreterYieldPoint) => void;
   scope?: Scope;
 };
 
-type EvaluationContext = {
-  budget: Budget;
-  callStack: string[];
-  scope: Scope;
-  stats: InterpreterStats;
-};
+type EvaluationContext = AsyncEvaluationContext;
 
-type EvaluationResult =
-  | {
-      kind: "normal" | "return";
-      hasValue: boolean;
-      value: InterpreterValue;
-    }
-  | {
-      kind: "error";
-      error: InterpreterError;
-    };
+type EvaluationResult = AsyncEvaluationResult;
 
 type HelperResult<TValue> =
   | {
@@ -122,6 +120,8 @@ type DispatchTable = Partial<{
 }>;
 
 const dispatchTable: DispatchTable = {
+  ArrowFunctionExpression: evaluateArrowFunction,
+  AwaitExpression: evaluateAwait,
   BlockStatement: evaluateBlockStatement,
   BooleanLiteral: evaluatePrimitiveLiteral,
   CallExpression: evaluateCallExpression,
@@ -148,6 +148,7 @@ export async function interpret(
   const evaluation = await evaluateNode(node, {
     budget,
     callStack: [],
+    onYield: options.onYield,
     scope,
     stats
   });
@@ -210,6 +211,20 @@ async function evaluatePrimitiveLiteral(
     hasValue: true,
     value
   };
+}
+
+async function evaluateArrowFunction(
+  node: ArrowFunctionExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  return evaluateArrowFunctionExpression(node, context, evaluateNode);
+}
+
+async function evaluateAwait(
+  node: AwaitExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  return evaluateAwaitExpression(node, context, evaluateNode);
 }
 
 async function evaluateIdentifier(
@@ -722,11 +737,11 @@ async function invokeSandboxClosure(
   const leaveCall = context.budget.enterCall();
 
   try {
-    const result = await callee.call(args, {
+    const result = callee.call(args, {
       stack
     });
 
-    return isSandboxPromise(result) ? await result.promise : result;
+    return callee.async === true ? normalizeClosureResult(result) : await resolveClosureResult(result);
   } finally {
     leaveCall();
   }

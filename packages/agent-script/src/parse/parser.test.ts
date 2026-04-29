@@ -865,6 +865,267 @@ describe("parse", () => {
     });
   });
 
+  it("parses arrow functions with concise expression bodies", () => {
+    expect(parse("x => x")).toEqual({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: true,
+      params: [
+        {
+          type: "Identifier",
+          name: "x",
+          span: {
+            start: { line: 1, column: 1, offset: 0 },
+            end: { line: 1, column: 2, offset: 1 }
+          }
+        }
+      ],
+      body: {
+        type: "Identifier",
+        name: "x",
+        span: {
+          start: { line: 1, column: 6, offset: 5 },
+          end: { line: 1, column: 7, offset: 6 }
+        }
+      },
+      span: {
+        start: { line: 1, column: 1, offset: 0 },
+        end: { line: 1, column: 7, offset: 6 }
+      }
+    });
+
+    expect(parse("(x = 1, ...rest) => ({ value: x, rest })")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: true,
+      params: [
+        {
+          type: "AssignmentPattern",
+          left: {
+            type: "Identifier",
+            name: "x"
+          },
+          right: {
+            type: "NumericLiteral",
+            value: 1
+          }
+        },
+        {
+          type: "RestElement",
+          argument: {
+            type: "Identifier",
+            name: "rest"
+          }
+        }
+      ],
+      body: {
+        type: "ObjectExpression",
+        properties: [
+          {
+            type: "Property",
+            shorthand: false,
+            key: {
+              type: "Identifier",
+              name: "value"
+            },
+            value: {
+              type: "Identifier",
+              name: "x"
+            }
+          },
+          {
+            type: "Property",
+            shorthand: true,
+            key: {
+              type: "Identifier",
+              name: "rest"
+            },
+            value: {
+              type: "Identifier",
+              name: "rest"
+            }
+          }
+        ]
+      }
+    });
+
+    expect(parse("({ value }, [first, second]) => first ?? value")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: true,
+      params: [
+        {
+          type: "ObjectPattern",
+          properties: [
+            {
+              type: "AssignmentProperty",
+              shorthand: true,
+              key: {
+                type: "Identifier",
+                name: "value"
+              },
+              value: {
+                type: "Identifier",
+                name: "value"
+              }
+            }
+          ]
+        },
+        {
+          type: "ArrayPattern",
+          elements: [
+            {
+              type: "Identifier",
+              name: "first"
+            },
+            {
+              type: "Identifier",
+              name: "second"
+            }
+          ]
+        }
+      ],
+      body: {
+        type: "LogicalExpression",
+        operator: "??"
+      }
+    });
+  });
+
+  it("parses async arrow functions and block bodies", () => {
+    expect(parse("async ({ value = 1 }, ...rest) => { return value + rest[0]; }")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: true,
+      expression: false,
+      params: [
+        {
+          type: "ObjectPattern",
+          properties: [
+            {
+              type: "AssignmentProperty",
+              shorthand: true,
+              key: {
+                type: "Identifier",
+                name: "value"
+              },
+              value: {
+                type: "AssignmentPattern",
+                left: {
+                  type: "Identifier",
+                  name: "value"
+                },
+                right: {
+                  type: "NumericLiteral",
+                  value: 1
+                }
+              }
+            }
+          ]
+        },
+        {
+          type: "RestElement",
+          argument: {
+            type: "Identifier",
+            name: "rest"
+          }
+        }
+      ],
+      body: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ReturnStatement",
+            argument: {
+              type: "BinaryExpression",
+              operator: "+",
+              left: {
+                type: "Identifier",
+                name: "value"
+              },
+              right: {
+                type: "MemberExpression",
+                computed: true,
+                object: {
+                  type: "Identifier",
+                  name: "rest"
+                },
+                property: {
+                  type: "NumericLiteral",
+                  value: 0
+                }
+              }
+            }
+          }
+        ]
+      }
+    });
+  });
+
+  it("parses empty parameter lists and trailing commas before the arrow", () => {
+    expect(parse("() => 1")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: true,
+      params: [],
+      body: {
+        type: "NumericLiteral",
+        value: 1
+      }
+    });
+
+    expect(parse("(value,) => value")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: true,
+      params: [
+        {
+          type: "Identifier",
+          name: "value"
+        }
+      ],
+      body: {
+        type: "Identifier",
+        name: "value"
+      }
+    });
+  });
+
+  it("rejects invalid arrow parameter edge cases", () => {
+    expect(() => parse("(...rest, value) => value")).toThrowError(
+      "Rest element must be the last parameter at line 1, column 9."
+    );
+    expect(() => parse("(...rest,) => rest")).toThrowError(
+      "Unexpected token ',' at line 1, column 9."
+    );
+    expect(() => parse("([head, ...tail, last]) => last")).toThrowError(
+      "Rest element must be the last element in an array pattern at line 1, column 16."
+    );
+    expect(() => parse("({ ...rest, value }) => value")).toThrowError(
+      "Rest element must be the last property in an object pattern at line 1, column 11."
+    );
+    expect(() => parse("({ ...{ value } }) => value")).toThrowError(
+      "Object rest element must bind to an identifier at line 1, column 7."
+    );
+    expect(() => parse("x\n=> x")).toThrowError(
+      "Unexpected line break before '=>' at line 2, column 1."
+    );
+    expect(() => parse("async\n(x) => x")).toThrowError(
+      "Unexpected line break after 'async' at line 2, column 1."
+    );
+  });
+
+  it("keeps unsupported function syntaxes rejected", () => {
+    expect(() => parse("function (value) { return value; }")).toThrowError(
+      "Unexpected token '{' at line 1, column 18."
+    );
+    expect(() => parse("*value => value")).toThrowError(
+      "Unexpected token '*' at line 1, column 1."
+    );
+    expect(() => parse("({ method() {} }) => method")).toThrowError(
+      "Expected '}' at line 1, column 10."
+    );
+  });
+
   it("rejects nullish coalescing mixed with logical operators without parentheses", () => {
     expect(() => parse("a ?? b && c")).toThrowError(
       "Cannot mix '??' with '&&' or '||' without parentheses"

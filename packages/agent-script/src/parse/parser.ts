@@ -80,6 +80,35 @@ export type Property = BaseNode & {
   value: Expression;
 };
 
+export type AssignmentPattern = BaseNode & {
+  type: "AssignmentPattern";
+  left: ArrayPattern | Identifier | ObjectPattern;
+  right: Expression;
+};
+
+export type RestElement = BaseNode & {
+  type: "RestElement";
+  argument: ArrayPattern | Identifier | ObjectPattern;
+};
+
+export type AssignmentProperty = BaseNode & {
+  type: "AssignmentProperty";
+  computed: boolean;
+  shorthand: boolean;
+  key: Expression;
+  value: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern;
+};
+
+export type ArrayPattern = BaseNode & {
+  type: "ArrayPattern";
+  elements: Array<AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement>;
+};
+
+export type ObjectPattern = BaseNode & {
+  type: "ObjectPattern";
+  properties: Array<AssignmentProperty | RestElement>;
+};
+
 export type ArrayExpression = BaseNode & {
   type: "ArrayExpression";
   elements: Array<Expression | SpreadElement>;
@@ -160,7 +189,33 @@ export type CallExpression = BaseNode & {
   optional: boolean;
 };
 
+export type ReturnStatement = BaseNode & {
+  type: "ReturnStatement";
+  argument?: Expression;
+};
+
+export type ExpressionStatement = BaseNode & {
+  type: "ExpressionStatement";
+  expression: Expression;
+};
+
+export type Statement = ExpressionStatement | ReturnStatement;
+
+export type BlockStatement = BaseNode & {
+  type: "BlockStatement";
+  body: Statement[];
+};
+
+export type ArrowFunctionExpression = BaseNode & {
+  type: "ArrowFunctionExpression";
+  async: boolean;
+  body: BlockStatement | Expression;
+  expression: boolean;
+  params: Array<AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement>;
+};
+
 export type Expression =
+  | ArrowFunctionExpression
   | ArrayExpression
   | BinaryExpression
   | BooleanLiteral
@@ -214,7 +269,61 @@ class Parser {
   }
 
   private parseExpression(): ParsedExpression {
+    const arrowFunction = this.tryParseArrowFunctionExpression();
+    if (arrowFunction !== undefined) {
+      return {
+        node: arrowFunction,
+        parenthesized: false
+      };
+    }
+
     return this.parseConditionalExpression();
+  }
+
+  private tryParseArrowFunctionExpression(): ArrowFunctionExpression | undefined {
+    if (this.isAsyncArrowWithParenthesizedParams()) {
+      const asyncToken = this.currentToken();
+      this.index += 1;
+      const params = this.parseArrowParameters();
+      return this.finishArrowFunctionExpression(asyncToken.start, true, params);
+    }
+
+    if (this.isAsyncArrowWithSingleParam()) {
+      const asyncToken = this.currentToken();
+      this.index += 1;
+      const param = this.parseBindingIdentifier();
+      return this.finishArrowFunctionExpression(asyncToken.start, true, [param]);
+    }
+
+    if (this.isParenthesizedArrowFunction()) {
+      const start = this.currentToken().start;
+      const params = this.parseArrowParameters();
+      return this.finishArrowFunctionExpression(start, false, params);
+    }
+
+    if (this.isSingleParamArrowFunction()) {
+      const param = this.parseBindingIdentifier();
+      return this.finishArrowFunctionExpression(param.span.start, false, [param]);
+    }
+
+    return undefined;
+  }
+
+  private finishArrowFunctionExpression(
+    start: Position,
+    isAsync: boolean,
+    params: ArrowFunctionExpression["params"]
+  ): ArrowFunctionExpression {
+    this.expectPunctuator("=>");
+    const body = this.parseArrowFunctionBody();
+    return {
+      type: "ArrowFunctionExpression",
+      async: isAsync,
+      body,
+      expression: body.type !== "BlockStatement",
+      params,
+      span: createSpan(start, body.span.end)
+    };
   }
 
   private parseConditionalExpression(): ParsedExpression {
@@ -236,6 +345,332 @@ class Parser {
       },
       parenthesized: false
     };
+  }
+
+  private parseArrowFunctionBody(): BlockStatement | Expression {
+    if (this.currentToken().type === "punctuator" && this.currentToken().value === "{") {
+      return this.parseBlockStatement();
+    }
+
+    return this.parseExpression().node;
+  }
+
+  private parseBlockStatement(): BlockStatement {
+    const start = this.expectPunctuator("{");
+    const body: Statement[] = [];
+
+    while (this.consumePunctuator("}") === undefined) {
+      body.push(this.parseStatement());
+      while (this.consumePunctuator(";") !== undefined) {
+        continue;
+      }
+    }
+
+    return {
+      type: "BlockStatement",
+      body,
+      span: createSpan(start.start, this.previousToken().end)
+    };
+  }
+
+  private parseStatement(): Statement {
+    const token = this.currentToken();
+    if (token.type === "keyword" && token.value === "return") {
+      this.index += 1;
+      const hasArgument = !(
+        this.currentToken().type === "punctuator" &&
+        (this.currentToken().value === ";" || this.currentToken().value === "}")
+      );
+      const argument = hasArgument ? this.parseExpression().node : undefined;
+      const end = argument?.span.end ?? token.end;
+      return {
+        type: "ReturnStatement",
+        argument,
+        span: createSpan(token.start, end)
+      };
+    }
+
+    const expression = this.parseExpression().node;
+    return {
+      type: "ExpressionStatement",
+      expression,
+      span: createSpan(expression.span.start, expression.span.end)
+    };
+  }
+
+  private parseArrowParameters(): ArrowFunctionExpression["params"] {
+    this.expectPunctuator("(");
+    const params: ArrowFunctionExpression["params"] = [];
+
+    if (this.consumePunctuator(")") !== undefined) {
+      return params;
+    }
+
+    while (true) {
+      const param = this.parseBindingElement();
+      params.push(param);
+
+      const comma = this.consumePunctuator(",");
+      if (comma === undefined) {
+        break;
+      }
+
+      if (param.type === "RestElement") {
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
+          throw unexpectedTokenError(comma);
+        }
+        throw new Error(
+          `Rest element must be the last parameter at line ${comma.start.line}, column ${comma.start.column}.`
+        );
+      }
+
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === ")") {
+        break;
+      }
+    }
+
+    this.expectPunctuator(")");
+    return params;
+  }
+
+  private parseBindingElement():
+    | AssignmentPattern
+    | ArrayPattern
+    | Identifier
+    | ObjectPattern
+    | RestElement {
+    if (this.consumePunctuator("...") !== undefined) {
+      const start = this.previousToken().start;
+      const argument = this.parseBindingTarget();
+      return {
+        type: "RestElement",
+        argument,
+        span: createSpan(start, argument.span.end)
+      };
+    }
+
+    const left = this.parseBindingTarget();
+    if (this.consumePunctuator("=") === undefined) {
+      return left;
+    }
+
+    const right = this.parseExpression().node;
+    return {
+      type: "AssignmentPattern",
+      left,
+      right,
+      span: createSpan(left.span.start, right.span.end)
+    };
+  }
+
+  private parseBindingTarget(): ArrayPattern | Identifier | ObjectPattern {
+    const token = this.currentToken();
+
+    if (token.type === "identifier") {
+      return this.parseBindingIdentifier();
+    }
+
+    if (token.type === "punctuator" && token.value === "[") {
+      return this.parseArrayPattern();
+    }
+
+    if (token.type === "punctuator" && token.value === "{") {
+      return this.parseObjectPattern();
+    }
+
+    throw unexpectedTokenError(token);
+  }
+
+  private parseBindingIdentifier(): Identifier {
+    const token = this.currentToken();
+    if (token.type !== "identifier") {
+      throw unexpectedTokenError(token);
+    }
+
+    this.index += 1;
+    return createIdentifier(token);
+  }
+
+  private parseArrayPattern(): ArrayPattern {
+    const start = this.expectPunctuator("[");
+    const elements: ArrayPattern["elements"] = [];
+
+    if (this.consumePunctuator("]") !== undefined) {
+      return {
+        type: "ArrayPattern",
+        elements,
+        span: createSpan(start.start, this.previousToken().end)
+      };
+    }
+
+    while (true) {
+      const element = this.parseBindingElement();
+      elements.push(element);
+
+      const comma = this.consumePunctuator(",");
+      if (comma === undefined) {
+        break;
+      }
+
+      if (element.type === "RestElement") {
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === "]") {
+          throw unexpectedTokenError(comma);
+        }
+        throw new Error(
+          `Rest element must be the last element in an array pattern at line ${comma.start.line}, column ${comma.start.column}.`
+        );
+      }
+
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === "]") {
+        break;
+      }
+    }
+
+    const end = this.expectPunctuator("]");
+    return {
+      type: "ArrayPattern",
+      elements,
+      span: createSpan(start.start, end.end)
+    };
+  }
+
+  private parseObjectPattern(): ObjectPattern {
+    const start = this.expectPunctuator("{");
+    const properties: ObjectPattern["properties"] = [];
+
+    if (this.consumePunctuator("}") !== undefined) {
+      return {
+        type: "ObjectPattern",
+        properties,
+        span: createSpan(start.start, this.previousToken().end)
+      };
+    }
+
+    while (true) {
+      const property = this.parseObjectPatternProperty();
+      properties.push(property);
+
+      const comma = this.consumePunctuator(",");
+      if (comma === undefined) {
+        break;
+      }
+
+      if (property.type === "RestElement") {
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === "}") {
+          throw unexpectedTokenError(comma);
+        }
+        throw new Error(
+          `Rest element must be the last property in an object pattern at line ${comma.start.line}, column ${comma.start.column}.`
+        );
+      }
+
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === "}") {
+        break;
+      }
+    }
+
+    const end = this.expectPunctuator("}");
+    return {
+      type: "ObjectPattern",
+      properties,
+      span: createSpan(start.start, end.end)
+    };
+  }
+
+  private parseObjectPatternProperty(): AssignmentProperty | RestElement {
+    if (this.consumePunctuator("...") !== undefined) {
+      const start = this.previousToken().start;
+      const token = this.currentToken();
+      if (token.type !== "identifier") {
+        throw new Error(
+          `Object rest element must bind to an identifier at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
+      const argument = this.parseBindingIdentifier();
+      return {
+        type: "RestElement",
+        argument,
+        span: createSpan(start, argument.span.end)
+      };
+    }
+
+    if (this.consumePunctuator("[") !== undefined) {
+      const start = this.previousToken().start;
+      const key = this.parseExpression().node;
+      this.expectPunctuator("]");
+      this.expectPunctuator(":");
+      const value = this.parseBindingElement();
+      if (value.type === "RestElement") {
+        throw unexpectedTokenError(this.previousToken());
+      }
+      return {
+        type: "AssignmentProperty",
+        computed: true,
+        shorthand: false,
+        key,
+        value,
+        span: createSpan(start, value.span.end)
+      };
+    }
+
+    const token = this.currentToken();
+    if (token.type === "identifier") {
+      this.index += 1;
+      const key = createIdentifier(token);
+      if (this.consumePunctuator(":") !== undefined) {
+        const value = this.parseBindingElement();
+        if (value.type === "RestElement") {
+          throw unexpectedTokenError(this.previousToken());
+        }
+        return {
+          type: "AssignmentProperty",
+          computed: false,
+          shorthand: false,
+          key,
+          value,
+          span: createSpan(key.span.start, value.span.end)
+        };
+      }
+
+      let value: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern = key;
+      if (this.consumePunctuator("=") !== undefined) {
+        const right = this.parseExpression().node;
+        value = {
+          type: "AssignmentPattern",
+          left: createIdentifier(token),
+          right,
+          span: createSpan(key.span.start, right.span.end)
+        };
+      }
+      return {
+        type: "AssignmentProperty",
+        computed: false,
+        shorthand: true,
+        key,
+        value,
+        span: createSpan(key.span.start, value.span.end)
+      };
+    }
+
+    if (isLiteralPropertyKey(token)) {
+      this.index += 1;
+      const key = createLiteralFromToken(token);
+      this.expectPunctuator(":");
+      const value = this.parseBindingElement();
+      if (value.type === "RestElement") {
+        throw unexpectedTokenError(this.previousToken());
+      }
+      return {
+        type: "AssignmentProperty",
+        computed: false,
+        shorthand: false,
+        key,
+        value,
+        span: createSpan(key.span.start, value.span.end)
+      };
+    }
+
+    throw unexpectedTokenError(token);
   }
 
   private parseCoalesceExpression(): ParsedExpression {
@@ -820,6 +1255,115 @@ class Parser {
     }
   }
 
+  private isSingleParamArrowFunction(): boolean {
+    const token = this.currentToken();
+    if (token.type !== "identifier" || this.peekToken(1).value !== "=>") {
+      return false;
+    }
+
+    const arrowToken = this.peekToken(1);
+    if (hasLineBreakBetween(token, arrowToken)) {
+      throw new Error(
+        `Unexpected line break before '=>' at line ${arrowToken.start.line}, column ${arrowToken.start.column}.`
+      );
+    }
+
+    return true;
+  }
+
+  private isAsyncArrowWithSingleParam(): boolean {
+    const token = this.currentToken();
+    if (
+      token.type !== "keyword" ||
+      token.value !== "async" ||
+      this.peekToken(1).type !== "identifier" ||
+      this.peekToken(2).value !== "=>"
+    ) {
+      return false;
+    }
+
+    const paramToken = this.peekToken(1);
+    if (hasLineBreakBetween(token, paramToken)) {
+      throw new Error(
+        `Unexpected line break after 'async' at line ${paramToken.start.line}, column ${paramToken.start.column}.`
+      );
+    }
+
+    const arrowToken = this.peekToken(2);
+    if (hasLineBreakBetween(paramToken, arrowToken)) {
+      throw new Error(
+        `Unexpected line break before '=>' at line ${arrowToken.start.line}, column ${arrowToken.start.column}.`
+      );
+    }
+
+    return true;
+  }
+
+  private isParenthesizedArrowFunction(): boolean {
+    return this.findArrowFromParenthesizedParams(this.index) !== undefined;
+  }
+
+  private isAsyncArrowWithParenthesizedParams(): boolean {
+    const token = this.currentToken();
+    if (token.type !== "keyword" || token.value !== "async") {
+      return false;
+    }
+
+    const nextToken = this.peekToken(1);
+    const arrowIndex = this.findArrowFromParenthesizedParams(this.index + 1);
+    if (arrowIndex === undefined) {
+      return false;
+    }
+
+    if (hasLineBreakBetween(token, nextToken)) {
+      throw new Error(
+        `Unexpected line break after 'async' at line ${nextToken.start.line}, column ${nextToken.start.column}.`
+      );
+    }
+
+    return true;
+  }
+
+  private findArrowFromParenthesizedParams(startIndex: number): number | undefined {
+    const startToken = this.tokens[startIndex];
+    if (startToken?.type !== "punctuator" || startToken.value !== "(") {
+      return undefined;
+    }
+
+    let depth = 0;
+    for (let index = startIndex; index < this.tokens.length; index += 1) {
+      const token = this.tokens[index];
+      if (token.type !== "punctuator") {
+        continue;
+      }
+
+      if (token.value === "(") {
+        depth += 1;
+        continue;
+      }
+
+      if (token.value === ")") {
+        depth -= 1;
+        if (depth === 0) {
+          const arrowToken = this.tokens[index + 1];
+          if (arrowToken?.value !== "=>") {
+            return undefined;
+          }
+
+          if (hasLineBreakBetween(token, arrowToken)) {
+            throw new Error(
+              `Unexpected line break before '=>' at line ${arrowToken.start.line}, column ${arrowToken.start.column}.`
+            );
+          }
+
+          return index + 1;
+        }
+      }
+    }
+
+    return undefined;
+  }
+
   private consumePunctuator(value: string): Token | undefined {
     const token = this.currentToken();
     if (token.type !== "punctuator" || token.value !== value) {
@@ -847,6 +1391,10 @@ class Parser {
 
   private currentToken(): Token {
     return this.tokens[this.index] ?? this.tokens[this.tokens.length - 1];
+  }
+
+  private peekToken(offset: number): Token {
+    return this.tokens[this.index + offset] ?? this.tokens[this.tokens.length - 1];
   }
 
   private previousToken(): Token {
@@ -1262,6 +1810,10 @@ function createSpan(start: Position, end: Position): SourceSpan {
     start: { ...start },
     end: { ...end }
   };
+}
+
+function hasLineBreakBetween(left: Token, right: Token): boolean {
+  return left.end.line !== right.start.line;
 }
 
 function unexpectedTokenError(token: Token): Error {

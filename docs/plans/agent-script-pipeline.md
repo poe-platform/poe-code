@@ -88,8 +88,9 @@ tasks:
       no method shorthand. Body can be expression or block.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: parser-destructuring
     title: Parse object and array destructuring

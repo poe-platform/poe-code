@@ -780,7 +780,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: snapshot-restore
@@ -794,8 +794,9 @@ tasks:
       same Budget and signal as a fresh run.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: snapshot-promise-policy
     title: Per-primitive resume policy for in-flight promises

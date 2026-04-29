@@ -795,7 +795,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: snapshot-promise-policy
@@ -810,8 +810,9 @@ tasks:
       out.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: snapshot-periodic
     title: Periodic checkpointing every N seconds

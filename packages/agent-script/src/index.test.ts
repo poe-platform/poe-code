@@ -38,6 +38,18 @@ describe("@poe-code/agent-script public exports", () => {
       })
     ).toEqual([
       {
+        code: "AS006",
+        severity: "warning",
+        message: "Import 'missing' is never referenced.",
+        filename: "rule.js",
+        line: 1,
+        column: 10,
+        span: {
+          start: { line: 1, column: 10, offset: 9 },
+          end: { line: 1, column: 17, offset: 16 }
+        }
+      },
+      {
         code: "AS004",
         severity: "error",
         message: "Unknown module 'htp'. Available modules: api, fs.",
@@ -90,6 +102,30 @@ describe("@poe-code/agent-script public exports", () => {
         }
       },
       {
+        code: "AS006",
+        severity: "warning",
+        message: "Import 'missing' is never referenced.",
+        filename: "<input>",
+        line: 1,
+        column: 10,
+        span: {
+          start: { line: 1, column: 10, offset: source.indexOf("missing") },
+          end: { line: 1, column: 17, offset: source.indexOf("missing") + "missing".length }
+        }
+      },
+      {
+        code: "AS006",
+        severity: "warning",
+        message: "Import 'request' is never referenced.",
+        filename: "<input>",
+        line: 2,
+        column: 10,
+        span: {
+          start: { line: 2, column: 10, offset: source.lastIndexOf("request") },
+          end: { line: 2, column: 17, offset: source.lastIndexOf("request") + "request".length }
+        }
+      },
+      {
         code: "AS004",
         severity: "error",
         message: "Unknown module 'htp'. Available modules: api.",
@@ -133,6 +169,30 @@ describe("@poe-code/agent-script public exports", () => {
         }
       },
       {
+        code: "AS006",
+        severity: "warning",
+        message: "Import 'value' is never referenced.",
+        filename: "rule.js",
+        line: 1,
+        column: 8,
+        span: {
+          start: { line: 1, column: 8, offset: source.indexOf("value") },
+          end: { line: 1, column: 13, offset: source.indexOf("value") + "value".length }
+        }
+      },
+      {
+        code: "AS006",
+        severity: "warning",
+        message: "Import 'request' is never referenced.",
+        filename: "rule.js",
+        line: 2,
+        column: 10,
+        span: {
+          start: { line: 2, column: 10, offset: source.indexOf("request") },
+          end: { line: 2, column: 17, offset: source.indexOf("request") + "request".length }
+        }
+      },
+      {
         code: "AS004",
         severity: "error",
         message: "Unknown module 'htp'. Available modules: api, zeta.",
@@ -154,6 +214,68 @@ describe("@poe-code/agent-script public exports", () => {
         span: {
           start: { line: 3, column: 10, offset: source.lastIndexOf("missing") },
           end: { line: 3, column: 17, offset: source.lastIndexOf("missing") + "missing".length }
+        }
+      },
+      {
+        code: "AS006",
+        severity: "warning",
+        message: "Import 'missing' is never referenced.",
+        filename: "rule.js",
+        line: 3,
+        column: 10,
+        span: {
+          start: { line: 3, column: 10, offset: source.lastIndexOf("missing") },
+          end: { line: 3, column: 17, offset: source.lastIndexOf("missing") + "missing".length }
+        }
+      }
+    ]);
+  });
+
+  it("includes unused import and binding warnings in lint results", () => {
+    const source = ['import { used, unused } from "api";', "const value = used(1);", "let stale = 0;"].join("\n");
+
+    expect(
+      lint(source, {
+        filename: "rule.js",
+        modules: {
+          api: ["used", "unused"]
+        }
+      })
+    ).toEqual([
+      {
+        code: "AS006",
+        severity: "warning",
+        message: "Import 'unused' is never referenced.",
+        filename: "rule.js",
+        line: 1,
+        column: 16,
+        span: {
+          start: { line: 1, column: 16, offset: source.indexOf("unused") },
+          end: { line: 1, column: 22, offset: source.indexOf("unused") + "unused".length }
+        }
+      },
+      {
+        code: "AS007",
+        severity: "warning",
+        message: "Binding 'value' is declared but never read.",
+        filename: "rule.js",
+        line: 2,
+        column: 7,
+        span: {
+          start: { line: 2, column: 7, offset: source.indexOf("value") },
+          end: { line: 2, column: 12, offset: source.indexOf("value") + "value".length }
+        }
+      },
+      {
+        code: "AS007",
+        severity: "warning",
+        message: "Binding 'stale' is declared but never read.",
+        filename: "rule.js",
+        line: 3,
+        column: 5,
+        span: {
+          start: { line: 3, column: 5, offset: source.indexOf("stale") },
+          end: { line: 3, column: 10, offset: source.indexOf("stale") + "stale".length }
         }
       }
     ]);

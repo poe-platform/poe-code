@@ -247,7 +247,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as006-007-unused
@@ -259,8 +259,9 @@ tasks:
       Skip names prefixed with `_`. Severity is warning, not error.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as008-await-scope
     title: Lint AS008 — await outside async function or top level

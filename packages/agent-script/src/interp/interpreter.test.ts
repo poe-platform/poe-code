@@ -87,7 +87,9 @@ describe("interpret", () => {
   });
 
   it("evaluates unary operators used by numeric expressions", async () => {
-    await expect(interpret(parse("return Math.abs(-4)"), { bindings: createMathGlobals() })).resolves.toEqual({
+    await expect(
+      interpret(parse("return Math.abs(-4)"), { bindings: createMathGlobals() })
+    ).resolves.toEqual({
       ok: true,
       returnValue: 4,
       snapshot: {
@@ -283,6 +285,57 @@ describe("interpret", () => {
 
     expect(sink.log).toHaveBeenCalledWith('{\n  "name": "poe"\n}');
     expect(sink.error).not.toHaveBeenCalled();
+  });
+
+  it("rejects regex separators for intercepted string methods before generic expression evaluation", async () => {
+    const splitCall = parse("return value.split(separator)") as any;
+    splitCall.argument.arguments[0] = {
+      type: "RegexLiteral",
+      raw: "/b+/",
+      span: splitCall.argument.arguments[0].span
+    };
+
+    await expect(
+      interpret(splitCall, {
+        bindings: {
+          value: "abba",
+          separator: "b"
+        }
+      })
+    ).rejects.toThrow("String#split does not support regex separator values.");
+  });
+
+  it("rejects regex values passed through bindings for split, replace, and replaceAll", async () => {
+    await expect(
+      interpret(parse("return value.split(separator)"), {
+        bindings: {
+          value: "abba",
+          separator: /b+/ as never
+        }
+      })
+    ).rejects.toThrow("String#split does not support regex separator values.");
+
+    await expect(
+      interpret(parse("return value.replace(search, replacement)"), {
+        bindings: {
+          value: "abba",
+          search: /a/ as never,
+          replacement: "x"
+        }
+      })
+    ).rejects.toThrow("String#replace does not support function replacers or regex search values.");
+
+    await expect(
+      interpret(parse("return value.replaceAll(search, replacement)"), {
+        bindings: {
+          value: "abba",
+          search: /a/g as never,
+          replacement: "x"
+        }
+      })
+    ).rejects.toThrow(
+      "String#replaceAll does not support function replacers or regex search values."
+    );
   });
 
   it("evaluates Math globals including deterministic random when seeded", async () => {

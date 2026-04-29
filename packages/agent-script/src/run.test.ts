@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { dump } from "./dump.js";
+import { createSandboxClosure } from "./interp/values.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
 
@@ -86,6 +87,106 @@ describe("run", () => {
     ]);
   });
 
+  it("intercepts supported string properties and methods", async () => {
+    const result = await run(`return JSON.stringify(Array.of(
+      'hello'.length,
+      'hello'.charAt(1),
+      'hello'.charCodeAt(1),
+      'hello'.codePointAt(1),
+      'hello'.includes('ell'),
+      'hello'.startsWith('he'),
+      'hello'.endsWith('lo'),
+      'banana'.indexOf('an'),
+      'banana'.lastIndexOf('an'),
+      'banana'.slice(1, 4),
+      'banana'.substring(1, 4),
+      'banana'.substr(1, 3),
+      'a,b,c'.split(','),
+      'abba'.replace('b', 'x'),
+      'abba'.replaceAll('b', 'x'),
+      'HeLLo'.toLowerCase(),
+      'HeLLo'.toUpperCase(),
+      '  hi  '.trim(),
+      '  hi  '.trimStart(),
+      '  hi  '.trimEnd(),
+      '5'.padStart(3, '0'),
+      '5'.padEnd(3, '0'),
+      'ha'.repeat(2),
+      'a'.concat('b', 'c'),
+      JSON.parse('"e\\\\u0301"').normalize()
+    ))`);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(JSON.parse(result.returnValue as string)).toEqual([
+      5,
+      "e",
+      101,
+      101,
+      true,
+      true,
+      true,
+      1,
+      3,
+      "ana",
+      "ana",
+      "ana",
+      ["a", "b", "c"],
+      "axba",
+      "axxa",
+      "hello",
+      "HELLO",
+      "hi",
+      "hi  ",
+      "  hi",
+      "005",
+      "500",
+      "haha",
+      "abc",
+      "\u00E9"
+    ]);
+  });
+
+  it("matches JavaScript edge behavior for intercepted string methods", async () => {
+    const result = await run(`return JSON.stringify(Array.of(
+      'banana'.includes('an', 2),
+      'banana'.startsWith('na', 2),
+      'banana'.endsWith('na', 4),
+      'banana'.slice(-3, -1),
+      'banana'.substring(4, 1),
+      'banana'.substr(-2),
+      'a,b,c'.split(undefined),
+      'a,b,c'.split(',', 0),
+      'abba'.replace('', '-'),
+      'aba'.replaceAll('', '-'),
+      'x'.padStart(4),
+      JSON.parse('"e\\\\u0301"').normalize('NFD')
+    ))`);
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+
+    expect(JSON.parse(result.returnValue as string)).toEqual([
+      true,
+      true,
+      true,
+      "an",
+      "ana",
+      "na",
+      ["a,b,c"],
+      [],
+      "-abba",
+      "-a-b-a-",
+      "   x",
+      "e\u0301"
+    ]);
+  });
+
   it("keeps coercion helpers opaque when used as Object sources", async () => {
     const result = await run(`return JSON.stringify(Array.of(
       Object.keys(String),
@@ -100,6 +201,24 @@ describe("run", () => {
     }
 
     expect(JSON.parse(result.returnValue as string)).toEqual([[], [], [], { ok: true }]);
+  });
+
+  it("rejects unsupported regex and function string method arguments at runtime", async () => {
+    await expect(run("return 'abba'.replace('a', () => 'b')")).rejects.toThrow(
+      "String#replace does not support function replacers or regex search values."
+    );
+    await expect(
+      run("return 'abba'.replaceAll('a', replacer)", {
+        bindings: { replacer: createSandboxClosure({ call: () => "b" }) }
+      })
+    ).rejects.toThrow(
+      "String#replaceAll does not support function replacers or regex search values."
+    );
+    await expect(
+      run("return 'a,b'.split(',', limit)", {
+        bindings: { limit: createSandboxClosure({ call: () => 1 }) }
+      })
+    ).rejects.toThrow("String#split does not support function arguments.");
   });
 
   it("uses deterministic Math.random() when seeded", async () => {

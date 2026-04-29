@@ -491,7 +491,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-string-methods
@@ -507,8 +507,9 @@ tasks:
       message.
     status:
       "impl ement": open
-      test: open
-      commit: open
+      test: done
+      commit: done
+      implement: done
 
   - id: interpreter-array-methods
     title: Array prototype method interception

@@ -31,7 +31,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: parser-literals-identifiers
@@ -45,8 +45,9 @@ tasks:
       time with a clear message.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: parser-expressions
     title: Parse arithmetic, logical, optional-chaining, nullish, ternary

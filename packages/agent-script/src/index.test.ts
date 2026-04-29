@@ -17,8 +17,16 @@ describe("@poe-code/agent-script public exports", () => {
     expect(Object.keys(api).sort()).toEqual(["dump", "lint", "parse", "restore", "run"]);
   });
 
-  it("keeps placeholders explicit until implemented", () => {
-    expect(() => api.parse()).toThrowError("Not implemented");
+  it("keeps unimplemented entrypoints explicit", () => {
+    expect(api.parse("1")).toEqual({
+      type: "NumericLiteral",
+      raw: "1",
+      value: 1,
+      span: {
+        start: { line: 1, column: 1, offset: 0 },
+        end: { line: 1, column: 2, offset: 1 }
+      }
+    });
     expect(() => api.lint()).toThrowError("Not implemented");
     expect(() => api.run()).toThrowError("Not implemented");
     expect(() => api.dump()).toThrowError("Not implemented");

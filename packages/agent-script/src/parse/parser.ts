@@ -281,9 +281,32 @@ export type TryStatement = BaseNode & {
   finalizer?: BlockStatement;
 };
 
+export type ImportSpecifier = BaseNode & {
+  type: "ImportSpecifier";
+  imported: Identifier;
+  local: Identifier;
+};
+
+export type ImportDefaultSpecifier = BaseNode & {
+  type: "ImportDefaultSpecifier";
+  local: Identifier;
+};
+
+export type ImportNamespaceSpecifier = BaseNode & {
+  type: "ImportNamespaceSpecifier";
+  local: Identifier;
+};
+
+export type ImportDeclaration = BaseNode & {
+  type: "ImportDeclaration";
+  specifiers: Array<ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier>;
+  source: StringLiteral;
+};
+
 export type Statement =
   | BlockStatement
   | BreakStatement
+  | ImportDeclaration
   | TryStatement
   | ContinueStatement
   | ExpressionStatement
@@ -343,6 +366,7 @@ const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
   "continue",
   "for",
   "if",
+  "import",
   "let",
   "return",
   "throw",
@@ -539,6 +563,10 @@ class Parser {
 
     if (token.type === "keyword" && token.value === "try") {
       return this.parseTryStatement();
+    }
+
+    if (token.type === "keyword" && token.value === "import") {
+      return this.parseImportDeclaration();
     }
 
     if (token.type === "keyword" && token.value === "return") {
@@ -780,6 +808,89 @@ class Parser {
       finalizer,
       span: createSpan(tryToken.start, finalizer?.span.end ?? handler?.span.end ?? block.span.end)
     };
+  }
+
+  private parseImportDeclaration(): ImportDeclaration {
+    const importToken = this.expectKeyword("import");
+    let specifiers: ImportDeclaration["specifiers"];
+
+    if (this.currentToken().type === "punctuator" && this.currentToken().value === "{") {
+      specifiers = this.parseImportNamedSpecifiers();
+    } else if (this.currentToken().type === "punctuator" && this.currentToken().value === "*") {
+      const start = this.expectPunctuator("*");
+      this.expectKeyword("as");
+      const local = this.parseBindingIdentifier();
+      specifiers = [
+        {
+          type: "ImportNamespaceSpecifier",
+          local,
+          span: createSpan(start.start, local.span.end)
+        }
+      ];
+    } else {
+      const local = this.parseBindingIdentifier();
+      specifiers = [
+        {
+          type: "ImportDefaultSpecifier",
+          local,
+          span: local.span
+        }
+      ];
+    }
+
+    this.expectKeyword("from");
+    const sourceToken = this.currentToken();
+    if (sourceToken.type !== "string") {
+      throw unexpectedTokenError(sourceToken);
+    }
+
+    this.index += 1;
+    const source = createStringLiteral(sourceToken);
+    assertBareImportSpecifier(source);
+
+    return {
+      type: "ImportDeclaration",
+      specifiers,
+      source,
+      span: createSpan(importToken.start, source.span.end)
+    };
+  }
+
+  private parseImportNamedSpecifiers(): ImportDeclaration["specifiers"] {
+    this.expectPunctuator("{");
+    const specifiers: ImportDeclaration["specifiers"] = [];
+
+    while (true) {
+      const imported = this.parseIdentifierName();
+      let local = imported;
+
+      if (this.consumeKeyword("as") !== undefined) {
+        local = this.parseBindingIdentifier();
+      }
+
+      specifiers.push({
+        type: "ImportSpecifier",
+        imported,
+        local,
+        span: createSpan(imported.span.start, local.span.end)
+      });
+
+      const comma = this.consumePunctuator(",");
+      if (comma === undefined) {
+        break;
+      }
+
+      if (this.currentToken().type === "punctuator" && this.currentToken().value === "}") {
+        break;
+      }
+    }
+
+    if (specifiers.length === 0) {
+      throw unexpectedTokenError(this.currentToken());
+    }
+
+    this.expectPunctuator("}");
+    return specifiers;
   }
 
   private parseCatchClause(): CatchClause {
@@ -2500,6 +2611,53 @@ function createTemplateLiteral(token: Token): TemplateLiteral {
     quasis,
     span: createTokenSpan(token)
   };
+}
+
+function assertBareImportSpecifier(specifier: StringLiteral): void {
+  if (
+    specifier.value.includes("/") ||
+    specifier.value.includes(".") ||
+    hasProtocolPrefix(specifier.value)
+  ) {
+    throw new Error(
+      `Invalid import specifier '${specifier.value}' at line ${specifier.span.start.line}, column ${specifier.span.start.column}.`
+    );
+  }
+}
+
+function hasProtocolPrefix(value: string): boolean {
+  const colonIndex = value.indexOf(":");
+  if (colonIndex <= 0) {
+    return false;
+  }
+
+  const firstChar = value[0];
+  if (firstChar === undefined || !isAsciiLetter(firstChar)) {
+    return false;
+  }
+
+  for (let index = 1; index < colonIndex; index += 1) {
+    const char = value[index];
+    if (char === undefined) {
+      return false;
+    }
+    if (isAsciiLetter(char) || isDecimalDigit(char) || char === "+" || char === "-" || char === ".") {
+      continue;
+    }
+    return false;
+  }
+
+  return true;
+}
+
+function isAsciiLetter(value: string): boolean {
+  const code = value.charCodeAt(0);
+  return (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+}
+
+function isDecimalDigit(value: string): boolean {
+  const code = value.charCodeAt(0);
+  return code >= 48 && code <= 57;
 }
 
 function createTemplateElement(

@@ -145,8 +145,9 @@ tasks:
       message naming the bad specifier.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: parser-error-format
     title: Format parse errors with code excerpt and caret

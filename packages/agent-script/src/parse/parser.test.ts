@@ -1723,6 +1723,201 @@ describe("parse", () => {
     );
   });
 
+  it("parses bare-specifier import declarations", () => {
+    expect(parse('import { x } from "name"')).toMatchObject({
+      type: "ImportDeclaration",
+      specifiers: [
+        {
+          type: "ImportSpecifier",
+          imported: {
+            type: "Identifier",
+            name: "x"
+          },
+          local: {
+            type: "Identifier",
+            name: "x"
+          }
+        }
+      ],
+      source: {
+        type: "StringLiteral",
+        value: "name"
+      }
+    });
+
+    expect(parse('import { x as y } from "name"')).toMatchObject({
+      type: "ImportDeclaration",
+      specifiers: [
+        {
+          type: "ImportSpecifier",
+          imported: {
+            type: "Identifier",
+            name: "x"
+          },
+          local: {
+            type: "Identifier",
+            name: "y"
+          }
+        }
+      ],
+      source: {
+        type: "StringLiteral",
+        value: "name"
+      }
+    });
+
+    expect(parse('import { default as fallback, from as source, x as y, z, } from "name"')).toMatchObject({
+      type: "ImportDeclaration",
+      specifiers: [
+        {
+          type: "ImportSpecifier",
+          imported: {
+            type: "Identifier",
+            name: "default"
+          },
+          local: {
+            type: "Identifier",
+            name: "fallback"
+          }
+        },
+        {
+          type: "ImportSpecifier",
+          imported: {
+            type: "Identifier",
+            name: "from"
+          },
+          local: {
+            type: "Identifier",
+            name: "source"
+          }
+        },
+        {
+          type: "ImportSpecifier",
+          imported: {
+            type: "Identifier",
+            name: "x"
+          },
+          local: {
+            type: "Identifier",
+            name: "y"
+          }
+        },
+        {
+          type: "ImportSpecifier",
+          imported: {
+            type: "Identifier",
+            name: "z"
+          },
+          local: {
+            type: "Identifier",
+            name: "z"
+          }
+        }
+      ],
+      source: {
+        type: "StringLiteral",
+        value: "name"
+      }
+    });
+
+    expect(parse('import x from "name"')).toMatchObject({
+      type: "ImportDeclaration",
+      specifiers: [
+        {
+          type: "ImportDefaultSpecifier",
+          local: {
+            type: "Identifier",
+            name: "x"
+          }
+        }
+      ],
+      source: {
+        type: "StringLiteral",
+        value: "name"
+      }
+    });
+
+    expect(parse('import * as ns from "name"')).toMatchObject({
+      type: "ImportDeclaration",
+      specifiers: [
+        {
+          type: "ImportNamespaceSpecifier",
+          local: {
+            type: "Identifier",
+            name: "ns"
+          }
+        }
+      ],
+      source: {
+        type: "StringLiteral",
+        value: "name"
+      }
+    });
+
+    expect(parse('import { x } from "name";')).toMatchObject({
+      type: "ImportDeclaration",
+      specifiers: [
+        {
+          type: "ImportSpecifier",
+          imported: {
+            type: "Identifier",
+            name: "x"
+          },
+          local: {
+            type: "Identifier",
+            name: "x"
+          }
+        }
+      ],
+      source: {
+        type: "StringLiteral",
+        value: "name"
+      }
+    });
+  });
+
+  it("rejects non-bare import specifiers with the bad value in the message", () => {
+    expect(() => parse('import { x } from "./name"')).toThrowError(
+      "Invalid import specifier './name' at line 1, column 19."
+    );
+    expect(() => parse('import { x } from "../name"')).toThrowError(
+      "Invalid import specifier '../name' at line 1, column 19."
+    );
+    expect(() => parse('import { x } from "https://example.com/mod"')).toThrowError(
+      "Invalid import specifier 'https://example.com/mod' at line 1, column 19."
+    );
+    expect(() => parse('import { x } from "node:fs"')).toThrowError(
+      "Invalid import specifier 'node:fs' at line 1, column 19."
+    );
+    expect(() => parse('import { x } from "name.js"')).toThrowError(
+      "Invalid import specifier 'name.js' at line 1, column 19."
+    );
+    expect(() => parse('import x from "pkg/name"')).toThrowError(
+      "Invalid import specifier 'pkg/name' at line 1, column 15."
+    );
+    expect(() => parse('import * as ns from "name:subpath"')).toThrowError(
+      "Invalid import specifier 'name:subpath' at line 1, column 21."
+    );
+  });
+
+  it("rejects unsupported or malformed import clauses", () => {
+    expect(() => parse('import {} from "name"')).toThrowError(
+      "Unexpected token '}' at line 1, column 9."
+    );
+    expect(() => parse('import { x as } from "name"')).toThrowError(
+      "Unexpected token '}' at line 1, column 15."
+    );
+    expect(() => parse('import { x as from } from "name"')).toThrowError(
+      "Unexpected token 'from' at line 1, column 15."
+    );
+    expect(() => parse('import * from "name"')).toThrowError(
+      "Expected 'as' at line 1, column 10."
+    );
+    expect(() => parse('import x, { y } from "name"')).toThrowError(
+      "Expected 'from' at line 1, column 9."
+    );
+  });
+
   it("rejects non-identifier computed property sources in declarations and assignments", () => {
     expect(() => parse("const { [key + suffix]: value } = source")).toThrowError(
       "Computed property names in patterns must use an identifier at line 1, column 10."

@@ -523,7 +523,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-number-methods
@@ -535,8 +535,9 @@ tasks:
       ranges; out-of-range values throw a subset RangeError.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: interpreter-async-await
     title: Async function evaluation and await semantics

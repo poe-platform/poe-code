@@ -25,6 +25,11 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import {
+  callNumberMethod,
+  getNumberMember,
+  isNumberMethodName
+} from "./methods/number.js";
+import {
   callStringMethod,
   getStringMember,
   isStringMethodName,
@@ -325,6 +330,14 @@ async function evaluateMemberExpression(
     };
   }
 
+  if (typeof member.object === "number") {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getNumberMember(member.object, member.property, context.budget)
+    };
+  }
+
   if (Array.isArray(member.object)) {
     const arrayMember = getArrayMember(member.object, member.property, createArrayMethodOptions(context));
     if (arrayMember !== undefined) {
@@ -491,6 +504,10 @@ async function evaluateMemberCallExpression(
     return evaluateStringMethodCall(node, member.object, member.property, context);
   }
 
+  if (typeof member.object === "number" && isNumberMethodName(member.property)) {
+    return evaluateNumberMethodCall(node, member.object, member.property, context);
+  }
+
   if (Array.isArray(member.object) && isArrayMethodName(member.property)) {
     return evaluateArrayMethodCall(node, member.object, member.property, context);
   }
@@ -499,6 +516,14 @@ async function evaluateMemberCallExpression(
     return evaluateResolvedCallExpression(
       node,
       getStringMember(member.object, member.property, context.budget),
+      context
+    );
+  }
+
+  if (typeof member.object === "number") {
+    return evaluateResolvedCallExpression(
+      node,
+      getNumberMember(member.object, member.property, context.budget),
       context
     );
   }
@@ -653,6 +678,27 @@ async function evaluateResolvedCallExpression(
       ...context.callStack,
       formatStackFrame(node, callee.name)
     ])
+  };
+}
+
+async function evaluateNumberMethodCall(
+  node: CallExpression,
+  target: number,
+  methodName: Parameters<typeof callNumberMethod>[1],
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const args = await evaluateCallArguments(node.arguments, context);
+  if (!args.ok) {
+    return {
+      kind: "error",
+      error: args.error
+    };
+  }
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: callNumberMethod(target, methodName, args.value, context.budget)
   };
 }
 

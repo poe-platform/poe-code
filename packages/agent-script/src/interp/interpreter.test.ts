@@ -384,6 +384,72 @@ describe("interpret", () => {
     });
   });
 
+  it("evaluates intercepted number methods through member expressions", async () => {
+    await expect(
+      interpret(parse("return value.toString(16)"), {
+        bindings: {
+          value: 255
+        }
+      })
+    ).resolves.toEqual({
+      ok: true,
+      returnValue: "ff",
+      snapshot: {
+        bindings: {
+          value: 255
+        }
+      },
+      stats: {
+        nodeVisits: 5
+      }
+    });
+
+    await expect(
+      interpret(parse("return value.toFixed(2)"), {
+        bindings: {
+          value: 12.3456
+        }
+      })
+    ).resolves.toEqual({
+      ok: true,
+      returnValue: "12.35",
+      snapshot: {
+        bindings: {
+          value: 12.3456
+        }
+      },
+      stats: {
+        nodeVisits: 5
+      }
+    });
+  });
+
+  it("throws RangeError for intercepted number methods with out-of-range arguments", async () => {
+    await expect(
+      interpret(parse("return value.toString(1)"), {
+        bindings: {
+          value: 10
+        }
+      })
+    ).rejects.toThrow(RangeError);
+
+    await expect(
+      interpret(parse("return value.toFixed(101)"), {
+        bindings: {
+          value: 10
+        }
+      })
+    ).rejects.toThrow(RangeError);
+
+    await expect(
+      interpret(parse("return value.toPrecision(0)"), {
+        bindings: {
+          value: 10
+        }
+      })
+    ).rejects.toThrow(RangeError);
+  });
+
   it("re-enters callback closures under the same budget for intercepted array methods", async () => {
     await expect(
       interpret(parse("return values.map(identity)"), {

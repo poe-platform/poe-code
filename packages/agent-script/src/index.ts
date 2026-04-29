@@ -4,6 +4,8 @@ export { run } from "./run.js";
 export { dump } from "./dump.js";
 export { restore } from "./restore.js";
 export { runHarness } from "./runner/run-harness.js";
+export { extractBlock } from "./loader/extract-block.js";
+export { splitFrontmatter } from "./loader/frontmatter.js";
 export { makeAgentModule } from "./modules/agent.js";
 export { makeEnvModule } from "./modules/env.js";
 export { makeFailModule } from "./modules/fail.js";

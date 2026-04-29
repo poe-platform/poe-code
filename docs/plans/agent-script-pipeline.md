@@ -898,7 +898,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: cli-lint
@@ -912,8 +912,9 @@ tasks:
       agent-script-command.ts following existing CLI conventions.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: cli-run
     title: CLI — agent-script run

@@ -189,7 +189,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as001-disallowed-syntax
@@ -202,8 +202,9 @@ tasks:
       construct and points at its source span.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as002-mutable-capture
     title: Lint AS002 — closure captures mutable binding

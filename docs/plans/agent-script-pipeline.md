@@ -711,7 +711,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: module-log
@@ -723,8 +723,9 @@ tasks:
       TUI subscribes here. Default sink writes JSONL to stdout.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: module-env
     title: makeEnvModule factory (curated allow-list)

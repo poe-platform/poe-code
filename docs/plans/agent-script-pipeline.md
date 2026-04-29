@@ -299,7 +299,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as011-prototype-access
@@ -311,8 +311,9 @@ tasks:
       member with a string literal key).
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as012-disallowed-method-args
     title: Lint AS012 — disallowed property method arguments

@@ -7,6 +7,7 @@ import { AS006_007, type Diagnostic as AS006007Diagnostic } from "./lint/rules/A
 import { AS008, type Diagnostic as AS008Diagnostic } from "./lint/rules/AS008.js";
 import { AS009, type Diagnostic as AS009Diagnostic } from "./lint/rules/AS009.js";
 import { AS010, type Diagnostic as AS010Diagnostic } from "./lint/rules/AS010.js";
+import { AS011, type Diagnostic as AS011Diagnostic } from "./lint/rules/AS011.js";
 import type { Modules } from "./lint/rules/module-registry.js";
 
 export type Diagnostic =
@@ -18,7 +19,8 @@ export type Diagnostic =
   | AS006007Diagnostic
   | AS008Diagnostic
   | AS009Diagnostic
-  | AS010Diagnostic;
+  | AS010Diagnostic
+  | AS011Diagnostic;
 
 export function lint(source: string, options: { filename?: string; modules?: Modules } = {}): Diagnostic[] {
   const diagnostics = [
@@ -30,7 +32,8 @@ export function lint(source: string, options: { filename?: string; modules?: Mod
     ...AS006_007(source, options),
     ...AS008(source, options),
     ...AS009(source, options),
-    ...AS010(source, options)
+    ...AS010(source, options),
+    ...AS011(source, options)
   ];
 
   const as010Keys = new Set(

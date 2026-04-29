@@ -724,7 +724,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: module-env
@@ -737,8 +737,9 @@ tasks:
       exposes the full process.env.
     status:
       "impl ement": open
-      test: open
-      commit: open
+      test: done
+      commit: done
+      implement: done
 
   - id: module-fail
     title: makeFailModule factory

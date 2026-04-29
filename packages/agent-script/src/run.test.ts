@@ -1,18 +1,67 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { dump } from "./dump.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { createSandboxClosure, createSandboxPromise } from "./interp/values.js";
 import { makeAgentModule } from "./modules/agent.js";
+import { makeEnvModule } from "./modules/env.js";
 import { makeMcpModule } from "./modules/mcp.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
 
 describe("run", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   it("registers Math globals by default", async () => {
     await expect(run("return Math.max(Math.min(5, -2), Math.abs(-4))")).resolves.toMatchObject({
       ok: true,
       returnValue: 4
+    });
+  });
+
+  it("lets scripts read only allow-listed environment variables through the env module", async () => {
+    vi.stubEnv("ALLOWED_TOKEN", "secret");
+    vi.stubEnv("BLOCKED_TOKEN", "hidden");
+
+    const result = await run(
+      [
+        'import { get } from "env";',
+        'return JSON.stringify(Array.of(get("ALLOWED_TOKEN"), get("BLOCKED_TOKEN"), get("MISSING_TOKEN")));'
+      ].join("\n"),
+      {
+        modules: {
+          env: makeEnvModule(["ALLOWED_TOKEN", "MISSING_TOKEN"])
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["secret", null, null])
+    });
+  });
+
+  it("does not expose process.env or other extra exports through env namespace imports", async () => {
+    vi.stubEnv("ALLOWED_TOKEN", "secret");
+    vi.stubEnv("BLOCKED_TOKEN", "hidden");
+
+    const result = await run(
+      [
+        'import * as env from "env";',
+        'return JSON.stringify(Array.of(env.get("ALLOWED_TOKEN"), env.get("BLOCKED_TOKEN"), env.process, env.env));'
+      ].join("\n"),
+      {
+        modules: {
+          env: makeEnvModule(["ALLOWED_TOKEN"])
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["secret", null, null, null])
     });
   });
 

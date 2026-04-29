@@ -1,8 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { dump } from "./dump.js";
 import { Budget, SandboxError } from "./interp/budget.js";
-import { createSandboxClosure } from "./interp/values.js";
+import { createSandboxClosure, createSandboxPromise } from "./interp/values.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
 
@@ -91,6 +91,47 @@ describe("run", () => {
       ],
       "right"
     ]);
+  });
+
+  it("rejects in-flight awaits and the next host call when aborted", async () => {
+    const controller = new AbortController();
+    const after = vi.fn(() => "after");
+    const result = run(
+      `
+try {
+  await wait();
+  return 'missed';
+} catch {
+  try {
+    return after();
+  } catch ({ message }) {
+    return message;
+  }
+}
+      `,
+      {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(new Promise(() => undefined)),
+            name: "wait"
+          }),
+          after: createSandboxClosure({
+            call: () => after(),
+            name: "after"
+          })
+        },
+        signal: controller.signal
+      }
+    );
+
+    controller.abort();
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "aborted"
+    });
+    expect(after).not.toHaveBeenCalled();
   });
 
   it("supports empty Promise iterables and enforces budgets through run()", async () => {

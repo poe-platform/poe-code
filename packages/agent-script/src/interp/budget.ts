@@ -9,13 +9,27 @@ export type BudgetOptions = {
 };
 
 export class SandboxError extends Error {
-  readonly budget: BudgetName;
-  readonly current: number;
-  readonly limit: number;
+  readonly code: "aborted" | "budgetExceeded";
+  readonly budget?: BudgetName;
+  readonly current?: number;
+  readonly limit?: number;
 
-  constructor(input: { budget: BudgetName; current: number; limit: number }) {
-    super(`Sandbox budget exceeded for ${input.budget}: ${input.current} > ${input.limit}.`);
+  constructor(input: "aborted");
+  constructor(input: { budget: BudgetName; current: number; limit: number });
+  constructor(input: "aborted" | { budget: BudgetName; current: number; limit: number }) {
+    super(
+      input === "aborted"
+        ? "aborted"
+        : `Sandbox budget exceeded for ${input.budget}: ${input.current} > ${input.limit}.`
+    );
     this.name = "SandboxError";
+
+    if (input === "aborted") {
+      this.code = "aborted";
+      return;
+    }
+
+    this.code = "budgetExceeded";
     this.budget = input.budget;
     this.current = input.current;
     this.limit = input.limit;

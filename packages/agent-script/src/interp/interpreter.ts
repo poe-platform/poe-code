@@ -218,7 +218,7 @@ async function evaluateNode(
   try {
     return await handler(node as never, context);
   } catch (error) {
-    if (error instanceof SandboxError) {
+    if (isFatalSandboxError(error)) {
       throw error;
     }
 
@@ -672,7 +672,7 @@ async function evaluateStringMethodCall(
       value: callStringMethod(target, methodName, args.value, context.budget)
     };
   } catch (error) {
-    if (error instanceof SandboxError) {
+    if (isFatalSandboxError(error)) {
       throw error;
     }
 
@@ -708,7 +708,7 @@ async function evaluateArrayMethodCall(
       )
     };
   } catch (error) {
-    if (error instanceof SandboxError) {
+    if (isFatalSandboxError(error)) {
       throw error;
     }
 
@@ -813,7 +813,7 @@ async function evaluateNumberMethodCall(
       value: callNumberMethod(target, methodName, args.value, context.budget)
     };
   } catch (error) {
-    if (error instanceof SandboxError) {
+    if (isFatalSandboxError(error)) {
       throw error;
     }
 
@@ -849,7 +849,7 @@ async function invokeSandboxClosure(
       ? normalizeClosureResult(wrapHostResult(result, stack))
       : await resolveClosureResult(wrapHostResult(result, stack));
   } catch (error) {
-    if (error instanceof SandboxError) {
+    if (isFatalSandboxError(error)) {
       throw error;
     }
 
@@ -949,6 +949,10 @@ function wrapHostResult(
 
 function captureException(error: unknown, stack: readonly string[]) {
   return isCapturedException(error) ? error : createCapturedException(error, stack);
+}
+
+function isFatalSandboxError(error: unknown): error is SandboxError {
+  return error instanceof SandboxError && error.code === "budgetExceeded";
 }
 
 function isPromiseLikeResult(

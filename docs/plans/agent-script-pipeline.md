@@ -578,7 +578,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: interpreter-cancellation
@@ -591,8 +591,9 @@ tasks:
       a manual AbortController.
     status:
       "impl ement": open
-      test: open
-      commit: open
+      test: done
+      commit: done
+      implement: done
 
   - id: host-fn-wrapping
     title: Wrap caller-injected globals across the boundary

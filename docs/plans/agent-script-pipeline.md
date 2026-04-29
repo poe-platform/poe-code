@@ -203,7 +203,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: lint-as002-mutable-capture
@@ -217,8 +217,9 @@ tasks:
       branches.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: lint-as003-unknown-identifier
     title: Lint AS003 — unknown identifier with suggestions

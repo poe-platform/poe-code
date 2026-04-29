@@ -1,4 +1,4 @@
-import type { ParseResult, SourceSpan } from "./parser.js";
+import type { Module, ParseResult, SourceSpan } from "./parser.js";
 
 type AstNode = {
   nodeId?: number;
@@ -12,7 +12,7 @@ type OrderedNode = {
   order: number;
 };
 
-export function assignIds(root: ParseResult): ParseResult {
+export function assignIds<T extends Module | ParseResult>(root: T): T {
   const visited = new Set<AstNode>();
   let nextId = 0;
 

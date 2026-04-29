@@ -306,6 +306,11 @@ export type ImportDeclaration = BaseNode & {
   source: StringLiteral;
 };
 
+export type Module = BaseNode & {
+  type: "Module";
+  body: Statement[];
+};
+
 export type Statement =
   | BlockStatement
   | BreakStatement
@@ -391,8 +396,26 @@ export function parse(source: string, filename = "<input>"): ParseResult {
   }
 }
 
+export function parseModule(source: string, filename = "<input>"): Module {
+  try {
+    return assignIds(parseModuleTokens(tokenize(source)));
+  } catch (error) {
+    if (error instanceof DisallowedSyntaxError) {
+      throw error;
+    }
+    if (error instanceof Error) {
+      throw formatParseError(source, filename, error);
+    }
+    throw error;
+  }
+}
+
 function parseTokens(tokens: Token[]): ParseResult {
   return new Parser(tokens).parseTopLevel();
+}
+
+function parseModuleTokens(tokens: Token[]): Module {
+  return new Parser(tokens).parseModule();
 }
 
 function parseExpressionTokens(tokens: Token[]): Expression {
@@ -413,6 +436,24 @@ class Parser {
     return node;
   }
 
+  parseModule(): Module {
+    const body: Statement[] = [];
+
+    while (this.currentToken().type !== "eof") {
+      body.push(this.parseTopLevelItem());
+      while (this.consumePunctuator(";") !== undefined) {
+        continue;
+      }
+    }
+
+    const end = this.currentToken().end;
+    return {
+      type: "Module",
+      body,
+      span: createSpan(body[0]?.span.start ?? end, body[body.length - 1]?.span.end ?? end)
+    };
+  }
+
   parseExpressionOnly(): Expression {
     const expression = this.parseExpression().node;
     while (this.consumePunctuator(";") !== undefined) {
@@ -420,6 +461,19 @@ class Parser {
     }
     this.expectEof();
     return expression;
+  }
+
+  private parseTopLevelItem(): Statement {
+    if (this.shouldParseTopLevelStatement()) {
+      return this.parseStatement();
+    }
+
+    const expression = this.parseExpression().node;
+    return {
+      type: "ExpressionStatement",
+      expression,
+      span: expression.span
+    };
   }
 
   private parseExpression(): ParsedExpression {

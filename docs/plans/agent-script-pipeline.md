@@ -1045,7 +1045,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: integration-budget-enforcement
@@ -1060,8 +1060,9 @@ tasks:
       hit.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 ---
 
 ```js

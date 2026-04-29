@@ -77,7 +77,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       options.signal
     );
 
-    const scope = new Scope(bindings).child(resolveModuleImports(module, options.modules, { budget }));
+    const scope = new Scope(bindings).child(resolveModuleImports(module, options.modules, { budget, signal: options.signal }));
     const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
       snapshotIntervalMs: options.snapshotIntervalMs,
       snapshotPath: options.snapshotPath

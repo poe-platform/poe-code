@@ -1,4 +1,5 @@
 import type { Budget } from "../interp/budget.js";
+import { wrapCancelableBindings } from "../interp/cancel.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
 import type { SandboxValue } from "../interp/values.js";
 import type {
@@ -38,7 +39,7 @@ export function createUnknownExportMessage(
 export function resolveModuleImports(
   module: Module,
   modules: ModuleRegistry | undefined,
-  options: { budget: Budget }
+  options: { budget: Budget; signal?: AbortSignal }
 ): Record<string, SandboxValue> {
   const registry = normalizeModuleRegistry(modules);
   const bindings = createBindingRecord();
@@ -49,7 +50,7 @@ export function resolveModuleImports(
       continue;
     }
 
-    bindImportDeclaration(statement, registry, wrappedModules, bindings, options.budget);
+    bindImportDeclaration(statement, registry, wrappedModules, bindings, options);
   }
 
   return bindings;
@@ -60,7 +61,7 @@ function bindImportDeclaration(
   registry: NormalizedModuleRegistry,
   wrappedModules: Map<string, Record<string, SandboxValue>>,
   bindings: Record<string, SandboxValue>,
-  budget: Budget
+  options: { budget: Budget; signal?: AbortSignal }
 ): void {
   const moduleName = declaration.source.value;
   const moduleExports = registry.get(moduleName);
@@ -71,9 +72,12 @@ function bindImportDeclaration(
 
   const wrappedExports =
     wrappedModules.get(moduleName) ??
-    wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
-      budget
-    });
+    wrapCancelableBindings(
+      wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
+        budget: options.budget
+      }),
+      options.signal
+    );
 
   wrappedModules.set(moduleName, wrappedExports);
 

@@ -582,6 +582,36 @@ try {
     expect(after).not.toHaveBeenCalled();
   });
 
+  it("blocks imported module calls when the signal is already aborted", async () => {
+    const controller = new AbortController();
+    const request = vi.fn(() => "called");
+    controller.abort();
+
+    const result = run(
+      [
+        'import { request } from "api";',
+        "return request();"
+      ].join("\n"),
+      {
+        modules: {
+          api: {
+            request: createSandboxClosure({
+              call: () => request(),
+              name: "request"
+            })
+          }
+        },
+        signal: controller.signal
+      }
+    );
+
+    await expect(result).rejects.toMatchObject({
+      message: "aborted",
+      name: "SandboxError"
+    });
+    expect(request).not.toHaveBeenCalled();
+  });
+
   it("wraps caller-injected host function arguments and return values across the sandbox boundary", async () => {
     const observedArgs: unknown[] = [];
     const host = vi.fn((input: { nested: { value: number } }, items: number[]) => {

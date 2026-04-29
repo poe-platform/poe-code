@@ -17,6 +17,7 @@ import { parse } from "./parse.js";
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
+import { runHarness } from "./runner/run-harness.js";
 
 describe("@poe-code/agent-script public exports", () => {
   it("re-exports the placeholder entrypoints", () => {
@@ -24,6 +25,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.lint).toBe(lint);
     expect(lint).toBe(lintFromIndex);
     expect(api.run).toBe(run);
+    expect(api.runHarness).toBe(runHarness);
     expect(api.dump).toBe(dump);
     expect(api.restore).toBe(restore);
     expect(api.makeAgentModule).toBe(makeAgentModule);
@@ -49,7 +51,8 @@ describe("@poe-code/agent-script public exports", () => {
       "makeTimeModule",
       "parse",
       "restore",
-      "run"
+      "run",
+      "runHarness"
     ]);
   });
 

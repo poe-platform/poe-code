@@ -868,7 +868,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: runHarness
@@ -883,8 +883,9 @@ tasks:
       `run`.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: runHarness-pure-ajs
     title: Support pure .ajs scripts (no frontmatter, no harness module)

@@ -323,7 +323,7 @@ describe("agent-script run command", () => {
 
   it("prints runtime errors and exits 1 when the harness reports a failed result", async () => {
     vol.fromJSON({
-      "/repo/scripts/example.ajs": "return 1;"
+      "/repo/scripts/example.ajs": ["const alpha = 1;", "const beta = 2;", "return missing;"].join("\n")
     });
 
     const runHarness = vi.fn(async () => ({
@@ -362,7 +362,86 @@ describe("agent-script run command", () => {
     await program.parseAsync(["node", "cli", "agent-script", "run", "scripts/example.ajs"]);
 
     expect(stderrSpy).toHaveBeenCalledWith(
-      "/repo/scripts/example.ajs:3:5 Identifier 'missing' is not defined.\n"
+      [
+        "InterpreterError: /repo/scripts/example.ajs:3:5",
+        "",
+        "1 | const alpha = 1;",
+        "2 | const beta = 2;",
+        "3 | return missing;",
+        "  |     ^",
+        "",
+        "Identifier 'missing' is not defined.",
+        ""
+      ].join("\n")
+    );
+    expect(process.exitCode).toBe(1);
+    stderrSpy.mockRestore();
+  });
+
+  it("prints runtime errors on original markdown lines", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/runtime.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "---",
+        "",
+        "# Runtime",
+        "",
+        "```js",
+        "return 1 + 2;",
+        "```"
+      ].join("\n")
+    });
+
+    const runHarness = vi.fn(async () => ({
+      ok: false,
+      error: {
+        code: "UNSUPPORTED_NODE",
+        message: "Unsupported AST node type 'BinaryExpression'.",
+        nodeType: "BinaryExpression",
+        span: {
+          start: {
+            line: 9,
+            column: 8,
+            offset: 0
+          },
+          end: {
+            line: 9,
+            column: 13,
+            offset: 0
+          }
+        }
+      },
+      snapshot: {
+        sourceHash: "hash"
+      },
+      stats: {
+        nodeVisits: 1
+      }
+    }));
+
+    const program = createBaseProgram();
+    registerAgentScriptCommand(program, createContainer(), {
+      runHarness
+    });
+    const stderrSpy = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await program.parseAsync(["node", "cli", "agent-script", "run", "docs/plans/runtime.md"]);
+
+    expect(stderrSpy).toHaveBeenCalledWith(
+      [
+        "InterpreterError: /repo/docs/plans/runtime.md:9:8",
+        "",
+        " 7 | ",
+        " 8 | ```js",
+        " 9 | return 1 + 2;",
+        "10 | ```",
+        "   |        ^",
+        "",
+        "Unsupported AST node type 'BinaryExpression'.",
+        ""
+      ].join("\n")
     );
     expect(process.exitCode).toBe(1);
     stderrSpy.mockRestore();

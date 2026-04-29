@@ -3,6 +3,7 @@ import type { Command } from "commander";
 import { buildSpawnArgs } from "@poe-code/agent-spawn";
 import {
   extractBlock,
+  formatInterpreterError,
   lint,
   makeAgentModule,
   makeEnvModule,
@@ -228,7 +229,7 @@ async function runAgentScript(
     });
 
     if (isFailedRunResult(result)) {
-      writeRunError(resolvedPath, result.error);
+      await writeRunError(container, resolvedPath, result.error);
       process.exitCode = 1;
       return;
     }
@@ -365,7 +366,8 @@ function formatRunReturnValue(value: unknown): string {
   }
 }
 
-function writeRunError(
+async function writeRunError(
+  container: CliContainer,
   filepath: string,
   error: {
     message: string;
@@ -376,8 +378,18 @@ function writeRunError(
       };
     };
   }
-): void {
-  process.stderr.write(`${filepath}:${error.span.start.line}:${error.span.start.column} ${error.message}\n`);
+): Promise<void> {
+  const source = stripByteOrderMark(await container.fs.readFile(filepath, "utf8"));
+
+  process.stderr.write(
+    `${formatInterpreterError(source, {
+      kind: "InterpreterError",
+      filename: filepath,
+      line: error.span.start.line,
+      column: error.span.start.column,
+      message: error.message
+    })}\n`
+  );
 }
 
 function formatRunThrownError(error: unknown): string {

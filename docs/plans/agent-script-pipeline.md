@@ -927,7 +927,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: error-formatter
@@ -940,8 +940,9 @@ tasks:
       by the CLI and runHarness to print failures.
     status:
       "impl ement": open
-      test: open
+      test: done
       commit: open
+      implement: done
 
   - id: package-deep-copy-helpers
     title: Public deep-copy helpers for module authors

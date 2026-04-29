@@ -160,7 +160,7 @@ tasks:
     status:
       "impl ement": open
       test: done
-      commit: open
+      commit: done
       implement: done
 
   - id: ast-node-ids
@@ -174,8 +174,9 @@ tasks:
       the same source twice yields identical id maps.
     status:
       "impl ement": open
-      test: open
-      commit: open
+      test: done
+      commit: done
+      implement: done
 
   - id: ast-content-hash
     title: Hash parsed AST for snapshot validation

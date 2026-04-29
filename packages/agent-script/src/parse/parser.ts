@@ -1,4 +1,5 @@
 import { tokenize, type Position, type Token } from "./tokenizer.js";
+import { assignIds } from "./assign-ids.js";
 import { formatParseError } from "./format-error.js";
 
 export type SourceSpan = {
@@ -14,6 +15,7 @@ export class DisallowedSyntaxError extends Error {
 }
 
 type BaseNode = {
+  nodeId?: number;
   type: string;
   span: SourceSpan;
 };
@@ -377,7 +379,7 @@ const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
 
 export function parse(source: string, filename = "<input>"): ParseResult {
   try {
-    return parseTokens(tokenize(source));
+    return assignIds(parseTokens(tokenize(source)));
   } catch (error) {
     if (error instanceof DisallowedSyntaxError) {
       throw error;

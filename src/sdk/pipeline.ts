@@ -7,6 +7,7 @@ import {
   type PipelineRunResult
 } from "@poe-code/pipeline";
 import { buildPipelineInitPrompt } from "../cli/commands/pipeline-init.js";
+import pipelineSkillPlan from "../templates/pipeline/SKILL_plan.md";
 import { spawn as sdkSpawn } from "./spawn.js";
 
 export type {
@@ -40,7 +41,6 @@ type PipelineAgentRunnerInput = Parameters<PipelineAgentRunner>[0];
 type PipelineAgentRunnerResult = Awaited<ReturnType<PipelineAgentRunner>>;
 
 const PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT = 3;
-const PIPELINE_SKILL_PLAN_URL = new URL("../templates/pipeline/SKILL_plan.md", import.meta.url);
 
 export interface PipelineInitRunOptions {
   agent: string;
@@ -89,10 +89,6 @@ async function planNeedsInit(absolutePath: string): Promise<boolean> {
   return !Array.isArray(tasks) || tasks.length === 0;
 }
 
-async function readPipelineSkillPlan(): Promise<string> {
-  return fsPromises.readFile(PIPELINE_SKILL_PLAN_URL, "utf8");
-}
-
 async function runWithRetry<T>(
   fn: () => Promise<T>,
   maxAttempts: number
@@ -131,7 +127,7 @@ export async function runPipeline(
       const prompt = buildPipelineInitPrompt({
         sourceDocPath: options.plan,
         sourceDocContent,
-        skillContent: await readPipelineSkillPlan()
+        skillContent: pipelineSkillPlan
       });
       await runWithRetry(
         () => userRunAgent({
@@ -204,7 +200,7 @@ export async function runPipelineInit(
         question: options.question,
         sourceDocPath: source.relativePath,
         sourceDocContent,
-        skillContent: await readPipelineSkillPlan()
+        skillContent: pipelineSkillPlan
       });
       const result = await runAgent({
         agent: options.agent,

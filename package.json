@@ -83,6 +83,7 @@
     "poe-codex": "dist/bin/poe-codex.js",
     "poe-opencode": "dist/bin/poe-opencode.js",
     "poe-agent": "dist/bin/poe-agent.js",
+    "poe-superintendent-mcp": "packages/superintendent/dist/mcp.js",
     "tiny-oauth-test-server": "packages/tiny-oauth-test-server/dist/cli.js",
     "tiny-stdio-mcp-test-server": "packages/tiny-stdio-mcp-test-server/dist/cli.js"
   },
@@ -93,6 +94,7 @@
     "packages/config-mutations/dist",
     "packages/design-system/dist",
     "packages/memory/dist",
+    "packages/superintendent/dist",
     "packages/tiny-stdio-mcp-server/dist"
   ],
   "engines": {

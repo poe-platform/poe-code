@@ -5,10 +5,12 @@ import { describe, expect, it } from "vitest";
 const ROOT = path.resolve(import.meta.dirname, "..", "..");
 
 type PackageJson = {
+  bin?: Record<string, string>;
   bundledDependencies?: string[];
   bundleDependencies?: string[];
   dependencies?: Record<string, string>;
   exports?: Record<string, unknown>;
+  files?: string[];
   repository?: {
     directory?: string;
   };
@@ -56,5 +58,14 @@ describe("standalone package publish metadata", () => {
     const exportsField = readPackageJson("package.json").exports ?? {};
 
     expect(Object.keys(exportsField).sort()).toEqual([".", "./memory"]);
+  });
+
+  it("publishes the superintendent MCP server bin with the root package", () => {
+    const rootPackage = readPackageJson("package.json");
+
+    expect(rootPackage.bin?.["poe-superintendent-mcp"]).toBe(
+      "packages/superintendent/dist/mcp.js"
+    );
+    expect(rootPackage.files).toContain("packages/superintendent/dist");
   });
 });

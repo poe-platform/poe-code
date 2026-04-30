@@ -24,8 +24,8 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
-      - name: Build
-        run: npm run build --workspace poe-oauth
+      - name: Build poe-oauth and dependencies
+        run: npx turbo build --filter=poe-oauth...
       - name: Auto-bump patch version from npm
         working-directory: packages/poe-oauth
         run: |

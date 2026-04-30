@@ -1,6 +1,8 @@
 import type { AcpSpawnConfig, CliSpawnConfig } from "../types.js";
 import { serializeGooseMcpArgs } from "./mcp.js";
 
+const gooseFileSecretsEnv = { GOOSE_DISABLE_KEYRING: "1" };
+
 export const gooseSpawnConfig: CliSpawnConfig = {
   kind: "cli",
   agentId: "goose",
@@ -13,9 +15,9 @@ export const gooseSpawnConfig: CliSpawnConfig = {
   mcpArgs: serializeGooseMcpArgs,
   mcpArgsPosition: "beforePrompt",
   modes: {
-    yolo: { env: { GOOSE_MODE: "auto" } },
-    edit: { env: { GOOSE_MODE: "smart_approve" } },
-    read: { env: { GOOSE_MODE: "chat" } }
+    yolo: { env: { ...gooseFileSecretsEnv, GOOSE_MODE: "auto" } },
+    edit: { env: { ...gooseFileSecretsEnv, GOOSE_MODE: "smart_approve" } },
+    read: { env: { ...gooseFileSecretsEnv, GOOSE_MODE: "chat" } }
   },
   stdinMode: {
     omitPrompt: true,
@@ -32,5 +34,6 @@ export const gooseAcpSpawnConfig: AcpSpawnConfig = {
   kind: "acp",
   agentId: "goose",
   acpArgs: ["acp"],
+  env: gooseFileSecretsEnv,
   skipAuth: true
 };

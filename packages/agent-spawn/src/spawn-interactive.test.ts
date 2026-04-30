@@ -153,7 +153,10 @@ describe("spawnInteractive", () => {
     ]);
     const [, , spawnOpts] = spawnMock.mock.calls[0];
     expect(spawnOpts).toHaveProperty("env");
-    expect(spawnOpts.env).toMatchObject({ GOOSE_MODE: "auto" });
+    expect(spawnOpts.env).toMatchObject({
+      GOOSE_DISABLE_KEYRING: "1",
+      GOOSE_MODE: "auto"
+    });
   });
 
   it("includes model flag when model is provided", async () => {

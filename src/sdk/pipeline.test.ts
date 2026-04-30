@@ -3,6 +3,7 @@ import { fs, vol } from "memfs";
 import type { PipelineRunResult } from "@poe-code/pipeline";
 
 const workspaceRunPipelineMock = vi.hoisted(() => vi.fn());
+const pipelineSkillPlanPath = new URL("../templates/pipeline/SKILL_plan.md", import.meta.url).pathname;
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -42,7 +43,10 @@ const workspaceResult: PipelineRunResult = {
 
 function seedFs(files: Record<string, string>): void {
   vol.reset();
-  vol.fromJSON(files, "/");
+  vol.fromJSON({
+    [pipelineSkillPlanPath]: "Pipeline skill template",
+    ...files
+  }, "/");
   vol.mkdirSync(cwd, { recursive: true });
   vol.mkdirSync(homeDir, { recursive: true });
 }

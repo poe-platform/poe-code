@@ -35,6 +35,7 @@ vi.mock("@poe-code/design-system", () => {
 });
 
 let lastMockAcpClient: any;
+let lastMockAcpClientOptions: any;
 let mockPromptNotifications: any[] | null = null;
 
 vi.mock("@poe-code/poe-acp-client", () => {
@@ -74,7 +75,8 @@ vi.mock("@poe-code/poe-acp-client", () => {
       };
     });
     dispose = vi.fn().mockResolvedValue(undefined);
-    constructor() {
+    constructor(options: unknown) {
+      lastMockAcpClientOptions = options;
       lastMockAcpClient = this; // eslint-disable-line @typescript-eslint/no-this-alias
     }
   }
@@ -603,6 +605,7 @@ describe("acp/renderer", () => {
 describe("spawnAcp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    lastMockAcpClientOptions = undefined;
     mockPromptNotifications = null;
   });
 
@@ -664,6 +667,21 @@ describe("spawnAcp", () => {
     await done;
 
     expect(lastMockAcpClient.newSession).toHaveBeenCalledWith("/tmp/test", []);
+  });
+
+  it("passes Goose file-secret env to the ACP server", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "goose",
+      prompt: "test",
+      cwd: "/tmp/test",
+    });
+
+    await collect(events);
+    await done;
+
+    expect(lastMockAcpClientOptions.env).toMatchObject({
+      GOOSE_DISABLE_KEYRING: "1",
+    });
   });
 
   it("uses last tool output as stdout when no agent message is sent", async () => {

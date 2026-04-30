@@ -471,6 +471,27 @@ describe("createCommandExpectationCheck", () => {
       'demo run "Output exactly: \\"DEMO_OK\\"" (expecting "DEMO_OK")'
     );
   });
+
+  it("passes command options through to the runner", async () => {
+    const check = createCommandExpectationCheck({
+      id: "demo-health",
+      command: "demo",
+      args: ["run"],
+      expectedOutput: "DEMO_OK",
+      commandOptions: { env: { DEMO_MODE: "test" } }
+    });
+    const runCommand = vi.fn(async () => ({
+      stdout: "DEMO_OK\n",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    await check.run({ isDryRun: false, runCommand });
+
+    expect(runCommand).toHaveBeenCalledWith("demo", ["run"], {
+      env: { DEMO_MODE: "test" }
+    });
+  });
 });
 
 // ── dry-run ───────────────────────────────────────────────────────────────────

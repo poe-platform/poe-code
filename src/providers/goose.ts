@@ -37,6 +37,7 @@ const CUSTOM_PROVIDER_FILE = "~/.config/goose/custom_providers/custom_poe.json";
 const GOOSE_CONFIG_FILE = "~/.config/goose/config.yaml";
 const GOOSE_SECRETS_FILE = "~/.config/goose/secrets.yaml";
 const CUSTOM_PROVIDER_API_KEY_ENV = "CUSTOM_POE_API_KEY";
+const GOOSE_FILE_SECRETS_ENV = { GOOSE_DISABLE_KEYRING: "1" };
 const HEALTH_CHECK_PROMPT = "Reply with exactly: GOOSE_OK";
 type GooseModelsResponse = {
   data?: unknown;
@@ -229,13 +230,14 @@ function buildRunOptions(
   const modeEnv = options.mode && GOOSE_MODE_ENV[options.mode]
     ? { GOOSE_MODE: GOOSE_MODE_ENV[options.mode] }
     : undefined;
+  const commandEnv = { ...GOOSE_FILE_SECRETS_ENV, ...(modeEnv ?? {}) };
 
   if (options.useStdin) {
     return {
       args: [...baseArgs, ...mcpArgs, "--instructions", "-", ...(options.args ?? [])],
       commandOptions: {
         ...(options.cwd ? { cwd: options.cwd } : {}),
-        ...(modeEnv ? { env: modeEnv } : {}),
+        env: commandEnv,
         stdin: options.prompt
       }
     };
@@ -243,9 +245,7 @@ function buildRunOptions(
 
   return {
     args: [...baseArgs, ...mcpArgs, "--text", options.prompt, ...(options.args ?? [])],
-    commandOptions: options.cwd || modeEnv
-      ? { ...(options.cwd ? { cwd: options.cwd } : {}), ...(modeEnv ? { env: modeEnv } : {}) }
-      : undefined
+    commandOptions: { ...(options.cwd ? { cwd: options.cwd } : {}), env: commandEnv }
   };
 }
 
@@ -347,7 +347,8 @@ export const gooseService = createProvider<
         id: "goose-cli-health",
         command: "goose",
         args: ["run", "--text", HEALTH_CHECK_PROMPT, "--output-format", "text"],
-        expectedOutput: "GOOSE_OK"
+        expectedOutput: "GOOSE_OK",
+        commandOptions: { env: GOOSE_FILE_SECRETS_ENV }
       })
     );
   },

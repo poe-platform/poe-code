@@ -1,4 +1,8 @@
-import type { CommandRunner, CommandRunnerResult } from "@poe-code/agent-spawn";
+import type {
+  CommandRunner,
+  CommandRunnerOptions,
+  CommandRunnerResult
+} from "@poe-code/agent-spawn";
 import { buildSpawnArgs } from "@poe-code/agent-spawn";
 
 export type {
@@ -21,6 +25,7 @@ export interface RunAndMatchOutputOptions {
   command: string;
   args: string[];
   expectedOutput: string;
+  commandOptions?: CommandRunnerOptions;
   skipOnDryRun?: boolean;
 }
 
@@ -67,7 +72,9 @@ export async function runAndMatchOutput(
     return;
   }
 
-  const result = await context.runCommand(options.command, options.args);
+  const result = options.commandOptions
+    ? await context.runCommand(options.command, options.args, options.commandOptions)
+    : await context.runCommand(options.command, options.args);
   if (result.exitCode !== 0) {
     const detail = formatCommandRunnerResult(result);
     throw new Error(

@@ -63,8 +63,9 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
     ? acpConfig.mcpEnv(options.mcpServers)
     : {};
 
-  const env = Object.keys(mcpEnvVars).length > 0
-    ? { ...process.env, ...mcpEnvVars }
+  const envOverrides = { ...(acpConfig.env ?? {}), ...mcpEnvVars };
+  const env = Object.keys(envOverrides).length > 0
+    ? { ...process.env, ...envOverrides }
     : undefined;
 
   const client = new AcpClient({

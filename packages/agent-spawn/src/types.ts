@@ -175,6 +175,8 @@ export interface AcpSpawnConfig {
   agentId: string;
   /** Args passed to the agent binary to start its ACP server (e.g. ["acp"]). */
   acpArgs: string[];
+  /** Environment variables required by the ACP server process. */
+  env?: Record<string, string>;
   /** Whether to skip the ACP authenticate step (workaround for servers that advertise but don't implement auth). */
   skipAuth?: boolean;
   /** MCP server env serializer, same as CliSpawnConfig. */

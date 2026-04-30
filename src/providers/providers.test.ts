@@ -1845,7 +1845,7 @@ describe("goose service", () => {
       "List files",
       "--session",
       "resume-1"
-    ]);
+    ], { env: { GOOSE_DISABLE_KEYRING: "1" } });
     expect(result).toEqual({
       stdout: "goose-output\n",
       stderr: "",
@@ -1880,6 +1880,7 @@ describe("goose service", () => {
         "-"
       ],
       {
+        env: { GOOSE_DISABLE_KEYRING: "1" },
         stdin: "Read from stdin"
       }
     );
@@ -1915,7 +1916,7 @@ describe("goose service", () => {
       "my-mcp-server serve",
       "--text",
       "Call the tool"
-    ]);
+    ], { env: { GOOSE_DISABLE_KEYRING: "1" } });
   });
 
   it("spawns Goose in edit mode with GOOSE_MODE env var", async () => {
@@ -1944,7 +1945,7 @@ describe("goose service", () => {
         "--text",
         "Edit the file"
       ],
-      { env: { GOOSE_MODE: "smart_approve" } }
+      { env: { GOOSE_DISABLE_KEYRING: "1", GOOSE_MODE: "smart_approve" } }
     );
   });
 
@@ -1974,7 +1975,7 @@ describe("goose service", () => {
         "--text",
         "Explain the code"
       ],
-      { env: { GOOSE_MODE: "chat" } }
+      { env: { GOOSE_DISABLE_KEYRING: "1", GOOSE_MODE: "chat" } }
     );
   });
 
@@ -1996,7 +1997,8 @@ describe("goose service", () => {
         "Reply with exactly: GOOSE_OK",
         "--output-format",
         "text"
-      ]
+      ],
+      { env: { GOOSE_DISABLE_KEYRING: "1" } }
     );
   });
 });

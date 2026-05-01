@@ -69,9 +69,14 @@ const apiKey = await apiKeyAuthStrategy.resolveCredential(anthropic, { secretSto
 
 `ProviderRegistry.login()` resolves API keys in this order:
 
-1. Explicit `options.apiKey`
-2. The provider's declared `auth.envVar` from `context.envVars`
-3. `promptForSecret`
+1. `context.resolvePreferredLogin` when the provider declares `auth.preferredLogin`
+2. Explicit `options.apiKey`
+3. The provider's declared `auth.envVar` from `context.envVars`
+4. `promptForSecret`
+
+`preferredLogin` is optional. It lets a provider prefer a custom login flow, such as OAuth,
+while still storing the resulting API key through the same provider secret store. If no
+`resolvePreferredLogin` callback is supplied, login falls back to the generic API-key flow.
 
 `ProviderRegistry.isLoggedIn()` also treats a non-empty declared env var as logged in,
 matching what `login()` would use in CI.
@@ -92,5 +97,15 @@ Declared environment variables:
 ## Configuration options
 
 No runtime configuration; everything is declared per-provider via the `AuthProvider`
-manifest. Supported provider config fields include `baseUrl`, `baseUrlEnvVar`,
-`requiresBaseUrl`, `modelInput`, `auth`, `apiShapes`, and `env`.
+manifest.
+
+Provider manifest options:
+
+- `id`, `label`, `summary`, `baseUrl`, `baseUrlEnvVar`, `requiresBaseUrl`, and
+  `modelInput`
+- `auth.kind: "api-key"` with `envVar`, `storageKey`, `prompt`, and optional
+  `preferredLogin: "oauth"`
+- `auth.kind: "oauth"` for OAuth-native providers
+- `apiShapes` for provider API compatibility and shape-specific URL suffixes/defaults
+- `env` for provider-specific environment values derived from literals, credentials, base
+  URLs, or provider fields

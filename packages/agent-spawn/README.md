@@ -73,4 +73,4 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 
 ## Environment variables
 
-This package does not expose public environment variables. It inherits `process.env` for child processes and may add agent-specific env overrides from declarative spawn config, such as `GOOSE_MODE` for Goose modes or `OPENCODE_CONFIG_CONTENT` for OpenCode MCP injection.
+This package does not expose public environment variables. It inherits `process.env` for child processes and may add agent-specific env overrides from declarative spawn config, such as `GOOSE_MODE` for Goose modes, `GOOSE_DISABLE_KEYRING=1` for Goose file-backed credentials, or `OPENCODE_CONFIG_CONTENT` for OpenCode MCP injection.

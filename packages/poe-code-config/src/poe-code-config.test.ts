@@ -1215,6 +1215,26 @@ describe("store", () => {
     });
   });
 
+  it("uses only the global document when project config resolves to the global path", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify(
+          {
+            extends: true,
+            core: { apiKey: "global-key" }
+          },
+          null,
+          2
+        )}\n`
+      },
+      homeDir
+    );
+
+    await expect(readMergedDocument(fs, configPath, configPath)).resolves.toEqual({
+      core: { apiKey: "global-key" }
+    });
+  });
+
   it("resolves the project config path from the current working directory", () => {
     expect(resolveProjectConfigPath("/workspace/app")).toBe("/workspace/app/.poe-code/config.json");
   });

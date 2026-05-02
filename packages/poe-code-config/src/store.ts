@@ -32,7 +32,7 @@ export async function readMergedDocument(
   projectPath?: string
 ): Promise<ConfigDocument> {
   const globalDocument = await readStoredDocument(fs, globalPath);
-  if (!projectPath) {
+  if (!projectPath || projectPath === globalPath) {
     return globalDocument.data;
   }
 

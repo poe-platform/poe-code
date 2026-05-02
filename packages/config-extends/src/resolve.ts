@@ -135,6 +135,10 @@ async function resolveBaseChain({
   }
 
   if (visited.has(discoveredBase.filePath)) {
+    if (optional) {
+      return undefined;
+    }
+
     throw new Error(
       `Circular extends detected.\nVisited files:\n- ${[...visited, discoveredBase.filePath].join("\n- ")}`
     );

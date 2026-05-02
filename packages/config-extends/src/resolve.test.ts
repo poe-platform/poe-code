@@ -382,6 +382,40 @@ describe("resolve", () => {
     });
   });
 
+  it("returns the document as-is when optional autoExtend discovers the document itself", async () => {
+    const fs = createMemFs({
+      "/workspace/review.yaml": "title: Document"
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: "/workspace/review.yaml",
+            content: "title: Document"
+          },
+          {
+            source: "base",
+            path: "/workspace"
+          }
+        ],
+        {
+          fs,
+          autoExtend: true
+        }
+      )
+    ).resolves.toEqual({
+      data: {
+        title: "Document"
+      },
+      sources: {
+        title: "document"
+      },
+      chain: ["/workspace/review.yaml"]
+    });
+  });
+
   it("does not auto-resolve when the document explicitly disables extends", async () => {
     const fs = createMemFs({
       "/bases/review.yaml": "prompt: Base prompt"

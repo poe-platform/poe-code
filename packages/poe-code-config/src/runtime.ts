@@ -8,6 +8,15 @@ export interface RuntimeMount {
   readonly?: boolean;
 }
 
+export interface RunnerScope {
+  detach: boolean;
+  upload_max_file_mb: number;
+  download_conflict: "refuse" | "overwrite";
+  workspace?: {
+    exclude?: string[];
+  };
+}
+
 interface SharedRuntimeFields {
   build_args: Record<string, string>;
   mounts: RuntimeMount[];
@@ -43,6 +52,15 @@ export interface E2bRuntime extends SharedRuntimeFields {
 export type RuntimeConfig = HostRuntime | DockerRuntime | E2bRuntime;
 export type RuntimeRunner = RuntimeConfig["type"];
 
+const defaultWorkspaceExclude = [
+  ".git",
+  "node_modules",
+  "dist",
+  ".turbo",
+  ".next",
+  ".poe-code/state.json"
+];
+
 export interface RuntimeResolveResult {
   runtime: RuntimeConfig;
   runner: RuntimeRunner;
@@ -69,6 +87,12 @@ export const runtimeConfigScope = {
       default: [] as RuntimeMount[],
       parse: parseMounts,
       doc: "Additional runtime mounts"
+    },
+    runner: {
+      type: "json",
+      default: createDefaultRunnerScope(),
+      parse: parseRunner,
+      doc: "Runner process and workspace transfer settings"
     },
     link: {
       type: "string",
@@ -143,6 +167,29 @@ export const runtimeConfigScope = {
   }
 } satisfies ScopeDefinition<Record<string, SchemaField>>;
 
+export function parseRunner(raw: unknown): RunnerScope {
+  if (raw === undefined) {
+    return createDefaultRunnerScope();
+  }
+  const record = asRecord(raw);
+  if (record === undefined) {
+    throw new Error("runner: expected an object.");
+  }
+
+  const uploadMaxFileMb =
+    parseOptionalNumber(record.upload_max_file_mb, "runner.upload_max_file_mb") ?? 100;
+  if (uploadMaxFileMb <= 0) {
+    throw new Error("runner.upload_max_file_mb: expected a positive finite number.");
+  }
+
+  return omitUndefined({
+    detach: parseOptionalBoolean(record.detach, "runner.detach") ?? false,
+    upload_max_file_mb: uploadMaxFileMb,
+    download_conflict: parseDownloadConflict(record.download_conflict),
+    workspace: parseRunnerWorkspace(record.workspace)
+  });
+}
+
 export function parseRuntime(raw: unknown): RuntimeConfig {
   if (raw === undefined) {
     return {
@@ -202,7 +249,7 @@ export function resolveRuntime({
   config
 }: {
   cwd: string;
-  config: ResolvedConfig;
+  config: Pick<ResolvedConfig, "runtime">;
 }): RuntimeResolveResult {
   const runtime = config.runtime;
   if (runtime.type === "host") {
@@ -277,6 +324,45 @@ function parseRuntimeType(value: unknown): RuntimeConfig["type"] {
   throw new Error('type: expected "host", "docker", or "e2b".');
 }
 
+function createDefaultRunnerScope(): RunnerScope {
+  return {
+    detach: false,
+    upload_max_file_mb: 100,
+    download_conflict: "refuse",
+    workspace: {
+      exclude: [...defaultWorkspaceExclude]
+    }
+  };
+}
+
+function parseRunnerWorkspace(value: unknown): RunnerScope["workspace"] {
+  if (value === undefined) {
+    return {
+      exclude: [...defaultWorkspaceExclude]
+    };
+  }
+  const record = asRecord(value);
+  if (record === undefined) {
+    throw new Error("runner.workspace: expected an object.");
+  }
+
+  return {
+    exclude: parseOptionalStringArray(record.exclude, "runner.workspace.exclude") ?? [
+      ...defaultWorkspaceExclude
+    ]
+  };
+}
+
+function parseDownloadConflict(value: unknown): RunnerScope["download_conflict"] {
+  if (value === undefined) {
+    return "refuse";
+  }
+  if (value === "refuse" || value === "overwrite") {
+    return value;
+  }
+  throw new Error('runner.download_conflict: expected "refuse" or "overwrite".');
+}
+
 function parseBuildArgs(value: unknown): Record<string, string> {
   if (value === undefined) {
     return {};
@@ -339,16 +425,16 @@ function parseOptionalString(value: unknown): string | undefined {
   return value;
 }
 
-function parseOptionalStringArray(value: unknown): string[] | undefined {
+function parseOptionalStringArray(value: unknown, key = ""): string[] | undefined {
   if (value === undefined) {
     return undefined;
   }
   if (!Array.isArray(value)) {
-    throw new Error("expected an array.");
+    throw new Error(`${key ? `${key}: ` : ""}expected an array.`);
   }
   return value.map((entry, index) => {
     if (typeof entry !== "string") {
-      throw new Error(`[${index}]: expected a string.`);
+      throw new Error(`${key}[${index}]: expected a string.`);
     }
     return entry;
   });
@@ -362,12 +448,12 @@ function parseEngine(value: unknown): "docker" | "podman" | undefined {
   throw new Error('engine: expected "docker" or "podman".');
 }
 
-function parseOptionalNumber(value: unknown): number | undefined {
+function parseOptionalNumber(value: unknown, key = ""): number | undefined {
   if (value === undefined) {
     return undefined;
   }
   if (typeof value !== "number" || !Number.isFinite(value)) {
-    throw new Error("expected a finite number.");
+    throw new Error(`${key ? `${key}: ` : ""}expected a finite number.`);
   }
   return value;
 }

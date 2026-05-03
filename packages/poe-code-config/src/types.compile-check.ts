@@ -99,5 +99,13 @@ type ignoredResolvedConfigRuntime = AssertAssignable<
       mounts: Array<{ source: string; target: string; readonly?: boolean }>;
       link?: string;
     };
+    runner: {
+      detach: boolean;
+      upload_max_file_mb: number;
+      download_conflict: "refuse" | "overwrite";
+      workspace?: {
+        exclude?: string[];
+      };
+    };
   }
 >;

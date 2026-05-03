@@ -1,7 +1,7 @@
 import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { deepMergeDocuments } from "./merge.js";
-import { parseRuntime, resolveRuntime, runtimeConfigScope } from "./runtime.js";
+import { parseRunner, parseRuntime, resolveRuntime, runtimeConfigScope } from "./runtime.js";
 import { resolveScope } from "./resolve.js";
 
 const existsSyncMock = vi.hoisted(() => vi.fn<(filePath: string) => boolean>());
@@ -24,6 +24,99 @@ describe("runtime config", () => {
     expect(() => parseRuntime("docker")).toThrow("runtime: expected an object.");
     expect(() => parseRuntime({ type: "container" })).toThrow(
       'type: expected "host", "docker", or "e2b".'
+    );
+  });
+
+  it("defaults runner scope values when runtime scope is absent", () => {
+    expect(resolveScope(runtimeConfigScope.schema, undefined, {}).runner).toEqual({
+      detach: false,
+      upload_max_file_mb: 100,
+      download_conflict: "refuse",
+      workspace: {
+        exclude: [".git", "node_modules", "dist", ".turbo", ".next", ".poe-code/state.json"]
+      }
+    });
+  });
+
+  it("parses runner scope fields", () => {
+    expect(
+      parseRunner({
+        detach: true,
+        upload_max_file_mb: 250,
+        download_conflict: "overwrite",
+        workspace: {
+          exclude: ["coverage", "tmp"]
+        }
+      })
+    ).toEqual({
+      detach: true,
+      upload_max_file_mb: 250,
+      download_conflict: "overwrite",
+      workspace: {
+        exclude: ["coverage", "tmp"]
+      }
+    });
+  });
+
+  it("applies runner defaults for omitted nested fields", () => {
+    expect(parseRunner({})).toEqual({
+      detach: false,
+      upload_max_file_mb: 100,
+      download_conflict: "refuse",
+      workspace: {
+        exclude: [".git", "node_modules", "dist", ".turbo", ".next", ".poe-code/state.json"]
+      }
+    });
+
+    expect(parseRunner({ workspace: {} })).toEqual({
+      detach: false,
+      upload_max_file_mb: 100,
+      download_conflict: "refuse",
+      workspace: {
+        exclude: [".git", "node_modules", "dist", ".turbo", ".next", ".poe-code/state.json"]
+      }
+    });
+  });
+
+  it("parses runner scope through the runtime schema", () => {
+    expect(
+      resolveScope(
+        runtimeConfigScope.schema,
+        {
+          runner: JSON.stringify({
+            detach: true,
+            upload_max_file_mb: 1,
+            download_conflict: "overwrite",
+            workspace: { exclude: [] }
+          })
+        },
+        {}
+      ).runner
+    ).toEqual({
+      detach: true,
+      upload_max_file_mb: 1,
+      download_conflict: "overwrite",
+      workspace: {
+        exclude: []
+      }
+    });
+  });
+
+  it("rejects invalid runner scope values", () => {
+    expect(() => parseRunner(null)).toThrow("runner: expected an object.");
+    expect(() => parseRunner({ detach: "yes" })).toThrow("runner.detach: expected a boolean.");
+    expect(() => parseRunner({ upload_max_file_mb: Number.POSITIVE_INFINITY })).toThrow(
+      "runner.upload_max_file_mb: expected a finite number."
+    );
+    expect(() => parseRunner({ upload_max_file_mb: 0 })).toThrow(
+      "runner.upload_max_file_mb: expected a positive finite number."
+    );
+    expect(() => parseRunner({ download_conflict: "merge" })).toThrow(
+      'runner.download_conflict: expected "refuse" or "overwrite".'
+    );
+    expect(() => parseRunner({ workspace: [] })).toThrow("runner.workspace: expected an object.");
+    expect(() => parseRunner({ workspace: { exclude: [".git", 42] } })).toThrow(
+      "runner.workspace.exclude[1]: expected a string."
     );
   });
 
@@ -201,7 +294,7 @@ describe("runtime config", () => {
     });
   });
 
-  it("deep-merges runtime config with mount concatenation", () => {
+  it("deep-merges runtime config with mount and workspace exclude concatenation", () => {
     expect(
       deepMergeDocuments(
         {
@@ -209,14 +302,24 @@ describe("runtime config", () => {
             type: "docker",
             build_args: { NODE_VERSION: "22" },
             mounts: [{ source: "~/.ssh", target: "/root/.ssh", readonly: true }],
-            engine: "docker"
+            engine: "docker",
+            runner: {
+              workspace: {
+                exclude: ["global-cache"]
+              }
+            }
           }
         },
         {
           runtime: {
             build_args: { PACKAGE_MANAGER: "npm" },
             mounts: [{ source: ".", target: "/workspace" }],
-            network: "host"
+            network: "host",
+            runner: {
+              workspace: {
+                exclude: ["project-cache"]
+              }
+            }
           }
         }
       )
@@ -229,7 +332,72 @@ describe("runtime config", () => {
           { source: ".", target: "/workspace" }
         ],
         engine: "docker",
-        network: "host"
+        network: "host",
+        runner: {
+          workspace: {
+            exclude: ["global-cache", "project-cache"]
+          }
+        }
+      }
+    });
+  });
+
+  it("keeps one-sided runtime concat arrays when merging", () => {
+    expect(
+      deepMergeDocuments(
+        {
+          runtime: {
+            mounts: [{ source: "~/.cache", target: "/cache" }],
+            runner: {
+              workspace: {
+                exclude: ["global-cache"]
+              }
+            }
+          }
+        },
+        {
+          runtime: {
+            runner: {
+              detach: true
+            }
+          }
+        }
+      )
+    ).toEqual({
+      runtime: {
+        mounts: [{ source: "~/.cache", target: "/cache" }],
+        runner: {
+          detach: true,
+          workspace: {
+            exclude: ["global-cache"]
+          }
+        }
+      }
+    });
+
+    expect(
+      deepMergeDocuments(
+        { runtime: { runner: { detach: false } } },
+        {
+          runtime: {
+            mounts: [{ source: ".", target: "/workspace" }],
+            runner: {
+              workspace: {
+                exclude: ["project-cache"]
+              }
+            }
+          }
+        }
+      )
+    ).toEqual({
+      runtime: {
+        mounts: [{ source: ".", target: "/workspace" }],
+        runner: {
+          detach: false,
+          workspace: {
+            exclude: ["project-cache"]
+          }
+        }
       }
     });
   });

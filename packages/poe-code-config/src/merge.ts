@@ -35,7 +35,8 @@ function mergeScope(
 
 function mergeRuntimeScope(
   baseScope: Record<string, unknown>,
-  overrideScope: Record<string, unknown>
+  overrideScope: Record<string, unknown>,
+  path: string[] = []
 ): Record<string, unknown> {
   const merged: Record<string, unknown> = {};
   const keys = new Set([...Object.keys(baseScope), ...Object.keys(overrideScope)]);
@@ -50,13 +51,17 @@ function mergeRuntimeScope(
       continue;
     }
 
-    if (key === "mounts" && Array.isArray(baseValue) && Array.isArray(overrideValue)) {
+    if (
+      isRuntimeConcatenativeArray([...path, key]) &&
+      Array.isArray(baseValue) &&
+      Array.isArray(overrideValue)
+    ) {
       merged[key] = [...baseValue, ...overrideValue];
       continue;
     }
 
     if (isRecord(baseValue) && isRecord(overrideValue)) {
-      merged[key] = mergeRuntimeScope(baseValue, overrideValue);
+      merged[key] = mergeRuntimeScope(baseValue, overrideValue, [...path, key]);
       continue;
     }
 
@@ -64,6 +69,10 @@ function mergeRuntimeScope(
   }
 
   return merged;
+}
+
+function isRuntimeConcatenativeArray(path: string[]): boolean {
+  return path.join(".") === "mounts" || path.join(".") === "runner.workspace.exclude";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

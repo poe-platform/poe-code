@@ -1,5 +1,5 @@
 import type { FileSystem } from "@poe-code/config-mutations";
-import type { RuntimeConfig } from "./runtime.js";
+import type { RunnerScope, RuntimeConfig } from "./runtime.js";
 
 export type PrimitiveConfigFieldType = "string" | "number" | "boolean";
 export type ConfigFieldType = PrimitiveConfigFieldType | "json";
@@ -100,4 +100,5 @@ export type ConfigDocument = Record<string, Record<string, unknown>> & {
 
 export interface ResolvedConfig {
   runtime: RuntimeConfig;
+  runner: RunnerScope;
 }

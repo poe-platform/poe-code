@@ -171,7 +171,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: harness-log-stream
     title: Tee-to-file log stream and offset-aware tail
@@ -196,8 +196,8 @@ tasks:
       offset; wait resolves with exit code; argv wrapping is shell-safe
       (escape jobId).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: harness-run-poe-command

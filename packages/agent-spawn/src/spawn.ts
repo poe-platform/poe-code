@@ -1,9 +1,11 @@
-import { spawn as spawnChildProcess } from "node:child_process";
+import "./register-factories.js";
 import { mkdirSync, openSync, writeSync, closeSync } from "node:fs";
 import path from "node:path";
+import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
+import { resolveSpawnExecution } from "./runtime.js";
 import {
   resolveModeConfig,
   type CliSpawnConfig,
@@ -18,14 +20,6 @@ import {
 function createAbortError(): Error {
   const error = new Error("Agent spawn aborted");
   error.name = "AbortError";
-  return error;
-}
-
-function createActivityTimeoutError(timeoutMs: number): Error {
-  const error = new Error(
-    `Agent spawn timed out after ${timeoutMs / 1000}s of inactivity`
-  );
-  error.name = "ActivityTimeoutError";
   return error;
 }
 
@@ -147,8 +141,7 @@ export function buildSpawnArgs(
   options: BuildSpawnArgsOptions
 ): BuildSpawnArgsResult {
   const { binaryName, spawnConfig } = resolveCliConfig(agentId);
-  const stdinMode =
-    options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
+  const stdinMode = options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
   const result = buildCliArgs(spawnConfig, options, stdinMode);
   return { binaryName, args: result.args, env: result.env };
 }
@@ -164,8 +157,7 @@ export async function spawn(
 
   const { agentId: resolvedId, binaryName, spawnConfig } = resolveCliConfig(agentId);
 
-  const stdinMode =
-    options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
+  const stdinMode = options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
 
   const { args: spawnArgs, env: modeEnv } = buildCliArgs(spawnConfig, options, stdinMode);
 
@@ -178,104 +170,64 @@ export async function spawn(
   const logFilePath = resolveSpawnLogPath(options);
   const logFd = logFilePath ? openSpawnLog(logFilePath) : undefined;
 
-  const child = spawnChildProcess(binaryName, spawnArgs, {
-    cwd: options.cwd,
-    stdio: [stdinMode ? "pipe" : "inherit", "pipe", "pipe"],
-    ...(modeEnv ? { env: { ...process.env, ...modeEnv } } : {})
-  });
-
-  if (!child.stdout || !child.stderr) {
-    throw new Error(`Failed to spawn "${resolvedId}": missing stdio pipes.`);
-  }
-
-  const stdoutStream = child.stdout;
-  const stderrStream = child.stderr;
-
-  if (stdinMode) {
-    if (!child.stdin) {
-      throw new Error(`Failed to spawn "${resolvedId}": missing stdin pipe.`);
-    }
-    child.stdin.setDefaultEncoding("utf8");
-    child.stdin.write(options.prompt);
-    child.stdin.end();
-  }
-
-  return new Promise<SpawnResult>((resolve, reject) => {
-    let stdout = "";
-    let stderr = "";
-    let aborted = false;
-    let timedOut = false;
-
-    const onAbort = () => {
-      aborted = true;
-      child.kill("SIGTERM");
-    };
-
-    options.signal?.addEventListener("abort", onAbort, { once: true });
-
-    let activityTimer: ReturnType<typeof setTimeout> | undefined;
-    const resetActivityTimer = options.activityTimeoutMs
-      ? () => {
-          if (activityTimer) clearTimeout(activityTimer);
-          activityTimer = setTimeout(() => {
-            timedOut = true;
-            child.kill("SIGTERM");
-          }, options.activityTimeoutMs);
+  const processEnv = modeEnv ? { ...process.env, ...modeEnv } : undefined;
+  const argv = [binaryName, ...spawnArgs];
+  const execution = resolveSpawnExecution({
+    cwd: options.cwd ?? process.cwd(),
+    env: (processEnv ?? process.env) as Record<string, string>,
+    argv,
+    tool: resolvedId,
+    context,
+    openSpec: {
+      execution: {
+        wrapForLogTee: false,
+        stdin: stdinMode ? "pipe" : "inherit",
+        stdout: "pipe",
+        stderr: "pipe",
+        env: processEnv as Record<string, string> | undefined,
+        input: stdinMode ? options.prompt : undefined,
+        captureOutput: true,
+        activityTimeoutMs: options.activityTimeoutMs,
+        onStdout(chunk: string) {
+          options.tee?.stdout?.write(chunk);
+          appendSpawnLog(logFd, chunk);
+        },
+        onStderr(chunk: string) {
+          options.tee?.stderr?.write(chunk);
+          appendSpawnLog(logFd, chunk);
         }
-      : undefined;
-
-    resetActivityTimer?.();
-
-    const cleanup = () => {
-      options.signal?.removeEventListener("abort", onAbort);
-      if (activityTimer) clearTimeout(activityTimer);
-    };
-
-    stdoutStream.setEncoding("utf8");
-    stdoutStream.on("data", (chunk) => {
-      stdout += chunk;
-      resetActivityTimer?.();
-      if (options.tee?.stdout) options.tee.stdout.write(chunk);
-      appendSpawnLog(logFd, chunk);
-    });
-
-    stderrStream.setEncoding("utf8");
-    stderrStream.on("data", (chunk) => {
-      stderr += chunk;
-      resetActivityTimer?.();
-      if (options.tee?.stderr) options.tee.stderr.write(chunk);
-      appendSpawnLog(logFd, chunk);
-    });
-
-    child.on("error", (error) => {
-      cleanup();
-      closeSpawnLog(logFd);
-      if (aborted) {
-        reject(createAbortError());
-        return;
       }
-      reject(error);
-    });
-
-    child.on("close", (code) => {
-      cleanup();
-      closeSpawnLog(logFd);
-      if (aborted) {
-        reject(createAbortError());
-        return;
-      }
-      if (timedOut) {
-        reject(createActivityTimeoutError(options.activityTimeoutMs!));
-        return;
-      }
-      resolve({
-        stdout,
-        stderr,
-        exitCode: code ?? 1,
-        ...(logFilePath ? { logFile: logFilePath } : {})
-      });
-    });
+    }
   });
+
+  try {
+    const result = await runPoeCommand({
+      factory: execution.factory,
+      openSpec: execution.openSpec,
+      detach: execution.detach,
+      state: execution.state,
+      signal: options.signal
+    });
+
+    if (result.kind === "detached") {
+      return {
+        stdout: "",
+        stderr: "",
+        exitCode: 0,
+        ...(logFilePath ? { logFile: logFilePath } : {})
+      };
+    }
+
+    const captured = result as typeof result & { stdout?: string; stderr?: string };
+    return {
+      stdout: captured.stdout ?? "",
+      stderr: captured.stderr ?? "",
+      exitCode: result.exitCode,
+      ...(logFilePath ? { logFile: logFilePath } : {})
+    };
+  } finally {
+    closeSpawnLog(logFd);
+  }
 }
 
 function resolveSpawnLogPath(options: SpawnOptions): string | undefined {

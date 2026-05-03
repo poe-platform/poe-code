@@ -20,6 +20,20 @@ export interface OpenSpec {
   env: Record<string, string>;
   uploadIgnoreFiles: string[];
   jobLabel: { tool: string; argv: string[] };
+  execution?: {
+    wrapForLogTee?: boolean;
+    stdin?: RunSpec["stdin"];
+    stdout?: RunSpec["stdout"];
+    stderr?: RunSpec["stderr"];
+    env?: RunSpec["env"];
+    tty?: boolean;
+    input?: string | Buffer;
+    captureOutput?: boolean;
+    activityTimeoutMs?: number;
+    onStdout?(chunk: string): void;
+    onStderr?(chunk: string): void;
+  };
+  shellSpec?: RunSpec;
 }
 
 export interface UploadResult {

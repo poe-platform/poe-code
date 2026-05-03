@@ -290,8 +290,8 @@ tasks:
       that calls `registerExecutionEnvFactory(hostExecutionEnvFactory)` —
       imported once from the spawn entrypoint and from each tool entry.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: migrate-loop-tools

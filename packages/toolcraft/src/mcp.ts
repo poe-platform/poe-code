@@ -56,9 +56,9 @@ export interface RunMCPOptions<TServices extends object = Record<string, unknown
    * Optional allowlist of MCP tool names or group prefixes.
    *
    * Tool names always use `__`-joined snake_case path segments, for example
-   * `root__bot__create`.
+   * `bot__create`.
    *
-   * Passing a group prefix like `root__bot` includes every descendant tool in
+   * Passing a group prefix like `bot` includes every descendant tool in
    * that subtree.
    */
   tools?: string[];
@@ -323,10 +323,8 @@ function enumerateTools<TServices extends object>(
     }
   }
 
-  const rootPath = root.name.length === 0 ? [] : [root.name];
-
   for (const child of root.children) {
-    visit(child, rootPath, []);
+    visit(child, [], []);
   }
 
   return tools;

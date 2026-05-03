@@ -21,7 +21,7 @@ async function run(): Promise<void> {
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
 
-    const expected = ["markdown_reader__read", "markdown_reader__read_section"];
+    const expected = ["read", "read_section"];
     const namesMatch =
       names.length === expected.length && expected.every((n, i) => names[i] === n);
 
@@ -31,7 +31,7 @@ async function run(): Promise<void> {
     console.log(`✓ tools/list — ${names.join(", ")}`);
 
     const result = await client.callTool({
-      name: "markdown_reader__read",
+      name: "read",
       arguments: { file: "docs/plans/markdown-reader.md" },
     });
 
@@ -39,7 +39,7 @@ async function run(): Promise<void> {
     if (text?.type !== "text" || !text.text.includes("2.1")) {
       throw new Error(`tools/call response missing TOC: ${JSON.stringify(result)}`);
     }
-    console.log("✓ tools/call markdown_reader__read — TOC contains 2.1");
+    console.log("✓ tools/call read — TOC contains 2.1");
   } finally {
     await client.close();
   }

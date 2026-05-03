@@ -271,9 +271,9 @@ describe("MCP proxy entrypoints", () => {
 
     expect(serverState.created).toHaveLength(1);
     expect(serverState.created[0]?.tools).toEqual([
-      "root__github__create_issue",
-      "root__approvals__list",
-      "root__approvals__show",
+      "github__create_issue",
+      "approvals__list",
+      "approvals__show",
     ]);
   });
 

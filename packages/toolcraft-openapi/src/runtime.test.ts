@@ -470,7 +470,7 @@ describe("commandsFromSpec", () => {
 
       expect(tools.tools).toContainEqual(
         expect.objectContaining({
-          name: "internal_agent__bots__set_official_bot",
+          name: "bots__set_official_bot",
           inputSchema: expect.objectContaining({
             required: ["bot_handle", "official"],
             properties: expect.objectContaining({
@@ -504,7 +504,7 @@ describe("commandsFromSpec", () => {
 
       expect(tools.tools).toContainEqual(
         expect.objectContaining({
-          name: "internal_agent__campaigns__update_campaign",
+          name: "campaigns__update_campaign",
           inputSchema: expect.objectContaining({
             additionalProperties: false,
             required: ["campaign_id", "name"]

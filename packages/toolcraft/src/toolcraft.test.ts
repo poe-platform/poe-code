@@ -839,14 +839,14 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      tools: ["root__usage", "root__bot"],
+      tools: ["usage", "bot"],
     });
     const { client, cleanup } = await createClient(server);
 
     try {
       const result = await client.listTools();
 
-      expect(result.tools.map((tool) => tool.name)).toEqual(["root__usage", "root__bot__create"]);
+      expect(result.tools.map((tool) => tool.name)).toEqual(["usage", "bot__create"]);
       expect(result.tools[0]?.inputSchema).toEqual({
         type: "object",
         properties: {
@@ -961,7 +961,7 @@ describe("createMCPServer", () => {
       const result = await client.listTools();
 
       expect(result.tools).toHaveLength(3);
-      expect(result.tools[0]?.name).toBe("root__run");
+      expect(result.tools[0]?.name).toBe("run");
       expect(result.tools[0]?.inputSchema).toEqual({
         type: "object",
         properties: {
@@ -1017,7 +1017,7 @@ describe("createMCPServer", () => {
       });
 
       const callResult = await client.callTool({
-        name: "root__run",
+        name: "run",
         arguments: {
           limit: null,
         },
@@ -1055,7 +1055,7 @@ describe("createMCPServer", () => {
     try {
       await expect(
         client.callTool({
-          name: "root__run",
+          name: "run",
           arguments: {
             count: 1.5,
           },
@@ -1155,7 +1155,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      tools: ["root__bot_admin__bot"],
+      tools: ["bot_admin__bot"],
       casing: "camel",
     });
     const { client, cleanup } = await createClient(server);
@@ -1164,8 +1164,8 @@ describe("createMCPServer", () => {
       const result = await client.listTools();
 
       expect(result.tools.map((tool) => tool.name)).toEqual([
-        "root__bot_admin__bot__create_bot",
-        "root__bot_admin__bot__remove_bot",
+        "bot_admin__bot__create_bot",
+        "bot_admin__bot__remove_bot",
       ]);
       expect(result.tools[0]).toMatchObject({
         description: "Create a bot Parameters: botName (required), botConfig.apiKey (required).",
@@ -1305,7 +1305,7 @@ describe("createMCPServer", () => {
 
     try {
       const callPromise = client.callTool({
-        name: "root__deploy",
+        name: "deploy",
         arguments: {},
       });
 
@@ -1347,7 +1347,7 @@ describe("createMCPServer", () => {
     const { client, cleanup } = await createClient(server);
 
     try {
-      await expect(client.callTool({ name: "root__deploy", arguments: {} })).rejects.toSatisfy((error: unknown) => {
+      await expect(client.callTool({ name: "deploy", arguments: {} })).rejects.toSatisfy((error: unknown) => {
         expect(error).toBeInstanceOf(McpError);
         expect(error).toMatchObject({
           code: ERROR_INVALID_PARAMS,
@@ -1383,7 +1383,7 @@ describe("createMCPServer", () => {
 
     try {
       const callPromise = client.callTool({
-        name: "root__deploy",
+        name: "deploy",
         arguments: {},
       });
 
@@ -1472,7 +1472,7 @@ describe("createMCPServer", () => {
 
     try {
       const result = await client.callTool({
-        name: "root__deploy",
+        name: "deploy",
         arguments: {
           botName: "demo",
         },
@@ -1520,7 +1520,7 @@ describe("createMCPServer", () => {
 
     try {
       const callPromise = client.callTool({
-        name: "root__explode",
+        name: "explode",
         arguments: {},
       });
 

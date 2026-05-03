@@ -17,8 +17,8 @@ const { markdown, section } = await readSection({ file, section: "2.1" });
 
 ## MCP tool names
 
-- `markdown_reader__read`
-- `markdown_reader__read_section`
+- `read`
+- `read_section`
 
 ## Standalone server invocation
 

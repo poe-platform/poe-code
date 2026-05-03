@@ -70,7 +70,7 @@ describe("createMCPServer human-in-loop runtime options plumbing", () => {
     try {
       await expect(
         client.callTool({
-          name: "root__deploy",
+          name: "deploy",
           arguments: {
             target: "prod",
           },

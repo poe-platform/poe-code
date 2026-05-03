@@ -916,9 +916,9 @@ describe("mcp proxy integration", () => {
     try {
       const { tools } = await client.listTools();
 
-      expect(tools.map((tool) => tool.name)).toContain("root__github__sub__renamed");
+      expect(tools.map((tool) => tool.name)).toContain("github__sub__renamed");
       const result = await client.callTool({
-        name: "root__github__sub__renamed",
+        name: "github__sub__renamed",
         arguments: { text: "xyz" },
       });
 

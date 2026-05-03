@@ -15,15 +15,16 @@ A new package, `@poe-code/agent-harness`, that runs a **harness pair**:
 - `<name>.ajs` — orchestration script (agent-script source, the program the runtime executes)
 - `<name>.md` — complementary markdown document with YAML frontmatter (prompts, agent config, status, research brief)
 
-The `.ajs` is the orchestrator; the `.md` is data the orchestrator reads. The runtime pairs them by filename, lints + executes the `.ajs`, and exposes the markdown's frontmatter and body to the script via the `harness` module (or an extension of it).
+The `.ajs` is the orchestrator; the `.md` is data the orchestrator reads. The runtime pairs them by filename, lints + executes the `.ajs`, and exposes the markdown's validated frontmatter as the entry function's argument plus the body via `import.meta`.
 
-This package replaces the bespoke runtimes in `@poe-code/experiment-loop`, `@poe-code/ralph`, `@poe-code/pipeline`, and `@poe-code/superintendent`. Each becomes a harness pair shipped as a built-in template, not a hand-written TypeScript loop.
+This is **experimental**. It runs alongside the existing `experiment-loop` / `ralph` / `pipeline` / `superintendent` packages without touching them. The shipped templates are demonstrations of how each shape could be expressed as a harness pair; reaching parity with the existing runners is a future goal, not part of this work.
 
 Non-goals:
 
 - Not a new language. Reuses `agent-script` parser/linter/runtime as-is.
 - Not a replacement for `agent-harness-tools` runtime helpers (lock, hooks, run-logs, select-agent). Those keep their place; agent-harness uses them for cross-cutting concerns.
-- Not removing the existing CLI commands' UX surface (`experiment run`, `ralph run`, ...). The CLI wrappers stay; their internals call the harness runner instead of the bespoke loop.
+- **Not changing anything about `experiment run` / `ralph run` / `pipeline run` / `superintendent run`.** Those runners, their CLI surfaces, frontmatter, schemas, and packages stay untouched. Parity with them is a future goal, explicitly out of scope.
+- Not replacing `scripts/generate-plan-schemas.ts` or any existing `docs/schemas/plans/*.schema.json`. Harness schemas emit to a new path that does not collide.
 - No regex-based markdown parsing or templating system invented here — uses the existing `agent-script` loader.
 
 ## 2. User-facing shape
@@ -109,16 +110,16 @@ poe-code harness list
 
 The runner pairs `.md` ↔ `.ajs` by basename in the same directory, lints the `.ajs`, validates the `.md` frontmatter against the extracted schema, then executes the entry.
 
-### Built-in harnesses
+### Built-in templates
 
-`@poe-code/agent-harness` ships these as templates that `harness new <kind>` scaffolds:
+`@poe-code/agent-harness` ships templates that `harness new <kind>` scaffolds. They are demonstrations of the pair model on familiar shapes — they are **not** wired to or invoked from the existing `experiment run` / `ralph run` / `pipeline run` / `superintendent run` commands. The existing runners stay exactly as they are; parity with them is a future goal, out of scope for this work.
 
-- `ralph` — iterative single-agent loop
-- `experiment` — measure, mutate, keep-or-revert via git
-- `pipeline` — sequenced tasks with builder/reviewer roles
-- `superintendent` — builder + parallel inspectors + judge + owner
+- `ralph-demo` — iterative single-agent loop
+- `experiment-demo` — measure, mutate, keep-or-revert via git
+- `pipeline-demo` — sequenced tasks with builder/reviewer roles
+- `superintendent-demo` — builder + parallel inspectors + judge + owner
 
-Each is one `.ajs` + one `.md`. The existing `experiment run` / `ralph run` / etc. CLI commands keep their UX surface but delegate to the harness runner internally.
+Each is one `.ajs` + one `.md`. Demo names are intentionally distinct from the existing `kind` values to avoid `$schema` URL collisions and to make the experimental status legible.
 
 ## 3. Implementation details and technical decisions
 
@@ -212,9 +213,7 @@ async function runHarnessPair(mdPath: string, options: RunHarnessPairOptions): P
 
 ### Codegen
 
-`scripts/generate-plan-schemas.ts` is replaced by a script that walks `packages/agent-harness/src/templates/*/`, statically loads each `.ajs`'s `export const schema`, and emits `docs/schemas/harnesses/<kind>.schema.json` via `toJsonSchema(schema)`. Wired in as `npm run codegen:harness-schemas`, replacing `npm run codegen:plan-schemas`.
-
-The existing `docs/schemas/plans/*.schema.json` paths are kept (with redirects from `harnesses/`) for backward compat with `$schema` URLs already written into user files.
+A new script walks `packages/agent-harness/src/templates/*/`, statically loads each `.ajs`'s `export const schema`, and emits `docs/schemas/harnesses/<kind>.schema.json` via `toJsonSchema(schema)`. Wired in as `npm run codegen:harness-schemas` and added to `npm run build` **alongside** the existing `codegen:plan-schemas` — neither replaces the other. Output path `docs/schemas/harnesses/` is new, so there's no overlap with `docs/schemas/plans/*.schema.json`.
 
 ### Locks, run logs, snapshots
 
@@ -224,15 +223,9 @@ All cross-cutting concerns reuse `@poe-code/agent-harness-tools`:
 - **Run logs**: `resolveRunLogDir({ planPath: mdPath, runner: "harness", homeDir })`. Each `event(...)` call from the orchestrator is appended as JSONL.
 - **Snapshot**: `snapshotPath = resolveRunLogDir(...) + "/snapshot.json"`. Passed straight to `agent-script`'s `run({ snapshotPath, snapshotIntervalMs })`. On rerun, the loader reads it and passes it to `run({ snapshot })` — agent-script's existing `restore()` validates source-hash match before resuming.
 
-### Migration of existing packages
+### Relationship to existing packages
 
-Each of `experiment-loop`, `ralph`, `pipeline`, `superintendent` shrinks to:
-
-- A frontmatter type re-export from `agent-harness`'s shipped schema (`Static<typeof schema>`).
-- A discovery helper if the doc layout is custom.
-- Nothing else — no bespoke runtime, no JsonSchema literal, no `parseFrontmatterData`.
-
-CLI commands in `src/cli/commands/{experiment,ralph,pipeline,superintendent}.ts` keep their flags and dashboards but their `run` action becomes a thin call into `runHarnessPair` with the appropriate template name. The `agent-script/examples/*.md` single-file harnesses stay as legacy demos — they don't migrate.
+Out of scope. `experiment-loop`, `ralph`, `pipeline`, `superintendent` are not touched. Their bespoke runtimes, frontmatter parsers, JsonSchema literals, CLI commands, dashboards, and emitted `docs/schemas/plans/*.schema.json` files remain exactly as they are. `agent-harness` is a parallel experimental track. If/when parity is reached and we decide to converge, that's a separate plan.
 
 ### Edge cases
 
@@ -369,13 +362,9 @@ export function validate<S extends SchemaDescriptor>(
 
 #### Integration
 
-- Run each shipped template (`ralph`, `experiment`, `pipeline`, `superintendent`) end-to-end with a stub `agent` module. Assert: result, journal entries, snapshot file exists and parses.
+- Run each shipped demo template end-to-end with a stub `agent` module. Assert: result, journal entries, snapshot file exists and parses.
 - CLI: `poe-code harness run <md>` happy path, `harness new <kind> <name>`, `harness list`. Use `npm run dev -- harness ...` for spot tests; rely on screenshot tests for visual UI surfaces.
-
-#### Migration / regression
-
-- For each of `experiment-loop`, `ralph`, `pipeline`, `superintendent`, run the package's existing test suite against the post-migration code. The bespoke runtime tests get retargeted: anything testing the runner itself moves to `agent-harness`; anything testing the discovery / CLI surface stays in the package.
-- Fixture compare: take a representative `.md` from each runner, run it under the bespoke implementation and again under the harness pair, assert equivalent journal output.
+- Confirm the existing `experiment run` / `ralph run` / `pipeline run` / `superintendent run` test suites still pass unchanged — proving the new package doesn't touch them.
 
 ### Autonomy checklist
 
@@ -385,16 +374,14 @@ What an agent needs to build the package end-to-end without coming back:
 - Existing `agent-script` parser/lint/run code as the reference for adding `Export*` and `MetaProperty` AST nodes.
 - Existing `toolcraft-schema` builders and `toJsonSchema` as the reference for `validate`.
 - Existing `agent-harness-tools` (lock, run-logs, paths) — used as-is.
-- Existing per-package frontmatter files as the reference for what fields each shipped template's schema has to cover.
-- The current `scripts/generate-plan-schemas.ts` as the reference for the codegen replacement.
+- Existing per-package frontmatter files as **inspiration only** for what a demo template might cover. The agent-harness package does not import from, modify, or replace those packages.
+- `scripts/generate-plan-schemas.ts` as a structural reference for the new `scripts/generate-harness-schemas.ts`. The original is left untouched.
 
 ### Rollout
 
-1. Land subset extensions + validator (no consumers yet) — green build.
-2. Land `agent-harness` package with templates + tests, behind `experimental` only — no CLI exposure yet.
-3. Switch `experiment run` / `ralph run` / `pipeline run` / `superintendent run` internals to `runHarnessPair` one at a time, keeping the bespoke implementation as a fallback flag for one release.
-4. Delete bespoke runtimes; collapse each package to its shrunk shape.
-5. Replace `codegen:plan-schemas` with `codegen:harness-schemas`. Add 301-style redirects from old `$schema` URLs.
+1. Land subset extensions (`Export*`, `MetaProperty`) + `toolcraft-schema` validator. No consumers yet, green build.
+2. Land `agent-harness` package with templates, codegen, and the `harness` command marked experimental. The four existing runners keep working unchanged.
+3. Stop here. Parity with the existing runners is a separate, future plan.
 
 ## 5. Code plan
 
@@ -468,21 +455,21 @@ Signatures:
 - `function runHarnessPair(mdPath: string, options: RunHarnessPairOptions): Promise<RunResult>`
 - `function makeSchemaModule(): { S: typeof S }`
 
-### Step 4 — built-in templates
+### Step 4 — built-in demo templates
 
 Files to create:
 
-- `packages/agent-harness/src/templates/ralph/ralph.ajs`
-- `packages/agent-harness/src/templates/ralph/ralph.md`
-- `packages/agent-harness/src/templates/experiment/experiment.ajs`
-- `packages/agent-harness/src/templates/experiment/experiment.md`
-- `packages/agent-harness/src/templates/pipeline/pipeline.ajs`
-- `packages/agent-harness/src/templates/pipeline/pipeline.md`
-- `packages/agent-harness/src/templates/superintendent/superintendent.ajs`
-- `packages/agent-harness/src/templates/superintendent/superintendent.md`
+- `packages/agent-harness/src/templates/ralph-demo/ralph-demo.ajs`
+- `packages/agent-harness/src/templates/ralph-demo/ralph-demo.md`
+- `packages/agent-harness/src/templates/experiment-demo/experiment-demo.ajs`
+- `packages/agent-harness/src/templates/experiment-demo/experiment-demo.md`
+- `packages/agent-harness/src/templates/pipeline-demo/pipeline-demo.ajs`
+- `packages/agent-harness/src/templates/pipeline-demo/pipeline-demo.md`
+- `packages/agent-harness/src/templates/superintendent-demo/superintendent-demo.ajs`
+- `packages/agent-harness/src/templates/superintendent-demo/superintendent-demo.md`
 - `packages/agent-harness/src/templates/index.test.ts` — fixture tests that each template lints, frontmatter validates, runs against stub modules.
 
-Each `.ajs` declares `export const schema = S.Object({...})` and `export default async (frontmatter) => {...}`. The `.md` carries default frontmatter equivalent to today's `parseFrontmatter` defaults.
+Each `.ajs` declares `export const schema = S.Object({...})` and `export default async (frontmatter) => {...}`. Names are `*-demo` to make experimental status legible and to keep `$schema` URLs separate from the existing runners' schemas.
 
 ### Step 5 — codegen + CLI
 
@@ -490,45 +477,14 @@ Files to create:
 
 - `packages/agent-harness/src/codegen/emit-schemas.ts`
 - `packages/agent-harness/src/codegen/emit-schemas.test.ts`
+- `scripts/generate-harness-schemas.ts` — one-line wrapper over the codegen entry.
 - `src/cli/commands/harness.ts`
 - `src/cli/commands/harness-command.test.ts`
-- `scripts/generate-harness-schemas.ts` — one-line wrapper over the codegen entry.
+- `docs/schemas/harnesses/.gitkeep` — emitted output lives here.
 
 Files to change:
 
-- `package.json` — replace `codegen:plan-schemas` with `codegen:harness-schemas`. `build` script updated.
-- `src/cli/index.ts` (or wherever commands register) — register `harness` command.
-- `docs/schemas/plans/*.schema.json` — regenerated; old paths kept as aliases via redirect file.
+- `package.json` — add `codegen:harness-schemas` script; add it to the `build` chain alongside the existing `codegen:plan-schemas` (do not remove or modify `codegen:plan-schemas`).
+- `src/cli/index.ts` (or wherever commands register) — register the new `harness` command. No edits to existing `experiment` / `ralph` / `pipeline` / `superintendent` command registrations.
 
-### Step 6 — migrate `ralph`
-
-Files to change:
-
-- `packages/ralph/src/index.ts` — drop `runRalph`, re-export only types and the discovery helper.
-- `packages/ralph/src/frontmatter/frontmatter.ts` — replace `JsonSchema` literal + `parseFrontmatterData` with `Static<typeof schema>` import from `agent-harness/templates/ralph/schema`.
-- `packages/ralph/src/run/ralph.ts` — delete.
-- `src/cli/commands/ralph.ts` — `run` action calls `runHarnessPair` against the discovered `.md` paired with the shipped `ralph.ajs`. Dashboard wiring stays.
-- `src/sdk/ralph.ts` — same swap.
-
-### Step 7 — migrate `experiment-loop`, `pipeline`, `superintendent`
-
-Same shape as Step 6, repeated per package. Each PR:
-
-- Replace bespoke runtime with `runHarnessPair` against the shipped template.
-- Collapse the package to types + discovery + schema re-export.
-- Retarget tests: runtime tests move to `agent-harness`; CLI / discovery tests stay.
-
-### Step 8 — cleanup
-
-Files to delete:
-
-- `packages/experiment-loop/src/run/`
-- `packages/ralph/src/run/`
-- `packages/pipeline/src/run/`
-- `packages/superintendent/src/runtime/` (keep `agentic-tools.ts` if still consumed by the harness templates)
-- `scripts/generate-plan-schemas.ts`
-
-Files to change:
-
-- All four package READMEs to reflect the harness pair model.
-- Top-level `README.md` if it documents the bespoke runners.
+That's the full scope of this plan. `experiment-loop`, `ralph`, `pipeline`, `superintendent`, `scripts/generate-plan-schemas.ts`, and `docs/schemas/plans/*.schema.json` are not touched.

@@ -1,5 +1,10 @@
-import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
+import "@poe-code/agent-spawn/register-factories";
 import type { AgentRoleConfig, SuperintendentDoc } from "../document/parse.js";
+import {
+  runAutonomousAgent,
+  type AutonomousOutput,
+  type McpSpawnConfig
+} from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
 import { buildInspectorSystemPrompt, prependSystemPrompt } from "./system-prompt.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
@@ -8,32 +13,6 @@ export type InspectorResult = {
   name: string;
   summary: string;
   log_path?: string;
-};
-
-type AutonomousInput = {
-  agent: string;
-  mode?: string;
-  prompt: string;
-  cwd?: string;
-  mcpServers?: McpSpawnConfig;
-  logPath?: string;
-};
-
-type AutonomousOutput =
-  | string
-  | {
-      summary?: unknown;
-      output?: unknown;
-      stdout?: unknown;
-      text?: unknown;
-      logFile?: unknown;
-    };
-
-type SpawnWithAutonomous = typeof spawn & {
-  autonomous?: (
-    agent: string,
-    options: Omit<AutonomousInput, "agent">
-  ) => Promise<AutonomousOutput>;
 };
 
 export type RunInspectorOptions = {
@@ -64,7 +43,7 @@ export async function runInspector(
       : {})
   });
   const prompt = prependSystemPrompt(systemPrompt, userPrompt);
-  const output = await runAutonomous({
+  const output = await runAutonomousAgent({
     agent: config.agent,
     mode: config.mode,
     prompt,
@@ -150,33 +129,6 @@ function buildTemplateContext(
       ...(context.plan ?? { path: doc.filePath }),
       path: doc.filePath
     }
-  };
-}
-
-async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> {
-  const spawnApi = spawn as SpawnWithAutonomous;
-
-  if (typeof spawnApi.autonomous === "function") {
-    return spawnApi.autonomous(input.agent, {
-      cwd: input.cwd,
-      prompt: input.prompt,
-      mode: input.mode,
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.logPath ? { logPath: input.logPath } : {})
-    });
-  }
-
-  const result = await spawn(input.agent, {
-    cwd: input.cwd,
-    prompt: input.prompt,
-    mode: input.mode as SpawnMode | undefined,
-    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-    ...(input.logPath ? { logPath: input.logPath } : {})
-  });
-
-  return {
-    stdout: result.stdout,
-    ...(result.logFile ? { logFile: result.logFile } : {})
   };
 }
 

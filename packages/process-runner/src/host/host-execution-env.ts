@@ -3,6 +3,7 @@ import type { ExecutionEnvFactory, OpenedEnv, RunSpec } from "../types.js";
 
 export const hostExecutionEnvFactory: ExecutionEnvFactory = {
   type: "host",
+  supportsDetach: false,
   async open(openSpec): Promise<OpenedEnv> {
     return {
       id: "host",

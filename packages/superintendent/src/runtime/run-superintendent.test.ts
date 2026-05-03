@@ -16,10 +16,22 @@ const { autonomousMock } = vi.hoisted(() => ({
   >()
 }));
 
-vi.mock("@poe-code/agent-spawn", () => ({
-  spawn: Object.assign(vi.fn(), {
-    autonomous: autonomousMock
-  })
+vi.mock("./agent-runner.js", () => ({
+  runAutonomousAgent: (input: {
+    agent: string;
+    mode?: string;
+    prompt: string;
+    cwd?: string;
+    mcpServers?: unknown;
+    logPath?: string;
+  }) =>
+    autonomousMock(input.agent, {
+      cwd: input.cwd,
+      prompt: input.prompt,
+      mode: input.mode,
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+      ...(input.logPath ? { logPath: input.logPath } : {})
+    })
 }));
 
 const document: SuperintendentDoc = {

@@ -292,7 +292,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: migrate-loop-tools
     title: Migrate experiment-loop, ralph, superintendent to runPoeCommand
@@ -314,8 +314,8 @@ tasks:
       Each tool's entrypoint imports the `register-factories` module so the
       host factory is registered before any `selectExecutionEnv` call.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: cli-universal-flags

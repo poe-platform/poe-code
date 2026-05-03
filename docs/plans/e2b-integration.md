@@ -32,7 +32,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: config-runner-scope
     title: Add runner scope (per-invocation behavior) to poe-code-config
@@ -51,8 +51,8 @@ tasks:
       Tests: parsing valid/invalid inputs; merge concat semantics; default
       application when scope absent.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: config-state-manager

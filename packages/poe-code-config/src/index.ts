@@ -19,12 +19,14 @@ export type {
 
 export { defineScope } from "./schema.js";
 export {
+  parseRunner,
   parseRuntime,
   resolveRuntime,
   runtimeConfigScope,
   type DockerRuntime,
   type E2bRuntime,
   type HostRuntime,
+  type RunnerScope,
   type RuntimeConfig,
   type RuntimeMount,
   type RuntimeResolveResult,

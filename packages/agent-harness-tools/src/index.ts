@@ -40,6 +40,13 @@ export {
   slugifyPlanPath,
   type ResolveRunLogDirOptions
 } from "./run-logs.js";
+export {
+  streamLogFile,
+  waitForExit,
+  wrapForLogTee,
+  type LogStreamEnv,
+  type LogStreamFs
+} from "./log-stream.js";
 export { skillPlanConfigSection } from "./skill-config.js";
 export * from "./execution-env.js";
 export * from "./workspace-transfer.js";

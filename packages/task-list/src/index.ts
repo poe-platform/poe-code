@@ -8,11 +8,14 @@ export {
   type StateMachineDef
 } from "./state-machine.js";
 export {
+  AnchorNotFoundError,
   InvalidTransitionError,
   MalformedTaskError,
+  OrderMismatchError,
   TaskAlreadyExistsError,
   TaskNotFoundError,
   type ListFilter,
+  type MoveAnchor,
   type OpenTaskListOptions,
   type Task,
   type TaskCreate,
@@ -20,6 +23,7 @@ export {
   type TaskFireOptions,
   type TaskList,
   type TaskListFs,
+  type TaskOrder,
   type TaskState,
   type Tasks,
   type TaskUpdate

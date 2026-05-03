@@ -30,10 +30,18 @@ export interface TaskFireOptions {
   metadataPatch?: Record<string, unknown>;
 }
 
+export type TaskOrder = "priority" | "alphabetical" | "created";
+
 export interface ListFilter {
   state?: string;
   includeArchived?: boolean;
+  order?: TaskOrder;
 }
+
+export type MoveAnchor =
+  | { before: string }
+  | { after: string }
+  | { position: "top" | "bottom" };
 
 export interface Tasks {
   readonly name: string;
@@ -46,6 +54,8 @@ export interface Tasks {
   canFire(id: string, event: string): Promise<boolean>;
   events(id: string): Promise<readonly string[]>;
   delete(id: string): Promise<void>;
+  move(id: string, anchor: MoveAnchor): Promise<Task>;
+  reorder(ids: readonly string[]): Promise<readonly Task[]>;
 }
 
 export interface TaskList {
@@ -53,6 +63,7 @@ export interface TaskList {
   lists(): Promise<string[]>;
   allTasks(filter?: ListFilter): Promise<Task[]>;
   get(qualifiedId: string): Promise<Task>;
+  moveBetweenLists(qualifiedId: string, targetList: string): Promise<Task>;
 }
 
 export interface TaskDefaults {
@@ -157,5 +168,34 @@ export class MalformedTaskError extends Error {
   constructor(message = "Malformed task.") {
     super(message);
     this.name = "MalformedTaskError";
+  }
+}
+
+export class OrderMismatchError extends Error {
+  readonly missing: readonly string[];
+  readonly extra: readonly string[];
+
+  constructor(options: { missing: readonly string[]; extra: readonly string[] }) {
+    const parts: string[] = [];
+    if (options.missing.length > 0) {
+      parts.push(`missing ${options.missing.map((id) => `"${id}"`).join(", ")}`);
+    }
+    if (options.extra.length > 0) {
+      parts.push(`extra ${options.extra.map((id) => `"${id}"`).join(", ")}`);
+    }
+    super(`reorder requires the exact set of active task ids: ${parts.join("; ")}.`);
+    this.name = "OrderMismatchError";
+    this.missing = options.missing;
+    this.extra = options.extra;
+  }
+}
+
+export class AnchorNotFoundError extends Error {
+  readonly anchor: string;
+
+  constructor(anchor: string) {
+    super(`Anchor task "${anchor}" not found.`);
+    this.name = "AnchorNotFoundError";
+    this.anchor = anchor;
   }
 }

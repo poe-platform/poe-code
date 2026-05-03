@@ -2,7 +2,9 @@ import type { Volume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { assertEvent, defaultStateMachine, type TaskEvent } from "../state.js";
 import {
+  AnchorNotFoundError,
   InvalidTransitionError,
+  OrderMismatchError,
   TaskAlreadyExistsError,
   TaskNotFoundError,
   type BackendDeps,
@@ -380,8 +382,8 @@ function describeBackendConformance(
         })
       ).resolves.toEqual([
         expect.objectContaining({ qualifiedId: "alpha/one" }),
-        expect.objectContaining({ qualifiedId: "beta/three", state: "archived" }),
-        expect.objectContaining({ qualifiedId: "beta/two" })
+        expect.objectContaining({ qualifiedId: "beta/two" }),
+        expect.objectContaining({ qualifiedId: "beta/three", state: "archived" })
       ]);
       await expect(taskList.get("beta/three")).resolves.toMatchObject({
         state: "archived"
@@ -507,11 +509,174 @@ function describeBackendConformance(
         'Invalid task id "nested/id".'
       );
     });
+
+    describe("ordering", () => {
+      async function seedThree(tasks: Tasks): Promise<void> {
+        await tasks.create({ id: "alpha", name: "Alpha" });
+        await tasks.create({ id: "bravo", name: "Bravo" });
+        await tasks.create({ id: "charlie", name: "Charlie" });
+      }
+
+      function ids(tasks: readonly { id: string }[]): string[] {
+        return tasks.map((task) => task.id);
+      }
+
+      it("creates tasks at the tail of priority order", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await expect(tasks.all().then(ids)).resolves.toEqual(["alpha", "bravo", "charlie"]);
+      });
+
+      it("move({ before }) places the task before the anchor", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await tasks.move("charlie", { before: "alpha" });
+
+        await expect(tasks.all().then(ids)).resolves.toEqual(["charlie", "alpha", "bravo"]);
+      });
+
+      it("move({ after }) places the task after the anchor", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await tasks.move("alpha", { after: "bravo" });
+
+        await expect(tasks.all().then(ids)).resolves.toEqual(["bravo", "alpha", "charlie"]);
+      });
+
+      it("move({ position: 'top' }) sends the task to the head", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await tasks.move("charlie", { position: "top" });
+
+        await expect(tasks.all().then(ids)).resolves.toEqual(["charlie", "alpha", "bravo"]);
+      });
+
+      it("move({ position: 'bottom' }) sends the task to the tail", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await tasks.move("alpha", { position: "bottom" });
+
+        await expect(tasks.all().then(ids)).resolves.toEqual(["bravo", "charlie", "alpha"]);
+      });
+
+      it("move() rejects unknown anchors", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await expect(tasks.move("alpha", { before: "missing" })).rejects.toBeInstanceOf(AnchorNotFoundError);
+      });
+
+      it("reorder replaces the entire order", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await tasks.reorder(["charlie", "alpha", "bravo"]);
+
+        await expect(tasks.all().then(ids)).resolves.toEqual(["charlie", "alpha", "bravo"]);
+      });
+
+      it("reorder rejects missing or extra ids with OrderMismatchError", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await expect(tasks.reorder(["alpha", "bravo"])).rejects.toBeInstanceOf(OrderMismatchError);
+        await expect(
+          tasks.reorder(["alpha", "bravo", "charlie", "delta"])
+        ).rejects.toBeInstanceOf(OrderMismatchError);
+      });
+
+      it("archive removes the task from priority order", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await tasks.fire("bravo", "archive");
+
+        await expect(tasks.all().then(ids)).resolves.toEqual(["alpha", "charlie"]);
+      });
+
+      it("delete removes the task from priority order", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+
+        await tasks.delete("bravo");
+
+        await expect(tasks.all().then(ids)).resolves.toEqual(["alpha", "charlie"]);
+      });
+
+      it("all({ order: 'alphabetical' }) sorts by id", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+        await seedThree(tasks);
+        await tasks.move("charlie", { position: "top" });
+
+        await expect(tasks.all({ order: "alphabetical" }).then(ids)).resolves.toEqual([
+          "alpha",
+          "bravo",
+          "charlie"
+        ]);
+      });
+
+      it("all({ order: 'created' }) sorts by creation time", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2026-01-01T00:00:00Z"));
+
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const tasks = taskList.list("planning");
+
+        await tasks.create({ id: "first", name: "First" });
+        vi.setSystemTime(new Date("2026-01-02T00:00:00Z"));
+        await tasks.create({ id: "second", name: "Second" });
+        vi.setSystemTime(new Date("2026-01-03T00:00:00Z"));
+        await tasks.create({ id: "third", name: "Third" });
+
+        await tasks.move("third", { position: "top" });
+
+        await expect(tasks.all({ order: "created" }).then(ids)).resolves.toEqual([
+          "first",
+          "second",
+          "third"
+        ]);
+      });
+
+      it("moveBetweenLists transfers a task to another list at the tail", async () => {
+        const { taskList } = await openBackend(factory, { path: rootPath });
+        const planning = taskList.list("planning");
+        const doing = taskList.list("doing");
+
+        await planning.create({ id: "shared", name: "Shared" });
+        await doing.create({ id: "existing", name: "Existing" });
+
+        const moved = await taskList.moveBetweenLists("planning/shared", "doing");
+
+        expect(moved).toMatchObject({
+          list: "doing",
+          id: "shared",
+          qualifiedId: "doing/shared"
+        });
+        await expect(planning.all().then(ids)).resolves.toEqual([]);
+        await expect(doing.all().then(ids)).resolves.toEqual(["existing", "shared"]);
+      });
+    });
   });
 }
 
 describeBackendConformance("markdown-dir backend", markdownDirBackend, "/repo/tasks", (rootPath, list, id) => ({
-  taskPath: `${rootPath}/${list}/${id}.md`
+  taskPath: `${rootPath}/${list}/01-${id}.md`
 }));
 
 describeBackendConformance("yaml-file backend", yamlFileBackend, "/repo/tasks.yaml", (rootPath) => ({

@@ -139,8 +139,8 @@ tasks:
 
       No SDK deps in this package.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: harness-workspace-transfer

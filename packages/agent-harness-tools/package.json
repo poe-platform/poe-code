@@ -22,6 +22,8 @@
   "dependencies": {
     "@poe-code/agent-defs": "*",
     "@poe-code/design-system": "*",
-    "@poe-code/file-lock": "*"
+    "@poe-code/file-lock": "*",
+    "@poe-code/poe-code-config": "*",
+    "@poe-code/process-runner": "*"
   }
 }

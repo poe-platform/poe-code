@@ -23,7 +23,9 @@ version: 1
 
 ## Chat vs document
 
-Document = artifact. Chat = conversation. Per-level summaries, numbered decisions, and confirmation asks go in chat. Document holds plan content only: level headings, signatures, file lists, inline `- Open question:` notes.
+Document = artifact. Chat = conversation. The document holds plan content only: level headings, signatures, file lists, decisions you've made. **Everything that needs the user's input — per-level summaries, numbered decisions, open questions, confirmation asks — goes in chat, never in the document.** A plan doc is what you'd hand to an executor; questions to the human do not belong in it.
+
+When the user resolves a question in chat, fold the answer into the relevant section of the doc. Do not record the resolution as a separate note.
 
 ## Ground rules
 
@@ -31,6 +33,7 @@ Document = artifact. Chat = conversation. Per-level summaries, numbered decision
 2. **Be concrete.** Real files, real functions, real types — no hand-waving.
 3. **Summarize after each level — in chat.** Decisions made, what's open, what changed earlier.
 4. **Numbered decisions when you need input — in chat.** One per line, options + your recommendation.
+5. **No open questions in the doc.** If you don't know it yet, ask in chat. Don't seed `- Open question:` bullets, don't carve out an "Open questions" section.
 
 ## The Five Levels
 
@@ -52,7 +55,6 @@ Concrete end state. This is the most important to get right. For example, practi
 - Architecture — where the code lives, what it touches.
 - Edge cases — technical and product.
 - Flags, env vars, config — and which are default-on.
-- Open questions.
 
 ### 4. Interfaces and test plan
 
@@ -76,7 +78,7 @@ Contracts + validation, aimed at autonomous execution.
 - One level at a time. Pause for confirmation before the next.
 - "just wing it" / "skip ahead" → draft the rest in one pass.
 - Earlier level changes (e.g. UX sharpens the problem) → rewrite it.
-- Open questions inline: `- Open question: ...`
+- Open questions go in chat, not in the doc. Once resolved, fold the answer into the relevant section.
 
 ## Output Format
 

@@ -30,8 +30,8 @@ tasks:
 
       No regex parsing — deep-merge per the project rule.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: config-runner-scope
@@ -319,7 +319,8 @@ tasks:
       commit: open
 
   - id: cli-universal-flags
-    title: Add universal --runtime/--detach/--mount-poe-code flags to all four task commands
+    title: Add universal --runtime/--detach/--mount-poe-code flags to all four task
+      commands
     prompt: |
       Wire `--runtime host|docker|e2b`, `--runtime-image <ref>`,
       `--runtime-template <id>`, `--detach`, `--mount-poe-code` on:

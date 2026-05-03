@@ -9,3 +9,5 @@ export function defineScope<const S extends ScopeSchema>(
     schema
   };
 }
+
+export { runtimeConfigScope } from "./runtime.js";

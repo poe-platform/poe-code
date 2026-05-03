@@ -1,4 +1,10 @@
-import type { ConfigDocument, InferConfig, MemoryConfig, ScopedConfig } from "./types.js";
+import type {
+  ConfigDocument,
+  InferConfig,
+  MemoryConfig,
+  ResolvedConfig,
+  ScopedConfig
+} from "./types.js";
 import { defineScope } from "./schema.js";
 
 type AssertAssignable<To, ignoredFrom extends To> = true;
@@ -81,5 +87,17 @@ type ignoredConfigDocumentMemoryEntry = AssertAssignable<
   {
     memory?: MemoryConfig;
     models?: Record<string, unknown>;
+  }
+>;
+
+type ignoredResolvedConfigRuntime = AssertAssignable<
+  ResolvedConfig,
+  {
+    runtime: {
+      type: "host" | "docker" | "e2b";
+      build_args: Record<string, string>;
+      mounts: Array<{ source: string; target: string; readonly?: boolean }>;
+      link?: string;
+    };
   }
 >;

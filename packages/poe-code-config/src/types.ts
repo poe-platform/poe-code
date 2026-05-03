@@ -1,4 +1,5 @@
 import type { FileSystem } from "@poe-code/config-mutations";
+import type { RuntimeConfig } from "./runtime.js";
 
 export type PrimitiveConfigFieldType = "string" | "number" | "boolean";
 export type ConfigFieldType = PrimitiveConfigFieldType | "json";
@@ -9,7 +10,9 @@ export interface TypeMap {
   boolean: boolean;
 }
 
-export interface PrimitiveSchemaField<T extends PrimitiveConfigFieldType = PrimitiveConfigFieldType> {
+export interface PrimitiveSchemaField<
+  T extends PrimitiveConfigFieldType = PrimitiveConfigFieldType
+> {
   type: T;
   default: TypeMap[T];
   doc: string;
@@ -26,11 +29,12 @@ export interface JsonSchemaField<T = unknown> {
 
 export type SchemaField = PrimitiveSchemaField | JsonSchemaField;
 
-export type InferSchemaField<T extends SchemaField> = T extends PrimitiveSchemaField<infer U>
-  ? TypeMap[U]
-  : T extends JsonSchemaField<infer U>
-    ? U
-    : never;
+export type InferSchemaField<T extends SchemaField> =
+  T extends PrimitiveSchemaField<infer U>
+    ? TypeMap[U]
+    : T extends JsonSchemaField<infer U>
+      ? U
+      : never;
 
 export type ScopeSchema = Record<string, SchemaField>;
 
@@ -91,4 +95,9 @@ export interface ConfigStoreOptions {
 
 export type ConfigDocument = Record<string, Record<string, unknown>> & {
   memory?: MemoryConfig;
+  runtime?: Record<string, unknown>;
 };
+
+export interface ResolvedConfig {
+  runtime: RuntimeConfig;
+}

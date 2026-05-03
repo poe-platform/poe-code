@@ -237,8 +237,8 @@ state: draft
       "/repo/tasks/.keep": ""
     });
     const blockedPaths = new Map([
-      ["/repo/tasks/alpha/one.md", createDeferred()],
-      ["/repo/tasks/beta/two.md", createDeferred()]
+      ["/repo/tasks/alpha/01-one.md", createDeferred()],
+      ["/repo/tasks/beta/01-two.md", createDeferred()]
     ]);
     const startedPaths: string[] = [];
     const fs: TaskListFs = {
@@ -287,12 +287,12 @@ state: draft
     await waitForCondition(() => startedPaths.length === 2);
 
     expect([...startedPaths].sort()).toEqual([
-      "/repo/tasks/alpha/one.md",
-      "/repo/tasks/beta/two.md"
+      "/repo/tasks/alpha/01-one.md",
+      "/repo/tasks/beta/01-two.md"
     ]);
 
-    blockedPaths.get("/repo/tasks/alpha/one.md")?.resolve();
-    blockedPaths.get("/repo/tasks/beta/two.md")?.resolve();
+    blockedPaths.get("/repo/tasks/alpha/01-one.md")?.resolve();
+    blockedPaths.get("/repo/tasks/beta/01-two.md")?.resolve();
 
     await Promise.all([alphaUpdate, betaUpdate]);
   });

@@ -1,5 +1,32 @@
 import path from "node:path";
-import type { Task, TaskListFs } from "../types.js";
+import type { ListFilter, Task, TaskListFs } from "../types.js";
+
+export interface OrderedEntry {
+  task: Task;
+  raw: Record<string, unknown>;
+}
+
+export function compareCreated(left: OrderedEntry, right: OrderedEntry): number {
+  const leftCreated = typeof left.raw.created === "string" ? left.raw.created : "";
+  const rightCreated = typeof right.raw.created === "string" ? right.raw.created : "";
+
+  if (leftCreated === "" && rightCreated === "") {
+    return left.task.qualifiedId.localeCompare(right.task.qualifiedId);
+  }
+  if (leftCreated === "") return 1;
+  if (rightCreated === "") return -1;
+  return leftCreated.localeCompare(rightCreated);
+}
+
+export function applyOrder(entries: OrderedEntry[], order: ListFilter["order"]): Task[] {
+  if (order === "alphabetical") {
+    return sortTasks(entries.map((entry) => entry.task));
+  }
+  if (order === "created") {
+    return [...entries].sort(compareCreated).map((entry) => entry.task);
+  }
+  return entries.map((entry) => entry.task);
+}
 
 let tmpFileCounter = 0;
 

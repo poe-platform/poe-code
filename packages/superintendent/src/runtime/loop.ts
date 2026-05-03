@@ -49,6 +49,11 @@ export interface AgentRunInput {
   cwd: string;
   mode?: string;
   mcpServers?: McpSpawnConfig;
+  runtime?: "host" | "docker" | "e2b";
+  runtimeImage?: string;
+  runtimeTemplate?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
   signal?: AbortSignal;
   logPath?: string;
   onStdout?: (chunk: string) => void;

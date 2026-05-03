@@ -48,7 +48,11 @@ export {
   type LogStreamFs
 } from "./log-stream.js";
 export { runPoeCommand } from "./run-poe-command.js";
-export { resolvePoeCommandExecution } from "./poe-command-execution.js";
+export {
+  applyRuntimeOverrides,
+  resolvePoeCommandExecution,
+  type RuntimeOverrideOptions
+} from "./poe-command-execution.js";
 export { skillPlanConfigSection } from "./skill-config.js";
 export * from "./execution-env.js";
 export * from "./workspace-transfer.js";

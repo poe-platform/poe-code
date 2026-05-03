@@ -24,6 +24,11 @@ export async function runRalph(
       cwd: input.cwd,
       model: input.model,
       mode: "yolo",
+      ...(options.runtime ? { runtime: options.runtime } : {}),
+      ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
+      ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
+      ...(options.detach ? { detach: options.detach } : {}),
+      ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
       ...(input.signal ? { signal: input.signal } : {})
     });
   });

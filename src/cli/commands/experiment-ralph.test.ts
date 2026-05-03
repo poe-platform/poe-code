@@ -237,6 +237,44 @@ describe("experiment run command", () => {
     expect(loggerOutput).toContain("Kept: 1");
   });
 
+  it("passes runtime flags to the experiment SDK", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "experiment",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude",
+      "--runtime",
+      "e2b",
+      "--runtime-template",
+      "tpl_123",
+      "--detach",
+      "--mount-poe-code"
+    ]);
+
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtime: "e2b",
+        runtimeTemplate: "tpl_123",
+        detach: true,
+        mountPoeCode: true
+      })
+    );
+  });
+
   it("rejects malformed max-experiments values before starting the loop", async () => {
     const container = createCliContainer({
       fs: createMemFs({
@@ -1627,6 +1665,44 @@ describe("ralph run command", () => {
         homeDir,
         docPath: "docs/loop.md",
         maxIterations: 5
+      })
+    );
+  });
+
+  it("passes runtime flags to the Ralph SDK", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude",
+      "--iterations",
+      "5",
+      "--runtime",
+      "docker",
+      "--runtime-image",
+      "poe-code:test",
+      "--detach"
+    ]);
+
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runtime: "docker",
+        runtimeImage: "poe-code:test",
+        detach: true
       })
     );
   });

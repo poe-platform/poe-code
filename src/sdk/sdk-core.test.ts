@@ -689,6 +689,9 @@ describe("SDK experiment", () => {
       docPath: "docs/loop.md",
       agent: "codex",
       model: "gpt-5.2",
+      runtime: "e2b",
+      runtimeTemplate: "tpl_123",
+      mountPoeCode: true,
       maxExperiments: 3,
       onExperimentStart,
       onExperimentComplete
@@ -720,7 +723,10 @@ describe("SDK experiment", () => {
       prompt: "Improve the metric",
       cwd: "/repo",
       model: "gpt-5.2",
-      mode: "yolo"
+      mode: "yolo",
+      runtime: "e2b",
+      runtimeTemplate: "tpl_123",
+      mountPoeCode: true
     });
     expect(agentResult).toEqual({
       stdout: "done",

@@ -50,6 +50,7 @@ import {
   registerDashboardQuitCommands,
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
+import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "./runtime-options.js";
 
 const DEFAULT_EXPERIMENT_AGENT = "claude-code";
 const DEFAULT_EXPERIMENT_SCOPE: SkillScope = "local";
@@ -67,6 +68,7 @@ type ExperimentDashboardRunOptions = {
   docPath: string;
   maxExperiments?: number;
   runOptions: Parameters<typeof sdkRunExperiment>[0];
+  runtimeOptions: RuntimeCliOptions;
 };
 
 function resolveExperimentPaths(
@@ -238,6 +240,7 @@ function formatExperimentStageLabel(index: number): string {
 function createExperimentDashboardRunAgent(options: {
   appendOutput: (kind: "tool" | "error", message: string) => void;
   activeStage: () => string;
+  runtimeOptions: RuntimeCliOptions;
 }): NonNullable<ExperimentRunOptions["runAgent"]> {
   return async (input) => {
     const errorBuffer = createDashboardLineBuffer((line) => {
@@ -255,6 +258,7 @@ function createExperimentDashboardRunAgent(options: {
             cwd: input.cwd,
             model: input.model,
             mode: "yolo",
+            ...options.runtimeOptions,
             ...(input.signal ? { signal: input.signal } : {}),
             useStdin: true,
             tee: {
@@ -348,7 +352,8 @@ async function runExperimentWithDashboard(
 
   const runAgent = createExperimentDashboardRunAgent({
     appendOutput,
-    activeStage: () => formatExperimentStageLabel(currentExperimentIndex)
+    activeStage: () => formatExperimentStageLabel(currentExperimentIndex),
+    runtimeOptions: options.runtimeOptions
   });
 
   try {
@@ -609,14 +614,16 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .description("Run autonomous experiment loop workflows.")
     .addHelpCommand(false);
 
-  experiment
+  const run = experiment
     .command("run")
     .description("Run an experiment doc through the autonomous experiment loop.")
     .argument("[doc]", "Experiment doc path")
     .option("--agent <agent>", "Override the agent from frontmatter")
     .option("--max-experiments <n>", "Limit the number of experiments to run")
     .option("--tui", "Show a live dashboard while the experiment is running")
-    .option("--no-tui", "Disable the live dashboard for this experiment run")
+    .option("--no-tui", "Disable the live dashboard for this experiment run");
+
+  addRuntimeOptions(run)
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "experiment:run");
@@ -624,7 +631,8 @@ export function registerExperimentCommand(program: Command, container: CliContai
         agent?: string;
         maxExperiments?: string;
         tui?: boolean;
-      }>();
+      } & RuntimeCliOptions>();
+      const runtimeOptions = pickRuntimeOptions(options);
 
       resources.logger.intro("experiment run");
 
@@ -659,6 +667,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
           docPath,
+          ...runtimeOptions,
           ...(maxExperiments !== undefined ? { maxExperiments } : {}),
           onExperimentStart(index, currentAgent) {
             resources.logger.info(`Experiment ${index} (${currentAgent})`);
@@ -697,7 +706,8 @@ export function registerExperimentCommand(program: Command, container: CliContai
               agent,
               docPath,
               maxExperiments,
-              runOptions
+              runOptions,
+              runtimeOptions
             })
           : await sdkRunExperiment(runOptions);
 

@@ -1,3 +1,4 @@
+import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
 import type { McpSpawnConfig, SessionResult, SpawnMode } from "@poe-code/agent-spawn";
 
 /**
@@ -38,6 +39,16 @@ export interface SpawnOptions {
    * Disabled when undefined.
    */
   activityTimeoutMs?: number;
+  /** Runtime backend override: host, docker, or e2b */
+  runtime?: RuntimeOverrideOptions["runtime"];
+  /** Docker image override for docker runtime */
+  runtimeImage?: string;
+  /** E2B template id override for e2b runtime */
+  runtimeTemplate?: string;
+  /** Run as a detached runtime job when supported */
+  detach?: boolean;
+  /** Mount the local poe-code checkout into the runtime for development */
+  mountPoeCode?: boolean;
 }
 
 /**

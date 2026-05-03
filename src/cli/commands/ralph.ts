@@ -40,6 +40,7 @@ import {
   registerDashboardQuitCommands,
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
+import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "./runtime-options.js";
 
 const DEFAULT_RALPH_AGENT = "claude-code";
 const DEFAULT_RALPH_ITERATIONS = 3;
@@ -49,6 +50,7 @@ type RalphDashboardRunOptions = {
   docPath: string;
   maxIterations: number;
   runOptions: RalphRunOptions;
+  runtimeOptions: RuntimeCliOptions;
 };
 
 function formatRalphAgentSummary(agent: string | string[]): string {
@@ -82,6 +84,7 @@ function formatRalphStageLabel(iteration: number): string {
 function createRalphDashboardRunAgent(options: {
   appendOutput: (kind: "tool" | "error", message: string) => void;
   activeStage: () => string;
+  runtimeOptions: RuntimeCliOptions;
 }): NonNullable<RalphRunOptions["runAgent"]> {
   return async (input) => {
     const errorBuffer = createDashboardLineBuffer((line) => {
@@ -99,6 +102,7 @@ function createRalphDashboardRunAgent(options: {
             cwd: input.cwd,
             model: input.model,
             mode: "yolo",
+            ...options.runtimeOptions,
             ...(input.signal ? { signal: input.signal } : {}),
             useStdin: true,
             tee: {
@@ -197,7 +201,8 @@ async function runRalphWithDashboard(options: RalphDashboardRunOptions): Promise
       ...options.runOptions,
       runAgent: createRalphDashboardRunAgent({
         appendOutput,
-        activeStage: () => currentStage
+        activeStage: () => currentStage,
+        runtimeOptions: options.runtimeOptions
       }),
       signal: abortController.signal,
       onIterationStart(iteration, totalIterations, currentAgent) {
@@ -667,14 +672,16 @@ export function registerRalphCommand(program: Command, container: CliContainer):
       }
     });
 
-  ralph
+  const run = ralph
     .command("run")
     .description("Run the selected markdown doc through repeated agent iterations.")
     .argument("[doc]", "Markdown doc path")
     .option("--agent <name>", "Override the agent from frontmatter")
     .option("--iterations <n>", "Override iterations from frontmatter")
     .option("--tui", "Show a live dashboard while Ralph is running")
-    .option("--no-tui", "Disable the live dashboard for this Ralph run")
+    .option("--no-tui", "Disable the live dashboard for this Ralph run");
+
+  addRuntimeOptions(run)
     .action(async function (this: Command, docArg?: string) {
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "ralph:run");
@@ -682,7 +689,8 @@ export function registerRalphCommand(program: Command, container: CliContainer):
         agent?: string;
         iterations?: string;
         tui?: boolean;
-      }>();
+      } & RuntimeCliOptions>();
+      const runtimeOptions = pickRuntimeOptions(options);
 
       resources.logger.intro("ralph run");
 
@@ -723,7 +731,8 @@ export function registerRalphCommand(program: Command, container: CliContainer):
           cwd: container.env.cwd,
           homeDir: container.env.homeDir,
           docPath,
-          maxIterations
+          maxIterations,
+          ...runtimeOptions
         };
         const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
         const result = useDashboard
@@ -731,7 +740,8 @@ export function registerRalphCommand(program: Command, container: CliContainer):
               agent,
               docPath,
               maxIterations,
-              runOptions
+              runOptions,
+              runtimeOptions
             })
           : await sdkRunRalph({
               ...runOptions,

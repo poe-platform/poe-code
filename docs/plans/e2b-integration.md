@@ -316,7 +316,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-universal-flags
     title: Add universal --runtime/--detach/--mount-poe-code flags to all four task
@@ -343,8 +343,8 @@ tasks:
       docs/SNAPSHOT_TESTING.md). Take a screenshot of `poe-code spawn --help`
       via `npm run screenshot-poe-code -- spawn --help` to verify visually.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: docker-factory-and-build

@@ -262,9 +262,9 @@ tasks:
       package if needed. The harness-tools registry imports the factory
       via dynamic registration at app startup.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: migrate-agent-spawn
     title: Migrate agent-spawn off child_process to runPoeCommand

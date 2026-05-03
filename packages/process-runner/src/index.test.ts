@@ -4,19 +4,26 @@ import * as api from "./index.js";
 import { buildContextArgs, detectContext } from "./docker/context.js";
 import { detectEngine, isEngineAvailable } from "./docker/engine.js";
 import { createDockerRunner } from "./docker/docker-runner.js";
+import { hostExecutionEnvFactory } from "./host/host-execution-env.js";
 import { createHostRunner } from "./host/host-runner.js";
 import { createMockRunner, createMockRunnerByCommand } from "./testing/index.js";
 import type {
+  DownloadResult,
   DockerMount,
   DockerPortMapping,
   DockerRunArgs,
   DockerRunnerOptions,
   Engine,
+  ExecutionEnvFactory,
   HostRunnerOptions,
+  JobHandle,
   MockRunBehavior,
+  OpenedEnv,
+  OpenSpec,
   RunHandle,
   Runner,
-  RunSpec
+  RunSpec,
+  UploadResult
 } from "@poe-code/process-runner";
 
 describe("@poe-code/process-runner public exports", () => {
@@ -101,8 +108,74 @@ describe("@poe-code/process-runner public exports", () => {
         return handle;
       }
     };
+    const openSpec: OpenSpec = {
+      cwd: "/repo",
+      runtime: { type: "host" },
+      env: {},
+      uploadIgnoreFiles: [],
+      jobLabel: {
+        tool: "node",
+        argv: ["node", "--version"]
+      }
+    };
+    const upload: UploadResult = {
+      files: 0,
+      bytes: 0,
+      skipped: []
+    };
+    const download: DownloadResult = {
+      files: 0,
+      bytes: 0,
+      conflicts: []
+    };
+    const job: JobHandle = {
+      id: "job",
+      envId: "host",
+      tool: "node",
+      argv: ["node"],
+      async status() {
+        return "running";
+      },
+      async *stream() {},
+      async wait() {
+        return { exitCode: 0 };
+      },
+      async kill() {}
+    };
+    const opened: OpenedEnv = {
+      id: "host",
+      job,
+      async uploadWorkspace() {
+        return upload;
+      },
+      async downloadWorkspace() {
+        return download;
+      },
+      exec() {
+        return handle;
+      },
+      async detach() {
+        return job;
+      },
+      shell() {
+        return handle;
+      },
+      async close() {}
+    };
+    const factory: ExecutionEnvFactory = {
+      type: "host",
+      async open() {
+        return opened;
+      },
+      async attach() {
+        return opened;
+      }
+    };
 
     expect(runner.exec(spec)).toBe(handle);
+    await expect(factory.open(openSpec)).resolves.toBe(opened);
+    await expect(opened.uploadWorkspace()).resolves.toBe(upload);
+    await expect(opened.downloadWorkspace({ conflictPolicy: "refuse" })).resolves.toBe(download);
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
     expect(dockerArgs.mounts[0]).toEqual(mount);
     expect(behavior.stdout).toEqual(["ok"]);
@@ -117,6 +190,7 @@ describe("@poe-code/process-runner public exports", () => {
     expect(api.detectContext).toBe(detectContext);
     expect(api.detectEngine).toBe(detectEngine);
     expect(api.isEngineAvailable).toBe(isEngineAvailable);
+    expect(api.hostExecutionEnvFactory).toBe(hostExecutionEnvFactory);
     expect(api.createHostRunner).toBe(createHostRunner);
     expect(api.createDockerRunner).toBe(createDockerRunner);
     expect(api.createMockRunner).toBe(createMockRunner);
@@ -127,6 +201,7 @@ describe("@poe-code/process-runner public exports", () => {
       "detectEngine",
       "isEngineAvailable",
       "createDockerRunner",
+      "hostExecutionEnvFactory",
       "createHostRunner",
       "createMockRunner",
       "createMockRunnerByCommand"

@@ -9,6 +9,7 @@ export type {
   MemoryConfig,
   MemoryMcpConfig,
   MemoryQueryConfig,
+  ResolvedConfig,
   SchemaField,
   ScopeDefinition,
   ScopedConfig,
@@ -17,6 +18,18 @@ export type {
 } from "./types.js";
 
 export { defineScope } from "./schema.js";
+export {
+  parseRuntime,
+  resolveRuntime,
+  runtimeConfigScope,
+  type DockerRuntime,
+  type E2bRuntime,
+  type HostRuntime,
+  type RuntimeConfig,
+  type RuntimeMount,
+  type RuntimeResolveResult,
+  type RuntimeRunner
+} from "./runtime.js";
 export { planConfigScope } from "./plan-scope.js";
 export { createConfigStore } from "./config.js";
 export { deepMergeDocuments } from "./merge.js";

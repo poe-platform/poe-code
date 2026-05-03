@@ -39,6 +39,7 @@ export type JobStatus = "running" | "exited" | "killed" | "lost";
 
 export interface ExecutionEnvFactory {
   readonly type: ExecutionEnvType;
+  readonly supportsDetach?: boolean;
   open(spec: OpenSpec): Promise<OpenedEnv>;
   attach(envId: string): Promise<OpenedEnv>;
 }

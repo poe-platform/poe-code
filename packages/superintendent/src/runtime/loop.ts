@@ -1,11 +1,11 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { lockWorkflow, makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
-import { spawn, type McpSpawnConfig } from "@poe-code/agent-spawn";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { parseTaskBoard } from "../document/tasks.js";
 import { updateStatus } from "../document/write.js";
 import { createLoopState, type LoopState } from "../state/machine.js";
+import { withAutonomousAgentRunner, type McpSpawnConfig } from "./agent-runner.js";
 import { runBuilder, type BuilderResult } from "./run-builder.js";
 import { runInspector, type InspectorResult } from "./run-inspector.js";
 import { runOwnerReview, type OwnerResult } from "./run-owner-review.js";
@@ -135,14 +135,6 @@ type TemplateLoopContext = {
   ownerLogPath?: string;
 };
 
-type AutonomousOptions = {
-  cwd?: string;
-  prompt: string;
-  mode?: string;
-  mcpServers?: McpSpawnConfig;
-  logPath?: string;
-};
-
 type LockCapableSuperintendentFs = {
   open(path: string, flags: string): Promise<{
     close(): Promise<void>;
@@ -155,10 +147,6 @@ type LockCapableSuperintendentFs = {
     mtimeMs: number;
   }>;
   unlink(path: string): Promise<void>;
-};
-
-type SpawnWithAutonomous = typeof spawn & {
-  autonomous?: (agent: string, options: AutonomousOptions) => Promise<unknown>;
 };
 
 export async function runLoop(
@@ -709,10 +697,7 @@ async function withInjectedAgentRunner<T>(
     return operation();
   }
 
-  const spawnApi = spawn as SpawnWithAutonomous;
-  const originalAutonomous = spawnApi.autonomous;
-
-  spawnApi.autonomous = async (agent, input) => {
+  return withAutonomousAgentRunner(async (agent, input) => {
     const result = await options.runAgent?.({
       agent,
       prompt: input.prompt,
@@ -734,11 +719,5 @@ async function withInjectedAgentRunner<T>(
     }
 
     return result;
-  };
-
-  try {
-    return await operation();
-  } finally {
-    spawnApi.autonomous = originalAutonomous;
-  }
+  }, operation);
 }

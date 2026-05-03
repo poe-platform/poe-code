@@ -10,6 +10,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
+    "./register-factories": {
+      "types": "./dist/register-factories.d.ts",
+      "import": "./dist/register-factories.js"
+    },
     "./testing": {
       "import": "./dist/testing.js",
       "types": "./dist/testing.d.ts"

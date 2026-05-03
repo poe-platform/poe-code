@@ -152,7 +152,7 @@ describe("runLoop", () => {
     runOwnerReviewMock.mockReset();
   });
 
-  it("passes logPath through spawn.autonomous into AgentRunInput", async () => {
+  it("passes logPath through the autonomous runner into AgentRunInput", async () => {
     const docPath = "/repo/docs/plans/feature.md";
     const { fs } = createFs({ [docPath]: createDocument({ withInspectors: false }) });
     const runAgent = vi.fn(async () => ({
@@ -162,20 +162,10 @@ describe("runLoop", () => {
     }));
 
     runBuilderMock.mockImplementation(async () => {
-      const { spawn } = await import("@poe-code/agent-spawn");
-      const spawnApi = spawn as typeof spawn & {
-        autonomous?: (
-          agent: string,
-          options: {
-            cwd?: string;
-            prompt: string;
-            mode?: string;
-            logPath?: string;
-          }
-        ) => Promise<unknown>;
-      };
+      const { runAutonomousAgent } = await import("./agent-runner.js");
 
-      await spawnApi.autonomous?.("claude-code", {
+      await runAutonomousAgent({
+        agent: "claude-code",
         prompt: "Build",
         cwd: "/repo",
         logPath: "/logs/builder.jsonl"

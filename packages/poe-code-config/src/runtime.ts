@@ -68,6 +68,8 @@ export interface RuntimeResolveResult {
   buildContext: string | null;
 }
 
+type RuntimeResolver = (input: { cwd: string; runtime: RuntimeConfig }) => RuntimeResolveResult;
+
 export const runtimeConfigScope = {
   scope: "runtime",
   schema: {
@@ -252,25 +254,25 @@ export function resolveRuntime({
   config: Pick<ResolvedConfig, "runtime">;
 }): RuntimeResolveResult {
   const runtime = config.runtime;
-  if (runtime.type === "host") {
+  return runtimeResolvers[runtime.type]({ cwd, runtime });
+}
+
+const runtimeResolvers: Record<RuntimeConfig["type"], RuntimeResolver> = {
+  host({ runtime }) {
     return {
       runtime,
       runner: "host",
       dockerfilePath: null,
       buildContext: null
     };
-  }
+  },
+  docker({ cwd, runtime }) {
+    const dockerRuntime = runtime as DockerRuntime;
+    const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, dockerRuntime);
 
-  const dockerfilePath = path.resolve(
-    cwd,
-    runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")
-  );
-  const buildContext = path.resolve(cwd, runtime.build_context ?? ".");
-
-  if (runtime.type === "docker") {
-    if (runtime.image !== undefined) {
+    if (dockerRuntime.image !== undefined) {
       return {
-        runtime,
+        runtime: dockerRuntime,
         runner: "docker",
         dockerfilePath: null,
         buildContext: null
@@ -280,29 +282,43 @@ export function resolveRuntime({
       throw new Error(`Docker runtime requires image or a Dockerfile at ${dockerfilePath}.`);
     }
     return {
-      runtime,
+      runtime: dockerRuntime,
       runner: "docker",
       dockerfilePath,
       buildContext
     };
-  }
+  },
+  e2b({ cwd, runtime }) {
+    const e2bRuntime = runtime as E2bRuntime;
+    const { dockerfilePath, buildContext } = resolveRuntimeBuildPaths(cwd, e2bRuntime);
 
-  if (runtime.template_id !== undefined) {
+    if (e2bRuntime.template_id !== undefined) {
+      return {
+        runtime: e2bRuntime,
+        runner: "e2b",
+        dockerfilePath: null,
+        buildContext: null
+      };
+    }
+    if (!existsSync(dockerfilePath)) {
+      throw new Error(`E2B runtime requires template_id or a Dockerfile at ${dockerfilePath}.`);
+    }
     return {
-      runtime,
+      runtime: e2bRuntime,
       runner: "e2b",
-      dockerfilePath: null,
-      buildContext: null
+      dockerfilePath,
+      buildContext
     };
   }
-  if (!existsSync(dockerfilePath)) {
-    throw new Error(`E2B runtime requires template_id or a Dockerfile at ${dockerfilePath}.`);
-  }
+};
+
+function resolveRuntimeBuildPaths(
+  cwd: string,
+  runtime: DockerRuntime | E2bRuntime
+): { dockerfilePath: string; buildContext: string } {
   return {
-    runtime,
-    runner: "e2b",
-    dockerfilePath,
-    buildContext
+    dockerfilePath: path.resolve(cwd, runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")),
+    buildContext: path.resolve(cwd, runtime.build_context ?? ".")
   };
 }
 

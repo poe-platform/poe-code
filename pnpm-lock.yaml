@@ -388,6 +388,9 @@ importers:
       '@poe-code/agent-harness-tools':
         specifier: '*'
         version: link:../agent-harness-tools
+      '@poe-code/agent-spawn':
+        specifier: '*'
+        version: link:../agent-spawn
       '@poe-code/config-extends':
         specifier: '*'
         version: link:../config-extends

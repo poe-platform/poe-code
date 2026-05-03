@@ -1,11 +1,13 @@
-import { exec as execCallback } from "node:child_process";
+import "@poe-code/agent-spawn/register-factories";
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import {
   lockWorkflow,
   makeRunLogFileName,
+  resolvePoeCommandExecution,
   resolveRunLogDir,
-  resolveWorkflowPath
+  resolveWorkflowPath,
+  runPoeCommand
 } from "@poe-code/agent-harness-tools";
 import { resolve } from "@poe-code/config-extends";
 import {
@@ -74,33 +76,58 @@ function createDefaultFs(): ExperimentFileSystem {
   return fs as ExperimentFileSystem;
 }
 
-function createDefaultExec(): ExecFn {
-  return async (command, options) =>
-    await new Promise((resolve) => {
-      execCallback(
-        command,
-        {
-          cwd: options?.cwd,
-          timeout: options?.timeout,
-          encoding: "utf8",
-          maxBuffer: 10 * 1024 * 1024
-        },
-        (error, stdout, stderr) => {
-          const exitCode =
-            error && typeof (error as NodeJS.ErrnoException & { code?: unknown }).code === "number"
-              ? (error as NodeJS.ErrnoException & { code: number }).code
-              : error
-                ? 1
-                : 0;
-
-          resolve({
-            stdout,
-            stderr,
-            exitCode
-          });
+function createDefaultExec(homeDir: string): ExecFn {
+  return async (command, options) => {
+    const cwd = options?.cwd ?? process.cwd();
+    const shell = process.env.SHELL ?? "sh";
+    const argv = [shell, "-lc", command];
+    const execution = resolvePoeCommandExecution({
+      cwd,
+      env: process.env as Record<string, string>,
+      argv,
+      tool: "experiment-loop",
+      context: { homeDir },
+      openSpec: {
+        execution: {
+          wrapForLogTee: false,
+          stdin: "ignore",
+          stdout: "pipe",
+          stderr: "pipe",
+          captureOutput: true,
+          activityTimeoutMs: options?.timeout
         }
-      );
+      }
     });
+
+    try {
+      const result = await runPoeCommand({
+        factory: execution.factory,
+        openSpec: execution.openSpec,
+        detach: false,
+        state: execution.state
+      });
+
+      if (result.kind === "detached") {
+        return { stdout: "", stderr: "", exitCode: 0 };
+      }
+
+      return {
+        stdout: result.stdout ?? "",
+        stderr: result.stderr ?? "",
+        exitCode: result.exitCode
+      };
+    } catch (error) {
+      if (isActivityTimeoutError(error)) {
+        return {
+          stdout: "",
+          stderr: error.message,
+          exitCode: 1
+        };
+      }
+
+      throw error;
+    }
+  };
 }
 
 function resolveJournalPath(docPath: string): string {
@@ -172,6 +199,10 @@ function createAbortError(): Error {
 
 function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
+}
+
+function isActivityTimeoutError(error: unknown): error is Error {
+  return error instanceof Error && error.name === "ActivityTimeoutError";
 }
 
 function interpolate(template: string, values: Record<string, string>): string {
@@ -265,7 +296,7 @@ export async function runExperimentLoop(
   options: ExperimentRunOptions
 ): Promise<ExperimentRunResult> {
   const fs = options.fs ?? createDefaultFs();
-  const exec = options.exec ?? createDefaultExec();
+  const exec = options.exec ?? createDefaultExec(options.homeDir);
   const git = options.git ?? createDefaultGit(exec);
   const runAgent = options.runAgent;
 

@@ -12,6 +12,7 @@ if (process.env.VITEST === "true") {
 function createTestHostExecutionEnvFactory(): ExecutionEnvFactory {
   return {
     type: "host",
+    supportsDetach: false,
     open: ((openSpec: Parameters<ExecutionEnvFactory["open"]>[0]) => {
       return {
         id: "host",

@@ -1,5 +1,10 @@
-import { spawn, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
+import "@poe-code/agent-spawn/register-factories";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
+import {
+  runAutonomousAgent,
+  type AutonomousOutput,
+  type McpSpawnConfig
+} from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
 import { buildOwnerSystemPrompt, prependSystemPrompt } from "./system-prompt.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
@@ -19,15 +24,6 @@ export type OwnerResult = {
   log_path?: string;
 };
 
-type AutonomousInput = {
-  agent: string;
-  mode?: string;
-  prompt: string;
-  cwd?: string;
-  mcpServers?: McpSpawnConfig;
-  logPath?: string;
-};
-
 type ToolCallLike = {
   name?: unknown;
   tool?: unknown;
@@ -36,22 +32,6 @@ type ToolCallLike = {
   arguments?: unknown;
   args?: unknown;
   input?: unknown;
-};
-
-type AutonomousOutput =
-  | string
-  | {
-      toolCalls?: unknown;
-      sessionResult?: unknown;
-      stdout?: unknown;
-      logFile?: unknown;
-    };
-
-type SpawnWithAutonomous = typeof spawn & {
-  autonomous?: (
-    agent: string,
-    options: Omit<AutonomousInput, "agent">
-  ) => Promise<AutonomousOutput>;
 };
 
 const WORKFLOW_SERVER_NAME = "owner-workflow";
@@ -74,7 +54,7 @@ export async function runOwnerReview(
     buildTemplateContext(doc, context)
   );
   const prompt = prependSystemPrompt(buildOwnerSystemPrompt(), userPrompt);
-  const result = await runAutonomous({
+  const result = await runAutonomousAgent({
     agent: doc.frontmatter.owner.agent,
     mode: doc.frontmatter.owner.mode,
     prompt,
@@ -129,33 +109,6 @@ function toSpawnMcpServer(config: McpConfig): McpSpawnConfig[string] {
     command: config.command,
     ...(config.args ? { args: [...config.args] } : {}),
     ...(config.timeout !== undefined ? { timeout: config.timeout } : {})
-  };
-}
-
-async function runAutonomous(input: AutonomousInput): Promise<AutonomousOutput> {
-  const spawnApi = spawn as SpawnWithAutonomous;
-
-  if (typeof spawnApi.autonomous === "function") {
-    return spawnApi.autonomous(input.agent, {
-      cwd: input.cwd,
-      prompt: input.prompt,
-      mode: input.mode,
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.logPath ? { logPath: input.logPath } : {})
-    });
-  }
-
-  const result = await spawn(input.agent, {
-    cwd: input.cwd,
-    prompt: input.prompt,
-    mode: input.mode as SpawnMode | undefined,
-    ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-    ...(input.logPath ? { logPath: input.logPath } : {})
-  });
-
-  return {
-    stdout: result.stdout,
-    ...(result.logFile ? { logFile: result.logFile } : {})
   };
 }
 

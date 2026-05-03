@@ -67,3 +67,15 @@ export {
   resolveProjectConfigPath,
   writeScope
 } from "./store.js";
+export {
+  createStateManager,
+  loadStateManager,
+  type JobEntry,
+  type JobListFilter,
+  type JobRegistry,
+  type JobStatus,
+  type StateManager,
+  type TemplateBackend,
+  type TemplateEntry,
+  type TemplateRegistry
+} from "./state/index.js";

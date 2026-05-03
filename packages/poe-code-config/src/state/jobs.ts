@@ -1,0 +1,256 @@
+import path from "node:path";
+import { acquireFileLock, type FileLockFs } from "@poe-code/file-lock";
+import { defaultStateFs, isNotFoundError, type StateFileSystem } from "./fs.js";
+
+export type JobStatus = "pending" | "running" | "exited" | "killed" | "lost";
+
+export interface JobEntry {
+  id: string;
+  env_id: string;
+  env_kind: string;
+  tool: string;
+  argv: string[];
+  cwd: string;
+  started_at: string;
+  status: JobStatus;
+  exit_code?: number;
+  exited_at?: string;
+  log_file?: string;
+}
+
+export interface JobListFilter {
+  env_id?: string;
+  env_kind?: string;
+  tool?: string;
+  status?: JobStatus;
+}
+
+export interface JobRegistry {
+  get(id: string): Promise<JobEntry | null>;
+  put(entry: JobEntry): Promise<void>;
+  update(id: string, patch: Partial<JobEntry>): Promise<JobEntry | null>;
+  list(filter?: JobListFilter): Promise<JobEntry[]>;
+  remove(id: string): Promise<void>;
+}
+
+export function createJobRegistry(
+  homeDir: string,
+  fs: StateFileSystem = defaultStateFs
+): JobRegistry {
+  const jobsDir = path.join(homeDir, ".poe-code", "state", "jobs");
+
+  function jobPath(id: string): string {
+    assertSafeJobId(id);
+    return path.join(jobsDir, `${id}.json`);
+  }
+
+  async function get(id: string): Promise<JobEntry | null> {
+    try {
+      return parseJobEntry(await fs.readFile(jobPath(id), "utf8"));
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return null;
+      }
+
+      throw error;
+    }
+  }
+
+  async function put(entry: JobEntry): Promise<void> {
+    assertJobEntry(entry);
+    const filePath = jobPath(entry.id);
+    await fs.mkdir(jobsDir, { recursive: true });
+    const release = await acquireFileLock(filePath, { fs: fs as unknown as FileLockFs });
+    try {
+      await writeJobAtomically(filePath, entry);
+    } finally {
+      await release();
+    }
+  }
+
+  async function update(id: string, patch: Partial<JobEntry>): Promise<JobEntry | null> {
+    const filePath = jobPath(id);
+    await fs.mkdir(jobsDir, { recursive: true });
+    const release = await acquireFileLock(filePath, { fs: fs as unknown as FileLockFs });
+    try {
+      const current = await get(id);
+      if (current === null) {
+        return null;
+      }
+
+      const updated = {
+        ...current,
+        ...patch,
+        id: current.id
+      };
+      assertJobEntry(updated);
+      await writeJobAtomically(filePath, updated);
+      return updated;
+    } finally {
+      await release();
+    }
+  }
+
+  async function list(filter: JobListFilter = {}): Promise<JobEntry[]> {
+    let entries: string[];
+
+    try {
+      entries = await fs.readdir(jobsDir);
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return [];
+      }
+
+      throw error;
+    }
+
+    const jobs: JobEntry[] = [];
+    for (const entry of entries.sort()) {
+      if (!entry.endsWith(".json")) {
+        continue;
+      }
+
+      const filePath = path.join(jobsDir, entry);
+      const stat = await fs.stat(filePath);
+      if (!stat.isFile()) {
+        continue;
+      }
+
+      const job = parseJobEntry(await fs.readFile(filePath, "utf8"));
+      if (matchesFilter(job, filter)) {
+        jobs.push(job);
+      }
+    }
+    return jobs;
+  }
+
+  async function remove(id: string): Promise<void> {
+    const filePath = jobPath(id);
+    try {
+      await fs.stat(jobsDir);
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return;
+      }
+
+      throw error;
+    }
+
+    const release = await acquireFileLock(filePath, { fs: fs as unknown as FileLockFs });
+    try {
+      await fs.unlink(filePath);
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        throw error;
+      }
+    } finally {
+      await release();
+    }
+  }
+
+  async function writeJobAtomically(filePath: string, entry: JobEntry): Promise<void> {
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    const tempPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random()
+      .toString(36)
+      .slice(2)}.tmp`;
+
+    try {
+      await fs.writeFile(tempPath, `${JSON.stringify(entry, null, 2)}\n`, {
+        encoding: "utf8"
+      });
+      await fs.rename(tempPath, filePath);
+    } catch (error) {
+      await removeTempFile(tempPath);
+      throw error;
+    }
+  }
+
+  async function removeTempFile(tempPath: string): Promise<void> {
+    try {
+      await fs.unlink(tempPath);
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        throw error;
+      }
+    }
+  }
+
+  return {
+    get,
+    put,
+    update,
+    list,
+    remove
+  };
+}
+
+function assertSafeJobId(id: string): void {
+  if (
+    id.length === 0 ||
+    id === "." ||
+    id === ".." ||
+    path.isAbsolute(id) ||
+    id.includes("/") ||
+    id.includes("\\") ||
+    id.includes("\0")
+  ) {
+    throw new Error("Invalid job id.");
+  }
+}
+
+function assertJobEntry(entry: JobEntry): void {
+  if (!isJobEntry(entry)) {
+    throw new Error("Invalid job entry.");
+  }
+}
+
+function matchesFilter(job: JobEntry, filter: JobListFilter): boolean {
+  return (
+    (filter.env_id === undefined || job.env_id === filter.env_id) &&
+    (filter.env_kind === undefined || job.env_kind === filter.env_kind) &&
+    (filter.tool === undefined || job.tool === filter.tool) &&
+    (filter.status === undefined || job.status === filter.status)
+  );
+}
+
+function parseJobEntry(content: string): JobEntry {
+  const parsed = JSON.parse(content) as unknown;
+  if (!isJobEntry(parsed)) {
+    throw new Error("Invalid job state file.");
+  }
+  return parsed;
+}
+
+function isJobEntry(value: unknown): value is JobEntry {
+  return (
+    isRecord(value) &&
+    typeof value.id === "string" &&
+    typeof value.env_id === "string" &&
+    typeof value.env_kind === "string" &&
+    typeof value.tool === "string" &&
+    Array.isArray(value.argv) &&
+    value.argv.every((arg) => typeof arg === "string") &&
+    typeof value.cwd === "string" &&
+    typeof value.started_at === "string" &&
+    isJobStatus(value.status) &&
+    (value.exit_code === undefined || typeof value.exit_code === "number") &&
+    (value.exited_at === undefined || typeof value.exited_at === "string") &&
+    (value.log_file === undefined || typeof value.log_file === "string")
+  );
+}
+
+function isJobStatus(value: unknown): value is JobStatus {
+  return (
+    value === "pending" ||
+    value === "running" ||
+    value === "exited" ||
+    value === "killed" ||
+    value === "lost"
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+export type { StateFileSystem } from "./fs.js";

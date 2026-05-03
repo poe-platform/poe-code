@@ -261,6 +261,60 @@ describe("superintendent run command", () => {
     expect(result.builderAgent).toBe("codex");
   });
 
+  it("passes runtime overrides from command options into agent runs", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDoc("codex")
+    });
+    const executeAgent = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const runLoopMock = vi.fn(async (options: RunLoopOptions) => {
+      await options.runAgent?.({
+        agent: "claude-code",
+        prompt: "Build",
+        cwd: "/repo"
+      });
+      return {
+        state: "completed" as const,
+        round: 1,
+        reviewTurn: 0,
+        maxRounds: 100,
+        maxReviewTurns: 5,
+        stopReason: "completed" as const
+      };
+    });
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      assumeYes: true,
+      interactive: false,
+      useDashboard: false,
+      fs,
+      runLoop: runLoopMock,
+      executeAgent,
+      runtime: "e2b",
+      runtimeTemplate: "tpl_123",
+      detach: true,
+      mountPoeCode: true,
+      env: {}
+    });
+
+    expect(executeAgent).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({
+        runtime: "e2b",
+        runtimeTemplate: "tpl_123",
+        detach: true,
+        mountPoeCode: true
+      })
+    );
+  });
+
   it("prompts for a builder agent when frontmatter omits builder.agent", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([

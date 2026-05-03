@@ -2,6 +2,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PassThrough, Readable } from "node:stream";
 import { EventEmitter } from "node:events";
 import { spawn as spawnChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
+import {
+  registerExecutionEnvFactory,
+  type ExecutionEnvFactory,
+  type OpenSpec,
+  type RunSpec
+} from "@poe-code/agent-harness-tools";
 
 import { readLines } from "./line-reader.js";
 import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "./middleware.js";
@@ -787,6 +793,104 @@ describe("acp/spawnStreaming", () => {
     expect(spawnOptions).toMatchObject({ cwd: "/tmp", stdio: ["pipe", "pipe", "pipe"] });
   });
 
+  it("routes streaming spawns through the requested runtime backend", async () => {
+    let capturedOpenSpec: OpenSpec | undefined;
+    let capturedRunSpec: RunSpec | undefined;
+    const stdout = new PassThrough();
+    const stderr = new PassThrough();
+    const stdin = new PassThrough();
+    const kill = vi.fn();
+
+    const dockerFactory: ExecutionEnvFactory = {
+      type: "docker",
+      supportsDetach: true,
+      async open(openSpec) {
+        capturedOpenSpec = openSpec;
+        return {
+          id: "docker-test",
+          job: null,
+          async uploadWorkspace() {
+            return { files: 0, bytes: 0, skipped: [] };
+          },
+          async downloadWorkspace() {
+            return { files: 0, bytes: 0, conflicts: [] };
+          },
+          exec(spec) {
+            capturedRunSpec = spec;
+            queueMicrotask(() => {
+              stdout.write(
+                `${JSON.stringify({
+                  type: "text",
+                  sessionID: "ses_docker",
+                  part: { type: "text", messageID: "msg_1", text: "from docker" }
+                })}\n`
+              );
+              stdout.end();
+              stderr.write("warn\n");
+              stderr.end();
+            });
+            return {
+              pid: 123,
+              stdin,
+              stdout,
+              stderr,
+              result: Promise.resolve({ exitCode: 0 }),
+              kill
+            };
+          },
+          async detach() {
+            throw new Error("unused");
+          },
+          shell() {
+            throw new Error("unused");
+          },
+          async close() {}
+        };
+      },
+      async attach() {
+        throw new Error("unused");
+      }
+    };
+    registerExecutionEnvFactory(dockerFactory);
+
+    const { events, done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "hello",
+      cwd: "/tmp",
+      runtime: "docker",
+      runtimeImage: "poe-code:test",
+      mountPoeCode: true
+    });
+
+    await expect(collect(events)).resolves.toEqual([
+      { event: "session_start", threadId: "ses_docker" },
+      { event: "agent_message", text: "from docker" }
+    ]);
+    await expect(done).resolves.toEqual({
+      stdout: "",
+      stderr: "warn\n",
+      exitCode: 0
+    });
+
+    expect(spawnChildProcess).not.toHaveBeenCalled();
+    expect(capturedOpenSpec?.runtime).toMatchObject({
+      type: "docker",
+      image: "poe-code:test"
+    });
+    expect(capturedOpenSpec?.runtime.mounts).toContainEqual({
+      source: "/tmp",
+      target: "/usr/local/lib/poe-code",
+      readonly: true
+    });
+    expect(capturedRunSpec).toMatchObject({
+      command: "opencode",
+      cwd: "/tmp",
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "pipe"
+    });
+  });
+
   it("passes through multiple usage events without accumulating into done", async () => {
     const mock = createMockChildProcess({
       stdoutLines: [
@@ -862,7 +966,7 @@ describe("acp/spawnStreaming", () => {
     }
   });
 
-  it("rejects done when child process emits error", async () => {
+  it("returns exit code 1 when the runtime reports a process launch error", async () => {
     const mock = createMockChildProcess({ error: new Error("spawn failed") });
     vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
 
@@ -871,9 +975,12 @@ describe("acp/spawnStreaming", () => {
       prompt: "hello"
     });
 
-    const doneRejection = expect(done).rejects.toThrow("spawn failed");
     await expect(collect(events)).resolves.toEqual([]);
-    await doneRejection;
+    await expect(done).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 1
+    });
   });
 
   it("writes prompt to stdin when useStdin is true and stdinMode is available", async () => {

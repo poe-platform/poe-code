@@ -73,6 +73,13 @@ export async function spawnInteractive(
     env: (processEnv ?? process.env) as Record<string, string>,
     argv,
     tool: resolved.agentId,
+    runtime: {
+      runtime: options.runtime,
+      runtimeImage: options.runtimeImage,
+      runtimeTemplate: options.runtimeTemplate,
+      detach: options.detach,
+      mountPoeCode: options.mountPoeCode
+    },
     openSpec: {
       execution: {
         wrapForLogTee: false,

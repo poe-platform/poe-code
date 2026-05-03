@@ -177,6 +177,13 @@ export async function spawn(
     env: (processEnv ?? process.env) as Record<string, string>,
     argv,
     tool: resolvedId,
+    runtime: {
+      runtime: options.runtime,
+      runtimeImage: options.runtimeImage,
+      runtimeTemplate: options.runtimeTemplate,
+      detach: options.detach,
+      mountPoeCode: options.mountPoeCode
+    },
     context,
     openSpec: {
       execution: {

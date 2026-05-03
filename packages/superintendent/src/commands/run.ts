@@ -61,6 +61,11 @@ export type RunCommandOptions = {
   homeDir: string;
   docPath?: string;
   builderAgent?: string;
+  runtime?: "host" | "docker" | "e2b";
+  runtimeImage?: string;
+  runtimeTemplate?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
   configuredDefaultAgent?: string | null;
   planDirectory?: string;
   assumeYes?: boolean;
@@ -124,6 +129,15 @@ const runParams = S.Object({
     description:
       "Override the builder agent for this run. Precedence: --agent > plan frontmatter builder.agent."
   })),
+  runtime: S.Optional(S.Enum(["host", "docker", "e2b"] as const, {
+    description: "Override runtime backend: host, docker, or e2b"
+  })),
+  runtimeImage: S.Optional(S.String({ description: "Override Docker runtime image" })),
+  runtimeTemplate: S.Optional(S.String({ description: "Override E2B runtime template id" })),
+  detach: S.Optional(S.Boolean({ description: "Run as a detached runtime job" })),
+  mountPoeCode: S.Optional(S.Boolean({
+    description: "Mount the local poe-code checkout into the runtime"
+  })),
   tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" }))
 });
 
@@ -144,6 +158,11 @@ export const runCommand = defineCommand({
       homeDir,
       docPath: params.doc,
       ...(params.agent ? { builderAgent: params.agent } : {}),
+      ...(params.runtime ? { runtime: params.runtime } : {}),
+      ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
+      ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
+      ...(params.detach ? { detach: params.detach } : {}),
+      ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
       configuredDefaultAgent: commandConfig.configuredDefaultAgent,
       assumeYes: process.argv.includes("--yes"),
       interactive: Boolean(process.stdin.isTTY),
@@ -203,6 +222,11 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
         homeDir,
         docPath: params.doc,
         ...(params.agent ? { builderAgent: params.agent } : {}),
+        ...(params.runtime ? { runtime: params.runtime } : {}),
+        ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
+        ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
+        ...(params.detach ? { detach: params.detach } : {}),
+        ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
         configuredDefaultAgent: commandConfig.configuredDefaultAgent,
         assumeYes: true,
         interactive: false,
@@ -413,6 +437,13 @@ export async function runSuperintendentCommand(
           session: undefined,
           executeAgent: options.executeAgent,
           selectedBuilderAgent,
+          runtime: {
+            runtime: options.runtime,
+            runtimeImage: options.runtimeImage,
+            runtimeTemplate: options.runtimeTemplate,
+            detach: options.detach,
+            mountPoeCode: options.mountPoeCode
+          },
           activeStage: () => activeStage,
           now,
           stderr
@@ -675,6 +706,13 @@ export async function runSuperintendentCommand(
           session,
           executeAgent: options.executeAgent,
           selectedBuilderAgent,
+          runtime: {
+            runtime: options.runtime,
+            runtimeImage: options.runtimeImage,
+            runtimeTemplate: options.runtimeTemplate,
+            detach: options.detach,
+            mountPoeCode: options.mountPoeCode
+          },
           activeStage: () => session.activeStage,
           now,
           stderr
@@ -870,6 +908,10 @@ function createAgentRunner(options: {
   session: RunSession | undefined;
   executeAgent: RunCommandOptions["executeAgent"];
   selectedBuilderAgent: string;
+  runtime: Pick<
+    RunCommandOptions,
+    "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode"
+  >;
   activeStage: () => RunSession["activeStage"];
   now: () => number;
   stderr: NodeJS.WritableStream;
@@ -902,7 +944,12 @@ function createAgentRunner(options: {
     const onStderr = (chunk: string) => stderrBuffer.push(chunk);
 
     try {
-      const result = await executeAgent(agent, { ...input, onStdout, onStderr });
+      const result = await executeAgent(agent, {
+        ...input,
+        ...options.runtime,
+        onStdout,
+        onStderr
+      });
 
       if (options.session && result.usage) {
         options.session.tokensIn += result.usage.inputTokens;
@@ -986,6 +1033,11 @@ async function executeSpawnAgent(
     ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
     ...(input.signal ? { signal: input.signal } : {}),
     ...(input.logPath ? { logPath: input.logPath } : {}),
+    ...(input.runtime ? { runtime: input.runtime } : {}),
+    ...(input.runtimeImage ? { runtimeImage: input.runtimeImage } : {}),
+    ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
+    ...(input.detach ? { detach: input.detach } : {}),
+    ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {}),
     ...(tee ? { tee } : {})
   });
 
@@ -1023,6 +1075,11 @@ async function executeSpawnAgentStreaming(
     ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {}),
     ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
     ...(input.signal ? { signal: input.signal } : {}),
+    ...(input.runtime ? { runtime: input.runtime } : {}),
+    ...(input.runtimeImage ? { runtimeImage: input.runtimeImage } : {}),
+    ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
+    ...(input.detach ? { detach: input.detach } : {}),
+    ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {}),
     ...(input.onStderr ? { tee: { stderr: { write: input.onStderr } } } : {})
   });
 

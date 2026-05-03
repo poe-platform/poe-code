@@ -36,6 +36,7 @@ import { spawnAutonomous } from "../../sdk/autonomous.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
+import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "./runtime-options.js";
 
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
@@ -64,7 +65,7 @@ export function registerSpawnCommand(
   const serviceList = listSpawnServiceNames(spawnServices, extraServices);
   const serviceDescription = `Agent to spawn${formatServiceList(serviceList)}`;
 
-  program
+  const spawnCommand = program
     .command("spawn")
     .alias("s")
     .description("Run a single prompt through a configured agent CLI.")
@@ -85,7 +86,9 @@ export function registerSpawnCommand(
       "--activity-timeout-ms <ms>",
       "Kill the agent after N ms of inactivity",
       (value: string) => parsePositiveInt(value, "--activity-timeout-ms")
-    )
+    );
+
+  addRuntimeOptions(spawnCommand)
     .argument("<agent>", serviceDescription)
     .argument("[prompt]", "Prompt text to send, '@path/to/file' to load from a file, or '-' / stdin")
     .argument("[agentArgs...]", "Additional arguments forwarded to the agent CLI")
@@ -106,7 +109,8 @@ export function registerSpawnCommand(
         mcpConfig?: string;
         logDir?: string;
         activityTimeoutMs?: number;
-      }>();
+      } & RuntimeCliOptions>();
+      const runtimeOptions = pickRuntimeOptions(commandOptions);
       const shouldEmitUiOutput = resolveOutputFormat() !== "json";
       const rawMcpInput = commandOptions.mcpServers ?? commandOptions.mcpConfig;
       const mcpInput = await resolveMcpSpawnInput(rawMcpInput, container.fs, container.env.cwd);
@@ -179,6 +183,7 @@ export function registerSpawnCommand(
             args: forwardedArgs,
             model,
             mode: commandOptions.mode as SpawnMode | undefined,
+            ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
             cwd: cwdOverride
           });
@@ -195,6 +200,7 @@ export function registerSpawnCommand(
           cwd: cwdOverride,
           logDir: commandOptions.logDir,
           activityTimeoutMs: commandOptions.activityTimeoutMs,
+          ...runtimeOptions,
           useStdin: shouldReadFromStdin
         };
 
@@ -289,7 +295,8 @@ export function registerSpawnCommand(
             ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
             ...(spawnOptions.activityTimeoutMs !== undefined
               ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
-              : {})
+              : {}),
+            ...runtimeOptions
           });
           process.exitCode = final.exitCode;
 

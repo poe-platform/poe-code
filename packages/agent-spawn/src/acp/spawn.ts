@@ -1,23 +1,16 @@
-import { spawn as spawnChildProcess } from "node:child_process";
+import "../register-factories.js";
+import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { getAdapter } from "../adapters/index.js";
 import type { AcpEvent } from "./types.js";
-import { readLines } from "./line-reader.js";
 import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
+import { resolveSpawnExecution } from "../runtime.js";
 import { resolveModeConfig, type CliSpawnConfig, type SpawnOptions, type SpawnResult } from "../types.js";
 
 function createAbortError(): Error {
   const error = new Error("Agent spawn aborted");
   error.name = "AbortError";
-  return error;
-}
-
-function createActivityTimeoutError(timeoutMs: number): Error {
-  const error = new Error(
-    `Agent spawn timed out after ${timeoutMs / 1000}s of inactivity`
-  );
-  error.name = "ActivityTimeoutError";
   return error;
 }
 
@@ -32,6 +25,77 @@ export interface SpawnStreamingResult {
 
 function isAcpEvent(value: unknown): value is AcpEvent {
   return !!value && typeof value === "object" && "event" in value;
+}
+
+function createLineQueue(): {
+  push(chunk: string): void;
+  close(): void;
+  lines(): AsyncIterable<string>;
+} {
+  const lines: string[] = [];
+  const waiters: Array<{
+    resolve(value: IteratorResult<string>): void;
+  }> = [];
+  let pending = "";
+  let closed = false;
+
+  const emit = (line: string): void => {
+    const waiter = waiters.shift();
+    if (waiter) {
+      waiter.resolve({ done: false, value: line });
+      return;
+    }
+    lines.push(line);
+  };
+
+  const finishWaiters = (): void => {
+    while (waiters.length > 0) {
+      const waiter = waiters.shift()!;
+      waiter.resolve({ done: true, value: undefined });
+    }
+  };
+
+  return {
+    push(chunk: string): void {
+      if (closed) return;
+      pending += chunk;
+      let newlineIndex = pending.indexOf("\n");
+      while (newlineIndex !== -1) {
+        const raw = pending.slice(0, newlineIndex);
+        emit(raw.endsWith("\r") ? raw.slice(0, -1) : raw);
+        pending = pending.slice(newlineIndex + 1);
+        newlineIndex = pending.indexOf("\n");
+      }
+    },
+    close(): void {
+      if (closed) return;
+      if (pending.length > 0) {
+        emit(pending.endsWith("\r") ? pending.slice(0, -1) : pending);
+        pending = "";
+      }
+      closed = true;
+      finishWaiters();
+    },
+    lines(): AsyncIterable<string> {
+      return {
+        [Symbol.asyncIterator](): AsyncIterator<string> {
+          return {
+            next(): Promise<IteratorResult<string>> {
+              if (lines.length > 0) {
+                return Promise.resolve({ done: false, value: lines.shift()! });
+              }
+              if (closed) {
+                return Promise.resolve({ done: true, value: undefined });
+              }
+              return new Promise((resolve) => {
+                waiters.push({ resolve });
+              });
+            }
+          };
+        }
+      };
+    }
+  };
 }
 
 function getDefaultArgsPosition(config: CliSpawnConfig): "beforePrompt" | "afterPrompt" {
@@ -119,83 +183,73 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   }
 
   const envOverrides = { ...mcpEnvVars, ...modeResolved.env };
-  const child = spawnChildProcess(binaryName, args, {
-    cwd: options.cwd,
-    stdio: ["pipe", "pipe", "pipe"],
-    env: Object.keys(envOverrides).length > 0
-      ? { ...process.env, ...envOverrides }
-      : undefined
-  });
-  let aborted = false;
-  let timedOut = false;
-  const onAbort = () => {
-    aborted = true;
-    child.kill("SIGTERM");
-  };
-  options.signal?.addEventListener("abort", onAbort, { once: true });
-
-  let activityTimer: ReturnType<typeof setTimeout> | undefined;
-  const resetActivityTimer = options.activityTimeoutMs
-    ? () => {
-        if (activityTimer) clearTimeout(activityTimer);
-        activityTimer = setTimeout(() => {
-          timedOut = true;
-          child.kill("SIGTERM");
-        }, options.activityTimeoutMs);
+  const processEnv =
+    Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
+  const queue = createLineQueue();
+  const argv = [binaryName, ...args];
+  const execution = resolveSpawnExecution({
+    cwd: options.cwd ?? process.cwd(),
+    env: (processEnv ?? process.env) as Record<string, string>,
+    argv,
+    tool: agentId,
+    runtime: {
+      runtime: options.runtime,
+      runtimeImage: options.runtimeImage,
+      runtimeTemplate: options.runtimeTemplate,
+      detach: options.detach,
+      mountPoeCode: options.mountPoeCode
+    },
+    openSpec: {
+      execution: {
+        wrapForLogTee: false,
+        stdin: "pipe",
+        stdout: "pipe",
+        stderr: "pipe",
+        env: processEnv as Record<string, string> | undefined,
+        input: useStdin ? options.prompt : "",
+        captureOutput: true,
+        activityTimeoutMs: options.activityTimeoutMs,
+        onStdout(chunk: string) {
+          queue.push(chunk);
+        },
+        onStderr(chunk: string) {
+          if (options.tee?.stderr) options.tee.stderr.write(chunk);
+        }
       }
-    : undefined;
-
-  resetActivityTimer?.();
+    }
+  });
 
   const result: SpawnResult = { stdout: "", stderr: "", exitCode: 1 };
-  child.stderr.setEncoding("utf8");
-  child.stderr.on("data", (chunk) => {
-    result.stderr += chunk;
-    resetActivityTimer?.();
-    if (options.tee?.stderr) options.tee.stderr.write(chunk);
-  });
-
-  if (useStdin) {
-    child.stdin.write(options.prompt);
-  }
-  child.stdin.end();
-
   const adapter = getAdapter(spawnConfig.adapter);
 
   const events: AsyncIterable<AcpEvent> = (async function* () {
-    for await (const output of adapter(readLines(child.stdout))) {
+    for await (const output of adapter(queue.lines())) {
       if (!isAcpEvent(output)) continue;
-      resetActivityTimer?.();
       yield output;
     }
   })();
 
-  const done = new Promise<SpawnResult>((resolve, reject) => {
-    child.on("error", (error) => {
-      options.signal?.removeEventListener("abort", onAbort);
-      if (activityTimer) clearTimeout(activityTimer);
-      if (aborted) {
-        reject(createAbortError());
-        return;
-      }
-      reject(error);
-    });
+  const done = (async (): Promise<SpawnResult> => {
+    try {
+      const runResult = await runPoeCommand({
+        factory: execution.factory,
+        openSpec: execution.openSpec,
+        detach: execution.detach,
+        state: execution.state,
+        signal: options.signal
+      });
 
-    child.on("close", (code) => {
-      options.signal?.removeEventListener("abort", onAbort);
-      if (activityTimer) clearTimeout(activityTimer);
-      if (aborted) {
-        reject(createAbortError());
-        return;
+      if (runResult.kind === "detached") {
+        return { stdout: "", stderr: "", exitCode: 0 };
       }
-      if (timedOut) {
-        reject(createActivityTimeoutError(options.activityTimeoutMs!));
-        return;
-      }
-      result.exitCode = code ?? 1;
-      resolve(result);
-    });
-  });
+
+      result.stderr = runResult.stderr ?? "";
+      result.exitCode = runResult.exitCode;
+      return result;
+    } finally {
+      queue.close();
+    }
+  })();
 
   return { events, done };
 }

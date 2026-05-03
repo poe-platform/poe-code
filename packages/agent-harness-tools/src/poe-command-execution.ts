@@ -17,11 +17,20 @@ import {
 } from "@poe-code/poe-code-config";
 import { selectExecutionEnv, type OpenSpec } from "./execution-env.js";
 
+export type RuntimeOverrideOptions = {
+  runtime?: "host" | "docker" | "e2b";
+  runtimeImage?: string;
+  runtimeTemplate?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
+};
+
 export function resolvePoeCommandExecution(input: {
   cwd: string;
   env: Record<string, string>;
   argv: string[];
   tool: string;
+  runtime?: RuntimeOverrideOptions;
   context?: {
     homeDir?: string;
     state?: StateManager;
@@ -34,7 +43,7 @@ export function resolvePoeCommandExecution(input: {
   state: StateManager;
 } {
   const homeDir = input.context?.homeDir ?? os.homedir();
-  const config = loadRuntimeConfig(input.cwd, homeDir);
+  const config = applyRuntimeOverrides(loadRuntimeConfig(input.cwd, homeDir), input.runtime, input.cwd);
   const resolved = resolveRuntime({ cwd: input.cwd, config });
   const factory = selectExecutionEnv(resolved.runtime);
 
@@ -54,6 +63,44 @@ export function resolvePoeCommandExecution(input: {
       },
       ...input.openSpec
     }
+  };
+}
+
+export function applyRuntimeOverrides(
+  config: ResolvedConfig,
+  overrides: RuntimeOverrideOptions | undefined,
+  cwd = process.cwd()
+): ResolvedConfig {
+  if (!overrides) {
+    return config;
+  }
+
+  const runtime = parseRuntime({
+    ...config.runtime,
+    ...(overrides.runtime !== undefined ? { type: overrides.runtime } : {}),
+    ...(overrides.runtimeImage !== undefined ? { image: overrides.runtimeImage } : {}),
+    ...(overrides.runtimeTemplate !== undefined
+      ? { template_id: overrides.runtimeTemplate }
+      : {}),
+    ...(overrides.mountPoeCode === true
+      ? { mounts: [...config.runtime.mounts, createPoeCodeMount(cwd)] }
+      : {})
+  });
+
+  return {
+    runtime,
+    runner: {
+      ...config.runner,
+      ...(overrides.detach === true ? { detach: true } : {})
+    }
+  };
+}
+
+function createPoeCodeMount(cwd: string): { source: string; target: string; readonly: boolean } {
+  return {
+    source: cwd,
+    target: "/usr/local/lib/poe-code",
+    readonly: true
   };
 }
 

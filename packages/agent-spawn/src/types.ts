@@ -1,4 +1,5 @@
 import type { AdapterType } from "./adapters/index.js";
+import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
 import type { StateManager } from "@poe-code/poe-code-config";
 
 export type SpawnMode = "yolo" | "edit" | "read";
@@ -64,6 +65,16 @@ export interface SpawnOptions {
   logDir?: string;
   /** Overrides the auto-generated log filename. Must be used together with `logDir`. */
   logFileName?: string;
+  /** Per-invocation runtime/runner config overrides. */
+  runtime?: RuntimeOverrideOptions["runtime"];
+  /** Docker image override for docker runtime. */
+  runtimeImage?: string;
+  /** E2B template override for e2b runtime. */
+  runtimeTemplate?: string;
+  /** Run through a detached runtime job when the backend supports it. */
+  detach?: boolean;
+  /** Mount the local poe-code checkout into the runtime for development. */
+  mountPoeCode?: boolean;
 }
 
 export interface SpawnUsage {

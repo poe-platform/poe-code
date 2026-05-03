@@ -1,4 +1,5 @@
 import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
+import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
 
 export interface SpawnCommandOptions {
   prompt: string;
@@ -11,6 +12,11 @@ export interface SpawnCommandOptions {
   cwd?: string;
   useStdin?: boolean;
   interactive?: boolean;
+  runtime?: RuntimeOverrideOptions["runtime"];
+  runtimeImage?: string;
+  runtimeTemplate?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
 }
 
 export type ProviderSpawnOptions<

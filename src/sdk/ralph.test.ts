@@ -78,7 +78,10 @@ describe("SDK ralph", () => {
     const result = await runRalph({
       cwd: "/repo",
       homeDir: "/home/test",
-      docPath: "docs/loop.md"
+      docPath: "docs/loop.md",
+      runtime: "docker",
+      runtimeImage: "poe-code:test",
+      detach: true
     });
 
     expect(result).toEqual(expectedResult);
@@ -102,7 +105,10 @@ describe("SDK ralph", () => {
       prompt: "Improve the doc",
       cwd: "/repo",
       model: "gpt-5.2",
-      mode: "yolo"
+      mode: "yolo",
+      runtime: "docker",
+      runtimeImage: "poe-code:test",
+      detach: true
     });
     expect(agentResult).toEqual({
       stdout: "done",

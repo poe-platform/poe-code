@@ -128,6 +128,8 @@ export function spawn(
       };
       const resolveModel = async () =>
         options.model ?? await resolveConfiguredModel(getContainer(), service);
+      const runtimeOverrides = pickRuntimeOverrides(options);
+      const hasRuntimeOverrides = Object.keys(runtimeOverrides).length > 0;
 
       if (options.interactive) {
         resolveEventsOnce(emptyEvents);
@@ -139,6 +141,7 @@ export function spawn(
           mode: options.mode,
           signal: options.signal,
           args: options.args,
+          ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {})
         });
         return {
@@ -150,7 +153,7 @@ export function spawn(
       }
 
       const acpSpawnConfig = getAcpSpawnConfig(service);
-      if (acpSpawnConfig) {
+      if (acpSpawnConfig && !hasRuntimeOverrides) {
         const model = await resolveModel();
         const { events: rawEvents, done } = spawnAcp({
           agentId: service,
@@ -160,6 +163,7 @@ export function spawn(
           mode: options.mode,
           mcpServers: options.mcpServers,
           signal: options.signal,
+          ...runtimeOverrides
         });
 
         const middlewareContext: AcpSpawnContext = {
@@ -213,6 +217,7 @@ export function spawn(
           mode: options.mode,
           args: options.args,
           signal: options.signal,
+          ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
           ...(options.tee ? { tee: options.tee } : {}),
           ...(options.activityTimeoutMs !== undefined
@@ -267,6 +272,7 @@ export function spawn(
           mode: options.mode,
           args: options.args,
           signal: options.signal,
+          ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
           ...(options.tee ? { tee: options.tee } : {}),
           ...(options.activityTimeoutMs !== undefined
@@ -287,6 +293,7 @@ export function spawn(
         model,
         mode: options.mode,
         args: options.args,
+        ...runtimeOverrides,
         ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
         useStdin: options.useStdin ?? false
       });
@@ -315,6 +322,21 @@ function getCapturedUsage(usage: SpawnUsage | undefined): SpawnUsage | undefined
   }
 
   return undefined;
+}
+
+function pickRuntimeOverrides(
+  options: Pick<
+    SpawnOptions,
+    "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode"
+  >
+): Pick<SpawnOptions, "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode"> {
+  return {
+    ...(options.runtime ? { runtime: options.runtime } : {}),
+    ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
+    ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
+    ...(options.detach ? { detach: options.detach } : {}),
+    ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {})
+  };
 }
 
 /**

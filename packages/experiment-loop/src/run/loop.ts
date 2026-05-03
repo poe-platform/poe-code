@@ -440,6 +440,11 @@ export async function runExperimentLoop(
           logFileName: makeRunLogFileName(
             `experiment-${experimentIndex}-${currentSpecifier.agent}`
           ),
+          ...(options.runtime ? { runtime: options.runtime } : {}),
+          ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
+          ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
+          ...(options.detach ? { detach: options.detach } : {}),
+          ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
           ...(model ? { model } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });

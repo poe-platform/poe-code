@@ -812,6 +812,61 @@ describe("SDK spawn()", () => {
     expect(spawnCore).not.toHaveBeenCalled();
   });
 
+  it("uses runtime-aware streaming flow when ACP agents receive runtime overrides", async () => {
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "opencode",
+      acpArgs: ["acp"],
+      skipAuth: true
+    } as any);
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "opencode",
+      adapter: "opencode"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {
+        yield { event: "agent_message", text: "streamed" };
+      })(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    }));
+
+    const { events, result } = spawn("opencode", "test prompt", {
+      runtime: "docker",
+      runtimeImage: "poe-code:test",
+      detach: true,
+      mountPoeCode: true
+    });
+
+    const received: unknown[] = [];
+    for await (const event of events) {
+      received.push(event);
+    }
+
+    expect(received).toEqual([{ event: "agent_message", text: "streamed" }]);
+    await expect(result).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+
+    expect(spawnAcp).not.toHaveBeenCalled();
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "opencode",
+        prompt: "test prompt",
+        runtime: "docker",
+        runtimeImage: "poe-code:test",
+        detach: true,
+        mountPoeCode: true
+      })
+    );
+  });
+
   it("composes ACP middlewares in SDK streaming path", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

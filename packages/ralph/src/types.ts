@@ -19,6 +19,11 @@ export interface AgentRunInput {
   prompt: string;
   cwd: string;
   model?: string;
+  runtime?: "host" | "docker" | "e2b";
+  runtimeImage?: string;
+  runtimeTemplate?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
   signal?: AbortSignal;
   logDir?: string;
   logFileName?: string;
@@ -45,6 +50,11 @@ export interface RalphRunOptions {
   homeDir: string;
   docPath: string;
   maxIterations?: number;
+  runtime?: "host" | "docker" | "e2b";
+  runtimeImage?: string;
+  runtimeTemplate?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
   fs?: RalphFileSystem;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
   onIterationStart?: (

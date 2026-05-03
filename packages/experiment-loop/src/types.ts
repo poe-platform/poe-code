@@ -40,6 +40,11 @@ export interface AgentRunInput {
   prompt: string;
   cwd: string;
   model?: string;
+  runtime?: "host" | "docker" | "e2b";
+  runtimeImage?: string;
+  runtimeTemplate?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
   signal?: AbortSignal;
   logDir?: string;
   logFileName?: string;
@@ -56,6 +61,11 @@ export interface ExperimentRunOptions {
   homeDir: string;
   docPath: string;
   agent?: string | string[];
+  runtime?: "host" | "docker" | "e2b";
+  runtimeImage?: string;
+  runtimeTemplate?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
   maxExperiments?: number;
   fs?: ExperimentFileSystem;
   git?: ExperimentGit;

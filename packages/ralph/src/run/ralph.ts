@@ -99,6 +99,11 @@ export async function runRalph(
             cwd: input.cwd,
             logDir: runLogDir,
             logFileName: makeRunLogFileName(specifier.agent),
+            ...(options.runtime ? { runtime: options.runtime } : {}),
+            ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
+            ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
+            ...(options.detach ? { detach: options.detach } : {}),
+            ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
             ...(specifier.model ?? input.model
               ? { model: specifier.model ?? input.model }
               : {}),

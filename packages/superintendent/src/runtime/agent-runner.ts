@@ -2,6 +2,7 @@ import "@poe-code/agent-spawn/register-factories";
 import { mkdirSync, openSync, writeSync, closeSync } from "node:fs";
 import path from "node:path";
 import {
+  type RuntimeOverrideOptions,
   resolvePoeCommandExecution,
   runPoeCommand
 } from "@poe-code/agent-harness-tools";
@@ -20,6 +21,11 @@ export type AutonomousInput = {
   cwd?: string;
   mcpServers?: McpSpawnConfig;
   logPath?: string;
+  runtime?: RuntimeOverrideOptions["runtime"];
+  runtimeImage?: string;
+  runtimeTemplate?: string;
+  detach?: boolean;
+  mountPoeCode?: boolean;
 };
 
 export type AutonomousOutput =
@@ -62,7 +68,12 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
       prompt: input.prompt,
       mode: input.mode,
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.logPath ? { logPath: input.logPath } : {})
+      ...(input.logPath ? { logPath: input.logPath } : {}),
+      ...(input.runtime ? { runtime: input.runtime } : {}),
+      ...(input.runtimeImage ? { runtimeImage: input.runtimeImage } : {}),
+      ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
+      ...(input.detach ? { detach: input.detach } : {}),
+      ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {})
     });
   }
 
@@ -79,6 +90,13 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
     env: (processEnv ?? process.env) as Record<string, string>,
     argv,
     tool: input.agent,
+    runtime: {
+      runtime: input.runtime,
+      runtimeImage: input.runtimeImage,
+      runtimeTemplate: input.runtimeTemplate,
+      detach: input.detach,
+      mountPoeCode: input.mountPoeCode
+    },
     openSpec: {
       execution: {
         wrapForLogTee: false,

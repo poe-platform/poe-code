@@ -274,6 +274,46 @@ describe("spawn command", () => {
     expect(logs.some((line) => line.includes("Final output"))).toBe(true);
   });
 
+  it("passes runtime flags to the spawn SDK", async () => {
+    vi.mocked(sdkSpawn).mockImplementation(() => ({
+      events: emptyAsyncIterable(),
+      result: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "claude",
+      "--runtime",
+      "docker",
+      "--runtime-image",
+      "poe-code:test",
+      "--detach",
+      "--mount-poe-code",
+      "hello"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({
+        runtime: "docker",
+        runtimeImage: "poe-code:test",
+        detach: true,
+        mountPoeCode: true
+      })
+    );
+  });
+
   it("emits ACP NDJSON plus a final spawn_result event in json mode", async () => {
     process.env.OUTPUT_FORMAT = "json";
     resetOutputFormatCache();

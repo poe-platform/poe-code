@@ -1,0 +1,111 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`runtime option help > snapshots experiment help 1`] = `
+"Poe - experiment run
+
+Usage: poe-code experiment run [options] [doc]
+
+Run an experiment doc through the autonomous experiment loop.
+
+Arguments:
+  doc                      Experiment doc path
+
+Options:
+  --agent <agent>          Override the agent from frontmatter
+  --max-experiments <n>    Limit the number of experiments to run
+  --tui                    Show a live dashboard while the experiment is running
+  --no-tui                 Disable the live dashboard for this experiment run
+  --runtime <runtime>      Override runtime backend: host | docker | e2b
+                           (choices: "host", "docker", "e2b")
+  --runtime-image <ref>    Override Docker runtime image
+  --runtime-template <id>  Override E2B runtime template id
+  --detach                 Run as a detached runtime job
+  --mount-poe-code         Mount the local poe-code checkout into the runtime
+  -h, --help               Display help for command
+"
+`;
+
+exports[`runtime option help > snapshots ralph help 1`] = `
+"Poe - ralph run
+
+Usage: poe-code ralph run [options] [doc]
+
+Run the selected markdown doc through repeated agent iterations.
+
+Arguments:
+  doc                      Markdown doc path
+
+Options:
+  --agent <name>           Override the agent from frontmatter
+  --iterations <n>         Override iterations from frontmatter
+  --tui                    Show a live dashboard while Ralph is running
+  --no-tui                 Disable the live dashboard for this Ralph run
+  --runtime <runtime>      Override runtime backend: host | docker | e2b
+                           (choices: "host", "docker", "e2b")
+  --runtime-image <ref>    Override Docker runtime image
+  --runtime-template <id>  Override E2B runtime template id
+  --detach                 Run as a detached runtime job
+  --mount-poe-code         Mount the local poe-code checkout into the runtime
+  -h, --help               Display help for command
+"
+`;
+
+exports[`runtime option help > snapshots spawn help 1`] = `
+"Poe - spawn
+
+Usage: poe-code spawn [options] <agent> [prompt] [agentArgs...]
+
+Run a single prompt through a configured agent CLI.
+
+Arguments:
+  agent                       Agent to spawn (claude-code | claude | codex |
+                              goose | kimi | kimi-cli | opencode | poe-agent)
+  prompt                      Prompt text to send, '@path/to/file' to load from
+                              a file, or '-' / stdin
+  agentArgs                   Additional arguments forwarded to the agent CLI
+
+Options:
+  --model <model>             Model identifier override passed to the agent CLI
+  -C, --cwd <path>            Working directory or workspace locator for the
+                              agent CLI
+  --stdin                     Read the prompt from stdin
+  -i, --interactive           Launch the agent in interactive TUI mode
+  --mode <mode>               Permission mode: yolo | edit | read (default:
+                              yolo)
+  --mcp-servers <json|@file>  MCP server config JSON (or @path/to/file.json):
+                              {name: {command, args?, env?}}
+  --log-dir <path>            Directory override for ACP JSONL spawn logs
+  --activity-timeout-ms <ms>  Kill the agent after N ms of inactivity
+  --runtime <runtime>         Override runtime backend: host | docker | e2b
+                              (choices: "host", "docker", "e2b")
+  --runtime-image <ref>       Override Docker runtime image
+  --runtime-template <id>     Override E2B runtime template id
+  --detach                    Run as a detached runtime job
+  --mount-poe-code            Mount the local poe-code checkout into the runtime
+  -h, --help                  Display help for command
+"
+`;
+
+exports[`runtime option help > snapshots superintendent help 1`] = `
+"Poe - poe-code superintendent run
+
+Usage: poe-code superintendent run [options] [doc]
+
+Run the full superintendent loop.
+
+Options:
+  [doc]                     Path to the superintendent markdown document
+  --agent <string>          Override the builder agent for this run. Precedence: --agent > plan frontmatter builder.agent.
+  --runtime <value>         Override runtime backend: host, docker, or e2b
+  --runtime-image <string>  Override Docker runtime image
+  --runtime-template <string>  Override E2B runtime template id
+  --detach [value]          Run as a detached runtime job
+  --mount-poe-code [value]  Mount the local poe-code checkout into the runtime
+  --tui [value]             Show a live dashboard while Superintendent is running
+
+Global options:
+  --yes                     Accept defaults, skip prompts
+  --output <format>         Output format (rich, md, json)
+  -h, --help                Show help
+"
+`;

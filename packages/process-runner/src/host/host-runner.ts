@@ -1,4 +1,4 @@
-import * as childProcess from "node:child_process";
+import { spawn as spawnChildProcess } from "node:child_process";
 import type { Runner, RunSpec } from "../types.js";
 import type { HostRunnerOptions, RunHandle, RunResult } from "../types.js";
 
@@ -11,10 +11,14 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
       const stdinMode = spec.stdin ?? "ignore";
       const stdoutMode = spec.stdout ?? "pipe";
       const stderrMode = spec.stderr ?? "pipe";
-      const child = childProcess.spawn(spec.command, spec.args ?? [], {
+      const stdio =
+        stdinMode === "inherit" && stdoutMode === "inherit" && stderrMode === "inherit"
+          ? "inherit"
+          : [stdinMode, stdoutMode, stderrMode];
+      const child = spawnChildProcess(spec.command, spec.args ?? [], {
         cwd: spec.cwd,
         env: spec.env,
-        stdio: [stdinMode, stdoutMode, stderrMode],
+        stdio,
         ...(detached ? { detached: true } : {})
       });
 
@@ -31,6 +35,7 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
         child.kill(signal);
       };
 
+      let settled = false;
       let resolveResult: ((value: RunResult) => void) | null = null;
       const result = new Promise<RunResult>((resolve) => {
         resolveResult = resolve;
@@ -41,8 +46,16 @@ export function createHostRunner(options: HostRunnerOptions = {}): Runner {
       });
 
       child.once("close", (code) => {
+        if (settled) return;
+        settled = true;
         cleanupAbort();
         resolveResult?.({ exitCode: code ?? 1 });
+      });
+      child.once("error", () => {
+        if (settled) return;
+        settled = true;
+        cleanupAbort();
+        resolveResult?.({ exitCode: 1 });
       });
 
       return {

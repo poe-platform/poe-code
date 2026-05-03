@@ -1,7 +1,9 @@
-import { spawn as spawnChildProcess } from "node:child_process";
+import "./register-factories.js";
+import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
+import { resolveSpawnExecution } from "./runtime.js";
 import { resolveModeConfig, type SpawnOptions, type SpawnResult } from "./types.js";
 
 export async function spawnInteractive(
@@ -63,23 +65,48 @@ export async function spawnInteractive(
     args.push(...options.args);
   }
 
-  const child = spawnChildProcess(resolved.binaryName, args, {
-    cwd: options.cwd,
-    stdio: "inherit",
-    ...(modeResolved.env ? { env: { ...process.env, ...modeResolved.env } } : {})
+  const processEnv = modeResolved.env ? { ...process.env, ...modeResolved.env } : undefined;
+  const executionEnv = processEnv as Record<string, string> | undefined;
+  const argv = [resolved.binaryName, ...args];
+  const execution = resolveSpawnExecution({
+    cwd: options.cwd ?? process.cwd(),
+    env: (processEnv ?? process.env) as Record<string, string>,
+    argv,
+    tool: resolved.agentId,
+    openSpec: {
+      execution: {
+        wrapForLogTee: false,
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+        tty: true,
+        env: executionEnv
+      },
+      shellSpec: {
+        command: resolved.binaryName,
+        args,
+        cwd: options.cwd,
+        env: executionEnv,
+        stdin: "inherit",
+        stdout: "inherit",
+        stderr: "inherit",
+        tty: true,
+        signal: options.signal
+      }
+    }
   });
 
-  return new Promise<SpawnResult>((resolve, reject) => {
-    child.on("error", (error) => {
-      reject(error);
-    });
-
-    child.on("close", (code) => {
-      resolve({
-        stdout: "",
-        stderr: "",
-        exitCode: code ?? 1
-      });
-    });
+  const result = await runPoeCommand({
+    factory: execution.factory,
+    openSpec: execution.openSpec,
+    detach: execution.detach,
+    state: execution.state,
+    signal: options.signal
   });
+
+  return {
+    stdout: "",
+    stderr: "",
+    exitCode: result.kind === "sync" ? result.exitCode : 0
+  };
 }

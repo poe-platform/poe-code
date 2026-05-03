@@ -1,0 +1,98 @@
+import { spawn as spawnChildProcess } from "node:child_process";
+import { registerExecutionEnvFactory } from "@poe-code/agent-harness-tools";
+import type { ExecutionEnvFactory, OpenedEnv, RunSpec } from "@poe-code/agent-harness-tools";
+import { hostExecutionEnvFactory } from "@poe-code/process-runner";
+
+registerExecutionEnvFactory(hostExecutionEnvFactory);
+
+if (process.env.VITEST === "true") {
+  registerExecutionEnvFactory(createTestHostExecutionEnvFactory());
+}
+
+function createTestHostExecutionEnvFactory(): ExecutionEnvFactory {
+  return {
+    type: "host",
+    open: ((openSpec: Parameters<ExecutionEnvFactory["open"]>[0]) => {
+      return {
+        id: "host",
+        job: null,
+        async uploadWorkspace() {
+          return { files: 0, bytes: 0, skipped: [] };
+        },
+        async downloadWorkspace() {
+          return { files: 0, bytes: 0, conflicts: [] };
+        },
+        exec(spec) {
+          return runHost(spawnChildProcess, spec);
+        },
+        async detach() {
+          throw new Error(
+            "host runtime does not support detach because host has no addressable env"
+          );
+        },
+        shell() {
+          return runHost(spawnChildProcess, {
+            command: openSpec.shellSpec?.command ?? openSpec.env.SHELL ?? process.env.SHELL ?? "sh",
+            args: openSpec.shellSpec?.args,
+            cwd: openSpec.cwd,
+            env:
+              openSpec.shellSpec && "env" in openSpec.shellSpec
+                ? openSpec.shellSpec.env
+                : openSpec.env,
+            stdin: "inherit",
+            stdout: "inherit",
+            stderr: "inherit",
+            tty: true
+          });
+        },
+        async close() {}
+      } as OpenedEnv;
+    }) as unknown as ExecutionEnvFactory["open"],
+    async attach() {
+      throw new Error("host runtime does not support reattach");
+    }
+  };
+}
+
+function runHost(spawnProcess: typeof import("node:child_process").spawn, spec: RunSpec) {
+  const stdin = spec.stdin ?? "ignore";
+  const stdout = spec.stdout ?? "pipe";
+  const stderr = spec.stderr ?? "pipe";
+  const stdio =
+    stdin === "inherit" && stdout === "inherit" && stderr === "inherit"
+      ? "inherit"
+      : ([stdin, stdout, stderr] as [
+          "pipe" | "inherit" | "ignore",
+          "pipe" | "inherit",
+          "pipe" | "inherit"
+        ]);
+  const child = spawnProcess(spec.command, spec.args ?? [], {
+    cwd: spec.cwd,
+    env: spec.env,
+    stdio
+  });
+  const result = new Promise<{ exitCode: number }>((resolve) => {
+    child.once("close", (code) => {
+      resolve({ exitCode: code ?? 1 });
+    });
+    child.once("error", () => {
+      resolve({ exitCode: 1 });
+    });
+  });
+  const kill = (signal?: NodeJS.Signals) => {
+    child.kill(signal);
+  };
+  if (spec.signal?.aborted) {
+    kill("SIGTERM");
+  } else {
+    spec.signal?.addEventListener("abort", () => kill("SIGTERM"), { once: true });
+  }
+  return {
+    pid: child.pid ?? null,
+    stdin: child.stdin,
+    stdout: child.stdout,
+    stderr: child.stderr,
+    result,
+    kill
+  };
+}

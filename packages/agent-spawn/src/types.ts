@@ -1,10 +1,14 @@
 import type { AdapterType } from "./adapters/index.js";
+import type { StateManager } from "@poe-code/poe-code-config";
 
 export type SpawnMode = "yolo" | "edit" | "read";
 
 export type SpawnModeConfig = string[] | { args?: string[]; env?: Record<string, string> };
 
-export function resolveModeConfig(modeConfig: SpawnModeConfig): { args: string[]; env?: Record<string, string> } {
+export function resolveModeConfig(modeConfig: SpawnModeConfig): {
+  args: string[];
+  env?: Record<string, string>;
+} {
   if (Array.isArray(modeConfig)) {
     return { args: modeConfig };
   }
@@ -100,6 +104,7 @@ export interface SpawnContext {
   dryRun?: boolean;
   logger?: SpawnLogger;
   homeDir?: string;
+  state?: StateManager;
 }
 
 export interface StdinMode {

@@ -28,10 +28,12 @@ export const hostExecutionEnvFactory: ExecutionEnvFactory = {
         throw new Error("host runtime does not support detach because host has no addressable env");
       },
       shell() {
+        const shellSpec = openSpec.shellSpec;
         return createHostRunner().exec({
-          command: openSpec.env.SHELL || process.env.SHELL || "sh",
+          command: shellSpec?.command ?? openSpec.env.SHELL ?? process.env.SHELL ?? "sh",
+          ...(shellSpec?.args ? { args: shellSpec.args } : {}),
           cwd: openSpec.cwd,
-          env: openSpec.env,
+          env: shellSpec && "env" in shellSpec ? shellSpec.env : openSpec.env,
           stdin: "inherit",
           stdout: "inherit",
           stderr: "inherit",

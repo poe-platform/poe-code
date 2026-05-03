@@ -146,6 +146,74 @@ describe("createHostRunner", () => {
     vi.resetModules();
   });
 
+  it("passes stdio as inherit when all streams inherit", async () => {
+    const child = {
+      pid: 123,
+      stdin: null,
+      stdout: null,
+      stderr: null,
+      kill: vi.fn(),
+      once: vi.fn(),
+      unref: vi.fn()
+    };
+    const spawnMock = vi.fn(() => child);
+
+    vi.resetModules();
+    vi.doMock("node:child_process", () => ({
+      spawn: spawnMock
+    }));
+
+    const { createHostRunner: createMockedHostRunner } = await import("./host-runner.js");
+    const runner = createMockedHostRunner();
+    runner.exec({
+      command: "node",
+      stdin: "inherit",
+      stdout: "inherit",
+      stderr: "inherit"
+    });
+
+    expect(spawnMock).toHaveBeenCalledWith(
+      "node",
+      [],
+      expect.objectContaining({ stdio: "inherit" })
+    );
+
+    vi.doUnmock("node:child_process");
+    vi.resetModules();
+  });
+
+  it("resolves with exit code 1 when the host process fails to spawn", async () => {
+    const listeners = new Map<string, (error?: Error) => void>();
+    const child = {
+      pid: undefined,
+      stdin: null,
+      stdout: null,
+      stderr: null,
+      kill: vi.fn(),
+      once: vi.fn((event: string, listener: (error?: Error) => void) => {
+        listeners.set(event, listener);
+      }),
+      unref: vi.fn()
+    };
+    const spawnMock = vi.fn(() => child);
+
+    vi.resetModules();
+    vi.doMock("node:child_process", () => ({
+      spawn: spawnMock
+    }));
+
+    const { createHostRunner: createMockedHostRunner } = await import("./host-runner.js");
+    const runner = createMockedHostRunner();
+    const handle = runner.exec({ command: "missing-binary" });
+
+    listeners.get("error")?.(new Error("spawn missing-binary ENOENT"));
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+
+    vi.doUnmock("node:child_process");
+    vi.resetModules();
+  });
+
   it("uses default stdio modes when omitted", async () => {
     const runner = createHostRunner();
     const handle = runner.exec({

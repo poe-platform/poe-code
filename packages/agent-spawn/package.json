@@ -25,7 +25,10 @@
   ],
   "dependencies": {
     "@poe-code/agent-defs": "*",
+    "@poe-code/agent-harness-tools": "*",
     "@poe-code/design-system": "*",
-    "@poe-code/poe-acp-client": "*"
+    "@poe-code/poe-acp-client": "*",
+    "@poe-code/poe-code-config": "*",
+    "@poe-code/process-runner": "*"
   }
 }

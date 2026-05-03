@@ -1,4 +1,4 @@
-import type { RuntimeConfig } from "@poe-code/poe-code-config";
+import type { RunnerScope, RuntimeConfig } from "@poe-code/poe-code-config";
 import type { RunHandle, RunSpec } from "@poe-code/process-runner";
 
 export type { RuntimeConfig } from "@poe-code/poe-code-config";
@@ -16,6 +16,7 @@ export interface ExecutionEnvFactory {
 export interface OpenSpec {
   cwd: string;
   runtime: RuntimeConfig;
+  runner?: RunnerScope;
   env: Record<string, string>;
   uploadIgnoreFiles: string[];
   jobLabel: { tool: string; argv: string[] };

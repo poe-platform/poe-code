@@ -47,6 +47,7 @@ export {
   type LogStreamEnv,
   type LogStreamFs
 } from "./log-stream.js";
+export { runPoeCommand } from "./run-poe-command.js";
 export { skillPlanConfigSection } from "./skill-config.js";
 export * from "./execution-env.js";
 export * from "./workspace-transfer.js";

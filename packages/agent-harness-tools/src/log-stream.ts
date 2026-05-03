@@ -56,12 +56,14 @@ export async function* streamLogFile(
 
 export async function waitForExit(
   env: LogStreamEnv,
-  jobId: string
+  jobId: string,
+  opts: { signal?: AbortSignal } = {}
 ): Promise<{ exitCode: number }> {
   const fs = env.fs ?? nodeFs;
   const file = jobExitPath(jobId);
 
   while (true) {
+    throwIfAborted(opts.signal);
     const contents = await readTextFileIfExists(fs, file);
     if (contents !== null) {
       const text = contents.trim();
@@ -72,7 +74,7 @@ export async function waitForExit(
       return { exitCode };
     }
 
-    await sleep(POLL_INTERVAL_MS);
+    await sleep(POLL_INTERVAL_MS, opts.signal);
   }
 }
 
@@ -145,8 +147,33 @@ async function waitForLogChange(fs: LogStreamFs, file: string): Promise<void> {
   });
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let timer: NodeJS.Timeout | null = null;
+    const abort = () => {
+      if (timer !== null) {
+        clearTimeout(timer);
+      }
+      reject(new Error("waitForExit aborted."));
+    };
+
+    if (signal?.aborted) {
+      abort();
+      return;
+    }
+
+    timer = setTimeout(() => {
+      signal?.removeEventListener("abort", abort);
+      resolve();
+    }, ms);
+    signal?.addEventListener("abort", abort, { once: true });
+  });
+}
+
+function throwIfAborted(signal: AbortSignal | undefined): void {
+  if (signal?.aborted) {
+    throw new Error("waitForExit aborted.");
+  }
 }
 
 function shellQuote(value: string): string {

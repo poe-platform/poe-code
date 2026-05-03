@@ -88,6 +88,16 @@ describe("waitForExit", () => {
       "Invalid exit code in /tmp/poe-jobs/job-1.exit"
     );
   });
+
+  it("stops polling when the signal aborts", async () => {
+    const { fs } = createMemFs({});
+    const controller = new AbortController();
+
+    const waitPromise = waitForExit({ fs }, "job-1", { signal: controller.signal });
+    controller.abort();
+
+    await expect(waitPromise).rejects.toThrow("waitForExit aborted.");
+  });
 });
 
 describe("wrapForLogTee", () => {

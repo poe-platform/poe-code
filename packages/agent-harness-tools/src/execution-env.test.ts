@@ -78,8 +78,8 @@ describe("execution env registry", () => {
 
     expect(branchSites).toMatchInlineSnapshot(`
       [
-        "execution-env.ts:70:const factory = executionEnvFactories.get(runtime.type);",
-        "execution-env.ts:73:\`No execution environment factory registered for runtime type "\${runtime.type}".\`",
+        "execution-env.ts:71:const factory = executionEnvFactories.get(runtime.type);",
+        "execution-env.ts:74:\`No execution environment factory registered for runtime type "\${runtime.type}".\`",
       ]
     `);
   });

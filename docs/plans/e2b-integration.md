@@ -198,7 +198,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: harness-run-poe-command
     title: Implement runPoeCommand orchestrator
@@ -234,9 +234,9 @@ tasks:
       transition; detach leaves env open; download conflict surfaces in
       result; abort signal kills cleanly. No SDK or child_process.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: process-runner-host-factory
     title: Add hostExecutionEnvFactory in process-runner

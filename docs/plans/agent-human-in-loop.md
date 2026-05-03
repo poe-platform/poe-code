@@ -1,7 +1,10 @@
 ---
-$schema: https://poe-platform.github.io/poe-code/schemas/plans/plan.schema.json
-kind: plan
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/ralph.schema.json
+kind: ralph
 version: 1
+status:
+  state: in_progress
+  iteration: 0
 ---
 
 # agent-human-in-loop

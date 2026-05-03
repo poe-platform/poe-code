@@ -53,7 +53,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: config-state-manager
     title: Add StateManager (templates + jobs) to poe-code-config
@@ -81,9 +81,9 @@ tasks:
       invariants under file-lock; partial-write recovery; list filtering.
       No real fs writes in unit tests except snapshots.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: harness-execution-env-contract
     title: Define ExecutionEnv contract in agent-harness-tools

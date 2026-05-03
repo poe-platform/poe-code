@@ -42,3 +42,4 @@ export {
 } from "./run-logs.js";
 export { skillPlanConfigSection } from "./skill-config.js";
 export * from "./execution-env.js";
+export * from "./workspace-transfer.js";

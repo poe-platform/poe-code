@@ -141,7 +141,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: harness-workspace-transfer
     title: Implement workspace upload/download in agent-harness-tools
@@ -169,8 +169,8 @@ tasks:
       additive poe-code-ignore, oversize skip, conflict refuse-and-list,
       overwrite path. No real fs.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: harness-log-stream

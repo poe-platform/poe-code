@@ -130,9 +130,9 @@ describe("defineClient", () => {
       const result = await mcpClient.listTools();
 
       expect(result.tools.map((tool) => tool.name)).toEqual([
-        "internal_agent__bots__list",
-        "internal_agent__approvals__list",
-        "internal_agent__approvals__show",
+        "bots__list",
+        "approvals__list",
+        "approvals__show",
       ]);
     } finally {
       await cleanup();
@@ -184,7 +184,7 @@ describe("defineClient", () => {
 
     try {
       const tools = await mcpClient.listTools();
-      const tool = tools.tools.find((candidate) => candidate.name === "internal_agent__bots__view");
+      const tool = tools.tools.find((candidate) => candidate.name === "bots__view");
 
       expect(tool).toMatchObject({
         inputSchema: {
@@ -202,7 +202,7 @@ describe("defineClient", () => {
       });
 
       const result = await mcpClient.callTool({
-        name: "internal_agent__bots__view",
+        name: "bots__view",
         arguments: {
           bot_handle: "my-bot",
           limit: 2,

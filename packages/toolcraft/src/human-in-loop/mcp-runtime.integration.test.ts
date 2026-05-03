@@ -105,7 +105,7 @@ describe("human-in-loop MCP runtime", () => {
 
     try {
       const result = await client.callTool({
-        name: "root__deploy__prod",
+        name: "deploy__prod",
         arguments: {
           target: "prod",
         },
@@ -145,7 +145,7 @@ describe("human-in-loop MCP runtime", () => {
 
     try {
       const result = await client.callTool({
-        name: "root__deploy__prod",
+        name: "deploy__prod",
         arguments: {
           target: "prod",
         },
@@ -198,7 +198,7 @@ describe("human-in-loop MCP runtime", () => {
 
     try {
       const result = await client.callTool({
-        name: "root__deploy__prod",
+        name: "deploy__prod",
         arguments: {
           target: "prod",
         },
@@ -228,7 +228,7 @@ describe("human-in-loop MCP runtime", () => {
       });
 
       const approvalResult = await client.callTool({
-        name: "root__approvals__show",
+        name: "approvals__show",
         arguments: {
           approval_id: pending.approvalId,
         },

@@ -154,8 +154,8 @@ Agent-side configuration example (Claude Code `~/.claude.json` or `.mcp.json`):
 
 MCP tool names exposed by this server (derived by toolcraft from `group.name + command.name`):
 
-- `markdown_reader__read` — params `{ file, depth? }`.
-- `markdown_reader__read_section` — params `{ file, section, includeChildren? }`.
+- `read` — params `{ file, depth? }`.
+- `read_section` — params `{ file, section, includeChildren? }`.
 
 ### Error cases users see
 
@@ -384,7 +384,7 @@ All tests are vitest, colocated, run under the package's `npm test` script that 
   - `npm run dev -- plan markdown-read-section docs/plans/markdown-reader.md "Command: plan markdown-read"` returns the same body.
   - `npm run dev -- plan markdown-read missing.md` exits non-zero with a `UserError`-style message, not a stack trace.
   - `npm run dev -- plan --help` shows the three new subcommands.
-  - `npm run dev -- plan markdown-reader-mcp` passes an MCP handshake smoke test: an `initialize` request over stdio returns a capabilities payload, a `tools/list` request returns exactly `markdown_reader__read` and `markdown_reader__read_section`, and a `tools/call` on `markdown_reader__read` with `{ file: "docs/plans/markdown-reader.md" }` returns a TOC. Pattern to copy: [packages/terminal-pilot-mcp/scripts/smoke-test.ts](packages/terminal-pilot-mcp/scripts/smoke-test.ts).
+  - `npm run dev -- plan markdown-reader-mcp` passes an MCP handshake smoke test: an `initialize` request over stdio returns a capabilities payload, a `tools/list` request returns exactly `read` and `read_section`, and a `tools/call` on `read` with `{ file: "docs/plans/markdown-reader.md" }` returns a TOC. Pattern to copy: [packages/terminal-pilot-mcp/scripts/smoke-test.ts](packages/terminal-pilot-mcp/scripts/smoke-test.ts).
   - `npm run screenshot-poe-code -- plan markdown-read docs/plans/markdown-reader.md` — visually validate the terminal renderer once, attach to PR.
 - **Verification commands** (exact): `npm run build`, `npm test`, `npm run lint`, `npm run dev -- plan markdown-read docs/plans/markdown-reader.md`, `npm run dev -- plan markdown-read-section docs/plans/markdown-reader.md 2.1`, `npm run dev -- plan markdown-read-section docs/plans/markdown-reader.md 2.1 --no-include-children`, MCP smoke script against `npm run dev -- plan markdown-reader-mcp`.
 - **Fixtures / setup**: none external. All fixtures are in-repo markdown strings under `src/testing/fixtures/`.

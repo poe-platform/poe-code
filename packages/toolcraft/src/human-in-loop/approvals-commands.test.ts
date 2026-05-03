@@ -321,9 +321,9 @@ describe("approvals built-in commands", () => {
       const { tools } = await client.listTools();
       const toolNames = tools.map((tool) => tool.name);
 
-      expect(toolNames).toContain("root__approvals__list");
-      expect(toolNames).toContain("root__approvals__show");
-      expect(toolNames).not.toContain("root__approvals__run");
+      expect(toolNames).toContain("approvals__list");
+      expect(toolNames).toContain("approvals__show");
+      expect(toolNames).not.toContain("approvals__run");
     } finally {
       await cleanup();
     }

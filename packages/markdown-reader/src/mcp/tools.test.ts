@@ -4,10 +4,10 @@ import { McpClient, createSdkTestPair } from "tiny-mcp-client";
 import { markdownGroup } from "./group.js";
 
 const EXPECTED_TOOL_NAMES = [
-  "markdown_reader__read",
-  "markdown_reader__read_section",
-  "markdown_reader__approvals__list",
-  "markdown_reader__approvals__show"
+  "read",
+  "read_section",
+  "approvals__list",
+  "approvals__show"
 ];
 const FIXTURE_PATH = "packages/markdown-reader/src/testing/fixtures/with-frontmatter.md";
 
@@ -37,7 +37,7 @@ describe("markdown-reader MCP tools", () => {
       expect(tools.tools.map((tool) => tool.name)).toEqual(EXPECTED_TOOL_NAMES);
 
       const result = await client.callTool({
-        name: "markdown_reader__read",
+        name: "read",
         arguments: {
           file: FIXTURE_PATH
         }

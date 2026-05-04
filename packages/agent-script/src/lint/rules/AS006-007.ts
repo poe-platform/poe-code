@@ -98,6 +98,12 @@ class AS006007Scanner {
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "ExportNamedDeclaration":
+        this.visitVariableDeclaration(node.declaration);
+        return;
+      case "ExportDefaultDeclaration":
+        this.visitExpression(node.declaration);
+        return;
       case "BlockStatement":
         this.visitBlock(node);
         return;
@@ -540,6 +546,10 @@ class AS006007Scanner {
       }
       if (statement.type === "VariableDeclaration") {
         bindings.push(...this.collectDeclarationBindings(statement));
+        continue;
+      }
+      if (statement.type === "ExportNamedDeclaration") {
+        bindings.push(...this.collectExportDeclarationBindings(statement.declaration));
       }
     }
 
@@ -576,6 +586,13 @@ class AS006007Scanner {
     }
 
     return bindings;
+  }
+
+  private collectExportDeclarationBindings(node: VariableDeclaration): Binding[] {
+    return this.collectDeclarationBindings(node).map((binding) => ({
+      ...binding,
+      code: undefined
+    }));
   }
 
   private collectCatchBindings(node: CatchClause): Binding[] {

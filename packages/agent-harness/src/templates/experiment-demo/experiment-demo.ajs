@@ -1,0 +1,56 @@
+import { S } from "schema";
+import { spawn } from "agent";
+import { event } from "log";
+
+export const schema = S.Object({
+  "$schema": S.Enum(["https://poe-platform.github.io/poe-code/schemas/harnesses/experiment-demo.schema.json"]),
+  kind: S.Enum(["experiment-demo"]),
+  version: S.Number(),
+  agents: S.Object({
+    experimenter: S.Object({
+      agent: S.String(),
+      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      prompt: S.Optional(S.String())
+    })
+  }),
+  metric: S.Object({
+    name: S.String(),
+    direction: S.Enum(["maximize", "minimize"])
+  }),
+  attempts: S.Array(
+    S.Object({
+      id: S.String(),
+      prompt: S.String()
+    }),
+    { minItems: 1 }
+  )
+});
+
+export default async (frontmatter) => {
+  const meta = import.meta;
+  const attempts = await frontmatter.attempts.reduce(async (previousAttempts, attempt) => {
+    const attemptsSoFar = await previousAttempts;
+    const result = await spawn(frontmatter.agents.experimenter, {
+      prompt: attempt.prompt.concat("\n\nMetric: ", frontmatter.metric.name, "\n\n", meta.body)
+    });
+    event("attempt.kept", {
+      attempt: attempt.id,
+      direction: frontmatter.metric.direction,
+      summary: result.summary
+    });
+    return attemptsSoFar.concat({
+      event: "kept",
+      attempt: attempt.id,
+      summary: result.summary
+    });
+  }, Promise.resolve([]));
+
+  return {
+    kind: meta.kind,
+    filename: meta.filename,
+    dirname: meta.dirname,
+    metric: frontmatter.metric.name,
+    kept: attempts.length,
+    attempts
+  };
+};

@@ -1,0 +1,47 @@
+import { S } from "schema";
+import { spawn } from "agent";
+import { event } from "log";
+
+export const schema = S.Object({
+  "$schema": S.Enum(["https://poe-platform.github.io/poe-code/schemas/harnesses/ralph-demo.schema.json"]),
+  kind: S.Enum(["ralph-demo"]),
+  version: S.Number(),
+  agent: S.Object({
+    agent: S.String(),
+    mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+    prompt: S.Optional(S.String())
+  }),
+  steps: S.Array(
+    S.Object({
+      id: S.String(),
+      prompt: S.String()
+    }),
+    { minItems: 1 }
+  ),
+  goal: S.String()
+});
+
+export default async (frontmatter) => {
+  const meta = import.meta;
+  const summaries = await frontmatter.steps.reduce(async (previousSummaries, step) => {
+    const summariesSoFar = await previousSummaries;
+    const result = await spawn(frontmatter.agent, {
+      prompt: frontmatter.goal.concat("\n\n", step.prompt, "\n\n", meta.body)
+    });
+    event("iteration.completed", {
+      kind: meta.kind,
+      file: meta.filename,
+      iteration: step.id,
+      summary: result.summary
+    });
+    return summariesSoFar.concat(result.summary);
+  }, Promise.resolve([]));
+
+  return {
+    kind: meta.kind,
+    filename: meta.filename,
+    dirname: meta.dirname,
+    iterations: summaries.length,
+    summaries
+  };
+};

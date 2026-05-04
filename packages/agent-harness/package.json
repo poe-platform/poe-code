@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node scripts/copy-templates.mjs",
     "test": "cd ../.. && vitest run packages/agent-harness/src",
     "test:unit": "cd ../.. && vitest run packages/agent-harness/src"
   },

@@ -33,10 +33,14 @@ import {
 } from "@poe-code/design-system";
 import {
   planConfigScope,
+  loadIntegrations,
+  mergeLoopCallbacks,
   readMergedDocument,
   resolveConfigPath,
   resolveProjectConfigPath,
-  resolveScope
+  resolveScope,
+  type ConfigDocument,
+  type Integrations
 } from "@poe-code/poe-code-config";
 import { superintendentConfigScope } from "../config-scope.js";
 import { parseSuperintendentDoc, readExplicitBuilderAgent } from "../document/parse.js";
@@ -95,6 +99,7 @@ export type RunCommandOptions = {
   openInEditor?: (absolutePath: string, env: Record<string, string | undefined>) => void;
   stderr?: NodeJS.WritableStream;
   exit?: (code: number) => never;
+  integrations?: Integrations | null;
 };
 
 type OutputKind = "info" | "success" | "error" | "tool" | "status";
@@ -151,25 +156,36 @@ export const runCommand = defineCommand({
     const cwd = process.cwd();
     const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
     const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
+    const integrations = await loadIntegrations(commandConfig.configDoc);
     const tuiEnabled = params.tui ?? commandConfig.tui;
 
-    return runSuperintendentCommand({
-      cwd,
-      homeDir,
-      docPath: params.doc,
-      ...(params.agent ? { builderAgent: params.agent } : {}),
-      ...(params.runtime ? { runtime: params.runtime } : {}),
-      ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
-      ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
-      ...(params.detach ? { detach: params.detach } : {}),
-      ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
-      configuredDefaultAgent: commandConfig.configuredDefaultAgent,
-      assumeYes: process.argv.includes("--yes"),
-      interactive: Boolean(process.stdin.isTTY),
-      useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
-      env: process.env,
-      ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
-    });
+    try {
+      const runOptions: RunCommandOptions = {
+        cwd,
+        homeDir,
+        docPath: params.doc,
+        ...(params.agent ? { builderAgent: params.agent } : {}),
+        ...(params.runtime ? { runtime: params.runtime } : {}),
+        ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
+        ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
+        ...(params.detach ? { detach: params.detach } : {}),
+        ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
+        configuredDefaultAgent: commandConfig.configuredDefaultAgent,
+        assumeYes: process.argv.includes("--yes"),
+        interactive: Boolean(process.stdin.isTTY),
+        useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
+        env: process.env,
+        integrations,
+        ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
+      };
+      return integrations
+        ? await integrations.traceRun("superintendent", params.doc ?? "run", () =>
+            runSuperintendentCommand(runOptions)
+          )
+        : await runSuperintendentCommand(runOptions);
+    } finally {
+      await integrations?.shutdown();
+    }
   },
   render: {
     rich: (result, { logger }) => {
@@ -216,25 +232,36 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
       const cwd = process.cwd();
       const homeDir = process.env.HOME ?? process.env.USERPROFILE ?? cwd;
       const commandConfig = await resolveSuperintendentCommandConfig(cwd, homeDir, process.env);
+      const integrations = await loadIntegrations(commandConfig.configDoc);
 
-      return runSuperintendentCommand({
-        cwd,
-        homeDir,
-        docPath: params.doc,
-        ...(params.agent ? { builderAgent: params.agent } : {}),
-        ...(params.runtime ? { runtime: params.runtime } : {}),
-        ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
-        ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
-        ...(params.detach ? { detach: params.detach } : {}),
-        ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
-        configuredDefaultAgent: commandConfig.configuredDefaultAgent,
-        assumeYes: true,
-        interactive: false,
-        useDashboard: false,
-        env: process.env,
-        ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
-        ...(runners?.runLoop ? { runLoop: runners.runLoop } : {})
-      });
+      try {
+        const runOptions: RunCommandOptions = {
+          cwd,
+          homeDir,
+          docPath: params.doc,
+          ...(params.agent ? { builderAgent: params.agent } : {}),
+          ...(params.runtime ? { runtime: params.runtime } : {}),
+          ...(params.runtimeImage ? { runtimeImage: params.runtimeImage } : {}),
+          ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
+          ...(params.detach ? { detach: params.detach } : {}),
+          ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
+          configuredDefaultAgent: commandConfig.configuredDefaultAgent,
+          assumeYes: true,
+          interactive: false,
+          useDashboard: false,
+          env: process.env,
+          integrations,
+          ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {}),
+          ...(runners?.runLoop ? { runLoop: runners.runLoop } : {})
+        };
+        return integrations
+          ? await integrations.traceRun("superintendent", params.doc ?? "run", () =>
+              runSuperintendentCommand(runOptions)
+            )
+          : await runSuperintendentCommand(runOptions);
+      } finally {
+        await integrations?.shutdown();
+      }
     },
     render: runCommand.render
   });
@@ -247,7 +274,12 @@ async function resolveSuperintendentCommandConfig(
   homeDir: string,
   env: Record<string, string | undefined>,
   fs?: SuperintendentFileSystem
-): Promise<{ configuredDefaultAgent: string | null; planDirectory?: string; tui: boolean }> {
+): Promise<{
+  configDoc: ConfigDocument;
+  configuredDefaultAgent: string | null;
+  planDirectory?: string;
+  tui: boolean;
+}> {
   const configPath = resolveConfigPath(homeDir);
   const projectConfigPath = resolveProjectConfigPath(cwd);
   try {
@@ -264,12 +296,13 @@ async function resolveSuperintendentCommandConfig(
     );
     const coreResolved = resolveScope(coreDefaultAgentConfigSchema, document.core, env);
     return {
+      configDoc: document,
       configuredDefaultAgent: normalizeAgentSelection(coreResolved.defaultAgent) ?? null,
       ...(planDirectory ? { planDirectory } : {}),
       tui: superintendentResolved.tui === true
     };
   } catch {
-    return { configuredDefaultAgent: null, tui: false };
+    return { configDoc: {}, configuredDefaultAgent: null, tui: false };
   }
 }
 
@@ -346,6 +379,16 @@ export async function runSuperintendentCommand(
   const useDashboard = options.useDashboard ?? resolveOutputFormat() === "terminal";
   const stderr = options.stderr ?? process.stderr;
   const exitProcess = options.exit ?? ((code: number) => process.exit(code));
+  const integrations = options.integrations ?? null;
+  const shutdownAndExit = (code: number): void => {
+    if (!integrations) {
+      exitProcess(code);
+      return;
+    }
+    void integrations.shutdown().finally(() => {
+      exitProcess(code);
+    });
+  };
 
   const selectedDocPath = await resolveDocPath({
     cwd: options.cwd,
@@ -390,7 +433,7 @@ export async function runSuperintendentCommand(
     const headlessAbort = new AbortController();
     const headlessSigint = () => {
       headlessAbort.abort();
-      exitProcess(130);
+      shutdownAndExit(130);
     };
     process.on("SIGINT", headlessSigint);
     try {
@@ -401,7 +444,7 @@ export async function runSuperintendentCommand(
         ...(options.fs ? { fs } : {}),
         signal: headlessAbort.signal,
         logDir: runLogDir,
-        callbacks: {
+        callbacks: mergeLoopCallbacks({
           onBuilderStart: () => {
             activeStage = "builder";
           },
@@ -432,11 +475,12 @@ export async function runSuperintendentCommand(
           onOwnerComplete: () => {
             activeStage = undefined;
           }
-        },
+        }, integrations?.superintendentCallbacks),
         runAgent: createAgentRunner({
           session: undefined,
           executeAgent: options.executeAgent,
           selectedBuilderAgent,
+          integrations,
           runtime: {
             runtime: options.runtime,
             runtimeImage: options.runtimeImage,
@@ -615,7 +659,7 @@ export async function runSuperintendentCommand(
     abortController.abort();
     session.dashboard.stop();
     session.dashboard.destroy();
-    exitProcess(130);
+    shutdownAndExit(130);
   };
 
   const handleDashboardCommand = (command: string) => {
@@ -699,13 +743,14 @@ export async function runSuperintendentCommand(
         cwd: options.cwd,
         homeDir: options.homeDir,
         ...(options.fs ? { fs } : {}),
-        callbacks,
+        callbacks: mergeLoopCallbacks(callbacks, integrations?.superintendentCallbacks),
         signal: abortController.signal,
         logDir: runLogDir,
         runAgent: createAgentRunner({
           session,
           executeAgent: options.executeAgent,
           selectedBuilderAgent,
+          integrations,
           runtime: {
             runtime: options.runtime,
             runtimeImage: options.runtimeImage,
@@ -908,6 +953,7 @@ function createAgentRunner(options: {
   session: RunSession | undefined;
   executeAgent: RunCommandOptions["executeAgent"];
   selectedBuilderAgent: string;
+  integrations: Integrations | null;
   runtime: Pick<
     RunCommandOptions,
     "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode"
@@ -919,7 +965,9 @@ function createAgentRunner(options: {
   return async (input) => {
     const activeStage = options.activeStage();
     const agent = activeStage === "builder" ? options.selectedBuilderAgent : input.agent;
-    const executeAgent = options.executeAgent ?? executeSpawnAgent;
+    const executeAgent = options.executeAgent ??
+      ((nextAgent: string, nextInput: AgentRunInput) =>
+        executeSpawnAgent(nextAgent, nextInput, options.integrations));
     const stageLabel = formatStageLabel(activeStage);
 
     const emitLine = (kind: OutputKind, line: string) => {
@@ -1003,7 +1051,8 @@ function formatStageLabel(stage: RunSession["activeStage"]): string {
 
 async function executeSpawnAgent(
   agent: string,
-  input: AgentRunInput
+  input: AgentRunInput,
+  integrations: Integrations | null
 ): Promise<
   AgentRunResult & {
     usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
@@ -1014,7 +1063,7 @@ async function executeSpawnAgent(
   }
 
   if ((input.onStdout || input.onStderr) && supportsStreaming(agent)) {
-    return executeSpawnAgentStreaming(agent, input);
+    return executeSpawnAgentStreaming(agent, input, integrations);
   }
 
   const tee =
@@ -1057,7 +1106,8 @@ function supportsStreaming(agent: string): boolean {
 
 async function executeSpawnAgentStreaming(
   agent: string,
-  input: AgentRunInput
+  input: AgentRunInput,
+  integrations: Integrations | null
 ): Promise<
   AgentRunResult & {
     usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number };
@@ -1096,7 +1146,15 @@ async function executeSpawnAgentStreaming(
     ...(input.mode ? { mode: input.mode as "read" | "edit" | "yolo" } : {})
   };
 
-  await applyMiddlewares([spawnLog, usageCapture, sessionCapture], middlewareContext);
+  await applyMiddlewares(
+    [
+      spawnLog,
+      usageCapture,
+      sessionCapture,
+      ...(integrations?.spawnMiddleware ? [integrations.spawnMiddleware] : [])
+    ],
+    middlewareContext
+  );
 
   await acp.withAcpWriter(writer, () => renderAcpStream(middlewareContext.eventStream ?? rawEvents));
   const final = await done;

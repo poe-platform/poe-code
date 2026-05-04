@@ -26,9 +26,11 @@ import {
   resolveServiceAdapter,
   formatServiceList,
   buildResumeCommand,
+  resolveMergedDocument,
   type CommandFlags,
   type ExecutionResources
 } from "./shared.js";
+import { loadIntegrations, type Integrations } from "@poe-code/poe-code-config";
 import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
@@ -111,6 +113,7 @@ export function registerSpawnCommand(
         activityTimeoutMs?: number;
       } & RuntimeCliOptions>();
       const runtimeOptions = pickRuntimeOptions(commandOptions);
+      let integrations: Integrations | null = null;
       const shouldEmitUiOutput = resolveOutputFormat() !== "json";
       const rawMcpInput = commandOptions.mcpServers ?? commandOptions.mcpConfig;
       const mcpInput = await resolveMcpSpawnInput(rawMcpInput, container.fs, container.env.cwd);
@@ -160,6 +163,7 @@ export function registerSpawnCommand(
       const cwdOverride = workspace.cwd;
 
       try {
+        integrations = await loadIntegrations(await resolveMergedDocument(container));
         if (commandOptions.interactive) {
           const adapter = resolveServiceAdapter(container, service);
           const canonicalService = adapter.name;
@@ -200,6 +204,9 @@ export function registerSpawnCommand(
           cwd: cwdOverride,
           logDir: commandOptions.logDir,
           activityTimeoutMs: commandOptions.activityTimeoutMs,
+          ...(integrations?.spawnMiddleware
+            ? { middlewares: [integrations.spawnMiddleware] }
+            : {}),
           ...runtimeOptions,
           useStdin: shouldReadFromStdin
         };
@@ -285,20 +292,23 @@ export function registerSpawnCommand(
             return;
           }
 
-          const final = await spawnAutonomous(spawnSdk, {
-            service: canonicalService,
-            prompt: spawnOptions.prompt,
-            args: spawnOptions.args,
-            model: spawnOptions.model,
-            mode: spawnOptions.mode,
-            cwd: spawnOptions.cwd,
-            ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {}),
-            ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
-            ...(spawnOptions.activityTimeoutMs !== undefined
-              ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
-              : {}),
-            ...runtimeOptions
-          });
+          const final = await traceSpawnRun(integrations, canonicalService, () =>
+            spawnAutonomous(spawnSdk, {
+              service: canonicalService,
+              prompt: spawnOptions.prompt,
+              args: spawnOptions.args,
+              model: spawnOptions.model,
+              mode: spawnOptions.mode,
+              cwd: spawnOptions.cwd,
+              ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {}),
+              ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
+              ...(spawnOptions.activityTimeoutMs !== undefined
+                ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
+                : {}),
+              ...(spawnOptions.middlewares ? { middlewares: spawnOptions.middlewares } : {}),
+              ...runtimeOptions
+            })
+          );
           process.exitCode = final.exitCode;
 
           if (shouldEmitUiOutput && final.detached) {
@@ -356,9 +366,18 @@ export function registerSpawnCommand(
           }
         }
       } finally {
+        await integrations?.shutdown();
         await workspace.cleanup?.();
       }
     });
+}
+
+async function traceSpawnRun<T>(
+  integrations: Integrations | null,
+  name: string,
+  run: () => Promise<T>
+): Promise<T> {
+  return integrations?.traceRun("spawn", name, run) ?? run();
 }
 
 function formatDetachedJob(detached: { jobId: string; envId: string }): string {

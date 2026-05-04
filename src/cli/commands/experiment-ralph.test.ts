@@ -722,6 +722,71 @@ describe("experiment run command", () => {
     expect(dashboardMock.destroy).toHaveBeenCalledTimes(1);
   });
 
+  it("runs integration experiment callbacks after CLI callbacks when enabled", async () => {
+    const calls: string[] = [];
+    vi.doMock("@poe-code/braintrust", () => ({
+      bootstrap: vi.fn(async () => ({
+        experimentCallbacks: {
+          onExperimentStart: () => calls.push("integration")
+        },
+        traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
+        shutdown: vi.fn(async () => undefined)
+      }))
+    }));
+    vi.mocked(sdkRunExperiment).mockImplementationOnce(async (options) => {
+      options.onExperimentStart?.(1, "codex");
+      return {
+        stopReason: "max_experiments",
+        docPath: options.docPath,
+        experimentsCompleted: 1,
+        experimentsKept: 0,
+        totalDurationMs: 1_000
+      };
+    });
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        [`${homeDir}/.poe-code/config.json`]: JSON.stringify({
+          integrations: {
+            braintrust: {
+              enabled: true,
+              apiKey: "key",
+              project: "project"
+            }
+          }
+        }),
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        if (message === "Experiment 1 (codex)") {
+          calls.push("cli");
+        }
+      }
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "experiment",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "codex",
+      "--max-experiments",
+      "1",
+      "--no-tui"
+    ]);
+
+    expect(calls).toEqual(["cli", "integration"]);
+
+    vi.doUnmock("@poe-code/braintrust");
+  });
+
   it("uses the experiment.tui config value when set", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));

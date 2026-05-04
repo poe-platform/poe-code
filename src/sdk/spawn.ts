@@ -187,7 +187,10 @@ export function spawn(
           startedAt: new Date()
         };
 
-        await applyMiddlewares([sessionCapture, usageCapture, spawnLog], middlewareContext);
+        await applyMiddlewares(
+          [sessionCapture, usageCapture, spawnLog, ...(options.middlewares ?? [])],
+          middlewareContext
+        );
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;
@@ -247,7 +250,10 @@ export function spawn(
           startedAt: new Date()
         };
 
-        await applyMiddlewares([sessionCapture, usageCapture, spawnLog], middlewareContext);
+        await applyMiddlewares(
+          [sessionCapture, usageCapture, spawnLog, ...(options.middlewares ?? [])],
+          middlewareContext
+        );
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;

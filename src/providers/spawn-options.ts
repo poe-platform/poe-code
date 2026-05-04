@@ -1,4 +1,4 @@
-import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
+import type { AcpMiddleware, McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
 
 export interface SpawnCommandOptions {
@@ -9,6 +9,7 @@ export interface SpawnCommandOptions {
   mcpServers?: McpSpawnConfig;
   logDir?: string;
   activityTimeoutMs?: number;
+  middlewares?: AcpMiddleware[];
   cwd?: string;
   useStdin?: boolean;
   interactive?: boolean;

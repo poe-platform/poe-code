@@ -3,7 +3,9 @@ export type {
   ConfigFieldType,
   ConfigStore,
   ConfigStoreOptions,
+  BraintrustIntegrationConfig,
   InferConfig,
+  IntegrationsConfig,
   MemoryCacheConfig,
   MemoryConfidenceConfig,
   MemoryConfig,
@@ -17,7 +19,7 @@ export type {
   TypeMap
 } from "./types.js";
 
-export { defineScope } from "./schema.js";
+export { defineScope, integrationsConfigScope } from "./schema.js";
 export {
   parseRunner,
   parseRuntime,
@@ -35,6 +37,15 @@ export {
 export { planConfigScope } from "./plan-scope.js";
 export { createConfigStore } from "./config.js";
 export { deepMergeDocuments } from "./merge.js";
+export {
+  mergeExperimentCallbacks,
+  mergeLoopCallbacks,
+  mergePipelineCallbacks,
+  type ExperimentCallbackFields,
+  type LoopCallbacks,
+  type PipelineCallbackFields
+} from "./merge-callbacks.js";
+export { loadIntegrations, type Integrations } from "./integrations-loader.js";
 export {
   loadAgentModel,
   loadDefaultModel,

@@ -26,7 +26,7 @@ tasks:
       — that already lives in the config layer.
 
     status:
-      implement: open
+      implement: done
 
   - id: create-braintrust-package
     title: Create @poe-code/braintrust workspace package skeleton
@@ -52,7 +52,7 @@ tasks:
       Do not write any feature code yet.
 
     status:
-      implement: open
+      implement: done
 
   - id: impl-redact
     title: Implement redact()
@@ -77,7 +77,7 @@ tasks:
       leaves are preserved. No filesystem touched.
 
     status:
-      implement: open
+      implement: done
 
   - id: impl-client
     title: Implement BraintrustClient wrapper
@@ -119,7 +119,7 @@ tasks:
       first use, caching, flush timeout, error recording, status output.
 
     status:
-      implement: open
+      implement: done
 
   - id: impl-trace-run
     title: Implement traceRun()
@@ -152,7 +152,7 @@ tasks:
       span name, type, surface tag, and error fallback path.
 
     status:
-      implement: open
+      implement: done
 
   - id: impl-span-builder
     title: Implement logSpawnSession()
@@ -194,7 +194,7 @@ tasks:
       land in `metrics` under canonical keys.
 
     status:
-      implement: open
+      implement: done
 
   - id: impl-row-builder
     title: Implement orchestrator span/row helpers
@@ -252,7 +252,7 @@ tasks:
       span.log for each surface.
 
     status:
-      implement: open
+      implement: done
 
   - id: impl-spawn-adapter
     title: Implement spawn AcpMiddleware adapter
@@ -280,7 +280,7 @@ tasks:
       then re-throws); SDK throws inside log (swallowed via client).
 
     status:
-      implement: open
+      implement: done
 
   - id: impl-orchestrator-adapters
     title: Implement pipeline, experiment, and superintendent callback adapters
@@ -321,7 +321,7 @@ tasks:
       callback the surface exposes.
 
     status:
-      implement: open
+      implement: done
 
   - id: impl-merge-callbacks
     title: Implement mergeCallbacks helpers (CLI side)
@@ -357,7 +357,7 @@ tasks:
       swallowed, asymmetric (only-user / only-added) cases.
 
     status:
-      implement: open
+      implement: done
 
   - id: impl-bootstrap
     title: Implement @poe-code/braintrust bootstrap()
@@ -405,11 +405,12 @@ tasks:
       with all four callback fields populated.
 
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: wire-cli-integrations
-    title: Wire loadIntegrations into pipeline / experiment / superintendent / spawn CLI entries
+    title: Wire loadIntegrations into pipeline / experiment / superintendent / spawn
+      CLI entries
     prompt: |
       In each of these CLI entry points:
         packages/pipeline/src/run/pipeline.ts (or its CLI wrapper)
@@ -457,8 +458,8 @@ tasks:
       "@poe-code/braintrust").
 
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: impl-status-subcommand
     title: Add `poe-code braintrust status` subcommand
@@ -487,8 +488,8 @@ tasks:
       use; mock @poe-code/braintrust where needed.
 
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: integration-test-subagent-tree
     title: End-to-end subagent tree test against mocked SDK
@@ -524,7 +525,7 @@ tasks:
       if any filesystem reads are required.
 
     status:
-      implement: open
+      implement: done
 
   - id: write-qa-plan
     title: Write QA markdown plan
@@ -567,7 +568,7 @@ tasks:
       agent.
 
     status:
-      implement: open
+      implement: done
 
   - id: write-package-readme
     title: Write packages/braintrust/README.md
@@ -592,7 +593,7 @@ tasks:
       Do not edit the root README.
 
     status:
-      implement: open
+      implement: done
 ---
 
 ## Context

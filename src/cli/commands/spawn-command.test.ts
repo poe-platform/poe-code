@@ -5,6 +5,7 @@ import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { Readable } from "node:stream";
 import { Command } from "commander";
 import { resetOutputFormatCache } from "@poe-code/design-system";
+import type { AcpMiddleware } from "@poe-code/agent-spawn";
 import {
   DEFAULT_CLAUDE_CODE_MODEL,
   DEFAULT_CODEX_MODEL,
@@ -343,6 +344,70 @@ describe("spawn command", () => {
         mountPoeCode: true
       })
     );
+  });
+
+  it("wraps spawn runs with enabled integrations and passes spawn middleware", async () => {
+    const calls: string[] = [];
+    const spawnMiddleware: AcpMiddleware = vi.fn(async (_ctx, next) => {
+      calls.push("middleware");
+      await next();
+    });
+    const traceRun = vi.fn(async (_surface: string, _name: string, run: () => Promise<unknown>) => {
+      calls.push("trace:start");
+      const result = await run();
+      calls.push("trace:end");
+      return result;
+    });
+    const shutdown = vi.fn(async () => {
+      calls.push("shutdown");
+    });
+
+    vi.doMock("@poe-code/braintrust", () => ({
+      bootstrap: vi.fn(async () => ({
+        spawnMiddleware,
+        traceRun,
+        shutdown
+      }))
+    }));
+    vi.mocked(sdkSpawn).mockImplementation((_service, options) => {
+      calls.push("spawn");
+      expect(options.middlewares).toEqual([spawnMiddleware]);
+      return {
+        events: emptyAsyncIterable(),
+        result: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+      };
+    });
+    await fs.writeFile(
+      resolveConfigPath(homeDir),
+      `${JSON.stringify({
+        integrations: {
+          braintrust: {
+            enabled: true,
+            apiKey: "key",
+            project: "project"
+          }
+        }
+      })}\n`,
+      { encoding: "utf8" }
+    );
+
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    try {
+      await program.parseAsync(["node", "cli", "--yes", "spawn", "codex", "hello"]);
+
+      expect(traceRun).toHaveBeenCalledWith("spawn", "codex", expect.any(Function));
+      expect(calls).toEqual(["trace:start", "spawn", "trace:end", "shutdown"]);
+    } finally {
+      vi.doUnmock("@poe-code/braintrust");
+    }
   });
 
   it("emits ACP NDJSON plus a final spawn_result event in json mode", async () => {

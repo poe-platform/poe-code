@@ -134,6 +134,7 @@
     "@poe-code/agent-script": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/agent-spawn": "*",
+    "@poe-code/braintrust": "*",
     "@poe-code/cached-resource": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/config-mutations": "*",

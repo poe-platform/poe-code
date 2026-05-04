@@ -11,10 +11,18 @@ import {
 import { pathExists } from "@poe-code/config-mutations";
 import { buildDockerRuntimeTemplate } from "@poe-code/process-runner";
 import type { ExecutionState } from "@poe-code/process-runner";
+import { withSpinner } from "@poe-code/design-system";
 import type { CliContainer } from "../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../shared.js";
+import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "../runtime-options.js";
 
-export interface RuntimeBuildOptions {
+interface BuildLogEntry {
+  level: "debug" | "info" | "warn" | "error";
+  message: string;
+  timestamp: Date;
+}
+
+export interface RuntimeBuildOptions extends RuntimeCliOptions {
   force?: boolean;
 }
 
@@ -33,6 +41,7 @@ interface E2bRunnerModule {
     state?: ExecutionState;
     apiKey: string;
     force?: boolean;
+    onLog?: (entry: BuildLogEntry) => void;
   }) => Promise<BuildE2bRuntimeTemplateResult>;
   resolveE2bApiKey: (input: { cwd: string }) => Promise<string>;
 }
@@ -42,13 +51,13 @@ export function registerRuntimeBuildCommand(
   root: Command,
   container: CliContainer
 ): void {
-  runtime
+  const cmd = runtime
     .command("build")
     .description("Build the configured runtime template.")
-    .option("--force", "Ignore the local template cache and rebuild.")
-    .action(async (options: RuntimeBuildOptions) => {
-      await executeRuntimeBuild(root, container, options);
-    });
+    .option("--force", "Ignore the local template cache and rebuild.");
+  addRuntimeOptions(cmd).action(async (options: RuntimeBuildOptions) => {
+    await executeRuntimeBuild(root, container, options);
+  });
 }
 
 async function executeRuntimeBuild(
@@ -72,7 +81,15 @@ async function executeRuntimeBuild(
     document.runtime,
     container.env.variables
   );
-  const runtimeConfig = parseRuntime(runtimeScope);
+  const runtimeOverrides = pickRuntimeOptions(options);
+  const runtimeConfig = parseRuntime({
+    ...runtimeScope,
+    ...(runtimeOverrides.runtime !== undefined ? { type: runtimeOverrides.runtime } : {}),
+    ...(runtimeOverrides.runtimeImage !== undefined ? { image: runtimeOverrides.runtimeImage } : {}),
+    ...(runtimeOverrides.runtimeTemplate !== undefined
+      ? { template_id: runtimeOverrides.runtimeTemplate }
+      : {})
+  });
 
   resources.logger.intro("runtime build");
 
@@ -116,19 +133,27 @@ async function executeRuntimeBuild(
   const paths = await requireRuntimeBuildPaths(container, runtimeConfig, "E2B");
   const e2bModule = await loadE2bRunnerModule();
   const apiKey = await e2bModule.resolveE2bApiKey({ cwd: container.env.cwd });
-  const result = await e2bModule.buildE2bRuntimeTemplate({
-    runtime: runtimeConfig,
-    dockerfilePath: paths.dockerfilePath,
-    buildContext: paths.buildContext,
-    state,
-    apiKey,
-    force: options.force === true
+  await withSpinner({
+    message: "Building E2B template",
+    fn: () =>
+      e2bModule.buildE2bRuntimeTemplate({
+        runtime: runtimeConfig,
+        dockerfilePath: paths.dockerfilePath,
+        buildContext: paths.buildContext,
+        state,
+        apiKey,
+        force: options.force === true,
+        onLog: (entry) => {
+          if (entry.level === "warn" || entry.level === "error") {
+            resources.logger.info(`[${entry.level}] ${entry.message}`);
+          }
+        }
+      }),
+    stopMessage: (r) =>
+      r.cached
+        ? `Using cached E2B template ${r.templateId}`
+        : `Built E2B template ${r.templateId}`
   });
-  resources.logger.success(
-    result.cached
-      ? `Using cached E2B template ${result.templateId}`
-      : `Built E2B template ${result.templateId}`
-  );
 }
 
 async function requireRuntimeBuildPaths(

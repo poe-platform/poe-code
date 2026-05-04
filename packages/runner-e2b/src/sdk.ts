@@ -93,6 +93,13 @@ export interface BuildTemplateOptions {
   buildContext: string;
   cpu?: number;
   memoryMb?: number;
+  onLog?: (entry: BuildLogEntry) => void;
+}
+
+export interface BuildLogEntry {
+  level: "debug" | "info" | "warn" | "error";
+  message: string;
+  timestamp: Date;
 }
 
 export interface BuildTemplateResult {
@@ -122,7 +129,8 @@ export async function buildTemplate(opts: BuildTemplateOptions): Promise<BuildTe
   const result = await Template.build(template, opts.name, {
     apiKey: opts.apiKey,
     ...(opts.cpu === undefined ? {} : { cpuCount: opts.cpu }),
-    ...(opts.memoryMb === undefined ? {} : { memoryMB: opts.memoryMb })
+    ...(opts.memoryMb === undefined ? {} : { memoryMB: opts.memoryMb }),
+    ...(opts.onLog ? { onBuildLogs: opts.onLog } : {})
   });
   return { templateId: result.templateId };
 }

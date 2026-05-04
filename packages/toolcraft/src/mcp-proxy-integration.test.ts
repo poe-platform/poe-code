@@ -882,7 +882,9 @@ describe("mcp proxy integration", () => {
 
     await runCLI(cliRoot);
 
-    expect(readOutput(stdoutWrite)).toContain('"text": "khoor"');
+    expect(JSON.parse(readOutput(stdoutWrite))).toEqual({
+      result: "khoor",
+    });
 
     const sdk = createSDK(createProxyRoot(harness, { rename }).root) as {
       github: {

@@ -294,6 +294,10 @@ function readStdout(stdoutWrite: ReturnType<typeof vi.spyOn>): string {
   return stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("");
 }
 
+function readStderr(stderrWrite: ReturnType<typeof vi.spyOn>): string {
+  return stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("");
+}
+
 describe("runCLI", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -1167,6 +1171,32 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(readStdout(stdoutWrite)).toBe("rendered markdown\n");
+  });
+
+  it("sets exitCode when rendering an MCP error result", async () => {
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => ({
+        content: [{ type: "text", text: "tool failed" }],
+        isError: true
+      })
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
+
+    await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toBe("");
+    expect(readStderr(stderrWrite)).toBe("tool failed\n");
+    expect(process.exitCode).toBe(1);
   });
 
   it.each([

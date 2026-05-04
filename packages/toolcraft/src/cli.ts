@@ -3259,7 +3259,10 @@ async function executeCommand<TServices extends object>(
       return;
     }
 
-    renderResult(state.command, result, output, primitives);
+    const renderStatus = renderResult(state.command, result, output, primitives);
+    if (renderStatus.mcpError) {
+      process.exitCode = 1;
+    }
   });
 }
 

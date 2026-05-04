@@ -1,9 +1,12 @@
+import path from "node:path";
 import { parseDocument } from "yaml";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { openTaskList } from "../open.js";
-import { MalformedTaskError } from "../types.js";
+import { MalformedTaskError, type TaskListFs } from "../types.js";
 import { markdownDirBackend } from "./markdown-dir.js";
-import { createDeferred, createFs, waitForCondition } from "./test-helpers.js";
+import { createDeferred, createFs, flushMicrotasks, waitForCondition } from "./test-helpers.js";
+
+type TestFs = ReturnType<typeof createFs>["rawFs"];
 
 function parseFrontmatter(content: string): Record<string, unknown> {
   const lines = content.split("\n");
@@ -25,6 +28,37 @@ state: ${state}
 ---
 
 `;
+}
+
+async function markdownEntries(rawFs: TestFs, directoryPath: string): Promise<string[]> {
+  const entries = await rawFs.readdir(directoryPath);
+  return entries
+    .filter((entryName) => entryName.endsWith(".md"))
+    .sort((left, right) => left.localeCompare(right));
+}
+
+async function recursiveListing(
+  rawFs: TestFs,
+  directoryPath: string,
+  prefix = ""
+): Promise<string[]> {
+  const entries = await rawFs.readdir(directoryPath);
+  const listing: string[] = [];
+
+  for (const entryName of entries.sort((left, right) => left.localeCompare(right))) {
+    const relativePath = prefix === "" ? entryName : `${prefix}/${entryName}`;
+    const entryPath = path.join(directoryPath, entryName);
+    const entryStat = await rawFs.stat(entryPath);
+
+    if (entryStat.isDirectory()) {
+      listing.push(`${relativePath}/`);
+      listing.push(...(await recursiveListing(rawFs, entryPath, relativePath)));
+    } else {
+      listing.push(relativePath);
+    }
+  }
+
+  return listing;
 }
 
 describe("markdownDirBackend", () => {
@@ -605,6 +639,193 @@ state: draft
     await expect(
       rawFs.readFile("/repo/tasks/planning/archive/archive-me.md", "utf8")
     ).resolves.toContain("state: archived");
+  });
+
+  it("re-packs active prefixes when archiving a multi-list task", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/planning/01-foo.md": taskDocument("Foo"),
+      "/repo/tasks/planning/02-bar.md": taskDocument("Bar"),
+      "/repo/tasks/planning/03-baz.md": taskDocument("Baz")
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("planning").fire("bar", "archive");
+
+    await expect(markdownEntries(rawFs, "/repo/tasks/planning")).resolves.toEqual([
+      "01-foo.md",
+      "02-baz.md"
+    ]);
+    await expect(markdownEntries(rawFs, "/repo/tasks/planning/archive")).resolves.toEqual([
+      "bar.md"
+    ]);
+    await expect(recursiveListing(rawFs, "/repo/tasks/planning")).resolves.toMatchInlineSnapshot(`
+      [
+        "01-foo.md",
+        "02-baz.md",
+        "archive/",
+        "archive/bar.md",
+      ]
+    `);
+  });
+
+  it("re-packs active prefixes when archiving a single-list root task", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/01-foo.md": taskDocument("Foo"),
+      "/repo/tasks/02-bar.md": taskDocument("Bar"),
+      "/repo/tasks/03-baz.md": taskDocument("Baz")
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("plans").fire("bar", "archive");
+
+    await expect(markdownEntries(rawFs, "/repo/tasks")).resolves.toEqual([
+      "01-foo.md",
+      "02-baz.md"
+    ]);
+    await expect(markdownEntries(rawFs, "/repo/tasks/archive")).resolves.toEqual(["bar.md"]);
+    await expect(recursiveListing(rawFs, "/repo/tasks")).resolves.toMatchInlineSnapshot(`
+      [
+        "01-foo.md",
+        "02-baz.md",
+        "archive/",
+        "archive/bar.md",
+      ]
+    `);
+  });
+
+  it("leaves no active markdown files when archiving the only single-list task", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/01-only.md": taskDocument("Only")
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("plans").fire("only", "archive");
+
+    await expect(markdownEntries(rawFs, "/repo/tasks")).resolves.toEqual([]);
+    await expect(markdownEntries(rawFs, "/repo/tasks/archive")).resolves.toEqual(["only.md"]);
+  });
+
+  it("leaves only the archive directory when archiving the only multi-list task", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/planning/01-only.md": taskDocument("Only")
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("planning").fire("only", "archive");
+
+    await expect(rawFs.readdir("/repo/tasks/planning")).resolves.toEqual(["archive"]);
+    await expect(markdownEntries(rawFs, "/repo/tasks/planning/archive")).resolves.toEqual([
+      "only.md"
+    ]);
+  });
+
+  it("serializes concurrent archive prefix re-packs under the list lock", async () => {
+    vi.useFakeTimers();
+    vi.spyOn(Math, "random").mockReturnValue(0);
+
+    const baseFs = createFs({
+      "/repo/tasks/planning/01-foo.md": taskDocument("Foo"),
+      "/repo/tasks/planning/02-bar.md": taskDocument("Bar"),
+      "/repo/tasks/planning/03-baz.md": taskDocument("Baz"),
+      "/repo/tasks/planning/04-qux.md": taskDocument("Qux")
+    });
+    const archiveRenames = [createDeferred(), createDeferred()];
+    const startedArchiveIds: string[] = [];
+    const fs: TaskListFs = {
+      ...baseFs.fs,
+      rename: async (oldPath, newPath) => {
+        const archivePrefix = "/repo/tasks/planning/archive/";
+        const targetPath = String(newPath);
+
+        if (
+          targetPath.startsWith(archivePrefix) &&
+          targetPath.endsWith(".md") &&
+          startedArchiveIds.length < archiveRenames.length
+        ) {
+          const archiveId = path.basename(targetPath, ".md");
+          const blockerIndex = startedArchiveIds.length;
+          startedArchiveIds.push(archiveId);
+          await archiveRenames[blockerIndex].promise;
+        }
+
+        return baseFs.rawFs.rename(oldPath, newPath);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+
+    const firstArchive = tasks.fire("foo", "archive");
+    const secondArchive = tasks.fire("bar", "archive");
+
+    await waitForCondition(() => startedArchiveIds.length === 1);
+    expect(startedArchiveIds).toEqual(["foo"]);
+
+    archiveRenames[0].resolve();
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(25);
+    await waitForCondition(() => startedArchiveIds.length === 2);
+    expect(startedArchiveIds).toEqual(["foo", "bar"]);
+
+    archiveRenames[1].resolve();
+    await Promise.all([firstArchive, secondArchive]);
+
+    await expect(markdownEntries(baseFs.rawFs, "/repo/tasks/planning")).resolves.toEqual([
+      "01-baz.md",
+      "02-qux.md"
+    ]);
+    await expect(markdownEntries(baseFs.rawFs, "/repo/tasks/planning/archive")).resolves.toEqual([
+      "bar.md",
+      "foo.md"
+    ]);
   });
 
   it("does not contend for updates to different task paths", async () => {

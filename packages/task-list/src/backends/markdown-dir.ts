@@ -730,7 +730,18 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
   async function withTaskLock<T>(id: string, action: () => Promise<T>): Promise<T> {
     validateTaskId(id);
-    return withListLock(action);
+    await deps.fs.mkdir(listDirectoryPath, { recursive: true });
+    const release = await acquireFileLock(path.join(listDirectoryPath, `${id}.task`), {
+      fs: deps.fs,
+      staleMs: deps.lockStaleMs,
+      retries: deps.lockRetries
+    });
+
+    try {
+      return await action();
+    } finally {
+      await release();
+    }
   }
 
   async function getTaskFile(id: string): Promise<TaskFile> {
@@ -849,62 +860,71 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       });
     },
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
-      return withTaskLock(id, async () => {
-        const existing = await getTaskFile(id);
-        const event = assertFireableTaskEvent(existing.task, eventName);
-        const guardResult = event.guard?.(existing.task) ?? true;
+      const runFire = async (): Promise<Task> =>
+        withTaskLock(id, async () => {
+          const existing = await getTaskFile(id);
+          const event = assertFireableTaskEvent(existing.task, eventName);
+          const guardResult = event.guard?.(existing.task) ?? true;
 
-        if (guardResult !== true) {
-          throw new InvalidTransitionError({
-            task: existing.task,
-            event: eventName,
-            to: event.to,
-            reason: guardResult
-          });
-        }
-
-        await event.onExit?.(existing.task);
-
-        const nextFrontmatter = firedFrontmatter(
-          existing.frontmatter,
-          existing.task,
-          event.to,
-          deps.frontmatterMode,
-          opts?.metadataPatch
-        );
-        const nextTask = createTask(
-          list,
-          id,
-          nextFrontmatter,
-          existing.task.description,
-          deps.frontmatterMode,
-          {
-            name: existing.task.name,
-            state: event.to
+          if (guardResult !== true) {
+            throw new InvalidTransitionError({
+              task: existing.task,
+              event: eventName,
+              to: event.to,
+              reason: guardResult
+            });
           }
-        );
-        const serializedTask = serializeTaskDocument(nextFrontmatter, existing.task.description);
 
-        if (event.to === "archived") {
-          const targetPath = archivedTaskPath(deps.path, layout, list, id);
-          const archivedTargetExists = await statIfExists(deps.fs, targetPath);
-          if (archivedTargetExists?.isFile()) {
-            throw new TaskAlreadyExistsError(`Task "${list}/${id}" already exists in archive.`);
+          await event.onExit?.(existing.task);
+
+          const nextFrontmatter = firedFrontmatter(
+            existing.frontmatter,
+            existing.task,
+            event.to,
+            deps.frontmatterMode,
+            opts?.metadataPatch
+          );
+          const nextTask = createTask(
+            list,
+            id,
+            nextFrontmatter,
+            existing.task.description,
+            deps.frontmatterMode,
+            {
+              name: existing.task.name,
+              state: event.to
+            }
+          );
+          const serializedTask = serializeTaskDocument(nextFrontmatter, existing.task.description);
+
+          if (event.to === "archived") {
+            const targetPath = archivedTaskPath(deps.path, layout, list, id);
+            const archivedTargetExists = await statIfExists(deps.fs, targetPath);
+            if (archivedTargetExists?.isFile()) {
+              throw new TaskAlreadyExistsError(`Task "${list}/${id}" already exists in archive.`);
+            }
+
+            await writeAtomically(deps.fs, existing.path, serializedTask);
+            await deps.fs.mkdir(archiveDirectoryPath(deps.path, layout, list), { recursive: true });
+            await deps.fs.rename(existing.path, targetPath);
+            const { entries: remainingEntries } = await readActiveTasks();
+            await rewriteListPrefixes(remainingEntries.map((entry) => entry.id));
+            await event.onEnter?.(nextTask);
+
+            return nextTask;
           }
 
           await writeAtomically(deps.fs, existing.path, serializedTask);
-          await deps.fs.mkdir(archiveDirectoryPath(deps.path, layout, list), { recursive: true });
-          await deps.fs.rename(existing.path, targetPath);
           await event.onEnter?.(nextTask);
 
           return nextTask;
-        }
+        });
 
-        await writeAtomically(deps.fs, existing.path, serializedTask);
-        await event.onEnter?.(nextTask);
+      if (stateMachine.events[eventName]?.to === "archived") {
+        return withListLock(runFire);
+      }
 
-        return nextTask;
-      });
+      return runFire();
     },
     async canFire(id: string, eventName: string): Promise<boolean> {
       const task = (await getTaskFile(id)).task;

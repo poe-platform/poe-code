@@ -170,7 +170,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: markdown-dir-archive-repack
     title: markdown-dir fire(archive) repacks remaining prefixes
@@ -220,9 +220,9 @@ tasks:
       - Strict-mode tests with the default state machine continue to pass.
       - Do not change behavior for non-archive `fire` calls.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: agent-harness-tools-plans
     title: agent-harness-tools — discoverPlans / archivePlan / openPlanList

@@ -71,6 +71,19 @@ describe("plain help formatter", () => {
     expect(result).toBe(" cmd one two three four\n     five");
   });
 
+  it("puts overwide left cells on their own line before the description", () => {
+    const result = formatColumns({
+      rows: [{ left: "run [doc] [--agent <string>]", right: "Run the full loop." }],
+      totalWidth: 50,
+      minLeftWidth: 1,
+      maxLeftWidth: 12,
+      gap: 2,
+      indent: 2
+    });
+
+    expect(result).toBe("  run [doc] [--agent <string>]\n              Run the full loop.");
+  });
+
   it("formats command lists without text styling", () => {
     const result = formatCommandList([
       { name: "configure", description: "Set up provider credentials" },

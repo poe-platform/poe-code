@@ -1208,10 +1208,13 @@ function formatCommandRows<TServices extends object>(
   });
 }
 
-function formatGlobalOptionRows(showVersion: boolean, presetsEnabled: boolean): HelpOptionRow[] {
+function formatGlobalOptionRows(ctx: {
+  showVersion: boolean;
+  presetsEnabled: boolean;
+}): HelpOptionRow[] {
   const rows: HelpOptionRow[] = [];
 
-  if (presetsEnabled) {
+  if (ctx.presetsEnabled) {
     rows.push({
       flags: "--preset <path>",
       description: "Load parameter defaults from a JSON file",
@@ -1225,15 +1228,11 @@ function formatGlobalOptionRows(showVersion: boolean, presetsEnabled: boolean): 
     },
     {
       flags: "--output <format>",
-      description: "Output format (rich, md, json)",
-    },
-    {
-      flags: "-h, --help",
-      description: "Show help",
+      description: "Output format: rich, md, json.",
     }
   );
 
-  if (showVersion) {
+  if (ctx.showVersion) {
     rows.push({
       flags: "--version",
       description: "Show version",
@@ -1260,19 +1259,21 @@ function renderGroupHelp<TServices extends object>(
   breadcrumb: string[],
   scope: Scope,
   casing: Casing,
-  showVersion: boolean,
-  presetsEnabled: boolean,
+  globalOptions: {
+    showVersion: boolean;
+    presetsEnabled: boolean;
+  },
   rootUsageName?: string
 ): string {
   const sections: string[] = [];
-  const globalLongOptionFlags = getGlobalLongOptionFlags(presetsEnabled);
+  const globalLongOptionFlags = getGlobalLongOptionFlags(globalOptions.presetsEnabled);
   const commandRows = formatCommandRows(group, scope, casing, globalLongOptionFlags);
 
   if (commandRows.length > 0) {
-    sections.push(`${text.section("Commands:")}\n${formatCommandList(commandRows)}`);
+    sections.push(`${text.sectionHeader("Commands")}\n${formatCommandList(commandRows)}`);
   }
 
-  sections.push(`${text.section("Global options:")}\n${formatOptionList(formatGlobalOptionRows(showVersion, presetsEnabled))}`);
+  sections.push(`${text.sectionHeader("Options")}\n${formatOptionList(formatGlobalOptionRows(globalOptions))}`);
 
   return renderHelpDocument({
     breadcrumb,
@@ -1287,11 +1288,14 @@ function renderLeafHelp<TServices extends object>(
   command: Command<TServices, any, any, any>,
   breadcrumb: string[],
   casing: Casing,
-  presetsEnabled: boolean,
+  globalOptions: {
+    showVersion: boolean;
+    presetsEnabled: boolean;
+  },
   rootUsageName?: string
 ): string {
   const sections: string[] = [];
-  const globalLongOptionFlags = getGlobalLongOptionFlags(presetsEnabled);
+  const globalLongOptionFlags = getGlobalLongOptionFlags(globalOptions.presetsEnabled);
   const collected = collectFields(command.params, casing, globalLongOptionFlags);
   const fields = assignPositionals(collected.fields, command.positional);
   const optionRows = fields.map((field) => ({
@@ -1300,14 +1304,14 @@ function renderLeafHelp<TServices extends object>(
   })).concat(collected.dynamicFields.flatMap((field) => formatDynamicHelpFields(field, casing)));
 
   if (optionRows.length > 0) {
-    sections.push(`${text.section("Options:")}\n${formatOptionList(optionRows)}`);
+    sections.push(`${text.sectionHeader("Options")}\n${formatOptionList(optionRows)}`);
   }
 
-  sections.push(`${text.section("Global options:")}\n${formatOptionList(formatGlobalOptionRows(false, presetsEnabled))}`);
+  sections.push(`${text.sectionHeader("Options")}\n${formatOptionList(formatGlobalOptionRows(globalOptions))}`);
 
   const secretRows = formatSecretRows(command.secrets);
   if (secretRows.length > 0) {
-    sections.push(`${text.section("Secrets (via environment):")}\n${formatOptionList(secretRows)}`);
+    sections.push(`${text.sectionHeader("Secrets (environment)")}\n${formatOptionList(secretRows)}`);
   }
 
   const positionalFields = fields.filter((f) => f.positionalIndex !== undefined);
@@ -1371,11 +1375,22 @@ async function renderGeneratedHelp<TServices extends object>(
             target.breadcrumb,
             "cli",
             casing,
-            options.version !== undefined,
-            options.presets === true,
+            {
+              showVersion: options.version !== undefined,
+              presetsEnabled: options.presets === true,
+            },
             options.rootUsageName
           )
-        : renderLeafHelp(target.node, target.breadcrumb, casing, options.presets === true, options.rootUsageName);
+        : renderLeafHelp(
+            target.node,
+            target.breadcrumb,
+            casing,
+            {
+              showVersion: options.version !== undefined,
+              presetsEnabled: options.presets === true,
+            },
+            options.rootUsageName
+          );
 
     process.stdout.write(rendered);
   });

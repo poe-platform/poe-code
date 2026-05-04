@@ -42,6 +42,7 @@ vi.mock("@poe-code/design-system", () => ({
   text: {
     heading: (value: string) => value,
     section: (value: string) => value,
+    sectionHeader: (value: string) => value,
     muted: (value: string) => value,
     usageCommand: (value: string) => value,
   },
@@ -661,7 +662,7 @@ describe("runCLI", () => {
     });
   });
 
-  it("hides --preset from generated help unless presets are enabled", async () => {
+  it("renders only always-on global options when presets and version are disabled", async () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
@@ -682,12 +683,30 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("Global options:");
+    expect(output).toMatchInlineSnapshot(`
+      "toolcraft
+
+      Commands
+        deploy --service <string>  
+        approvals  Inspect and execute queued approvals.
+          list [--state <string>]  List queued approvals.
+          show --approval-id <string>  Show one approval.
+          run --approval-id <string>  Run one queued approval.
+
+      Options
+        --yes  Accept defaults, skip prompts
+        --output <format>  Output format: rich, md, json.
+      "
+    `);
+    expect(output).toContain("Options");
     expect(output).not.toContain("--preset");
     expect(output).toContain("--yes");
+    expect(output).toContain("--output <format>");
+    expect(output).not.toContain("--version");
+    expect(output).not.toContain("-h, --help");
   });
 
-  it("shows --preset in generated help when presets are enabled", async () => {
+  it("renders preset and version global options when presets and version are enabled", async () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
@@ -705,11 +724,66 @@ describe("runCLI", () => {
 
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
-    await runCLI(root, { presets: true });
+    await runCLI(root, { presets: true, version: "1.2.3" });
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("Global options:");
+    expect(output).toMatchInlineSnapshot(`
+      "toolcraft
+
+      Commands
+        deploy --service <string>  
+        approvals  Inspect and execute queued approvals.
+          list [--state <string>]  List queued approvals.
+          show --approval-id <string>  Show one approval.
+          run --approval-id <string>  Run one queued approval.
+
+      Options
+        --preset <path>  Load parameter defaults from a JSON file
+        --yes  Accept defaults, skip prompts
+        --output <format>  Output format: rich, md, json.
+        --version  Show version
+      "
+    `);
+    expect(output).toContain("Options");
     expect(output).toContain("--preset <path>");
+    expect(output).toContain("--version");
+    expect(output).not.toContain("-h, --help");
+  });
+
+  it("never renders commander help in generated global option tables", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        service: S.String(),
+      }),
+      handler: vi.fn(),
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy],
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+    const withoutPresetOrVersion = readStdout(stdoutWrite);
+
+    stdoutWrite.mockClear();
+    await runCLI(root, { presets: true, version: "1.2.3" });
+    const withPresetAndVersion = readStdout(stdoutWrite);
+
+    expect({
+      withPresetAndVersion: withPresetAndVersion.includes("-h, --help"),
+      withoutPresetOrVersion: withoutPresetOrVersion.includes("-h, --help"),
+    }).toMatchInlineSnapshot(`
+      {
+        "withPresetAndVersion": false,
+        "withoutPresetOrVersion": false,
+      }
+    `);
   });
 
   it("allows a command parameter named preset when presets are not enabled", async () => {
@@ -1972,7 +2046,8 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("Commands:");
+    expect(output).toContain("Commands");
+    expect(output).not.toContain("Commands:");
     expect(output).toContain("calendar");
     expect(output).toContain("  events");
     expect(output).toContain("    list");
@@ -2407,15 +2482,15 @@ describe("runCLI", () => {
 
     const output = readStdout(stdoutWrite);
     expect(output).toContain("poe-code generate text");
-    expect(output).toContain("Options:");
+    expect(output).toContain("Options");
     expect(output).toContain("--prompt <string>");
     expect(output).toContain("Generation prompt (required)");
     expect(output).toContain("--model <string>");
     expect(output).toContain("Model identifier (default: GPT-4.1)");
-    expect(output).toContain("Global options:");
+    expect(output).not.toContain("Global options:");
     expect(output).not.toContain("--preset");
     expect(output).toContain("--yes");
-    expect(output).toContain("Secrets (via environment):");
+    expect(output).toContain("Secrets (environment)");
     expect(output).toContain("POE_API_KEY");
     expect(output).toContain("Inherited from generate group");
   });
@@ -2512,7 +2587,8 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("Commands:");
+    expect(output).toContain("Commands");
+    expect(output).not.toContain("Commands:");
     expect(output).toContain("text");
     expect(output).not.toContain("invoke");
   });
@@ -2536,7 +2612,8 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("Commands:");
+    expect(output).toContain("Commands");
+    expect(output).not.toContain("Commands:");
     expect(output).toContain("builder");
   });
 

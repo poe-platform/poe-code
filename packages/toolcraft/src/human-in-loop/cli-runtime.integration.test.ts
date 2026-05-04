@@ -25,6 +25,7 @@ vi.mock("@poe-code/design-system", () => ({
   text: {
     heading: (value: string) => value,
     section: (value: string) => value,
+    sectionHeader: (value: string) => value,
     muted: (value: string) => value,
     usageCommand: (value: string) => value,
   },

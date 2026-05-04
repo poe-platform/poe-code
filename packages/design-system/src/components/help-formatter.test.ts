@@ -62,6 +62,19 @@ describe("formatColumns", () => {
     expect(result).toBe("cmd short\n    supercalifragilisticexpialidocious\n    tail");
   });
 
+  it("puts overwide left cells on their own line before the description", () => {
+    const result = formatColumns({
+      rows: [{ left: "run [doc] [--agent <string>]", right: "Run the full loop." }],
+      totalWidth: 50,
+      minLeftWidth: 1,
+      maxLeftWidth: 12,
+      gap: 2,
+      indent: 2
+    });
+
+    expect(result).toBe("  run [doc] [--agent <string>]\n              Run the full loop.");
+  });
+
   it("preserves continuation indent", () => {
     const result = formatColumns({
       rows: [{ left: "left", right: "alpha beta gamma delta" }],

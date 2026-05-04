@@ -114,6 +114,12 @@ export function formatColumns(opts: FormatColumnsOptions): string {
   return rows
     .flatMap((row) => {
       const rightLines = wrapWords(row.right, rightWidth);
+      if (visibleWidth(row.left) > leftWidth) {
+        return [
+          `${firstIndent}${row.left}`,
+          ...rightLines.map((line) => `${continuationIndent}${line}`)
+        ];
+      }
       const firstLine = `${firstIndent}${padEndVisible(row.left, leftWidth)}${rightLines[0]}`;
       const continuationLines = rightLines
         .slice(1)

@@ -154,7 +154,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-script-runtime-entry
     title: Wire importMeta and entryPointArgs into agent-script run()
@@ -198,9 +198,9 @@ tasks:
       No regex use, no string-level surgery. Use the parser + interpreter
       end-to-end.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: agent-script-find-exported
     title: Add findExportedConstInitializer to agent-script

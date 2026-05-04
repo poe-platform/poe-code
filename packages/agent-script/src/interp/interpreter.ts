@@ -8,7 +8,10 @@ import type {
   ContinueStatement,
   Expression,
   Identifier,
+  ExportDefaultDeclaration,
+  ExportNamedDeclaration,
   MemberExpression,
+  MetaProperty,
   NullLiteral,
   NumericLiteral,
   ObjectExpression,
@@ -23,7 +26,8 @@ import type {
   TryStatement,
   UnaryExpression,
   UndefinedLiteral,
-  ExpressionStatement
+  ExpressionStatement,
+  VariableDeclaration
 } from "../parse.js";
 import {
   evaluateArrowFunctionExpression,
@@ -49,11 +53,7 @@ import {
   type ArrayMethodName,
   type ArrayMethodOptions
 } from "./methods/array.js";
-import {
-  callNumberMethod,
-  getNumberMember,
-  isNumberMethodName
-} from "./methods/number.js";
+import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
 import {
   callStringMethod,
   getStringMember,
@@ -108,6 +108,7 @@ export type InterpretOptions = {
   budget?: Budget;
   onYield?: (yieldPoint: InterpreterYieldPoint) => void;
   scope?: Scope;
+  useScopeDirectly?: boolean;
 };
 
 type EvaluationContext = AsyncEvaluationContext;
@@ -141,9 +142,12 @@ const dispatchTable: DispatchTable = {
   BooleanLiteral: evaluatePrimitiveLiteral,
   CallExpression: evaluateCallExpression,
   ContinueStatement: evaluateContinueStatement,
+  ExportDefaultDeclaration: evaluateExportDefaultDeclaration,
+  ExportNamedDeclaration: evaluateExportNamedDeclaration,
   ExpressionStatement: evaluateExpressionStatement,
   Identifier: evaluateIdentifier,
   MemberExpression: evaluateMemberExpression,
+  MetaProperty: evaluateMetaProperty,
   NullLiteral: evaluatePrimitiveLiteral,
   NumericLiteral: evaluatePrimitiveLiteral,
   ObjectExpression: evaluateObjectExpression,
@@ -153,6 +157,7 @@ const dispatchTable: DispatchTable = {
   ThrowStatement: evaluateThrowStatement,
   TryStatement: evaluateTryStatement,
   UnaryExpression: evaluateUnaryExpression,
+  VariableDeclaration: evaluateVariableDeclaration,
   UndefinedLiteral: evaluatePrimitiveLiteral
 };
 
@@ -161,7 +166,12 @@ export async function interpret(
   options: InterpretOptions = {}
 ): Promise<InterpreterResult> {
   const budget = options.budget ?? new Budget();
-  const scope = options.scope?.child(options.bindings ?? {}) ?? new Scope(options.bindings);
+  const scope =
+    options.scope === undefined
+      ? new Scope(options.bindings)
+      : options.useScopeDirectly === true && options.bindings === undefined
+        ? options.scope
+        : options.scope.child(options.bindings ?? {});
   const stats: InterpreterStats = {
     nodeVisits: 0
   };
@@ -365,6 +375,74 @@ async function evaluateIdentifier(
   };
 }
 
+async function evaluateMetaProperty(
+  _node: MetaProperty,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: context.scope.lookupImportMeta()
+  };
+}
+
+async function evaluateExportDefaultDeclaration(
+  node: ExportDefaultDeclaration,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const declaration = await evaluateNode(node.declaration, context);
+  if (declaration.kind !== "normal") {
+    return declaration;
+  }
+
+  context.scope.declare("default", "const", declaration.value);
+
+  return {
+    kind: "normal",
+    hasValue: false,
+    value: undefined
+  };
+}
+
+async function evaluateExportNamedDeclaration(
+  node: ExportNamedDeclaration,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  return evaluateVariableDeclaration(node.declaration, context);
+}
+
+async function evaluateVariableDeclaration(
+  node: VariableDeclaration,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  for (const declarator of node.declarations) {
+    if (declarator.id.type !== "Identifier") {
+      throw new TypeError(`Unsupported variable declaration pattern '${declarator.id.type}'.`);
+    }
+
+    const value =
+      declarator.init === undefined
+        ? {
+            kind: "normal" as const,
+            hasValue: true as const,
+            value: undefined
+          }
+        : await evaluateNode(declarator.init, context);
+
+    if (value.kind !== "normal") {
+      return value;
+    }
+
+    context.scope.declare(declarator.id.name, node.kind, value.value);
+  }
+
+  return {
+    kind: "normal",
+    hasValue: false,
+    value: undefined
+  };
+}
+
 async function evaluateBlockStatement(
   node: BlockStatement,
   context: EvaluationContext
@@ -511,7 +589,11 @@ async function evaluateMemberExpression(
   }
 
   if (Array.isArray(member.object)) {
-    const arrayMember = getArrayMember(member.object, member.property, createArrayMethodOptions(context));
+    const arrayMember = getArrayMember(
+      member.object,
+      member.property,
+      createArrayMethodOptions(context)
+    );
     if (arrayMember !== undefined) {
       return {
         kind: "normal",
@@ -1046,8 +1128,8 @@ function isInterpreterError(value: unknown): value is InterpreterError {
     "message" in value &&
     "nodeType" in value &&
     "span" in value &&
-    (((value as { code: unknown }).code === "UNBOUND_IDENTIFIER") ||
-      ((value as { code: unknown }).code === "UNSUPPORTED_NODE"))
+    ((value as { code: unknown }).code === "UNBOUND_IDENTIFIER" ||
+      (value as { code: unknown }).code === "UNSUPPORTED_NODE")
   );
 }
 

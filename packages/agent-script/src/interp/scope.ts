@@ -19,7 +19,11 @@ type ScopeLookupResult =
 export class Scope {
   readonly #bindings = new Map<string, ScopeBinding>();
 
-  constructor(bindings: Record<string, InterpreterValue> = {}, private readonly parent?: Scope) {
+  constructor(
+    bindings: Record<string, InterpreterValue> = {},
+    private readonly parent?: Scope,
+    private readonly importMeta?: InterpreterValue
+  ) {
     for (const [name, value] of Object.entries(bindings)) {
       this.#bindings.set(name, {
         kind: "const",
@@ -30,6 +34,18 @@ export class Scope {
 
   child(bindings: Record<string, InterpreterValue> = {}): Scope {
     return new Scope(bindings, this);
+  }
+
+  lookupImportMeta(): InterpreterValue {
+    if (this.importMeta !== undefined) {
+      return this.importMeta;
+    }
+
+    if (this.parent !== undefined) {
+      return this.parent.lookupImportMeta();
+    }
+
+    return {};
   }
 
   declare(name: string, kind: VariableDeclarationKind, value: InterpreterValue): void {
@@ -87,7 +103,9 @@ export class Scope {
     return {
       bindings: {
         ...inheritedBindings,
-        ...Object.fromEntries([...this.#bindings.entries()].map(([name, binding]) => [name, binding.value]))
+        ...Object.fromEntries(
+          [...this.#bindings.entries()].map(([name, binding]) => [name, binding.value])
+        )
       }
     };
   }

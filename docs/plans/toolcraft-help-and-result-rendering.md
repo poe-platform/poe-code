@@ -304,8 +304,8 @@ tasks:
         7. Snapshot at isTTY=false: plain-text helpFormatterPlain
            path is used; output contains no ANSI escape codes
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-renderer-mcp-unwrap

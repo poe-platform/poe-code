@@ -11,7 +11,7 @@ const loggerState = {
   error: [] as string[],
   resolved: [] as Array<{ label: string; value: string }>,
   errorResolved: [] as Array<{ label: string; value: string }>,
-  message: [] as string[],
+  message: [] as string[]
 };
 
 const promptState = {
@@ -20,7 +20,12 @@ const promptState = {
   confirm: vi.fn(),
   isCancel: vi.fn((value: unknown) => typeof value === "symbol"),
   cancel: vi.fn(),
-  resetOutputFormatCache: vi.fn(),
+  resetOutputFormatCache: vi.fn()
+};
+
+const formatterState = {
+  plainCommandListCalls: 0,
+  plainOptionListCalls: 0
 };
 
 vi.mock("@poe-code/design-system", () => ({
@@ -32,37 +37,47 @@ vi.mock("@poe-code/design-system", () => ({
     resolved: (label: string, value: string) => loggerState.resolved.push({ label, value }),
     errorResolved: (label: string, value: string) =>
       loggerState.errorResolved.push({ label, value }),
-    message: (message: string) => loggerState.message.push(message),
+    message: (message: string) => loggerState.message.push(message)
   }),
   renderTable: vi.fn(() => "table"),
   getTheme: vi.fn(() => ({
     header: (value: string) => value,
-    muted: (value: string) => value,
+    muted: (value: string) => value
   })),
   text: {
     heading: (value: string) => value,
     section: (value: string) => value,
     sectionHeader: (value: string) => value,
     muted: (value: string) => value,
-    usageCommand: (value: string) => value,
+    usageCommand: (value: string) => value
   },
   formatCommandList: (commands: Array<{ name: string; description: string }>) =>
-    commands
-      .map((command) =>
-        command.description.length === 0
-          ? `  ${command.name}`
-          : `  ${command.name}  ${command.description}`
-      )
-      .join("\n"),
+    formatMockColumns(
+      commands.map((command) => ({ left: command.name, right: command.description }))
+    ),
   formatOptionList: (options: Array<{ flags: string; description: string }>) =>
-    options.map((option) => `  ${option.flags}  ${option.description}`).join("\n"),
+    formatMockColumns(options.map((option) => ({ left: option.flags, right: option.description }))),
+  helpFormatterPlain: {
+    formatCommandList: (commands: Array<{ name: string; description: string }>) => {
+      formatterState.plainCommandListCalls += 1;
+      return formatMockColumns(
+        commands.map((command) => ({ left: command.name, right: command.description }))
+      );
+    },
+    formatOptionList: (options: Array<{ flags: string; description: string }>) => {
+      formatterState.plainOptionListCalls += 1;
+      return formatMockColumns(
+        options.map((option) => ({ left: option.flags, right: option.description }))
+      );
+    }
+  },
   promptText: promptState.text,
   select: promptState.select,
   confirm: promptState.confirm,
   isCancel: promptState.isCancel,
   cancel: promptState.cancel,
   resetOutputFormatCache: promptState.resetOutputFormatCache,
-  note: vi.fn(),
+  note: vi.fn()
 }));
 
 vi.mock("node:fs/promises", async () => {
@@ -146,15 +161,15 @@ const fixtureCommand = defineCommand<{ store: FixtureStoreService }>({
   params: S.Object({}),
   secrets: {
     apiKey: {
-      env: "API_KEY",
-    },
+      env: "API_KEY"
+    }
   },
   handler: async ({ fetch, fs, secrets, store }) => {
     const matched = await fetch("https://example.com/items");
     const matchedBody = matched === null ? null : await matched.json();
     const unmatchedRead = await fetch("https://example.com/missing");
     const unmatchedWrite = await fetch("https://example.com/items", {
-      method: "POST",
+      method: "POST"
     });
     const file = await fs.readFile("/config.json");
     const missingFile = await fs.readFile("/missing.json");
@@ -172,14 +187,14 @@ const fixtureCommand = defineCommand<{ store: FixtureStoreService }>({
       secret: secrets.apiKey,
       storeValue,
       unmatchedReadStatus: unmatchedRead === null ? null : unmatchedRead.status,
-      unmatchedWriteStatus: unmatchedWrite === null ? null : unmatchedWrite.status,
+      unmatchedWriteStatus: unmatchedWrite === null ? null : unmatchedWrite.status
     };
-  },
+  }
 });
 
 const fixtureRoot = defineGroup({
   name: "toolcraft",
-  children: [fixtureCommand],
+  children: [fixtureCommand]
 });
 
 function resetLoggerState(): void {
@@ -194,14 +209,76 @@ function resetLoggerState(): void {
 
 const originalArgv = [...process.argv];
 const stdoutTTY = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+const stdoutColumns = Object.getOwnPropertyDescriptor(process.stdout, "columns");
 const stdinTTY = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
 const originalOutputFormat = process.env.OUTPUT_FORMAT;
 const originalFixtureSelector = process.env.TOOLCRAFT_FIXTURE;
 
+function formatMockColumns(rows: Array<{ left: string; right: string }>): string {
+  if (typeof process.stdout.columns !== "number") {
+    return rows
+      .map((row) => (row.right.length === 0 ? `  ${row.left}` : `  ${row.left}  ${row.right}`))
+      .join("\n");
+  }
+
+  const maxLeftContentWidth = Math.max(...rows.map((row) => row.left.length), 0);
+  const leftWidth = Math.min(Math.max(maxLeftContentWidth + 3, 12), 32);
+  const rightWidth = Math.max(20, process.stdout.columns - leftWidth - 2);
+  const continuationIndent = " ".repeat(2 + leftWidth);
+
+  return rows
+    .flatMap((row) => {
+      if (row.right.length === 0) {
+        return [`  ${row.left}`];
+      }
+
+      const words = row.right.split(" ").filter((word) => word.length > 0);
+      const rightLines: string[] = [];
+      let line = "";
+
+      for (const word of words) {
+        if (line.length === 0) {
+          line = word;
+          continue;
+        }
+
+        if (line.length + 1 + word.length <= rightWidth) {
+          line = `${line} ${word}`;
+          continue;
+        }
+
+        rightLines.push(line);
+        line = word;
+      }
+
+      rightLines.push(line);
+
+      if (row.left.length > leftWidth) {
+        return [
+          `  ${row.left}`,
+          ...rightLines.map((rightLine) => `${continuationIndent}${rightLine}`)
+        ];
+      }
+
+      return [
+        `  ${row.left}${" ".repeat(leftWidth - row.left.length)}${rightLines[0] ?? ""}`,
+        ...rightLines.slice(1).map((rightLine) => `${continuationIndent}${rightLine}`)
+      ];
+    })
+    .join("\n");
+}
+
 function setTTY(stream: NodeJS.WriteStream | NodeJS.ReadStream, value: boolean): void {
   Object.defineProperty(stream, "isTTY", {
     configurable: true,
-    value,
+    value
+  });
+}
+
+function setStdoutColumns(value: number): void {
+  Object.defineProperty(process.stdout, "columns", {
+    configurable: true,
+    value
   });
 }
 
@@ -222,9 +299,11 @@ describe("runCLI", () => {
     vi.clearAllMocks();
     vol.reset();
     vol.fromJSON({
-      [fixtureFilePath]: fixtureFileContents,
+      [fixtureFilePath]: fixtureFileContents
     });
     resetLoggerState();
+    formatterState.plainCommandListCalls = 0;
+    formatterState.plainOptionListCalls = 0;
     promptState.isCancel.mockImplementation((value: unknown) => typeof value === "symbol");
     process.argv = [...originalArgv];
     process.exitCode = undefined;
@@ -243,26 +322,33 @@ describe("runCLI", () => {
     if (stdoutTTY) {
       Object.defineProperty(process.stdout, "isTTY", stdoutTTY);
     }
+    if (stdoutColumns) {
+      Object.defineProperty(process.stdout, "columns", stdoutColumns);
+    } else {
+      Reflect.deleteProperty(process.stdout, "columns");
+    }
     if (stdinTTY) {
       Object.defineProperty(process.stdin, "isTTY", stdinTTY);
     }
   });
 
   it("parses nested params, arrays, booleans, enums, and positionals with kebab casing", async () => {
-    const handler = vi.fn(async (ctx: {
-      params: {
-        name: string;
-        dryRun?: boolean;
-        retryCount: number;
-        mode: "safe" | "fast";
-        tags: string[];
-        database: { host: string };
-      };
-      marker: string;
-    }) => {
-      expect(ctx.marker).toBe("service");
-      return ctx.params;
-    });
+    const handler = vi.fn(
+      async (ctx: {
+        params: {
+          name: string;
+          dryRun?: boolean;
+          retryCount: number;
+          mode: "safe" | "fast";
+          tags: string[];
+          database: { host: string };
+        };
+        marker: string;
+      }) => {
+        expect(ctx.marker).toBe("service");
+        return ctx.params;
+      }
+    );
 
     const renderJson = vi.fn((result: unknown) => result);
 
@@ -276,18 +362,18 @@ describe("runCLI", () => {
         mode: S.Enum(["safe", "fast"] as const),
         tags: S.Array(S.String()),
         database: S.Object({
-          host: S.String(),
-        }),
+          host: S.String()
+        })
       }),
       handler,
       render: {
-        json: renderJson,
-      },
+        json: renderJson
+      }
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = [
@@ -307,15 +393,15 @@ describe("runCLI", () => {
       "db.internal",
       "--output",
       "json",
-      "--yes",
+      "--yes"
     ];
 
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
     await runCLI(root, {
       services: {
-        marker: "service",
-      },
+        marker: "service"
+      }
     });
 
     expect(handler).toHaveBeenCalledTimes(1);
@@ -326,8 +412,8 @@ describe("runCLI", () => {
       mode: "safe",
       tags: ["alpha", "beta", "gamma"],
       database: {
-        host: "db.internal",
-      },
+        host: "db.internal"
+      }
     });
     expect(renderJson).toHaveBeenCalledWith(
       {
@@ -337,13 +423,13 @@ describe("runCLI", () => {
         mode: "safe",
         tags: ["alpha", "beta", "gamma"],
         database: {
-          host: "db.internal",
-        },
+          host: "db.internal"
+        }
       },
       expect.objectContaining({
         logger: expect.any(Object),
         renderTable: expect.any(Function),
-        getTheme: expect.any(Function),
+        getTheme: expect.any(Function)
       })
     );
     expect(stdoutWrite).toHaveBeenCalledWith(
@@ -352,73 +438,80 @@ describe("runCLI", () => {
   });
 
   it("supports snake casing for generated option names", async () => {
-    const handler = vi.fn(async (ctx: { params: { dryRun: boolean; retryCount: number } }) => ctx.params);
+    const handler = vi.fn(
+      async (ctx: { params: { dryRun: boolean; retryCount: number } }) => ctx.params
+    );
 
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
         dryRun: S.Boolean(),
-        retryCount: S.Number(),
+        retryCount: S.Number()
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
-    process.argv = [
-      "node",
-      "toolcraft",
-      "deploy",
-      "--dry_run",
-      "--retry_count",
-      "5",
-      "--yes",
-    ];
+    process.argv = ["node", "toolcraft", "deploy", "--dry_run", "--retry_count", "5", "--yes"];
 
     await runCLI(root, {
-      casing: "snake",
+      casing: "snake"
     });
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler.mock.calls[0]?.[0].params).toEqual({
       dryRun: true,
-      retryCount: 5,
+      retryCount: 5
     });
   });
 
   it("accepts --flag true and --flag false as explicit boolean values", async () => {
-    const handler = vi.fn(async (ctx: { params: { enabled: boolean; disabled: boolean } }) => ctx.params);
+    const handler = vi.fn(
+      async (ctx: { params: { enabled: boolean; disabled: boolean } }) => ctx.params
+    );
 
     const toggle = defineCommand({
       name: "toggle",
       params: S.Object({
         enabled: S.Boolean(),
-        disabled: S.Boolean(),
+        disabled: S.Boolean()
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({ name: "toolcraft", children: [toggle] });
 
-    process.argv = ["node", "toolcraft", "toggle", "--enabled", "true", "--disabled", "false", "--yes"];
+    process.argv = [
+      "node",
+      "toolcraft",
+      "toggle",
+      "--enabled",
+      "true",
+      "--disabled",
+      "false",
+      "--yes"
+    ];
     await runCLI(root);
 
     expect(handler.mock.calls[0]?.[0].params).toEqual({ enabled: true, disabled: false });
   });
 
   it("accepts --flag (no value) as true and --no-flag as false for boolean params", async () => {
-    const handler = vi.fn(async (ctx: { params: { enabled: boolean; disabled: boolean } }) => ctx.params);
+    const handler = vi.fn(
+      async (ctx: { params: { enabled: boolean; disabled: boolean } }) => ctx.params
+    );
 
     const toggle = defineCommand({
       name: "toggle",
       params: S.Object({
         enabled: S.Boolean(),
-        disabled: S.Boolean(),
+        disabled: S.Boolean()
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({ name: "toolcraft", children: [toggle] });
@@ -435,7 +528,7 @@ describe("runCLI", () => {
     const toggle = defineCommand({
       name: "toggle",
       params: S.Object({ enabled: S.Boolean() }),
-      handler,
+      handler
     });
 
     const root = defineGroup({ name: "toolcraft", children: [toggle] });
@@ -459,15 +552,15 @@ describe("runCLI", () => {
       name: "deploy",
       params: S.Object({
         count: S.Number({
-          jsonType: "integer",
-        }),
+          jsonType: "integer"
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = ["node", "toolcraft", "deploy", "--count", "1.5"];
@@ -483,23 +576,25 @@ describe("runCLI", () => {
   });
 
   it("prompts for missing required params, uses select for enums, and confirms resolved values", async () => {
-    const handler = vi.fn(async (ctx: { params: { name: string; mode: "safe" | "fast" } }) => ctx.params);
+    const handler = vi.fn(
+      async (ctx: { params: { name: string; mode: "safe" | "fast" } }) => ctx.params
+    );
 
     const deploy = defineCommand({
       name: "deploy",
       confirm: true,
       params: S.Object({
         name: S.String({
-          default: "demo-service",
+          default: "demo-service"
         }),
-        mode: S.Enum(["safe", "fast"] as const),
+        mode: S.Enum(["safe", "fast"] as const)
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     promptState.text.mockResolvedValueOnce("demo-service");
@@ -512,27 +607,27 @@ describe("runCLI", () => {
 
     expect(promptState.text).toHaveBeenCalledWith({
       message: "name",
-      initialValue: "demo-service",
+      initialValue: "demo-service"
     });
     expect(promptState.select).toHaveBeenCalledWith({
       message: "mode",
       options: [
         { label: "safe", value: "safe" },
-        { label: "fast", value: "fast" },
+        { label: "fast", value: "fast" }
       ],
-      initialValue: undefined,
+      initialValue: undefined
     });
     expect(loggerState.resolved).toEqual([
       { label: "name", value: "demo-service" },
-      { label: "mode", value: "fast" },
+      { label: "mode", value: "fast" }
     ]);
     expect(promptState.confirm).toHaveBeenCalledWith({
       message: "Proceed?",
-      initialValue: true,
+      initialValue: true
     });
     expect(handler.mock.calls[0]?.[0].params).toEqual({
       name: "demo-service",
-      mode: "fast",
+      mode: "fast"
     });
   });
 
@@ -545,11 +640,11 @@ describe("runCLI", () => {
         mode: S.Enum(["safe", "fast"] as const, {
           loadOptions: async () => [
             { label: "Safe (slow)", value: "safe" },
-            { label: "Fast (risky)", value: "fast" },
-          ],
-        }),
+            { label: "Fast (risky)", value: "fast" }
+          ]
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({ name: "toolcraft", children: [deploy] });
@@ -564,8 +659,8 @@ describe("runCLI", () => {
       expect.objectContaining({
         options: [
           { label: "Safe (slow)", value: "safe" },
-          { label: "Fast (risky)", value: "fast" },
-        ],
+          { label: "Fast (risky)", value: "fast" }
+        ]
       })
     );
     expect(handler.mock.calls[0]?.[0].params).toEqual({ mode: "safe" });
@@ -580,9 +675,9 @@ describe("runCLI", () => {
         mode: S.Enum(["safe", "fast"] as const, {
           description: "Pick a deployment mode",
           labels: { safe: "Safe (slow)", fast: "Fast (risky)" }
-        }),
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({ name: "toolcraft", children: [deploy] });
@@ -597,21 +692,23 @@ describe("runCLI", () => {
       message: "Pick a deployment mode",
       options: [
         { label: "Safe (slow)", value: "safe" },
-        { label: "Fast (risky)", value: "fast" },
+        { label: "Fast (risky)", value: "fast" }
       ],
-      initialValue: undefined,
+      initialValue: undefined
     });
   });
 
   it("merges preset values before CLI flags and only prompts for still-missing required params", async () => {
-    const handler = vi.fn(async (ctx: {
-      params: {
-        service: string;
-        region: string;
-        replicas: number;
-        mode: "safe" | "fast";
-      };
-    }) => ctx.params);
+    const handler = vi.fn(
+      async (ctx: {
+        params: {
+          service: string;
+          region: string;
+          replicas: number;
+          mode: "safe" | "fast";
+        };
+      }) => ctx.params
+    );
 
     const deploy = defineCommand({
       name: "deploy",
@@ -619,22 +716,22 @@ describe("runCLI", () => {
         service: S.String(),
         region: S.String(),
         replicas: S.Number(),
-        mode: S.Enum(["safe", "fast"] as const),
+        mode: S.Enum(["safe", "fast"] as const)
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     vol.fromJSON({
       "/presets/staging.json": JSON.stringify({
         service: "api",
         region: "us-east-1",
-        replicas: 1,
-      }),
+        replicas: 1
+      })
     });
 
     promptState.select.mockResolvedValueOnce("fast");
@@ -645,7 +742,7 @@ describe("runCLI", () => {
       "--preset",
       "/presets/staging.json",
       "--replicas",
-      "5",
+      "5"
     ];
 
     await runCLI(root, { presets: true });
@@ -655,16 +752,16 @@ describe("runCLI", () => {
       message: "mode",
       options: [
         { label: "safe", value: "safe" },
-        { label: "fast", value: "fast" },
+        { label: "fast", value: "fast" }
       ],
-      initialValue: undefined,
+      initialValue: undefined
     });
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler.mock.calls[0]?.[0].params).toEqual({
       service: "api",
       region: "us-east-1",
       replicas: 5,
-      mode: "fast",
+      mode: "fast"
     });
   });
 
@@ -672,14 +769,14 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        service: S.String(),
+        service: S.String()
       }),
-      handler: vi.fn(),
+      handler: vi.fn()
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = ["node", "toolcraft", "--help"];
@@ -692,12 +789,11 @@ describe("runCLI", () => {
     expect(output).toMatchInlineSnapshot(`
       "toolcraft
 
+      Usage: toolcraft [command] [options]
+
       Commands
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
-          list [--state <value>]  List queued approvals.
-          show --approval-id <id>  Show one approval.
-          run --approval-id <id>  Run one queued approval.
 
       Options
         --yes  Accept defaults, skip prompts
@@ -716,14 +812,14 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        service: S.String(),
+        service: S.String()
       }),
-      handler: vi.fn(),
+      handler: vi.fn()
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = ["node", "toolcraft", "--help"];
@@ -736,12 +832,11 @@ describe("runCLI", () => {
     expect(output).toMatchInlineSnapshot(`
       "toolcraft
 
+      Usage: toolcraft [command] [options]
+
       Commands
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
-          list [--state <value>]  List queued approvals.
-          show --approval-id <id>  Show one approval.
-          run --approval-id <id>  Run one queued approval.
 
       Options
         --preset <path>  Load parameter defaults from a JSON file
@@ -760,14 +855,14 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        service: S.String(),
+        service: S.String()
       }),
-      handler: vi.fn(),
+      handler: vi.fn()
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = ["node", "toolcraft", "--help"];
@@ -783,7 +878,7 @@ describe("runCLI", () => {
 
     expect({
       withPresetAndVersion: withPresetAndVersion.includes("-h, --help"),
-      withoutPresetOrVersion: withoutPresetOrVersion.includes("-h, --help"),
+      withoutPresetOrVersion: withoutPresetOrVersion.includes("-h, --help")
     }).toMatchInlineSnapshot(`
       {
         "withPresetAndVersion": false,
@@ -798,14 +893,14 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        preset: S.String(),
+        preset: S.String()
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = ["node", "toolcraft", "deploy", "--preset", "custom", "--yes"];
@@ -814,7 +909,7 @@ describe("runCLI", () => {
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler.mock.calls[0]?.[0].params).toEqual({
-      preset: "custom",
+      preset: "custom"
     });
   });
 
@@ -824,37 +919,30 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        service: S.String(),
+        service: S.String()
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     vol.fromJSON({
       "/presets/invalid.json": JSON.stringify({
         service: "api",
-        unknown: "value",
-      }),
+        unknown: "value"
+      })
     });
 
-    process.argv = [
-      "node",
-      "toolcraft",
-      "deploy",
-      "--preset",
-      "/presets/invalid.json",
-      "--yes",
-    ];
+    process.argv = ["node", "toolcraft", "deploy", "--preset", "/presets/invalid.json", "--yes"];
 
     await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Preset file "/presets/invalid.json" contains unknown parameter "unknown".',
+      'Preset file "/presets/invalid.json" contains unknown parameter "unknown".'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -866,21 +954,21 @@ describe("runCLI", () => {
       name: "deploy",
       params: S.Object({
         slug: S.String({
-          pattern: "^[a-z]+$",
-        }),
+          pattern: "^[a-z]+$"
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     vol.fromJSON({
       "/presets/invalid-pattern.json": JSON.stringify({
-        slug: "bad-value",
-      }),
+        slug: "bad-value"
+      })
     });
 
     process.argv = [
@@ -889,14 +977,14 @@ describe("runCLI", () => {
       "deploy",
       "--preset",
       "/presets/invalid-pattern.json",
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Preset file "/presets/invalid-pattern.json" has an invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".',
+      'Preset file "/presets/invalid-pattern.json" has an invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -907,31 +995,22 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        service: S.String(),
+        service: S.String()
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
-    process.argv = [
-      "node",
-      "toolcraft",
-      "deploy",
-      "--preset",
-      "/presets/missing.json",
-      "--yes",
-    ];
+    process.argv = ["node", "toolcraft", "deploy", "--preset", "/presets/missing.json", "--yes"];
 
     await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
-    expect(loggerState.error).toEqual([
-      'Preset file "/presets/missing.json" was not found.',
-    ]);
+    expect(loggerState.error).toEqual(['Preset file "/presets/missing.json" was not found.']);
     expect(process.exitCode).toBe(1);
   });
 
@@ -941,18 +1020,18 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        service: S.String(),
+        service: S.String()
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     vol.fromJSON({
-      "/presets/invalid-json.json": "{",
+      "/presets/invalid-json.json": "{"
     });
 
     process.argv = [
@@ -961,14 +1040,14 @@ describe("runCLI", () => {
       "deploy",
       "--preset",
       "/presets/invalid-json.json",
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Preset file "/presets/invalid-json.json" is not valid JSON.',
+      'Preset file "/presets/invalid-json.json" is not valid JSON.'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -979,28 +1058,21 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        service: S.String(),
+        service: S.String()
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     vol.mkdirSync("/presets/directory", {
-      recursive: true,
+      recursive: true
     });
 
-    process.argv = [
-      "node",
-      "toolcraft",
-      "deploy",
-      "--preset",
-      "/presets/directory",
-      "--yes",
-    ];
+    process.argv = ["node", "toolcraft", "deploy", "--preset", "/presets/directory", "--yes"];
 
     await runCLI(root, { presets: true });
 
@@ -1017,15 +1089,15 @@ describe("runCLI", () => {
       name: "deploy",
       params: S.Object({
         name: S.String({
-          default: "demo-service",
-        }),
+          default: "demo-service"
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     promptState.text.mockResolvedValueOnce("");
@@ -1035,27 +1107,29 @@ describe("runCLI", () => {
 
     expect(handler).toHaveBeenCalledTimes(1);
     expect(handler.mock.calls[0]?.[0].params).toEqual({
-      name: "demo-service",
+      name: "demo-service"
     });
   });
 
   it("skips prompts when stdin is not a TTY and uses defaults", async () => {
-    const handler = vi.fn(async (ctx: { params: { name: string; optional?: string } }) => ctx.params);
+    const handler = vi.fn(
+      async (ctx: { params: { name: string; optional?: string } }) => ctx.params
+    );
 
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
         name: S.String({
-          default: "demo-service",
+          default: "demo-service"
         }),
-        optional: S.Optional(S.String()),
+        optional: S.Optional(S.String())
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     setTTY(process.stdin, false);
@@ -1066,7 +1140,7 @@ describe("runCLI", () => {
     expect(promptState.text).not.toHaveBeenCalled();
     expect(promptState.select).not.toHaveBeenCalled();
     expect(handler.mock.calls[0]?.[0].params).toEqual({
-      name: "demo-service",
+      name: "demo-service"
     });
   });
 
@@ -1076,16 +1150,16 @@ describe("runCLI", () => {
       name: "deploy",
       params: S.Object({}),
       handler: async () => ({
-        ok: true,
+        ok: true
       }),
       render: {
-        markdown: () => "rendered markdown",
-      },
+        markdown: () => "rendered markdown"
+      }
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = ["node", "toolcraft", "deploy", "--output", "markdown", "--yes"];
@@ -1099,18 +1173,18 @@ describe("runCLI", () => {
     {
       argv: ["node", "toolcraft", "deploy", "--yes"],
       expected: "terminal",
-      label: "rich",
+      label: "rich"
     },
     {
       argv: ["node", "toolcraft", "deploy", "--output", "md", "--yes"],
       expected: "markdown",
-      label: "md",
+      label: "md"
     },
     {
       argv: ["node", "toolcraft", "deploy", "--output", "json", "--yes"],
       expected: "json",
-      label: "json",
-    },
+      label: "json"
+    }
   ])("sets OUTPUT_FORMAT to $expected while running $label output", async ({ argv, expected }) => {
     const seenOutputFormats: Array<string | undefined> = [];
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
@@ -1120,12 +1194,12 @@ describe("runCLI", () => {
       handler: async () => {
         seenOutputFormats.push(process.env.OUTPUT_FORMAT);
         return null;
-      },
+      }
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = argv;
@@ -1146,17 +1220,17 @@ describe("runCLI", () => {
       name: "deploy",
       params: S.Object({}),
       handler: async () => ({
-        ok: true,
+        ok: true
       }),
       render: {
         rich: renderRich,
-        json: renderJson,
-      },
+        json: renderJson
+      }
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     setTTY(process.stdout, false);
@@ -1168,12 +1242,12 @@ describe("runCLI", () => {
 
     expect(renderRich).toHaveBeenCalledWith(
       {
-        ok: true,
+        ok: true
       },
       expect.objectContaining({
         logger: expect.any(Object),
         renderTable: expect.any(Function),
-        getTheme: expect.any(Function),
+        getTheme: expect.any(Function)
       })
     );
     expect(renderJson).not.toHaveBeenCalled();
@@ -1187,20 +1261,20 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        json: S.Optional(S.Boolean()),
+        json: S.Optional(S.Boolean())
       }),
       handler: async () => ({
-        ok: true,
+        ok: true
       }),
       render: {
         rich: renderRich,
-        json: renderJson,
-      },
+        json: renderJson
+      }
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = ["node", "toolcraft", "deploy", "--output", "md", "--json", "--yes"];
@@ -1210,7 +1284,7 @@ describe("runCLI", () => {
     expect([
       renderRich.mock.calls.length,
       renderJson.mock.calls.length,
-      readStdout(stdoutWrite),
+      readStdout(stdoutWrite)
     ]).toEqual([0, 1, '{\n  "ok": true\n}\n']);
   });
 
@@ -1218,14 +1292,14 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     setTTY(process.stdin, false);
@@ -1244,12 +1318,12 @@ describe("runCLI", () => {
       params: S.Object({}),
       handler: async () => {
         throw new UserError("Invalid input.");
-      },
+      }
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = ["node", "toolcraft", "deploy", "--yes"];
@@ -1269,15 +1343,15 @@ describe("runCLI", () => {
       secrets: {
         apiKey: {
           env: "API_KEY",
-          description: "Set it in the environment before running this command.",
-        },
+          description: "Set it in the environment before running this command."
+        }
       },
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     delete process.env.API_KEY;
@@ -1288,7 +1362,7 @@ describe("runCLI", () => {
     expect(handler).not.toHaveBeenCalled();
     expect(promptState.text).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      "Error: Missing required secret API_KEY\n  Set it in the environment before running this command.",
+      "Error: Missing required secret API_KEY\n  Set it in the environment before running this command."
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1299,17 +1373,17 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
       requires: {
-        auth: true,
+        auth: true
       },
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     delete process.env.POE_API_KEY;
@@ -1320,7 +1394,7 @@ describe("runCLI", () => {
     expect(handler).not.toHaveBeenCalled();
     expect(promptState.text).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      `Error: Command "deploy" requires authentication.\n  Run 'poe-code login' first.`,
+      `Error: Command "deploy" requires authentication.\n  Run 'poe-code login' first.`
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1331,12 +1405,12 @@ describe("runCLI", () => {
       params: S.Object({}),
       handler: async () => {
         throw new Error("Boom.");
-      },
+      }
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
@@ -1364,19 +1438,19 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({}),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     await expect(
       runCLI(root, {
         services: {
-          params: "bad",
-        },
+          params: "bad"
+        }
       })
     ).rejects.toThrow('Service name "params" is reserved. Choose a different name.');
   });
@@ -1389,7 +1463,7 @@ describe("runCLI", () => {
       }),
       writeValue: vi.fn(async () => {
         throw new Error("real store write should not be used in fixture mode");
-      }),
+      })
     };
 
     process.env.TOOLCRAFT_FIXTURE = "2";
@@ -1397,8 +1471,8 @@ describe("runCLI", () => {
 
     await runCLI(fixtureRoot, {
       services: {
-        store: realStore,
-      },
+        store: realStore
+      }
     });
 
     const payload = JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join(""));
@@ -1406,13 +1480,13 @@ describe("runCLI", () => {
       exists: true,
       file: "named file",
       matched: {
-        scenario: "named",
+        scenario: "named"
       },
       missingFile: null,
       secret: "fixture-secret",
       storeValue: null,
       unmatchedReadStatus: null,
-      unmatchedWriteStatus: 204,
+      unmatchedWriteStatus: 204
     });
     expect(realStore.readValue).not.toHaveBeenCalled();
     expect(realStore.writeValue).not.toHaveBeenCalled();
@@ -1428,14 +1502,14 @@ describe("runCLI", () => {
       services: {
         store: {
           readValue: async () => "live value",
-          writeValue: async () => undefined,
-        },
-      },
+          writeValue: async () => undefined
+        }
+      }
     });
 
     const payload = JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join(""));
     expect(payload.matched).toEqual({
-      scenario: "named",
+      scenario: "named"
     });
     expect(payload.file).toBe("named file");
     expect(payload.unmatchedReadStatus).toBeNull();
@@ -1446,7 +1520,7 @@ describe("runCLI", () => {
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     const realStore = {
       readValue: vi.fn(async () => "live value"),
-      writeValue: vi.fn(async () => undefined),
+      writeValue: vi.fn(async () => undefined)
     };
 
     process.env.TOOLCRAFT_FIXTURE = "no-op fallback";
@@ -1454,8 +1528,8 @@ describe("runCLI", () => {
 
     await runCLI(fixtureRoot, {
       services: {
-        store: realStore,
-      },
+        store: realStore
+      }
     });
 
     const payload = JSON.parse(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join(""));
@@ -1467,7 +1541,7 @@ describe("runCLI", () => {
       secret: "fixture-secret",
       storeValue: null,
       unmatchedReadStatus: null,
-      unmatchedWriteStatus: 204,
+      unmatchedWriteStatus: 204
     });
     expect(realStore.readValue).not.toHaveBeenCalled();
     expect(realStore.writeValue).not.toHaveBeenCalled();
@@ -1483,20 +1557,20 @@ describe("runCLI", () => {
           discriminator: "kind",
           branches: {
             email: S.Object({
-              address: S.String(),
+              address: S.String()
             }),
             webhook: S.Object({
-              url: S.String(),
-            }),
-          },
-        }),
+              url: S.String()
+            })
+          }
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [send],
+      children: [send]
     });
 
     process.argv = [
@@ -1507,7 +1581,7 @@ describe("runCLI", () => {
       "email",
       "--destination.address",
       "alerts@example.com",
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root);
@@ -1517,9 +1591,9 @@ describe("runCLI", () => {
         params: {
           destination: {
             kind: "email",
-            address: "alerts@example.com",
-          },
-        },
+            address: "alerts@example.com"
+          }
+        }
       })
     );
   });
@@ -1534,20 +1608,20 @@ describe("runCLI", () => {
           discriminator: "kind",
           branches: {
             email: S.Object({
-              address: S.String(),
+              address: S.String()
             }),
             webhook: S.Object({
-              url: S.String(),
-            }),
-          },
-        }),
+              url: S.String()
+            })
+          }
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [send],
+      children: [send]
     });
 
     process.argv = [
@@ -1560,14 +1634,14 @@ describe("runCLI", () => {
       "alerts@example.com",
       "--destination.url",
       "https://example.com/hook",
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root);
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Parameter "destination.url" is not valid when "destination.kind" is "email".',
+      'Parameter "destination.url" is not valid when "destination.kind" is "email".'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1580,19 +1654,19 @@ describe("runCLI", () => {
       params: S.Object({
         contact: S.Union([
           S.Object({
-            email: S.String(),
+            email: S.String()
           }),
           S.Object({
-            phone: S.String(),
-          }),
-        ]),
+            phone: S.String()
+          })
+        ])
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [notify],
+      children: [notify]
     });
 
     process.argv = [
@@ -1603,7 +1677,7 @@ describe("runCLI", () => {
       "email",
       "--contact.email",
       "alerts@example.com",
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root);
@@ -1612,9 +1686,9 @@ describe("runCLI", () => {
       expect.objectContaining({
         params: {
           contact: {
-            email: "alerts@example.com",
-          },
-        },
+            email: "alerts@example.com"
+          }
+        }
       })
     );
   });
@@ -1627,19 +1701,19 @@ describe("runCLI", () => {
       params: S.Object({
         contact: S.Union([
           S.Object({
-            email: S.String(),
+            email: S.String()
           }),
           S.Object({
-            phone: S.String(),
-          }),
-        ]),
+            phone: S.String()
+          })
+        ])
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [notify],
+      children: [notify]
     });
 
     process.argv = [
@@ -1650,14 +1724,14 @@ describe("runCLI", () => {
       "phone",
       "--contact.email",
       "alerts@example.com",
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root);
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Parameter "contact.email" is not valid when "contact-kind" is "phone".',
+      'Parameter "contact.email" is not valid when "contact-kind" is "phone".'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1668,14 +1742,14 @@ describe("runCLI", () => {
     const configure = defineCommand({
       name: "configure",
       params: S.Object({
-        weights: S.Record(S.Number()),
+        weights: S.Record(S.Number())
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [configure],
+      children: [configure]
     });
 
     process.argv = [
@@ -1686,7 +1760,7 @@ describe("runCLI", () => {
       "3",
       "--weights.secondary",
       "7",
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root);
@@ -1696,9 +1770,9 @@ describe("runCLI", () => {
         params: {
           weights: {
             primary: 3,
-            secondary: 7,
-          },
-        },
+            secondary: 7
+          }
+        }
       })
     );
   });
@@ -1712,16 +1786,16 @@ describe("runCLI", () => {
         recipients: S.Array(
           S.Object({
             name: S.String(),
-            email: S.String(),
+            email: S.String()
           })
-        ),
+        )
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [invite],
+      children: [invite]
     });
 
     process.argv = [
@@ -1736,7 +1810,7 @@ describe("runCLI", () => {
       "Linus",
       "--recipients.1.email",
       "linus@example.com",
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root);
@@ -1747,14 +1821,14 @@ describe("runCLI", () => {
           recipients: [
             {
               name: "Ada",
-              email: "ada@example.com",
+              email: "ada@example.com"
             },
             {
               name: "Linus",
-              email: "linus@example.com",
-            },
-          ],
-        },
+              email: "linus@example.com"
+            }
+          ]
+        }
       })
     );
   });
@@ -1767,32 +1841,25 @@ describe("runCLI", () => {
       params: S.Object({
         recipients: S.Array(
           S.Object({
-            name: S.String(),
+            name: S.String()
           })
-        ),
+        )
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [invite],
+      children: [invite]
     });
 
-    process.argv = [
-      "node",
-      "toolcraft",
-      "invite",
-      "--recipients.1.name",
-      "Linus",
-      "--yes",
-    ];
+    process.argv = ["node", "toolcraft", "invite", "--recipients.1.name", "Linus", "--yes"];
 
     await runCLI(root);
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Array parameter "recipients" must use contiguous indices starting at 0.',
+      'Array parameter "recipients" must use contiguous indices starting at 0.'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1804,15 +1871,15 @@ describe("runCLI", () => {
       name: "update",
       params: S.Object({
         nickname: S.String({
-          nullable: true,
-        }),
+          nullable: true
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [update],
+      children: [update]
     });
 
     process.argv = ["node", "toolcraft", "update", "--nickname=null", "--yes"];
@@ -1822,8 +1889,8 @@ describe("runCLI", () => {
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
-          nickname: null,
-        },
+          nickname: null
+        }
       })
     );
   });
@@ -1835,15 +1902,15 @@ describe("runCLI", () => {
       name: "deploy",
       params: S.Object({
         slug: S.String({
-          pattern: "^[a-z]+$",
-        }),
+          pattern: "^[a-z]+$"
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [deploy],
+      children: [deploy]
     });
 
     process.argv = ["node", "toolcraft", "deploy", "--slug", "bad-value", "--yes"];
@@ -1852,7 +1919,7 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".',
+      'Invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1866,17 +1933,17 @@ describe("runCLI", () => {
         network: S.Object({
           database: S.Object({
             primary: S.Object({
-              host: S.String(),
-            }),
-          }),
-        }),
+              host: S.String()
+            })
+          })
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [connect],
+      children: [connect]
     });
 
     process.argv = [
@@ -1885,7 +1952,7 @@ describe("runCLI", () => {
       "connect",
       "--network.database.primary.host",
       "db.internal",
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root);
@@ -1896,11 +1963,11 @@ describe("runCLI", () => {
           network: {
             database: {
               primary: {
-                host: "db.internal",
-              },
-            },
-          },
-        },
+                host: "db.internal"
+              }
+            }
+          }
+        }
       })
     );
   });
@@ -1911,14 +1978,14 @@ describe("runCLI", () => {
     const publish = defineCommand({
       name: "publish",
       params: S.Object({
-        payload: S.Json(),
+        payload: S.Json()
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [publish],
+      children: [publish]
     });
 
     process.argv = [
@@ -1927,7 +1994,7 @@ describe("runCLI", () => {
       "publish",
       "--payload",
       '{"topic":"release","meta":{"count":2}}',
-      "--yes",
+      "--yes"
     ];
 
     await runCLI(root);
@@ -1938,10 +2005,10 @@ describe("runCLI", () => {
           payload: {
             topic: "release",
             meta: {
-              count: 2,
-            },
-          },
-        },
+              count: 2
+            }
+          }
+        }
       })
     );
   });
@@ -1950,17 +2017,17 @@ describe("runCLI", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({}),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const generate = defineGroup({
       name: "generate",
-      children: [deploy],
+      children: [deploy]
     });
 
     const root = defineGroup({
       name: "poe-code",
-      children: [generate],
+      children: [generate]
     });
 
     process.argv = ["node", "poe-code", "--help"];
@@ -1968,7 +2035,7 @@ describe("runCLI", () => {
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
     await runCLI(root, {
-      version: "1.2.3",
+      version: "1.2.3"
     });
 
     expect(readStdout(stdoutWrite)).toContain("poe-code\n");
@@ -1980,25 +2047,25 @@ describe("runCLI", () => {
       name: "list-tasks",
       description: "List tasks",
       params: S.Object({
-        section: S.Optional(S.String()),
+        section: S.Optional(S.String())
       }),
-      handler: async () => null,
+      handler: async () => null
     });
     const details = defineCommand({
       name: "details",
       description: "Get task details",
       params: S.Object({
-        taskGid: S.String(),
+        taskGid: S.String()
       }),
-      handler: async () => null,
+      handler: async () => null
     });
     const asana = defineGroup({
       name: "asana",
-      children: [listTasks, details],
+      children: [listTasks, details]
     });
     const root = defineGroup({
       name: "toolcraft",
-      children: [asana],
+      children: [asana]
     });
 
     process.argv = ["node", "toolcraft", "asana", "--help"];
@@ -2017,13 +2084,13 @@ describe("runCLI", () => {
       name: "list",
       description: "List calendar events",
       params: S.Object({}),
-      handler: async () => null,
+      handler: async () => null
     });
     const createMeeting = defineCommand({
       name: "create",
       description: "Create meeting",
       params: S.Object({}),
-      handler: async () => null,
+      handler: async () => null
     });
     const calendar = defineGroup({
       name: "calendar",
@@ -2031,18 +2098,18 @@ describe("runCLI", () => {
       children: [
         defineGroup({
           name: "events",
-          children: [listEvents],
+          children: [listEvents]
         }),
         defineGroup({
           name: "meeting",
-          children: [createMeeting],
-        }),
-      ],
+          children: [createMeeting]
+        })
+      ]
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [calendar],
+      children: [calendar]
     });
 
     process.argv = ["node", "toolcraft", "--help"];
@@ -2055,12 +2122,12 @@ describe("runCLI", () => {
     expect(output).toContain("Commands");
     expect(output).not.toContain("Commands:");
     expect(output).toContain("calendar");
-    expect(output).toContain("  events");
-    expect(output).toContain("    list");
-    expect(output).toContain("List calendar events");
-    expect(output).toContain("  meeting");
-    expect(output).toContain("    create");
-    expect(output).toContain("Create meeting");
+    expect(output).not.toContain("\n  events");
+    expect(output).not.toContain("\n    list");
+    expect(output).not.toContain("List calendar events");
+    expect(output).not.toContain("\n  meeting");
+    expect(output).not.toContain("\n    create");
+    expect(output).not.toContain("Create meeting");
   });
 
   it("resolves MCP proxy caches from the configured project root", async () => {
@@ -2074,11 +2141,11 @@ describe("runCLI", () => {
           scope: ["cli", "sdk", "mcp"],
           mcp: {
             transport: "stdio",
-            command: "mock-server",
+            command: "mock-server"
           },
-          children: [],
-        }),
-      ],
+          children: []
+        })
+      ]
     });
 
     vol.fromJSON(
@@ -2097,11 +2164,11 @@ describe("runCLI", () => {
               inputSchema: {
                 type: "object",
                 properties: {},
-                additionalProperties: false,
-              },
-            },
-          ],
-        }),
+                additionalProperties: false
+              }
+            }
+          ]
+        })
       },
       "/"
     );
@@ -2119,9 +2186,9 @@ describe("runCLI", () => {
         defineCommand({
           name: "noop",
           params: S.Object({}),
-          handler: async () => null,
-        }),
-      ],
+          handler: async () => null
+        })
+      ]
     });
 
     vol.fromJSON({
@@ -2129,9 +2196,9 @@ describe("runCLI", () => {
       "/repo/package.json": JSON.stringify({ name: "workspace", version: "0.0.1" }),
       "/repo/packages/mytool/package.json": JSON.stringify({
         name: "mytool",
-        version: "2.3.4",
+        version: "2.3.4"
       }),
-      "/repo/packages/mytool/dist/bin.js": "",
+      "/repo/packages/mytool/dist/bin.js": ""
     });
     process.argv = ["node", "/repo/packages/mytool/dist/bin.js", "--version"];
 
@@ -2143,28 +2210,30 @@ describe("runCLI", () => {
   });
 
   it("accepts short option flags defined on params", async () => {
-    const handler = vi.fn(async ({ params }: { params: { session?: string; literal?: boolean } }) => params);
+    const handler = vi.fn(
+      async ({ params }: { params: { session?: string; literal?: boolean } }) => params
+    );
 
     const waitFor = defineCommand({
       name: "wait-for",
       params: S.Object({
         session: S.Optional(
           S.String({
-            short: "s",
+            short: "s"
           })
         ),
         literal: S.Optional(
           S.Boolean({
-            short: "l",
+            short: "l"
           })
-        ),
+        )
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [waitFor],
+      children: [waitFor]
     });
 
     process.argv = ["node", "toolcraft", "wait-for", "-s", "tests", "-l", "--yes"];
@@ -2175,8 +2244,8 @@ describe("runCLI", () => {
       expect.objectContaining({
         params: {
           session: "tests",
-          literal: true,
-        },
+          literal: true
+        }
       })
     );
   });
@@ -2188,15 +2257,15 @@ describe("runCLI", () => {
       name: "screenshot",
       params: S.Object({
         output: S.String({
-          short: "o",
-        }),
+          short: "o"
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [screenshot],
+      children: [screenshot]
     });
 
     process.argv = ["node", "toolcraft", "screenshot", "-o", "screen.png", "--yes"];
@@ -2206,28 +2275,30 @@ describe("runCLI", () => {
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
-          output: "screen.png",
-        },
+          output: "screen.png"
+        }
       })
     );
   });
 
   it("accepts a trailing positional array", async () => {
-    const handler = vi.fn(async ({ params }: { params: { command: string; args?: string[] } }) => params);
+    const handler = vi.fn(
+      async ({ params }: { params: { command: string; args?: string[] } }) => params
+    );
 
     const createSession = defineCommand({
       name: "create-session",
       positional: ["command", "args"],
       params: S.Object({
         command: S.String(),
-        args: S.Optional(S.Array(S.String())),
+        args: S.Optional(S.Array(S.String()))
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [createSession],
+      children: [createSession]
     });
 
     process.argv = ["node", "toolcraft", "create-session", "npm", "test", "--", "--runInBand"];
@@ -2238,8 +2309,8 @@ describe("runCLI", () => {
       expect.objectContaining({
         params: {
           command: "npm",
-          args: ["test", "--runInBand"],
-        },
+          args: ["test", "--runInBand"]
+        }
       })
     );
   });
@@ -2252,15 +2323,15 @@ describe("runCLI", () => {
       positional: ["agent"],
       params: S.Object({
         agent: S.Enum(["claude-code", "codex"], {
-          default: "claude-code",
-        }),
+          default: "claude-code"
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [install],
+      children: [install]
     });
 
     process.argv = ["node", "toolcraft", "install", "--yes"];
@@ -2271,8 +2342,8 @@ describe("runCLI", () => {
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
-          agent: "claude-code",
-        },
+          agent: "claude-code"
+        }
       })
     );
   });
@@ -2286,15 +2357,15 @@ describe("runCLI", () => {
       params: S.Object({
         agent: S.Enum(["claude-code", "codex"], {
           default: "claude-code",
-          description: "Select agent",
-        }),
+          description: "Select agent"
+        })
       }),
-      handler,
+      handler
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [install],
+      children: [install]
     });
 
     promptState.select.mockResolvedValueOnce("codex");
@@ -2305,14 +2376,14 @@ describe("runCLI", () => {
     expect(promptState.select).toHaveBeenCalledWith(
       expect.objectContaining({
         message: "Select agent",
-        initialValue: "claude-code",
+        initialValue: "claude-code"
       })
     );
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
-          agent: "codex",
-        },
+          agent: "codex"
+        }
       })
     );
   });
@@ -2329,11 +2400,11 @@ describe("runCLI", () => {
           name: "deploy",
           positional: ["name"],
           params: S.Object({
-            name: S.String(),
+            name: S.String()
           }),
-          handler: deployHandler,
-        }),
-      ],
+          handler: deployHandler
+        })
+      ]
     });
 
     const terminalPng = defineGroup({
@@ -2343,11 +2414,11 @@ describe("runCLI", () => {
           name: "render",
           positional: ["target"],
           params: S.Object({
-            target: S.String(),
+            target: S.String()
           }),
-          handler: renderHandler,
-        }),
-      ],
+          handler: renderHandler
+        })
+      ]
     });
 
     process.argv = ["node", "poe-code", "terminal-png", "render", "screen.png", "--yes"];
@@ -2357,8 +2428,8 @@ describe("runCLI", () => {
     expect(renderHandler).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
-          target: "screen.png",
-        },
+          target: "screen.png"
+        }
       })
     );
     expect(deployHandler).not.toHaveBeenCalled();
@@ -2371,20 +2442,20 @@ describe("runCLI", () => {
       name: "run",
       positional: ["name"],
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
-      handler,
+      handler
     });
 
     const githubWorkflows = defineGroup({
       name: "github-workflows",
       children: [run],
-      default: run,
+      default: run
     });
 
     const root = defineGroup({
       name: "poe-code",
-      children: [githubWorkflows],
+      children: [githubWorkflows]
     });
 
     process.argv = ["node", "poe-code", "github-workflows", "demo", "--yes"];
@@ -2394,8 +2465,8 @@ describe("runCLI", () => {
     expect(handler).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
-          name: "demo",
-        },
+          name: "demo"
+        }
       })
     );
   });
@@ -2408,29 +2479,29 @@ describe("runCLI", () => {
       name: "run",
       positional: ["name"],
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
-      handler: runHandler,
+      handler: runHandler
     });
 
     const install = defineCommand({
       name: "install",
       positional: ["name"],
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
-      handler: installHandler,
+      handler: installHandler
     });
 
     const githubWorkflows = defineGroup({
       name: "github-workflows",
       children: [run, install],
-      default: run,
+      default: run
     });
 
     const root = defineGroup({
       name: "poe-code",
-      children: [githubWorkflows],
+      children: [githubWorkflows]
     });
 
     process.argv = ["node", "poe-code", "github-workflows", "install", "demo", "--yes"];
@@ -2440,8 +2511,8 @@ describe("runCLI", () => {
     expect(installHandler).toHaveBeenCalledWith(
       expect.objectContaining({
         params: {
-          name: "demo",
-        },
+          name: "demo"
+        }
       })
     );
     expect(runHandler).not.toHaveBeenCalled();
@@ -2453,14 +2524,14 @@ describe("runCLI", () => {
       description: "Generate text.",
       params: S.Object({
         prompt: S.String({
-          description: "Generation prompt",
+          description: "Generation prompt"
         }),
         model: S.String({
           description: "Model identifier",
-          default: "GPT-4.1",
-        }),
+          default: "GPT-4.1"
+        })
       }),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const generate = defineGroup({
@@ -2469,15 +2540,15 @@ describe("runCLI", () => {
       secrets: {
         apiKey: {
           env: "POE_API_KEY",
-          description: "Inherited from generate group",
-        },
+          description: "Inherited from generate group"
+        }
       },
-      children: [textCommand],
+      children: [textCommand]
     });
 
     const root = defineGroup({
       name: "poe-code",
-      children: [generate],
+      children: [generate]
     });
 
     process.argv = ["node", "poe-code", "generate", "text", "--help"];
@@ -2506,51 +2577,53 @@ describe("runCLI", () => {
       name: "inspect",
       params: S.Object({
         impliedFlag: S.Boolean({
-          description: "Implied false flag",
+          description: "Implied false flag"
         }),
         flag: S.Boolean({
           description: "Enable flag",
-          default: false,
+          default: false
         }),
         enabled: S.Boolean({
           description: "Enabled by default",
-          default: true,
+          default: true
         }),
         date: S.String({
           description: "Run date",
-          pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+          pattern: "^\\d{4}-\\d{2}-\\d{2}$"
         }),
         timestamp: S.String({
           description: "Run timestamp",
-          pattern: "^\\d{4}-\\d{2}-\\d{2}T",
+          pattern: "^\\d{4}-\\d{2}-\\d{2}T"
         }),
         callbackUrl: S.String({
           description: "Callback URL",
-          format: "uri",
+          format: "uri"
         }),
         userEmail: S.String({
           description: "User email",
-          format: "email",
+          format: "email"
         }),
-        reportFiles: S.Array(S.String({
-          description: "Report files",
-        })),
+        reportFiles: S.Array(
+          S.String({
+            description: "Report files"
+          })
+        ),
         configPath: S.String({
-          description: "Config path",
+          description: "Config path"
         }),
         token: S.String({
-          description: "Token value",
+          description: "Token value"
         }),
         retries: S.Number({
-          description: "Retry count",
-        }),
+          description: "Retry count"
+        })
       }),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [inspect],
+      children: [inspect]
     });
 
     process.argv = ["node", "toolcraft", "inspect", "--help"];
@@ -2580,18 +2653,18 @@ describe("runCLI", () => {
       name: "inspect",
       params: S.Object({
         configPath: S.String({
-          description: "Config path",
+          description: "Config path"
         }),
         ownerEmail: S.String({
-          description: "Owner email",
-        }),
+          description: "Owner email"
+        })
       }),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [inspect],
+      children: [inspect]
     });
 
     process.argv = ["node", "toolcraft", "inspect", "--help"];
@@ -2614,36 +2687,36 @@ describe("runCLI", () => {
           discriminator: "kind",
           branches: {
             email: S.Object({
-              address: S.String(),
+              address: S.String()
             }),
             webhook: S.Object({
-              url: S.String(),
-            }),
-          },
+              url: S.String()
+            })
+          }
         }),
         contact: S.Union([
           S.Object({
-            email: S.String(),
+            email: S.String()
           }),
           S.Object({
-            phone: S.String(),
-          }),
+            phone: S.String()
+          })
         ]),
         weights: S.Record(S.Number()),
         recipients: S.Array(
           S.Object({
             name: S.String(),
-            email: S.String(),
+            email: S.String()
           })
         ),
-        payload: S.Json(),
+        payload: S.Json()
       }),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const root = defineGroup({
       name: "toolcraft",
-      children: [publish],
+      children: [publish]
     });
 
     process.argv = ["node", "toolcraft", "publish", "--help"];
@@ -2670,25 +2743,25 @@ describe("runCLI", () => {
       name: "text",
       description: "Generate text",
       params: S.Object({}),
-      handler: async () => null,
+      handler: async () => null
     });
     const hiddenCommand = defineCommand({
       name: "invoke",
       description: "Internal SDK helper",
       params: S.Object({}),
       scope: ["sdk"],
-      handler: async () => null,
+      handler: async () => null
     });
 
     const generate = defineGroup({
       name: "generate",
       description: "Generate content via Poe API.",
-      children: [visibleCommand, hiddenCommand],
+      children: [visibleCommand, hiddenCommand]
     });
 
     const root = defineGroup({
       name: "poe-code",
-      children: [generate],
+      children: [generate]
     });
 
     process.argv = ["node", "poe-code", "generate", "--help"];
@@ -2708,12 +2781,12 @@ describe("runCLI", () => {
     const builder = defineGroup({
       name: "builder",
       description: "Builder commands.",
-      children: [],
+      children: []
     });
 
     const root = defineGroup({
       name: "poe-code",
-      children: [builder],
+      children: [builder]
     });
 
     process.argv = ["node", "poe-code", "--help"];
@@ -2732,12 +2805,12 @@ describe("runCLI", () => {
     const builder = defineGroup({
       name: "builder",
       description: "Builder commands.",
-      children: [],
+      children: []
     });
 
     const root = defineGroup({
       name: "poe-code",
-      children: [builder],
+      children: [builder]
     });
 
     process.argv = ["node", "poe-code", "builder", "--help"];
@@ -2754,11 +2827,11 @@ describe("runCLI", () => {
   it("falls back to toolcraft as the program name when mounting multiple roots without an entrypoint", async () => {
     const first = defineGroup({
       name: "first",
-      children: [],
+      children: []
     });
     const second = defineGroup({
       name: "second",
-      children: [],
+      children: []
     });
 
     process.argv = ["node", "", "--help"];
@@ -2768,5 +2841,287 @@ describe("runCLI", () => {
     await runCLI([first, second]);
 
     expect(readStdout(stdoutWrite)).toContain("toolcraft\n");
+  });
+
+  it("renders a blank-named root group with inferred heading and usage", async () => {
+    setStdoutColumns(100);
+    const root = defineGroup({
+      name: "",
+      description: "X",
+      children: [
+        defineCommand({
+          name: "deploy",
+          params: S.Object({}),
+          handler: async () => null
+        })
+      ]
+    });
+
+    process.argv = ["node", "/usr/local/bin/poe-code", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
+      "poe-code — X
+
+      Usage: poe-code [command] [options]
+
+      Commands
+        deploy
+        approvals   Inspect and execute queued approvals.
+
+      Options
+        --yes               Accept defaults, skip prompts
+        --output <format>   Output format: rich, md, json.
+      "
+    `);
+  });
+
+  it("renders two-level group help with full heading and usage", async () => {
+    setStdoutColumns(100);
+    const child = defineGroup({
+      name: "child",
+      description: "desc",
+      children: []
+    });
+    const parent = defineGroup({
+      name: "parent",
+      children: [child]
+    });
+    const root = defineGroup({
+      name: "",
+      children: [parent]
+    });
+
+    process.argv = ["node", "/opt/bin/poe-code", "parent", "child", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
+      "parent child — desc
+
+      Usage: poe-code parent child [command] [options]
+
+      Options
+        --yes               Accept defaults, skip prompts
+        --output <format>   Output format: rich, md, json.
+      "
+    `);
+  });
+
+  it("always renders usage lines at every help level with argv-derived root usage", async () => {
+    setStdoutColumns(100);
+    const leaf = defineCommand({
+      name: "leaf",
+      positional: ["target"],
+      params: S.Object({
+        target: S.String()
+      }),
+      handler: async () => null
+    });
+    const group = defineGroup({
+      name: "group",
+      children: [leaf]
+    });
+    const root = defineGroup({
+      name: "",
+      children: [group]
+    });
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "/repo/bin/custom-cli", "--help"];
+    await runCLI(root);
+    const rootHelp = readStdout(stdoutWrite);
+
+    stdoutWrite.mockClear();
+    process.argv = ["node", "/repo/bin/custom-cli", "group", "--help"];
+    await runCLI(root);
+    const groupHelp = readStdout(stdoutWrite);
+
+    stdoutWrite.mockClear();
+    process.argv = ["node", "/repo/bin/custom-cli", "group", "leaf", "--help"];
+    await runCLI(root);
+    const leafHelp = readStdout(stdoutWrite);
+
+    expect({
+      root: rootHelp.split("\n").find((line) => line.startsWith("Usage:")),
+      group: groupHelp.split("\n").find((line) => line.startsWith("Usage:")),
+      leaf: leafHelp.split("\n").find((line) => line.startsWith("Usage:"))
+    }).toMatchInlineSnapshot(`
+      {
+        "group": "Usage: custom-cli group [command] [options]",
+        "leaf": "Usage: custom-cli group leaf [options] <target>",
+        "root": "Usage: custom-cli [command] [options]",
+      }
+    `);
+  });
+
+  it("lists only direct children in a group commands section", async () => {
+    setStdoutColumns(100);
+    const grandchild = defineCommand({
+      name: "grandchild",
+      description: "Nested leaf",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const child = defineGroup({
+      name: "child",
+      description: "Child group",
+      children: [grandchild]
+    });
+    const sibling = defineCommand({
+      name: "sibling",
+      description: "Sibling leaf",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [child, sibling]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
+      "toolcraft
+
+      Usage: toolcraft [command] [options]
+
+      Commands
+        child       Child group
+        sibling     Sibling leaf
+        approvals   Inspect and execute queued approvals.
+
+      Options
+        --yes               Accept defaults, skip prompts
+        --output <format>   Output format: rich, md, json.
+      "
+    `);
+  });
+
+  it("splits a multi-sentence leaf description between heading and paragraph", async () => {
+    setStdoutColumns(100);
+    const inspect = defineCommand({
+      name: "inspect",
+      description: "First sentence. Second sentence explains more.",
+      params: S.Object({}),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [inspect]
+    });
+
+    process.argv = ["node", "toolcraft", "inspect", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
+      "toolcraft inspect — First sentence.
+
+      Second sentence explains more.
+
+      Usage: toolcraft inspect [options]
+
+      Options
+        --yes               Accept defaults, skip prompts
+        --output <format>   Output format: rich, md, json.
+      "
+    `);
+  });
+
+  it("wraps help descriptions at narrow terminal widths", async () => {
+    setStdoutColumns(60);
+    const scan = defineCommand({
+      name: "scan",
+      description: "Scan repositories and summarize changes.",
+      params: S.Object({
+        repositoryPath: S.String({
+          description:
+            "Repository path with a deliberately long explanation that wraps in narrow terminals"
+        })
+      }),
+      handler: async () => null
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      description: "Developer automation commands.",
+      children: [scan]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
+      "toolcraft — Developer automation commands.
+
+      Usage: toolcraft [command] [options]
+
+      Commands
+        scan --repository-path <path>   Scan repositories and
+                                        summarize changes.
+        approvals                       Inspect and execute queued
+                                        approvals.
+
+      Options
+        --yes               Accept defaults, skip prompts
+        --output <format>   Output format: rich, md, json.
+      "
+    `);
+  });
+
+  it("uses plain help formatting when stdout is not a TTY", async () => {
+    setStdoutColumns(100);
+    setTTY(process.stdout, false);
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [
+        defineCommand({
+          name: "deploy",
+          description: "Deploy a service",
+          params: S.Object({}),
+          handler: async () => null
+        })
+      ]
+    });
+
+    process.argv = ["node", "toolcraft", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toMatchInlineSnapshot(`
+      "toolcraft
+
+      Usage: toolcraft [command] [options]
+
+      Commands
+        deploy      Deploy a service
+        approvals   Inspect and execute queued approvals.
+
+      Options
+        --yes               Accept defaults, skip prompts
+        --output <format>   Output format: rich, md, json.
+      "
+    `);
+    expect(formatterState.plainCommandListCalls).toBeGreaterThan(0);
+    expect(formatterState.plainOptionListCalls).toBeGreaterThan(0);
+    expect(output).not.toContain("\u001b[");
   });
 });

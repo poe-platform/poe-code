@@ -1,13 +1,18 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { Command as CommanderCommand, CommanderError, InvalidArgumentError, Option } from "commander";
+import {
+  Command as CommanderCommand,
+  CommanderError,
+  InvalidArgumentError,
+  Option
+} from "commander";
 import type {
   AnySchema,
   ArraySchema,
   EnumSchema,
   JsonValueSchema,
   ObjectSchema,
-  RecordSchema,
+  RecordSchema
 } from "toolcraft-schema";
 import {
   cancel,
@@ -16,13 +21,14 @@ import {
   formatCommandList,
   formatOptionList,
   getTheme,
+  helpFormatterPlain,
   isCancel,
   note,
   promptText,
   renderTable,
   resetOutputFormatCache,
   select,
-  text,
+  text
 } from "@poe-code/design-system";
 import type {
   Command,
@@ -33,9 +39,15 @@ import type {
   HandlerFs,
   SecretDeclarations,
   SecretDefinition,
-  Scope,
+  Scope
 } from "./index.js";
-import { ApprovalDeclinedError, UserError, assertCommandRequirements, getCommandSourcePath, resolveCommandSecrets } from "./index.js";
+import {
+  ApprovalDeclinedError,
+  UserError,
+  assertCommandRequirements,
+  getCommandSourcePath,
+  resolveCommandSecrets
+} from "./index.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
 import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
@@ -215,7 +227,7 @@ function normalizeRoots<TServices extends object>(
     name: inferProgramName(argv),
     aliases: [],
     secrets: {},
-    children: roots,
+    children: roots
   };
 }
 
@@ -250,8 +262,12 @@ function splitWords(value: string): string[] {
     const isUppercase = char !== lower && char === upper;
     const previous = value[index - 1];
     const next = value[index + 1];
-    const previousIsLowercase = previous !== undefined && previous === previous.toLowerCase() && previous !== previous.toUpperCase();
-    const nextIsLowercase = next !== undefined && next === next.toLowerCase() && next !== next.toUpperCase();
+    const previousIsLowercase =
+      previous !== undefined &&
+      previous === previous.toLowerCase() &&
+      previous !== previous.toUpperCase();
+    const nextIsLowercase =
+      next !== undefined && next === next.toLowerCase() && next !== next.toUpperCase();
 
     if (isUppercase && current.length > 0 && (previousIsLowercase || nextIsLowercase)) {
       words.push(current.toLowerCase());
@@ -328,7 +344,7 @@ function createSyntheticEnumSchema(values: string[]): EnumSchema<[string, ...str
 
   return {
     kind: "enum",
-    values: values as [string, ...string[]],
+    values: values as [string, ...string[]]
   };
 }
 
@@ -355,17 +371,25 @@ function collectFields(
   const collected: CollectedCliSchema = {
     dynamicFields: [],
     fields: [],
-    variants: [],
+    variants: []
   };
 
   for (const [key, rawChildSchema] of Object.entries(schema.shape) as Array<[string, AnySchema]>) {
     const nextPath = [...path, key];
     const runtimeOptional = inheritedOptional || rawChildSchema.kind === "optional";
     const childSchema = unwrapOptional(rawChildSchema);
-    const requiredWhenActive = rawChildSchema.kind !== "optional" && childSchema.default === undefined;
+    const requiredWhenActive =
+      rawChildSchema.kind !== "optional" && childSchema.default === undefined;
 
     if (childSchema.kind === "object") {
-      const nested = collectFields(childSchema, casing, globalLongOptionFlags, nextPath, runtimeOptional, variantContext);
+      const nested = collectFields(
+        childSchema,
+        casing,
+        globalLongOptionFlags,
+        nextPath,
+        runtimeOptional,
+        variantContext
+      );
       collected.dynamicFields.push(...nested.dynamicFields);
       collected.fields.push(...nested.fields);
       collected.variants.push(...nested.variants);
@@ -380,7 +404,11 @@ function collectFields(
         path: [...nextPath, childSchema.discriminator],
         displayPath: toDisplayPath([...nextPath, childSchema.discriminator]),
         optionAttribute: toOptionAttribute([...nextPath, childSchema.discriminator], casing),
-        commanderOptionAttribute: toCommanderOptionAttribute([...nextPath, childSchema.discriminator], casing, globalLongOptionFlags),
+        commanderOptionAttribute: toCommanderOptionAttribute(
+          [...nextPath, childSchema.discriminator],
+          casing,
+          globalLongOptionFlags
+        ),
         optionFlag: toOptionFlag([...nextPath, childSchema.discriminator], casing),
         shortFlag: undefined,
         schema: createSyntheticEnumSchema(branchIds),
@@ -388,7 +416,7 @@ function collectFields(
         optional: runtimeOptional,
         hasDefault: false,
         defaultValue: undefined,
-        requiredWhenActive,
+        requiredWhenActive
       };
       collected.fields.push(controlField);
 
@@ -397,7 +425,7 @@ function collectFields(
       for (const [branchId, branchSchema] of Object.entries(childSchema.branches)) {
         const branch = collectFields(branchSchema, casing, globalLongOptionFlags, nextPath, true, {
           id: variantId,
-          branchId,
+          branchId
         });
         collected.dynamicFields.push(...branch.dynamicFields);
         collected.fields.push(...branch.fields);
@@ -411,7 +439,7 @@ function collectFields(
             .map((field) => field.id),
           requiredFieldIds: branch.fields
             .filter((field) => field.requiredWhenActive)
-            .map((field) => field.id),
+            .map((field) => field.id)
         });
       }
 
@@ -420,7 +448,7 @@ function collectFields(
         controlDisplayPath: controlField.displayPath,
         controlFieldId: controlField.id,
         optional: runtimeOptional,
-        branches,
+        branches
       });
       continue;
     }
@@ -429,13 +457,19 @@ function collectFields(
       const variantId = `${toDisplayPath(nextPath)}:union`;
       const controlPath = toUnionKindControlPath(nextPath);
       const controlDisplayPath = toUnionKindDisplayPath(nextPath);
-      const branchIds = childSchema.branches.map((branch) => getRequiredBranchFingerprint(branch, casing));
+      const branchIds = childSchema.branches.map((branch) =>
+        getRequiredBranchFingerprint(branch, casing)
+      );
       const controlField: FieldDefinition = {
         id: controlDisplayPath,
         path: controlPath,
         displayPath: controlDisplayPath,
         optionAttribute: toOptionAttribute(controlPath, casing),
-        commanderOptionAttribute: toCommanderOptionAttribute(controlPath, casing, globalLongOptionFlags),
+        commanderOptionAttribute: toCommanderOptionAttribute(
+          controlPath,
+          casing,
+          globalLongOptionFlags
+        ),
         optionFlag: toOptionFlag(controlPath, casing),
         shortFlag: undefined,
         schema: createSyntheticEnumSchema(branchIds),
@@ -444,7 +478,7 @@ function collectFields(
         hasDefault: false,
         defaultValue: undefined,
         requiredWhenActive,
-        synthetic: true,
+        synthetic: true
       };
       collected.fields.push(controlField);
 
@@ -454,7 +488,7 @@ function collectFields(
         const branchId = branchIds[index] ?? "";
         const branch = collectFields(branchSchema, casing, globalLongOptionFlags, nextPath, true, {
           id: variantId,
-          branchId,
+          branchId
         });
         collected.dynamicFields.push(...branch.dynamicFields);
         collected.fields.push(...branch.fields);
@@ -468,7 +502,7 @@ function collectFields(
             .map((field) => field.id),
           requiredFieldIds: branch.fields
             .filter((field) => field.requiredWhenActive)
-            .map((field) => field.id),
+            .map((field) => field.id)
         });
       });
 
@@ -477,7 +511,7 @@ function collectFields(
         controlDisplayPath,
         controlFieldId: controlField.id,
         optional: runtimeOptional,
-        branches,
+        branches
       });
       continue;
     }
@@ -497,7 +531,7 @@ function collectFields(
         requiredWhenActive,
         schema: childSchema,
         variantId: variantContext?.id,
-        variantBranchId: variantContext?.branchId,
+        variantBranchId: variantContext?.branchId
       });
       continue;
     }
@@ -517,7 +551,7 @@ function collectFields(
         requiredWhenActive,
         schema: childSchema as ArraySchema<ObjectSchema<any>>,
         variantId: variantContext?.id,
-        variantBranchId: variantContext?.branchId,
+        variantBranchId: variantContext?.branchId
       });
       continue;
     }
@@ -537,7 +571,7 @@ function collectFields(
       defaultValue: childSchema.default,
       requiredWhenActive,
       variantId: variantContext?.id,
-      variantBranchId: variantContext?.branchId,
+      variantBranchId: variantContext?.branchId
     });
   }
 
@@ -593,7 +627,10 @@ function assignPositionals(fields: FieldDefinition[], positional: string[]): Fie
   return fields;
 }
 
-function formatOptionFlags(field: FieldDefinition, globalLongOptionFlags: ReadonlySet<string>): string {
+function formatOptionFlags(
+  field: FieldDefinition,
+  globalLongOptionFlags: ReadonlySet<string>
+): string {
   const collidesWithGlobalFlag = globalLongOptionFlags.has(field.optionFlag);
 
   if (collidesWithGlobalFlag) {
@@ -637,7 +674,11 @@ function parseBooleanText(value: string, label: string): boolean {
   throw new InvalidArgumentError(`Invalid value for "${label}". Expected true or false.`);
 }
 
-function parseEnumValue(value: string, values: ReadonlyArray<string | number | boolean>, label: string): string | number | boolean {
+function parseEnumValue(
+  value: string,
+  values: ReadonlyArray<string | number | boolean>,
+  label: string
+): string | number | boolean {
   const match = values.find((candidate) => String(candidate) === value);
 
   if (match === undefined) {
@@ -649,7 +690,11 @@ function parseEnumValue(value: string, values: ReadonlyArray<string | number | b
   return match;
 }
 
-function validateStringPattern(value: string, schema: Extract<ScalarSchema, { kind: "string" }>, label: string): string {
+function validateStringPattern(
+  value: string,
+  schema: Extract<ScalarSchema, { kind: "string" }>,
+  label: string
+): string {
   if (schema.pattern === undefined) {
     return value;
   }
@@ -679,7 +724,11 @@ function normalizeCommanderOptionValue(value: unknown): unknown {
   return value === NULL_OPTION_VALUE ? null : value;
 }
 
-function parseScalarValue(value: string, schema: ScalarSchema, label: string): string | number | boolean {
+function parseScalarValue(
+  value: string,
+  schema: ScalarSchema,
+  label: string
+): string | number | boolean {
   if (value === "null" && schema.nullable === true) {
     return null as unknown as string | number | boolean;
   }
@@ -703,7 +752,6 @@ function parseScalarValue(value: string, schema: ScalarSchema, label: string): s
 
     case "enum":
       return parseEnumValue(value, schema.values, label);
-
   }
 
   throw new UserError("Unsupported CLI schema kind.");
@@ -747,10 +795,15 @@ function parseArrayValue(value: string, schema: ArraySchema<any>, label: string)
     throw new UserError(`Array parameter "${label}" must use scalar items.`);
   }
 
-  return splitArrayInput(value).map((item) => parseScalarValue(item, itemSchema as ScalarSchema, label));
+  return splitArrayInput(value).map((item) =>
+    parseScalarValue(item, itemSchema as ScalarSchema, label)
+  );
 }
 
-function createOption(field: FieldDefinition, globalLongOptionFlags: ReadonlySet<string>): Option[] {
+function createOption(
+  field: FieldDefinition,
+  globalLongOptionFlags: ReadonlySet<string>
+): Option[] {
   const flags = formatOptionFlags(field, globalLongOptionFlags);
   const collidesWithGlobalFlag = globalLongOptionFlags.has(field.optionFlag);
   const commanderValue = (value: unknown): unknown => (value === null ? NULL_OPTION_VALUE : value);
@@ -764,12 +817,14 @@ function createOption(field: FieldDefinition, globalLongOptionFlags: ReadonlySet
     mainOption.preset(true);
     // Commander v14 passes the preset value through argParser too, so guard with typeof check
     mainOption.argParser((value: string | boolean) =>
-      typeof value === "boolean" ? value : commanderValue(parseBooleanText(value, field.displayPath))
+      typeof value === "boolean"
+        ? value
+        : commanderValue(parseBooleanText(value, field.displayPath))
     );
 
     return [
       mainOption,
-      createCommanderOption(`--no-${field.optionFlag.slice(2)}`, field.description, field),
+      createCommanderOption(`--no-${field.optionFlag.slice(2)}`, field.description, field)
     ];
   }
 
@@ -777,28 +832,35 @@ function createOption(field: FieldDefinition, globalLongOptionFlags: ReadonlySet
     return [
       createCommanderOption(`${flags} <value...>`, field.description, field).argParser(
         (value: string, previous: unknown[] | null = []) => {
-          const parsed = parseArrayValue(value, field.schema as ArraySchema<any>, field.displayPath);
+          const parsed = parseArrayValue(
+            value,
+            field.schema as ArraySchema<any>,
+            field.displayPath
+          );
           if (parsed === null) {
             return NULL_OPTION_VALUE as unknown as null;
           }
 
           return [...(previous ?? []), ...parsed];
         }
-      ),
+      )
     ];
   }
 
   if (field.schema.kind === "json") {
     return [
-      createCommanderOption(`${flags} <json>`, field.description, field).argParser((value: string) =>
-        commanderValue(parseJsonText(value, field.displayPath))
-      ),
+      createCommanderOption(`${flags} <json>`, field.description, field).argParser(
+        (value: string) => commanderValue(parseJsonText(value, field.displayPath))
+      )
     ];
   }
 
   const option = createCommanderOption(`${flags} <value>`, field.description, field);
 
-  if (field.schema.kind === "enum" && field.schema.values.every((value) => typeof value === "string")) {
+  if (
+    field.schema.kind === "enum" &&
+    field.schema.values.every((value) => typeof value === "string")
+  ) {
     option.choices([...field.schema.values] as string[]);
   }
 
@@ -811,7 +873,11 @@ function createOption(field: FieldDefinition, globalLongOptionFlags: ReadonlySet
 const ALWAYS_GLOBAL_LONG_OPTION_FLAGS = ["--yes", "--output", "--verbose"] as const;
 
 function getGlobalLongOptionFlags(presetsEnabled: boolean): ReadonlySet<string> {
-  return new Set(presetsEnabled ? ["--preset", ...ALWAYS_GLOBAL_LONG_OPTION_FLAGS] : ALWAYS_GLOBAL_LONG_OPTION_FLAGS);
+  return new Set(
+    presetsEnabled
+      ? ["--preset", ...ALWAYS_GLOBAL_LONG_OPTION_FLAGS]
+      : ALWAYS_GLOBAL_LONG_OPTION_FLAGS
+  );
 }
 
 function createCommanderOption(
@@ -877,7 +943,10 @@ function isNodeVisibleInScope<TServices extends object>(
   );
 }
 
-function getVisibleChildren<TServices extends object>(group: Group<TServices>, scope: Scope): Array<Command<TServices, any, any, any> | Group<TServices>> {
+function getVisibleChildren<TServices extends object>(
+  group: Group<TServices>,
+  scope: Scope
+): Array<Command<TServices, any, any, any> | Group<TServices>> {
   return group.children.filter((child) => isNodeVisibleInScope(child, scope));
 }
 
@@ -909,11 +978,8 @@ function resolveHelpTarget<TServices extends object>(
       break;
     }
 
-    const child: Command<TServices, any, any, any> | Group<TServices> | undefined = findVisibleChild(
-      current,
-      token,
-      scope
-    );
+    const child: Command<TServices, any, any, any> | Group<TServices> | undefined =
+      findVisibleChild(current, token, scope);
     if (child === undefined) {
       break;
     }
@@ -924,11 +990,14 @@ function resolveHelpTarget<TServices extends object>(
 
   return {
     breadcrumb,
-    node: current,
+    node: current
   };
 }
 
-function formatHelpFieldFlags(field: FieldDefinition, globalLongOptionFlags: ReadonlySet<string>): string {
+function formatHelpFieldFlags(
+  field: FieldDefinition,
+  globalLongOptionFlags: ReadonlySet<string>
+): string {
   if (field.positionalIndex !== undefined) {
     return formatPositionalToken(field);
   }
@@ -941,10 +1010,13 @@ function formatHelpFieldFlags(field: FieldDefinition, globalLongOptionFlags: Rea
     return formatOptionFlags(field, globalLongOptionFlags);
   }
 
-  return `${formatOptionFlags(field, globalLongOptionFlags)} <${describeHelpValueToken(field.schema, {
-    displayPath: field.displayPath,
-    optionFlag: field.optionFlag,
-  })}>`;
+  return `${formatOptionFlags(field, globalLongOptionFlags)} <${describeHelpValueToken(
+    field.schema,
+    {
+      displayPath: field.displayPath,
+      optionFlag: field.optionFlag
+    }
+  )}>`;
 }
 
 function appendHelpMetadata(description: string, metadata: string[]): string {
@@ -1042,7 +1114,7 @@ function describeFieldNameValueToken(displayPath: string, optionFlag: string): s
     ["Url", "url"],
     ["Email", "email"],
     ["Name", "name"],
-    ["Id", "id"],
+    ["Id", "id"]
   ] as const;
 
   for (const [suffix, token] of suffixTokens) {
@@ -1076,7 +1148,8 @@ function describeHelpValueToken(
   }
 
   if (schema.kind === "string") {
-    const metadataToken = describeKnownStringFormat(schema.format) ?? describeKnownStringPattern(schema.pattern);
+    const metadataToken =
+      describeKnownStringFormat(schema.format) ?? describeKnownStringPattern(schema.pattern);
 
     if (metadataToken !== undefined) {
       return metadataToken;
@@ -1101,7 +1174,7 @@ function describeDynamicFieldType(field: DynamicFieldDefinition): string {
     if (valueSchema.kind === "array") {
       return describeHelpValueToken(valueSchema as FieldSchema, {
         displayPath: field.optionPathDisplay,
-        optionFlag: field.optionFlag,
+        optionFlag: field.optionFlag
       });
     }
 
@@ -1111,7 +1184,7 @@ function describeDynamicFieldType(field: DynamicFieldDefinition): string {
 
     return describeHelpValueToken(valueSchema as FieldSchema, {
       displayPath: field.optionPathDisplay,
-      optionFlag: field.optionFlag,
+      optionFlag: field.optionFlag
     });
   }
 
@@ -1148,7 +1221,9 @@ function collectDynamicObjectHelpRows(
     const description = childSchema.description ?? displayPath;
 
     if (childSchema.kind === "object") {
-      rows.push(...collectDynamicObjectHelpRows(childSchema, casing, optionFlag, displayPath, metadata));
+      rows.push(
+        ...collectDynamicObjectHelpRows(childSchema, casing, optionFlag, displayPath, metadata)
+      );
       continue;
     }
 
@@ -1166,10 +1241,10 @@ function collectDynamicObjectHelpRows(
             hasDefault: false,
             defaultValue: undefined,
             requiredWhenActive: false,
-            schema: childSchema,
-          } satisfies DynamicFieldDefinition),
+            schema: childSchema
+          } satisfies DynamicFieldDefinition)
         })}>`,
-        description: appendHelpMetadata(description, metadata),
+        description: appendHelpMetadata(description, metadata)
       });
       continue;
     }
@@ -1194,10 +1269,10 @@ function collectDynamicObjectHelpRows(
             ? `--no-${optionFlag.slice(2)}`
             : optionFlag
           : `${optionFlag} <${describeHelpValueToken(childSchema as FieldSchema, {
-            displayPath,
-            optionFlag,
-          })}>`,
-      description: appendHelpMetadata(description, metadata),
+              displayPath,
+              optionFlag
+            })}>`,
+      description: appendHelpMetadata(description, metadata)
     });
   }
 
@@ -1233,16 +1308,18 @@ function formatDynamicHelpFields(field: DynamicFieldDefinition, casing: Casing):
     }
   }
 
-  return [{
-    flags: `${field.optionFlag} <${describeDynamicFieldType(field)}>`,
-    description: appendHelpMetadata(field.description ?? field.optionPathDisplay, metadata),
-  }];
+  return [
+    {
+      flags: `${field.optionFlag} <${describeDynamicFieldType(field)}>`,
+      description: appendHelpMetadata(field.description ?? field.optionPathDisplay, metadata)
+    }
+  ];
 }
 
 function formatSecretRows(secrets: SecretDeclarations): HelpOptionRow[] {
   return Object.values(secrets).map((secret) => ({
     flags: secret.env,
-    description: formatSecretDescription(secret),
+    description: formatSecretDescription(secret)
   }));
 }
 
@@ -1258,7 +1335,10 @@ function wrapOptionalCommandParameterToken(token: string, optional: boolean): st
   return optional ? `[${token}]` : token;
 }
 
-function formatCommandDynamicParameterTokens(field: DynamicFieldDefinition, casing: Casing): string[] {
+function formatCommandDynamicParameterTokens(
+  field: DynamicFieldDefinition,
+  casing: Casing
+): string[] {
   const optional = field.optional || field.hasDefault;
   return formatDynamicHelpFields(field, casing).map((row) =>
     wrapOptionalCommandParameterToken(row.flags, optional)
@@ -1280,41 +1360,36 @@ function formatCommandParameterTokens<TServices extends object>(
         field.positionalIndex === undefined && (field.optional || field.hasDefault)
       )
     )
-    .concat(collected.dynamicFields.flatMap((field) => formatCommandDynamicParameterTokens(field, casing)));
+    .concat(
+      collected.dynamicFields.flatMap((field) => formatCommandDynamicParameterTokens(field, casing))
+    );
 }
 
 function formatCommandRowName<TServices extends object>(
   node: Command<TServices, any, any, any> | Group<TServices>,
-  depth: number,
   casing: Casing,
   globalLongOptionFlags: ReadonlySet<string>
 ): string {
-  const baseName = node.aliases.length === 0 ? node.name : `${node.name} (${node.aliases.join(", ")})`;
+  const baseName =
+    node.aliases.length === 0 ? node.name : `${node.name} (${node.aliases.join(", ")})`;
   const parameterTokens =
-    node.kind === "command" ? formatCommandParameterTokens(node, casing, globalLongOptionFlags) : [];
+    node.kind === "command"
+      ? formatCommandParameterTokens(node, casing, globalLongOptionFlags)
+      : [];
   const name = parameterTokens.length === 0 ? baseName : `${baseName} ${parameterTokens.join(" ")}`;
-  return `${"  ".repeat(depth)}${name}`;
+  return name;
 }
 
 function formatCommandRows<TServices extends object>(
   group: Group<TServices>,
   scope: Scope,
   casing: Casing,
-  globalLongOptionFlags: ReadonlySet<string>,
-  depth = 0
+  globalLongOptionFlags: ReadonlySet<string>
 ): HelpCommandRow[] {
-  return getVisibleChildren(group, scope).flatMap((child) => {
-    const row = {
-      name: formatCommandRowName(child, depth, casing, globalLongOptionFlags),
-      description: child.description ?? "",
-    };
-
-    if (child.kind === "command") {
-      return [row];
-    }
-
-    return [row, ...formatCommandRows(child, scope, casing, globalLongOptionFlags, depth + 1)];
-  });
+  return getVisibleChildren(group, scope).map((child) => ({
+    name: formatCommandRowName(child, casing, globalLongOptionFlags),
+    description: child.description ?? ""
+  }));
 }
 
 function formatGlobalOptionRows(ctx: {
@@ -1326,25 +1401,25 @@ function formatGlobalOptionRows(ctx: {
   if (ctx.presetsEnabled) {
     rows.push({
       flags: "--preset <path>",
-      description: "Load parameter defaults from a JSON file",
+      description: "Load parameter defaults from a JSON file"
     });
   }
 
   rows.push(
     {
       flags: "--yes",
-      description: "Accept defaults, skip prompts",
+      description: "Accept defaults, skip prompts"
     },
     {
       flags: "--output <format>",
-      description: "Output format: rich, md, json.",
+      description: "Output format: rich, md, json."
     }
   );
 
   if (ctx.showVersion) {
     rows.push({
       flags: "--version",
-      description: "Show version",
+      description: "Show version"
     });
   }
 
@@ -1355,12 +1430,25 @@ function renderHelpSections(sections: string[]): string {
   return sections.filter((section) => section.length > 0).join("\n\n");
 }
 
-function buildUsageLine(breadcrumb: string[], rootUsageName: string | undefined, suffix: string): string | undefined {
-  if (rootUsageName === undefined) {
-    return undefined;
-  }
-  const subPath = breadcrumb.slice(1).join(" ");
-  return subPath ? `${rootUsageName} ${subPath} ${suffix}` : `${rootUsageName} ${suffix}`;
+function formatHelpCommandList(rows: HelpCommandRow[]): string {
+  return process.stdout.isTTY === false
+    ? helpFormatterPlain.formatCommandList(rows)
+    : formatCommandList(rows);
+}
+
+function formatHelpOptionList(rows: HelpOptionRow[]): string {
+  return process.stdout.isTTY === false
+    ? helpFormatterPlain.formatOptionList(rows)
+    : formatOptionList(rows);
+}
+
+function buildUsageLine(breadcrumb: string[], rootUsageName: string, suffix: string): string {
+  const visibleBreadcrumb = breadcrumb.filter((segment) => segment.length > 0);
+  const usageBreadcrumb =
+    breadcrumb[0] === "" ? [rootUsageName, ...visibleBreadcrumb] : visibleBreadcrumb;
+  const subPath = usageBreadcrumb.slice(1).join(" ");
+  const tokens = [rootUsageName, subPath, suffix].filter((segment) => segment.length > 0);
+  return tokens.join(" ");
 }
 
 function renderGroupHelp<TServices extends object>(
@@ -1372,24 +1460,27 @@ function renderGroupHelp<TServices extends object>(
     showVersion: boolean;
     presetsEnabled: boolean;
   },
-  rootUsageName?: string
+  rootUsageName: string
 ): string {
   const sections: string[] = [];
   const globalLongOptionFlags = getGlobalLongOptionFlags(globalOptions.presetsEnabled);
   const commandRows = formatCommandRows(group, scope, casing, globalLongOptionFlags);
 
   if (commandRows.length > 0) {
-    sections.push(`${text.sectionHeader("Commands")}\n${formatCommandList(commandRows)}`);
+    sections.push(`${text.sectionHeader("Commands")}\n${formatHelpCommandList(commandRows)}`);
   }
 
-  sections.push(`${text.sectionHeader("Options")}\n${formatOptionList(formatGlobalOptionRows(globalOptions))}`);
+  sections.push(
+    `${text.sectionHeader("Options")}\n${formatHelpOptionList(formatGlobalOptionRows(globalOptions))}`
+  );
 
   return renderHelpDocument({
     breadcrumb,
-    usageLine: buildUsageLine(breadcrumb, rootUsageName, "[options] [command]"),
+    rootUsageName,
+    usageLine: buildUsageLine(breadcrumb, rootUsageName, "[command] [options]"),
     description: group.description,
     requiresAuth: group.requires?.auth === true,
-    sections,
+    sections
   });
 }
 
@@ -1401,64 +1492,80 @@ function renderLeafHelp<TServices extends object>(
     showVersion: boolean;
     presetsEnabled: boolean;
   },
-  rootUsageName?: string
+  rootUsageName: string
 ): string {
   const sections: string[] = [];
   const globalLongOptionFlags = getGlobalLongOptionFlags(globalOptions.presetsEnabled);
   const collected = collectFields(command.params, casing, globalLongOptionFlags);
   const fields = assignPositionals(collected.fields, command.positional);
-  const optionRows = fields.map((field) => ({
-    flags: formatHelpFieldFlags(field, globalLongOptionFlags),
-    description: formatHelpFieldDescription(field),
-  })).concat(collected.dynamicFields.flatMap((field) => formatDynamicHelpFields(field, casing)));
+  const optionRows = fields
+    .map((field) => ({
+      flags: formatHelpFieldFlags(field, globalLongOptionFlags),
+      description: formatHelpFieldDescription(field)
+    }))
+    .concat(collected.dynamicFields.flatMap((field) => formatDynamicHelpFields(field, casing)));
 
   if (optionRows.length > 0) {
-    sections.push(`${text.sectionHeader("Options")}\n${formatOptionList(optionRows)}`);
+    sections.push(`${text.sectionHeader("Options")}\n${formatHelpOptionList(optionRows)}`);
   }
 
-  sections.push(`${text.sectionHeader("Options")}\n${formatOptionList(formatGlobalOptionRows(globalOptions))}`);
+  sections.push(
+    `${text.sectionHeader("Options")}\n${formatHelpOptionList(formatGlobalOptionRows(globalOptions))}`
+  );
 
   const secretRows = formatSecretRows(command.secrets);
   if (secretRows.length > 0) {
-    sections.push(`${text.sectionHeader("Secrets (environment)")}\n${formatOptionList(secretRows)}`);
+    sections.push(
+      `${text.sectionHeader("Secrets (environment)")}\n${formatHelpOptionList(secretRows)}`
+    );
   }
 
   const positionalFields = fields.filter((f) => f.positionalIndex !== undefined);
-  const usageSuffix = positionalFields.length > 0
-    ? `[options] ${positionalFields.map(formatPositionalToken).join(" ")}`
-    : "[options]";
+  const usageSuffix =
+    positionalFields.length > 0
+      ? `[options] ${positionalFields.map(formatPositionalToken).join(" ")}`
+      : "[options]";
 
   return renderHelpDocument({
     breadcrumb,
+    rootUsageName,
     usageLine: buildUsageLine(breadcrumb, rootUsageName, usageSuffix),
     description: command.description,
     requiresAuth: command.requires?.auth === true,
-    sections,
+    sections
   });
 }
 
 function renderHelpDocument(input: {
   breadcrumb: string[];
-  usageLine?: string;
+  rootUsageName: string;
+  usageLine: string;
   description?: string;
   requiresAuth: boolean;
   sections: string[];
 }): string {
-  const lines = [text.heading(input.breadcrumb.join(" ")), ""];
+  const title =
+    input.breadcrumb.filter((segment) => segment.length > 0).join(" ") || input.rootUsageName;
+  const description = input.description ?? "";
+  const sentenceEndIndex = description.indexOf(". ");
+  const headingDescription =
+    sentenceEndIndex === -1 ? description : description.slice(0, sentenceEndIndex + 1);
+  const remainingDescription =
+    sentenceEndIndex === -1 ? "" : description.slice(sentenceEndIndex + 2);
+  const heading = headingDescription.length > 0 ? `${title} — ${headingDescription}` : title;
+  const lines = [text.heading(heading), ""];
 
-  if (input.usageLine !== undefined) {
-    lines.push(`${text.section("Usage:")} ${text.usageCommand(input.usageLine)}`, "");
+  if (remainingDescription.length > 0) {
+    lines.push(remainingDescription, "");
   }
 
-  if (input.description !== undefined) {
-    lines.push(input.description);
-  }
+  lines.push(`Usage: ${text.usageCommand(input.usageLine)}`, "");
 
   if (input.requiresAuth) {
     lines.push("Requires: authentication");
   }
 
-  if (input.description !== undefined || input.requiresAuth) {
+  if (input.requiresAuth) {
     lines.push("");
   }
 
@@ -1475,6 +1582,7 @@ async function renderGeneratedHelp<TServices extends object>(
   const target = resolveHelpTarget(root, argv, "cli", options.rootDisplayName);
   const output = resolveHelpOutput(argv);
   const casing = options.casing ?? "kebab";
+  const rootUsageName = options.rootUsageName ?? inferProgramName(argv);
 
   await withOutputFormat(output, async () => {
     const rendered =
@@ -1486,9 +1594,9 @@ async function renderGeneratedHelp<TServices extends object>(
             casing,
             {
               showVersion: options.version !== undefined,
-              presetsEnabled: options.presets === true,
+              presetsEnabled: options.presets === true
             },
-            options.rootUsageName
+            rootUsageName
           )
         : renderLeafHelp(
             target.node,
@@ -1496,9 +1604,9 @@ async function renderGeneratedHelp<TServices extends object>(
             casing,
             {
               showVersion: options.version !== undefined,
-              presetsEnabled: options.presets === true,
+              presetsEnabled: options.presets === true
             },
-            options.rootUsageName
+            rootUsageName
           );
 
     process.stdout.write(rendered);
@@ -1562,7 +1670,7 @@ function createNodeCommand<TServices extends object>(
         presetsEnabled,
         rawArgv: actionCommand.args,
         actionCommand,
-        variants: collected.variants,
+        variants: collected.variants
       });
     });
 
@@ -1574,7 +1682,16 @@ function createNodeCommand<TServices extends object>(
   }
 
   const visibleChildren = node.children
-    .map((child) => createNodeCommand(child, casing, globalLongOptionFlags, execute, presetsEnabled, nextPathSegments))
+    .map((child) =>
+      createNodeCommand(
+        child,
+        casing,
+        globalLongOptionFlags,
+        execute,
+        presetsEnabled,
+        nextPathSegments
+      )
+    )
     .filter((child): child is CommanderCommand => child !== null);
 
   const group = new CommanderCommand(node.name);
@@ -1614,7 +1731,9 @@ function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): v
         return "md";
       }
 
-      throw new InvalidArgumentError('Invalid value for "--output". Expected one of: rich, md, markdown, json.');
+      throw new InvalidArgumentError(
+        'Invalid value for "--output". Expected one of: rich, md, markdown, json.'
+      );
     })
     .option("--verbose", "Print stack traces for unexpected errors.");
 }
@@ -1661,12 +1780,12 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
       ? await schema.loadOptions()
       : schema.values.map((value) => ({
           label: schema.labels?.[String(value)] ?? String(value),
-          value,
+          value
         }));
     const selected = await select({
       message: field.description ?? field.displayPath,
       options,
-      initialValue: field.hasDefault ? field.defaultValue : undefined,
+      initialValue: field.hasDefault ? field.defaultValue : undefined
     });
 
     if (isCancel(selected)) {
@@ -1680,7 +1799,7 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
   if (field.schema.kind === "boolean") {
     const selected = await confirm({
       message: field.displayPath,
-      initialValue: field.hasDefault ? Boolean(field.defaultValue) : undefined,
+      initialValue: field.hasDefault ? Boolean(field.defaultValue) : undefined
     });
 
     if (isCancel(selected)) {
@@ -1696,7 +1815,7 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
     initialValue:
       field.hasDefault && field.defaultValue !== undefined
         ? formatResolvedValue(field.defaultValue)
-        : undefined,
+        : undefined
   });
 
   if (isCancel(entered)) {
@@ -1742,7 +1861,7 @@ function resolveOutput(resolvedFlags: ResolvedFlags): OutputMode {
 const DESIGN_SYSTEM_OUTPUT_BY_MODE = {
   rich: "terminal",
   md: "markdown",
-  json: "json",
+  json: "json"
 } as const satisfies Record<OutputMode, "terminal" | "markdown" | "json">;
 
 function toDesignSystemOutput(output: OutputMode): "terminal" | "markdown" | "json" {
@@ -1768,8 +1887,7 @@ async function withOutputFormat<T>(output: OutputMode, fn: () => Promise<T>): Pr
 
 function createFs(): HandlerFs {
   return {
-    readFile: async (path: string, encoding = "utf8") =>
-      readFile(path, { encoding }),
+    readFile: async (path: string, encoding = "utf8") => readFile(path, { encoding }),
     writeFile: async (path: string, contents: string) => {
       await writeFile(path, contents);
     },
@@ -1780,7 +1898,7 @@ function createFs(): HandlerFs {
       } catch {
         return false;
       }
-    },
+    }
   };
 }
 
@@ -1788,7 +1906,7 @@ function createEnv(values: Record<string, string | undefined> = process.env): Ha
   return {
     get(key: string): string | undefined {
       return values[key];
-    },
+    }
   };
 }
 
@@ -1865,7 +1983,6 @@ function validatePresetScalarValue(
       }
       break;
     }
-
   }
 
   throw new UserError(
@@ -1883,7 +2000,12 @@ function validatePresetFieldValue(
   }
 
   if (field.schema.kind !== "array") {
-    return validatePresetScalarValue(value, field.schema as ScalarSchema, field.displayPath, presetPath);
+    return validatePresetScalarValue(
+      value,
+      field.schema as ScalarSchema,
+      field.displayPath,
+      presetPath
+    );
   }
 
   const itemSchema = unwrapOptional(field.schema.item);
@@ -1911,22 +2033,15 @@ async function loadPresetValues(
 
   try {
     rawPreset = await readFile(presetPath, {
-      encoding: "utf8",
+      encoding: "utf8"
     });
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
       throw new UserError(`Preset file "${presetPath}" was not found.`);
     }
 
     const message =
-      error instanceof Error && error.message.length > 0
-        ? error.message
-        : "Unknown read error.";
+      error instanceof Error && error.message.length > 0 ? error.message : "Unknown read error.";
     throw new UserError(`Preset file "${presetPath}" could not be read: ${message}`);
   }
 
@@ -2050,7 +2165,9 @@ function matchesFixtureValue(expected: unknown, actual: unknown): boolean {
       return false;
     }
 
-    return Object.entries(expected).every(([key, value]) => matchesFixtureValue(value, actual[key]));
+    return Object.entries(expected).every(([key, value]) =>
+      matchesFixtureValue(value, actual[key])
+    );
   }
 
   return Object.is(expected, actual);
@@ -2075,14 +2192,14 @@ function createFixtureResponse(response: FixtureFetchResponse): Response {
   if (response.body === undefined) {
     return new Response(null, {
       status,
-      headers,
+      headers
     });
   }
 
   if (typeof response.body === "string") {
     return new Response(response.body, {
       status,
-      headers,
+      headers
     });
   }
 
@@ -2092,13 +2209,15 @@ function createFixtureResponse(response: FixtureFetchResponse): Response {
 
   return new Response(JSON.stringify(response.body), {
     status,
-    headers,
+    headers
   });
 }
 
 function createFixtureFetch(entries: FixtureFetchEntry[] | undefined): typeof globalThis.fetch {
   return async (input: RequestInfo | URL, init?: RequestInit) => {
-    const method = normalizeHttpMethod(init?.method ?? (input instanceof Request ? input.method : undefined));
+    const method = normalizeHttpMethod(
+      init?.method ?? (input instanceof Request ? input.method : undefined)
+    );
     const url = getFetchUrl(input);
     const match = entries?.find((entry) => {
       const requestMethod = normalizeHttpMethod(entry.request.method);
@@ -2114,7 +2233,7 @@ function createFixtureFetch(entries: FixtureFetchEntry[] | undefined): typeof gl
     }
 
     return new Response(null, {
-      status: 204,
+      status: 204
     });
   };
 }
@@ -2139,7 +2258,7 @@ function createFixtureFs(definition: unknown): HandlerFs {
       }
 
       return Object.prototype.hasOwnProperty.call(readFileEntries, filePath);
-    },
+    }
   };
 }
 
@@ -2158,7 +2277,9 @@ function resolveFixtureMethodResult(
       const matcher =
         explicitMatcher ??
         Object.fromEntries(
-          Object.entries(entry).filter(([key]) => key !== "result" && key !== "response" && key !== "error")
+          Object.entries(entry).filter(
+            ([key]) => key !== "result" && key !== "response" && key !== "error"
+          )
         );
 
       const firstArg = args[0];
@@ -2198,7 +2319,10 @@ function resolveFixtureMethodResult(
   if (isPlainObject(definition)) {
     const firstArg = args[0];
 
-    if (typeof firstArg === "string" && Object.prototype.hasOwnProperty.call(definition, firstArg)) {
+    if (
+      typeof firstArg === "string" &&
+      Object.prototype.hasOwnProperty.call(definition, firstArg)
+    ) {
       return Promise.resolve(definition[firstArg]);
     }
   }
@@ -2222,8 +2346,9 @@ function createFixtureService(definition: unknown): Record<string, unknown> {
         }
 
         const methodName = String(property);
-        return async (...args: unknown[]) => resolveFixtureMethodResult(methodName, methods[methodName], args);
-      },
+        return async (...args: unknown[]) =>
+          resolveFixtureMethodResult(methodName, methods[methodName], args);
+      }
     }
   );
 }
@@ -2256,11 +2381,16 @@ function selectFixtureScenario(scenarios: FixtureScenario[], selector: string): 
   return scenario;
 }
 
-async function loadFixtureScenario(command: Command<any, any, any, any>, selector: string): Promise<FixtureScenario> {
+async function loadFixtureScenario(
+  command: Command<any, any, any, any>,
+  selector: string
+): Promise<FixtureScenario> {
   const commandPath = getCommandSourcePath(command);
 
   if (commandPath === undefined) {
-    throw new UserError(`Fixture mode could not determine the source file for command "${command.name}".`);
+    throw new UserError(
+      `Fixture mode could not determine the source file for command "${command.name}".`
+    );
   }
 
   const fixturePath = resolveFixturePath(commandPath);
@@ -2268,7 +2398,7 @@ async function loadFixtureScenario(command: Command<any, any, any, any>, selecto
 
   try {
     rawFixture = await readFile(fixturePath, {
-      encoding: "utf8",
+      encoding: "utf8"
     });
   } catch {
     throw new UserError(
@@ -2295,10 +2425,12 @@ function resolveFixtureSecrets(command: Command<any, any, any, any>): Record<str
   return Object.fromEntries(Object.keys(command.secrets).map((name) => [name, "fixture-secret"]));
 }
 
-function createFixtureEnvValues(command: Command<any, any, any, any>): Record<string, string | undefined> {
+function createFixtureEnvValues(
+  command: Command<any, any, any, any>
+): Record<string, string | undefined> {
   const values: Record<string, string | undefined> = {
     ...process.env,
-    POE_API_KEY: process.env.POE_API_KEY ?? "fixture-secret",
+    POE_API_KEY: process.env.POE_API_KEY ?? "fixture-secret"
   };
 
   for (const secret of Object.values(command.secrets)) {
@@ -2323,7 +2455,7 @@ async function resolveFixtureRuntime<TServices extends object>(
       isFixture: false,
       requirementOptions,
       secrets: resolveCommandSecrets(command),
-      services,
+      services
     };
   }
 
@@ -2331,7 +2463,7 @@ async function resolveFixtureRuntime<TServices extends object>(
   const scenarioServices = isPlainObject(scenario.services) ? scenario.services : {};
   const customServiceNames = new Set([
     ...Object.keys(services as Record<string, unknown>),
-    ...Object.keys(scenarioServices).filter((name) => !RESERVED_SERVICE_NAMES.has(name)),
+    ...Object.keys(scenarioServices).filter((name) => !RESERVED_SERVICE_NAMES.has(name))
   ]);
   const fixtureServices = Object.fromEntries(
     [...customServiceNames].map((name) => [name, createFixtureService(scenarioServices[name])])
@@ -2345,10 +2477,10 @@ async function resolveFixtureRuntime<TServices extends object>(
     isFixture: true,
     requirementOptions: {
       ...requirementOptions,
-      env: fixtureEnvValues,
+      env: fixtureEnvValues
     },
     secrets: resolveFixtureSecrets(command),
-    services: fixtureServices,
+    services: fixtureServices
   };
 }
 
@@ -2430,7 +2562,7 @@ function consumeFieldValue(
     if (inlineValue !== undefined) {
       return {
         nextIndex: index,
-        value: parseScalarValue(inlineValue, schema, label),
+        value: parseScalarValue(inlineValue, schema, label)
       };
     }
 
@@ -2438,20 +2570,20 @@ function consumeFieldValue(
     if (next === "true" || next === "false" || (schema.nullable === true && next === "null")) {
       return {
         nextIndex: index + 1,
-        value: parseScalarValue(next, schema, label),
+        value: parseScalarValue(next, schema, label)
       };
     }
 
     return {
       nextIndex: index,
-      value: true,
+      value: true
     };
   }
 
   if (inlineValue !== undefined) {
     return {
       nextIndex: index,
-      value: parseFieldInputValue(inlineValue, schema, label),
+      value: parseFieldInputValue(inlineValue, schema, label)
     };
   }
 
@@ -2470,7 +2602,7 @@ function consumeFieldValue(
       if (parsed === null) {
         return {
           nextIndex: cursor,
-          value: null,
+          value: null
         };
       }
 
@@ -2485,7 +2617,7 @@ function consumeFieldValue(
 
     return {
       nextIndex,
-      value: values,
+      value: values
     };
   }
 
@@ -2496,7 +2628,7 @@ function consumeFieldValue(
 
   return {
     nextIndex: index + 1,
-    value: parseFieldInputValue(next, schema, label),
+    value: parseFieldInputValue(next, schema, label)
   };
 }
 
@@ -2525,7 +2657,7 @@ function resolveDynamicLeaf(
       return {
         displayPath: toDisplayPath(displayPath),
         path: outputPath,
-        schema: unwrappedSchema as FieldSchema,
+        schema: unwrappedSchema as FieldSchema
       };
     }
 
@@ -2536,12 +2668,20 @@ function resolveDynamicLeaf(
     case "object": {
       const [head, ...rest] = rawSegments;
 
-      for (const [key, childSchema] of Object.entries(unwrappedSchema.shape) as Array<[string, AnySchema]>) {
+      for (const [key, childSchema] of Object.entries(unwrappedSchema.shape) as Array<
+        [string, AnySchema]
+      >) {
         if (formatSegment(key, casing) !== head) {
           continue;
         }
 
-        return resolveDynamicLeaf(childSchema, rest, casing, [...outputPath, key], [...displayPath, key]);
+        return resolveDynamicLeaf(
+          childSchema,
+          rest,
+          casing,
+          [...outputPath, key],
+          [...displayPath, key]
+        );
       }
 
       throw new UserError(`Unknown parameter "${[...displayPath, head].join(".")}".`);
@@ -2561,15 +2701,25 @@ function resolveDynamicLeaf(
     case "array": {
       const itemSchema = unwrapOptional(unwrappedSchema.item);
       if (itemSchema.kind !== "object") {
-        throw new UserError(`Array parameter "${toDisplayPath(displayPath)}" must use object items.`);
+        throw new UserError(
+          `Array parameter "${toDisplayPath(displayPath)}" must use object items.`
+        );
       }
 
       const [head, ...rest] = rawSegments;
       if (head === undefined || !isNumericFixtureSelector(head)) {
-        throw new UserError(`Array parameter "${toDisplayPath(displayPath)}" must use numeric indices.`);
+        throw new UserError(
+          `Array parameter "${toDisplayPath(displayPath)}" must use numeric indices.`
+        );
       }
 
-      return resolveDynamicLeaf(itemSchema, rest, casing, [...outputPath, head], [...displayPath, head]);
+      return resolveDynamicLeaf(
+        itemSchema,
+        rest,
+        casing,
+        [...outputPath, head],
+        [...displayPath, head]
+      );
     }
 
     default:
@@ -2615,7 +2765,9 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
 
       for (let index = 0; index < indices.length; index += 1) {
         if (indices[index] !== index) {
-          throw new UserError(`Array parameter "${displayPath}" must use contiguous indices starting at 0.`);
+          throw new UserError(
+            `Array parameter "${displayPath}" must use contiguous indices starting at 0.`
+          );
         }
       }
 
@@ -2634,7 +2786,9 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
       }
 
       const result: Record<string, unknown> = {};
-      for (const [key, rawChildSchema] of Object.entries(unwrappedSchema.shape) as Array<[string, AnySchema]>) {
+      for (const [key, rawChildSchema] of Object.entries(unwrappedSchema.shape) as Array<
+        [string, AnySchema]
+      >) {
         const childSchema = unwrapOptional(rawChildSchema);
         const childValue = value[key];
         const childDisplayPath = displayPath.length === 0 ? key : `${displayPath}.${key}`;
@@ -2670,7 +2824,7 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
             unwrappedSchema.value,
             entryValue,
             displayPath.length === 0 ? key : `${displayPath}.${key}`
-          ),
+          )
         ])
       );
     }
@@ -2690,7 +2844,9 @@ function parseDynamicValues(
 } {
   const rawValues = new Map<string, Record<string, unknown>>();
   const providedFieldIds = new Set<string>();
-  const sortedFields = [...dynamicFields].sort((left, right) => right.optionPath.length - left.optionPath.length);
+  const sortedFields = [...dynamicFields].sort(
+    (left, right) => right.optionPath.length - left.optionPath.length
+  );
 
   for (let index = 0; index < rawArgv.length; index += 1) {
     const token = rawArgv[index] ?? "";
@@ -2725,7 +2881,7 @@ function parseDynamicValues(
       negated && leaf.schema.kind === "boolean"
         ? {
             nextIndex: index,
-            value: false,
+            value: false
           }
         : consumeFieldValue(rawArgv, index, leaf.schema, label, inlineValue);
 
@@ -2746,9 +2902,9 @@ function parseDynamicValues(
             field.schema.kind === "record" ? field.schema : field.schema,
             rawValues.get(field.id),
             field.displayPath
-          ),
+          )
         ])
-    ),
+    )
   };
 }
 
@@ -2809,7 +2965,9 @@ async function enforceVariantConstraints(
         }
       }
 
-      const invalidDynamicFieldId = branch.dynamicFieldIds.find((fieldId) => providedDynamicFieldIds.has(fieldId));
+      const invalidDynamicFieldId = branch.dynamicFieldIds.find((fieldId) =>
+        providedDynamicFieldIds.has(fieldId)
+      );
       if (invalidDynamicFieldId !== undefined) {
         const field = dynamicFieldById.get(invalidDynamicFieldId);
         if (field !== undefined) {
@@ -2961,7 +3119,7 @@ async function resolveParams(
       ? parseDynamicValues(dynamicFields, rawArgv, casing)
       : {
           providedFieldIds: new Set<string>(),
-          values: new Map<string, unknown>(),
+          values: new Map<string, unknown>()
         };
 
   for (const field of dynamicFields) {
@@ -3012,7 +3170,7 @@ async function executeCommand<TServices extends object>(
     logger,
     renderTable,
     getTheme,
-    note,
+    note
   };
   const optionValues = state.actionCommand.optsWithGlobals() as Record<string, unknown>;
   const resolvedFlags = optionValues as ResolvedFlags;
@@ -3027,7 +3185,7 @@ async function executeCommand<TServices extends object>(
     env: runtime.env,
     progress(message: string): void {
       logger.info(message);
-    },
+    }
   };
 
   await withOutputFormat(output, async () => {
@@ -3047,10 +3205,15 @@ async function executeCommand<TServices extends object>(
 
     const context = {
       ...preflightContext,
-      params,
+      params
     } as HandlerContext<any, any, TServices>;
 
-    if (state.command.confirm && !state.command.humanInLoop && !resolvedFlags.yes && process.stdin.isTTY) {
+    if (
+      state.command.confirm &&
+      !state.command.humanInLoop &&
+      !resolvedFlags.yes &&
+      process.stdin.isTTY
+    ) {
       for (const field of state.fields) {
         const value = field.path.reduce<unknown>(
           (current, segment) =>
@@ -3067,7 +3230,7 @@ async function executeCommand<TServices extends object>(
 
       const proceed = await confirm({
         message: "Proceed?",
-        initialValue: true,
+        initialValue: true
       });
 
       if (isCancel(proceed)) {
@@ -3080,7 +3243,12 @@ async function executeCommand<TServices extends object>(
       }
     }
 
-    const result = await invokeWithHumanInLoop(state.command, context, runtimeOptions, state.commandPath);
+    const result = await invokeWithHumanInLoop(
+      state.command,
+      context,
+      runtimeOptions,
+      state.commandPath
+    );
 
     if (output === "rich" && runtime.isFixture) {
       writeRichHeader(`${state.command.name} (fixture)`);
@@ -3135,10 +3303,10 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   const servicesWithBuiltIns = {
     ...services,
     runtimeOptions,
-    root,
+    root
   } as TServices;
   const requirementOptions = {
-    apiVersion: options.apiVersion,
+    apiVersion: options.apiVersion
   } satisfies CommandRequirementOptions;
 
   validateServices(services as Record<string, unknown>);
@@ -3168,7 +3336,13 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   };
 
   for (const child of root.children) {
-    const command = createNodeCommand(child, casing, globalLongOptionFlags, execute, presetsEnabled);
+    const command = createNodeCommand(
+      child,
+      casing,
+      globalLongOptionFlags,
+      execute,
+      presetsEnabled
+    );
     if (command === null) {
       continue;
     }
@@ -3191,7 +3365,9 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
     handleRunError(
       error,
-      lastActionCommand ? Boolean(getResolvedFlags(lastActionCommand).verbose) : process.argv.includes("--verbose")
+      lastActionCommand
+        ? Boolean(getResolvedFlags(lastActionCommand).verbose)
+        : process.argv.includes("--verbose")
     );
   }
 }

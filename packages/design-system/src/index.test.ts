@@ -5,6 +5,7 @@ import {
   parse,
   render,
   renderMarkdown,
+  text,
   type Dashboard,
   type DashboardOptions,
   type MdNode,
@@ -44,6 +45,10 @@ describe("design-system root exports", () => {
 
   it("re-exports dashboard helpers from the root barrel", () => {
     expect(dashboard.createDashboard).toBe(createDashboard);
+  });
+
+  it("re-exports text helpers from the root barrel", () => {
+    expect(text.sectionHeader("Title")).toBeTypeOf("string");
   });
 
   it("exposes the same dashboard factory from the dashboard barrel", () => {

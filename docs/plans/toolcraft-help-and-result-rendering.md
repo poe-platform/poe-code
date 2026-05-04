@@ -91,8 +91,8 @@ tasks:
         - markdown mode: returns `## Title`
         - JSON mode: returns input unchanged
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: design-system-help-formatter-plain

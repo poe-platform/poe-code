@@ -346,6 +346,7 @@ describe("text", () => {
       expect(text.intro("Intro")).toBe("**Intro**");
       expect(text.heading("Heading")).toBe("## Heading");
       expect(text.section("Section")).toBe("**Section**");
+      expect(text.sectionHeader("Title")).toBe("## Title");
       expect(text.command("poe-code")).toBe("`poe-code`");
       expect(text.argument("provider")).toBe("<provider>");
       expect(text.option("--help")).toBe("`--help`");
@@ -365,6 +366,7 @@ describe("text", () => {
       expect(text.intro("Intro")).toBe("Intro");
       expect(text.heading("Heading")).toBe("Heading");
       expect(text.section("Section")).toBe("Section");
+      expect(text.sectionHeader("Title")).toBe("Title");
       expect(text.command("poe-code")).toBe("poe-code");
       expect(text.argument("provider")).toBe("provider");
       expect(text.option("--help")).toBe("--help");
@@ -386,6 +388,15 @@ describe("text", () => {
     expect(result).toContain("codex · ×3");
     expect(result).not.toBe("my-file.md — codex · ×3");
     expect(result).not.toBe("my-file.md codex · ×3");
+  });
+
+  it("renders terminal section headers as bold uppercase without a colon", () => {
+    const result = withOutputFormat("terminal", () =>
+      text.sectionHeader("Title")
+    );
+
+    expect(result).toBe(chalk.bold("TITLE"));
+    expect(result).not.toContain(":");
   });
 });
 

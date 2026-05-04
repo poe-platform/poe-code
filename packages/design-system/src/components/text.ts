@@ -22,6 +22,12 @@ export const text = {
     if (format === "markdown") return `**${content}**`;
     return typography.bold(content);
   },
+  sectionHeader(content: string): string {
+    const format = resolveOutputFormat();
+    if (format === "json") return content;
+    if (format === "markdown") return `## ${content}`;
+    return typography.bold(content.toUpperCase());
+  },
   command(content: string): string {
     const format = resolveOutputFormat();
     if (format === "json") return content;

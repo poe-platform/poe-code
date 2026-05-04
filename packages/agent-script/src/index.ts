@@ -1,19 +1,17 @@
 export { parse } from "./parse.js";
+export { parseModule } from "./parse/parser.js";
 export { lint, type Diagnostic, type LintOptions } from "./lint.js";
 export { run } from "./run.js";
 export { dump } from "./dump.js";
 export { restore } from "./restore.js";
+export { Budget, SandboxError } from "./interp/budget.js";
 export { formatInterpreterError, type InterpreterDiagnostic } from "./error/format.js";
 export { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
 export { runHarness } from "./runner/run-harness.js";
 export { extractBlock } from "./loader/extract-block.js";
 export { findExportedConstInitializer } from "./loader/find-exported.js";
 export { splitFrontmatter } from "./loader/frontmatter.js";
-export type {
-  ExportDefaultDeclaration,
-  ExportNamedDeclaration,
-  MetaProperty
-} from "./parse.js";
+export type { ExportDefaultDeclaration, ExportNamedDeclaration, MetaProperty } from "./parse.js";
 export { makeAgentModule } from "./modules/agent.js";
 export { makeEnvModule } from "./modules/env.js";
 export { makeFailModule } from "./modules/fail.js";

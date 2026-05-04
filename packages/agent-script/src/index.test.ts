@@ -5,6 +5,7 @@ import { dump } from "./dump.js";
 import { extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
 import { formatInterpreterError } from "./error/format.js";
+import { Budget, SandboxError } from "./interp/budget.js";
 import { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
 import { lint } from "./lint.js";
 import { lint as lintFromIndex } from "./lint/index.js";
@@ -18,6 +19,7 @@ import { makeMetricModule } from "./modules/metric.js";
 import { makeMcpModule } from "./modules/mcp.js";
 import { makeTimeModule } from "./modules/time.js";
 import { parse } from "./parse.js";
+import { parseModule } from "./parse/parser.js";
 import { findExportedConstInitializer } from "./loader/find-exported.js";
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
@@ -25,8 +27,11 @@ import { run } from "./run.js";
 import { runHarness } from "./runner/run-harness.js";
 
 describe("@poe-code/agent-script public exports", () => {
-  it("re-exports the placeholder entrypoints", () => {
+  it("re-exports the public entrypoints", () => {
+    expect(api.Budget).toBe(Budget);
+    expect(api.SandboxError).toBe(SandboxError);
     expect(api.parse).toBe(parse);
+    expect(api.parseModule).toBe(parseModule);
     expect(api.lint).toBe(lint);
     expect(lint).toBe(lintFromIndex);
     expect(api.run).toBe(run);
@@ -49,6 +54,8 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.makeMcpModule).toBe(makeMcpModule);
     expect(api.makeTimeModule).toBe(makeTimeModule);
     expect(Object.keys(api).sort()).toEqual([
+      "Budget",
+      "SandboxError",
       "deepCopyFromSandbox",
       "deepCopyToSandbox",
       "dump",
@@ -66,6 +73,7 @@ describe("@poe-code/agent-script public exports", () => {
       "makeMetricModule",
       "makeTimeModule",
       "parse",
+      "parseModule",
       "restore",
       "run",
       "runHarness",

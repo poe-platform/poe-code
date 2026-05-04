@@ -429,8 +429,8 @@ tasks:
           from "agent"`.
         - Tight budget rejects non-terminating initializers.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-harness-validate-frontmatter

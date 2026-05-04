@@ -15,7 +15,17 @@ import {
 
 const AsyncFunction = (async () => undefined).constructor;
 
-export type CallerInjectedBinding = SandboxValue | ((...args: readonly unknown[]) => unknown);
+type CallerInjectedFunction = {
+  bivarianceHack(...args: readonly unknown[]): unknown;
+}["bivarianceHack"];
+
+export type CallerInjectedBinding =
+  | SandboxValue
+  | CallerInjectedFunction
+  | readonly CallerInjectedBinding[]
+  | {
+      readonly [key: string]: CallerInjectedBinding;
+    };
 
 export function wrapCallerInjectedBindings(
   bindings: Record<string, CallerInjectedBinding>,
@@ -39,9 +49,10 @@ function wrapCallerInjectedValue(
   }
 
   const bindingName = name === "default" && value.name.length > 0 ? value.name : name;
+  const callable = value as (...args: readonly unknown[]) => unknown;
 
   return createSandboxClosure({
-    ...(isAsyncFunction(value) ? { async: true as const } : {}),
+    ...(isAsyncFunction(callable) ? { async: true as const } : {}),
     call: (args, context) => {
       try {
         const stackFrames = context?.stack ?? [];
@@ -52,7 +63,7 @@ function wrapCallerInjectedValue(
         );
 
         return copyHostResultToSandbox(
-          Reflect.apply(value, undefined, hostArgs),
+          Reflect.apply(callable, undefined, hostArgs),
           stackFrames,
           budget
         );
@@ -278,14 +289,22 @@ function copyHostValueToSandbox(
       }
 
       if ("get" in descriptor || "set" in descriptor) {
-        throw new TypeError(`Unsupported sandbox value at ${joinPath(path, key)}: accessor property`);
+        throw new TypeError(
+          `Unsupported sandbox value at ${joinPath(path, key)}: accessor property`
+        );
       }
 
       Object.defineProperty(copy, key, {
         enumerable: true,
         configurable: true,
         writable: true,
-        value: copyHostValueToSandbox(descriptor.value, stackFrames, budget, state, joinPath(path, key))
+        value: copyHostValueToSandbox(
+          descriptor.value,
+          stackFrames,
+          budget,
+          state,
+          joinPath(path, key)
+        )
       });
     }
 
@@ -305,7 +324,9 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function joinPath(path: string, key: string): string {
-  return /^[A-Za-z_$][A-Za-z0-9_$]*$/u.test(key) ? `${path}.${key}` : `${path}[${JSON.stringify(key)}]`;
+  return /^[A-Za-z_$][A-Za-z0-9_$]*$/u.test(key)
+    ? `${path}.${key}`
+    : `${path}[${JSON.stringify(key)}]`;
 }
 
 function readPathName(path: string): string {

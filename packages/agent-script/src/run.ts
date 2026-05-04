@@ -47,9 +47,13 @@ export type RunSnapshot = AgentScriptSnapshot & {
   };
 };
 
-export type RunResult = Omit<InterpreterResult, "snapshot"> & {
-  snapshot: RunSnapshot;
-};
+type WithRunSnapshot<TResult extends InterpreterResult> = TResult extends unknown
+  ? Omit<TResult, "snapshot"> & {
+      snapshot: RunSnapshot;
+    }
+  : never;
+
+export type RunResult = WithRunSnapshot<InterpreterResult>;
 
 export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
   const dumpController = createDumpController();

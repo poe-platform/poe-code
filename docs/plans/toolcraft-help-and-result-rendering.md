@@ -434,7 +434,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-help-output-qa
     title: Markdown QA for help output at multiple terminal widths
@@ -492,8 +492,8 @@ tasks:
 
       Do NOT write a test runner. The QA is human-executed.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: toolcraft-release-and-vendor-refresh
     title: Release toolcraft 0.0.4 and refresh ashby-mcp vendor stub

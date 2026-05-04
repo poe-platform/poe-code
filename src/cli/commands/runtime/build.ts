@@ -15,6 +15,7 @@ import { withSpinner } from "@poe-code/design-system";
 import type { CliContainer } from "../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../shared.js";
 import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "../runtime-options.js";
+import { ValidationError } from "../../errors.js";
 
 interface BuildLogEntry {
   level: "debug" | "info" | "warn" | "error";
@@ -94,8 +95,11 @@ async function executeRuntimeBuild(
   resources.logger.intro("runtime build");
 
   if (runtimeConfig.type === "host") {
-    resources.logger.info("Host runtime does not require a template build.");
-    return;
+    throw new ValidationError(
+      "Host runtime has no template to build. " +
+        "Pass --runtime e2b or --runtime docker, " +
+        'or set "runtime": { "type": "..." } in .poe-code/config.json.'
+    );
   }
 
   if (runtimeConfig.type === "docker") {

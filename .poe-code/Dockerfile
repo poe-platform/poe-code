@@ -1,7 +1,7 @@
 FROM node:22-bookworm-slim
 
 RUN apt-get update \
-  && apt-get install -y --no-install-recommends git ca-certificates curl python3 python3-venv \
+  && apt-get install -y --no-install-recommends git ca-certificates curl bzip2 python3 python3-venv \
   && rm -rf /var/lib/apt/lists/*
 
 ENV UV_INSTALL_DIR=/usr/local/bin

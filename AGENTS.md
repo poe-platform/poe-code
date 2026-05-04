@@ -131,6 +131,8 @@ However, it is imperative that all configuration can be done also via cli args
 
 Defaults are only accepted when --yes
 
+Any action that theoretically takes longer than 700ms, shold use spinner, use your judgement, this is a soft guideline.
+
 ### Example <agent>
 
 `$ poe-code configure`

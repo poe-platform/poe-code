@@ -28,7 +28,7 @@ function createMockInheritProcess(exitCode = 0): ChildProcess {
   (child as any).stdout = null;
   (child as any).stderr = null;
 
-  queueMicrotask(() => {
+  setImmediate(() => {
     child.emit("close", exitCode, null);
   });
 

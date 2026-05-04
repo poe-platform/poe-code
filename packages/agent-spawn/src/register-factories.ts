@@ -2,12 +2,18 @@ import { spawn as spawnChildProcess } from "node:child_process";
 import { registerExecutionEnvFactory } from "@poe-code/agent-harness-tools";
 import type { ExecutionEnvFactory, OpenedEnv, RunSpec } from "@poe-code/agent-harness-tools";
 import { dockerExecutionEnvFactory, hostExecutionEnvFactory } from "@poe-code/process-runner";
+import { e2bExecutionEnvFactory } from "@poe-code/runner-e2b";
 
 registerExecutionEnvFactory(hostExecutionEnvFactory);
 registerExecutionEnvFactory(dockerExecutionEnvFactory);
+registerExecutionEnvFactory(e2bExecutionEnvFactory);
 
-if (process.env.VITEST === "true") {
+if (isVitest()) {
   registerExecutionEnvFactory(createTestHostExecutionEnvFactory());
+}
+
+function isVitest(): boolean {
+  return process.env.VITEST !== undefined || process.env.VITEST_POOL_ID !== undefined;
 }
 
 function createTestHostExecutionEnvFactory(): ExecutionEnvFactory {

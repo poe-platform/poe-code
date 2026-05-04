@@ -175,6 +175,27 @@ export function createMcpOAuthTestServer(
 
       const hostname = listenOptions.hostname ?? "127.0.0.1";
       const requestedPort = listenOptions.port ?? 0;
+      let lastError: unknown;
+
+      for (let attempt = 0; attempt < 10; attempt += 1) {
+        try {
+          return await listenOnce(hostname, requestedPort);
+        } catch (error) {
+          lastError = error;
+          if (requestedPort !== 0 || !isAddressInUseError(error)) {
+            throw error;
+          }
+        }
+      }
+
+      throw lastError;
+    },
+  };
+
+  async function listenOnce(
+    hostname: string,
+    requestedPort: number
+  ): Promise<McpOAuthTestServerHandle> {
       const oauthHostname =
         configuredIssuer === undefined
           ? hostname
@@ -215,15 +236,16 @@ export function createMcpOAuthTestServer(
           scopes,
         },
       });
-      const oauthHandle = await oauth.listen({
-        port: oauthPort,
-        hostname: oauthHostname,
-      });
+      let oauthHandle: Awaited<ReturnType<OAuthTestServer["listen"]>> | undefined;
       let mcpHandle:
         | Awaited<ReturnType<ReturnType<typeof createTestMcpServer>["listenHttp"]>>
         | undefined;
 
       try {
+        oauthHandle = await oauth.listen({
+          port: oauthPort,
+          hostname: oauthHostname,
+        });
         const resource = options.resource ?? buildUrl(hostname, fixedPort, mcpPath);
         const jwksVerifier = createJwksTokenVerifier({
           jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
@@ -276,7 +298,7 @@ export function createMcpOAuthTestServer(
 
             const results = await Promise.allSettled([
               mcpHandle?.close(),
-              oauthHandle.close(),
+              oauthHandle?.close(),
             ]);
             const rejected = results.find(
               (result): result is PromiseRejectedResult => result.status === "rejected"
@@ -290,7 +312,7 @@ export function createMcpOAuthTestServer(
 
         return currentHandle;
       } catch (error) {
-        const closeOperations = [oauthHandle.close()];
+        const closeOperations = oauthHandle === undefined ? [] : [oauthHandle.close()];
 
         if (mcpHandle !== undefined) {
           closeOperations.unshift(mcpHandle.close());
@@ -299,6 +321,13 @@ export function createMcpOAuthTestServer(
         await Promise.allSettled(closeOperations);
         throw error;
       }
-    },
-  };
+  }
+}
+
+function isAddressInUseError(error: unknown): boolean {
+  return Boolean(
+    error &&
+      typeof error === "object" &&
+      (error as { code?: unknown }).code === "EADDRINUSE"
+  );
 }

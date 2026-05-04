@@ -35,7 +35,7 @@ function createMockChildProcess({
     return true;
   };
 
-  queueMicrotask(() => {
+  setImmediate(() => {
     if (stdout) stdoutStream.write(stdout);
     stdoutStream.end();
     if (stderr) stderrStream.write(stderr);

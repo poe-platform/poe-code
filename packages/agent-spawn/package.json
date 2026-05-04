@@ -33,6 +33,7 @@
     "@poe-code/design-system": "*",
     "@poe-code/poe-acp-client": "*",
     "@poe-code/poe-code-config": "*",
-    "@poe-code/process-runner": "*"
+    "@poe-code/process-runner": "*",
+    "@poe-code/runner-e2b": "*"
   }
 }

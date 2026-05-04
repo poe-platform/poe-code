@@ -1,0 +1,19 @@
+name: E2B Runner Integration
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 9 * * *"
+jobs:
+  e2b-runner-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run test:integration -w @poe-code/runner-e2b
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}

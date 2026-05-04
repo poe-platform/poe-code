@@ -63,7 +63,7 @@ function createMockChildProcess(
   const errorOutput = options.stderr ?? "";
 
   if (options.autoClose !== false) {
-    queueMicrotask(() => {
+    setImmediate(() => {
       if (output) {
         stdout.write(output, "utf8");
       }
@@ -898,6 +898,8 @@ describe("spawn", () => {
         prompt: "hello",
         activityTimeoutMs: 5000
       });
+
+      await vi.waitFor(() => expect(spawnChildProcess).toHaveBeenCalledTimes(1));
 
       // Process exits before timeout
       streams.stdout.end();

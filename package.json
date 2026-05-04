@@ -151,6 +151,7 @@
     "@poe-code/providers": "*",
     "@poe-code/py-poe-spawn": "*",
     "@poe-code/ralph": "*",
+    "@poe-code/runner-e2b": "*",
     "@poe-code/superintendent": "*",
     "@poe-code/task-list": "*",
     "@poe-code/workspace-resolver": "*",

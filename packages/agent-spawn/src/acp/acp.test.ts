@@ -183,7 +183,7 @@ function createMockChildProcess(
   const error = options.error;
 
   if (options.autoClose !== false) {
-    queueMicrotask(() => {
+    setImmediate(() => {
       for (const line of lines) {
         stdout.write(`${line}\n`, "utf8");
       }
@@ -1282,6 +1282,8 @@ describe("acp/spawnStreaming", () => {
       });
 
       const eventsPromise = collect(events);
+
+      await vi.waitFor(() => expect(spawnChildProcess).toHaveBeenCalledTimes(1));
 
       mock.child.stdout.end();
       mock.child.stderr.end();

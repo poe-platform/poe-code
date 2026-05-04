@@ -1,9 +1,5 @@
 {
   "ralph": {
     "plan_directory": "docs/plans"
-  },
-  "runtime": {
-    "type": "e2b",
-    "build_context": ".poe-code"
   }
 }

@@ -10,7 +10,7 @@ import {
 } from "@poe-code/poe-code-config";
 import { pathExists } from "@poe-code/config-mutations";
 import { buildDockerRuntimeTemplate } from "@poe-code/process-runner";
-import type { ExecutionState, Runner } from "@poe-code/process-runner";
+import type { ExecutionState } from "@poe-code/process-runner";
 import type { CliContainer } from "../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../shared.js";
 
@@ -25,15 +25,17 @@ interface BuildE2bRuntimeTemplateResult {
   cached: boolean;
 }
 
-type BuildE2bRuntimeTemplate = (input: {
-  cwd: string;
-  runtime: E2bRuntime;
-  dockerfilePath: string;
-  buildContext: string;
-  state?: ExecutionState;
-  runner?: Runner;
-  force?: boolean;
-}) => Promise<BuildE2bRuntimeTemplateResult>;
+interface E2bRunnerModule {
+  buildE2bRuntimeTemplate: (input: {
+    runtime: E2bRuntime;
+    dockerfilePath: string;
+    buildContext: string;
+    state?: ExecutionState;
+    apiKey: string;
+    force?: boolean;
+  }) => Promise<BuildE2bRuntimeTemplateResult>;
+  resolveE2bApiKey: (input: { cwd: string }) => Promise<string>;
+}
 
 export function registerRuntimeBuildCommand(
   runtime: Command,
@@ -112,13 +114,14 @@ async function executeRuntimeBuild(
     return;
   }
   const paths = await requireRuntimeBuildPaths(container, runtimeConfig, "E2B");
-  const buildE2bRuntimeTemplate = await loadE2bRuntimeTemplateBuilder();
-  const result = await buildE2bRuntimeTemplate({
-    cwd: container.env.cwd,
+  const e2bModule = await loadE2bRunnerModule();
+  const apiKey = await e2bModule.resolveE2bApiKey({ cwd: container.env.cwd });
+  const result = await e2bModule.buildE2bRuntimeTemplate({
     runtime: runtimeConfig,
     dockerfilePath: paths.dockerfilePath,
     buildContext: paths.buildContext,
     state,
+    apiKey,
     force: options.force === true
   });
   resources.logger.success(
@@ -146,7 +149,7 @@ async function requireRuntimeBuildPaths(
   };
 }
 
-async function loadE2bRuntimeTemplateBuilder(): Promise<BuildE2bRuntimeTemplate> {
+async function loadE2bRunnerModule(): Promise<E2bRunnerModule> {
   const dynamicImport = new Function("specifier", "return import(specifier)") as (
     specifier: string
   ) => Promise<unknown>;
@@ -157,9 +160,11 @@ async function loadE2bRuntimeTemplateBuilder(): Promise<BuildE2bRuntimeTemplate>
       module &&
       typeof module === "object" &&
       "buildE2bRuntimeTemplate" in module &&
-      typeof module.buildE2bRuntimeTemplate === "function"
+      typeof module.buildE2bRuntimeTemplate === "function" &&
+      "resolveE2bApiKey" in module &&
+      typeof module.resolveE2bApiKey === "function"
     ) {
-      return module.buildE2bRuntimeTemplate as BuildE2bRuntimeTemplate;
+      return module as unknown as E2bRunnerModule;
     }
   } catch (error) {
     if (isModuleNotFound(error)) {
@@ -171,7 +176,7 @@ async function loadE2bRuntimeTemplateBuilder(): Promise<BuildE2bRuntimeTemplate>
   }
 
   throw new Error(
-    "E2B runtime builds require @poe-code/runner-e2b to export buildE2bRuntimeTemplate."
+    "E2B runtime builds require @poe-code/runner-e2b to export buildE2bRuntimeTemplate and resolveE2bApiKey."
   );
 }
 

@@ -431,7 +431,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-harness-validate-frontmatter
     title: Validate .md frontmatter against a SchemaDescriptor
@@ -468,8 +468,8 @@ tasks:
       required fields. memfs only if you read the .md; this function
       itself takes a parsed object, no fs needed.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-harness-run

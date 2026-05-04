@@ -18,6 +18,7 @@ import { makeMetricModule } from "./modules/metric.js";
 import { makeMcpModule } from "./modules/mcp.js";
 import { makeTimeModule } from "./modules/time.js";
 import { parse } from "./parse.js";
+import { findExportedConstInitializer } from "./loader/find-exported.js";
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
@@ -33,6 +34,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.dump).toBe(dump);
     expect(api.restore).toBe(restore);
     expect(api.extractBlock).toBe(extractBlock);
+    expect(api.findExportedConstInitializer).toBe(findExportedConstInitializer);
     expect(api.splitFrontmatter).toBe(splitFrontmatter);
     expect(api.formatInterpreterError).toBe(formatInterpreterError);
     expect(api.deepCopyToSandbox).toBe(deepCopyToSandbox);
@@ -51,6 +53,7 @@ describe("@poe-code/agent-script public exports", () => {
       "deepCopyToSandbox",
       "dump",
       "extractBlock",
+      "findExportedConstInitializer",
       "formatInterpreterError",
       "lint",
       "makeAgentModule",

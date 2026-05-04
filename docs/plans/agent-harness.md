@@ -236,8 +236,8 @@ tasks:
       Tests with parsed fixtures: present, absent, wrong name, nested
       block (should be ignored), `let`/`var` (should be ignored).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-harness-skeleton

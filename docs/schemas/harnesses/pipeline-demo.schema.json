@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/harnesses/pipeline-demo.schema.json",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "enum": [
+        "https://poe-platform.github.io/poe-code/schemas/harnesses/pipeline-demo.schema.json"
+      ]
+    },
+    "agents": {
+      "type": "object",
+      "properties": {
+        "builder": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "read",
+                "edit",
+                "yolo"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent"
+          ]
+        },
+        "reviewer": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "read",
+                "edit",
+                "yolo"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent"
+          ]
+        }
+      },
+      "required": [
+        "builder",
+        "reviewer"
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "pipeline-demo"
+      ]
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "prompt"
+        ]
+      }
+    },
+    "version": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "$schema",
+    "kind",
+    "version",
+    "agents",
+    "tasks"
+  ]
+}

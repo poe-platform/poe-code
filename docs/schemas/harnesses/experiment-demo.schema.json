@@ -1,0 +1,98 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/harnesses/experiment-demo.schema.json",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "enum": [
+        "https://poe-platform.github.io/poe-code/schemas/harnesses/experiment-demo.schema.json"
+      ]
+    },
+    "agents": {
+      "type": "object",
+      "properties": {
+        "experimenter": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "read",
+                "edit",
+                "yolo"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent"
+          ]
+        }
+      },
+      "required": [
+        "experimenter"
+      ]
+    },
+    "attempts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "prompt"
+        ]
+      }
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "experiment-demo"
+      ]
+    },
+    "metric": {
+      "type": "object",
+      "properties": {
+        "direction": {
+          "type": "string",
+          "enum": [
+            "maximize",
+            "minimize"
+          ]
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "direction"
+      ]
+    },
+    "version": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "$schema",
+    "kind",
+    "version",
+    "agents",
+    "metric",
+    "attempts"
+  ]
+}

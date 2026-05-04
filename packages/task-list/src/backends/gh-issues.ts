@@ -10,7 +10,7 @@ import type {
   Tasks,
   TaskUpdate
 } from "../types.js";
-import { TaskNotFoundError } from "../types.js";
+import { InvalidTransitionError, TaskNotFoundError } from "../types.js";
 import { createGhClient, type GhClient } from "./gh-issues-client.js";
 import { applyOrder, sortTasks } from "./utils.js";
 
@@ -101,6 +101,67 @@ const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!)
   }
 }`;
 
+const REPOSITORY_QUERY = `query Repository($owner: String!, $repo: String!) {
+  repository(owner: $owner, name: $repo) {
+    id
+  }
+}`;
+
+const ISSUE_ID_QUERY = `query IssueId($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $number) {
+      id
+    }
+  }
+}`;
+
+const ISSUE_PROJECT_ITEM_QUERY = `query IssueProjectItem($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $number) {
+      id
+      projectItems(first: 10) {
+        nodes {
+          id
+          project { id }
+        }
+      }
+    }
+  }
+}`;
+
+const CREATE_ISSUE_MUTATION = `mutation CreateIssue($input: CreateIssueInput!) {
+  createIssue(input: $input) {
+    issue {
+      id
+      number
+    }
+  }
+}`;
+
+const ADD_PROJECT_ITEM_MUTATION = `mutation AddProjectItem($input: AddProjectV2ItemByIdInput!) {
+  addProjectV2ItemById(input: $input) {
+    item {
+      id
+    }
+  }
+}`;
+
+const UPDATE_STATUS_MUTATION = `mutation UpdateProjectItemStatus($input: UpdateProjectV2ItemFieldValueInput!) {
+  updateProjectV2ItemFieldValue(input: $input) {
+    projectV2Item {
+      id
+    }
+  }
+}`;
+
+const UPDATE_ISSUE_MUTATION = `mutation UpdateIssue($input: UpdateIssueInput!) {
+  updateIssue(input: $input) {
+    issue {
+      id
+    }
+  }
+}`;
+
 const NOT_IMPLEMENTED = "not yet implemented";
 
 export interface GhIssuesBackendDeps {
@@ -148,6 +209,8 @@ interface GhIssuesTasksContext {
   client: GhClient;
   repoOwner: string;
   repoName: string;
+  issueIds: Map<number, string>;
+  repositoryId?: string;
 }
 
 interface ProjectItemsResponse {
@@ -173,6 +236,48 @@ interface ProjectItemNode {
 interface IssueResponse {
   repository?: {
     issue?: IssueNodeWithProjectItems | null;
+  } | null;
+}
+
+interface RepositoryResponse {
+  repository?: {
+    id?: string | null;
+  } | null;
+}
+
+interface IssueIdResponse {
+  repository?: {
+    issue?: {
+      id?: string | null;
+    } | null;
+  } | null;
+}
+
+interface IssueProjectItemResponse {
+  repository?: {
+    issue?: {
+      id?: string | null;
+      projectItems?: {
+        nodes?: ProjectItemMembership[];
+      } | null;
+    } | null;
+  } | null;
+}
+
+interface CreateIssueResponse {
+  createIssue?: {
+    issue?: {
+      id?: string | null;
+      number?: number | null;
+    } | null;
+  } | null;
+}
+
+interface AddProjectItemResponse {
+  addProjectV2ItemById?: {
+    item?: {
+      id?: string | null;
+    } | null;
   } | null;
 }
 
@@ -253,7 +358,8 @@ export async function ghIssuesBackend(deps: GhIssuesBackendDeps): Promise<TaskLi
   const context = {
     client,
     repoOwner: repoParts.owner,
-    repoName: repoParts.name
+    repoName: repoParts.name,
+    issueIds: new Map<number, string>()
   };
 
   function list(name: string): Tasks {
@@ -337,14 +443,77 @@ function createTasksView(
     async get(id: string): Promise<Task> {
       return fetchIssueTask(id, name, session, context);
     },
-    async create(_input: TaskCreate): Promise<Task> {
-      throw new Error(NOT_IMPLEMENTED);
+    /**
+     * GitHub Issues assigns the issue number, so TaskCreate.id is intentionally ignored.
+     */
+    async create(input: TaskCreate): Promise<Task> {
+      const repositoryId = await resolveRepositoryId(context);
+      const created = await context.client.graphql<CreateIssueResponse>(CREATE_ISSUE_MUTATION, {
+        input: {
+          repositoryId,
+          title: input.name,
+          body: input.description ?? ""
+        }
+      });
+      const issue = created.createIssue?.issue;
+      const issueId = issue?.id ?? null;
+      const issueNumber = issue?.number ?? null;
+      if (issueId === null || issueNumber === null) {
+        throw new Error("GitHub createIssue response did not include issue id and number.");
+      }
+
+      context.issueIds.set(issueNumber, issueId);
+      const added = await context.client.graphql<AddProjectItemResponse>(
+        ADD_PROJECT_ITEM_MUTATION,
+        {
+          input: {
+            projectId: session.projectId,
+            contentId: issueId
+          }
+        }
+      );
+      const projectItemId = added.addProjectV2ItemById?.item?.id ?? null;
+      if (projectItemId === null) {
+        throw new Error("GitHub addProjectV2ItemById response did not include project item id.");
+      }
+
+      await updateProjectItemStatus(projectItemId, session.stateMachine.initial, session, context);
+      return fetchIssueTask(String(issueNumber), name, session, context);
     },
-    async update(_id: string, _patch: TaskUpdate): Promise<Task> {
-      throw new Error(NOT_IMPLEMENTED);
+    async update(id: string, patch: TaskUpdate): Promise<Task> {
+      const input: Record<string, unknown> = {};
+
+      if (patch.name !== undefined) {
+        input.title = patch.name;
+      }
+
+      if (patch.description !== undefined) {
+        input.body = patch.description;
+      }
+
+      // metadata writes are out of scope for v1 on gh-issues.
+      if (Object.keys(input).length > 0) {
+        input.id = await resolveIssueId(id, name, context);
+        await context.client.graphql(UPDATE_ISSUE_MUTATION, {
+          input
+        });
+      }
+
+      return fetchIssueTask(id, name, session, context);
     },
-    async fire(_id: string, _event: string, _opts?: TaskFireOptions): Promise<Task> {
-      throw new Error(NOT_IMPLEMENTED);
+    async fire(id: string, event: string, _opts?: TaskFireOptions): Promise<Task> {
+      if (!session.statusOptions.has(event)) {
+        throw new InvalidTransitionError({
+          event,
+          to: event,
+          reason: `Unknown gh-issues Status state "${event}".`
+        });
+      }
+
+      const projectItemId = await resolveProjectItemId(id, name, session, context);
+      // opts.metadataPatch writes are out of scope for v1 on gh-issues.
+      await updateProjectItemStatus(projectItemId, event, session, context);
+      return fetchIssueTask(id, name, session, context);
     },
     async canFire(id: string, event: string): Promise<boolean> {
       return findEvent(session.stateMachine, id, event) !== undefined;
@@ -362,6 +531,107 @@ function createTasksView(
       throw new Error(NOT_IMPLEMENTED);
     }
   };
+}
+
+async function resolveRepositoryId(context: GhIssuesTasksContext): Promise<string> {
+  if (context.repositoryId !== undefined) {
+    return context.repositoryId;
+  }
+
+  const result = await context.client.graphql<RepositoryResponse>(REPOSITORY_QUERY, {
+    owner: context.repoOwner,
+    repo: context.repoName
+  });
+  const repositoryId = result.repository?.id ?? null;
+  if (repositoryId === null) {
+    throw new Error(
+      `Repository ${context.repoOwner}/${context.repoName} not found or inaccessible.`
+    );
+  }
+
+  context.repositoryId = repositoryId;
+  return repositoryId;
+}
+
+async function resolveIssueId(
+  id: string,
+  listName: string,
+  context: GhIssuesTasksContext
+): Promise<string> {
+  const issueNumber = parseIssueNumber(id, listName);
+  const cachedIssueId = context.issueIds.get(issueNumber);
+  if (cachedIssueId !== undefined) {
+    return cachedIssueId;
+  }
+
+  const result = await context.client.graphql<IssueIdResponse>(ISSUE_ID_QUERY, {
+    owner: context.repoOwner,
+    repo: context.repoName,
+    number: issueNumber
+  });
+  const issueId = result.repository?.issue?.id ?? null;
+  if (issueId === null) {
+    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+  }
+
+  context.issueIds.set(issueNumber, issueId);
+  return issueId;
+}
+
+async function resolveProjectItemId(
+  id: string,
+  listName: string,
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<string> {
+  const issueNumber = parseIssueNumber(id, listName);
+  const result = await context.client.graphql<IssueProjectItemResponse>(ISSUE_PROJECT_ITEM_QUERY, {
+    owner: context.repoOwner,
+    repo: context.repoName,
+    number: issueNumber
+  });
+  const issue = result.repository?.issue ?? null;
+  if (issue === null) {
+    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+  }
+
+  if (issue.id !== undefined && issue.id !== null) {
+    context.issueIds.set(issueNumber, issue.id);
+  }
+
+  const projectItem =
+    issue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null;
+  if (projectItem === null) {
+    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+  }
+
+  return projectItem.id;
+}
+
+async function updateProjectItemStatus(
+  projectItemId: string,
+  state: string,
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<void> {
+  const optionId = session.statusOptions.get(state);
+  if (optionId === undefined) {
+    throw new InvalidTransitionError({
+      to: state,
+      reason: `Unknown gh-issues Status state "${state}".`
+    });
+  }
+
+  await context.client.graphql(UPDATE_STATUS_MUTATION, {
+    input: {
+      projectId: session.projectId,
+      itemId: projectItemId,
+      fieldId: session.statusFieldId,
+      value: {
+        singleSelectOptionId: optionId
+      }
+    }
+  });
 }
 
 async function fetchProjectTasks(
@@ -401,10 +671,7 @@ async function fetchIssueTask(
   session: GhIssuesSession,
   context: GhIssuesTasksContext
 ): Promise<Task> {
-  const issueNumber = Number(id);
-  if (!Number.isInteger(issueNumber) || issueNumber < 1) {
-    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
-  }
+  const issueNumber = parseIssueNumber(id, listName);
 
   const result = await context.client.graphql<IssueResponse>(ISSUE_QUERY, {
     owner: context.repoOwner,
@@ -429,6 +696,15 @@ async function fetchIssueTask(
     listName,
     initialState: session.stateMachine.initial
   });
+}
+
+function parseIssueNumber(id: string, listName: string): number {
+  const issueNumber = Number(id);
+  if (!Number.isInteger(issueNumber) || issueNumber < 1) {
+    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+  }
+
+  return issueNumber;
 }
 
 function mapProjectItemToTask(

@@ -234,6 +234,273 @@ exports[`ghIssuesBackend > all({ state }) filters by Status name 1`] = `
 }
 `;
 
+exports[`ghIssuesBackend > create fetches the repository id lazily and caches it for later creates 1`] = `
+[
+  {
+    "query": "mutation CreateIssue($input: CreateIssueInput!) {
+  createIssue(input: $input) {
+    issue {
+      id
+      number
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "body": "",
+        "repositoryId": "repo-node",
+        "title": "First issue",
+      },
+    },
+  },
+  {
+    "query": "mutation AddProjectItem($input: AddProjectV2ItemByIdInput!) {
+  addProjectV2ItemById(input: $input) {
+    item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "contentId": "issue-node-101",
+        "projectId": "project-id",
+      },
+    },
+  },
+  {
+    "query": "mutation UpdateProjectItemStatus($input: UpdateProjectV2ItemFieldValueInput!) {
+  updateProjectV2ItemFieldValue(input: $input) {
+    projectV2Item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "fieldId": "status-field",
+        "itemId": "item-101",
+        "projectId": "project-id",
+        "value": {
+          "singleSelectOptionId": "status-todo",
+        },
+      },
+    },
+  },
+  {
+    "query": "mutation CreateIssue($input: CreateIssueInput!) {
+  createIssue(input: $input) {
+    issue {
+      id
+      number
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "body": "",
+        "repositoryId": "repo-node",
+        "title": "Second issue",
+      },
+    },
+  },
+  {
+    "query": "mutation AddProjectItem($input: AddProjectV2ItemByIdInput!) {
+  addProjectV2ItemById(input: $input) {
+    item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "contentId": "issue-node-102",
+        "projectId": "project-id",
+      },
+    },
+  },
+  {
+    "query": "mutation UpdateProjectItemStatus($input: UpdateProjectV2ItemFieldValueInput!) {
+  updateProjectV2ItemFieldValue(input: $input) {
+    projectV2Item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "fieldId": "status-field",
+        "itemId": "item-102",
+        "projectId": "project-id",
+        "value": {
+          "singleSelectOptionId": "status-todo",
+        },
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > create ignores a passed id and uses the GitHub-assigned issue number 1`] = `
+[
+  {
+    "query": "mutation CreateIssue($input: CreateIssueInput!) {
+  createIssue(input: $input) {
+    issue {
+      id
+      number
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "body": "",
+        "repositoryId": "repo-node",
+        "title": "Server id wins",
+      },
+    },
+  },
+  {
+    "query": "mutation AddProjectItem($input: AddProjectV2ItemByIdInput!) {
+  addProjectV2ItemById(input: $input) {
+    item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "contentId": "issue-node-914",
+        "projectId": "project-id",
+      },
+    },
+  },
+  {
+    "query": "mutation UpdateProjectItemStatus($input: UpdateProjectV2ItemFieldValueInput!) {
+  updateProjectV2ItemFieldValue(input: $input) {
+    projectV2Item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "fieldId": "status-field",
+        "itemId": "item-914",
+        "projectId": "project-id",
+        "value": {
+          "singleSelectOptionId": "status-todo",
+        },
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > create({ name, description }) issues the GitHub issue and project mutations 1`] = `
+[
+  {
+    "query": "mutation CreateIssue($input: CreateIssueInput!) {
+  createIssue(input: $input) {
+    issue {
+      id
+      number
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "body": "Created from task-list.",
+        "repositoryId": "repo-node",
+        "title": "New issue",
+      },
+    },
+  },
+  {
+    "query": "mutation AddProjectItem($input: AddProjectV2ItemByIdInput!) {
+  addProjectV2ItemById(input: $input) {
+    item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "contentId": "issue-node-573",
+        "projectId": "project-id",
+      },
+    },
+  },
+  {
+    "query": "mutation UpdateProjectItemStatus($input: UpdateProjectV2ItemFieldValueInput!) {
+  updateProjectV2ItemFieldValue(input: $input) {
+    projectV2Item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "fieldId": "status-field",
+        "itemId": "item-573",
+        "projectId": "project-id",
+        "value": {
+          "singleSelectOptionId": "status-todo",
+        },
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > fire ignores metadataPatch and only writes the Status field 1`] = `
+[
+  {
+    "query": "mutation UpdateProjectItemStatus($input: UpdateProjectV2ItemFieldValueInput!) {
+  updateProjectV2ItemFieldValue(input: $input) {
+    projectV2Item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "fieldId": "status-field",
+        "itemId": "item-482",
+        "projectId": "project-id",
+        "value": {
+          "singleSelectOptionId": "status-done",
+        },
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > fire("482", "<known-state>") sets the matching Status option 1`] = `
+[
+  {
+    "query": "mutation UpdateProjectItemStatus($input: UpdateProjectV2ItemFieldValueInput!) {
+  updateProjectV2ItemFieldValue(input: $input) {
+    projectV2Item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "fieldId": "status-field",
+        "itemId": "item-482",
+        "projectId": "project-id",
+        "value": {
+          "singleSelectOptionId": "status-done",
+        },
+      },
+    },
+  },
+]
+`;
+
 exports[`ghIssuesBackend > get("404") throws TaskNotFoundError when the issue does not exist 1`] = `
 {
   "query": "query Issue($owner: String!, $repo: String!, $number: Int!) {
@@ -360,4 +627,115 @@ exports[`ghIssuesBackend > keeps the project GraphQL request wire shape stable 1
     "owner": "octo-org",
   },
 }
+`;
+
+exports[`ghIssuesBackend > update uses the issue id cached by create 1`] = `
+[
+  {
+    "query": "mutation CreateIssue($input: CreateIssueInput!) {
+  createIssue(input: $input) {
+    issue {
+      id
+      number
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "body": "",
+        "repositoryId": "repo-node",
+        "title": "Original",
+      },
+    },
+  },
+  {
+    "query": "mutation AddProjectItem($input: AddProjectV2ItemByIdInput!) {
+  addProjectV2ItemById(input: $input) {
+    item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "contentId": "issue-node-573",
+        "projectId": "project-id",
+      },
+    },
+  },
+  {
+    "query": "mutation UpdateProjectItemStatus($input: UpdateProjectV2ItemFieldValueInput!) {
+  updateProjectV2ItemFieldValue(input: $input) {
+    projectV2Item {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "fieldId": "status-field",
+        "itemId": "item-573",
+        "projectId": "project-id",
+        "value": {
+          "singleSelectOptionId": "status-todo",
+        },
+      },
+    },
+  },
+  {
+    "query": "mutation UpdateIssue($input: UpdateIssueInput!) {
+  updateIssue(input: $input) {
+    issue {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "id": "issue-node-573",
+        "title": "Renamed",
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > update("482", { description: "new body" }) issues only updateIssue with body 1`] = `
+[
+  {
+    "query": "mutation UpdateIssue($input: UpdateIssueInput!) {
+  updateIssue(input: $input) {
+    issue {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "body": "new body",
+        "id": "issue-node-482",
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > update("482", { name: "new" }) issues only updateIssue with title 1`] = `
+[
+  {
+    "query": "mutation UpdateIssue($input: UpdateIssueInput!) {
+  updateIssue(input: $input) {
+    issue {
+      id
+    }
+  }
+}",
+    "variables": {
+      "input": {
+        "id": "issue-node-482",
+        "title": "new",
+      },
+    },
+  },
+]
 `;

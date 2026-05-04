@@ -619,7 +619,7 @@ tasks:
       - Do not touch the `archive/` directories.
       - Do not rename files in `qa/`, `research/`, or `poe-agent/`.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: cleanup-and-verify

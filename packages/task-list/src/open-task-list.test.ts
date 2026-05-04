@@ -113,6 +113,19 @@ describe("openTaskList", () => {
     ).rejects.toThrow('Unknown task list backend type "sqlite".');
   });
 
+  it('throws the placeholder error for "gh-issues"', async () => {
+    await expect(
+      openTaskList({
+        type: "gh-issues",
+        repo: "owner/name",
+        project: {
+          owner: "owner",
+          number: 1
+        }
+      })
+    ).rejects.toThrow("gh-issues backend not yet implemented");
+  });
+
   it("normalizes missing defaults", async () => {
     const taskList = createTaskList();
     const { fs } = createFs();

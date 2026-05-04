@@ -13,7 +13,7 @@ export interface Task {
 }
 
 export interface TaskCreate {
-  id: string;
+  id?: string;
   name: string;
   description?: string;
   metadata?: Record<string, unknown>;
@@ -95,8 +95,13 @@ export interface TaskListFs {
   ): Promise<void>;
 }
 
-export interface OpenTaskListOptions {
-  type: "markdown-dir" | "yaml-file";
+export type OpenTaskListOptions =
+  | OpenMarkdownDirOptions
+  | OpenYamlFileOptions
+  | OpenGhIssuesOptions;
+
+export interface OpenMarkdownDirOptions {
+  type: "markdown-dir";
   path: string;
   defaults?: TaskDefaults;
   create?: boolean;
@@ -104,6 +109,26 @@ export interface OpenTaskListOptions {
   lockRetries?: number;
   fs?: TaskListFs;
   stateMachine?: StateMachineDef;
+}
+
+export interface OpenYamlFileOptions {
+  type: "yaml-file";
+  path: string;
+  defaults?: TaskDefaults;
+  create?: boolean;
+  lockStaleMs?: number;
+  lockRetries?: number;
+  fs?: TaskListFs;
+  stateMachine?: StateMachineDef;
+}
+
+export interface OpenGhIssuesOptions {
+  type: "gh-issues";
+  repo: string;
+  project: { owner: string; number: number };
+  defaults?: TaskDefaults;
+  auth?: { token: string };
+  fetch?: typeof fetch;
 }
 
 export interface BackendDeps {

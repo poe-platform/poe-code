@@ -5,7 +5,8 @@ version: 1
 
 tasks:
   - id: gh-issues-types
-    title: Make TaskCreate.id optional + add OpenGhIssuesOptions to discriminated union
+    title: Make TaskCreate.id optional + add OpenGhIssuesOptions to discriminated
+      union
     prompt: |
       In `packages/task-list/src/types.ts`, do two things:
 
@@ -65,8 +66,8 @@ tasks:
       - No `if/case` on `type` outside of `open.ts`.
       - Keep existing tests passing.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: gh-issues-client

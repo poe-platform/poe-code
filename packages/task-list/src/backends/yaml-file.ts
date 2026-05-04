@@ -168,6 +168,12 @@ function assertCreateDoesNotSetState(input: TaskCreate): void {
   }
 }
 
+function assertCreateHasId(input: TaskCreate): asserts input is TaskCreate & { id: string } {
+  if (input.id === undefined) {
+    throw new Error("id is required for yaml-file backend");
+  }
+}
+
 function assertUpdateDoesNotSetState(patch: TaskUpdate): void {
   if (Object.prototype.hasOwnProperty.call(patch, "state")) {
     throw new Error('Tasks.update() does not accept "state"; use fire() to change task state.');
@@ -523,6 +529,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     },
     async create(input: TaskCreate): Promise<Task> {
       assertCreateDoesNotSetState(input);
+      assertCreateHasId(input);
       validateTaskId(input.id);
 
       return withStoreLock(deps, async () => {

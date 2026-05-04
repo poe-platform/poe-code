@@ -374,7 +374,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-runtime-init-build-templates
     title: Add poe-code runtime init/build/templates commands
@@ -404,8 +404,8 @@ tasks:
 
       Snapshot/screenshot tests for ls + clear output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: runner-e2b-package

@@ -4,7 +4,10 @@ import * as api from "./index.js";
 import { buildContextArgs, detectContext } from "./docker/context.js";
 import { detectEngine, isEngineAvailable } from "./docker/engine.js";
 import { createDockerRunner } from "./docker/docker-runner.js";
-import { dockerExecutionEnvFactory } from "./docker/docker-execution-env.js";
+import {
+  buildDockerRuntimeTemplate,
+  dockerExecutionEnvFactory
+} from "./docker/docker-execution-env.js";
 import { hostExecutionEnvFactory } from "./host/host-execution-env.js";
 import { createHostRunner } from "./host/host-runner.js";
 import { createMockRunner, createMockRunnerByCommand } from "./testing/index.js";
@@ -210,6 +213,7 @@ describe("@poe-code/process-runner public exports", () => {
     expect(api.detectContext).toBe(detectContext);
     expect(api.detectEngine).toBe(detectEngine);
     expect(api.isEngineAvailable).toBe(isEngineAvailable);
+    expect(api.buildDockerRuntimeTemplate).toBe(buildDockerRuntimeTemplate);
     expect(api.dockerExecutionEnvFactory).toBe(dockerExecutionEnvFactory);
     expect(api.hostExecutionEnvFactory).toBe(hostExecutionEnvFactory);
     expect(api.createHostRunner).toBe(createHostRunner);
@@ -222,6 +226,7 @@ describe("@poe-code/process-runner public exports", () => {
       "detectEngine",
       "isEngineAvailable",
       "createDockerRunner",
+      "buildDockerRuntimeTemplate",
       "dockerExecutionEnvFactory",
       "hostExecutionEnvFactory",
       "createHostRunner",

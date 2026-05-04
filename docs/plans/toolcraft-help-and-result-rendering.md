@@ -555,7 +555,7 @@ tasks:
       calendar.meeting create / edit). Only --help and known
       read-only commands.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

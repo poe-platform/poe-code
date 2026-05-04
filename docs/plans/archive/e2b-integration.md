@@ -557,7 +557,7 @@ tasks:
       (per CLAUDE.md readme rule).
     status:
       implement: done
-      commit: open
+      commit: done
 ---
 
 # e2b integration

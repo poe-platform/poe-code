@@ -165,6 +165,26 @@ describe("plans", () => {
     );
   });
 
+  it("skips files without frontmatter when discovering plans", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/01-pipeline.md": planDocument({
+        kind: "pipeline"
+      }),
+      "/repo/.poe-code/plans/02-free-form.md":
+        "# Free-form planning doc\n\nNo frontmatter here.\n",
+      "/repo/.poe-code/plans/03-another-pipeline.md": planDocument({
+        kind: "pipeline"
+      })
+    });
+
+    const plans = await discoverPlans({
+      ...discoverOptions(fs),
+      kinds: ["pipeline"]
+    });
+
+    expect(plans.map((plan) => plan.id)).toEqual(["pipeline", "another-pipeline"]);
+  });
+
   it("returns an empty list when the plan directory does not exist", async () => {
     const { fs } = createFs({});
 

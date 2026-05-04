@@ -149,6 +149,7 @@ function openPlansTaskList(planDirectory: string, fs: TaskListFs | undefined): P
     path: planDirectory,
     singleList: "plans",
     frontmatterMode: "passthrough",
+    ignoreMalformed: true,
     fs
   });
 }

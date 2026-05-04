@@ -306,7 +306,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-renderer-mcp-unwrap
     title: Auto-unwrap MCP CallToolResult in renderer
@@ -380,9 +380,9 @@ tasks:
            ({content,structuredContent,isError,customKey}) is NOT
            treated as an envelope and renders as-is
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: toolcraft-renderer-yaml-fallback
     title: String/string[] shortcuts plus YAML fallback in autoRender

@@ -2,10 +2,81 @@ import type { Command, RenderPrimitives } from "./index.js";
 
 export type OutputMode = "rich" | "md" | "json";
 
-type WriteFn = (chunk: string) => void;
+type WriteStream = "stdout" | "stderr";
+type WriteFn = (chunk: string, stream?: WriteStream) => void;
+
+export interface RenderResultStatus {
+  mcpError: boolean;
+}
+
+interface McpCallToolResult {
+  content?: unknown[];
+  structuredContent?: unknown;
+  isError?: boolean;
+  _meta?: unknown;
+}
+
+interface McpTextContent {
+  type: "text";
+  text: string;
+}
 
 function isObject(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isMcpCallToolResult(value: unknown): value is McpCallToolResult {
+  if (!isObject(value)) {
+    return false;
+  }
+
+  const hasContent = Array.isArray(value.content);
+  const hasStructured = value.structuredContent !== undefined;
+  if (!hasContent && !hasStructured) {
+    return false;
+  }
+
+  return Object.keys(value).every(
+    (key) =>
+      key === "content" || key === "structuredContent" || key === "isError" || key === "_meta"
+  );
+}
+
+function isMcpTextContent(value: unknown): value is McpTextContent {
+  return isObject(value) && value.type === "text" && typeof value.text === "string";
+}
+
+function extractMcpPayload(envelope: McpCallToolResult): unknown {
+  const structuredContent = envelope.structuredContent;
+  if (isObject(structuredContent) && "result" in structuredContent) {
+    return structuredContent.result;
+  }
+
+  if (structuredContent !== undefined) {
+    return structuredContent;
+  }
+
+  if (Array.isArray(envelope.content)) {
+    const text = envelope.content
+      .filter(isMcpTextContent)
+      .map((block) => block.text)
+      .join("\n");
+
+    return text.length > 0 ? text : undefined;
+  }
+
+  return undefined;
+}
+
+function unwrapMcpEnvelope(result: unknown): { result: unknown; mcpError: boolean } {
+  if (!isMcpCallToolResult(result)) {
+    return { result, mcpError: false };
+  }
+
+  return {
+    result: extractMcpPayload(result),
+    mcpError: result.isError === true,
+  };
 }
 
 function isArrayOfObjects(value: unknown): value is Array<Record<string, unknown>> {
@@ -173,16 +244,32 @@ export function renderResult(
   result: unknown,
   output: OutputMode,
   primitives: RenderPrimitives,
-  write: WriteFn = (chunk) => {
+  write: WriteFn = (chunk, stream = "stdout") => {
+    if (stream === "stderr") {
+      process.stderr.write(chunk);
+      return;
+    }
+
     process.stdout.write(chunk);
   }
-): void {
+): RenderResultStatus {
+  const unwrapped = unwrapMcpEnvelope(result);
+  result = unwrapped.result;
+
+  if (unwrapped.mcpError) {
+    const payload = autoRender(result, output, primitives);
+    if (payload.length > 0) {
+      write(`${payload}\n`, "stderr");
+    }
+    return { mcpError: true };
+  }
+
   if (output === "json" && command.render?.json) {
     const payload = command.render.json(result, primitives);
     if (payload !== undefined) {
       write(`${stringifyJson(payload, 2)}\n`);
     }
-    return;
+    return { mcpError: false };
   }
 
   if (output === "md" && command.render?.markdown) {
@@ -190,16 +277,17 @@ export function renderResult(
     if (typeof payload === "string" && payload.length > 0) {
       write(`${payload}\n`);
     }
-    return;
+    return { mcpError: false };
   }
 
   if (output === "rich" && command.render?.rich) {
     command.render.rich(result, primitives);
-    return;
+    return { mcpError: false };
   }
 
   const payload = autoRender(result, output, primitives);
   if (payload.length > 0) {
     write(`${payload}\n`);
   }
+  return { mcpError: false };
 }

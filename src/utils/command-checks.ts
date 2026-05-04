@@ -4,6 +4,7 @@ import type {
   CommandRunnerResult
 } from "@poe-code/agent-spawn";
 import { buildSpawnArgs } from "@poe-code/agent-spawn";
+import { createBinaryExistsDetectors } from "@poe-code/agent-harness-tools";
 
 export type {
   CommandRunner,
@@ -216,42 +217,7 @@ export function createBinaryExistsCheck(
     id,
     description,
     async run({ runCommand }) {
-      // Common installation paths for CLI tools
-      const commonPaths = [
-        `/usr/local/bin/${binaryName}`,
-        `/usr/bin/${binaryName}`,
-        `$HOME/.local/bin/${binaryName}`,
-        `$HOME/.claude/local/bin/${binaryName}`
-      ];
-
-      const detectors: Array<{
-        command: string;
-        args: string[];
-        validate: (result: CommandRunnerResult) => boolean;
-      }> = [
-        {
-          command: "which",
-          args: [binaryName],
-          validate: (result) => result.exitCode === 0
-        },
-        {
-          command: "where",
-          args: [binaryName],
-          validate: (result) =>
-            result.exitCode === 0 && result.stdout.trim().length > 0
-        },
-        // Check common installation paths using shell expansion for $HOME
-        {
-          command: "sh",
-          args: [
-            "-c",
-            commonPaths.map((p) => `test -f "${p}"`).join(" || ")
-          ],
-          validate: (result) => result.exitCode === 0
-        }
-      ];
-
-      for (const detector of detectors) {
+      for (const detector of createBinaryExistsDetectors(binaryName)) {
         const result = await runCommand(detector.command, detector.args);
         if (detector.validate(result)) {
           return;

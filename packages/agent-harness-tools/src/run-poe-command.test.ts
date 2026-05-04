@@ -112,7 +112,9 @@ function createMockEnv(
     },
     exec(spec): RunHandle {
       env.execSpecs.push(spec);
-      void writeExitFile(rawFs.promises, spec, commandExitCode);
+      if (spec.command === "sh" && spec.args?.[0] === "-c") {
+        void writeExitFile(rawFs.promises, spec, commandExitCode);
+      }
       return {
         pid: 123,
         stdout: null,
@@ -180,6 +182,18 @@ function extractJobId(spec: RunSpec): string {
 function createFactory(env: OpenedEnv): ExecutionEnvFactory {
   return {
     type: "host",
+    async open() {
+      return env;
+    },
+    async attach() {
+      return env;
+    }
+  };
+}
+
+function createE2bFactory(env: OpenedEnv): ExecutionEnvFactory {
+  return {
+    type: "e2b",
     async open() {
       return env;
     },
@@ -301,6 +315,238 @@ describe("runPoeCommand", () => {
     upload.resolve({ files: 1, bytes: 12, skipped: [] });
     await expect(run).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
     expect(execStarted).toBe(true);
+  });
+
+  it("configures the spawned E2B agent after upload and before the agent command", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const upload = env.uploadWorkspace.bind(env);
+    const exec = env.exec.bind(env);
+    let uploadFinished = false;
+
+    env.uploadWorkspace = async () => {
+      const result = await upload();
+      uploadFinished = true;
+      return result;
+    };
+    env.exec = (spec): RunHandle => {
+      expect(uploadFinished).toBe(true);
+      return exec(spec);
+    };
+
+    await runPoeCommand({
+      factory: createE2bFactory(env),
+      openSpec: createOpenSpec({
+        env: { POE_API_KEY: "sk-test" },
+        jobLabel: { tool: "claude-code", argv: ["claude", "-p", "hello"] }
+      }),
+      detach: false,
+      state
+    });
+
+    expect(env.execSpecs.map((spec) => [spec.command, ...(spec.args ?? [])])).toEqual([
+      ["which", "claude"],
+      [
+        "poe-code",
+        "configure",
+        "--yes",
+        "--skip-if-configured",
+        "--provider",
+        "poe",
+        "claude-code"
+      ],
+      ["sh", "-c", expect.stringContaining("'claude' '-p' 'hello'")]
+    ]);
+    expect(env.execSpecs[1]).toMatchObject({
+      cwd: "/repo",
+      env: { POE_API_KEY: "sk-test" },
+      stdin: "ignore",
+      stdout: "pipe",
+      stderr: "pipe"
+    });
+  });
+
+  it("skips E2B configure when the spawned agent binary is absent", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const exec = env.exec.bind(env);
+
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      const isBinaryCheck =
+        spec.command === "which" ||
+        spec.command === "where" ||
+        (spec.command === "sh" &&
+          spec.args?.[0] === "-c" &&
+          spec.args[1]?.includes("test -f"));
+      if (isBinaryCheck) {
+        return {
+          pid: 123,
+          stdout: null,
+          stderr: null,
+          stdin: null,
+          result: Promise.resolve({ exitCode: 1 }),
+          kill() {}
+        };
+      }
+      env.execSpecs.pop();
+      return exec(spec);
+    };
+
+    await runPoeCommand({
+      factory: createE2bFactory(env),
+      openSpec: createOpenSpec({
+        jobLabel: { tool: "codex", argv: ["codex", "exec", "hello"] }
+      }),
+      detach: false,
+      state
+    });
+
+    expect(env.execSpecs.map((spec) => [spec.command, ...(spec.args ?? [])])).toEqual([
+      ["which", "codex"],
+      ["where", "codex"],
+      [
+        "sh",
+        "-c",
+        'test -f "/usr/local/bin/codex" || test -f "/usr/bin/codex" || test -f "$HOME/.local/bin/codex" || test -f "$HOME/.claude/local/bin/codex"'
+      ],
+      ["sh", "-c", expect.stringContaining("'codex' 'exec' 'hello'")]
+    ]);
+  });
+
+  it("does not treat an empty where result as an existing E2B agent binary", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const exec = env.exec.bind(env);
+
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      if (spec.command === "which") {
+        return {
+          pid: 123,
+          stdout: null,
+          stderr: null,
+          stdin: null,
+          result: Promise.resolve({ exitCode: 1 }),
+          kill() {}
+        };
+      }
+      if (spec.command === "where") {
+        const stdout = new PassThrough();
+        stdout.end("");
+        return {
+          pid: 123,
+          stdout,
+          stderr: null,
+          stdin: null,
+          result: Promise.resolve({ exitCode: 0 }),
+          kill() {}
+        };
+      }
+      if (
+        spec.command === "sh" &&
+        spec.args?.[0] === "-c" &&
+        spec.args[1]?.includes("test -f")
+      ) {
+        return {
+          pid: 123,
+          stdout: null,
+          stderr: null,
+          stdin: null,
+          result: Promise.resolve({ exitCode: 1 }),
+          kill() {}
+        };
+      }
+      env.execSpecs.pop();
+      return exec(spec);
+    };
+
+    await runPoeCommand({
+      factory: createE2bFactory(env),
+      openSpec: createOpenSpec({
+        jobLabel: { tool: "opencode", argv: ["opencode", "run", "hello"] }
+      }),
+      detach: false,
+      state
+    });
+
+    expect(env.execSpecs.map((spec) => [spec.command, ...(spec.args ?? [])])).toEqual([
+      ["which", "opencode"],
+      ["where", "opencode"],
+      [
+        "sh",
+        "-c",
+        'test -f "/usr/local/bin/opencode" || test -f "/usr/bin/opencode" || test -f "$HOME/.local/bin/opencode" || test -f "$HOME/.claude/local/bin/opencode"'
+      ],
+      ["sh", "-c", expect.stringContaining("'opencode' 'run' 'hello'")]
+    ]);
+  });
+
+  it("fails the E2B spawn when sandbox configure fails after the binary check passes", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const exec = env.exec.bind(env);
+
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      if (spec.command === "which") {
+        return {
+          pid: 123,
+          stdout: null,
+          stderr: null,
+          stdin: null,
+          result: Promise.resolve({ exitCode: 0 }),
+          kill() {}
+        };
+      }
+      if (spec.command === "poe-code") {
+        const stdout = new PassThrough();
+        const stderr = new PassThrough();
+        stdout.end("configure stdout\n");
+        stderr.end("configure stderr\n");
+        return {
+          pid: 123,
+          stdout,
+          stderr,
+          stdin: null,
+          result: Promise.resolve({ exitCode: 2 }),
+          kill() {}
+        };
+      }
+      env.execSpecs.pop();
+      return exec(spec);
+    };
+
+    await expect(
+      runPoeCommand({
+        factory: createE2bFactory(env),
+        openSpec: createOpenSpec({
+          jobLabel: { tool: "claude-code", argv: ["claude", "-p", "hello"] }
+        }),
+        detach: false,
+        state
+      })
+    ).rejects.toThrow(
+      [
+        "Failed to configure claude-code for Poe inside E2B sandbox.",
+        "Exit code: 2",
+        "stdout:\nconfigure stdout",
+        "stderr:\nconfigure stderr"
+      ].join("\n")
+    );
+
+    expect(env.execSpecs.map((spec) => [spec.command, ...(spec.args ?? [])])).toEqual([
+      ["which", "claude"],
+      [
+        "poe-code",
+        "configure",
+        "--yes",
+        "--skip-if-configured",
+        "--provider",
+        "poe",
+        "claude-code"
+      ]
+    ]);
   });
 
   it("returns the download result with conflicts from sync mode", async () => {

@@ -81,6 +81,26 @@ Embed agent-script in your own product when you want to let users (or models) wr
 | **Budgets** | `maxSteps`, `deadline`, `maxCallDepth`, `stringLength`, `arrayLength` |
 | **Cancellation** | `AbortSignal`, observed at every host call and yield point |
 
+## Supported globals
+
+These are pre-bound in every script — you don't need to import them.
+
+- **`Promise.all(values)`** — wait for every promise; rejects on the first rejection
+- **`Promise.race(values)`** — settle with the first promise to settle, fulfilled or rejected
+- **`Promise.allSettled(values)`** — never rejects; resolves to `{ status, value | reason }` entries
+- **`Promise.any(values)`** — resolves with the first fulfillment; rejects with `AggregateError` only if all reject
+- **`Math`** — `abs`, `ceil`, `exp`, `floor`, `log`, `max`, `min`, `pow`, `round`, `sign`, `sqrt`, `trunc`, plus `E`, `PI`, and `random` (only when `randomSeed` is set)
+- **`Object`** — `keys`, `values`, `entries`, `fromEntries`, `assign`, `freeze`
+- **`Array`** — `isArray`, `from`, `of`
+- **`JSON`** — `parse`, `stringify` (replacer must be `null`/`undefined`; indent must be number/string/undefined)
+- **`console`** — `log`, `error` (routed to the `sink` you pass to `run()`)
+- **`Error`, `TypeError`** — callable factories, e.g. `throw Error("…")`. `new` is forbidden; the factory call is the supported form.
+- **`String`, `Number`, `Boolean`** — value coercion factories, e.g. `String(value)`
+
+What is **not** available as a global: `Promise` constructor, `Date`, `RegExp`, `Map`, `Set`, `WeakMap`, `WeakSet`, `Symbol`, `BigInt`, `Reflect`, `Proxy`, `globalThis`, `setTimeout`, `setInterval`, `fetch`, `URL`, and the other `*Error` constructors (`RangeError`, `SyntaxError`, `ReferenceError`). Expose a host module if you need any of them.
+
+Method coverage on plain values follows ECMAScript with a few removals: `String#split` / `replace` / `replaceAll` reject regex separators and function replacers, and `Array#sort` only accepts an arrow comparator returning a number. See `src/interp/methods/` for the full list.
+
 ## Built-in host modules
 
 Registered by the caller via the factory functions exported from the package. None of them are auto-installed — you choose which to wire up per run.

@@ -93,7 +93,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: design-system-help-formatter-plain
     title: Plain-text fallback module for help-formatter
@@ -129,9 +129,9 @@ tasks:
           (reuse a couple of cases from help-formatter.test.ts to
           confirm parity)
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: toolcraft-help-global-options-gate
     title: Gate global option rows in toolcraft help

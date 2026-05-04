@@ -233,7 +233,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: gh-issues-read
     title: gh-issues read path — Tasks.all() and Tasks.get()
@@ -341,9 +341,9 @@ tasks:
       - No `child_process.spawn`.
       - Tests inject `fetch`; no live API.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: gh-issues-create-update-fire
     title: gh-issues write path — create, update, fire

@@ -1,5 +1,344 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`ghIssuesBackend > all merges paginated project items in project view order 1`] = `
+{
+  "query": "query Items($projectId: ID!, $after: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100, after: $after) {
+        nodes {
+          id
+          content {
+            __typename
+            ... on Issue {
+              number
+              title
+              body
+              url
+              createdAt
+              labels(first: 50) { nodes { name } }
+              assignees(first: 20) { nodes { login } }
+              milestone { title }
+            }
+          }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}",
+  "variables": {
+    "after": null,
+    "projectId": "project-id",
+  },
+}
+`;
+
+exports[`ghIssuesBackend > all merges paginated project items in project view order 2`] = `
+{
+  "query": "query Items($projectId: ID!, $after: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100, after: $after) {
+        nodes {
+          id
+          content {
+            __typename
+            ... on Issue {
+              number
+              title
+              body
+              url
+              createdAt
+              labels(first: 50) { nodes { name } }
+              assignees(first: 20) { nodes { login } }
+              milestone { title }
+            }
+          }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}",
+  "variables": {
+    "after": "cursor-one",
+    "projectId": "project-id",
+  },
+}
+`;
+
+exports[`ghIssuesBackend > all returns project issue items in project view order 1`] = `
+{
+  "query": "query Items($projectId: ID!, $after: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100, after: $after) {
+        nodes {
+          id
+          content {
+            __typename
+            ... on Issue {
+              number
+              title
+              body
+              url
+              createdAt
+              labels(first: 50) { nodes { name } }
+              assignees(first: 20) { nodes { login } }
+              milestone { title }
+            }
+          }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}",
+  "variables": {
+    "after": null,
+    "projectId": "project-id",
+  },
+}
+`;
+
+exports[`ghIssuesBackend > all({ order: 'alphabetical' }) sorts by qualifiedId 1`] = `
+{
+  "query": "query Items($projectId: ID!, $after: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100, after: $after) {
+        nodes {
+          id
+          content {
+            __typename
+            ... on Issue {
+              number
+              title
+              body
+              url
+              createdAt
+              labels(first: 50) { nodes { name } }
+              assignees(first: 20) { nodes { login } }
+              milestone { title }
+            }
+          }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}",
+  "variables": {
+    "after": null,
+    "projectId": "project-id",
+  },
+}
+`;
+
+exports[`ghIssuesBackend > all({ order: 'created' }) sorts by createdAt 1`] = `
+{
+  "query": "query Items($projectId: ID!, $after: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100, after: $after) {
+        nodes {
+          id
+          content {
+            __typename
+            ... on Issue {
+              number
+              title
+              body
+              url
+              createdAt
+              labels(first: 50) { nodes { name } }
+              assignees(first: 20) { nodes { login } }
+              milestone { title }
+            }
+          }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}",
+  "variables": {
+    "after": null,
+    "projectId": "project-id",
+  },
+}
+`;
+
+exports[`ghIssuesBackend > all({ state }) filters by Status name 1`] = `
+{
+  "query": "query Items($projectId: ID!, $after: String) {
+  node(id: $projectId) {
+    ... on ProjectV2 {
+      items(first: 100, after: $after) {
+        nodes {
+          id
+          content {
+            __typename
+            ... on Issue {
+              number
+              title
+              body
+              url
+              createdAt
+              labels(first: 50) { nodes { name } }
+              assignees(first: 20) { nodes { login } }
+              milestone { title }
+            }
+          }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+        pageInfo { hasNextPage endCursor }
+      }
+    }
+  }
+}",
+  "variables": {
+    "after": null,
+    "projectId": "project-id",
+  },
+}
+`;
+
+exports[`ghIssuesBackend > get("404") throws TaskNotFoundError when the issue does not exist 1`] = `
+{
+  "query": "query Issue($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $number) {
+      number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
+      projectItems(first: 10) {
+        nodes {
+          id
+          project { id }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}",
+  "variables": {
+    "number": 404,
+    "owner": "octo",
+    "repo": "repo",
+  },
+}
+`;
+
+exports[`ghIssuesBackend > get("482") returns the mapped task 1`] = `
+{
+  "query": "query Issue($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $number) {
+      number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
+      projectItems(first: 10) {
+        nodes {
+          id
+          project { id }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}",
+  "variables": {
+    "number": 482,
+    "owner": "octo",
+    "repo": "repo",
+  },
+}
+`;
+
+exports[`ghIssuesBackend > get("999") throws TaskNotFoundError when the issue is not in this project 1`] = `
+{
+  "query": "query Issue($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $number) {
+      number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
+      projectItems(first: 10) {
+        nodes {
+          id
+          project { id }
+          fieldValueByName(name: "Status") {
+            ... on ProjectV2ItemFieldSingleSelectValue {
+              name
+            }
+          }
+        }
+      }
+    }
+  }
+}",
+  "variables": {
+    "number": 999,
+    "owner": "octo",
+    "repo": "repo",
+  },
+}
+`;
+
 exports[`ghIssuesBackend > keeps the project GraphQL request wire shape stable 1`] = `
 {
   "query": "query Project($owner: String!, $number: Int!) {

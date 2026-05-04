@@ -6,13 +6,25 @@ This package implements the shared `ExecutionEnvFactory` contract for `runtime.t
 It is responsible for opening E2B sandboxes, resolving or building templates from the Poe Code
 runtime config, uploading/downloading workspaces, and reconnecting to detached sandboxes.
 
-## Environment Variables
+## API key
 
-- `E2B_API_KEY` - E2B API key used by default.
+The E2B API key is read from the `e2b` config scope. Resolution order:
 
-The environment variable name can be changed with `runtime.api_key_env`. When `auth.providers.e2b`
-is present in the `OpenSpec` passed by the caller, that configured credential is preferred over the
-environment variable.
+1. `E2B_API_KEY` environment variable.
+2. `e2b.api_key` in the project config (`<cwd>/.poe-code/config.json`).
+3. `e2b.api_key` in the global config (`~/.poe-code/config.json`).
+
+Example global config:
+
+```json
+{
+  "e2b": {
+    "api_key": "e2b_..."
+  }
+}
+```
+
+Missing key on `open()` or `attach()` raises an error pointing to both locations.
 
 ## Runtime Config
 
@@ -28,7 +40,6 @@ Use these options under the `runtime` config scope:
 - `memory_mb`: memory in megabytes used when building an E2B template.
 - `timeout_minutes`: sandbox timeout in minutes.
 - `preserve_after_exit_hours`: hours to keep a detached sandbox alive after job exit. Defaults to `24`; valid range is `0` to `168`.
-- `api_key_env`: host environment variable containing the E2B API key. Defaults to `E2B_API_KEY`.
 
 Runner workspace behavior is controlled by `runtime.runner` in `@poe-code/poe-code-config`:
 

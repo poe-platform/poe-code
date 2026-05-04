@@ -53,6 +53,7 @@ export async function buildE2bRuntimeTemplate(
       buildContext: input.buildContext,
       cpu: input.runtime.cpu,
       memoryMb: input.runtime.memory_mb,
+      fromTemplate: input.runtime.from_template,
       onLog
     });
   } catch (error) {

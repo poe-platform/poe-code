@@ -105,6 +105,7 @@ export interface OpenMarkdownDirOptions {
   path: string;
   singleList?: string;
   frontmatterMode?: "strict" | "passthrough";
+  ignoreMalformed?: boolean;
   defaults?: TaskDefaults;
   create?: boolean;
   lockStaleMs?: number;
@@ -137,6 +138,7 @@ export interface BackendDeps {
   path: string;
   singleList?: string;
   frontmatterMode: "strict" | "passthrough";
+  ignoreMalformed?: boolean;
   defaults: Required<TaskDefaults>;
   lockStaleMs: number;
   lockRetries: number;

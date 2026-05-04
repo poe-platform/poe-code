@@ -194,6 +194,73 @@ Broken`
     await expect(taskList.list("planning").get("bad")).rejects.toBeInstanceOf(MalformedTaskError);
   });
 
+  it("skips files without frontmatter in all() when ignoreMalformed is true", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/01-valid.md": `---
+kind: pipeline
+state: draft
+---
+
+Body`,
+      "/repo/tasks/02-no-frontmatter.md": "# Just a heading\n\nFree-form planning doc.\n",
+      "/repo/tasks/03-also-valid.md": `---
+kind: pipeline
+state: draft
+---
+
+Body`
+    });
+    const taskList = await openTaskList({
+      type: "markdown-dir",
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      ignoreMalformed: true,
+      fs
+    });
+
+    const tasks = await taskList.list("plans").all();
+
+    expect(tasks.map((task) => task.id)).toEqual(["valid", "also-valid"]);
+  });
+
+  it("propagates MalformedTaskError from all() when ignoreMalformed is false", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/01-valid.md": `---
+kind: pipeline
+state: draft
+---
+
+Body`,
+      "/repo/tasks/02-no-frontmatter.md": "# Just a heading\n"
+    });
+    const taskList = await openTaskList({
+      type: "markdown-dir",
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      fs
+    });
+
+    await expect(taskList.list("plans").all()).rejects.toBeInstanceOf(MalformedTaskError);
+  });
+
+  it("still throws MalformedTaskError from get() when ignoreMalformed is true", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/01-broken.md": "# Just a heading\n"
+    });
+    const taskList = await openTaskList({
+      type: "markdown-dir",
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      ignoreMalformed: true,
+      fs
+    });
+
+    await expect(taskList.list("plans").get("broken")).rejects.toBeInstanceOf(MalformedTaskError);
+  });
+
   it("rejects non-task frontmatter in strict mode", async () => {
     const { fs } = createFs({
       "/repo/tasks/planning/pipeline.md": `---

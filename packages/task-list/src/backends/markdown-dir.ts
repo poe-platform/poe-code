@@ -630,22 +630,31 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
   }> {
     const entries = await readActiveEntries();
     const tasks = new Map<string, { task: Task; raw: TaskRecord }>();
+    const validEntries: ActiveEntry[] = [];
 
     for (const entry of entries) {
       const filePath = path.join(listDirectoryPath, entry.filename);
-      const file = await readTaskFile(
-        deps.fs,
-        list,
-        entry.id,
-        filePath,
-        validStates,
-        stateMachine.initial,
-        deps.frontmatterMode
-      );
-      tasks.set(entry.id, { task: file.task, raw: file.frontmatter });
+      try {
+        const file = await readTaskFile(
+          deps.fs,
+          list,
+          entry.id,
+          filePath,
+          validStates,
+          stateMachine.initial,
+          deps.frontmatterMode
+        );
+        tasks.set(entry.id, { task: file.task, raw: file.frontmatter });
+        validEntries.push(entry);
+      } catch (error) {
+        if (deps.ignoreMalformed && error instanceof MalformedTaskError) {
+          continue;
+        }
+        throw error;
+      }
     }
 
-    return { entries, tasks };
+    return { entries: validEntries, tasks };
   }
 
   async function readArchivedTasks(): Promise<{ task: Task; raw: TaskRecord }[]> {
@@ -661,16 +670,23 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       if (!entryStat?.isFile()) continue;
 
       const id = entryName.slice(0, -MARKDOWN_EXTENSION.length);
-      const file = await readTaskFile(
-        deps.fs,
-        list,
-        id,
-        entryPath,
-        validStates,
-        stateMachine.initial,
-        deps.frontmatterMode
-      );
-      result.push({ task: file.task, raw: file.frontmatter });
+      try {
+        const file = await readTaskFile(
+          deps.fs,
+          list,
+          id,
+          entryPath,
+          validStates,
+          stateMachine.initial,
+          deps.frontmatterMode
+        );
+        result.push({ task: file.task, raw: file.frontmatter });
+      } catch (error) {
+        if (deps.ignoreMalformed && error instanceof MalformedTaskError) {
+          continue;
+        }
+        throw error;
+      }
     }
 
     return result.sort((left, right) =>

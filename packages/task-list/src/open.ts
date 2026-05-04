@@ -54,6 +54,8 @@ async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
     path: options.path,
     singleList: options.singleList,
     frontmatterMode: options.frontmatterMode ?? "strict",
+    ignoreMalformed:
+      options.type === "markdown-dir" ? options.ignoreMalformed ?? false : false,
     defaults: {
       metadata: { ...(options.defaults?.metadata ?? {}) }
     },

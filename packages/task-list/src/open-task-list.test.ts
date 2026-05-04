@@ -71,6 +71,7 @@ describe("openTaskList", () => {
       path: "/repo/tasks",
       singleList: undefined,
       frontmatterMode: "strict",
+      ignoreMalformed: false,
       defaults: {
         metadata: {}
       },
@@ -97,6 +98,7 @@ describe("openTaskList", () => {
       path: "/repo/tasks.yaml",
       singleList: undefined,
       frontmatterMode: "strict",
+      ignoreMalformed: false,
       defaults: {
         metadata: {}
       },

@@ -69,6 +69,8 @@ describe("openTaskList", () => {
 
     expect(spy).toHaveBeenCalledWith({
       path: "/repo/tasks",
+      singleList: undefined,
+      frontmatterMode: "strict",
       defaults: {
         metadata: {}
       },
@@ -93,6 +95,8 @@ describe("openTaskList", () => {
 
     expect(spy).toHaveBeenCalledWith({
       path: "/repo/tasks.yaml",
+      singleList: undefined,
+      frontmatterMode: "strict",
       defaults: {
         metadata: {}
       },
@@ -255,6 +259,21 @@ describe("openTaskList", () => {
         lockRetries: 7
       })
     );
+  });
+
+  it("opens markdown-dir with single-list passthrough frontmatter options", async () => {
+    const { fs } = createFs();
+
+    await expect(
+      openTaskList({
+        type: "markdown-dir",
+        path: "/repo/tasks",
+        create: true,
+        fs,
+        singleList: "plans",
+        frontmatterMode: "passthrough"
+      })
+    ).resolves.toEqual(expect.objectContaining({ list: expect.any(Function) }));
   });
 
   for (const backend of BACKENDS) {

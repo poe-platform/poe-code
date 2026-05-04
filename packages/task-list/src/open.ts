@@ -19,7 +19,10 @@ import type {
 const DEFAULT_LOCK_STALE_MS = 30_000;
 const DEFAULT_LOCK_RETRIES = 20;
 
-type FileBackendOptions = OpenMarkdownDirOptions | OpenYamlFileOptions;
+type FileBackendOptions = (OpenMarkdownDirOptions | OpenYamlFileOptions) & {
+  singleList?: string;
+  frontmatterMode?: "strict" | "passthrough";
+};
 
 export const backendFactories: Record<FileBackendOptions["type"], BackendFactory> = {
   "markdown-dir": markdownDirBackend,
@@ -49,6 +52,8 @@ async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
 
   const deps: BackendDeps = {
     path: options.path,
+    singleList: options.singleList,
+    frontmatterMode: options.frontmatterMode ?? "strict",
     defaults: {
       metadata: { ...(options.defaults?.metadata ?? {}) }
     },

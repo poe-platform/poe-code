@@ -42,9 +42,9 @@ tasks:
         prefix or a small no-op read; the next task uses them.)
       - Do not modify `gh-issues` types or any other backend.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: markdown-dir-single-list
     title: markdown-dir singleList layout — root is the list

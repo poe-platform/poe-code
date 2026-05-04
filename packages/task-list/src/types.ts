@@ -103,6 +103,8 @@ export type OpenTaskListOptions =
 export interface OpenMarkdownDirOptions {
   type: "markdown-dir";
   path: string;
+  singleList?: string;
+  frontmatterMode?: "strict" | "passthrough";
   defaults?: TaskDefaults;
   create?: boolean;
   lockStaleMs?: number;
@@ -133,6 +135,8 @@ export interface OpenGhIssuesOptions {
 
 export interface BackendDeps {
   path: string;
+  singleList?: string;
+  frontmatterMode: "strict" | "passthrough";
   defaults: Required<TaskDefaults>;
   lockStaleMs: number;
   lockRetries: number;

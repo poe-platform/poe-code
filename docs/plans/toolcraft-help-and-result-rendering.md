@@ -180,8 +180,8 @@ tasks:
            --output, --version rendered (in that order)
         3. -h, --help never appears in any of the above
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-help-field-tokens

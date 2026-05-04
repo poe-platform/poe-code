@@ -69,6 +69,10 @@ import { acp, createDashboard, withOutputFormat } from "@poe-code/design-system"
 const cwd = "/repo";
 const homeDir = "/home/test";
 
+function ralphPlanDocument(body = "# Plan", frontmatter: string[] = []): string {
+  return ["---", "kind: ralph", ...frontmatter, "---", body].join("\n");
+}
+
 function createMemFs(files: Record<string, string> = {}): FileSystem {
   const volume = Volume.fromJSON(files, "/");
   volume.mkdirSync(cwd, { recursive: true });
@@ -1978,8 +1982,8 @@ describe("ralph run command", () => {
 
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-b.md": "# B",
-        "/repo/docs/plans/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": ralphPlanDocument("# B"),
+        "/repo/docs/plans/plan-a.md": ralphPlanDocument("# A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -2027,6 +2031,7 @@ describe("ralph run command", () => {
       fs: createMemFs({
         "/repo/docs/plans/plan-a.md": [
           "---",
+          "kind: ralph",
           "agent: codex",
           "iterations: 3",
           "status:",
@@ -2035,7 +2040,7 @@ describe("ralph run command", () => {
           "---",
           "# A"
         ].join("\n"),
-        "/repo/docs/plans/plan-b.md": "# B"
+        "/repo/docs/plans/plan-b.md": ralphPlanDocument("# B")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -2153,8 +2158,8 @@ describe("ralph run command", () => {
   it("uses defaults with --yes when frontmatter does not provide values", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-b.md": "# B",
-        "/repo/docs/plans/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": ralphPlanDocument("# B"),
+        "/repo/docs/plans/plan-a.md": ralphPlanDocument("# A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -2830,7 +2835,7 @@ describe("ralph init command", () => {
 
   it("uses CLI prompts when agent and iterations are omitted", async () => {
     const fs = createMemFs({
-      "/repo/docs/plans/plan-a.md": "# A"
+      "/repo/docs/plans/plan-a.md": ralphPlanDocument("# A")
     });
     selectMock.mockResolvedValueOnce("docs/plans/plan-a.md").mockResolvedValueOnce("codex");
     promptTextMock.mockResolvedValue("4");

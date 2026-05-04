@@ -24,7 +24,16 @@ function createFs(files: Record<string, string>) {
   const rawFs = createFsFromVolume(volume).promises;
 
   return {
+    readFile: (filePath: string, encoding: BufferEncoding) =>
+      rawFs.readFile(filePath, encoding) as Promise<string>,
+    writeFile: async (filePath: string, content: string) => {
+      await rawFs.mkdir(path.dirname(filePath), {
+        recursive: true
+      });
+      await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+    },
     readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
+    open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
     stat: async (filePath: string) => {
       const stat = await rawFs.stat(filePath);
       return {
@@ -32,6 +41,18 @@ function createFs(files: Record<string, string>) {
         isDirectory: () => stat.isDirectory(),
         mtimeMs: Number(stat.mtimeMs)
       };
+    },
+    unlink: async (filePath: string) => {
+      await rawFs.unlink(filePath);
+    },
+    mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
+      await rawFs.mkdir(filePath, options);
+    },
+    rename: async (oldPath: string, newPath: string) => {
+      await rawFs.mkdir(path.dirname(newPath), {
+        recursive: true
+      });
+      await rawFs.rename(oldPath, newPath);
     }
   };
 }
@@ -78,6 +99,20 @@ function createRunFs(files: Record<string, string>) {
       }
     }) as RalphRunOptions["fs"]
   };
+}
+
+function ralphPlanDocument(body = "# Plan"): string {
+  return ["---", "kind: ralph", "---", body].join("\n");
+}
+
+async function markdownEntries(
+  fs: Pick<NonNullable<RalphRunOptions["fs"]>, "readdir">,
+  directoryPath: string
+): Promise<string[]> {
+  const entries = await fs.readdir(directoryPath);
+  return entries
+    .filter((entryName) => entryName.endsWith(".md"))
+    .sort((left, right) => left.localeCompare(right));
 }
 
 describe("@poe-code/ralph public exports", () => {
@@ -131,12 +166,17 @@ describe("@poe-code/ralph public exports", () => {
 });
 
 describe("discoverDocs", () => {
-  it("finds local and global markdown docs and sorts them by file name", async () => {
+  it("finds local Ralph markdown docs from the shared plan API", async () => {
     const fs = createFs({
-      "/repo/.poe-code/ralph/plans/zeta.md": "# zeta",
+      "/repo/.poe-code/ralph/plans/zeta.md": ralphPlanDocument("# zeta"),
       "/repo/.poe-code/ralph/plans/notes.txt": "ignore",
-      "/repo/.poe-code/ralph/plans/alpha.md": "# alpha",
-      "/home/test/.poe-code/ralph/plans/beta.md": "# beta"
+      "/repo/.poe-code/ralph/plans/alpha.md": ralphPlanDocument("# alpha"),
+      "/repo/.poe-code/ralph/plans/pipeline.md": [
+        "---",
+        "kind: pipeline",
+        "---",
+        "# pipeline"
+      ].join("\n")
     });
 
     await expect(
@@ -149,10 +189,6 @@ describe("discoverDocs", () => {
       {
         path: ".poe-code/ralph/plans/alpha.md",
         displayPath: ".poe-code/ralph/plans/alpha.md"
-      },
-      {
-        path: "~/.poe-code/ralph/plans/beta.md",
-        displayPath: "~/.poe-code/ralph/plans/beta.md"
       },
       {
         path: ".poe-code/ralph/plans/zeta.md",
@@ -173,30 +209,31 @@ describe("discoverDocs", () => {
     ).resolves.toEqual([]);
   });
 
-  it("prefers the local doc when local and global docs share the same file name", async () => {
+  it("uses the configured planDirectory as the shared API discovery root", async () => {
     const fs = createFs({
-      "/repo/.poe-code/ralph/plans/shared.md": "# local",
-      "/home/test/.poe-code/ralph/plans/shared.md": "# global"
+      "/repo/.poe-code/ralph/plans/shared.md": ralphPlanDocument("# local"),
+      "/home/test/.poe-code/ralph/plans/shared.md": ralphPlanDocument("# global")
     });
 
     await expect(
       discoverDocs({
         cwd: "/repo",
         homeDir: "/home/test",
+        planDirectory: "~/.poe-code/ralph/plans",
         fs
       })
     ).resolves.toEqual([
       {
-        path: ".poe-code/ralph/plans/shared.md",
-        displayPath: ".poe-code/ralph/plans/shared.md"
+        path: "~/.poe-code/ralph/plans/shared.md",
+        displayPath: "~/.poe-code/ralph/plans/shared.md"
       }
     ]);
   });
 
   it("scans only the custom planDirectory when provided", async () => {
     const fs = createFs({
-      "/repo/custom-plans/alpha.md": "# alpha",
-      "/repo/.poe-code/ralph/plans/default.md": "# default"
+      "/repo/custom-plans/alpha.md": ralphPlanDocument("# alpha"),
+      "/repo/.poe-code/ralph/plans/default.md": ralphPlanDocument("# default")
     });
 
     const result = await discoverDocs({
@@ -213,7 +250,7 @@ describe("discoverDocs", () => {
 
   it("resolves absolute planDirectory paths", async () => {
     const fs = createFs({
-      "/abs/plans/doc.md": "# doc"
+      "/abs/plans/doc.md": ralphPlanDocument("# doc")
     });
 
     const result = await discoverDocs({
@@ -228,7 +265,7 @@ describe("discoverDocs", () => {
 
   it("resolves tilde planDirectory paths", async () => {
     const fs = createFs({
-      "/home/test/my-plans/doc.md": "# doc"
+      "/home/test/my-plans/doc.md": ralphPlanDocument("# doc")
     });
 
     const result = await discoverDocs({
@@ -731,11 +768,24 @@ describe("createRalphSimulation", () => {
   it("archives plan on max_iterations completion", async () => {
     const sim = createRalphSimulation({
       docContent: "# Archive me",
+      docPath: ".poe-code/ralph/plans/02-plan.md",
       maxIterations: 2,
+      files: {
+        ".poe-code/ralph/plans/01-alpha.md": ralphPlanDocument("# Alpha"),
+        ".poe-code/ralph/plans/03-gamma.md": ralphPlanDocument("# Gamma")
+      },
       turns: [successTurn(), successTurn()]
     });
 
-    const { readFile } = await sim.run();
+    const { fs, readFile } = await sim.run();
+
+    await expect(markdownEntries(fs, "/repo/.poe-code/ralph/plans")).resolves.toEqual([
+      "01-alpha.md",
+      "02-gamma.md"
+    ]);
+    await expect(markdownEntries(fs, "/repo/.poe-code/ralph/plans/archive")).resolves.toEqual([
+      "plan.md"
+    ]);
 
     const archived = await readFile(".poe-code/ralph/plans/archive/plan.md");
     const { data, body } = parseFrontmatter(archived);

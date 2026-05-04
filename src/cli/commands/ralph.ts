@@ -360,7 +360,7 @@ async function resolveDocPath(options: {
     cwd: options.container.env.cwd,
     homeDir: options.container.env.homeDir,
     planDirectory: options.planDirectory,
-    fs: options.container.fs
+    fs: options.container.fs as unknown as NonNullable<Parameters<typeof discoverDocs>[0]["fs"]>
   });
   if (docs.length === 0) {
     throw new ValidationError(

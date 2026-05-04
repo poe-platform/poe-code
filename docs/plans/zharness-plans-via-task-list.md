@@ -105,9 +105,9 @@ tasks:
       - Do not change `move`/`reorder`/`fire` semantics yet beyond what the
         layout helpers require.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: markdown-dir-passthrough

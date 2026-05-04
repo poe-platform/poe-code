@@ -63,6 +63,12 @@ type TaskLocation = {
   path: string;
 };
 
+type ListLayout = { kind: "multi" } | { kind: "single"; name: string };
+
+function resolveListLayout(deps: BackendDeps): ListLayout {
+  return deps.singleList ? { kind: "single", name: deps.singleList } : { kind: "multi" };
+}
+
 function validateListName(name: string): string {
   if (
     name.length === 0 ||
@@ -98,20 +104,28 @@ function parseQualifiedId(qualifiedId: string): {
   };
 }
 
-function listPath(rootPath: string, list: string): string {
+function listPath(rootPath: string, layout: ListLayout, list: string): string {
+  if (layout.kind === "single") {
+    return rootPath;
+  }
+
   return path.join(rootPath, list);
 }
 
-function archiveDirectoryPath(rootPath: string, list: string): string {
-  return path.join(listPath(rootPath, list), ARCHIVE_DIRECTORY_NAME);
+function archiveDirectoryPath(rootPath: string, layout: ListLayout, list: string): string {
+  if (layout.kind === "single") {
+    return path.join(rootPath, ARCHIVE_DIRECTORY_NAME);
+  }
+
+  return path.join(rootPath, list, ARCHIVE_DIRECTORY_NAME);
 }
 
 function activeTaskFilename(id: string, order: number, width: number): string {
   return `${String(order).padStart(width, "0")}-${id}${MARKDOWN_EXTENSION}`;
 }
 
-function archivedTaskPath(rootPath: string, list: string, id: string): string {
-  return path.join(archiveDirectoryPath(rootPath, list), `${id}${MARKDOWN_EXTENSION}`);
+function archivedTaskPath(rootPath: string, layout: ListLayout, list: string, id: string): string {
+  return path.join(archiveDirectoryPath(rootPath, layout, list), `${id}${MARKDOWN_EXTENSION}`);
 }
 
 function isMarkdownFile(entryName: string): boolean {
@@ -127,7 +141,13 @@ function isLockFile(entryName: string): boolean {
 }
 
 function isValidTaskIdShape(id: string): boolean {
-  return id.length > 0 && !id.startsWith(".") && !id.includes("/") && !id.includes("\\") && !id.includes("..");
+  return (
+    id.length > 0 &&
+    !id.startsWith(".") &&
+    !id.includes("/") &&
+    !id.includes("\\") &&
+    !id.includes("..")
+  );
 }
 
 function parseActiveFilename(entryName: string): { id: string; order: number | null } | undefined {
@@ -161,7 +181,10 @@ function stripTrailingCarriageReturn(line: string): string {
   return line.endsWith("\r") ? line.slice(0, -1) : line;
 }
 
-function splitTaskDocument(content: string, filePath: string): {
+function splitTaskDocument(
+  content: string,
+  filePath: string
+): {
   body: string;
   frontmatter: string;
 } {
@@ -333,10 +356,11 @@ async function findActiveTaskFilename(
 async function findTaskLocation(
   fs: TaskListFs,
   rootPath: string,
+  layout: ListLayout,
   list: string,
   id: string
 ): Promise<TaskLocation | undefined> {
-  const listDirectoryPath = listPath(rootPath, list);
+  const listDirectoryPath = listPath(rootPath, layout, list);
   const activeName = await findActiveTaskFilename(fs, listDirectoryPath, id);
   if (activeName) {
     const activePath = path.join(listDirectoryPath, activeName);
@@ -346,7 +370,7 @@ async function findTaskLocation(
     }
   }
 
-  const archivedPath = archivedTaskPath(rootPath, list, id);
+  const archivedPath = archivedTaskPath(rootPath, layout, list, id);
   const archivedStat = await statIfExists(fs, archivedPath);
   if (archivedStat?.isFile()) {
     return { archived: true, path: archivedPath };
@@ -358,11 +382,12 @@ async function findTaskLocation(
 async function readTaskAtLocation(
   fs: TaskListFs,
   rootPath: string,
+  layout: ListLayout,
   list: string,
   id: string,
   validStates: ReadonlySet<string>
 ): Promise<TaskFile> {
-  const location = await findTaskLocation(fs, rootPath, list, id);
+  const location = await findTaskLocation(fs, rootPath, layout, list, id);
 
   if (!location) {
     throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
@@ -423,7 +448,11 @@ function updatedFrontmatter(
   return nextFrontmatter;
 }
 
-function transitionedFrontmatter(existingFrontmatter: TaskRecord, task: Task, to: string): TaskRecord {
+function transitionedFrontmatter(
+  existingFrontmatter: TaskRecord,
+  task: Task,
+  to: string
+): TaskRecord {
   return {
     ...existingFrontmatter,
     $schema: existingFrontmatter.$schema ?? TASK_SCHEMA_ID,
@@ -477,8 +506,8 @@ interface ActiveEntry {
   filename: string;
 }
 
-function createTasksView(deps: BackendDeps, list: string): Tasks {
-  const listDirectoryPath = listPath(deps.path, list);
+function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): Tasks {
+  const listDirectoryPath = listPath(deps.path, layout, list);
   const stateMachine = resolveStateMachine(deps.stateMachine);
   const validStates = new Set(stateMachine.states);
 
@@ -508,7 +537,10 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     return result;
   }
 
-  async function readActiveTasks(): Promise<{ entries: ActiveEntry[]; tasks: Map<string, { task: Task; raw: TaskRecord }> }> {
+  async function readActiveTasks(): Promise<{
+    entries: ActiveEntry[];
+    tasks: Map<string, { task: Task; raw: TaskRecord }>;
+  }> {
     const entries = await readActiveEntries();
     const tasks = new Map<string, { task: Task; raw: TaskRecord }>();
 
@@ -522,7 +554,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
   }
 
   async function readArchivedTasks(): Promise<{ task: Task; raw: TaskRecord }[]> {
-    const archivePath = archiveDirectoryPath(deps.path, list);
+    const archivePath = archiveDirectoryPath(deps.path, layout, list);
     const entries = await readDirectoryNames(deps.fs, archivePath);
     const result: { task: Task; raw: TaskRecord }[] = [];
 
@@ -538,7 +570,9 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       result.push({ task: file.task, raw: file.frontmatter });
     }
 
-    return result.sort((left, right) => left.task.qualifiedId.localeCompare(right.task.qualifiedId));
+    return result.sort((left, right) =>
+      left.task.qualifiedId.localeCompare(right.task.qualifiedId)
+    );
   }
 
   async function rewriteListPrefixes(orderedIds: readonly string[]): Promise<void> {
@@ -554,7 +588,10 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       const desiredFilename = activeTaskFilename(id, index + 1, width);
       if (entry.filename !== desiredFilename) {
         const fromPath = path.join(listDirectoryPath, entry.filename);
-        const stagingPath = path.join(listDirectoryPath, `${desiredFilename}.staging-${process.pid}-${index}`);
+        const stagingPath = path.join(
+          listDirectoryPath,
+          `${desiredFilename}.staging-${process.pid}-${index}`
+        );
         await deps.fs.rename(fromPath, stagingPath);
         entry.filename = path.basename(stagingPath);
       }
@@ -595,7 +632,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
   async function getTaskFile(id: string): Promise<TaskFile> {
     validateTaskId(id);
-    return readTaskAtLocation(deps.fs, deps.path, list, id, validStates);
+    return readTaskAtLocation(deps.fs, deps.path, layout, list, id, validStates);
   }
 
   function assertFireableTaskEvent(task: Task, eventName: string) {
@@ -645,7 +682,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       await deps.fs.mkdir(listDirectoryPath, { recursive: true });
 
       return withListLock(async () => {
-        const existing = await findTaskLocation(deps.fs, deps.path, list, input.id);
+        const existing = await findTaskLocation(deps.fs, deps.path, layout, list, input.id);
         if (existing) {
           throw new TaskAlreadyExistsError(`Task "${list}/${input.id}" already exists.`);
         }
@@ -676,9 +713,13 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
         const nextFrontmatter = updatedFrontmatter(existing.frontmatter, existing.task, patch);
         const description = patch.description ?? existing.task.description;
 
-        await writeAtomically(deps.fs, existing.path, serializeTaskDocument(nextFrontmatter, description));
+        await writeAtomically(
+          deps.fs,
+          existing.path,
+          serializeTaskDocument(nextFrontmatter, description)
+        );
 
-        return createTask(list,id, nextFrontmatter, description);
+        return createTask(list, id, nextFrontmatter, description);
       });
     },
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
@@ -704,18 +745,18 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
           event.to,
           opts?.metadataPatch
         );
-        const nextTask = createTask(list,id, nextFrontmatter, existing.task.description);
+        const nextTask = createTask(list, id, nextFrontmatter, existing.task.description);
         const serializedTask = serializeTaskDocument(nextFrontmatter, existing.task.description);
 
         if (event.to === "archived") {
-          const targetPath = archivedTaskPath(deps.path, list, id);
+          const targetPath = archivedTaskPath(deps.path, layout, list, id);
           const archivedTargetExists = await statIfExists(deps.fs, targetPath);
           if (archivedTargetExists?.isFile()) {
             throw new TaskAlreadyExistsError(`Task "${list}/${id}" already exists in archive.`);
           }
 
           await writeAtomically(deps.fs, existing.path, serializedTask);
-          await deps.fs.mkdir(archiveDirectoryPath(deps.path, list), { recursive: true });
+          await deps.fs.mkdir(archiveDirectoryPath(deps.path, layout, list), { recursive: true });
           await deps.fs.rename(existing.path, targetPath);
           await event.onEnter?.(nextTask);
 
@@ -744,7 +785,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     },
     async delete(id: string): Promise<void> {
       await withTaskLock(id, async () => {
-        const location = await findTaskLocation(deps.fs, deps.path, list, id);
+        const location = await findTaskLocation(deps.fs, deps.path, layout, list, id);
         if (!location) {
           throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
         }
@@ -810,15 +851,28 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
 export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
   await ensureRootPath(deps);
+  const layout = resolveListLayout(deps);
   const stateMachine = resolveStateMachine(deps.stateMachine);
   const validStates = new Set(stateMachine.states);
 
   const list = (name: string): Tasks => {
+    if (layout.kind === "single") {
+      if (name !== layout.name) {
+        throw new Error(`Task list "${name}" not found.`);
+      }
+
+      return createTasksView(deps, layout, layout.name);
+    }
+
     const listName = validateListName(name);
-    return createTasksView(deps, listName);
+    return createTasksView(deps, layout, listName);
   };
 
   const lists = async (): Promise<string[]> => {
+    if (layout.kind === "single") {
+      return [layout.name];
+    }
+
     const entries = await readDirectoryNames(deps.fs, deps.path);
     const result: string[] = [];
 
@@ -858,25 +912,36 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
   };
 
   const moveBetweenLists = async (qualifiedId: string, targetList: string): Promise<Task> => {
+    if (layout.kind === "single") {
+      throw new Error("moveBetweenLists is unsupported in single-list mode.");
+    }
+
     const { list: sourceListName, id } = parseQualifiedId(qualifiedId);
     const targetListName = validateListName(targetList);
 
     if (sourceListName === targetListName) {
-      const file = await readTaskAtLocation(deps.fs, deps.path, sourceListName, id, validStates);
+      const file = await readTaskAtLocation(
+        deps.fs,
+        deps.path,
+        layout,
+        sourceListName,
+        id,
+        validStates
+      );
       return file.task;
     }
 
-    const targetExisting = await findTaskLocation(deps.fs, deps.path, targetListName, id);
+    const targetExisting = await findTaskLocation(deps.fs, deps.path, layout, targetListName, id);
     if (targetExisting) {
       throw new TaskAlreadyExistsError(`Task "${targetListName}/${id}" already exists.`);
     }
 
-    const sourceLocation = await findTaskLocation(deps.fs, deps.path, sourceListName, id);
+    const sourceLocation = await findTaskLocation(deps.fs, deps.path, layout, sourceListName, id);
     if (!sourceLocation) {
       throw new TaskNotFoundError(`Task "${sourceListName}/${id}" not found.`);
     }
 
-    const targetListDir = listPath(deps.path, targetListName);
+    const targetListDir = listPath(deps.path, layout, targetListName);
     await deps.fs.mkdir(targetListDir, { recursive: true });
 
     const targetEntries = await (async () => {
@@ -892,9 +957,9 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
     })();
 
     if (sourceLocation.archived) {
-      const archivedTargetDir = archiveDirectoryPath(deps.path, targetListName);
+      const archivedTargetDir = archiveDirectoryPath(deps.path, layout, targetListName);
       await deps.fs.mkdir(archivedTargetDir, { recursive: true });
-      const archivedTargetPath = archivedTaskPath(deps.path, targetListName, id);
+      const archivedTargetPath = archivedTaskPath(deps.path, layout, targetListName, id);
       await deps.fs.rename(sourceLocation.path, archivedTargetPath);
       const file = await readTaskFile(deps.fs, targetListName, id, archivedTargetPath, validStates);
       return file.task;

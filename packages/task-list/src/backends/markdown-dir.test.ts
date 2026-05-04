@@ -18,6 +18,15 @@ function parseFrontmatter(content: string): Record<string, unknown> {
   return document.toJS() as Record<string, unknown>;
 }
 
+function taskDocument(name: string, state = "draft"): string {
+  return `---
+name: ${name}
+state: ${state}
+---
+
+`;
+}
+
 describe("markdownDirBackend", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -183,6 +192,155 @@ state: draft
     });
 
     await expect(taskList.lists()).resolves.toEqual(["alpha"]);
+  });
+
+  it("uses the root directory as the only list in single-list mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/foo.md": taskDocument("Foo"),
+      "/repo/tasks/01-bar.md": taskDocument("Bar")
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "strict",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.lists()).resolves.toEqual(["plans"]);
+    await expect(taskList.list("plans").all()).resolves.toEqual([
+      expect.objectContaining({
+        id: "bar",
+        list: "plans",
+        qualifiedId: "plans/bar",
+        name: "Bar"
+      }),
+      expect.objectContaining({
+        id: "foo",
+        list: "plans",
+        qualifiedId: "plans/foo",
+        name: "Foo"
+      })
+    ]);
+  });
+
+  it("rejects unknown lists in single-list mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/.keep": ""
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "strict",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    expect(() => taskList.list("other")).toThrow('Task list "other" not found.');
+  });
+
+  it("does not support moving between lists in single-list mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/foo.md": taskDocument("Foo")
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "strict",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.moveBetweenLists("plans/foo", "plans")).rejects.toThrow(
+      "moveBetweenLists is unsupported in single-list mode."
+    );
+  });
+
+  it("creates and archives tasks at the root in single-list mode", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/.keep": ""
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "strict",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("plans").create({
+      id: "write-root",
+      name: "Write root"
+    });
+
+    await expect(rawFs.readFile("/repo/tasks/01-write-root.md", "utf8")).resolves.toContain(
+      "name: Write root"
+    );
+    await expect(rawFs.stat("/repo/tasks/plans")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+
+    await taskList.list("plans").fire("write-root", "archive");
+
+    await expect(rawFs.stat("/repo/tasks/01-write-root.md")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(rawFs.readFile("/repo/tasks/archive/write-root.md", "utf8")).resolves.toContain(
+      "state: archived"
+    );
+    await expect(taskList.list("plans").get("write-root")).resolves.toMatchObject({
+      id: "write-root",
+      list: "plans",
+      state: "archived"
+    });
+  });
+
+  it("ignores root subdirectories when reading active tasks in single-list mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/foo.md": taskDocument("Foo"),
+      "/repo/tasks/poe-agent/ignored.md": taskDocument("Ignored")
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "strict",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").all()).resolves.toEqual([
+      expect.objectContaining({
+        id: "foo",
+        list: "plans",
+        qualifiedId: "plans/foo",
+        name: "Foo"
+      })
+    ]);
   });
 
   it('rejects the reserved "archive" list name', async () => {

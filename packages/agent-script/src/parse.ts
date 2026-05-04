@@ -29,6 +29,7 @@ export type {
   IfStatement,
   LogicalExpression,
   MemberExpression,
+  MetaProperty,
   NullLiteral,
   NumericLiteral,
   ObjectExpression,

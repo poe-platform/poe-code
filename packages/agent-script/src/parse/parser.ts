@@ -7,6 +7,7 @@ import {
   type ExportDefaultDeclaration,
   type ExportNamedDeclaration
 } from "./parse-export.js";
+import { createImportMeta, isImportMetaTokenSequence } from "./parse-import-meta.js";
 
 export type { ExportDefaultDeclaration, ExportNamedDeclaration } from "./parse-export.js";
 
@@ -205,6 +206,12 @@ export type MemberExpression = BaseNode & {
   property: Expression;
 };
 
+export type MetaProperty = BaseNode & {
+  type: "MetaProperty";
+  meta: Identifier & { name: "import" };
+  property: Identifier & { name: "meta" };
+};
+
 export type AssignmentExpression = BaseNode & {
   type: "AssignmentExpression";
   operator: "=";
@@ -366,6 +373,7 @@ export type Expression =
   | Identifier
   | LogicalExpression
   | MemberExpression
+  | MetaProperty
   | NullLiteral
   | NumericLiteral
   | ObjectExpression
@@ -672,7 +680,7 @@ class Parser {
       return this.parseTryStatement();
     }
 
-    if (token.type === "keyword" && token.value === "import") {
+    if (token.type === "keyword" && token.value === "import" && !this.isImportMetaStart()) {
       return this.parseImportDeclaration();
     }
 
@@ -1474,6 +1482,8 @@ class Parser {
       return expression;
     }
 
+    this.assertNotImportMetaAssignmentTarget(expression);
+
     if (expression.type === "MemberExpression" && !expression.optional) {
       return expression;
     }
@@ -1977,6 +1987,13 @@ class Parser {
     }
 
     if (token.type === "keyword") {
+      if (this.isImportMetaStart()) {
+        return {
+          node: this.parseImportMeta(),
+          parenthesized: false
+        };
+      }
+
       this.index += 1;
       return {
         node: createKeywordLiteral(token),
@@ -2292,6 +2309,8 @@ class Parser {
       return node;
     }
 
+    this.assertNotImportMetaAssignmentTarget(node);
+
     if (node.type === "MemberExpression" && !node.optional) {
       return node;
     }
@@ -2578,6 +2597,9 @@ class Parser {
   private shouldParseTopLevelStatement(): boolean {
     const token = this.currentToken();
     if (token.type === "keyword" && TOP_LEVEL_STATEMENT_KEYWORDS.has(token.value)) {
+      if (token.value === "import" && this.isImportMetaStart()) {
+        return false;
+      }
       return true;
     }
 
@@ -2679,6 +2701,26 @@ class Parser {
   private isExportToken(token: Token): boolean {
     return token.value === "export";
   }
+
+  private isImportMetaStart(): boolean {
+    return isImportMetaTokenSequence(this.currentToken(), this.peekToken(1), this.peekToken(2));
+  }
+
+  private parseImportMeta(): MetaProperty {
+    const importToken = this.currentToken();
+    if (!this.isImportMetaStart()) {
+      throw unexpectedTokenError(importToken);
+    }
+
+    this.index += 3;
+    return createImportMeta(importToken, this.previousToken());
+  }
+
+  private assertNotImportMetaAssignmentTarget(node: Expression): void {
+    if (isImportMetaReference(node)) {
+      throw new DisallowedSyntaxError("import.meta assignment", node.span.start);
+    }
+  }
 }
 
 function createIdentifier(token: Token): Identifier {
@@ -2695,6 +2737,14 @@ function createIdentifierName(token: Token): Identifier {
     name: token.value,
     span: createTokenSpan(token)
   };
+}
+
+function isImportMetaReference(node: Expression): boolean {
+  if (node.type === "MetaProperty") {
+    return true;
+  }
+
+  return node.type === "MemberExpression" && isImportMetaReference(node.object);
 }
 
 function createNumericLiteral(token: Token): NumericLiteral {

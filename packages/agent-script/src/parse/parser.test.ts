@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { DisallowedSyntaxError, parse } from "../parse.js";
+import { parseModule } from "./parser.js";
 
 describe("parse", () => {
   it("tracks closing delimiters in empty arrays and objects", () => {
@@ -1505,6 +1506,82 @@ describe("parse", () => {
     });
   });
 
+  it("parses import.meta as a standard expression", () => {
+    expect(parse("import.meta")).toMatchObject({
+      type: "MetaProperty",
+      meta: {
+        type: "Identifier",
+        name: "import"
+      },
+      property: {
+        type: "Identifier",
+        name: "meta"
+      }
+    });
+
+    expect(parse("import.meta.body")).toMatchObject({
+      type: "MemberExpression",
+      object: {
+        type: "MetaProperty"
+      },
+      property: {
+        type: "Identifier",
+        name: "body"
+      }
+    });
+
+    expect(parse("const { body } = import.meta")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ObjectPattern"
+          },
+          init: {
+            type: "MetaProperty"
+          }
+        }
+      ]
+    });
+
+    expect(parseModule("const m = import.meta; m.body")).toMatchObject({
+      type: "Module",
+      body: [
+        {
+          type: "VariableDeclaration",
+          declarations: [
+            {
+              init: {
+                type: "MetaProperty"
+              }
+            }
+          ]
+        },
+        {
+          type: "ExpressionStatement",
+          expression: {
+            type: "MemberExpression",
+            object: {
+              type: "Identifier",
+              name: "m"
+            },
+            property: {
+              type: "Identifier",
+              name: "body"
+            }
+          }
+        }
+      ]
+    });
+
+    expect(parse("import.meta()")).toMatchObject({
+      type: "CallExpression",
+      callee: {
+        type: "MetaProperty"
+      }
+    });
+  });
+
   it("parses array pattern elisions across declarations, params, and assignments", () => {
     expect(parse("const [, second = fallback, ...rest] = values")).toMatchObject({
       type: "VariableDeclaration",
@@ -2101,6 +2178,21 @@ describe("parse", () => {
         name: "this"
       }
     });
+  });
+
+  it("rejects assignments to import.meta and its properties", () => {
+    expect(() => parse("import.meta = x")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("import.meta.x = 1")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("[import.meta] = [x]")).toThrowError(DisallowedSyntaxError);
+  });
+
+  it("rejects assignments to import.meta through parenthesized, computed, and nested targets", () => {
+    expect(() => parse("(import.meta) = x")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("(import.meta.x) = 1")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("import.meta[key] = 1")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("[import.meta.x] = [x]")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("({ body: import.meta } = x)")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("for (import.meta of xs) {}")).toThrowError(DisallowedSyntaxError);
   });
 
   it("rejects disallowed statement syntax", () => {

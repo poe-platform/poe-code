@@ -36,7 +36,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: runRemoteOrThrow-error-tail
     title: Surface failing command and stderr from runRemoteOrThrow
@@ -61,8 +61,8 @@ tasks:
       CommandExitError and asserts the rethrown message contains the
       command and stderr tail.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: configure-on-spawn

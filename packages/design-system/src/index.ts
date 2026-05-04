@@ -12,6 +12,7 @@ export { symbols } from "./components/symbols.js";
 export { createLogger, logger } from "./components/logger.js";
 export type { LoggerOutput } from "./components/logger.js";
 export { helpFormatter, formatColumns, formatCommand, formatUsage, formatOption, formatCommandList, formatOptionList } from "./components/help-formatter.js";
+export * as helpFormatterPlain from "./components/help-formatter-plain.js";
 export type { CommandInfo, OptionInfo, FormatColumnsOptions } from "./components/help-formatter.js";
 export { formatCommandNotFound } from "./components/command-errors.js";
 export { formatCommandNotFoundPanel } from "./components/command-errors.js";

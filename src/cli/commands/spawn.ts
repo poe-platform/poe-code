@@ -12,14 +12,7 @@ import {
   type SpawnMode
 } from "@poe-code/agent-spawn";
 import { resolveAgentId } from "@poe-code/agent-defs";
-import {
-  text,
-  confirm,
-  isCancel,
-  resolveOutputFormat,
-  renderMarkdown
-} from "@poe-code/design-system";
-import { loadConfiguredServices } from "../../services/config.js";
+import { text, resolveOutputFormat, renderMarkdown } from "@poe-code/design-system";
 import {
   createExecutionResources,
   resolveCommandFlags,
@@ -36,7 +29,7 @@ import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";
 import { spawnAutonomous } from "../../sdk/autonomous.js";
 import type { FileSystem } from "../../utils/file-system.js";
-import { OperationCancelledError, ValidationError } from "../errors.js";
+import { ValidationError } from "../errors.js";
 import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
 import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "./runtime-options.js";
 
@@ -168,15 +161,6 @@ export function registerSpawnCommand(
           const adapter = resolveServiceAdapter(container, service);
           const canonicalService = adapter.name;
           assertInteractiveSupport(adapter.label, canonicalService);
-          const proceed = await confirmUnconfiguredService(
-            container,
-            canonicalService,
-            adapter.label,
-            flags
-          );
-          if (!proceed) {
-            return;
-          }
           const model = await resolveConfiguredModel(
             container,
             canonicalService,
@@ -281,16 +265,6 @@ export function registerSpawnCommand(
               dryRun: true,
               verbose: flags.verbose
             });
-            return;
-          }
-
-          const proceed = await confirmUnconfiguredService(
-            container,
-            canonicalService,
-            adapter.label,
-            flags
-          );
-          if (!proceed) {
             return;
           }
 
@@ -413,37 +387,6 @@ function listSpawnServiceNames(
   }
 
   return names;
-}
-
-async function confirmUnconfiguredService(
-  container: CliContainer,
-  service: string,
-  label: string,
-  flags: CommandFlags
-): Promise<boolean> {
-  const configuredServices = await loadConfiguredServices({
-    fs: container.fs,
-    filePath: container.env.configPath,
-    projectFilePath: container.env.projectConfigPath
-  });
-
-  if (service in configuredServices) {
-    return true;
-  }
-
-  if (flags.assumeYes) {
-    return true;
-  }
-
-  const shouldProceed = await confirm({
-    message: `${label} is not configured via poe. Do you want to proceed?`
-  });
-
-  if (isCancel(shouldProceed)) {
-    throw new OperationCancelledError();
-  }
-
-  return shouldProceed === true;
 }
 
 async function resolvePromptInput(

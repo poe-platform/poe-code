@@ -447,7 +447,8 @@ describe("commandsFromSpec", () => {
     });
     const server = createMCPServer(client.root, {
       name: client.name,
-      version: "1.0.0"
+      version: "1.0.0",
+      omitRootToolNamePrefix: true
     });
     const { client: mcpClient, cleanup } = await createClientPair(server);
 
@@ -495,7 +496,8 @@ describe("commandsFromSpec", () => {
     });
     const server = createMCPServer(client.root, {
       name: client.name,
-      version: "1.0.0"
+      version: "1.0.0",
+      omitRootToolNamePrefix: true
     });
     const { client: mcpClient, cleanup } = await createClientPair(server);
 

@@ -102,6 +102,7 @@ describe("terminal-pilot-mcp tool surface", () => {
     const server = createMCPServer(terminalPilotGroup, {
       name: "terminal-pilot",
       version: "0.0.1",
+      omitRootToolNamePrefix: true,
       services: {
         terminalPilotRuntime: runtime
       }

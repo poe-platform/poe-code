@@ -152,7 +152,7 @@ Agent-side configuration example (Claude Code `~/.claude.json` or `.mcp.json`):
 }
 ```
 
-MCP tool names exposed by this server (derived by toolcraft from `group.name + command.name`):
+MCP tool names exposed by this server (derived by toolcraft from command names with the root prefix omitted):
 
 - `read` — params `{ file, depth? }`.
 - `read_section` — params `{ file, section, includeChildren? }`.
@@ -184,7 +184,7 @@ const { markdown, section } = await readSection({ file, section: "2.1" });
   - `src/core/read-markdown.ts`, `src/core/read-section.ts` — orchestrators used by both the SDK and MCP tool handlers. File I/O goes through an injectable `fs` so tests use `memfs`.
   - `src/mcp/tools.ts` — two `defineCommand` entries (`scope: ["mcp"]`) that wrap the orchestrators as MCP tools.
   - `src/mcp/group.ts` — `markdownGroup = defineGroup({ name: "markdown-reader", scope: ["mcp"], children: [readTool, readSectionTool] })`.
-  - `src/mcp/run.ts` — `runMarkdownReaderMcp()` → `runMCP(markdownGroup, { name: "markdown-reader", version })` from `toolcraft/mcp`. Mirrors [packages/terminal-pilot-mcp/src/index.ts](packages/terminal-pilot-mcp/src/index.ts).
+  - `src/mcp/run.ts` — `runMarkdownReaderMcp()` → `runMCP(markdownGroup, { name: "markdown-reader", version, omitRootToolNamePrefix: true })` from `toolcraft/mcp`. Mirrors [packages/terminal-pilot-mcp/src/index.ts](packages/terminal-pilot-mcp/src/index.ts).
   - `src/testing/fixtures/*.md` — static sample docs used by unit tests.
 - CLI wiring lives in [src/cli/commands/plan.ts](src/cli/commands/plan.ts). Three new commander subcommands under the existing `plan` group:
   - `plan markdown-read` — imports `readMarkdown` from `@poe-code/markdown-reader`, prints via the existing `writeOutput` + `resolveOutputOption` helpers in that file (`terminal` / `md` / `json`).
@@ -334,7 +334,7 @@ export const markdownGroup = defineGroup({
 
 // src/mcp/run.ts
 export async function runMarkdownReaderMcp(): Promise<void> {
-  await runMCP(markdownGroup, { name: "markdown-reader", version: packageJson.version });
+  await runMCP(markdownGroup, { name: "markdown-reader", version: packageJson.version, omitRootToolNamePrefix: true });
 }
 ```
 

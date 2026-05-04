@@ -267,6 +267,7 @@ describe("MCP proxy entrypoints", () => {
     await createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
 
     expect(serverState.created).toHaveLength(1);

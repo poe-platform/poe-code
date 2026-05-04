@@ -28,7 +28,8 @@ describe("terminal-pilot-mcp entry point", () => {
     expect(runMCPMock).toHaveBeenCalledTimes(1);
     expect(runMCPMock).toHaveBeenCalledWith(terminalPilotGroupMock, {
       name: "terminal-pilot",
-      version: "0.0.1"
+      version: "0.0.1",
+      omitRootToolNamePrefix: true
     });
   });
 

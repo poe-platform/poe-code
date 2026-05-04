@@ -903,6 +903,7 @@ describe("mcp proxy integration", () => {
     const server = createMCPServer(createProxyRoot(harness, { rename }).root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createSdkTestPair(server, () =>
       new McpClient({

@@ -458,7 +458,8 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 - `version: string`
 - `services?` / `humanInLoop?` / `apiVersion?`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
-- `tools?: string[]` — allowlist of MCP tool names or group prefixes. Tool names are `__`-joined snake_case path segments without the root group name (`bot__create`); a prefix like `bot` includes every descendant tool.
+- `tools?: string[]` — allowlist of MCP tool names or group prefixes. Tool names are `__`-joined snake_case path segments (`root__bot__create`); a prefix like `root__bot` includes every descendant tool.
+- `omitRootToolNamePrefix?: boolean` — defaults to `false`. Set to `true` to omit the root group name from single-root MCP tool names (`bot__create`).
 - `casing?: "snake" | "camel"` — affects MCP **input-schema property names** only. Tool names always stay `__`-joined snake_case.
 
 ### `HumanInLoopRuntimeOptions`

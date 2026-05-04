@@ -303,6 +303,7 @@ describe("approvals built-in commands", () => {
       {
         name: "toolcraft-test",
         version: "1.0.0",
+        omitRootToolNamePrefix: true,
         humanInLoop: {
           taskList,
         },

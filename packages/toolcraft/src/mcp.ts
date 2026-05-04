@@ -56,12 +56,18 @@ export interface RunMCPOptions<TServices extends object = Record<string, unknown
    * Optional allowlist of MCP tool names or group prefixes.
    *
    * Tool names always use `__`-joined snake_case path segments, for example
-   * `bot__create`.
+   * `root__bot__create`.
    *
-   * Passing a group prefix like `bot` includes every descendant tool in
+   * Passing a group prefix like `root__bot` includes every descendant tool in
    * that subtree.
    */
   tools?: string[];
+  /**
+   * Omit the root group name from MCP tool names for a single root group.
+   *
+   * Defaults to false, so existing MCP tool names keep the root group prefix.
+   */
+  omitRootToolNamePrefix?: boolean;
   services?: TServices;
   /**
    * Controls MCP input-schema key casing and accepted argument-key casing.
@@ -281,7 +287,8 @@ function formatToolName(path: string[]): string {
 function enumerateTools<TServices extends object>(
   root: Group<TServices>,
   casing: Casing,
-  allowlist: string[] | undefined
+  allowlist: string[] | undefined,
+  omitRootToolNamePrefix: boolean
 ): ToolDefinition<TServices>[] {
   const tools: ToolDefinition<TServices>[] = [];
 
@@ -323,8 +330,10 @@ function enumerateTools<TServices extends object>(
     }
   }
 
+  const rootPath = omitRootToolNamePrefix || root.name.length === 0 ? [] : [root.name];
+
   for (const child of root.children) {
-    visit(child, [], []);
+    visit(child, rootPath, []);
   }
 
   return tools;
@@ -569,7 +578,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
   } as TServices;
   validateServices(services as Record<string, unknown>);
 
-  const tools = enumerateTools(root, casing, options.tools);
+  const tools = enumerateTools(root, casing, options.tools, options.omitRootToolNamePrefix ?? false);
   const version = resolveMCPVersion(options.version);
   const server = createServer({ name: options.name, version });
 

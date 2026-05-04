@@ -28,7 +28,8 @@ describe("runMarkdownReaderMcp", () => {
     expect(runMCPMock).toHaveBeenCalledTimes(1);
     expect(runMCPMock).toHaveBeenCalledWith(markdownGroupMock, {
       name: "markdown-reader",
-      version: "0.0.1"
+      version: "0.0.1",
+      omitRootToolNamePrefix: true
     });
   });
 

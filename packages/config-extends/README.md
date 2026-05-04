@@ -1,10 +1,22 @@
 # @poe-code/config-extends
 
-Shared document-inheritance types for layered config resolution.
+Shared document-inheritance utilities for layered config resolution.
 
 ## API
 
-Currently this package exposes shared TypeScript types only.
+- `resolve(chain, options)`: resolves exactly one document layer with surrounding data and base layers.
+- `findBase(name, basePaths, fs)`: discovers a base document by name across configured base paths.
+- `parseDocument(content, filePath)`: parses a document and separates inheritance metadata from data.
+- `mergeLayers(layers)`: merges data layers and tracks the source of each resolved key.
+
+## Resolution behavior
+
+A chain must contain exactly one document layer. Data layers before and after the document are merged around the resolved document, and base layers define directories that can be inherited from.
+
+- Documents that set `extends: true` must resolve a base and still report circular inheritance as an error.
+- With `autoExtend: true`, documents that do not set `extends` try to inherit from matching bases automatically.
+- Optional auto-extend discovery is ignored when it finds the document itself, so a document can safely live in a configured base directory without creating a circular extends error.
+- Prompt values can compose with the `{{yield}}` token across resolved base layers.
 
 ## Environment variables
 

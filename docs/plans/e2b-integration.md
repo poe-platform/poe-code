@@ -345,7 +345,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: docker-factory-and-build
     title: Add dockerExecutionEnvFactory with content-addressed image build
@@ -372,8 +372,8 @@ tasks:
       For the dockerfile build path, the build is done by spawning the
       docker CLI through the host runner — no docker SDK dep.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: cli-runtime-init-build-templates

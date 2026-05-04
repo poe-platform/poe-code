@@ -1,9 +1,10 @@
 import { spawn as spawnChildProcess } from "node:child_process";
 import { registerExecutionEnvFactory } from "@poe-code/agent-harness-tools";
 import type { ExecutionEnvFactory, OpenedEnv, RunSpec } from "@poe-code/agent-harness-tools";
-import { hostExecutionEnvFactory } from "@poe-code/process-runner";
+import { dockerExecutionEnvFactory, hostExecutionEnvFactory } from "@poe-code/process-runner";
 
 registerExecutionEnvFactory(hostExecutionEnvFactory);
+registerExecutionEnvFactory(dockerExecutionEnvFactory);
 
 if (process.env.VITEST === "true") {
   registerExecutionEnvFactory(createTestHostExecutionEnvFactory());

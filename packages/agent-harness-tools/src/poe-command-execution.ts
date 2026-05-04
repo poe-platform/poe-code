@@ -46,15 +46,17 @@ export function resolvePoeCommandExecution(input: {
   const config = applyRuntimeOverrides(loadRuntimeConfig(input.cwd, homeDir), input.runtime, input.cwd);
   const resolved = resolveRuntime({ cwd: input.cwd, config });
   const factory = selectExecutionEnv(resolved.runtime);
+  const state = input.context?.state ?? loadState(homeDir);
 
   return {
     factory,
     detach: factory.supportsDetach === true && config.runner.detach,
-    state: input.context?.state ?? loadState(homeDir),
+    state,
     openSpec: {
       cwd: input.cwd,
       runtime: resolved.runtime,
       runner: config.runner,
+      state,
       env: input.env,
       uploadIgnoreFiles: config.runner.workspace?.exclude ?? [],
       jobLabel: {

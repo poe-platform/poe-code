@@ -1,5 +1,6 @@
 import type { RunnerScope, RuntimeConfig } from "@poe-code/poe-code-config";
-import type { RunHandle, RunSpec } from "@poe-code/process-runner";
+import type { RunHandle, Runner, RunSpec } from "@poe-code/process-runner";
+import type { StateManager } from "@poe-code/poe-code-config";
 
 export type { RuntimeConfig } from "@poe-code/poe-code-config";
 export type { RunHandle, RunSpec } from "@poe-code/process-runner";
@@ -18,6 +19,8 @@ export interface OpenSpec {
   cwd: string;
   runtime: RuntimeConfig;
   runner?: RunnerScope;
+  state?: StateManager;
+  hostRunner?: Runner;
   env: Record<string, string>;
   uploadIgnoreFiles: string[];
   jobLabel: { tool: string; argv: string[] };

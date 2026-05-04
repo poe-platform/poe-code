@@ -64,6 +64,51 @@ describe("createOpenedE2bEnv", () => {
     });
   });
 
+  it("queues stdin writes until the E2B command handle is ready", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
+      kill: vi.fn()
+    };
+    let resolveRun!: (handle: typeof commandHandle) => void;
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRun = resolve;
+      })
+    );
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    const handle = env.exec({
+      command: "cat",
+      stdin: "pipe",
+      stdout: "pipe",
+      stderr: "pipe"
+    });
+    const stdinFinished = new Promise<void>((resolve, reject) => {
+      handle.stdin!.end("hello", (error?: Error | null) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+        resolve();
+      });
+    });
+
+    expect(sandbox.commands.sendStdin).not.toHaveBeenCalled();
+
+    resolveRun(commandHandle);
+
+    await stdinFinished;
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(sandbox.commands.sendStdin).toHaveBeenCalledWith(321, Buffer.from("hello"));
+    expect(sandbox.commands.closeStdin).toHaveBeenCalledWith(321);
+  });
+
   it("leaves non-workspace command cwd values unchanged", async () => {
     const commandHandle = {
       pid: 321,

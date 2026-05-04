@@ -41,6 +41,7 @@ function createFakeProvider(id: string, label: string): AuthProvider {
 function mockOptions(container: ReturnType<typeof createContainer>) {
   vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
   vi.spyOn(container.options, "resolveModel").mockImplementation(async ({ defaultValue }) => defaultValue);
+  vi.spyOn(container.options, "resolveReasoning").mockImplementation(async ({ defaultValue }) => defaultValue);
 }
 
 function stubInvoke(container: ReturnType<typeof createContainer>) {
@@ -315,6 +316,32 @@ describe("configure provider resolution", () => {
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]).toMatchObject({ provider: "poe" });
+  });
+
+  it("--skip-if-configured exits before writes when configure would only create a backup", async () => {
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" });
+    mockOptions(container);
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--yes"]),
+      container,
+      "codex",
+      { provider: "poe" }
+    );
+
+    const configFile = `${homeDir}/.codex/config.toml`;
+    const before = await fs.readFile(configFile, "utf8");
+    const writeSpy = vi.spyOn(fs, "writeFile");
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--yes"]),
+      container,
+      "codex",
+      { provider: "poe", skipIfConfigured: true }
+    );
+
+    expect(writeSpy).not.toHaveBeenCalled();
+    await expect(fs.readFile(configFile, "utf8")).resolves.toBe(before);
   });
 
 });

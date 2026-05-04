@@ -63,7 +63,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: configure-on-spawn
     title: Run poe-code configure inside the sandbox before each spawn
@@ -97,8 +97,8 @@ tasks:
       asserting the agent talks to api.poe.com (e.g. via
       `claude --version` followed by a one-shot prompt that succeeds).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: e2b-spawn-end-to-end

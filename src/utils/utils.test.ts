@@ -341,6 +341,23 @@ describe("createBinaryExistsCheck", () => {
     expect(runCommand).toHaveBeenCalledWith("which", ["demo"]);
     expect(runCommand).toHaveBeenCalledWith("where", ["demo"]);
   });
+
+  it("does not accept an empty where result as present", async () => {
+    const runCommand = createRunner({
+      "which demo": { stdout: "", exitCode: 1 },
+      "where demo": { stdout: "", exitCode: 0 },
+      'sh -c test -f "/usr/local/bin/demo" || test -f "/usr/bin/demo" || test -f "$HOME/.local/bin/demo" || test -f "$HOME/.claude/local/bin/demo"': {
+        stdout: "",
+        exitCode: 1
+      }
+    });
+
+    const check = createBinaryExistsCheck("demo", "demo-id", "demo desc");
+
+    await expect(check.run({ isDryRun: false, runCommand })).rejects.toThrow(
+      "demo CLI binary not found on PATH."
+    );
+  });
 });
 
 describe("createSpawnHealthCheck", () => {

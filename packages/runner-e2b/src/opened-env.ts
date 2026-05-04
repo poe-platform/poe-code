@@ -189,27 +189,6 @@ function runE2bCommand(
   const stdout = spec.stdout === "inherit" ? null : new PassThrough();
   const stderr = spec.stderr === "inherit" ? null : new PassThrough();
   let e2bHandle: E2bCommandHandle | null = null;
-  const stdin =
-    spec.stdin === "pipe"
-      ? new Writable({
-          write(chunk, _encoding, callback) {
-            if (e2bHandle === null) {
-              callback(new Error("E2B command stdin is not ready."));
-              return;
-            }
-            sandbox.commands
-              .sendStdin(e2bHandle.pid, Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk)))
-              .then(() => callback(), callback);
-          },
-          final(callback) {
-            if (e2bHandle === null || sandbox.commands.closeStdin === undefined) {
-              callback();
-              return;
-            }
-            sandbox.commands.closeStdin(e2bHandle.pid).then(() => callback(), callback);
-          }
-        })
-      : null;
   const command = shellCommand([spec.command, ...(spec.args ?? [])]);
   const started = sandbox.commands.run(command, {
     background: true,
@@ -229,6 +208,30 @@ function runE2bCommand(
       }
     }
   }) as Promise<E2bCommandHandle>;
+  const stdin =
+    spec.stdin === "pipe"
+      ? new Writable({
+          write(chunk, _encoding, callback) {
+            started
+              .then((handle) =>
+                sandbox.commands.sendStdin(
+                  handle.pid,
+                  Buffer.isBuffer(chunk) ? chunk : Buffer.from(String(chunk))
+                )
+              )
+              .then(() => callback(), callback);
+          },
+          final(callback) {
+            if (sandbox.commands.closeStdin === undefined) {
+              callback();
+              return;
+            }
+            started
+              .then((handle) => sandbox.commands.closeStdin!(handle.pid))
+              .then(() => callback(), callback);
+          }
+        })
+      : null;
   const result = started
     .then((handle) => {
       e2bHandle = handle;

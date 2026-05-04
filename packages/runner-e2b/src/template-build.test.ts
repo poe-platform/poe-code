@@ -11,7 +11,7 @@ vi.mock("./sdk.js", () => ({
   buildTemplate: vi.fn()
 }));
 
-describe("buildOrResolveTemplate", () => {
+describe("buildE2bRuntimeTemplate", () => {
   const files = new Map<string, string>();
 
   beforeEach(() => {
@@ -47,9 +47,9 @@ describe("buildOrResolveTemplate", () => {
       dockerfile_path: "/repo/Dockerfile",
       built_at: "2026-05-03T00:00:00.000Z"
     });
-    const { buildOrResolveTemplate } = await import("./template-build.js");
+    const { buildE2bRuntimeTemplate } = await import("./template-build.js");
 
-    const result = await buildOrResolveTemplate({
+    const result = await buildE2bRuntimeTemplate({
       apiKey: "e2b_key",
       runtime: {
         type: "e2b",
@@ -61,16 +61,21 @@ describe("buildOrResolveTemplate", () => {
       state
     });
 
-    expect(result).toEqual({ templateId: "tmpl_cached", cached: true });
+    expect(result).toEqual({
+      backend: "e2b",
+      hash: expect.any(String),
+      templateId: "tmpl_cached",
+      cached: true
+    });
     expect(state.getCalls).toEqual([{ backend: "e2b", hash: expect.any(String) }]);
     expect(buildTemplate).not.toHaveBeenCalled();
   });
 
   it("builds and caches an E2B template on cache miss", async () => {
     const state = createState(null);
-    const { buildOrResolveTemplate } = await import("./template-build.js");
+    const { buildE2bRuntimeTemplate } = await import("./template-build.js");
 
-    const result = await buildOrResolveTemplate({
+    const result = await buildE2bRuntimeTemplate({
       apiKey: "e2b_key",
       runtime: {
         type: "e2b",
@@ -84,7 +89,12 @@ describe("buildOrResolveTemplate", () => {
       state
     });
 
-    expect(result).toEqual({ templateId: "tmpl_built", cached: false });
+    expect(result).toEqual({
+      backend: "e2b",
+      hash: expect.any(String),
+      templateId: "tmpl_built",
+      cached: false
+    });
     expect(buildTemplate).toHaveBeenCalledWith({
       apiKey: "e2b_key",
       name: expect.stringMatching(/^poe-code-[a-f0-9]{32}$/),
@@ -104,11 +114,35 @@ describe("buildOrResolveTemplate", () => {
     });
   });
 
+  it("rebuilds when force is true even when a cached template exists", async () => {
+    const state = createState({
+      hash: "unused",
+      template_id: "tmpl_cached",
+      runtime_type: "e2b",
+      dockerfile_path: "/repo/Dockerfile",
+      built_at: "2026-05-03T00:00:00.000Z"
+    });
+    const { buildE2bRuntimeTemplate } = await import("./template-build.js");
+
+    const result = await buildE2bRuntimeTemplate({
+      apiKey: "e2b_key",
+      runtime: { type: "e2b", build_args: {}, mounts: [] },
+      dockerfilePath: "/repo/Dockerfile",
+      buildContext: "/repo",
+      state,
+      force: true
+    });
+
+    expect(result.cached).toBe(false);
+    expect(result.templateId).toBe("tmpl_built");
+    expect(buildTemplate).toHaveBeenCalledTimes(1);
+  });
+
   it("changes the template cache hash when build context file contents change", async () => {
     const state = createState(null);
-    const { buildOrResolveTemplate } = await import("./template-build.js");
+    const { buildE2bRuntimeTemplate } = await import("./template-build.js");
 
-    await buildOrResolveTemplate({
+    await buildE2bRuntimeTemplate({
       apiKey: "e2b_key",
       runtime: {
         type: "e2b",
@@ -120,7 +154,7 @@ describe("buildOrResolveTemplate", () => {
       state
     });
     files.set("/repo/src/index.js", "console.log('two')\n");
-    await buildOrResolveTemplate({
+    await buildE2bRuntimeTemplate({
       apiKey: "e2b_key",
       runtime: {
         type: "e2b",

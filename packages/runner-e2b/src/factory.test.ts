@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { buildOrResolveTemplate } from "./template-build.js";
+import { buildE2bRuntimeTemplate } from "./template-build.js";
 import { createSandbox, connectSandbox } from "./sdk.js";
 import { resolveE2bApiKey } from "./auth-scope.js";
 
 vi.mock("./template-build.js", () => ({
-  buildOrResolveTemplate: vi.fn()
+  buildE2bRuntimeTemplate: vi.fn()
 }));
 
 vi.mock("./sdk.js", () => ({
@@ -19,7 +19,9 @@ vi.mock("./auth-scope.js", () => ({
 describe("e2bExecutionEnvFactory", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(buildOrResolveTemplate).mockResolvedValue({
+    vi.mocked(buildE2bRuntimeTemplate).mockResolvedValue({
+      backend: "e2b",
+      hash: "h",
       templateId: "tmpl_built",
       cached: false
     });
@@ -47,7 +49,7 @@ describe("e2bExecutionEnvFactory", () => {
 
     expect(env.id).toBe("sb_open");
     expect(resolveE2bApiKey).toHaveBeenCalledWith({ cwd: "/repo" });
-    expect(buildOrResolveTemplate).not.toHaveBeenCalled();
+    expect(buildE2bRuntimeTemplate).not.toHaveBeenCalled();
     expect(createSandbox).toHaveBeenCalledWith({
       apiKey: "resolved_key",
       templateId: "tmpl_configured",
@@ -75,7 +77,7 @@ describe("e2bExecutionEnvFactory", () => {
       jobLabel: { tool: "node", argv: ["node"] }
     });
 
-    expect(buildOrResolveTemplate).toHaveBeenCalledWith({
+    expect(buildE2bRuntimeTemplate).toHaveBeenCalledWith({
       runtime: expect.objectContaining({ type: "e2b" }),
       dockerfilePath: "/repo/Dockerfile",
       buildContext: "/repo/sandbox",

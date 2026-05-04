@@ -4,24 +4,32 @@ import path from "node:path";
 import type { E2bRuntime, StateManager } from "@poe-code/poe-code-config";
 import { buildTemplate } from "./sdk.js";
 
-export interface BuildOrResolveTemplateInput {
+export interface BuildE2bRuntimeTemplateInput {
   runtime: E2bRuntime;
   dockerfilePath: string;
   buildContext: string;
   state?: Pick<StateManager, "templates">;
   apiKey: string;
+  force?: boolean;
 }
 
-export async function buildOrResolveTemplate(
-  input: BuildOrResolveTemplateInput
-): Promise<{ templateId: string; cached: boolean }> {
+export interface BuildE2bRuntimeTemplateResult {
+  backend: "e2b";
+  hash: string;
+  templateId: string;
+  cached: boolean;
+}
+
+export async function buildE2bRuntimeTemplate(
+  input: BuildE2bRuntimeTemplateInput
+): Promise<BuildE2bRuntimeTemplateResult> {
   const dockerfileBytes = await readFile(input.dockerfilePath);
   const buildContextFiles = await readBuildContextFiles(input.buildContext);
   const hash = hashTemplate(dockerfileBytes, buildContextFiles, input.runtime.build_args);
-  const cached = await input.state?.templates.get("e2b", hash);
+  const cached = input.force === true ? null : await input.state?.templates.get("e2b", hash);
 
   if (cached?.template_id !== undefined) {
-    return { templateId: cached.template_id, cached: true };
+    return { backend: "e2b", hash, templateId: cached.template_id, cached: true };
   }
 
   const built = await buildTemplate({
@@ -41,7 +49,7 @@ export async function buildOrResolveTemplate(
     built_at: new Date().toISOString()
   });
 
-  return { templateId: built.templateId, cached: false };
+  return { backend: "e2b", hash, templateId: built.templateId, cached: false };
 }
 
 function hashTemplate(

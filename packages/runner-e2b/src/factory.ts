@@ -2,7 +2,7 @@ import path from "node:path";
 import type { E2bRuntime } from "@poe-code/poe-code-config";
 import type { ExecutionEnvFactory, OpenSpec, OpenedEnv } from "@poe-code/agent-harness-tools";
 import { createSandbox, connectSandbox } from "./sdk.js";
-import { buildOrResolveTemplate } from "./template-build.js";
+import { buildE2bRuntimeTemplate } from "./template-build.js";
 import { createOpenedE2bEnv } from "./opened-env.js";
 import { resolveE2bApiKey } from "./auth-scope.js";
 
@@ -15,7 +15,7 @@ export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
     const templateId =
       runtime.template_id ??
       (
-        await buildOrResolveTemplate({
+        await buildE2bRuntimeTemplate({
           runtime,
           dockerfilePath: path.resolve(
             spec.cwd,

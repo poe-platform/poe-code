@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import type { E2bRuntime, StateManager } from "@poe-code/poe-code-config";
-import { buildTemplate } from "./sdk.js";
+import { buildTemplate, type BuildLogEntry } from "./sdk.js";
 
 export interface BuildE2bRuntimeTemplateInput {
   runtime: E2bRuntime;
@@ -11,6 +11,7 @@ export interface BuildE2bRuntimeTemplateInput {
   state?: Pick<StateManager, "templates">;
   apiKey: string;
   force?: boolean;
+  onLog?: (entry: BuildLogEntry) => void;
 }
 
 export interface BuildE2bRuntimeTemplateResult {
@@ -19,6 +20,8 @@ export interface BuildE2bRuntimeTemplateResult {
   templateId: string;
   cached: boolean;
 }
+
+const BUILD_LOG_TAIL_SIZE = 30;
 
 export async function buildE2bRuntimeTemplate(
   input: BuildE2bRuntimeTemplateInput
@@ -32,14 +35,29 @@ export async function buildE2bRuntimeTemplate(
     return { backend: "e2b", hash, templateId: cached.template_id, cached: true };
   }
 
-  const built = await buildTemplate({
-    apiKey: input.apiKey,
-    name: `poe-code-${hash.slice(0, 32)}`,
-    dockerfilePath: input.dockerfilePath,
-    buildContext: input.buildContext,
-    cpu: input.runtime.cpu,
-    memoryMb: input.runtime.memory_mb
-  });
+  const tail: string[] = [];
+  const onLog = (entry: BuildLogEntry): void => {
+    tail.push(entry.message);
+    if (tail.length > BUILD_LOG_TAIL_SIZE) {
+      tail.shift();
+    }
+    input.onLog?.(entry);
+  };
+
+  let built;
+  try {
+    built = await buildTemplate({
+      apiKey: input.apiKey,
+      name: `poe-code-${hash.slice(0, 32)}`,
+      dockerfilePath: input.dockerfilePath,
+      buildContext: input.buildContext,
+      cpu: input.runtime.cpu,
+      memoryMb: input.runtime.memory_mb,
+      onLog
+    });
+  } catch (error) {
+    throw decorateBuildError(error, tail);
+  }
 
   await input.state?.templates.put("e2b", {
     hash,
@@ -50,6 +68,17 @@ export async function buildE2bRuntimeTemplate(
   });
 
   return { backend: "e2b", hash, templateId: built.templateId, cached: false };
+}
+
+function decorateBuildError(error: unknown, tail: string[]): Error {
+  const original = error instanceof Error ? error : new Error(String(error));
+  if (tail.length === 0) {
+    return original;
+  }
+  const decorated = new Error(`${original.message}\n\nLast build output:\n${tail.join("\n")}`);
+  decorated.stack = original.stack;
+  (decorated as Error & { cause?: unknown }).cause = original;
+  return decorated;
 }
 
 function hashTemplate(

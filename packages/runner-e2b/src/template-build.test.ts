@@ -101,7 +101,8 @@ describe("buildE2bRuntimeTemplate", () => {
       dockerfilePath: "/repo/Dockerfile",
       buildContext: "/repo",
       cpu: 4,
-      memoryMb: 4096
+      memoryMb: 4096,
+      onLog: expect.any(Function)
     });
     expect(state.putCalls[0]).toMatchObject({
       backend: "e2b",
@@ -167,6 +168,51 @@ describe("buildE2bRuntimeTemplate", () => {
     });
 
     expect(state.getCalls[0]?.hash).not.toBe(state.getCalls[1]?.hash);
+  });
+
+  it("appends the captured build log tail when buildTemplate throws", async () => {
+    vi.mocked(buildTemplate).mockImplementation(async (opts) => {
+      opts.onLog?.({ level: "info", message: "Step 1/3 : FROM node:22", timestamp: new Date() });
+      opts.onLog?.({ level: "info", message: "Step 2/3 : RUN npm i -g poe-code", timestamp: new Date() });
+      opts.onLog?.({ level: "error", message: "npm ERR! 404 Not Found", timestamp: new Date() });
+      throw new Error("failed to run command 'npm i -g poe-code': exit status 1");
+    });
+    const state = createState(null);
+    const { buildE2bRuntimeTemplate } = await import("./template-build.js");
+
+    await expect(
+      buildE2bRuntimeTemplate({
+        apiKey: "e2b_key",
+        runtime: { type: "e2b", build_args: {}, mounts: [] },
+        dockerfilePath: "/repo/Dockerfile",
+        buildContext: "/repo",
+        state
+      })
+    ).rejects.toThrow(/Last build output:[\s\S]*npm ERR! 404 Not Found/);
+  });
+
+  it("forwards onLog entries to the caller", async () => {
+    const seen: string[] = [];
+    vi.mocked(buildTemplate).mockImplementation(async (opts) => {
+      opts.onLog?.({ level: "info", message: "step a", timestamp: new Date() });
+      opts.onLog?.({ level: "info", message: "step b", timestamp: new Date() });
+      return { templateId: "tmpl_built" };
+    });
+    const state = createState(null);
+    const { buildE2bRuntimeTemplate } = await import("./template-build.js");
+
+    await buildE2bRuntimeTemplate({
+      apiKey: "e2b_key",
+      runtime: { type: "e2b", build_args: {}, mounts: [] },
+      dockerfilePath: "/repo/Dockerfile",
+      buildContext: "/repo",
+      state,
+      onLog: (entry) => {
+        seen.push(entry.message);
+      }
+    });
+
+    expect(seen).toEqual(["step a", "step b"]);
   });
 });
 

@@ -19,6 +19,7 @@ export interface SpawnCommandOptions {
   runtimeConfigCwd?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: RuntimeOverrideOptions["runnerSync"];
 }
 
 export type ProviderSpawnOptions<

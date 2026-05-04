@@ -80,6 +80,7 @@ export async function runExperiment(options: ExperimentRunOptions): Promise<Expe
         ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
         ...(options.detach ? { detach: options.detach } : {}),
         ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
+        ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
         ...(input.signal ? { signal: input.signal } : {})
       });
     }

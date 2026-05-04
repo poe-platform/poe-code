@@ -17,6 +17,7 @@ export interface SpawnAcpOptions {
   runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: "both" | "upload" | "none";
   signal?: AbortSignal;
 }
 

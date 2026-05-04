@@ -12,6 +12,7 @@ export interface RunnerScope {
   detach: boolean;
   upload_max_file_mb: number;
   download_conflict: "refuse" | "overwrite";
+  sync: "both" | "upload" | "none";
   workspace?: {
     exclude?: string[];
   };
@@ -194,6 +195,7 @@ export function parseRunner(raw: unknown): RunnerScope {
     detach: parseOptionalBoolean(record.detach, "runner.detach") ?? false,
     upload_max_file_mb: uploadMaxFileMb,
     download_conflict: parseDownloadConflict(record.download_conflict),
+    sync: parseRunnerSync(record.sync),
     workspace: parseRunnerWorkspace(record.workspace)
   });
 }
@@ -364,6 +366,7 @@ function createDefaultRunnerScope(): RunnerScope {
     detach: false,
     upload_max_file_mb: 100,
     download_conflict: "refuse",
+    sync: "both",
     workspace: {
       exclude: [...defaultWorkspaceExclude]
     }
@@ -396,6 +399,16 @@ function parseDownloadConflict(value: unknown): RunnerScope["download_conflict"]
     return value;
   }
   throw new Error('runner.download_conflict: expected "refuse" or "overwrite".');
+}
+
+function parseRunnerSync(value: unknown): RunnerScope["sync"] {
+  if (value === undefined) {
+    return "both";
+  }
+  if (value === "both" || value === "upload" || value === "none") {
+    return value;
+  }
+  throw new Error('runner.sync: expected "both", "upload", or "none".');
 }
 
 function parseBuildArgs(value: unknown): Record<string, string> {

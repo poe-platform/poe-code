@@ -4,7 +4,8 @@ import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_proce
 import {
   resolveLoopAgent,
   resolveRunLogDir,
-  resolveWorkflowPath
+  resolveWorkflowPath,
+  type RuntimeOverrideOptions
 } from "@poe-code/agent-harness-tools";
 import {
   applyMiddlewares,
@@ -70,6 +71,7 @@ export type RunCommandOptions = {
   runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: RuntimeOverrideOptions["runnerSync"];
   configuredDefaultAgent?: string | null;
   planDirectory?: string;
   assumeYes?: boolean;
@@ -143,6 +145,9 @@ const runParams = S.Object({
   mountPoeCode: S.Optional(S.Boolean({
     description: "Mount the local poe-code checkout into the runtime"
   })),
+  runnerSync: S.Optional(S.Enum(["both", "upload", "none"] as const, {
+    description: "Override runner workspace sync: both, upload, or none"
+  })),
   tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" }))
 });
 
@@ -170,6 +175,7 @@ export const runCommand = defineCommand({
         ...(params.runtimeTemplate ? { runtimeTemplate: params.runtimeTemplate } : {}),
         ...(params.detach ? { detach: params.detach } : {}),
         ...(params.mountPoeCode ? { mountPoeCode: params.mountPoeCode } : {}),
+        ...(params.runnerSync ? { runnerSync: params.runnerSync } : {}),
         configuredDefaultAgent: commandConfig.configuredDefaultAgent,
         assumeYes: process.argv.includes("--yes"),
         interactive: Boolean(process.stdin.isTTY),
@@ -486,7 +492,8 @@ export async function runSuperintendentCommand(
             runtimeImage: options.runtimeImage,
             runtimeTemplate: options.runtimeTemplate,
             detach: options.detach,
-            mountPoeCode: options.mountPoeCode
+            mountPoeCode: options.mountPoeCode,
+            runnerSync: options.runnerSync
           },
           activeStage: () => activeStage,
           now,
@@ -756,7 +763,8 @@ export async function runSuperintendentCommand(
             runtimeImage: options.runtimeImage,
             runtimeTemplate: options.runtimeTemplate,
             detach: options.detach,
-            mountPoeCode: options.mountPoeCode
+            mountPoeCode: options.mountPoeCode,
+            runnerSync: options.runnerSync
           },
           activeStage: () => session.activeStage,
           now,
@@ -956,7 +964,7 @@ function createAgentRunner(options: {
   integrations: Integrations | null;
   runtime: Pick<
     RunCommandOptions,
-    "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode"
+    "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode" | "runnerSync"
   >;
   activeStage: () => RunSession["activeStage"];
   now: () => number;
@@ -1087,6 +1095,7 @@ async function executeSpawnAgent(
     ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
     ...(input.detach ? { detach: input.detach } : {}),
     ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {}),
+    ...(input.runnerSync ? { runnerSync: input.runnerSync } : {}),
     ...(tee ? { tee } : {})
   });
 
@@ -1130,6 +1139,7 @@ async function executeSpawnAgentStreaming(
     ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
     ...(input.detach ? { detach: input.detach } : {}),
     ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {}),
+    ...(input.runnerSync ? { runnerSync: input.runnerSync } : {}),
     ...(input.onStderr ? { tee: { stderr: { write: input.onStderr } } } : {})
   });
 

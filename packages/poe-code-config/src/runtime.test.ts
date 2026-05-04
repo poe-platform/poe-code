@@ -32,6 +32,7 @@ describe("runtime config", () => {
       detach: false,
       upload_max_file_mb: 100,
       download_conflict: "refuse",
+      sync: "both",
       workspace: {
         exclude: [".git", "node_modules", "dist", ".turbo", ".next", ".poe-code/state.json"]
       }
@@ -44,6 +45,7 @@ describe("runtime config", () => {
         detach: true,
         upload_max_file_mb: 250,
         download_conflict: "overwrite",
+        sync: "upload",
         workspace: {
           exclude: ["coverage", "tmp"]
         }
@@ -52,6 +54,7 @@ describe("runtime config", () => {
       detach: true,
       upload_max_file_mb: 250,
       download_conflict: "overwrite",
+      sync: "upload",
       workspace: {
         exclude: ["coverage", "tmp"]
       }
@@ -63,6 +66,7 @@ describe("runtime config", () => {
       detach: false,
       upload_max_file_mb: 100,
       download_conflict: "refuse",
+      sync: "both",
       workspace: {
         exclude: [".git", "node_modules", "dist", ".turbo", ".next", ".poe-code/state.json"]
       }
@@ -72,6 +76,7 @@ describe("runtime config", () => {
       detach: false,
       upload_max_file_mb: 100,
       download_conflict: "refuse",
+      sync: "both",
       workspace: {
         exclude: [".git", "node_modules", "dist", ".turbo", ".next", ".poe-code/state.json"]
       }
@@ -87,6 +92,7 @@ describe("runtime config", () => {
             detach: true,
             upload_max_file_mb: 1,
             download_conflict: "overwrite",
+            sync: "none",
             workspace: { exclude: [] }
           })
         },
@@ -96,6 +102,7 @@ describe("runtime config", () => {
       detach: true,
       upload_max_file_mb: 1,
       download_conflict: "overwrite",
+      sync: "none",
       workspace: {
         exclude: []
       }
@@ -113,6 +120,9 @@ describe("runtime config", () => {
     );
     expect(() => parseRunner({ download_conflict: "merge" })).toThrow(
       'runner.download_conflict: expected "refuse" or "overwrite".'
+    );
+    expect(() => parseRunner({ sync: "download" })).toThrow(
+      'runner.sync: expected "both", "upload", or "none".'
     );
     expect(() => parseRunner({ workspace: [] })).toThrow("runner.workspace: expected an object.");
     expect(() => parseRunner({ workspace: { exclude: [".git", 42] } })).toThrow(

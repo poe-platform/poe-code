@@ -77,6 +77,8 @@ export interface SpawnOptions {
   detach?: boolean;
   /** Mount the local poe-code checkout into the runtime for development. */
   mountPoeCode?: boolean;
+  /** Override runner workspace sync behavior. */
+  runnerSync?: RuntimeOverrideOptions["runnerSync"];
 }
 
 export interface SpawnUsage {

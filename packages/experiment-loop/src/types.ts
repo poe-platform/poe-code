@@ -45,6 +45,7 @@ export interface AgentRunInput {
   runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: "both" | "upload" | "none";
   signal?: AbortSignal;
   logDir?: string;
   logFileName?: string;
@@ -66,6 +67,7 @@ export interface ExperimentRunOptions {
   runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: "both" | "upload" | "none";
   maxExperiments?: number;
   fs?: ExperimentFileSystem;
   git?: ExperimentGit;

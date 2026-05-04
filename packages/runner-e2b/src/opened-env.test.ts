@@ -271,6 +271,32 @@ describe("createOpenedE2bEnv", () => {
     );
   });
 
+  it("skips workspace upload when runner sync is none", async () => {
+    const hostRunner = createHostRunnerMock();
+    const sandbox = createSandboxMock();
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: {
+        ...createSpec(),
+        hostRunner,
+        runner: {
+          detach: false,
+          upload_max_file_mb: 100,
+          download_conflict: "refuse",
+          sync: "none"
+        }
+      }
+    });
+
+    await expect(env.uploadWorkspace()).resolves.toEqual({ files: 0, bytes: 0, skipped: [] });
+
+    expect(hostRunner.exec).not.toHaveBeenCalled();
+    expect(sandbox.files.write).not.toHaveBeenCalled();
+    expect(sandbox.commands.run).not.toHaveBeenCalled();
+    expect(fsMocks.mkdtempSync).not.toHaveBeenCalled();
+  });
+
   it("decorates remote command exit errors with the command and stderr tail", async () => {
     const hostRunner = createHostRunnerMock();
     const sandbox = createSandboxMock();
@@ -374,6 +400,36 @@ describe("createOpenedE2bEnv", () => {
       stdout: "pipe",
       stderr: "pipe"
     });
+  });
+
+  it("skips workspace download when runner sync is upload-only", async () => {
+    const hostRunner = createHostRunnerMock();
+    const sandbox = createSandboxMock();
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: {
+        ...createSpec(),
+        hostRunner,
+        runner: {
+          detach: false,
+          upload_max_file_mb: 100,
+          download_conflict: "refuse",
+          sync: "upload"
+        }
+      }
+    });
+
+    await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toEqual({
+      files: 0,
+      bytes: 0,
+      conflicts: []
+    });
+
+    expect(hostRunner.exec).not.toHaveBeenCalled();
+    expect(sandbox.files.read).not.toHaveBeenCalled();
+    expect(sandbox.commands.run).not.toHaveBeenCalled();
+    expect(fsMocks.mkdtempSync).not.toHaveBeenCalled();
   });
 
   it("creates a job handle for the last running command and preserves sandbox timeout on wait", async () => {

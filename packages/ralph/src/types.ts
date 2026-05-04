@@ -25,6 +25,7 @@ export interface AgentRunInput {
   runtimeConfigCwd?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: "both" | "upload" | "none";
   signal?: AbortSignal;
   logDir?: string;
   logFileName?: string;
@@ -57,6 +58,7 @@ export interface RalphRunOptions {
   runtimeConfigCwd?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: "both" | "upload" | "none";
   fs?: RalphFileSystem;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
   onIterationStart?: (iteration: number, maxIterations: number, agent: string) => void;

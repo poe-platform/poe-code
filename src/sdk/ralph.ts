@@ -50,6 +50,7 @@ function createDefaultRalphRunAgent(
       ...(options.runtimeConfigCwd ? { runtimeConfigCwd: options.runtimeConfigCwd } : {}),
       ...(options.detach ? { detach: options.detach } : {}),
       ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
+      ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
       ...(input.signal ? { signal: input.signal } : {})
     });
 }
@@ -81,7 +82,8 @@ function createReusableE2bRalphRunner(options: RalphRunOptions): {
           runtime: options.runtime,
           runtimeImage: options.runtimeImage,
           runtimeTemplate: options.runtimeTemplate,
-          mountPoeCode: options.mountPoeCode
+          mountPoeCode: options.mountPoeCode,
+          runnerSync: options.runnerSync
         },
         context: {
           homeDir: options.homeDir,

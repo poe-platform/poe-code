@@ -9,6 +9,7 @@ import {
   resolveRuntime,
   resolveScope,
   runtimeConfigScope,
+  type RunnerScope,
   type ConfigDocument,
   type JobEntry,
   type JobListFilter,
@@ -23,6 +24,7 @@ export type RuntimeOverrideOptions = {
   runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: RunnerScope["sync"];
 };
 
 export function resolvePoeCommandExecution(input: {
@@ -107,7 +109,8 @@ export function applyRuntimeOverrides(
     runtime,
     runner: {
       ...config.runner,
-      ...(overrides.detach === true ? { detach: true } : {})
+      ...(overrides.detach === true ? { detach: true } : {}),
+      ...(overrides.runnerSync !== undefined ? { sync: overrides.runnerSync } : {})
     }
   };
 }

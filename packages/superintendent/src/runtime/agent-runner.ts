@@ -26,6 +26,7 @@ export type AutonomousInput = {
   runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: RuntimeOverrideOptions["runnerSync"];
 };
 
 export type AutonomousOutput =
@@ -73,7 +74,8 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
       ...(input.runtimeImage ? { runtimeImage: input.runtimeImage } : {}),
       ...(input.runtimeTemplate ? { runtimeTemplate: input.runtimeTemplate } : {}),
       ...(input.detach ? { detach: input.detach } : {}),
-      ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {})
+      ...(input.mountPoeCode ? { mountPoeCode: input.mountPoeCode } : {}),
+      ...(input.runnerSync ? { runnerSync: input.runnerSync } : {})
     });
   }
 
@@ -95,7 +97,8 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
       runtimeImage: input.runtimeImage,
       runtimeTemplate: input.runtimeTemplate,
       detach: input.detach,
-      mountPoeCode: input.mountPoeCode
+      mountPoeCode: input.mountPoeCode,
+      runnerSync: input.runnerSync
     },
     openSpec: {
       execution: {

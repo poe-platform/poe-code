@@ -72,6 +72,9 @@ export function createOpenedE2bEnv(input: {
       detachedJobContext = context;
     },
     async uploadWorkspace() {
+      if (input.spec.runner?.sync === "none") {
+        return { files: 0, bytes: 0, skipped: [] };
+      }
       const tempDir = mkdtempSync(path.join(tmpdir(), "poe-e2b-upload-"));
       const archivePath = path.join(tempDir, "workspace.tar");
       try {
@@ -102,6 +105,9 @@ export function createOpenedE2bEnv(input: {
       }
     },
     async downloadWorkspace(opts) {
+      if (input.spec.runner?.sync === "upload" || input.spec.runner?.sync === "none") {
+        return { files: 0, bytes: 0, conflicts: [] };
+      }
       const tempDir = mkdtempSync(path.join(tmpdir(), "poe-e2b-download-"));
       const archivePath = path.join(tempDir, "workspace.tar");
       try {

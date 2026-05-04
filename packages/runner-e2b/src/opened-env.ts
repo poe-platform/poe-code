@@ -13,7 +13,15 @@ import type {
 } from "@poe-code/agent-harness-tools";
 import { createHostRunner, type Runner } from "@poe-code/process-runner";
 import { createE2bJobHandle, createE2bLogStreamFs } from "./job-handle.js";
-import { readableToString, toArrayBuffer, type E2bCommandHandle, type E2bSandbox } from "./sdk.js";
+import {
+  readableToString,
+  toArrayBuffer,
+  type E2bCommandHandle,
+  type E2bCommandResult,
+  type E2bSandbox
+} from "./sdk.js";
+
+const REMOTE_COMMAND_STDERR_TAIL_SIZE = 30;
 
 interface DetachedJobContext {
   id: string;
@@ -317,10 +325,92 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
 }
 
 async function runRemoteOrThrow(sandbox: E2bSandbox, command: string): Promise<void> {
-  const result = await sandbox.commands.run(command);
-  if ("exitCode" in result && result.exitCode !== 0) {
-    throw new Error(`E2B command failed with exit code ${result.exitCode}: ${command}`);
+  const stdoutTail = createLineTail(REMOTE_COMMAND_STDERR_TAIL_SIZE);
+  const stderrTail = createLineTail(REMOTE_COMMAND_STDERR_TAIL_SIZE);
+  let result: E2bCommandResult | E2bCommandHandle;
+  try {
+    result = await sandbox.commands.run(command, {
+      onStdout(data) {
+        stdoutTail.push(data);
+      },
+      onStderr(data) {
+        stderrTail.push(data);
+      }
+    });
+  } catch (error) {
+    appendRemoteCommandOutput(error, stdoutTail, stderrTail);
+    if (isCommandExitError(error)) {
+      throw decorateRemoteCommandError(error, command, stderrTail.values());
+    }
+    throw error;
   }
+  appendRemoteCommandOutput(result, stdoutTail, stderrTail);
+  if ("exitCode" in result && result.exitCode !== 0) {
+    throw decorateRemoteCommandError(
+      new Error(`E2B command failed with exit code ${result.exitCode}`),
+      command,
+      stderrTail.values()
+    );
+  }
+}
+
+function appendRemoteCommandOutput(
+  source: unknown,
+  stdoutTail: { push(chunk: string): void },
+  stderrTail: { push(chunk: string): void }
+): void {
+  if (!source || typeof source !== "object") {
+    return;
+  }
+  const output = source as { stdout?: unknown; stderr?: unknown };
+  if (typeof output.stdout === "string") {
+    stdoutTail.push(output.stdout);
+  }
+  if (typeof output.stderr === "string") {
+    stderrTail.push(output.stderr);
+  }
+}
+
+function decorateRemoteCommandError(error: unknown, command: string, stderrTail: string[]): Error {
+  const original = error instanceof Error ? error : new Error(String(error));
+  const tail = stderrTail.length === 0 ? "" : `\n\nLast stderr output:\n${stderrTail.join("\n")}`;
+  const decorated = new Error(`E2B command failed: ${command}\n${original.message}${tail}`);
+  decorated.stack = original.stack;
+  (decorated as Error & { cause?: unknown }).cause = original;
+  return decorated;
+}
+
+function createLineTail(maxLines: number): { push(chunk: string): void; values(): string[] } {
+  const lines: string[] = [];
+  let pending = "";
+  const appendLine = (line: string): void => {
+    lines.push(trimTrailingCarriageReturn(line));
+    while (lines.length > maxLines) {
+      lines.shift();
+    }
+  };
+
+  return {
+    push(chunk) {
+      pending += chunk;
+      const parts = pending.split("\n");
+      pending = parts.pop() ?? "";
+      for (const line of parts) {
+        appendLine(line);
+      }
+    },
+    values() {
+      const output = [...lines];
+      if (pending.length > 0) {
+        output.push(trimTrailingCarriageReturn(pending));
+      }
+      return output.slice(-maxLines);
+    }
+  };
+}
+
+function trimTrailingCarriageReturn(value: string): string {
+  return value.endsWith("\r") ? value.slice(0, -1) : value;
 }
 
 async function runOrThrow(runner: Runner, spec: RunSpec): Promise<void> {
@@ -359,5 +449,16 @@ function isExitError(error: unknown): error is { exitCode: number } {
     error &&
     typeof error === "object" &&
     typeof (error as { exitCode?: unknown }).exitCode === "number"
+  );
+}
+
+function isCommandExitError(error: unknown): boolean {
+  return (
+    isExitError(error) ||
+    Boolean(
+      error &&
+      typeof error === "object" &&
+      (error as { name?: unknown }).name === "CommandExitError"
+    )
   );
 }

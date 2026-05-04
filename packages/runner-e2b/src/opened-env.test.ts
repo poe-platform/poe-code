@@ -185,8 +185,83 @@ describe("createOpenedE2bEnv", () => {
       expect.any(ArrayBuffer)
     );
     expect(sandbox.commands.run).toHaveBeenCalledWith(
-      "mkdir -p '/sandbox/workspace' && tar -xf /tmp/poe-workspace-upload.tar -C '/sandbox/workspace'"
+      "mkdir -p '/sandbox/workspace' && tar -xf /tmp/poe-workspace-upload.tar -C '/sandbox/workspace'",
+      {
+        onStdout: expect.any(Function),
+        onStderr: expect.any(Function)
+      }
     );
+  });
+
+  it("decorates remote command exit errors with the command and stderr tail", async () => {
+    const hostRunner = createHostRunnerMock();
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockImplementation(
+      async (_command: string, opts?: { onStderr?: (data: string) => void }) => {
+        for (let index = 1; index <= 35; index += 1) {
+          opts?.onStderr?.(`stderr line ${index}\n`);
+        }
+        throw Object.assign(new Error("exit status 1"), {
+          name: "CommandExitError",
+          exitCode: 1
+        });
+      }
+    );
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: { ...createSpec(), hostRunner }
+    });
+
+    let thrown: unknown;
+    try {
+      await env.uploadWorkspace();
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(Error);
+    const message = (thrown as Error).message;
+    expect(message).toContain(
+      "E2B command failed: mkdir -p '/sandbox/workspace' && tar -xf /tmp/poe-workspace-upload.tar -C '/sandbox/workspace'"
+    );
+    expect(message).toContain("Last stderr output:");
+    expect(message).toContain("stderr line 6");
+    expect(message).toContain("stderr line 35");
+    expect(message).not.toContain("stderr line 5");
+  });
+
+  it("uses stderr carried by remote command exit errors when callbacks do not receive output", async () => {
+    const hostRunner = createHostRunnerMock();
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockRejectedValue(
+      Object.assign(new Error("exit status 1"), {
+        name: "CommandExitError",
+        exitCode: 1,
+        stderr: Array.from({ length: 35 }, (_value, index) => `error stderr ${index + 1}`).join(
+          "\n"
+        )
+      })
+    );
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: { ...createSpec(), hostRunner }
+    });
+
+    let thrown: unknown;
+    try {
+      await env.uploadWorkspace();
+    } catch (error) {
+      thrown = error;
+    }
+
+    expect(thrown).toBeInstanceOf(Error);
+    const message = (thrown as Error).message;
+    expect(message).toContain("E2B command failed: mkdir -p '/sandbox/workspace'");
+    expect(message).toContain("error stderr 6");
+    expect(message).toContain("error stderr 35");
+    expect(message).not.toContain("error stderr 5");
   });
 
   it("downloads the sandbox workspace back into the host workspace", async () => {
@@ -207,7 +282,11 @@ describe("createOpenedE2bEnv", () => {
     });
 
     expect(sandbox.commands.run).toHaveBeenCalledWith(
-      "tar -cf /tmp/poe-workspace-download.tar -C '/sandbox/workspace' ."
+      "tar -cf /tmp/poe-workspace-download.tar -C '/sandbox/workspace' .",
+      {
+        onStdout: expect.any(Function),
+        onStderr: expect.any(Function)
+      }
     );
     expect(hostRunner.exec).toHaveBeenCalledWith({
       command: "tar",

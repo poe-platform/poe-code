@@ -78,6 +78,8 @@ Project config is read as an override on top of global config.
 - Keys inside a scope are merged.
 - When the same key exists in both places, the project value wins.
 - Missing or `undefined` project keys do not remove global values.
+- If the project config path resolves to the global config path, only the global document is read and no self-merge is attempted.
+- Project config reads auto-extend from the global config directory, but self-discovered optional bases are ignored by `@poe-code/config-extends`.
 
 Example:
 

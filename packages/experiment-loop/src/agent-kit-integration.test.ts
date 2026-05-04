@@ -28,6 +28,10 @@ function createDoc(): string {
   ].join("\n");
 }
 
+function createExperimentPlanDoc(content: string): string {
+  return ["---", "kind: experiment", "---", "", content].join("\n");
+}
+
 function createGit(): ExperimentGit {
   return {
     reset: vi.fn(async () => undefined),
@@ -42,22 +46,18 @@ function createExec(): ExecFn {
 }
 
 describe("experiment-loop agent-kit discovery", () => {
-  it("discovers default experiment docs from project and home directories", async () => {
+  it("discovers default experiment docs from the project directory", async () => {
     const docs = await discoverExperimentDocs({
       cwd,
       homeDir,
       fs: createFs({
-        "/repo/.poe-code/experiments/shared.md": "# project",
-        "/home/test/.poe-code/experiments/global.md": "# global",
-        "/home/test/.poe-code/experiments/shared.md": "# home"
+        "/repo/.poe-code/experiments/shared.md": createExperimentPlanDoc("# project"),
+        "/home/test/.poe-code/experiments/global.md": createExperimentPlanDoc("# global"),
+        "/home/test/.poe-code/experiments/shared.md": createExperimentPlanDoc("# home")
       })
     });
 
     expect(docs).toEqual([
-      {
-        path: "~/.poe-code/experiments/global.md",
-        displayPath: "~/.poe-code/experiments/global.md"
-      },
       {
         path: ".poe-code/experiments/shared.md",
         displayPath: ".poe-code/experiments/shared.md"
@@ -71,8 +71,8 @@ describe("experiment-loop agent-kit discovery", () => {
       homeDir,
       planDirectory: "docs/experiments",
       fs: createFs({
-        "/repo/docs/experiments/plan-b.md": "# B",
-        "/repo/docs/experiments/plan-a.md": "# A"
+        "/repo/docs/experiments/plan-b.md": createExperimentPlanDoc("# B"),
+        "/repo/docs/experiments/plan-a.md": createExperimentPlanDoc("# A")
       })
     });
 

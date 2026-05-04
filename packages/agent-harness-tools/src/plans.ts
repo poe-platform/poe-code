@@ -3,6 +3,8 @@ import path from "node:path";
 import { openTaskList, type Task, type TaskList, type TaskListFs } from "@poe-code/task-list";
 import { resolveWorkflowPath } from "./paths.js";
 
+export type DiscoverPlansFs = Pick<TaskListFs, "readFile" | "readdir" | "stat">;
+
 export interface PlanRef {
   id: string;
   absolutePath: string;
@@ -16,7 +18,7 @@ export interface DiscoverPlansOptions {
   homeDir: string;
   planDirectory: string;
   kinds?: readonly string[];
-  fs?: TaskListFs;
+  fs?: DiscoverPlansFs;
 }
 
 export interface ArchivePlanOptions {
@@ -111,7 +113,7 @@ function idFromActivePlanFilename(fileName: string): string | undefined {
 }
 
 async function activePlanFilePaths(
-  fs: TaskListFs,
+  fs: DiscoverPlansFs,
   planDirectory: string
 ): Promise<Map<string, string> | undefined> {
   let entries: string[];
@@ -177,7 +179,7 @@ export async function discoverPlans(options: DiscoverPlansOptions): Promise<Plan
     return [];
   }
 
-  const taskList = await openPlansTaskList(planDirectory, options.fs);
+  const taskList = await openPlansTaskList(planDirectory, fs as TaskListFs);
   const tasks = await taskList.list("plans").all();
   const kindFilter = options.kinds === undefined ? undefined : new Set(options.kinds);
   const plans: PlanRef[] = [];

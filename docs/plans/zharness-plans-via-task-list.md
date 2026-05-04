@@ -488,7 +488,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: experiment-loop-migrate
     title: Migrate experiment-loop harness to shared plan API
@@ -523,9 +523,9 @@ tasks:
       - No CLI surface changes.
       - No new dependencies.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: superintendent-migrate
     title: Migrate superintendent harness to shared plan discovery

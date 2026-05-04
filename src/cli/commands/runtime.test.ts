@@ -212,7 +212,7 @@ describe("runtime command", () => {
 
     await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toContain('"type": "docker"');
     await expect(fs.readFile(dockerfilePath, "utf8")).resolves.toContain(
-      "npm i -g @poe-code/cli @anthropic-ai/claude-code"
+      "npm i -g poe-code @anthropic-ai/claude-code"
     );
   });
 

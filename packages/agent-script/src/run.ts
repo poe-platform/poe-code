@@ -1,6 +1,14 @@
 import { hashSource } from "./parse/hash.js";
 import type { ParseResult } from "./parse.js";
-import { parseModule, type Module, type Statement } from "./parse/parser.js";
+import {
+  parseModule,
+  type AwaitExpression,
+  type CallExpression,
+  type Identifier,
+  type Module,
+  type SourceSpan,
+  type Statement
+} from "./parse/parser.js";
 import { restore, type AgentScriptSnapshot } from "./restore.js";
 import { Budget } from "./interp/budget.js";
 import { wrapCancelableBindings } from "./interp/cancel.js";
@@ -11,6 +19,7 @@ import { createObjectArrayGlobals } from "./interp/globals/object-array.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "./interp/host-bridge.js";
 import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
 import { createPromiseGlobals } from "./interp/promise.js";
+import { deepCopyToSandbox, isSandboxClosure, type SandboxValue } from "./interp/values.js";
 import { resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
 import { attachDumpController, createDumpController } from "./snapshot/dump.js";
 import { createSnapshotScheduler } from "./snapshot/scheduler.js";
@@ -18,6 +27,9 @@ import { createSnapshotScheduler } from "./snapshot/scheduler.js";
 export type RunOptions = {
   bindings?: Record<string, CallerInjectedBinding>;
   budget?: Budget;
+  entryPointArgs?: readonly unknown[];
+  filename?: string;
+  importMeta?: Record<string, unknown>;
   modules?: ModuleRegistry;
   randomSeed?: number;
   signal?: AbortSignal;
@@ -45,9 +57,11 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
     const restoredSnapshot =
       options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
     const budget = options.budget ?? new Budget();
-    const module = parseModule(source);
+    const filename = options.filename ?? "<input>";
+    const module = parseModule(source, filename);
     const sourceHash = hashSource(source);
     const random = createRandomState(restoredSnapshot, options.randomSeed);
+    const entryPointArgs = options.entryPointArgs?.map((value) => deepCopyToSandbox(value));
     const callerBindings =
       options.bindings === undefined
         ? {}
@@ -77,14 +91,16 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       options.signal
     );
 
-    const scope = new Scope(bindings).child(resolveModuleImports(module, options.modules, { budget, signal: options.signal }));
+    const scope = new Scope(bindings, undefined, deepCopyToSandbox(options.importMeta ?? {})).child(
+      resolveModuleImports(module, options.modules, { budget, signal: options.signal })
+    );
     const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
       snapshotIntervalMs: options.snapshotIntervalMs,
       snapshotPath: options.snapshotPath
     });
 
     try {
-      const result = await interpret(createExecutableNode(module), {
+      const topLevelResult = await interpret(createExecutableNode(module), {
         budget,
         onYield: (yieldPoint) => {
           let snapshot: RunSnapshot | undefined;
@@ -98,12 +114,35 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           snapshotScheduler.onYield(createSnapshot);
           dumpController.onYield(createSnapshot);
         },
-        scope
+        scope,
+        useScopeDirectly: true
       });
+      const result =
+        entryPointArgs === undefined || !topLevelResult.ok
+          ? topLevelResult
+          : await callEntryPoint({
+              args: entryPointArgs,
+              budget,
+              filename,
+              module,
+              onYield: (yieldPoint) => {
+                let snapshot: RunSnapshot | undefined;
+                const createSnapshot = () =>
+                  (snapshot ??= createRunSnapshot({
+                    bindings: yieldPoint.snapshot.bindings,
+                    random,
+                    sourceHash
+                  }));
+
+                snapshotScheduler.onYield(createSnapshot);
+                dumpController.onYield(createSnapshot);
+              },
+              scope
+            });
       await snapshotScheduler.finish();
 
       const snapshot = createRunSnapshot({
-        bindings: result.snapshot.bindings,
+        bindings: scope.snapshot().bindings,
         random,
         sourceHash
       });
@@ -120,6 +159,72 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
   })();
 
   return attachDumpController(result, dumpController);
+}
+
+async function callEntryPoint(input: {
+  args: readonly SandboxValue[];
+  budget: Budget;
+  filename: string;
+  module: Module;
+  onYield: NonNullable<Parameters<typeof interpret>[1]>["onYield"];
+  scope: Scope;
+}): Promise<InterpreterResult> {
+  const defaultExport = input.scope.lookup("default");
+
+  if (!defaultExport.found) {
+    throw new Error(`Script ${input.filename} does not export a default function.`);
+  }
+
+  if (!isSandboxClosure(defaultExport.value)) {
+    throw new TypeError(`Default export in ${input.filename} must be callable.`);
+  }
+
+  const argumentBindings = Object.fromEntries(
+    input.args.map((value, index) => [createEntryPointArgName(index), value])
+  ) as Record<string, SandboxValue>;
+  const entryScope = input.scope.child({
+    __agentScriptEntryPoint: defaultExport.value,
+    ...argumentBindings
+  });
+
+  return interpret(createEntryPointAwait(input.args.length, input.module.span), {
+    budget: input.budget,
+    onYield: input.onYield,
+    scope: entryScope,
+    useScopeDirectly: true
+  });
+}
+
+function createEntryPointAwait(argCount: number, span: SourceSpan): AwaitExpression {
+  return {
+    type: "AwaitExpression",
+    argument: createEntryPointCall(argCount, span),
+    span
+  };
+}
+
+function createEntryPointCall(argCount: number, span: SourceSpan): CallExpression {
+  return {
+    type: "CallExpression",
+    callee: createIdentifier("__agentScriptEntryPoint", span),
+    arguments: Array.from({ length: argCount }, (_value, index) =>
+      createIdentifier(createEntryPointArgName(index), span)
+    ),
+    optional: false,
+    span
+  };
+}
+
+function createIdentifier(name: string, span: SourceSpan): Identifier {
+  return {
+    type: "Identifier",
+    name,
+    span
+  };
+}
+
+function createEntryPointArgName(index: number): string {
+  return `__agentScriptEntryPointArg${index}`;
 }
 
 function createRandomState(
@@ -145,7 +250,8 @@ function createRandomState(
 
 function createExecutableNode(module: Module): ParseResult {
   const executableStatements = module.body.filter(
-    (statement): statement is Exclude<Statement, { type: "ImportDeclaration" }> => statement.type !== "ImportDeclaration"
+    (statement): statement is Exclude<Statement, { type: "ImportDeclaration" }> =>
+      statement.type !== "ImportDeclaration"
   );
 
   if (executableStatements.length === 0) {

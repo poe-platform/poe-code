@@ -53,31 +53,33 @@ export async function evaluateArrowFunctionExpression(
   context: AsyncEvaluationContext,
   evaluateNode: EvaluateAsyncNode
 ): Promise<AsyncEvaluationResult> {
-  if (!node.async) {
-    return {
-      kind: "error",
-      error: {
-        code: "UNSUPPORTED_NODE",
-        message: "Only async arrow functions are currently supported.",
-        nodeId: node.nodeId,
-        nodeType: node.type,
-        span: node.span
-      }
-    };
-  }
-
   return {
     kind: "normal",
     hasValue: true,
     value: createSandboxClosure({
-      async: true,
+      ...(node.async ? { async: true } : {}),
       call: (args, callContext) =>
-        createSandboxPromise(
-          executeAsyncArrow(node, args, {
-            ...context,
-            callStack: [...(callContext?.stack ?? context.callStack)]
-          }, evaluateNode)
-        )
+        node.async
+          ? createSandboxPromise(
+              executeArrow(
+                node,
+                args,
+                {
+                  ...context,
+                  callStack: [...(callContext?.stack ?? context.callStack)]
+                },
+                evaluateNode
+              )
+            )
+          : executeArrow(
+              node,
+              args,
+              {
+                ...context,
+                callStack: [...(callContext?.stack ?? context.callStack)]
+              },
+              evaluateNode
+            )
     })
   };
 }
@@ -105,14 +107,16 @@ export async function evaluateAwaitExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: await (isSandboxPromise(argument.value) ? argument.value.promise : Promise.resolve(argument.value))
+      value: await (isSandboxPromise(argument.value)
+        ? argument.value.promise
+        : Promise.resolve(argument.value))
     };
   } finally {
     leaveAwait();
   }
 }
 
-async function executeAsyncArrow(
+async function executeArrow(
   node: ArrowFunctionExpression,
   args: readonly SandboxValue[],
   context: AsyncEvaluationContext,
@@ -189,6 +193,8 @@ export async function resolveClosureResult(
   return result;
 }
 
-function isPromiseLike(value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>): value is PromiseLike<SandboxValue> {
+function isPromiseLike(
+  value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>
+): value is PromiseLike<SandboxValue> {
   return typeof value === "object" && value !== null && "then" in value;
 }

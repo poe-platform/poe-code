@@ -582,28 +582,143 @@ try {
     expect(after).not.toHaveBeenCalled();
   });
 
+  it("resolves import.meta from an injected deep copy", async () => {
+    const importMeta = {
+      filepath: "script.ajs",
+      nested: {
+        value: "before"
+      }
+    };
+    const first = createDeferred<void>();
+    const result = run(
+      [
+        "await wait();",
+        "return JSON.stringify(Array.of(import.meta.filepath, import.meta.nested.value));"
+      ].join("\n"),
+      {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(first.promise),
+            name: "wait"
+          })
+        },
+        importMeta
+      }
+    );
+
+    importMeta.filepath = "changed.ajs";
+    importMeta.nested.value = "after";
+    first.resolve();
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["script.ajs", "before"])
+    });
+  });
+
+  it("calls the default export with entryPointArgs and returns its awaited result", async () => {
+    const result = await run(
+      [
+        "export const schema = { type: 'object' };",
+        "export default (first, second) => JSON.stringify(Array.of(schema.type, first, second));"
+      ].join("\n"),
+      {
+        entryPointArgs: [
+          {
+            label: "alpha"
+          },
+          [1, 2]
+        ]
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([
+        "object",
+        {
+          label: "alpha"
+        },
+        [1, 2]
+      ])
+    });
+  });
+
+  it("copies entryPointArgs before top-level evaluation can yield", async () => {
+    const input = {
+      nested: {
+        value: "before"
+      }
+    };
+    const first = createDeferred<void>();
+    const result = run(
+      ["await wait();", "export default (arg) => JSON.stringify(Array.of(arg.nested.value));"].join(
+        "\n"
+      ),
+      {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(first.promise),
+            name: "wait"
+          })
+        },
+        entryPointArgs: [input]
+      }
+    );
+
+    input.nested.value = "after";
+    first.resolve();
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["before"])
+    });
+  });
+
+  it("throws a runtime error with the filename when entryPointArgs is set without a default export", async () => {
+    await expect(
+      run("return 'top-level';", { entryPointArgs: [], filename: "script.ajs" })
+    ).rejects.toThrow("Script script.ajs does not export a default function.");
+  });
+
+  it("propagates default export throws with sandbox stack formatting", async () => {
+    await expect(
+      run(["export default () => {", '  explode("boom");', "};"].join("\n"), {
+        bindings: {
+          explode(message: string) {
+            throw new TypeError(message);
+          }
+        },
+        entryPointArgs: []
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        message: "boom",
+        name: "TypeError",
+        stack:
+          "TypeError: boom\n    at explode (line 2, column 3)\n    at <anonymous> (line 1, column 1)"
+      })
+    );
+  });
+
   it("blocks imported module calls when the signal is already aborted", async () => {
     const controller = new AbortController();
     const request = vi.fn(() => "called");
     controller.abort();
 
-    const result = run(
-      [
-        'import { request } from "api";',
-        "return request();"
-      ].join("\n"),
-      {
-        modules: {
-          api: {
-            request: createSandboxClosure({
-              call: () => request(),
-              name: "request"
-            })
-          }
-        },
-        signal: controller.signal
-      }
-    );
+    const result = run(['import { request } from "api";', "return request();"].join("\n"), {
+      modules: {
+        api: {
+          request: createSandboxClosure({
+            call: () => request(),
+            name: "request"
+          })
+        }
+      },
+      signal: controller.signal
+    });
 
     await expect(result).rejects.toMatchObject({
       message: "aborted",
@@ -611,6 +726,93 @@ try {
     });
     expect(request).not.toHaveBeenCalled();
   });
+
+  it("aborts at the next host call inside the entry function and can restore a pre-abort snapshot", async () => {
+    const source = [
+      "export default async () => {",
+      "  await first();",
+      "  await second();",
+      "  await third();",
+      "  return 'done';",
+      "};"
+    ].join("\n");
+    const controller = new AbortController();
+    const first = createDeferred<void>();
+    const second = createDeferred<void>();
+    const third = vi.fn(() => "missed");
+    const result = run(source, {
+      bindings: {
+        first: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(first.promise),
+          name: "first"
+        }),
+        second: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(second.promise),
+          name: "second"
+        }),
+        third: createSandboxClosure({
+          call: () => third(),
+          name: "third"
+        })
+      },
+      entryPointArgs: [],
+      signal: controller.signal
+    });
+    const snapshotPromise = dump(result);
+
+    first.resolve();
+    const snapshot = JSON.parse(await snapshotPromise);
+    second.resolve();
+    controller.abort();
+
+    await expect(result).rejects.toMatchObject({
+      message: "aborted",
+      name: "SandboxError"
+    });
+    expect(third).not.toHaveBeenCalled();
+
+    const restored = restore(snapshot, { source });
+    const resumed = await run(source, {
+      bindings: {
+        first: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(Promise.resolve()),
+          name: "first"
+        }),
+        second: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(Promise.resolve()),
+          name: "second"
+        }),
+        third: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(Promise.resolve()),
+          name: "third"
+        })
+      },
+      entryPointArgs: [],
+      snapshot: restored
+    });
+
+    expect(resumed).toMatchObject({
+      ok: true,
+      returnValue: "done"
+    });
+  });
+
+  function createDeferred<T>() {
+    let resolve: (value: T) => void = () => undefined;
+    const promise = new Promise<T>((nextResolve) => {
+      resolve = nextResolve;
+    });
+
+    return {
+      promise,
+      resolve
+    };
+  }
 
   it("wraps caller-injected host function arguments and return values across the sandbox boundary", async () => {
     const observedArgs: unknown[] = [];

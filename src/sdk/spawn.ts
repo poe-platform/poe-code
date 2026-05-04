@@ -119,7 +119,10 @@ export function spawn(
       });
       const cwd = workspace.cwd;
 
-      await getPoeApiKey();
+      const resolvedApiKey = await getPoeApiKey();
+      if (!process.env.POE_API_KEY || process.env.POE_API_KEY.trim().length === 0) {
+        process.env.POE_API_KEY = resolvedApiKey;
+      }
 
       let container: ReturnType<typeof createSdkContainer> | undefined;
       const getContainer = () => {

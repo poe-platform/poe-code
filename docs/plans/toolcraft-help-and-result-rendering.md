@@ -432,8 +432,8 @@ tasks:
       based on the old object/array table being the default. Tables
       now appear only via Command.render.rich, never automatically.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-help-output-qa

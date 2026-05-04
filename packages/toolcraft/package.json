@@ -45,7 +45,8 @@
     "chalk": "^5.6.2",
     "commander": "^14.0.3",
     "console-table-printer": "^2.15.0",
-    "tiny-stdio-mcp-server": "^0.1.0"
+    "tiny-stdio-mcp-server": "^0.1.0",
+    "yaml": "^2.8.2"
   },
   "files": [
     "dist"

@@ -1,3 +1,4 @@
+import YAML from "yaml";
 import type { Command, RenderPrimitives } from "./index.js";
 
 export type OutputMode = "rich" | "md" | "json";
@@ -107,7 +108,7 @@ function stringifyJson(value: unknown, spaces?: number): string {
   }
 }
 
-function renderObjectTable(result: Record<string, unknown>, primitives: RenderPrimitives): string {
+export function renderObjectTable(result: Record<string, unknown>, primitives: RenderPrimitives): string {
   const rows = Object.entries(result).map(([key, value]) => ({
     key,
     value: stringifyValue(value),
@@ -151,7 +152,7 @@ function getColumnNames(rows: Array<Record<string, unknown>>): string[] {
   return [...names];
 }
 
-function renderArrayTable(result: Array<Record<string, unknown>>, primitives: RenderPrimitives): string {
+export function renderArrayTable(result: Array<Record<string, unknown>>, primitives: RenderPrimitives): string {
   if (result.length === 0) {
     return "[]";
   }
@@ -195,7 +196,7 @@ function renderArrayMarkdown(result: Array<Record<string, unknown>>): string {
   return [header, separator, ...rows].join("\n");
 }
 
-function autoRender(result: unknown, output: OutputMode, primitives: RenderPrimitives): string {
+function autoRender(result: unknown, output: OutputMode, _primitives: RenderPrimitives): string {
   if (result === null || result === undefined) {
     if (output === "json") {
       return stringifyJson({ ok: true }, 2);
@@ -212,16 +213,18 @@ function autoRender(result: unknown, output: OutputMode, primitives: RenderPrimi
     return result;
   }
 
-  if (isObject(result)) {
-    if (output === "rich") {
-      return renderObjectTable(result, primitives);
-    }
+  if (output === "rich" && Array.isArray(result) && result.every((value) => typeof value === "string")) {
+    return result.join("\n");
+  }
 
+  if (isObject(result)) {
     if (output === "md") {
       return renderObjectMarkdown(result);
     }
 
-    return stringifyJson(result, 2);
+    if (output === "json") {
+      return stringifyJson(result, 2);
+    }
   }
 
   if (isArrayOfObjects(result)) {
@@ -232,8 +235,10 @@ function autoRender(result: unknown, output: OutputMode, primitives: RenderPrimi
     if (output === "json") {
       return stringifyJson(result, 2);
     }
+  }
 
-    return renderArrayTable(result, primitives);
+  if (output === "rich") {
+    return YAML.stringify(result);
   }
 
   return stringifyJson(result, 2);

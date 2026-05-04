@@ -102,27 +102,27 @@ tasks:
       commit: done
 
   - id: e2b-spawn-end-to-end
-    title: Make `spawn <agent> --runtime e2b` work end-to-end on a tmp workspace
+    title: Make `spawn <agent> --runtime e2b` work end-to-end against an ephemeral
+      sandbox
     prompt: |
       With tasks 1-3 landed, wire and verify the spawn-through-e2b
       path against a real e2b sandbox. The previous three tasks are
       the structural fixes; this task is the integration glue and
       the verification.
 
-      Test workspace must be a fresh tmpdir, not the poe-code repo
-      itself - downloadWorkspace syncs sandbox files back, and
-      polluting the monorepo on every spawn run is unacceptable.
-      Create the workspace with `mkdtemp` and seed it with exactly
-      two files: README.md (one paragraph) and hello.txt (one line).
+      Smoke-test the path with `--runner-sync none` so sandbox writes
+      never sync back into the poe-code repo. The image/template should
+      already contain the tiny fixture files needed by the prompt:
+      README.md (one paragraph) and hello.txt (one line).
       The agent's prompt should ask it to read hello.txt and reply
-      with one short sentence - small enough that any post-run sync
-      back into the tmpdir is trivial to inspect, and the tmpdir is
-      removed in a finally block regardless of success or failure.
+      with one short sentence.
 
       Acceptance commands, all green from a clean state:
         npm run dev -- runtime build --runtime e2b
         npm run dev -- --yes spawn claude-code "read hello.txt and \
-          summarize in one sentence" --runtime e2b --cwd <tmpdir>
+          summarize in one sentence" --runtime e2b --runner-sync none
+        npm run dev -- --yes spawn claude-code "write SYNC_CHECK.txt \
+          containing synced" --runtime e2b --runner-sync both --cwd <tmpdir>
 
       The spawn must:
         - Reach the sandbox without permission errors on the upload.
@@ -130,7 +130,8 @@ tasks:
         - Hit api.poe.com (verifiable via the request log or a
           throwaway POE_API_KEY tied to a fresh account).
         - Return non-empty stdout with exit code 0.
-        - Write nothing back to the poe-code repo.
+        - Write nothing back to the poe-code repo in the smoke-test variant.
+        - Sync SYNC_CHECK.txt back to the tmpdir in the explicit sync variant.
 
       Add a vitest integration test that drives the same flow but
       against a captured-sandbox fake when E2B_API_KEY is unset, so
@@ -146,33 +147,38 @@ tasks:
       Once basic spawn through e2b works (previous task), verify the
       ralph iteration loop on top of it.
 
-      Use the same tmpdir discipline as the spawn task: mkdtemp, two
-      files, finally-cleanup. The plan is a one-task ralph markdown
-      doc whose prompt is intentionally trivial - e.g. "Append the
-      current iteration number to ITERATIONS.txt and stop after 2
-      iterations". This keeps the test cheap (one model call per
-      iteration) and the diff inspectable.
+      Use `--runner-sync none` for the smoke test so the run can target
+      an ephemeral sandbox without tmpdir setup or cleanup. The plan is
+      a one-task ralph markdown doc whose prompt is intentionally
+      trivial - e.g. "Report the current iteration number and stop after
+      2 iterations". Keep a separate sync assertion for the workspace
+      write path.
 
       Acceptance commands, all green from a clean state:
-        npm run dev -- ralph init <tmpdir>/plan.md \
+        npm run dev -- ralph init docs/plans/e2b-ralph-smoke.md \
           --agent claude-code --iterations 2
+        npm run dev -- --yes ralph run docs/plans/e2b-ralph-smoke.md \
+          --runtime e2b --runner-sync none
         npm run dev -- --yes ralph run <tmpdir>/plan.md \
-          --runtime e2b --cwd <tmpdir>
+          --runtime e2b --runner-sync both --cwd <tmpdir>
 
       The run must:
         - Open one e2b sandbox, reuse it across both iterations.
-        - Sync the workspace back between iterations so ralph sees
-          ITERATIONS.txt grow.
+        - Avoid host workspace writes in the smoke-test variant.
+        - Sync the workspace back between iterations in the explicit
+          sync variant so ralph sees ITERATIONS.txt grow.
         - Stop after 2 iterations as configured.
-        - Leave the poe-code repo untouched (writes only to tmpdir).
+        - Leave the poe-code repo untouched except for the smoke plan
+          doc created by `ralph init`.
 
-      Document the tmpdir-or-bust rule in
+      Document the recommended `--runner-sync none` smoke-test flow
+      and the separate tmpdir-only sync assertion in
       packages/ralph/README.md so future contributors don't aim
-      ralph at the parent repo.
+      sync-back runs at the parent repo.
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: runner-sync-flag
     title: Add a --runner-sync flag to control workspace upload/download
@@ -209,8 +215,8 @@ tasks:
       smoke-test variants, while keeping a separate "with sync"
       assertion that verifies download still works when requested.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

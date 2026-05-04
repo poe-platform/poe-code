@@ -7,6 +7,7 @@ export type RuntimeCliOptions = {
   runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: "both" | "upload" | "none";
 };
 
 export function addRuntimeOptions<TCommand extends Command>(command: TCommand): TCommand {
@@ -21,7 +22,11 @@ export function addRuntimeOptions<TCommand extends Command>(command: TCommand): 
     .option("--runtime-image <ref>", "Override Docker runtime image")
     .option("--runtime-template <id>", "Override E2B runtime template id")
     .option("--detach", "Run as a detached runtime job")
-    .option("--mount-poe-code", "Mount the local poe-code checkout into the runtime");
+    .option("--mount-poe-code", "Mount the local poe-code checkout into the runtime")
+    .addOption(
+      new Option("--runner-sync <mode>", "Override runner workspace sync: both | upload | none")
+        .choices(["both", "upload", "none"])
+    );
 }
 
 export function pickRuntimeOptions(options: RuntimeCliOptions): RuntimeCliOptions {
@@ -30,6 +35,7 @@ export function pickRuntimeOptions(options: RuntimeCliOptions): RuntimeCliOption
     ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
     ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
     ...(options.detach ? { detach: true } : {}),
-    ...(options.mountPoeCode ? { mountPoeCode: true } : {})
+    ...(options.mountPoeCode ? { mountPoeCode: true } : {}),
+    ...(options.runnerSync ? { runnerSync: options.runnerSync } : {})
   };
 }

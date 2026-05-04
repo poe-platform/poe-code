@@ -339,15 +339,19 @@ function getCapturedUsage(usage: SpawnUsage | undefined): SpawnUsage | undefined
 function pickRuntimeOverrides(
   options: Pick<
     SpawnOptions,
-    "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode"
+    "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode" | "runnerSync"
   >
-): Pick<SpawnOptions, "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode"> {
+): Pick<
+  SpawnOptions,
+  "runtime" | "runtimeImage" | "runtimeTemplate" | "detach" | "mountPoeCode" | "runnerSync"
+> {
   return {
     ...(options.runtime ? { runtime: options.runtime } : {}),
     ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
     ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
     ...(options.detach ? { detach: options.detach } : {}),
-    ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {})
+    ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
+    ...(options.runnerSync ? { runnerSync: options.runnerSync } : {})
   };
 }
 

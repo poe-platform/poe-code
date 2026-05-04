@@ -21,6 +21,8 @@ Options:
   --runtime-template <id>  Override E2B runtime template id
   --detach                 Run as a detached runtime job
   --mount-poe-code         Mount the local poe-code checkout into the runtime
+  --runner-sync <mode>     Override runner workspace sync: both | upload | none
+                           (choices: "both", "upload", "none")
   -h, --help               Display help for command
 "
 `;
@@ -47,6 +49,8 @@ Options:
   --runtime-template <id>  Override E2B runtime template id
   --detach                 Run as a detached runtime job
   --mount-poe-code         Mount the local poe-code checkout into the runtime
+  --runner-sync <mode>     Override runner workspace sync: both | upload | none
+                           (choices: "both", "upload", "none")
   -h, --help               Display help for command
 "
 `;
@@ -83,6 +87,8 @@ Options:
   --runtime-template <id>     Override E2B runtime template id
   --detach                    Run as a detached runtime job
   --mount-poe-code            Mount the local poe-code checkout into the runtime
+  --runner-sync <mode>        Override runner workspace sync: both | upload |
+                              none (choices: "both", "upload", "none")
   -h, --help                  Display help for command
 "
 `;
@@ -102,6 +108,7 @@ Options:
   --runtime-template <string>  Override E2B runtime template id
   --detach [value]          Run as a detached runtime job
   --mount-poe-code [value]  Mount the local poe-code checkout into the runtime
+  --runner-sync <value>     Override runner workspace sync: both, upload, or none
   --tui [value]             Show a live dashboard while Superintendent is running
 
 Global options:

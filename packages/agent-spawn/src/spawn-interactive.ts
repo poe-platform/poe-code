@@ -79,7 +79,8 @@ export async function spawnInteractive(
       runtimeImage: options.runtimeImage,
       runtimeTemplate: options.runtimeTemplate,
       detach: options.detach,
-      mountPoeCode: options.mountPoeCode
+      mountPoeCode: options.mountPoeCode,
+      runnerSync: options.runnerSync
     },
     openSpec: {
       execution: {

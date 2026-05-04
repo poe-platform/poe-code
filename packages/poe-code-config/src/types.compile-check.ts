@@ -103,6 +103,7 @@ type ignoredResolvedConfigRuntime = AssertAssignable<
       detach: boolean;
       upload_max_file_mb: number;
       download_conflict: "refuse" | "overwrite";
+      sync: "both" | "upload" | "none";
       workspace?: {
         exclude?: string[];
       };

@@ -262,7 +262,9 @@ describe("experiment run command", () => {
       "--runtime-template",
       "tpl_123",
       "--detach",
-      "--mount-poe-code"
+      "--mount-poe-code",
+      "--runner-sync",
+      "none"
     ]);
 
     expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
@@ -270,7 +272,8 @@ describe("experiment run command", () => {
         runtime: "e2b",
         runtimeTemplate: "tpl_123",
         detach: true,
-        mountPoeCode: true
+        mountPoeCode: true,
+        runnerSync: "none"
       })
     );
   });
@@ -1753,14 +1756,17 @@ describe("ralph run command", () => {
       "docker",
       "--runtime-image",
       "poe-code:test",
-      "--detach"
+      "--detach",
+      "--runner-sync",
+      "upload"
     ]);
 
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
       expect.objectContaining({
         runtime: "docker",
         runtimeImage: "poe-code:test",
-        detach: true
+        detach: true,
+        runnerSync: "upload"
       })
     );
   });

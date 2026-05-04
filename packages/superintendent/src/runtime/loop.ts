@@ -54,6 +54,7 @@ export interface AgentRunInput {
   runtimeTemplate?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
+  runnerSync?: "both" | "upload" | "none";
   signal?: AbortSignal;
   logPath?: string;
   onStdout?: (chunk: string) => void;

@@ -14,6 +14,7 @@ describe("runtime command execution overrides", () => {
           detach: false,
           upload_max_file_mb: 100,
           download_conflict: "refuse",
+          sync: "both",
           workspace: { exclude: [".git"] }
         }
       },
@@ -21,7 +22,8 @@ describe("runtime command execution overrides", () => {
         runtime: "docker",
         runtimeImage: "poe-code:test",
         detach: true,
-        mountPoeCode: true
+        mountPoeCode: true,
+        runnerSync: "none"
       },
       "/repo"
     );
@@ -43,6 +45,7 @@ describe("runtime command execution overrides", () => {
         detach: true,
         upload_max_file_mb: 100,
         download_conflict: "refuse",
+        sync: "none",
         workspace: { exclude: [".git"] }
       }
     });

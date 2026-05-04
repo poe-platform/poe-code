@@ -89,6 +89,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
             ...(options.runtimeConfigCwd ? { runtimeConfigCwd: options.runtimeConfigCwd } : {}),
             ...(options.detach ? { detach: options.detach } : {}),
             ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
+            ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
             ...((specifier.model ?? input.model) ? { model: specifier.model ?? input.model } : {}),
             ...(input.signal ? { signal: input.signal } : {})
           });

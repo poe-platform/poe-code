@@ -333,6 +333,8 @@ describe("spawn command", () => {
       "poe-code:test",
       "--detach",
       "--mount-poe-code",
+      "--runner-sync",
+      "upload",
       "hello"
     ]);
 
@@ -342,7 +344,8 @@ describe("spawn command", () => {
         runtime: "docker",
         runtimeImage: "poe-code:test",
         detach: true,
-        mountPoeCode: true
+        mountPoeCode: true,
+        runnerSync: "upload"
       })
     );
   });

@@ -301,6 +301,7 @@ describe("superintendent run command", () => {
       runtimeTemplate: "tpl_123",
       detach: true,
       mountPoeCode: true,
+      runnerSync: "none",
       env: {}
     });
 
@@ -310,7 +311,8 @@ describe("superintendent run command", () => {
         runtime: "e2b",
         runtimeTemplate: "tpl_123",
         detach: true,
-        mountPoeCode: true
+        mountPoeCode: true,
+        runnerSync: "none"
       })
     );
   });

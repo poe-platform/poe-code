@@ -183,7 +183,8 @@ export async function spawn(
       runtimeImage: options.runtimeImage,
       runtimeTemplate: options.runtimeTemplate,
       detach: options.detach,
-      mountPoeCode: options.mountPoeCode
+      mountPoeCode: options.mountPoeCode,
+      runnerSync: options.runnerSync
     },
     context,
     openSpec: {

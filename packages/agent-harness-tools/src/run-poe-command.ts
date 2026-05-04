@@ -60,7 +60,7 @@ export async function runPoeCommand(opts: {
           command: argv[0],
           args: argv.slice(1),
           cwd: opts.openSpec.cwd,
-          env: execution && "env" in execution ? execution.env : opts.openSpec.env,
+          env: resolveExecutionEnv(opts.openSpec),
           stdin: execution?.stdin ?? "inherit",
           stdout: execution?.stdout ?? "pipe",
           stderr: execution?.stderr ?? "pipe",
@@ -149,14 +149,7 @@ async function configureE2bSpawnAgentIfAvailable(opts: {
 
   const result = await runProbeCommand(opts.env, {
     command: "poe-code",
-    args: [
-      "configure",
-      "--yes",
-      "--skip-if-configured",
-      "--provider",
-      "poe",
-      agentId
-    ],
+    args: ["configure", "--yes", "--provider", "poe", agentId],
     cwd: opts.openSpec.cwd,
     env: commandEnv
   });
@@ -187,7 +180,7 @@ async function binaryExists(
 
 function resolveExecutionEnv(openSpec: OpenSpec): Record<string, string> | undefined {
   const execution = openSpec.execution;
-  return execution && "env" in execution ? execution.env : openSpec.env;
+  return execution?.env ?? openSpec.env;
 }
 
 async function runProbeCommand(

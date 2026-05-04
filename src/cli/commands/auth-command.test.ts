@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { createProgram } from "../program.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -53,8 +53,11 @@ describe("auth command", () => {
   let fs: FileSystem;
   let logs: string[];
   let httpClient: HttpClient;
+  let originalPoeApiKey: string | undefined;
 
   beforeEach(() => {
+    originalPoeApiKey = process.env.POE_API_KEY;
+    delete process.env.POE_API_KEY;
     fs = createMemfs();
     logs = [];
     httpClient = vi.fn();
@@ -63,6 +66,14 @@ describe("auth command", () => {
       start: vi.fn(),
       stop: (msg: string) => { spinnerStopMessages.push(msg); }
     });
+  });
+
+  afterEach(() => {
+    if (originalPoeApiKey === undefined) {
+      delete process.env.POE_API_KEY;
+    } else {
+      process.env.POE_API_KEY = originalPoeApiKey;
+    }
   });
 
   it("shows logged-in identity from whoami endpoint", async () => {

@@ -11,17 +11,18 @@ export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
   supportsDetach: true,
   async open(spec): Promise<OpenedEnv> {
     const runtime = parseE2bRuntime(spec.runtime);
-    const apiKey = await resolveE2bApiKey({ cwd: spec.cwd });
+    const runtimeCwd = spec.runtimeCwd ?? spec.cwd;
+    const apiKey = await resolveE2bApiKey({ cwd: runtimeCwd });
     const templateId =
       runtime.template_id ??
       (
         await buildE2bRuntimeTemplate({
           runtime,
           dockerfilePath: path.resolve(
-            spec.cwd,
+            runtimeCwd,
             runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")
           ),
-          buildContext: path.resolve(spec.cwd, runtime.build_context ?? "."),
+          buildContext: path.resolve(runtimeCwd, runtime.build_context ?? "."),
           state: spec.state,
           apiKey
         })

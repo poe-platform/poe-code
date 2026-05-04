@@ -27,6 +27,7 @@ export type RuntimeOverrideOptions = {
 
 export function resolvePoeCommandExecution(input: {
   cwd: string;
+  runtimeConfigCwd?: string;
   env: Record<string, string>;
   argv: string[];
   tool: string;
@@ -43,9 +44,10 @@ export function resolvePoeCommandExecution(input: {
   state: StateManager;
 } {
   const homeDir = input.context?.homeDir ?? os.homedir();
-  const loaded = loadRuntimeConfig(input.cwd, homeDir);
-  const config = applyRuntimeOverrides(loaded, input.runtime, input.cwd);
-  const resolved = resolveRuntime({ cwd: input.cwd, config });
+  const runtimeConfigCwd = input.runtimeConfigCwd ?? input.cwd;
+  const loaded = loadRuntimeConfig(runtimeConfigCwd, homeDir);
+  const config = applyRuntimeOverrides(loaded, input.runtime, runtimeConfigCwd);
+  const resolved = resolveRuntime({ cwd: runtimeConfigCwd, config });
   const factory = selectExecutionEnv(resolved.runtime);
   const state = input.context?.state ?? loadState(homeDir);
 
@@ -55,6 +57,7 @@ export function resolvePoeCommandExecution(input: {
     state,
     openSpec: {
       cwd: input.cwd,
+      runtimeCwd: runtimeConfigCwd,
       runtime: resolved.runtime,
       runner: config.runner,
       state,

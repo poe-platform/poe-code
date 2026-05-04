@@ -99,7 +99,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: e2b-spawn-end-to-end
     title: Make `spawn <agent> --runtime e2b` work end-to-end on a tmp workspace
@@ -136,8 +136,8 @@ tasks:
       against a captured-sandbox fake when E2B_API_KEY is unset, so
       CI exercises the wiring even without real e2b access.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: e2b-ralph-end-to-end

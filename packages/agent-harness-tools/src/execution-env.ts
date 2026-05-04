@@ -17,6 +17,7 @@ export interface ExecutionEnvFactory {
 
 export interface OpenSpec {
   cwd: string;
+  runtimeCwd?: string;
   runtime: RuntimeConfig;
   runner?: RunnerScope;
   state?: StateManager;

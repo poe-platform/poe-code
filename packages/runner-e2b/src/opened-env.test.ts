@@ -57,7 +57,7 @@ describe("createOpenedE2bEnv", () => {
     expect(sandbox.commands.run).toHaveBeenCalledWith("'printf' 'ok'", {
       background: true,
       cwd: "/sandbox/workspace",
-      envs: { A: "1" },
+      envs: { A: "1", HOME: "/home/user" },
       stdin: true,
       onStdout: expect.any(Function),
       onStderr: expect.any(Function)
@@ -133,6 +133,38 @@ describe("createOpenedE2bEnv", () => {
       background: true,
       cwd: "/tmp",
       envs: undefined,
+      stdin: false,
+      onStdout: expect.any(Function),
+      onStderr: expect.any(Function)
+    });
+  });
+
+  it("uses the sandbox home instead of leaking the host HOME into commands", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    const handle = env.exec({
+      command: "poe-code",
+      args: ["configure"],
+      cwd: "/repo",
+      env: { HOME: "/Users/local-dev", POE_API_KEY: "test-key" }
+    });
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(sandbox.commands.run).toHaveBeenCalledWith("'poe-code' 'configure'", {
+      background: true,
+      cwd: "/workspace",
+      envs: { HOME: "/home/user", POE_API_KEY: "test-key" },
       stdin: false,
       onStdout: expect.any(Function),
       onStderr: expect.any(Function)
@@ -230,7 +262,8 @@ describe("createOpenedE2bEnv", () => {
       expect.any(ArrayBuffer)
     );
     expect(sandbox.commands.run).toHaveBeenCalledWith(
-      "mkdir -p '/sandbox/workspace' && tar -xf /tmp/poe-workspace-upload.tar -C '/sandbox/workspace'",
+      "mkdir -p '/sandbox/workspace' || { command -v sudo >/dev/null 2>&1 && sudo mkdir -p '/sandbox/workspace' && sudo chown \"$(id -u):$(id -g)\" '/sandbox/workspace'; }\n" +
+        "test -w '/sandbox/workspace' && tar -xf /tmp/poe-workspace-upload.tar -C '/sandbox/workspace'",
       {
         onStdout: expect.any(Function),
         onStderr: expect.any(Function)
@@ -268,7 +301,7 @@ describe("createOpenedE2bEnv", () => {
     expect(thrown).toBeInstanceOf(Error);
     const message = (thrown as Error).message;
     expect(message).toContain(
-      "E2B command failed: mkdir -p '/sandbox/workspace' && tar -xf /tmp/poe-workspace-upload.tar -C '/sandbox/workspace'"
+      "E2B command failed: mkdir -p '/sandbox/workspace' || { command -v sudo >/dev/null 2>&1 && sudo mkdir -p '/sandbox/workspace'"
     );
     expect(message).toContain("Last stderr output:");
     expect(message).toContain("stderr line 6");
@@ -303,7 +336,9 @@ describe("createOpenedE2bEnv", () => {
 
     expect(thrown).toBeInstanceOf(Error);
     const message = (thrown as Error).message;
-    expect(message).toContain("E2B command failed: mkdir -p '/sandbox/workspace'");
+    expect(message).toContain(
+      "E2B command failed: mkdir -p '/sandbox/workspace' || { command -v sudo"
+    );
     expect(message).toContain("error stderr 6");
     expect(message).toContain("error stderr 35");
     expect(message).not.toContain("error stderr 5");
@@ -399,7 +434,7 @@ describe("createOpenedE2bEnv", () => {
       cols: expect.any(Number),
       rows: expect.any(Number),
       cwd: "/sandbox/workspace",
-      envs: {},
+      envs: { HOME: "/home/user" },
       onData: expect.any(Function)
     });
   });

@@ -16,6 +16,7 @@ export interface SpawnCommandOptions {
   runtime?: RuntimeOverrideOptions["runtime"];
   runtimeImage?: string;
   runtimeTemplate?: string;
+  runtimeConfigCwd?: string;
   detach?: boolean;
   mountPoeCode?: boolean;
 }

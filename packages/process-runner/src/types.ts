@@ -48,6 +48,8 @@ export interface OpenSpec {
   cwd: string;
   runtime: unknown;
   runner?: unknown;
+  state?: ExecutionState;
+  hostRunner?: Runner;
   env: Record<string, string>;
   uploadIgnoreFiles: string[];
   jobLabel: { tool: string; argv: string[] };
@@ -65,6 +67,22 @@ export interface OpenSpec {
     onStderr?(chunk: string): void;
   };
   shellSpec?: RunSpec;
+}
+
+export interface ExecutionState {
+  templates: {
+    get(backend: "docker" | "e2b", hash: string): Promise<TemplateEntry | null>;
+    put(backend: "docker" | "e2b", entry: TemplateEntry): Promise<void>;
+  };
+}
+
+export interface TemplateEntry {
+  hash: string;
+  template_id?: string;
+  image?: string;
+  runtime_type: string;
+  dockerfile_path: string;
+  built_at: string;
 }
 
 export interface UploadResult {

@@ -4,6 +4,7 @@ import * as api from "./index.js";
 import { buildContextArgs, detectContext } from "./docker/context.js";
 import { detectEngine, isEngineAvailable } from "./docker/engine.js";
 import { createDockerRunner } from "./docker/docker-runner.js";
+import { dockerExecutionEnvFactory } from "./docker/docker-execution-env.js";
 import { hostExecutionEnvFactory } from "./host/host-execution-env.js";
 import { createHostRunner } from "./host/host-runner.js";
 import { createMockRunner, createMockRunnerByCommand } from "./testing/index.js";
@@ -14,6 +15,7 @@ import type {
   DockerRunArgs,
   DockerRunnerOptions,
   Engine,
+  ExecutionState,
   ExecutionEnvFactory,
   HostRunnerOptions,
   JobHandle,
@@ -23,6 +25,7 @@ import type {
   RunHandle,
   Runner,
   RunSpec,
+  TemplateEntry,
   UploadResult
 } from "@poe-code/process-runner";
 
@@ -102,6 +105,21 @@ describe("@poe-code/process-runner public exports", () => {
       stderr: ["warn"],
       stdoutInterval: 10
     };
+    const templateEntry: TemplateEntry = {
+      hash: "hash",
+      image: "poe-code/local:hash",
+      runtime_type: "docker",
+      dockerfile_path: "/repo/Dockerfile",
+      built_at: "2026-05-03T00:00:00.000Z"
+    };
+    const state: ExecutionState = {
+      templates: {
+        async get() {
+          return templateEntry;
+        },
+        async put() {}
+      }
+    };
     const runner: Runner = {
       name: "host",
       exec() {
@@ -111,6 +129,8 @@ describe("@poe-code/process-runner public exports", () => {
     const openSpec: OpenSpec = {
       cwd: "/repo",
       runtime: { type: "host" },
+      state,
+      hostRunner: runner,
       env: {},
       uploadIgnoreFiles: [],
       jobLabel: {
@@ -190,6 +210,7 @@ describe("@poe-code/process-runner public exports", () => {
     expect(api.detectContext).toBe(detectContext);
     expect(api.detectEngine).toBe(detectEngine);
     expect(api.isEngineAvailable).toBe(isEngineAvailable);
+    expect(api.dockerExecutionEnvFactory).toBe(dockerExecutionEnvFactory);
     expect(api.hostExecutionEnvFactory).toBe(hostExecutionEnvFactory);
     expect(api.createHostRunner).toBe(createHostRunner);
     expect(api.createDockerRunner).toBe(createDockerRunner);
@@ -201,6 +222,7 @@ describe("@poe-code/process-runner public exports", () => {
       "detectEngine",
       "isEngineAvailable",
       "createDockerRunner",
+      "dockerExecutionEnvFactory",
       "hostExecutionEnvFactory",
       "createHostRunner",
       "createMockRunner",

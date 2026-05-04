@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { TaskNotFoundError } from "../types.js";
+import { InvalidTransitionError, TaskNotFoundError } from "../types.js";
 import { ghIssuesBackend, type GhIssuesBackendDeps } from "./gh-issues.js";
 
 const DEFAULT_DEPS = {
@@ -471,6 +471,273 @@ describe("ghIssuesBackend", () => {
     await expect(taskList.list("octo-org/7").get("404")).rejects.toBeInstanceOf(TaskNotFoundError);
     expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
   });
+
+  it("create({ name, description }) issues the GitHub issue and project mutations", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      repositoryResponse("repo-node"),
+      createIssueResponse({
+        issueId: "issue-node-573",
+        number: 573
+      }),
+      addProjectItemResponse("item-573"),
+      updateStatusResponse(),
+      issueResponse({
+        number: 573,
+        title: "New issue",
+        body: "Created from task-list.",
+        status: "Todo",
+        projectItemId: "item-573"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    const task = await taskList.list("octo-org/7").create({
+      name: "New issue",
+      description: "Created from task-list."
+    });
+
+    expect(task).toMatchObject({
+      id: "573",
+      name: "New issue",
+      description: "Created from task-list.",
+      state: "Todo"
+    });
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it("create ignores a passed id and uses the GitHub-assigned issue number", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      repositoryResponse("repo-node"),
+      createIssueResponse({
+        issueId: "issue-node-914",
+        number: 914
+      }),
+      addProjectItemResponse("item-914"),
+      updateStatusResponse(),
+      issueResponse({
+        number: 914,
+        title: "Server id wins",
+        status: "Todo",
+        projectItemId: "item-914"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    const task = await taskList.list("octo-org/7").create({
+      id: "client-id",
+      name: "Server id wins"
+    });
+
+    expect(task.id).toBe("914");
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it("create fetches the repository id lazily and caches it for later creates", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      repositoryResponse("repo-node"),
+      createIssueResponse({
+        issueId: "issue-node-101",
+        number: 101
+      }),
+      addProjectItemResponse("item-101"),
+      updateStatusResponse(),
+      issueResponse({
+        number: 101,
+        title: "First issue",
+        status: "Todo",
+        projectItemId: "item-101"
+      }),
+      createIssueResponse({
+        issueId: "issue-node-102",
+        number: 102
+      }),
+      addProjectItemResponse("item-102"),
+      updateStatusResponse(),
+      issueResponse({
+        number: 102,
+        title: "Second issue",
+        status: "Todo",
+        projectItemId: "item-102"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+    const tasks = taskList.list("octo-org/7");
+
+    await expect(tasks.create({ name: "First issue" })).resolves.toMatchObject({ id: "101" });
+    await expect(tasks.create({ name: "Second issue" })).resolves.toMatchObject({ id: "102" });
+
+    expect(readGraphqlCalls(fetchMock).filter(isRepositoryQuery)).toHaveLength(1);
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it("update uses the issue id cached by create", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      repositoryResponse("repo-node"),
+      createIssueResponse({
+        issueId: "issue-node-573",
+        number: 573
+      }),
+      addProjectItemResponse("item-573"),
+      updateStatusResponse(),
+      issueResponse({
+        number: 573,
+        title: "Original",
+        status: "Todo",
+        projectItemId: "item-573"
+      }),
+      updateIssueResponse(),
+      issueResponse({
+        number: 573,
+        title: "Renamed",
+        status: "Todo",
+        projectItemId: "item-573"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+    const tasks = taskList.list("octo-org/7");
+
+    const created = await tasks.create({ name: "Original" });
+    await expect(tasks.update(created.id, { name: "Renamed" })).resolves.toMatchObject({
+      id: "573",
+      name: "Renamed"
+    });
+
+    expect(readGraphqlCalls(fetchMock).filter(isIssueIdQuery)).toHaveLength(0);
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('update("482", { name: "new" }) issues only updateIssue with title', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueNodeIdResponse("issue-node-482"),
+      updateIssueResponse(),
+      issueResponse({
+        number: 482,
+        title: "new",
+        status: "Todo"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").update("482", { name: "new" })).resolves.toMatchObject(
+      {
+        id: "482",
+        name: "new"
+      }
+    );
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('update("482", { description: "new body" }) issues only updateIssue with body', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueNodeIdResponse("issue-node-482"),
+      updateIssueResponse(),
+      issueResponse({
+        number: 482,
+        title: "Keep title",
+        body: "new body",
+        status: "Todo"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").update("482", { description: "new body" })
+    ).resolves.toMatchObject({
+      id: "482",
+      name: "Keep title",
+      description: "new body"
+    });
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('update("482", { metadata: { labels: ["x"] } }) is a no-op mutation', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Read only metadata",
+        status: "Todo"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    // metadata writes are out of scope for v1 on gh-issues, so labels are read-only here.
+    await expect(
+      taskList.list("octo-org/7").update("482", { metadata: { labels: ["x"] } })
+    ).resolves.toMatchObject({
+      id: "482",
+      name: "Read only metadata"
+    });
+    expect(readMutationCalls(fetchMock)).toEqual([]);
+  });
+
+  it('fire("482", "<known-state>") sets the matching Status option', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      }),
+      updateStatusResponse(),
+      issueResponse({
+        number: 482,
+        title: "Move me",
+        status: "Done",
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").fire("482", "Done")).resolves.toMatchObject({
+      id: "482",
+      state: "Done"
+    });
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it("fire ignores metadataPatch and only writes the Status field", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      }),
+      updateStatusResponse(),
+      issueResponse({
+        number: 482,
+        title: "Move without metadata writes",
+        status: "Done",
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").fire("482", "Done", {
+        metadataPatch: { labels: ["x"], milestone: "v2" }
+      })
+    ).resolves.toMatchObject({
+      id: "482",
+      state: "Done"
+    });
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('fire("482", "<unknown>") throws InvalidTransitionError', async () => {
+    const fetchMock = createFetchMock([projectResponse()]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").fire("482", "Blocked")).rejects.toBeInstanceOf(
+      InvalidTransitionError
+    );
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
 });
 
 function ids(tasks: { id: string }[]): string[] {
@@ -596,6 +863,85 @@ function missingIssueResponse(): Response {
   });
 }
 
+function repositoryResponse(id: string): Response {
+  return graphqlResponse({
+    repository: {
+      id
+    }
+  });
+}
+
+function createIssueResponse(options: { issueId: string; number: number }): Response {
+  return graphqlResponse({
+    createIssue: {
+      issue: {
+        id: options.issueId,
+        number: options.number
+      }
+    }
+  });
+}
+
+function addProjectItemResponse(projectItemId: string): Response {
+  return graphqlResponse({
+    addProjectV2ItemById: {
+      item: {
+        id: projectItemId
+      }
+    }
+  });
+}
+
+function updateStatusResponse(): Response {
+  return graphqlResponse({
+    updateProjectV2ItemFieldValue: {
+      projectV2Item: {
+        id: "updated-item"
+      }
+    }
+  });
+}
+
+function issueNodeIdResponse(issueId: string): Response {
+  return graphqlResponse({
+    repository: {
+      issue: {
+        id: issueId
+      }
+    }
+  });
+}
+
+function updateIssueResponse(): Response {
+  return graphqlResponse({
+    updateIssue: {
+      issue: {
+        id: "updated-issue"
+      }
+    }
+  });
+}
+
+function issueProjectItemResponse(options: { issueId: string; projectItemId: string }): Response {
+  return graphqlResponse({
+    repository: {
+      issue: {
+        id: options.issueId,
+        projectItems: {
+          nodes: [
+            {
+              id: options.projectItemId,
+              project: {
+                id: "project-id"
+              }
+            }
+          ]
+        }
+      }
+    }
+  });
+}
+
 function graphqlResponse(data: unknown): Response {
   return new Response(JSON.stringify({ data }), {
     status: 200,
@@ -717,4 +1063,32 @@ function readGraphqlCall(fetchMock: typeof fetch, callIndex: number): unknown {
   }
 
   return JSON.parse(init.body);
+}
+
+function readGraphqlCalls(fetchMock: typeof fetch): unknown[] {
+  return vi.mocked(fetchMock).mock.calls.map((_, index) => readGraphqlCall(fetchMock, index));
+}
+
+function readMutationCalls(fetchMock: typeof fetch): unknown[] {
+  return readGraphqlCalls(fetchMock).filter((call): call is { query: string; variables: unknown } =>
+    isGraphqlOperation(call, "mutation")
+  );
+}
+
+function isRepositoryQuery(call: unknown): boolean {
+  return isGraphqlOperation(call, "query Repository");
+}
+
+function isIssueIdQuery(call: unknown): boolean {
+  return isGraphqlOperation(call, "query IssueId");
+}
+
+function isGraphqlOperation(call: unknown, operationStart: string): call is { query: string } {
+  return (
+    typeof call === "object" &&
+    call !== null &&
+    "query" in call &&
+    typeof call.query === "string" &&
+    call.query.trimStart().startsWith(operationStart)
+  );
 }

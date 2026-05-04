@@ -406,8 +406,8 @@ tasks:
       - State machine override (`OpenTaskListOptions.stateMachine`) does not apply
         to gh-issues; if a caller passed one, ignore it (documented in plan 5c).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: gh-issues-reorder-delete

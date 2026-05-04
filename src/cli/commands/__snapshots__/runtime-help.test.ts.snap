@@ -101,19 +101,20 @@ Usage: poe-code superintendent run [options] [doc]
 Run the full superintendent loop.
 
 Options:
-  [doc]                     Path to the superintendent markdown document
-  --agent <string>          Override the builder agent for this run. Precedence: --agent > plan frontmatter builder.agent.
-  --runtime <value>         Override runtime backend: host, docker, or e2b
-  --runtime-image <string>  Override Docker runtime image
-  --runtime-template <string>  Override E2B runtime template id
-  --detach [value]          Run as a detached runtime job
-  --mount-poe-code [value]  Mount the local poe-code checkout into the runtime
-  --runner-sync <value>     Override runner workspace sync: both, upload, or none
-  --tui [value]             Show a live dashboard while Superintendent is running
+  [doc]                         Path to the superintendent markdown document
+  --agent <string>              Override the builder agent for this run. Precedence: --agent > plan
+                                frontmatter builder.agent.
+  --runtime <value>             Override runtime backend: host, docker, or e2b
+  --runtime-image <string>      Override Docker runtime image
+  --runtime-template <string>   Override E2B runtime template id
+  --detach [value]              Run as a detached runtime job
+  --mount-poe-code [value]      Mount the local poe-code checkout into the runtime
+  --runner-sync <value>         Override runner workspace sync: both, upload, or none
+  --tui [value]                 Show a live dashboard while Superintendent is running
 
 Global options:
-  --yes                     Accept defaults, skip prompts
-  --output <format>         Output format (rich, md, json)
-  -h, --help                Show help
+  --yes               Accept defaults, skip prompts
+  --output <format>   Output format (rich, md, json)
+  -h, --help          Show help
 "
 `;

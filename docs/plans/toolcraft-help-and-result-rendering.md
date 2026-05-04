@@ -58,9 +58,9 @@ tasks:
 
       No filesystem in tests; pure string assertions.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: design-system-section-header
     title: Add text.sectionHeader to design-system

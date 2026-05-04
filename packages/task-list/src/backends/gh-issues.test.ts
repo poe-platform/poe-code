@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { InvalidTransitionError, TaskNotFoundError } from "../types.js";
+import {
+  AnchorNotFoundError,
+  InvalidTransitionError,
+  OrderMismatchError,
+  TaskNotFoundError
+} from "../types.js";
 import { ghIssuesBackend, type GhIssuesBackendDeps } from "./gh-issues.js";
 
 const DEFAULT_DEPS = {
@@ -738,6 +743,244 @@ describe("ghIssuesBackend", () => {
     );
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it('move("482", { before: "100" }) positions after the anchor predecessor', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      }),
+      issueProjectItemResponse({
+        issueId: "issue-node-100",
+        projectItemId: "item-100"
+      }),
+      itemsResponse({
+        nodes: projectOrderingFixture()
+      }),
+      updateProjectItemPositionResponse(),
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").move("482", { before: "100" })).resolves.toMatchObject(
+      {
+        id: "482"
+      }
+    );
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('move("482", { after: "100" }) positions after the anchor item', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      }),
+      issueProjectItemResponse({
+        issueId: "issue-node-100",
+        projectItemId: "item-100"
+      }),
+      updateProjectItemPositionResponse(),
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").move("482", { after: "100" })).resolves.toMatchObject({
+      id: "482"
+    });
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('move("482", { position: "top" }) positions at the top', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      }),
+      updateProjectItemPositionResponse(),
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").move("482", { position: "top" })
+    ).resolves.toMatchObject({
+      id: "482"
+    });
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('move("482", { position: "bottom" }) positions after the last item', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      }),
+      itemsResponse({
+        nodes: [
+          projectIssueItem({ id: "item-200", issue: issue({ number: 200 }) }),
+          projectIssueItem({ id: "item-482", issue: issue({ number: 482 }) }),
+          projectIssueItem({ id: "item-100", issue: issue({ number: 100 }) })
+        ]
+      }),
+      updateProjectItemPositionResponse(),
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").move("482", { position: "bottom" })
+    ).resolves.toMatchObject({
+      id: "482"
+    });
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('move("482", { position: "bottom" }) does not position an item after itself', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      }),
+      itemsResponse({
+        nodes: projectOrderingFixture()
+      }),
+      updateProjectItemPositionResponse(),
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").move("482", { position: "bottom" })
+    ).resolves.toMatchObject({
+      id: "482"
+    });
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('move("482", { before: "missing" }) throws AnchorNotFoundError', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").move("482", { before: "missing" })
+    ).rejects.toBeInstanceOf(AnchorNotFoundError);
+  });
+
+  it('reorder(["100", "200", "482"]) issues sequential position mutations', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      itemsResponse({
+        nodes: projectOrderingFixture()
+      }),
+      updateProjectItemPositionResponse(),
+      updateProjectItemPositionResponse(),
+      updateProjectItemPositionResponse(),
+      itemsResponse({
+        nodes: [
+          projectIssueItem({ id: "item-100", issue: issue({ number: 100 }) }),
+          projectIssueItem({ id: "item-200", issue: issue({ number: 200 }) }),
+          projectIssueItem({ id: "item-482", issue: issue({ number: 482 }) })
+        ]
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").reorder(["100", "200", "482"]).then(ids)
+    ).resolves.toEqual(["100", "200", "482"]);
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('reorder(["100", "200"]) throws OrderMismatchError for missing items', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      itemsResponse({
+        nodes: projectOrderingFixture()
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").reorder(["100", "200"])).rejects.toBeInstanceOf(
+      OrderMismatchError
+    );
+  });
+
+  it('reorder(["100", "200", "482", "999"]) throws OrderMismatchError for extra items', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      itemsResponse({
+        nodes: projectOrderingFixture()
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").reorder(["100", "200", "482", "999"])
+    ).rejects.toBeInstanceOf(OrderMismatchError);
+  });
+
+  it('delete("482") deletes the project item only', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      }),
+      deleteProjectItemResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").delete("482")).resolves.toBeUndefined();
+    expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('delete("999") throws TaskNotFoundError when the issue is not in this project', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-999",
+        projectItemId: "other-item",
+        projectId: "other-project"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").delete("999")).rejects.toBeInstanceOf(
+      TaskNotFoundError
+    );
+  });
 });
 
 function ids(tasks: { id: string }[]): string[] {
@@ -922,7 +1165,11 @@ function updateIssueResponse(): Response {
   });
 }
 
-function issueProjectItemResponse(options: { issueId: string; projectItemId: string }): Response {
+function issueProjectItemResponse(options: {
+  issueId: string;
+  projectItemId: string;
+  projectId?: string;
+}): Response {
   return graphqlResponse({
     repository: {
       issue: {
@@ -932,12 +1179,30 @@ function issueProjectItemResponse(options: { issueId: string; projectItemId: str
             {
               id: options.projectItemId,
               project: {
-                id: "project-id"
+                id: options.projectId ?? "project-id"
               }
             }
           ]
         }
       }
+    }
+  });
+}
+
+function updateProjectItemPositionResponse(): Response {
+  return graphqlResponse({
+    updateProjectV2ItemPosition: {
+      items: {
+        totalCount: 3
+      }
+    }
+  });
+}
+
+function deleteProjectItemResponse(): Response {
+  return graphqlResponse({
+    deleteProjectV2Item: {
+      deletedItemId: "item-482"
     }
   });
 }
@@ -1000,6 +1265,14 @@ function projectItemsFixture(): unknown[] {
       }),
       status: "Done"
     })
+  ];
+}
+
+function projectOrderingFixture(): unknown[] {
+  return [
+    projectIssueItem({ id: "item-200", issue: issue({ number: 200 }) }),
+    projectIssueItem({ id: "item-100", issue: issue({ number: 100 }) }),
+    projectIssueItem({ id: "item-482", issue: issue({ number: 482 }) })
   ];
 }
 

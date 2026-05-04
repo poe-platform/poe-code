@@ -10,7 +10,12 @@ import type {
   Tasks,
   TaskUpdate
 } from "../types.js";
-import { InvalidTransitionError, TaskNotFoundError } from "../types.js";
+import {
+  AnchorNotFoundError,
+  InvalidTransitionError,
+  OrderMismatchError,
+  TaskNotFoundError
+} from "../types.js";
 import { createGhClient, type GhClient } from "./gh-issues-client.js";
 import { applyOrder, sortTasks } from "./utils.js";
 
@@ -162,7 +167,17 @@ const UPDATE_ISSUE_MUTATION = `mutation UpdateIssue($input: UpdateIssueInput!) {
   }
 }`;
 
-const NOT_IMPLEMENTED = "not yet implemented";
+const UPDATE_PROJECT_ITEM_POSITION_MUTATION = `mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
+  updateProjectV2ItemPosition(input: $input) {
+    clientMutationId
+  }
+}`;
+
+const DELETE_PROJECT_ITEM_MUTATION = `mutation DeleteProjectItem($input: DeleteProjectV2ItemInput!) {
+  deleteProjectV2Item(input: $input) {
+    deletedItemId
+  }
+}`;
 
 export interface GhIssuesBackendDeps {
   repo: string;
@@ -521,14 +536,63 @@ function createTasksView(
     async events(id: string): Promise<readonly string[]> {
       return eventsFromState(session.stateMachine, id);
     },
-    async delete(_id: string): Promise<void> {
-      throw new Error(NOT_IMPLEMENTED);
+    async delete(id: string): Promise<void> {
+      const projectItemId = await resolveProjectItemId(id, name, session, context);
+      await context.client.graphql(DELETE_PROJECT_ITEM_MUTATION, {
+        input: {
+          projectId: session.projectId,
+          itemId: projectItemId
+        }
+      });
     },
-    async move(_id: string, _anchor: MoveAnchor): Promise<Task> {
-      throw new Error(NOT_IMPLEMENTED);
+    async move(id: string, anchor: MoveAnchor): Promise<Task> {
+      const projectItemId = await resolveProjectItemId(id, name, session, context);
+      const afterId = await resolveMoveAfterId(id, anchor, name, session, context);
+
+      await updateProjectItemPosition(projectItemId, afterId, session, context);
+
+      return fetchIssueTask(id, name, session, context);
     },
-    async reorder(_ids: readonly string[]): Promise<readonly Task[]> {
-      throw new Error(NOT_IMPLEMENTED);
+    async reorder(ids: readonly string[]): Promise<readonly Task[]> {
+      const currentTasks = await fetchProjectTasks(name, session, context);
+      const currentIds = currentTasks.map((task) => task.id);
+      const currentSet = new Set(currentIds);
+      const inputSet = new Set(ids);
+      const seenInputIds = new Set<string>();
+      const missing = currentIds.filter((id) => !inputSet.has(id));
+      const extra = ids.filter((id) => {
+        if (!currentSet.has(id)) {
+          return true;
+        }
+
+        if (seenInputIds.has(id)) {
+          return true;
+        }
+
+        seenInputIds.add(id);
+        return false;
+      });
+
+      if (missing.length > 0 || extra.length > 0) {
+        throw new OrderMismatchError({ missing, extra });
+      }
+
+      const itemIdsByTaskId = new Map(
+        currentTasks.map((task) => [task.id, projectItemIdFromTask(task)])
+      );
+      let afterId: string | null = null;
+
+      for (const id of ids) {
+        const projectItemId = itemIdsByTaskId.get(id);
+        if (projectItemId === undefined) {
+          throw new OrderMismatchError({ missing: [id], extra: [] });
+        }
+
+        await updateProjectItemPosition(projectItemId, afterId, session, context);
+        afterId = projectItemId;
+      }
+
+      return fetchProjectTasks(name, session, context);
     }
   };
 }
@@ -632,6 +696,76 @@ async function updateProjectItemStatus(
       }
     }
   });
+}
+
+async function updateProjectItemPosition(
+  projectItemId: string,
+  afterId: string | null,
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<void> {
+  await context.client.graphql(UPDATE_PROJECT_ITEM_POSITION_MUTATION, {
+    input: {
+      projectId: session.projectId,
+      itemId: projectItemId,
+      afterId
+    }
+  });
+}
+
+async function resolveMoveAfterId(
+  movingId: string,
+  anchor: MoveAnchor,
+  listName: string,
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<string | null> {
+  if ("position" in anchor) {
+    if (anchor.position === "top") {
+      return null;
+    }
+
+    const tasks = await fetchProjectTasks(listName, session, context);
+    for (let index = tasks.length - 1; index >= 0; index -= 1) {
+      const task = tasks[index];
+      if (task.id !== movingId) {
+        return projectItemIdFromTask(task);
+      }
+    }
+
+    return null;
+  }
+
+  const anchorId = "before" in anchor ? anchor.before : anchor.after;
+  let anchorProjectItemId: string;
+  try {
+    anchorProjectItemId = await resolveProjectItemId(anchorId, listName, session, context);
+  } catch (error) {
+    if (error instanceof TaskNotFoundError) {
+      throw new AnchorNotFoundError(anchorId);
+    }
+
+    throw error;
+  }
+
+  if ("after" in anchor) {
+    return anchorProjectItemId;
+  }
+
+  const tasks = await fetchProjectTasks(listName, session, context);
+  const anchorIndex = tasks.findIndex((task) => task.id === anchorId);
+  if (anchorIndex < 0) {
+    throw new AnchorNotFoundError(anchorId);
+  }
+
+  for (let index = anchorIndex - 1; index >= 0; index -= 1) {
+    const predecessor = tasks[index];
+    if (predecessor.id !== movingId) {
+      return projectItemIdFromTask(predecessor);
+    }
+  }
+
+  return null;
 }
 
 async function fetchProjectTasks(
@@ -768,6 +902,15 @@ function mapIssueToTask(options: {
       created: options.issue.createdAt
     }
   };
+}
+
+function projectItemIdFromTask(task: Task): string {
+  const projectItemId = task.metadata.projectItemId;
+  if (typeof projectItemId !== "string") {
+    throw new Error(`Task "${task.qualifiedId}" is missing GitHub project item metadata.`);
+  }
+
+  return projectItemId;
 }
 
 function parseRepo(repo: string): { owner: string; name: string } {

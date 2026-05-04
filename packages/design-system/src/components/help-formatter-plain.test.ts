@@ -84,6 +84,22 @@ describe("plain help formatter", () => {
     expect(result).toBe("  run [doc] [--agent <string>]\n              Run the full loop.");
   });
 
+  it("does not pad rows with empty right cells", () => {
+    const result = formatColumns({
+      rows: [
+        { left: "deploy --service <value>", right: "" },
+        { left: "approvals", right: "Inspect approvals" }
+      ],
+      totalWidth: 80,
+      minLeftWidth: 1,
+      maxLeftWidth: 32,
+      gap: 2,
+      indent: 2
+    });
+
+    expect(result).toBe("  deploy --service <value>\n  approvals                 Inspect approvals");
+  });
+
   it("formats command lists without text styling", () => {
     const result = formatCommandList([
       { name: "configure", description: "Set up provider credentials" },

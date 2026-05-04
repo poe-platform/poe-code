@@ -88,6 +88,22 @@ describe("formatColumns", () => {
     expect(result.split("\n")[1]?.startsWith(" ".repeat(9))).toBe(true);
   });
 
+  it("does not pad rows with empty right cells", () => {
+    const result = formatColumns({
+      rows: [
+        { left: "deploy --service <value>", right: "" },
+        { left: "approvals", right: "Inspect approvals" }
+      ],
+      totalWidth: 80,
+      minLeftWidth: 1,
+      maxLeftWidth: 32,
+      gap: 2,
+      indent: 2
+    });
+
+    expect(result).toBe("  deploy --service <value>\n  approvals                 Inspect approvals");
+  });
+
   it("does not widen the column for ANSI-styled left tokens", () => {
     const result = formatColumns({
       rows: [

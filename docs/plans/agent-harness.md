@@ -601,7 +601,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-harness-codegen
     title: Codegen *.schema.json from agent-harness templates
@@ -646,8 +646,8 @@ tasks:
       with the expected $id and a stable key order. Do not write to
       the real filesystem.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-harness-cli

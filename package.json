@@ -19,7 +19,7 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo run build && npm run codegen:plan-schemas && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
+    "build": "turbo run build && npm run codegen:plan-schemas && npm run codegen:harness-schemas && tsc -p tsconfig.build.json && node scripts/generate-bin-wrappers.mjs && node scripts/bundle.mjs",
     "build:deps": "node scripts/list-workspace-deps.mjs",
     "codegen:python-types": "tsx scripts/generate-agent-spawn-py-types.ts",
     "codegen:check:python-types": "tsx scripts/generate-agent-spawn-py-types.ts --check",
@@ -72,6 +72,7 @@
     "demo:dashboard": "tsx packages/design-system/src/dashboard/demo.ts",
     "replay": "tsx packages/agent-spawn/src/acp/replay-cli.ts",
     "codegen:plan-schemas": "tsx scripts/generate-plan-schemas.ts",
+    "codegen:harness-schemas": "tsx scripts/generate-harness-schemas.ts",
     "smoke:toolcraft-standalone": "node scripts/verify-toolcraft-standalone.mjs",
     "sync-skills": "tsx scripts/sync-skills.ts"
   },

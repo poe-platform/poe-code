@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/harnesses/superintendent-demo.schema.json",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "enum": [
+        "https://poe-platform.github.io/poe-code/schemas/harnesses/superintendent-demo.schema.json"
+      ]
+    },
+    "agents": {
+      "type": "object",
+      "properties": {
+        "builder": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "read",
+                "edit",
+                "yolo"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent"
+          ]
+        },
+        "judge": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "read",
+                "edit",
+                "yolo"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent"
+          ]
+        },
+        "owner": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "read",
+                "edit",
+                "yolo"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent"
+          ]
+        },
+        "perf": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "read",
+                "edit",
+                "yolo"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent"
+          ]
+        },
+        "security": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "read",
+                "edit",
+                "yolo"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent"
+          ]
+        },
+        "tests": {
+          "type": "object",
+          "properties": {
+            "agent": {
+              "type": "string"
+            },
+            "mode": {
+              "type": "string",
+              "enum": [
+                "read",
+                "edit",
+                "yolo"
+              ]
+            },
+            "prompt": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "agent"
+          ]
+        }
+      },
+      "required": [
+        "builder",
+        "security",
+        "perf",
+        "tests",
+        "judge",
+        "owner"
+      ]
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "superintendent-demo"
+      ]
+    },
+    "max_rounds": {
+      "type": "number",
+      "minimum": 1
+    },
+    "version": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "$schema",
+    "kind",
+    "version",
+    "agents",
+    "max_rounds"
+  ]
+}

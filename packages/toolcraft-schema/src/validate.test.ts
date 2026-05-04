@@ -1,0 +1,281 @@
+import { describe, expect, expectTypeOf, it } from "vitest";
+import { S, validate } from "toolcraft-schema";
+import type { ValidationResult } from "toolcraft-schema";
+
+describe("validate", () => {
+  it("validates every builder and applies defaults for missing optionals", () => {
+    const schema = S.Object({
+      name: S.String({ minLength: 2 }),
+      count: S.Optional(S.Number({ default: 3, minimum: 1 })),
+      enabled: S.Boolean(),
+      role: S.Enum(["admin", "user"] as const),
+      tags: S.Array(S.String(), { minItems: 1 }),
+      settings: S.Record(S.Boolean()),
+      payload: S.Json(),
+      omitted: S.Optional(S.String())
+    });
+
+    const result = validate(schema, {
+      name: "Ada",
+      enabled: true,
+      role: "admin",
+      tags: ["core"],
+      settings: { verbose: false },
+      payload: { nested: [1, "two", null] }
+    });
+
+    expect(result).toEqual({
+      ok: true,
+      value: {
+        name: "Ada",
+        count: 3,
+        enabled: true,
+        role: "admin",
+        tags: ["core"],
+        settings: { verbose: false },
+        payload: { nested: [1, "two", null] }
+      }
+    });
+    expectTypeOf(result).toMatchTypeOf<
+      ValidationResult<{
+        name: string;
+        count?: number;
+        enabled: boolean;
+        role: "admin" | "user";
+        tags: string[];
+        settings: Record<string, boolean>;
+        payload: string | number | boolean | null | { [key: string]: unknown } | unknown[];
+        omitted?: string;
+      }>
+    >();
+  });
+
+  it("validates oneOf and union schemas", () => {
+    const oneOfSchema = S.OneOf({
+      discriminator: "kind",
+      branches: {
+        text: S.Object({ value: S.String() }),
+        count: S.Object({ value: S.Number() })
+      }
+    });
+    const unionSchema = S.Union([
+      S.Object({ email: S.String() }),
+      S.Object({ phone: S.String(), extension: S.Optional(S.Number({ default: 100 })) })
+    ]);
+
+    expect(validate(oneOfSchema, { kind: "text", value: "hello" })).toEqual({
+      ok: true,
+      value: { kind: "text", value: "hello" }
+    });
+    expect(validate(unionSchema, { phone: "555-0100" })).toEqual({
+      ok: true,
+      value: { phone: "555-0100", extension: 100 }
+    });
+    expect(validate(unionSchema, { email: 12 })).toEqual({
+      ok: false,
+      issues: [
+        {
+          path: ["email"],
+          expected: "string",
+          received: "integer",
+          message: "Expected string at email"
+        }
+      ]
+    });
+  });
+
+  it("omits missing optionals without defaults", () => {
+    const schema = S.Object({
+      required: S.String(),
+      maybe: S.Optional(S.Boolean()),
+      fallback: S.Optional(S.String({ default: "defaulted" }))
+    });
+
+    expect(validate(schema, { required: "value" })).toEqual({
+      ok: true,
+      value: {
+        required: "value",
+        fallback: "defaulted"
+      }
+    });
+    expect(validate(S.Optional(S.String()), undefined)).toEqual({
+      ok: true,
+      value: undefined
+    });
+  });
+
+  it("accumulates nested issues and rejects additional object properties", () => {
+    const schema = S.Object({
+      user: S.Object({
+        name: S.String({ minLength: 3 }),
+        retries: S.Number({ minimum: 1 }),
+        tags: S.Array(S.String(), { minItems: 2 }),
+        mode: S.Enum(["fast", "safe"] as const)
+      })
+    });
+
+    const result = validate(schema, {
+      user: {
+        name: "Al",
+        retries: 0,
+        tags: [],
+        mode: "slow",
+        extra: true
+      },
+      rootExtra: 1
+    });
+
+    expect(result).toEqual({
+      ok: false,
+      issues: [
+        {
+          path: ["user", "name"],
+          expected: "string with length at least 3",
+          received: "string with length 2",
+          message: "Expected string with length at least 3 at user.name"
+        },
+        {
+          path: ["user", "retries"],
+          expected: "number greater than or equal to 1",
+          received: "0",
+          message: "Expected number greater than or equal to 1 at user.retries"
+        },
+        {
+          path: ["user", "tags"],
+          expected: "array with at least 2 items",
+          received: "array with 0 items",
+          message: "Expected array with at least 2 items at user.tags"
+        },
+        {
+          path: ["user", "mode"],
+          expected: "one of fast, safe",
+          received: "slow",
+          message: "Expected one of fast, safe at user.mode"
+        },
+        {
+          path: ["user", "extra"],
+          expected: "no additional properties",
+          received: "unknown property",
+          message: "Unexpected property user.extra"
+        },
+        {
+          path: ["rootExtra"],
+          expected: "no additional properties",
+          received: "unknown property",
+          message: "Unexpected property rootExtra"
+        }
+      ]
+    });
+  });
+
+  it("returns all item and record value issues", () => {
+    const schema = S.Object({
+      items: S.Array(S.Number({ minimum: 10 })),
+      flags: S.Record(S.Boolean())
+    });
+
+    expect(validate(schema, { items: [1, "two"], flags: { ok: true, bad: "no" } })).toEqual({
+      ok: false,
+      issues: [
+        {
+          path: ["items", "0"],
+          expected: "number greater than or equal to 10",
+          received: "1",
+          message: "Expected number greater than or equal to 10 at items.0"
+        },
+        {
+          path: ["items", "1"],
+          expected: "number",
+          received: "string",
+          message: "Expected number at items.1"
+        },
+        {
+          path: ["flags", "bad"],
+          expected: "boolean",
+          received: "string",
+          message: "Expected boolean at flags.bad"
+        }
+      ]
+    });
+  });
+
+  it("enforces upper bounds and string patterns", () => {
+    const schema = S.Object({
+      code: S.String({ maxLength: 4, pattern: "^[A-Z]+$" }),
+      score: S.Number({ maximum: 5 }),
+      values: S.Array(S.Boolean(), { maxItems: 1 })
+    });
+
+    expect(validate(schema, { code: "abcde", score: 6, values: [true, false] })).toEqual({
+      ok: false,
+      issues: [
+        {
+          path: ["code"],
+          expected: "string with length at most 4",
+          received: "string with length 5",
+          message: "Expected string with length at most 4 at code"
+        },
+        {
+          path: ["code"],
+          expected: "string matching pattern ^[A-Z]+$",
+          received: "abcde",
+          message: "Expected string matching pattern ^[A-Z]+$ at code"
+        },
+        {
+          path: ["score"],
+          expected: "number less than or equal to 5",
+          received: "6",
+          message: "Expected number less than or equal to 5 at score"
+        },
+        {
+          path: ["values"],
+          expected: "array with at most 1 items",
+          received: "array with 2 items",
+          message: "Expected array with at most 1 items at values"
+        }
+      ]
+    });
+  });
+
+  it("preserves additional object properties when the object schema allows them", () => {
+    const schema = S.Object(
+      {
+        name: S.String()
+      },
+      { additionalProperties: true }
+    );
+
+    expect(validate(schema, { name: "Ada", title: "engineer" })).toEqual({
+      ok: true,
+      value: {
+        name: "Ada",
+        title: "engineer"
+      }
+    });
+  });
+
+  it("reports missing required values and invalid JSON payloads without throwing", () => {
+    const schema = S.Object({
+      required: S.String(),
+      payload: S.Json()
+    });
+
+    expect(validate(schema, { payload: { bad: undefined } })).toEqual({
+      ok: false,
+      issues: [
+        {
+          path: ["required"],
+          expected: "string",
+          received: "missing",
+          message: "Expected string at required"
+        },
+        {
+          path: ["payload"],
+          expected: "JSON value",
+          received: "object",
+          message: "Expected JSON value at payload"
+        }
+      ]
+    });
+  });
+});

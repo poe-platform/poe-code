@@ -648,7 +648,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-harness-cli
     title: Add `poe-code harness {run,new,list}` CLI command
@@ -695,8 +695,8 @@ tasks:
           Do not commit screenshot tests; screenshots are for ad-hoc
           validation only.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

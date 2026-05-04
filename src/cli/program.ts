@@ -32,6 +32,7 @@ import { registerLaunchCommand } from "./commands/launch.js";
 import { registerMemoryCommand } from "./commands/memory.js";
 import { registerProviderCommand } from "./commands/provider.js";
 import { registerRuntimeCommand } from "./commands/runtime/index.js";
+import { registerHarnessCommand } from "./commands/harness.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -97,6 +98,9 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["runtime", "build"] },
   { path: ["runtime", "templates", "ls"] },
   { path: ["runtime", "templates", "clear"] },
+  { path: ["harness", "run"] },
+  { path: ["harness", "new"], args: "<kind> <basename>" },
+  { path: ["harness", "list"] },
   { path: ["experiment", "install"] },
   { path: ["experiment", "run"] },
   { path: ["experiment", "journal"] },
@@ -487,6 +491,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerMemoryCommand(program, container);
   registerProviderCommand(program, container);
   registerRuntimeCommand(program, container);
+  registerHarnessCommand(program, container);
   registerForwardedToolcraftCommand(
     program,
     container,

@@ -1,6 +1,14 @@
 import { tokenize, type Position, type Token } from "./tokenizer.js";
 import { assignIds } from "./assign-ids.js";
 import { formatParseError } from "./format-error.js";
+import {
+  createExportDefaultDeclaration,
+  createExportNamedDeclaration,
+  type ExportDefaultDeclaration,
+  type ExportNamedDeclaration
+} from "./parse-export.js";
+
+export type { ExportDefaultDeclaration, ExportNamedDeclaration } from "./parse-export.js";
 
 export type SourceSpan = {
   start: Position;
@@ -324,6 +332,8 @@ export type Module = BaseNode & {
 export type Statement =
   | BlockStatement
   | BreakStatement
+  | ExportDefaultDeclaration
+  | ExportNamedDeclaration
   | ImportDeclaration
   | TryStatement
   | ContinueStatement
@@ -443,11 +453,18 @@ function parseExpressionTokens(tokens: Token[]): Expression {
 
 class Parser {
   private index = 0;
+  private hasDefaultExport = false;
 
   constructor(private readonly tokens: Token[]) {}
 
   parseTopLevel(): ParseResult {
-    const node = this.shouldParseTopLevelStatement() ? this.parseStatement() : this.parseExpression().node;
+    if (this.isExportToken(this.currentToken())) {
+      throw new DisallowedSyntaxError("export", this.currentToken().start);
+    }
+
+    const node = this.shouldParseTopLevelStatement()
+      ? this.parseStatement()
+      : this.parseExpression().node;
     while (this.consumePunctuator(";") !== undefined) {
       continue;
     }
@@ -483,6 +500,10 @@ class Parser {
   }
 
   private parseTopLevelItem(): Statement {
+    if (this.isExportToken(this.currentToken())) {
+      return this.parseExportDeclaration();
+    }
+
     if (this.shouldParseTopLevelStatement()) {
       return this.parseStatement();
     }
@@ -979,6 +1000,51 @@ class Parser {
     return specifiers;
   }
 
+  private parseExportDeclaration(): ExportDefaultDeclaration | ExportNamedDeclaration {
+    const exportToken = this.currentToken();
+    if (!this.isExportToken(exportToken)) {
+      throw unexpectedTokenError(exportToken);
+    }
+
+    this.index += 1;
+
+    if (this.currentToken().value === "default") {
+      return this.parseExportDefaultDeclaration(exportToken);
+    }
+
+    if (this.currentToken().type === "keyword" && this.currentToken().value === "const") {
+      return this.parseExportNamedDeclaration(exportToken);
+    }
+
+    throw new DisallowedSyntaxError(`export ${this.currentToken().value}`, exportToken.start);
+  }
+
+  private parseExportNamedDeclaration(exportToken: Token): ExportNamedDeclaration {
+    const declaration = this.parseVariableDeclaration({ singleDeclaratorSyntax: "export const" });
+    const declarator = declaration.declarations[0]!;
+    if (declarator.id.type !== "Identifier") {
+      throw new DisallowedSyntaxError("export const", declarator.id.span.start);
+    }
+
+    return createExportNamedDeclaration(exportToken, declaration);
+  }
+
+  private parseExportDefaultDeclaration(exportToken: Token): ExportDefaultDeclaration {
+    this.index += 1;
+
+    if (this.hasDefaultExport) {
+      throw new DisallowedSyntaxError("export default", exportToken.start);
+    }
+
+    const declaration = this.tryParseArrowFunctionExpression();
+    if (declaration === undefined) {
+      throw new DisallowedSyntaxError("export default", this.currentToken().start);
+    }
+
+    this.hasDefaultExport = true;
+    return createExportDefaultDeclaration(exportToken, declaration);
+  }
+
   private parseCatchClause(): CatchClause {
     const catchToken = this.expectKeyword("catch");
     let param: ArrayPattern | Identifier | ObjectPattern | undefined;
@@ -995,9 +1061,14 @@ class Parser {
     };
   }
 
-  private parseVariableDeclaration(): VariableDeclaration {
+  private parseVariableDeclaration(
+    options: { singleDeclaratorSyntax?: string } = {}
+  ): VariableDeclaration {
     const kindToken = this.currentToken();
-    if (kindToken.type !== "keyword" || (kindToken.value !== "const" && kindToken.value !== "let")) {
+    if (
+      kindToken.type !== "keyword" ||
+      (kindToken.value !== "const" && kindToken.value !== "let")
+    ) {
       throw unexpectedTokenError(kindToken);
     }
 
@@ -1006,8 +1077,12 @@ class Parser {
 
     while (true) {
       declarations.push(this.parseVariableDeclarator(kindToken.value));
-      if (this.consumePunctuator(",") === undefined) {
+      const comma = this.consumePunctuator(",");
+      if (comma === undefined) {
         break;
+      }
+      if (options.singleDeclaratorSyntax !== undefined) {
+        throw new DisallowedSyntaxError(options.singleDeclaratorSyntax, comma.start);
       }
     }
 
@@ -2516,6 +2591,10 @@ class Parser {
   }
 
   private assertAllowedStatementStart(token: Token): void {
+    if (this.isExportToken(token)) {
+      throw new DisallowedSyntaxError("export", token.start);
+    }
+
     if (token.type === "identifier" && token.value === "do") {
       throw new DisallowedSyntaxError("do/while", token.start);
     }
@@ -2595,6 +2674,10 @@ class Parser {
 
   private previousToken(): Token {
     return this.tokens[this.index - 1] ?? this.tokens[0];
+  }
+
+  private isExportToken(token: Token): boolean {
+    return token.value === "export";
   }
 }
 

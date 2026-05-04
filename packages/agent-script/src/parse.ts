@@ -17,6 +17,8 @@ export type {
   ContinueStatement,
   Expression,
   ExpressionStatement,
+  ExportDefaultDeclaration,
+  ExportNamedDeclaration,
   ImportDeclaration,
   ImportDefaultSpecifier,
   ImportNamespaceSpecifier,

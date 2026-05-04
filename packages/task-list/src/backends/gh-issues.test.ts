@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { TaskNotFoundError } from "../types.js";
 import { ghIssuesBackend, type GhIssuesBackendDeps } from "./gh-issues.js";
 
 const DEFAULT_DEPS = {
@@ -186,11 +187,33 @@ describe("ghIssuesBackend", () => {
   it("delegates allTasks and get through the single project list", async () => {
     const taskList = await ghIssuesBackend({
       ...DEFAULT_DEPS,
-      fetch: createFetchMock([projectResponse()])
+      fetch: createFetchMock([
+        projectResponse(),
+        itemsResponse({
+          nodes: [
+            projectIssueItem({
+              id: "item-482",
+              issue: issue({
+                number: 482,
+                title: "Ship GitHub issue backend"
+              }),
+              status: "Todo"
+            })
+          ]
+        }),
+        issueResponse({
+          number: 482,
+          title: "Ship GitHub issue backend",
+          status: "Todo"
+        })
+      ])
     });
 
-    await expect(taskList.allTasks({ state: "Todo" })).rejects.toThrow("not yet implemented");
-    await expect(taskList.get("octo-org/7/123")).rejects.toThrow("not yet implemented");
+    await expect(taskList.allTasks({ state: "Todo" }).then(ids)).resolves.toEqual(["482"]);
+    await expect(taskList.get("octo-org/7/482")).resolves.toMatchObject({
+      qualifiedId: "octo-org/7/482",
+      name: "Ship GitHub issue backend"
+    });
   });
 
   it("uses the cached state machine for events and canFire without refetching", async () => {
@@ -241,7 +264,218 @@ describe("ghIssuesBackend", () => {
 
     expect(readGraphqlCall(fetchMock, 0)).toMatchSnapshot();
   });
+
+  it("all returns project issue items in project view order", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      itemsResponse({
+        nodes: projectItemsFixture()
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").all()).resolves.toEqual([
+      {
+        list: "octo-org/7",
+        id: "482",
+        qualifiedId: "octo-org/7/482",
+        name: "Write backend",
+        description: "Implement GitHub issues.",
+        state: "In progress",
+        metadata: {
+          url: "https://github.example.test/octo/repo/issues/482",
+          labels: ["backend", "task-list"],
+          assignees: ["mona"],
+          milestone: "v1",
+          projectItemId: "item-482",
+          created: "2026-01-03T00:00:00Z"
+        }
+      },
+      {
+        list: "octo-org/7",
+        id: "17",
+        qualifiedId: "octo-org/7/17",
+        name: "Document workflow",
+        description: "",
+        state: "Todo",
+        metadata: {
+          url: "https://github.example.test/octo/repo/issues/17",
+          labels: [],
+          assignees: [],
+          milestone: null,
+          projectItemId: "item-17",
+          created: "2026-01-01T00:00:00Z"
+        }
+      },
+      {
+        list: "octo-org/7",
+        id: "88",
+        qualifiedId: "octo-org/7/88",
+        name: "Close loop",
+        description: "Finalize.",
+        state: "Done",
+        metadata: {
+          url: "https://github.example.test/octo/repo/issues/88",
+          labels: ["release"],
+          assignees: ["hubot", "octocat"],
+          milestone: null,
+          projectItemId: "item-88",
+          created: "2026-01-02T00:00:00Z"
+        }
+      }
+    ]);
+    expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
+  });
+
+  it("all({ order: 'alphabetical' }) sorts by qualifiedId", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      itemsResponse({
+        nodes: projectItemsFixture()
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").all({ order: "alphabetical" }).then(ids)
+    ).resolves.toEqual(["17", "482", "88"]);
+    expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
+  });
+
+  it("all({ order: 'created' }) sorts by createdAt", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      itemsResponse({
+        nodes: projectItemsFixture()
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").all({ order: "created" }).then(ids)).resolves.toEqual([
+      "17",
+      "88",
+      "482"
+    ]);
+    expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
+  });
+
+  it("all({ state }) filters by Status name", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      itemsResponse({
+        nodes: projectItemsFixture()
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").all({ state: "In progress" }).then(ids)
+    ).resolves.toEqual(["482"]);
+    expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
+  });
+
+  it("all({ includeArchived: true }) returns empty without querying items", async () => {
+    const fetchMock = createFetchMock([projectResponse()]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").all({ includeArchived: true })).resolves.toEqual([]);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("all merges paginated project items in project view order", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      itemsResponse({
+        nodes: [
+          projectIssueItem({
+            id: "item-482",
+            issue: issue({ number: 482, title: "First page" })
+          })
+        ],
+        hasNextPage: true,
+        endCursor: "cursor-one"
+      }),
+      itemsResponse({
+        nodes: [
+          projectIssueItem({
+            id: "item-17",
+            issue: issue({ number: 17, title: "Second page" })
+          })
+        ],
+        hasNextPage: false,
+        endCursor: null
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").all().then(ids)).resolves.toEqual(["482", "17"]);
+    expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
+    expect(readGraphqlCall(fetchMock, 2)).toMatchSnapshot();
+  });
+
+  it('get("482") returns the mapped task', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Write backend",
+        body: "Implement GitHub issues.",
+        status: "In progress",
+        labels: ["backend", "task-list"],
+        assignees: ["mona"],
+        milestone: "v1",
+        projectItemId: "item-482",
+        createdAt: "2026-01-03T00:00:00Z"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").get("482")).resolves.toEqual({
+      list: "octo-org/7",
+      id: "482",
+      qualifiedId: "octo-org/7/482",
+      name: "Write backend",
+      description: "Implement GitHub issues.",
+      state: "In progress",
+      metadata: {
+        url: "https://github.example.test/octo/repo/issues/482",
+        labels: ["backend", "task-list"],
+        assignees: ["mona"],
+        milestone: "v1",
+        projectItemId: "item-482",
+        created: "2026-01-03T00:00:00Z"
+      }
+    });
+    expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
+  });
+
+  it('get("999") throws TaskNotFoundError when the issue is not in this project', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 999,
+        projectId: "other-project",
+        projectItemId: "other-item"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").get("999")).rejects.toBeInstanceOf(TaskNotFoundError);
+    expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
+  });
+
+  it('get("404") throws TaskNotFoundError when the issue does not exist', async () => {
+    const fetchMock = createFetchMock([projectResponse(), missingIssueResponse()]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").get("404")).rejects.toBeInstanceOf(TaskNotFoundError);
+    expect(readGraphqlCall(fetchMock, 1)).toMatchSnapshot();
+  });
 });
+
+function ids(tasks: { id: string }[]): string[] {
+  return tasks.map((task) => task.id);
+}
 
 function projectResponse(data = defaultProjectData()): Response {
   return new Response(JSON.stringify({ data }), {
@@ -263,10 +497,13 @@ function project(
   overrides: Partial<{
     id: string;
     title: string;
-    field: null | Record<string, never> | {
-      id: string;
-      options: Array<{ id: string; name: string }>;
-    };
+    field:
+      | null
+      | Record<string, never>
+      | {
+          id: string;
+          options: Array<{ id: string; name: string }>;
+        };
     options: Array<{ id: string; name: string }>;
   }> = {}
 ) {
@@ -294,6 +531,178 @@ function createFetchMock(responses: Response[]): typeof fetch {
     }
     return response;
   }) as unknown as typeof fetch;
+}
+
+function itemsResponse(options: {
+  nodes: unknown[];
+  hasNextPage?: boolean;
+  endCursor?: string | null;
+}): Response {
+  return graphqlResponse({
+    node: {
+      items: {
+        nodes: options.nodes,
+        pageInfo: {
+          hasNextPage: options.hasNextPage ?? false,
+          endCursor: options.endCursor ?? null
+        }
+      }
+    }
+  });
+}
+
+function issueResponse(options: {
+  number: number;
+  title?: string;
+  body?: string | null;
+  status?: string | null;
+  labels?: string[];
+  assignees?: string[];
+  milestone?: string | null;
+  projectId?: string;
+  projectItemId?: string;
+  createdAt?: string;
+}): Response {
+  return graphqlResponse({
+    repository: {
+      issue: {
+        ...issue(options),
+        projectItems: {
+          nodes: [
+            {
+              id: options.projectItemId ?? `item-${options.number}`,
+              project: {
+                id: options.projectId ?? "project-id"
+              },
+              fieldValueByName:
+                options.status === null
+                  ? null
+                  : {
+                      name: options.status ?? "Todo"
+                    }
+            }
+          ]
+        }
+      }
+    }
+  });
+}
+
+function missingIssueResponse(): Response {
+  return graphqlResponse({
+    repository: {
+      issue: null
+    }
+  });
+}
+
+function graphqlResponse(data: unknown): Response {
+  return new Response(JSON.stringify({ data }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+}
+
+function projectItemsFixture(): unknown[] {
+  return [
+    projectIssueItem({
+      id: "item-482",
+      issue: issue({
+        number: 482,
+        title: "Write backend",
+        body: "Implement GitHub issues.",
+        labels: ["backend", "task-list"],
+        assignees: ["mona"],
+        milestone: "v1",
+        createdAt: "2026-01-03T00:00:00Z"
+      }),
+      status: "In progress"
+    }),
+    {
+      id: "draft-item",
+      content: {
+        __typename: "DraftIssue",
+        title: "Draft item"
+      },
+      fieldValueByName: {
+        name: "Todo"
+      }
+    },
+    projectIssueItem({
+      id: "item-17",
+      issue: issue({
+        number: 17,
+        title: "Document workflow",
+        body: null,
+        labels: [],
+        assignees: [],
+        milestone: null,
+        createdAt: "2026-01-01T00:00:00Z"
+      }),
+      status: null
+    }),
+    projectIssueItem({
+      id: "item-88",
+      issue: issue({
+        number: 88,
+        title: "Close loop",
+        body: "Finalize.",
+        labels: ["release"],
+        assignees: ["hubot", "octocat"],
+        milestone: null,
+        createdAt: "2026-01-02T00:00:00Z"
+      }),
+      status: "Done"
+    })
+  ];
+}
+
+function projectIssueItem(options: {
+  id: string;
+  issue: unknown;
+  status?: string | null;
+}): unknown {
+  return {
+    id: options.id,
+    content: options.issue,
+    fieldValueByName:
+      options.status === null
+        ? null
+        : {
+            name: options.status ?? "Todo"
+          }
+  };
+}
+
+function issue(options: {
+  number: number;
+  title?: string;
+  body?: string | null;
+  labels?: string[];
+  assignees?: string[];
+  milestone?: string | null;
+  createdAt?: string;
+}) {
+  return {
+    __typename: "Issue",
+    number: options.number,
+    title: options.title ?? `Issue ${options.number}`,
+    body: options.body ?? "",
+    url: `https://github.example.test/octo/repo/issues/${options.number}`,
+    createdAt: options.createdAt ?? "2026-01-01T00:00:00Z",
+    labels: {
+      nodes: (options.labels ?? []).map((name) => ({ name }))
+    },
+    assignees: {
+      nodes: (options.assignees ?? []).map((login) => ({ login }))
+    },
+    milestone:
+      options.milestone === undefined
+        ? null
+        : options.milestone === null
+          ? null
+          : { title: options.milestone }
+  };
 }
 
 function readGraphqlCall(fetchMock: typeof fetch, callIndex: number): unknown {

@@ -32,21 +32,32 @@ export function createOpenedE2bEnv(input: {
   runtime: E2bRuntime;
 }): E2bOpenedEnv {
   const hostRunner = input.spec.hostRunner ?? createHostRunner();
+  const hostWorkspaceDir = path.resolve(input.spec.cwd);
+  const sandboxWorkspaceDir = normalizeSandboxWorkspaceDir(input.runtime.workspace_dir);
   let lastProcess: { started: Promise<E2bCommandHandle> } | null = null;
   let detachedJobContext: DetachedJobContext | null = null;
+  const mapWorkspaceCwd = (cwd: string | undefined): string | undefined => {
+    if (cwd === undefined) {
+      return undefined;
+    }
+    if (path.isAbsolute(cwd) && path.resolve(cwd) === hostWorkspaceDir) {
+      return sandboxWorkspaceDir;
+    }
+    return cwd;
+  };
 
   const attachedJobId = (input.spec as OpenSpec & { detachedJobId?: string }).detachedJobId;
   const env: E2bOpenedEnv = {
     id: input.sandbox.sandboxId,
     job: attachedJobId
       ? createE2bJobHandle({
-            sandbox: input.sandbox,
-            envId: input.sandbox.sandboxId,
-            jobId: attachedJobId,
-            tool: input.spec.jobLabel.tool,
-            argv: input.spec.jobLabel.argv,
-            preserveAfterExitHours: input.runtime.preserve_after_exit_hours ?? 24
-          })
+          sandbox: input.sandbox,
+          envId: input.sandbox.sandboxId,
+          jobId: attachedJobId,
+          tool: input.spec.jobLabel.tool,
+          argv: input.spec.jobLabel.argv,
+          preserveAfterExitHours: input.runtime.preserve_after_exit_hours ?? 24
+        })
       : null,
     fs: createE2bLogStreamFs(input.sandbox),
     setDetachedJobContext(context) {
@@ -75,7 +86,7 @@ export function createOpenedE2bEnv(input: {
         );
         await runRemoteOrThrow(
           input.sandbox,
-          `mkdir -p ${shellQuote(input.spec.cwd)} && tar -xf /tmp/poe-workspace-upload.tar -C ${shellQuote(input.spec.cwd)}`
+          `mkdir -p ${shellQuote(sandboxWorkspaceDir)} && tar -xf /tmp/poe-workspace-upload.tar -C ${shellQuote(sandboxWorkspaceDir)}`
         );
         return { files: 0, bytes: 0, skipped: [] };
       } finally {
@@ -88,7 +99,7 @@ export function createOpenedE2bEnv(input: {
       try {
         await runRemoteOrThrow(
           input.sandbox,
-          `tar -cf /tmp/poe-workspace-download.tar -C ${shellQuote(input.spec.cwd)} .`
+          `tar -cf /tmp/poe-workspace-download.tar -C ${shellQuote(sandboxWorkspaceDir)} .`
         );
         const archive = await input.sandbox.files.read("/tmp/poe-workspace-download.tar", {
           format: "bytes"
@@ -111,7 +122,10 @@ export function createOpenedE2bEnv(input: {
       }
     },
     exec(spec) {
-      const handle = runE2bCommand(input.sandbox, spec);
+      const handle = runE2bCommand(input.sandbox, {
+        ...spec,
+        cwd: mapWorkspaceCwd(spec.cwd)
+      });
       lastProcess = { started: handle.started };
       return handle;
     },
@@ -144,7 +158,7 @@ export function createOpenedE2bEnv(input: {
       return runE2bPty(input.sandbox, {
         command,
         ...(shellSpec?.args ? { args: shellSpec.args } : {}),
-        cwd: input.spec.cwd,
+        cwd: mapWorkspaceCwd(shellSpec?.cwd ?? input.spec.cwd),
         env: shellSpec && "env" in shellSpec ? shellSpec.env : input.spec.env,
         stdin: "inherit",
         stdout: "inherit",
@@ -326,6 +340,18 @@ function shellCommand(argv: string[]): string {
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
+}
+
+function normalizeSandboxWorkspaceDir(workspaceDir: string | undefined): string {
+  const resolvedWorkspaceDir = workspaceDir ?? "/workspace";
+  if (!path.posix.isAbsolute(resolvedWorkspaceDir)) {
+    throw new Error("E2B runtime workspace_dir must be an absolute sandbox path.");
+  }
+  let normalized = path.posix.normalize(resolvedWorkspaceDir);
+  while (normalized.length > 1 && normalized.endsWith("/")) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
 }
 
 function isExitError(error: unknown): error is { exitCode: number } {

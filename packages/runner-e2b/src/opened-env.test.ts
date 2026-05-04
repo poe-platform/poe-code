@@ -1,8 +1,35 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createOpenedE2bEnv } from "./opened-env.js";
 
+const fsMocks = vi.hoisted(() => ({
+  mkdtempSync: vi.fn(),
+  rmSync: vi.fn(),
+  readFile: vi.fn(),
+  writeFile: vi.fn()
+}));
+
+vi.mock("node:fs", async (importActual) => ({
+  ...(await importActual<typeof import("node:fs")>()),
+  mkdtempSync: fsMocks.mkdtempSync,
+  rmSync: fsMocks.rmSync
+}));
+
+vi.mock("node:fs/promises", async (importActual) => ({
+  ...(await importActual<typeof import("node:fs/promises")>()),
+  readFile: fsMocks.readFile,
+  writeFile: fsMocks.writeFile
+}));
+
 describe("createOpenedE2bEnv", () => {
-  it("executes commands with E2B command run and returns a RunHandle", async () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    fsMocks.mkdtempSync.mockImplementation((prefix: string) => `${prefix}test`);
+    fsMocks.rmSync.mockImplementation(() => undefined);
+    fsMocks.readFile.mockResolvedValue(Buffer.from("tar"));
+    fsMocks.writeFile.mockResolvedValue(undefined);
+  });
+
+  it("executes commands in the sandbox workspace when cwd is the host workspace", async () => {
     const commandHandle = {
       pid: 321,
       wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
@@ -12,7 +39,7 @@ describe("createOpenedE2bEnv", () => {
     sandbox.commands.run.mockResolvedValue(commandHandle);
     const env = createOpenedE2bEnv({
       sandbox,
-      runtime: createRuntime(),
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
       spec: createSpec()
     });
 
@@ -29,11 +56,164 @@ describe("createOpenedE2bEnv", () => {
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
     expect(sandbox.commands.run).toHaveBeenCalledWith("'printf' 'ok'", {
       background: true,
-      cwd: "/repo",
+      cwd: "/sandbox/workspace",
       envs: { A: "1" },
       stdin: true,
       onStdout: expect.any(Function),
       onStderr: expect.any(Function)
+    });
+  });
+
+  it("leaves non-workspace command cwd values unchanged", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: createSpec()
+    });
+
+    const handle = env.exec({
+      command: "pwd",
+      cwd: "/tmp"
+    });
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(sandbox.commands.run).toHaveBeenCalledWith("'pwd'", {
+      background: true,
+      cwd: "/tmp",
+      envs: undefined,
+      stdin: false,
+      onStdout: expect.any(Function),
+      onStderr: expect.any(Function)
+    });
+  });
+
+  it("uses /workspace as the default sandbox workspace", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    const handle = env.exec({
+      command: "pwd",
+      cwd: "/repo/."
+    });
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(sandbox.commands.run).toHaveBeenCalledWith("'pwd'", {
+      background: true,
+      cwd: "/workspace",
+      envs: undefined,
+      stdin: false,
+      onStdout: expect.any(Function),
+      onStderr: expect.any(Function)
+    });
+  });
+
+  it("normalizes configured sandbox workspace directories", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace/../project/" },
+      spec: createSpec()
+    });
+
+    const handle = env.exec({
+      command: "pwd",
+      cwd: "/repo"
+    });
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(sandbox.commands.run).toHaveBeenCalledWith("'pwd'", {
+      background: true,
+      cwd: "/sandbox/project",
+      envs: undefined,
+      stdin: false,
+      onStdout: expect.any(Function),
+      onStderr: expect.any(Function)
+    });
+  });
+
+  it("uploads the host workspace into the sandbox workspace", async () => {
+    const hostRunner = createHostRunnerMock();
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue({ exitCode: 0 });
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: { ...createSpec(), hostRunner, uploadIgnoreFiles: ["node_modules"] }
+    });
+
+    await expect(env.uploadWorkspace()).resolves.toEqual({ files: 0, bytes: 0, skipped: [] });
+
+    expect(hostRunner.exec).toHaveBeenCalledWith({
+      command: "tar",
+      args: [
+        "--exclude",
+        "node_modules",
+        "-cf",
+        expect.stringContaining("poe-e2b-upload-test/workspace.tar"),
+        "-C",
+        "/repo",
+        "."
+      ],
+      stdout: "pipe",
+      stderr: "pipe"
+    });
+    expect(sandbox.files.write).toHaveBeenCalledWith(
+      "/tmp/poe-workspace-upload.tar",
+      expect.any(ArrayBuffer)
+    );
+    expect(sandbox.commands.run).toHaveBeenCalledWith(
+      "mkdir -p '/sandbox/workspace' && tar -xf /tmp/poe-workspace-upload.tar -C '/sandbox/workspace'"
+    );
+  });
+
+  it("downloads the sandbox workspace back into the host workspace", async () => {
+    const hostRunner = createHostRunnerMock();
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue({ exitCode: 0 });
+    sandbox.files.read.mockResolvedValue(new Uint8Array(Buffer.from("tar")));
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: { ...createSpec(), hostRunner }
+    });
+
+    await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toEqual({
+      files: 0,
+      bytes: 3,
+      conflicts: []
+    });
+
+    expect(sandbox.commands.run).toHaveBeenCalledWith(
+      "tar -cf /tmp/poe-workspace-download.tar -C '/sandbox/workspace' ."
+    );
+    expect(hostRunner.exec).toHaveBeenCalledWith({
+      command: "tar",
+      args: ["-xf", expect.stringContaining("poe-e2b-download-test/workspace.tar"), "-C", "/repo"],
+      stdout: "pipe",
+      stderr: "pipe"
     });
   });
 
@@ -84,7 +264,7 @@ describe("createOpenedE2bEnv", () => {
     sandbox.pty.create.mockResolvedValue(ptyHandle);
     const env = createOpenedE2bEnv({
       sandbox,
-      runtime: createRuntime(),
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
       spec: createSpec()
     });
 
@@ -94,7 +274,7 @@ describe("createOpenedE2bEnv", () => {
     expect(sandbox.pty.create).toHaveBeenCalledWith({
       cols: expect.any(Number),
       rows: expect.any(Number),
-      cwd: "/repo",
+      cwd: "/sandbox/workspace",
       envs: {},
       onData: expect.any(Function)
     });
@@ -124,6 +304,20 @@ function createRuntime() {
     build_args: {},
     mounts: [],
     preserve_after_exit_hours: 24
+  };
+}
+
+function createHostRunnerMock() {
+  return {
+    name: "host",
+    exec: vi.fn().mockReturnValue({
+      pid: null,
+      stdin: null,
+      stdout: null,
+      stderr: null,
+      result: Promise.resolve({ exitCode: 0 }),
+      kill: vi.fn()
+    })
   };
 }
 

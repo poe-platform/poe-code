@@ -24,16 +24,18 @@ describe.skipIf(!process.env.E2B_API_KEY)("e2bExecutionEnvFactory integration", 
     });
 
     try {
+      expect("/workspace").not.toBe(cwd);
       await env.uploadWorkspace();
       const handle = env.exec({
         command: "sh",
-        args: ["-c", "echo ok > e2b-output.txt"],
+        args: ["-c", "pwd > e2b-pwd.txt && echo ok > e2b-output.txt"],
         cwd
       });
       await expect(handle.result).resolves.toEqual({ exitCode: 0 });
       await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toMatchObject({
         conflicts: []
       });
+      await expect(readFile(path.join(cwd, "e2b-pwd.txt"), "utf8")).resolves.toBe("/workspace\n");
       await expect(readFile(path.join(cwd, "e2b-output.txt"), "utf8")).resolves.toBe("ok\n");
     } finally {
       await env.close();

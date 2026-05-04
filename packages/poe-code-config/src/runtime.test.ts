@@ -150,6 +150,7 @@ describe("runtime config", () => {
       template_id: "tmpl_123",
       build_args: {},
       mounts: [],
+      workspace_dir: "/workspace",
       preserve_after_exit_hours: 24
     });
 
@@ -160,6 +161,7 @@ describe("runtime config", () => {
         cpu: 4,
         memory_mb: 8192,
         timeout_minutes: 60,
+        workspace_dir: "/sandbox/workspace/../project/",
         preserve_after_exit_hours: 168
       })
     ).toMatchObject({
@@ -167,12 +169,16 @@ describe("runtime config", () => {
       cpu: 4,
       memory_mb: 8192,
       timeout_minutes: 60,
+      workspace_dir: "/sandbox/project",
       preserve_after_exit_hours: 168
     });
 
     expect(() =>
       parseRuntime({ type: "e2b", template_id: "tmpl_123", preserve_after_exit_hours: 169 })
     ).toThrow("preserve_after_exit_hours: expected a number from 0 to 168");
+    expect(() =>
+      parseRuntime({ type: "e2b", template_id: "tmpl_123", workspace_dir: "workspace" })
+    ).toThrow("workspace_dir: expected an absolute sandbox path");
   });
 
   it("resolves dockerfile and build context defaults when a docker runtime builds from a Dockerfile", () => {
@@ -276,6 +282,7 @@ describe("runtime config", () => {
           {
             type: "e2b",
             template_id: "tmpl_123",
+            workspace_dir: "/sandbox/workspace",
             preserve_after_exit_hours: 0
           },
           {}
@@ -286,6 +293,7 @@ describe("runtime config", () => {
       template_id: "tmpl_123",
       build_args: {},
       mounts: [],
+      workspace_dir: "/sandbox/workspace",
       preserve_after_exit_hours: 0
     });
   });

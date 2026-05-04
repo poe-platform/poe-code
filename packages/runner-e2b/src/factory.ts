@@ -47,6 +47,7 @@ export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
           type: "e2b",
           build_args: {},
           mounts: [],
+          workspace_dir: "/workspace",
           preserve_after_exit_hours: 24
         },
         env: {},
@@ -58,6 +59,7 @@ export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
         type: "e2b",
         build_args: {},
         mounts: [],
+        workspace_dir: "/workspace",
         preserve_after_exit_hours: 24
       }
     });

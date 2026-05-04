@@ -10,6 +10,7 @@ import { createHostRunner } from "../host/host-runner.js";
 import type {
   DockerMount,
   Engine,
+  ExecutionState,
   ExecutionEnvFactory,
   OpenSpec,
   OpenedEnv,
@@ -27,6 +28,21 @@ interface DockerRuntime {
   engine?: Engine;
   network?: string;
   extra_args?: string[];
+}
+
+export interface BuildDockerRuntimeTemplateInput {
+  cwd: string;
+  runtime: DockerRuntime;
+  state?: ExecutionState;
+  runner?: Runner;
+  force?: boolean;
+}
+
+export interface BuildDockerRuntimeTemplateResult {
+  backend: "docker";
+  hash: string;
+  image: string;
+  cached: boolean;
 }
 
 const containerCommand = ["sh", "-c", "while :; do sleep 3600; done"] as const;
@@ -244,30 +260,50 @@ async function resolveImage(input: {
     return input.runtime.image;
   }
 
+  const result = await buildDockerRuntimeTemplate({
+    cwd: input.spec.cwd,
+    runtime: input.runtime,
+    state: input.spec.state,
+    runner: input.runner
+  });
+  return result.image;
+}
+
+export async function buildDockerRuntimeTemplate(
+  input: BuildDockerRuntimeTemplateInput
+): Promise<BuildDockerRuntimeTemplateResult> {
+  const runner = input.runner ?? createHostRunner();
+  const engine = input.runtime.engine ?? detectEngine();
+  const context = detectContext();
   const dockerfilePath = path.resolve(
-    input.spec.cwd,
+    input.cwd,
     input.runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")
   );
-  const buildContext = path.resolve(input.spec.cwd, input.runtime.build_context ?? ".");
+  const buildContext = path.resolve(input.cwd, input.runtime.build_context ?? ".");
   const dockerfileBytes = await readFile(dockerfilePath);
   const hash = hashDockerTemplate(dockerfileBytes, input.runtime.build_args ?? {});
-  const cached = await input.spec.state?.templates.get("docker", hash);
+  const cached = input.force ? null : await input.state?.templates.get("docker", hash);
 
   if (cached?.image !== undefined) {
-    return cached.image;
+    return {
+      backend: "docker",
+      hash,
+      image: cached.image,
+      cached: true
+    };
   }
 
   const image = `poe-code/local:${hash}`;
   await buildImage({
-    runner: input.runner,
-    engine: input.engine,
-    context: input.context,
+    runner,
+    engine,
+    context,
     image,
     dockerfilePath,
     buildContext,
     buildArgs: input.runtime.build_args ?? {}
   });
-  await input.spec.state?.templates.put("docker", {
+  await input.state?.templates.put("docker", {
     hash,
     image,
     runtime_type: "docker",
@@ -275,7 +311,12 @@ async function resolveImage(input: {
     built_at: new Date().toISOString()
   });
 
-  return image;
+  return {
+    backend: "docker",
+    hash,
+    image,
+    cached: false
+  };
 }
 
 function hashDockerTemplate(dockerfileBytes: Buffer, buildArgs: Record<string, string>): string {

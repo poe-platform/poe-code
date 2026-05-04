@@ -31,6 +31,7 @@ import { registerExperimentCommand } from "./commands/experiment.js";
 import { registerLaunchCommand } from "./commands/launch.js";
 import { registerMemoryCommand } from "./commands/memory.js";
 import { registerProviderCommand } from "./commands/provider.js";
+import { registerRuntimeCommand } from "./commands/runtime/index.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -92,6 +93,10 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["provider", "list"] },
   { path: ["provider", "login"], args: "<id>" },
   { path: ["provider", "logout"], args: "<id>" },
+  { path: ["runtime", "init"] },
+  { path: ["runtime", "build"] },
+  { path: ["runtime", "templates", "ls"] },
+  { path: ["runtime", "templates", "clear"] },
   { path: ["experiment", "install"] },
   { path: ["experiment", "run"] },
   { path: ["experiment", "journal"] },
@@ -200,7 +205,8 @@ function formatHelpItem(input: {
   const paddedTerm = input.term.padEnd(
     input.termWidth + input.term.length - input.helper.displayWidth(input.term)
   );
-  const remainingWidth = (input.helper.helpWidth ?? 80) - input.termWidth - spacerWidth - itemIndent;
+  const remainingWidth =
+    (input.helper.helpWidth ?? 80) - input.termWidth - spacerWidth - itemIndent;
   const descriptionIndent = `${indent}${" ".repeat(spacerWidth)}`;
 
   if (remainingWidth < input.helper.minWidthToWrap) {
@@ -229,10 +235,7 @@ function formatHelpText(input: {
   helper: Help;
 }): string {
   const commandRows = buildRootHelpRows(input.command);
-  const nameWidth = Math.max(
-    0,
-    ...commandRows.map((row) => row.name.length)
-  );
+  const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));
   const argsWidth = Math.max(0, ...commandRows.map((row) => row.args.length));
   const termWidth = nameWidth + 1 + argsWidth;
   const cmd = (row: (typeof commandRows)[number]) => {
@@ -266,7 +269,11 @@ function formatHelpText(input: {
 
 function formatSubcommandHelp(cmd: Command, helper: Help): string {
   const termWidth = helper.padWidth(cmd, helper);
-  const formatItem = (term: string, description: string, style: (value: string) => string): string =>
+  const formatItem = (
+    term: string,
+    description: string,
+    style: (value: string) => string
+  ): string =>
     formatHelpItem({
       term: style(term),
       termWidth,
@@ -278,7 +285,10 @@ function formatSubcommandHelp(cmd: Command, helper: Help): string {
 
   const output: string[] = [];
   output.push(text.heading(formatCommandHeader(cmd)), "");
-  output.push(`${text.section("Usage:")} ${text.usageCommand(formatCanonicalCommandUsage(cmd))}`, "");
+  output.push(
+    `${text.section("Usage:")} ${text.usageCommand(formatCanonicalCommandUsage(cmd))}`,
+    ""
+  );
 
   const commandDescription = helper.commandDescription(cmd);
   if (commandDescription.length > 0) {
@@ -350,7 +360,9 @@ function buildToolcraftArgv(argv: string[], commandNames: readonly string[]): st
     return [entry, script];
   }
 
-  const forwardedFlags = argv.slice(2, commandIndex).filter((value) => FORWARDABLE_TOOLCRAFT_FLAGS.has(value));
+  const forwardedFlags = argv
+    .slice(2, commandIndex)
+    .filter((value) => FORWARDABLE_TOOLCRAFT_FLAGS.has(value));
   const commandArgs = argv.slice(commandIndex);
 
   if (commandArgs.length === 1) {
@@ -474,6 +486,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerLaunchCommand(program, container);
   registerMemoryCommand(program, container);
   registerProviderCommand(program, container);
+  registerRuntimeCommand(program, container);
   registerForwardedToolcraftCommand(
     program,
     container,

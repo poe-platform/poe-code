@@ -1,0 +1,16 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`runtime command > snapshots runtime templates clear output and removes local template entries 1`] = `
+"runtime templates clear
+Cleared 1 local runtime template cache entry."
+`;
+
+exports[`runtime command > snapshots runtime templates ls output grouped by backend 1`] = `
+"runtime templates ls
+┌────────────┬──────────────────┬──────────────────────────────────┬──────────────────────────────────────┬──────────────────────────┐
+│ Backend    │ Hash             │ Artifact                         │ Dockerfile                           │ Built                    │
+├────────────┼──────────────────┼──────────────────────────────────┼──────────────────────────────────────┼──────────────────────────┤
+│ docker     │ abc123           │ poe-code/local:abc123            │ /repo/.poe-code/Dockerfile           │ 2026-05-03T10:00:00.000Z │
+│ e2b        │ def456           │ tmpl_def456                      │ /repo/.poe-code/Dockerfile           │ 2026-05-03T11:00:00.000Z │
+└────────────┴──────────────────┴──────────────────────────────────┴──────────────────────────────────────┴──────────────────────────┘"
+`;

@@ -33,9 +33,7 @@ describe("dockerExecutionEnvFactory", () => {
   });
 
   it("opens a persistent container from a configured image with runtime mounts", async () => {
-    const runner = createCapturingRunner([
-      { exitCode: 0, stdout: ["container-from-image\n"] }
-    ]);
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["container-from-image\n"] }]);
     const state = createState(null);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
 
@@ -103,9 +101,7 @@ describe("dockerExecutionEnvFactory", () => {
   });
 
   it("uses a cached dockerfile image when the template hash exists", async () => {
-    const runner = createCapturingRunner([
-      { exitCode: 0, stdout: ["cached-container\n"] }
-    ]);
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["cached-container\n"] }]);
     vi.mocked(readFile).mockResolvedValue(Buffer.from("FROM alpine\n"));
     const state = createState({
       image: "poe-code/local:cached",
@@ -191,6 +187,44 @@ describe("dockerExecutionEnvFactory", () => {
     });
   });
 
+  it("exposes a build helper that can force rebuilds past the template cache", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0 }]);
+    vi.mocked(readFile).mockResolvedValue(Buffer.from("FROM alpine\n"));
+    const state = createState({
+      image: "poe-code/local:cached",
+      hash: "unused",
+      runtime_type: "docker",
+      dockerfile_path: "/repo/Dockerfile",
+      built_at: "2026-05-03T00:00:00.000Z"
+    });
+    const { buildDockerRuntimeTemplate } = await import("./docker-execution-env.js");
+
+    const result = await buildDockerRuntimeTemplate({
+      cwd: "/repo",
+      runtime: {
+        type: "docker",
+        dockerfile: "Dockerfile",
+        build_context: ".",
+        build_args: {}
+      },
+      state,
+      runner,
+      force: true
+    });
+
+    expect(result).toEqual({
+      backend: "docker",
+      cached: false,
+      hash: expect.any(String),
+      image: expect.stringMatching(/^poe-code\/local:[a-f0-9]{64}$/)
+    });
+    expect(runner.specs[0]).toMatchObject({
+      command: "docker",
+      args: ["build", "--tag", result.image, "-f", "/repo/Dockerfile", "/repo"]
+    });
+    expect(state.putCalls).toHaveLength(1);
+  });
+
   it("executes commands inside the opened container", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0, stdout: ["container-id\n"] },
@@ -222,18 +256,7 @@ describe("dockerExecutionEnvFactory", () => {
 
     expect(runner.specs[1]).toEqual({
       command: "docker",
-      args: [
-        "exec",
-        "-i",
-        "-t",
-        "-w",
-        "/workspace",
-        "-e",
-        "A=1",
-        "container-id",
-        "printf",
-        "ok"
-      ],
+      args: ["exec", "-i", "-t", "-w", "/workspace", "-e", "A=1", "container-id", "printf", "ok"],
       stdin: "pipe",
       stdout: "pipe",
       stderr: "pipe",
@@ -430,7 +453,11 @@ function createCapturingRunner(
   return runner;
 }
 
-function createHandle(result: { exitCode: number; stdout?: string[]; stderr?: string[] }): RunHandle {
+function createHandle(result: {
+  exitCode: number;
+  stdout?: string[];
+  stderr?: string[];
+}): RunHandle {
   return {
     pid: 123,
     stdin: null,

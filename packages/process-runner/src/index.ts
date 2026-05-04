@@ -1,7 +1,10 @@
 export { buildContextArgs, detectContext } from "./docker/context.js";
 export { detectEngine, isEngineAvailable } from "./docker/engine.js";
 export { createDockerRunner } from "./docker/docker-runner.js";
-export { dockerExecutionEnvFactory } from "./docker/docker-execution-env.js";
+export {
+  buildDockerRuntimeTemplate,
+  dockerExecutionEnvFactory
+} from "./docker/docker-execution-env.js";
 export { hostExecutionEnvFactory } from "./host/host-execution-env.js";
 export { createHostRunner } from "./host/host-runner.js";
 export { createMockRunner, createMockRunnerByCommand } from "./testing/index.js";

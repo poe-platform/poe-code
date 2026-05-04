@@ -28,6 +28,17 @@ describe("AS006_007", () => {
     ]);
   });
 
+  it("counts reads inside named and default export declarations", () => {
+    const source = [
+      'import { S } from "schema";',
+      'import { run } from "agent";',
+      "export const schema = S.Object({ name: S.String() });",
+      "export default (input) => run(input.name);"
+    ].join("\n");
+
+    expect(AS006_007(source, { filename: "rule.js" })).toEqual([]);
+  });
+
   it("reports unread const and let bindings as AS007 warnings but ignores writes and underscore-prefixed names", () => {
     const source = [
       "const used = 1;",

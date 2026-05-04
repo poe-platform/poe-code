@@ -599,8 +599,8 @@ tasks:
         - packages/agent-harness/src/index.ts — re-export
           `listBuiltinTemplates`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-harness-codegen

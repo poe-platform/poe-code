@@ -1,0 +1,56 @@
+import { S } from "schema";
+import { spawn } from "agent";
+import { event } from "log";
+
+export const schema = S.Object({
+  "$schema": S.Enum(["https://poe-platform.github.io/poe-code/schemas/harnesses/pipeline-demo.schema.json"]),
+  kind: S.Enum(["pipeline-demo"]),
+  version: S.Number(),
+  agents: S.Object({
+    builder: S.Object({
+      agent: S.String(),
+      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      prompt: S.Optional(S.String())
+    }),
+    reviewer: S.Object({
+      agent: S.String(),
+      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      prompt: S.Optional(S.String())
+    })
+  }),
+  tasks: S.Array(
+    S.Object({
+      id: S.String(),
+      title: S.String(),
+      prompt: S.String()
+    }),
+    { minItems: 1 }
+  )
+});
+
+export default async (frontmatter) => {
+  const meta = import.meta;
+  const taskIds = await frontmatter.tasks.reduce(async (previousTaskIds, task) => {
+    const taskIdsSoFar = await previousTaskIds;
+    event("task.started", { id: task.id, title: task.title });
+    const build = await spawn(frontmatter.agents.builder, {
+      prompt: task.id.concat(": ", task.title, "\n\n", task.prompt, "\n\n", meta.body)
+    });
+    const review = await spawn(frontmatter.agents.reviewer, {
+      prompt: "Review ".concat(task.id, "\n\n", build.summary)
+    });
+    event("task.completed", {
+      id: task.id,
+      build: build.summary,
+      review: review.summary
+    });
+    return taskIdsSoFar.concat(task.id);
+  }, Promise.resolve([]));
+
+  return {
+    kind: meta.kind,
+    filename: meta.filename,
+    dirname: meta.dirname,
+    taskIds
+  };
+};

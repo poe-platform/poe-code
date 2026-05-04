@@ -1,0 +1,74 @@
+import { S } from "schema";
+import { spawn } from "agent";
+import { event } from "log";
+
+export const schema = S.Object({
+  "$schema": S.Enum(["https://poe-platform.github.io/poe-code/schemas/harnesses/superintendent-demo.schema.json"]),
+  kind: S.Enum(["superintendent-demo"]),
+  version: S.Number(),
+  agents: S.Object({
+    builder: S.Object({
+      agent: S.String(),
+      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      prompt: S.Optional(S.String())
+    }),
+    security: S.Object({
+      agent: S.String(),
+      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      prompt: S.Optional(S.String())
+    }),
+    perf: S.Object({
+      agent: S.String(),
+      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      prompt: S.Optional(S.String())
+    }),
+    tests: S.Object({
+      agent: S.String(),
+      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      prompt: S.Optional(S.String())
+    }),
+    judge: S.Object({
+      agent: S.String(),
+      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      prompt: S.Optional(S.String())
+    }),
+    owner: S.Object({
+      agent: S.String(),
+      mode: S.Optional(S.Enum(["read", "edit", "yolo"])),
+      prompt: S.Optional(S.String())
+    })
+  }),
+  max_rounds: S.Number({ minimum: 1 })
+});
+
+export default async (frontmatter) => {
+  const meta = import.meta;
+  const inspectors = [frontmatter.agents.security, frontmatter.agents.perf, frontmatter.agents.tests];
+  const builder = await spawn(frontmatter.agents.builder, {
+    prompt: "Round 1: ".concat(meta.body)
+  });
+  const reports = await Promise.all(
+    inspectors.map(async (inspector) =>
+      await spawn(inspector, {
+        prompt: "Inspect round 1\n\n".concat(builder.summary)
+      })
+    )
+  );
+  const verdict = await spawn(frontmatter.agents.judge, {
+    prompt: "Judge round 1\n\n".concat(reports.map((report) => report.summary).join("\n"))
+  });
+  const owner = await spawn(frontmatter.agents.owner, { prompt: verdict.summary });
+  event("round.completed", {
+    round: 1,
+    owner: owner.summary
+  });
+
+  return {
+    kind: meta.kind,
+    filename: meta.filename,
+    dirname: meta.dirname,
+    rounds: 1,
+    maxRounds: frontmatter.max_rounds,
+    inspectors: reports.length
+  };
+};

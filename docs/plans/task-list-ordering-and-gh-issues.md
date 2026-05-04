@@ -68,7 +68,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: gh-issues-client
     title: GitHub GraphQL client + auth (gh auth token via @poe-code/process-runner)
@@ -133,9 +133,9 @@ tasks:
       - No `@modelcontextprotocol/sdk`.
       - Tests mock fetch + runner; no live network.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: gh-issues-skeleton
     title: gh-issues backend skeleton — open, fetch Status field, build state machine

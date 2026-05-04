@@ -231,8 +231,8 @@ tasks:
       - Tests inject `fetch` via the deps; no live API.
       - Use `memfs` if any filesystem touches sneak in (none expected).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: gh-issues-read

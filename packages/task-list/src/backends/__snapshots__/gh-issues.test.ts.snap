@@ -1,0 +1,24 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`ghIssuesBackend > keeps the project GraphQL request wire shape stable 1`] = `
+{
+  "query": "query Project($owner: String!, $number: Int!) {
+  organization(login: $owner) {
+    projectV2(number: $number) {
+      id
+      title
+      field(name: "Status") {
+        ... on ProjectV2SingleSelectField {
+          id
+          options { id name }
+        }
+      }
+    }
+  }
+}",
+  "variables": {
+    "number": 7,
+    "owner": "octo-org",
+  },
+}
+`;

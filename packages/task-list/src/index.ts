@@ -40,3 +40,4 @@ export {
   type ResolveAuthOptions,
   type ResolveEndpointOptions
 } from "./backends/gh-issues-client.js";
+export { ghIssuesBackend, type GhIssuesBackendDeps } from "./backends/gh-issues.js";

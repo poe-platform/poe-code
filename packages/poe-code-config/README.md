@@ -22,6 +22,53 @@ This package is responsible for merging global and project config documents. CLI
 
 Use `resolveConfigPath(homeDir)` for the global file and `resolveProjectConfigPath(cwd)` for the project file.
 
+## State locations
+
+Runtime state is global to the local machine and lives under `~/.poe-code/state`.
+
+- Template cache: `~/.poe-code/state/templates.json`
+- Runtime jobs: `~/.poe-code/state/jobs/<job_id>.json`
+
+Use `loadStateManager(homeDir)` for node-backed state or `createStateManager(homeDir, fs)` when tests need an injected filesystem.
+
+## Runtime Scope
+
+The `runtime` scope describes where commands execute. `parseRuntime(...)` accepts:
+
+- `type`: `host`, `docker`, or `e2b`. Defaults to `host`.
+- `build_args`: build argument object used by image/template builds. Defaults to `{}`.
+- `mounts`: additional runtime mounts. Defaults to `[]`.
+- `link`: optional informational URL or label for the runtime definition.
+
+Docker-specific options:
+
+- `image`: prebuilt Docker image. When present, no Dockerfile build is required.
+- `dockerfile`: Dockerfile path. Defaults to `.poe-code/Dockerfile` when a build is needed.
+- `build_context`: Docker build context. Defaults to the current project directory.
+- `engine`: `docker` or `podman`.
+- `network`: Docker network.
+- `extra_args`: additional container runtime arguments.
+
+E2B-specific options:
+
+- `template_id`: prebuilt E2B template id. When present, no template build is required.
+- `dockerfile`: Dockerfile path. Defaults to `.poe-code/Dockerfile` when a template build is needed.
+- `build_context`: E2B template build context. Defaults to the current project directory.
+- `cpu`: CPU count for template builds.
+- `memory_mb`: memory in megabytes for template builds.
+- `timeout_minutes`: sandbox timeout in minutes.
+- `preserve_after_exit_hours`: hours to keep a detached sandbox alive after job exit. Defaults to `24`; valid range is `0` to `168`.
+- `api_key_env`: host environment variable containing the E2B API key. Defaults to `E2B_API_KEY`.
+
+## Runner Scope
+
+Runner settings are stored as `runtime.runner` in config and parsed with `parseRunner(...)`.
+
+- `detach`: run through a detached runtime job when the backend supports it. Defaults to `false`.
+- `upload_max_file_mb`: maximum file size uploaded during workspace transfer. Defaults to `100`.
+- `download_conflict`: sync-back conflict policy, either `refuse` or `overwrite`. Defaults to `refuse`.
+- `workspace.exclude`: upload exclusion list. Defaults to `.git`, `node_modules`, `dist`, `.turbo`, `.next`, and `.poe-code/state.json`.
+
 ## Merge semantics
 
 Project config is read as an override on top of global config.

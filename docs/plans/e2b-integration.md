@@ -522,7 +522,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: qa-and-readmes
     title: Manual QA doc, README updates, design-doc regeneration
@@ -556,7 +556,7 @@ tasks:
       Do NOT touch the project root README without a separate request
       (per CLAUDE.md readme rule).
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

@@ -47,7 +47,13 @@ vi.mock("@poe-code/design-system", () => ({
     usageCommand: (value: string) => value,
   },
   formatCommandList: (commands: Array<{ name: string; description: string }>) =>
-    commands.map((command) => `  ${command.name}  ${command.description}`).join("\n"),
+    commands
+      .map((command) =>
+        command.description.length === 0
+          ? `  ${command.name}`
+          : `  ${command.name}  ${command.description}`
+      )
+      .join("\n"),
   formatOptionList: (options: Array<{ flags: string; description: string }>) =>
     options.map((option) => `  ${option.flags}  ${option.description}`).join("\n"),
   promptText: promptState.text,
@@ -687,11 +693,11 @@ describe("runCLI", () => {
       "toolcraft
 
       Commands
-        deploy --service <string>  
+        deploy --service <value>
         approvals  Inspect and execute queued approvals.
-          list [--state <string>]  List queued approvals.
-          show --approval-id <string>  Show one approval.
-          run --approval-id <string>  Run one queued approval.
+          list [--state <value>]  List queued approvals.
+          show --approval-id <id>  Show one approval.
+          run --approval-id <id>  Run one queued approval.
 
       Options
         --yes  Accept defaults, skip prompts
@@ -731,11 +737,11 @@ describe("runCLI", () => {
       "toolcraft
 
       Commands
-        deploy --service <string>  
+        deploy --service <value>
         approvals  Inspect and execute queued approvals.
-          list [--state <string>]  List queued approvals.
-          show --approval-id <string>  Show one approval.
-          run --approval-id <string>  Run one queued approval.
+          list [--state <value>]  List queued approvals.
+          show --approval-id <id>  Show one approval.
+          run --approval-id <id>  Run one queued approval.
 
       Options
         --preset <path>  Load parameter defaults from a JSON file
@@ -2002,8 +2008,8 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
-    expect(output).toContain("list-tasks [--section <string>]");
-    expect(output).toContain("details --task-gid <string>");
+    expect(output).toContain("list-tasks [--section <value>]");
+    expect(output).toContain("details --task-gid <value>");
   });
 
   it("renders nested command groups in root help", async () => {
@@ -2483,9 +2489,9 @@ describe("runCLI", () => {
     const output = readStdout(stdoutWrite);
     expect(output).toContain("poe-code generate text");
     expect(output).toContain("Options");
-    expect(output).toContain("--prompt <string>");
+    expect(output).toContain("--prompt <value>");
     expect(output).toContain("Generation prompt (required)");
-    expect(output).toContain("--model <string>");
+    expect(output).toContain("--model <value>");
     expect(output).toContain("Model identifier (default: GPT-4.1)");
     expect(output).not.toContain("Global options:");
     expect(output).not.toContain("--preset");
@@ -2493,6 +2499,111 @@ describe("runCLI", () => {
     expect(output).toContain("Secrets (environment)");
     expect(output).toContain("POE_API_KEY");
     expect(output).toContain("Inherited from generate group");
+  });
+
+  it("renders help value tokens from boolean defaults, schema metadata, and field names", async () => {
+    const inspect = defineCommand({
+      name: "inspect",
+      params: S.Object({
+        impliedFlag: S.Boolean({
+          description: "Implied false flag",
+        }),
+        flag: S.Boolean({
+          description: "Enable flag",
+          default: false,
+        }),
+        enabled: S.Boolean({
+          description: "Enabled by default",
+          default: true,
+        }),
+        date: S.String({
+          description: "Run date",
+          pattern: "^\\d{4}-\\d{2}-\\d{2}$",
+        }),
+        timestamp: S.String({
+          description: "Run timestamp",
+          pattern: "^\\d{4}-\\d{2}-\\d{2}T",
+        }),
+        callbackUrl: S.String({
+          description: "Callback URL",
+          format: "uri",
+        }),
+        userEmail: S.String({
+          description: "User email",
+          format: "email",
+        }),
+        reportFiles: S.Array(S.String({
+          description: "Report files",
+        })),
+        configPath: S.String({
+          description: "Config path",
+        }),
+        token: S.String({
+          description: "Token value",
+        }),
+        retries: S.Number({
+          description: "Retry count",
+        }),
+      }),
+      handler: async () => null,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [inspect],
+    });
+
+    process.argv = ["node", "toolcraft", "inspect", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("--implied-flag  Implied false flag (required)");
+    expect(output).toContain("--flag  Enable flag (default: false)");
+    expect(output).not.toContain("--flag [value]");
+    expect(output).toContain("--no-enabled  Enabled by default (default: true)");
+    expect(output).toContain("--date <YYYY-MM-DD>  Run date (required)");
+    expect(output).toContain("--timestamp <YYYY-MM-DDTHH:MM:SS>  Run timestamp (required)");
+    expect(output).toContain("--callback-url <url>  Callback URL (required)");
+    expect(output).toContain("--user-email <email>  User email (required)");
+    expect(output).toContain("--report-files <path...>  reportFiles (required)");
+    expect(output).toContain("--config-path <path>  Config path (required)");
+    expect(output).toContain("--token <value>  Token value (required)");
+    expect(output).toContain("--retries <value>  Retry count (required)");
+    expect(output).not.toMatch(/<(string|number)>/u);
+  });
+
+  it("renders field-name help tokens with snake casing", async () => {
+    const inspect = defineCommand({
+      name: "inspect",
+      params: S.Object({
+        configPath: S.String({
+          description: "Config path",
+        }),
+        ownerEmail: S.String({
+          description: "Owner email",
+        }),
+      }),
+      handler: async () => null,
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [inspect],
+    });
+
+    process.argv = ["node", "toolcraft", "inspect", "--help"];
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root, { casing: "snake" });
+
+    const output = readStdout(stdoutWrite);
+    expect(output).toContain("--config_path <path>  Config path (required)");
+    expect(output).toContain("--owner_email <email>  Owner email (required)");
+    expect(output).not.toMatch(/<(string|number)>/u);
   });
 
   it("renders help for oneOf, union, record, array-object, and json params", async () => {
@@ -2543,14 +2654,14 @@ describe("runCLI", () => {
 
     const output = readStdout(stdoutWrite);
     expect(output).toContain("--destination.kind <value>");
-    expect(output).toContain("--destination.address <string>");
-    expect(output).toContain("--destination.url <string>");
+    expect(output).toContain("--destination.address <value>");
+    expect(output).toContain("--destination.url <url>");
     expect(output).toContain("--contact-kind <value>");
-    expect(output).toContain("--contact.email <string>");
-    expect(output).toContain("--contact.phone <string>");
-    expect(output).toContain("--weights.<key> <number>");
-    expect(output).toContain("--recipients.<index>.name <string>");
-    expect(output).toContain("--recipients.<index>.email <string>");
+    expect(output).toContain("--contact.email <email>");
+    expect(output).toContain("--contact.phone <value>");
+    expect(output).toContain("--weights.<key> <value>");
+    expect(output).toContain("--recipients.<index>.name <name>");
+    expect(output).toContain("--recipients.<index>.email <email>");
     expect(output).toContain("--payload <json>");
   });
 

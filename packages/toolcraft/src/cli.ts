@@ -928,41 +928,23 @@ function resolveHelpTarget<TServices extends object>(
   };
 }
 
-function describeSchemaType(schema: FieldSchema): string {
-  switch (schema.kind) {
-    case "string":
-      return "string";
-
-    case "number":
-      return "number";
-
-    case "boolean":
-      return "boolean";
-
-    case "enum":
-      return "value";
-
-    case "array":
-      return `${describeSchemaType(unwrapOptional(schema.item) as FieldSchema)}...`;
-
-    case "json":
-      return "json";
-
-    default:
-      throw new UserError("Unsupported CLI schema kind.");
-  }
-}
-
 function formatHelpFieldFlags(field: FieldDefinition, globalLongOptionFlags: ReadonlySet<string>): string {
   if (field.positionalIndex !== undefined) {
     return formatPositionalToken(field);
   }
 
   if (field.schema.kind === "boolean") {
-    return `${formatOptionFlags(field, globalLongOptionFlags)} [value]`;
+    if (field.defaultValue === true) {
+      return `--no-${field.optionFlag.slice(2)}`;
+    }
+
+    return formatOptionFlags(field, globalLongOptionFlags);
   }
 
-  return `${formatOptionFlags(field, globalLongOptionFlags)} <${describeSchemaType(field.schema)}>`;
+  return `${formatOptionFlags(field, globalLongOptionFlags)} <${describeHelpValueToken(field.schema, {
+    displayPath: field.displayPath,
+    optionFlag: field.optionFlag,
+  })}>`;
 }
 
 function appendHelpMetadata(description: string, metadata: string[]): string {
@@ -992,6 +974,122 @@ function formatHelpFieldDescription(field: FieldDefinition): string {
   return appendHelpMetadata(description, metadata);
 }
 
+function describeKnownStringFormat(format: string | undefined): string | undefined {
+  switch (format) {
+    case "date":
+      return "date";
+
+    case "date-time":
+      return "datetime";
+
+    case "uri":
+      return "url";
+
+    case "email":
+      return "email";
+
+    default:
+      return undefined;
+  }
+}
+
+function describeKnownStringPattern(pattern: string | undefined): string | undefined {
+  if (pattern === undefined) {
+    return undefined;
+  }
+
+  if (pattern === "^\\d{4}-\\d{2}-\\d{2}$") {
+    return "YYYY-MM-DD";
+  }
+
+  if (pattern.startsWith("^\\d{4}-\\d{2}-\\d{2}T")) {
+    return "YYYY-MM-DDTHH:MM:SS";
+  }
+
+  return undefined;
+}
+
+function stripLongOptionPrefix(optionFlag: string): string {
+  return optionFlag.startsWith("--") ? optionFlag.slice(2) : optionFlag;
+}
+
+function getLastSegment(value: string, separator: string): string {
+  const segments = value.split(separator);
+  return segments[segments.length - 1] ?? value;
+}
+
+function matchesFieldNameSuffix(name: string, suffix: string): boolean {
+  const lowerName = name.toLowerCase();
+  const lowerSuffix = suffix.toLowerCase();
+
+  return (
+    lowerName === lowerSuffix ||
+    name.endsWith(suffix) ||
+    lowerName.endsWith(`-${lowerSuffix}`) ||
+    lowerName.endsWith(`_${lowerSuffix}`)
+  );
+}
+
+function describeFieldNameValueToken(displayPath: string, optionFlag: string): string | undefined {
+  const displayName = getLastSegment(displayPath, ".");
+  const optionName = getLastSegment(stripLongOptionPrefix(optionFlag), ".");
+  const candidates = [displayName, optionName];
+  const suffixTokens = [
+    ["Path", "path"],
+    ["Paths", "path"],
+    ["File", "path"],
+    ["Files", "path"],
+    ["Url", "url"],
+    ["Email", "email"],
+    ["Name", "name"],
+    ["Id", "id"],
+  ] as const;
+
+  for (const [suffix, token] of suffixTokens) {
+    if (candidates.some((candidate) => matchesFieldNameSuffix(candidate, suffix))) {
+      return token;
+    }
+  }
+
+  return undefined;
+}
+
+function describeHelpValueToken(
+  schema: FieldSchema,
+  field: {
+    displayPath: string;
+    optionFlag: string;
+  }
+): string {
+  if (schema.kind === "array") {
+    const itemSchema = unwrapOptional(schema.item);
+
+    if (itemSchema.kind === "array" || itemSchema.kind === "object") {
+      return "value...";
+    }
+
+    return `${describeHelpValueToken(itemSchema as FieldSchema, field)}...`;
+  }
+
+  if (schema.kind === "json") {
+    return "json";
+  }
+
+  if (schema.kind === "string") {
+    const metadataToken = describeKnownStringFormat(schema.format) ?? describeKnownStringPattern(schema.pattern);
+
+    if (metadataToken !== undefined) {
+      return metadataToken;
+    }
+  }
+
+  if (schema.kind === "enum") {
+    return "value";
+  }
+
+  return describeFieldNameValueToken(field.displayPath, field.optionFlag) ?? "value";
+}
+
 function describeDynamicFieldType(field: DynamicFieldDefinition): string {
   if (field.schema.kind === "record") {
     const valueSchema = unwrapOptional(field.schema.value);
@@ -1001,14 +1099,20 @@ function describeDynamicFieldType(field: DynamicFieldDefinition): string {
     }
 
     if (valueSchema.kind === "array") {
-      return `${describeSchemaType(valueSchema as FieldSchema)}`;
+      return describeHelpValueToken(valueSchema as FieldSchema, {
+        displayPath: field.optionPathDisplay,
+        optionFlag: field.optionFlag,
+      });
     }
 
     if (valueSchema.kind === "object") {
       return "value";
     }
 
-    return describeSchemaType(valueSchema as FieldSchema);
+    return describeHelpValueToken(valueSchema as FieldSchema, {
+      displayPath: field.optionPathDisplay,
+      optionFlag: field.optionFlag,
+    });
   }
 
   return "value";
@@ -1086,8 +1190,13 @@ function collectDynamicObjectHelpRows(
     rows.push({
       flags:
         childSchema.kind === "boolean"
-          ? `${optionFlag} [value]`
-          : `${optionFlag} <${describeSchemaType(childSchema as FieldSchema)}>`,
+          ? childSchema.default === true
+            ? `--no-${optionFlag.slice(2)}`
+            : optionFlag
+          : `${optionFlag} <${describeHelpValueToken(childSchema as FieldSchema, {
+            displayPath,
+            optionFlag,
+          })}>`,
       description: appendHelpMetadata(description, metadata),
     });
   }

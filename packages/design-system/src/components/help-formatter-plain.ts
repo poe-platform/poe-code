@@ -121,6 +121,10 @@ export function formatColumns(opts: FormatColumnsOptions): string {
 
   return rows
     .flatMap((row) => {
+      if (row.right.length === 0) {
+        return [`${firstIndent}${row.left}`];
+      }
+
       const rightLines = wrapWords(row.right, rightWidth);
       if (row.left.length > leftWidth) {
         return [

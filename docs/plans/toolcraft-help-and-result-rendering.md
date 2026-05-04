@@ -182,7 +182,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-help-field-tokens
     title: Boolean-aware and pattern-aware help field tokens
@@ -240,9 +240,9 @@ tasks:
         - <string>/<number> never appear in any rendered help row
           (regex assertion across the rendered output)
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: toolcraft-help-document-layout
     title: Heading line, Usage line, breadcrumb, flat commands list

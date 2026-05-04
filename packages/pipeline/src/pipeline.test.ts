@@ -1801,7 +1801,8 @@ describe("createPipelineSimulation", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     const fs = createFs({
-      "/repo/.poe-code/pipeline/plans/plan.yaml": [
+      "/repo/docs/plans/plan.md": [
+        "---",
         `$schema: ${pipelineDocumentSchemaId}`,
         "kind: pipeline",
         "version: 1",
@@ -1810,11 +1811,12 @@ describe("createPipelineSimulation", () => {
         "    title: Quick fix",
         "    prompt: Fix the timeout regression",
         "    status: open",
+        "---",
         ""
       ].join("\n")
     });
     const onLockStatusChange = vi.fn();
-    const initialUnlock = await lockWorkflow("/repo/.poe-code/pipeline/plans/plan.yaml", {
+    const initialUnlock = await lockWorkflow("/repo/docs/plans/plan.md", {
       fs,
       minTimeout: 10,
       maxTimeout: 10,
@@ -1825,7 +1827,7 @@ describe("createPipelineSimulation", () => {
       agent: "codex",
       cwd: "/repo",
       homeDir: "/home/test",
-      plan: ".poe-code/pipeline/plans/plan.yaml",
+      plan: "docs/plans/plan.md",
       fs,
       onLockStatusChange,
       runAgent: async () => ({
@@ -1841,8 +1843,7 @@ describe("createPipelineSimulation", () => {
     await vi.advanceTimersByTimeAsync(1);
     expect(onLockStatusChange).toHaveBeenNthCalledWith(1, {
       state: "waiting",
-      message:
-        "Another pipeline run is holding the lock for .poe-code/pipeline/plans/plan.yaml. Waiting..."
+      message: "Another pipeline run is holding the lock for docs/plans/plan.md. Waiting..."
     });
 
     await initialUnlock();
@@ -1852,7 +1853,7 @@ describe("createPipelineSimulation", () => {
 
     expect(onLockStatusChange).toHaveBeenNthCalledWith(2, {
       state: "acquired",
-      message: "Lock acquired for .poe-code/pipeline/plans/plan.yaml. Continuing."
+      message: "Lock acquired for docs/plans/plan.md. Continuing."
     });
     expect(result.stopReason).toBe("completed");
   });
@@ -1862,7 +1863,8 @@ describe("createPipelineSimulation", () => {
     vi.spyOn(Math, "random").mockReturnValue(0);
 
     const fs = createFs({
-      "/repo/.poe-code/pipeline/plans/plan.yaml": [
+      "/repo/docs/plans/plan.md": [
+        "---",
         `$schema: ${pipelineDocumentSchemaId}`,
         "kind: pipeline",
         "version: 1",
@@ -1871,11 +1873,12 @@ describe("createPipelineSimulation", () => {
         "    title: Quick fix",
         "    prompt: Fix the timeout regression",
         "    status: open",
+        "---",
         ""
       ].join("\n")
     });
     const onLockStatusChange = vi.fn();
-    const initialUnlock = await lockWorkflow("/repo/.poe-code/pipeline/plans/plan.yaml", {
+    const initialUnlock = await lockWorkflow("/repo/docs/plans/plan.md", {
       fs,
       minTimeout: 10,
       maxTimeout: 10,
@@ -1886,7 +1889,7 @@ describe("createPipelineSimulation", () => {
       agent: "codex",
       cwd: "/repo",
       homeDir: "/home/test",
-      plan: ".poe-code/pipeline/plans/plan.yaml",
+      plan: "docs/plans/plan.md",
       fs,
       onLockStatusChange,
       runAgent: async () => ({
@@ -2660,7 +2663,7 @@ describe("createPipelineSimulation", () => {
     expect((await readPlan()).tasks[0]?.status).toBe("failed");
   });
 
-  it("archives the plan file after all tasks complete", async () => {
+  it("archives the plan by id and renumbers remaining active plans after all tasks complete", async () => {
     const sim = createPipelineSimulation({
       plan: {
         tasks: [
@@ -2672,18 +2675,64 @@ describe("createPipelineSimulation", () => {
           }
         ]
       },
-      turns: [successTurn()]
+      turns: [successTurn()],
+      files: {
+        "docs/plans/02-follow-up.md": PIPELINE_MD_EMPTY
+      }
     });
 
     const { result, fs } = await sim.run();
 
     expect(result.stopReason).toBe("completed");
 
-    const archiveEntries = await fs.readdir("/repo/.poe-code/pipeline/plans/archive");
-    expect(archiveEntries).toContain("plan.yaml");
+    const archiveEntries = await fs.readdir("/repo/docs/plans/archive");
+    expect(archiveEntries).toContain("plan.md");
 
-    const originalEntries = await fs.readdir("/repo/.poe-code/pipeline/plans");
-    expect(originalEntries).not.toContain("plan.yaml");
+    const activeEntries = await fs.readdir("/repo/docs/plans");
+    expect(activeEntries.filter((entry) => entry.endsWith(".md")).sort()).toEqual([
+      "01-follow-up.md"
+    ]);
+  });
+
+  it("archives prefixed plans to archive/<id>.md and closes active numbering gaps", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/01-alpha.md": PIPELINE_MD_EMPTY,
+      "/repo/docs/plans/02-plan.md": [
+        "---",
+        "kind: pipeline",
+        "tasks:",
+        "  - id: quick-fix",
+        "    title: Quick fix",
+        "    prompt: Fix it",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n"),
+      "/repo/docs/plans/03-follow-up.md": PIPELINE_MD_EMPTY
+    });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/02-plan.md",
+      fs,
+      runAgent: async () => ({
+        stdout: "",
+        exitCode: 0
+      })
+    });
+
+    expect(result.stopReason).toBe("completed");
+
+    const archiveEntries = await fs.readdir("/repo/docs/plans/archive");
+    expect(archiveEntries.filter((entry) => entry.endsWith(".md")).sort()).toEqual(["plan.md"]);
+
+    const activeEntries = await fs.readdir("/repo/docs/plans");
+    expect(activeEntries.filter((entry) => entry.endsWith(".md")).sort()).toEqual([
+      "01-alpha.md",
+      "02-follow-up.md"
+    ]);
   });
 
   it("does not archive when plan was already complete (nothing_to_run)", async () => {
@@ -2705,8 +2754,8 @@ describe("createPipelineSimulation", () => {
 
     expect(result.stopReason).toBe("nothing_to_run");
 
-    const entries = await fs.readdir("/repo/.poe-code/pipeline/plans");
-    expect(entries).toContain("plan.yaml");
+    const entries = await fs.readdir("/repo/docs/plans");
+    expect(entries).toContain("plan.md");
   });
 
   it("uses per-step agent and model overrides", async () => {
@@ -3020,10 +3069,10 @@ describe("createPipelineSimulation", () => {
   it("resolves a file-backed var and interpolates it into task prompt", async () => {
     const sim = createPipelineSimulation({
       files: {
-        "docs/plans/my-feature.md": "# My Feature\nBuild the thing."
+        "docs/context/my-feature.md": "# My Feature\nBuild the thing."
       },
       plan: {
-        vars: { plan_doc: "{{file 'docs/plans/my-feature.md'}}" },
+        vars: { plan_doc: "{{file 'docs/context/my-feature.md'}}" },
         tasks: [
           {
             id: "task-1",

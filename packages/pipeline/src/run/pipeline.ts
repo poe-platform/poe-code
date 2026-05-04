@@ -1,7 +1,12 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
-import { lockWorkflow, makeRunLogFileName, resolveRunLogDir } from "@poe-code/agent-harness-tools";
+import {
+  archivePlan as archivePlanShared,
+  lockWorkflow,
+  makeRunLogFileName,
+  resolveRunLogDir
+} from "@poe-code/agent-harness-tools";
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
 import { writeTaskStatus } from "../plan/writer.js";
@@ -147,16 +152,28 @@ function resolveMode(
   return step.mode;
 }
 
-async function archivePlan(fs: PipelineFileSystem, absolutePlanPath: string): Promise<void> {
-  const dir = path.dirname(absolutePlanPath);
-  const archiveDir = path.join(dir, "archive");
-  const archivePath = path.join(archiveDir, path.basename(absolutePlanPath));
-  await fs.mkdir(archiveDir, { recursive: true });
-  await fs.rename(absolutePlanPath, archivePath);
+function planIdFromPath(absolutePlanPath: string): string {
+  const extension = path.extname(absolutePlanPath);
+  const stem = path.basename(absolutePlanPath, extension);
+  const separatorIndex = stem.indexOf("-");
+
+  if (separatorIndex <= 0) {
+    return stem;
+  }
+
+  const prefix = stem.slice(0, separatorIndex);
+  for (const char of prefix) {
+    if (char < "0" || char > "9") {
+      return stem;
+    }
+  }
+
+  return stem.slice(separatorIndex + 1);
 }
 
 export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
   const fs = options.fs ?? createDefaultFs();
+  const configuredPlanDirectory = options.planDirectory?.trim() || undefined;
   const runAgent = options.runAgent;
   if (!runAgent) {
     throw new Error("runPipeline requires a runAgent implementation.");
@@ -391,7 +408,14 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       if (selection.kind === "completed") {
         if (runsCompleted > 0) {
-          await archivePlan(fs, absolutePlanPath);
+          const id = planIdFromPath(absolutePlanPath);
+          await archivePlanShared({
+            cwd: options.cwd,
+            homeDir: options.homeDir,
+            planDirectory: configuredPlanDirectory ?? "docs/plans",
+            id,
+            fs: fs as unknown as NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>
+          });
           if (resolvedTeardown) {
             const { success, cancelled } = await runPhase(
               resolvedTeardown,

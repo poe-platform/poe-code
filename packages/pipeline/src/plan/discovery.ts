@@ -1,11 +1,12 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { parse as parseYaml } from "yaml";
-import { getYamlContent, parsePlan } from "./parser.js";
+import { discoverPlans } from "@poe-code/agent-harness-tools";
+import { parsePlan } from "./parser.js";
 import type { PipelineFileStat, PipelineFileSystem } from "../types.js";
-import { isNotFound, isRecord } from "../utils.js";
+import { isNotFound } from "../utils.js";
 
 type DiscoveryFs = Pick<PipelineFileSystem, "readFile" | "readdir" | "stat">;
+type DiscoverPlansFs = NonNullable<Parameters<typeof discoverPlans>[0]["fs"]>;
 
 type PlanCandidate = {
   path: string;
@@ -26,21 +27,6 @@ function createDefaultFs(): DiscoveryFs {
       } satisfies PipelineFileStat;
     }
   };
-}
-
-function isMarkdownFile(name: string): boolean {
-  return name.toLowerCase().endsWith(".md");
-}
-
-function isPipelinePlan(content: string): boolean {
-  let parsed: unknown;
-  try {
-    parsed = parseYaml(getYamlContent(content));
-  } catch {
-    return false;
-  }
-
-  return isRecord(parsed) && parsed.kind === "pipeline";
 }
 
 function countCompletedTasks(planPath: string, content: string): PlanCandidate {
@@ -76,44 +62,6 @@ async function ensurePlanExists(fs: DiscoveryFs, cwd: string, planPath: string):
   }
 }
 
-async function scanPlansDir(
-  fs: DiscoveryFs,
-  plansDir: string,
-  displayPrefix: string
-): Promise<PlanCandidate[]> {
-  let entries: string[];
-  try {
-    entries = await fs.readdir(plansDir);
-  } catch (error) {
-    if (isNotFound(error)) {
-      return [];
-    }
-    throw error;
-  }
-
-  const candidates: PlanCandidate[] = [];
-  for (const entry of entries) {
-    if (!isMarkdownFile(entry)) {
-      continue;
-    }
-
-    const absolutePath = path.join(plansDir, entry);
-    const stat = await fs.stat(absolutePath);
-    if (!stat.isFile()) {
-      continue;
-    }
-
-    const displayPath = path.join(displayPrefix, entry);
-    const content = await fs.readFile(absolutePath, "utf8");
-    if (!isPipelinePlan(content)) {
-      continue;
-    }
-    candidates.push(countCompletedTasks(displayPath, content));
-  }
-
-  return candidates;
-}
-
 async function listPlanCandidates(
   fs: DiscoveryFs,
   cwd: string,
@@ -121,19 +69,20 @@ async function listPlanCandidates(
   planDirectory?: string
 ): Promise<PlanCandidate[]> {
   const dir = planDirectory?.trim() || "docs/plans";
-  const candidates = await scanCustomPlanDir(fs, dir, cwd, homeDir);
+  const discovered = await discoverPlans({
+    cwd,
+    homeDir,
+    planDirectory: dir,
+    kinds: ["pipeline"],
+    fs: fs as unknown as DiscoverPlansFs
+  });
+  const candidates = await Promise.all(
+    discovered.map(async (candidate) =>
+      countCompletedTasks(candidate.displayPath, await fs.readFile(candidate.absolutePath, "utf8"))
+    )
+  );
   candidates.sort((left, right) => left.path.localeCompare(right.path));
   return candidates;
-}
-
-async function scanCustomPlanDir(
-  fs: DiscoveryFs,
-  planDirectory: string,
-  cwd: string,
-  homeDir: string
-): Promise<PlanCandidate[]> {
-  const absoluteDir = resolveAbsoluteDirectory(planDirectory, cwd, homeDir);
-  return scanPlansDir(fs, absoluteDir, planDirectory);
 }
 
 function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): string {

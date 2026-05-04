@@ -453,6 +453,24 @@ exports[`ghIssuesBackend > create({ name, description }) issues the GitHub issue
 ]
 `;
 
+exports[`ghIssuesBackend > delete("482") deletes the project item only 1`] = `
+[
+  {
+    "query": "mutation DeleteProjectItem($input: DeleteProjectV2ItemInput!) {
+  deleteProjectV2Item(input: $input) {
+    deletedItemId
+  }
+}",
+    "variables": {
+      "input": {
+        "itemId": "item-482",
+        "projectId": "project-id",
+      },
+    },
+  },
+]
+`;
+
 exports[`ghIssuesBackend > fire ignores metadataPatch and only writes the Status field 1`] = `
 [
   {
@@ -627,6 +645,148 @@ exports[`ghIssuesBackend > keeps the project GraphQL request wire shape stable 1
     "owner": "octo-org",
   },
 }
+`;
+
+exports[`ghIssuesBackend > move("482", { after: "100" }) positions after the anchor item 1`] = `
+[
+  {
+    "query": "mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
+  updateProjectV2ItemPosition(input: $input) {
+    clientMutationId
+  }
+}",
+    "variables": {
+      "input": {
+        "afterId": "item-100",
+        "itemId": "item-482",
+        "projectId": "project-id",
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > move("482", { before: "100" }) positions after the anchor predecessor 1`] = `
+[
+  {
+    "query": "mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
+  updateProjectV2ItemPosition(input: $input) {
+    clientMutationId
+  }
+}",
+    "variables": {
+      "input": {
+        "afterId": "item-200",
+        "itemId": "item-482",
+        "projectId": "project-id",
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > move("482", { position: "bottom" }) does not position an item after itself 1`] = `
+[
+  {
+    "query": "mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
+  updateProjectV2ItemPosition(input: $input) {
+    clientMutationId
+  }
+}",
+    "variables": {
+      "input": {
+        "afterId": "item-100",
+        "itemId": "item-482",
+        "projectId": "project-id",
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > move("482", { position: "bottom" }) positions after the last item 1`] = `
+[
+  {
+    "query": "mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
+  updateProjectV2ItemPosition(input: $input) {
+    clientMutationId
+  }
+}",
+    "variables": {
+      "input": {
+        "afterId": "item-100",
+        "itemId": "item-482",
+        "projectId": "project-id",
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > move("482", { position: "top" }) positions at the top 1`] = `
+[
+  {
+    "query": "mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
+  updateProjectV2ItemPosition(input: $input) {
+    clientMutationId
+  }
+}",
+    "variables": {
+      "input": {
+        "afterId": null,
+        "itemId": "item-482",
+        "projectId": "project-id",
+      },
+    },
+  },
+]
+`;
+
+exports[`ghIssuesBackend > reorder(["100", "200", "482"]) issues sequential position mutations 1`] = `
+[
+  {
+    "query": "mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
+  updateProjectV2ItemPosition(input: $input) {
+    clientMutationId
+  }
+}",
+    "variables": {
+      "input": {
+        "afterId": null,
+        "itemId": "item-100",
+        "projectId": "project-id",
+      },
+    },
+  },
+  {
+    "query": "mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
+  updateProjectV2ItemPosition(input: $input) {
+    clientMutationId
+  }
+}",
+    "variables": {
+      "input": {
+        "afterId": "item-100",
+        "itemId": "item-200",
+        "projectId": "project-id",
+      },
+    },
+  },
+  {
+    "query": "mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
+  updateProjectV2ItemPosition(input: $input) {
+    clientMutationId
+  }
+}",
+    "variables": {
+      "input": {
+        "afterId": "item-200",
+        "itemId": "item-482",
+        "projectId": "project-id",
+      },
+    },
+  },
+]
 `;
 
 exports[`ghIssuesBackend > update uses the issue id cached by create 1`] = `

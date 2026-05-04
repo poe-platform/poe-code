@@ -408,7 +408,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: gh-issues-reorder-delete
     title: gh-issues reorder + delete — move, reorder, delete
@@ -468,8 +468,8 @@ tasks:
       - No `child_process.spawn`.
       - Tests inject `fetch`; no live API.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: gh-issues-wire

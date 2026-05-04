@@ -2,6 +2,7 @@ import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { spawn as nodeSpawn, spawnSync as nodeSpawnSync } from "node:child_process";
 import {
+  discoverPlans,
   resolveLoopAgent,
   resolveRunLogDir,
   resolveWorkflowPath,
@@ -848,10 +849,11 @@ async function resolveDocPath(options: {
       options.env,
       options.fs
     ));
-  const docs = await discoverSuperintendentDocs({
+  const docs = await discoverPlans({
     cwd: options.cwd,
     homeDir: options.homeDir,
     planDirectory,
+    kinds: ["superintendent"],
     fs: options.fs
   });
 
@@ -860,16 +862,16 @@ async function resolveDocPath(options: {
   }
 
   if (options.assumeYes || !options.interactive) {
-    return docs[0]!;
+    return docs[0]!.absolutePath;
   }
 
   const selected = await options.selectPrompt({
     message: "Select superintendent document",
-    options: docs.map((docPath) => ({
-      label: displayPath(docPath, options.cwd, options.homeDir),
-      value: docPath
+    options: docs.map((doc) => ({
+      label: doc.displayPath,
+      value: doc.absolutePath
     })),
-    initialValue: docs[0]
+    initialValue: docs[0]!.absolutePath
   });
 
   if (isCancel(selected)) {
@@ -880,66 +882,6 @@ async function resolveDocPath(options: {
   return selected;
 }
 
-async function discoverSuperintendentDocs(options: {
-  cwd: string;
-  homeDir: string;
-  planDirectory: string;
-  fs: SuperintendentFileSystem;
-}): Promise<string[]> {
-  const docs = await listPlanDirectoryDocs(
-    options.fs,
-    options.planDirectory,
-    options.cwd,
-    options.homeDir
-  );
-
-  const matches: string[] = [];
-
-  for (const docPath of docs) {
-    try {
-      const content = await options.fs.readFile(docPath, "utf8");
-      const document = parseSuperintendentDoc(docPath, content);
-      if (document.frontmatter.kind === "superintendent") {
-        matches.push(docPath);
-      }
-    } catch {
-      // Ignore invalid docs during discovery.
-    }
-  }
-
-  return matches;
-}
-
-async function listPlanDirectoryDocs(
-  fs: SuperintendentFileSystem,
-  planDirectory: string,
-  cwd: string,
-  homeDir: string
-): Promise<string[]> {
-  const absoluteDir = resolveAbsolutePlanDirectory(planDirectory, cwd, homeDir);
-  let entries: string[];
-  try {
-    entries = await fs.readdir(absoluteDir);
-  } catch (error) {
-    if (isMissingDirectory(error)) {
-      return [];
-    }
-    throw error;
-  }
-
-  return entries
-    .filter((entry) => entry.toLowerCase().endsWith(".md"))
-    .map((entry) => path.join(absoluteDir, entry))
-    .sort((left, right) => left.localeCompare(right));
-}
-
-function resolveAbsolutePlanDirectory(dir: string, cwd: string, homeDir: string): string {
-  if (dir.startsWith("~/")) {
-    return path.join(homeDir, dir.slice(2));
-  }
-  return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
-}
-
 function normalizeAgentSelection(value?: string | null): string | undefined {
   if (typeof value !== "string") {
     return undefined;
@@ -947,14 +889,6 @@ function normalizeAgentSelection(value?: string | null): string | undefined {
 
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function isMissingDirectory(error: unknown): boolean {
-  if (!error || typeof error !== "object" || !("code" in error)) {
-    return false;
-  }
-  const code = (error as { code?: unknown }).code;
-  return code === "ENOENT" || code === "ENOTDIR";
 }
 
 function createAgentRunner(options: {
@@ -1325,18 +1259,6 @@ function stripStopReason(result: SuperintendentRunResult): LoopState {
     maxRounds: result.maxRounds,
     maxReviewTurns: result.maxReviewTurns
   };
-}
-
-function displayPath(filePath: string, cwd: string, homeDir: string): string {
-  if (filePath.startsWith(`${cwd}${path.sep}`)) {
-    return path.relative(cwd, filePath);
-  }
-
-  if (filePath.startsWith(`${homeDir}${path.sep}`)) {
-    return `~/${path.relative(homeDir, filePath)}`;
-  }
-
-  return filePath;
 }
 
 function createDefaultFs(): SuperintendentFileSystem {

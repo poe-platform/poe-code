@@ -470,7 +470,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-harness-run
     title: Implement runHarnessPair end-to-end
@@ -549,9 +549,9 @@ tasks:
         - concurrent run: second invocation against same .md while the
           first holds the lock errors with EEXIST.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: agent-harness-templates
     title: Ship four demo template pairs

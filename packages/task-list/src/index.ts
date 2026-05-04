@@ -31,3 +31,12 @@ export {
   type Tasks,
   type TaskUpdate
 } from "./types.js";
+export {
+  createGhClient,
+  resolveAuth,
+  resolveEndpoint,
+  type GhClient,
+  type GhClientOptions,
+  type ResolveAuthOptions,
+  type ResolveEndpointOptions
+} from "./backends/gh-issues-client.js";

@@ -21,6 +21,7 @@
   ],
   "dependencies": {
     "@poe-code/file-lock": "*",
+    "@poe-code/process-runner": "*",
     "yaml": "*"
   }
 }

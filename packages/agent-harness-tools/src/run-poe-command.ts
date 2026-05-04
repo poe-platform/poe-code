@@ -43,6 +43,7 @@ export async function runPoeCommand(opts: {
 
   try {
     const upload = env.uploadWorkspace();
+    await Promise.all([pendingJob, upload]);
     const argv = wrapCommand
       ? wrapForLogTee(opts.openSpec.jobLabel.argv, jobId)
       : opts.openSpec.jobLabel.argv;
@@ -64,16 +65,20 @@ export async function runPoeCommand(opts: {
       handle.stdin?.end(execution.input);
     }
 
-    const runningJob = Promise.all([pendingJob, upload]).then(() =>
-      opts.state.jobs.update(jobId, {
-        status: "running",
-        env_id: env.id,
-        started_at: new Date().toISOString()
-      })
-    );
+    const runningJob = opts.state.jobs.update(jobId, {
+      status: "running",
+      env_id: env.id,
+      started_at: new Date().toISOString()
+    });
 
     if (opts.detach) {
       await runningJob;
+      setDetachedJobContext(env, {
+        id: jobId,
+        tool: opts.openSpec.jobLabel.tool,
+        argv: opts.openSpec.jobLabel.argv
+      });
+      await env.detach();
       shouldClose = false;
       return { kind: "detached", jobId, envId: env.id };
     }
@@ -326,6 +331,16 @@ function createAbortSync(
 function toLogStreamEnv(env: OpenedEnv): LogStreamEnv {
   const candidate = env as OpenedEnv & LogStreamEnv;
   return candidate.fs === undefined ? {} : { fs: candidate.fs };
+}
+
+function setDetachedJobContext(
+  env: OpenedEnv,
+  context: { id: string; tool: string; argv: string[] }
+): void {
+  const candidate = env as OpenedEnv & {
+    setDetachedJobContext?: (value: { id: string; tool: string; argv: string[] }) => void;
+  };
+  candidate.setDetachedJobContext?.(context);
 }
 
 function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {

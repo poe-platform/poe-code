@@ -25,9 +25,12 @@ interface RecordingState {
 
 interface MockEnv extends OpenedEnv {
   closed: boolean;
+  detached: boolean;
+  detachedJobContext: { id: string; tool: string; argv: string[] } | null;
   downloads: { conflictPolicy: "refuse" | "overwrite" }[];
   execSpecs: RunSpec[];
   fs: LogStreamFs;
+  setDetachedJobContext(context: { id: string; tool: string; argv: string[] }): void;
   uploads: number;
 }
 
@@ -78,11 +81,13 @@ function createOpenSpec(overrides: Partial<OpenSpec> = {}): OpenSpec {
   };
 }
 
-function createMockEnv(opts: {
-  result?: Promise<RunResult>;
-  commandExitCode?: number;
-  download?: DownloadResult;
-} = {}): MockEnv {
+function createMockEnv(
+  opts: {
+    result?: Promise<RunResult>;
+    commandExitCode?: number;
+    download?: DownloadResult;
+  } = {}
+): MockEnv {
   const result = opts.result ?? Promise.resolve({ exitCode: 0 });
   const commandExitCode = opts.commandExitCode ?? 0;
   const download = opts.download ?? { files: 0, bytes: 0, conflicts: [] };
@@ -91,6 +96,8 @@ function createMockEnv(opts: {
     id: "env-1",
     job: null,
     closed: false,
+    detached: false,
+    detachedJobContext: null,
     downloads: [],
     execSpecs: [],
     fs: rawFs as unknown as LogStreamFs,
@@ -116,7 +123,24 @@ function createMockEnv(opts: {
       };
     },
     async detach() {
-      throw new Error("detach is not used by runPoeCommand");
+      env.detached = true;
+      return {
+        id: env.detachedJobContext?.id ?? "job",
+        envId: env.id,
+        tool: env.detachedJobContext?.tool ?? "poe-code",
+        argv: env.detachedJobContext?.argv ?? [],
+        async status() {
+          return "running" as const;
+        },
+        async *stream() {},
+        async wait() {
+          return { exitCode: 0 };
+        },
+        async kill() {}
+      };
+    },
+    setDetachedJobContext(context) {
+      env.detachedJobContext = context;
     },
     shell(): RunHandle {
       throw new Error("shell is not used by runPoeCommand");
@@ -236,7 +260,47 @@ describe("runPoeCommand", () => {
     expect(result.jobId).toMatch(/^[0-9A-HJKMNP-TV-Z]{26}$/);
     expect(statuses).toEqual(["pending", "running"]);
     expect(env.closed).toBe(false);
+    expect(env.detached).toBe(true);
+    expect(env.detachedJobContext).toEqual({
+      id: result.jobId,
+      tool: "poe-code",
+      argv: ["poe-code", "--help"]
+    });
     expect(env.downloads).toEqual([]);
+  });
+
+  it("waits for workspace upload before starting the command", async () => {
+    const { state } = createRecordingState();
+    const upload = deferred<UploadResult>();
+    const env = createMockEnv();
+    const exec = env.exec.bind(env);
+    let uploadResolved = false;
+    let execStarted = false;
+
+    env.uploadWorkspace = async () => {
+      const result = await upload.promise;
+      uploadResolved = true;
+      return result;
+    };
+    env.exec = (spec): RunHandle => {
+      execStarted = true;
+      expect(uploadResolved).toBe(true);
+      return exec(spec);
+    };
+
+    const run = runPoeCommand({
+      factory: createFactory(env),
+      openSpec: createOpenSpec(),
+      detach: false,
+      state
+    });
+
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(execStarted).toBe(false);
+
+    upload.resolve({ files: 1, bytes: 12, skipped: [] });
+    await expect(run).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+    expect(execStarted).toBe(true);
   });
 
   it("returns the download result with conflicts from sync mode", async () => {

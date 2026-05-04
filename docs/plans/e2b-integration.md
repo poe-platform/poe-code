@@ -406,7 +406,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: runner-e2b-package
     title: Create runner-e2b package implementing e2bExecutionEnvFactory
@@ -466,8 +466,8 @@ tasks:
       Register the factory in the same `register-factories` module as host
       and docker.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: cli-runtime-jobs

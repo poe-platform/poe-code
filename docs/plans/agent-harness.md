@@ -152,8 +152,8 @@ tasks:
       `export default`. That decision belongs to the agent-harness
       loader, not the linter.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-script-runtime-entry

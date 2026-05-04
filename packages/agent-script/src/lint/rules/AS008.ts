@@ -358,8 +358,11 @@ class AS008Scanner {
     this.visitExpression(node.argument);
   }
 
-  private visitAssignmentTarget(node: ArrayPattern | Identifier | MemberExpression | ObjectPattern): void {
+  private visitAssignmentTarget(node: AssignmentExpression["left"]): void {
     if (node.type === "Identifier") {
+      return;
+    }
+    if (node.type === "MetaProperty") {
       return;
     }
     if (node.type === "MemberExpression") {

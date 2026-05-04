@@ -334,10 +334,11 @@ class AS012Scanner {
   }
 
   private visitPattern(
-    node: ArrayPattern | AssignmentPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+    node: AssignmentExpression["left"] | AssignmentPattern | RestElement
   ): void {
     switch (node.type) {
       case "Identifier":
+      case "MetaProperty":
         return;
       case "MemberExpression":
         this.visitMemberExpression(node);

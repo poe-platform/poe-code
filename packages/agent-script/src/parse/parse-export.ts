@@ -1,5 +1,5 @@
 import type { Token } from "./tokenizer.js";
-import type { ArrowFunctionExpression, SourceSpan, VariableDeclaration } from "./parser.js";
+import type { Expression, SourceSpan, VariableDeclaration } from "./parser.js";
 
 export type ExportNamedDeclaration = {
   nodeId?: number;
@@ -11,7 +11,7 @@ export type ExportNamedDeclaration = {
 export type ExportDefaultDeclaration = {
   nodeId?: number;
   type: "ExportDefaultDeclaration";
-  declaration: ArrowFunctionExpression;
+  declaration: Expression;
   span: SourceSpan;
 };
 
@@ -28,7 +28,7 @@ export function createExportNamedDeclaration(
 
 export function createExportDefaultDeclaration(
   exportToken: Token,
-  declaration: ArrowFunctionExpression
+  declaration: Expression
 ): ExportDefaultDeclaration {
   return {
     type: "ExportDefaultDeclaration",

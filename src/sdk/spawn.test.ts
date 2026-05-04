@@ -49,6 +49,12 @@ vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
   };
 });
 
+const getPoeApiKeyMock = vi.hoisted(() => vi.fn());
+
+vi.mock("./credentials.js", () => ({
+  getPoeApiKey: getPoeApiKeyMock
+}));
+
 import { spawn } from "./spawn.js";
 import {
   getAcpSpawnConfig,
@@ -87,6 +93,8 @@ function createMemFs(): FileSystem {
 
 beforeEach(() => {
   process.env = { ...originalEnv, POE_API_KEY: "test-key" };
+  getPoeApiKeyMock.mockReset();
+  getPoeApiKeyMock.mockResolvedValue("test-key");
   vi.mocked(spawnStreaming).mockReset();
   vi.mocked(spawnInteractive).mockReset();
   vi.mocked(agentSpawn).mockReset();
@@ -1223,5 +1231,45 @@ describe("spawn.autonomous()", () => {
         tee
       })
     );
+  });
+
+  it("propagates a stored Poe API key into process.env so the runtime sandbox sees it", async () => {
+    delete process.env.POE_API_KEY;
+    getPoeApiKeyMock.mockResolvedValue("stored-key");
+
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt");
+    await result;
+
+    expect(process.env.POE_API_KEY).toBe("stored-key");
+  });
+
+  it("does not overwrite POE_API_KEY when it is already exported", async () => {
+    process.env.POE_API_KEY = "exported-key";
+    getPoeApiKeyMock.mockResolvedValue("exported-key");
+
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt");
+    await result;
+
+    expect(process.env.POE_API_KEY).toBe("exported-key");
   });
 });

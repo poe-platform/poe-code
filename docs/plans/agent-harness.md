@@ -238,7 +238,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-harness-skeleton
     title: Create @poe-code/agent-harness package skeleton
@@ -269,7 +269,7 @@ tasks:
       those land in subsequent tasks. The package must build green
       (`npm run build` succeeds) at the end of this task.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: agent-harness-schema-module

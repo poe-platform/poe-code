@@ -36,6 +36,7 @@ Use these options under the `runtime` config scope:
 - `build_context`: build context path. Defaults to the project root.
 - `build_args`: build argument object included in the template hash.
 - `mounts`: runtime mounts passed through the shared runtime config.
+- `workspace_dir`: sandbox-local workspace directory used for upload, execution, and download. Defaults to `/workspace`.
 - `cpu`: CPU count used when building an E2B template.
 - `memory_mb`: memory in megabytes used when building an E2B template.
 - `timeout_minutes`: sandbox timeout in minutes.
@@ -56,6 +57,7 @@ Example project config:
     "type": "e2b",
     "dockerfile": ".poe-code/Dockerfile",
     "build_context": ".",
+    "workspace_dir": "/workspace",
     "timeout_minutes": 60,
     "preserve_after_exit_hours": 24,
     "runner": {

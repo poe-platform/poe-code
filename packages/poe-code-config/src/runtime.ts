@@ -43,6 +43,7 @@ export interface E2bRuntime extends SharedRuntimeFields {
   from_template?: string;
   dockerfile?: string;
   build_context?: string;
+  workspace_dir?: string;
   cpu?: number;
   memory_mb?: number;
   timeout_minutes?: number;
@@ -115,6 +116,11 @@ export const runtimeConfigScope = {
       type: "string",
       default: "",
       doc: "Path to the Docker build context"
+    },
+    workspace_dir: {
+      type: "string",
+      default: "/workspace",
+      doc: "Sandbox-local workspace directory for E2B runtime upload, execution, and download"
     },
     engine: {
       type: "string",
@@ -233,6 +239,7 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
       from_template: parseOptionalString(record.from_template),
       dockerfile: parseOptionalString(record.dockerfile),
       build_context: parseOptionalString(record.build_context),
+      workspace_dir: parseWorkspaceDir(record.workspace_dir),
       cpu: parseOptionalNumber(record.cpu),
       memory_mb: parseOptionalNumber(record.memory_mb),
       timeout_minutes: parseOptionalNumber(record.timeout_minutes),
@@ -338,6 +345,18 @@ function parseRuntimeType(value: unknown): RuntimeConfig["type"] {
     return value;
   }
   throw new Error('type: expected "host", "docker", or "e2b".');
+}
+
+function parseWorkspaceDir(value: unknown): string {
+  const workspaceDir = parseOptionalString(value) ?? "/workspace";
+  if (!path.posix.isAbsolute(workspaceDir)) {
+    throw new Error("workspace_dir: expected an absolute sandbox path.");
+  }
+  let normalized = path.posix.normalize(workspaceDir);
+  while (normalized.length > 1 && normalized.endsWith("/")) {
+    normalized = normalized.slice(0, -1);
+  }
+  return normalized;
 }
 
 function createDefaultRunnerScope(): RunnerScope {

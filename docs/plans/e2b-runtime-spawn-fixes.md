@@ -34,8 +34,8 @@ tasks:
       assertion that the sandbox path differs from the host cwd and
       uploads still round-trip.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: runRemoteOrThrow-error-tail

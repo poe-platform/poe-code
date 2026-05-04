@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
+import YAML from "yaml";
 import { defineCommand } from "./index.js";
 import { renderResult } from "./renderer.js";
 import type { RenderPrimitives } from "./index.js";
@@ -55,6 +56,74 @@ function render(result: unknown, output: OutputMode = "rich") {
 
   return { stdout, stderr, status };
 }
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe("renderResult auto renderer", () => {
+  it("renders strings as-is", () => {
+    expect(render("hello").stdout).toBe("hello\n");
+  });
+
+  it("renders string arrays joined with newlines", () => {
+    expect(render(["hello", "world"]).stdout).toBe("hello\nworld\n");
+  });
+
+  it("renders objects as YAML by default", () => {
+    expect(render({ foo: 1, bar: [1, 2] }).stdout).toMatchInlineSnapshot(`
+      "foo: 1
+      bar:
+        - 1
+        - 2
+
+      "
+    `);
+  });
+
+  it("renders arrays of objects as YAML by default", () => {
+    expect(render([{ foo: 1 }, { bar: [1, 2] }]).stdout).toMatchInlineSnapshot(`
+      "- foo: 1
+      - bar:
+          - 1
+          - 2
+
+      "
+    `);
+  });
+
+  it("invokes Command.render.rich and bypasses YAML", () => {
+    const stringifyYaml = vi.spyOn(YAML, "stringify");
+    const rich = vi.fn();
+    const command = createCommand({ foo: 1 }, { rich });
+    const primitives = createPrimitives();
+    let stdout = "";
+
+    renderResult(command, { foo: 1 }, "rich", primitives, (chunk) => {
+      stdout += chunk;
+    });
+
+    expect(rich).toHaveBeenCalledWith({ foo: 1 }, primitives);
+    expect(stdout).toBe("");
+    expect(stringifyYaml).not.toHaveBeenCalled();
+  });
+
+  it("uses the markdown renderer for --output md and bypasses YAML", () => {
+    const stringifyYaml = vi.spyOn(YAML, "stringify");
+
+    expect(render({ foo: 1, bar: [1, 2] }, "md").stdout).toBe("- foo: 1\n- bar: [1,2]\n");
+    expect(stringifyYaml).not.toHaveBeenCalled();
+  });
+
+  it("uses the JSON renderer for --output json and bypasses YAML", () => {
+    const stringifyYaml = vi.spyOn(YAML, "stringify");
+
+    expect(render({ foo: 1, bar: [1, 2] }, "json").stdout).toBe(
+      '{\n  "foo": 1,\n  "bar": [\n    1,\n    2\n  ]\n}\n'
+    );
+    expect(stringifyYaml).not.toHaveBeenCalled();
+  });
+});
 
 describe("renderResult MCP call tool envelopes", () => {
   it("unwraps structuredContent.result before rendering", () => {

@@ -1,9 +1,9 @@
 import {
   parseModule,
   type ArrayExpression,
-  type ArrowFunctionExpression,
   type AssignmentExpression,
-  type CatchClause,
+  type AssignmentPattern,
+  type BinaryExpression,
   type CallExpression,
   type ConditionalExpression,
   type Expression,
@@ -15,20 +15,29 @@ import {
   type Module,
   type ObjectExpression,
   type Property,
-  type ReturnStatement,
+  type RestElement,
   type SourceSpan,
+  type SpreadElement,
   type Statement,
   type TemplateLiteral,
   type ThrowStatement,
   type TryStatement,
   type UnaryExpression,
   type VariableDeclaration,
-  type VariableDeclarator
+  type VariableDeclarator,
+  type WhileStatement
 } from "../../parse/parser.js";
 
+type DiagnosticCode =
+  | "AS-EXPORT-DEFAULT-MULTIPLE"
+  | "AS-EXPORT-DEFAULT-NOT-ARROW"
+  | "AS-EXPORT-UNKNOWN"
+  | "AS-IMPORT-META-ASSIGN"
+  | "AS-RETURN-AT-TOP";
+
 export type Diagnostic = {
-  code: "AS011";
-  severity: "error";
+  code: DiagnosticCode;
+  severity: "error" | "warning";
   message: string;
   filename: string;
   line: number;
@@ -36,17 +45,20 @@ export type Diagnostic = {
   span: SourceSpan;
 };
 
-const FORBIDDEN_PROPERTY_NAMES = new Set(["__proto__", "prototype", "constructor"]);
-const MESSAGE = "Property access to '__proto__', 'prototype', and 'constructor' is not allowed.";
-
-export function AS011(source: string, options: { filename?: string } = {}): Diagnostic[] {
-  return new AS011Scanner(options.filename ?? "<input>").scan(source);
+export function AS_EXPORT_IMPORT_META(
+  source: string,
+  options: { allowedExportNames?: readonly string[]; filename?: string } = {}
+): Diagnostic[] {
+  return new Scanner(options.filename ?? "<input>", new Set(options.allowedExportNames ?? [])).scan(source);
 }
 
-class AS011Scanner {
+class Scanner {
   private readonly diagnostics: Diagnostic[] = [];
 
-  constructor(private readonly filename: string) {}
+  constructor(
+    private readonly filename: string,
+    private readonly allowedExportNames: ReadonlySet<string>
+  ) {}
 
   scan(source: string): Diagnostic[] {
     this.visitModule(parseModule(source, this.filename));
@@ -54,13 +66,50 @@ class AS011Scanner {
   }
 
   private visitModule(node: Module): void {
+    const defaultExports = node.body.filter((statement) => statement.type === "ExportDefaultDeclaration");
+    const hasDefaultExport = defaultExports.length > 0;
+
+    for (const [index, statement] of defaultExports.entries()) {
+      if (index > 0) {
+        this.pushDiagnostic(
+          "AS-EXPORT-DEFAULT-MULTIPLE",
+          "error",
+          "Module contains more than one export default declaration.",
+          statement.span
+        );
+      }
+    }
+
     for (const statement of node.body) {
+      if (hasDefaultExport && statement.type === "ReturnStatement") {
+        this.pushDiagnostic(
+          "AS-RETURN-AT-TOP",
+          "warning",
+          "Top-level return statement is present alongside an export default declaration.",
+          statement.span
+        );
+      }
+
       this.visitStatement(statement);
     }
   }
 
   private visitStatement(node: Statement): void {
     switch (node.type) {
+      case "ExportNamedDeclaration":
+        this.visitExportNamedDeclaration(node.declaration);
+        return;
+      case "ExportDefaultDeclaration":
+        if (node.declaration.type !== "ArrowFunctionExpression") {
+          this.pushDiagnostic(
+            "AS-EXPORT-DEFAULT-NOT-ARROW",
+            "error",
+            "Export default initializer must be an arrow expression.",
+            node.declaration.span
+          );
+        }
+        this.visitExpression(node.declaration);
+        return;
       case "BlockStatement":
         for (const statement of node.body) {
           this.visitStatement(statement);
@@ -79,8 +128,7 @@ class AS011Scanner {
         this.visitForOfStatement(node);
         return;
       case "WhileStatement":
-        this.visitExpression(node.test);
-        this.visitStatement(node.body);
+        this.visitWhileStatement(node);
         return;
       case "TryStatement":
         this.visitTryStatement(node);
@@ -89,7 +137,9 @@ class AS011Scanner {
         this.visitVariableDeclaration(node);
         return;
       case "ReturnStatement":
-        this.visitReturnStatement(node);
+        if (node.argument !== undefined) {
+          this.visitExpression(node.argument);
+        }
         return;
       case "ThrowStatement":
         this.visitThrowStatement(node);
@@ -99,6 +149,20 @@ class AS011Scanner {
       case "ContinueStatement":
         return;
     }
+  }
+
+  private visitExportNamedDeclaration(node: VariableDeclaration): void {
+    const declarator = node.declarations[0];
+    if (declarator?.id.type === "Identifier" && !this.allowedExportNames.has(declarator.id.name)) {
+      this.pushDiagnostic(
+        "AS-EXPORT-UNKNOWN",
+        "error",
+        `Named export '${declarator.id.name}' is not allowed.`,
+        declarator.id.span
+      );
+    }
+
+    this.visitVariableDeclaration(node);
   }
 
   private visitIfStatement(node: IfStatement): void {
@@ -130,27 +194,33 @@ class AS011Scanner {
     if (node.left.type === "VariableDeclaration") {
       this.visitVariableDeclaration(node.left);
     } else {
+      if (isImportMetaAssignmentTarget(node.left)) {
+        this.pushDiagnostic(
+          "AS-IMPORT-META-ASSIGN",
+          "error",
+          "Assignment target must not involve import.meta.",
+          node.left.span
+        );
+      }
       this.visitAssignmentTarget(node.left);
     }
     this.visitExpression(node.right);
     this.visitStatement(node.body);
   }
 
+  private visitWhileStatement(node: WhileStatement): void {
+    this.visitExpression(node.test);
+    this.visitStatement(node.body);
+  }
+
   private visitTryStatement(node: TryStatement): void {
     this.visitStatement(node.block);
     if (node.handler !== undefined) {
-      this.visitCatchClause(node.handler);
+      this.visitStatement(node.handler.body);
     }
     if (node.finalizer !== undefined) {
       this.visitStatement(node.finalizer);
     }
-  }
-
-  private visitCatchClause(node: CatchClause): void {
-    if (node.param !== undefined) {
-      this.visitAssignmentTarget(node.param);
-    }
-    this.visitStatement(node.body);
   }
 
   private visitVariableDeclaration(node: VariableDeclaration): void {
@@ -160,15 +230,8 @@ class AS011Scanner {
   }
 
   private visitVariableDeclarator(node: VariableDeclarator): void {
-    this.visitBindingTarget(node.id);
     if (node.init !== undefined) {
       this.visitExpression(node.init);
-    }
-  }
-
-  private visitReturnStatement(node: ReturnStatement): void {
-    if (node.argument !== undefined) {
-      this.visitExpression(node.argument);
     }
   }
 
@@ -179,7 +242,11 @@ class AS011Scanner {
   private visitExpression(node: Expression): void {
     switch (node.type) {
       case "ArrowFunctionExpression":
-        this.visitArrowFunction(node);
+        if (node.body.type === "BlockStatement") {
+          this.visitStatement(node.body);
+        } else {
+          this.visitExpression(node.body);
+        }
         return;
       case "AwaitExpression":
         this.visitExpression(node.argument);
@@ -217,38 +284,16 @@ class AS011Scanner {
       case "NullLiteral":
       case "NumericLiteral":
       case "StringLiteral":
+      case "RegexLiteral":
+      case "MetaProperty":
       case "UndefinedLiteral":
         return;
     }
   }
 
-  private visitArrowFunction(node: ArrowFunctionExpression): void {
-    for (const parameter of node.params) {
-      this.visitBindingTarget(parameter);
-    }
-
-    if (node.body.type === "BlockStatement") {
-      for (const statement of node.body.body) {
-        this.visitStatement(statement);
-      }
-      return;
-    }
-
-    this.visitExpression(node.body);
-  }
-
   private visitArrayExpression(node: ArrayExpression): void {
     for (const element of node.elements) {
-      if (element === null) {
-        continue;
-      }
-
-      if (element.type === "SpreadElement") {
-        this.visitExpression(element.argument);
-        continue;
-      }
-
-      this.visitExpression(element);
+      this.visitExpressionOrSpread(element);
     }
   }
 
@@ -256,10 +301,9 @@ class AS011Scanner {
     for (const property of node.properties) {
       if (property.type === "SpreadElement") {
         this.visitExpression(property.argument);
-        continue;
+      } else {
+        this.visitProperty(property);
       }
-
-      this.visitProperty(property);
     }
   }
 
@@ -274,7 +318,7 @@ class AS011Scanner {
     this.visitExpression(node.argument);
   }
 
-  private visitBinaryLikeExpression(node: LogicalExpression | import("../../parse/parser.js").BinaryExpression): void {
+  private visitBinaryLikeExpression(node: BinaryExpression | LogicalExpression): void {
     this.visitExpression(node.left);
     this.visitExpression(node.right);
   }
@@ -287,53 +331,36 @@ class AS011Scanner {
 
   private visitMemberExpression(node: MemberExpression): void {
     this.visitExpression(node.object);
-    if (this.isForbiddenMemberProperty(node)) {
-      this.report(node.property.span);
+    if (node.computed) {
+      this.visitExpression(node.property);
     }
-    this.visitExpression(node.property);
   }
 
   private visitAssignmentExpression(node: AssignmentExpression): void {
+    if (isImportMetaAssignmentTarget(node.left)) {
+      this.pushDiagnostic(
+        "AS-IMPORT-META-ASSIGN",
+        "error",
+        "Assignment target must not involve import.meta.",
+        node.left.span
+      );
+    }
+
     this.visitAssignmentTarget(node.left);
     this.visitExpression(node.right);
   }
 
-  private visitCallExpression(node: CallExpression): void {
-    this.visitExpression(node.callee);
-    for (const argument of node.arguments) {
-      if (argument.type === "SpreadElement") {
-        this.visitExpression(argument.argument);
-        continue;
-      }
-
-      this.visitExpression(argument);
-    }
-  }
-
-  private visitTemplateLiteral(node: TemplateLiteral): void {
-    for (const expression of node.expressions) {
-      this.visitExpression(expression);
-    }
-  }
-
-  private visitAssignmentTarget(
-    node: AssignmentExpression["left"] |
-      import("../../parse/parser.js").AssignmentPattern |
-      import("../../parse/parser.js").RestElement
-  ): void {
+  private visitAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): void {
     switch (node.type) {
-      case "Identifier":
-      case "MetaProperty":
-        return;
-      case "MemberExpression":
-        this.visitMemberExpression(node);
-        return;
       case "AssignmentPattern":
         this.visitAssignmentTarget(node.left);
         this.visitExpression(node.right);
         return;
       case "RestElement":
         this.visitAssignmentTarget(node.argument);
+        return;
+      case "MemberExpression":
+        this.visitMemberExpression(node);
         return;
       case "ArrayPattern":
         for (const element of node.elements) {
@@ -345,58 +372,86 @@ class AS011Scanner {
       case "ObjectPattern":
         for (const property of node.properties) {
           if (property.type === "RestElement") {
-            this.visitAssignmentTarget(property.argument);
-            continue;
+            this.visitAssignmentTarget(property);
+          } else {
+            this.visitAssignmentTarget(property.value);
           }
-
-          if (property.computed) {
-            this.visitExpression(property.key);
-          }
-          this.visitAssignmentTarget(property.value);
         }
         return;
+      case "Identifier":
+      case "MetaProperty":
+        return;
     }
   }
 
-  private visitBindingTarget(
-    node: import("../../parse/parser.js").ArrayPattern |
-      import("../../parse/parser.js").AssignmentPattern |
-      import("../../parse/parser.js").Identifier |
-      MemberExpression |
-      import("../../parse/parser.js").ObjectPattern |
-      import("../../parse/parser.js").RestElement
+  private visitCallExpression(node: CallExpression): void {
+    this.visitExpression(node.callee);
+    for (const argument of node.arguments) {
+      this.visitExpressionOrSpread(argument);
+    }
+  }
+
+  private visitTemplateLiteral(node: TemplateLiteral): void {
+    for (const expression of node.expressions) {
+      this.visitExpression(expression);
+    }
+  }
+
+  private visitExpressionOrSpread(node: Expression | SpreadElement): void {
+    if (node.type === "SpreadElement") {
+      this.visitExpression(node.argument);
+      return;
+    }
+
+    this.visitExpression(node);
+  }
+
+  private pushDiagnostic(
+    code: DiagnosticCode,
+    severity: Diagnostic["severity"],
+    message: string,
+    span: SourceSpan
   ): void {
-    switch (node.type) {
-      case "AssignmentPattern":
-        this.visitBindingTarget(node.left);
-        this.visitExpression(node.right);
-        return;
-      case "RestElement":
-        this.visitBindingTarget(node.argument);
-        return;
-      default:
-        this.visitAssignmentTarget(node);
-        return;
-    }
-  }
-
-  private isForbiddenMemberProperty(node: MemberExpression): boolean {
-    if (!node.computed) {
-      return node.property.type === "Identifier" && FORBIDDEN_PROPERTY_NAMES.has(node.property.name);
-    }
-
-    return node.property.type === "StringLiteral" && FORBIDDEN_PROPERTY_NAMES.has(node.property.value);
-  }
-
-  private report(span: SourceSpan): void {
     this.diagnostics.push({
-      code: "AS011",
-      severity: "error",
-      message: MESSAGE,
+      code,
+      severity,
+      message,
       filename: this.filename,
       line: span.start.line,
       column: span.start.column,
       span
     });
+  }
+}
+
+function isImportMetaReference(node: AssignmentExpression["left"] | Expression): boolean {
+  if (node.type === "MetaProperty") {
+    return true;
+  }
+
+  return (
+    node.type === "MemberExpression" &&
+    (isImportMetaReference(node.object) || (node.computed && isImportMetaReference(node.property)))
+  );
+}
+
+function isImportMetaAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): boolean {
+  switch (node.type) {
+    case "MetaProperty":
+      return true;
+    case "MemberExpression":
+      return isImportMetaReference(node);
+    case "AssignmentPattern":
+      return isImportMetaAssignmentTarget(node.left);
+    case "RestElement":
+      return isImportMetaAssignmentTarget(node.argument);
+    case "ArrayPattern":
+      return node.elements.some((element) => element !== null && isImportMetaAssignmentTarget(element));
+    case "ObjectPattern":
+      return node.properties.some((property) =>
+        isImportMetaAssignmentTarget(property.type === "RestElement" ? property : property.value)
+      );
+    case "Identifier":
+      return false;
   }
 }

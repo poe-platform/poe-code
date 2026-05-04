@@ -86,17 +86,22 @@ describe("parse exports", () => {
     expect(() => parseModule("export { x }")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export default function () {}")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export default class Run {}")).toThrowError(DisallowedSyntaxError);
-    expect(() => parseModule("export default 1")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export const a = 1, b = 2")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export const { x } = value")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export const [x] = value")).toThrowError(DisallowedSyntaxError);
     expect(() => parseModule("export let x = 1")).toThrowError(DisallowedSyntaxError);
   });
 
-  it("rejects duplicate default exports in the same module", () => {
-    expect(() => parseModule("export default () => 1; export default () => 2")).toThrowError(
-      DisallowedSyntaxError
-    );
+  it("parses default export forms that the linter validates", () => {
+    expect(parseModule("export default 1").body[0]).toMatchObject({
+      type: "ExportDefaultDeclaration",
+      declaration: {
+        type: "NumericLiteral",
+        value: 1
+      }
+    });
+
+    expect(parseModule("export default () => 1; export default () => 2").body).toHaveLength(2);
   });
 
   it("rejects exports outside module top level", () => {

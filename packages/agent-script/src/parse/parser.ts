@@ -98,6 +98,7 @@ export type Property = BaseNode & {
 };
 
 export type PatternTarget = ArrayPattern | Identifier | MemberExpression | ObjectPattern;
+export type AssignmentTarget = MetaProperty | PatternTarget;
 
 export type AssignmentPattern = BaseNode & {
   type: "AssignmentPattern";
@@ -215,7 +216,7 @@ export type MetaProperty = BaseNode & {
 export type AssignmentExpression = BaseNode & {
   type: "AssignmentExpression";
   operator: "=";
-  left: PatternTarget;
+  left: AssignmentTarget;
   right: Expression;
 };
 
@@ -421,6 +422,10 @@ export function parse(source: string, filename = "<input>"): ParseResult {
         `Regular expression literals are not supported at line ${regexLiteral.span.start.line}, column ${regexLiteral.span.start.column}.`
       );
     }
+    const importMetaAssignment = findImportMetaAssignmentTarget(result);
+    if (importMetaAssignment !== undefined) {
+      throw new DisallowedSyntaxError("import.meta assignment", importMetaAssignment.start);
+    }
     return result;
   } catch (error) {
     if (error instanceof DisallowedSyntaxError) {
@@ -461,7 +466,6 @@ function parseExpressionTokens(tokens: Token[]): Expression {
 
 class Parser {
   private index = 0;
-  private hasDefaultExport = false;
 
   constructor(private readonly tokens: Token[]) {}
 
@@ -846,7 +850,7 @@ class Parser {
       return this.parseForOfDeclaration();
     }
 
-    return this.parseAssignmentTarget();
+    return this.toPatternTarget(this.parseAssignmentTarget());
   }
 
   private parseForOfDeclaration(): VariableDeclaration {
@@ -1040,16 +1044,11 @@ class Parser {
   private parseExportDefaultDeclaration(exportToken: Token): ExportDefaultDeclaration {
     this.index += 1;
 
-    if (this.hasDefaultExport) {
-      throw new DisallowedSyntaxError("export default", exportToken.start);
+    if (this.currentToken().value === "function" || this.currentToken().value === "class") {
+      throw new DisallowedSyntaxError(`export default ${this.currentToken().value}`, this.currentToken().start);
     }
 
-    const declaration = this.tryParseArrowFunctionExpression();
-    if (declaration === undefined) {
-      throw new DisallowedSyntaxError("export default", this.currentToken().start);
-    }
-
-    this.hasDefaultExport = true;
+    const declaration = this.parseExpression().node;
     return createExportDefaultDeclaration(exportToken, declaration);
   }
 
@@ -1444,7 +1443,7 @@ class Parser {
     | RestElement {
     if (this.consumePunctuator("...") !== undefined) {
       const start = this.previousToken().start;
-      const argument = this.parseAssignmentTarget();
+      const argument = this.toPatternTarget(this.parseAssignmentTarget());
       return {
         type: "RestElement",
         argument,
@@ -1454,19 +1453,19 @@ class Parser {
 
     const left = this.parseAssignmentTarget();
     if (this.consumePunctuator("=") === undefined) {
-      return left;
+      return this.toPatternTarget(left);
     }
 
     const right = this.parseAssignmentExpression().node;
     return {
       type: "AssignmentPattern",
-      left,
+      left: this.toPatternTarget(left),
       right,
       span: createSpan(left.span.start, right.span.end)
     };
   }
 
-  private parseAssignmentTarget(): PatternTarget {
+  private parseAssignmentTarget(): AssignmentTarget {
     const token = this.currentToken();
 
     if (token.type === "punctuator" && token.value === "[") {
@@ -1482,9 +1481,7 @@ class Parser {
       return expression;
     }
 
-    this.assertNotImportMetaAssignmentTarget(expression);
-
-    if (expression.type === "MemberExpression" && !expression.optional) {
+    if (expression.type === "MetaProperty" || (expression.type === "MemberExpression" && !expression.optional)) {
       return expression;
     }
 
@@ -2304,14 +2301,12 @@ class Parser {
     }
   }
 
-  private toAssignmentTarget(node: Expression): PatternTarget {
+  private toAssignmentTarget(node: Expression): AssignmentTarget {
     if (node.type === "Identifier") {
       return node;
     }
 
-    this.assertNotImportMetaAssignmentTarget(node);
-
-    if (node.type === "MemberExpression" && !node.optional) {
+    if (node.type === "MetaProperty" || (node.type === "MemberExpression" && !node.optional)) {
       return node;
     }
 
@@ -2338,7 +2333,7 @@ class Parser {
     element: Expression | SpreadElement
   ): AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement {
     if (element.type === "SpreadElement") {
-      const argument = this.toAssignmentTarget(element.argument);
+      const argument = this.toPatternTarget(this.toAssignmentTarget(element.argument));
       return {
         type: "RestElement",
         argument,
@@ -2349,13 +2344,13 @@ class Parser {
     if (element.type === "AssignmentExpression" && element.operator === "=") {
       return {
         type: "AssignmentPattern",
-        left: element.left,
+        left: this.toPatternTarget(element.left),
         right: element.right,
         span: element.span
       };
     }
 
-    return this.toAssignmentTarget(element);
+    return this.toPatternTarget(this.toAssignmentTarget(element));
   }
 
   private objectExpressionToPattern(node: ObjectExpression): ObjectPattern {
@@ -2408,13 +2403,13 @@ class Parser {
     if (value.type === "AssignmentExpression" && value.operator === "=") {
       return {
         type: "AssignmentPattern",
-        left: value.left,
+        left: this.toPatternTarget(value.left),
         right: value.right,
         span: value.span
       };
     }
 
-    return this.toAssignmentTarget(value);
+    return this.toPatternTarget(this.toAssignmentTarget(value));
   }
 
   private isPatternAssignmentStart(startIndex: number): boolean {
@@ -2716,11 +2711,14 @@ class Parser {
     return createImportMeta(importToken, this.previousToken());
   }
 
-  private assertNotImportMetaAssignmentTarget(node: Expression): void {
-    if (isImportMetaReference(node)) {
-      throw new DisallowedSyntaxError("import.meta assignment", node.span.start);
+  private toPatternTarget(target: AssignmentTarget): PatternTarget {
+    if (target.type === "MetaProperty") {
+      throw new DisallowedSyntaxError("import.meta assignment", target.span.start);
     }
+
+    return target;
   }
+
 }
 
 function createIdentifier(token: Token): Identifier {
@@ -2739,12 +2737,165 @@ function createIdentifierName(token: Token): Identifier {
   };
 }
 
+function findImportMetaAssignmentTarget(node: ParseResult): SourceSpan | undefined {
+  return findImportMetaAssignmentInNode(node);
+}
+
+function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpan | undefined {
+  switch (node.type) {
+    case "AssignmentExpression":
+      if (isImportMetaAssignmentTarget(node.left)) {
+        return node.left.span;
+      }
+      return findImportMetaAssignmentInNode(node.right);
+    case "ForOfStatement":
+      if (node.left.type !== "VariableDeclaration" && isImportMetaAssignmentTarget(node.left)) {
+        return node.left.span;
+      }
+      return findImportMetaAssignmentInNode(node.right) ?? findImportMetaAssignmentInNode(node.body);
+    case "BlockStatement":
+      return findImportMetaAssignmentInList(node.body);
+    case "ExpressionStatement":
+      return findImportMetaAssignmentInNode(node.expression);
+    case "IfStatement":
+      return (
+        findImportMetaAssignmentInNode(node.test) ??
+        findImportMetaAssignmentInNode(node.consequent) ??
+        (node.alternate === undefined ? undefined : findImportMetaAssignmentInNode(node.alternate))
+      );
+    case "ForStatement":
+      return (
+        findImportMetaAssignmentInOptionalForInit(node.init) ??
+        findImportMetaAssignmentInOptionalExpression(node.test) ??
+        findImportMetaAssignmentInOptionalExpression(node.update) ??
+        findImportMetaAssignmentInNode(node.body)
+      );
+    case "WhileStatement":
+      return findImportMetaAssignmentInNode(node.test) ?? findImportMetaAssignmentInNode(node.body);
+    case "TryStatement":
+      return (
+        findImportMetaAssignmentInNode(node.block) ??
+        (node.handler === undefined ? undefined : findImportMetaAssignmentInNode(node.handler.body)) ??
+        (node.finalizer === undefined ? undefined : findImportMetaAssignmentInNode(node.finalizer))
+      );
+    case "VariableDeclaration":
+      for (const declarator of node.declarations) {
+        if (declarator.init !== undefined) {
+          const result = findImportMetaAssignmentInNode(declarator.init);
+          if (result !== undefined) {
+            return result;
+          }
+        }
+      }
+      return undefined;
+    case "ReturnStatement":
+      return node.argument === undefined ? undefined : findImportMetaAssignmentInNode(node.argument);
+    case "ThrowStatement":
+      return findImportMetaAssignmentInNode(node.argument);
+    case "ArrowFunctionExpression":
+      return node.body.type === "BlockStatement" ? findImportMetaAssignmentInNode(node.body) : findImportMetaAssignmentInNode(node.body);
+    case "AwaitExpression":
+      return findImportMetaAssignmentInNode(node.argument);
+    case "ArrayExpression":
+      return findImportMetaAssignmentInList(node.elements);
+    case "ObjectExpression":
+      for (const property of node.properties) {
+        const result =
+          property.type === "SpreadElement"
+            ? findImportMetaAssignmentInNode(property.argument)
+            : findImportMetaAssignmentInNode(property.value);
+        if (result !== undefined) {
+          return result;
+        }
+      }
+      return undefined;
+    case "UnaryExpression":
+      return findImportMetaAssignmentInNode(node.argument);
+    case "BinaryExpression":
+    case "LogicalExpression":
+      return findImportMetaAssignmentInNode(node.left) ?? findImportMetaAssignmentInNode(node.right);
+    case "ConditionalExpression":
+      return (
+        findImportMetaAssignmentInNode(node.test) ??
+        findImportMetaAssignmentInNode(node.consequent) ??
+        findImportMetaAssignmentInNode(node.alternate)
+      );
+    case "MemberExpression":
+      return (
+        findImportMetaAssignmentInNode(node.object) ??
+        (node.computed ? findImportMetaAssignmentInNode(node.property) : undefined)
+      );
+    case "CallExpression":
+      return findImportMetaAssignmentInNode(node.callee) ?? findImportMetaAssignmentInList(node.arguments);
+    case "TemplateLiteral":
+      return findImportMetaAssignmentInList(node.expressions);
+    case "BreakStatement":
+    case "ContinueStatement":
+    case "ExportDefaultDeclaration":
+    case "ExportNamedDeclaration":
+    case "Identifier":
+    case "ImportDeclaration":
+    case "BooleanLiteral":
+    case "NullLiteral":
+    case "NumericLiteral":
+    case "StringLiteral":
+    case "RegexLiteral":
+    case "MetaProperty":
+    case "UndefinedLiteral":
+      return undefined;
+  }
+}
+
+function findImportMetaAssignmentInOptionalForInit(node: Expression | VariableDeclaration | undefined): SourceSpan | undefined {
+  return node === undefined ? undefined : findImportMetaAssignmentInNode(node);
+}
+
+function findImportMetaAssignmentInOptionalExpression(node: Expression | undefined): SourceSpan | undefined {
+  return node === undefined ? undefined : findImportMetaAssignmentInNode(node);
+}
+
+function findImportMetaAssignmentInList(nodes: ReadonlyArray<Expression | SpreadElement | Statement>): SourceSpan | undefined {
+  for (const node of nodes) {
+    const result =
+      node.type === "SpreadElement" ? findImportMetaAssignmentInNode(node.argument) : findImportMetaAssignmentInNode(node);
+    if (result !== undefined) {
+      return result;
+    }
+  }
+
+  return undefined;
+}
+
+function isImportMetaAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): boolean {
+  switch (node.type) {
+    case "MetaProperty":
+      return true;
+    case "MemberExpression":
+      return isImportMetaReference(node);
+    case "AssignmentPattern":
+      return isImportMetaAssignmentTarget(node.left);
+    case "RestElement":
+      return isImportMetaAssignmentTarget(node.argument);
+    case "ArrayPattern":
+      return node.elements.some((element) => element !== null && isImportMetaAssignmentTarget(element));
+    case "ObjectPattern":
+      return node.properties.some((property) =>
+        isImportMetaAssignmentTarget(property.type === "RestElement" ? property : property.value)
+      );
+    case "Identifier":
+      return false;
+  }
+}
+
 function isImportMetaReference(node: Expression): boolean {
   if (node.type === "MetaProperty") {
     return true;
   }
 
-  return node.type === "MemberExpression" && isImportMetaReference(node.object);
+  return (
+    node.type === "MemberExpression" &&
+    (isImportMetaReference(node.object) || (node.computed && isImportMetaReference(node.property)))
+  );
 }
 
 function createNumericLiteral(token: Token): NumericLiteral {

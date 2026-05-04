@@ -12,6 +12,7 @@ import { AS012 } from "./rules/AS012.js";
 import { AS013 } from "./rules/AS013.js";
 import { AS014 } from "./rules/AS014.js";
 import { AS015 } from "./rules/AS015.js";
+import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
 import type { SourceSpan } from "../parse/parser.js";
 import type { Modules } from "./rules/module-registry.js";
 
@@ -27,6 +28,7 @@ export type Diagnostic = {
 };
 
 export type LintOptions = {
+  allowedExportNames?: readonly string[];
   filename?: string;
   modules?: Modules;
 };
@@ -46,7 +48,8 @@ const RULES: readonly LintRule[] = [
   AS012,
   AS013,
   AS014,
-  AS015
+  AS015,
+  AS_EXPORT_IMPORT_META
 ];
 
 export function lint(source: string, options: LintOptions = {}): Diagnostic[] {

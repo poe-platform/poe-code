@@ -89,6 +89,100 @@ describe("e2bExecutionEnvFactory", () => {
     );
   });
 
+  it("emits sandbox-connect progress events when opening with a direct template id", async () => {
+    const events: unknown[] = [];
+    const { e2bExecutionEnvFactory } = await import("./factory.js");
+
+    await e2bExecutionEnvFactory.open({
+      cwd: "/repo",
+      runtime: {
+        type: "e2b",
+        template_id: "tmpl_configured",
+        build_args: {},
+        mounts: []
+      },
+      env: {},
+      uploadIgnoreFiles: [],
+      jobLabel: { tool: "node", argv: ["node"] },
+      onProgress(event) {
+        events.push(event);
+      }
+    });
+
+    expect(events).toEqual([
+      { kind: "sandbox-connect:start", backend: "e2b" },
+      { kind: "sandbox-connect:end", backend: "e2b", envId: "sb_open" }
+    ]);
+  });
+
+  it("emits template-build and sandbox-connect events when building a fresh template", async () => {
+    const events: unknown[] = [];
+    const state = { templates: { get: vi.fn(), put: vi.fn() }, jobs: {} };
+    const { e2bExecutionEnvFactory } = await import("./factory.js");
+
+    await e2bExecutionEnvFactory.open({
+      cwd: "/repo",
+      runtime: {
+        type: "e2b",
+        dockerfile: "Dockerfile",
+        build_context: ".",
+        build_args: {},
+        mounts: []
+      },
+      state: state as Parameters<typeof e2bExecutionEnvFactory.open>[0]["state"],
+      env: {},
+      uploadIgnoreFiles: [],
+      jobLabel: { tool: "node", argv: ["node"] },
+      onProgress(event) {
+        events.push(event);
+      }
+    });
+
+    expect(events).toEqual([
+      { kind: "template-build:start", backend: "e2b" },
+      { kind: "template-build:end", backend: "e2b", templateId: "tmpl_built" },
+      { kind: "sandbox-connect:start", backend: "e2b" },
+      { kind: "sandbox-connect:end", backend: "e2b", envId: "sb_open" }
+    ]);
+  });
+
+  it("emits a template-build:cached event when buildE2bRuntimeTemplate hits the cache", async () => {
+    vi.mocked(buildE2bRuntimeTemplate).mockResolvedValueOnce({
+      backend: "e2b",
+      hash: "h",
+      templateId: "tmpl_cached",
+      cached: true
+    });
+    const events: unknown[] = [];
+    const state = { templates: { get: vi.fn(), put: vi.fn() }, jobs: {} };
+    const { e2bExecutionEnvFactory } = await import("./factory.js");
+
+    await e2bExecutionEnvFactory.open({
+      cwd: "/repo",
+      runtime: {
+        type: "e2b",
+        dockerfile: "Dockerfile",
+        build_context: ".",
+        build_args: {},
+        mounts: []
+      },
+      state: state as Parameters<typeof e2bExecutionEnvFactory.open>[0]["state"],
+      env: {},
+      uploadIgnoreFiles: [],
+      jobLabel: { tool: "node", argv: ["node"] },
+      onProgress(event) {
+        events.push(event);
+      }
+    });
+
+    expect(events).toEqual([
+      { kind: "template-build:start", backend: "e2b" },
+      { kind: "template-build:cached", backend: "e2b", templateId: "tmpl_cached" },
+      { kind: "sandbox-connect:start", backend: "e2b" },
+      { kind: "sandbox-connect:end", backend: "e2b", envId: "sb_open" }
+    ]);
+  });
+
   it("attaches to an existing sandbox id", async () => {
     const { e2bExecutionEnvFactory } = await import("./factory.js");
 

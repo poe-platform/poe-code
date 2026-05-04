@@ -83,6 +83,7 @@ export async function spawnInteractive(
       runnerSync: options.runnerSync
     },
     openSpec: {
+      ...(options.onProgress ? { onProgress: options.onProgress } : {}),
       execution: {
         wrapForLogTee: false,
         stdin: "inherit",

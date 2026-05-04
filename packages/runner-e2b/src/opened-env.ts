@@ -75,6 +75,7 @@ export function createOpenedE2bEnv(input: {
       if (input.spec.runner?.sync === "none") {
         return { files: 0, bytes: 0, skipped: [] };
       }
+      input.spec.onProgress?.({ kind: "workspace-upload:start", backend: "e2b" });
       const tempDir = mkdtempSync(path.join(tmpdir(), "poe-e2b-upload-"));
       const archivePath = path.join(tempDir, "workspace.tar");
       try {
@@ -99,6 +100,7 @@ export function createOpenedE2bEnv(input: {
           input.sandbox,
           createUploadWorkspaceCommand(sandboxWorkspaceDir)
         );
+        input.spec.onProgress?.({ kind: "workspace-upload:end", backend: "e2b" });
         return { files: 0, bytes: 0, skipped: [] };
       } finally {
         rmSync(tempDir, { recursive: true, force: true });
@@ -108,6 +110,7 @@ export function createOpenedE2bEnv(input: {
       if (input.spec.runner?.sync === "upload" || input.spec.runner?.sync === "none") {
         return { files: 0, bytes: 0, conflicts: [] };
       }
+      input.spec.onProgress?.({ kind: "workspace-download:start", backend: "e2b" });
       const tempDir = mkdtempSync(path.join(tmpdir(), "poe-e2b-download-"));
       const archivePath = path.join(tempDir, "workspace.tar");
       try {
@@ -130,6 +133,7 @@ export function createOpenedE2bEnv(input: {
           stdout: "pipe",
           stderr: "pipe"
         });
+        input.spec.onProgress?.({ kind: "workspace-download:end", backend: "e2b" });
         return { files: 0, bytes: archive.byteLength, conflicts: [] };
       } finally {
         rmSync(tempDir, { recursive: true, force: true });

@@ -78,7 +78,7 @@ describe("execution env registry", () => {
 
     expect(branchSites).toMatchInlineSnapshot(`
       [
-        "execution-env.ts:97:return selectExecutionEnvFactory(runtime.type);",
+        "execution-env.ts:111:return selectExecutionEnvFactory(runtime.type);",
       ]
     `);
   });

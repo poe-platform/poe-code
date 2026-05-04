@@ -221,7 +221,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
 
     const plainChunks = chunks.map((chunk) => stripAnsi(chunk));
@@ -771,7 +772,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -800,7 +802,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -839,6 +842,7 @@ describe("spawn command", () => {
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function),
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -890,6 +894,7 @@ describe("spawn command", () => {
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function),
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -941,6 +946,7 @@ describe("spawn command", () => {
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function),
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -994,6 +1000,7 @@ describe("spawn command", () => {
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function),
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -1045,6 +1052,7 @@ describe("spawn command", () => {
       cwd: undefined,
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function),
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server",
@@ -1085,7 +1093,8 @@ describe("spawn command", () => {
       cwd: undefined,
       logDir: "/tmp/spawn-logs",
       activityTimeoutMs: 1500,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -1199,7 +1208,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -1225,7 +1235,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -1293,7 +1304,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -1356,7 +1368,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: customCwd,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -1389,7 +1402,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: resolved,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -1438,7 +1452,8 @@ describe("spawn command", () => {
       model: DEFAULT_CODEX_MODEL,
       cwd: "/tmp/workspaces/poe-code",
       mode: undefined,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
     expect(cleanup).toHaveBeenCalledTimes(1);
   });
@@ -1472,7 +1487,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -1505,7 +1521,8 @@ describe("spawn command", () => {
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
-      runtimeConfigCwd: cwd
+      runtimeConfigCwd: cwd,
+      onProgress: expect.any(Function)
     });
   });
 
@@ -1764,7 +1781,8 @@ describe("spawn command", () => {
         model: DEFAULT_CLAUDE_CODE_MODEL,
         cwd: undefined,
         mode: undefined,
-        runtimeConfigCwd: cwd
+        runtimeConfigCwd: cwd,
+        onProgress: expect.any(Function)
       });
       expect(sdkSpawn).not.toHaveBeenCalled();
     });
@@ -1859,7 +1877,8 @@ describe("spawn command", () => {
         model: DEFAULT_GOOSE_MODEL,
         cwd: undefined,
         mode: undefined,
-        runtimeConfigCwd: cwd
+        runtimeConfigCwd: cwd,
+        onProgress: expect.any(Function)
       });
     });
 
@@ -1919,7 +1938,8 @@ describe("spawn command", () => {
         model: DEFAULT_CLAUDE_CODE_MODEL,
         cwd: undefined,
         mode: undefined,
-        runtimeConfigCwd: cwd
+        runtimeConfigCwd: cwd,
+        onProgress: expect.any(Function)
       });
       expect(sdkSpawn).not.toHaveBeenCalled();
     });
@@ -1954,7 +1974,8 @@ describe("spawn command", () => {
         model: "anthropic/claude-opus-4.7",
         cwd: undefined,
         mode: undefined,
-        runtimeConfigCwd: cwd
+        runtimeConfigCwd: cwd,
+        onProgress: expect.any(Function)
       });
     });
 
@@ -1993,7 +2014,8 @@ describe("spawn command", () => {
         model: "gpt-4",
         cwd: "/projects/demo",
         mode: undefined,
-        runtimeConfigCwd: cwd
+        runtimeConfigCwd: cwd,
+        onProgress: expect.any(Function)
       });
     });
   });

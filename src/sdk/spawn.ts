@@ -146,7 +146,8 @@ export function spawn(
           args: options.args,
           runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
-          ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {})
+          ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
+          ...(options.onProgress ? { onProgress: options.onProgress } : {})
         });
         return {
           stdout: interactiveResult.stdout,
@@ -231,6 +232,7 @@ export function spawn(
           ...(options.activityTimeoutMs !== undefined
             ? { activityTimeoutMs: options.activityTimeoutMs }
             : {}),
+          ...(options.onProgress ? { onProgress: options.onProgress } : {}),
           useStdin: options.useStdin ?? false
         });
 
@@ -292,6 +294,7 @@ export function spawn(
             : {}),
           ...(options.logDir ? { logDir: options.logDir } : {}),
           ...(options.logFileName ? { logFileName: options.logFileName } : {}),
+          ...(options.onProgress ? { onProgress: options.onProgress } : {}),
           useStdin: options.useStdin ?? false
         });
       }

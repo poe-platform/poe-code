@@ -188,6 +188,7 @@ export async function spawn(
     },
     context,
     openSpec: {
+      ...(options.onProgress ? { onProgress: options.onProgress } : {}),
       execution: {
         wrapForLogTee: false,
         stdin: stdinMode ? "pipe" : "inherit",

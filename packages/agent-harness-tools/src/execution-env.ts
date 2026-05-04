@@ -15,6 +15,19 @@ export interface ExecutionEnvFactory {
   attach(envId: string, context?: AttachedJobContext): Promise<OpenedEnv>;
 }
 
+export type SpawnProgressEvent =
+  | { kind: "template-build:start"; backend: ExecutionEnvType }
+  | { kind: "template-build:cached"; backend: ExecutionEnvType; templateId: string }
+  | { kind: "template-build:end"; backend: ExecutionEnvType; templateId: string }
+  | { kind: "sandbox-connect:start"; backend: ExecutionEnvType }
+  | { kind: "sandbox-connect:end"; backend: ExecutionEnvType; envId: string }
+  | { kind: "workspace-upload:start"; backend: ExecutionEnvType }
+  | { kind: "workspace-upload:end"; backend: ExecutionEnvType }
+  | { kind: "workspace-download:start"; backend: ExecutionEnvType }
+  | { kind: "workspace-download:end"; backend: ExecutionEnvType };
+
+export type SpawnProgressListener = (event: SpawnProgressEvent) => void;
+
 export interface OpenSpec {
   cwd: string;
   runtimeCwd?: string;
@@ -25,6 +38,7 @@ export interface OpenSpec {
   env: Record<string, string>;
   uploadIgnoreFiles: string[];
   jobLabel: { tool: string; argv: string[] };
+  onProgress?: SpawnProgressListener;
   execution?: {
     wrapForLogTee?: boolean;
     stdin?: RunSpec["stdin"];

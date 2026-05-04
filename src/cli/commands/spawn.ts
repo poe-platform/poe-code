@@ -9,10 +9,11 @@ import {
   listMcpSupportedAgents,
   supportsMcpAtSpawn,
   type McpSpawnConfig,
-  type SpawnMode
+  type SpawnMode,
+  type SpawnProgressListener
 } from "@poe-code/agent-spawn";
 import { resolveAgentId } from "@poe-code/agent-defs";
-import { text, resolveOutputFormat, renderMarkdown } from "@poe-code/design-system";
+import { text, resolveOutputFormat, renderMarkdown, spinner } from "@poe-code/design-system";
 import {
   createExecutionResources,
   resolveCommandFlags,
@@ -155,6 +156,8 @@ export function registerSpawnCommand(
       });
       const cwdOverride = workspace.cwd;
 
+      const onProgress = shouldEmitUiOutput ? createRuntimeProgressSpinner() : undefined;
+
       try {
         integrations = await loadIntegrations(await resolveMergedDocument(container));
         if (commandOptions.interactive) {
@@ -174,6 +177,7 @@ export function registerSpawnCommand(
             runtimeConfigCwd: container.env.cwd,
             ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
+            ...(onProgress ? { onProgress } : {}),
             cwd: cwdOverride
           });
           process.exitCode = result.exitCode;
@@ -282,6 +286,7 @@ export function registerSpawnCommand(
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
                 : {}),
               ...(spawnOptions.middlewares ? { middlewares: spawnOptions.middlewares } : {}),
+              ...(onProgress ? { onProgress } : {}),
               runtimeConfigCwd: container.env.cwd,
               ...runtimeOptions
             })
@@ -589,4 +594,58 @@ function assertInteractiveSupport(label: string, service: string): void {
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function createRuntimeProgressSpinner(): SpawnProgressListener {
+  let active: ReturnType<typeof spinner> | null = null;
+  let activePhase: string | null = null;
+
+  const start = (phase: string, message: string): void => {
+    if (active) {
+      active.stop("");
+    }
+    activePhase = phase;
+    active = spinner();
+    active.start(message);
+  };
+
+  const stop = (phase: string, message: string): void => {
+    if (active && activePhase === phase) {
+      active.stop(message);
+      active = null;
+      activePhase = null;
+    }
+  };
+
+  return (event) => {
+    switch (event.kind) {
+      case "template-build:start":
+        start("template-build", "Building runtime template…");
+        return;
+      case "template-build:cached":
+        stop("template-build", "Runtime template cached.");
+        return;
+      case "template-build:end":
+        stop("template-build", "Runtime template built.");
+        return;
+      case "sandbox-connect:start":
+        start("sandbox-connect", "Connecting to sandbox…");
+        return;
+      case "sandbox-connect:end":
+        stop("sandbox-connect", "Sandbox ready.");
+        return;
+      case "workspace-upload:start":
+        start("workspace-upload", "Uploading workspace…");
+        return;
+      case "workspace-upload:end":
+        stop("workspace-upload", "Workspace uploaded.");
+        return;
+      case "workspace-download:start":
+        start("workspace-download", "Syncing workspace back…");
+        return;
+      case "workspace-download:end":
+        stop("workspace-download", "Workspace synced.");
+        return;
+    }
+  };
 }

@@ -1,4 +1,7 @@
-import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
+import type {
+  RuntimeOverrideOptions,
+  SpawnProgressListener
+} from "@poe-code/agent-harness-tools";
 import type {
   AcpMiddleware,
   McpSpawnConfig,
@@ -60,6 +63,8 @@ export interface SpawnOptions {
   mountPoeCode?: boolean;
   /** Runner workspace sync override: both, upload, or none */
   runnerSync?: RuntimeOverrideOptions["runnerSync"];
+  /** Listener for runtime lifecycle progress events (template build, sandbox connect, workspace sync). */
+  onProgress?: SpawnProgressListener;
 }
 
 /**

@@ -271,6 +271,79 @@ describe("createOpenedE2bEnv", () => {
     );
   });
 
+  it("emits workspace-upload progress events around the upload", async () => {
+    const hostRunner = createHostRunnerMock();
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue({ exitCode: 0 });
+    const events: unknown[] = [];
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: {
+        ...createSpec(),
+        hostRunner,
+        onProgress(event) {
+          events.push(event);
+        }
+      }
+    });
+
+    await env.uploadWorkspace();
+
+    expect(events).toEqual([
+      { kind: "workspace-upload:start", backend: "e2b" },
+      { kind: "workspace-upload:end", backend: "e2b" }
+    ]);
+  });
+
+  it("emits workspace-download progress events around the download", async () => {
+    const hostRunner = createHostRunnerMock();
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue({ exitCode: 0 });
+    sandbox.files.read.mockResolvedValue(new Uint8Array([0x74, 0x61, 0x72]));
+    const events: unknown[] = [];
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: {
+        ...createSpec(),
+        hostRunner,
+        onProgress(event) {
+          events.push(event);
+        }
+      }
+    });
+
+    await env.downloadWorkspace({ conflictPolicy: "overwrite" });
+
+    expect(events).toEqual([
+      { kind: "workspace-download:start", backend: "e2b" },
+      { kind: "workspace-download:end", backend: "e2b" }
+    ]);
+  });
+
+  it("does not emit workspace-upload events when sync is none", async () => {
+    const hostRunner = createHostRunnerMock();
+    const sandbox = createSandboxMock();
+    const events: unknown[] = [];
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
+      spec: {
+        ...createSpec(),
+        hostRunner,
+        runner: { sync: "none", download_conflict: "refuse" },
+        onProgress(event) {
+          events.push(event);
+        }
+      }
+    });
+
+    await env.uploadWorkspace();
+
+    expect(events).toEqual([]);
+  });
+
   it("skips workspace upload when runner sync is none", async () => {
     const hostRunner = createHostRunnerMock();
     const sandbox = createSandboxMock();

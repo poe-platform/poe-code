@@ -1,5 +1,8 @@
 import type { AdapterType } from "./adapters/index.js";
-import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
+import type {
+  RuntimeOverrideOptions,
+  SpawnProgressListener
+} from "@poe-code/agent-harness-tools";
 import type { StateManager } from "@poe-code/poe-code-config";
 
 export type SpawnMode = "yolo" | "edit" | "read";
@@ -79,6 +82,8 @@ export interface SpawnOptions {
   mountPoeCode?: boolean;
   /** Override runner workspace sync behavior. */
   runnerSync?: RuntimeOverrideOptions["runnerSync"];
+  /** Listener for runtime lifecycle progress events (template build, sandbox connect, workspace sync). */
+  onProgress?: SpawnProgressListener;
 }
 
 export interface SpawnUsage {

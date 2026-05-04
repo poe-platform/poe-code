@@ -13,25 +13,37 @@ export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
     const runtime = parseE2bRuntime(spec.runtime);
     const runtimeCwd = spec.runtimeCwd ?? spec.cwd;
     const apiKey = await resolveE2bApiKey({ cwd: runtimeCwd });
-    const templateId =
-      runtime.template_id ??
-      (
-        await buildE2bRuntimeTemplate({
-          runtime,
-          dockerfilePath: path.resolve(
-            runtimeCwd,
-            runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")
-          ),
-          buildContext: path.resolve(runtimeCwd, runtime.build_context ?? "."),
-          state: spec.state,
-          apiKey
-        })
-      ).templateId;
+    let templateId = runtime.template_id;
+    if (templateId === undefined) {
+      spec.onProgress?.({ kind: "template-build:start", backend: "e2b" });
+      const built = await buildE2bRuntimeTemplate({
+        runtime,
+        dockerfilePath: path.resolve(
+          runtimeCwd,
+          runtime.dockerfile ?? path.join(".poe-code", "Dockerfile")
+        ),
+        buildContext: path.resolve(runtimeCwd, runtime.build_context ?? "."),
+        state: spec.state,
+        apiKey
+      });
+      templateId = built.templateId;
+      spec.onProgress?.(
+        built.cached
+          ? { kind: "template-build:cached", backend: "e2b", templateId }
+          : { kind: "template-build:end", backend: "e2b", templateId }
+      );
+    }
+    spec.onProgress?.({ kind: "sandbox-connect:start", backend: "e2b" });
     const sandbox = await createSandbox({
       apiKey,
       templateId,
       env: spec.env,
       timeoutMinutes: runtime.timeout_minutes
+    });
+    spec.onProgress?.({
+      kind: "sandbox-connect:end",
+      backend: "e2b",
+      envId: sandbox.sandboxId
     });
 
     return createOpenedE2bEnv({ sandbox, spec, runtime });

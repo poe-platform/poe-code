@@ -38,7 +38,7 @@ export function resolvePoeCommandExecution(input: {
     homeDir?: string;
     state?: StateManager;
   };
-  openSpec?: Partial<Pick<OpenSpec, "execution" | "shellSpec">>;
+  openSpec?: Partial<Pick<OpenSpec, "execution" | "shellSpec" | "onProgress">>;
 }): {
   factory: ReturnType<typeof selectExecutionEnv>;
   openSpec: OpenSpec;

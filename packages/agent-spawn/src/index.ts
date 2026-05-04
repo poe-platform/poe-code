@@ -30,6 +30,8 @@ export type {
   StdinMode
 } from "./types.js";
 
+export type { SpawnProgressEvent, SpawnProgressListener } from "@poe-code/agent-harness-tools";
+
 export {
   allSpawnConfigs,
   getAcpSpawnConfig,

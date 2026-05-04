@@ -202,6 +202,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
       runnerSync: options.runnerSync
     },
     openSpec: {
+      ...(options.onProgress ? { onProgress: options.onProgress } : {}),
       execution: {
         wrapForLogTee: false,
         stdin: "pipe",

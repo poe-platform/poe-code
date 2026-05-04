@@ -1,18 +1,11 @@
 import "@poe-code/agent-spawn/register-factories";
+import type { AgentRunnerSession } from "@poe-code/agent-harness-tools";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
-import {
-  runAutonomousAgent,
-  type AutonomousOutput,
-  type McpSpawnConfig
-} from "./agent-runner.js";
+import { runAutonomousAgent, type AutonomousOutput, type McpSpawnConfig } from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
 import { buildOwnerSystemPrompt, prependSystemPrompt } from "./system-prompt.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
-import {
-  createWorkflowTool,
-  parseWorkflowCall,
-  type WorkflowTransition
-} from "./workflow-tool.js";
+import { createWorkflowTool, parseWorkflowCall, type WorkflowTransition } from "./workflow-tool.js";
 
 type OwnerTransition = Extract<
   WorkflowTransition,
@@ -42,6 +35,7 @@ const WORKFLOW_SERVER_TIMEOUT_SECONDS = 7200;
 export type RunOwnerReviewOptions = {
   defaultCwd: string;
   logPath?: string;
+  agentSession?: AgentRunnerSession;
 };
 
 export async function runOwnerReview(
@@ -60,7 +54,8 @@ export async function runOwnerReview(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.owner, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.agentSession ? { session: options.agentSession } : {})
   });
 
   const logPath = extractLogPath(result);
@@ -121,7 +116,9 @@ function extractOwnerTransition(result: AutonomousOutput): OwnerTransition {
   const transition = extractTransition(result);
 
   if (transition === undefined) {
-    throw new Error(`Owner review must end with workflow_transition.${describeMissingTransition(result)}`);
+    throw new Error(
+      `Owner review must end with workflow_transition.${describeMissingTransition(result)}`
+    );
   }
 
   if (transition.action !== "approve_completion" && transition.action !== "request_changes") {
@@ -134,7 +131,11 @@ function extractOwnerTransition(result: AutonomousOutput): OwnerTransition {
 function describeMissingTransition(result: AutonomousOutput): string {
   const parts: string[] = [];
   const names = collectToolNames(result);
-  parts.push(names.length === 0 ? " No tool calls were captured." : ` Observed tool calls: ${names.join(", ")}.`);
+  parts.push(
+    names.length === 0
+      ? " No tool calls were captured."
+      : ` Observed tool calls: ${names.join(", ")}.`
+  );
 
   const logPath = extractLogPath(result);
   if (logPath) {

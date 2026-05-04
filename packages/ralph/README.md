@@ -94,9 +94,11 @@ POE_RALPH_PLAN_DIRECTORY=docs/plans poe-code ralph run
 poe-code ralph run docs/plans/refactor-auth.md
 ```
 
-## Runtime Workspaces
+## Runtime Sessions
 
-When validating Ralph against a remote runtime such as E2B, create a fresh temporary workspace with `mkdtemp`, put only the Ralph plan and intended test files in that directory, pass the plan path directly, and run with `--cwd <tmpdir>`. Do not aim Ralph runtime tests at the poe-code checkout or a parent repository; Ralph agents are expected to edit their working directory across iterations, and remote runtime downloads overwrite the tmpdir copy after each iteration so the next iteration sees the prior edits.
+`ralph run` opens one sandbox session at the start of the run and reuses it for every iteration. The workspace is uploaded once before the first iteration, then synced back to the host when the run finishes or aborts.
+
+`--detach` is incompatible with runtime sessions. Detached runs fall back to the one-shot spawn path instead of opening a shared session.
 
 ## Dashboard Configuration
 

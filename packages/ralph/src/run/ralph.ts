@@ -53,8 +53,10 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
   let archived = false;
   let fatalError: unknown;
   let lastStopKind: RalphWorkflowStopError["kind"] | null = null;
+  const prepareFinalWorkspace = createPrepareFinalWorkspaceOnce(options.prepareFinalWorkspace);
 
   if (options.signal?.aborted) {
+    await prepareFinalWorkspace();
     await updateFrontmatter(fs, absoluteDocPath, "open", 0);
     return createRunResult(options.docPath, startTime, 0, "cancelled");
   }
@@ -138,6 +140,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
           if (lastStopKind === "failed") {
             iterationsCompleted = iterationNumber;
             stopReason = "failed";
+            await prepareFinalWorkspace();
             await updateFrontmatter(fs, absoluteDocPath, "failed", iterationsCompleted);
             options.onIterationComplete?.(iterationNumber, durationMs, false);
             return;
@@ -145,11 +148,13 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
 
           if (lastStopKind === "cancelled") {
             stopReason = "cancelled";
+            await prepareFinalWorkspace();
             await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
             return;
           }
 
           if (lastStopKind === "fatal") {
+            await prepareFinalWorkspace();
             await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
             return;
           }
@@ -166,11 +171,13 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
 
         if (options.signal?.aborted) {
           stopReason = "cancelled";
+          await prepareFinalWorkspace();
           await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
           return;
         }
 
         if (iterationNumber === config.maxIterations) {
+          await prepareFinalWorkspace();
           await updateFrontmatter(fs, absoluteDocPath, "completed", iterationsCompleted);
           await archivePlanShared({
             cwd: options.cwd,
@@ -195,6 +202,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
     if (isAbortError(error)) {
       stopReason = "cancelled";
       if (!archived) {
+        await prepareFinalWorkspace();
         await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
       }
     } else {
@@ -207,6 +215,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
   }
 
   if (stopReason === "max_iterations" && !archived && iterationsCompleted > 0) {
+    await prepareFinalWorkspace();
     await updateFrontmatter(fs, absoluteDocPath, "completed", iterationsCompleted);
     await archivePlanShared({
       cwd: options.cwd,
@@ -216,6 +225,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
       fs: fs as unknown as NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>
     });
   } else if (stopReason === "cancelled" && !archived) {
+    await prepareFinalWorkspace();
     await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
   }
 
@@ -233,6 +243,21 @@ function createRunResult(
     docPath,
     iterationsCompleted,
     totalDurationMs: Date.now() - startTime
+  };
+}
+
+function createPrepareFinalWorkspaceOnce(
+  prepareFinalWorkspace: RalphRunOptions["prepareFinalWorkspace"]
+): () => Promise<void> {
+  let prepared = false;
+
+  return async () => {
+    if (prepared || prepareFinalWorkspace === undefined) {
+      return;
+    }
+
+    prepared = true;
+    await prepareFinalWorkspace();
   };
 }
 

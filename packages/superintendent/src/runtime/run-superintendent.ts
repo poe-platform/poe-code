@@ -1,15 +1,9 @@
 import "@poe-code/agent-spawn/register-factories";
+import type { AgentRunnerSession } from "@poe-code/agent-harness-tools";
 import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
-import {
-  runAutonomousAgent,
-  type AutonomousOutput,
-  type McpSpawnConfig
-} from "./agent-runner.js";
+import { runAutonomousAgent, type AutonomousOutput, type McpSpawnConfig } from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
-import {
-  buildSuperintendentSystemPrompt,
-  prependSystemPrompt
-} from "./system-prompt.js";
+import { buildSuperintendentSystemPrompt, prependSystemPrompt } from "./system-prompt.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 import { parseWorkflowCall, type WorkflowTransition } from "./workflow-tool.js";
 
@@ -37,6 +31,7 @@ const SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS = 7200;
 export type RunSuperintendentOptions = {
   defaultCwd: string;
   logPath?: string;
+  agentSession?: AgentRunnerSession;
 };
 
 export async function runSuperintendent(
@@ -59,7 +54,8 @@ export async function runSuperintendent(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.superintendent, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.agentSession ? { session: options.agentSession } : {})
   });
   const transition = extractTransition(result);
   const logPath = extractLogPath(result);
@@ -202,12 +198,7 @@ function extractOutputText(result: AutonomousOutput): string {
     return result;
   }
 
-  return (
-    readString(result.output) ??
-    readString(result.stdout) ??
-    readString(result.text) ??
-    ""
-  );
+  return readString(result.output) ?? readString(result.stdout) ?? readString(result.text) ?? "";
 }
 
 function readToolCall(value: unknown): ToolCallLike | undefined {

@@ -1,11 +1,17 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { lockWorkflow, makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
+import {
+  lockWorkflow,
+  makeRunLogFileName,
+  resolveWorkflowPath,
+  type AgentRunnerSession
+} from "@poe-code/agent-harness-tools";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { parseTaskBoard } from "../document/tasks.js";
 import { updateStatus } from "../document/write.js";
 import { createLoopState, type LoopState } from "../state/machine.js";
 import { withAutonomousAgentRunner, type McpSpawnConfig } from "./agent-runner.js";
+import { finalizeAgentRunnerSession } from "./agent-runner-session.js";
 import { runBuilder, type BuilderResult } from "./run-builder.js";
 import { runInspector, type InspectorResult } from "./run-inspector.js";
 import { runOwnerReview, type OwnerResult } from "./run-owner-review.js";
@@ -31,11 +37,7 @@ export interface SuperintendentFileStat {
 
 export interface SuperintendentFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
-  writeFile(
-    path: string,
-    data: string,
-    options?: { encoding?: BufferEncoding }
-  ): Promise<void>;
+  writeFile(path: string, data: string, options?: { encoding?: BufferEncoding }): Promise<void>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<SuperintendentFileStat>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
@@ -107,6 +109,7 @@ export type RunLoopOptions = {
   fs?: SuperintendentFileSystem;
   callbacks?: LoopCallbacks;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  agentSession?: AgentRunnerSession;
   runners?: LoopRunners;
   signal?: AbortSignal;
   logDir?: string;
@@ -126,6 +129,7 @@ type LoopRuntime = {
   fs: SuperintendentFileSystem;
   callbacks: LoopCallbacks;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  agentSession?: AgentRunnerSession;
   runners: ResolvedRunners;
   signal?: AbortSignal;
   logDir?: string;
@@ -142,7 +146,10 @@ type TemplateLoopContext = {
 };
 
 type LockCapableSuperintendentFs = {
-  open(path: string, flags: string): Promise<{
+  open(
+    path: string,
+    flags: string
+  ): Promise<{
     close(): Promise<void>;
     writeFile(
       data: string,
@@ -323,7 +330,9 @@ export async function runLoop(
           const superintendentResult = await executeSuperintendent(options, context);
 
           if (superintendentResult.transition?.action !== "request_review") {
-            throw new Error("Superintendent must call request_review to continue a review exchange");
+            throw new Error(
+              "Superintendent must call request_review to continue a review exchange"
+            );
           }
 
           context = {
@@ -400,7 +409,11 @@ export async function runLoop(
       }
     });
   } finally {
-    await releaseLock();
+    try {
+      await finalizeAgentRunnerSession(options.agentSession);
+    } finally {
+      await releaseLock();
+    }
   }
 }
 
@@ -414,6 +427,7 @@ function normalizeOptions(input: string | RunLoopOptions, callbacks?: LoopCallba
       callbacks: input.callbacks ?? {},
       runners: resolveRunners(input.runners),
       ...(input.runAgent ? { runAgent: input.runAgent } : {}),
+      ...(input.agentSession ? { agentSession: input.agentSession } : {}),
       ...(input.signal ? { signal: input.signal } : {}),
       ...(input.logDir ? { logDir: input.logDir } : {})
     };
@@ -480,10 +494,7 @@ async function readDocument(
   return parseSuperintendentDoc(docPath, content);
 }
 
-async function readDocumentContent(
-  fs: SuperintendentFileSystem,
-  docPath: string
-): Promise<string> {
+async function readDocumentContent(fs: SuperintendentFileSystem, docPath: string): Promise<string> {
   return fs.readFile(docPath, "utf8");
 }
 
@@ -599,10 +610,11 @@ async function executeSuperintendent(
 function buildRoleOptions(
   options: LoopRuntime,
   role: string
-): { defaultCwd: string; logPath?: string } {
+): { defaultCwd: string; logPath?: string; agentSession?: AgentRunnerSession } {
   return {
     defaultCwd: options.cwd,
-    ...(options.logDir ? { logPath: path.join(options.logDir, makeRunLogFileName(role)) } : {})
+    ...(options.logDir ? { logPath: path.join(options.logDir, makeRunLogFileName(role)) } : {}),
+    ...(options.agentSession ? { agentSession: options.agentSession } : {})
   };
 }
 
@@ -720,7 +732,9 @@ async function withInjectedAgentRunner<T>(
 
     if (result.exitCode !== 0) {
       throw new Error(
-        result.stderr || result.stdout || `Agent \`${agent}\` failed with exit code ${result.exitCode}`
+        result.stderr ||
+          result.stdout ||
+          `Agent \`${agent}\` failed with exit code ${result.exitCode}`
       );
     }
 

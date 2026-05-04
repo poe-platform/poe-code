@@ -3,7 +3,9 @@ import { fs, vol } from "memfs";
 import type { PipelineRunResult } from "@poe-code/pipeline";
 
 const workspaceRunPipelineMock = vi.hoisted(() => vi.fn());
-const pipelineSkillPlanPath = new URL("../templates/pipeline/SKILL_plan.md", import.meta.url).pathname;
+const createSpawnSessionMock = vi.hoisted(() => vi.fn());
+const pipelineSkillPlanPath = new URL("../templates/pipeline/SKILL_plan.md", import.meta.url)
+  .pathname;
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -12,6 +14,10 @@ vi.mock("node:fs/promises", async () => {
 
 vi.mock("./spawn.js", () => ({
   spawn: vi.fn()
+}));
+
+vi.mock("./spawn-session.js", () => ({
+  createSpawnSession: createSpawnSessionMock
 }));
 
 vi.mock("@poe-code/pipeline", async (importOriginal) => {
@@ -43,10 +49,13 @@ const workspaceResult: PipelineRunResult = {
 
 function seedFs(files: Record<string, string>): void {
   vol.reset();
-  vol.fromJSON({
-    [pipelineSkillPlanPath]: "Pipeline skill template",
-    ...files
-  }, "/");
+  vol.fromJSON(
+    {
+      [pipelineSkillPlanPath]: "Pipeline skill template",
+      ...files
+    },
+    "/"
+  );
   vol.mkdirSync(cwd, { recursive: true });
   vol.mkdirSync(homeDir, { recursive: true });
 }
@@ -78,6 +87,7 @@ function createActivityTimeoutError(): Error {
 describe("SDK pipeline", () => {
   beforeEach(() => {
     workspaceRunPipelineMock.mockReset();
+    createSpawnSessionMock.mockReset();
   });
 
   afterEach(() => {
@@ -226,14 +236,11 @@ describe("SDK pipeline", () => {
     });
 
     const timeoutError = createActivityTimeoutError();
-    const runAgent = vi
-      .fn()
-      .mockRejectedValueOnce(timeoutError)
-      .mockResolvedValueOnce({
-        stdout: "done",
-        stderr: "",
-        exitCode: 0
-      });
+    const runAgent = vi.fn().mockRejectedValueOnce(timeoutError).mockResolvedValueOnce({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
     workspaceRunPipelineMock.mockImplementationOnce(async (options) => {
       await options.runAgent?.({
         agent: "codex",
@@ -254,6 +261,109 @@ describe("SDK pipeline", () => {
 
     expect(result).toEqual(workspaceResult);
     expect(runAgent).toHaveBeenCalledTimes(2);
+  });
+
+  it("reuses a spawn session for default agent runs and syncs back once at the end", async () => {
+    seedFs({
+      "/repo/feature.md": initializedPlan()
+    });
+
+    const run = vi.fn().mockResolvedValue({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+    const syncBack = vi.fn().mockResolvedValue({ files: 1, bytes: 2, conflicts: [] });
+    const close = vi.fn().mockResolvedValue(undefined);
+    createSpawnSessionMock.mockReturnValue({ run, syncBack, close });
+    workspaceRunPipelineMock.mockImplementationOnce(async (options) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Ship it.",
+        mode: "yolo",
+        cwd,
+        logDir: "/repo/.poe-code/pipeline/logs",
+        logFileName: "ship-feature.jsonl",
+        model: "gpt-5"
+      });
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Verify it.",
+        mode: "read",
+        cwd
+      });
+
+      return workspaceResult;
+    });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd,
+      homeDir,
+      plan: "feature.md",
+      model: "gpt-5"
+    });
+
+    expect(result).toEqual(workspaceResult);
+    expect(createSpawnSessionMock).toHaveBeenCalledTimes(1);
+    expect(createSpawnSessionMock).toHaveBeenCalledWith({
+      service: "codex",
+      cwd,
+      model: "gpt-5"
+    });
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(run).toHaveBeenNthCalledWith(1, {
+      agent: "codex",
+      prompt: "Ship it.",
+      mode: "yolo",
+      cwd,
+      logDir: "/repo/.poe-code/pipeline/logs",
+      logFileName: "ship-feature.jsonl",
+      model: "gpt-5",
+      syncBack: false
+    });
+    expect(run).toHaveBeenNthCalledWith(2, {
+      agent: "codex",
+      prompt: "Verify it.",
+      mode: "read",
+      cwd,
+      syncBack: false
+    });
+    expect(syncBack).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(syncBack).toHaveBeenCalledBefore(close);
+  });
+
+  it("keeps custom runAgent overrides outside the default spawn session", async () => {
+    seedFs({
+      "/repo/feature.md": initializedPlan()
+    });
+
+    const runAgent = vi.fn().mockResolvedValue({
+      stdout: "custom",
+      stderr: "",
+      exitCode: 0
+    });
+    workspaceRunPipelineMock.mockImplementationOnce(async (options) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Ship it.",
+        mode: "yolo",
+        cwd
+      });
+      return workspaceResult;
+    });
+
+    await runPipeline({
+      agent: "codex",
+      cwd,
+      homeDir,
+      plan: "feature.md",
+      runAgent
+    });
+
+    expect(createSpawnSessionMock).not.toHaveBeenCalled();
+    expect(runAgent).toHaveBeenCalledTimes(1);
   });
 
   it("does not retry non-timeout errors", async () => {

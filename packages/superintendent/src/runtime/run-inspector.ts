@@ -1,10 +1,7 @@
 import "@poe-code/agent-spawn/register-factories";
+import type { AgentRunnerSession } from "@poe-code/agent-harness-tools";
 import type { AgentRoleConfig, SuperintendentDoc } from "../document/parse.js";
-import {
-  runAutonomousAgent,
-  type AutonomousOutput,
-  type McpSpawnConfig
-} from "./agent-runner.js";
+import { runAutonomousAgent, type AutonomousOutput, type McpSpawnConfig } from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
 import { buildInspectorSystemPrompt, prependSystemPrompt } from "./system-prompt.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
@@ -19,6 +16,7 @@ export type RunInspectorOptions = {
   promptOverride?: string;
   defaultCwd: string;
   logPath?: string;
+  agentSession?: AgentRunnerSession;
 };
 
 export async function runInspector(
@@ -29,8 +27,7 @@ export async function runInspector(
   options: RunInspectorOptions
 ): Promise<InspectorResult> {
   const userPrompt =
-    options.promptOverride ??
-    resolveTemplate(config.prompt, buildTemplateContext(doc, context));
+    options.promptOverride ?? resolveTemplate(config.prompt, buildTemplateContext(doc, context));
   const systemPrompt = buildInspectorSystemPrompt({
     inspectorName: name,
     ...(context.builder
@@ -49,7 +46,8 @@ export async function runInspector(
     prompt,
     cwd: resolveRoleCwd(config, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc, config),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.agentSession ? { session: options.agentSession } : {})
   });
 
   const logPath = extractLogPath(output);
@@ -89,7 +87,7 @@ function buildMcpServers(
 export async function runAllInspectors(
   doc: SuperintendentDoc,
   context: Partial<TemplateContext>,
-  options: { defaultCwd: string }
+  options: { defaultCwd: string; agentSession?: AgentRunnerSession }
 ): Promise<InspectorResult[]> {
   const inspectors = doc.frontmatter.inspectors;
 

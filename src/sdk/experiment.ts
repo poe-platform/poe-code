@@ -9,6 +9,8 @@ import {
   type ExperimentRunResult,
   type JournalEntry
 } from "@poe-code/experiment-loop";
+import { parseAgentSpecifier } from "@poe-code/agent-defs";
+import { createSpawnSession, type SpawnSession } from "./spawn-session.js";
 import { spawn as sdkSpawn } from "./spawn.js";
 
 export type {
@@ -67,24 +69,91 @@ function resolveJournalPath(docPath: string): string {
 }
 
 export async function runExperiment(options: ExperimentRunOptions): Promise<ExperimentRunResult> {
-  return runWorkspaceExperimentLoop({
-    ...options,
-    runAgent: async (input: Parameters<NonNullable<ExperimentRunOptions["runAgent"]>>[0]) => {
-      return await sdkSpawn.autonomous(input.agent, {
-        prompt: input.prompt,
-        cwd: input.cwd,
-        model: input.model,
-        mode: "yolo",
-        ...(options.runtime ? { runtime: options.runtime } : {}),
-        ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
-        ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
-        ...(options.detach ? { detach: options.detach } : {}),
-        ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
-        ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
-        ...(input.signal ? { signal: input.signal } : {})
-      });
+  if (options.runAgent || options.detach === true) {
+    return await runWorkspaceExperimentLoop({
+      ...options,
+      runAgent: options.runAgent ?? createDefaultExperimentRunAgent(options)
+    });
+  }
+
+  const session = createExperimentSpawnSession(options);
+  try {
+    return await runWorkspaceExperimentLoop({
+      ...options,
+      runAgent: createSessionExperimentRunAgent(session)
+    });
+  } finally {
+    await session.close();
+  }
+}
+
+function createDefaultExperimentRunAgent(
+  options: ExperimentRunOptions
+): NonNullable<ExperimentRunOptions["runAgent"]> {
+  return async (input) =>
+    await sdkSpawn.autonomous(input.agent, {
+      prompt: input.prompt,
+      cwd: input.cwd,
+      model: input.model,
+      mode: "yolo",
+      ...(options.runtime ? { runtime: options.runtime } : {}),
+      ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
+      ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
+      ...(options.detach ? { detach: options.detach } : {}),
+      ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
+      ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
+      ...(input.signal ? { signal: input.signal } : {})
+    });
+}
+
+function createExperimentSpawnSession(options: ExperimentRunOptions): SpawnSession {
+  const initialAgent = resolveInitialExperimentAgent(
+    options.agent,
+    (options as { model?: string }).model
+  );
+
+  return createSpawnSession({
+    service: initialAgent.agent,
+    cwd: options.cwd,
+    ...(initialAgent.model ? { model: initialAgent.model } : {}),
+    mode: "yolo",
+    ...(options.runtime ? { runtime: options.runtime } : {}),
+    ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
+    ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
+    ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
+    ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
+    downloadConflict: "overwrite",
+    context: {
+      homeDir: options.homeDir
     }
   });
+}
+
+function createSessionExperimentRunAgent(
+  session: SpawnSession
+): NonNullable<ExperimentRunOptions["runAgent"]> {
+  return async (input) =>
+    await session.run({
+      agent: input.agent,
+      prompt: input.prompt,
+      cwd: input.cwd,
+      ...(input.model ? { model: input.model } : {}),
+      ...(input.signal ? { signal: input.signal } : {}),
+      syncBack: true
+    });
+}
+
+function resolveInitialExperimentAgent(
+  agent: ExperimentRunOptions["agent"],
+  model: string | undefined
+): { agent: string; model?: string } {
+  const value = Array.isArray(agent) ? agent[0] : agent;
+  const specifier = parseAgentSpecifier(value ?? "claude-code");
+  const initialModel = specifier.model ?? model;
+  return {
+    agent: specifier.agent,
+    ...(initialModel ? { model: initialModel } : {})
+  };
 }
 
 export async function readExperimentJournal(

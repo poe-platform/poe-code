@@ -109,7 +109,10 @@ describe("superintendent inspector commands", () => {
     expect(runAllInspectorsMock).toHaveBeenCalledWith(
       expect.objectContaining({ filePath: path.resolve(targetPath) }),
       {},
-      { defaultCwd: process.cwd() }
+      expect.objectContaining({
+        defaultCwd: process.cwd(),
+        agentSession: expect.any(Object)
+      })
     );
     expect(result).toEqual([
       { name: "code-quality", summary: "quality-ok" },
@@ -149,7 +152,10 @@ describe("superintendent inspector commands", () => {
       }),
       expect.objectContaining({ filePath: path.resolve(targetPath) }),
       {},
-      { defaultCwd: process.cwd() }
+      expect.objectContaining({
+        defaultCwd: process.cwd(),
+        agentSession: expect.any(Object)
+      })
     );
     expect(result).toEqual([{ name: "manual-qa", summary: "qa-ok" }]);
   });
@@ -172,7 +178,7 @@ describe("superintendent inspector commands", () => {
         },
         progress: vi.fn()
       })
-    ).rejects.toThrow('Inspector not found: missing');
+    ).rejects.toThrow("Inspector not found: missing");
   });
 
   it("renders a friendly rich empty state when listing no inspectors", async () => {

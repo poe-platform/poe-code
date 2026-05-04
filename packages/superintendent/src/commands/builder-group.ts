@@ -1,6 +1,10 @@
 import { S, UserError, defineCommand, defineGroup } from "toolcraft";
 import { text } from "@poe-code/design-system";
 import { parseSuperintendentDoc } from "../document/parse.js";
+import {
+  createSuperintendentAgentSession,
+  finalizeAgentRunnerSession
+} from "../runtime/agent-runner-session.js";
 import { runBuilder, type BuilderResult } from "../runtime/run-builder.js";
 
 export type BuilderGroupRunners = {
@@ -23,8 +27,22 @@ export function createBuilderRunCommand(runners?: BuilderGroupRunners) {
     handler: async ({ params, fs }) => {
       const content = await readDocument(params.path, fs);
       const document = parseSuperintendentDoc(params.path, content);
+      const session = createSuperintendentAgentSession({
+        homeDir: process.env.HOME ?? process.env.USERPROFILE ?? process.cwd()
+      });
 
-      return runBuilderImpl(document, {}, { defaultCwd: process.cwd() });
+      try {
+        return await runBuilderImpl(
+          document,
+          {},
+          {
+            defaultCwd: process.cwd(),
+            agentSession: session
+          }
+        );
+      } finally {
+        await finalizeAgentRunnerSession(session);
+      }
     },
     render: {
       rich: (result, { logger }) => {

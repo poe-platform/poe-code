@@ -9,6 +9,7 @@ import {
 import { buildPipelineInitPrompt } from "../cli/commands/pipeline-init.js";
 import pipelineSkillPlan from "../templates/pipeline/SKILL_plan.md";
 import { spawn as sdkSpawn } from "./spawn.js";
+import { createSpawnSession, type SpawnSession } from "./spawn-session.js";
 
 export type {
   AgentRunUsage,
@@ -89,10 +90,7 @@ async function planNeedsInit(absolutePath: string): Promise<boolean> {
   return !Array.isArray(tasks) || tasks.length === 0;
 }
 
-async function runWithRetry<T>(
-  fn: () => Promise<T>,
-  maxAttempts: number
-): Promise<T> {
+async function runWithRetry<T>(fn: () => Promise<T>, maxAttempts: number): Promise<T> {
   let lastError: unknown;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
@@ -105,65 +103,96 @@ async function runWithRetry<T>(
   throw lastError;
 }
 
-export async function runPipeline(
-  options: PipelineRunOptions
-): Promise<PipelineRunResult> {
-  const userRunAgent = options.runAgent ?? (async (input: PipelineAgentRunnerInput) => {
-    return await sdkSpawn.autonomous(input.agent, {
-      prompt: input.prompt,
-      cwd: input.cwd,
-      logDir: input.logDir,
-      model: input.model,
-      mode: input.mode,
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.signal ? { signal: input.signal } : {})
-    });
-  });
+export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
+  const session = options.runAgent ? null : createPipelineSpawnSession(options);
+  const userRunAgent =
+    options.runAgent ?? createPipelineSessionRunAgent(session as SpawnSession, false);
 
-  if (options.plan) {
-    const planAbsolutePath = path.resolve(options.cwd, options.plan);
-    if (await planNeedsInit(planAbsolutePath)) {
-      const sourceDocContent = await fsPromises.readFile(planAbsolutePath, "utf8");
-      const prompt = buildPipelineInitPrompt({
-        sourceDocPath: options.plan,
-        sourceDocContent,
-        skillContent: pipelineSkillPlan
-      });
-      await runWithRetry(
-        () => userRunAgent({
-          agent: options.agent,
-          prompt,
-          mode: "yolo",
-          cwd: options.cwd,
-          ...(options.model ? { model: options.model } : {}),
-          ...(options.signal ? { signal: options.signal } : {})
-        }),
-        PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT
-      );
+  try {
+    if (options.plan) {
+      const planAbsolutePath = path.resolve(options.cwd, options.plan);
+      if (await planNeedsInit(planAbsolutePath)) {
+        const sourceDocContent = await fsPromises.readFile(planAbsolutePath, "utf8");
+        const prompt = buildPipelineInitPrompt({
+          sourceDocPath: options.plan,
+          sourceDocContent,
+          skillContent: pipelineSkillPlan
+        });
+        const initRunAgent = session ? createPipelineSessionRunAgent(session, true) : userRunAgent;
+        await runWithRetry(
+          () =>
+            initRunAgent({
+              agent: options.agent,
+              prompt,
+              mode: "yolo",
+              cwd: options.cwd,
+              ...(options.model ? { model: options.model } : {}),
+              ...(options.signal ? { signal: options.signal } : {})
+            }),
+          PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT
+        );
+      }
+    }
+
+    const retryRunAgent: PipelineAgentRunner = (input) =>
+      runWithRetry(() => userRunAgent(input), PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT);
+
+    return await runWorkspacePipeline({
+      ...options,
+      runAgent: retryRunAgent
+    });
+  } finally {
+    if (session) {
+      try {
+        await session.syncBack();
+      } finally {
+        await session.close();
+      }
     }
   }
+}
 
-  const retryRunAgent: PipelineAgentRunner = (input) =>
-    runWithRetry(() => userRunAgent(input), PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT);
-
-  return runWorkspacePipeline({
-    ...options,
-    runAgent: retryRunAgent
+function createPipelineSpawnSession(options: PipelineRunOptions): SpawnSession {
+  return createSpawnSession({
+    service: options.agent,
+    cwd: options.cwd,
+    ...(options.model ? { model: options.model } : {})
   });
+}
+
+function createPipelineSessionRunAgent(
+  session: SpawnSession,
+  syncBack: boolean
+): PipelineAgentRunner {
+  return async (input) =>
+    await session.run({
+      agent: input.agent,
+      prompt: input.prompt,
+      mode: input.mode,
+      cwd: input.cwd,
+      ...(input.logDir ? { logDir: input.logDir } : {}),
+      ...(input.logFileName ? { logFileName: input.logFileName } : {}),
+      ...(input.model ? { model: input.model } : {}),
+      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+      ...(input.signal ? { signal: input.signal } : {}),
+      syncBack
+    });
 }
 
 export async function runPipelineInit(
   options: PipelineInitRunOptions
 ): Promise<PipelineInitRunResult> {
-  const runAgent = options.runAgent ?? (async (input: PipelineAgentRunnerInput) => {
-    return await sdkSpawn.autonomous(input.agent, {
-      prompt: input.prompt,
-      cwd: input.cwd,
-      model: input.model,
-      mode: input.mode,
-      ...(input.signal ? { signal: input.signal } : {})
+  const runAgent =
+    options.runAgent ??
+    (async (input: PipelineAgentRunnerInput) => {
+      return await sdkSpawn.autonomous(input.agent, {
+        prompt: input.prompt,
+        cwd: input.cwd,
+        model: input.model,
+        mode: input.mode,
+        ...(input.signal ? { signal: input.signal } : {})
+      });
     });
-  });
 
   if (options.signal?.aborted) {
     return {

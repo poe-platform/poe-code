@@ -38,8 +38,12 @@ vi.mock("../../sdk/pipeline.js", () => ({
   })
 }));
 
-vi.mock("../../sdk/spawn.js", () => ({
-  spawn: vi.fn()
+vi.mock("../../sdk/spawn-session.js", () => ({
+  createSpawnSession: vi.fn(() => ({
+    run: vi.fn().mockResolvedValue({ stdout: "", stderr: "", exitCode: 0 }),
+    syncBack: vi.fn().mockResolvedValue({ files: 0, bytes: 0, conflicts: [] }),
+    close: vi.fn().mockResolvedValue(undefined)
+  }))
 }));
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
@@ -67,7 +71,7 @@ vi.mock("./pipeline-loop-agent.js", () => ({
 
 import { runPipeline as sdkRunPipeline } from "../../sdk/pipeline.js";
 import { runPipelineInit as sdkRunPipelineInit } from "../../sdk/pipeline.js";
-import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import { createSpawnSession } from "../../sdk/spawn-session.js";
 import { createDashboard, withOutputFormat } from "@poe-code/design-system";
 
 resolvePipelineLoopAgentMock.mockImplementation(resolveLoopAgent);
@@ -331,6 +335,125 @@ describe("pipeline run command", () => {
     vi.doUnmock("@poe-code/braintrust");
   });
 
+  it("runs the non-dashboard integration agent through one deferred-sync spawn session", async () => {
+    const spawnMiddleware = vi.fn(async (_ctx, next: () => Promise<void>) => {
+      await next();
+    });
+    vi.doMock("@poe-code/braintrust", () => ({
+      bootstrap: vi.fn(async () => ({
+        spawnMiddleware,
+        traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
+        shutdown: vi.fn(async () => undefined)
+      }))
+    }));
+
+    const run = vi.fn().mockResolvedValue({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+    const syncBack = vi.fn().mockResolvedValue({ files: 0, bytes: 0, conflicts: [] });
+    const close = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(createSpawnSession).mockReturnValueOnce({ run, syncBack, close });
+    vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Ship it.",
+        cwd,
+        mode: "yolo",
+        model: "gpt-5.2"
+      });
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Verify it.",
+        cwd,
+        mode: "read"
+      });
+
+      return {
+        stopReason: "completed",
+        planPath: "custom-plan.yaml",
+        runsCompleted: 2,
+        totalDurationMs: 1_000,
+        metrics: {
+          totalInputTokens: 0,
+          totalOutputTokens: 0,
+          totalCachedTokens: 0,
+          tasksCompleted: 1,
+          tasksFailed: 0,
+          stepsCompleted: 2
+        }
+      };
+    });
+
+    try {
+      const fs = createMemFs({
+        [`${homeDir}/.poe-code/config.json`]: JSON.stringify({
+          integrations: {
+            braintrust: {
+              enabled: true,
+              apiKey: "key",
+              project: "project"
+            }
+          }
+        }),
+        "/repo/custom-plan.yaml": "tasks: []\n"
+      });
+      const container = createCliContainer({
+        fs,
+        prompts: vi.fn().mockResolvedValue({}),
+        env: { cwd, homeDir },
+        logger: () => {}
+      });
+      const program = createBaseProgram();
+      registerPipelineCommand(program, container);
+
+      await program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "pipeline",
+        "run",
+        "--plan",
+        "custom-plan.yaml",
+        "--agent",
+        "codex",
+        "--model",
+        "gpt-5.2",
+        "--no-tui"
+      ]);
+
+      expect(createSpawnSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          service: "codex",
+          cwd,
+          model: "gpt-5.2",
+          middlewares: [spawnMiddleware]
+        })
+      );
+      expect(run).toHaveBeenNthCalledWith(1, {
+        agent: "codex",
+        prompt: "Ship it.",
+        cwd,
+        mode: "yolo",
+        model: "gpt-5.2",
+        syncBack: false
+      });
+      expect(run).toHaveBeenNthCalledWith(2, {
+        agent: "codex",
+        prompt: "Verify it.",
+        cwd,
+        mode: "read",
+        syncBack: false
+      });
+      expect(syncBack).toHaveBeenCalledTimes(1);
+      expect(syncBack).toHaveBeenCalledBefore(close);
+      expect(close).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.doUnmock("@poe-code/braintrust");
+    }
+  });
+
   it("reads plan.plan_directory for pipeline discovery", async () => {
     const fs = createMemFs();
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
@@ -537,12 +660,8 @@ describe("pipeline run command", () => {
     expect(
       logs.some((message) => message.includes("Total tokens: 5000 input, 2000 output, 1000 cached"))
     ).toBe(true);
-    expect(
-      logs.some((message) => message.includes("Tasks: 1 completed, 0 failed"))
-    ).toBe(true);
-    expect(
-      logs.some((message) => message.includes("Steps: 1 completed"))
-    ).toBe(true);
+    expect(logs.some((message) => message.includes("Tasks: 1 completed, 0 failed"))).toBe(true);
+    expect(logs.some((message) => message.includes("Steps: 1 completed"))).toBe(true);
   });
 
   it("reports pipeline failures without blocked retry messaging", async () => {
@@ -1159,10 +1278,12 @@ describe("pipeline run command", () => {
     const dashboardMock = createDashboardMock();
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
 
-    vi.mocked(sdkSpawn).mockImplementationOnce((_agent, input) => {
-      input.tee?.stdout?.write("Inspecting repo");
-      input.tee?.stdout?.write("...\nsecond line\npartial");
-      input.tee?.stderr?.write("Tool warning\npartial stderr");
+    const run = vi.fn((input, options) => {
+      expect(options).toEqual({ streaming: true });
+      const tee = vi.mocked(createSpawnSession).mock.calls[0]?.[0].tee;
+      tee?.stdout?.write("Inspecting repo");
+      tee?.stdout?.write("...\nsecond line\npartial");
+      tee?.stderr?.write("Tool warning\npartial stderr");
 
       return {
         events: (async function* () {})(),
@@ -1177,6 +1298,9 @@ describe("pipeline run command", () => {
         })
       };
     });
+    const syncBack = vi.fn().mockResolvedValue({ files: 0, bytes: 0, conflicts: [] });
+    const close = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(createSpawnSession).mockReturnValueOnce({ run, syncBack, close });
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
       options.onTaskStart?.({
@@ -1193,6 +1317,16 @@ describe("pipeline run command", () => {
         agent: "codex",
         prompt: "Inspect the repo",
         mode: "yolo",
+        cwd,
+        logDir: "/repo/.poe-code/pipeline/logs",
+        logFileName: "auth-hardening-implement.jsonl",
+        model: "gpt-5.2",
+        signal: options.signal
+      });
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Check status",
+        mode: "read",
         cwd,
         model: "gpt-5.2",
         signal: options.signal
@@ -1258,20 +1392,47 @@ describe("pipeline run command", () => {
       ])
     );
 
-    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledWith(
-      "codex",
+    expect(createSpawnSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        prompt: "Inspect the repo",
+        service: "codex",
         cwd,
         model: "gpt-5.2",
-        mode: "yolo",
-        signal: expect.any(AbortSignal),
         tee: expect.objectContaining({
           stdout: expect.any(Object),
           stderr: expect.any(Object)
         })
       })
     );
+    expect(run).toHaveBeenCalledWith(
+      {
+        agent: "codex",
+        prompt: "Inspect the repo",
+        cwd,
+        logDir: "/repo/.poe-code/pipeline/logs",
+        logFileName: "auth-hardening-implement.jsonl",
+        model: "gpt-5.2",
+        mode: "yolo",
+        signal: expect.any(AbortSignal),
+        syncBack: false
+      },
+      { streaming: true }
+    );
+    expect(run).toHaveBeenNthCalledWith(
+      2,
+      {
+        agent: "codex",
+        prompt: "Check status",
+        cwd,
+        model: "gpt-5.2",
+        mode: "read",
+        signal: expect.any(AbortSignal),
+        syncBack: false
+      },
+      { streaming: true }
+    );
+    expect(syncBack).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(syncBack).toHaveBeenCalledBefore(close);
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
@@ -1316,9 +1477,11 @@ describe("pipeline run command", () => {
     const timeoutError = new Error("Timed out waiting for agent activity for 600000ms.");
     timeoutError.name = "ActivityTimeoutError";
 
-    vi.mocked(sdkSpawn)
-      .mockImplementationOnce((_agent, input) => {
-        input.tee?.stdout?.write("first attempt output\n");
+    const run = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        const tee = vi.mocked(createSpawnSession).mock.calls[0]?.[0].tee;
+        tee?.stdout?.write("first attempt output\n");
 
         return {
           events: (async function* () {})(),
@@ -1337,6 +1500,9 @@ describe("pipeline run command", () => {
           }
         })
       }));
+    const syncBack = vi.fn().mockResolvedValue({ files: 0, bytes: 0, conflicts: [] });
+    const close = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(createSpawnSession).mockReturnValueOnce({ run, syncBack, close });
 
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
       options.onTaskStart?.({
@@ -1354,6 +1520,8 @@ describe("pipeline run command", () => {
         prompt: "Inspect the repo",
         mode: "yolo",
         cwd,
+        logDir: "/repo/.poe-code/pipeline/logs",
+        logFileName: "auth-hardening-implement.jsonl",
         model: "gpt-5.2",
         signal: options.signal
       });
@@ -1418,7 +1586,7 @@ describe("pipeline run command", () => {
       ])
     );
 
-    expect(vi.mocked(sdkSpawn)).toHaveBeenCalledTimes(2);
+    expect(run).toHaveBeenCalledTimes(2);
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
@@ -1479,15 +1647,7 @@ describe("pipeline init command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "--yes",
-        "pipeline",
-        "init"
-      ])
-    ).rejects.toEqual(
+    await expect(program.parseAsync(["node", "cli", "--yes", "pipeline", "init"])).rejects.toEqual(
       new ValidationError("Provide --source or --sources when using --yes.")
     );
   });
@@ -1565,9 +1725,13 @@ describe("pipeline init command", () => {
       })
     );
     expect(logs.some((message) => message.includes("Source 1/2: docs/plans/alpha.md"))).toBe(true);
-    expect(logs.some((message) => message.includes("Completed 1/2: docs/plans/alpha.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Completed 1/2: docs/plans/alpha.md"))).toBe(
+      true
+    );
     expect(logs.some((message) => message.includes("Source 2/2: docs/plans/beta.md"))).toBe(true);
-    expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(
+      true
+    );
     expect(logs.some((message) => message.includes("Pipeline init finished."))).toBe(true);
   });
 

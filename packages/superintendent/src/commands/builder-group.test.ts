@@ -74,7 +74,10 @@ describe("superintendent builder run", () => {
         filePath: path.resolve(targetPath)
       }),
       {},
-      { defaultCwd: process.cwd() }
+      expect.objectContaining({
+        defaultCwd: process.cwd(),
+        agentSession: expect.any(Object)
+      })
     );
     expect(result).toEqual({
       summary: "Implemented builder run",
@@ -110,10 +113,12 @@ describe("superintendent builder run", () => {
   it("renders markdown output with summary and log sections", async () => {
     const { builderRunCommand } = await import("./builder-group.js");
 
-    expect(builderRunCommand.render.markdown?.({
-      summary: "Implemented builder run",
-      log: "Implemented builder run\nUpdated tests"
-    })).toBe(
+    expect(
+      builderRunCommand.render.markdown?.({
+        summary: "Implemented builder run",
+        log: "Implemented builder run\nUpdated tests"
+      })
+    ).toBe(
       [
         "## Builder result",
         "",

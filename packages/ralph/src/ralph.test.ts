@@ -796,6 +796,73 @@ describe("createRalphSimulation", () => {
     expect(body).toBe("# Archive me");
   });
 
+  it("prepares the final workspace before completed status and archive writes", async () => {
+    const { fs, rawFs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": "# Original"
+    });
+    const prepareFinalWorkspace = vi.fn(async () => {
+      await fs.writeFile("/repo/.poe-code/ralph/plans/plan.md", "# Synced body");
+    });
+
+    await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: ".poe-code/ralph/plans/plan.md",
+      maxIterations: 1,
+      fs,
+      prepareFinalWorkspace,
+      runAgent: async () => ({
+        stdout: "",
+        stderr: "",
+        exitCode: 0
+      })
+    });
+
+    expect(prepareFinalWorkspace).toHaveBeenCalledTimes(1);
+    const archived = await rawFs.readFile(
+      "/repo/.poe-code/ralph/plans/archive/plan.md",
+      "utf8"
+    );
+    const { data, body } = parseFrontmatter(archived as string);
+    expect(data.status).toEqual({
+      state: "completed",
+      iteration: 1
+    });
+    expect(body).toBe("# Synced body");
+  });
+
+  it("prepares the final workspace before fatal-error open status writes", async () => {
+    const { fs, rawFs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": "# Original"
+    });
+    const prepareFinalWorkspace = vi.fn(async () => {
+      await fs.writeFile("/repo/.poe-code/ralph/plans/plan.md", "# Synced body");
+    });
+
+    await expect(
+      runRalph({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath: ".poe-code/ralph/plans/plan.md",
+        maxIterations: 1,
+        fs,
+        prepareFinalWorkspace,
+        runAgent: async () => {
+          throw new Error("boom");
+        }
+      })
+    ).rejects.toThrow("boom");
+
+    expect(prepareFinalWorkspace).toHaveBeenCalledTimes(1);
+    const content = await rawFs.readFile("/repo/.poe-code/ralph/plans/plan.md", "utf8");
+    const { data, body } = parseFrontmatter(content as string);
+    expect(data.status).toEqual({
+      state: "open",
+      iteration: 0
+    });
+    expect(body).toBe("# Synced body");
+  });
+
   it("writes open status on abort signal", async () => {
     const controller = new AbortController();
     const sim = createRalphSimulation({

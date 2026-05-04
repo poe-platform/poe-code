@@ -4,6 +4,12 @@ import { pathToFileURL } from "node:url";
 
 // SDK exports
 export { spawn } from "./sdk/spawn.js";
+export {
+  createSpawnSession,
+  type CreateSpawnSessionOptions,
+  type SpawnSession,
+  type SpawnSessionRunInput
+} from "./sdk/spawn-session.js";
 export { runPipeline, runPipelineInit } from "./sdk/pipeline.js";
 export {
   createLogWriter,

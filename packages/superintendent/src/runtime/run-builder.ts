@@ -1,10 +1,7 @@
 import "@poe-code/agent-spawn/register-factories";
+import type { AgentRunnerSession } from "@poe-code/agent-harness-tools";
 import type { SuperintendentDoc } from "../document/parse.js";
-import {
-  runAutonomousAgent,
-  type AutonomousOutput,
-  type McpSpawnConfig
-} from "./agent-runner.js";
+import { runAutonomousAgent, type AutonomousOutput, type McpSpawnConfig } from "./agent-runner.js";
 import { resolveRoleCwd } from "./resolve-cwd.js";
 import { resolveTemplate, type TemplateContext } from "./templates.js";
 
@@ -18,6 +15,7 @@ export type RunBuilderOptions = {
   promptOverride?: string;
   defaultCwd: string;
   logPath?: string;
+  agentSession?: AgentRunnerSession;
 };
 
 export async function runBuilder(
@@ -34,7 +32,8 @@ export async function runBuilder(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.builder, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.agentSession ? { session: options.agentSession } : {})
   });
   const log = extractLog(result);
 
@@ -86,7 +85,13 @@ function extractLog(result: AutonomousOutput): string {
     return result;
   }
 
-  return readString(result.log) ?? readString(result.output) ?? readString(result.stdout) ?? readString(result.text) ?? "";
+  return (
+    readString(result.log) ??
+    readString(result.output) ??
+    readString(result.stdout) ??
+    readString(result.text) ??
+    ""
+  );
 }
 
 function extractLogPath(result: AutonomousOutput, options: RunBuilderOptions): string {

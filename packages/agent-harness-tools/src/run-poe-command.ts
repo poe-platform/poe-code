@@ -96,8 +96,12 @@ export async function runPoeCommand(opts: {
       jobId,
       openSpec: opts.openSpec,
       signal: opts.signal,
-      wrapCommand
+      wrapCommand,
+      syncBack: true
     });
+    if (result.download === undefined) {
+      throw new Error("Expected workspace download result from single-shot Poe command run.");
+    }
     await runningJob;
     shouldClose = false;
 
@@ -121,19 +125,23 @@ export async function runPoeCommand(opts: {
   }
 }
 
-export interface PoeCommandSession {
+export interface AgentRunnerSession {
   run(
     openSpec: OpenSpec,
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    options?: { syncBack?: boolean }
   ): Promise<{
     kind: "sync";
     exitCode: number;
-    download: DownloadResult;
+    download?: DownloadResult;
     stdout?: string;
     stderr?: string;
   }>;
+  syncBack(): Promise<DownloadResult>;
   close(): Promise<void>;
 }
+
+export type PoeCommandSession = AgentRunnerSession;
 
 export function createPoeCommandSession(opts: {
   factory: ExecutionEnvFactory;
@@ -141,6 +149,8 @@ export function createPoeCommandSession(opts: {
 }): PoeCommandSession {
   let env: OpenedEnv | null = null;
   let closed = false;
+  let lastOpenSpec: OpenSpec | null = null;
+  let needsDownload = false;
 
   async function getEnv(openSpec: OpenSpec): Promise<OpenedEnv> {
     if (closed) {
@@ -154,11 +164,24 @@ export function createPoeCommandSession(opts: {
     const opened = opts.factory.open(openSpec);
     env = isPromiseLike(opened) ? await opened : opened;
     await env.uploadWorkspace();
+    lastOpenSpec = openSpec;
     return env;
   }
 
+  async function downloadCurrentWorkspace(): Promise<DownloadResult> {
+    if (env === null || lastOpenSpec === null) {
+      return { files: 0, bytes: 0, conflicts: [] };
+    }
+
+    const download = await env.downloadWorkspace({
+      conflictPolicy: lastOpenSpec.runner?.download_conflict ?? "refuse"
+    });
+    needsDownload = false;
+    return download;
+  }
+
   return {
-    async run(openSpec, signal) {
+    async run(openSpec, signal, options) {
       const jobId = createUlid();
       const pendingJob = opts.state.jobs.put({
         id: jobId,
@@ -171,6 +194,7 @@ export function createPoeCommandSession(opts: {
         status: "pending"
       });
       const currentEnv = await getEnv(openSpec);
+      lastOpenSpec = openSpec;
       await pendingJob;
       await configureE2bSpawnAgentIfAvailable({
         env: currentEnv,
@@ -198,6 +222,7 @@ export function createPoeCommandSession(opts: {
         handle.stdin?.setDefaultEncoding("utf8");
         handle.stdin?.end(openSpec.execution.input);
       }
+      needsDownload = true;
 
       await opts.state.jobs.update(jobId, {
         status: "running",
@@ -212,8 +237,12 @@ export function createPoeCommandSession(opts: {
         openSpec,
         signal,
         wrapCommand,
-        closeAfterDownload: false
+        closeAfterDownload: false,
+        syncBack: options?.syncBack === true
       });
+      if (result.download !== undefined) {
+        needsDownload = false;
+      }
 
       await opts.state.jobs.update(jobId, {
         status: "exited",
@@ -224,17 +253,29 @@ export function createPoeCommandSession(opts: {
       return {
         kind: "sync",
         exitCode: result.exitCode,
-        download: result.download,
+        ...(result.download !== undefined ? { download: result.download } : {}),
         ...(result.stdout !== undefined ? { stdout: result.stdout } : {}),
         ...(result.stderr !== undefined ? { stderr: result.stderr } : {})
       };
+    },
+    async syncBack() {
+      if (closed) {
+        throw new Error("Cannot sync Poe command session after it is closed.");
+      }
+      return downloadCurrentWorkspace();
     },
     async close() {
       if (closed) {
         return;
       }
       closed = true;
-      await env?.close();
+      try {
+        if (needsDownload) {
+          await downloadCurrentWorkspace();
+        }
+      } finally {
+        await env?.close();
+      }
     }
   };
 }
@@ -362,7 +403,8 @@ async function runSync(opts: {
   signal?: AbortSignal;
   wrapCommand: boolean;
   closeAfterDownload?: boolean;
-}): Promise<{ exitCode: number; download: DownloadResult; stdout?: string; stderr?: string }> {
+  syncBack?: boolean;
+}): Promise<{ exitCode: number; download?: DownloadResult; stdout?: string; stderr?: string }> {
   const execution = opts.openSpec.execution;
   const capture = execution?.captureOutput === true;
   const abort = createAbortSync(opts.signal, opts.handle, execution?.activityTimeoutMs);
@@ -375,15 +417,18 @@ async function runSync(opts: {
     const { exitCode } = opts.wrapCommand
       ? await abort.waitForExit(opts.env, opts.jobId)
       : await abort.waitForHandle();
-    const download = await opts.env.downloadWorkspace({
-      conflictPolicy: opts.openSpec.runner?.download_conflict ?? "refuse"
-    });
+    const download =
+      opts.syncBack === false
+        ? undefined
+        : await opts.env.downloadWorkspace({
+            conflictPolicy: opts.openSpec.runner?.download_conflict ?? "refuse"
+          });
     if (opts.closeAfterDownload !== false) {
       await opts.env.close();
     }
     return {
       exitCode,
-      download,
+      ...(download !== undefined ? { download } : {}),
       ...(capture ? { stdout: streamState.stdout(), stderr: streamState.stderr() } : {})
     };
   } finally {

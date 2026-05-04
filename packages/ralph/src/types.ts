@@ -61,6 +61,7 @@ export interface RalphRunOptions {
   runnerSync?: "both" | "upload" | "none";
   fs?: RalphFileSystem;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  prepareFinalWorkspace?: () => Promise<void>;
   onIterationStart?: (iteration: number, maxIterations: number, agent: string) => void;
   onIterationComplete?: (iteration: number, durationMs: number, success: boolean) => void;
   signal?: AbortSignal;

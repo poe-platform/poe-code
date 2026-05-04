@@ -3,9 +3,8 @@ import type { RalphRunOptions } from "@poe-code/ralph";
 
 const runWorkspaceRalphMock = vi.hoisted(() => vi.fn());
 const spawnAutonomousMock = vi.hoisted(() => vi.fn());
-const buildSpawnArgsMock = vi.hoisted(() => vi.fn());
-const createPoeCommandSessionMock = vi.hoisted(() => vi.fn());
-const resolvePoeCommandExecutionMock = vi.hoisted(() => vi.fn());
+const createSpawnSessionMock = vi.hoisted(() => vi.fn());
+const getPoeApiKeyMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/ralph", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/ralph")>();
@@ -22,12 +21,11 @@ vi.mock("./spawn.js", () => ({
 }));
 
 vi.mock("@poe-code/agent-spawn", () => ({
-  buildSpawnArgs: buildSpawnArgsMock
+  createSpawnSession: createSpawnSessionMock
 }));
 
-vi.mock("@poe-code/agent-harness-tools", () => ({
-  createPoeCommandSession: createPoeCommandSessionMock,
-  resolvePoeCommandExecution: resolvePoeCommandExecutionMock
+vi.mock("./credentials.js", () => ({
+  getPoeApiKey: getPoeApiKeyMock
 }));
 
 import { runRalph } from "./ralph.js";
@@ -36,9 +34,9 @@ describe("SDK ralph", () => {
   beforeEach(() => {
     runWorkspaceRalphMock.mockReset();
     spawnAutonomousMock.mockReset();
-    buildSpawnArgsMock.mockReset();
-    createPoeCommandSessionMock.mockReset();
-    resolvePoeCommandExecutionMock.mockReset();
+    createSpawnSessionMock.mockReset();
+    getPoeApiKeyMock.mockReset();
+    getPoeApiKeyMock.mockResolvedValue("sk-test");
   });
 
   it("preserves a caller-provided runAgent", async () => {
@@ -70,7 +68,7 @@ describe("SDK ralph", () => {
     expect(spawnAutonomousMock).not.toHaveBeenCalled();
   });
 
-  it("wires the default autonomous runner when no runAgent is provided", async () => {
+  it("uses the autonomous runner when detach is enabled", async () => {
     const expectedResult = {
       stopReason: "max_iterations" as const,
       docPath: "docs/loop.md",
@@ -132,39 +130,19 @@ describe("SDK ralph", () => {
     });
   });
 
-  it("reuses one e2b command session for the default Ralph runner", async () => {
+  it("reuses one command session for the default Ralph runner", async () => {
     const run = vi.fn().mockResolvedValue({
-      kind: "sync",
       stdout: "done",
       stderr: "",
-      exitCode: 0,
-      download: { files: 1, bytes: 12, conflicts: [] }
+      exitCode: 0
     });
+    const syncBack = vi.fn().mockResolvedValue({ files: 1, bytes: 2, conflicts: [] });
     const close = vi.fn().mockResolvedValue(undefined);
-    const factory = { type: "e2b" };
-    const state = { jobs: {} };
     let capturedOptions: RalphRunOptions | undefined;
     const originalPoeApiKey = process.env.POE_API_KEY;
 
     process.env.POE_API_KEY = "sk-test";
-    buildSpawnArgsMock
-      .mockReturnValueOnce({ binaryName: "claude", args: ["-p", "first"] })
-      .mockReturnValueOnce({ binaryName: "claude", args: ["-p", "second"] });
-    resolvePoeCommandExecutionMock.mockReturnValue({
-      factory,
-      state,
-      detach: false,
-      openSpec: {
-        cwd: "/tmp/ralph",
-        runner: {
-          detach: false,
-          upload_max_file_mb: 100,
-          download_conflict: "refuse"
-        },
-        jobLabel: { tool: "claude-code", argv: ["claude", "-p", "prompt"] }
-      }
-    });
-    createPoeCommandSessionMock.mockReturnValue({ run, close });
+    createSpawnSessionMock.mockReturnValue({ run, syncBack, close });
     runWorkspaceRalphMock.mockImplementationOnce(async (options: RalphRunOptions) => {
       capturedOptions = options;
       await options.runAgent?.({
@@ -192,8 +170,10 @@ describe("SDK ralph", () => {
         cwd: "/tmp/ralph",
         homeDir: "/home/test",
         docPath: "/tmp/ralph/plan.md",
-        runtime: "e2b",
-        runtimeTemplate: "tmpl_test"
+        runtime: "docker",
+        runtimeImage: "poe-code:test",
+        runtimeTemplate: "tmpl_test",
+        runnerSync: "upload"
       });
     } finally {
       if (originalPoeApiKey === undefined) {
@@ -205,25 +185,112 @@ describe("SDK ralph", () => {
 
     expect(capturedOptions?.runAgent).toEqual(expect.any(Function));
     expect(spawnAutonomousMock).not.toHaveBeenCalled();
-    expect(createPoeCommandSessionMock).toHaveBeenCalledTimes(1);
-    expect(createPoeCommandSessionMock).toHaveBeenCalledWith({ factory, state });
-    expect(buildSpawnArgsMock).toHaveBeenNthCalledWith(1, "claude-code", {
-      prompt: "first",
-      model: "sonnet",
-      mode: "yolo"
+    expect(createSpawnSessionMock).toHaveBeenCalledTimes(1);
+    expect(createSpawnSessionMock).toHaveBeenCalledWith({
+      service: "claude-code",
+      cwd: "/tmp/ralph",
+      mode: "yolo",
+      runtime: "docker",
+      runtimeImage: "poe-code:test",
+      runtimeTemplate: "tmpl_test",
+      runnerSync: "upload",
+      downloadConflict: "overwrite",
+      context: {
+        homeDir: "/home/test"
+      }
     });
-    expect(buildSpawnArgsMock).toHaveBeenNthCalledWith(2, "claude-code", {
+    expect(run).toHaveBeenNthCalledWith(2, {
       prompt: "second",
+      agent: "claude-code",
+      cwd: "/tmp/ralph",
       model: "sonnet",
-      mode: "yolo"
+      signal: undefined,
+      syncBack: false
     });
     expect(run).toHaveBeenCalledTimes(2);
-    expect(run.mock.calls[0]?.[0]).toEqual(
-      expect.objectContaining({
-        runner: expect.objectContaining({ download_conflict: "overwrite" })
+    expect(run.mock.calls[0]?.[0]).toEqual({
+      prompt: "first",
+      agent: "claude-code",
+      cwd: "/tmp/ralph",
+      model: "sonnet",
+      signal: undefined,
+      syncBack: false
+    });
+    expect(syncBack).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it("syncs back and closes the command session when Ralph fails", async () => {
+    const run = vi.fn().mockResolvedValue({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+    const syncBack = vi.fn().mockResolvedValue({ files: 1, bytes: 2, conflicts: [] });
+    const close = vi.fn().mockResolvedValue(undefined);
+    const failure = new Error("ralph failed");
+
+    createSpawnSessionMock.mockReturnValue({ run, syncBack, close });
+    runWorkspaceRalphMock.mockRejectedValueOnce(failure);
+
+    await expect(
+      runRalph({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath: "docs/loop.md"
       })
-    );
-    expect(resolvePoeCommandExecutionMock).toHaveBeenCalledTimes(2);
+    ).rejects.toThrow("ralph failed");
+
+    expect(syncBack).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it("finalizes the command session when Ralph prepares terminal status writes", async () => {
+    const events: string[] = [];
+    const run = vi.fn().mockResolvedValue({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+    const syncBack = vi.fn(async () => {
+      events.push("sync");
+      return { files: 1, bytes: 2, conflicts: [] };
+    });
+    const close = vi.fn(async () => {
+      events.push("close");
+    });
+    const originalPoeApiKey = process.env.POE_API_KEY;
+
+    process.env.POE_API_KEY = "sk-test";
+    createSpawnSessionMock.mockReturnValue({ run, syncBack, close });
+    runWorkspaceRalphMock.mockImplementationOnce(async (options: RalphRunOptions) => {
+      await options.prepareFinalWorkspace?.();
+      events.push("status");
+      await options.prepareFinalWorkspace?.();
+      return {
+        stopReason: "max_iterations",
+        docPath: "docs/loop.md",
+        iterationsCompleted: 1,
+        totalDurationMs: 1_000
+      };
+    });
+
+    try {
+      await runRalph({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath: "docs/loop.md"
+      });
+    } finally {
+      if (originalPoeApiKey === undefined) {
+        delete process.env.POE_API_KEY;
+      } else {
+        process.env.POE_API_KEY = originalPoeApiKey;
+      }
+    }
+
+    expect(events).toEqual(["sync", "close", "status"]);
+    expect(syncBack).toHaveBeenCalledTimes(1);
     expect(close).toHaveBeenCalledTimes(1);
   });
 });

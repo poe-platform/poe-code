@@ -1,13 +1,5 @@
-export {
-  discoverWorkflowDocs,
-  resolveWorkflowPath,
-  type DiscoverDocsOptions
-} from "./paths.js";
-export {
-  discoverPlans,
-  archivePlan,
-  openPlanList
-} from "./plans.js";
+export { discoverWorkflowDocs, resolveWorkflowPath, type DiscoverDocsOptions } from "./paths.js";
+export { discoverPlans, archivePlan, openPlanList } from "./plans.js";
 export type {
   PlanRef,
   DiscoverPlansOptions,
@@ -28,11 +20,7 @@ export {
   type WorkflowHook,
   type WorkflowMode
 } from "./hooks.js";
-export {
-  runWorkflowStage,
-  type StageContext,
-  type WorkflowStage
-} from "./stage.js";
+export { runWorkflowStage, type StageContext, type WorkflowStage } from "./stage.js";
 export { lockWorkflow, type LockOptions } from "./lock.js";
 export {
   runDocumentWorkflow,
@@ -41,10 +29,7 @@ export {
   type WorkflowFileStat,
   type WorkflowFileSystem
 } from "./runner.js";
-export {
-  runDocumentWorkflowSequence,
-  type DocumentWorkflowSequenceOptions
-} from "./sequence.js";
+export { runDocumentWorkflowSequence, type DocumentWorkflowSequenceOptions } from "./sequence.js";
 export {
   makeRunLogFileName,
   resolveRunLogDir,
@@ -61,6 +46,7 @@ export {
 export {
   createPoeCommandSession,
   runPoeCommand,
+  type AgentRunnerSession,
   type PoeCommandSession
 } from "./run-poe-command.js";
 export {

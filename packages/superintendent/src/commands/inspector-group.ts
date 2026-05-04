@@ -1,10 +1,10 @@
 import { S, UserError, defineCommand, defineGroup } from "toolcraft";
 import { parseSuperintendentDoc } from "../document/parse.js";
 import {
-  runAllInspectors,
-  runInspector,
-  type InspectorResult
-} from "../runtime/run-inspector.js";
+  createSuperintendentAgentSession,
+  finalizeAgentRunnerSession
+} from "../runtime/agent-runner-session.js";
+import { runAllInspectors, runInspector, type InspectorResult } from "../runtime/run-inspector.js";
 
 export type InspectorListItem = {
   name: string;
@@ -85,18 +85,36 @@ export function createInspectorRunCommand(runners?: InspectorGroupRunners) {
       const document = parseSuperintendentDoc(params.path, content);
 
       const defaultCwd = process.cwd();
+      const session = createSuperintendentAgentSession({
+        homeDir: process.env.HOME ?? process.env.USERPROFILE ?? defaultCwd
+      });
 
-      if (params.name === undefined) {
-        return runAllInspectorsImpl(document, {}, { defaultCwd });
+      try {
+        if (params.name === undefined) {
+          return await runAllInspectorsImpl(document, {}, { defaultCwd, agentSession: session });
+        }
+
+        const config = document.frontmatter.inspectors?.[params.name];
+
+        if (config === undefined) {
+          throw new UserError(`Inspector not found: ${params.name}`);
+        }
+
+        return [
+          await runInspectorImpl(
+            params.name,
+            config,
+            document,
+            {},
+            {
+              defaultCwd,
+              agentSession: session
+            }
+          )
+        ];
+      } finally {
+        await finalizeAgentRunnerSession(session);
       }
-
-      const config = document.frontmatter.inspectors?.[params.name];
-
-      if (config === undefined) {
-        throw new UserError(`Inspector not found: ${params.name}`);
-      }
-
-      return [await runInspectorImpl(params.name, config, document, {}, { defaultCwd })];
     },
     render: {
       rich: (result, { logger }) => {
@@ -105,7 +123,9 @@ export function createInspectorRunCommand(runners?: InspectorGroupRunners) {
           return;
         }
 
-        logger.success(`Completed ${result.length} inspector run${result.length === 1 ? "" : "s"}.`);
+        logger.success(
+          `Completed ${result.length} inspector run${result.length === 1 ? "" : "s"}.`
+        );
 
         for (const inspector of result) {
           logger.message(`${inspector.name}: ${inspector.summary || "(no output)"}`);
@@ -154,7 +174,9 @@ function renderInspectorListMarkdown(result: InspectorListItem[]): string {
   }
 
   for (const inspector of result) {
-    lines.push(`- ${inspector.name} (${inspector.agent}${inspector.mode ? `, ${inspector.mode}` : ""})`);
+    lines.push(
+      `- ${inspector.name} (${inspector.agent}${inspector.mode ? `, ${inspector.mode}` : ""})`
+    );
   }
 
   return lines.join("\n");

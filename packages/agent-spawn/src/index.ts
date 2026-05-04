@@ -30,7 +30,11 @@ export type {
   StdinMode
 } from "./types.js";
 
-export type { SpawnProgressEvent, SpawnProgressListener } from "@poe-code/agent-harness-tools";
+export type {
+  DownloadResult,
+  SpawnProgressEvent,
+  SpawnProgressListener
+} from "@poe-code/agent-harness-tools";
 
 export {
   allSpawnConfigs,
@@ -47,6 +51,12 @@ export {
   type BuildSpawnArgsResult
 } from "./spawn.js";
 export { spawn } from "./spawn.js";
+export {
+  createSpawnSession,
+  type CreateSpawnSessionOptions,
+  type SpawnSession,
+  type SpawnSessionRunInput
+} from "./spawn-session.js";
 export { spawnInteractive } from "./spawn-interactive.js";
 export { spawnAutonomous } from "./autonomous.js";
 export type { AutonomousOptions, StreamingSpawnFn, StreamingSpawnReturn } from "./autonomous.js";

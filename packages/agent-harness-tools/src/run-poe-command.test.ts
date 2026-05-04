@@ -317,7 +317,7 @@ describe("runPoeCommand", () => {
     expect(execStarted).toBe(true);
   });
 
-  it("reuses an opened environment across session commands and downloads after each command", async () => {
+  it("reuses an opened environment across session commands without syncing by default", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();
     let opens = 0;
@@ -348,14 +348,15 @@ describe("runPoeCommand", () => {
     expect(second).toMatchObject({ kind: "sync", exitCode: 0 });
     expect(opens).toBe(1);
     expect(env.uploads).toBe(1);
-    expect(env.downloads).toEqual([{ conflictPolicy: "refuse" }, { conflictPolicy: "refuse" }]);
+    expect(env.downloads).toEqual([]);
     expect(env.closed).toBe(false);
 
     await session.close();
+    expect(env.downloads).toEqual([{ conflictPolicy: "refuse" }]);
     expect(env.closed).toBe(true);
   });
 
-  it("syncs a reused session workspace back after each command while keeping remote state for the next command", async () => {
+  it("syncs a reused session workspace back on demand while keeping remote state for the next command", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();
     let localIterations = "";
@@ -373,9 +374,8 @@ describe("runPoeCommand", () => {
     };
     env.exec = (spec): RunHandle => {
       env.execSpecs.push(spec);
-      const nextIteration = remoteIterations.trim().length === 0
-        ? 1
-        : remoteIterations.trim().split("\n").length + 1;
+      const nextIteration =
+        remoteIterations.trim().length === 0 ? 1 : remoteIterations.trim().split("\n").length + 1;
       remoteIterations += `${nextIteration}\n`;
       return {
         pid: 123,
@@ -399,9 +399,15 @@ describe("runPoeCommand", () => {
     });
 
     await session.run(openSpec);
+    expect(localIterations).toBe("");
+
+    await session.syncBack();
     expect(localIterations).toBe("1\n");
 
     await session.run(openSpec);
+    expect(localIterations).toBe("1\n");
+
+    await session.syncBack();
     expect(localIterations).toBe("1\n2\n");
     expect(remoteIterations).toBe("1\n2\n");
     expect(env.uploads).toBe(1);
@@ -412,6 +418,97 @@ describe("runPoeCommand", () => {
     expect(env.execSpecs).toHaveLength(2);
 
     await session.close();
+    expect(env.downloads).toHaveLength(2);
+  });
+
+  it("supports opt-in per-run sync back for reused sessions", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const session = createPoeCommandSession({ factory: createE2bFactory(env), state });
+
+    const result = await session.run(createOpenSpec(), undefined, { syncBack: true });
+
+    expect(result).toEqual({
+      kind: "sync",
+      exitCode: 0,
+      download: { files: 0, bytes: 0, conflicts: [] }
+    });
+    expect(env.downloads).toEqual([{ conflictPolicy: "refuse" }]);
+
+    await session.close();
+    expect(env.downloads).toHaveLength(1);
+    expect(env.closed).toBe(true);
+  });
+
+  it("captures session stdout and stderr without syncing back by default", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const stdout = new PassThrough();
+    const stderr = new PassThrough();
+    const runResult = deferred<RunResult>();
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      setImmediate(() => {
+        stdout.write("hello\n");
+        stderr.write("warn\n");
+        stdout.end();
+        stderr.end();
+        runResult.resolve({ exitCode: 7 });
+      });
+      return {
+        pid: 123,
+        stdout,
+        stderr,
+        stdin: null,
+        result: runResult.promise,
+        kill() {}
+      };
+    };
+    const session = createPoeCommandSession({ factory: createE2bFactory(env), state });
+
+    const result = await session.run(
+      createOpenSpec({
+        execution: { captureOutput: true, wrapForLogTee: false }
+      })
+    );
+
+    expect(result).toEqual({
+      kind: "sync",
+      exitCode: 7,
+      stdout: "hello\n",
+      stderr: "warn\n"
+    });
+    expect(env.downloads).toEqual([]);
+
+    await session.close();
+    expect(env.downloads).toEqual([{ conflictPolicy: "refuse" }]);
+  });
+
+  it("does not download on close when syncBack already ran after the last session command", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const session = createPoeCommandSession({ factory: createE2bFactory(env), state });
+
+    await session.run(createOpenSpec());
+    await session.syncBack();
+    await session.close();
+
+    expect(env.downloads).toEqual([{ conflictPolicy: "refuse" }]);
+    expect(env.closed).toBe(true);
+  });
+
+  it("allows no-op session sync and close before the first command", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const session = createPoeCommandSession({ factory: createE2bFactory(env), state });
+
+    await expect(session.syncBack()).resolves.toEqual({ files: 0, bytes: 0, conflicts: [] });
+    await session.close();
+    await session.close();
+
+    expect(env.uploads).toBe(0);
+    expect(env.downloads).toEqual([]);
+    expect(env.closed).toBe(false);
   });
 
   it("configures the spawned E2B agent after upload and before the agent command", async () => {

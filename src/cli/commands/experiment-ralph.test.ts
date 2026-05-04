@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
@@ -46,6 +46,10 @@ vi.mock("../../sdk/spawn.js", () => ({
   })
 }));
 
+vi.mock("../../sdk/spawn-session.js", () => ({
+  createSpawnSession: vi.fn()
+}));
+
 vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
   return {
@@ -64,6 +68,7 @@ import {
 } from "../../sdk/experiment.js";
 import { runRalph as sdkRunRalph } from "../../sdk/ralph.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import { createSpawnSession } from "../../sdk/spawn-session.js";
 import { acp, createDashboard, withOutputFormat } from "@poe-code/design-system";
 
 const cwd = "/repo";
@@ -176,6 +181,14 @@ const expectedTimestamp = (() => {
   return `[${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}]`;
 })();
 describe("experiment run command", () => {
+  beforeEach(() => {
+    vi.mocked(createSpawnSession).mockReturnValue({
+      run: vi.fn().mockResolvedValue({ stdout: "", stderr: "", exitCode: 0 }),
+      syncBack: vi.fn().mockResolvedValue({ files: 0, bytes: 0, conflicts: [] }),
+      close: vi.fn().mockResolvedValue(undefined)
+    });
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     isCancelMock.mockReturnValue(false);
@@ -788,6 +801,166 @@ describe("experiment run command", () => {
     vi.doUnmock("@poe-code/braintrust");
   });
 
+  it("runs the non-dashboard integration agent through one synced spawn session", async () => {
+    const spawnMiddleware = vi.fn(async (_ctx, next: () => Promise<void>) => {
+      await next();
+    });
+    vi.doMock("@poe-code/braintrust", () => ({
+      bootstrap: vi.fn(async () => ({
+        spawnMiddleware,
+        traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
+        shutdown: vi.fn(async () => undefined)
+      }))
+    }));
+
+    const run = vi.fn().mockResolvedValue({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+    const close = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(createSpawnSession).mockReturnValueOnce({
+      run,
+      syncBack: vi.fn().mockResolvedValue({ files: 0, bytes: 0, conflicts: [] }),
+      close
+    });
+    vi.mocked(sdkRunExperiment).mockImplementationOnce(async (options) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Run integration experiment",
+        cwd,
+        model: "gpt-5.2"
+      });
+
+      return {
+        stopReason: "max_experiments",
+        docPath: options.docPath,
+        experimentsCompleted: 1,
+        experimentsKept: 0,
+        totalDurationMs: 1_000
+      };
+    });
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        [`${homeDir}/.poe-code/config.json`]: JSON.stringify({
+          integrations: {
+            braintrust: {
+              enabled: true,
+              apiKey: "key",
+              project: "project"
+            }
+          }
+        }),
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "experiment",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "codex",
+      "--max-experiments",
+      "1",
+      "--no-tui"
+    ]);
+
+    expect(createSpawnSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        service: "codex",
+        cwd,
+        mode: "yolo",
+        middlewares: [spawnMiddleware],
+        downloadConflict: "overwrite",
+        context: {
+          homeDir
+        }
+      })
+    );
+    expect(run).toHaveBeenCalledWith({
+      agent: "codex",
+      prompt: "Run integration experiment",
+      cwd,
+      model: "gpt-5.2",
+      syncBack: true
+    });
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkSpawn.autonomous)).not.toHaveBeenCalled();
+
+    vi.doUnmock("@poe-code/braintrust");
+  });
+
+  it("does not open an experiment spawn session for detached integration runs", async () => {
+    vi.doMock("@poe-code/braintrust", () => ({
+      bootstrap: vi.fn(async () => ({
+        spawnMiddleware: vi.fn(async (_ctx, next: () => Promise<void>) => {
+          await next();
+        }),
+        traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
+        shutdown: vi.fn(async () => undefined)
+      }))
+    }));
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        [`${homeDir}/.poe-code/config.json`]: JSON.stringify({
+          integrations: {
+            braintrust: {
+              enabled: true,
+              apiKey: "key",
+              project: "project"
+            }
+          }
+        }),
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "experiment",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "codex",
+      "--max-experiments",
+      "1",
+      "--detach",
+      "--no-tui"
+    ]);
+
+    expect(createSpawnSession).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        detach: true
+      })
+    );
+    expect(vi.mocked(sdkRunExperiment)).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        runAgent: expect.any(Function)
+      })
+    );
+
+    vi.doUnmock("@poe-code/braintrust");
+  });
+
   it("uses the experiment.tui config value when set", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date(0));
@@ -1006,15 +1179,25 @@ describe("experiment run command", () => {
     const dashboardMock = createDashboardMock();
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
 
-    vi.mocked(sdkSpawn.autonomous).mockImplementationOnce(async (_agent, input) => {
+    let stderrTee: { write(chunk: string): void } | undefined;
+    const run = vi.fn().mockImplementationOnce(async () => {
       acp.getAcpWriter()("Running experiment step");
       acp.getAcpWriter()("Evaluating metrics");
-      input.tee?.stderr?.write("Metric warning\npartial stderr");
+      stderrTee?.write("Metric warning\npartial stderr");
 
       return {
         stdout: "",
         stderr: "",
         exitCode: 0
+      };
+    });
+    const close = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(createSpawnSession).mockImplementationOnce((input) => {
+      stderrTee = input.tee?.stderr;
+      return {
+        run,
+        syncBack: vi.fn().mockResolvedValue({ files: 0, bytes: 0, conflicts: [] }),
+        close
       };
     });
 
@@ -1077,19 +1260,26 @@ describe("experiment run command", () => {
         signal: expect.any(AbortSignal)
       })
     );
-    expect(vi.mocked(sdkSpawn.autonomous)).toHaveBeenCalledWith(
-      "claude-code",
+    expect(vi.mocked(createSpawnSession)).toHaveBeenCalledWith(
       expect.objectContaining({
-        prompt: "Run experiment iteration",
         cwd,
         mode: "yolo",
-        signal: expect.any(AbortSignal),
+        service: "claude-code",
         useStdin: true,
         tee: expect.objectContaining({
           stderr: expect.any(Object)
         })
       })
     );
+    expect(run).toHaveBeenCalledWith({
+      agent: "claude-code",
+      prompt: "Run experiment iteration",
+      cwd,
+      signal: expect.any(AbortSignal),
+      syncBack: true
+    });
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkSpawn.autonomous)).not.toHaveBeenCalled();
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(
@@ -1694,6 +1884,14 @@ describe("experiment install command", () => {
 });
 
 describe("ralph run command", () => {
+  beforeEach(() => {
+    vi.mocked(createSpawnSession).mockReturnValue({
+      run: vi.fn().mockResolvedValue({ stdout: "", stderr: "", exitCode: 0 }),
+      syncBack: vi.fn().mockResolvedValue({ files: 0, bytes: 0, conflicts: [] }),
+      close: vi.fn().mockResolvedValue(undefined)
+    });
+  });
+
   afterEach(() => {
     vi.clearAllMocks();
     isCancelMock.mockReturnValue(false);
@@ -1776,6 +1974,130 @@ describe("ralph run command", () => {
         runtimeImage: "poe-code:test",
         detach: true,
         runnerSync: "upload"
+      })
+    );
+  });
+
+  it("opens one spawn session for non-detached Ralph CLI runs and syncs back once", async () => {
+    const run = vi.fn().mockResolvedValue({ stdout: "ok", stderr: "", exitCode: 0 });
+    const syncBack = vi.fn().mockResolvedValue({ files: 2, bytes: 4, conflicts: [] });
+    const close = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(createSpawnSession).mockReturnValueOnce({ run, syncBack, close });
+    vi.mocked(sdkRunRalph).mockImplementationOnce(async (options) => {
+      await options.runAgent?.({
+        agent: "claude-code",
+        prompt: "first",
+        cwd,
+        model: "sonnet",
+        signal: options.signal
+      });
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "second",
+        cwd,
+        model: "gpt-5.2",
+        signal: options.signal
+      });
+      return {
+        stopReason: "max_iterations",
+        docPath: options.docPath,
+        iterationsCompleted: 2,
+        totalDurationMs: 1_000
+      };
+    });
+
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude:sonnet",
+      "--iterations",
+      "2",
+      "--runtime",
+      "e2b",
+      "--runtime-template",
+      "tmpl_test",
+      "--runner-sync",
+      "upload"
+    ]);
+
+    expect(createSpawnSession).toHaveBeenCalledWith({
+      service: "claude-code",
+      cwd,
+      model: "sonnet",
+      mode: "yolo",
+      runtime: "e2b",
+      runtimeTemplate: "tmpl_test",
+      runtimeConfigCwd: cwd,
+      runnerSync: "upload",
+      downloadConflict: "overwrite",
+      context: {
+        homeDir
+      }
+    });
+    expect(run).toHaveBeenNthCalledWith(1, {
+      agent: "claude-code",
+      prompt: "first",
+      cwd,
+      model: "sonnet",
+      signal: undefined,
+      syncBack: false
+    });
+    expect(run).toHaveBeenNthCalledWith(2, {
+      agent: "codex",
+      prompt: "second",
+      cwd,
+      model: "gpt-5.2",
+      signal: undefined,
+      syncBack: false
+    });
+    expect(syncBack).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledTimes(1);
+  });
+
+  it("skips the spawn session for detached Ralph CLI runs", async () => {
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "ralph",
+      "run",
+      "docs/loop.md",
+      "--agent",
+      "claude",
+      "--iterations",
+      "1",
+      "--detach"
+    ]);
+
+    expect(createSpawnSession).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
+      expect.not.objectContaining({
+        runAgent: expect.any(Function)
       })
     );
   });
@@ -2670,10 +2992,13 @@ describe("ralph run command", () => {
     const dashboardMock = createDashboardMock();
     vi.mocked(createDashboard).mockReturnValueOnce(dashboardMock.dashboard);
 
-    vi.mocked(sdkSpawn.autonomous).mockImplementationOnce(async (_agent, input) => {
+    const run = vi.fn().mockImplementation(async () => {
       acp.getAcpWriter()("Analyzing doc");
       acp.getAcpWriter()("Drafting update");
-      input.tee?.stderr?.write("Tool warning\npartial stderr");
+      const sessionOptions = vi.mocked(createSpawnSession).mock.calls[0]?.[0] as
+        | { tee?: { stderr?: { write(chunk: string): void } } }
+        | undefined;
+      sessionOptions?.tee?.stderr?.write("Tool warning\npartial stderr");
 
       return {
         stdout: "",
@@ -2681,6 +3006,9 @@ describe("ralph run command", () => {
         exitCode: 0
       };
     });
+    const syncBack = vi.fn().mockResolvedValue({ files: 1, bytes: 2, conflicts: [] });
+    const close = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(createSpawnSession).mockReturnValueOnce({ run, syncBack, close });
 
     vi.mocked(sdkRunRalph).mockImplementationOnce(async (options) => {
       options.onIterationStart?.(1, 5, "claude-code");
@@ -2732,19 +3060,28 @@ describe("ralph run command", () => {
         signal: expect.any(AbortSignal)
       })
     );
-    expect(vi.mocked(sdkSpawn.autonomous)).toHaveBeenCalledWith(
-      "claude-code",
+    expect(createSpawnSession).toHaveBeenCalledWith(
       expect.objectContaining({
-        prompt: "Inspect the plan doc",
+        service: "claude-code",
         cwd,
         mode: "yolo",
-        signal: expect.any(AbortSignal),
         useStdin: true,
         tee: expect.objectContaining({
           stderr: expect.any(Object)
         })
       })
     );
+    expect(run).toHaveBeenCalledWith({
+      agent: "claude-code",
+      prompt: "Inspect the plan doc",
+      cwd,
+      model: undefined,
+      signal: expect.any(AbortSignal),
+      syncBack: false
+    });
+    expect(syncBack).toHaveBeenCalledTimes(1);
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(sdkSpawn.autonomous)).not.toHaveBeenCalled();
 
     const outputs = dashboardMock.appendOutput.mock.calls.map(([item]) => item);
     expect(

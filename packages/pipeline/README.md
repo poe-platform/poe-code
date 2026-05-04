@@ -141,6 +141,10 @@ Stop conditions: all work complete, a task/step fails, cancellation, or `maxRuns
 
 A failed task or step blocks all later tasks.
 
+### Runtime Sessions
+
+`pipeline run` opens one sandbox session at the start of the run and reuses it for every setup hook, task step, and teardown hook. The workspace is uploaded once before the first execution, then synced back to the host when the run finishes or aborts.
+
 ### Cancellation
 
 No intermediate status is written before spawn. If an execution is aborted, the task stays at its prior status and the lock is released.

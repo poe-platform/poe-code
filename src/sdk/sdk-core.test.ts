@@ -89,6 +89,12 @@ vi.mock("./spawn.js", () => ({
   })
 }));
 
+const createSpawnSessionMock = vi.hoisted(() => vi.fn());
+
+vi.mock("./spawn-session.js", () => ({
+  createSpawnSession: createSpawnSessionMock
+}));
+
 import { createSdkContainer } from "./container.js";
 import {
   followLaunchLogs,
@@ -658,9 +664,10 @@ describe("SDK experiment", () => {
   beforeEach(() => {
     runExperimentLoopMock.mockReset();
     spawnAutonomousMock.mockReset();
+    createSpawnSessionMock.mockReset();
   });
 
-  it("forwards CLI-parity options and wires the default agent runner", async () => {
+  it("forwards CLI-parity options and wires the default session agent runner", async () => {
     const expectedResult = {
       stopReason: "max_experiments" as const,
       docPath: "docs/loop.md",
@@ -670,18 +677,32 @@ describe("SDK experiment", () => {
     };
     const onExperimentStart = vi.fn();
     const onExperimentComplete = vi.fn();
-    let capturedOptions: ExperimentRunOptions | undefined;
-
-    runExperimentLoopMock.mockImplementationOnce(async (options: ExperimentRunOptions) => {
-      capturedOptions = options;
-      return expectedResult;
-    });
-
-    spawnAutonomousMock.mockResolvedValue({
+    const run = vi.fn().mockResolvedValue({
       stdout: "done",
       stderr: "",
       exitCode: 0
     });
+    const close = vi.fn().mockResolvedValue(undefined);
+    let capturedOptions: ExperimentRunOptions | undefined;
+
+    runExperimentLoopMock.mockImplementationOnce(async (options: ExperimentRunOptions) => {
+      capturedOptions = options;
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Improve the metric",
+        cwd: "/repo",
+        model: "gpt-5.2"
+      });
+      await options.runAgent?.({
+        agent: "claude-code",
+        prompt: "Try another approach",
+        cwd: "/repo",
+        model: "claude"
+      });
+      return expectedResult;
+    });
+
+    createSpawnSessionMock.mockReturnValue({ run, close });
 
     const result = await runExperiment({
       cwd: "/repo",
@@ -712,26 +733,81 @@ describe("SDK experiment", () => {
       })
     );
 
-    const agentResult = await capturedOptions?.runAgent?.({
-      agent: "codex",
-      prompt: "Improve the metric",
-      cwd: "/repo",
-      model: "gpt-5.2"
-    });
-
-    expect(spawnAutonomousMock).toHaveBeenCalledWith("codex", {
-      prompt: "Improve the metric",
+    expect(createSpawnSessionMock).toHaveBeenCalledTimes(1);
+    expect(createSpawnSessionMock).toHaveBeenCalledWith({
+      service: "codex",
       cwd: "/repo",
       model: "gpt-5.2",
       mode: "yolo",
       runtime: "e2b",
       runtimeTemplate: "tpl_123",
-      mountPoeCode: true
+      mountPoeCode: true,
+      downloadConflict: "overwrite",
+      context: {
+        homeDir: "/home/test"
+      }
     });
-    expect(agentResult).toEqual({
-      stdout: "done",
+
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(run).toHaveBeenNthCalledWith(1, {
+      agent: "codex",
+      prompt: "Improve the metric",
+      cwd: "/repo",
+      model: "gpt-5.2",
+      syncBack: true
+    });
+    expect(run).toHaveBeenNthCalledWith(2, {
+      agent: "claude-code",
+      prompt: "Try another approach",
+      cwd: "/repo",
+      model: "claude",
+      syncBack: true
+    });
+    expect(close).toHaveBeenCalledTimes(1);
+    expect(spawnAutonomousMock).not.toHaveBeenCalled();
+  });
+
+  it("keeps detached experiment runs on the autonomous runner", async () => {
+    const expectedResult = {
+      stopReason: "max_experiments" as const,
+      docPath: "docs/loop.md",
+      experimentsCompleted: 1,
+      experimentsKept: 0,
+      totalDurationMs: 100
+    };
+
+    runExperimentLoopMock.mockImplementationOnce(async (options: ExperimentRunOptions) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Launch detached experiment",
+        cwd: "/repo",
+        model: "gpt-5"
+      });
+      return expectedResult;
+    });
+    spawnAutonomousMock.mockResolvedValue({
+      stdout: "",
       stderr: "",
       exitCode: 0
+    });
+
+    await expect(
+      runExperiment({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        docPath: "docs/loop.md",
+        agent: "codex",
+        detach: true
+      })
+    ).resolves.toEqual(expectedResult);
+
+    expect(createSpawnSessionMock).not.toHaveBeenCalled();
+    expect(spawnAutonomousMock).toHaveBeenCalledWith("codex", {
+      prompt: "Launch detached experiment",
+      cwd: "/repo",
+      model: "gpt-5",
+      mode: "yolo",
+      detach: true
     });
   });
 });

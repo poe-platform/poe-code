@@ -102,6 +102,12 @@ measure baseline -> loop:
 
 The agent learns from past attempts through the journal — it sees what worked and what didn't.
 
+### Runtime Sessions
+
+`experiment run` opens one sandbox session at the start of the experiment run and reuses it across experiments. Unlike other long-lived runtime sessions, experiment-loop intentionally round-trips the workspace on every iteration.
+
+The loop runs git operations on the host workspace between iterations: it reads the current hash, resets discarded experiments, and records journal entries keyed by commits. Each iteration syncs agent changes back before those host git steps run, then uploads the host workspace state before the next agent turn so the sandbox stays aligned with kept or discarded changes.
+
 ## Custom Experiment Directory
 
 By default experiment docs are discovered from `.poe-code/experiments/`. To use a different directory:

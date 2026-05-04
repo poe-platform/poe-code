@@ -33,6 +33,7 @@ import {
   type RalphRunResult
 } from "../../sdk/ralph.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import { createSpawnSession, type SpawnSession } from "../../sdk/spawn-session.js";
 import {
   createDashboardLineBuffer,
   formatDashboardDuration,
@@ -56,6 +57,19 @@ type RalphDashboardRunOptions = {
   maxIterations: number;
   runOptions: RalphRunOptions;
   runtimeOptions: RuntimeCliOptions;
+};
+
+type RalphSessionOptions = {
+  agent: string | string[];
+  cwd: string;
+  homeDir: string;
+  runtimeConfigCwd: string;
+  runtimeOptions: RuntimeCliOptions;
+  useStdin?: boolean;
+  tee?: {
+    stdout?: { write(chunk: string): void };
+    stderr?: { write(chunk: string): void };
+  };
 };
 
 function formatRalphAgentSummary(agent: string | string[]): string {
@@ -132,6 +146,92 @@ function createRalphDashboardRunAgent(options: {
   };
 }
 
+function createRalphSessionDashboardRunAgent(options: {
+  session: SpawnSession;
+  appendOutput: (kind: "tool" | "error", message: string) => void;
+  activeStage: () => string;
+  flushErrors: () => void;
+}): NonNullable<RalphRunOptions["runAgent"]> {
+  return async (input) => {
+    try {
+      return await acp.withAcpWriter(
+        (line) => {
+          options.appendOutput("tool", `[${options.activeStage()}] ${line}`);
+        },
+        async () =>
+          await options.session.run({
+            agent: input.agent,
+            prompt: input.prompt,
+            model: input.model,
+            cwd: input.cwd,
+            signal: input.signal,
+            syncBack: false
+          })
+      );
+    } finally {
+      options.flushErrors();
+    }
+  };
+}
+
+function createRalphSessionRunAgent(
+  session: SpawnSession
+): NonNullable<RalphRunOptions["runAgent"]> {
+  return async (input) =>
+    await session.run({
+      agent: input.agent,
+      prompt: input.prompt,
+      model: input.model,
+      cwd: input.cwd,
+      signal: input.signal,
+      syncBack: false
+    });
+}
+
+function createRalphSessionFinalizer(session: SpawnSession): () => Promise<void> {
+  let finished = false;
+
+  return async () => {
+    if (finished) {
+      return;
+    }
+
+    finished = true;
+    try {
+      await session.syncBack();
+    } finally {
+      await session.close();
+    }
+  };
+}
+
+function createRalphSpawnSession(options: RalphSessionOptions): SpawnSession {
+  const initialAgent = resolveInitialRalphAgent(options.agent);
+
+  return createSpawnSession({
+    service: initialAgent.agent,
+    cwd: options.cwd,
+    ...(initialAgent.model ? { model: initialAgent.model } : {}),
+    mode: "yolo",
+    ...options.runtimeOptions,
+    runtimeConfigCwd: options.runtimeConfigCwd,
+    ...(options.useStdin ? { useStdin: true } : {}),
+    ...(options.tee ? { tee: options.tee } : {}),
+    downloadConflict: "overwrite",
+    context: {
+      homeDir: options.homeDir
+    }
+  });
+}
+
+function resolveInitialRalphAgent(agent: string | string[]): { agent: string; model?: string } {
+  const specifier = parseAgentSpecifier(Array.isArray(agent) ? agent[0]! : agent);
+  return {
+    agent: specifier.agent,
+    ...(specifier.model ? { model: specifier.model } : {})
+  };
+}
+
 function dashboardStatusForResult(result: RalphRunResult): "done" | "error" {
   return result.stopReason === "failed" ? "error" : "done";
 }
@@ -205,34 +305,81 @@ async function runRalphWithDashboard(options: RalphDashboardRunOptions): Promise
   process.on("SIGINT", sigintHandler);
 
   try {
-    const result = await sdkRunRalph({
-      ...options.runOptions,
-      runAgent: createRalphDashboardRunAgent({
-        appendOutput,
-        activeStage: () => currentStage,
-        runtimeOptions: options.runtimeOptions
-      }),
-      signal: abortController.signal,
-      onIterationStart(iteration, totalIterations, currentAgent) {
-        currentStage = formatRalphStageLabel(iteration);
-        currentAction = formatRalphCurrentAction(iteration, totalIterations, currentAgent);
-        appendOutput("status", `Iteration ${iteration}/${totalIterations} (${currentAgent})`);
-        syncStats();
-      },
-      onIterationComplete(iteration, durationMs, success) {
-        iterations = Math.max(iterations, iteration);
-        appendOutput(
-          success ? "success" : "error",
-          `Iteration ${iteration} ${success ? "done" : "failed"} in ${formatDashboardDuration(durationMs)}`
-        );
-        syncStats();
-      }
+    const errorBuffer = createDashboardLineBuffer((line) => {
+      appendOutput("error", `[${currentStage}] ${line}`);
     });
+    const session =
+      options.runOptions.detach === true
+        ? null
+        : createRalphSpawnSession({
+            agent: options.agent,
+            cwd: options.cwd,
+            homeDir: options.runOptions.homeDir,
+            runtimeConfigCwd: options.runOptions.runtimeConfigCwd ?? options.cwd,
+            runtimeOptions: options.runtimeOptions,
+            useStdin: true,
+            tee: {
+              stderr: {
+                write(chunk: string) {
+                  errorBuffer.push(chunk);
+                }
+              }
+            }
+          });
+    const finishSession = session === null ? null : createRalphSessionFinalizer(session);
 
-    status = dashboardStatusForResult(result);
-    iterations = result.iterationsCompleted;
-    syncStats();
-    return result;
+    try {
+      const result = await sdkRunRalph({
+        ...options.runOptions,
+        ...(finishSession
+          ? {
+              prepareFinalWorkspace: async () => {
+                await options.runOptions.prepareFinalWorkspace?.();
+                await finishSession();
+              }
+            }
+          : {}),
+        runAgent:
+          session === null
+            ? createRalphDashboardRunAgent({
+                appendOutput,
+                activeStage: () => currentStage,
+                runtimeOptions: options.runtimeOptions
+              })
+            : createRalphSessionDashboardRunAgent({
+                session,
+                appendOutput,
+                activeStage: () => currentStage,
+                flushErrors: () => {
+                  errorBuffer.flush();
+                }
+              }),
+        signal: abortController.signal,
+        onIterationStart(iteration, totalIterations, currentAgent) {
+          currentStage = formatRalphStageLabel(iteration);
+          currentAction = formatRalphCurrentAction(iteration, totalIterations, currentAgent);
+          appendOutput("status", `Iteration ${iteration}/${totalIterations} (${currentAgent})`);
+          syncStats();
+        },
+        onIterationComplete(iteration, durationMs, success) {
+          iterations = Math.max(iterations, iteration);
+          appendOutput(
+            success ? "success" : "error",
+            `Iteration ${iteration} ${success ? "done" : "failed"} in ${formatDashboardDuration(durationMs)}`
+          );
+          syncStats();
+        }
+      });
+
+      status = dashboardStatusForResult(result);
+      iterations = result.iterationsCompleted;
+      syncStats();
+      return result;
+    } finally {
+      if (finishSession !== null) {
+        await finishSession();
+      }
+    }
   } catch (error) {
     status = "error";
     currentAction = undefined;
@@ -749,6 +896,17 @@ export function registerRalphCommand(program: Command, container: CliContainer):
         ...runtimeOptions
       };
       const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
+      const runCallbacks: Pick<RalphRunOptions, "onIterationStart" | "onIterationComplete"> = {
+        onIterationStart(iteration, total, currentAgent) {
+          resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
+        },
+        onIterationComplete(iteration, durationMs, success) {
+          const status = success ? "done" : "failed";
+          resources.logger.info(
+            `Iteration ${iteration} ${status} in ${formatDashboardDuration(durationMs)}`
+          );
+        }
+      };
       const result = useDashboard
         ? await runRalphWithDashboard({
             agent,
@@ -758,18 +916,35 @@ export function registerRalphCommand(program: Command, container: CliContainer):
             runOptions,
             runtimeOptions
           })
-        : await sdkRunRalph({
-            ...runOptions,
-            onIterationStart(iteration, total, currentAgent) {
-              resources.logger.info(`Iteration ${iteration}/${total} (${currentAgent})`);
-            },
-            onIterationComplete(iteration, durationMs, success) {
-              const status = success ? "done" : "failed";
-              resources.logger.info(
-                `Iteration ${iteration} ${status} in ${formatDashboardDuration(durationMs)}`
-              );
-            }
-          });
+        : runOptions.detach === true
+          ? await sdkRunRalph({
+              ...runOptions,
+              ...runCallbacks
+            })
+          : await (async () => {
+              const session = createRalphSpawnSession({
+                agent,
+                cwd: runCwd,
+                homeDir: container.env.homeDir,
+                runtimeConfigCwd: container.env.cwd,
+                runtimeOptions
+              });
+              const finishSession = createRalphSessionFinalizer(session);
+
+              try {
+                return await sdkRunRalph({
+                  ...runOptions,
+                  prepareFinalWorkspace: async () => {
+                    await runOptions.prepareFinalWorkspace?.();
+                    await finishSession();
+                  },
+                  runAgent: createRalphSessionRunAgent(session),
+                  ...runCallbacks
+                });
+              } finally {
+                await finishSession();
+              }
+            })();
 
       const summary = [
         `Iterations: ${result.iterationsCompleted}/${maxIterations}`,

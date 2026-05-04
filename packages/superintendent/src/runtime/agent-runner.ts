@@ -2,15 +2,11 @@ import "@poe-code/agent-spawn/register-factories";
 import { mkdirSync, openSync, writeSync, closeSync } from "node:fs";
 import path from "node:path";
 import {
+  type AgentRunnerSession,
   type RuntimeOverrideOptions,
-  resolvePoeCommandExecution,
-  runPoeCommand
+  resolvePoeCommandExecution
 } from "@poe-code/agent-harness-tools";
-import {
-  buildSpawnArgs,
-  type McpSpawnConfig,
-  type SpawnMode
-} from "@poe-code/agent-spawn";
+import { buildSpawnArgs, type McpSpawnConfig, type SpawnMode } from "@poe-code/agent-spawn";
 
 export type { McpSpawnConfig, SpawnMode };
 
@@ -27,6 +23,8 @@ export type AutonomousInput = {
   detach?: boolean;
   mountPoeCode?: boolean;
   runnerSync?: RuntimeOverrideOptions["runnerSync"];
+  session?: AgentRunnerSession;
+  signal?: AbortSignal;
 };
 
 export type AutonomousOutput =
@@ -79,6 +77,14 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
     });
   }
 
+  if (!input.session) {
+    throw new Error("Superintendent agent runner requires an injected agent session.");
+  }
+
+  if (input.detach === true) {
+    throw new Error("Superintendent shared agent sessions do not support detached runs.");
+  }
+
   const spawnArgs = buildSpawnArgs(input.agent, {
     prompt: input.prompt,
     mode: input.mode as SpawnMode | undefined,
@@ -96,7 +102,7 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
       runtime: input.runtime,
       runtimeImage: input.runtimeImage,
       runtimeTemplate: input.runtimeTemplate,
-      detach: input.detach,
+      detach: false,
       mountPoeCode: input.mountPoeCode,
       runnerSync: input.runnerSync
     },
@@ -119,18 +125,16 @@ export async function runAutonomousAgent(input: AutonomousInput): Promise<Autono
   });
 
   try {
-    const result = await runPoeCommand({
-      factory: execution.factory,
-      openSpec: execution.openSpec,
-      detach: execution.detach,
-      state: execution.state
+    const result = await input.session.run(execution.openSpec, input.signal, {
+      syncBack: false
     });
 
-    if (result.kind === "detached") {
-      return {
-        stdout: "",
-        ...(input.logPath ? { logFile: input.logPath } : {})
-      };
+    if (result.exitCode !== 0) {
+      throw new Error(
+        result.stderr ||
+          result.stdout ||
+          `Agent \`${input.agent}\` failed with exit code ${result.exitCode}`
+      );
     }
 
     return {

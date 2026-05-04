@@ -6,6 +6,7 @@ import {
   resolveLoopAgent,
   resolveRunLogDir,
   resolveWorkflowPath,
+  type AgentRunnerSession,
   type RuntimeOverrideOptions
 } from "@poe-code/agent-harness-tools";
 import {
@@ -46,6 +47,7 @@ import {
 } from "@poe-code/poe-code-config";
 import { superintendentConfigScope } from "../config-scope.js";
 import { parseSuperintendentDoc, readExplicitBuilderAgent } from "../document/parse.js";
+import { createSuperintendentAgentSession } from "../runtime/agent-runner-session.js";
 import {
   runLoop,
   type AgentRunInput,
@@ -103,6 +105,7 @@ export type RunCommandOptions = {
   stderr?: NodeJS.WritableStream;
   exit?: (code: number) => never;
   integrations?: Integrations | null;
+  agentSession?: AgentRunnerSession;
 };
 
 type OutputKind = "info" | "success" | "error" | "tool" | "status";
@@ -133,23 +136,33 @@ const coreDefaultAgentConfigSchema = {
 
 const runParams = S.Object({
   doc: S.Optional(S.String({ description: "Path to the superintendent markdown document" })),
-  agent: S.Optional(S.String({
-    description:
-      "Override the builder agent for this run. Precedence: --agent > plan frontmatter builder.agent."
-  })),
-  runtime: S.Optional(S.Enum(["host", "docker", "e2b"] as const, {
-    description: "Override runtime backend: host, docker, or e2b"
-  })),
+  agent: S.Optional(
+    S.String({
+      description:
+        "Override the builder agent for this run. Precedence: --agent > plan frontmatter builder.agent."
+    })
+  ),
+  runtime: S.Optional(
+    S.Enum(["host", "docker", "e2b"] as const, {
+      description: "Override runtime backend: host, docker, or e2b"
+    })
+  ),
   runtimeImage: S.Optional(S.String({ description: "Override Docker runtime image" })),
   runtimeTemplate: S.Optional(S.String({ description: "Override E2B runtime template id" })),
   detach: S.Optional(S.Boolean({ description: "Run as a detached runtime job" })),
-  mountPoeCode: S.Optional(S.Boolean({
-    description: "Mount the local poe-code checkout into the runtime"
-  })),
-  runnerSync: S.Optional(S.Enum(["both", "upload", "none"] as const, {
-    description: "Override runner workspace sync: both, upload, or none"
-  })),
-  tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" }))
+  mountPoeCode: S.Optional(
+    S.Boolean({
+      description: "Mount the local poe-code checkout into the runtime"
+    })
+  ),
+  runnerSync: S.Optional(
+    S.Enum(["both", "upload", "none"] as const, {
+      description: "Override runner workspace sync: both, upload, or none"
+    })
+  ),
+  tui: S.Optional(
+    S.Boolean({ description: "Show a live dashboard while Superintendent is running" })
+  )
 });
 
 export const runCommand = defineCommand({
@@ -180,7 +193,8 @@ export const runCommand = defineCommand({
         configuredDefaultAgent: commandConfig.configuredDefaultAgent,
         assumeYes: process.argv.includes("--yes"),
         interactive: Boolean(process.stdin.isTTY),
-        useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
+        useDashboard:
+          shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
         env: process.env,
         integrations,
         ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
@@ -295,7 +309,11 @@ async function resolveSuperintendentCommandConfig(
       configPath,
       projectConfigPath
     );
-    const planDirectory = resolveScope(planConfigScope.schema, document.plan, env).plan_directory?.trim();
+    const planDirectory = resolveScope(
+      planConfigScope.schema,
+      document.plan,
+      env
+    ).plan_directory?.trim();
     const superintendentResolved = resolveScope(
       superintendentConfigScope.schema,
       document[superintendentConfigScope.scope],
@@ -387,6 +405,7 @@ export async function runSuperintendentCommand(
   const stderr = options.stderr ?? process.stderr;
   const exitProcess = options.exit ?? ((code: number) => process.exit(code));
   const integrations = options.integrations ?? null;
+  const useInjectedAgentRunner = Boolean(options.executeAgent || options.detach || options.runLoop);
   const shutdownAndExit = (code: number): void => {
     if (!integrations) {
       exitProcess(code);
@@ -451,55 +470,76 @@ export async function runSuperintendentCommand(
         ...(options.fs ? { fs } : {}),
         signal: headlessAbort.signal,
         logDir: runLogDir,
-        callbacks: mergeLoopCallbacks({
-          onBuilderStart: () => {
-            activeStage = "builder";
+        callbacks: mergeLoopCallbacks(
+          {
+            onBuilderStart: () => {
+              activeStage = "builder";
+            },
+            onBuilderComplete: () => {
+              activeStage = undefined;
+            },
+            onBuilderFailed: () => {
+              activeStage = undefined;
+            },
+            onInspectorStart: (name) => {
+              activeStage = { inspector: name };
+            },
+            onInspectorComplete: () => {
+              activeStage = undefined;
+            },
+            onInspectorFailed: () => {
+              activeStage = undefined;
+            },
+            onSuperintendentStart: () => {
+              activeStage = "superintendent";
+            },
+            onSuperintendentComplete: () => {
+              activeStage = undefined;
+            },
+            onOwnerStart: () => {
+              activeStage = "owner";
+            },
+            onOwnerComplete: () => {
+              activeStage = undefined;
+            }
           },
-          onBuilderComplete: () => {
-            activeStage = undefined;
-          },
-          onBuilderFailed: () => {
-            activeStage = undefined;
-          },
-          onInspectorStart: (name) => {
-            activeStage = { inspector: name };
-          },
-          onInspectorComplete: () => {
-            activeStage = undefined;
-          },
-          onInspectorFailed: () => {
-            activeStage = undefined;
-          },
-          onSuperintendentStart: () => {
-            activeStage = "superintendent";
-          },
-          onSuperintendentComplete: () => {
-            activeStage = undefined;
-          },
-          onOwnerStart: () => {
-            activeStage = "owner";
-          },
-          onOwnerComplete: () => {
-            activeStage = undefined;
-          }
-        }, integrations?.superintendentCallbacks),
-        runAgent: createAgentRunner({
-          session: undefined,
-          executeAgent: options.executeAgent,
-          selectedBuilderAgent,
-          integrations,
-          runtime: {
-            runtime: options.runtime,
-            runtimeImage: options.runtimeImage,
-            runtimeTemplate: options.runtimeTemplate,
-            detach: options.detach,
-            mountPoeCode: options.mountPoeCode,
-            runnerSync: options.runnerSync
-          },
-          activeStage: () => activeStage,
-          now,
-          stderr
-        })
+          integrations?.superintendentCallbacks
+        ),
+        ...(useInjectedAgentRunner
+          ? {
+              runAgent: createAgentRunner({
+                session: undefined,
+                executeAgent: options.executeAgent,
+                selectedBuilderAgent,
+                integrations,
+                runtime: {
+                  runtime: options.runtime,
+                  runtimeImage: options.runtimeImage,
+                  runtimeTemplate: options.runtimeTemplate,
+                  detach: options.detach,
+                  mountPoeCode: options.mountPoeCode,
+                  runnerSync: options.runnerSync
+                },
+                activeStage: () => activeStage,
+                now,
+                stderr
+              })
+            }
+          : {
+              agentSession:
+                options.agentSession ??
+                createSuperintendentAgentSession({
+                  homeDir: options.homeDir,
+                  runtime: {
+                    runtime: options.runtime,
+                    runtimeImage: options.runtimeImage,
+                    runtimeTemplate: options.runtimeTemplate,
+                    detach: false,
+                    mountPoeCode: options.mountPoeCode,
+                    runnerSync: options.runnerSync
+                  }
+                })
+            })
       });
 
       return {
@@ -754,23 +794,41 @@ export async function runSuperintendentCommand(
         callbacks: mergeLoopCallbacks(callbacks, integrations?.superintendentCallbacks),
         signal: abortController.signal,
         logDir: runLogDir,
-        runAgent: createAgentRunner({
-          session,
-          executeAgent: options.executeAgent,
-          selectedBuilderAgent,
-          integrations,
-          runtime: {
-            runtime: options.runtime,
-            runtimeImage: options.runtimeImage,
-            runtimeTemplate: options.runtimeTemplate,
-            detach: options.detach,
-            mountPoeCode: options.mountPoeCode,
-            runnerSync: options.runnerSync
-          },
-          activeStage: () => session.activeStage,
-          now,
-          stderr
-        })
+        ...(useInjectedAgentRunner
+          ? {
+              runAgent: createAgentRunner({
+                session,
+                executeAgent: options.executeAgent,
+                selectedBuilderAgent,
+                integrations,
+                runtime: {
+                  runtime: options.runtime,
+                  runtimeImage: options.runtimeImage,
+                  runtimeTemplate: options.runtimeTemplate,
+                  detach: options.detach,
+                  mountPoeCode: options.mountPoeCode,
+                  runnerSync: options.runnerSync
+                },
+                activeStage: () => session.activeStage,
+                now,
+                stderr
+              })
+            }
+          : {
+              agentSession:
+                options.agentSession ??
+                createSuperintendentAgentSession({
+                  homeDir: options.homeDir,
+                  runtime: {
+                    runtime: options.runtime,
+                    runtimeImage: options.runtimeImage,
+                    runtimeTemplate: options.runtimeTemplate,
+                    detach: false,
+                    mountPoeCode: options.mountPoeCode,
+                    runnerSync: options.runnerSync
+                  }
+                })
+            })
       });
 
       session.state = stripStopReason(result);
@@ -907,7 +965,8 @@ function createAgentRunner(options: {
   return async (input) => {
     const activeStage = options.activeStage();
     const agent = activeStage === "builder" ? options.selectedBuilderAgent : input.agent;
-    const executeAgent = options.executeAgent ??
+    const executeAgent =
+      options.executeAgent ??
       ((nextAgent: string, nextInput: AgentRunInput) =>
         executeSpawnAgent(nextAgent, nextInput, options.integrations));
     const stageLabel = formatStageLabel(activeStage);
@@ -1100,7 +1159,9 @@ async function executeSpawnAgentStreaming(
     middlewareContext
   );
 
-  await acp.withAcpWriter(writer, () => renderAcpStream(middlewareContext.eventStream ?? rawEvents));
+  await acp.withAcpWriter(writer, () =>
+    renderAcpStream(middlewareContext.eventStream ?? rawEvents)
+  );
   const final = await done;
 
   const logFile = middlewareContext.logFile ?? final.logFile;
@@ -1111,7 +1172,9 @@ async function executeSpawnAgentStreaming(
     exitCode: final.exitCode,
     ...(logFile ? { logFile } : {}),
     ...(sessionResult?.output ? { summary: sessionResult.output } : {}),
-    ...(middlewareContext.usage.inputTokens > 0 || middlewareContext.usage.outputTokens > 0 || middlewareContext.usage.cachedTokens !== undefined
+    ...(middlewareContext.usage.inputTokens > 0 ||
+    middlewareContext.usage.outputTokens > 0 ||
+    middlewareContext.usage.cachedTokens !== undefined
       ? {
           usage: {
             inputTokens: middlewareContext.usage.inputTokens,
@@ -1126,7 +1189,12 @@ async function executeSpawnAgentStreaming(
       ? {
           toolCalls: sessionResult.toolCalls.flatMap((toolCall) =>
             typeof toolCall.title === "string"
-              ? [{ title: toolCall.title, ...(toolCall.input !== undefined ? { input: toolCall.input } : {}) }]
+              ? [
+                  {
+                    title: toolCall.title,
+                    ...(toolCall.input !== undefined ? { input: toolCall.input } : {})
+                  }
+                ]
               : []
           )
         }

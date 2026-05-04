@@ -19,11 +19,7 @@ import {
 } from "@poe-code/agent-defs";
 import { renderAcpEvent, type AcpEvent, type AcpMiddleware } from "@poe-code/agent-spawn";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
-import {
-  installSkill,
-  resolveAgentSupport,
-  type SkillScope
-} from "@poe-code/agent-skill-config";
+import { installSkill, resolveAgentSupport, type SkillScope } from "@poe-code/agent-skill-config";
 import {
   loadIntegrations,
   mergePipelineCallbacks,
@@ -49,7 +45,7 @@ import {
   type PlanSummary,
   type TaskProgress
 } from "../../sdk/pipeline.js";
-import { spawn as sdkSpawn } from "../../sdk/spawn.js";
+import { createSpawnSession, type SpawnSession } from "../../sdk/spawn-session.js";
 import {
   buildExecutionPrompt,
   interpolatePipelineVars,
@@ -77,11 +73,7 @@ async function resolvePipelineCommandConfig(container: CliContainer): Promise<{
   tui: boolean;
 }> {
   const [configDoc, pipelineYamlConfig] = await Promise.all([
-    readMergedDocument(
-      container.fs,
-      container.env.configPath,
-      container.env.projectConfigPath
-    ),
+    readMergedDocument(container.fs, container.env.configPath, container.env.projectConfigPath),
     loadPipelineConfig({
       cwd: container.env.cwd,
       homeDir: container.env.homeDir,
@@ -360,9 +352,10 @@ async function streamAcpEventsToDashboard(options: {
 }
 
 function createPipelineDashboardRunAgent(options: {
+  session: SpawnSession;
   appendOutput: (kind: "tool" | "error", message: string) => void;
   activeStage: () => string;
-  middlewares?: AcpMiddleware[];
+  teeTarget: PipelineDashboardTeeTarget;
 }): NonNullable<PipelineRunOptions["runAgent"]> {
   return async (input) => {
     const toolBuffer = createDashboardLineBuffer((line) => {
@@ -371,91 +364,147 @@ function createPipelineDashboardRunAgent(options: {
     const errorBuffer = createDashboardLineBuffer((line) => {
       options.appendOutput("error", `[${options.activeStage()}] ${line}`);
     });
-    let lastError: unknown;
-    for (let attempt = 0; attempt < PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT; attempt++) {
-      let sawStdout = false;
-      let sawStderr = false;
+    options.teeTarget.tool = toolBuffer;
+    options.teeTarget.error = errorBuffer;
+    try {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT; attempt++) {
+        options.teeTarget.sawStdout = false;
+        options.teeTarget.sawStderr = false;
+        let sawStdout = false;
+        let sawStderr = false;
 
-      try {
-        const { events, result } = sdkSpawn(input.agent, {
-          prompt: input.prompt,
-          cwd: input.cwd,
-          logDir: input.logDir,
-          model: input.model,
-          mode: input.mode,
-          ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-          ...(input.signal ? { signal: input.signal } : {}),
-          ...(options.middlewares ? { middlewares: options.middlewares } : {}),
-          tee: {
-            stdout: {
-              write(chunk: string) {
-                sawStdout = true;
-                toolBuffer.push(chunk);
-              }
+        try {
+          const { events, result } = options.session.run(
+            {
+              agent: input.agent,
+              prompt: input.prompt,
+              cwd: input.cwd,
+              mode: input.mode,
+              ...(input.logDir ? { logDir: input.logDir } : {}),
+              ...(input.logFileName ? { logFileName: input.logFileName } : {}),
+              ...(input.model ? { model: input.model } : {}),
+              ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+              ...(input.signal ? { signal: input.signal } : {}),
+              syncBack: false
             },
-            stderr: {
-              write(chunk: string) {
-                sawStderr = true;
-                errorBuffer.push(chunk);
-              }
+            { streaming: true }
+          );
+
+          const eventStream = streamAcpEventsToDashboard({
+            events,
+            onToolOutput(chunk) {
+              toolBuffer.push(chunk);
+            },
+            onErrorOutput(chunk) {
+              errorBuffer.push(chunk);
             }
-          },
-          activityTimeoutMs: 10 * 60 * 1000
-        });
+          });
 
-        const eventStream = streamAcpEventsToDashboard({
-          events,
-          onToolOutput(chunk) {
-            toolBuffer.push(chunk);
-          },
-          onErrorOutput(chunk) {
-            errorBuffer.push(chunk);
+          const [spawnResult, sawEvents] = await Promise.all([result, eventStream]);
+          sawStdout = options.teeTarget.sawStdout;
+          sawStderr = options.teeTarget.sawStderr;
+
+          if (!sawEvents && !sawStdout && spawnResult.stdout.length > 0) {
+            toolBuffer.push(spawnResult.stdout);
           }
-        });
 
-        const [spawnResult, sawEvents] = await Promise.all([result, eventStream]);
+          if (!sawStderr && spawnResult.stderr.length > 0) {
+            errorBuffer.push(spawnResult.stderr);
+          }
 
-        if (!sawEvents && !sawStdout && spawnResult.stdout.length > 0) {
-          toolBuffer.push(spawnResult.stdout);
-        }
-
-        if (!sawStderr && spawnResult.stderr.length > 0) {
-          errorBuffer.push(spawnResult.stderr);
-        }
-
-        toolBuffer.flush();
-        errorBuffer.flush();
-        return spawnResult;
-      } catch (error) {
-        if (!isActivityTimeoutError(error)) {
           toolBuffer.flush();
           errorBuffer.flush();
-          throw error;
+          return spawnResult;
+        } catch (error) {
+          if (!isActivityTimeoutError(error)) {
+            toolBuffer.flush();
+            errorBuffer.flush();
+            throw error;
+          }
+          lastError = error;
         }
-        lastError = error;
       }
-    }
 
-    toolBuffer.flush();
-    errorBuffer.flush();
-    throw lastError;
+      toolBuffer.flush();
+      errorBuffer.flush();
+      throw lastError;
+    } finally {
+      options.teeTarget.tool = undefined;
+      options.teeTarget.error = undefined;
+      options.teeTarget.sawStdout = false;
+      options.teeTarget.sawStderr = false;
+    }
   };
 }
 
 function createPipelineCliRunAgent(
-  middlewares: AcpMiddleware[]
+  session: SpawnSession
 ): NonNullable<PipelineRunOptions["runAgent"]> {
   return async (input) =>
-    sdkSpawn.autonomous(input.agent, {
+    await session.run({
+      agent: input.agent,
       prompt: input.prompt,
       cwd: input.cwd,
-      logDir: input.logDir,
-      model: input.model,
       mode: input.mode,
+      ...(input.logDir ? { logDir: input.logDir } : {}),
+      ...(input.logFileName ? { logFileName: input.logFileName } : {}),
+      ...(input.model ? { model: input.model } : {}),
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
       ...(input.signal ? { signal: input.signal } : {}),
-      middlewares
+      syncBack: false
     });
+}
+
+type PipelineDashboardTeeTarget = {
+  tool?: ReturnType<typeof createDashboardLineBuffer>;
+  error?: ReturnType<typeof createDashboardLineBuffer>;
+  sawStdout: boolean;
+  sawStderr: boolean;
+};
+
+function createPipelineDashboardSpawnSession(options: {
+  agent: string;
+  model?: string;
+  cwd: string;
+  middlewares?: AcpMiddleware[];
+  teeTarget: PipelineDashboardTeeTarget;
+}): SpawnSession {
+  return createSpawnSession({
+    service: options.agent,
+    cwd: options.cwd,
+    ...(options.model ? { model: options.model } : {}),
+    ...(options.middlewares ? { middlewares: options.middlewares } : {}),
+    activityTimeoutMs: 10 * 60 * 1000,
+    tee: {
+      stdout: {
+        write(chunk: string) {
+          options.teeTarget.sawStdout = true;
+          options.teeTarget.tool?.push(chunk);
+        }
+      },
+      stderr: {
+        write(chunk: string) {
+          options.teeTarget.sawStderr = true;
+          options.teeTarget.error?.push(chunk);
+        }
+      }
+    }
+  });
+}
+
+function createPipelineCliSpawnSession(options: {
+  agent: string;
+  model?: string;
+  cwd: string;
+  middlewares: AcpMiddleware[];
+}): SpawnSession {
+  return createSpawnSession({
+    service: options.agent,
+    cwd: options.cwd,
+    ...(options.model ? { model: options.model } : {}),
+    middlewares: options.middlewares
+  });
 }
 
 function dashboardStatusForResult(result: PipelineRunResult): "done" | "error" {
@@ -536,15 +585,28 @@ async function runPipelineWithDashboard(
   };
   process.on("SIGINT", sigintHandler);
 
+  const teeTarget: PipelineDashboardTeeTarget = {
+    sawStdout: false,
+    sawStderr: false
+  };
+  const session = createPipelineDashboardSpawnSession({
+    agent: options.agent,
+    cwd: options.runOptions.cwd,
+    ...(options.model ? { model: options.model } : {}),
+    ...(options.integrations?.spawnMiddleware
+      ? { middlewares: [options.integrations.spawnMiddleware] }
+      : {}),
+    teeTarget
+  });
+
   try {
     const runOptions: PipelineRunOptions = {
       ...options.runOptions,
       runAgent: createPipelineDashboardRunAgent({
+        session,
         appendOutput,
         activeStage: () => currentStage,
-        ...(options.integrations?.spawnMiddleware
-          ? { middlewares: [options.integrations.spawnMiddleware] }
-          : {})
+        teeTarget
       }),
       signal: abortController.signal,
       onPlanReloadError(error: Error) {
@@ -593,14 +655,10 @@ async function runPipelineWithDashboard(
         syncStats();
       }
     };
-    const result = await runPipelineWithIntegrations(
-      options.integrations,
-      options.planPath,
-      {
-        ...runOptions,
-        ...mergePipelineCallbacks(runOptions, options.integrations?.pipelineCallbacks)
-      }
-    );
+    const result = await runPipelineWithIntegrations(options.integrations, options.planPath, {
+      ...runOptions,
+      ...mergePipelineCallbacks(runOptions, options.integrations?.pipelineCallbacks)
+    });
 
     status = dashboardStatusForResult(result);
     syncStats();
@@ -612,10 +670,18 @@ async function runPipelineWithDashboard(
     syncStats();
     throw error;
   } finally {
-    global.clearInterval(intervalId);
-    process.off("SIGINT", sigintHandler);
-    dashboard.stop();
-    dashboard.destroy();
+    try {
+      try {
+        await session.syncBack();
+      } finally {
+        await session.close();
+      }
+    } finally {
+      global.clearInterval(intervalId);
+      process.off("SIGINT", sigintHandler);
+      dashboard.stop();
+      dashboard.destroy();
+    }
   }
 }
 
@@ -624,8 +690,10 @@ async function runPipelineWithIntegrations(
   name: string,
   options: PipelineRunOptions
 ): Promise<PipelineRunResult> {
-  return integrations?.traceRun("pipeline", name, () => sdkRunPipeline(options)) ??
-    sdkRunPipeline(options);
+  return (
+    integrations?.traceRun("pipeline", name, () => sdkRunPipeline(options)) ??
+    sdkRunPipeline(options)
+  );
 }
 
 function resolvePipelinePaths(
@@ -758,11 +826,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         dryRun?: boolean;
       }>();
       const dryRun = flags.dryRun || Boolean(options.dryRun);
-      const resources = createExecutionResources(
-        container,
-        { ...flags, dryRun },
-        "pipeline:run"
-      );
+      const resources = createExecutionResources(container, { ...flags, dryRun }, "pipeline:run");
 
       resources.logger.intro("pipeline run");
 
@@ -853,60 +917,76 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             ...(dryRun ? { dryRun: true } : {}),
             assumeYes: flags.assumeYes
           };
-          if (integrations?.spawnMiddleware) {
-            runOptions.runAgent = createPipelineCliRunAgent([integrations.spawnMiddleware]);
-          }
 
           const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
-          const result = useDashboard
-            ? await runPipelineWithDashboard({
-                agent,
-                ...(options.model ? { model: options.model } : {}),
-                planPath,
-                planIndex: index,
-                totalPlans,
-                runOptions,
-                ...(integrations ? { integrations } : {})
-              })
-            : await runPipelineWithIntegrations(
-                integrations,
-                planPath,
-                {
-                  ...runOptions,
-                  onPlanReloadError(error: Error) {
-                    resources.logger.warn(
-                      `Plan reload failed, using last good state: ${error.message}`
-                    );
-                  },
-                  ...mergePipelineCallbacks(
-                    {
-                      onLockStatusChange(lockStatus: PipelineLockStatus) {
-                        resources.logger.info(lockStatus.message);
-                      },
-                      onPlanResolved(summary: PlanSummary) {
-                        resources.logger.resolved(
-                          "Config",
-                          formatPipelineConfigSummary({
-                            agent,
-                            model: options.model,
-                            planPath: summary.planPath,
-                            planIndex: index,
-                            totalPlans
-                          }).replaceAll(" · ", "\n   ")
-                        );
-                        resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
-                      },
-                      onTaskStart(progress: TaskProgress) {
-                        resources.logger.info(formatTaskStartMessage(progress));
-                      },
-                      onTaskComplete(progress: TaskCompletion) {
-                        resources.logger.info(formatTaskCompleteMessage(progress));
-                      }
+          let cliSession: SpawnSession | null = null;
+          if (!useDashboard && integrations?.spawnMiddleware) {
+            cliSession = createPipelineCliSpawnSession({
+              agent,
+              cwd: container.env.cwd,
+              ...(options.model ? { model: options.model } : {}),
+              middlewares: [integrations.spawnMiddleware]
+            });
+            runOptions.runAgent = createPipelineCliRunAgent(cliSession);
+          }
+
+          const result = await (async () => {
+            try {
+              return useDashboard
+                ? await runPipelineWithDashboard({
+                    agent,
+                    ...(options.model ? { model: options.model } : {}),
+                    planPath,
+                    planIndex: index,
+                    totalPlans,
+                    runOptions,
+                    ...(integrations ? { integrations } : {})
+                  })
+                : await runPipelineWithIntegrations(integrations, planPath, {
+                    ...runOptions,
+                    onPlanReloadError(error: Error) {
+                      resources.logger.warn(
+                        `Plan reload failed, using last good state: ${error.message}`
+                      );
                     },
-                    integrations?.pipelineCallbacks
-                  )
+                    ...mergePipelineCallbacks(
+                      {
+                        onLockStatusChange(lockStatus: PipelineLockStatus) {
+                          resources.logger.info(lockStatus.message);
+                        },
+                        onPlanResolved(summary: PlanSummary) {
+                          resources.logger.resolved(
+                            "Config",
+                            formatPipelineConfigSummary({
+                              agent,
+                              model: options.model,
+                              planPath: summary.planPath,
+                              planIndex: index,
+                              totalPlans
+                            }).replaceAll(" · ", "\n   ")
+                          );
+                          resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
+                        },
+                        onTaskStart(progress: TaskProgress) {
+                          resources.logger.info(formatTaskStartMessage(progress));
+                        },
+                        onTaskComplete(progress: TaskCompletion) {
+                          resources.logger.info(formatTaskCompleteMessage(progress));
+                        }
+                      },
+                      integrations?.pipelineCallbacks
+                    )
+                  });
+            } finally {
+              if (cliSession) {
+                try {
+                  await cliSession.syncBack();
+                } finally {
+                  await cliSession.close();
                 }
-              );
+              }
+            }
+          })();
 
           const summary = formatRunSummary(result);
 
@@ -1305,7 +1385,10 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           }
         }
 
-        const legacyDefaultStepsExists = await pathExists(container.fs, pipelinePaths.legacyDefaultStepsPath);
+        const legacyDefaultStepsExists = await pathExists(
+          container.fs,
+          pipelinePaths.legacyDefaultStepsPath
+        );
         let stepsExists = await pathExists(container.fs, pipelinePaths.stepsPath);
 
         if (legacyDefaultStepsExists && !stepsExists) {
@@ -1314,7 +1397,10 @@ export function registerPipelineCommand(program: Command, container: CliContaine
               `Would rename: ${pipelinePaths.displayStepsPath} (migrate from steps/default.yaml)`
             );
           } else {
-            await container.fs.rename(pipelinePaths.legacyDefaultStepsPath, pipelinePaths.stepsPath);
+            await container.fs.rename(
+              pipelinePaths.legacyDefaultStepsPath,
+              pipelinePaths.stepsPath
+            );
             resources.logger.info(
               `Rename: steps/default.yaml -> ${pipelinePaths.displayStepsPath}`
             );

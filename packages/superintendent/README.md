@@ -47,6 +47,10 @@ Behavior notes:
 - `builder run` executes only the builder role.
 - `inspector run` executes one named inspector, or all configured inspectors when `name` is omitted.
 
+## Runtime Sessions
+
+`superintendent run` opens one sandbox session at the start of the run and reuses it for the whole workflow. Builder, inspector, superintendent, and owner roles all share that same sandbox. The workspace is uploaded once before the first role execution, then synced back to the host when the run finishes or aborts.
+
 ## MCP tool names
 
 MCP server entrypoint:

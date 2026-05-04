@@ -1,9 +1,5 @@
 {
   "ralph": {
     "plan_directory": "docs/plans"
-  },
-  "runtime": {
-    "memory_mb": 8192,
-    "cpu": 4
   }
 }

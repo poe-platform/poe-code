@@ -94,11 +94,9 @@ Options:
 `;
 
 exports[`runtime option help > snapshots superintendent help 1`] = `
-"Poe - poe-code superintendent run
+"Poe - poe-code superintendent run — Run the full superintendent loop.
 
 Usage: poe-code superintendent run [options] [doc]
-
-Run the full superintendent loop.
 
 OPTIONS
   [doc]                        Path to the superintendent markdown document

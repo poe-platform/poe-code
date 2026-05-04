@@ -470,7 +470,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: gh-issues-wire
     title: Wire gh-issues into open() + README
@@ -512,9 +512,9 @@ tasks:
         IS the user's permission, scoped to the items above).
       - No new top-level CLI commands or SDK changes.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 ---
 
 # Context

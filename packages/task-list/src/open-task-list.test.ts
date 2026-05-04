@@ -113,17 +113,74 @@ describe("openTaskList", () => {
     ).rejects.toThrow('Unknown task list backend type "sqlite".');
   });
 
-  it('throws the placeholder error for "gh-issues"', async () => {
-    await expect(
-      openTaskList({
+  it('routes "gh-issues" through auth and endpoint resolution to the GitHub Issues backend', async () => {
+    const previousGhHost = process.env.GH_HOST;
+    process.env.GH_HOST = "github.example.test";
+    const fetchMock: typeof fetch = vi.fn(async () =>
+      createJsonResponse({
+        data: {
+          organization: {
+            projectV2: {
+              id: "project-1",
+              title: "Roadmap",
+              field: {
+                id: "status-field",
+                options: [{ id: "status-todo", name: "Todo" }]
+              }
+            }
+          }
+        }
+      })
+    );
+
+    try {
+      const taskList = await openTaskList({
         type: "gh-issues",
         repo: "owner/name",
         project: {
           owner: "owner",
           number: 1
+        },
+        auth: {
+          token: "explicit-token"
+        },
+        fetch: fetchMock
+      });
+
+      expect(await taskList.lists()).toEqual(["owner/1"]);
+      expect(taskList.list("owner/1").stateMachine).toEqual({
+        initial: "Todo",
+        states: ["Todo"],
+        events: {
+          Todo: { from: "*", to: "Todo" }
         }
-      })
-    ).rejects.toThrow("gh-issues backend not yet implemented");
+      });
+      expect(fetchMock).toHaveBeenCalledWith("https://github.example.test/api/graphql", {
+        method: "POST",
+        headers: {
+          Authorization: "Bearer explicit-token",
+          "Content-Type": "application/json",
+          "User-Agent": "poe-code-task-list/0.0.1"
+        },
+        body: expect.any(String)
+      });
+      const request = fetchMock.mock.calls[0]?.[1];
+      const body = JSON.parse(String(request?.body)) as {
+        query: string;
+        variables: Record<string, unknown>;
+      };
+      expect(body.query).toContain("organization(login: $owner)");
+      expect(body.variables).toEqual({
+        owner: "owner",
+        number: 1
+      });
+    } finally {
+      if (previousGhHost === undefined) {
+        delete process.env.GH_HOST;
+      } else {
+        process.env.GH_HOST = previousGhHost;
+      }
+    }
   });
 
   it("normalizes missing defaults", async () => {
@@ -337,3 +394,9 @@ describe("openTaskList", () => {
     });
   }
 });
+
+function createJsonResponse(body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    headers: { "Content-Type": "application/json" }
+  });
+}

@@ -1,4 +1,6 @@
 import * as fsPromises from "node:fs/promises";
+import { ghIssuesBackend } from "./backends/gh-issues.js";
+import { resolveAuth, resolveEndpoint } from "./backends/gh-issues-client.js";
 import { markdownDirBackend } from "./backends/markdown-dir.js";
 import { yamlFileBackend } from "./backends/yaml-file.js";
 import { validateMachine } from "./state-machine.js";
@@ -6,6 +8,7 @@ import { resolveStateMachine } from "./state.js";
 import type {
   BackendFactory,
   BackendDeps,
+  OpenGhIssuesOptions,
   OpenMarkdownDirOptions,
   OpenTaskListOptions,
   OpenYamlFileOptions,
@@ -33,7 +36,7 @@ export async function openTaskList(options: OpenTaskListOptions): Promise<TaskLi
     case "yaml-file":
       return openFileBackend(options);
     case "gh-issues":
-      throw new Error("gh-issues backend not yet implemented");
+      return openGhIssuesBackend(options);
     default:
       throw new Error(`Unknown task list backend type "${(options as { type: string }).type}".`);
   }
@@ -57,4 +60,20 @@ async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
   };
 
   return factory(deps);
+}
+
+async function openGhIssuesBackend(options: OpenGhIssuesOptions): Promise<TaskList> {
+  const token = await resolveAuth({ explicitToken: options.auth?.token });
+  const endpoint = resolveEndpoint();
+
+  return ghIssuesBackend({
+    repo: options.repo,
+    project: options.project,
+    defaults: {
+      metadata: { ...(options.defaults?.metadata ?? {}) }
+    },
+    token,
+    endpoint,
+    fetch: options.fetch
+  });
 }

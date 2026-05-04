@@ -4,10 +4,13 @@ Multi-list task manager with pluggable storage backends.
 
 ## Backends
 
-`@poe-code/task-list` exposes one API over two backends:
+`@poe-code/task-list` exposes one API over these backends:
 
-- `markdown-dir`: one Markdown file per task, organized into subdirectories per list
-- `yaml-file`: one YAML document with a top-level `lists:` mapping
+| Backend | Storage |
+| --- | --- |
+| `markdown-dir` | One Markdown file per task, organized into subdirectories per list. |
+| `yaml-file` | One YAML document with a top-level `lists:` mapping. |
+| `gh-issues` | GitHub Issues in one repository, ordered and state-tracked through a GitHub Project v2 Status field. |
 
 The task lifecycle is `draft -> planned -> in-progress -> done -> archived`. `archived` is terminal.
 
@@ -47,7 +50,7 @@ Pass a custom machine with `openTaskList({ stateMachine })`. If omitted, the pac
 
 | Option | Type | Default | Behavior |
 | --- | --- | --- | --- |
-| `type` | `"markdown-dir" \| "yaml-file"` | required | Selects the backend implementation. |
+| `type` | `"markdown-dir" \| "yaml-file" \| "gh-issues"` | required | Selects the backend implementation. |
 | `path` | `string` | required | Root directory for `markdown-dir` or YAML file path for `yaml-file`. |
 | `defaults` | `TaskDefaults` | `{ metadata: {} }` | Seeds omitted metadata on new tasks only. New tasks always start at the configured state machine's initial state. |
 | `create` | `boolean` | `false` | Creates missing storage for the selected backend when enabled. |
@@ -58,7 +61,9 @@ Pass a custom machine with `openTaskList({ stateMachine })`. If omitted, the pac
 
 ## Env vars
 
-None.
+| Env var | Behavior |
+| --- | --- |
+| `GH_HOST` | Defers to gh CLI's host configuration; set GH_HOST to override. |
 
 ## Usage
 
@@ -105,6 +110,36 @@ await planning.fire("review-release", "plan");
 await planning.fire("review-release", "start");
 ```
 
+### `gh-issues`
+
+```ts
+import { openTaskList } from "@poe-code/task-list";
+
+const taskList = await openTaskList({
+  type: "gh-issues",
+  repo: "octo-org/octo-repo",
+  project: {
+    owner: "octo-org",
+    number: 7
+  }
+});
+
+const project = taskList.list("octo-org/7");
+
+await taskList.lists(); // ["octo-org/7"]
+
+const created = await project.create({
+  id: "local-id-is-ignored",
+  name: "Review release checklist"
+});
+
+await project.fire(created.id, "In Progress");
+await project.move(created.id, { position: "top" });
+await project.move(created.id, { after: "42" });
+```
+
+`gh-issues` exposes one list named `${project.owner}/${project.number}`. `create()` ignores `TaskCreate.id` because GitHub assigns issue numbers. `fire(state)` writes the Project v2 `Status` field to the matching single-select option. `move()` reorders project items.
+
 ## Notes
 
 The package never overwrites existing task files or store files. `defaults.metadata` is applied only when creating new tasks and does not retroactively update existing tasks.
@@ -112,3 +147,12 @@ The package never overwrites existing task files or store files. `defaults.metad
 Task state changes are event-driven: use `fire(id, event)` to move between states, `canFire(id, event)` to check whether an event is currently legal, and `events(id)` to list the currently legal event names. There is no `transition()` API.
 
 `create()` always starts new tasks at `stateMachine.initial`. `update()` cannot change `state`; use `fire()` instead.
+
+### `gh-issues` limitations
+
+- The state machine is fetched at open and frozen for the session; re-open to refresh project Status options.
+- `archived` is not supported and returns an empty result.
+- `update()` does not write labels, assignees, or milestone in v1.
+- `moveBetweenLists()` is unsupported on `gh-issues`.
+- `id` on `TaskCreate` is ignored on this backend.
+- `gh auth token` must be available, or pass `auth: { token }`.

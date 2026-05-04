@@ -43,7 +43,8 @@ export function resolvePoeCommandExecution(input: {
   state: StateManager;
 } {
   const homeDir = input.context?.homeDir ?? os.homedir();
-  const config = applyRuntimeOverrides(loadRuntimeConfig(input.cwd, homeDir), input.runtime, input.cwd);
+  const loaded = loadRuntimeConfig(input.cwd, homeDir);
+  const config = applyRuntimeOverrides(loaded, input.runtime, input.cwd);
   const resolved = resolveRuntime({ cwd: input.cwd, config });
   const factory = selectExecutionEnv(resolved.runtime);
   const state = input.context?.state ?? loadState(homeDir);
@@ -68,17 +69,27 @@ export function resolvePoeCommandExecution(input: {
   };
 }
 
+export interface LoadedRuntimeConfig extends ResolvedConfig {
+  /** Raw merged runtime scope preserved for re-parsing when overrides change the type. */
+  rawScope: Record<string, unknown>;
+}
+
 export function applyRuntimeOverrides(
-  config: ResolvedConfig,
+  config: ResolvedConfig | LoadedRuntimeConfig,
   overrides: RuntimeOverrideOptions | undefined,
   cwd = process.cwd()
 ): ResolvedConfig {
   if (!overrides) {
-    return config;
+    return { runtime: config.runtime, runner: config.runner };
   }
 
+  const base: Record<string, unknown> =
+    "rawScope" in config && config.rawScope
+      ? { ...config.rawScope }
+      : { ...(config.runtime as unknown as Record<string, unknown>) };
+
   const runtime = parseRuntime({
-    ...config.runtime,
+    ...base,
     ...(overrides.runtime !== undefined ? { type: overrides.runtime } : {}),
     ...(overrides.runtimeImage !== undefined ? { image: overrides.runtimeImage } : {}),
     ...(overrides.runtimeTemplate !== undefined
@@ -106,7 +117,7 @@ function createPoeCodeMount(cwd: string): { source: string; target: string; read
   };
 }
 
-function loadRuntimeConfig(cwd: string, homeDir: string): ResolvedConfig {
+function loadRuntimeConfig(cwd: string, homeDir: string): LoadedRuntimeConfig {
   const document = deepMergeDocuments(
     readConfigDocument(resolveConfigPath(homeDir)),
     readConfigDocument(resolveProjectConfigPath(cwd))
@@ -114,6 +125,7 @@ function loadRuntimeConfig(cwd: string, homeDir: string): ResolvedConfig {
   const runtimeScope = resolveScope(runtimeConfigScope.schema, document.runtime, process.env);
 
   return {
+    rawScope: { ...(runtimeScope as unknown as Record<string, unknown>) },
     runtime: parseRuntime(runtimeScope),
     runner: runtimeScope.runner
   };

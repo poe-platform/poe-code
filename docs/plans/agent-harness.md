@@ -85,7 +85,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-script-import-meta-parser
     title: Parse `import.meta` as a MetaProperty expression in agent-script
@@ -117,9 +117,9 @@ tasks:
 
       Do not wire runtime resolution yet — that's a later task.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: agent-script-export-lint
     title: Lint rules for export forms and import.meta in agent-script

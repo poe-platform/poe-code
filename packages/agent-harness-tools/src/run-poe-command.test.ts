@@ -16,7 +16,7 @@ import type {
   UploadResult
 } from "./execution-env.js";
 import type { LogStreamFs } from "./log-stream.js";
-import { runPoeCommand } from "./run-poe-command.js";
+import { createPoeCommandSession, runPoeCommand } from "./run-poe-command.js";
 
 interface RecordingState {
   state: StateManager;
@@ -317,6 +317,103 @@ describe("runPoeCommand", () => {
     expect(execStarted).toBe(true);
   });
 
+  it("reuses an opened environment across session commands and downloads after each command", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    let opens = 0;
+    const factory: ExecutionEnvFactory = {
+      type: "e2b",
+      async open() {
+        opens += 1;
+        return env;
+      },
+      async attach() {
+        return env;
+      }
+    };
+    const session = createPoeCommandSession({ factory, state });
+
+    const first = await session.run(
+      createOpenSpec({
+        jobLabel: { tool: "poe-code", argv: ["poe-code", "--version"] }
+      })
+    );
+    const second = await session.run(
+      createOpenSpec({
+        jobLabel: { tool: "poe-code", argv: ["poe-code", "--help"] }
+      })
+    );
+
+    expect(first).toMatchObject({ kind: "sync", exitCode: 0 });
+    expect(second).toMatchObject({ kind: "sync", exitCode: 0 });
+    expect(opens).toBe(1);
+    expect(env.uploads).toBe(1);
+    expect(env.downloads).toEqual([{ conflictPolicy: "refuse" }, { conflictPolicy: "refuse" }]);
+    expect(env.closed).toBe(false);
+
+    await session.close();
+    expect(env.closed).toBe(true);
+  });
+
+  it("syncs a reused session workspace back after each command while keeping remote state for the next command", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    let localIterations = "";
+    let remoteIterations = "";
+
+    env.uploadWorkspace = async () => {
+      env.uploads += 1;
+      remoteIterations = localIterations;
+      return { files: 1, bytes: Buffer.byteLength(localIterations), skipped: [] };
+    };
+    env.downloadWorkspace = async (call) => {
+      env.downloads.push(call);
+      localIterations = remoteIterations;
+      return { files: 1, bytes: Buffer.byteLength(localIterations), conflicts: [] };
+    };
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      const nextIteration = remoteIterations.trim().length === 0
+        ? 1
+        : remoteIterations.trim().split("\n").length + 1;
+      remoteIterations += `${nextIteration}\n`;
+      return {
+        pid: 123,
+        stdout: null,
+        stderr: null,
+        stdin: null,
+        result: Promise.resolve({ exitCode: 0 }),
+        kill() {}
+      };
+    };
+
+    const session = createPoeCommandSession({ factory: createE2bFactory(env), state });
+    const openSpec = createOpenSpec({
+      execution: { wrapForLogTee: false },
+      jobLabel: { tool: "append-iteration", argv: ["append-iteration"] },
+      runner: {
+        detach: false,
+        upload_max_file_mb: 100,
+        download_conflict: "overwrite"
+      }
+    });
+
+    await session.run(openSpec);
+    expect(localIterations).toBe("1\n");
+
+    await session.run(openSpec);
+    expect(localIterations).toBe("1\n2\n");
+    expect(remoteIterations).toBe("1\n2\n");
+    expect(env.uploads).toBe(1);
+    expect(env.downloads).toEqual([
+      { conflictPolicy: "overwrite" },
+      { conflictPolicy: "overwrite" }
+    ]);
+    expect(env.execSpecs).toHaveLength(2);
+
+    await session.close();
+  });
+
   it("configures the spawned E2B agent after upload and before the agent command", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();
@@ -346,14 +443,7 @@ describe("runPoeCommand", () => {
 
     expect(env.execSpecs.map((spec) => [spec.command, ...(spec.args ?? [])])).toEqual([
       ["which", "claude"],
-      [
-        "poe-code",
-        "configure",
-        "--yes",
-        "--provider",
-        "poe",
-        "claude-code"
-      ],
+      ["poe-code", "configure", "--yes", "--provider", "poe", "claude-code"],
       ["sh", "-c", expect.stringContaining("'claude' '-p' 'hello'")]
     ]);
     expect(env.execSpecs[1]).toMatchObject({
@@ -375,9 +465,7 @@ describe("runPoeCommand", () => {
       const isBinaryCheck =
         spec.command === "which" ||
         spec.command === "where" ||
-        (spec.command === "sh" &&
-          spec.args?.[0] === "-c" &&
-          spec.args[1]?.includes("test -f"));
+        (spec.command === "sh" && spec.args?.[0] === "-c" && spec.args[1]?.includes("test -f"));
       if (isBinaryCheck) {
         return {
           pid: 123,
@@ -442,11 +530,7 @@ describe("runPoeCommand", () => {
           kill() {}
         };
       }
-      if (
-        spec.command === "sh" &&
-        spec.args?.[0] === "-c" &&
-        spec.args[1]?.includes("test -f")
-      ) {
+      if (spec.command === "sh" && spec.args?.[0] === "-c" && spec.args[1]?.includes("test -f")) {
         return {
           pid: 123,
           stdout: null,
@@ -536,14 +620,7 @@ describe("runPoeCommand", () => {
 
     expect(env.execSpecs.map((spec) => [spec.command, ...(spec.args ?? [])])).toEqual([
       ["which", "claude"],
-      [
-        "poe-code",
-        "configure",
-        "--yes",
-        "--provider",
-        "poe",
-        "claude-code"
-      ]
+      ["poe-code", "configure", "--yes", "--provider", "poe", "claude-code"]
     ]);
   });
 

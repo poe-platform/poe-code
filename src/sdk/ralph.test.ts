@@ -3,6 +3,9 @@ import type { RalphRunOptions } from "@poe-code/ralph";
 
 const runWorkspaceRalphMock = vi.hoisted(() => vi.fn());
 const spawnAutonomousMock = vi.hoisted(() => vi.fn());
+const buildSpawnArgsMock = vi.hoisted(() => vi.fn());
+const createPoeCommandSessionMock = vi.hoisted(() => vi.fn());
+const resolvePoeCommandExecutionMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/ralph", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/ralph")>();
@@ -18,12 +21,24 @@ vi.mock("./spawn.js", () => ({
   })
 }));
 
+vi.mock("@poe-code/agent-spawn", () => ({
+  buildSpawnArgs: buildSpawnArgsMock
+}));
+
+vi.mock("@poe-code/agent-harness-tools", () => ({
+  createPoeCommandSession: createPoeCommandSessionMock,
+  resolvePoeCommandExecution: resolvePoeCommandExecutionMock
+}));
+
 import { runRalph } from "./ralph.js";
 
 describe("SDK ralph", () => {
   beforeEach(() => {
     runWorkspaceRalphMock.mockReset();
     spawnAutonomousMock.mockReset();
+    buildSpawnArgsMock.mockReset();
+    createPoeCommandSessionMock.mockReset();
+    resolvePoeCommandExecutionMock.mockReset();
   });
 
   it("preserves a caller-provided runAgent", async () => {
@@ -115,5 +130,100 @@ describe("SDK ralph", () => {
       stderr: "",
       exitCode: 0
     });
+  });
+
+  it("reuses one e2b command session for the default Ralph runner", async () => {
+    const run = vi.fn().mockResolvedValue({
+      kind: "sync",
+      stdout: "done",
+      stderr: "",
+      exitCode: 0,
+      download: { files: 1, bytes: 12, conflicts: [] }
+    });
+    const close = vi.fn().mockResolvedValue(undefined);
+    const factory = { type: "e2b" };
+    const state = { jobs: {} };
+    let capturedOptions: RalphRunOptions | undefined;
+    const originalPoeApiKey = process.env.POE_API_KEY;
+
+    process.env.POE_API_KEY = "sk-test";
+    buildSpawnArgsMock
+      .mockReturnValueOnce({ binaryName: "claude", args: ["-p", "first"] })
+      .mockReturnValueOnce({ binaryName: "claude", args: ["-p", "second"] });
+    resolvePoeCommandExecutionMock.mockReturnValue({
+      factory,
+      state,
+      detach: false,
+      openSpec: {
+        cwd: "/tmp/ralph",
+        runner: {
+          detach: false,
+          upload_max_file_mb: 100,
+          download_conflict: "refuse"
+        },
+        jobLabel: { tool: "claude-code", argv: ["claude", "-p", "prompt"] }
+      }
+    });
+    createPoeCommandSessionMock.mockReturnValue({ run, close });
+    runWorkspaceRalphMock.mockImplementationOnce(async (options: RalphRunOptions) => {
+      capturedOptions = options;
+      await options.runAgent?.({
+        agent: "claude-code",
+        prompt: "first",
+        cwd: "/tmp/ralph",
+        model: "sonnet"
+      });
+      await options.runAgent?.({
+        agent: "claude-code",
+        prompt: "second",
+        cwd: "/tmp/ralph",
+        model: "sonnet"
+      });
+      return {
+        stopReason: "max_iterations",
+        docPath: "/tmp/ralph/plan.md",
+        iterationsCompleted: 2,
+        totalDurationMs: 1_000
+      };
+    });
+
+    try {
+      await runRalph({
+        cwd: "/tmp/ralph",
+        homeDir: "/home/test",
+        docPath: "/tmp/ralph/plan.md",
+        runtime: "e2b",
+        runtimeTemplate: "tmpl_test"
+      });
+    } finally {
+      if (originalPoeApiKey === undefined) {
+        delete process.env.POE_API_KEY;
+      } else {
+        process.env.POE_API_KEY = originalPoeApiKey;
+      }
+    }
+
+    expect(capturedOptions?.runAgent).toEqual(expect.any(Function));
+    expect(spawnAutonomousMock).not.toHaveBeenCalled();
+    expect(createPoeCommandSessionMock).toHaveBeenCalledTimes(1);
+    expect(createPoeCommandSessionMock).toHaveBeenCalledWith({ factory, state });
+    expect(buildSpawnArgsMock).toHaveBeenNthCalledWith(1, "claude-code", {
+      prompt: "first",
+      model: "sonnet",
+      mode: "yolo"
+    });
+    expect(buildSpawnArgsMock).toHaveBeenNthCalledWith(2, "claude-code", {
+      prompt: "second",
+      model: "sonnet",
+      mode: "yolo"
+    });
+    expect(run).toHaveBeenCalledTimes(2);
+    expect(run.mock.calls[0]?.[0]).toEqual(
+      expect.objectContaining({
+        runner: expect.objectContaining({ download_conflict: "overwrite" })
+      })
+    );
+    expect(resolvePoeCommandExecutionMock).toHaveBeenCalledTimes(2);
+    expect(close).toHaveBeenCalledTimes(1);
   });
 });

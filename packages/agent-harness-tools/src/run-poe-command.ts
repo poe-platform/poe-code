@@ -121,6 +121,124 @@ export async function runPoeCommand(opts: {
   }
 }
 
+export interface PoeCommandSession {
+  run(
+    openSpec: OpenSpec,
+    signal?: AbortSignal
+  ): Promise<{
+    kind: "sync";
+    exitCode: number;
+    download: DownloadResult;
+    stdout?: string;
+    stderr?: string;
+  }>;
+  close(): Promise<void>;
+}
+
+export function createPoeCommandSession(opts: {
+  factory: ExecutionEnvFactory;
+  state: StateManager;
+}): PoeCommandSession {
+  let env: OpenedEnv | null = null;
+  let closed = false;
+
+  async function getEnv(openSpec: OpenSpec): Promise<OpenedEnv> {
+    if (closed) {
+      throw new Error("Cannot run command after Poe command session is closed.");
+    }
+
+    if (env !== null) {
+      return env;
+    }
+
+    const opened = opts.factory.open(openSpec);
+    env = isPromiseLike(opened) ? await opened : opened;
+    await env.uploadWorkspace();
+    return env;
+  }
+
+  return {
+    async run(openSpec, signal) {
+      const jobId = createUlid();
+      const pendingJob = opts.state.jobs.put({
+        id: jobId,
+        env_id: "",
+        env_kind: opts.factory.type,
+        tool: openSpec.jobLabel.tool,
+        argv: openSpec.jobLabel.argv,
+        cwd: openSpec.cwd,
+        started_at: "",
+        status: "pending"
+      });
+      const currentEnv = await getEnv(openSpec);
+      await pendingJob;
+      await configureE2bSpawnAgentIfAvailable({
+        env: currentEnv,
+        openSpec,
+        factoryType: opts.factory.type
+      });
+      const wrapCommand = openSpec.execution?.wrapForLogTee !== false;
+      const argv = wrapCommand
+        ? wrapForLogTee(openSpec.jobLabel.argv, jobId)
+        : openSpec.jobLabel.argv;
+      const handle = openSpec.execution?.tty
+        ? currentEnv.shell()
+        : currentEnv.exec({
+            command: argv[0],
+            args: argv.slice(1),
+            cwd: openSpec.cwd,
+            env: resolveExecutionEnv(openSpec),
+            stdin: openSpec.execution?.stdin ?? "inherit",
+            stdout: openSpec.execution?.stdout ?? "pipe",
+            stderr: openSpec.execution?.stderr ?? "pipe",
+            signal
+          });
+
+      if (openSpec.execution?.input !== undefined) {
+        handle.stdin?.setDefaultEncoding("utf8");
+        handle.stdin?.end(openSpec.execution.input);
+      }
+
+      await opts.state.jobs.update(jobId, {
+        status: "running",
+        env_id: currentEnv.id,
+        started_at: new Date().toISOString()
+      });
+
+      const result = await runSync({
+        env: currentEnv,
+        handle,
+        jobId,
+        openSpec,
+        signal,
+        wrapCommand,
+        closeAfterDownload: false
+      });
+
+      await opts.state.jobs.update(jobId, {
+        status: "exited",
+        exit_code: result.exitCode,
+        exited_at: new Date().toISOString()
+      });
+
+      return {
+        kind: "sync",
+        exitCode: result.exitCode,
+        download: result.download,
+        ...(result.stdout !== undefined ? { stdout: result.stdout } : {}),
+        ...(result.stderr !== undefined ? { stderr: result.stderr } : {})
+      };
+    },
+    async close() {
+      if (closed) {
+        return;
+      }
+      closed = true;
+      await env?.close();
+    }
+  };
+}
+
 async function configureE2bSpawnAgentIfAvailable(opts: {
   env: OpenedEnv;
   openSpec: OpenSpec;
@@ -243,6 +361,7 @@ async function runSync(opts: {
   openSpec: OpenSpec;
   signal?: AbortSignal;
   wrapCommand: boolean;
+  closeAfterDownload?: boolean;
 }): Promise<{ exitCode: number; download: DownloadResult; stdout?: string; stderr?: string }> {
   const execution = opts.openSpec.execution;
   const capture = execution?.captureOutput === true;
@@ -259,7 +378,9 @@ async function runSync(opts: {
     const download = await opts.env.downloadWorkspace({
       conflictPolicy: opts.openSpec.runner?.download_conflict ?? "refuse"
     });
-    await opts.env.close();
+    if (opts.closeAfterDownload !== false) {
+      await opts.env.close();
+    }
     return {
       exitCode,
       download,

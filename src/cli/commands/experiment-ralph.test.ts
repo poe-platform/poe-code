@@ -470,14 +470,9 @@ describe("experiment run command", () => {
   it("preserves multi-agent frontmatter arrays for experiment run", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/loop.md": [
-          "---",
-          "agent:",
-          "  - claude",
-          "  - codex",
-          "---",
-          "# Loop"
-        ].join("\n")
+        "/repo/docs/loop.md": ["---", "agent:", "  - claude", "  - codex", "---", "# Loop"].join(
+          "\n"
+        )
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -559,12 +554,7 @@ describe("experiment run command", () => {
   it("fails fast on unknown single frontmatter agents", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/loop.md": [
-          "---",
-          "agent: mystery-agent",
-          "---",
-          "# Loop"
-        ].join("\n")
+        "/repo/docs/loop.md": ["---", "agent: mystery-agent", "---", "# Loop"].join("\n")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -1720,16 +1710,19 @@ describe("ralph run command", () => {
       "--agent",
       "claude",
       "--iterations",
-      "5"
+      "5",
+      "--cwd",
+      "/tmp/ralph-work"
     ]);
 
     expect(vi.mocked(sdkRunRalph)).toHaveBeenCalledWith(
       expect.objectContaining({
         agent: "claude-code",
-        cwd,
+        cwd: "/tmp/ralph-work",
         homeDir,
         docPath: "docs/loop.md",
-        maxIterations: 5
+        maxIterations: 5,
+        runtimeConfigCwd: cwd
       })
     );
   });
@@ -2119,15 +2112,7 @@ describe("ralph run command", () => {
     const program = createBaseProgram();
     registerRalphCommand(program, container);
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "ralph",
-      "run",
-      "docs/loop.md",
-      "--agent",
-      "goose"
-    ]);
+    await program.parseAsync(["node", "cli", "ralph", "run", "docs/loop.md", "--agent", "goose"]);
 
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
@@ -2301,7 +2286,7 @@ describe("ralph run command", () => {
     expect(dashboardMock.appendOutput.mock.calls.map(([item]) => item)).toEqual([
       {
         kind: "info",
-        text: `${expectedTimestamp} Config · Agent: claude-code · Iterations: 5 · Doc: docs/loop.md`,
+        text: `${expectedTimestamp} Config · Agent: claude-code · Iterations: 5 · Cwd: /repo · Doc: docs/loop.md`,
         ts: 0
       },
       {

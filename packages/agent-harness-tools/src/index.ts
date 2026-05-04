@@ -4,13 +4,15 @@ export {
   type DiscoverDocsOptions
 } from "./paths.js";
 export {
-  archivePlan,
   discoverPlans,
-  openPlanList,
-  type ArchivePlanOptions,
-  type DiscoverPlansOptions,
-  type OpenPlanListOptions,
-  type PlanRef
+  archivePlan,
+  openPlanList
+} from "./plans.js";
+export type {
+  PlanRef,
+  DiscoverPlansOptions,
+  ArchivePlanOptions,
+  OpenPlanListOptions
 } from "./plans.js";
 export {
   normalizeParticipantConfig,

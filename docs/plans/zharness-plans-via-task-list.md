@@ -368,7 +368,7 @@ tasks:
       - Re-export only. No logic changes.
       - Verify with `npm run build --workspace @poe-code/agent-harness-tools`.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: pipeline-migrate

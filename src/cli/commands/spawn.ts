@@ -235,6 +235,7 @@ export function registerSpawnCommand(
           model
         };
         const resources = createExecutionResources(container, flags, `spawn:${canonicalService}`);
+        let skipFinalize = false;
         if (shouldEmitUiOutput) {
           resources.logger.intro(`spawn ${canonicalService}`);
         }
@@ -300,6 +301,12 @@ export function registerSpawnCommand(
           });
           process.exitCode = final.exitCode;
 
+          if (shouldEmitUiOutput && final.detached) {
+            resources.logger.info(formatDetachedJob(final.detached));
+            skipFinalize = true;
+            return;
+          }
+
           if (!shouldEmitUiOutput) {
             renderAcpEvent({
               event: "spawn_result",
@@ -344,7 +351,7 @@ export function registerSpawnCommand(
             }
           }
         } finally {
-          if (shouldEmitUiOutput) {
+          if (shouldEmitUiOutput && !skipFinalize) {
             resources.context.finalize();
           }
         }
@@ -352,6 +359,10 @@ export function registerSpawnCommand(
         await workspace.cleanup?.();
       }
     });
+}
+
+function formatDetachedJob(detached: { jobId: string; envId: string }): string {
+  return `job started: ${detached.jobId}\nsandbox: ${detached.envId}\ndetached.`;
 }
 
 function listSpawnServiceNames(

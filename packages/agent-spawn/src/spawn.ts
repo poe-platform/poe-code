@@ -221,6 +221,7 @@ export async function spawn(
         stdout: "",
         stderr: "",
         exitCode: 0,
+        detached: { jobId: result.jobId, envId: result.envId },
         ...(logFilePath ? { logFile: logFilePath } : {})
       };
     }

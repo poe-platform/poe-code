@@ -468,7 +468,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-runtime-jobs
     title: Add poe-code runtime jobs ls/attach/logs/stop/sandbox commands
@@ -520,8 +520,8 @@ tasks:
       Snapshot/screenshot tests for `runtime jobs ls` (mock state), `jobs
       logs` output, and `--detach` output.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: qa-and-readmes

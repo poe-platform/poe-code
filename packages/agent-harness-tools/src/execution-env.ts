@@ -12,7 +12,7 @@ export interface ExecutionEnvFactory {
   readonly type: ExecutionEnvType;
   readonly supportsDetach?: boolean;
   open(spec: OpenSpec): Promise<OpenedEnv>;
-  attach(envId: string): Promise<OpenedEnv>;
+  attach(envId: string, context?: AttachedJobContext): Promise<OpenedEnv>;
 }
 
 export interface OpenSpec {
@@ -57,6 +57,13 @@ export interface LogChunk {
   data: string;
 }
 
+export interface AttachedJobContext {
+  jobId: string;
+  tool: string;
+  argv: string[];
+  cwd: string;
+}
+
 export interface OpenedEnv {
   readonly id: string;
   readonly job: JobHandle | null;
@@ -74,7 +81,7 @@ export interface JobHandle {
   readonly tool: string;
   readonly argv: string[];
   status(): Promise<JobStatus>;
-  stream(opts?: { sinceByte?: number }): AsyncIterable<LogChunk>;
+  stream(opts?: { sinceByte?: number; since?: Date }): AsyncIterable<LogChunk>;
   wait(): Promise<{ exitCode: number }>;
   kill(signal?: NodeJS.Signals): Promise<void>;
 }
@@ -86,10 +93,14 @@ export function registerExecutionEnvFactory(factory: ExecutionEnvFactory): void 
 }
 
 export function selectExecutionEnv(runtime: RuntimeConfig): ExecutionEnvFactory {
-  const factory = executionEnvFactories.get(runtime.type);
+  return selectExecutionEnvFactory(runtime.type);
+}
+
+export function selectExecutionEnvFactory(type: ExecutionEnvType): ExecutionEnvFactory {
+  const factory = executionEnvFactories.get(type);
   if (factory === undefined) {
     throw new Error(
-      `No execution environment factory registered for runtime type "${runtime.type}".`
+      `No execution environment factory registered for runtime type "${type}".`
     );
   }
   return factory;

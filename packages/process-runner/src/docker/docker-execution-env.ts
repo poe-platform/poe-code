@@ -92,14 +92,15 @@ export const dockerExecutionEnvFactory: ExecutionEnvFactory = {
       context
     });
   },
-  async attach(envId): Promise<OpenedEnv> {
+  async attach(envId, context): Promise<OpenedEnv> {
     const engine = detectEngine();
     return createDockerEnv({
       id: envId,
-      spec: createAttachedSpec(),
+      spec: createAttachedSpec(context?.cwd),
       runner: createHostRunner(),
       engine,
-      context: detectContext()
+      context: detectContext(),
+      attachedJobId: context?.jobId
     });
   }
 };
@@ -110,12 +111,16 @@ function createDockerEnv(input: {
   runner: Runner;
   engine: Engine;
   context: string | null;
+  attachedJobId?: string;
 }): OpenedEnv {
   const containerRef = input.id;
 
   return {
     id: containerRef,
-    job: null,
+    job:
+      input.attachedJobId === undefined
+        ? null
+        : createContainerJob(containerRef, input.runner, input.engine, input.context, input.attachedJobId),
     async uploadWorkspace() {
       const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-upload-"));
       const archivePath = path.join(tempDir, "workspace.tar");
@@ -420,14 +425,15 @@ function createContainerName(): string {
   return `poe-env-${randomBytes(6).toString("hex")}`;
 }
 
-async function createContainerJob(
+function createContainerJob(
   containerId: string,
   runner: Runner,
   engine: Engine,
-  context: string | null
+  context: string | null,
+  jobId = containerId
 ) {
   return {
-    id: containerId,
+    id: jobId,
     envId: containerId,
     tool: "docker",
     argv: ["attach", containerId],
@@ -451,7 +457,26 @@ async function createContainerJob(
       }
       return stdout.trim() === "running" ? ("running" as const) : ("exited" as const);
     },
-    async *stream() {},
+    async *stream(opts?: { sinceByte?: number }) {
+      const handle = runner.exec({
+        command: engine,
+        args: [
+          ...buildContextArgs(engine, context),
+          "exec",
+          containerId,
+          "sh",
+          "-c",
+          `test -f ${shellQuote(`/tmp/poe-jobs/${jobId}.log`)} && tail -c +${(opts?.sinceByte ?? 0) + 1} ${shellQuote(`/tmp/poe-jobs/${jobId}.log`)} || true`
+        ],
+        stdout: "pipe",
+        stderr: "pipe"
+      });
+      const stdout = await readStream(handle.stdout);
+      await handle.result;
+      if (stdout.length > 0) {
+        yield { byteOffset: opts?.sinceByte ?? 0, data: stdout };
+      }
+    },
     async wait() {
       const handle = runner.exec({
         command: engine,
@@ -478,9 +503,9 @@ async function createContainerJob(
   };
 }
 
-function createAttachedSpec(): OpenSpec {
+function createAttachedSpec(cwd = "/workspace"): OpenSpec {
   return {
-    cwd: "/workspace",
+    cwd,
     runtime: {
       type: "docker",
       image: "attached",

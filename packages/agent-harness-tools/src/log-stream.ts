@@ -12,6 +12,7 @@ export interface LogStreamEnv {
 export interface LogStreamFs {
   promises: {
     readFile(path: string): Promise<Buffer | string>;
+    stat?(path: string): Promise<{ mtimeMs: number }>;
   };
   watch?: (path: string, listener: () => void) => FSWatcher;
 }
@@ -36,13 +37,18 @@ export function wrapForLogTee(argv: string[], jobId: string): string[] {
 export async function* streamLogFile(
   env: LogStreamEnv,
   jobId: string,
-  opts: { sinceByte?: number }
+  opts: { sinceByte?: number; since?: Date }
 ): AsyncIterable<LogChunk> {
   const fs = env.fs ?? nodeFs;
   const file = jobLogPath(jobId);
   let byteOffset = opts.sinceByte ?? 0;
 
   while (true) {
+    if (opts.since !== undefined && !(await wasModifiedSince(fs, file, opts.since))) {
+      await waitForLogChange(fs, file);
+      continue;
+    }
+
     const result = await readLogChunk(fs, file, byteOffset);
     if (result !== null) {
       byteOffset = result.nextByteOffset;
@@ -51,6 +57,22 @@ export async function* streamLogFile(
     }
 
     await waitForLogChange(fs, file);
+  }
+}
+
+async function wasModifiedSince(fs: LogStreamFs, file: string, since: Date): Promise<boolean> {
+  if (fs.promises.stat === undefined) {
+    return true;
+  }
+
+  try {
+    const stat = await fs.promises.stat(file);
+    return stat.mtimeMs >= since.getTime();
+  } catch (error) {
+    if (isNodeError(error) && error.code === "ENOENT") {
+      return false;
+    }
+    throw error;
   }
 }
 

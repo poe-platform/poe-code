@@ -1,0 +1,27 @@
+{
+  "name": "@poe-code/agent-harness",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/agent-harness/src",
+    "test:unit": "cd ../.. && vitest run packages/agent-harness/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-harness-tools": "*",
+    "@poe-code/agent-script": "*",
+    "toolcraft-schema": "*"
+  }
+}

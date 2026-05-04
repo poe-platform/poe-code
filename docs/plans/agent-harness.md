@@ -344,7 +344,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-harness-discovery
     title: Discover harness pairs in .poe-code/harnesses/
@@ -380,9 +380,9 @@ tasks:
       half-valid subdir (just .md), unrelated files mixed in, missing
       root.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: agent-harness-extract-schema
     title: Extract `export const schema` initializer from .ajs

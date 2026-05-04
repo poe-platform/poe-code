@@ -8,7 +8,11 @@ export type HarnessPair = {
 };
 
 export type HarnessFs = {
-  stat(path: string): Promise<{ isFile(): boolean }>;
+  readdir?(
+    path: string,
+    options?: { withFileTypes?: boolean }
+  ): Promise<Array<string | { name: string; isDirectory(): boolean }>>;
+  stat(path: string): Promise<{ isFile(): boolean; isDirectory?(): boolean }>;
 };
 
 type HarnessPairSide = "ajs" | "md";

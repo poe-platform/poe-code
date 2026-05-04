@@ -6,7 +6,9 @@ import { resolveStateMachine } from "./state.js";
 import type {
   BackendFactory,
   BackendDeps,
+  OpenMarkdownDirOptions,
   OpenTaskListOptions,
+  OpenYamlFileOptions,
   TaskList,
   TaskListFs
 } from "./types.js";
@@ -14,7 +16,9 @@ import type {
 const DEFAULT_LOCK_STALE_MS = 30_000;
 const DEFAULT_LOCK_RETRIES = 20;
 
-export const backendFactories: Record<OpenTaskListOptions["type"], BackendFactory> = {
+type FileBackendOptions = OpenMarkdownDirOptions | OpenYamlFileOptions;
+
+export const backendFactories: Record<FileBackendOptions["type"], BackendFactory> = {
   "markdown-dir": markdownDirBackend,
   "yaml-file": yamlFileBackend
 };
@@ -24,12 +28,19 @@ function createDefaultFs(): TaskListFs {
 }
 
 export async function openTaskList(options: OpenTaskListOptions): Promise<TaskList> {
-  const factory = (backendFactories as Record<string, BackendFactory | undefined>)[options.type];
-
-  if (factory === undefined) {
-    throw new Error(`Unknown task list backend type "${options.type}".`);
+  switch (options.type) {
+    case "markdown-dir":
+    case "yaml-file":
+      return openFileBackend(options);
+    case "gh-issues":
+      throw new Error("gh-issues backend not yet implemented");
+    default:
+      throw new Error(`Unknown task list backend type "${(options as { type: string }).type}".`);
   }
+}
 
+async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
+  const factory = backendFactories[options.type];
   const stateMachine = resolveStateMachine(options.stateMachine);
   validateMachine(stateMachine);
 

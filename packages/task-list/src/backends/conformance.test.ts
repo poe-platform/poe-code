@@ -252,6 +252,17 @@ function describeBackendConformance(
       expect(createInput.id).toBe("typed-create");
     });
 
+    it("requires id at the backend boundary", async () => {
+      const { taskList } = await openBackend(factory, { path: rootPath });
+      const tasks = taskList.list("planning");
+
+      await expect(
+        tasks.create({
+          name: "Missing id"
+        })
+      ).rejects.toThrow(`id is required for ${name.replace(" backend", "")} backend`);
+    });
+
     it("rejects state mutations outside fire()", async () => {
       const { taskList } = await openBackend(factory, { path: rootPath });
       const tasks = taskList.list("planning");

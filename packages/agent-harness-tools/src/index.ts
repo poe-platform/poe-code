@@ -4,6 +4,15 @@ export {
   type DiscoverDocsOptions
 } from "./paths.js";
 export {
+  archivePlan,
+  discoverPlans,
+  openPlanList,
+  type ArchivePlanOptions,
+  type DiscoverPlansOptions,
+  type OpenPlanListOptions,
+  type PlanRef
+} from "./plans.js";
+export {
   normalizeParticipantConfig,
   selectParticipantAgent,
   type WorkflowParticipant

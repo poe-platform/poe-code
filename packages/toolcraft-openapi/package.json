@@ -26,11 +26,11 @@
   "dependencies": {
     "@clack/core": "^1.0.0",
     "@clack/prompts": "^1.0.0",
-    "@poe-code/design-system": "^0.0.1",
-    "toolcraft": "^0.0.1",
+    "@poe-code/design-system": "^0.0.2",
     "auth-store": "^0.0.1",
     "chalk": "^5.6.2",
     "console-table-printer": "^2.15.0",
+    "toolcraft": "^0.0.4",
     "yaml": "^2.8.2"
   },
   "engines": {

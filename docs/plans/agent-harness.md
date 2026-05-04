@@ -270,7 +270,7 @@ tasks:
       (`npm run build` succeeds) at the end of this task.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: agent-harness-schema-module
     title: Implement schema host module exposing toolcraft-schema S
@@ -300,8 +300,8 @@ tasks:
           `lint({ modules })` accepts `import { S } from "schema"`.
         - All filesystem state through memfs (none expected here).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-harness-pair-resolver

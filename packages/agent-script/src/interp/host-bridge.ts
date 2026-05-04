@@ -35,7 +35,7 @@ function wrapCallerInjectedValue(
   budget: Budget
 ): SandboxValue {
   if (typeof value !== "function") {
-    return deepCopyToSandbox(value);
+    return copyHostResultToSandbox(value, [], budget);
   }
 
   const bindingName = name === "default" && value.name.length > 0 ? value.name : name;

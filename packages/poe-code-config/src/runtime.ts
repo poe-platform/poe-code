@@ -40,6 +40,7 @@ export interface DockerRuntime extends SharedRuntimeFields {
 export interface E2bRuntime extends SharedRuntimeFields {
   type: "e2b";
   template_id?: string;
+  from_template?: string;
   dockerfile?: string;
   build_context?: string;
   cpu?: number;
@@ -136,6 +137,11 @@ export const runtimeConfigScope = {
       default: "",
       doc: "Prebuilt E2B template id"
     },
+    from_template: {
+      type: "string",
+      default: "",
+      doc: "Existing E2B template alias to extend instead of using the Dockerfile FROM image"
+    },
     cpu: {
       type: "json",
       default: undefined as number | undefined,
@@ -224,6 +230,7 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
       ...shared,
       type,
       template_id: parseOptionalString(record.template_id),
+      from_template: parseOptionalString(record.from_template),
       dockerfile: parseOptionalString(record.dockerfile),
       build_context: parseOptionalString(record.build_context),
       cpu: parseOptionalNumber(record.cpu),

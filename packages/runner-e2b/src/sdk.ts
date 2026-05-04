@@ -1,4 +1,4 @@
-import { Template, Sandbox } from "e2b";
+import { Template, Sandbox, TemplateBase } from "e2b";
 import type { Readable } from "node:stream";
 
 export interface E2bSandbox {
@@ -93,6 +93,7 @@ export interface BuildTemplateOptions {
   buildContext: string;
   cpu?: number;
   memoryMb?: number;
+  fromTemplate?: string;
   onLog?: (entry: BuildLogEntry) => void;
 }
 
@@ -126,6 +127,9 @@ export async function buildTemplate(opts: BuildTemplateOptions): Promise<BuildTe
   const template = Template({ fileContextPath: opts.buildContext }).fromDockerfile(
     opts.dockerfilePath
   );
+  if (opts.fromTemplate !== undefined && opts.fromTemplate.length > 0) {
+    (template as TemplateBase).fromTemplate(opts.fromTemplate);
+  }
   const result = await Template.build(template, opts.name, {
     apiKey: opts.apiKey,
     ...(opts.cpu === undefined ? {} : { cpuCount: opts.cpu }),

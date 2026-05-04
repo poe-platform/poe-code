@@ -854,6 +854,18 @@ describe("createRalphSimulation", () => {
     expect(prompts[0]).toBe("Fix issues in /repo/.poe-code/ralph/plans/plan.md");
   });
 
+  it("interpolates iteration variables for each prompt sent to the agent", async () => {
+    const sim = createRalphSimulation({
+      docContent: "Append {{ current_iteration }} of {{ max_iterations }}",
+      maxIterations: 2,
+      turns: [successTurn(), successTurn()]
+    });
+
+    const { prompts } = await sim.run();
+
+    expect(prompts).toEqual(["Append 1 of 2", "Append 2 of 2"]);
+  });
+
   it("preserves {{ current_file }} template in the file after run", async () => {
     const sim = createRalphSimulation({
       docContent: "Fix {{ current_file }}",
@@ -980,6 +992,36 @@ describe("createRalphSimulation", () => {
       state: "completed",
       iteration: 1
     });
+  });
+
+  it("passes runtime config cwd through to the agent runner", async () => {
+    const { fs } = createRunFs({
+      "/repo/docs/plan.md": "# Runtime plan"
+    });
+    const runAgent = vi.fn(async () => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    await runRalph({
+      cwd: "/tmp/ralph-work",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plan.md",
+      maxIterations: 1,
+      runtime: "e2b",
+      runtimeConfigCwd: "/repo",
+      fs,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cwd: "/tmp/ralph-work",
+        runtime: "e2b",
+        runtimeConfigCwd: "/repo"
+      })
+    );
   });
 
   it("stops on first failed iteration", async () => {

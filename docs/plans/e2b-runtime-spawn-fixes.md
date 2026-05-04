@@ -138,7 +138,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: e2b-ralph-end-to-end
     title: Make `ralph run --runtime e2b` work end-to-end on a fake plan
@@ -170,8 +170,8 @@ tasks:
       packages/ralph/README.md so future contributors don't aim
       ralph at the parent repo.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: runner-sync-flag

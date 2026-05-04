@@ -18,12 +18,7 @@ import {
   writeFrontmatter,
   type RalphPlanStatus
 } from "../frontmatter/frontmatter.js";
-import type {
-  RalphFileStat,
-  RalphFileSystem,
-  RalphRunOptions,
-  RalphRunResult
-} from "../types.js";
+import type { RalphFileStat, RalphFileSystem, RalphRunOptions, RalphRunResult } from "../types.js";
 import { interpolateVariables } from "../variables/variables.js";
 
 class RalphWorkflowStopError extends Error {
@@ -33,20 +28,14 @@ class RalphWorkflowStopError extends Error {
   }
 }
 
-export async function runRalph(
-  options: RalphRunOptions
-): Promise<RalphRunResult> {
+export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult> {
   const fs = options.fs ?? createDefaultFs();
   const runAgent = options.runAgent;
   if (!runAgent) {
     throw new Error("runRalph requires a runAgent implementation.");
   }
 
-  const absoluteDocPath = resolveWorkflowPath(
-    options.docPath,
-    options.cwd,
-    options.homeDir
-  );
+  const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
   const runLogDir = resolveRunLogDir({
     planPath: absoluteDocPath,
     runner: "ralph",
@@ -56,6 +45,7 @@ export async function runRalph(
   const startTime = Date.now();
   let iterationsCompleted = 0;
   let currentIterationStart = 0;
+  let currentIterationNumber = 0;
   let stopReason: RalphRunResult["stopReason"] = "max_iterations";
   let archived = false;
   let fatalError: unknown;
@@ -74,18 +64,9 @@ export async function runRalph(
       fs,
       signal: options.signal,
       readConfig: async (content) => {
-        const fresh = await resolveDocumentConfigFromContent(
-          options,
-          fs,
-          absoluteDocPath,
-          content
-        );
+        const fresh = await resolveDocumentConfigFromContent(options, fs, absoluteDocPath, content);
         return {
-          frontmatter: createWorkflowFrontmatter(
-            fresh.agents,
-            fresh.maxIterations,
-            fresh.prompt
-          ),
+          frontmatter: createWorkflowFrontmatter(fresh.agents, fresh.maxIterations, fresh.prompt),
           body: fresh.prompt
         };
       },
@@ -95,18 +76,20 @@ export async function runRalph(
         try {
           const result = await runAgent({
             agent: specifier.agent,
-            prompt: input.prompt,
+            prompt: interpolateVariables(input.prompt, {
+              current_iteration: String(currentIterationNumber),
+              max_iterations: String(config.maxIterations)
+            }),
             cwd: input.cwd,
             logDir: runLogDir,
             logFileName: makeRunLogFileName(specifier.agent),
             ...(options.runtime ? { runtime: options.runtime } : {}),
             ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
             ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
+            ...(options.runtimeConfigCwd ? { runtimeConfigCwd: options.runtimeConfigCwd } : {}),
             ...(options.detach ? { detach: options.detach } : {}),
             ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
-            ...(specifier.model ?? input.model
-              ? { model: specifier.model ?? input.model }
-              : {}),
+            ...((specifier.model ?? input.model) ? { model: specifier.model ?? input.model } : {}),
             ...(input.signal ? { signal: input.signal } : {})
           });
 
@@ -134,17 +117,14 @@ export async function runRalph(
       },
       onIterationStart: async (iteration) => {
         currentIterationStart = Date.now();
+        currentIterationNumber = iteration + 1;
 
         if (iteration === 0) {
           await updateFrontmatter(fs, absoluteDocPath, "in_progress", 0);
         }
 
         const currentSpecifier = config.agents[iteration % config.agents.length]!;
-        options.onIterationStart?.(
-          iteration + 1,
-          config.maxIterations,
-          currentSpecifier.agent
-        );
+        options.onIterationStart?.(iteration + 1, config.maxIterations, currentSpecifier.agent);
       },
       onIterationEnd: async (iteration, result) => {
         const iterationNumber = iteration + 1;
@@ -154,12 +134,7 @@ export async function runRalph(
           if (lastStopKind === "failed") {
             iterationsCompleted = iterationNumber;
             stopReason = "failed";
-            await updateFrontmatter(
-              fs,
-              absoluteDocPath,
-              "failed",
-              iterationsCompleted
-            );
+            await updateFrontmatter(fs, absoluteDocPath, "failed", iterationsCompleted);
             options.onIterationComplete?.(iterationNumber, durationMs, false);
             return;
           }
@@ -192,24 +167,14 @@ export async function runRalph(
         }
 
         if (iterationNumber === config.maxIterations) {
-          await updateFrontmatter(
-            fs,
-            absoluteDocPath,
-            "completed",
-            iterationsCompleted
-          );
+          await updateFrontmatter(fs, absoluteDocPath, "completed", iterationsCompleted);
           await archivePlan(fs, absoluteDocPath);
           archived = true;
           stopReason = "max_iterations";
           return;
         }
 
-        await updateFrontmatter(
-          fs,
-          absoluteDocPath,
-          "in_progress",
-          iterationsCompleted
-        );
+        await updateFrontmatter(fs, absoluteDocPath, "in_progress", iterationsCompleted);
       }
     });
   } catch (error) {
@@ -238,12 +203,7 @@ export async function runRalph(
     await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
   }
 
-  return createRunResult(
-    options.docPath,
-    startTime,
-    iterationsCompleted,
-    stopReason
-  );
+  return createRunResult(options.docPath, startTime, iterationsCompleted, stopReason);
 }
 
 function createRunResult(
@@ -470,16 +430,11 @@ async function updateFrontmatter(
   iteration: number
 ): Promise<void> {
   const currentContent = await fs.readFile(absoluteDocPath, "utf8");
-  const { data: currentFrontmatter, body: currentBody } =
-    parseFrontmatter(currentContent);
+  const { data: currentFrontmatter, body: currentBody } = parseFrontmatter(currentContent);
   const content = writeFrontmatter(
     {
-      ...(currentFrontmatter.agent !== undefined
-        ? { agent: currentFrontmatter.agent }
-        : {}),
-      ...(currentFrontmatter.extends !== undefined
-        ? { extends: currentFrontmatter.extends }
-        : {}),
+      ...(currentFrontmatter.agent !== undefined ? { agent: currentFrontmatter.agent } : {}),
+      ...(currentFrontmatter.extends !== undefined ? { extends: currentFrontmatter.extends } : {}),
       ...(currentFrontmatter.iterations !== undefined
         ? { iterations: currentFrontmatter.iterations }
         : {}),
@@ -493,10 +448,7 @@ async function updateFrontmatter(
   await fs.writeFile(absoluteDocPath, content);
 }
 
-async function archivePlan(
-  fs: RalphFileSystem,
-  absoluteDocPath: string
-): Promise<void> {
+async function archivePlan(fs: RalphFileSystem, absoluteDocPath: string): Promise<void> {
   const dir = path.dirname(absoluteDocPath);
   const archiveDir = path.join(dir, "archive");
   const archivePath = path.join(archiveDir, path.basename(absoluteDocPath));

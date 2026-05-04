@@ -47,7 +47,11 @@ export {
   type LogStreamEnv,
   type LogStreamFs
 } from "./log-stream.js";
-export { runPoeCommand } from "./run-poe-command.js";
+export {
+  createPoeCommandSession,
+  runPoeCommand,
+  type PoeCommandSession
+} from "./run-poe-command.js";
 export {
   createBinaryExistsDetectors,
   type BinaryExistsDetector,

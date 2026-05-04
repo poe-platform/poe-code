@@ -83,8 +83,8 @@ tasks:
 
       Do not change runtime semantics yet; just parsing + AST.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-script-import-meta-parser

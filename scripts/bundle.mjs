@@ -257,15 +257,15 @@ await Promise.all(
   })
 );
 
-// Verify every external import in dist/index.js is declared in root
+// Verify every external static import in dist/index.js is declared in root
 // dependencies (or is a Node built-in). Missing deps would only surface
 // as ERR_MODULE_NOT_FOUND when the published package is installed.
+// Dynamic imports are skipped: those are guarded at the call site (e.g.
+// optional peerDependencies surfaced via try/catch with a friendly message).
 const externalImports = new Set();
 for (const meta of Object.values(mainBuild.metafile.outputs)) {
   for (const imp of meta.imports ?? []) {
     if (imp.external && imp.kind !== "dynamic-import") {
-      externalImports.add(imp.path);
-    } else if (imp.external) {
       externalImports.add(imp.path);
     }
   }

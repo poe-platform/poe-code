@@ -144,6 +144,7 @@ export function spawn(
           mode: options.mode,
           signal: options.signal,
           args: options.args,
+          runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {})
         });
@@ -223,6 +224,7 @@ export function spawn(
           mode: options.mode,
           args: options.args,
           signal: options.signal,
+          runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
           ...(options.tee ? { tee: options.tee } : {}),
@@ -281,6 +283,7 @@ export function spawn(
           mode: options.mode,
           args: options.args,
           signal: options.signal,
+          runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
           ...(options.tee ? { tee: options.tee } : {}),

@@ -94,7 +94,7 @@ export function createOpenedE2bEnv(input: {
         );
         await runRemoteOrThrow(
           input.sandbox,
-          `mkdir -p ${shellQuote(sandboxWorkspaceDir)} && tar -xf /tmp/poe-workspace-upload.tar -C ${shellQuote(sandboxWorkspaceDir)}`
+          createUploadWorkspaceCommand(sandboxWorkspaceDir)
         );
         return { files: 0, bytes: 0, skipped: [] };
       } finally {
@@ -132,7 +132,8 @@ export function createOpenedE2bEnv(input: {
     exec(spec) {
       const handle = runE2bCommand(input.sandbox, {
         ...spec,
-        cwd: mapWorkspaceCwd(spec.cwd)
+        cwd: mapWorkspaceCwd(spec.cwd),
+        env: resolveSandboxCommandEnv(spec.env)
       });
       lastProcess = { started: handle.started };
       return handle;
@@ -167,7 +168,9 @@ export function createOpenedE2bEnv(input: {
         command,
         ...(shellSpec?.args ? { args: shellSpec.args } : {}),
         cwd: mapWorkspaceCwd(shellSpec?.cwd ?? input.spec.cwd),
-        env: shellSpec && "env" in shellSpec ? shellSpec.env : input.spec.env,
+        env: resolveSandboxCommandEnv(
+          shellSpec && "env" in shellSpec ? shellSpec.env : input.spec.env
+        ),
         stdin: "inherit",
         stdout: "inherit",
         stderr: "inherit",
@@ -433,6 +436,26 @@ function shellCommand(argv: string[]): string {
 
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
+}
+
+function createUploadWorkspaceCommand(sandboxWorkspaceDir: string): string {
+  const quotedWorkspaceDir = shellQuote(sandboxWorkspaceDir);
+  return [
+    `mkdir -p ${quotedWorkspaceDir} || { command -v sudo >/dev/null 2>&1 && sudo mkdir -p ${quotedWorkspaceDir} && sudo chown "$(id -u):$(id -g)" ${quotedWorkspaceDir}; }`,
+    `test -w ${quotedWorkspaceDir} && tar -xf /tmp/poe-workspace-upload.tar -C ${quotedWorkspaceDir}`
+  ].join("\n");
+}
+
+function resolveSandboxCommandEnv(
+  env: Record<string, string> | undefined
+): Record<string, string> | undefined {
+  if (env === undefined) {
+    return undefined;
+  }
+  return {
+    ...env,
+    HOME: "/home/user"
+  };
 }
 
 function normalizeSandboxWorkspaceDir(workspaceDir: string | undefined): string {

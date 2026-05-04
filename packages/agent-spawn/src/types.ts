@@ -71,6 +71,8 @@ export interface SpawnOptions {
   runtimeImage?: string;
   /** E2B template override for e2b runtime. */
   runtimeTemplate?: string;
+  /** Directory used to load runtime config/templates when different from cwd. */
+  runtimeConfigCwd?: string;
   /** Run through a detached runtime job when the backend supports it. */
   detach?: boolean;
   /** Mount the local poe-code checkout into the runtime for development. */

@@ -189,6 +189,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   const argv = [binaryName, ...args];
   const execution = resolveSpawnExecution({
     cwd: options.cwd ?? process.cwd(),
+    runtimeConfigCwd: options.runtimeConfigCwd,
     env: (processEnv ?? process.env) as Record<string, string>,
     argv,
     tool: agentId,

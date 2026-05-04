@@ -174,6 +174,7 @@ export async function spawn(
   const argv = [binaryName, ...spawnArgs];
   const execution = resolveSpawnExecution({
     cwd: options.cwd ?? process.cwd(),
+    runtimeConfigCwd: options.runtimeConfigCwd,
     env: (processEnv ?? process.env) as Record<string, string>,
     argv,
     tool: resolvedId,

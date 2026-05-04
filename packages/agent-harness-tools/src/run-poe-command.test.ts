@@ -350,7 +350,6 @@ describe("runPoeCommand", () => {
         "poe-code",
         "configure",
         "--yes",
-        "--skip-if-configured",
         "--provider",
         "poe",
         "claude-code"
@@ -541,7 +540,6 @@ describe("runPoeCommand", () => {
         "poe-code",
         "configure",
         "--yes",
-        "--skip-if-configured",
         "--provider",
         "poe",
         "claude-code"

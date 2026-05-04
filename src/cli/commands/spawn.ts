@@ -187,6 +187,7 @@ export function registerSpawnCommand(
             args: forwardedArgs,
             model,
             mode: commandOptions.mode as SpawnMode | undefined,
+            runtimeConfigCwd: container.env.cwd,
             ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
             cwd: cwdOverride
@@ -207,6 +208,7 @@ export function registerSpawnCommand(
           ...(integrations?.spawnMiddleware
             ? { middlewares: [integrations.spawnMiddleware] }
             : {}),
+          runtimeConfigCwd: container.env.cwd,
           ...runtimeOptions,
           useStdin: shouldReadFromStdin
         };
@@ -306,6 +308,7 @@ export function registerSpawnCommand(
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
                 : {}),
               ...(spawnOptions.middlewares ? { middlewares: spawnOptions.middlewares } : {}),
+              runtimeConfigCwd: container.env.cwd,
               ...runtimeOptions
             })
           );

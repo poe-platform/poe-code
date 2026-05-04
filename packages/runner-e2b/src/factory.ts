@@ -34,13 +34,13 @@ export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
 
     return createOpenedE2bEnv({ sandbox, spec, runtime });
   },
-  async attach(envId): Promise<OpenedEnv> {
+  async attach(envId, context): Promise<OpenedEnv> {
     const apiKey = process.env.E2B_API_KEY?.trim();
     const sandbox = await connectSandbox(envId, apiKey && apiKey.length > 0 ? apiKey : undefined);
     return createOpenedE2bEnv({
       sandbox,
       spec: {
-        cwd: "/workspace",
+        cwd: context?.cwd ?? "/workspace",
         runtime: {
           type: "e2b",
           build_args: {},
@@ -50,8 +50,9 @@ export const e2bExecutionEnvFactory: ExecutionEnvFactory = {
         },
         env: {},
         uploadIgnoreFiles: [],
-        jobLabel: { tool: "e2b", argv: [] }
-      },
+        jobLabel: { tool: context?.tool ?? "e2b", argv: context?.argv ?? [] },
+        ...(context?.jobId ? { detachedJobId: context.jobId } : {})
+      } as OpenSpec & { detachedJobId?: string },
       runtime: {
         type: "e2b",
         build_args: {},

@@ -41,7 +41,7 @@ export interface ExecutionEnvFactory {
   readonly type: ExecutionEnvType;
   readonly supportsDetach?: boolean;
   open(spec: OpenSpec): Promise<OpenedEnv>;
-  attach(envId: string): Promise<OpenedEnv>;
+  attach(envId: string, context?: AttachedJobContext): Promise<OpenedEnv>;
 }
 
 export interface OpenSpec {
@@ -102,6 +102,13 @@ export interface LogChunk {
   data: string;
 }
 
+export interface AttachedJobContext {
+  jobId: string;
+  tool: string;
+  argv: string[];
+  cwd: string;
+}
+
 export interface OpenedEnv {
   readonly id: string;
   readonly job: JobHandle | null;
@@ -119,7 +126,7 @@ export interface JobHandle {
   readonly tool: string;
   readonly argv: string[];
   status(): Promise<JobStatus>;
-  stream(opts?: { sinceByte?: number }): AsyncIterable<LogChunk>;
+  stream(opts?: { sinceByte?: number; since?: Date }): AsyncIterable<LogChunk>;
   wait(): Promise<{ exitCode: number }>;
   kill(signal?: NodeJS.Signals): Promise<void>;
 }

@@ -11,7 +11,7 @@ export function createE2bJobHandle(input: {
   jobId: string;
   tool: string;
   argv: string[];
-  pid: number;
+  pid?: number;
   preserveAfterExitHours: number;
 }): JobHandle {
   const fs = createE2bLogStreamFs(input.sandbox);
@@ -28,7 +28,11 @@ export function createE2bJobHandle(input: {
       }
 
       const processes = await input.sandbox.commands.list();
-      return processes.some((process) => process.pid === input.pid) ? "running" : "lost";
+      const isRunning =
+        input.pid === undefined
+          ? processes.some((process) => processMentionsJob(process, input.jobId))
+          : processes.some((process) => process.pid === input.pid);
+      return isRunning ? "running" : "lost";
     },
     stream(opts = {}): AsyncIterable<LogChunk> {
       return streamLogFile({ fs }, input.jobId, opts);
@@ -42,7 +46,13 @@ export function createE2bJobHandle(input: {
       return result;
     },
     async kill(): Promise<void> {
-      await input.sandbox.commands.kill(input.pid);
+      const pids =
+        input.pid === undefined
+          ? (await input.sandbox.commands.list())
+              .filter((process) => processMentionsJob(process, input.jobId))
+              .map((process) => process.pid)
+          : [input.pid];
+      await Promise.all(pids.map((pid) => input.sandbox.commands.kill(pid)));
     }
   };
 }
@@ -52,6 +62,19 @@ export function createE2bLogStreamFs(sandbox: E2bSandbox): LogStreamFs {
     promises: {
       async readFile(filePath) {
         return Buffer.from(await sandbox.files.read(filePath, { format: "bytes" }));
+      },
+      async stat(filePath) {
+        const result = await sandbox.commands.run(
+          `stat -c %Y ${shellQuote(filePath)} 2>/dev/null || stat -f %m ${shellQuote(filePath)}`
+        );
+        if (!("stdout" in result)) {
+          throw new Error(`Unable to stat ${filePath}`);
+        }
+        const seconds = Number(result.stdout?.trim());
+        if (!Number.isFinite(seconds)) {
+          throw new Error(`Unable to stat ${filePath}`);
+        }
+        return { mtimeMs: seconds * 1000 };
       }
     },
     watch(filePath, listener) {
@@ -76,6 +99,15 @@ export function createE2bLogStreamFs(sandbox: E2bSandbox): LogStreamFs {
       } as ReturnType<NonNullable<LogStreamFs["watch"]>>;
     }
   };
+}
+
+function processMentionsJob(process: { cmd: string; args: string[] }, jobId: string): boolean {
+  const needle = `/tmp/poe-jobs/${jobId}`;
+  return process.cmd.includes(needle) || process.args.some((arg) => arg.includes(needle));
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replaceAll("'", "'\\''")}'`;
 }
 
 async function readExitCode(sandbox: E2bSandbox, jobId: string): Promise<number | null> {

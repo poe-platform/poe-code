@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import type { CliContainer } from "../../container.js";
 import { registerRuntimeBuildCommand } from "./build.js";
 import { registerRuntimeInitCommand } from "./init.js";
+import { registerRuntimeJobsCommand } from "./jobs/index.js";
 import { registerRuntimeTemplatesCommand } from "./templates/index.js";
 
 export function registerRuntimeCommand(program: Command, container: CliContainer): void {
@@ -12,4 +13,5 @@ export function registerRuntimeCommand(program: Command, container: CliContainer
   registerRuntimeInitCommand(runtime, program, container);
   registerRuntimeBuildCommand(runtime, program, container);
   registerRuntimeTemplatesCommand(runtime, program, container);
+  registerRuntimeJobsCommand(runtime, program, container);
 }

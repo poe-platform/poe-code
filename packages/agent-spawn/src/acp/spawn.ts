@@ -240,7 +240,12 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
       });
 
       if (runResult.kind === "detached") {
-        return { stdout: "", stderr: "", exitCode: 0 };
+        return {
+          stdout: "",
+          stderr: "",
+          exitCode: 0,
+          detached: { jobId: runResult.jobId, envId: runResult.envId }
+        };
       }
 
       result.stderr = runResult.stderr ?? "";

@@ -35,9 +35,19 @@ export function createOpenedE2bEnv(input: {
   let lastProcess: { started: Promise<E2bCommandHandle> } | null = null;
   let detachedJobContext: DetachedJobContext | null = null;
 
+  const attachedJobId = (input.spec as OpenSpec & { detachedJobId?: string }).detachedJobId;
   const env: E2bOpenedEnv = {
     id: input.sandbox.sandboxId,
-    job: null,
+    job: attachedJobId
+      ? createE2bJobHandle({
+            sandbox: input.sandbox,
+            envId: input.sandbox.sandboxId,
+            jobId: attachedJobId,
+            tool: input.spec.jobLabel.tool,
+            argv: input.spec.jobLabel.argv,
+            preserveAfterExitHours: input.runtime.preserve_after_exit_hours ?? 24
+          })
+      : null,
     fs: createE2bLogStreamFs(input.sandbox),
     setDetachedJobContext(context) {
       detachedJobContext = context;

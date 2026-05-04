@@ -242,6 +242,37 @@ describe("spawn command", () => {
     expect(logs.length).toBeGreaterThan(0);
   });
 
+  it("snapshots --detach output", async () => {
+    vi.mocked(sdkSpawn).mockImplementation(() => ({
+      events: emptyAsyncIterable(),
+      result: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0,
+        detached: { jobId: "job-123", envId: "env-456" }
+      })
+    }));
+
+    const logs: string[] = [];
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "codex", "--detach", "hello"]);
+
+    expect(stripAnsi(logs.join("\n"))).toMatchInlineSnapshot(`
+      "spawn codex
+      job started: job-123
+      sandbox: env-456
+      detached."
+    `);
+  });
+
   it("prints final stdout when events are empty", async () => {
     vi.mocked(sdkSpawn).mockImplementation(() => ({
       events: emptyAsyncIterable(),

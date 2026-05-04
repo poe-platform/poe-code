@@ -92,6 +92,7 @@ export interface SpawnResult {
   threadId?: string;
   usage?: SpawnUsage;
   logFile?: string;
+  detached?: { jobId: string; envId: string };
 }
 
 export interface AutonomousResult {

@@ -1,5 +1,20 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
+exports[`runtime command > snapshots runtime jobs logs output 1`] = `
+"first line
+second line"
+`;
+
+exports[`runtime command > snapshots runtime jobs ls output and marks missing running sandboxes as lost 1`] = `
+"runtime jobs ls
+┌──────────────────────────────┬──────────────────┬────────────┬────────────┬──────────────────────────┬──────────────────────────────┐
+│ JOB                          │ TOOL             │ RUNTIME    │ STATUS     │ STARTED                  │ SANDBOX                      │
+├──────────────────────────────┼──────────────────┼────────────┼────────────┼──────────────────────────┼──────────────────────────────┤
+│ job-missing                  │ codex            │ docker     │ lost       │ 2026-05-03T12:00:00.000Z │ env-missing                  │
+│ job-running                  │ codex            │ docker     │ running    │ 2026-05-03T12:00:00.000Z │ env-running                  │
+└──────────────────────────────┴──────────────────┴────────────┴────────────┴──────────────────────────┴──────────────────────────────┘"
+`;
+
 exports[`runtime command > snapshots runtime templates clear output and removes local template entries 1`] = `
 "runtime templates clear
 Cleared 1 local runtime template cache entry."

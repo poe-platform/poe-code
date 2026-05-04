@@ -114,6 +114,9 @@ export async function spawnInteractive(
   return {
     stdout: "",
     stderr: "",
-    exitCode: result.kind === "sync" ? result.exitCode : 0
+    exitCode: result.kind === "sync" ? result.exitCode : 0,
+    ...(result.kind === "detached"
+      ? { detached: { jobId: result.jobId, envId: result.envId } }
+      : {})
   };
 }

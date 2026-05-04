@@ -3,6 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Command } from "commander";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import {
+  registerExecutionEnvFactory,
+  type ExecutionEnvFactory,
+  type JobHandle,
+  type OpenedEnv
+} from "@poe-code/agent-harness-tools";
 import { buildDockerRuntimeTemplate } from "@poe-code/process-runner";
 import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
@@ -26,6 +32,7 @@ const homeDir = "/home/test";
 const projectConfigPath = resolveProjectConfigPath(cwd);
 const dockerfilePath = path.join(cwd, ".poe-code", "Dockerfile");
 const statePath = path.join(homeDir, ".poe-code", "state", "templates.json");
+const jobsDir = path.join(homeDir, ".poe-code", "state", "jobs");
 const buildDockerRuntimeTemplateMock = vi.mocked(buildDockerRuntimeTemplate);
 
 function createBaseProgram(): Command {
@@ -80,9 +87,119 @@ function stripAnsi(input: string): string {
   return result;
 }
 
+function createJobEntry(overrides: {
+  id: string;
+  env_id: string;
+  status: "pending" | "running" | "exited" | "killed" | "lost";
+  started_at?: string;
+}) {
+  return {
+    id: overrides.id,
+    env_id: overrides.env_id,
+    env_kind: "docker",
+    tool: "codex",
+    argv: ["codex", "hello"],
+    cwd,
+    started_at: overrides.started_at ?? "2026-05-03T12:00:00.000Z",
+    status: overrides.status
+  };
+}
+
+function createJobHandle(input: {
+  status: Awaited<ReturnType<JobHandle["status"]>>;
+  chunks?: string[];
+  wait?: () => Promise<{ exitCode: number }>;
+  kill?: (signal?: NodeJS.Signals) => Promise<void>;
+}): JobHandle {
+  return {
+    id: "job",
+    envId: "env",
+    tool: "codex",
+    argv: ["codex", "hello"],
+    async status() {
+      return input.status;
+    },
+    async *stream() {
+      for (const [index, chunk] of (input.chunks ?? []).entries()) {
+        yield { byteOffset: index, data: chunk };
+      }
+    },
+    async wait() {
+      if (input.wait) {
+        return await input.wait();
+      }
+      return { exitCode: 0 };
+    },
+    async kill(signal) {
+      await input.kill?.(signal);
+    }
+  };
+}
+
+interface RuntimeFactoryEvents {
+  attached: Array<{ envId: string; context: unknown }>;
+  downloads: Array<{ envId: string; conflictPolicy: "refuse" | "overwrite" }>;
+  closed: string[];
+}
+
+function createTestRuntimeFactory(
+  handles: Map<string, JobHandle>,
+  events: RuntimeFactoryEvents
+): ExecutionEnvFactory {
+  return {
+    type: "docker",
+    supportsDetach: true,
+    async open() {
+      throw new Error("open is not used by runtime jobs tests");
+    },
+    async attach(envId, context) {
+      const handle = handles.get(envId);
+      if (!handle) {
+        throw new Error(`missing sandbox ${envId}`);
+      }
+      events.attached.push({ envId, context });
+      return {
+        id: envId,
+        job: handle,
+        async uploadWorkspace() {
+          return { files: 0, bytes: 0, skipped: [] };
+        },
+        async downloadWorkspace(options) {
+          events.downloads.push({ envId, conflictPolicy: options.conflictPolicy });
+          return { files: 0, bytes: 0, conflicts: [] };
+        },
+        exec() {
+          throw new Error("exec is not used by runtime jobs tests");
+        },
+        async detach() {
+          return handle;
+        },
+        shell() {
+          throw new Error("shell is not used by runtime jobs tests");
+        },
+        async close() {
+          events.closed.push(envId);
+        }
+      } as OpenedEnv;
+    }
+  };
+}
+
 describe("runtime command", () => {
+  const jobHandles = new Map<string, JobHandle>();
+  const runtimeEvents: RuntimeFactoryEvents = {
+    attached: [],
+    downloads: [],
+    closed: []
+  };
+
   beforeEach(() => {
     buildDockerRuntimeTemplateMock.mockClear();
+    jobHandles.clear();
+    runtimeEvents.attached = [];
+    runtimeEvents.downloads = [];
+    runtimeEvents.closed = [];
+    registerExecutionEnvFactory(createTestRuntimeFactory(jobHandles, runtimeEvents));
   });
 
   it("initializes runtime config and default Dockerfile with --yes defaults", async () => {
@@ -212,6 +329,169 @@ describe("runtime command", () => {
       }
       "
     `);
+  });
+
+  it("snapshots runtime jobs ls output and marks missing running sandboxes as lost", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-running.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-running", env_id: "env-running", status: "running" }),
+        null,
+        2
+      )}\n`,
+      [path.join(jobsDir, "job-missing.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-missing", env_id: "env-missing", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-running", createJobHandle({ status: "running" }));
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "ls"]);
+
+    expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
+    await expect(fs.readFile(path.join(jobsDir, "job-missing.json"), "utf8")).resolves.toContain(
+      '"status": "lost"'
+    );
+  });
+
+  it("snapshots runtime jobs logs output", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set(
+      "env-logs",
+      createJobHandle({
+        status: "exited",
+        chunks: ["first line\n", "second line\n"]
+      })
+    );
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "logs"]);
+
+    expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
+  });
+
+  it("errors with candidate jobs when the omitted job id is ambiguous", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-one.json")]: `${JSON.stringify(
+        createJobEntry({
+          id: "job-one",
+          env_id: "env-one",
+          status: "running",
+          started_at: "2026-05-03T12:00:00.000Z"
+        }),
+        null,
+        2
+      )}\n`,
+      [path.join(jobsDir, "job-two.json")]: `${JSON.stringify(
+        createJobEntry({
+          id: "job-two",
+          env_id: "env-two",
+          status: "running",
+          started_at: "2026-05-03T13:00:00.000Z"
+        }),
+        null,
+        2
+      )}\n`
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "runtime", "jobs", "logs"])).rejects.toThrow(
+      [
+        "More than one detached runtime job matches this command. Pass a job id.",
+        "- job-two codex running 2026-05-03T13:00:00.000Z",
+        "- job-one codex running 2026-05-03T12:00:00.000Z"
+      ].join("\n")
+    );
+  });
+
+  it("syncs with overwrite policy and closes the sandbox when requested", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-sync.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-sync", env_id: "env-sync", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-sync", createJobHandle({ status: "exited" }));
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "runtime",
+      "jobs",
+      "sync",
+      "job-sync",
+      "--force-sync",
+      "--close"
+    ]);
+
+    expect(runtimeEvents.downloads).toEqual([
+      { envId: "env-sync", conflictPolicy: "overwrite" }
+    ]);
+    expect(runtimeEvents.closed).toEqual(["env-sync"]);
+  });
+
+  it("stops a job, marks it killed, and syncs through the shared primitive", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-stop.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const signals: Array<NodeJS.Signals | undefined> = [];
+    jobHandles.set(
+      "env-stop",
+      createJobHandle({
+        status: "running",
+        kill: async (signal) => {
+          signals.push(signal);
+        }
+      })
+    );
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "runtime",
+      "jobs",
+      "stop",
+      "job-stop",
+      "--sync",
+      "--force-sync"
+    ]);
+
+    expect(signals).toEqual(["SIGTERM"]);
+    await expect(fs.readFile(path.join(jobsDir, "job-stop.json"), "utf8")).resolves.toContain(
+      '"status": "killed"'
+    );
+    await expect(fs.readFile(path.join(jobsDir, "job-stop.json"), "utf8")).resolves.toContain(
+      '"exit_code": 130'
+    );
+    expect(runtimeEvents.downloads).toEqual([
+      { envId: "env-stop", conflictPolicy: "overwrite" }
+    ]);
   });
 
   it("builds docker runtime templates through the exposed helper", async () => {

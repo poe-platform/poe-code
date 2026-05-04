@@ -11,7 +11,7 @@ import {
   saveAgentModel,
   saveDefaultModel
 } from "./models.js";
-import { planConfigScope } from "./index.js";
+import { integrationsConfigScope, planConfigScope } from "./index.js";
 import { resolveScope } from "./resolve.js";
 import { defineScope } from "./schema.js";
 import { readDocument, readMergedDocument, resolveProjectConfigPath, writeScope } from "./store.js";
@@ -314,6 +314,75 @@ describe("planConfigScope", () => {
         POE_SUPERINTENDENT_PLAN_DIRECTORY: "legacy/superintendent"
       }).entries
     ).toEqual([]);
+  });
+});
+
+describe("integrationsConfigScope", () => {
+  it("parses a config with no integrations block", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify({
+          models: {
+            default: "anthropic/claude-sonnet-4.6"
+          }
+        })}\n`
+      },
+      homeDir
+    );
+
+    const document = await readDocument(fs, configPath);
+
+    expect(resolveScope(integrationsConfigScope.schema, document.integrations)).toEqual({
+      braintrust: {
+        enabled: false
+      }
+    });
+  });
+
+  it("parses disabled Braintrust config without apiKey or project", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify({
+          integrations: {
+            braintrust: {
+              enabled: false
+            }
+          }
+        })}\n`
+      },
+      homeDir
+    );
+
+    const document = await readDocument(fs, configPath);
+
+    expect(resolveScope(integrationsConfigScope.schema, document.integrations)).toEqual({
+      braintrust: {
+        enabled: false
+      }
+    });
+  });
+
+  it("parses enabled Braintrust config without cross-field validation", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": `${JSON.stringify({
+          integrations: {
+            braintrust: {
+              enabled: true
+            }
+          }
+        })}\n`
+      },
+      homeDir
+    );
+
+    const document = await readDocument(fs, configPath);
+
+    expect(resolveScope(integrationsConfigScope.schema, document.integrations)).toEqual({
+      braintrust: {
+        enabled: true
+      }
+    });
   });
 });
 

@@ -1,5 +1,10 @@
 import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
-import type { McpSpawnConfig, SessionResult, SpawnMode } from "@poe-code/agent-spawn";
+import type {
+  AcpMiddleware,
+  McpSpawnConfig,
+  SessionResult,
+  SpawnMode
+} from "@poe-code/agent-spawn";
 
 /**
  * Options for spawning a provider CLI.
@@ -23,6 +28,8 @@ export interface SpawnOptions {
   logDir?: string;
   /** Filename override for the spawn log. Requires `logDir`. */
   logFileName?: string;
+  /** Additional ACP middlewares appended to the spawn capture chain. */
+  middlewares?: AcpMiddleware[];
   /** Launch the agent in interactive (TUI) mode with inherited stdio */
   interactive?: boolean;
   /** Abort signal used to terminate the spawned agent */

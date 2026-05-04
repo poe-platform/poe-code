@@ -1,0 +1,40 @@
+{
+  "name": "@poe-code/braintrust",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/braintrust/src",
+    "test:unit": "cd ../.. && vitest run packages/braintrust/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-spawn": "*",
+    "@poe-code/experiment-loop": "*",
+    "@poe-code/pipeline": "*",
+    "@poe-code/poe-code-config": "*",
+    "@poe-code/superintendent": "*"
+  },
+  "peerDependencies": {
+    "braintrust": "*"
+  },
+  "peerDependenciesMeta": {
+    "braintrust": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  }
+}

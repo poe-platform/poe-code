@@ -31,6 +31,7 @@ import {
 } from "@poe-code/agent-skill-config";
 import { discoverExperimentDocs, parseExperimentFrontmatter } from "@poe-code/experiment-loop";
 import type { ExperimentFrontmatter } from "@poe-code/experiment-loop";
+import type { AcpMiddleware } from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { createExecutionResources, resolveCommandFlags, resolveDefaultAgent } from "./shared.js";
@@ -41,7 +42,14 @@ import {
 } from "../../sdk/experiment.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { experimentConfigScope, planConfigScope } from "../../services/config.js";
-import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
+import {
+  loadIntegrations,
+  mergeExperimentCallbacks,
+  readMergedDocument,
+  resolveScope,
+  type ConfigDocument,
+  type Integrations
+} from "@poe-code/poe-code-config";
 import type { ExperimentRunOptions } from "@poe-code/experiment-loop";
 import {
   createDashboardLineBuffer,
@@ -69,6 +77,7 @@ type ExperimentDashboardRunOptions = {
   maxExperiments?: number;
   runOptions: Parameters<typeof sdkRunExperiment>[0];
   runtimeOptions: RuntimeCliOptions;
+  integrations?: Integrations;
 };
 
 function resolveExperimentPaths(
@@ -241,6 +250,7 @@ function createExperimentDashboardRunAgent(options: {
   appendOutput: (kind: "tool" | "error", message: string) => void;
   activeStage: () => string;
   runtimeOptions: RuntimeCliOptions;
+  middlewares?: AcpMiddleware[];
 }): NonNullable<ExperimentRunOptions["runAgent"]> {
   return async (input) => {
     const errorBuffer = createDashboardLineBuffer((line) => {
@@ -260,6 +270,7 @@ function createExperimentDashboardRunAgent(options: {
             mode: "yolo",
             ...options.runtimeOptions,
             ...(input.signal ? { signal: input.signal } : {}),
+            ...(options.middlewares ? { middlewares: options.middlewares } : {}),
             useStdin: true,
             tee: {
               stderr: {
@@ -278,6 +289,22 @@ function createExperimentDashboardRunAgent(options: {
       throw error;
     }
   };
+}
+
+function createExperimentCliRunAgent(options: {
+  runtimeOptions: RuntimeCliOptions;
+  middlewares: AcpMiddleware[];
+}): NonNullable<ExperimentRunOptions["runAgent"]> {
+  return async (input) =>
+    sdkSpawn.autonomous(input.agent, {
+      prompt: input.prompt,
+      cwd: input.cwd,
+      model: input.model,
+      mode: "yolo",
+      ...options.runtimeOptions,
+      ...(input.signal ? { signal: input.signal } : {}),
+      middlewares: options.middlewares
+    });
 }
 
 async function runExperimentWithDashboard(
@@ -353,11 +380,14 @@ async function runExperimentWithDashboard(
   const runAgent = createExperimentDashboardRunAgent({
     appendOutput,
     activeStage: () => formatExperimentStageLabel(currentExperimentIndex),
-    runtimeOptions: options.runtimeOptions
+    runtimeOptions: options.runtimeOptions,
+    ...(options.integrations?.spawnMiddleware
+      ? { middlewares: [options.integrations.spawnMiddleware] }
+      : {})
   });
 
   try {
-    const result = await sdkRunExperiment({
+    const runOptions: Parameters<typeof sdkRunExperiment>[0] = {
       ...options.runOptions,
       signal: abortController.signal,
       runAgent,
@@ -397,7 +427,15 @@ async function runExperimentWithDashboard(
         );
         syncStats();
       }
-    });
+    };
+    const result = await runExperimentWithIntegrations(
+      options.integrations,
+      options.docPath,
+      {
+        ...runOptions,
+        ...mergeExperimentCallbacks(runOptions, options.integrations?.experimentCallbacks)
+      }
+    );
 
     status = "done";
     iterations = result.experimentsCompleted;
@@ -415,6 +453,15 @@ async function runExperimentWithDashboard(
     dashboard.stop();
     dashboard.destroy();
   }
+}
+
+async function runExperimentWithIntegrations(
+  integrations: Integrations | null | undefined,
+  name: string,
+  options: Parameters<typeof sdkRunExperiment>[0]
+): Promise<Awaited<ReturnType<typeof sdkRunExperiment>>> {
+  return integrations?.traceRun("experiment", name, () => sdkRunExperiment(options)) ??
+    sdkRunExperiment(options);
 }
 
 function resolveExperimentAgent(value: string | undefined, sourceLabel = "agent"): string {
@@ -451,6 +498,7 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
 }
 
 async function resolveExperimentCommandConfig(container: CliContainer): Promise<{
+  configDoc: ConfigDocument;
   planDirectory: string;
   tui: boolean;
 }> {
@@ -470,6 +518,7 @@ async function resolveExperimentCommandConfig(container: CliContainer): Promise<
     container.env.variables
   );
   return {
+    configDoc,
     planDirectory: planConfig.plan_directory,
     tui: experimentConfig.tui === true
   };
@@ -636,8 +685,10 @@ export function registerExperimentCommand(program: Command, container: CliContai
 
       resources.logger.intro("experiment run");
 
+      let integrations: Integrations | null = null;
       try {
         const commandConfig = await resolveExperimentCommandConfig(container);
+        integrations = await loadIntegrations(commandConfig.configDoc);
         const docPath = await resolveDocPath({
           container,
           program,
@@ -700,6 +751,12 @@ export function registerExperimentCommand(program: Command, container: CliContai
             );
           }
         };
+        if (integrations?.spawnMiddleware) {
+          runOptions.runAgent = createExperimentCliRunAgent({
+            runtimeOptions,
+            middlewares: [integrations.spawnMiddleware]
+          });
+        }
         const useDashboard = shouldUseInteractiveDashboard(options.tui ?? commandConfig.tui);
         const result = useDashboard
           ? await runExperimentWithDashboard({
@@ -707,9 +764,17 @@ export function registerExperimentCommand(program: Command, container: CliContai
               docPath,
               maxExperiments,
               runOptions,
-              runtimeOptions
+              runtimeOptions,
+              ...(integrations ? { integrations } : {})
             })
-          : await sdkRunExperiment(runOptions);
+          : await runExperimentWithIntegrations(
+              integrations,
+              docPath,
+              {
+                ...runOptions,
+                ...mergeExperimentCallbacks(runOptions, integrations?.experimentCallbacks)
+              }
+            );
 
         const summary = [
           `Experiments: ${result.experimentsCompleted}`,
@@ -728,6 +793,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
         resources.logger.resolved("Run summary", summary);
         resources.logger.success("Experiment run finished.");
       } finally {
+        await integrations?.shutdown();
         resources.context.finalize();
       }
     });

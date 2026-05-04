@@ -33,6 +33,7 @@ import { registerMemoryCommand } from "./commands/memory.js";
 import { registerProviderCommand } from "./commands/provider.js";
 import { registerRuntimeCommand } from "./commands/runtime/index.js";
 import { registerHarnessCommand } from "./commands/harness.js";
+import { registerBraintrustCommand } from "./commands/braintrust.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -94,6 +95,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["provider", "list"] },
   { path: ["provider", "login"], args: "<id>" },
   { path: ["provider", "logout"], args: "<id>" },
+  { path: ["braintrust", "status"] },
   { path: ["runtime", "init"] },
   { path: ["runtime", "build"] },
   { path: ["runtime", "templates", "ls"] },
@@ -492,6 +494,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerProviderCommand(program, container);
   registerRuntimeCommand(program, container);
   registerHarnessCommand(program, container);
+  registerBraintrustCommand(program, container);
   registerForwardedToolcraftCommand(
     program,
     container,

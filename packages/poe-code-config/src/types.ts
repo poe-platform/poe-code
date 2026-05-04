@@ -76,6 +76,17 @@ export interface MemoryConfig extends Record<string, unknown> {
   query?: MemoryQueryConfig;
 }
 
+export interface BraintrustIntegrationConfig extends Record<string, unknown> {
+  enabled: boolean;
+  apiKey?: string;
+  apiUrl?: string;
+  project?: string;
+}
+
+export interface IntegrationsConfig extends Record<string, unknown> {
+  braintrust?: BraintrustIntegrationConfig;
+}
+
 export interface ScopedConfig<S extends ScopeSchema> {
   get<K extends keyof S & string>(key: K): Promise<InferConfig<S>[K]>;
   getAll(): Promise<InferConfig<S>>;
@@ -94,6 +105,7 @@ export interface ConfigStoreOptions {
 }
 
 export type ConfigDocument = Record<string, Record<string, unknown>> & {
+  integrations?: IntegrationsConfig;
   memory?: MemoryConfig;
   runtime?: Record<string, unknown>;
 };

@@ -660,7 +660,8 @@ describe("superintendent run command", () => {
       await dispatch(0);
     });
     const renderAcpStreamMock = vi.fn(async (events: AsyncIterable<unknown>) => {
-      for await (const _event of events) {
+      for await (const ignoredEvent of events) {
+        void ignoredEvent;
         // exhaust stream
       }
     });
@@ -910,6 +911,58 @@ describe("superintendent run command", () => {
       state: "completed",
       stopReason: "completed"
     });
+  });
+
+  it("runs integration superintendent callbacks after dashboard callbacks", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": createDoc("claude-code")
+    });
+    const calls: string[] = [];
+    const dashboardMock = createDashboardMock();
+    dashboardMock.appendOutput.mockImplementation((entry: { text?: string }) => {
+      if (entry.text?.includes("Builder starting")) {
+        calls.push("dashboard");
+      }
+    });
+    const runLoopMock = vi.fn(async (options: RunLoopOptions) => {
+      options.callbacks?.onBuilderStart?.();
+      return {
+        state: "completed" as const,
+        round: 1,
+        reviewTurn: 0,
+        maxRounds: 100,
+        maxReviewTurns: 5,
+        stopReason: "completed" as const
+      };
+    });
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      assumeYes: true,
+      interactive: true,
+      useDashboard: true,
+      fs,
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: {},
+      stderr: { write: () => true } as NodeJS.WritableStream,
+      integrations: {
+        superintendentCallbacks: {
+          onBuilderStart: () => calls.push("integration")
+        },
+        traceRun: async (_surface, _name, run) => run(),
+        shutdown: vi.fn(async () => undefined)
+      }
+    });
+
+    expect(calls).toEqual(["dashboard", "integration"]);
   });
 
   it("streams agent stdout and stderr lines into the dashboard output", async () => {

@@ -556,7 +556,7 @@ tasks:
       read-only commands.
     status:
       implement: done
-      commit: open
+      commit: done
 ---
 
 ## Toolcraft help and result rendering overhaul

@@ -46,7 +46,6 @@ export interface E2bRuntime extends SharedRuntimeFields {
   memory_mb?: number;
   timeout_minutes?: number;
   preserve_after_exit_hours?: number;
-  api_key_env?: string;
 }
 
 export type RuntimeConfig = HostRuntime | DockerRuntime | E2bRuntime;
@@ -160,11 +159,6 @@ export const runtimeConfigScope = {
       default: undefined as number | undefined,
       parse: parseOptionalNumber,
       doc: "Hours to keep an E2B sandbox alive after job exit"
-    },
-    api_key_env: {
-      type: "string",
-      default: "",
-      doc: "Environment variable name containing the E2B API key"
     }
   }
 } satisfies ScopeDefinition<Record<string, SchemaField>>;
@@ -235,8 +229,7 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
       cpu: parseOptionalNumber(record.cpu),
       memory_mb: parseOptionalNumber(record.memory_mb),
       timeout_minutes: parseOptionalNumber(record.timeout_minutes),
-      preserve_after_exit_hours: preserveAfterExitHours,
-      api_key_env: parseOptionalString(record.api_key_env) ?? "E2B_API_KEY"
+      preserve_after_exit_hours: preserveAfterExitHours
     });
   }
 

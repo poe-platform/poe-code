@@ -150,8 +150,7 @@ describe("runtime config", () => {
       template_id: "tmpl_123",
       build_args: {},
       mounts: [],
-      preserve_after_exit_hours: 24,
-      api_key_env: "E2B_API_KEY"
+      preserve_after_exit_hours: 24
     });
 
     expect(
@@ -161,16 +160,14 @@ describe("runtime config", () => {
         cpu: 4,
         memory_mb: 8192,
         timeout_minutes: 60,
-        preserve_after_exit_hours: 168,
-        api_key_env: "CUSTOM_E2B_API_KEY"
+        preserve_after_exit_hours: 168
       })
     ).toMatchObject({
       type: "e2b",
       cpu: 4,
       memory_mb: 8192,
       timeout_minutes: 60,
-      preserve_after_exit_hours: 168,
-      api_key_env: "CUSTOM_E2B_API_KEY"
+      preserve_after_exit_hours: 168
     });
 
     expect(() =>
@@ -289,8 +286,7 @@ describe("runtime config", () => {
       template_id: "tmpl_123",
       build_args: {},
       mounts: [],
-      preserve_after_exit_hours: 0,
-      api_key_env: "E2B_API_KEY"
+      preserve_after_exit_hours: 0
     });
   });
 

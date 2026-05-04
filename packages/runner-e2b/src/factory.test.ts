@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { buildOrResolveTemplate } from "./template-build.js";
 import { createSandbox, connectSandbox } from "./sdk.js";
+import { resolveE2bApiKey } from "./auth-scope.js";
 
 vi.mock("./template-build.js", () => ({
   buildOrResolveTemplate: vi.fn()
@@ -11,21 +12,23 @@ vi.mock("./sdk.js", () => ({
   connectSandbox: vi.fn()
 }));
 
+vi.mock("./auth-scope.js", () => ({
+  resolveE2bApiKey: vi.fn()
+}));
+
 describe("e2bExecutionEnvFactory", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    delete process.env.E2B_API_KEY;
-    delete process.env.CUSTOM_E2B_API_KEY;
     vi.mocked(buildOrResolveTemplate).mockResolvedValue({
       templateId: "tmpl_built",
       cached: false
     });
     vi.mocked(createSandbox).mockResolvedValue(createSandboxMock("sb_open"));
     vi.mocked(connectSandbox).mockResolvedValue(createSandboxMock("sb_attached"));
+    vi.mocked(resolveE2bApiKey).mockResolvedValue("resolved_key");
   });
 
-  it("opens a sandbox from a direct template id and runtime api key env", async () => {
-    process.env.CUSTOM_E2B_API_KEY = "key_from_env";
+  it("opens a sandbox from a direct template id and resolved api key", async () => {
     const { e2bExecutionEnvFactory } = await import("./factory.js");
 
     const env = await e2bExecutionEnvFactory.open({
@@ -35,7 +38,6 @@ describe("e2bExecutionEnvFactory", () => {
         template_id: "tmpl_configured",
         build_args: {},
         mounts: [],
-        api_key_env: "CUSTOM_E2B_API_KEY",
         timeout_minutes: 30
       },
       env: { NODE_ENV: "test" },
@@ -44,40 +46,17 @@ describe("e2bExecutionEnvFactory", () => {
     });
 
     expect(env.id).toBe("sb_open");
+    expect(resolveE2bApiKey).toHaveBeenCalledWith({ cwd: "/repo" });
     expect(buildOrResolveTemplate).not.toHaveBeenCalled();
     expect(createSandbox).toHaveBeenCalledWith({
-      apiKey: "key_from_env",
+      apiKey: "resolved_key",
       templateId: "tmpl_configured",
       env: { NODE_ENV: "test" },
       timeoutMinutes: 30
     });
   });
 
-  it("prefers auth.providers.e2b over runtime api key env", async () => {
-    process.env.E2B_API_KEY = "key_from_env";
-    const { e2bExecutionEnvFactory } = await import("./factory.js");
-
-    await e2bExecutionEnvFactory.open({
-      cwd: "/repo",
-      runtime: {
-        type: "e2b",
-        template_id: "tmpl_configured",
-        build_args: {},
-        mounts: []
-      },
-      auth: { providers: { e2b: { api_key: "key_from_auth" } } },
-      env: {},
-      uploadIgnoreFiles: [],
-      jobLabel: { tool: "node", argv: ["node"] }
-    } as Parameters<typeof e2bExecutionEnvFactory.open>[0]);
-
-    expect(createSandbox).toHaveBeenCalledWith(
-      expect.objectContaining({ apiKey: "key_from_auth" })
-    );
-  });
-
   it("builds a template when template_id is absent", async () => {
-    process.env.E2B_API_KEY = "key_from_env";
     const state = { templates: { get: vi.fn(), put: vi.fn() }, jobs: {} };
     const { e2bExecutionEnvFactory } = await import("./factory.js");
 
@@ -101,7 +80,7 @@ describe("e2bExecutionEnvFactory", () => {
       dockerfilePath: "/repo/Dockerfile",
       buildContext: "/repo/sandbox",
       state,
-      apiKey: "key_from_env"
+      apiKey: "resolved_key"
     });
     expect(createSandbox).toHaveBeenCalledWith(
       expect.objectContaining({ templateId: "tmpl_built" })
@@ -109,13 +88,18 @@ describe("e2bExecutionEnvFactory", () => {
   });
 
   it("attaches to an existing sandbox id", async () => {
-    process.env.E2B_API_KEY = "key_from_env";
     const { e2bExecutionEnvFactory } = await import("./factory.js");
 
-    const env = await e2bExecutionEnvFactory.attach("sb_existing");
+    const env = await e2bExecutionEnvFactory.attach("sb_existing", {
+      cwd: "/repo",
+      jobId: "job_1",
+      tool: "node",
+      argv: ["node"]
+    });
 
     expect(env.id).toBe("sb_attached");
-    expect(connectSandbox).toHaveBeenCalledWith("sb_existing", "key_from_env");
+    expect(resolveE2bApiKey).toHaveBeenCalledWith({ cwd: "/repo" });
+    expect(connectSandbox).toHaveBeenCalledWith("sb_existing", "resolved_key");
   });
 });
 

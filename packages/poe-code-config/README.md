@@ -58,7 +58,8 @@ E2B-specific options:
 - `memory_mb`: memory in megabytes for template builds.
 - `timeout_minutes`: sandbox timeout in minutes.
 - `preserve_after_exit_hours`: hours to keep a detached sandbox alive after job exit. Defaults to `24`; valid range is `0` to `168`.
-- `api_key_env`: host environment variable containing the E2B API key. Defaults to `E2B_API_KEY`.
+
+The E2B API key is configured under the separate `e2b` scope, owned by `@poe-code/runner-e2b`. See that package's README.
 
 ## Runner Scope
 

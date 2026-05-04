@@ -7,14 +7,11 @@ RUN apt-get update \
 ENV UV_INSTALL_DIR=/usr/local/bin
 RUN curl -LsSf https://astral.sh/uv/install.sh | sh
 
-RUN npm i -g \
-      poe-code \
-      @anthropic-ai/claude-code \
-      @openai/codex \
-      opencode-ai
+RUN npm i -g poe-code
 
-RUN uv tool install --python 3.13 kimi-cli
 ENV PATH="/root/.local/bin:${PATH}"
-
-RUN curl -fsSL https://github.com/block/goose/releases/download/stable/download_cli.sh \
-  | CONFIGURE=false bash
+RUN poe-code install claude-code \
+  && poe-code install codex \
+  && poe-code install opencode \
+  && poe-code install kimi \
+  && poe-code install goose

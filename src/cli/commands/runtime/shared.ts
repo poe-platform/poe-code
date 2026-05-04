@@ -16,7 +16,7 @@ export const defaultDockerfile = [
   "  && apt-get install -y --no-install-recommends git ca-certificates \\",
   "  && rm -rf /var/lib/apt/lists/*",
   "",
-  "RUN npm i -g @poe-code/cli @anthropic-ai/claude-code",
+  "RUN npm i -g poe-code @anthropic-ai/claude-code",
   ""
 ].join("\n");
 

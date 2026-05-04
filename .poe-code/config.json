@@ -1,5 +1,8 @@
 {
   "ralph": {
     "plan_directory": "docs/plans"
+  },
+  "runtime": {
+    "from_template": "e2b/claude-code"
   }
 }

@@ -1,5 +1,11 @@
 export { discoverAllPlans } from "./discovery.js";
-export { archivePlan, deletePlan, editPlan, resolveEditor } from "./actions.js";
+export {
+  archiveBrowserPlan,
+  archiveBrowserPlan as archivePlan,
+  deletePlan,
+  editPlan,
+  resolveEditor
+} from "./actions.js";
 export {
   deriveMarkdownTitle,
   formatExperimentDetail,

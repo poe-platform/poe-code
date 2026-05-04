@@ -19,6 +19,7 @@ import {
 } from "@poe-code/agent-defs";
 import { resolvePlanDirectory } from "@poe-code/pipeline";
 import {
+  discoverPlans,
   resolveLoopAgent,
   resolveWorkflowPath,
   skillPlanConfigSection
@@ -29,7 +30,7 @@ import {
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import { discoverExperimentDocs, parseExperimentFrontmatter } from "@poe-code/experiment-loop";
+import { parseExperimentFrontmatter } from "@poe-code/experiment-loop";
 import type { ExperimentFrontmatter } from "@poe-code/experiment-loop";
 import type { AcpMiddleware } from "@poe-code/agent-spawn";
 import type { CliContainer } from "../container.js";
@@ -536,12 +537,18 @@ async function resolveDocPath(options: {
     return options.providedDoc.trim();
   }
 
-  const docs = await discoverExperimentDocs({
-    cwd: options.container.env.cwd,
-    homeDir: options.container.env.homeDir,
-    planDirectory: options.planDirectory,
-    fs: options.container.fs
-  });
+  const docs = (
+    await discoverPlans({
+      cwd: options.container.env.cwd,
+      homeDir: options.container.env.homeDir,
+      planDirectory: options.planDirectory,
+      kinds: ["experiment"],
+      fs: options.container.fs
+    })
+  ).map((doc) => ({
+    path: doc.displayPath,
+    displayPath: doc.displayPath
+  }));
   if (docs.length === 0) {
     throw new ValidationError(
       `No markdown doc found under ${options.planDirectory}. Provide a doc path.`

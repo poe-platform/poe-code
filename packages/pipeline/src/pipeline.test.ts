@@ -1796,6 +1796,55 @@ describe("resolveFileIncludes", () => {
 });
 
 describe("createPipelineSimulation", () => {
+  it("dry-runs by resolving the plan without acquiring the lock or running agents", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        `$schema: ${pipelineDocumentSchemaId}`,
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: quick-fix",
+        "    title: Quick fix",
+        "    prompt: Fix the timeout regression",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const runAgent = vi.fn();
+    const onPlanResolved = vi.fn();
+    const onLockStatusChange = vi.fn();
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      dryRun: true,
+      fs,
+      onPlanResolved,
+      onLockStatusChange,
+      runAgent
+    });
+
+    expect(result.stopReason).toBe("dry_run");
+    expect(result.runsCompleted).toBe(0);
+    expect(result.lastTaskId).toBe("quick-fix");
+    expect(runAgent).not.toHaveBeenCalled();
+    expect(onLockStatusChange).not.toHaveBeenCalled();
+    expect(onPlanResolved).toHaveBeenCalledWith({
+      planPath: "docs/plans/plan.md",
+      done: 0,
+      failed: 0,
+      open: 1,
+      total: 1
+    });
+    await expect(fs.readFile("/repo/docs/plans/plan.md", "utf8")).resolves.toContain(
+      "status: open"
+    );
+  });
+
   it("emits lock wait feedback after 2 seconds and resolves it once the lock is acquired", async () => {
     vi.useFakeTimers();
     vi.spyOn(Math, "random").mockReturnValue(0);

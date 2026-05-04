@@ -8,7 +8,7 @@ import {
   text
 } from "@poe-code/design-system";
 import { PromptCancelledError } from "@poe-code/design-system";
-import { archivePlan, deletePlan, editPlan } from "./actions.js";
+import { archiveBrowserPlan, deletePlan, editPlan } from "./actions.js";
 import { discoverAllPlans } from "./discovery.js";
 import { loadPlanPreviewMarkdown } from "./format.js";
 import type { ActionFs, DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
@@ -104,7 +104,7 @@ export async function runPlanBrowser(options: {
           initialValue: true
         });
         if (confirmed) {
-          await archivePlan(selectedPlan, options.fs as ActionFs);
+          await archiveBrowserPlan(selectedPlan, options.fs as ActionFs);
         }
       } catch (error) {
         if (!(error instanceof PromptCancelledError)) {

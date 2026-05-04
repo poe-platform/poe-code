@@ -1,6 +1,5 @@
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
-import { discoverExperimentDocs } from "./discovery/discovery.js";
 import { runExperimentLoop } from "./run/loop.js";
 import type { ExecFn, ExperimentFileSystem, ExperimentGit } from "./types.js";
 
@@ -28,10 +27,6 @@ function createDoc(): string {
   ].join("\n");
 }
 
-function createExperimentPlanDoc(content: string): string {
-  return ["---", "kind: experiment", "---", "", content].join("\n");
-}
-
 function createGit(): ExperimentGit {
   return {
     reset: vi.fn(async () => undefined),
@@ -44,50 +39,6 @@ function createExec(): ExecFn {
     throw new Error("Unexpected exec call");
   }) as ExecFn;
 }
-
-describe("experiment-loop agent-kit discovery", () => {
-  it("discovers default experiment docs from the project directory", async () => {
-    const docs = await discoverExperimentDocs({
-      cwd,
-      homeDir,
-      fs: createFs({
-        "/repo/.poe-code/experiments/shared.md": createExperimentPlanDoc("# project"),
-        "/home/test/.poe-code/experiments/global.md": createExperimentPlanDoc("# global"),
-        "/home/test/.poe-code/experiments/shared.md": createExperimentPlanDoc("# home")
-      })
-    });
-
-    expect(docs).toEqual([
-      {
-        path: ".poe-code/experiments/shared.md",
-        displayPath: ".poe-code/experiments/shared.md"
-      }
-    ]);
-  });
-
-  it("discovers docs from a custom experiment directory", async () => {
-    const docs = await discoverExperimentDocs({
-      cwd,
-      homeDir,
-      planDirectory: "docs/experiments",
-      fs: createFs({
-        "/repo/docs/experiments/plan-b.md": createExperimentPlanDoc("# B"),
-        "/repo/docs/experiments/plan-a.md": createExperimentPlanDoc("# A")
-      })
-    });
-
-    expect(docs).toEqual([
-      {
-        path: "docs/experiments/plan-a.md",
-        displayPath: "docs/experiments/plan-a.md"
-      },
-      {
-        path: "docs/experiments/plan-b.md",
-        displayPath: "docs/experiments/plan-b.md"
-      }
-    ]);
-  });
-});
 
 describe("experiment-loop agent-kit locking", () => {
   it("locks the doc before initializing the journal and releases the lock after the run", async () => {

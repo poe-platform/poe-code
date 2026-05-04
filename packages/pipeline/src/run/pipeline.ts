@@ -341,6 +341,23 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     ...(initialResolvedTeardown ? { teardown: initialResolvedTeardown } : {})
   });
 
+  if (options.dryRun) {
+    const selection = selectNextExecution(initialPlan, options.task);
+    return {
+      stopReason: "dry_run",
+      planPath,
+      runsCompleted: 0,
+      totalDurationMs: Date.now() - pipelineStartTime,
+      metrics,
+      ...(selection.kind === "run"
+        ? {
+            lastTaskId: selection.task.id,
+            ...(selection.stepName ? { lastStepName: selection.stepName } : {})
+          }
+        : {})
+    };
+  }
+
   if (resolvedSetup) {
     const { success, cancelled } = await runPhase(
       resolvedSetup,

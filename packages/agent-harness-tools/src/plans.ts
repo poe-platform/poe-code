@@ -210,12 +210,12 @@ export async function discoverPlans(options: DiscoverPlansOptions): Promise<Plan
   return plans;
 }
 
-export async function archivePlan(options: ArchivePlanOptions): Promise<void> {
+export const archivePlan = async (options: ArchivePlanOptions): Promise<void> => {
   const planDirectory = resolveWorkflowPath(options.planDirectory, options.cwd, options.homeDir);
   const taskList = await openPlansTaskList(planDirectory, options.fs);
 
   await taskList.list("plans").fire(options.id, "archive");
-}
+};
 
 export function openPlanList(options: OpenPlanListOptions): Promise<TaskList> {
   return openPlansTaskList(

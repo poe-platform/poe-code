@@ -221,6 +221,40 @@ describe("pipeline run command", () => {
     );
   });
 
+  it("dry-runs an explicit plan without prompting for an agent", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/plan.md": PIPELINE_MD_EMPTY
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "pipeline",
+      "run",
+      "--plan",
+      "docs/plans/plan.md"
+    ]);
+
+    expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipeline)).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        plan: "docs/plans/plan.md",
+        dryRun: true
+      })
+    );
+  });
+
   it("runs integration pipeline callbacks after CLI callbacks when enabled", async () => {
     const calls: string[] = [];
     vi.doMock("@poe-code/braintrust", () => ({

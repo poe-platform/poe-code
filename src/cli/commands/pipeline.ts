@@ -744,9 +744,9 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .option("--plan <path>", "Path to the pipeline plan file")
     .option("--plans <paths...>", "Paths to pipeline plan files to run sequentially")
     .option("--max-runs <n>", "Maximum number of agent executions to perform")
+    .option("--dry-run", "Resolve the selected plan without running agents or changing files")
     .action(async function (this: Command) {
       const flags = resolveCommandFlags(program);
-      const resources = createExecutionResources(container, flags, "pipeline:run");
       const options = this.opts<{
         agent?: string;
         model?: string;
@@ -755,26 +755,41 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         plan?: string;
         plans?: string[];
         maxRuns?: string;
+        dryRun?: boolean;
       }>();
+      const dryRun = flags.dryRun || Boolean(options.dryRun);
+      const resources = createExecutionResources(
+        container,
+        { ...flags, dryRun },
+        "pipeline:run"
+      );
 
       resources.logger.intro("pipeline run");
 
       let integrations: Integrations | null = null;
       try {
-        const selectedAgent = await resolvePipelineLoopAgent({
-          providedAgent: options.agent,
-          configuredDefaultAgent: await resolveDefaultAgent(container),
-          assumeYes: flags.assumeYes,
-          fallbackAgent: DEFAULT_PIPELINE_AGENT,
-          message: "Select agent to run pipeline steps with:",
-          select,
-          isCancel
-        });
-        if ("cancelled" in selectedAgent) {
-          cancel("Pipeline run cancelled.");
+        const configuredDefaultAgent = await resolveDefaultAgent(container);
+        const agent = dryRun
+          ? resolvePipelineAgent(options.agent ?? configuredDefaultAgent ?? DEFAULT_PIPELINE_AGENT)
+          : await (async () => {
+              const selectedAgent = await resolvePipelineLoopAgent({
+                providedAgent: options.agent,
+                configuredDefaultAgent,
+                assumeYes: flags.assumeYes,
+                fallbackAgent: DEFAULT_PIPELINE_AGENT,
+                message: "Select agent to run pipeline steps with:",
+                select,
+                isCancel
+              });
+              if ("cancelled" in selectedAgent) {
+                cancel("Pipeline run cancelled.");
+                return null;
+              }
+              return resolvePipelineAgent(selectedAgent.agent);
+            })();
+        if (agent === null) {
           return;
         }
-        const agent = resolvePipelineAgent(selectedAgent.agent);
 
         const commandConfig = await resolvePipelineCommandConfig(container);
         integrations = await loadIntegrations(commandConfig.configDoc);
@@ -835,6 +850,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
             ...(options.task ? { task: options.task } : {}),
             plan: planPath,
             ...(maxRuns != null ? { maxRuns } : {}),
+            ...(dryRun ? { dryRun: true } : {}),
             assumeYes: flags.assumeYes
           };
           if (integrations?.spawnMiddleware) {
@@ -912,6 +928,12 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
           if (result.stopReason === "nothing_to_run") {
             resources.logger.info("Nothing to run.");
+            resources.logger.resolved("Run summary", summary);
+            continue;
+          }
+
+          if (result.stopReason === "dry_run") {
+            resources.logger.info("Dry run complete.");
             resources.logger.resolved("Run summary", summary);
             continue;
           }

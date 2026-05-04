@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { archivePlan, deletePlan, editPlan, resolveEditor } from "./actions.js";
+import { archiveBrowserPlan, deletePlan, editPlan, resolveEditor } from "./actions.js";
 import type { ActionFs } from "./types.js";
 
 function createMemFs(files: Record<string, string> = {}): ActionFs {
@@ -18,7 +18,7 @@ describe("plan actions", () => {
       "/repo/.poe-code/ralph/plans/plan.md": "# Plan"
     });
 
-    const archivedPath = await archivePlan(
+    const archivedPath = await archiveBrowserPlan(
       {
         absolutePath: "/repo/.poe-code/ralph/plans/plan.md"
       },

@@ -1,10 +1,191 @@
 ---
-$schema: https://poe-platform.github.io/poe-code/schemas/plans/ralph.schema.json
-kind: ralph
+$schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
+kind: pipeline
 version: 1
-status:
-  state: in_progress
-  iteration: 0
+
+tasks:
+  - id: scaffold-package
+    title: Create package scaffold
+    prompt: |
+      Create the package skeleton for `packages/agent-human-in-loop/`.
+      Files to create:
+      - `packages/agent-human-in-loop/package.json`: name `@poe-code/agent-human-in-loop`,
+        type `module`, exports `./dist/index.js`, types `./dist/index.d.ts`,
+        no runtime dependencies, devDependencies mirror `agent-mcp-config`.
+      - `packages/agent-human-in-loop/tsconfig.json`: extends the workspace root
+        tsconfig, outputs to `dist/`.
+      - `packages/agent-human-in-loop/src/index.ts`: empty placeholder export
+        so the build succeeds.
+      Verify: `npm run build --workspace agent-human-in-loop` and
+      `npm run test --workspace agent-human-in-loop` both pass with no tests.
+    status:
+      implement: open
+
+  - id: define-types
+    title: Define public types
+    prompt: |
+      In `packages/agent-human-in-loop/src/types.ts` define:
+      ```ts
+      export interface ApprovalRequest {
+        message: string;
+        declineInputPrompt?: string;
+      }
+      export type ApprovalResult =
+        | { outcome: "approved" }
+        | { outcome: "declined"; reason?: string };
+      export interface HumanInLoopProvider {
+        readonly id: string;
+        requestApproval(request: ApprovalRequest): Promise<ApprovalResult>;
+      }
+      ```
+      No runtime code, no class, no zod. Pure TypeScript interfaces only.
+      If no existing workspace package exports a lightweight `UserError`,
+      also define one here: `export class UserError extends Error {}`.
+    status:
+      implement: open
+
+  - id: mock-provider
+    title: Implement mock provider with tests
+    prompt: |
+      TDD: write tests first, then implement.
+
+      Test file `packages/agent-human-in-loop/src/providers/mock.test.ts`:
+      - value form: `mockProvider({ outcome: 'approved' })` returns the same
+        result on every call.
+      - thunk form: thunk is called once per `requestApproval` call; a counter
+        closure can produce a sequence.
+      - thunk returning a Promise resolves correctly.
+
+      Implementation `packages/agent-human-in-loop/src/providers/mock.ts`:
+      ```ts
+      export function mockProvider(
+        answer: ApprovalResult | (() => ApprovalResult | Promise<ApprovalResult>)
+      ): HumanInLoopProvider;
+      ```
+      The provider id is `"mock"`. Types come from `../types.js`.
+    status:
+      implement: open
+      test: open
+
+  - id: request-approval-fn
+    title: Implement top-level requestApproval with tests
+    prompt: |
+      TDD: write tests first, then implement.
+
+      Test file `packages/agent-human-in-loop/src/request-approval.test.ts`
+      using `mockProvider` from `./providers/mock.js`:
+      - delegates to provider.requestApproval and returns its result verbatim.
+      - strips `provider` from args before calling provider.requestApproval
+        (the provider's own method must not receive `provider` in its argument).
+
+      Implementation `packages/agent-human-in-loop/src/request-approval.ts`:
+      ```ts
+      export function requestApproval(
+        args: ApprovalRequest & { provider: HumanInLoopProvider }
+      ): Promise<ApprovalResult> {
+        const { provider, ...request } = args;
+        return provider.requestApproval(request);
+      }
+      ```
+      No branching on provider.id. Types from `./types.js`.
+    status:
+      implement: open
+      test: open
+
+  - id: osascript-script-helpers
+    title: Implement AppleScript helpers with tests
+    prompt: |
+      TDD: write tests first, then implement.
+
+      Test file `packages/agent-human-in-loop/src/providers/osascript-script.test.ts`:
+      - `escapeAppleScriptString`: message with `"` and `\` round-trips correctly;
+        backslash escaped before quote.
+      - `buildScript` without declineInputPrompt: emits one-line form with
+        `{"Decline","Approve"}` buttons and escaped message+title.
+      - `buildScript` with declineInputPrompt: emits two-stage AppleScript with
+        `APPROVED`/`DECLINED:` outputs; prompt and message both escaped.
+        Use snapshots for both script shapes.
+      - `parseStdout`:
+        - `"Approve\n"` → `{ outcome: "approved" }`
+        - `"Decline\n"` → `{ outcome: "declined" }`
+        - `"APPROVED\n"` → `{ outcome: "approved" }`
+        - `"DECLINED:because\n"` → `{ outcome: "declined", reason: "because" }`
+        - `"DECLINED:\n"` → `{ outcome: "declined" }` (no reason field)
+        - unknown string → throws UserError
+
+      Implementation `packages/agent-human-in-loop/src/providers/osascript-script.ts`:
+      - `escapeAppleScriptString(value: string): string` — replace `\` then `"`.
+      - `buildScript(request: ApprovalRequest, title: string): string`
+      - `parseStdout(out: string): ApprovalResult`
+      No shelling out anywhere in this file.
+    status:
+      implement: open
+      refactor: open
+      test: open
+
+  - id: osascript-provider
+    title: Implement osascript provider with tests
+    prompt: |
+      TDD: write tests first, then implement.
+
+      Test file `packages/agent-human-in-loop/src/providers/osascript.test.ts`.
+      Use an injected fake `binary` that records its argv and returns canned stdout.
+      No real osascript is invoked.
+
+      Cases:
+      - without declineInputPrompt: stdout `"Approve\n"` → approved; `"Decline\n"` → declined.
+      - with declineInputPrompt: stdout `"APPROVED\n"` → approved;
+        `"DECLINED:because\n"` → declined with reason; `"DECLINED:\n"` → declined no reason.
+      - ENOENT from execFile → UserError("osascript not found …").
+      - non-zero exit with unrecognized stdout → UserError with stderr content.
+      - empty declineInputPrompt (`""`) is treated as set; two-stage script rendered.
+
+      Implementation `packages/agent-human-in-loop/src/providers/osascript.ts`:
+      ```ts
+      export interface OsascryptProviderOptions {
+        title?: string;   // default "Approval needed"
+        binary?: string;  // default "osascript" — test seam only
+      }
+      export function osascryptProvider(options?: OsascryptProviderOptions): HumanInLoopProvider;
+      ```
+      Provider id is `"osascript"`. Uses `buildScript`/`parseStdout` from
+      `./osascript-script.js` and `node:child_process` execFile (promisified).
+      No `if (provider.id === …)` anywhere.
+    status:
+      implement: open
+      test: open
+
+  - id: public-exports-and-docs
+    title: Wire public exports, README, QA doc, and example
+    prompt: |
+      Finalize `packages/agent-human-in-loop/src/index.ts`:
+      ```ts
+      export type { ApprovalRequest, ApprovalResult, HumanInLoopProvider } from "./types.js";
+      export { requestApproval } from "./request-approval.js";
+      export { osascryptProvider } from "./providers/osascript.js";
+      export { mockProvider } from "./providers/mock.js";
+      ```
+
+      Write `packages/agent-human-in-loop/README.md` with sections:
+      Overview, API (requestApproval, osascryptProvider, mockProvider),
+      Providers, Env vars (explicitly: none in v1),
+      AppleScript-escaping note (only `"` and `\` need escaping).
+
+      Write `packages/agent-human-in-loop/QA.md` as a markdown checklist (not a script):
+      - approve path returns approved
+      - decline without prompt returns declined
+      - decline with prompt → reason populated; cancel on second dialog → declined no reason
+      - message containing quotes renders correctly
+      - two concurrent calls show two stacked dialogs (macOS native behavior)
+
+      Write `packages/agent-human-in-loop/example.ts` with two calls:
+      one simple approval, one decline-with-reason. Not part of CI.
+
+      Run `npm run test`, `npm run lint`, `npm run typecheck` from the repo root.
+      Verify `grep -r "provider.id ===" packages/agent-human-in-loop/src` is empty.
+      Verify `grep -r "execFileSync\|spawnSync" packages/agent-human-in-loop/src` is empty.
+    status:
+      implement: open
 ---
 
 # agent-human-in-loop

@@ -21,7 +21,7 @@ export function editPlan(
   spawnSync(editor, [absolutePath], { stdio: "inherit" });
 }
 
-export async function archivePlan(
+export async function archiveBrowserPlan(
   entry: Pick<{ absolutePath: string }, "absolutePath">,
   fs: ActionFs
 ): Promise<string> {

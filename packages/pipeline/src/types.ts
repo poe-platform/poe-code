@@ -156,6 +156,7 @@ export interface PipelineRunOptions {
   planDirectory?: string;
   task?: string;
   maxRuns?: number;
+  dryRun?: boolean;
   assumeYes?: boolean;
   fs?: PipelineFileSystem;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
@@ -173,7 +174,7 @@ export interface PipelineRunOptions {
 }
 
 export interface PipelineRunResult {
-  stopReason: "completed" | "failed" | "cancelled" | "max_runs" | "nothing_to_run";
+  stopReason: "completed" | "failed" | "cancelled" | "max_runs" | "nothing_to_run" | "dry_run";
   planPath: string;
   runsCompleted: number;
   totalDurationMs: number;

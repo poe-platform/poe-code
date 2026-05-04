@@ -302,7 +302,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-harness-pair-resolver
     title: Resolve <name>.md ↔ <name>.ajs in the same directory
@@ -342,8 +342,8 @@ tasks:
       .ajs, missing .md, wrong extension input, directory passed
       instead of file.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-harness-discovery

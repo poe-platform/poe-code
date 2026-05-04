@@ -44,9 +44,9 @@ tasks:
       application, additionalProperties rejection, nested object paths,
       and the multi-issue accumulation behavior.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: agent-script-export-parser
     title: Parse `export const X = expr` and `export default expr` in agent-script

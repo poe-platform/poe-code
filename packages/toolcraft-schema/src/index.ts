@@ -2,10 +2,12 @@ import { Json } from "./json.js";
 import { OneOf } from "./oneof.js";
 import { Record as RecordBuilder } from "./record.js";
 import { Union } from "./union.js";
+import { validate } from "./validate.js";
 import type { JsonValue, JsonValueSchema } from "./json.js";
 import type { OneOfSchema } from "./oneof.js";
 import type { RecordSchema } from "./record.js";
 import type { UnionSchema } from "./union.js";
+import type { ValidationIssue, ValidationResult } from "./validate.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object";
 type SchemaKind =
@@ -446,5 +448,13 @@ export function toJsonSchema(schema: AnySchema): JsonSchema {
   }
 }
 
-export { Json, OneOf, RecordBuilder as Record, Union };
-export type { JsonValue, JsonValueSchema, OneOfSchema, RecordSchema, UnionSchema };
+export { Json, OneOf, RecordBuilder as Record, Union, validate };
+export type {
+  JsonValue,
+  JsonValueSchema,
+  OneOfSchema,
+  RecordSchema,
+  UnionSchema,
+  ValidationIssue,
+  ValidationResult,
+};

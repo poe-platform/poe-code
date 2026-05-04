@@ -108,7 +108,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: markdown-dir-passthrough
     title: markdown-dir frontmatterMode passthrough — read and write loose frontmatter
@@ -167,9 +167,9 @@ tasks:
       - Filename → id translation (strip `NN-`) is already handled by
         `parseActiveFilename`; reuse it for the synthesized name default.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: markdown-dir-archive-repack

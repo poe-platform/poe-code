@@ -160,6 +160,223 @@ Broken`
     await expect(taskList.list("planning").get("bad")).rejects.toBeInstanceOf(MalformedTaskError);
   });
 
+  it("rejects non-task frontmatter in strict mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/planning/pipeline.md": `---
+kind: pipeline
+name: Pipeline plan
+state: draft
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("planning").get("pipeline")).rejects.toBeInstanceOf(
+      MalformedTaskError
+    );
+    await expect(taskList.list("planning").get("pipeline")).rejects.toThrow('"kind"');
+  });
+
+  it("reads and updates non-task frontmatter in passthrough mode", async () => {
+    const pipelineSchema =
+      "https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json";
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/foo.md": `---
+$schema: ${pipelineSchema}
+kind: pipeline
+version: 1
+---
+
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").get("foo")).resolves.toMatchObject({
+      state: "draft",
+      name: "foo",
+      metadata: {
+        $schema: pipelineSchema,
+        kind: "pipeline",
+        version: 1
+      }
+    });
+
+    await taskList.list("plans").fire("foo", "plan");
+
+    const content = await rawFs.readFile("/repo/tasks/foo.md", "utf8");
+    expect(parseFrontmatter(content)).toMatchObject({
+      $schema: pipelineSchema,
+      kind: "pipeline",
+      version: 1,
+      state: "planned"
+    });
+    expect(parseFrontmatter(content)).not.toHaveProperty("name");
+  });
+
+  it("uses the parsed filename id for passthrough synthesized names without persisting them", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/07-prefixed.md": `---
+kind: pipeline
+state: not-a-state
+---
+
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").get("prefixed")).resolves.toMatchObject({
+      id: "prefixed",
+      name: "prefixed",
+      state: "draft",
+      metadata: {
+        kind: "pipeline"
+      }
+    });
+
+    await taskList.list("plans").fire("prefixed", "plan");
+
+    const frontmatter = parseFrontmatter(
+      await rawFs.readFile("/repo/tasks/07-prefixed.md", "utf8")
+    );
+    expect(frontmatter).toMatchObject({
+      kind: "pipeline",
+      state: "planned"
+    });
+    expect(frontmatter).not.toHaveProperty("name");
+  });
+
+  it("updates passthrough metadata without injecting synthesized fields", async () => {
+    const pipelineSchema =
+      "https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json";
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/foo.md": `---
+$schema: ${pipelineSchema}
+kind: pipeline
+version: 1
+---
+
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(
+      taskList.list("plans").update("foo", {
+        description: "Updated body",
+        metadata: {
+          owner: "kj"
+        }
+      })
+    ).resolves.toMatchObject({
+      name: "foo",
+      state: "draft",
+      description: "Updated body",
+      metadata: {
+        $schema: pipelineSchema,
+        kind: "pipeline",
+        version: 1,
+        owner: "kj"
+      }
+    });
+
+    const content = await rawFs.readFile("/repo/tasks/foo.md", "utf8");
+    const frontmatter = parseFrontmatter(content);
+    expect(frontmatter).toMatchObject({
+      $schema: pipelineSchema,
+      kind: "pipeline",
+      version: 1,
+      owner: "kj"
+    });
+    expect(frontmatter).not.toHaveProperty("name");
+    expect(frontmatter).not.toHaveProperty("state");
+    expect(content).toContain("Updated body");
+  });
+
+  it("does not inject task envelope fields when creating passthrough markdown", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/.keep": ""
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(
+      taskList.list("plans").create({
+        id: "new-plan",
+        name: "New plan",
+        metadata: {
+          kind: "pipeline"
+        }
+      })
+    ).resolves.toMatchObject({
+      metadata: {
+        kind: "pipeline"
+      }
+    });
+
+    const frontmatter = parseFrontmatter(
+      await rawFs.readFile("/repo/tasks/01-new-plan.md", "utf8")
+    );
+    expect(frontmatter).toMatchObject({
+      name: "New plan",
+      state: "draft",
+      kind: "pipeline"
+    });
+    expect(frontmatter).not.toHaveProperty("$schema");
+    expect(frontmatter).not.toHaveProperty("version");
+    expect(frontmatter).not.toHaveProperty("created");
+  });
+
   it("ignores hidden entries, lockfiles, and the reserved archive directory at the root", async () => {
     const { fs } = createFs({
       "/repo/tasks/alpha/one.md": `---

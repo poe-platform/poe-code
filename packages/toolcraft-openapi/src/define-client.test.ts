@@ -123,6 +123,7 @@ describe("defineClient", () => {
     const server = createMCPServer(client.root, {
       name: client.name,
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client: mcpClient, cleanup } = await createClientPair(server);
 
@@ -178,6 +179,7 @@ describe("defineClient", () => {
     const server = createMCPServer(client.root, {
       name: client.name,
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
       services: client.services,
     });
     const { client: mcpClient, cleanup } = await createClientPair(server);

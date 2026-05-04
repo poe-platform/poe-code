@@ -97,6 +97,7 @@ describe("human-in-loop MCP runtime", () => {
     const server = createMCPServer(createRoot("sync", handler), {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
       humanInLoop: {
         provider,
       },
@@ -137,6 +138,7 @@ describe("human-in-loop MCP runtime", () => {
     const server = createMCPServer(createRoot("sync", handler), {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
       humanInLoop: {
         provider,
       },
@@ -185,6 +187,7 @@ describe("human-in-loop MCP runtime", () => {
     const server = createMCPServer(createRoot("async", handler), {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
       humanInLoop: {
         provider,
         taskList,

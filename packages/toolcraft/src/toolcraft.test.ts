@@ -784,6 +784,34 @@ describe("createMCPServer", () => {
     );
   }
 
+  it("keeps the root group name in MCP tool names by default", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "deploy",
+          scope: ["mcp"],
+          params: S.Object({}),
+          handler: async () => "ok",
+        }),
+      ],
+    });
+
+    const server = createMCPServer(root, {
+      name: "toolcraft-test",
+      version: "1.0.0",
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const result = await client.listTools();
+
+      expect(result.tools.map((tool) => tool.name)).toContain("root__deploy");
+    } finally {
+      await cleanup();
+    }
+  });
+
   it("lists only mcp-scoped commands that match the allowlist and applies schema casing", async () => {
     const usage = defineCommand({
       name: "usage",
@@ -839,6 +867,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
       tools: ["usage", "bot"],
     });
     const { client, cleanup } = await createClient(server);
@@ -911,6 +940,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 
@@ -954,6 +984,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 
@@ -999,6 +1030,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1049,6 +1081,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1092,6 +1125,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1155,6 +1189,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
       tools: ["bot_admin__bot"],
       casing: "camel",
     });
@@ -1300,6 +1335,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1343,6 +1379,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1378,6 +1415,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1409,6 +1447,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1466,6 +1505,7 @@ describe("createMCPServer", () => {
       services: {
         region: "us",
       },
+      omitRootToolNamePrefix: true,
       casing: "camel",
     });
     const { client, cleanup } = await createClient(server);
@@ -1515,6 +1555,7 @@ describe("createMCPServer", () => {
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
+      omitRootToolNamePrefix: true,
     });
     const { client, cleanup } = await createClient(server);
 

@@ -14,7 +14,8 @@ const FIXTURE_PATH = "packages/markdown-reader/src/testing/fixtures/with-frontma
 async function createClientPair() {
   const server = createMCPServer(markdownGroup, {
     name: "markdown-reader",
-    version: "0.0.1"
+    version: "0.0.1",
+    omitRootToolNamePrefix: true
   });
 
   return createSdkTestPair(server, () =>

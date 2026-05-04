@@ -63,6 +63,7 @@ describe("createMCPServer human-in-loop runtime options plumbing", () => {
       {
         name: "toolcraft-test",
         version: "1.0.0",
+        omitRootToolNamePrefix: true,
       }
     );
     const { client, cleanup } = await createClient(server);

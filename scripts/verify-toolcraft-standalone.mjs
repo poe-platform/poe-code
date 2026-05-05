@@ -105,7 +105,14 @@ function runConsumerSmoke(projectDir, tarballs) {
     [
       "--input-type=module",
       "--eval",
-      ['await import("toolcraft");', 'await import("toolcraft/human-in-loop");'].join("\n")
+      [
+        'await import("toolcraft");',
+        'await import("toolcraft/cli");',
+        'await import("toolcraft/mcp");',
+        'await import("toolcraft/mcp-proxy");',
+        'await import("toolcraft/sdk");',
+        'await import("toolcraft/human-in-loop");'
+      ].join("\n")
     ],
     { cwd: projectDir, stdio: "inherit" }
   );

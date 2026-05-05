@@ -49,6 +49,8 @@ jobs:
           cd ../toolcraft-openapi && npm pkg set "dependencies.toolcraft=^${NEXT}"
       - name: Build toolcraft packages and dependencies
         run: npx turbo build --filter=toolcraft-openapi...
+      - name: Verify standalone install resolves all bundled imports
+        run: npm run smoke:toolcraft-standalone
       - name: Publish toolcraft-schema
         working-directory: packages/toolcraft-schema
         run: npm publish --provenance --access public

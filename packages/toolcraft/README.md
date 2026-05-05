@@ -178,7 +178,7 @@ The same `root` flows into all three. No duplication.
 
 **Tree**: the `root` group is a `defineGroup` whose children are commands and sub-groups. Any depth. CLI flags, MCP tool names, and SDK methods are derived from the path.
 
-**CLI help**: group help lists visible child commands with their parameter tokens inline. Required options appear as `--name <type>`, optional options and defaults appear in brackets like `[--limit <number>]`, and positional parameters stay unbracketed even when the underlying schema field is optional. Command-specific `--help` still shows the detailed parameter table.
+**CLI help**: group help lists visible child commands with their parameter tokens inline. Required options appear as `--name <type>`, optional options and defaults appear in brackets like `[--limit <number>]`, and positional parameters render as positional tokens like `<name>` or `[name]` depending on whether they are required. Command-specific `--help` still shows the detailed parameter table.
 
 ## Secrets
 

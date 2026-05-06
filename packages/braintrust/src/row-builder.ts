@@ -1,12 +1,10 @@
 import type { JournalEntry } from "@poe-code/experiment-loop";
 import type { TaskCompletion, TaskProgress } from "@poe-code/pipeline";
-import type { BuilderResult, InspectorResult } from "@poe-code/superintendent";
 
 import type { BraintrustClient } from "./client.js";
 import { redact } from "./redact.js";
 
 type SuperintendentRole = "builder" | "inspector" | "superintendent" | "owner";
-type KnownSuperintendentResult = BuilderResult | InspectorResult;
 type EventRecord = Record<string, unknown>;
 
 interface BraintrustSpan {
@@ -270,7 +268,7 @@ function buildSuperintendentLog(
   role: SuperintendentRole,
   result: unknown,
 ): BraintrustLogEvent {
-  const record = asRecord(result as KnownSuperintendentResult | unknown);
+  const record = asRecord(result);
   const event: BraintrustLogEvent = {
     input: redact(record?.input),
     output: redact(record?.output ?? result),

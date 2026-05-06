@@ -1,9 +1,8 @@
-import type { LoopCallbacks } from "@poe-code/superintendent";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { BraintrustClient } from "../client.js";
 import { logSuperintendentRole } from "../row-builder.js";
-import { createSuperintendentCallbacks } from "./superintendent.js";
+import { createSuperintendentCallbacks, type LoopCallbacks } from "./superintendent.js";
 
 const mockBraintrust = vi.hoisted(() => ({
   currentSpan: vi.fn(),

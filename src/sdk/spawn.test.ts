@@ -55,6 +55,12 @@ vi.mock("./credentials.js", () => ({
   getPoeApiKey: getPoeApiKeyMock
 }));
 
+const loadIntegrationsMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@poe-code/braintrust", () => ({
+  loadIntegrations: loadIntegrationsMock
+}));
+
 import { spawn } from "./spawn.js";
 import {
   getAcpSpawnConfig,
@@ -114,11 +120,17 @@ beforeEach(() => {
   }));
   vi.mocked(createSdkContainer).mockImplementation(() => ({
     fs: createMemFs(),
-    env: { configPath: resolveConfigPath(homeDir) },
+    env: {
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveConfigPath(homeDir),
+      variables: {}
+    },
     registry: {
       get: vi.fn(() => undefined)
     }
   } as any));
+  loadIntegrationsMock.mockReset();
+  loadIntegrationsMock.mockResolvedValue(null);
 });
 
 afterEach(() => {
@@ -512,7 +524,11 @@ describe("SDK spawn()", () => {
 
     vi.mocked(createSdkContainer).mockReturnValue({
       fs,
-      env: { configPath: resolveConfigPath(homeDir) },
+      env: {
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables: {}
+      },
       registry: {
         get: vi.fn(() => ({
           name: "codex",
@@ -974,6 +990,117 @@ describe("SDK spawn()", () => {
 
     expect(applyMiddlewares).toHaveBeenCalledWith(
       [sessionCapture, usageCapture, spawnLog, extraMiddleware],
+      expect.any(Object)
+    );
+  });
+
+  it("prepends integrations.spawnMiddleware loaded from config in streaming path", async () => {
+    const integrationMiddleware = vi.fn();
+    const shutdown = vi.fn(async () => {});
+    loadIntegrationsMock.mockResolvedValue({
+      spawnMiddleware: integrationMiddleware,
+      shutdown
+    });
+
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const userMiddleware = vi.fn();
+    const { result } = spawn("codex", "test prompt", {
+      middlewares: [userMiddleware]
+    });
+
+    await result;
+
+    expect(loadIntegrationsMock).toHaveBeenCalledTimes(1);
+    expect(applyMiddlewares).toHaveBeenCalledWith(
+      [sessionCapture, usageCapture, spawnLog, integrationMiddleware, userMiddleware],
+      expect.any(Object)
+    );
+    expect(shutdown).toHaveBeenCalledTimes(1);
+  });
+
+  it("prepends integrations.spawnMiddleware in ACP path", async () => {
+    const integrationMiddleware = vi.fn();
+    const shutdown = vi.fn(async () => {});
+    loadIntegrationsMock.mockResolvedValue({
+      spawnMiddleware: integrationMiddleware,
+      shutdown
+    });
+
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "opencode",
+      acpArgs: ["acp"],
+      skipAuth: true
+    } as any);
+
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("opencode", "test prompt");
+    await result;
+
+    expect(applyMiddlewares).toHaveBeenCalledWith(
+      [sessionCapture, usageCapture, spawnLog, integrationMiddleware],
+      expect.any(Object)
+    );
+    expect(shutdown).toHaveBeenCalledTimes(1);
+  });
+
+  it("calls integrations.shutdown even when the spawn fails", async () => {
+    const shutdown = vi.fn(async () => {});
+    loadIntegrationsMock.mockResolvedValue({
+      spawnMiddleware: vi.fn(),
+      shutdown
+    });
+
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.reject(new Error("boom"))
+    }));
+
+    const { result } = spawn("codex", "test prompt");
+
+    await expect(result).rejects.toThrow("boom");
+    expect(shutdown).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not modify middleware chain when loadIntegrations returns null", async () => {
+    loadIntegrationsMock.mockResolvedValue(null);
+
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt");
+    await result;
+
+    expect(applyMiddlewares).toHaveBeenCalledWith(
+      [sessionCapture, usageCapture, spawnLog],
       expect.any(Object)
     );
   });

@@ -20,6 +20,8 @@ import {
   type AcpSpawnContext,
   type AcpEvent
 } from "@poe-code/agent-spawn";
+import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
+import { resolveMergedDocument } from "../cli/commands/shared.js";
 import type { SpawnOptions, SpawnResult, SpawnUsage } from "./types.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 
@@ -103,6 +105,7 @@ export function spawn(
     let workspace:
       | Awaited<ReturnType<typeof resolveSpawnWorkspace>>
       | undefined;
+    let integrations: Integrations | null = null;
 
     try {
       workspace = await resolveSpawnWorkspace(options.cwd, {
@@ -124,13 +127,17 @@ export function spawn(
         process.env.POE_API_KEY = resolvedApiKey;
       }
 
-      let container: ReturnType<typeof createSdkContainer> | undefined;
-      const getContainer = () => {
-        container ??= createSdkContainer({ cwd });
-        return container;
-      };
+      const container = createSdkContainer({ cwd });
+      integrations = await loadIntegrations(await resolveMergedDocument(container));
+      const middlewares = [
+        sessionCapture,
+        usageCapture,
+        spawnLog,
+        ...(integrations?.spawnMiddleware ? [integrations.spawnMiddleware] : []),
+        ...(options.middlewares ?? [])
+      ];
       const resolveModel = async () =>
-        options.model ?? await resolveConfiguredModel(getContainer(), service);
+        options.model ?? await resolveConfiguredModel(container, service);
       const runtimeOverrides = pickRuntimeOverrides(options);
       const hasRuntimeOverrides = Object.keys(runtimeOverrides).length > 0;
 
@@ -188,10 +195,7 @@ export function spawn(
           startedAt: new Date()
         };
 
-        await applyMiddlewares(
-          [sessionCapture, usageCapture, spawnLog, ...(options.middlewares ?? [])],
-          middlewareContext
-        );
+        await applyMiddlewares(middlewares, middlewareContext);
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;
@@ -252,10 +256,7 @@ export function spawn(
           startedAt: new Date()
         };
 
-        await applyMiddlewares(
-          [sessionCapture, usageCapture, spawnLog, ...(options.middlewares ?? [])],
-          middlewareContext
-        );
+        await applyMiddlewares(middlewares, middlewareContext);
 
         resolveEventsOnce(middlewareContext.eventStream ?? emptyEvents);
         const final = await done;
@@ -299,7 +300,7 @@ export function spawn(
       resolveEventsOnce(emptyEvents);
 
       const model = await resolveModel();
-      return spawnCore(getContainer(), service, {
+      return spawnCore(container, service, {
         prompt: options.prompt,
         cwd,
         model,
@@ -313,6 +314,7 @@ export function spawn(
       resolveEventsOnce(emptyEvents);
       throw error;
     } finally {
+      await integrations?.shutdown();
       await workspace?.cleanup?.();
     }
   })();

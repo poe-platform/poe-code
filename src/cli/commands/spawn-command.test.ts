@@ -25,10 +25,10 @@ import type {
 const confirmMock = vi.hoisted(() => vi.fn());
 const isCancelMock = vi.hoisted(() => vi.fn().mockReturnValue(false));
 const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
-const braintrustBootstrapMock = vi.hoisted(() => vi.fn());
+const braintrustLoadIntegrationsMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/braintrust", () => ({
-  bootstrap: braintrustBootstrapMock
+  loadIntegrations: braintrustLoadIntegrationsMock
 }));
 
 vi.mock("../../sdk/spawn.js", () => ({
@@ -371,7 +371,7 @@ describe("spawn command", () => {
       calls.push("shutdown");
     });
 
-    braintrustBootstrapMock.mockReturnValue({
+    braintrustLoadIntegrationsMock.mockResolvedValue({
       spawnMiddleware,
       traceRun,
       shutdown
@@ -413,7 +413,7 @@ describe("spawn command", () => {
       expect(traceRun).toHaveBeenCalledWith("spawn", "codex", expect.any(Function));
       expect(calls).toEqual(["trace:start", "spawn", "trace:end", "shutdown"]);
     } finally {
-      braintrustBootstrapMock.mockReset();
+      braintrustLoadIntegrationsMock.mockReset();
     }
   });
 

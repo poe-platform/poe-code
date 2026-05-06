@@ -1,7 +1,23 @@
-import type { LoopCallbacks } from "@poe-code/superintendent";
-
 import type { BraintrustClient } from "../client.js";
 import { logSuperintendentRole } from "../row-builder.js";
+
+export type LoopCallbacks = {
+  onBuilderStart?: () => void;
+  onBuilderComplete?: (result: unknown) => void;
+  onBuilderFailed?: (error: Error) => void;
+  onInspectorStart?: (name: string) => void;
+  onInspectorComplete?: (result: unknown) => void;
+  onInspectorFailed?: (name: string, error: Error) => void;
+  onSuperintendentStart?: () => void;
+  onSuperintendentComplete?: (result: unknown) => void;
+  onOwnerStart?: () => void;
+  onOwnerComplete?: (result: unknown) => void;
+  onRoundComplete?: (round: number) => void;
+  onLoopComplete?: (state: unknown) => void;
+  onStateChange?: (state: unknown) => void;
+  shouldPause?: () => boolean;
+  shouldStop?: () => boolean;
+};
 
 type BraintrustSpan = {
   log(event: {

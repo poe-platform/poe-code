@@ -30,7 +30,7 @@ import {
   type CommandFlags,
   type ExecutionResources
 } from "./shared.js";
-import { loadIntegrations, type Integrations } from "@poe-code/poe-code-config";
+import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { SpawnCommandOptions } from "../../providers/spawn-options.js";
 import { resolveConfiguredModel, spawnCore } from "../../sdk/spawn-core.js";
 import { spawn as spawnSdk } from "../../sdk/spawn.js";

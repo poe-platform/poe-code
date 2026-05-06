@@ -34,15 +34,14 @@ import {
 } from "@poe-code/design-system";
 import {
   planConfigScope,
-  loadIntegrations,
   mergeLoopCallbacks,
   readMergedDocument,
   resolveConfigPath,
   resolveProjectConfigPath,
   resolveScope,
-  type ConfigDocument,
-  type Integrations
+  type ConfigDocument
 } from "@poe-code/poe-code-config";
+import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import { superintendentConfigScope } from "../config-scope.js";
 import { parseSuperintendentDoc, readExplicitBuilderAgent } from "../document/parse.js";
 import {

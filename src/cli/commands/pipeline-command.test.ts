@@ -17,10 +17,10 @@ const { selectMock, cancelMock, resolvePipelineLoopAgentMock } = vi.hoisted(() =
   resolvePipelineLoopAgentMock: vi.fn()
 }));
 
-const braintrustBootstrapMock = vi.hoisted(() => vi.fn());
+const braintrustLoadIntegrationsMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/braintrust", () => ({
-  bootstrap: braintrustBootstrapMock
+  loadIntegrations: braintrustLoadIntegrationsMock
 }));
 
 vi.mock("../../sdk/pipeline.js", () => ({
@@ -229,7 +229,7 @@ describe("pipeline run command", () => {
 
   it("runs integration pipeline callbacks after CLI callbacks when enabled", async () => {
     const calls: string[] = [];
-    braintrustBootstrapMock.mockReturnValue({
+    braintrustLoadIntegrationsMock.mockResolvedValue({
       pipelineCallbacks: {
         onTaskStart: () => calls.push("integration")
       },
@@ -298,7 +298,7 @@ describe("pipeline run command", () => {
 
     expect(calls).toEqual(["cli", "integration"]);
 
-    braintrustBootstrapMock.mockReset();
+    braintrustLoadIntegrationsMock.mockReset();
   });
 
   it("reads plan.plan_directory for pipeline discovery", async () => {

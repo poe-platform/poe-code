@@ -23,7 +23,7 @@
     "@poe-code/agent-spawn": "*",
     "@poe-code/experiment-loop": "*",
     "@poe-code/pipeline": "*",
-    "@poe-code/superintendent": "*",
+    "@poe-code/poe-code-config": "*",
     "braintrust": "^3.10.0"
   },
   "devDependencies": {

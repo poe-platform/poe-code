@@ -1,5 +1,4 @@
 import type { AcpMiddleware } from "@poe-code/agent-spawn";
-import type { LoopCallbacks } from "@poe-code/superintendent";
 
 import { createClient } from "./client.js";
 import {
@@ -11,7 +10,10 @@ import {
   type PipelineCallbackFields,
 } from "./adapters/pipeline.js";
 import { createSpawnMiddleware } from "./adapters/spawn.js";
-import { createSuperintendentCallbacks } from "./adapters/superintendent.js";
+import {
+  createSuperintendentCallbacks,
+  type LoopCallbacks,
+} from "./adapters/superintendent.js";
 import { makeTraceRun, type TraceSurface } from "./trace-run.js";
 
 export interface BraintrustOptions {
@@ -80,3 +82,5 @@ function requiredString(value: unknown, field: "apiKey" | "project"): void {
 
   throw new Error(`Braintrust integration is enabled but ${field} is missing`);
 }
+
+export { loadIntegrations } from "./load-integrations.js";

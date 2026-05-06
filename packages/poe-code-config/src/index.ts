@@ -45,7 +45,6 @@ export {
   type LoopCallbacks,
   type PipelineCallbackFields
 } from "./merge-callbacks.js";
-export { loadIntegrations, type Integrations } from "./integrations-loader.js";
 export {
   loadAgentModel,
   loadDefaultModel,

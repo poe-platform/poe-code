@@ -20,10 +20,10 @@ const { selectMock, promptTextMock, isCancelMock, cancelMock } = vi.hoisted(() =
   cancelMock: vi.fn()
 }));
 
-const braintrustBootstrapMock = vi.hoisted(() => vi.fn());
+const braintrustLoadIntegrationsMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/braintrust", () => ({
-  bootstrap: braintrustBootstrapMock
+  loadIntegrations: braintrustLoadIntegrationsMock
 }));
 
 vi.mock("../../sdk/experiment.js", () => ({
@@ -723,7 +723,7 @@ describe("experiment run command", () => {
 
   it("runs integration experiment callbacks after CLI callbacks when enabled", async () => {
     const calls: string[] = [];
-    braintrustBootstrapMock.mockReturnValue({
+    braintrustLoadIntegrationsMock.mockResolvedValue({
       experimentCallbacks: {
         onExperimentStart: () => calls.push("integration")
       },
@@ -781,7 +781,7 @@ describe("experiment run command", () => {
 
     expect(calls).toEqual(["cli", "integration"]);
 
-    braintrustBootstrapMock.mockReset();
+    braintrustLoadIntegrationsMock.mockReset();
   });
 
   it("uses the experiment.tui config value when set", async () => {

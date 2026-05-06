@@ -43,13 +43,12 @@ import {
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 import { experimentConfigScope, planConfigScope } from "../../services/config.js";
 import {
-  loadIntegrations,
   mergeExperimentCallbacks,
   readMergedDocument,
   resolveScope,
-  type ConfigDocument,
-  type Integrations
+  type ConfigDocument
 } from "@poe-code/poe-code-config";
+import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { ExperimentRunOptions } from "@poe-code/experiment-loop";
 import {
   createDashboardLineBuffer,

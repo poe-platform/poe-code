@@ -25,13 +25,12 @@ import {
   type SkillScope
 } from "@poe-code/agent-skill-config";
 import {
-  loadIntegrations,
   mergePipelineCallbacks,
   readMergedDocument,
   resolveScope,
-  type ConfigDocument,
-  type Integrations
+  type ConfigDocument
 } from "@poe-code/poe-code-config";
+import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
 import type { CliContainer } from "../container.js";
 import { pipelineConfigScope, planConfigScope } from "../../services/config.js";
 import { ValidationError } from "../errors.js";

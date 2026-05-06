@@ -100,6 +100,17 @@ async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
   return items;
 }
 
+function stripMeta<T>(events: T[]): T[] {
+  return events.map((event) => {
+    if (event && typeof event === "object") {
+      const { _meta: _ignored, ...rest } = event as Record<string, unknown>;
+      void _ignored;
+      return rest as T;
+    }
+    return event;
+  });
+}
+
 // --- line-reader helpers ---
 
 // --- middleware helpers ---
@@ -625,7 +636,7 @@ describe("spawnAcp", () => {
     const collected = await collect(events);
     const result = await done;
 
-    expect(collected[0]).toEqual({ event: "session_start", threadId: "ses_test_123" });
+    expect(collected[0]).toMatchObject({ event: "session_start", threadId: "ses_test_123" });
     expect(collected[1]).toMatchObject({ event: "agent_message", text: "Hello " });
     expect(collected[1]._meta).toHaveProperty("raw");
     expect(collected[2]).toMatchObject({ event: "agent_message", text: "world!" });
@@ -774,7 +785,7 @@ describe("acp/spawnStreaming", () => {
       cwd: "/tmp"
     });
 
-    await expect(collect(events)).resolves.toEqual([
+    await expect(collect(events).then(stripMeta)).resolves.toEqual([
       { event: "session_start", threadId: "ses_abc" },
       { event: "agent_message", text: "hi" },
       { event: "usage", inputTokens: 1, outputTokens: 2, cachedTokens: 3 }
@@ -862,7 +873,7 @@ describe("acp/spawnStreaming", () => {
       mountPoeCode: true
     });
 
-    await expect(collect(events)).resolves.toEqual([
+    await expect(collect(events).then(stripMeta)).resolves.toEqual([
       { event: "session_start", threadId: "ses_docker" },
       { event: "agent_message", text: "from docker" }
     ]);
@@ -920,7 +931,7 @@ describe("acp/spawnStreaming", () => {
       prompt: "hello"
     });
 
-    await expect(collect(events)).resolves.toEqual([
+    await expect(collect(events).then(stripMeta)).resolves.toEqual([
       { event: "session_start", threadId: "ses_agg" },
       { event: "agent_message", text: "hi" },
       { event: "usage", inputTokens: 1, outputTokens: 2, cachedTokens: 3 },
@@ -952,7 +963,7 @@ describe("acp/spawnStreaming", () => {
         prompt: "hello"
       });
 
-      await expect(collect(events)).resolves.toEqual([{ event: "agent_message", text: "raw event" }]);
+      await expect(collect(events).then(stripMeta)).resolves.toEqual([{ event: "agent_message", text: "raw event" }]);
       await expect(done).resolves.toEqual({
         stdout: "",
         stderr: "",
@@ -1007,7 +1018,7 @@ describe("acp/spawnStreaming", () => {
       useStdin: true
     });
 
-    await expect(collect(events)).resolves.toEqual([
+    await expect(collect(events).then(stripMeta)).resolves.toEqual([
       { event: "session_start", threadId: "t1" },
       { event: "agent_message", text: "hi" },
       { event: "usage", inputTokens: 1, outputTokens: 2, cachedTokens: 0 }
@@ -1268,7 +1279,7 @@ describe("acp/spawnStreaming", () => {
       await vi.advanceTimersByTimeAsync(1001);
       await doneRejection;
       const collected = await eventsPromise;
-      expect(collected).toEqual([{ event: "session_start", threadId: "t1" }]);
+      expect(stripMeta(collected)).toEqual([{ event: "session_start", threadId: "t1" }]);
     });
 
     it("clears timeout when process exits normally", async () => {

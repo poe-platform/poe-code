@@ -3,6 +3,7 @@ import { AcpClient, type McpServer } from "@poe-code/poe-acp-client";
 import { getAcpSpawnConfig } from "../configs/index.js";
 import type { McpSpawnConfig, SpawnMode, SpawnResult } from "../types.js";
 import type { AcpEvent } from "./types.js";
+import { stampReceiveTime } from "./meta.js";
 import { sessionUpdateToEvents, createToolRenderState } from "./session-update-converter.js";
 
 export interface SpawnAcpOptions {
@@ -102,6 +103,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
 
   const pushEvent = (event: AcpEvent): void => {
     if (eventsDone) return;
+    stampReceiveTime(event, Date.now());
     const waiter = waiters.shift();
     if (waiter) {
       waiter({ done: false, value: event });

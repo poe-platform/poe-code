@@ -1,6 +1,7 @@
 import "../register-factories.js";
 import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { getAdapter } from "../adapters/index.js";
+import { stampReceiveTime } from "./meta.js";
 import type { AcpEvent } from "./types.js";
 import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
@@ -227,7 +228,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   const events: AsyncIterable<AcpEvent> = (async function* () {
     for await (const output of adapter(queue.lines())) {
       if (!isAcpEvent(output)) continue;
-      yield output;
+      yield stampReceiveTime(output, Date.now());
     }
   })();
 

@@ -67,6 +67,7 @@ type SchemaOptions<TDefault> = {
   requiredScopes?: readonly SchemaScope[];
   short?: string;
   scope?: readonly SchemaScope[];
+  global?: boolean;
 };
 
 export interface SchemaBase<TKind extends SchemaKind, TStatic> {
@@ -77,6 +78,7 @@ export interface SchemaBase<TKind extends SchemaKind, TStatic> {
   readonly requiredScopes?: readonly SchemaScope[];
   readonly short?: string;
   readonly scope?: readonly SchemaScope[];
+  readonly global?: boolean;
   readonly __static?: TStatic;
 }
 

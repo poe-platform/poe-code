@@ -455,6 +455,25 @@ describe("requestJson", () => {
       writeStderr: stderr,
     });
 
-    expect(stderr).toHaveBeenCalledWith("GET https://api.example.com/bots\n");
+    expect(stderr).toHaveBeenCalledTimes(1);
+    const written = stderr.mock.calls[0]?.[0] as string;
+    expect(written).toContain("GET https://api.example.com/bots");
+    expect(written.endsWith("\n")).toBe(true);
+  });
+
+  it("does not log the request line when verbose is omitted", async () => {
+    const stderr = vi.fn();
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "required",
+      tokenSource: createTokenSource("abc"),
+      fetch: vi.fn(async () => createJsonResponse({ ok: true })),
+      writeStderr: stderr,
+    });
+
+    expect(stderr).not.toHaveBeenCalled();
   });
 });

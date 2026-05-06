@@ -51,6 +51,7 @@ const TRANSPORT_PARAMS = [
     location: "transport",
     description: "Print the HTTP request and exit without sending it.",
     scope: ["cli", "sdk"],
+    global: true,
     optional: true,
     definition: { kind: "boolean" }
   },
@@ -61,6 +62,7 @@ const TRANSPORT_PARAMS = [
     description: "Log the request line to stderr.",
     shortFlag: "v",
     scope: ["cli", "sdk"],
+    global: true,
     optional: true,
     definition: { kind: "boolean" }
   }
@@ -202,6 +204,7 @@ export interface GeneratedParam {
   description?: string;
   shortFlag?: string;
   scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]];
+  global?: boolean;
   optional: boolean;
   definition: GeneratedParamDefinition;
 }
@@ -291,6 +294,7 @@ interface RenderSchemaOptionsInput {
   description?: string;
   shortFlag?: string;
   scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]];
+  global?: boolean;
 }
 
 export type GeneratedPreflightBlock =
@@ -331,6 +335,10 @@ const SCHEMA_OPTION_SOURCES = [
   {
     key: "scope",
     get: (param: RenderSchemaOptionsInput) => param.scope
+  },
+  {
+    key: "global",
+    get: (param: RenderSchemaOptionsInput) => (param.global === true ? true : undefined)
   },
   {
     key: "minimum",
@@ -1891,7 +1899,8 @@ function renderParamSchema(param: GeneratedParam): string {
     param.definition,
     param.description,
     param.shortFlag,
-    param.scope
+    param.scope,
+    param.global
   );
   return param.optional ? `S.Optional(${schema})` : schema;
 }
@@ -1900,13 +1909,15 @@ function renderDefinition(
   definition: GeneratedParamDefinition,
   description?: string,
   shortFlag?: string,
-  scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]]
+  scope?: readonly [GeneratedParamScope, ...GeneratedParamScope[]],
+  global?: boolean
 ): string {
   const options = renderSchemaOptions({
     definition,
     description,
     shortFlag,
-    scope
+    scope,
+    global
   });
   const renderer = DEFINITION_RENDERERS[definition.kind] as (
     definition: GeneratedParamDefinition,

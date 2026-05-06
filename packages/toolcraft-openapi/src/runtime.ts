@@ -137,7 +137,8 @@ function createRuntimeParamSchema(param: GeneratedParam): AnySchema {
     param.definition,
     param.description,
     param.shortFlag,
-    param.scope
+    param.scope,
+    param.global
   );
 
   return param.optional ? S.Optional(definition) : definition;
@@ -147,9 +148,10 @@ function createRuntimeDefinition(
   definition: GeneratedParamDefinition,
   description?: string,
   shortFlag?: string,
-  scope?: readonly ["cli" | "mcp" | "sdk", ...Array<"cli" | "mcp" | "sdk">]
+  scope?: readonly ["cli" | "mcp" | "sdk", ...Array<"cli" | "mcp" | "sdk">],
+  global?: boolean
 ): AnySchema {
-  const options = createRuntimeSchemaOptions(definition, description, shortFlag, scope);
+  const options = createRuntimeSchemaOptions(definition, description, shortFlag, scope, global);
 
   return RUNTIME_DEFINITION_BUILDERS[definition.kind](definition as never, options);
 }
@@ -183,14 +185,16 @@ function createRuntimeSchemaOptions(
   definition: GeneratedParamDefinition,
   description?: string,
   shortFlag?: string,
-  scope?: readonly ["cli" | "mcp" | "sdk", ...Array<"cli" | "mcp" | "sdk">]
+  scope?: readonly ["cli" | "mcp" | "sdk", ...Array<"cli" | "mcp" | "sdk">],
+  global?: boolean
 ) {
   const options = Object.fromEntries(
     collectSchemaOptionEntries({
       definition,
       description,
       shortFlag,
-      scope
+      scope,
+      global
     }).map(({ key, value }) => [key, Array.isArray(value) ? [...value] : value])
   );
 

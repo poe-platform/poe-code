@@ -1,3 +1,4 @@
+import { text as designText } from "@poe-code/design-system";
 import { UserError } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
 
@@ -48,7 +49,7 @@ export async function requestJson<TResult = unknown>(
   const requestLine = `${method} ${url}`;
 
   if (options.verbose) {
-    writeStderr(`${requestLine}\n`);
+    writeStderr(`${designText.muted(requestLine)}\n`);
   }
 
   if (options.dryRun) {

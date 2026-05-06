@@ -862,6 +862,155 @@ describe("commandsFromSpec", () => {
       })
     );
   });
+
+  it("emits the request line to stderr end-to-end when --verbose is passed", async () => {
+    const commands = await commandsFromSpec(createSetOfficialDocument());
+    const fetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      })
+    );
+    const stderrChunks: string[] = [];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stderrWrite = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation((chunk: unknown) => {
+        stderrChunks.push(typeof chunk === "string" ? chunk : String(chunk));
+        return true;
+      });
+    const originalArgv = [...process.argv];
+    const stdoutTTY = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+    const stdinTTY = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+    vi.stubGlobal("fetch", fetch);
+
+    try {
+      Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: true });
+      Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
+
+      const client = defineClient({
+        name: "internal-agent",
+        baseUrl: "https://example.com/api",
+        auth: createAuthProvider([]),
+        commands
+      });
+
+      process.argv = [
+        "node",
+        client.name,
+        "bots",
+        "set-official-bot",
+        "--bot-handle",
+        "demo",
+        "--official",
+        "--verbose",
+        "--output",
+        "json",
+        "--yes"
+      ];
+
+      await runCLI(client.root, {
+        rootUsageName: client.name,
+        services: client.services
+      });
+    } finally {
+      process.argv = originalArgv;
+      stdoutWrite.mockRestore();
+      stderrWrite.mockRestore();
+      vi.unstubAllGlobals();
+
+      if (stdoutTTY === undefined) {
+        delete (process.stdout as { isTTY?: boolean }).isTTY;
+      } else {
+        Object.defineProperty(process.stdout, "isTTY", stdoutTTY);
+      }
+      if (stdinTTY === undefined) {
+        delete (process.stdin as { isTTY?: boolean }).isTTY;
+      } else {
+        Object.defineProperty(process.stdin, "isTTY", stdinTTY);
+      }
+    }
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(fetch).toHaveBeenCalledWith(
+      "https://example.com/api/bots/demo/actions/set-official",
+      expect.objectContaining({ method: "POST" })
+    );
+    const stderrText = stderrChunks.join("");
+    expect(stderrText).toContain("POST https://example.com/api/bots/demo/actions/set-official");
+  });
+
+  it("does not emit a request line to stderr when --verbose is omitted", async () => {
+    const commands = await commandsFromSpec(createSetOfficialDocument());
+    const fetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({}), {
+        status: 200,
+        headers: { "content-type": "application/json" }
+      })
+    );
+    const stderrChunks: string[] = [];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const stderrWrite = vi
+      .spyOn(process.stderr, "write")
+      .mockImplementation((chunk: unknown) => {
+        stderrChunks.push(typeof chunk === "string" ? chunk : String(chunk));
+        return true;
+      });
+    const originalArgv = [...process.argv];
+    const stdoutTTY = Object.getOwnPropertyDescriptor(process.stdout, "isTTY");
+    const stdinTTY = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+    vi.stubGlobal("fetch", fetch);
+
+    try {
+      Object.defineProperty(process.stdout, "isTTY", { configurable: true, value: true });
+      Object.defineProperty(process.stdin, "isTTY", { configurable: true, value: true });
+
+      const client = defineClient({
+        name: "internal-agent",
+        baseUrl: "https://example.com/api",
+        auth: createAuthProvider([]),
+        commands
+      });
+
+      process.argv = [
+        "node",
+        client.name,
+        "bots",
+        "set-official-bot",
+        "--bot-handle",
+        "demo",
+        "--official",
+        "--output",
+        "json",
+        "--yes"
+      ];
+
+      await runCLI(client.root, {
+        rootUsageName: client.name,
+        services: client.services
+      });
+    } finally {
+      process.argv = originalArgv;
+      stdoutWrite.mockRestore();
+      stderrWrite.mockRestore();
+      vi.unstubAllGlobals();
+
+      if (stdoutTTY === undefined) {
+        delete (process.stdout as { isTTY?: boolean }).isTTY;
+      } else {
+        Object.defineProperty(process.stdout, "isTTY", stdoutTTY);
+      }
+      if (stdinTTY === undefined) {
+        delete (process.stdin as { isTTY?: boolean }).isTTY;
+      } else {
+        Object.defineProperty(process.stdin, "isTTY", stdinTTY);
+      }
+    }
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const stderrText = stderrChunks.join("");
+    expect(stderrText).not.toContain("POST https://example.com/api/bots/demo/actions/set-official");
+  });
 });
 
 describe("defineClientFromSpec", () => {

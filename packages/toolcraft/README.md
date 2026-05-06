@@ -387,7 +387,7 @@ export function slackApprovalProvider(opts: {
 
 ## Errors
 
-Throw `UserError` for expected, user-facing failures. The CLI prints the message without a stack trace and sets exit code 1; MCP and SDK surface the message as the error body. Any other thrown error is treated as unexpected and shows a stack with `--verbose`.
+Throw `UserError` for expected, user-facing failures. The CLI prints the message without a stack trace and sets exit code 1; MCP and SDK surface the message as the error body. Any other thrown error is treated as unexpected and shows a stack with `--debug`.
 
 ## Migrating from a folder of scripts
 

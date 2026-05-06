@@ -69,7 +69,7 @@ interface ResolvedFlags {
   preset?: string;
   yes?: boolean;
   output?: OutputMode;
-  verbose?: boolean;
+  debug?: boolean;
 }
 
 interface FieldDefinition {
@@ -86,6 +86,7 @@ interface FieldDefinition {
   hasDefault: boolean;
   defaultValue: unknown;
   requiredWhenActive: boolean;
+  global?: boolean;
   synthetic?: boolean;
   variantId?: string;
   variantBranchId?: string;
@@ -570,6 +571,7 @@ function collectFields(
       hasDefault: childSchema.default !== undefined,
       defaultValue: childSchema.default,
       requiredWhenActive,
+      global: childSchema.global === true ? true : undefined,
       variantId: variantContext?.id,
       variantBranchId: variantContext?.branchId
     });
@@ -870,7 +872,7 @@ function createOption(
   return [option];
 }
 
-const ALWAYS_GLOBAL_LONG_OPTION_FLAGS = ["--yes", "--output", "--verbose"] as const;
+const ALWAYS_GLOBAL_LONG_OPTION_FLAGS = ["--yes", "--output", "--debug"] as const;
 
 function getGlobalLongOptionFlags(presetsEnabled: boolean): ReadonlySet<string> {
   return new Set(
@@ -1354,6 +1356,7 @@ function formatCommandParameterTokens<TServices extends object>(
   const fields = assignPositionals(collected.fields, command.positional);
 
   return fields
+    .filter((field) => field.global !== true)
     .map((field) =>
       wrapOptionalCommandParameterToken(
         formatHelpFieldFlags(field, globalLongOptionFlags),
@@ -1413,6 +1416,10 @@ function formatGlobalOptionRows(ctx: {
     {
       flags: "--output <format>",
       description: "Output format: rich, md, json."
+    },
+    {
+      flags: "--debug",
+      description: "Print stack traces for unexpected errors."
     }
   );
 
@@ -1424,6 +1431,44 @@ function formatGlobalOptionRows(ctx: {
   }
 
   return rows;
+}
+
+function collectSchemaGlobalFieldRows<TServices extends object>(
+  group: Group<TServices>,
+  scope: Scope,
+  casing: Casing,
+  globalLongOptionFlags: ReadonlySet<string>
+): HelpOptionRow[] {
+  const seen = new Map<string, HelpOptionRow>();
+
+  const visit = (node: Command<TServices, any, any, any> | Group<TServices>): void => {
+    if (node.kind === "command") {
+      const collected = collectFields(node.params, casing, globalLongOptionFlags);
+      for (const field of collected.fields) {
+        if (field.global !== true) {
+          continue;
+        }
+
+        const dedupeKey = `${field.optionFlag}|${field.shortFlag ?? ""}`;
+        if (seen.has(dedupeKey)) {
+          continue;
+        }
+
+        seen.set(dedupeKey, {
+          flags: formatHelpFieldFlags(field, globalLongOptionFlags),
+          description: formatHelpFieldDescription(field)
+        });
+      }
+      return;
+    }
+
+    for (const child of getVisibleChildren(node, scope)) {
+      visit(child);
+    }
+  };
+
+  visit(group);
+  return [...seen.values()];
 }
 
 function renderHelpSections(sections: string[]): string {
@@ -1460,7 +1505,8 @@ function renderGroupHelp<TServices extends object>(
     showVersion: boolean;
     presetsEnabled: boolean;
   },
-  rootUsageName: string
+  rootUsageName: string,
+  isRoot: boolean
 ): string {
   const sections: string[] = [];
   const globalLongOptionFlags = getGlobalLongOptionFlags(globalOptions.presetsEnabled);
@@ -1470,14 +1516,20 @@ function renderGroupHelp<TServices extends object>(
     sections.push(`${text.sectionHeader("Commands")}\n${formatHelpCommandList(commandRows)}`);
   }
 
-  sections.push(
-    `${text.sectionHeader("Options")}\n${formatHelpOptionList(formatGlobalOptionRows(globalOptions))}`
-  );
+  if (isRoot) {
+    const globalRows = [
+      ...formatGlobalOptionRows(globalOptions),
+      ...collectSchemaGlobalFieldRows(group, scope, casing, globalLongOptionFlags)
+    ];
+    sections.push(
+      `${text.sectionHeader("Global options")}\n${formatHelpOptionList(globalRows)}`
+    );
+  }
 
   return renderHelpDocument({
     breadcrumb,
     rootUsageName,
-    usageLine: buildUsageLine(breadcrumb, rootUsageName, "[command] [options]"),
+    usageLine: buildUsageLine(breadcrumb, rootUsageName, "[command] [OPTIONS]"),
     description: group.description,
     requiresAuth: group.requires?.auth === true,
     sections
@@ -1499,6 +1551,7 @@ function renderLeafHelp<TServices extends object>(
   const collected = collectFields(command.params, casing, globalLongOptionFlags);
   const fields = assignPositionals(collected.fields, command.positional);
   const optionRows = fields
+    .filter((field) => field.global !== true)
     .map((field) => ({
       flags: formatHelpFieldFlags(field, globalLongOptionFlags),
       description: formatHelpFieldDescription(field)
@@ -1508,10 +1561,6 @@ function renderLeafHelp<TServices extends object>(
   if (optionRows.length > 0) {
     sections.push(`${text.sectionHeader("Options")}\n${formatHelpOptionList(optionRows)}`);
   }
-
-  sections.push(
-    `${text.sectionHeader("Options")}\n${formatHelpOptionList(formatGlobalOptionRows(globalOptions))}`
-  );
 
   const secretRows = formatSecretRows(command.secrets);
   if (secretRows.length > 0) {
@@ -1523,8 +1572,8 @@ function renderLeafHelp<TServices extends object>(
   const positionalFields = fields.filter((f) => f.positionalIndex !== undefined);
   const usageSuffix =
     positionalFields.length > 0
-      ? `[options] ${positionalFields.map(formatPositionalToken).join(" ")}`
-      : "[options]";
+      ? `[OPTIONS] ${positionalFields.map(formatPositionalToken).join(" ")}`
+      : "[OPTIONS]";
 
   return renderHelpDocument({
     breadcrumb,
@@ -1596,7 +1645,8 @@ async function renderGeneratedHelp<TServices extends object>(
               showVersion: options.version !== undefined,
               presetsEnabled: options.presets === true
             },
-            rootUsageName
+            rootUsageName,
+            target.node === root
           )
         : renderLeafHelp(
             target.node,
@@ -1735,7 +1785,7 @@ function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): v
         'Invalid value for "--output". Expected one of: rich, md, markdown, json.'
       );
     })
-    .option("--verbose", "Print stack traces for unexpected errors.");
+    .option("--debug", "Print stack traces for unexpected errors.");
 }
 
 function setNestedValue(target: Record<string, unknown>, path: string[], value: unknown): void {
@@ -3266,7 +3316,7 @@ async function executeCommand<TServices extends object>(
   });
 }
 
-function handleRunError(error: unknown, verbose: boolean): void {
+function handleRunError(error: unknown, debug: boolean): void {
   const logger = createLogger();
 
   if (error instanceof UserError) {
@@ -3284,9 +3334,9 @@ function handleRunError(error: unknown, verbose: boolean): void {
   }
 
   const message = error instanceof Error ? error.message : String(error);
-  logger.error(verbose ? message : `${message} Use --verbose for a stack trace.`);
+  logger.error(debug ? message : `${message} Use --debug for a stack trace.`);
 
-  if (verbose && error instanceof Error && error.stack) {
+  if (debug && error instanceof Error && error.stack) {
     process.stderr.write(`${error.stack}\n`);
   }
 
@@ -3369,8 +3419,8 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     handleRunError(
       error,
       lastActionCommand
-        ? Boolean(getResolvedFlags(lastActionCommand).verbose)
-        : process.argv.includes("--verbose")
+        ? Boolean(getResolvedFlags(lastActionCommand).debug)
+        : process.argv.includes("--debug")
     );
   }
 }

@@ -8,12 +8,16 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./mock": {
+      "types": "./dist/mock.d.ts",
+      "import": "./dist/mock.js"
     }
   },
   "scripts": {
     "build": "rm -rf dist && tsc",
-    "test": "cd ../.. && vitest run packages/toolcraft-openapi/src/*.test.ts",
-    "test:unit": "cd ../.. && vitest run packages/toolcraft-openapi/src/*.test.ts",
+    "test": "cd ../.. && vitest run packages/toolcraft-openapi/src",
+    "test:unit": "cd ../.. && vitest run packages/toolcraft-openapi/src",
     "prepack": "node ../../scripts/manage-bundled-workspace-deps.mjs prepare . @poe-code/design-system auth-store",
     "postpack": "node ../../scripts/manage-bundled-workspace-deps.mjs cleanup . @poe-code/design-system auth-store"
   },

@@ -793,18 +793,19 @@ describe("runCLI", () => {
     expect(output).toMatchInlineSnapshot(`
       "toolcraft
 
-      Usage: toolcraft [command] [options]
+      Usage: toolcraft [command] [OPTIONS]
 
       Commands
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Options
+      Global options
         --yes  Accept defaults, skip prompts
         --output <format>  Output format: rich, md, json.
+        --debug  Print stack traces for unexpected errors.
       "
     `);
-    expect(output).toContain("Options");
+    expect(output).toContain("Global options");
     expect(output).not.toContain("--preset");
     expect(output).toContain("--yes");
     expect(output).toContain("--output <format>");
@@ -836,20 +837,21 @@ describe("runCLI", () => {
     expect(output).toMatchInlineSnapshot(`
       "toolcraft
 
-      Usage: toolcraft [command] [options]
+      Usage: toolcraft [command] [OPTIONS]
 
       Commands
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Options
+      Global options
         --preset <path>  Load parameter defaults from a JSON file
         --yes  Accept defaults, skip prompts
         --output <format>  Output format: rich, md, json.
+        --debug  Print stack traces for unexpected errors.
         --version  Show version
       "
     `);
-    expect(output).toContain("Options");
+    expect(output).toContain("Global options");
     expect(output).toContain("--preset <path>");
     expect(output).toContain("--version");
     expect(output).not.toContain("-h, --help");
@@ -1429,7 +1431,7 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
-  it("prints unexpected errors with a verbose hint and stack trace in verbose mode", async () => {
+  it("prints unexpected errors with a debug hint and stack trace in debug mode", async () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({}),
@@ -1448,20 +1450,95 @@ describe("runCLI", () => {
     process.argv = ["node", "toolcraft", "deploy", "--yes"];
     await runCLI(root);
 
-    expect(loggerState.error).toEqual(["Boom. Use --verbose for a stack trace."]);
+    expect(loggerState.error).toEqual(["Boom. Use --debug for a stack trace."]);
     expect(stderrWrite).not.toHaveBeenCalled();
     expect(process.exitCode).toBe(1);
 
     resetLoggerState();
     stderrWrite.mockClear();
     process.exitCode = undefined;
-    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--debug"];
 
     await runCLI(root);
 
     expect(loggerState.error).toEqual(["Boom."]);
     expect(stderrWrite).toHaveBeenCalled();
     expect(process.exitCode).toBe(1);
+  });
+
+  it("does not suppress stack traces when --verbose is a schema-tagged global owned by the user", async () => {
+    const handler = vi.fn(async () => {
+      throw new Error("Boom.");
+    });
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        verbose: S.Optional(
+          S.Boolean({
+            description: "Log the request line to stderr.",
+            short: "v",
+            global: true
+          })
+        )
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler.mock.calls[0]?.[0]?.params).toMatchObject({ verbose: true });
+    expect(loggerState.error).toEqual(["Boom. Use --debug for a stack trace."]);
+    expect(stderrWrite).not.toHaveBeenCalled();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("routes --verbose to the schema-tagged global field and --debug to the stack-trace toggle", async () => {
+    const handler = vi.fn(async ({ params }: { params: { verbose?: boolean } }) => params);
+
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        verbose: S.Optional(
+          S.Boolean({
+            description: "Log the request line to stderr.",
+            short: "v",
+            global: true
+          })
+        )
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+    expect(handler.mock.calls.at(-1)?.[0]?.params).toMatchObject({ verbose: true });
+
+    handler.mockClear();
+    process.exitCode = undefined;
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "-v"];
+    await runCLI(root);
+    expect(handler.mock.calls.at(-1)?.[0]?.params).toMatchObject({ verbose: true });
+
+    handler.mockClear();
+    process.exitCode = undefined;
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--debug"];
+    await runCLI(root);
+    expect(handler.mock.calls.at(-1)?.[0]?.params?.verbose).toBeUndefined();
   });
 
   it("throws on reserved service name collisions", async () => {
@@ -2596,7 +2673,7 @@ describe("runCLI", () => {
     expect(output).toContain("Model identifier (default: GPT-4.1)");
     expect(output).not.toContain("Global options:");
     expect(output).not.toContain("--preset");
-    expect(output).toContain("--yes");
+    expect(output).not.toContain("--yes");
     expect(output).toContain("Secrets (environment)");
     expect(output).toContain("POE_API_KEY");
     expect(output).toContain("Inherited from generate group");
@@ -2896,15 +2973,16 @@ describe("runCLI", () => {
     expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
       "poe-code — X
 
-      Usage: poe-code [command] [options]
+      Usage: poe-code [command] [OPTIONS]
 
       Commands
         deploy
         approvals   Inspect and execute queued approvals.
 
-      Options
+      Global options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
+        --debug             Print stack traces for unexpected errors.
       "
     `);
   });
@@ -2934,11 +3012,7 @@ describe("runCLI", () => {
     expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
       "parent child — desc
 
-      Usage: poe-code parent child [command] [options]
-
-      Options
-        --yes               Accept defaults, skip prompts
-        --output <format>   Output format: rich, md, json.
+      Usage: poe-code parent child [command] [OPTIONS]
       "
     `);
   });
@@ -2984,11 +3058,61 @@ describe("runCLI", () => {
       leaf: leafHelp.split("\n").find((line) => line.startsWith("Usage:"))
     }).toMatchInlineSnapshot(`
       {
-        "group": "Usage: custom-cli group [command] [options]",
-        "leaf": "Usage: custom-cli group leaf [options] <target>",
-        "root": "Usage: custom-cli [command] [options]",
+        "group": "Usage: custom-cli group [command] [OPTIONS]",
+        "leaf": "Usage: custom-cli group leaf [OPTIONS] <target>",
+        "root": "Usage: custom-cli [command] [OPTIONS]",
       }
     `);
+  });
+
+  it("uses [OPTIONS] placeholder in leaf synopsis even with many flags", async () => {
+    setStdoutColumns(100);
+    const patchBot = defineCommand({
+      name: "patch-bot",
+      description: "Patch a bot's metadata.",
+      positional: ["botHandle"],
+      params: S.Object({
+        botHandle: S.String(),
+        displayName: S.Optional(S.String()),
+        displayNameNull: S.Optional(S.Boolean()),
+        description: S.Optional(S.String()),
+        descriptionNull: S.Optional(S.Boolean()),
+        isOfficial: S.Optional(S.Boolean()),
+        allowAttachments: S.Optional(S.Boolean()),
+        conversationStarters: S.Optional(S.Array(S.String())),
+        ownerHandle: S.Optional(S.String())
+      }),
+      handler: async () => null
+    });
+    const botActions = defineGroup({
+      name: "bot-actions",
+      children: [patchBot]
+    });
+    const root = defineGroup({
+      name: "",
+      children: [botActions]
+    });
+
+    process.argv = [
+      "node",
+      "/usr/local/bin/poe-agent-tools",
+      "bot-actions",
+      "patch-bot",
+      "--help"
+    ];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const output = readStdout(stdoutWrite);
+    const usageLine = output.split("\n").find((line) => line.startsWith("Usage:")) ?? "";
+    expect(usageLine).toBe(
+      "Usage: poe-agent-tools bot-actions patch-bot [OPTIONS] <botHandle>"
+    );
+    expect(usageLine.length).toBeLessThanOrEqual(100);
+    expect(usageLine).not.toContain("--display-name");
+    expect(usageLine).not.toContain("--description");
+    expect(usageLine).not.toContain("--owner-handle");
   });
 
   it("lists only direct children in a group commands section", async () => {
@@ -3024,16 +3148,17 @@ describe("runCLI", () => {
     expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
       "toolcraft
 
-      Usage: toolcraft [command] [options]
+      Usage: toolcraft [command] [OPTIONS]
 
       Commands
         child       Child group
         sibling     Sibling leaf
         approvals   Inspect and execute queued approvals.
 
-      Options
+      Global options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
+        --debug             Print stack traces for unexpected errors.
       "
     `);
   });
@@ -3062,11 +3187,7 @@ describe("runCLI", () => {
 
       Second sentence explains more.
 
-      Usage: toolcraft inspect [options]
-
-      Options
-        --yes               Accept defaults, skip prompts
-        --output <format>   Output format: rich, md, json.
+      Usage: toolcraft inspect [OPTIONS]
       "
     `);
   });
@@ -3099,7 +3220,7 @@ describe("runCLI", () => {
     expect(readStdout(stdoutWrite)).toMatchInlineSnapshot(`
       "toolcraft — Developer automation commands.
 
-      Usage: toolcraft [command] [options]
+      Usage: toolcraft [command] [OPTIONS]
 
       Commands
         scan --repository-path <path>   Scan repositories and
@@ -3107,9 +3228,11 @@ describe("runCLI", () => {
         approvals                       Inspect and execute queued
                                         approvals.
 
-      Options
+      Global options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
+        --debug             Print stack traces for unexpected
+                            errors.
       "
     `);
   });
@@ -3139,19 +3262,94 @@ describe("runCLI", () => {
     expect(output).toMatchInlineSnapshot(`
       "toolcraft
 
-      Usage: toolcraft [command] [options]
+      Usage: toolcraft [command] [OPTIONS]
 
       Commands
         deploy      Deploy a service
         approvals   Inspect and execute queued approvals.
 
-      Options
+      Global options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
+        --debug             Print stack traces for unexpected errors.
       "
     `);
     expect(formatterState.plainCommandListCalls).toBeGreaterThan(0);
     expect(formatterState.plainOptionListCalls).toBeGreaterThan(0);
     expect(output).not.toContain("\u001b[");
+  });
+
+  it("suppresses fields tagged global from leaf help and surfaces them only on root", async () => {
+    setStdoutColumns(100);
+    const patchBot = defineCommand({
+      name: "patch-bot",
+      description: "Patch a bot's metadata.",
+      positional: ["botHandle"],
+      params: S.Object({
+        botHandle: S.String(),
+        displayName: S.Optional(S.String()),
+        dryRun: S.Optional(
+          S.Boolean({
+            description: "Print the HTTP request and exit without sending it.",
+            global: true
+          })
+        ),
+        verbose: S.Optional(
+          S.Boolean({
+            description: "Log the request line to stderr.",
+            short: "v",
+            global: true
+          })
+        )
+      }),
+      handler: async () => null
+    });
+    const botActions = defineGroup({
+      name: "bot-actions",
+      children: [patchBot]
+    });
+    const root = defineGroup({
+      name: "",
+      children: [botActions]
+    });
+
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    process.argv = [
+      "node",
+      "/usr/local/bin/poe-agent-tools",
+      "bot-actions",
+      "patch-bot",
+      "--help"
+    ];
+    await runCLI(root);
+    const leafHelp = readStdout(stdoutWrite);
+
+    expect(leafHelp).not.toContain("--dry-run");
+    expect(leafHelp).not.toContain("--verbose");
+    expect(leafHelp).not.toMatch(/(^|\s)-v(\s|$)/m);
+    expect(leafHelp).toContain("--display-name");
+
+    stdoutWrite.mockClear();
+    process.argv = ["node", "/usr/local/bin/poe-agent-tools", "--help"];
+    await runCLI(root);
+    const rootHelp = readStdout(stdoutWrite);
+
+    const dryRunCount = rootHelp.match(/--dry-run/g)?.length ?? 0;
+    const verboseCount = rootHelp.match(/--verbose/g)?.length ?? 0;
+    const debugCount = rootHelp.match(/--debug/g)?.length ?? 0;
+    expect(dryRunCount).toBe(1);
+    expect(verboseCount).toBe(1);
+    expect(debugCount).toBe(1);
+    expect(rootHelp).toContain("Global options");
+    expect(rootHelp).toMatch(/-v,\s*--verbose\s+Log the request line to stderr/);
+    expect(rootHelp).toMatch(/--debug\s+Print stack traces for unexpected errors/);
+
+    const commandsLine =
+      rootHelp.split("\n").find((line) => line.trimStart().startsWith("bot-actions")) ?? "";
+    expect(commandsLine).not.toContain("--dry-run");
+    expect(commandsLine).not.toContain("-v");
+    expect(commandsLine).not.toContain("--verbose");
+    expect(commandsLine).not.toContain("--debug");
   });
 });

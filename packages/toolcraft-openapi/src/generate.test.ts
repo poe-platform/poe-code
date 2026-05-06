@@ -675,10 +675,10 @@ describe("generate", () => {
     const commandFile = files.find((file) => file.path === "bots/set-official.ts");
 
     expect(commandFile?.contents).toContain(
-      'dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] }))'
+      'dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"], global: true }))'
     );
     expect(commandFile?.contents).toContain(
-      'verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] }))'
+      'verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true }))'
     );
     expect(commandFile?.contents).not.toContain(
       'json: S.Optional(S.Boolean({ description: "Print the response as raw JSON.", scope: ["cli", "sdk"] }))'
@@ -984,8 +984,8 @@ describe("generate", () => {
     owner: S.Optional(S.String()),
     limit: S.Optional(S.Number({ default: 50, jsonType: "integer" })),
     official: S.Boolean(),
-    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"] })),
-    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"] })),
+    dryRun: S.Optional(S.Boolean({ description: "Print the HTTP request and exit without sending it.", scope: ["cli", "sdk"], global: true })),
+    verbose: S.Optional(S.Boolean({ description: "Log the request line to stderr.", short: "v", scope: ["cli", "sdk"], global: true })),
   }),`);
   });
 

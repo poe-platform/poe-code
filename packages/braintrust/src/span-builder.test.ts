@@ -105,6 +105,48 @@ describe("logSpawnSession", () => {
     );
   });
 
+  it("merges _meta from tool_call and tool_call_update into tool span metadata", async () => {
+    const calls: string[] = [];
+    const agentSpan = createMockSpan("agent", calls);
+    const toolSpan = createMockSpan("tool", calls);
+    const parentSpan = {
+      startSpan: vi.fn(() => agentSpan),
+    };
+    agentSpan.startSpan.mockImplementation(() => toolSpan);
+    mockBraintrust.currentSpan.mockReturnValue(parentSpan);
+    const client = createMockClient();
+
+    const events = [
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "tc-1",
+        title: "Read file",
+        kind: "read",
+        input: { path: "x" },
+        _meta: { ts: 100, toolName: "Read" },
+      },
+      {
+        sessionUpdate: "tool_call_update",
+        toolCallId: "tc-1",
+        content: [{ type: "text", text: "ok" }],
+        status: "completed",
+        _meta: { ts: 250 },
+      },
+    ] as unknown as AcpEvent[];
+    const ctx: SpawnContext = {
+      sessionId: "s",
+      agent: "codex",
+      events,
+      usage: { inputTokens: 0, outputTokens: 0 },
+    };
+
+    await logSpawnSession(client, ctx);
+
+    expect(calls).toContain(
+      'tool.log:{"input":{"path":"x"},"output":"ok","metadata":{"startTs":100,"toolName":"Read","endTs":250}}',
+    );
+  });
+
   it("includes spawn metadata on the agent span", async () => {
     const calls: string[] = [];
     const agentSpan = createMockSpan("agent", calls);

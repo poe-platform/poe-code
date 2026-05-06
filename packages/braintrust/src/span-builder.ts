@@ -71,14 +71,44 @@ function logToolSpans(agentSpan: BraintrustSpan, events: AcpEvent[]): void {
     });
 
     try {
+      const metadata = collectToolMeta(events, index, readString(toolCall.toolCallId));
       toolSpan.log({
         input: redact(readToolInput(toolCall)),
         output: redact(assembleToolOutput(events, index, readString(toolCall.toolCallId))),
+        ...(metadata ? { metadata } : {}),
       });
     } finally {
       toolSpan.end();
     }
   }
+}
+
+function collectToolMeta(
+  events: AcpEvent[],
+  toolCallIndex: number,
+  toolCallId: string | undefined,
+): Record<string, unknown> | undefined {
+  const merged: Record<string, unknown> = {};
+
+  const startMeta = asRecord(asRecord(events[toolCallIndex])?._meta);
+  if (startMeta) {
+    for (const [key, value] of Object.entries(startMeta)) {
+      merged[key === "ts" ? "startTs" : key] = value;
+    }
+  }
+
+  for (const event of events.slice(toolCallIndex + 1)) {
+    const update = asToolCallUpdate(event);
+    if (update === undefined) continue;
+    if (toolCallId !== undefined && update.toolCallId !== toolCallId) continue;
+    const updateMeta = asRecord(update._meta);
+    if (!updateMeta) continue;
+    for (const [key, value] of Object.entries(updateMeta)) {
+      merged[key === "ts" ? "endTs" : key] = value;
+    }
+  }
+
+  return Object.keys(merged).length > 0 ? merged : undefined;
 }
 
 function accumulateAgentOutput(events: AcpEvent[]): string {

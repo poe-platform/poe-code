@@ -20,6 +20,8 @@ type OpenApiOperationMap = Partial<Record<HttpMethod, OpenApiOperation>>;
 type OpenApiParameterLocation = "path" | "query" | "header" | "cookie";
 type SupportedOpenApiParameterLocation = "path" | "query";
 type OpenApiScalarType = "string" | "number" | "integer" | "boolean";
+type OpenApiSchemaType = OpenApiScalarType | "object" | "array";
+type OpenApiJsonSchemaType = OpenApiSchemaType | "null";
 export type GeneratedRequestLocation = Exclude<GeneratedParam["location"], "transport">;
 type FieldSchemaKind = "array" | "object" | "scalar";
 type NullHelperShape = "scalar" | "array";
@@ -130,7 +132,7 @@ export interface OpenApiMediaTypeObject {
 }
 
 export interface OpenApiSchemaObject {
-  type?: "string" | "number" | "integer" | "boolean" | "object" | "array";
+  type?: OpenApiJsonSchemaType | readonly OpenApiJsonSchemaType[];
   additionalProperties?: boolean | OpenApiSchemaObject | OpenApiReferenceObject;
   allOf?: Array<OpenApiSchemaObject | OpenApiReferenceObject>;
   anyOf?: Array<OpenApiSchemaObject | OpenApiReferenceObject>;
@@ -821,20 +823,16 @@ function expectSupportedSuccessResponseSchema(
   operationId: string,
   context: string
 ): OpenApiSchemaObject {
-  const resolvedSchema = resolveSchema(document, schema, operationId, context);
+  const resolvedSchema = normalizeNullableSchema(
+    document,
+    resolveSchema(document, schema, operationId, context),
+    operationId,
+    context
+  );
   const compositionKeyword = getCompositionKeyword(resolvedSchema);
 
   if (compositionKeyword === undefined) {
     return resolvedSchema;
-  }
-
-  const nullableAnyOfSchema =
-    compositionKeyword === "anyOf"
-      ? resolveNullableAnyOfSchema(document, resolvedSchema, operationId, context)
-      : undefined;
-
-  if (nullableAnyOfSchema !== undefined) {
-    return nullableAnyOfSchema;
   }
 
   throw new UserError(
@@ -1180,6 +1178,12 @@ function createParamDefinition(
   operationId: string,
   context: string
 ): GeneratedParamDefinition {
+  if (Array.isArray(schema.type)) {
+    throw new UserError(
+      `Operation ${JSON.stringify(operationId)} uses unsupported ${context}. JSON Schema type arrays with multiple non-null types are not supported in v1.`
+    );
+  }
+
   if (schema.type === "array") {
     const itemSchema = expectArrayItemsSchema(document, schema, operationId, context);
 
@@ -1193,10 +1197,9 @@ function createParamDefinition(
     };
   }
 
-  const scalarDefinition =
-    schema.type === undefined || !(schema.type in SCHEMA_TYPE_TO_KIND)
-      ? undefined
-      : SCHEMA_TYPE_TO_KIND[schema.type as OpenApiScalarType];
+  const scalarDefinition = isOpenApiScalarType(schema.type)
+    ? SCHEMA_TYPE_TO_KIND[schema.type]
+    : undefined;
   const enumValues = normalizeEnumValues(
     schema.enum,
     operationId,
@@ -1468,6 +1471,10 @@ function isEnumPrimitiveValue(value: unknown): value is string | number | boolea
   return typeof value === "string" || typeof value === "number" || typeof value === "boolean";
 }
 
+function isOpenApiScalarType(type: OpenApiSchemaObject["type"]): type is OpenApiScalarType {
+  return typeof type === "string" && type in SCHEMA_TYPE_TO_KIND;
+}
+
 function expectRequestBody(
   document: OpenApiDocument,
   requestBody: OpenApiRequestBodyObject | OpenApiReferenceObject,
@@ -1522,7 +1529,12 @@ function expectSchema(
   context: string,
   refChain: readonly string[] = []
 ): OpenApiSchemaObject {
-  const resolvedSchema = resolveSchema(document, schema, operationId, context, refChain);
+  const resolvedSchema = normalizeNullableSchema(
+    document,
+    resolveSchema(document, schema, operationId, context, refChain),
+    operationId,
+    context
+  );
   const compositionKeyword = getCompositionKeyword(resolvedSchema);
 
   if (compositionKeyword !== undefined) {
@@ -1563,6 +1575,42 @@ function resolveSchema(
   return schema;
 }
 
+function normalizeNullableSchema(
+  document: OpenApiDocument,
+  schema: OpenApiSchemaObject,
+  operationId: string,
+  context: string
+): OpenApiSchemaObject {
+  const typeNormalizedSchema = normalizeNullableTypeArray(schema);
+
+  if (getCompositionKeyword(typeNormalizedSchema) !== "anyOf") {
+    return typeNormalizedSchema;
+  }
+
+  return (
+    resolveNullableAnyOfSchema(document, typeNormalizedSchema, operationId, context) ??
+    typeNormalizedSchema
+  );
+}
+
+function normalizeNullableTypeArray(schema: OpenApiSchemaObject): OpenApiSchemaObject {
+  if (!Array.isArray(schema.type)) {
+    return schema;
+  }
+
+  const nonNullTypes = schema.type.filter((type) => type !== "null");
+
+  if (nonNullTypes.length === schema.type.length) {
+    return schema;
+  }
+
+  return {
+    ...schema,
+    type: nonNullTypes.length === 1 ? nonNullTypes[0] : nonNullTypes,
+    nullable: true
+  };
+}
+
 function getCompositionKeyword(
   schema: OpenApiSchemaObject
 ): "allOf" | "anyOf" | "oneOf" | undefined {
@@ -1588,7 +1636,12 @@ function resolveNullableAnyOfSchema(
   }
 
   const resolvedVariants = variants.map((variant, index) =>
-    resolveSchema(document, variant, operationId, `${context} anyOf variant ${index}`)
+    normalizeNullableSchema(
+      document,
+      resolveSchema(document, variant, operationId, `${context} anyOf variant ${index}`),
+      operationId,
+      `${context} anyOf variant ${index}`
+    )
   );
   const nullVariantIndex = resolvedVariants.findIndex(isExplicitNullSchema);
 
@@ -1602,8 +1655,15 @@ function resolveNullableAnyOfSchema(
     return undefined;
   }
 
+  const { anyOf: _anyOf, nullable: _nullable, ...wrapperSchema } = schema;
+  void _anyOf;
+  void _nullable;
+
   return {
+    ...wrapperSchema,
     ...nonNullVariant,
+    description: nonNullVariant.description ?? schema.description,
+    default: nonNullVariant.default ?? schema.default,
     nullable: true
   };
 }

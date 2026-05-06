@@ -107,3 +107,40 @@ await cp(
   path.join(rootDir, "packages", "agent-skill-config", "src", "templates", "terminal-pilot.md"),
   path.join(distDir, "templates", "terminal-pilot.md")
 );
+
+// Verify every bare import in the bundle is declared in package.json deps.
+// Without this, transitive workspace npm deps (e.g. yaml, jose) get externalized
+// by esbuild but never installed when terminal-pilot is published.
+const ownDepsSet = new Set(ownDeps);
+const importRegex = /(?:^|[\s;])(?:import\s+[^"'`]*?from\s+|export\s+[^"'`]*?from\s+|import\s*)["']([^"'`]+)["']/gm;
+const bundleImports = new Set();
+
+async function collectImports(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await collectImports(full);
+    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+      const contents = await readFile(full, "utf8");
+      for (const match of contents.matchAll(importRegex)) {
+        const spec = match[1];
+        if (spec.startsWith(".") || spec.startsWith("node:")) continue;
+        const pkgName = spec.startsWith("@")
+          ? spec.split("/").slice(0, 2).join("/")
+          : spec.split("/")[0];
+        bundleImports.add(pkgName);
+      }
+    }
+  }
+}
+
+await collectImports(distDir);
+
+const missing = [...bundleImports].filter((dep) => !ownDepsSet.has(dep)).sort();
+if (missing.length > 0) {
+  console.error(
+    `\nterminal-pilot bundle imports packages not in dependencies:\n  ${missing.join("\n  ")}\n\nAdd them to packages/terminal-pilot/package.json "dependencies" so they install when the package is published.`
+  );
+  process.exit(1);
+}

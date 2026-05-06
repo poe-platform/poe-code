@@ -96,7 +96,7 @@ Options:
 exports[`runtime option help > snapshots superintendent help 1`] = `
 "Poe - poe-code superintendent run — Run the full superintendent loop.
 
-Usage: poe-code superintendent run [options] [doc]
+Usage: poe-code superintendent run [OPTIONS] [doc]
 
 OPTIONS
   [doc]                        Path to the superintendent markdown document
@@ -109,9 +109,5 @@ OPTIONS
   --mount-poe-code             Mount the local poe-code checkout into the runtime
   --runner-sync <value>        Override runner workspace sync: both, upload, or none
   --tui                        Show a live dashboard while Superintendent is running
-
-OPTIONS
-  --yes               Accept defaults, skip prompts
-  --output <format>   Output format: rich, md, json.
 "
 `;

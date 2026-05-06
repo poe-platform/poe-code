@@ -2,9 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 import type { ConfigDocument } from "./types.js";
 
 describe("loadIntegrations", () => {
-  it("returns null without calling bootstrap when disabled", async () => {
-    const bootstrap = vi.fn();
-    vi.doMock("@poe-code/braintrust", () => ({ bootstrap }));
+  it("returns null without importing Braintrust when disabled", async () => {
+    let imported = false;
+    vi.doMock("@poe-code/braintrust", () => {
+      imported = true;
+      return {
+        bootstrap: vi.fn()
+      };
+    });
 
     const { loadIntegrations } = await import("./integrations-loader.js");
     const result = await loadIntegrations({
@@ -16,7 +21,7 @@ describe("loadIntegrations", () => {
     } as ConfigDocument);
 
     expect(result).toBeNull();
-    expect(bootstrap).not.toHaveBeenCalled();
+    expect(imported).toBe(false);
 
     vi.doUnmock("@poe-code/braintrust");
   });

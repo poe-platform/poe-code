@@ -2,8 +2,6 @@ import type {
   AcpEvent,
   AcpSpawnContext as SpawnContext,
 } from "@poe-code/agent-spawn";
-import type { ConfigDocument } from "@poe-code/poe-code-config";
-import { mergePipelineCallbacks } from "@poe-code/poe-code-config";
 import type { TaskCompletion, TaskProgress } from "@poe-code/pipeline";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -145,42 +143,40 @@ describe("Braintrust integration", () => {
   it("traces a pipeline run through bootstrap, pipeline callbacks, and spawn middleware", async () => {
     const { bootstrap } = await import("./index.js");
     const integrations = await bootstrap({
-      integrations: {
-        braintrust: {
-          enabled: true,
-          apiKey: "key",
-          project: "project",
-        },
-      },
-    } as ConfigDocument);
+      enabled: true,
+      apiKey: "key",
+      project: "project",
+    });
     expect(integrations).not.toBeNull();
 
     const spawnRuns: Promise<void>[] = [];
-    const callbacks = mergePipelineCallbacks(integrations?.pipelineCallbacks, {
-      onTaskStart(progress) {
-        spawnRuns.push((async () => {
-          await nextTick();
-          await integrations?.spawnMiddleware?.(
-            createSpawnContext(progress, progress.taskIndex === 0
-              ? ["read", "execute"]
-              : ["search"]),
-            async () => undefined,
-          );
-        })());
-      },
-    });
+    const onTaskStart = (progress: TaskProgress): void => {
+      integrations?.pipelineCallbacks?.onTaskStart?.(progress);
+      spawnRuns.push((async () => {
+        await nextTick();
+        await integrations?.spawnMiddleware?.(
+          createSpawnContext(progress, progress.taskIndex === 0
+            ? ["read", "execute"]
+            : ["search"]),
+          async () => undefined,
+        );
+      })());
+    };
+    const onTaskComplete = (completion: TaskCompletion): void => {
+      integrations?.pipelineCallbacks?.onTaskComplete?.(completion);
+    };
 
     await integrations?.traceRun("pipeline", "demo", async () => {
       const first = createTaskProgress(0);
-      callbacks?.onTaskStart?.(first);
+      onTaskStart(first);
       await drain(spawnRuns);
-      callbacks?.onTaskComplete?.(createTaskCompletion(first));
+      onTaskComplete(createTaskCompletion(first));
       await nextTick();
 
       const second = createTaskProgress(1);
-      callbacks?.onTaskStart?.(second);
+      onTaskStart(second);
       await drain(spawnRuns);
-      callbacks?.onTaskComplete?.(createTaskCompletion(second));
+      onTaskComplete(createTaskCompletion(second));
       await nextTick();
     });
 

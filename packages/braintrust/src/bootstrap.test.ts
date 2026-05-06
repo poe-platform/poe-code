@@ -1,12 +1,9 @@
-import type {
-  BraintrustIntegrationConfig,
-  ConfigDocument,
-} from "@poe-code/poe-code-config";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import type { BraintrustOptions } from "./index.js";
 
 const mockBraintrust = vi.hoisted(() => ({
   importCount: 0,
-  mode: "healthy" as "healthy" | "missing",
   initLogger: vi.fn(),
   initExperiment: vi.fn(),
   flush: vi.fn(),
@@ -16,14 +13,6 @@ const mockBraintrust = vi.hoisted(() => ({
 
 vi.mock("braintrust", () => {
   mockBraintrust.importCount += 1;
-
-  if (mockBraintrust.mode === "missing") {
-    const err = new Error("Cannot find package 'braintrust'") as Error & {
-      code: string;
-    };
-    err.code = "ERR_MODULE_NOT_FOUND";
-    throw err;
-  }
 
   return {
     initLogger: mockBraintrust.initLogger,
@@ -38,7 +27,6 @@ describe("bootstrap", () => {
   beforeEach(() => {
     vi.resetModules();
     mockBraintrust.importCount = 0;
-    mockBraintrust.mode = "healthy";
     mockBraintrust.initLogger.mockReset();
     mockBraintrust.initExperiment.mockReset();
     mockBraintrust.flush.mockReset();
@@ -46,69 +34,48 @@ describe("bootstrap", () => {
     mockBraintrust.currentSpan.mockReset();
   });
 
-  it("returns null without importing Braintrust when integration is disabled", async () => {
+  it("returns null when integration is disabled", async () => {
     const { bootstrap } = await import("./index.js");
 
-    await expect(bootstrap(config())).resolves.toBeNull();
-
-    expect(mockBraintrust.importCount).toBe(0);
+    expect(bootstrap(config())).toBeNull();
   });
 
-  it("throws a one-line apiKey message before importing Braintrust", async () => {
+  it("throws a one-line apiKey message", async () => {
     const { bootstrap } = await import("./index.js");
 
-    await expect(
+    expect(() =>
       bootstrap(config({ enabled: true, project: "project" })),
-    ).rejects.toThrow("Braintrust integration is enabled but apiKey is missing");
-    expect(mockBraintrust.importCount).toBe(0);
+    ).toThrow("Braintrust integration is enabled but apiKey is missing");
   });
 
-  it("throws a one-line apiKey message for empty strings before importing Braintrust", async () => {
+  it("throws a one-line apiKey message for empty strings", async () => {
     const { bootstrap } = await import("./index.js");
 
-    await expect(
+    expect(() =>
       bootstrap(config({ enabled: true, apiKey: "  ", project: "project" })),
-    ).rejects.toThrow("Braintrust integration is enabled but apiKey is missing");
-    expect(mockBraintrust.importCount).toBe(0);
+    ).toThrow("Braintrust integration is enabled but apiKey is missing");
   });
 
-  it("throws a one-line project message before importing Braintrust", async () => {
+  it("throws a one-line project message", async () => {
     const { bootstrap } = await import("./index.js");
 
-    await expect(
+    expect(() =>
       bootstrap(config({ enabled: true, apiKey: "key" })),
-    ).rejects.toThrow("Braintrust integration is enabled but project is missing");
-    expect(mockBraintrust.importCount).toBe(0);
+    ).toThrow("Braintrust integration is enabled but project is missing");
   });
 
-  it("throws a one-line project message for empty strings before importing Braintrust", async () => {
+  it("throws a one-line project message for empty strings", async () => {
     const { bootstrap } = await import("./index.js");
 
-    await expect(
+    expect(() =>
       bootstrap(config({ enabled: true, apiKey: "key", project: "" })),
-    ).rejects.toThrow("Braintrust integration is enabled but project is missing");
-    expect(mockBraintrust.importCount).toBe(0);
-  });
-
-  it("throws the peer install message when Braintrust is missing", async () => {
-    mockBraintrust.mode = "missing";
-    const { bootstrap } = await import("./index.js");
-
-    await expect(
-      bootstrap(config({
-        enabled: true,
-        apiKey: "key",
-        project: "project",
-      })),
-    ).rejects.toThrow(
-      "Braintrust integration is enabled but the 'braintrust' package is not installed. Run: npm i braintrust",
-    );
+    ).toThrow("Braintrust integration is enabled but project is missing");
   });
 
   it("returns integrations with all callback fields populated when enabled and valid", async () => {
     const { bootstrap } = await import("./index.js");
 
-    const integrations = await bootstrap(config({
+    const integrations = bootstrap(config({
       enabled: true,
       apiKey: "key",
       project: "project",
@@ -140,7 +107,6 @@ describe("bootstrap", () => {
     });
     expect(integrations?.traceRun).toEqual(expect.any(Function));
     expect(integrations?.shutdown).toEqual(expect.any(Function));
-    expect(mockBraintrust.importCount).toBe(1);
   });
 
   it("flushes the shared Braintrust client on shutdown", async () => {
@@ -152,7 +118,7 @@ describe("bootstrap", () => {
     mockBraintrust.flush.mockResolvedValue(undefined);
     const { bootstrap } = await import("./index.js");
 
-    const integrations = await bootstrap(config({
+    const integrations = bootstrap(config({
       enabled: true,
       apiKey: "key",
       project: "project",
@@ -171,11 +137,7 @@ describe("bootstrap", () => {
 });
 
 function config(
-  braintrust?: Partial<BraintrustIntegrationConfig>,
-): ConfigDocument {
-  return {
-    integrations: {
-      braintrust,
-    },
-  } as ConfigDocument;
+  braintrust?: Partial<BraintrustOptions>,
+): BraintrustOptions | undefined {
+  return braintrust;
 }

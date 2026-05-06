@@ -1,8 +1,4 @@
 import type { AcpMiddleware } from "@poe-code/agent-spawn";
-import type {
-  BraintrustIntegrationConfig,
-  ConfigDocument as PoeCodeConfig,
-} from "@poe-code/poe-code-config";
 import type { LoopCallbacks } from "@poe-code/superintendent";
 
 import { createClient } from "./client.js";
@@ -17,6 +13,13 @@ import {
 import { createSpawnMiddleware } from "./adapters/spawn.js";
 import { createSuperintendentCallbacks } from "./adapters/superintendent.js";
 import { makeTraceRun, type TraceSurface } from "./trace-run.js";
+
+export interface BraintrustOptions {
+  enabled?: boolean;
+  apiKey?: string;
+  apiUrl?: string;
+  project?: string;
+}
 
 export interface Integrations {
   spawnMiddleware?: AcpMiddleware;
@@ -36,34 +39,21 @@ export interface Integrations {
   shutdown(): Promise<void>;
 }
 
-export async function bootstrap(
-  config: PoeCodeConfig,
-): Promise<Integrations | null> {
-  const braintrust = config.integrations?.braintrust;
-  if (braintrust?.enabled !== true) {
+export function bootstrap(
+  options: BraintrustOptions | undefined,
+): Integrations | null {
+  if (options?.enabled !== true) {
     return null;
   }
 
-  validateBraintrustConfig(braintrust);
+  validateBraintrustConfig(options);
 
-  try {
-    await import("braintrust");
-  } catch (err) {
-    if (isModuleNotFound(err)) {
-      throw new Error(
-        "Braintrust integration is enabled but the 'braintrust' package is not installed. Run: npm i braintrust",
-      );
-    }
-
-    throw err;
-  }
-
-  const client = createClient(braintrust);
+  const client = createClient(options);
 
   return {
     spawnMiddleware: createSpawnMiddleware(client),
     pipelineCallbacks: createPipelineCallbacks(client),
-    experimentCallbacks: createExperimentCallbacks(client, braintrust.project),
+    experimentCallbacks: createExperimentCallbacks(client, options.project),
     superintendentCallbacks: createSuperintendentCallbacks(client),
     status: () => client.status(),
     traceRun: makeTraceRun(client),
@@ -74,13 +64,13 @@ export async function bootstrap(
 }
 
 function validateBraintrustConfig(
-  braintrust: BraintrustIntegrationConfig,
-): asserts braintrust is BraintrustIntegrationConfig & {
+  options: BraintrustOptions,
+): asserts options is BraintrustOptions & {
   apiKey: string;
   project: string;
 } {
-  requiredString(braintrust.apiKey, "apiKey");
-  requiredString(braintrust.project, "project");
+  requiredString(options.apiKey, "apiKey");
+  requiredString(options.project, "project");
 }
 
 function requiredString(value: unknown, field: "apiKey" | "project"): void {
@@ -89,20 +79,4 @@ function requiredString(value: unknown, field: "apiKey" | "project"): void {
   }
 
   throw new Error(`Braintrust integration is enabled but ${field} is missing`);
-}
-
-function isModuleNotFound(err: unknown): boolean {
-  if (typeof err !== "object" || err === null) {
-    return false;
-  }
-
-  if ("code" in err && err.code === "ERR_MODULE_NOT_FOUND") {
-    return true;
-  }
-
-  if ("cause" in err) {
-    return isModuleNotFound(err.cause);
-  }
-
-  return false;
 }

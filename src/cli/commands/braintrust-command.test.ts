@@ -89,27 +89,6 @@ describe("braintrust command", () => {
     expect(braintrustMock.bootstrap).not.toHaveBeenCalled();
   });
 
-  it("prints peer install guidance when bootstrap reports the Braintrust SDK is missing", async () => {
-    await writeConfig(fs, {
-      integrations: {
-        braintrust: {
-          enabled: true,
-          apiKey: "key",
-          project: "poe-code"
-        }
-      }
-    });
-    braintrustMock.bootstrap.mockRejectedValue(
-      new Error(
-        "Braintrust integration is enabled but the 'braintrust' package is not installed. Run: npm i braintrust"
-      )
-    );
-
-    const logs = await runBraintrustStatus(fs);
-
-    expect(logs).toContain("not installed: run npm i braintrust");
-  });
-
   it("bootstraps configured Braintrust and shuts it down before exit", async () => {
     await writeConfig(fs, {
       integrations: {
@@ -120,7 +99,7 @@ describe("braintrust command", () => {
         }
       }
     });
-    braintrustMock.bootstrap.mockResolvedValue({
+    braintrustMock.bootstrap.mockReturnValue({
       status: () => ({
         project: "poe-code",
         lastError: "flush failed",
@@ -131,17 +110,11 @@ describe("braintrust command", () => {
 
     const logs = await runBraintrustStatus(fs);
 
-    expect(braintrustMock.bootstrap).toHaveBeenCalledWith(
-      expect.objectContaining({
-        integrations: {
-          braintrust: {
-            enabled: true,
-            apiKey: "key",
-            project: "poe-code"
-          }
-        }
-      })
-    );
+    expect(braintrustMock.bootstrap).toHaveBeenCalledWith({
+      enabled: true,
+      apiKey: "key",
+      project: "poe-code"
+    });
     expect(logs).toContain("enabled, project=poe-code, last error: flush failed, errors: 2");
     expect(braintrustMock.shutdown).toHaveBeenCalledOnce();
   });
@@ -156,7 +129,7 @@ describe("braintrust command", () => {
         }
       }
     });
-    braintrustMock.bootstrap.mockResolvedValue({
+    braintrustMock.bootstrap.mockReturnValue({
       status: () => ({
         project: "poe-code",
         lastError: null,

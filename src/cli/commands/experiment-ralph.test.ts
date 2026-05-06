@@ -20,6 +20,12 @@ const { selectMock, promptTextMock, isCancelMock, cancelMock } = vi.hoisted(() =
   cancelMock: vi.fn()
 }));
 
+const braintrustBootstrapMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@poe-code/braintrust", () => ({
+  bootstrap: braintrustBootstrapMock
+}));
+
 vi.mock("../../sdk/experiment.js", () => ({
   runExperiment: vi.fn().mockResolvedValue({
     stopReason: "max_experiments",
@@ -717,15 +723,13 @@ describe("experiment run command", () => {
 
   it("runs integration experiment callbacks after CLI callbacks when enabled", async () => {
     const calls: string[] = [];
-    vi.doMock("@poe-code/braintrust", () => ({
-      bootstrap: vi.fn(async () => ({
-        experimentCallbacks: {
-          onExperimentStart: () => calls.push("integration")
-        },
-        traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
-        shutdown: vi.fn(async () => undefined)
-      }))
-    }));
+    braintrustBootstrapMock.mockReturnValue({
+      experimentCallbacks: {
+        onExperimentStart: () => calls.push("integration")
+      },
+      traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
+      shutdown: vi.fn(async () => undefined)
+    });
     vi.mocked(sdkRunExperiment).mockImplementationOnce(async (options) => {
       options.onExperimentStart?.(1, "codex");
       return {
@@ -777,7 +781,7 @@ describe("experiment run command", () => {
 
     expect(calls).toEqual(["cli", "integration"]);
 
-    vi.doUnmock("@poe-code/braintrust");
+    braintrustBootstrapMock.mockReset();
   });
 
   it("uses the experiment.tui config value when set", async () => {

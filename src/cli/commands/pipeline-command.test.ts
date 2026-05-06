@@ -17,6 +17,12 @@ const { selectMock, cancelMock, resolvePipelineLoopAgentMock } = vi.hoisted(() =
   resolvePipelineLoopAgentMock: vi.fn()
 }));
 
+const braintrustBootstrapMock = vi.hoisted(() => vi.fn());
+
+vi.mock("@poe-code/braintrust", () => ({
+  bootstrap: braintrustBootstrapMock
+}));
+
 vi.mock("../../sdk/pipeline.js", () => ({
   runPipelineInit: vi.fn().mockResolvedValue({
     stopReason: "done",
@@ -223,15 +229,13 @@ describe("pipeline run command", () => {
 
   it("runs integration pipeline callbacks after CLI callbacks when enabled", async () => {
     const calls: string[] = [];
-    vi.doMock("@poe-code/braintrust", () => ({
-      bootstrap: vi.fn(async () => ({
-        pipelineCallbacks: {
-          onTaskStart: () => calls.push("integration")
-        },
-        traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
-        shutdown: vi.fn(async () => undefined)
-      }))
-    }));
+    braintrustBootstrapMock.mockReturnValue({
+      pipelineCallbacks: {
+        onTaskStart: () => calls.push("integration")
+      },
+      traceRun: async (_surface: string, _name: string, fn: () => Promise<unknown>) => fn(),
+      shutdown: vi.fn(async () => undefined)
+    });
     vi.mocked(sdkRunPipeline).mockImplementationOnce(async (options) => {
       options.onTaskStart?.({
         taskId: "task-1",
@@ -294,7 +298,7 @@ describe("pipeline run command", () => {
 
     expect(calls).toEqual(["cli", "integration"]);
 
-    vi.doUnmock("@poe-code/braintrust");
+    braintrustBootstrapMock.mockReset();
   });
 
   it("reads plan.plan_directory for pipeline discovery", async () => {

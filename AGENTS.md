@@ -10,6 +10,8 @@ NEVER EVER REVERT CHANGES THAT YOU DIDN'T MAKE
 
 When adding a new provider, the author should be creating 1 provider file, everything else is automatic, derived from the provider config. We can't have any if/case statements that will branch depending on the provider.
 
+We are not doing branches unless requested. Everything happens on main and we push straight to main (when requested).
+
 ## Bad habits that I want to avoid
 
 - Functions that do nothing just proxy to another functions are not allowed

@@ -2371,6 +2371,77 @@ describe("generate", () => {
     );
   });
 
+  it("treats OpenAPI 3.1 anyOf null request body fields as nullable fields", () => {
+    const files = generate(
+      createDocument({
+        "/bots/{botHandle}": {
+          patch: {
+            tags: ["bots"],
+            operationId: "patchBot",
+            parameters: [
+              {
+                name: "botHandle",
+                in: "path",
+                required: true,
+                schema: { type: "string" }
+              }
+            ],
+            requestBody: {
+              required: true,
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      display_name: {
+                        anyOf: [{ type: "string" }, { type: "null" }]
+                      },
+                      allow_related_bot_recommendations: {
+                        anyOf: [{ type: "null" }, { type: "boolean" }]
+                      },
+                      picture_url: {
+                        type: ["string", "null"],
+                        format: "uri",
+                        minLength: 1,
+                        maxLength: 2083
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            responses: {
+              "200": {
+                description: "Updated."
+              }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find(
+      (file) =>
+        file.contents.includes('path: "/bots/{botHandle}"') &&
+        file.contents.includes('method: "PATCH"')
+    );
+
+    expect(commandFile?.contents).toContain(
+      '"display_name": S.Optional(S.String({ nullable: true }))'
+    );
+    expect(commandFile?.contents).toContain(
+      '"allow_related_bot_recommendations": S.Optional(S.Boolean({ nullable: true }))'
+    );
+    expect(commandFile?.contents).toContain(
+      '"picture_url": S.Optional(S.String({ minLength: 1, maxLength: 2083, format: "uri", nullable: true }))'
+    );
+    expect(commandFile?.contents).toContain("displayNameNull: S.Optional(S.Boolean(");
+    expect(commandFile?.contents).toContain(
+      "const resolvedDisplayName = params.displayNameNull ? null : params.display_name;"
+    );
+  });
+
   it("makes required nullable scalar body fields CLI-optional while keeping MCP and SDK required", () => {
     const files = generate(
       createDocument({

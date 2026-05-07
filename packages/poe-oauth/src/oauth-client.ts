@@ -1,10 +1,10 @@
 import type http from "node:http";
+import { createLoopbackAuthorizationSession } from "./loopback-authorization.js";
+import type { OAuthLandingPage } from "./loopback-authorization.js";
 import {
-  createLoopbackAuthorizationSession,
   generateCodeChallenge as generatePkceCodeChallenge,
   generateCodeVerifier as generatePkceCodeVerifier,
-  type OAuthLandingPage,
-} from "../../mcp-oauth/dist/index.js";
+} from "./pkce.js";
 
 const DEFAULT_AUTHORIZATION_ENDPOINT = "https://poe.com/oauth/authorize";
 const DEFAULT_TOKEN_ENDPOINT = "https://api.poe.com/token";

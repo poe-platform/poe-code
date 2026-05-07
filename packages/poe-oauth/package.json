@@ -13,9 +13,6 @@
   "scripts": {
     "build": "tsc"
   },
-  "dependencies": {
-    "mcp-oauth": "*"
-  },
   "files": [
     "dist"
   ],

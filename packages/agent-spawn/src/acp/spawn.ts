@@ -112,6 +112,21 @@ function getMcpArgsPosition(
   return config.mcpArgsBeforeCommand ? "beforeCommand" : "afterCommand";
 }
 
+function getResumeArgs(
+  config: CliSpawnConfig,
+  options: Pick<SpawnStreamingOptions, "resumeThreadId" | "cwd">
+): string[] {
+  if (!options.resumeThreadId) {
+    return [];
+  }
+
+  if (!config.resume) {
+    throw new Error(`Agent "${config.agentId}" does not support resumeThreadId.`);
+  }
+
+  return config.resume.args(options.resumeThreadId, options.cwd ?? process.cwd());
+}
+
 export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingResult {
   if (options.signal?.aborted) {
     throw createAbortError();
@@ -133,8 +148,10 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
 
   const mcpArgs = getMcpArgs(spawnConfig, options.mcpServers);
   const mcpEnvVars = getMcpEnv(spawnConfig, options.mcpServers);
+  const resumeArgs = getResumeArgs(spawnConfig, options);
   const defaultArgsPosition = getDefaultArgsPosition(spawnConfig);
   const mcpArgsPosition = getMcpArgsPosition(spawnConfig);
+  const resumeArgsPosition = spawnConfig.resume?.position ?? "afterPrompt";
   const args: string[] = [];
 
   if (mcpArgsPosition === "beforeCommand") {
@@ -150,6 +167,10 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   }
 
   args.push(spawnConfig.promptFlag);
+
+  if (resumeArgsPosition === "beforePrompt") {
+    args.push(...resumeArgs);
+  }
 
   const useStdin = !!options.useStdin && !!spawnConfig.stdinMode;
   if (!useStdin || !spawnConfig.stdinMode?.omitPrompt) {
@@ -180,7 +201,12 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   }
 
   if (options.args && options.args.length > 0) {
+    if (resumeArgsPosition === "afterPrompt") {
+      args.push(...resumeArgs);
+    }
     args.push(...options.args);
+  } else if (resumeArgsPosition === "afterPrompt") {
+    args.push(...resumeArgs);
   }
 
   const envOverrides = { ...mcpEnvVars, ...modeResolved.env };

@@ -7,6 +7,7 @@ export interface SpawnCommandOptions {
   model?: string;
   mode?: SpawnMode;
   mcpServers?: McpSpawnConfig;
+  resumeThreadId?: string;
   logDir?: string;
   activityTimeoutMs?: number;
   middlewares?: AcpMiddleware[];

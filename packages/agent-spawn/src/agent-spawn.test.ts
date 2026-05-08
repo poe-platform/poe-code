@@ -173,6 +173,42 @@ describe("buildSpawnArgs", () => {
     ]);
   });
 
+  it("builds codex resume args from resumeThreadId", () => {
+    const result = buildSpawnArgs("codex", {
+      prompt: "continue",
+      model: "o3",
+      resumeThreadId: "thread_abc123"
+    });
+
+    expect(result.binaryName).toBe("codex");
+    expect(result.args).toEqual([
+      codexSpawnConfig.promptFlag,
+      "resume",
+      "thread_abc123",
+      "continue",
+      codexSpawnConfig.modelFlag,
+      "o3",
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
+    ]);
+  });
+
+  it("builds claude-code resume args from resumeThreadId", () => {
+    const result = buildSpawnArgs("claude-code", {
+      prompt: "continue",
+      resumeThreadId: "thread_abc123"
+    });
+
+    expect(result.args).toEqual([
+      claudeCodeSpawnConfig.promptFlag,
+      "continue",
+      ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.yolo,
+      "--resume",
+      "thread_abc123"
+    ]);
+  });
+
   it("strips provider namespace and converts dots to hyphens for claude-code model", () => {
     const result = buildSpawnArgs("claude-code", {
       prompt: "test",
@@ -562,6 +598,28 @@ describe("spawn", () => {
       "o3",
       ...codexSpawnConfig.defaultArgs,
       ...codexSpawnConfig.modes.yolo
+    ]);
+  });
+
+  it("passes resumeThreadId through provider resume args", async () => {
+    const spawnMock = vi
+      .mocked(spawnChildProcess)
+      .mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+
+    await spawn("claude-code", {
+      prompt: "continue",
+      resumeThreadId: "thread_abc123"
+    });
+
+    const [command, args] = spawnMock.mock.calls[0];
+    expect(command).toBe("claude");
+    expect(args).toEqual([
+      claudeCodeSpawnConfig.promptFlag,
+      "continue",
+      ...claudeCodeSpawnConfig.defaultArgs,
+      ...claudeCodeSpawnConfig.modes.yolo,
+      "--resume",
+      "thread_abc123"
     ]);
   });
 

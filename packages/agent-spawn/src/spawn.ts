@@ -33,6 +33,8 @@ export interface BuildSpawnArgsOptions {
   mode?: SpawnMode;
   args?: string[];
   mcpServers?: McpSpawnConfig;
+  resumeThreadId?: string;
+  cwd?: string;
   useStdin?: boolean;
 }
 
@@ -83,8 +85,10 @@ function buildCliArgs(
   stdinMode?: StdinMode
 ): { args: string[]; env?: Record<string, string> } {
   const mcpArgs = getMcpArgs(config, options.mcpServers);
+  const resumeArgs = getResumeArgs(config, options);
   const defaultArgsPosition = getDefaultArgsPosition(config);
   const mcpArgsPosition = getMcpArgsPosition(config);
+  const resumeArgsPosition = config.resume?.position ?? "afterPrompt";
 
   const args: string[] = [];
 
@@ -101,13 +105,17 @@ function buildCliArgs(
   }
 
   if (stdinMode) {
-    args.push(
-      config.promptFlag,
-      ...(stdinMode.omitPrompt ? [] : [options.prompt]),
-      ...stdinMode.extraArgs
-    );
+    args.push(config.promptFlag);
+    if (resumeArgsPosition === "beforePrompt") {
+      args.push(...resumeArgs);
+    }
+    args.push(...(stdinMode.omitPrompt ? [] : [options.prompt]), ...stdinMode.extraArgs);
   } else {
-    args.push(config.promptFlag, options.prompt);
+    args.push(config.promptFlag);
+    if (resumeArgsPosition === "beforePrompt") {
+      args.push(...resumeArgs);
+    }
+    args.push(options.prompt);
   }
 
   if (options.model && config.modelFlag) {
@@ -130,10 +138,30 @@ function buildCliArgs(
   args.push(...mode.args);
 
   if (options.args && options.args.length > 0) {
+    if (resumeArgsPosition === "afterPrompt") {
+      args.push(...resumeArgs);
+    }
     args.push(...options.args);
+  } else if (resumeArgsPosition === "afterPrompt") {
+    args.push(...resumeArgs);
   }
 
   return { args, env: mode.env };
+}
+
+function getResumeArgs(
+  config: CliSpawnConfig,
+  options: Pick<BuildSpawnArgsOptions, "resumeThreadId" | "cwd">
+): string[] {
+  if (!options.resumeThreadId) {
+    return [];
+  }
+
+  if (!config.resume) {
+    throw new Error(`Agent "${config.agentId}" does not support resumeThreadId.`);
+  }
+
+  return config.resume.args(options.resumeThreadId, options.cwd ?? process.cwd());
 }
 
 export function buildSpawnArgs(

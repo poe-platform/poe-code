@@ -70,6 +70,9 @@ vi.mock("@poe-code/poe-acp-client", () => {
   class MockAcpClient {
     initialize = vi.fn().mockResolvedValue(initResponse);
     newSession = vi.fn().mockResolvedValue(newSessionResponse);
+    loadSession = vi.fn().mockImplementation((sessionId: string) => {
+      return Promise.resolve({ sessionId });
+    });
     prompt = vi.fn().mockImplementation(() => {
       const notifications = mockPromptNotifications ?? defaultNotifications;
 
@@ -686,6 +689,41 @@ describe("spawnAcp", () => {
     expect(lastMockAcpClient.newSession).toHaveBeenCalledWith("/tmp/test", []);
   });
 
+  it("loads the existing ACP session when resumeThreadId is provided", async () => {
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "continue",
+      cwd: "/tmp/test",
+      resumeThreadId: "ses_existing",
+      mcpServers: {
+        docs: {
+          command: "markdown-reader"
+        }
+      }
+    });
+
+    await collect(events);
+    const result = await done;
+
+    expect(lastMockAcpClient.newSession).not.toHaveBeenCalled();
+    expect(lastMockAcpClient.loadSession).toHaveBeenCalledWith(
+      "ses_existing",
+      "/tmp/test",
+      [
+        {
+          name: "docs",
+          command: "markdown-reader",
+          args: [],
+          env: []
+        }
+      ]
+    );
+    expect(lastMockAcpClient.prompt).toHaveBeenCalledWith("ses_existing", [
+      { type: "text", text: "continue" }
+    ]);
+    expect(result.threadId).toBe("ses_existing");
+  });
+
   it("passes Goose file-secret env to the ACP server", async () => {
     const { events, done } = spawnAcp({
       agentId: "goose",
@@ -802,6 +840,38 @@ describe("acp/spawnStreaming", () => {
     expect(command).toBe("opencode");
     expect(args).toEqual([openCodeSpawnConfig.promptFlag, "hello", ...openCodeSpawnConfig.defaultArgs, ...openCodeSpawnConfig.modes.yolo]);
     expect(spawnOptions).toMatchObject({ cwd: "/tmp", stdio: ["pipe", "pipe", "pipe"] });
+  });
+
+  it("passes resumeThreadId through streaming provider args", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({ event: "session_start", threadId: "thread_abc123" })
+      ],
+      exitCode: 0
+    });
+
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const { events, done } = spawnStreaming({
+      agentId: "codex",
+      prompt: "continue",
+      cwd: "/tmp",
+      resumeThreadId: "thread_abc123"
+    });
+
+    await collect(events);
+    await done;
+
+    const [command, args] = spawnMock.mock.calls[0];
+    expect(command).toBe("codex");
+    expect(args).toEqual([
+      codexSpawnConfig.promptFlag,
+      "resume",
+      "thread_abc123",
+      "continue",
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
+    ]);
   });
 
   it("routes streaming spawns through the requested runtime backend", async () => {

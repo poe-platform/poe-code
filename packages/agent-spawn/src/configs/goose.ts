@@ -27,7 +27,10 @@ export const gooseSpawnConfig: CliSpawnConfig = {
     defaultArgs: ["session"],
     defaultArgsPosition: "beforePrompt"
   },
-  resumeCommand: () => ["run", "--resume", "--text", "continue"]
+  resume: {
+    args: (threadId) => ["--resume", "--session-id", threadId],
+    hintArgs: (threadId) => ["run", "--resume", "--session-id", threadId, "--text", "continue"]
+  }
 };
 
 export const gooseAcpSpawnConfig: AcpSpawnConfig = {

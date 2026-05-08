@@ -84,7 +84,10 @@ export const openCodeSpawnConfig: CliSpawnConfig = {
     defaultArgs: [],
     promptFlag: "--prompt"
   },
-  resumeCommand: (threadId, cwd) => [cwd, "--session", threadId],
+  resume: {
+    args: (threadId) => ["--session", threadId],
+    hintArgs: (threadId, cwd) => [cwd, "--session", threadId]
+  },
   mcpEnv: serializeOpenCodeMcpEnv
 };
 

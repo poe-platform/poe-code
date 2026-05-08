@@ -114,8 +114,8 @@ type ignoredCliSpawnConfigMissingPromptFlag = AssertAssignable<CliSpawnConfig, {
 // @ts-expect-error adapter is required on CliSpawnConfig
 type ignoredCliSpawnConfigMissingAdapter = AssertAssignable<CliSpawnConfig, { kind: "cli"; agentId: string; promptFlag: string; defaultArgs: string[] }>;
 
-// resumeCommand property exists on CliSpawnConfig with correct signature
-type ignoredResumeCommandType = AssertAssignable<
+// resume.args is required on a ResumeSpec
+type ignoredResumeArgsType = AssertAssignable<
   ((threadId: string, cwd: string) => string[]) | undefined,
-  CliSpawnConfig["resumeCommand"]
+  CliSpawnConfig["resume"] extends infer R ? (R extends { args: infer A } ? A : undefined) : undefined
 >;

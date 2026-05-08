@@ -13,6 +13,7 @@ export interface SpawnAcpOptions {
   model?: string;
   mode?: SpawnMode;
   mcpServers?: McpSpawnConfig;
+  resumeThreadId?: string;
   runtime?: "host" | "docker" | "e2b";
   runtimeImage?: string;
   runtimeTemplate?: string;
@@ -146,8 +147,15 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
         await client.authenticate(initResult.authMethods[0].id);
       }
 
-      const session = await client.newSession(options.cwd ?? process.cwd(), toAcpMcpServers(options.mcpServers));
-      sessionId = session.sessionId;
+      const cwd = options.cwd ?? process.cwd();
+      const mcpServers = toAcpMcpServers(options.mcpServers);
+      if (options.resumeThreadId) {
+        await client.loadSession(options.resumeThreadId, cwd, mcpServers);
+        sessionId = options.resumeThreadId;
+      } else {
+        const session = await client.newSession(cwd, mcpServers);
+        sessionId = session.sessionId;
+      }
 
       pushEvent({ event: "session_start", threadId: sessionId });
 

@@ -24,5 +24,9 @@ export const codexSpawnConfig: CliSpawnConfig = {
   interactive: {
     defaultArgs: ["-a", "never"]
   },
-  resumeCommand: (threadId, cwd) => ["resume", "-C", cwd, threadId]
+  resume: {
+    args: (threadId) => ["resume", threadId],
+    position: "beforePrompt",
+    hintArgs: (threadId, cwd) => ["resume", "-C", cwd, threadId]
+  }
 };

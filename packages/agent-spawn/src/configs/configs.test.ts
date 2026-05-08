@@ -49,36 +49,25 @@ describe("configs/getAcpSpawnConfig", () => {
   });
 });
 
-describe("resumeCommand", () => {
+describe("resume.args (in-spawn injection)", () => {
   const threadId = "thread_abc123";
   const cwd = "/projects/demo";
 
-  it("codex returns resume subcommand with -C flag", () => {
-    expect(codexSpawnConfig.resumeCommand!(threadId, cwd)).toEqual([
-      "resume",
-      "-C",
-      cwd,
-      threadId
-    ]);
+  it("codex injects exec sub-subcommand resume", () => {
+    expect(codexSpawnConfig.resume!.args(threadId, cwd)).toEqual(["resume", threadId]);
+    expect(codexSpawnConfig.resume!.position).toBe("beforePrompt");
   });
 
-  it("claude-code returns --resume flag with threadId", () => {
-    expect(claudeCodeSpawnConfig.resumeCommand!(threadId, cwd)).toEqual([
-      "--resume",
-      threadId
-    ]);
+  it("claude-code injects --resume flag with threadId", () => {
+    expect(claudeCodeSpawnConfig.resume!.args(threadId, cwd)).toEqual(["--resume", threadId]);
   });
 
-  it("opencode returns positional cwd with --session flag", () => {
-    expect(openCodeSpawnConfig.resumeCommand!(threadId, cwd)).toEqual([
-      cwd,
-      "--session",
-      threadId
-    ]);
+  it("opencode injects --session flag with threadId", () => {
+    expect(openCodeSpawnConfig.resume!.args(threadId, cwd)).toEqual(["--session", threadId]);
   });
 
-  it("kimi returns --session and --work-dir flags", () => {
-    expect(kimiSpawnConfig.resumeCommand!(threadId, cwd)).toEqual([
+  it("kimi injects --session and --work-dir flags", () => {
+    expect(kimiSpawnConfig.resume!.args(threadId, cwd)).toEqual([
       "--session",
       threadId,
       "--work-dir",
@@ -86,13 +75,53 @@ describe("resumeCommand", () => {
     ]);
   });
 
-  it("goose returns run --resume with a continue prompt", () => {
-    expect(gooseSpawnConfig.resumeCommand!(threadId, cwd)).toEqual([
+  it("goose injects --resume with --session-id", () => {
+    expect(gooseSpawnConfig.resume!.args(threadId, cwd)).toEqual([
+      "--resume",
+      "--session-id",
+      threadId
+    ]);
+  });
+});
+
+describe("resume.hintArgs (printed shell hint)", () => {
+  const threadId = "thread_abc123";
+  const cwd = "/projects/demo";
+
+  it("codex hint uses top-level interactive resume with -C", () => {
+    expect(codexSpawnConfig.resume!.hintArgs!(threadId, cwd)).toEqual([
+      "resume",
+      "-C",
+      cwd,
+      threadId
+    ]);
+  });
+
+  it("opencode hint uses top-level positional cwd with --session", () => {
+    expect(openCodeSpawnConfig.resume!.hintArgs!(threadId, cwd)).toEqual([
+      cwd,
+      "--session",
+      threadId
+    ]);
+  });
+
+  it("goose hint uses run subcommand with --session-id and a continue prompt", () => {
+    expect(gooseSpawnConfig.resume!.hintArgs!(threadId, cwd)).toEqual([
       "run",
       "--resume",
+      "--session-id",
+      threadId,
       "--text",
       "continue"
     ]);
+  });
+
+  it("claude-code falls back to args when hintArgs is omitted", () => {
+    expect(claudeCodeSpawnConfig.resume!.hintArgs).toBeUndefined();
+  });
+
+  it("kimi falls back to args when hintArgs is omitted", () => {
+    expect(kimiSpawnConfig.resume!.hintArgs).toBeUndefined();
   });
 });
 

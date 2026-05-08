@@ -32,6 +32,13 @@ export async function spawnInteractive(
   const { interactive } = spawnConfig;
 
   const args: string[] = [];
+  if (options.resumeThreadId && !spawnConfig.resume) {
+    throw new Error(`Agent "${resolved.agentId}" does not support resumeThreadId.`);
+  }
+  const resumeArgs = options.resumeThreadId
+    ? spawnConfig.resume!.args(options.resumeThreadId, options.cwd ?? process.cwd())
+    : [];
+  const resumeArgsPosition = spawnConfig.resume?.position ?? "afterPrompt";
 
   if (interactive.defaultArgsPosition === "beforePrompt") {
     args.push(...interactive.defaultArgs);
@@ -39,10 +46,19 @@ export async function spawnInteractive(
 
   if (options.prompt) {
     if (interactive.promptFlag) {
-      args.push(interactive.promptFlag, options.prompt);
+      args.push(interactive.promptFlag);
+      if (resumeArgsPosition === "beforePrompt") {
+        args.push(...resumeArgs);
+      }
+      args.push(options.prompt);
     } else {
+      if (resumeArgsPosition === "beforePrompt") {
+        args.push(...resumeArgs);
+      }
       args.push(options.prompt);
     }
+  } else if (resumeArgsPosition === "beforePrompt") {
+    args.push(...resumeArgs);
   }
 
   if (options.model && spawnConfig.modelFlag) {
@@ -60,6 +76,10 @@ export async function spawnInteractive(
 
   const modeResolved = resolveModeConfig(spawnConfig.modes[options.mode ?? "yolo"]);
   args.push(...modeResolved.args);
+
+  if (resumeArgsPosition === "afterPrompt") {
+    args.push(...resumeArgs);
+  }
 
   if (options.args && options.args.length > 0) {
     args.push(...options.args);

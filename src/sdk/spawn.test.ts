@@ -196,6 +196,68 @@ describe("SDK spawn()", () => {
     expect(spawnCore).not.toHaveBeenCalled();
   });
 
+  it("passes resumeThreadId through to streaming agent spawns", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0,
+        threadId: "thread_abc123"
+      })
+    }));
+
+    const { result } = spawn("codex", "continue", {
+      resumeThreadId: "thread_abc123"
+    });
+
+    await result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: "continue",
+        resumeThreadId: "thread_abc123"
+      })
+    );
+  });
+
+  it("passes resumeThreadId through to ACP agent spawns", async () => {
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "opencode",
+      acpArgs: ["acp"]
+    });
+
+    vi.mocked(spawnAcp).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({
+        stdout: "",
+        stderr: "",
+        exitCode: 0,
+        threadId: "ses_existing"
+      })
+    }));
+
+    const { result } = spawn("opencode", "continue", {
+      resumeThreadId: "ses_existing"
+    });
+
+    await result;
+
+    expect(spawnAcp).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: "continue",
+        resumeThreadId: "ses_existing"
+      })
+    );
+  });
+
   it("falls back to middleware-captured usage in the streaming path", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",

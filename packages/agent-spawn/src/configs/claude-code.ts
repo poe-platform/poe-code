@@ -28,5 +28,7 @@ export const claudeCodeSpawnConfig: CliSpawnConfig = {
   interactive: {
     defaultArgs: []
   },
-  resumeCommand: (threadId) => ["--resume", threadId]
+  resume: {
+    args: (threadId) => ["--resume", threadId]
+  }
 };

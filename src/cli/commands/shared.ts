@@ -230,7 +230,7 @@ export function buildResumeCommand(
   cwd: string
 ): string | undefined {
   const spawnConfig = getSpawnConfig(canonicalService);
-  if (spawnConfig?.kind !== "cli" || !spawnConfig.resumeCommand) {
+  if (spawnConfig?.kind !== "cli" || !spawnConfig.resume) {
     return undefined;
   }
 
@@ -242,7 +242,8 @@ export function buildResumeCommand(
   }
 
   const resumeCwd = path.resolve(cwd);
-  const args = spawnConfig.resumeCommand(threadId, resumeCwd);
+  const composer = spawnConfig.resume.hintArgs ?? spawnConfig.resume.args;
+  const args = composer(threadId, resumeCwd);
   const agentCommand = [binaryName, ...args.map(shlexQuote)].join(" ");
   const needsCdPrefix = !args.includes(resumeCwd);
   return needsCdPrefix

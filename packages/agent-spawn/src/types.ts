@@ -39,6 +39,8 @@ export interface SpawnOptions {
   mode?: SpawnMode;
   args?: string[];
   mcpServers?: McpSpawnConfig;
+  /** Resume a prior provider thread/session before sending the prompt. */
+  resumeThreadId?: string;
   useStdin?: boolean;
   interactive?: boolean;
   signal?: AbortSignal;
@@ -181,7 +183,19 @@ export interface CliSpawnConfig {
    */
   mcpArgsBeforeCommand?: boolean;
   interactive?: InteractiveSpawnConfig;
-  resumeCommand?: (threadId: string, cwd: string) => string[];
+  resume?: ResumeSpec;
+}
+
+export interface ResumeSpec {
+  /** Args injected into the live spawn for non-interactive resume. */
+  args: (threadId: string, cwd: string) => string[];
+  /** Position of `args` relative to the prompt token. Default `afterPrompt`. */
+  position?: "beforePrompt" | "afterPrompt";
+  /**
+   * Optional override for the printed copy-paste resume hint (e.g. an interactive
+   * shell command). When omitted, the hint composes binaryName + `args`.
+   */
+  hintArgs?: (threadId: string, cwd: string) => string[];
 }
 
 export interface FileSpawnConfig {

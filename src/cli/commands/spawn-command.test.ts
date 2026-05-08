@@ -1720,7 +1720,7 @@ describe("spawn command", () => {
     }
   });
 
-  it("does not print resume when config has no resumeCommand", async () => {
+  it("does not print resume when config has no resume spec", async () => {
     vi.mocked(sdkSpawn).mockImplementation(() => ({
       events: emptyAsyncIterable(),
       result: Promise.resolve({

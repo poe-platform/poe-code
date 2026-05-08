@@ -25,7 +25,9 @@ export const kimiSpawnConfig: CliSpawnConfig = {
     defaultArgs: [],
     promptFlag: "-p"
   },
-  resumeCommand: (threadId, cwd) => ["--session", threadId, "--work-dir", cwd]
+  resume: {
+    args: (threadId, cwd) => ["--session", threadId, "--work-dir", cwd]
+  }
 };
 
 export const kimiAcpSpawnConfig: AcpSpawnConfig = {

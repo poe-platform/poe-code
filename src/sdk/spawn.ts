@@ -151,6 +151,7 @@ export function spawn(
           mode: options.mode,
           signal: options.signal,
           args: options.args,
+          resumeThreadId: options.resumeThreadId,
           runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {})
@@ -173,6 +174,7 @@ export function spawn(
           model,
           mode: options.mode,
           mcpServers: options.mcpServers,
+          resumeThreadId: options.resumeThreadId,
           signal: options.signal,
           ...runtimeOverrides
         });
@@ -227,6 +229,7 @@ export function spawn(
           model,
           mode: options.mode,
           args: options.args,
+          resumeThreadId: options.resumeThreadId,
           signal: options.signal,
           runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
@@ -283,6 +286,7 @@ export function spawn(
           model,
           mode: options.mode,
           args: options.args,
+          resumeThreadId: options.resumeThreadId,
           signal: options.signal,
           runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
@@ -306,6 +310,7 @@ export function spawn(
         model,
         mode: options.mode,
         args: options.args,
+        resumeThreadId: options.resumeThreadId,
         ...runtimeOverrides,
         ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
         useStdin: options.useStdin ?? false

@@ -24,6 +24,8 @@ export interface SpawnOptions {
   mcpServers?: McpSpawnConfig;
   /** @deprecated Use mcpServers instead. */
   mcpConfig?: McpSpawnConfig;
+  /** Resume a prior provider thread/session before sending the prompt. */
+  resumeThreadId?: string;
   /** Directory override for ACP JSONL spawn logs */
   logDir?: string;
   /** Filename override for the spawn log. Requires `logDir`. */

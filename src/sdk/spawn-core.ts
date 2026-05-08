@@ -25,6 +25,8 @@ export interface SpawnCoreOptions {
   args?: string[];
   /** MCP servers passed at spawn time */
   mcpServers?: McpSpawnConfig;
+  /** Resume a prior provider thread/session before sending the prompt. */
+  resumeThreadId?: string;
   /** Whether prompt was read from stdin */
   useStdin?: boolean;
 }
@@ -67,6 +69,7 @@ export async function spawnCore(
       model,
       mode: options.mode,
       mcpServers: options.mcpServers,
+      resumeThreadId: options.resumeThreadId,
       cwd: cwdOverride,
       useStdin: options.useStdin ?? false
     };

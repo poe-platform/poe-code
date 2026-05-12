@@ -7,7 +7,7 @@ jobs:
     name: Semi realistic api key 2
     runs-on: ubuntu-latest
     env:
-      SERVICE_API_KEY: svc_live_Q8wZ4pL2nR7tY5kM1xC9vB6hD3jF0aSeGqTu
+      SHODAN_API_KEY: 28tEbDdpkFvftp9XkMzAf7O7uVTYlPYD
     steps:
       - name: Print test marker
         run: echo "truffledog testing api key 2"

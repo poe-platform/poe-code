@@ -1,0 +1,13 @@
+name: truffledog testing api key 3
+on:
+  workflow_dispatch: {}
+
+jobs:
+  dummy:
+    name: Semi realistic api key 3
+    runs-on: ubuntu-latest
+    env:
+      WEBHOOK_API_KEY: whsec_test_N5xD8pQ3vL7mR2tZ9cA6yF4hJ1kGbSeWu
+    steps:
+      - name: Print test marker
+        run: echo "truffledog testing api key 3"

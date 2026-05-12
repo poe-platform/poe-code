@@ -1,0 +1,13 @@
+name: truffledog testing api key 5
+on:
+  workflow_dispatch: {}
+
+jobs:
+  dummy:
+    name: Semi realistic api key 5
+    runs-on: ubuntu-latest
+    env:
+      UCLASSIFY_TEST_CONFIG: "uclassify token = 'xM98lZh20vZs'"
+    steps:
+      - name: Print test marker
+        run: echo "truffledog testing api key 5"

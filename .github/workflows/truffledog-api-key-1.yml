@@ -7,7 +7,7 @@ jobs:
     name: Semi realistic api key 1
     runs-on: ubuntu-latest
     env:
-      INTERNAL_API_KEY: pcode_live_7K9mQ2xV8rT4nB6yF1sD3hJ5lZ0cXwEaPqRsTu
+      WEATHERBIT_API_KEY: zqjxo96wmdi1rdcvohnpu0v3bkypbuti
     steps:
       - name: Print test marker
         run: echo "truffledog testing api key 1"

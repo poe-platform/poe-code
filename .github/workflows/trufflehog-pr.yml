@@ -80,9 +80,9 @@ jobs:
                 if .Verified then
                   "verified"
                 elif ((.VerificationError // "") | length) > 0 then
-                  "unverified"
+                  "unknown"
                 else
-                  "unverified/unknown"
+                  "unverified"
                 end;
 
               def git_metadata:
@@ -117,21 +117,14 @@ jobs:
                     "unknown"
                   end;
 
-              def secret_label:
-                if ((.Redacted // "") | length) > 0 then
-                  .Redacted
-                else
-                  "redacted"
-                end;
-
               [split("\n")[] | fromjson? | select(.DetectorName != null)]
-              | unique_by([status, .DetectorName, file_path, line_number, secret_label]) as $findings
+              | unique_by([status, .DetectorName, file_path, line_number]) as $findings
               | ([
-                  "| Detector | Location | Status | Secret |",
-                  "| --- | --- | --- | --- |"
+                  "| Detector | Location | Verification |",
+                  "| --- | --- | --- |"
                 ] + (
                   $findings[:10]
-                  | map("| \(.DetectorName | md) | \(location) | \(status | md) | `\(secret_label | md)` |")
+                  | map("| \(.DetectorName | md) | \(location) | \(status | md) |")
                 ) + (
                   if ($findings | length) > 10 then
                     ["", "_Showing first 10 of \($findings | length) findings._"]
@@ -162,9 +155,9 @@ jobs:
               if .Verified then
                 "verified"
               elif ((.VerificationError // "") | length) > 0 then
-                "unverified"
+                "unknown"
               else
-                "unverified/unknown"
+                "unverified"
               end;
 
             def git_metadata:
@@ -197,11 +190,59 @@ jobs:
             | "::error file=\($path | command),line=\($line),title=\("TruffleHog: \(.DetectorName)" | command)::\("Possible secret detected (\(status)). Remove it from the PR and rotate it if it was real." | message)"
           ' /tmp/trufflehog-results.jsonl
 
+          rendered_findings_count="$(
+            jq -R -s '
+              def status:
+                if .Verified then
+                  "verified"
+                elif ((.VerificationError // "") | length) > 0 then
+                  "unknown"
+                else
+                  "unverified"
+                end;
+
+              def git_metadata:
+                .SourceMetadata.Data.Git
+                // .SourceMetadata.Git
+                // .SourceMetadata.git
+                // .SourceMetadata.data.git
+                // {};
+
+              def file_path:
+                git_metadata.file
+                // git_metadata.File
+                // .SourceMetadata.Filesystem.file
+                // .SourceMetadata.filesystem.file
+                // "unknown";
+
+              def line_number:
+                git_metadata.line
+                // git_metadata.Line
+                // .SourceMetadata.Filesystem.line
+                // .SourceMetadata.filesystem.line
+                // 0;
+
+              [split("\n")[] | fromjson? | select(.DetectorName != null)]
+              | unique_by([status, .DetectorName, file_path, line_number])
+              | length
+            ' /tmp/trufflehog-results.jsonl
+          )"
+
+          if [ "$rendered_findings_count" -eq 1 ]; then
+            findings_heading="TruffleHog found a possible secret"
+            error_title="TruffleHog finding"
+            error_message="Possible secret detected."
+          else
+            findings_heading="TruffleHog found $rendered_findings_count possible secrets"
+            error_title="TruffleHog findings"
+            error_message="Possible secrets detected."
+          fi
+
           cat > /tmp/trufflehog-comment.md <<'COMMENT'
           <!-- trufflehog-pr-scan -->
-          ### TruffleHog found possible secret(s)
-
           COMMENT
+
+          printf '### %s\n\n' "$findings_heading" >> /tmp/trufflehog-comment.md
 
           printf '%s\n\n' "$findings_table" >> /tmp/trufflehog-comment.md
           cat >> /tmp/trufflehog-comment.md <<'COMMENT'
@@ -226,8 +267,8 @@ jobs:
               --field body="$(cat /tmp/trufflehog-comment.md)"
           fi
 
-          echo "::error title=TruffleHog finding::Possible secret detected."
-          echo "### TruffleHog advisory finding" >> "$GITHUB_STEP_SUMMARY"
+          echo "::error title=$error_title::$error_message"
+          echo "### $findings_heading" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           printf '%s\n' "$findings_table" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"

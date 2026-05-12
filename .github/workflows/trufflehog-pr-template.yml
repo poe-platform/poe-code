@@ -14,14 +14,6 @@ on:
         required: false
         type: number
         default: 10
-      helper_repository:
-        required: false
-        type: string
-        default: poe-platform/poe-code
-      helper_ref:
-        required: false
-        type: string
-        default: main
 
 jobs:
   trufflehog:
@@ -47,43 +39,38 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Checkout workflow helpers
-        uses: actions/checkout@v4
-        with:
-          repository: ${{ inputs.helper_repository }}
-          ref: ${{ inputs.helper_ref }}
-          path: .trufflehog-pr-template
-          persist-credentials: false
-
       - name: Scan for secrets
         id: trufflehog
+        uses: poe-platform/poe-code/.github/actions/trufflehog-pr-scan@main
+        with:
+          command: scan-for-secrets
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           RESULTS: ${{ inputs.results }}
           TRUFFLEHOG_IMAGE: ${{ inputs.trufflehog_image }}
-        run: |
-          bash .trufflehog-pr-template/.github/scripts/trufflehog-pr-scan.sh scan-for-secrets
 
       - name: Report advisory result
         if: ${{ steps.trufflehog.outputs.findings_count != '0' }}
+        uses: poe-platform/poe-code/.github/actions/trufflehog-pr-scan@main
+        with:
+          command: report-advisory-result
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           MAX_FINDINGS: ${{ inputs.max_findings }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPOSITORY: ${{ github.repository }}
-        run: |
-          bash .trufflehog-pr-template/.github/scripts/trufflehog-pr-scan.sh report-advisory-result
 
       - name: Clear stale advisory result
         if: ${{ steps.trufflehog.outputs.findings_count == '0' }}
+        uses: poe-platform/poe-code/.github/actions/trufflehog-pr-scan@main
+        with:
+          command: clear-stale-advisory-result
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPOSITORY: ${{ github.repository }}
-        run: |
-          bash .trufflehog-pr-template/.github/scripts/trufflehog-pr-scan.sh clear-stale-advisory-result
 
       - name: Mark advisory finding as failed
         if: ${{ steps.trufflehog.outputs.findings_count != '0' }}

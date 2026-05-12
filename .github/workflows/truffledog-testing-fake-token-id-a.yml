@@ -1,0 +1,13 @@
+name: truffledog testing fake token id a
+on:
+  workflow_dispatch: {}
+
+jobs:
+  dummy:
+    name: Dummy fake token id
+    runs-on: ubuntu-latest
+    env:
+      FAKE_TOKEN_ID: truffledog-testing-fake-token-id-a
+    steps:
+      - name: Print test marker
+        run: echo "truffledog testing fake token id a"

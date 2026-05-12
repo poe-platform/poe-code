@@ -6,6 +6,8 @@ on:
 
 permissions:
   contents: read
+  issues: write
+  pull-requests: write
 
 concurrency:
   group: trufflehog-pr-${{ github.event.pull_request.number }}
@@ -31,10 +33,45 @@ jobs:
 
       - name: Report advisory result
         if: ${{ steps.trufflehog.outcome == 'failure' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
         run: |
-          echo "::warning title=TruffleHog advisory finding::Possible secret detected. This does not block merging."
+          cat > /tmp/trufflehog-comment.md <<'COMMENT'
+          <!-- trufflehog-pr-scan -->
+          ### TruffleHog found a possible secret
+
+          Reasoning: TruffleHog reported a verified, unverified, or unknown secret in this PR. Review the TruffleHog logs before merging.
+
+          This check is intentionally advisory. It is marked failed for visibility, but it only blocks merging if configured as a required check.
+          COMMENT
+
+          existing_comment_id="$(
+            gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
+              --jq '.[] | select(.body | contains("<!-- trufflehog-pr-scan -->")) | .id' \
+              | tail -n 1
+          )"
+
+          if [ -n "$existing_comment_id" ]; then
+            gh api \
+              --method PATCH \
+              "repos/$REPOSITORY/issues/comments/$existing_comment_id" \
+              --field body="$(cat /tmp/trufflehog-comment.md)"
+          else
+            gh api \
+              --method POST \
+              "repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
+              --field body="$(cat /tmp/trufflehog-comment.md)"
+          fi
+
+          echo "::error title=TruffleHog advisory finding::Possible secret detected. This check is non-required and does not block merging unless branch protection requires it."
           echo "### TruffleHog advisory finding" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Reasoning: TruffleHog reported a verified, unverified, or unknown secret in this PR. Review the TruffleHog logs before merging." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "This check is advisory and does not block merging." >> "$GITHUB_STEP_SUMMARY"
+          echo "This check is intentionally advisory. It is marked failed for visibility, but it only blocks merging if configured as a required check." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Mark advisory finding as failed
+        if: ${{ steps.trufflehog.outcome == 'failure' }}
+        run: exit 1

@@ -7,7 +7,7 @@ jobs:
     name: Semi realistic api key 3
     runs-on: ubuntu-latest
     env:
-      WEBHOOK_API_KEY: whsec_test_N5xD8pQ3vL7mR2tZ9cA6yF4hJ1kGbSeWu
+      calendly_auth_token: Bearer eyJuL_8UF5AiQVfO2xlr_HaoSluHz9u-Q-s1qWDWvycQhR11J9wZTmYfFpKnawuIbKjA4i340DSpYI3d3E-oEZZdcHW4cLd_OASWu-H.eyJuOUikPwjw1RKXYXfcjjeqQwdWzA4uooei_ADIUX3of4UzwTjSaaEzLWMGopW4n9Fma0nINBD1qUp_OtbhuH6dmHyv94IeX-hUYla.A0rTdrx3sJ
     steps:
       - name: Print test marker
         run: echo "truffledog testing api key 3"

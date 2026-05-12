@@ -82,7 +82,7 @@ jobs:
                 elif ((.VerificationError // "") | length) > 0 then
                   "unverified"
                 else
-                  "unknown"
+                  "unverified/unknown"
                 end;
 
               def git_metadata:
@@ -118,8 +118,11 @@ jobs:
                   end;
 
               def secret_label:
-                .Redacted
-                // "redacted";
+                if ((.Redacted // "") | length) > 0 then
+                  .Redacted
+                else
+                  "redacted"
+                end;
 
               [split("\n")[] | fromjson? | select(.DetectorName != null)] as $findings
               | ([

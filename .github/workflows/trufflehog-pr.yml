@@ -27,7 +27,7 @@ jobs:
         continue-on-error: true
         uses: trufflesecurity/trufflehog@main
         with:
-          extra_args: --results=verified,unknown
+          extra_args: --results=verified,unverified,unknown
 
       - name: Report advisory result
         if: ${{ steps.trufflehog.outcome == 'failure' }}
@@ -35,6 +35,6 @@ jobs:
           echo "::warning title=TruffleHog advisory finding::Possible secret detected. This does not block merging."
           echo "### TruffleHog advisory finding" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Reasoning: TruffleHog reported a verified or unknown secret in this PR. Review the TruffleHog logs before merging." >> "$GITHUB_STEP_SUMMARY"
+          echo "Reasoning: TruffleHog reported a verified, unverified, or unknown secret in this PR. Review the TruffleHog logs before merging." >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "This check is advisory and does not block merging." >> "$GITHUB_STEP_SUMMARY"

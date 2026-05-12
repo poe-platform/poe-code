@@ -1,0 +1,12 @@
+name: Truffledog Clean PR Check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  clean-fixture:
+    name: Clean fixture
+    runs-on: ubuntu-latest
+    steps:
+      - name: Confirm clean fixture
+        run: echo "This workflow intentionally contains no credentials."

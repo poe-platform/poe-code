@@ -1,0 +1,13 @@
+name: truffledog testing api key 4
+on:
+  workflow_dispatch: {}
+
+jobs:
+  dummy:
+    name: Semi realistic api key 4
+    runs-on: ubuntu-latest
+    env:
+      SHOTSTACK_TEST_CONFIG: "shotstack token = '3gGdjBjen4jcmMPJa2RJfg5suw47SHihtAznQd4X'"
+    steps:
+      - name: Print test marker
+        run: echo "truffledog testing api key 4"

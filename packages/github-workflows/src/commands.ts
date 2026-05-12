@@ -11,6 +11,7 @@ import { cancel, isCancel, select } from "@poe-code/design-system";
 import { discoverAutomations, loadAutomation } from "./discover.js";
 import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
+import { runTruffleHogPrScanCommand } from "./exec/trufflehog-pr-scan.js";
 import { runPreflightChecks } from "./preflight.js";
 import { setupWorkflowAgent } from "./setup-agent.js";
 import type { AutomationDefinition } from "./types.js";
@@ -333,6 +334,17 @@ const requireCommentPrefixCommand = defineCommand({
   }
 });
 
+const truffleHogPrScanCommand = defineCommand({
+  name: "trufflehog-pr-scan",
+  description: "Run the TruffleHog PR scan workflow helper.",
+  positional: ["command"],
+  params: S.Object({
+    command: S.Enum(["scan-for-secrets", "report-advisory-result", "clear-stale-advisory-result"] as const)
+  }),
+  scope: ["cli"],
+  handler: async ({ params, env }) => runTruffleHogPrScanCommand(params.command, env)
+});
+
 const prepareCommand = defineCommand({
   name: "prepare",
   description: "Install and configure the agent required by a workflow automation.",
@@ -422,6 +434,7 @@ export const ghGroup: Group = defineGroup({
     prepareCommand,
     requireUserAllowCommand,
     requireCommentPrefixCommand,
+    truffleHogPrScanCommand,
     listCommand,
     installCommand,
     uninstallCommand,

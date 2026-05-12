@@ -39,11 +39,15 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install -g poe-code@latest
+
       - name: Scan for secrets
         id: trufflehog
-        uses: poe-platform/poe-code/.github/actions/trufflehog-pr-scan@main
-        with:
-          command: scan-for-secrets
+        run: poe-code github-workflows trufflehog-pr-scan scan-for-secrets
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -52,9 +56,7 @@ jobs:
 
       - name: Report advisory result
         if: ${{ steps.trufflehog.outputs.findings_count != '0' }}
-        uses: poe-platform/poe-code/.github/actions/trufflehog-pr-scan@main
-        with:
-          command: report-advisory-result
+        run: poe-code github-workflows trufflehog-pr-scan report-advisory-result
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
@@ -64,9 +66,7 @@ jobs:
 
       - name: Clear stale advisory result
         if: ${{ steps.trufflehog.outputs.findings_count == '0' }}
-        uses: poe-platform/poe-code/.github/actions/trufflehog-pr-scan@main
-        with:
-          command: clear-stale-advisory-result
+        run: poe-code github-workflows trufflehog-pr-scan clear-stale-advisory-result
         env:
           GH_TOKEN: ${{ github.token }}
           PR_NUMBER: ${{ github.event.pull_request.number }}

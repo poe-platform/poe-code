@@ -26,23 +26,130 @@ jobs:
 
       - name: Scan for secrets
         id: trufflehog
-        continue-on-error: true
-        uses: trufflesecurity/trufflehog@main
-        with:
-          extra_args: --results=verified,unverified,unknown
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set +e
+          docker run --rm -v "$PWD:/tmp" -w /tmp \
+            ghcr.io/trufflesecurity/trufflehog:latest \
+            git file:///tmp/ \
+            --since-commit "$BASE_SHA" \
+            --branch "$HEAD_SHA" \
+            --fail \
+            --no-update \
+            --json \
+            --results=verified,unverified,unknown \
+            > /tmp/trufflehog-results.jsonl \
+            2> /tmp/trufflehog-stderr.log
+          scan_status="$?"
+          set -e
+
+          cat /tmp/trufflehog-stderr.log
+
+          findings_count="$(
+            jq -R -s '[split("\n")[] | fromjson? | select(.DetectorName != null)] | length' \
+              /tmp/trufflehog-results.jsonl
+          )"
+
+          echo "exit_code=$scan_status" >> "$GITHUB_OUTPUT"
+          echo "findings_count=$findings_count" >> "$GITHUB_OUTPUT"
+
+          if [ "$scan_status" -ne 0 ] && [ "$findings_count" -eq 0 ]; then
+            echo "::error title=TruffleHog scan failed::TruffleHog exited with $scan_status without producing findings."
+            exit "$scan_status"
+          fi
 
       - name: Report advisory result
-        if: ${{ steps.trufflehog.outcome == 'failure' }}
+        if: ${{ steps.trufflehog.outputs.findings_count != '0' }}
         env:
           GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           REPOSITORY: ${{ github.repository }}
         run: |
+          findings_table="$(
+            jq -R -s -r --arg repository "$REPOSITORY" --arg head_sha "$HEAD_SHA" '
+              def md:
+                tostring
+                | gsub("\\|"; "\\|")
+                | gsub("`"; "\u0027")
+                | gsub("\r|\n"; " ");
+
+              def status:
+                if .Verified then
+                  "verified"
+                elif ((.VerificationError // "") | length) > 0 then
+                  "unverified"
+                else
+                  "unknown"
+                end;
+
+              def git_metadata:
+                .SourceMetadata.Data.Git
+                // .SourceMetadata.Git
+                // .SourceMetadata.git
+                // .SourceMetadata.data.git
+                // {};
+
+              def file_path:
+                git_metadata.file
+                // git_metadata.File
+                // .SourceMetadata.Filesystem.file
+                // .SourceMetadata.filesystem.file
+                // "unknown";
+
+              def line_number:
+                git_metadata.line
+                // git_metadata.Line
+                // .SourceMetadata.Filesystem.line
+                // .SourceMetadata.filesystem.line
+                // 0;
+
+              def location:
+                (file_path | tostring) as $path
+                | (line_number | tonumber? // 0) as $line
+                | if $line > 0 and $path != "unknown" then
+                    "[\($path):\($line)](https://github.com/\($repository)/blob/\($head_sha)/\($path)#L\($line))"
+                  elif $path != "unknown" then
+                    "`\($path | md)`"
+                  else
+                    "unknown"
+                  end;
+
+              def secret_label:
+                .Redacted
+                // "redacted";
+
+              [split("\n")[] | fromjson? | select(.DetectorName != null)] as $findings
+              | ([
+                  "| Status | Detector | Location | Redacted secret |",
+                  "| --- | --- | --- | --- |"
+                ] + (
+                  $findings[:10]
+                  | map("| \(status | md) | \(.DetectorName | md) | \(location) | `\(secret_label | md)` |")
+                ) + (
+                  if ($findings | length) > 10 then
+                    ["", "_Showing first 10 of \($findings | length) findings._"]
+                  else
+                    []
+                  end
+                ))
+              | .[]
+            ' /tmp/trufflehog-results.jsonl
+          )"
+
           cat > /tmp/trufflehog-comment.md <<'COMMENT'
           <!-- trufflehog-pr-scan -->
           ### TruffleHog found a possible secret
 
-          Reasoning: TruffleHog reported a verified, unverified, or unknown secret in this PR. Review the TruffleHog logs before merging.
+          Reasoning: TruffleHog reported a verified, unverified, or unknown secret in this PR. The table below comes from TruffleHog JSON output so the finding can be reviewed directly.
+
+          COMMENT
+
+          printf '%s\n\n' "$findings_table" >> /tmp/trufflehog-comment.md
+          cat >> /tmp/trufflehog-comment.md <<'COMMENT'
+          Suggested action: remove the value from the PR, rotate it if it was real, and push a cleanup commit.
 
           This check is intentionally advisory. It is marked failed for visibility, but it only blocks merging if configured as a required check.
           COMMENT
@@ -68,10 +175,31 @@ jobs:
           echo "::error title=TruffleHog advisory finding::Possible secret detected. This check is non-required and does not block merging unless branch protection requires it."
           echo "### TruffleHog advisory finding" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Reasoning: TruffleHog reported a verified, unverified, or unknown secret in this PR. Review the TruffleHog logs before merging." >> "$GITHUB_STEP_SUMMARY"
+          echo "Reasoning: TruffleHog reported a verified, unverified, or unknown secret in this PR. The table below comes from TruffleHog JSON output." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "$findings_table" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "This check is intentionally advisory. It is marked failed for visibility, but it only blocks merging if configured as a required check." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Clear stale advisory result
+        if: ${{ steps.trufflehog.outputs.findings_count == '0' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          existing_comment_id="$(
+            gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
+              --jq '.[] | select(.body | contains("<!-- trufflehog-pr-scan -->")) | .id' \
+              | tail -n 1
+          )"
+
+          if [ -n "$existing_comment_id" ]; then
+            gh api \
+              --method DELETE \
+              "repos/$REPOSITORY/issues/comments/$existing_comment_id"
+          fi
+
       - name: Mark advisory finding as failed
-        if: ${{ steps.trufflehog.outcome == 'failure' }}
+        if: ${{ steps.trufflehog.outputs.findings_count != '0' }}
         run: exit 1

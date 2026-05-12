@@ -1,0 +1,320 @@
+name: TruffleHog PR Scan Template
+on:
+  workflow_call:
+    inputs:
+      trufflehog_image:
+        required: false
+        type: string
+        default: ghcr.io/trufflesecurity/trufflehog:latest
+      results:
+        required: false
+        type: string
+        default: verified,unverified,unknown
+      max_findings:
+        required: false
+        type: number
+        default: 10
+
+jobs:
+  trufflehog:
+    name: TruffleHog Advisory Scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - name: Validate pull request context
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          if [ -z "$PR_NUMBER" ]; then
+            echo "::error title=Unsupported event::This reusable workflow must be called from a pull_request workflow."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan for secrets
+        id: trufflehog
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          RESULTS: ${{ inputs.results }}
+          TRUFFLEHOG_IMAGE: ${{ inputs.trufflehog_image }}
+        run: |
+          set +e
+          docker run --rm -v "$PWD:/tmp" -w /tmp \
+            "$TRUFFLEHOG_IMAGE" \
+            git file:///tmp/ \
+            --since-commit "$BASE_SHA" \
+            --branch "$HEAD_SHA" \
+            --fail \
+            --no-update \
+            --json \
+            --results="$RESULTS" \
+            > /tmp/trufflehog-results.jsonl \
+            2> /tmp/trufflehog-stderr.log
+          scan_status="$?"
+          set -e
+
+          cat /tmp/trufflehog-stderr.log
+
+          findings_count="$(
+            jq -R -s '[split("\n")[] | fromjson? | select(.DetectorName != null)] | length' \
+              /tmp/trufflehog-results.jsonl
+          )"
+
+          echo "exit_code=$scan_status" >> "$GITHUB_OUTPUT"
+          echo "findings_count=$findings_count" >> "$GITHUB_OUTPUT"
+
+          if [ "$scan_status" -ne 0 ] && [ "$findings_count" -eq 0 ]; then
+            echo "::error title=TruffleHog scan failed::TruffleHog exited with $scan_status without producing findings."
+            exit "$scan_status"
+          fi
+
+      - name: Report advisory result
+        if: ${{ steps.trufflehog.outputs.findings_count != '0' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          MAX_FINDINGS: ${{ inputs.max_findings }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          findings_table="$(
+            jq -R -s -r \
+              --arg repository "$REPOSITORY" \
+              --arg head_sha "$HEAD_SHA" \
+              --argjson max_findings "$MAX_FINDINGS" \
+              '
+              def md:
+                tostring
+                | gsub("\\|"; "\\|")
+                | gsub("`"; "\u0027")
+                | gsub("\r|\n"; " ");
+
+              def status:
+                if .Verified then
+                  "verified"
+                elif ((.VerificationError // "") | length) > 0 then
+                  "unknown"
+                else
+                  "unverified"
+                end;
+
+              def git_metadata:
+                .SourceMetadata.Data.Git
+                // .SourceMetadata.Git
+                // .SourceMetadata.git
+                // .SourceMetadata.data.git
+                // {};
+
+              def file_path:
+                git_metadata.file
+                // git_metadata.File
+                // .SourceMetadata.Filesystem.file
+                // .SourceMetadata.filesystem.file
+                // "unknown";
+
+              def line_number:
+                git_metadata.line
+                // git_metadata.Line
+                // .SourceMetadata.Filesystem.line
+                // .SourceMetadata.filesystem.line
+                // 0;
+
+              def location:
+                (file_path | tostring) as $path
+                | (line_number | tonumber? // 0) as $line
+                | if $line > 0 and $path != "unknown" then
+                    "[\($path):\($line)](https://github.com/\($repository)/blob/\($head_sha)/\($path)#L\($line))"
+                  elif $path != "unknown" then
+                    "`\($path | md)`"
+                  else
+                    "unknown"
+                  end;
+
+              [split("\n")[] | fromjson? | select(.DetectorName != null)]
+              | unique_by([status, .DetectorName, file_path, line_number]) as $findings
+              | ([
+                  "| Detector | Location | Verification |",
+                  "| --- | --- | --- |"
+                ] + (
+                  $findings[:$max_findings]
+                  | map("| \(.DetectorName | md) | \(location) | \(status | md) |")
+                ) + (
+                  if ($findings | length) > $max_findings then
+                    ["", "_Showing first \($max_findings) of \($findings | length) findings._"]
+                  else
+                    []
+                  end
+                ))
+              | .[]
+            ' /tmp/trufflehog-results.jsonl
+          )"
+
+          jq -R -s -r --argjson max_findings "$MAX_FINDINGS" '
+            def command:
+              tostring
+              | gsub("%"; "%25")
+              | gsub("\r"; "%0D")
+              | gsub("\n"; "%0A")
+              | gsub(":"; "%3A")
+              | gsub(","; "%2C");
+
+            def message:
+              tostring
+              | gsub("%"; "%25")
+              | gsub("\r"; "%0D")
+              | gsub("\n"; "%0A");
+
+            def status:
+              if .Verified then
+                "verified"
+              elif ((.VerificationError // "") | length) > 0 then
+                "unknown"
+              else
+                "unverified"
+              end;
+
+            def git_metadata:
+              .SourceMetadata.Data.Git
+              // .SourceMetadata.Git
+              // .SourceMetadata.git
+              // .SourceMetadata.data.git
+              // {};
+
+            def file_path:
+              git_metadata.file
+              // git_metadata.File
+              // .SourceMetadata.Filesystem.file
+              // .SourceMetadata.filesystem.file
+              // "";
+
+            def line_number:
+              git_metadata.line
+              // git_metadata.Line
+              // .SourceMetadata.Filesystem.line
+              // .SourceMetadata.filesystem.line
+              // 0;
+
+            [split("\n")[] | fromjson? | select(.DetectorName != null)]
+            | unique_by([status, .DetectorName, file_path, line_number])
+            | .[:$max_findings][]
+            | (file_path | tostring) as $path
+            | (line_number | tonumber? // 0) as $line
+            | select($path != "" and $line > 0)
+            | "::error file=\($path | command),line=\($line),title=\("TruffleHog: \(.DetectorName)" | command)::\("Possible secret detected (\(status)). Remove it from the PR and rotate it if it was real." | message)"
+          ' /tmp/trufflehog-results.jsonl
+
+          rendered_findings_count="$(
+            jq -R -s '
+              def status:
+                if .Verified then
+                  "verified"
+                elif ((.VerificationError // "") | length) > 0 then
+                  "unknown"
+                else
+                  "unverified"
+                end;
+
+              def git_metadata:
+                .SourceMetadata.Data.Git
+                // .SourceMetadata.Git
+                // .SourceMetadata.git
+                // .SourceMetadata.data.git
+                // {};
+
+              def file_path:
+                git_metadata.file
+                // git_metadata.File
+                // .SourceMetadata.Filesystem.file
+                // .SourceMetadata.filesystem.file
+                // "unknown";
+
+              def line_number:
+                git_metadata.line
+                // git_metadata.Line
+                // .SourceMetadata.Filesystem.line
+                // .SourceMetadata.filesystem.line
+                // 0;
+
+              [split("\n")[] | fromjson? | select(.DetectorName != null)]
+              | unique_by([status, .DetectorName, file_path, line_number])
+              | length
+            ' /tmp/trufflehog-results.jsonl
+          )"
+
+          if [ "$rendered_findings_count" -eq 1 ]; then
+            findings_heading="TruffleHog found a possible secret"
+            error_title="TruffleHog finding"
+            error_message="Possible secret detected."
+          else
+            findings_heading="TruffleHog found $rendered_findings_count possible secrets"
+            error_title="TruffleHog findings"
+            error_message="Possible secrets detected."
+          fi
+
+          cat > /tmp/trufflehog-comment.md <<'COMMENT'
+          <!-- trufflehog-pr-scan -->
+          COMMENT
+
+          printf '### %s\n\n' "$findings_heading" >> /tmp/trufflehog-comment.md
+
+          printf '%s\n\n' "$findings_table" >> /tmp/trufflehog-comment.md
+          cat >> /tmp/trufflehog-comment.md <<'COMMENT'
+          Fix: remove the value, rotate it if it was real, and push a cleanup commit.
+          COMMENT
+
+          existing_comment_id="$(
+            gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
+              --jq '.[] | select(.body | contains("<!-- trufflehog-pr-scan -->")) | .id' \
+              | tail -n 1
+          )"
+
+          if [ -n "$existing_comment_id" ]; then
+            gh api \
+              --method PATCH \
+              "repos/$REPOSITORY/issues/comments/$existing_comment_id" \
+              --field body="$(cat /tmp/trufflehog-comment.md)"
+          else
+            gh api \
+              --method POST \
+              "repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
+              --field body="$(cat /tmp/trufflehog-comment.md)"
+          fi
+
+          echo "::error title=$error_title::$error_message"
+          echo "### $findings_heading" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' "$findings_table" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fix: remove the value, rotate it if it was real, and push a cleanup commit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clear stale advisory result
+        if: ${{ steps.trufflehog.outputs.findings_count == '0' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          existing_comment_id="$(
+            gh api "repos/$REPOSITORY/issues/$PR_NUMBER/comments" \
+              --jq '.[] | select(.body | contains("<!-- trufflehog-pr-scan -->")) | .id' \
+              | tail -n 1
+          )"
+
+          if [ -n "$existing_comment_id" ]; then
+            gh api \
+              --method DELETE \
+              "repos/$REPOSITORY/issues/comments/$existing_comment_id"
+          fi
+
+      - name: Mark advisory finding as failed
+        if: ${{ steps.trufflehog.outputs.findings_count != '0' }}
+        run: exit 1

@@ -1,0 +1,40 @@
+name: TruffleHog PR Scan
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: trufflehog-pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  trufflehog:
+    name: TruffleHog Advisory Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Scan for secrets
+        id: trufflehog
+        continue-on-error: true
+        uses: trufflesecurity/trufflehog@main
+        with:
+          extra_args: --results=verified,unknown
+
+      - name: Report advisory result
+        if: ${{ steps.trufflehog.outcome == 'failure' }}
+        run: |
+          echo "::warning title=TruffleHog advisory finding::Possible secret detected. This does not block merging."
+          echo "### TruffleHog advisory finding" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Reasoning: TruffleHog reported a verified or unknown secret in this PR. Review the TruffleHog logs before merging." >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "This check is advisory and does not block merging." >> "$GITHUB_STEP_SUMMARY"

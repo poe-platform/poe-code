@@ -124,13 +124,14 @@ jobs:
                   "redacted"
                 end;
 
-              [split("\n")[] | fromjson? | select(.DetectorName != null)] as $findings
+              [split("\n")[] | fromjson? | select(.DetectorName != null)]
+              | unique_by([status, .DetectorName, file_path, line_number, secret_label]) as $findings
               | ([
-                  "| Status | Detector | Location | Redacted secret |",
+                  "| Detector | Location | Status | Secret |",
                   "| --- | --- | --- | --- |"
                 ] + (
                   $findings[:10]
-                  | map("| \(status | md) | \(.DetectorName | md) | \(location) | `\(secret_label | md)` |")
+                  | map("| \(.DetectorName | md) | \(location) | \(status | md) | `\(secret_label | md)` |")
                 ) + (
                   if ($findings | length) > 10 then
                     ["", "_Showing first 10 of \($findings | length) findings._"]
@@ -142,15 +143,69 @@ jobs:
             ' /tmp/trufflehog-results.jsonl
           )"
 
+          jq -R -s -r '
+            def command:
+              tostring
+              | gsub("%"; "%25")
+              | gsub("\r"; "%0D")
+              | gsub("\n"; "%0A")
+              | gsub(":"; "%3A")
+              | gsub(","; "%2C");
+
+            def message:
+              tostring
+              | gsub("%"; "%25")
+              | gsub("\r"; "%0D")
+              | gsub("\n"; "%0A");
+
+            def status:
+              if .Verified then
+                "verified"
+              elif ((.VerificationError // "") | length) > 0 then
+                "unverified"
+              else
+                "unverified/unknown"
+              end;
+
+            def git_metadata:
+              .SourceMetadata.Data.Git
+              // .SourceMetadata.Git
+              // .SourceMetadata.git
+              // .SourceMetadata.data.git
+              // {};
+
+            def file_path:
+              git_metadata.file
+              // git_metadata.File
+              // .SourceMetadata.Filesystem.file
+              // .SourceMetadata.filesystem.file
+              // "";
+
+            def line_number:
+              git_metadata.line
+              // git_metadata.Line
+              // .SourceMetadata.Filesystem.line
+              // .SourceMetadata.filesystem.line
+              // 0;
+
+            [split("\n")[] | fromjson? | select(.DetectorName != null)]
+            | unique_by([status, .DetectorName, file_path, line_number])
+            | .[:10][]
+            | (file_path | tostring) as $path
+            | (line_number | tonumber? // 0) as $line
+            | select($path != "" and $line > 0)
+            | "::error file=\($path | command),line=\($line),title=\("TruffleHog: \(.DetectorName)" | command)::\("Possible secret detected (\(status)). Remove it from the PR and rotate it if it was real." | message)"
+          ' /tmp/trufflehog-results.jsonl
+
           cat > /tmp/trufflehog-comment.md <<'COMMENT'
           <!-- trufflehog-pr-scan -->
-          ### TruffleHog found a possible secret
+          ### TruffleHog found possible secret(s)
 
           COMMENT
 
           printf '%s\n\n' "$findings_table" >> /tmp/trufflehog-comment.md
           cat >> /tmp/trufflehog-comment.md <<'COMMENT'
-          Suggested action: remove the value from the PR, rotate it if it was real, and push a cleanup commit.
+          Fix: remove the value, rotate it if it was real, and push a cleanup commit.
           COMMENT
 
           existing_comment_id="$(
@@ -176,7 +231,7 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           printf '%s\n' "$findings_table" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Suggested action: remove the value from the PR, rotate it if it was real, and push a cleanup commit." >> "$GITHUB_STEP_SUMMARY"
+          echo "Fix: remove the value, rotate it if it was real, and push a cleanup commit." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Clear stale advisory result
         if: ${{ steps.trufflehog.outputs.findings_count == '0' }}

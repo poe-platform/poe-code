@@ -126,6 +126,7 @@
   "devDependencies": {
     "@eslint/js": "^9.0.0",
     "@modelcontextprotocol/sdk": "^1.26.0",
+    "@poe-code/agent-child-process": "*",
     "@poe-code/agent-defs": "*",
     "@poe-code/agent-harness": "*",
     "@poe-code/agent-harness-tools": "*",

@@ -1,0 +1,26 @@
+{
+  "name": "@poe-code/agent-child-process",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run --config vitest.config.ts packages/agent-child-process/src",
+    "test:unit": "cd ../.. && vitest run --config vitest.config.ts packages/agent-child-process/src",
+    "lint": "cd ../.. && eslint packages/agent-child-process/src --ext ts && tsc -p packages/agent-child-process/tsconfig.json --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-spawn": "*"
+  }
+}

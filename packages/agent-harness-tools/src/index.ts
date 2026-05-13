@@ -6,11 +6,13 @@ export {
 export {
   archivePlan,
   discoverPlans,
-  openPlanList,
-  type ArchivePlanOptions,
-  type DiscoverPlansOptions,
-  type OpenPlanListOptions,
-  type PlanRef
+  openPlanList
+} from "./plans.js";
+export type {
+  ArchivePlanOptions,
+  DiscoverPlansOptions,
+  OpenPlanListOptions,
+  PlanRef
 } from "./plans.js";
 export {
   normalizeParticipantConfig,

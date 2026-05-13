@@ -123,7 +123,8 @@ export function parseFrontmatter(content: string): {
   }
 
   const yamlBlock = content.slice(FENCE.length + 1, closingIndex);
-  const body = content.slice(closingIndex + FENCE.length + 2);
+  const rawBody = content.slice(closingIndex + FENCE.length + 2);
+  const body = rawBody.startsWith("\n") ? rawBody.slice(1) : rawBody;
   const parsed = parse(yamlBlock);
 
   return {

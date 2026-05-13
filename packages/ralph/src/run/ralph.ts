@@ -1,6 +1,7 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import {
+  archivePlan as archivePlanShared,
   makeRunLogFileName,
   resolveRunLogDir,
   resolveWorkflowPath,
@@ -21,6 +22,8 @@ import {
 import type { RalphFileStat, RalphFileSystem, RalphRunOptions, RalphRunResult } from "../types.js";
 import { interpolateVariables } from "../variables/variables.js";
 
+type SharedArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
+
 class RalphWorkflowStopError extends Error {
   constructor(readonly kind: "failed" | "cancelled" | "fatal") {
     super(`Ralph workflow stopped: ${kind}`);
@@ -36,6 +39,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
   }
 
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
+  const planDirectory = path.dirname(options.docPath);
   const runLogDir = resolveRunLogDir({
     planPath: absoluteDocPath,
     runner: "ralph",
@@ -169,8 +173,6 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
 
         if (iterationNumber === config.maxIterations) {
           await updateFrontmatter(fs, absoluteDocPath, "completed", iterationsCompleted);
-          await archivePlan(fs, absoluteDocPath);
-          archived = true;
           stopReason = "max_iterations";
           return;
         }
@@ -199,7 +201,15 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
 
   if (stopReason === "max_iterations" && !archived && iterationsCompleted > 0) {
     await updateFrontmatter(fs, absoluteDocPath, "completed", iterationsCompleted);
-    await archivePlan(fs, absoluteDocPath);
+    const id = path.basename(absoluteDocPath, ".md").replace(/^\d+-/, "");
+    await archivePlanShared({
+      cwd: options.cwd,
+      homeDir: options.homeDir,
+      planDirectory,
+      id,
+      fs: fs as unknown as SharedArchivePlanFs
+    });
+    archived = true;
   } else if (stopReason === "cancelled" && !archived) {
     await updateFrontmatter(fs, absoluteDocPath, "open", iterationsCompleted);
   }
@@ -447,12 +457,4 @@ async function updateFrontmatter(
     currentBody
   );
   await fs.writeFile(absoluteDocPath, content);
-}
-
-async function archivePlan(fs: RalphFileSystem, absoluteDocPath: string): Promise<void> {
-  const dir = path.dirname(absoluteDocPath);
-  const archiveDir = path.join(dir, "archive");
-  const archivePath = path.join(archiveDir, path.basename(absoluteDocPath));
-  await fs.mkdir(archiveDir, { recursive: true });
-  await fs.rename(absoluteDocPath, archivePath);
 }

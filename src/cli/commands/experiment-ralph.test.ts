@@ -173,6 +173,11 @@ const expectedTimestamp = (() => {
   const date = new Date(0);
   return `[${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}:${String(date.getSeconds()).padStart(2, "0")}]`;
 })();
+
+function ralphPlanDoc(name: string): string {
+  return ["---", "kind: ralph", `name: ${name}`, "---", `# ${name}`].join("\n");
+}
+
 describe("experiment run command", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -316,8 +321,8 @@ describe("experiment run command", () => {
   it("discovers the first doc and default agent with --yes", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-b.md": "# B",
-        "/repo/docs/plans/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": ralphPlanDoc("B"),
+        "/repo/docs/plans/plan-a.md": ralphPlanDoc("A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -438,8 +443,8 @@ describe("experiment run command", () => {
 
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-b.md": "# B",
-        "/repo/docs/plans/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": ralphPlanDoc("B"),
+        "/repo/docs/plans/plan-a.md": ralphPlanDoc("A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -1982,8 +1987,8 @@ describe("ralph run command", () => {
 
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-b.md": "# B",
-        "/repo/docs/plans/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": ralphPlanDoc("B"),
+        "/repo/docs/plans/plan-a.md": ralphPlanDoc("A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -2031,6 +2036,8 @@ describe("ralph run command", () => {
       fs: createMemFs({
         "/repo/docs/plans/plan-a.md": [
           "---",
+          "kind: ralph",
+          "name: A",
           "agent: codex",
           "iterations: 3",
           "status:",
@@ -2039,7 +2046,7 @@ describe("ralph run command", () => {
           "---",
           "# A"
         ].join("\n"),
-        "/repo/docs/plans/plan-b.md": "# B"
+        "/repo/docs/plans/plan-b.md": ralphPlanDoc("B")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -2157,8 +2164,8 @@ describe("ralph run command", () => {
   it("uses defaults with --yes when frontmatter does not provide values", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-b.md": "# B",
-        "/repo/docs/plans/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": ralphPlanDoc("B"),
+        "/repo/docs/plans/plan-a.md": ralphPlanDoc("A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -2834,7 +2841,7 @@ describe("ralph init command", () => {
 
   it("uses CLI prompts when agent and iterations are omitted", async () => {
     const fs = createMemFs({
-      "/repo/docs/plans/plan-a.md": "# A"
+      "/repo/docs/plans/plan-a.md": ralphPlanDoc("A")
     });
     selectMock.mockResolvedValueOnce("docs/plans/plan-a.md").mockResolvedValueOnce("codex");
     promptTextMock.mockResolvedValue("4");

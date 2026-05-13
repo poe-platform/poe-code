@@ -486,9 +486,9 @@ tasks:
         If any existing ralph test asserted on a specific state machine,
         confirm the default has the `archive` event (it does).
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: experiment-loop-migrate
     title: Migrate experiment-loop harness to shared plan API

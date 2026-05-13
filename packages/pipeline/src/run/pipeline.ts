@@ -1,7 +1,12 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
-import { lockWorkflow, makeRunLogFileName, resolveRunLogDir } from "@poe-code/agent-harness-tools";
+import {
+  archivePlan as archivePlanShared,
+  lockWorkflow,
+  makeRunLogFileName,
+  resolveRunLogDir
+} from "@poe-code/agent-harness-tools";
 import { resolveAbsolutePlanPath, resolvePlanPath } from "../plan/discovery.js";
 import { parsePlan } from "../plan/parser.js";
 import { writeTaskStatus } from "../plan/writer.js";
@@ -24,6 +29,8 @@ import type {
   StepMode
 } from "../types.js";
 import { assertNotAborted } from "../utils.js";
+
+type ArchivePlanFs = NonNullable<Parameters<typeof archivePlanShared>[0]["fs"]>;
 
 function createDefaultFs(): PipelineFileSystem {
   const fs = {
@@ -147,16 +154,25 @@ function resolveMode(
   return step.mode;
 }
 
-async function archivePlan(fs: PipelineFileSystem, absolutePlanPath: string): Promise<void> {
-  const dir = path.dirname(absolutePlanPath);
-  const archiveDir = path.join(dir, "archive");
-  const archivePath = path.join(archiveDir, path.basename(absolutePlanPath));
-  await fs.mkdir(archiveDir, { recursive: true });
-  await fs.rename(absolutePlanPath, archivePath);
+function planIdFromArchivePath(absolutePlanPath: string): string {
+  const stem = path.basename(absolutePlanPath, ".md");
+  let index = 0;
+  while (index < stem.length && stem.charCodeAt(index) >= 48 && stem.charCodeAt(index) <= 57) {
+    index += 1;
+  }
+
+  if (index > 0 && stem[index] === "-" && index < stem.length - 1) {
+    return stem.slice(index + 1);
+  }
+
+  return stem;
 }
 
 export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
   const fs = options.fs ?? createDefaultFs();
+  const cwd = options.cwd;
+  const homeDir = options.homeDir;
+  const configuredPlanDirectory = options.planDirectory;
   const runAgent = options.runAgent;
   if (!runAgent) {
     throw new Error("runPipeline requires a runAgent implementation.");
@@ -171,10 +187,10 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   };
 
   const planPath = await resolvePlanPath({
-    cwd: options.cwd,
-    homeDir: options.homeDir,
+    cwd,
+    homeDir,
     plan: options.plan,
-    planDirectory: options.planDirectory,
+    planDirectory: configuredPlanDirectory,
     assumeYes: options.assumeYes,
     fs,
     selectPlan: options.selectPlan,
@@ -191,13 +207,13 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     };
   }
 
-  const absolutePlanPath = resolveAbsolutePlanPath(planPath, options.cwd, options.homeDir);
+  const absolutePlanPath = resolveAbsolutePlanPath(planPath, cwd, homeDir);
   const runLogDir =
     options.logDir ??
     resolveRunLogDir({
       planPath: absolutePlanPath,
       runner: "pipeline",
-      homeDir: options.homeDir
+      homeDir
     });
   if (options.onPlanResolved) {
     const content = await fs.readFile(absolutePlanPath, "utf8");
@@ -352,6 +368,14 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       ...(options.signal ? { signal: options.signal } : {}),
       onLockStatusChange: options.onLockStatusChange
     });
+    let lockReleased = false;
+    const releaseLock = async (): Promise<void> => {
+      if (lockReleased) {
+        return;
+      }
+      lockReleased = true;
+      await release();
+    };
     try {
       let stepsConfig: ResolvedStepsConfig;
       let plan: PipelinePlan;
@@ -391,7 +415,15 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       if (selection.kind === "completed") {
         if (runsCompleted > 0) {
-          await archivePlan(fs, absolutePlanPath);
+          await releaseLock();
+          const id = planIdFromArchivePath(absolutePlanPath);
+          await archivePlanShared({
+            cwd,
+            homeDir,
+            planDirectory: configuredPlanDirectory ?? "docs/plans",
+            id,
+            fs: fs as unknown as ArchivePlanFs
+          });
           if (resolvedTeardown) {
             const { success, cancelled } = await runPhase(
               resolvedTeardown,
@@ -546,7 +578,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         };
       }
     } finally {
-      await release();
+      await releaseLock();
     }
   }
 

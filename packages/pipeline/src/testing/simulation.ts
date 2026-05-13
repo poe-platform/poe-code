@@ -73,14 +73,19 @@ export type SimulationResult = {
 };
 
 function createSimulationFs(options: SimulationOptions): { fs: SimulationFs; planPath: string } {
-  const planPath = "/repo/.poe-code/pipeline/plans/plan.yaml";
+  const planPath = "/repo/docs/plans/plan.md";
   const files: Record<string, string> = {
-    [planPath]: stringify({
-      $schema: pipelineDocumentSchemaId,
-      kind: "pipeline",
-      version: 1,
-      ...options.plan
-    }),
+    [planPath]: [
+      "---",
+      stringify({
+        $schema: pipelineDocumentSchemaId,
+        kind: "pipeline",
+        version: 1,
+        ...options.plan
+      }).trimEnd(),
+      "---",
+      ""
+    ].join("\n"),
     ...Object.fromEntries(
       Object.entries(options.files ?? {}).map(([filePath, content]) => [
         path.join("/repo", filePath),
@@ -221,7 +226,7 @@ export function createPipelineSimulation(options: SimulationOptions): {
         agent: "codex",
         cwd: "/repo",
         homeDir: "/home/test",
-        plan: ".poe-code/pipeline/plans/plan.yaml",
+        plan: "docs/plans/plan.md",
         maxRuns: options.config?.maxRuns,
         logDir: options.config?.logDir,
         onPlanReloadError: options.onPlanReloadError,

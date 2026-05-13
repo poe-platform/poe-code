@@ -369,7 +369,7 @@ tasks:
       - Verify with `npm run build --workspace @poe-code/agent-harness-tools`.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: pipeline-migrate
     title: Migrate pipeline harness to shared plan API
@@ -431,9 +431,9 @@ tasks:
         happens in a later task. The shared API tolerates files without
         prefixes.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: ralph-migrate
     title: Migrate ralph harness to shared plan API

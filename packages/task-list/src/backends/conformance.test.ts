@@ -82,6 +82,7 @@ async function openBackend(
     defaults: {
       metadata: { ...(options.defaults?.metadata ?? {}) }
     },
+    frontmatterMode: "strict",
     lockStaleMs: 30_000,
     lockRetries: options.lockRetries ?? 20,
     create: options.create ?? true,

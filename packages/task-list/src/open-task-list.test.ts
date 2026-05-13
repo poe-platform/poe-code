@@ -72,6 +72,8 @@ describe("openTaskList", () => {
       defaults: {
         metadata: {}
       },
+      singleList: undefined,
+      frontmatterMode: "strict",
       lockStaleMs: 30_000,
       lockRetries: 20,
       create: false,
@@ -96,6 +98,8 @@ describe("openTaskList", () => {
       defaults: {
         metadata: {}
       },
+      singleList: undefined,
+      frontmatterMode: "strict",
       lockStaleMs: 30_000,
       lockRetries: 20,
       create: false,
@@ -253,6 +257,29 @@ describe("openTaskList", () => {
         create: true,
         lockStaleMs: 90_000,
         lockRetries: 7
+      })
+    );
+  });
+
+  it("opens markdown-dir in single-list passthrough-frontmatter mode", async () => {
+    const taskList = createTaskList();
+    const { fs } = createFs();
+    const spy = vi.spyOn(backendFactories, "markdown-dir").mockResolvedValue(taskList);
+
+    await expect(
+      openTaskList({
+        type: "markdown-dir",
+        path: "/repo/tasks",
+        singleList: "plans",
+        frontmatterMode: "passthrough",
+        fs
+      })
+    ).resolves.toBe(taskList);
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        singleList: "plans",
+        frontmatterMode: "passthrough"
       })
     );
   });

@@ -46,12 +46,15 @@ async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
   const factory = backendFactories[options.type];
   const stateMachine = resolveStateMachine(options.stateMachine);
   validateMachine(stateMachine);
+  const markdownOptions = options.type === "markdown-dir" ? options : undefined;
 
   const deps: BackendDeps = {
     path: options.path,
     defaults: {
       metadata: { ...(options.defaults?.metadata ?? {}) }
     },
+    singleList: markdownOptions?.singleList,
+    frontmatterMode: markdownOptions?.frontmatterMode ?? "strict",
     lockStaleMs: options.lockStaleMs ?? DEFAULT_LOCK_STALE_MS,
     lockRetries: options.lockRetries ?? DEFAULT_LOCK_RETRIES,
     create: options.create ?? false,

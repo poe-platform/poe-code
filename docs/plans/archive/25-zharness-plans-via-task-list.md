@@ -667,7 +667,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 ---
 
 # Context

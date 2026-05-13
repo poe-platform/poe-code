@@ -178,6 +178,10 @@ function ralphPlanDoc(name: string): string {
   return ["---", "kind: ralph", `name: ${name}`, "---", `# ${name}`].join("\n");
 }
 
+function experimentPlanDoc(name: string): string {
+  return ["---", "kind: experiment", `name: ${name}`, "---", `# ${name}`].join("\n");
+}
+
 describe("experiment run command", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -321,8 +325,8 @@ describe("experiment run command", () => {
   it("discovers the first doc and default agent with --yes", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-b.md": ralphPlanDoc("B"),
-        "/repo/docs/plans/plan-a.md": ralphPlanDoc("A")
+        "/repo/docs/plans/plan-b.md": experimentPlanDoc("B"),
+        "/repo/docs/plans/plan-a.md": experimentPlanDoc("A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -418,7 +422,7 @@ describe("experiment run command", () => {
         "/repo/.poe-code/config.json": JSON.stringify({
           plan: { plan_directory: "~/docs/plans" }
         }),
-        "/home/test/docs/plans/plan-a.md": "# A"
+        "/home/test/docs/plans/plan-a.md": experimentPlanDoc("A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -443,8 +447,8 @@ describe("experiment run command", () => {
 
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-b.md": ralphPlanDoc("B"),
-        "/repo/docs/plans/plan-a.md": ralphPlanDoc("A")
+        "/repo/docs/plans/plan-b.md": experimentPlanDoc("B"),
+        "/repo/docs/plans/plan-a.md": experimentPlanDoc("A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -1293,8 +1297,8 @@ describe("experiment journal command", () => {
   it("discovers the first doc with --yes", async () => {
     const container = createCliContainer({
       fs: createMemFs({
-        "/repo/docs/plans/plan-b.md": "# B",
-        "/repo/docs/plans/plan-a.md": "# A"
+        "/repo/docs/plans/plan-b.md": experimentPlanDoc("B"),
+        "/repo/docs/plans/plan-a.md": experimentPlanDoc("A")
       }),
       prompts: vi.fn().mockResolvedValue({}),
       env: { cwd, homeDir },
@@ -1457,6 +1461,7 @@ describe("experiment validate command", () => {
       fs: createMemFs({
         "/repo/docs/plans/plan-a.md": [
           "---",
+          "kind: experiment",
           "agent: claude-code",
           "metric:",
           "  name: tests",

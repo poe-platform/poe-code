@@ -523,8 +523,8 @@ tasks:
       - No CLI surface changes.
       - No new dependencies.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: superintendent-migrate

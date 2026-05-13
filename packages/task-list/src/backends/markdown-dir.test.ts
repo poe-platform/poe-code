@@ -5,6 +5,9 @@ import { MalformedTaskError } from "../types.js";
 import { markdownDirBackend } from "./markdown-dir.js";
 import { createDeferred, createFs, waitForCondition } from "./test-helpers.js";
 
+const PIPELINE_SCHEMA_ID =
+  "https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json";
+
 function parseFrontmatter(content: string): Record<string, unknown> {
   const lines = content.split("\n");
   const closingIndex = lines.indexOf("---", 1);
@@ -151,6 +154,33 @@ Broken`
     await expect(taskList.list("planning").get("bad")).rejects.toBeInstanceOf(MalformedTaskError);
   });
 
+  it("rejects non-task frontmatter in strict mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/planning/pipeline.md": `---
+kind: pipeline
+version: 1
+name: Pipeline plan
+state: draft
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("planning").get("pipeline")).rejects.toBeInstanceOf(
+      MalformedTaskError
+    );
+    await expect(taskList.list("planning").get("pipeline")).rejects.toThrow('"kind"');
+  });
+
   it("ignores hidden entries, lockfiles, and the reserved archive directory at the root", async () => {
     const { fs } = createFs({
       "/repo/tasks/alpha/one.md": `---
@@ -223,6 +253,192 @@ state: draft
         name: "Foo"
       }
     ]);
+  });
+
+  it("reads non-task frontmatter as metadata in single-list passthrough mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/foo.md": `---
+$schema: ${PIPELINE_SCHEMA_ID}
+kind: pipeline
+version: 1
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").get("foo")).resolves.toMatchObject({
+      id: "foo",
+      name: "foo",
+      state: "draft",
+      description: "",
+      metadata: {
+        $schema: PIPELINE_SCHEMA_ID,
+        kind: "pipeline",
+        version: 1
+      }
+    });
+  });
+
+  it("synthesizes passthrough task fields from numbered filenames and the state machine", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/07-foo.md": `---
+$schema: ${PIPELINE_SCHEMA_ID}
+kind: pipeline
+version: 1
+name: 123
+state: unknown
+description: Frontmatter description is ignored
+---
+
+Body description`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").get("foo")).resolves.toEqual({
+      id: "foo",
+      list: "plans",
+      qualifiedId: "plans/foo",
+      name: "foo",
+      state: "draft",
+      description: "Body description",
+      metadata: {
+        $schema: PIPELINE_SCHEMA_ID,
+        kind: "pipeline",
+        version: 1
+      }
+    });
+  });
+
+  it("reads empty frontmatter with passthrough defaults", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/foo.md": `---
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").get("foo")).resolves.toMatchObject({
+      id: "foo",
+      name: "foo",
+      state: "draft",
+      description: "",
+      metadata: {}
+    });
+  });
+
+  it("preserves non-task frontmatter keys when firing passthrough tasks", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/foo.md": `---
+$schema: ${PIPELINE_SCHEMA_ID}
+kind: pipeline
+version: 1
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("plans").fire("foo", "plan");
+
+    const content = await rawFs.readFile("/repo/tasks/foo.md", "utf8");
+    expect(parseFrontmatter(content)).toMatchObject({
+      $schema: PIPELINE_SCHEMA_ID,
+      kind: "pipeline",
+      version: 1,
+      name: "foo",
+      state: "planned"
+    });
+  });
+
+  it("applies passthrough metadata patches without injecting task envelope keys", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/foo.md": `---
+$schema: ${PIPELINE_SCHEMA_ID}
+kind: pipeline
+version: 1
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("plans").update("foo", {
+      name: "Updated plan",
+      metadata: {
+        $schema: "https://example.test/custom.schema.json",
+        kind: "pipeline-v2",
+        owner: "kj",
+        version: 2
+      }
+    });
+
+    const frontmatter = parseFrontmatter(await rawFs.readFile("/repo/tasks/foo.md", "utf8"));
+
+    expect(frontmatter).toMatchObject({
+      $schema: "https://example.test/custom.schema.json",
+      kind: "pipeline-v2",
+      name: "Updated plan",
+      owner: "kj",
+      state: "draft",
+      version: 2
+    });
+    expect(frontmatter).not.toMatchObject({
+      $schema: "https://poe-platform.github.io/poe-code/schemas/task-list/task.schema.json",
+      kind: "task"
+    });
   });
 
   it("rejects other list names in single-list mode", async () => {

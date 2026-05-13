@@ -49,6 +49,7 @@ const RESERVED_FRONTMATTER_KEYS = new Set([
   "state",
   "version"
 ]);
+const PASSTHROUGH_RESERVED_FRONTMATTER_KEYS = new Set(["description", "name", "state"]);
 
 type TaskRecord = Record<string, unknown>;
 
@@ -66,9 +67,7 @@ type TaskLocation = {
 type ListLayout = { kind: "multi" } | { kind: "single"; name: string };
 
 function resolveListLayout(deps: BackendDeps): ListLayout {
-  return deps.singleList
-    ? { kind: "single", name: deps.singleList }
-    : { kind: "multi" };
+  return deps.singleList ? { kind: "single", name: deps.singleList } : { kind: "multi" };
 }
 
 function validateListName(name: string): string {
@@ -137,7 +136,13 @@ function isLockFile(entryName: string): boolean {
 }
 
 function isValidTaskIdShape(id: string): boolean {
-  return id.length > 0 && !id.startsWith(".") && !id.includes("/") && !id.includes("\\") && !id.includes("..");
+  return (
+    id.length > 0 &&
+    !id.startsWith(".") &&
+    !id.includes("/") &&
+    !id.includes("\\") &&
+    !id.includes("..")
+  );
 }
 
 function parseActiveFilename(entryName: string): { id: string; order: number | null } | undefined {
@@ -171,7 +176,10 @@ function stripTrailingCarriageReturn(line: string): string {
   return line.endsWith("\r") ? line.slice(0, -1) : line;
 }
 
-function splitTaskDocument(content: string, filePath: string): {
+function splitTaskDocument(
+  content: string,
+  filePath: string
+): {
   body: string;
   frontmatter: string;
 } {
@@ -255,11 +263,19 @@ function assertValidTaskRecord(
   }
 }
 
-function metadataFromFrontmatter(frontmatter: TaskRecord): Record<string, unknown> {
+function reservedFrontmatterKeys(mode: BackendDeps["frontmatterMode"]): ReadonlySet<string> {
+  return mode === "passthrough" ? PASSTHROUGH_RESERVED_FRONTMATTER_KEYS : RESERVED_FRONTMATTER_KEYS;
+}
+
+function metadataFromFrontmatter(
+  frontmatter: TaskRecord,
+  mode: BackendDeps["frontmatterMode"]
+): Record<string, unknown> {
   const metadata: Record<string, unknown> = {};
+  const reservedKeys = reservedFrontmatterKeys(mode);
 
   for (const [key, value] of Object.entries(frontmatter)) {
-    if (!RESERVED_FRONTMATTER_KEYS.has(key)) {
+    if (!reservedKeys.has(key)) {
       metadata[key] = value;
     }
   }
@@ -267,7 +283,13 @@ function metadataFromFrontmatter(frontmatter: TaskRecord): Record<string, unknow
   return metadata;
 }
 
-function createTask(list: string, id: string, frontmatter: TaskRecord, body: string): Task {
+function createTask(
+  list: string,
+  id: string,
+  frontmatter: TaskRecord,
+  body: string,
+  mode: BackendDeps["frontmatterMode"]
+): Task {
   return {
     list,
     id,
@@ -275,7 +297,7 @@ function createTask(list: string, id: string, frontmatter: TaskRecord, body: str
     name: frontmatter.name as string,
     state: frontmatter.state as string,
     description: body,
-    metadata: metadataFromFrontmatter(frontmatter)
+    metadata: metadataFromFrontmatter(frontmatter, mode)
   };
 }
 
@@ -309,18 +331,41 @@ async function readTaskFile(
   list: string,
   id: string,
   filePath: string,
-  validStates: ReadonlySet<string>
+  validStates: ReadonlySet<string>,
+  initialState: string,
+  mode: BackendDeps["frontmatterMode"]
 ): Promise<TaskFile> {
   const content = await fs.readFile(filePath, "utf8");
   const document = splitTaskDocument(content, filePath);
-  const frontmatter = readFrontmatter(document.frontmatter, filePath);
+  const frontmatter =
+    mode === "passthrough" && document.frontmatter.trim().length === 0
+      ? {}
+      : readFrontmatter(document.frontmatter, filePath);
 
-  assertValidTaskRecord(frontmatter, filePath, validStates);
+  if (mode !== "passthrough") {
+    assertValidTaskRecord(frontmatter, filePath, validStates);
+    return {
+      path: filePath,
+      frontmatter,
+      task: createTask(list, id, frontmatter, document.body, mode)
+    };
+  }
+
+  const parsedFilename = parseActiveFilename(path.basename(filePath));
+  const defaultName = parsedFilename?.id ?? id;
+  const effectiveFrontmatter: TaskRecord = {
+    ...frontmatter,
+    name: typeof frontmatter.name === "string" ? frontmatter.name : defaultName,
+    state:
+      typeof frontmatter.state === "string" && validStates.has(frontmatter.state)
+        ? frontmatter.state
+        : initialState
+  };
 
   return {
     path: filePath,
     frontmatter,
-    task: createTask(list, id, frontmatter, document.body)
+    task: createTask(list, id, effectiveFrontmatter, document.body, mode)
   };
 }
 
@@ -372,7 +417,9 @@ async function readTaskAtLocation(
   layout: ListLayout,
   list: string,
   id: string,
-  validStates: ReadonlySet<string>
+  validStates: ReadonlySet<string>,
+  initialState: string,
+  mode: BackendDeps["frontmatterMode"]
 ): Promise<TaskFile> {
   const location = await findTaskLocation(fs, rootPath, layout, list, id);
 
@@ -380,30 +427,38 @@ async function readTaskAtLocation(
     throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
   }
 
-  return readTaskFile(fs, list, id, location.path, validStates);
+  return readTaskFile(fs, list, id, location.path, validStates, initialState, mode);
 }
 
 function createdFrontmatter(
   defaults: BackendDeps["defaults"],
   input: TaskCreate,
-  initialState: string
+  initialState: string,
+  mode: BackendDeps["frontmatterMode"]
 ): TaskRecord {
-  const frontmatter: TaskRecord = {
-    $schema: TASK_SCHEMA_ID,
-    kind: TASK_KIND,
-    version: TASK_VERSION,
-    name: input.name,
-    state: initialState
-  };
+  const frontmatter: TaskRecord =
+    mode !== "passthrough"
+      ? {
+          $schema: TASK_SCHEMA_ID,
+          kind: TASK_KIND,
+          version: TASK_VERSION,
+          name: input.name,
+          state: initialState
+        }
+      : {
+          name: input.name,
+          state: initialState
+        };
+  const reservedKeys = reservedFrontmatterKeys(mode);
 
   for (const [key, value] of Object.entries(defaults.metadata)) {
-    if (!RESERVED_FRONTMATTER_KEYS.has(key)) {
+    if (!reservedKeys.has(key)) {
       frontmatter[key] = value;
     }
   }
 
   for (const [key, value] of Object.entries(input.metadata ?? {})) {
-    if (!RESERVED_FRONTMATTER_KEYS.has(key)) {
+    if (!reservedKeys.has(key)) {
       frontmatter[key] = value;
     }
   }
@@ -415,19 +470,28 @@ function createdFrontmatter(
 function updatedFrontmatter(
   existingFrontmatter: TaskRecord,
   task: Task,
-  patch: TaskUpdate
+  patch: TaskUpdate,
+  mode: BackendDeps["frontmatterMode"]
 ): TaskRecord {
-  const nextFrontmatter: TaskRecord = {
-    ...existingFrontmatter,
-    $schema: existingFrontmatter.$schema ?? TASK_SCHEMA_ID,
-    kind: existingFrontmatter.kind ?? TASK_KIND,
-    version: existingFrontmatter.version ?? TASK_VERSION,
-    name: patch.name ?? task.name,
-    state: task.state
-  };
+  const nextFrontmatter: TaskRecord =
+    mode !== "passthrough"
+      ? {
+          ...existingFrontmatter,
+          $schema: existingFrontmatter.$schema ?? TASK_SCHEMA_ID,
+          kind: existingFrontmatter.kind ?? TASK_KIND,
+          version: existingFrontmatter.version ?? TASK_VERSION,
+          name: patch.name ?? task.name,
+          state: task.state
+        }
+      : {
+          ...existingFrontmatter,
+          name: patch.name ?? task.name,
+          state: task.state
+        };
+  const reservedKeys = reservedFrontmatterKeys(mode);
 
   for (const [key, value] of Object.entries(patch.metadata ?? {})) {
-    if (!RESERVED_FRONTMATTER_KEYS.has(key)) {
+    if (!reservedKeys.has(key)) {
       nextFrontmatter[key] = value;
     }
   }
@@ -435,27 +499,40 @@ function updatedFrontmatter(
   return nextFrontmatter;
 }
 
-function transitionedFrontmatter(existingFrontmatter: TaskRecord, task: Task, to: string): TaskRecord {
-  return {
-    ...existingFrontmatter,
-    $schema: existingFrontmatter.$schema ?? TASK_SCHEMA_ID,
-    kind: existingFrontmatter.kind ?? TASK_KIND,
-    version: existingFrontmatter.version ?? TASK_VERSION,
-    name: task.name,
-    state: to
-  };
+function transitionedFrontmatter(
+  existingFrontmatter: TaskRecord,
+  task: Task,
+  to: string,
+  mode: BackendDeps["frontmatterMode"]
+): TaskRecord {
+  return mode !== "passthrough"
+    ? {
+        ...existingFrontmatter,
+        $schema: existingFrontmatter.$schema ?? TASK_SCHEMA_ID,
+        kind: existingFrontmatter.kind ?? TASK_KIND,
+        version: existingFrontmatter.version ?? TASK_VERSION,
+        name: task.name,
+        state: to
+      }
+    : {
+        ...existingFrontmatter,
+        name: task.name,
+        state: to
+      };
 }
 
 function firedFrontmatter(
   existingFrontmatter: TaskRecord,
   task: Task,
   to: string,
+  mode: BackendDeps["frontmatterMode"],
   metadataPatch?: Record<string, unknown>
 ): TaskRecord {
-  const nextFrontmatter = transitionedFrontmatter(existingFrontmatter, task, to);
+  const nextFrontmatter = transitionedFrontmatter(existingFrontmatter, task, to, mode);
+  const reservedKeys = reservedFrontmatterKeys(mode);
 
   for (const [key, value] of Object.entries(metadataPatch ?? {})) {
-    if (!RESERVED_FRONTMATTER_KEYS.has(key)) {
+    if (!reservedKeys.has(key)) {
       nextFrontmatter[key] = value;
     }
   }
@@ -520,13 +597,24 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
     return result;
   }
 
-  async function readActiveTasks(): Promise<{ entries: ActiveEntry[]; tasks: Map<string, { task: Task; raw: TaskRecord }> }> {
+  async function readActiveTasks(): Promise<{
+    entries: ActiveEntry[];
+    tasks: Map<string, { task: Task; raw: TaskRecord }>;
+  }> {
     const entries = await readActiveEntries();
     const tasks = new Map<string, { task: Task; raw: TaskRecord }>();
 
     for (const entry of entries) {
       const filePath = path.join(listDirectoryPath, entry.filename);
-      const file = await readTaskFile(deps.fs, list, entry.id, filePath, validStates);
+      const file = await readTaskFile(
+        deps.fs,
+        list,
+        entry.id,
+        filePath,
+        validStates,
+        stateMachine.initial,
+        deps.frontmatterMode
+      );
       tasks.set(entry.id, { task: file.task, raw: file.frontmatter });
     }
 
@@ -546,11 +634,21 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       if (!entryStat?.isFile()) continue;
 
       const id = entryName.slice(0, -MARKDOWN_EXTENSION.length);
-      const file = await readTaskFile(deps.fs, list, id, entryPath, validStates);
+      const file = await readTaskFile(
+        deps.fs,
+        list,
+        id,
+        entryPath,
+        validStates,
+        stateMachine.initial,
+        deps.frontmatterMode
+      );
       result.push({ task: file.task, raw: file.frontmatter });
     }
 
-    return result.sort((left, right) => left.task.qualifiedId.localeCompare(right.task.qualifiedId));
+    return result.sort((left, right) =>
+      left.task.qualifiedId.localeCompare(right.task.qualifiedId)
+    );
   }
 
   async function rewriteListPrefixes(orderedIds: readonly string[]): Promise<void> {
@@ -566,7 +664,10 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       const desiredFilename = activeTaskFilename(id, index + 1, width);
       if (entry.filename !== desiredFilename) {
         const fromPath = path.join(listDirectoryPath, entry.filename);
-        const stagingPath = path.join(listDirectoryPath, `${desiredFilename}.staging-${process.pid}-${index}`);
+        const stagingPath = path.join(
+          listDirectoryPath,
+          `${desiredFilename}.staging-${process.pid}-${index}`
+        );
         await deps.fs.rename(fromPath, stagingPath);
         entry.filename = path.basename(stagingPath);
       }
@@ -607,7 +708,16 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
   async function getTaskFile(id: string): Promise<TaskFile> {
     validateTaskId(id);
-    return readTaskAtLocation(deps.fs, deps.path, layout, list, id, validStates);
+    return readTaskAtLocation(
+      deps.fs,
+      deps.path,
+      layout,
+      list,
+      id,
+      validStates,
+      stateMachine.initial,
+      deps.frontmatterMode
+    );
   }
 
   function assertFireableTaskEvent(task: Task, eventName: string) {
@@ -672,12 +782,17 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
         const filename = activeTaskFilename(input.id, nextOrder, width);
         const targetPath = path.join(listDirectoryPath, filename);
 
-        const frontmatter = createdFrontmatter(deps.defaults, input, stateMachine.initial);
+        const frontmatter = createdFrontmatter(
+          deps.defaults,
+          input,
+          stateMachine.initial,
+          deps.frontmatterMode
+        );
         const description = input.description ?? "";
 
         await writeAtomically(deps.fs, targetPath, serializeTaskDocument(frontmatter, description));
 
-        return createTask(list, input.id, frontmatter, description);
+        return createTask(list, input.id, frontmatter, description, deps.frontmatterMode);
       });
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
@@ -685,12 +800,21 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
       return withTaskLock(id, async () => {
         const existing = await getTaskFile(id);
-        const nextFrontmatter = updatedFrontmatter(existing.frontmatter, existing.task, patch);
+        const nextFrontmatter = updatedFrontmatter(
+          existing.frontmatter,
+          existing.task,
+          patch,
+          deps.frontmatterMode
+        );
         const description = patch.description ?? existing.task.description;
 
-        await writeAtomically(deps.fs, existing.path, serializeTaskDocument(nextFrontmatter, description));
+        await writeAtomically(
+          deps.fs,
+          existing.path,
+          serializeTaskDocument(nextFrontmatter, description)
+        );
 
-        return createTask(list, id, nextFrontmatter, description);
+        return createTask(list, id, nextFrontmatter, description, deps.frontmatterMode);
       });
     },
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
@@ -714,9 +838,16 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
           existing.frontmatter,
           existing.task,
           event.to,
+          deps.frontmatterMode,
           opts?.metadataPatch
         );
-        const nextTask = createTask(list, id, nextFrontmatter, existing.task.description);
+        const nextTask = createTask(
+          list,
+          id,
+          nextFrontmatter,
+          existing.task.description,
+          deps.frontmatterMode
+        );
         const serializedTask = serializeTaskDocument(nextFrontmatter, existing.task.description);
 
         if (event.to === "archived") {
@@ -891,7 +1022,16 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
     const targetListName = validateListName(targetList);
 
     if (sourceListName === targetListName) {
-      const file = await readTaskAtLocation(deps.fs, deps.path, layout, sourceListName, id, validStates);
+      const file = await readTaskAtLocation(
+        deps.fs,
+        deps.path,
+        layout,
+        sourceListName,
+        id,
+        validStates,
+        stateMachine.initial,
+        deps.frontmatterMode
+      );
       return file.task;
     }
 
@@ -925,7 +1065,15 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
       await deps.fs.mkdir(archivedTargetDir, { recursive: true });
       const archivedTargetPath = archivedTaskPath(deps.path, layout, targetListName, id);
       await deps.fs.rename(sourceLocation.path, archivedTargetPath);
-      const file = await readTaskFile(deps.fs, targetListName, id, archivedTargetPath, validStates);
+      const file = await readTaskFile(
+        deps.fs,
+        targetListName,
+        id,
+        archivedTargetPath,
+        validStates,
+        stateMachine.initial,
+        deps.frontmatterMode
+      );
       return file.task;
     }
 
@@ -938,7 +1086,15 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
     const targetPath = path.join(targetListDir, targetFilename);
 
     await deps.fs.rename(sourceLocation.path, targetPath);
-    const file = await readTaskFile(deps.fs, targetListName, id, targetPath, validStates);
+    const file = await readTaskFile(
+      deps.fs,
+      targetListName,
+      id,
+      targetPath,
+      validStates,
+      stateMachine.initial,
+      deps.frontmatterMode
+    );
     return file.task;
   };
 

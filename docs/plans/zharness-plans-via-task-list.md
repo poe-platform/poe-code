@@ -222,7 +222,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-harness-tools-plans
     title: agent-harness-tools — discoverPlans / archivePlan / openPlanList
@@ -336,10 +336,10 @@ tasks:
       - No `@modelcontextprotocol/sdk`, no `child_process`.
       - No new env vars or CLI flags.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: agent-harness-tools-export
     title: Re-export plans API from agent-harness-tools index

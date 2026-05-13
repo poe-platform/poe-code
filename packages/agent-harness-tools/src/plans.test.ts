@@ -1,0 +1,268 @@
+import { TaskNotFoundError, type TaskListFs } from "@poe-code/task-list";
+import { createFsFromVolume, Volume } from "memfs";
+import { describe, expect, it } from "vitest";
+import { archivePlan, discoverPlans, openPlanList } from "./plans.js";
+
+const cwd = "/repo";
+const homeDir = "/home/test";
+const planDirectory = ".poe-code/plans";
+const resolvedPlanDirectory = "/repo/.poe-code/plans";
+
+type TestFs = ReturnType<typeof createFsFromVolume>["promises"];
+
+function createFs(files: Record<string, string> = {}): {
+  fs: TaskListFs;
+  rawFs: TestFs;
+  volume: Volume;
+} {
+  const volume = Volume.fromJSON(files, "/");
+  volume.mkdirSync(cwd, { recursive: true });
+  volume.mkdirSync(homeDir, { recursive: true });
+  const rawFs = createFsFromVolume(volume).promises;
+
+  return {
+    fs: rawFs as unknown as TaskListFs,
+    rawFs,
+    volume
+  };
+}
+
+function planDoc(options: { kind?: string; name: string; state?: string; body?: string }): string {
+  const frontmatter = [
+    options.kind === undefined ? undefined : `kind: ${options.kind}`,
+    `name: ${options.name}`,
+    `state: ${options.state ?? "draft"}`
+  ]
+    .filter((line) => line !== undefined)
+    .join("\n");
+
+  return `---
+${frontmatter}
+---
+
+${options.body ?? ""}`;
+}
+
+async function readSortedDirectory(rawFs: TestFs, directory: string): Promise<string[]> {
+  return (await rawFs.readdir(directory)).sort();
+}
+
+describe("plans", () => {
+  it("discoverPlans returns plans with kind from frontmatter and metadata", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/01-build-pipeline.md": planDoc({
+        kind: "pipeline",
+        name: "Build pipeline"
+      })
+    });
+
+    await expect(
+      discoverPlans({
+        cwd,
+        homeDir,
+        planDirectory,
+        fs
+      })
+    ).resolves.toEqual([
+      {
+        id: "build-pipeline",
+        name: "Build pipeline",
+        kind: "pipeline",
+        absolutePath: "/repo/.poe-code/plans/01-build-pipeline.md",
+        displayPath: ".poe-code/plans/01-build-pipeline.md"
+      }
+    ]);
+
+    const taskList = await openPlanList({
+      cwd,
+      homeDir,
+      planDirectory,
+      fs
+    });
+    await expect(taskList.list("plans").get("build-pipeline")).resolves.toMatchObject({
+      metadata: {
+        kind: "pipeline"
+      }
+    });
+  });
+
+  it("discoverPlans filters by kind", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/01-first.md": planDoc({
+        kind: "plan",
+        name: "First"
+      }),
+      "/repo/.poe-code/plans/02-second.md": planDoc({
+        kind: "pipeline",
+        name: "Second"
+      })
+    });
+
+    const plans = await discoverPlans({
+      cwd,
+      homeDir,
+      planDirectory,
+      kinds: ["pipeline"],
+      fs
+    });
+
+    expect(plans).toEqual([
+      {
+        id: "second",
+        name: "Second",
+        kind: "pipeline",
+        absolutePath: "/repo/.poe-code/plans/02-second.md",
+        displayPath: ".poe-code/plans/02-second.md"
+      }
+    ]);
+  });
+
+  it("discoverPlans defaults kind to plan and supports unprefixed filenames", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/backlog.md": planDoc({
+        name: "Backlog"
+      })
+    });
+
+    const plans = await discoverPlans({
+      cwd,
+      homeDir,
+      planDirectory,
+      kinds: ["plan"],
+      fs
+    });
+
+    expect(plans).toEqual([
+      {
+        id: "backlog",
+        name: "Backlog",
+        kind: "plan",
+        absolutePath: "/repo/.poe-code/plans/backlog.md",
+        displayPath: ".poe-code/plans/backlog.md"
+      }
+    ]);
+  });
+
+  it("discoverPlans formats display paths under the home directory", async () => {
+    const { fs } = createFs({
+      "/home/test/.poe-code/plans/01-global.md": planDoc({
+        kind: "pipeline",
+        name: "Global"
+      })
+    });
+
+    const plans = await discoverPlans({
+      cwd,
+      homeDir,
+      planDirectory: "~/.poe-code/plans",
+      fs
+    });
+
+    expect(plans).toEqual([
+      {
+        id: "global",
+        name: "Global",
+        kind: "pipeline",
+        absolutePath: "/home/test/.poe-code/plans/01-global.md",
+        displayPath: "~/.poe-code/plans/01-global.md"
+      }
+    ]);
+  });
+
+  it("discoverPlans returns an empty list when the directory does not exist", async () => {
+    const { fs } = createFs();
+
+    await expect(
+      discoverPlans({
+        cwd,
+        homeDir,
+        planDirectory,
+        fs
+      })
+    ).resolves.toEqual([]);
+  });
+
+  it("discoverPlans ignores archive and non-plan subdirectories", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/01-active.md": planDoc({
+        name: "Active"
+      }),
+      "/repo/.poe-code/plans/archive/archived.md": planDoc({
+        name: "Archived"
+      }),
+      "/repo/.poe-code/plans/notes/note.md": planDoc({
+        name: "Nested"
+      })
+    });
+
+    const plans = await discoverPlans({
+      cwd,
+      homeDir,
+      planDirectory,
+      fs
+    });
+
+    expect(plans.map((plan) => plan.id)).toEqual(["active"]);
+  });
+
+  it("archivePlan moves files to archive and leaves active prefixes gap-free", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/.poe-code/plans/01-first.md": planDoc({
+        name: "First"
+      }),
+      "/repo/.poe-code/plans/02-second.md": planDoc({
+        name: "Second"
+      }),
+      "/repo/.poe-code/plans/03-third.md": planDoc({
+        name: "Third"
+      })
+    });
+
+    await archivePlan({
+      cwd,
+      homeDir,
+      planDirectory,
+      id: "second",
+      fs
+    });
+
+    await expect(readSortedDirectory(rawFs, resolvedPlanDirectory)).resolves.toEqual([
+      "01-first.md",
+      "02-third.md",
+      "archive"
+    ]);
+    await expect(readSortedDirectory(rawFs, `${resolvedPlanDirectory}/archive`)).resolves.toEqual([
+      "second.md"
+    ]);
+
+    const plans = await discoverPlans({
+      cwd,
+      homeDir,
+      planDirectory,
+      fs
+    });
+
+    expect(plans.map((plan) => plan.absolutePath)).toEqual([
+      "/repo/.poe-code/plans/01-first.md",
+      "/repo/.poe-code/plans/02-third.md"
+    ]);
+  });
+
+  it("archivePlan throws TaskNotFoundError for an unknown id", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/01-known.md": planDoc({
+        name: "Known"
+      })
+    });
+
+    await expect(
+      archivePlan({
+        cwd,
+        homeDir,
+        planDirectory,
+        id: "missing",
+        fs
+      })
+    ).rejects.toBeInstanceOf(TaskNotFoundError);
+  });
+});

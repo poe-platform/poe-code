@@ -167,11 +167,11 @@ export async function discoverPlans(options: DiscoverPlansOptions): Promise<Plan
     }));
 }
 
-export async function archivePlan(options: ArchivePlanOptions): Promise<void> {
+export const archivePlan = async (options: ArchivePlanOptions): Promise<void> => {
   const taskList = await openPlanList(options);
 
   await taskList.list(PLAN_LIST_NAME).fire(options.id, "archive");
-}
+};
 
 export function openPlanList(options: OpenPlanListOptions): Promise<TaskList> {
   return openTaskList({

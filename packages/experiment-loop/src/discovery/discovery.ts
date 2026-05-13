@@ -23,9 +23,9 @@ function createDefaultFs(): SharedDiscoverPlansFs {
   return fsPromises as unknown as SharedDiscoverPlansFs;
 }
 
-export async function discoverExperimentDocs(
+export const discoverExperimentDocs = async (
   options: DiscoverExperimentDocsOptions
-): Promise<Array<{ path: string; displayPath: string }>> {
+): Promise<Array<{ path: string; displayPath: string }>> => {
   const fs = options.fs ?? createDefaultFs();
   const plans = await discoverPlans({
     cwd: options.cwd,
@@ -39,4 +39,4 @@ export async function discoverExperimentDocs(
     path: plan.displayPath,
     displayPath: plan.displayPath
   }));
-}
+};

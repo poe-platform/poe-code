@@ -227,6 +227,52 @@ describe("pipeline run command", () => {
     );
   });
 
+  it("dry-runs an explicit plan without selecting an agent or invoking the SDK", async () => {
+    const logs: string[] = [];
+    const planContent = [
+      "---",
+      "kind: pipeline",
+      "version: 1",
+      "tasks:",
+      "  - id: task-1",
+      "    title: Task 1",
+      "    prompt: Do task 1",
+      "    status: open",
+      "---",
+      ""
+    ].join("\n");
+    const fs = createMemFs({
+      "/repo/docs/plans/plan.md": planContent
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "pipeline",
+      "run",
+      "--plan",
+      "docs/plans/plan.md",
+      "--dry-run"
+    ]);
+
+    expect(resolvePipelineLoopAgentMock).not.toHaveBeenCalled();
+    expect(braintrustLoadIntegrationsMock).not.toHaveBeenCalled();
+    expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
+    expect(await fs.readFile("/repo/docs/plans/plan.md", "utf8")).toBe(planContent);
+    expect(logs.some((message) => message.includes("Would run: docs/plans/plan.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Tasks: 0 done, 0 failed, 1 open"))).toBe(
+      true
+    );
+  });
+
   it("runs integration pipeline callbacks after CLI callbacks when enabled", async () => {
     const calls: string[] = [];
     braintrustLoadIntegrationsMock.mockResolvedValue({

@@ -230,6 +230,56 @@ function formatPipelineTasksSummary(summary: PlanSummary): string {
   return parts.join(", ");
 }
 
+function summarizePipelinePlan(plan: ReturnType<typeof parsePlan>): PlanSummary {
+  const summary: PlanSummary = {
+    planPath: "",
+    done: 0,
+    failed: 0,
+    open: 0,
+    total: plan.tasks.length
+  };
+
+  for (const task of plan.tasks) {
+    const statuses =
+      typeof task.status === "string" ? [task.status] : Object.values(task.status);
+    if (statuses.length > 0 && statuses.every((status) => status === "done")) {
+      summary.done += 1;
+    } else if (statuses.some((status) => status === "failed")) {
+      summary.failed += 1;
+    } else {
+      summary.open += 1;
+    }
+  }
+
+  return summary;
+}
+
+async function dryRunPipelinePlans(options: {
+  container: CliContainer;
+  resources: ReturnType<typeof createExecutionResources>;
+  planPaths: string[];
+}): Promise<void> {
+  for (const planPath of options.planPaths) {
+    const absolutePath = resolveAbsolutePlanPath(
+      planPath,
+      options.container.env.cwd,
+      options.container.env.homeDir
+    );
+    const content = (await options.container.fs.readFile(absolutePath, "utf8")) as string;
+    const plan = parsePlan(content);
+    const summary = summarizePipelinePlan(plan);
+
+    options.resources.logger.dryRun(`Would run: ${planPath}`);
+    options.resources.logger.dryRun(
+      `Tasks: ${summary.done} done, ${summary.failed} failed, ${summary.open} open`
+    );
+    if (summary.open === 0 && summary.failed === 0 && summary.total > 0) {
+      options.resources.logger.dryRun(`Would archive after completion: ${planPath}`);
+    }
+  }
+  options.resources.logger.dryRun("Would not spawn agents or write plan/archive changes.");
+}
+
 function formatTaskStartMessage(progress: TaskProgress): string {
   if (progress.phase) {
     return `${progress.taskTitle}...`;
@@ -760,6 +810,52 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
       let integrations: Integrations | null = null;
       try {
+        if (options.plan && options.plans && options.plans.length > 0) {
+          throw new ValidationError("Use either --plan or --plans, not both.");
+        }
+
+        if (flags.dryRun) {
+          const commandConfig = await resolvePipelineCommandConfig(container);
+          const planPaths = await resolvePlanPaths({
+            cwd: container.env.cwd,
+            homeDir: container.env.homeDir,
+            planDirectory: commandConfig.planDirectory,
+            ...(options.plan ? { plan: options.plan } : {}),
+            ...(options.plans && options.plans.length > 0 ? { plans: options.plans } : {}),
+            assumeYes: flags.assumeYes,
+            fs: container.fs,
+            selectPlans: async (input: {
+              message: string;
+              options: Array<{ label: string; value: string }>;
+              required: boolean;
+            }) => {
+              const selected = await multiselect(input);
+              if (isCancel(selected)) {
+                cancel("Pipeline run cancelled.");
+                return null;
+              }
+              return Array.isArray(selected) ? selected : null;
+            },
+            promptForPath: async (
+              input: Parameters<NonNullable<PipelineRunOptions["promptForPath"]>>[0]
+            ) => {
+              const value = await promptText(input);
+              if (isCancel(value)) {
+                cancel("Pipeline run cancelled.");
+                return null;
+              }
+              return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+            }
+          });
+
+          if (!planPaths || planPaths.length === 0) {
+            return;
+          }
+
+          await dryRunPipelinePlans({ container, resources, planPaths });
+          return;
+        }
+
         const selectedAgent = await resolvePipelineLoopAgent({
           providedAgent: options.agent,
           configuredDefaultAgent: await resolveDefaultAgent(container),
@@ -778,10 +874,6 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         const commandConfig = await resolvePipelineCommandConfig(container);
         integrations = await loadIntegrations(commandConfig.configDoc);
         const maxRuns = resolveMaxRuns(options.maxRuns);
-
-        if (options.plan && options.plans && options.plans.length > 0) {
-          throw new ValidationError("Use either --plan or --plans, not both.");
-        }
 
         const planPaths = await resolvePlanPaths({
           cwd: container.env.cwd,

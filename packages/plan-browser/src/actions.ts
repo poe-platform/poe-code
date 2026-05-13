@@ -21,7 +21,7 @@ export function editPlan(
   spawnSync(editor, [absolutePath], { stdio: "inherit" });
 }
 
-export async function archivePlan(
+async function archiveSelectedPlan(
   entry: Pick<{ absolutePath: string }, "absolutePath">,
   fs: ActionFs
 ): Promise<string> {
@@ -31,6 +31,8 @@ export async function archivePlan(
   await fs.rename(entry.absolutePath, archivedPath);
   return archivedPath;
 }
+
+export { archiveSelectedPlan as archivePlan };
 
 export async function deletePlan(
   entry: Pick<{ absolutePath: string }, "absolutePath">,

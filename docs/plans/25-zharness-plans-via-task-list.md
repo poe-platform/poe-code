@@ -620,7 +620,7 @@ tasks:
       - Do not rename files in `qa/`, `research/`, or `poe-agent/`.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: cleanup-and-verify
     title: Final cleanup — delete dead code and run full test suite
@@ -665,8 +665,8 @@ tasks:
       - No new dependencies.
       - No README additions beyond what was added in the export task.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

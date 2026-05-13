@@ -185,6 +185,172 @@ state: draft
     await expect(taskList.lists()).resolves.toEqual(["alpha"]);
   });
 
+  it("reads the root directory as the only list in single-list mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/foo.md": `---
+name: Foo
+state: draft
+---
+`,
+      "/repo/tasks/01-bar.md": `---
+name: Bar
+state: draft
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.lists()).resolves.toEqual(["plans"]);
+    await expect(taskList.list("plans").all()).resolves.toMatchObject([
+      {
+        id: "bar",
+        qualifiedId: "plans/bar",
+        name: "Bar"
+      },
+      {
+        id: "foo",
+        qualifiedId: "plans/foo",
+        name: "Foo"
+      }
+    ]);
+  });
+
+  it("rejects other list names in single-list mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/.keep": ""
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    expect(() => taskList.list("other")).toThrow('Task list "other" not found.');
+  });
+
+  it("does not move between lists in single-list mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/foo.md": `---
+name: Foo
+state: draft
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.moveBetweenLists("plans/foo", "plans")).rejects.toThrow(
+      "moveBetweenLists is unsupported in single-list mode."
+    );
+    await expect(taskList.moveBetweenLists("not-a-qualified-id", "other")).rejects.toThrow(
+      "moveBetweenLists is unsupported in single-list mode."
+    );
+  });
+
+  it("ignores root subdirectories when reading active tasks in single-list mode", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/foo.md": `---
+name: Foo
+state: draft
+---
+`,
+      "/repo/tasks/poe-agent/ignored.md": `---
+name: Ignored
+state: draft
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").all()).resolves.toHaveLength(1);
+    await expect(taskList.list("plans").all()).resolves.toMatchObject([
+      {
+        id: "foo",
+        name: "Foo"
+      }
+    ]);
+  });
+
+  it("creates and archives tasks at the root in single-list mode", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/.keep": ""
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("plans").create({
+      id: "root-task",
+      name: "Root task"
+    });
+
+    await expect(rawFs.readFile("/repo/tasks/01-root-task.md", "utf8")).resolves.toContain(
+      "name: Root task"
+    );
+    await expect(rawFs.stat("/repo/tasks/plans")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+
+    await taskList.list("plans").fire("root-task", "archive");
+
+    await expect(rawFs.stat("/repo/tasks/01-root-task.md")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    await expect(rawFs.readFile("/repo/tasks/archive/root-task.md", "utf8")).resolves.toContain(
+      "state: archived"
+    );
+    await expect(taskList.list("plans").all({ includeArchived: true })).resolves.toMatchObject([
+      {
+        id: "root-task",
+        qualifiedId: "plans/root-task",
+        state: "archived"
+      }
+    ]);
+  });
+
   it('rejects the reserved "archive" list name', async () => {
     const { fs } = createFs({
       "/repo/tasks/.keep": ""

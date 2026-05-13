@@ -44,7 +44,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: markdown-dir-single-list
     title: markdown-dir singleList layout — root is the list
@@ -105,10 +105,10 @@ tasks:
       - Do not change `move`/`reorder`/`fire` semantics yet beyond what the
         layout helpers require.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: markdown-dir-passthrough
     title: markdown-dir frontmatterMode passthrough — read and write loose frontmatter

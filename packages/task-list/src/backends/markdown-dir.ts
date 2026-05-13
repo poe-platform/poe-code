@@ -706,6 +706,20 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
     return withListLock(action);
   }
 
+  async function withLocatedTaskLock<T>(location: TaskLocation, action: () => Promise<T>) {
+    const release = await acquireFileLock(location.path, {
+      fs: deps.fs,
+      staleMs: deps.lockStaleMs,
+      retries: deps.lockRetries
+    });
+
+    try {
+      return await action();
+    } finally {
+      await release();
+    }
+  }
+
   async function getTaskFile(id: string): Promise<TaskFile> {
     validateTaskId(id);
     return readTaskAtLocation(
@@ -818,7 +832,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       });
     },
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
-      return withTaskLock(id, async () => {
+      const fireTask = async (): Promise<Task> => {
         const existing = await getTaskFile(id);
         const event = assertFireableTaskEvent(existing.task, eventName);
         const guardResult = event.guard?.(existing.task) ?? true;
@@ -860,6 +874,8 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
           await writeAtomically(deps.fs, existing.path, serializedTask);
           await deps.fs.mkdir(archiveDirectoryPath(deps.path, layout, list), { recursive: true });
           await deps.fs.rename(existing.path, targetPath);
+          const { entries: remainingEntries } = await readActiveTasks();
+          await rewriteListPrefixes(remainingEntries.map((entry) => entry.id));
           await event.onEnter?.(nextTask);
 
           return nextTask;
@@ -869,7 +885,22 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
         await event.onEnter?.(nextTask);
 
         return nextTask;
-      });
+      };
+
+      if (stateMachine.events[eventName]?.to === "archived") {
+        validateTaskId(id);
+
+        return withListLock(async () => {
+          const location = await findTaskLocation(deps.fs, deps.path, layout, list, id);
+          if (!location) {
+            throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
+          }
+
+          return withLocatedTaskLock(location, fireTask);
+        });
+      }
+
+      return withTaskLock(id, fireTask);
     },
     async canFire(id: string, eventName: string): Promise<boolean> {
       const task = (await getTaskFile(id)).task;

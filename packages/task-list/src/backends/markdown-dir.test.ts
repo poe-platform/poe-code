@@ -21,6 +21,10 @@ function parseFrontmatter(content: string): Record<string, unknown> {
   return document.toJS() as Record<string, unknown>;
 }
 
+async function readSortedDirectory(rawFs: ReturnType<typeof createFs>["rawFs"], directory: string) {
+  return (await rawFs.readdir(directory)).sort();
+}
+
 describe("markdownDirBackend", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -612,6 +616,243 @@ state: draft
     await expect(
       rawFs.readFile("/repo/tasks/planning/archive/archive-me.md", "utf8")
     ).resolves.toContain("state: archived");
+  });
+
+  it("repacks active task prefixes after archiving a task in multi-list mode", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/planning/01-foo.md": `---
+name: Foo
+state: draft
+---
+`,
+      "/repo/tasks/planning/02-bar.md": `---
+name: Bar
+state: draft
+---
+`,
+      "/repo/tasks/planning/03-baz.md": `---
+name: Baz
+state: draft
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("planning").fire("bar", "archive");
+
+    await expect(readSortedDirectory(rawFs, "/repo/tasks/planning")).resolves.toEqual([
+      "01-foo.md",
+      "02-baz.md",
+      "archive"
+    ]);
+    await expect(readSortedDirectory(rawFs, "/repo/tasks/planning/archive")).resolves.toEqual([
+      "bar.md"
+    ]);
+    expect({
+      active: await readSortedDirectory(rawFs, "/repo/tasks/planning"),
+      archive: await readSortedDirectory(rawFs, "/repo/tasks/planning/archive")
+    }).toMatchInlineSnapshot(`
+      {
+        "active": [
+          "01-foo.md",
+          "02-baz.md",
+          "archive",
+        ],
+        "archive": [
+          "bar.md",
+        ],
+      }
+    `);
+  });
+
+  it("repacks root task prefixes after archiving a task in single-list passthrough mode", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/01-foo.md": `---
+$schema: ${PIPELINE_SCHEMA_ID}
+kind: pipeline
+version: 1
+---
+`,
+      "/repo/tasks/02-bar.md": `---
+$schema: ${PIPELINE_SCHEMA_ID}
+kind: pipeline
+version: 1
+---
+`,
+      "/repo/tasks/03-baz.md": `---
+$schema: ${PIPELINE_SCHEMA_ID}
+kind: pipeline
+version: 1
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("plans").fire("bar", "archive");
+
+    await expect(readSortedDirectory(rawFs, "/repo/tasks")).resolves.toEqual([
+      "01-foo.md",
+      "02-baz.md",
+      "archive"
+    ]);
+    await expect(readSortedDirectory(rawFs, "/repo/tasks/archive")).resolves.toEqual(["bar.md"]);
+    expect({
+      active: await readSortedDirectory(rawFs, "/repo/tasks"),
+      archive: await readSortedDirectory(rawFs, "/repo/tasks/archive")
+    }).toMatchInlineSnapshot(`
+      {
+        "active": [
+          "01-foo.md",
+          "02-baz.md",
+          "archive",
+        ],
+        "archive": [
+          "bar.md",
+        ],
+      }
+    `);
+  });
+
+  it("archives the only task without leaving active markdown files", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/planning/01-only.md": `---
+name: Only
+state: draft
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("planning").fire("only", "archive");
+
+    await expect(readSortedDirectory(rawFs, "/repo/tasks/planning")).resolves.toEqual(["archive"]);
+    await expect(readSortedDirectory(rawFs, "/repo/tasks/planning/archive")).resolves.toEqual([
+      "only.md"
+    ]);
+  });
+
+  it("archives the only root task in single-list mode without leaving root markdown files", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/01-only.md": `---
+$schema: ${PIPELINE_SCHEMA_ID}
+kind: pipeline
+version: 1
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("plans").fire("only", "archive");
+
+    await expect(readSortedDirectory(rawFs, "/repo/tasks")).resolves.toEqual(["archive"]);
+    await expect(readSortedDirectory(rawFs, "/repo/tasks/archive")).resolves.toEqual(["only.md"]);
+  });
+
+  it("serializes concurrent archive fires under the list lock", async () => {
+    const baseFs = createFs({
+      "/repo/tasks/planning/01-foo.md": `---
+name: Foo
+state: draft
+---
+`,
+      "/repo/tasks/planning/02-bar.md": `---
+name: Bar
+state: draft
+---
+`,
+      "/repo/tasks/planning/03-baz.md": `---
+name: Baz
+state: draft
+---
+`
+    });
+    const firstRead = createDeferred();
+    const readPaths: string[] = [];
+    let blockedFirstRead = false;
+    const fs = {
+      ...baseFs.fs,
+      readFile: async (path, encoding) => {
+        if (path.endsWith(".md")) {
+          readPaths.push(path);
+        }
+
+        if (path === "/repo/tasks/planning/01-foo.md" && !blockedFirstRead) {
+          blockedFirstRead = true;
+          await firstRead.promise;
+        }
+
+        return baseFs.rawFs.readFile(path, encoding);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    const archiveFoo = taskList.list("planning").fire("foo", "archive");
+    await waitForCondition(() => readPaths.includes("/repo/tasks/planning/01-foo.md"));
+
+    const archiveBar = taskList.list("planning").fire("bar", "archive");
+
+    await new Promise((resolve) => setTimeout(resolve, 35));
+    expect(readPaths).toEqual(["/repo/tasks/planning/01-foo.md"]);
+
+    firstRead.resolve();
+    await Promise.all([archiveFoo, archiveBar]);
+
+    await expect(readSortedDirectory(baseFs.rawFs, "/repo/tasks/planning")).resolves.toEqual([
+      "01-baz.md",
+      "archive"
+    ]);
+    await expect(
+      readSortedDirectory(baseFs.rawFs, "/repo/tasks/planning/archive")
+    ).resolves.toEqual(["bar.md", "foo.md"]);
   });
 
   it("does not contend for updates to different task paths", async () => {

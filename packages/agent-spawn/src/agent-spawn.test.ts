@@ -412,6 +412,19 @@ describe("buildSpawnArgs", () => {
     expect(result.args).not.toContain("test");
   });
 
+  it("builds stdin args for codex when the prompt is too large for argv", () => {
+    const prompt = "a".repeat(64 * 1024 + 1);
+    const result = buildSpawnArgs("codex", { prompt });
+
+    expect(result.args).toEqual([
+      codexSpawnConfig.promptFlag,
+      ...codexSpawnConfig.stdinMode!.extraArgs,
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
+    ]);
+    expect(result.args).not.toContain(prompt);
+  });
+
   it("ignores useStdin for agents without stdinMode", () => {
     const result = buildSpawnArgs("opencode", { prompt: "hello", useStdin: true });
 
@@ -741,6 +754,31 @@ describe("spawn", () => {
 
     const child = spawnMock.mock.results[0]?.value as any;
     expect(child.__capturedStdin()).toBe("hi");
+  });
+
+  it("automatically writes large prompts to stdin when supported", async () => {
+    const prompt = "a".repeat(64 * 1024 + 1);
+    const spawnMock = vi
+      .mocked(spawnChildProcess)
+      .mockReturnValue(createMockChildProcess({ stdout: "ok\n", exitCode: 0 }));
+
+    await spawn("codex", { prompt });
+
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+    const [command, args, spawnOptions] = spawnMock.mock.calls[0]!;
+    expect(command).toBe("codex");
+    expect(args).toEqual([
+      codexSpawnConfig.promptFlag,
+      ...(codexSpawnConfig.stdinMode?.extraArgs ?? []),
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
+    ]);
+    expect(spawnOptions).toMatchObject({
+      stdio: ["pipe", "pipe", "pipe"]
+    });
+
+    const child = spawnMock.mock.results[0]?.value as any;
+    expect(child.__capturedStdin()).toBe(prompt);
   });
 
   it("forwards output to tee streams when provided", async () => {

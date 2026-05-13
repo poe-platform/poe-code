@@ -17,6 +17,8 @@ import {
   type StdinMode
 } from "./types.js";
 
+const PROMPT_STDIN_FALLBACK_BYTES = 64 * 1024;
+
 function createAbortError(): Error {
   const error = new Error("Agent spawn aborted");
   error.name = "AbortError";
@@ -77,6 +79,21 @@ function getMcpArgsPosition(
     return config.mcpArgsPosition;
   }
   return config.mcpArgsBeforeCommand ? "beforeCommand" : "afterCommand";
+}
+
+function resolveStdinMode(
+  config: CliSpawnConfig,
+  options: Pick<BuildSpawnArgsOptions, "prompt" | "useStdin">
+): StdinMode | undefined {
+  if (!config.stdinMode) {
+    return undefined;
+  }
+  if (options.useStdin) {
+    return config.stdinMode;
+  }
+  return Buffer.byteLength(options.prompt, "utf8") > PROMPT_STDIN_FALLBACK_BYTES
+    ? config.stdinMode
+    : undefined;
 }
 
 function buildCliArgs(
@@ -169,7 +186,7 @@ export function buildSpawnArgs(
   options: BuildSpawnArgsOptions
 ): BuildSpawnArgsResult {
   const { binaryName, spawnConfig } = resolveCliConfig(agentId);
-  const stdinMode = options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
+  const stdinMode = resolveStdinMode(spawnConfig, options);
   const result = buildCliArgs(spawnConfig, options, stdinMode);
   return { binaryName, args: result.args, env: result.env };
 }
@@ -185,7 +202,7 @@ export async function spawn(
 
   const { agentId: resolvedId, binaryName, spawnConfig } = resolveCliConfig(agentId);
 
-  const stdinMode = options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
+  const stdinMode = resolveStdinMode(spawnConfig, options);
 
   const { args: spawnArgs, env: modeEnv } = buildCliArgs(spawnConfig, options, stdinMode);
 

@@ -92,6 +92,14 @@ describe("built-in prompts", () => {
     expect(automation?.prompt).toContain("check for existing open PRs");
   });
 
+  it("keeps issue-opened automation from closing unclear issues", async () => {
+    const automations = await discoverAutomations(promptsDir);
+    const automation = automations.find(({ name }) => name === "github-issue-opened");
+
+    expect(automation?.prompt).toContain("ask for the missing details");
+    expect(automation?.prompt).not.toContain("gh issue close");
+  });
+
   it("uses shared response variables in the GitHub issue prompts", async () => {
     const automations = await discoverAutomations(promptsDir);
 

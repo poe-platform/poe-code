@@ -168,6 +168,44 @@ describe("ghGroup", () => {
     );
   });
 
+  it("fails the automation when the spawned agent exits non-zero", async () => {
+    writeBuiltInPrompt("github-issue-opened", "Fix {{url}}");
+    spawnState.spawn.mockResolvedValueOnce({
+      stdout: "agent stdout",
+      stderr: "agent stderr",
+      exitCode: 1
+    });
+
+    const runCommand = getCommand(["run"]);
+
+    await expect(
+      runCommand.handler(
+        createContext(
+          {
+            name: "github-issue-opened",
+            cwd: "/repo"
+          },
+          {
+            GITHUB_REPOSITORY: "acme/app",
+            ISSUE_NUMBER: "281"
+          },
+          {
+            poeApiKey: "poe-key"
+          }
+        )
+      )
+    ).rejects.toThrow(
+      [
+        'Automation "github-issue-opened" failed: 0/1 spawned agent runs exited successfully.',
+        "First failure exited with code 1.",
+        "stderr:",
+        "agent stderr",
+        "stdout:",
+        "agent stdout"
+      ].join("\n")
+    );
+  });
+
   it("merges shared variables into run prompts while keeping env context higher priority", async () => {
     writeBuiltInPrompt(
       "github-issue-opened",

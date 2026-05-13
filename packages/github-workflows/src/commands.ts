@@ -106,23 +106,25 @@ const runCommandDef = defineCommand({
 
     if (automation.source === undefined) {
       const prompt = renderPrompt(automation.prompt, sharedTemplateContext);
+      const items = [
+        {
+          prompt,
+          result: await spawn(agent, {
+            prompt,
+            cwd,
+            ...(params.model === undefined ? {} : { model: params.model }),
+            ...(params.mode === undefined ? {} : { mode: params.mode }),
+            ...(automation.mcp === undefined
+              ? {}
+              : { mcpServers: resolveMcpConfig(automation.mcp, env) })
+          })
+        }
+      ];
+      requireSuccessfulRuns(automation.name, items);
       return {
         automation: automation.name,
         agent,
-        items: [
-          {
-            prompt,
-            result: await spawn(agent, {
-              prompt,
-              cwd,
-              ...(params.model === undefined ? {} : { model: params.model }),
-              ...(params.mode === undefined ? {} : { mode: params.mode }),
-              ...(automation.mcp === undefined
-                ? {}
-                : { mcpServers: resolveMcpConfig(automation.mcp, env) })
-            })
-          }
-        ]
+        items
       } satisfies RunAutomationResult;
     }
 
@@ -155,6 +157,8 @@ const runCommandDef = defineCommand({
         })
       });
     }
+
+    requireSuccessfulRuns(automation.name, results);
 
     return {
       automation: automation.name,
@@ -669,6 +673,35 @@ function buildPerItemTemplateContext(
 
 function renderPrompt(template: string, view: Record<string, unknown>): string {
   return Mustache.render(template, view);
+}
+
+function requireSuccessfulRuns(name: string, items: RunItemResult[]): void {
+  const succeeded = items.filter((item) => item.result.exitCode === 0).length;
+  if (succeeded === items.length) {
+    return;
+  }
+
+  const firstFailure = items.find((item) => item.result.exitCode !== 0);
+  const details: string[] = [
+    `Automation "${name}" failed: ${succeeded}/${items.length} spawned agent runs exited successfully.`
+  ];
+
+  if (firstFailure !== undefined) {
+    details.push(`First failure exited with code ${firstFailure.result.exitCode}.`);
+    appendCommandOutput(details, "stderr", firstFailure.result.stderr);
+    appendCommandOutput(details, "stdout", firstFailure.result.stdout);
+  }
+
+  throw new UserError(details.join("\n"));
+}
+
+function appendCommandOutput(details: string[], label: "stderr" | "stdout", output: string): void {
+  const trimmed = output.trim();
+  if (trimmed.length === 0) {
+    return;
+  }
+
+  details.push(`${label}:`, trimmed);
 }
 
 function resolveSourceCommand(

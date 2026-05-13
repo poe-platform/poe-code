@@ -1197,6 +1197,59 @@ describe("superintendent run command", () => {
     });
   });
 
+  it("uses display paths for interactive plan choices and absolute paths for execution", async () => {
+    const fs = createFs({
+      "/home/test/plans/first.md": createDoc("codex"),
+      "/home/test/plans/second.md": createDoc("claude-code")
+    });
+    const dashboardMock = createDashboardMock();
+    const selectPrompt = vi.fn(async () => "/home/test/plans/second.md");
+    const runLoopMock = vi.fn(async () => ({
+      state: "completed" as const,
+      round: 0,
+      reviewTurn: 0,
+      maxRounds: 100,
+      maxReviewTurns: 5,
+      stopReason: "completed" as const
+    }));
+
+    const { runSuperintendentCommand } = await import("./run.js");
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      planDirectory: "~/plans",
+      interactive: true,
+      useDashboard: true,
+      fs,
+      selectPrompt,
+      createDashboard: () => dashboardMock.dashboard,
+      runLoop: runLoopMock,
+      now: () => 0,
+      setInterval: (() => 0) as typeof global.setInterval,
+      clearInterval: vi.fn(),
+      openInEditor: vi.fn(),
+      env: {}
+    });
+
+    expect(selectPrompt).toHaveBeenCalledWith({
+      message: "Select superintendent document",
+      options: [
+        { label: "~/plans/first.md", value: "/home/test/plans/first.md" },
+        { label: "~/plans/second.md", value: "/home/test/plans/second.md" }
+      ],
+      initialValue: "/home/test/plans/first.md"
+    });
+    expect(runLoopMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        docPath: "/home/test/plans/second.md"
+      })
+    );
+    expect(result).toMatchObject({
+      docPath: "/home/test/plans/second.md",
+      builderAgent: "claude-code"
+    });
+  });
+
   it("respects POE_PLAN_DIRECTORY when discovery defaults are resolved", async () => {
     const fs = createFs({
       "/repo/docs/plans/should-be-ignored.md": createDoc("codex"),

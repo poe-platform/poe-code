@@ -525,7 +525,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: superintendent-migrate
     title: Migrate superintendent harness to shared plan discovery
@@ -572,9 +572,9 @@ tasks:
       - No CLI flag changes.
       - No prompt UX regressions.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: rename-plan-files
     title: Rename existing plan files with NN- prefixes

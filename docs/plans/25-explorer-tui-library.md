@@ -146,7 +146,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: theme-and-render
     title: Theme resolver and region renderers
@@ -181,9 +181,9 @@ tasks:
       No terminal-pilot yet — runtime isn't wired. Visual review of
       snapshot diffs is the feedback loop.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: runtime

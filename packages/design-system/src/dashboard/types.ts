@@ -28,6 +28,7 @@ export type CellStyle = {
   bg?: string;
   bold?: boolean;
   dim?: boolean;
+  underline?: boolean;
 };
 
 export type Cell = {

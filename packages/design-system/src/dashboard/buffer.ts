@@ -167,6 +167,10 @@ export function cellToAnsi(cell: Cell): string {
     painter = painter.dim;
   }
 
+  if (style.underline) {
+    painter = painter.underline;
+  }
+
   if (style.fg) {
     painter = applyForegroundColor(painter, style.fg);
   }
@@ -208,6 +212,9 @@ function normalizeStyle(style?: CellStyle): CellStyle {
   if (style?.dim !== undefined) {
     next.dim = style.dim;
   }
+  if (style?.underline !== undefined) {
+    next.underline = style.underline;
+  }
 
   return next;
 }
@@ -221,7 +228,8 @@ function cellsEqual(left: Cell, right: Cell): boolean {
     && left.style.fg === right.style.fg
     && left.style.bg === right.style.bg
     && left.style.bold === right.style.bold
-    && left.style.dim === right.style.dim;
+    && left.style.dim === right.style.dim
+    && left.style.underline === right.style.underline;
 }
 
 function applyForegroundColor(instance: typeof chalk, color: string): typeof chalk {

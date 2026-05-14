@@ -91,6 +91,7 @@ export interface ExplorerSize {
 
 export interface ExplorerState {
   title: string;
+  emptyHint: string;
   rows: Row[];
   filtered: number[];
   cursor: number;
@@ -137,6 +138,7 @@ export function createInitialState<R>(
 
   return {
     title: config.title,
+    emptyHint: config.emptyHint ?? "No detail",
     rows: [],
     filtered: [],
     cursor: 0,

@@ -1,0 +1,86 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`explorer detail renderer > snapshots detail modes > empty detail 1`] = `
+"                                                                                                    
+                                                                                                    
+                                                                                                    
+                                        [2m│[22m[2mN[22m[2mo[22m[2m [22m[2mp[22m[2ml[22m[2ma[22m[2mn[22m[2ms[22m                                                   
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    "
+`;
+
+exports[`explorer detail renderer > snapshots detail modes > error detail 1`] = `
+"                                                                                                    
+                                                                                                    
+                                                                                                    
+                                        [2m│[22mError: detail failed                                       
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    "
+`;
+
+exports[`explorer detail renderer > snapshots detail modes > list detail 1`] = `
+"                                                                                                    
+                                                                                                    
+                                                                                                    
+                                        [2m│[22m[1m[36m [39m[22m[1m[36m [39m[22m[1m[36mp[39m[22m[1m[36ma[39m[22m[1m[36mc[39m[22m[1m[36mk[39m[22m[1m[36ma[39m[22m[1m[36mg[39m[22m[1m[36me[39m[22m[1m[36ms[39m[22m[1m[36m/[39m[22m[1m[36ma[39m[22m[1m[36mu[39m[22m[1m[36mt[39m[22m[1m[36mh[39m[22m[1m[36m/[39m[22m[1m[36ms[39m[22m[1m[36mr[39m[22m[1m[36mc[39m[22m[1m[36m/[39m[22m[1m[36mr[39m[22m[1m[36me[39m[22m[1m[36mf[39m[22m[1m[36mr[39m[22m[1m[36me[39m[22m[1m[36ms[39m[22m[1m[36mh[39m[22m[1m[36m.[39m[22m[1m[36mt[39m[22m[1m[36ms[39m[22m[1m[36m:[39m[22m[1m[36m4[39m[22m[1m[36m2[39m[22m[1m[36m [39m[22m[1m[36mf[39m[22m[1m[36mi[39m[22m[1m[36mx[39m[22m                      
+                                         [2m [22m[2m [22m[2mk[22m[2mj[22m[2mo[22m[2mp[22m[2me[22m[2mk[22m[2m [22m[2m·[22m[2m [22m[2mr[22m[2me[22m[2mq[22m[2mu[22m[2me[22m[2ms[22m[2mt[22m[2me[22m[2md[22m[2m [22m[2mc[22m[2mh[22m[2ma[22m[2mn[22m[2mg[22m[2me[22m[2ms[22m                               
+                                           The lock is released before the await.                   
+                                                                                                    
+                                         [1m[36m▌[39m[22m[1m[36m [39m[22m[1m[36mp[39m[22m[1m[36ma[39m[22m[1m[36mc[39m[22m[1m[36mk[39m[22m[1m[36ma[39m[22m[1m[36mg[39m[22m[1m[36me[39m[22m[1m[36ms[39m[22m[1m[36m/[39m[22m[1m[36ma[39m[22m[1m[36mu[39m[22m[1m[36mt[39m[22m[1m[36mh[39m[22m[1m[36m/[39m[22m[1m[36ms[39m[22m[1m[36mr[39m[22m[1m[36mc[39m[22m[1m[36m/[39m[22m[1m[36mr[39m[22m[1m[36me[39m[22m[1m[36mf[39m[22m[1m[36mr[39m[22m[1m[36me[39m[22m[1m[36ms[39m[22m[1m[36mh[39m[22m[1m[36m.[39m[22m[1m[36mt[39m[22m[1m[36ms[39m[22m[1m[36m:[39m[22m[1m[36m8[39m[22m[1m[36m8[39m[22m[1m[36m [39m[22m[1m[36mn[39m[22m[1m[36mi[39m[22m[1m[36mt[39m[22m                      
+                                         [2m [22m[2m [22m[2mn[22m[2mi[22m[2mt[22m                                                      
+                                           Rename \`t\` to \`token\` for readability.                   
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    "
+`;
+
+exports[`explorer detail renderer > snapshots detail modes > loading detail 1`] = `
+"                                                                                                    
+                                                                                                    
+                                                                                                    
+                                        [2m│[22m[2mL[22m[2mo[22m[2ma[22m[2md[22m[2mi[22m[2mn[22m[2mg[22m[2m [22m[2md[22m[2me[22m[2mt[22m[2ma[22m[2mi[22m[2ml[22m[2m.[22m[2m.[22m[2m.[22m                                          
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    "
+`;
+
+exports[`explorer detail renderer > snapshots detail modes > single detail 1`] = `
+"                                                                                                    
+                                                                                                    
+                                                                                                    
+                                        [2m│[22m# Explorer TUI library                                     
+                                                                                                    
+                                         A reusable list + detail + actions explorer component.     
+                                                                                                    
+                                         ## What we're building                                     
+                                         A generic three-region explorer TUI.                       
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    
+                                                                                                    "
+`;

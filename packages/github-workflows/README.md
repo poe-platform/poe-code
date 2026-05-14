@@ -18,11 +18,11 @@ npm run lint:mcp-sdk-deps --workspace @poe-code/github-workflows
 
 Go to your repository **Settings → Secrets and variables → Actions** and add:
 
-| Secret | Description |
-|--------|-------------|
-| `POE_API_KEY` | Your Poe API key — required for all automations |
-| `POE_CODE_AGENT_APP_ID` | GitHub App ID — used to generate a scoped token for each run |
-| `POE_CODE_AGENT_PRIVATE_KEY` | GitHub App private key (PEM format) |
+| Secret                       | Description                                                  |
+| ---------------------------- | ------------------------------------------------------------ |
+| `POE_API_KEY`                | Your Poe API key — required for all automations              |
+| `POE_CODE_AGENT_APP_ID`      | GitHub App ID — used to generate a scoped token for each run |
+| `POE_CODE_AGENT_PRIVATE_KEY` | GitHub App private key (PEM format)                          |
 
 ### 2. Install a workflow
 
@@ -33,6 +33,7 @@ poe-code gh install <name>
 ```
 
 This creates:
+
 - `.github/workflows/poe-code-<name>.yml` — the GitHub Actions workflow
 - `.github/workflows/variables.yaml` — optional shared prompt variable overrides
 - `.github/workflows/README.md` — a local command reference for workflow helpers
@@ -47,19 +48,23 @@ The workflow triggers automatically on the configured event.
 
 ## Built-in Automations
 
-| Name | Trigger | Description |
-|------|---------|-------------|
-| `github-issue-opened` | Issue opened | Reads the issue and implements the requested changes |
-| `github-issue-comment-created` | Issue comment created | Acts on prefixed issue comments, restricted to allowed roles |
-| `github-pull-request-opened` | PR opened | Reviews the pull request |
-| `github-pull-request-synchronized` | PR updated | Re-reviews the PR after new commits are pushed |
-| `fix-vulnerabilities` | Scheduled | Fetches open Dependabot alerts and fixes them one by one |
-| `update-dependencies` | Manual / scheduled | Updates all dependencies to latest compatible versions |
-| `update-documentation` | Manual / scheduled | Reviews code changes and updates documentation |
+| Name                               | Trigger               | Description                                                                              |
+| ---------------------------------- | --------------------- | ---------------------------------------------------------------------------------------- |
+| `github-issue-opened`              | Issue opened          | Reads the issue, asks for missing details when needed, and implements actionable changes |
+| `github-issue-comment-created`     | Issue comment created | Acts on prefixed issue comments, restricted to allowed roles                             |
+| `github-pull-request-opened`       | PR opened             | Reviews the pull request                                                                 |
+| `github-pull-request-synchronized` | PR updated            | Re-reviews the PR after new commits are pushed                                           |
+| `fix-vulnerabilities`              | Scheduled             | Fetches open Dependabot alerts and fixes them one by one                                 |
+| `update-dependencies`              | Manual / scheduled    | Updates all dependencies to latest compatible versions                                   |
+| `update-documentation`             | Manual / scheduled    | Reviews code changes and updates documentation                                           |
 
 The built-in GitHub issue, issue-comment, pull-request, pull-request-comment, and
 pull-request-synchronized automations allow `OWNER`, `MEMBER`, `COLLABORATOR`,
 and `CONTRIBUTOR` author associations by default.
+
+The built-in issue-opened automation always leaves a visible response. When the
+issue lacks enough detail for a code change, it asks for the missing details and
+leaves the issue open instead of closing it.
 
 ### List available automations
 
@@ -85,6 +90,7 @@ poe-code gh uninstall <name>
 Use `--eject` when you need full control over the workflow YAML itself.
 
 With `--eject`, poe-code writes:
+
 - `.github/workflows/poe-code-<name>.yml`
 - `.github/workflows/poe-code-<name>.md`
 
@@ -99,6 +105,7 @@ You can override specific automation fields (agent, allowed roles, prompt, etc.)
 ### Change the agent
 
 `.github/workflows/poe-code-github-issue-opened.md`:
+
 ```yaml
 ---
 extends: true
@@ -111,6 +118,7 @@ This keeps the built-in prompt, template variables, and all other settings — o
 ### Override multiple fields
 
 `.github/workflows/poe-code-github-issue-opened.md`:
+
 ```yaml
 ---
 extends: true
@@ -124,6 +132,7 @@ allow:
 ### Add a custom prompt while inheriting config
 
 `.github/workflows/poe-code-github-issue-opened.md`:
+
 ```yaml
 ---
 extends: true
@@ -143,6 +152,7 @@ When using `extends`, you can use the `{{yield}}` token to compose prompts inste
 **Wrap the built-in prompt with extra instructions:**
 
 `.github/workflows/poe-code-github-issue-opened.md`:
+
 ```yaml
 ---
 extends: true
@@ -165,6 +175,7 @@ Result: "Read {{url}}.\n\nFocus on test coverage.\n\nAlways explain what changed
 ```
 
 Rules:
+
 - Only one `{{yield}}` per prompt is allowed.
 - If neither side uses `{{yield}}`, the child prompt replaces the base (existing behavior).
 - If the child has no prompt body, `{{yield}}` resolves to an empty string.
@@ -172,12 +183,12 @@ Rules:
 
 ### `extends` vs `--eject`
 
-| | `extends` | `--eject` |
-|---|---|---|
-| Receives upstream prompt updates | Yes (unless you provide a body) | No |
-| Receives upstream workflow YAML updates | Yes | No |
-| Can change agent/allow/prefix/mcp | Yes | Yes |
-| Can modify the workflow YAML | No | Yes |
+|                                         | `extends`                       | `--eject` |
+| --------------------------------------- | ------------------------------- | --------- |
+| Receives upstream prompt updates        | Yes (unless you provide a body) | No        |
+| Receives upstream workflow YAML updates | Yes                             | No        |
+| Can change agent/allow/prefix/mcp       | Yes                             | Yes       |
+| Can modify the workflow YAML            | No                              | Yes       |
 
 ---
 
@@ -187,27 +198,28 @@ Automation prompts support the following frontmatter (both in ejected files and 
 
 ```yaml
 ---
-label: "GitHub: Issue Handler"       # Display label (defaults to formatted name)
+label: "GitHub: Issue Handler" # Display label (defaults to formatted name)
 
-agent: "claude-code"                  # Agent to spawn (default: "codex")
+agent: "claude-code" # Agent to spawn (default: "codex")
 
-allow:                                # GitHub author associations allowed to trigger
+allow: # GitHub author associations allowed to trigger
   - OWNER
   - MEMBER
   - COLLABORATOR
   - CONTRIBUTOR
 
-prefix:                               # Required comment prefix or aliases (comment workflows only)
+prefix: # Required comment prefix or aliases (comment workflows only)
   - "poe-code"
   - "poe-code-agent"
   - "@poe-code-agent"
 
-source: "gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[]]'"
-                                      # Command to fetch items; must output a JSON array.
-                                      # The automation runs once per item.
-                                      # Supports {owner} and {repo} placeholders.
+source:
+  "gh api repos/{owner}/{repo}/dependabot/alerts --jq '[.[]]'"
+  # Command to fetch items; must output a JSON array.
+  # The automation runs once per item.
+  # Supports {owner} and {repo} placeholders.
 
-mcp:                                  # MCP servers to make available to the agent
+mcp: # MCP servers to make available to the agent
   github:
     command: "npx"
     args:
@@ -233,14 +245,14 @@ mcp:                                  # MCP servers to make available to the age
 
 Variables available in the prompt body depend on the trigger:
 
-| Variable | Available in |
-|----------|-------------|
-| `{{url}}` | All |
-| `{{repo}}` | All |
-| `{{issue.number}}`, `{{issue.title}}` | Issue workflows |
-| `{{pr.number}}`, `{{pr.title}}`, `{{pr.author}}` | PR workflows |
-| `{{comment.author}}`, `{{comment.body}}` | Issue-comment workflows |
-| `{{<field>}}` | Sourced automations — any field from the JSON item |
+| Variable                                         | Available in                                       |
+| ------------------------------------------------ | -------------------------------------------------- |
+| `{{url}}`                                        | All                                                |
+| `{{repo}}`                                       | All                                                |
+| `{{issue.number}}`, `{{issue.title}}`            | Issue workflows                                    |
+| `{{pr.number}}`, `{{pr.title}}`, `{{pr.author}}` | PR workflows                                       |
+| `{{comment.author}}`, `{{comment.body}}`         | Issue-comment workflows                            |
+| `{{<field>}}`                                    | Sourced automations — any field from the JSON item |
 
 ---
 
@@ -259,13 +271,22 @@ The workflow also:
 
 ---
 
+## Run Failure Behavior
+
+`poe-code gh run <name>` fails when any spawned agent run exits non-zero. This
+applies to direct automations and sourced automations that fan out across JSON
+items. The error reports the success count, the first failed exit code, and the
+first failed run's stderr/stdout when present.
+
+---
+
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `POE_API_KEY` | Yes | Poe API key — must be set as a repository secret |
-| `POE_CODE_AGENT_APP_ID` | Yes | GitHub App ID — must be set as a repository secret |
-| `POE_CODE_AGENT_PRIVATE_KEY` | Yes | GitHub App private key (PEM) — must be set as a repository secret |
+| Variable                     | Required | Description                                                       |
+| ---------------------------- | -------- | ----------------------------------------------------------------- |
+| `POE_API_KEY`                | Yes      | Poe API key — must be set as a repository secret                  |
+| `POE_CODE_AGENT_APP_ID`      | Yes      | GitHub App ID — must be set as a repository secret                |
+| `POE_CODE_AGENT_PRIVATE_KEY` | Yes      | GitHub App private key (PEM) — must be set as a repository secret |
 
 `GITHUB_TOKEN` is generated at runtime from the GitHub App credentials using `actions/create-github-app-token`. Pass it to MCP servers via `${{ GITHUB_TOKEN }}` in the frontmatter `mcp.env` block when needed.
 

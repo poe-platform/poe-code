@@ -59,12 +59,12 @@ export const greet = defineCommand({
   description: "Say hello",
   params: S.Object({
     name: S.String({ description: "Who to greet" }),
-    loud: S.Optional(S.Boolean({ default: false })),
+    loud: S.Optional(S.Boolean({ default: false }))
   }),
   handler: async ({ params }) => {
     const message = `Hello, ${params.name}`;
     return { message: params.loud ? message.toUpperCase() : message };
-  },
+  }
 });
 ```
 
@@ -75,7 +75,7 @@ import { greet } from "./commands/greet.js";
 
 export const root = defineGroup({
   name: "mytool",
-  children: [greet],
+  children: [greet]
 });
 ```
 
@@ -190,12 +190,12 @@ const deploy = defineCommand({
   params: S.Object({ service: S.String() }),
   secrets: {
     apiKey: { env: "DEPLOY_API_KEY", description: "Required for /deploy endpoint" },
-    debugToken: { env: "DEPLOY_DEBUG", optional: true },
+    debugToken: { env: "DEPLOY_DEBUG", optional: true }
   },
   handler: async ({ params, secrets }) => {
     // secrets.apiKey: string
     // secrets.debugToken: string | undefined
-  },
+  }
 });
 ```
 
@@ -207,13 +207,14 @@ Required secrets that aren't set produce a `UserError` with the env var name and
 defineCommand({
   // ...
   requires: {
-    auth: true,                    // fails if POE_API_KEY (or runner-specified env) is missing
-    apiVersion: ">=1.2.0",         // fails if runner reports older apiVersion
-    check: async (ctx) => ({       // arbitrary async gate
+    auth: true, // fails if POE_API_KEY (or runner-specified env) is missing
+    apiVersion: ">=1.2.0", // fails if runner reports older apiVersion
+    check: async (ctx) => ({
+      // arbitrary async gate
       ok: ctx.fs.exists(".lock") === false,
-      message: ".lock present, refusing to run",
-    }),
-  },
+      message: ".lock present, refusing to run"
+    })
+  }
 });
 ```
 
@@ -241,7 +242,7 @@ defineCommand<Services>({
   handler: async ({ params, db, logger }) => {
     logger.info("running");
     return db.query(params.id);
-  },
+  }
 });
 ```
 
@@ -259,8 +260,8 @@ defineCommand({
     rich: (result, { renderTable }) =>
       console.log(renderTable({ rows: result.rows, columns: ["id"] })),
     markdown: (result) => `Found ${result.rows.length} rows`,
-    json: (result) => result,
-  },
+    json: (result) => result
+  }
 });
 ```
 
@@ -275,13 +276,13 @@ defineGroup({
   name: "github",
   mcp: {
     transport: "stdio",
-    command: "github-mcp-server",
+    command: "github-mcp-server"
   },
   tools: ["create_issue", "list_issues"],
   rename: {
-    create_issue: "issues.create",
+    create_issue: "issues.create"
   },
-  children: [],
+  children: []
 });
 ```
 
@@ -303,21 +304,21 @@ defineGroup({
   name: "deploy",
   humanInLoop: {
     mode: "async",
-    message: ({ commandPath, params }) => `Run ${commandPath} for ${params.target}?`,
+    message: ({ commandPath, params }) => `Run ${commandPath} for ${params.target}?`
   },
   children: [
     defineCommand({
       name: "prod",
       params: S.Object({ target: S.String() }),
-      handler: async ({ params }) => ({ target: params.target }),
+      handler: async ({ params }) => ({ target: params.target })
     }),
     defineCommand({
       name: "preview",
       params: S.Object({ target: S.String() }),
-      humanInLoop: null,                    // opt out
-      handler: async ({ params }) => ({ target: params.target }),
-    }),
-  ],
+      humanInLoop: null, // opt out
+      handler: async ({ params }) => ({ target: params.target })
+    })
+  ]
 });
 ```
 
@@ -331,7 +332,7 @@ Wire the same `humanInLoop` options into every entrypoint:
 ```ts
 const humanInLoop = {
   provider: slackApprovalProvider({ channel: "#deploys", client }),
-  taskList: { dir: ".toolcraft/approvals.yaml", format: "yaml-file" as const },
+  taskList: { dir: ".toolcraft/approvals.yaml", format: "yaml-file" as const }
 };
 
 await runCLI(root, { humanInLoop });
@@ -356,7 +357,11 @@ Async results must be JSON-serializable; non-serializable returns mark the appro
 A minimal Slack-style provider:
 
 ```ts
-import type { ApprovalRequest, ApprovalResult, HumanInLoopProvider } from "@poe-code/agent-human-in-loop";
+import type {
+  ApprovalRequest,
+  ApprovalResult,
+  HumanInLoopProvider
+} from "@poe-code/agent-human-in-loop";
 
 export function slackApprovalProvider(opts: {
   channel: string;
@@ -382,7 +387,7 @@ export function slackApprovalProvider(opts: {
       }
 
       return { outcome: "declined" };
-    },
+    }
   };
 }
 ```
@@ -470,7 +475,7 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 type HumanInLoopRuntimeOptions = {
   provider?: HumanInLoopProvider;
   taskList?: TaskList | { dir: string; format: "markdown-dir" | "yaml-file" };
-  listName?: string;       // defaults to "approvals"
+  listName?: string; // defaults to "approvals"
   binPath?: { execPath: string; entryArgs: readonly string[] };
 };
 ```

@@ -2,7 +2,13 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 import { S } from "toolcraft-schema";
-import { ToolcraftBugError, UserError, defineCommand, defineGroup } from "./index.js";
+import {
+  ApprovalDeclinedError,
+  ToolcraftBugError,
+  UserError,
+  defineCommand,
+  defineGroup
+} from "./index.js";
 
 const loggerState = {
   info: [] as string[],
@@ -297,6 +303,10 @@ function readStdout(stdoutWrite: ReturnType<typeof vi.spyOn>): string {
 
 function readStderr(stderrWrite: ReturnType<typeof vi.spyOn>): string {
   return stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("");
+}
+
+function withUsagePointer(message: string, commandPath: string): string {
+  return `${message}\nRun toolcraft ${commandPath} --help for usage.`;
 }
 
 function createHttpErrorLike(
@@ -647,6 +657,34 @@ describe("runCLI", () => {
     const stderr = readStderr(stderrWrite);
     expect(stderr).not.toContain("error: unknown command");
     expect(stderr).not.toContain("Usage:");
+  });
+
+  it("adds a usage pointer for unknown commands inside a group context", async () => {
+    const production = defineCommand({
+      name: "production",
+      params: S.Object({}),
+      handler: async () => "ok"
+    });
+    const deploy = defineGroup({
+      name: "deploy",
+      children: [production]
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "prodction"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      [
+        'Unknown command "prodction".',
+        "Did you mean: production?",
+        "Run toolcraft deploy --help for usage."
+      ].join("\n")
+    ]);
+    expect(process.exitCode).toBe(1);
   });
 
   it("does not suggest distant unknown commands for short inputs", async () => {
@@ -1147,7 +1185,10 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Preset file "/presets/invalid.json" contains unknown parameter "unknown".'
+      withUsagePointer(
+        'Preset file "/presets/invalid.json" contains unknown parameter "unknown".',
+        "deploy"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1189,7 +1230,10 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Preset file "/presets/invalid-pattern.json" has an invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".'
+      withUsagePointer(
+        'Preset file "/presets/invalid-pattern.json" has an invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".',
+        "deploy"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1215,7 +1259,9 @@ describe("runCLI", () => {
     await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
-    expect(loggerState.error).toEqual(['Preset file "/presets/missing.json" was not found.']);
+    expect(loggerState.error).toEqual([
+      withUsagePointer('Preset file "/presets/missing.json" was not found.', "deploy")
+    ]);
     expect(process.exitCode).toBe(1);
   });
 
@@ -1565,11 +1611,13 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(promptState.text).not.toHaveBeenCalled();
-    expect(loggerState.error).toEqual(['Missing required parameter "name".']);
+    expect(loggerState.error).toEqual([
+      ['Missing required parameter "name".', "Run toolcraft deploy --help for usage."].join("\n")
+    ]);
     expect(process.exitCode).toBe(1);
   });
 
-  it("reports a single validation error in the original single-error format", async () => {
+  it("reports a single validation error without wrapping it in the multi-error format", async () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({
@@ -1588,8 +1636,57 @@ describe("runCLI", () => {
 
     await runCLI(root);
 
-    expect(loggerState.error).toEqual(['Missing required parameter "name".']);
+    expect(loggerState.error).toEqual([
+      ['Missing required parameter "name".', "Run toolcraft deploy --help for usage."].join("\n")
+    ]);
     expect(loggerState.error[0]).not.toContain("parameter errors");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("does not add a usage pointer when command help is displayed", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        name: S.String()
+      }),
+      handler: async () => null
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "--help"];
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    expect(readStdout(stdoutWrite)).toContain("Usage: toolcraft deploy");
+    expect(loggerState.error.join("\n")).not.toContain("Run toolcraft deploy --help for usage.");
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it("does not add a usage pointer when approval is declined", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw new ApprovalDeclinedError({ commandPath: "deploy" });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy"];
+
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual(["Declined."]);
+    expect(loggerState.error.join("\n")).not.toContain("--help");
     expect(process.exitCode).toBe(1);
   });
 
@@ -1625,12 +1722,15 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(loggerState.error).toEqual([
-      [
-        "3 parameter errors:",
-        '  - name: Invalid value for "name": "42" does not match pattern "^[a-z]+$".',
-        '  - retries: Invalid value for "retries". Expected a number, got "many".',
-        '  - dryRun: Invalid value for "dryRun". Expected true or false, got "yes".'
-      ].join("\n")
+      withUsagePointer(
+        [
+          "3 parameter errors:",
+          '  - name: Invalid value for "name": "42" does not match pattern "^[a-z]+$".',
+          '  - retries: Invalid value for "retries". Expected a number, got "many".',
+          '  - dryRun: Invalid value for "dryRun". Expected true or false, got "yes".'
+        ].join("\n"),
+        "deploy"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1666,20 +1766,23 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(loggerState.error).toEqual([
-      [
-        "12 parameter errors:",
-        '  - field01: Missing required parameter "field01".',
-        '  - field02: Missing required parameter "field02".',
-        '  - field03: Missing required parameter "field03".',
-        '  - field04: Missing required parameter "field04".',
-        '  - field05: Missing required parameter "field05".',
-        '  - field06: Missing required parameter "field06".',
-        '  - field07: Missing required parameter "field07".',
-        '  - field08: Missing required parameter "field08".',
-        '  - field09: Missing required parameter "field09".',
-        '  - field10: Missing required parameter "field10".',
-        "  … and 2 more"
-      ].join("\n")
+      withUsagePointer(
+        [
+          "12 parameter errors:",
+          '  - field01: Missing required parameter "field01".',
+          '  - field02: Missing required parameter "field02".',
+          '  - field03: Missing required parameter "field03".',
+          '  - field04: Missing required parameter "field04".',
+          '  - field05: Missing required parameter "field05".',
+          '  - field06: Missing required parameter "field06".',
+          '  - field07: Missing required parameter "field07".',
+          '  - field08: Missing required parameter "field08".',
+          '  - field09: Missing required parameter "field09".',
+          '  - field10: Missing required parameter "field10".',
+          "  … and 2 more"
+        ].join("\n"),
+        "deploy"
+      )
     ]);
     expect(loggerState.error[0]).not.toContain("field11");
     expect(loggerState.error[0]).not.toContain("field12");
@@ -1704,7 +1807,7 @@ describe("runCLI", () => {
 
     await runCLI(root);
 
-    expect(loggerState.error).toEqual(["Invalid input."]);
+    expect(loggerState.error).toEqual([withUsagePointer("Invalid input.", "deploy")]);
     expect(process.exitCode).toBe(1);
   });
 
@@ -1736,7 +1839,10 @@ describe("runCLI", () => {
     expect(handler).not.toHaveBeenCalled();
     expect(promptState.text).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      "Missing required secret API_KEY\n  Set it in the environment before running this command."
+      withUsagePointer(
+        "Missing required secret API_KEY\n  Set it in the environment before running this command.",
+        "deploy"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1768,7 +1874,10 @@ describe("runCLI", () => {
     expect(handler).not.toHaveBeenCalled();
     expect(promptState.text).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      `Command "deploy" requires authentication.\n  Run 'poe-code login' first.`
+      withUsagePointer(
+        `Command "deploy" requires authentication.\n  Run 'poe-code login' first.`,
+        "deploy"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1980,7 +2089,7 @@ describe("runCLI", () => {
     process.argv = ["node", "toolcraft", "deploy", "--yes"];
     await runCLI(root);
 
-    expect(loggerState.error).toEqual(["Invalid input."]);
+    expect(loggerState.error).toEqual([withUsagePointer("Invalid input.", "deploy")]);
     expect(readStderr(stderrWrite)).toBe("");
     expect(process.exitCode).toBe(1);
   });
@@ -2245,7 +2354,10 @@ describe("runCLI", () => {
     });
 
     expect(loggerState.error).toEqual([
-      'Fixture scenario "missing scenario" was not found. Available: first scenario, named scenario, no-op fallback.'
+      withUsagePointer(
+        'Fixture scenario "missing scenario" was not found. Available: first scenario, named scenario, no-op fallback.',
+        "fixture-demo"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -2267,7 +2379,10 @@ describe("runCLI", () => {
     });
 
     expect(loggerState.error).toEqual([
-      `Fixture scenario "missing scenario" was not found. No fixtures are declared in ${fixtureFilePath}.`
+      withUsagePointer(
+        `Fixture scenario "missing scenario" was not found. No fixtures are declared in ${fixtureFilePath}.`,
+        "fixture-demo"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -2392,7 +2507,10 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Unknown parameter "destination.url" for destination.kind="email". Available: destination.address.'
+      withUsagePointer(
+        'Unknown parameter "destination.url" for destination.kind="email". Available: destination.address.',
+        "send"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -2419,7 +2537,7 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Unknown parameter "weight.bad". Available: weights.<key>.'
+      withUsagePointer('Unknown parameter "weight.bad". Available: weights.<key>.', "score")
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -2455,7 +2573,10 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Unsupported parameter type "oneof" for "routes.primary". Supported types: string, number, integer, boolean, array, object, enum, oneof.'
+      withUsagePointer(
+        'Unsupported parameter type "oneof" for "routes.primary". Supported types: string, number, integer, boolean, array, object, enum, oneof.',
+        "configure"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -2545,7 +2666,10 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Unknown parameter "contact.email" for contact-kind="phone". Available: contact.phone.'
+      withUsagePointer(
+        'Unknown parameter "contact.email" for contact-kind="phone". Available: contact.phone.',
+        "notify"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -2673,7 +2797,10 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Array parameter "recipients" must use contiguous indices starting at 0.'
+      withUsagePointer(
+        'Array parameter "recipients" must use contiguous indices starting at 0.',
+        "invite"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -2733,7 +2860,10 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".'
+      withUsagePointer(
+        'Invalid value for "slug": "bad-value" does not match pattern "^[a-z]+$".',
+        "deploy"
+      )
     ]);
     expect(process.exitCode).toBe(1);
   });

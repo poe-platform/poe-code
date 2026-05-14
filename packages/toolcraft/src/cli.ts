@@ -3816,12 +3816,19 @@ function handleRunError(
     verbose: boolean;
     program?: CommanderCommand;
     argv?: readonly string[];
+    rootUsageName: string;
+    commandPath: string;
   }
 ): void {
   const logger = createLogger();
 
   if (error instanceof UserError) {
-    logger.error(error.message);
+    logger.error(
+      appendUsagePointer(error.message, {
+        rootUsageName: options.rootUsageName,
+        commandPath: options.commandPath
+      })
+    );
     process.exitCode = 1;
     return;
   }
@@ -3897,6 +3904,27 @@ function formatUnknownCommandError(
   const currentCommand =
     program === undefined ? undefined : findCurrentCommanderCommand(program, argv);
   return formatUnknownCommandMessage(input, currentCommand);
+}
+
+function appendUsagePointer(
+  message: string,
+  options: {
+    rootUsageName: string;
+    commandPath: string;
+  }
+): string {
+  if (options.commandPath.length === 0 || message.includes("--help")) {
+    return message;
+  }
+
+  return `${message}\nRun ${options.rootUsageName} ${options.commandPath} --help for usage.`;
+}
+
+function formatCliCommandPath(commandPath: string): string {
+  return commandPath
+    .split(".")
+    .filter((segment) => segment.length > 0)
+    .join(" ");
 }
 
 function formatUnknownCommandMessage(
@@ -4002,8 +4030,9 @@ function findCurrentCommanderCommand(
 function findUnknownCommanderCommand(
   program: CommanderCommand,
   argv: readonly string[]
-): { input: string; currentCommand: CommanderCommand } | undefined {
+): { input: string; currentCommand: CommanderCommand; commandPath: string } | undefined {
   let current = program;
+  const pathSegments: string[] = [];
   const tokens = argv.slice(2);
 
   for (let index = 0; index < tokens.length; index += 1) {
@@ -4031,11 +4060,13 @@ function findUnknownCommanderCommand(
     if (child === undefined) {
       return {
         input: token,
-        currentCommand: current
+        currentCommand: current,
+        commandPath: pathSegments.join(" ")
       };
     }
 
     current = child;
+    pathSegments.push(child.name());
   }
 
   return undefined;
@@ -4073,6 +4104,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   const services = (options.services ?? {}) as TServices;
   const runtimeOptions = options.humanInLoop ?? {};
   const version = options.version ?? findEntrypointPackageMetadata(process.argv[1])?.version;
+  const rootUsageName = options.rootUsageName ?? inferProgramName(process.argv);
   const servicesWithBuiltIns = {
     ...services,
     runtimeOptions,
@@ -4103,8 +4135,10 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   }
 
   let lastActionCommand: CommanderCommand | undefined;
+  let resolvedCommandPath = "";
   const execute = async (state: ExecutionState<TServices>) => {
     lastActionCommand = state.actionCommand;
+    resolvedCommandPath = formatCliCommandPath(state.commandPath);
     await executeCommand(state, servicesWithBuiltIns, requirementOptions, runtimeOptions);
   };
 
@@ -4132,7 +4166,13 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   const unknownCommand = findUnknownCommanderCommand(program, process.argv);
   if (unknownCommand !== undefined) {
     createLogger().error(
-      formatUnknownCommandMessage(unknownCommand.input, unknownCommand.currentCommand)
+      appendUsagePointer(
+        formatUnknownCommandMessage(unknownCommand.input, unknownCommand.currentCommand),
+        {
+          rootUsageName,
+          commandPath: unknownCommand.commandPath
+        }
+      )
     );
     process.exitCode = 1;
     return;
@@ -4151,7 +4191,9 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       debug: resolvedFlags ? Boolean(resolvedFlags.debug) : process.argv.includes("--debug"),
       verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : process.argv.includes("--verbose"),
       program,
-      argv: process.argv
+      argv: process.argv,
+      rootUsageName,
+      commandPath: resolvedCommandPath
     });
   }
 }

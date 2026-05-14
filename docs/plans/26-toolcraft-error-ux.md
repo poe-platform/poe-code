@@ -921,8 +921,8 @@ tasks:
         - --help error itself does NOT include the pointer
         - approval-declined does NOT include the pointer
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-pretty-api-errors

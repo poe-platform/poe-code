@@ -1522,7 +1522,7 @@ function renderGroupHelp<TServices extends object>(
       ...collectSchemaGlobalFieldRows(group, scope, casing, globalLongOptionFlags)
     ];
     sections.push(
-      `${text.sectionHeader("Global options")}\n${formatHelpOptionList(globalRows)}`
+      `${text.sectionHeader("Options")}\n${formatHelpOptionList(globalRows)}`
     );
   }
 

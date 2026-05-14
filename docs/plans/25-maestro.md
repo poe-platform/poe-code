@@ -890,7 +890,7 @@ export function runAttempt(args: { task: Task; attempt: number | null; cfg: Reso
 export function runMaestro(opts?: RunMaestroOptions): Promise<() => Promise<void>>;
 ```
 
-### Build order (keeps the branch green at every step)
+### Build order (keeps main green at every step)
 
 1. Scaffold package, `package.json`, empty `src/index.ts`, README skeleton. Add to workspaces. `npm run build` passes.
 2. `runtime/sanitize.ts` + tests.

@@ -249,13 +249,13 @@ Integration / wiring tests:
 
 Manual QA (markdown doc; not a script — per [CLAUDE.md](../../CLAUDE.md) QA rule):
 
-8. **`docs/qa/spawn-resume.md` (new)** — step-by-step plan: for each of the 5 providers, (a) run a fresh `poe-code spawn <agent> "list the files in this dir"`, capture `threadId` from output and `.threadId` from the resume hint; (b) run the SDK resume programmatically via a small dev script (`npm run dev -- spawn <agent> --resume <threadId> "now count them"`) — or, if `--resume` flag isn't part of this PR, use a `node -e` one-liner that calls `spawn()` with `resume`; (c) confirm the second run references prior context. The goose case specifically confirms the `threadId` format question raised in level 3.
+8. **`docs/qa/spawn-resume.md` (new)** — step-by-step plan: for each of the 5 providers, (a) run a fresh `poe-code spawn <agent> "list the files in this dir"`, capture `threadId` from output and `.threadId` from the resume hint; (b) run the SDK resume programmatically via a small dev script (`npm run dev -- spawn <agent> --resume <threadId> "now count them"`) — or, if `--resume` flag isn't part of this change, use a `node -e` one-liner that calls `spawn()` with `resume`; (c) confirm the second run references prior context. The goose case specifically confirms the `threadId` format question raised in level 3.
 
 E2E: not needed for this change — the existing E2E suite exercises fresh spawn; resume is a pure argv/session-loading variation.
 
 ### Rollout / migration
 
-Single PR, single commit. `CliSpawnConfig.resumeCommand` is renamed in-place. No deprecation shim — all 5 provider configs and the one consumer update at the same time. No version bump of `@poe-code/agent-spawn` is semver-breaking for external users because the package is bundled, not published.
+Single commit. `CliSpawnConfig.resumeCommand` is renamed in-place. No deprecation shim — all 5 provider configs and the one consumer update at the same time. No version bump of `@poe-code/agent-spawn` is semver-breaking for external users because the package is bundled, not published.
 
 ### Autonomy checklist
 
@@ -358,7 +358,7 @@ No new functions introduced — the change is entirely a behaviour swap inside e
 
 ### Ordering
 
-Build the branch so each commit keeps the tree green:
+Order commits so the tree stays green at every step:
 
 1. `types.ts` + `types.compile-check.ts`: rename + add option field. Tree breaks (the 5 configs still use old name).
 2. Update all 5 provider configs to the new `resume` field and new argv shape. Tree now type-checks.

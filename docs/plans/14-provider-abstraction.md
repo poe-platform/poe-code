@@ -381,7 +381,7 @@ Integration (no new script — reuse existing):
 - [packages/poe-code-config/](packages/poe-code-config/) — services.json schema gains `provider: string`; migration tags missing entries with `"poe"`.
 - [README.md](README.md) — new `provider` section (ask user first).
 
-### Ordering (keep the branch green at every step)
+### Ordering (keep main green at every step)
 
 1. **Scaffold package.** Create `packages/providers/` with types + empty `ProviderRegistry` + `poe.ts`. Wire into build. No consumers yet. Tests pass.
 2. **Wire ProviderRegistry into container, not used.** Resolve `poe` by id in a no-op path. Tests pass.
@@ -389,7 +389,7 @@ Integration (no new script — reuse existing):
 4. **Route configure through ProviderRegistry.** Replace `poeApiKey`/`poeBaseUrl` env kinds in all agent files; payload carries `provider`. Snapshot of `~/.claude/settings.json` byte-identical to pre-refactor. Tests pass.
 5. **Add `provider` command group.** `list`, `login`, `logout`. `poe-code login` keeps working. Tests + screenshots.
 6. **Add `anthropic` provider.** Proves the abstraction: `configure claude-code --provider anthropic` writes Anthropic base URL. Tests.
-7. **(Optional, separate PR)** Rename `src/providers/` → `src/agents/` and `ServiceRegistry` → `AgentRegistry`.
+7. **(Optional, separate step)** Rename `src/providers/` → `src/agents/` and `ServiceRegistry` → `AgentRegistry`.
 
 ## Task Board
 

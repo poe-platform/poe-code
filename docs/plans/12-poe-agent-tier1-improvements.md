@@ -295,7 +295,7 @@ Add `docs/qa/poe-agent-tier1.md` with step-by-step manual checks:
 
 ### 4.4 Rollout / migration
 
-- One PR per numbered item, in this order: (1) typed hook decisions, (2) session tree, (3) file awareness. Each PR ships independently and keeps the package green.
+- One commit per numbered item, in this order: (1) typed hook decisions, (2) session tree, (3) file awareness. Each step ships independently and keeps the package green.
 - No published downstream consumer needs to change code. The legacy `{ reject }` shape stays accepted in release N; a follow-up release N+1 removes it. Changelog entry in each release.
 - No beta gating required — all changes are additive to the public API.
 
@@ -303,13 +303,13 @@ Add `docs/qa/poe-agent-tier1.md` with step-by-step manual checks:
 
 ### 5.1 Ordering
 
-Build in dependency order so `main` stays green after each PR:
+Build in dependency order so `main` stays green after each step:
 
-1. **PR A — Typed hook decisions.** Smallest, zero data-layer churn, unlocks decision richness that tests for later PRs can lean on.
-2. **PR B — Tree-shaped session model.** Larger, introduces `runtime/session/`, wires store into `agent-session.ts`. Does not depend on PR A's new semantics.
-3. **PR C — File awareness through compaction.** Depends on PR B's session entries to persist the `readFiles` / `modifiedFiles` snapshot on compaction entries; depends on PR A for the `replace` decision shape only if we want a "scrub on read" example plugin.
+1. **Step A — Typed hook decisions.** Smallest, zero data-layer churn, unlocks decision richness that tests for later steps can lean on.
+2. **Step B — Tree-shaped session model.** Larger, introduces `runtime/session/`, wires store into `agent-session.ts`. Does not depend on Step A's new semantics.
+3. **Step C — File awareness through compaction.** Depends on Step B's session entries to persist the `readFiles` / `modifiedFiles` snapshot on compaction entries; depends on Step A for the `replace` decision shape only if we want a "scrub on read" example plugin.
 
-### 5.2 PR A — Typed hook decisions
+### 5.2 Step A — Typed hook decisions
 
 New files: _(none)_
 
@@ -334,7 +334,7 @@ Test files added / extended:
 - `packages/poe-agent/src/runtime/hooks.test.ts` — all unit cases listed in §4.3.
 - `packages/poe-agent/src/runtime/iteration-decisions.test.ts` — new, integration-ish, using a fake model + fake tool to verify end-to-end decision application.
 
-### 5.3 PR B — Tree-shaped session model
+### 5.3 Step B — Tree-shaped session model
 
 New files:
 
@@ -358,7 +358,7 @@ Non-obvious call-outs at implementation time:
 - The current `previousRun: RunResult | undefined` trick in `adaptAcpToLegacySession` ([packages/poe-agent/src/agent-session.ts:123](packages/poe-agent/src/agent-session.ts#L123)) becomes a fallback when there's no store; with a store, resume context is derived from the tree. Keep both paths during the migration.
 - `SessionUpdateCallback` is unaffected — entries are recorded alongside, not instead of, the event stream.
 
-### 5.4 PR C — File awareness through compaction
+### 5.4 Step C — File awareness through compaction
 
 New files:
 
@@ -378,7 +378,7 @@ Modified files:
 - `packages/poe-agent/src/plugins/poe-agent-plugin-compaction.ts`
   - `summariseWithModel` prompt includes rendered file lists when non-empty.
   - `resolveCompactionSummary` detects custom summarise arity (`fn.length`) and calls accordingly.
-  - On `compaction` session entry creation (wired into PR B), include `readFiles` + `modifiedFiles` snapshot.
+  - On `compaction` session entry creation (wired into Step B), include `readFiles` + `modifiedFiles` snapshot.
 
 Test files added / extended:
 
@@ -387,6 +387,6 @@ Test files added / extended:
 
 ### 5.5 Docs touched
 
-- README sections for `createAgentSession` (add `persist`, `tree`, `fork`, `navigateTo`). **Do not touch README without the user's permission** (CLAUDE.md rule). Flag this in each PR description instead and wait for approval.
+- README sections for `createAgentSession` (add `persist`, `tree`, `fork`, `navigateTo`). **Do not touch README without the user's permission** (CLAUDE.md rule). Flag this in chat and wait for approval.
 - `docs/qa/poe-agent-tier1.md` — new manual QA script (markdown, not TS).
 - `docs/plans/pi-mono-coding-agent-integration.md` — add a line under "Cross-check" pointing to this plan so the discovery knows Tier 1 is planned.

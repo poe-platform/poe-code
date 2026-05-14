@@ -190,7 +190,7 @@ tasks:
 
       Out of scope: do not delete anything from `@poe-code/braintrust` yet —
       that happens in `braintrust-adapter-glue`. The two implementations
-      coexist for one task so the branch stays green.
+      coexist for one task so main stays green.
 
       Acceptance: `npm run build` passes; new tests pass; no new dependency
       added to `packages/acp-telemetry/package.json`.
@@ -654,7 +654,7 @@ No new e2e. No new manual QA. Run `npm run test:unit` for the affected packages 
 
 ### Rollout / migration
 
-In-repo only. No external consumers of `@poe-code/braintrust` spawn internals. `loadIntegrations` and the CLI wiring are unchanged. Single PR, single commit per logical step.
+In-repo only. No external consumers of `@poe-code/braintrust` spawn internals. `loadIntegrations` and the CLI wiring are unchanged. One commit per logical step, straight to main.
 
 ### Autonomy checklist
 
@@ -713,7 +713,7 @@ export function emitToOtel(trace: AcpTrace, tracer: OtelTracerLike): void;
 export function createSpawnMiddleware(client: BraintrustClient): AcpMiddleware;
 ```
 
-### Build order (keeps branch green)
+### Build order (keeps main green)
 
 1. Add `middlewares?: AcpMiddleware[]` to `SpawnOptions`. Wire `applyMiddlewares` inside `spawnStreaming` and `spawnAcp`. Existing CLI call sites still work because they keep passing `middlewares` through; remove duplicate CLI-side `applyMiddlewares` calls in the same commit. Run agent-spawn + CLI tests.
 2. Create `@poe-code/acp-telemetry` package skeleton (package.json, tsconfig, README, empty `index.ts`). Verify it builds.

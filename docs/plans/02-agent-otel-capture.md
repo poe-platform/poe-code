@@ -408,10 +408,10 @@ export function costUsd(model: string, usage: Pick<NormalizedLlmCall, "inputToke
 function applyOtelCapture(options: SpawnStreamingOptions, agent: AgentDefinition): Promise<{ envExtra: Record<string, string>; argvExtra: string[]; drain: () => Promise<NormalizedLlmCall[]> } | undefined>;
 ```
 
-### Build order (keeps the branch green at every step)
+### Build order (keeps main green at every step)
 
 1. `packages/otel-capture` skeleton + types + receiver + protobuf decoder + tests (ships green; no consumers yet).
-2. Per-agent normalizers + fixtures + tests, one PR per agent (claude → codex → opencode → goose).
+2. Per-agent normalizers + fixtures + tests, one agent at a time (claude → codex → opencode → goose).
 3. Pricing table + tests.
 4. `start-capture` orchestrator + tests.
 5. `agent-defs` `otelCapture` field plumbing for the four agents.

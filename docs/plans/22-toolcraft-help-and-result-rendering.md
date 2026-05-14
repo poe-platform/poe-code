@@ -513,9 +513,9 @@ tasks:
            repo has them (search the package for a CHANGELOG.md
            before adding one; do not create one if not present).
 
-        4. Push the branch / open a PR per the repo's standard
-           release workflow. Releases are done on github via the
-           trusted-publishing workflow — do not publish from local.
+        4. Commit straight to main; the push triggers the
+           trusted-publishing workflow on github that publishes the
+           packages. Do not publish from local.
            See NPM_PUBLISHING.md at the repo root for the canonical
            sequence.
 
@@ -555,7 +555,7 @@ tasks:
       calendar.meeting create / edit). Only --help and known
       read-only commands.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

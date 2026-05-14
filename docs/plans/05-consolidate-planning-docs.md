@@ -36,7 +36,7 @@ Why this matters now:
 Out of scope for the first consolidation pass:
 
 - Redesigning the runtime semantics of every harness.
-- Forcing all legacy docs to migrate in one PR.
+- Forcing all legacy docs to migrate in one pass.
 - Unifying all runtime-state persistence immediately (for example experiment journals vs in-doc status mutation).
 - Rewriting README files in this turn.
 

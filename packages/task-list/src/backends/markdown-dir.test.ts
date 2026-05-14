@@ -647,7 +647,7 @@ state: draft
     ).resolves.toContain("state: archived");
   });
 
-  it("leaves a gap in active prefixes after archiving a task in multi-list mode", async () => {
+  it("repacks active prefixes after archiving a task in multi-list mode", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/planning/01-foo.md": `---
 name: Foo
@@ -680,7 +680,7 @@ state: draft
 
     await expect(readSortedDirectory(rawFs, "/repo/tasks/planning")).resolves.toEqual([
       "01-foo.md",
-      "03-baz.md",
+      "02-baz.md",
       "archive"
     ]);
     await expect(readSortedDirectory(rawFs, "/repo/tasks/planning/archive")).resolves.toEqual([
@@ -688,7 +688,7 @@ state: draft
     ]);
   });
 
-  it("leaves a gap in root prefixes after archiving a task in single-list passthrough mode", async () => {
+  it("repacks root prefixes after archiving a task in single-list passthrough mode", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/01-foo.md": `---
 $schema: ${PIPELINE_SCHEMA_ID}
@@ -726,13 +726,13 @@ version: 1
 
     await expect(readSortedDirectory(rawFs, "/repo/tasks")).resolves.toEqual([
       "01-foo.md",
-      "03-baz.md",
+      "02-baz.md",
       "archive"
     ]);
     await expect(readSortedDirectory(rawFs, "/repo/tasks/archive")).resolves.toEqual(["bar.md"]);
   });
 
-  it("assigns max(order) + 1 to a new task created after archiving, leaving the gap intact", async () => {
+  it("assigns the next prefix to a new task created after archiving repacks active tasks", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/planning/01-foo.md": `---
 name: Foo
@@ -766,8 +766,8 @@ state: draft
 
     await expect(readSortedDirectory(rawFs, "/repo/tasks/planning")).resolves.toEqual([
       "01-foo.md",
-      "03-baz.md",
-      "04-qux.md",
+      "02-baz.md",
+      "03-qux.md",
       "archive"
     ]);
   });
@@ -886,7 +886,7 @@ state: draft
     await Promise.all([archiveFoo, archiveBar]);
 
     await expect(readSortedDirectory(baseFs.rawFs, "/repo/tasks/planning")).resolves.toEqual([
-      "03-baz.md",
+      "01-baz.md",
       "archive"
     ]);
     await expect(

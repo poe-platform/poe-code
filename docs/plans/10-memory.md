@@ -1300,7 +1300,7 @@ export async function query(
 
 ### 5.4 Build order
 
-Sequenced so the branch stays green after each step. Each step is a commit.
+Sequenced so main stays green after each step. Each step is a commit.
 
 1. **Package skeleton.** `package.json`, `tsconfig.json`, empty `src/index.ts`, `src/types.ts` with all types from §4.1. README stub.
 2. **Tokenfill export.** If `tokenfill` doesn't expose `countTokens(text: string): number`, add it + test. No behavior change elsewhere. (Grep first; skip if already present.)

@@ -14,7 +14,7 @@ tasks:
       and tsconfig path mapping if needed. `npm run build` must pass with
       an empty index. See docs/plans/26-maestro.md §3 package layout.
     status:
-      implement: open
+      implement: done
 
   - id: runtime-sanitize
     title: Workspace-key sanitizer
@@ -27,8 +27,8 @@ tasks:
       empty input throws. See docs/plans/26-maestro.md §3 safety invariants
       and §4 test table.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: runtime-phases
     title: Attempt phase state machine
@@ -42,8 +42,8 @@ tasks:
       must accept every legal transition and reject every illegal one,
       and verify failure categories survive a `failed` transition.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: state-machine-export
     title: Recommended task state machine constant
@@ -58,8 +58,8 @@ tasks:
       canonical path queued → agent-running → human-review → done fires
       cleanly; illegal transitions throw `InvalidTransitionError`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: config-load-and-schema
     title: WORKFLOW.md loader, schema, preflight validation
@@ -80,8 +80,8 @@ tasks:
       file, defaults, `$VAR` and `~`, missing required fields, and the
       preflight failure paths. Schema details in docs/plans/26-maestro.md §3.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: prompt-render
     title: Task and step prompt renderers
@@ -96,8 +96,8 @@ tasks:
       per docs/plans/26-maestro.md §2. Tests cover normal render,
       fallback on empty body, and a thrown error on unknown var.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: workspace-manager
     title: Per-task workspace manager
@@ -113,8 +113,8 @@ tasks:
       rule). Reference: docs/plans/26-maestro.md §3 safety invariants and
       §4 test table.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: runtime-retry-and-state
     title: Retry math and claim state mutators
@@ -132,8 +132,8 @@ tasks:
       double-claim rejection, and disjointness of running/retry sets.
       Spec: docs/plans/26-maestro.md §3 "Three state machines" and "Retry math".
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: runtime-reconcile
     title: Reconciliation against task store
@@ -149,8 +149,8 @@ tasks:
       Tests use an in-memory markdown-dir TaskList against memfs and cover
       all four branches plus the refresh-failure path.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: agent-runner
     title: Per-attempt step pipeline runner
@@ -176,8 +176,8 @@ tasks:
       between steps. Use a mock spawn and a real `loadResolvedSteps` over
       a memfs `steps.yaml`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: runtime-loop
     title: Poll-tick orchestration
@@ -195,8 +195,8 @@ tasks:
       cover the order, the sort, the preflight-fail-but-reconcile branch,
       and the concurrency cap.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: index-and-integration
     title: Public SDK wire-up and integration tests
@@ -220,8 +220,8 @@ tasks:
       `human-review`, cancels remaining steps + cleanup + no retry.
       Full SDK shape in docs/plans/26-maestro.md §4.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: cli-register
     title: Register `poe-code maestro` command
@@ -236,8 +236,8 @@ tasks:
       `poe-code maestro --help` renders and exits 0. Reference:
       docs/plans/26-maestro.md §2 CLI block and §4 cmdkit declaration.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
 
   - id: package-readme
     title: agent-maestro README
@@ -251,7 +251,7 @@ tasks:
       @poe-code/pipeline README for `steps.yaml`. No content beyond the
       env-vars/config/examples sections without user approval.
     status:
-      implement: open
+      implement: done
 
   - id: dry-run-smoke
     title: Manual --dry-run smoke check
@@ -265,7 +265,7 @@ tasks:
       anything that fails. Delete the temp files when done. See
       docs/plans/26-maestro.md §4 autonomy checklist.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

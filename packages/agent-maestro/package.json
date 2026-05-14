@@ -1,0 +1,30 @@
+{
+  "name": "@poe-code/agent-maestro",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/agent-maestro/src",
+    "test:unit": "cd ../.. && vitest run packages/agent-maestro/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-spawn": "*",
+    "@poe-code/file-lock": "*",
+    "@poe-code/markdown-reader": "*",
+    "@poe-code/pipeline": "*",
+    "@poe-code/poe-code-config": "*",
+    "@poe-code/task-list": "*"
+  }
+}

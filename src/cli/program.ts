@@ -1,9 +1,11 @@
 import { basename, join } from "node:path";
-import { Command, Help } from "commander";
+import { Command, Help, InvalidArgumentError, Option } from "commander";
 import type { Group } from "toolcraft";
+import { S, type Static } from "toolcraft-schema";
 import { runCLI } from "toolcraft/cli";
 import { ghGroup } from "@poe-code/github-workflows";
 import { superintendentGroup } from "@poe-code/superintendent";
+import { runMaestro, type Logger as MaestroLogger } from "@poe-code/agent-maestro";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
 import { text } from "@poe-code/design-system";
 import { registerConfigureCommand } from "./commands/configure.js";
@@ -86,6 +88,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["pipeline", "install"] },
   { path: ["pipeline", "run"] },
   { path: ["pipeline", "validate"] },
+  { path: ["maestro"], args: "[path]" },
   { path: ["plan"], args: "[question]" },
   { path: ["plan", "install"] },
   { path: ["plan", "browse"] },
@@ -359,6 +362,138 @@ function resolveRootHelpHeading(argv: string[]): string {
 
 const FORWARDABLE_TOOLCRAFT_FLAGS = new Set(["-y", "--yes", "--verbose"]);
 
+const maestroCommandSchema = S.Object({
+  path: S.String({
+    description: "Path to WORKFLOW.md",
+    default: "./WORKFLOW.md"
+  }),
+  maxConcurrent: S.Optional(
+    S.Number({
+      description: "Override agent.max_concurrent_agents",
+      short: "c"
+    })
+  ),
+  pollIntervalMs: S.Optional(
+    S.Number({
+      description: "Override polling.interval_ms"
+    })
+  ),
+  list: S.Optional(
+    S.String({
+      description: "Override agent.list"
+    })
+  ),
+  dryRun: S.Optional(
+    S.Boolean({
+      description: "Validate config, inspect candidates, and exit"
+    })
+  ),
+  yes: S.Optional(
+    S.Boolean({
+      description: "Accept defaults non-interactively"
+    })
+  ),
+  logLevel: S.Enum(["trace", "debug", "info", "warn", "error"] as const, {
+    description: "Log level",
+    default: "info"
+  })
+});
+
+type MaestroCommandArgs = Static<typeof maestroCommandSchema>;
+
+function parseOptionalPositiveInteger(value: string, optionName: string): number {
+  const parsed = Number.parseInt(value, 10);
+  if (!Number.isFinite(parsed) || parsed < 1 || String(parsed) !== value.trim()) {
+    throw new InvalidArgumentError(
+      `Invalid ${optionName} "${value}". Expected a positive integer.`
+    );
+  }
+  return parsed;
+}
+
+function formatMaestroLog(message: string, meta?: Record<string, unknown>): string {
+  if (meta === undefined || Object.keys(meta).length === 0) {
+    return message;
+  }
+  return `${message} ${JSON.stringify(meta)}`;
+}
+
+function createMaestroLogger(
+  container: CliContainer,
+  options: Pick<MaestroCommandArgs, "dryRun" | "logLevel">
+): MaestroLogger {
+  const logger = container.loggerFactory.create({
+    dryRun: options.dryRun === true,
+    verbose: options.logLevel === "trace" || options.logLevel === "debug",
+    scope: "maestro"
+  });
+
+  return {
+    info: (message, meta) => logger.info(formatMaestroLog(message, meta)),
+    warn: (message, meta) => logger.warn(formatMaestroLog(message, meta)),
+    error: (message, meta) => logger.error(formatMaestroLog(message, meta))
+  };
+}
+
+function registerMaestroCommand(program: Command, container: CliContainer): void {
+  program
+    .command("maestro")
+    .description("Run the Maestro task-driven agent daemon.")
+    .argument(
+      "[path]",
+      maestroCommandSchema.shape.path.description ?? "Path to WORKFLOW.md",
+      maestroCommandSchema.shape.path.default
+    )
+    .option(
+      "-c, --max-concurrent <n>",
+      maestroCommandSchema.shape.maxConcurrent.inner.description ??
+        "Override agent.max_concurrent_agents",
+      (value: string) => parseOptionalPositiveInteger(value, "--max-concurrent")
+    )
+    .option(
+      "--poll-interval-ms <ms>",
+      maestroCommandSchema.shape.pollIntervalMs.inner.description ?? "Override polling.interval_ms",
+      (value: string) => parseOptionalPositiveInteger(value, "--poll-interval-ms")
+    )
+    .option(
+      "--list <name>",
+      maestroCommandSchema.shape.list.inner.description ?? "Override agent.list"
+    )
+    .option(
+      "--dry-run",
+      maestroCommandSchema.shape.dryRun.inner.description ??
+        "Validate config, inspect candidates, and exit"
+    )
+    .option(
+      "--yes",
+      maestroCommandSchema.shape.yes.inner.description ?? "Accept defaults non-interactively"
+    )
+    .addOption(
+      new Option(
+        "--log-level <level>",
+        maestroCommandSchema.shape.logLevel.description ?? "Log level"
+      )
+        .choices(maestroCommandSchema.shape.logLevel.values.map(String))
+        .default(maestroCommandSchema.shape.logLevel.default)
+    )
+    .action(async (path: string, options: Omit<MaestroCommandArgs, "path">, command: Command) => {
+      const mergedOptions = {
+        ...options,
+        ...command.optsWithGlobals()
+      } as Omit<MaestroCommandArgs, "path">;
+      await runMaestro({
+        workflowPath: path,
+        maxConcurrent: mergedOptions.maxConcurrent,
+        pollIntervalMs: mergedOptions.pollIntervalMs,
+        list: mergedOptions.list,
+        dryRun: mergedOptions.dryRun,
+        yes: mergedOptions.yes,
+        logLevel: mergedOptions.logLevel,
+        logger: createMaestroLogger(container, mergedOptions)
+      });
+    });
+}
+
 function buildToolcraftArgv(argv: string[], commandNames: readonly string[]): string[] {
   const entry = argv[0] ?? "node";
   const script = argv[1] ?? "cli";
@@ -489,6 +624,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerMcpCommand(program, container);
   registerSkillCommand(program, container);
   registerPipelineCommand(program, container);
+  registerMaestroCommand(program, container);
   registerPlanCommand(program, container);
   registerRalphCommand(program, container);
   registerExperimentCommand(program, container);

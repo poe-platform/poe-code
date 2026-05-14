@@ -1,5 +1,8 @@
-const PLACEHOLDER_PATTERN =
-  /\\(\{\{\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\}\})|\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g;
+const PIPELINE_VAR_NAME_PATTERN = "[a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*";
+const PLACEHOLDER_PATTERN = new RegExp(
+  `\\\\(\\{\\{\\s*${PIPELINE_VAR_NAME_PATTERN}\\s*\\}\\})|\\{\\{\\s*(${PIPELINE_VAR_NAME_PATTERN})\\s*\\}\\}`,
+  "g"
+);
 
 export function interpolatePipelineVars(
   template: string,

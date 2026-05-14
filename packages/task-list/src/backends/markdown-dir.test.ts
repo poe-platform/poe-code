@@ -647,7 +647,7 @@ state: draft
     ).resolves.toContain("state: archived");
   });
 
-  it("repacks active prefixes after archiving a task in multi-list mode", async () => {
+  it("preserves active prefixes after archiving a task in multi-list mode", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/planning/01-foo.md": `---
 name: Foo
@@ -680,7 +680,7 @@ state: draft
 
     await expect(readSortedDirectory(rawFs, "/repo/tasks/planning")).resolves.toEqual([
       "01-foo.md",
-      "02-baz.md",
+      "03-baz.md",
       "archive"
     ]);
     await expect(readSortedDirectory(rawFs, "/repo/tasks/planning/archive")).resolves.toEqual([
@@ -688,7 +688,7 @@ state: draft
     ]);
   });
 
-  it("repacks root prefixes after archiving a task in single-list passthrough mode", async () => {
+  it("preserves root prefixes after archiving a task in single-list passthrough mode", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/01-foo.md": `---
 $schema: ${PIPELINE_SCHEMA_ID}
@@ -726,13 +726,13 @@ version: 1
 
     await expect(readSortedDirectory(rawFs, "/repo/tasks")).resolves.toEqual([
       "01-foo.md",
-      "02-baz.md",
+      "03-baz.md",
       "archive"
     ]);
     await expect(readSortedDirectory(rawFs, "/repo/tasks/archive")).resolves.toEqual(["bar.md"]);
   });
 
-  it("assigns the next prefix to a new task created after archiving repacks active tasks", async () => {
+  it("assigns the next prefix after the highest active prefix when archiving leaves a gap", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/planning/01-foo.md": `---
 name: Foo
@@ -766,8 +766,47 @@ state: draft
 
     await expect(readSortedDirectory(rawFs, "/repo/tasks/planning")).resolves.toEqual([
       "01-foo.md",
-      "02-baz.md",
-      "03-qux.md",
+      "03-baz.md",
+      "04-qux.md",
+      "archive"
+    ]);
+  });
+
+  it("renumbers only the moved task when moving it after a prefix gap", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/planning/01-alpha.md": `---
+name: Alpha
+state: draft
+---
+`,
+      "/repo/tasks/planning/02-bravo.md": `---
+name: Bravo
+state: draft
+---
+`,
+      "/repo/tasks/planning/03-charlie.md": `---
+name: Charlie
+state: draft
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("planning").fire("bravo", "archive");
+    await taskList.list("planning").move("alpha", { position: "bottom" });
+
+    await expect(readSortedDirectory(rawFs, "/repo/tasks/planning")).resolves.toEqual([
+      "03-charlie.md",
+      "04-alpha.md",
       "archive"
     ]);
   });
@@ -886,7 +925,7 @@ state: draft
     await Promise.all([archiveFoo, archiveBar]);
 
     await expect(readSortedDirectory(baseFs.rawFs, "/repo/tasks/planning")).resolves.toEqual([
-      "01-baz.md",
+      "03-baz.md",
       "archive"
     ]);
     await expect(

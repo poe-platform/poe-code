@@ -657,38 +657,125 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
     );
   }
 
-  async function rewriteListPrefixes(orderedIds: readonly string[]): Promise<void> {
-    const entries = await readActiveEntries();
-    const byId = new Map(entries.map((entry) => [entry.id, entry]));
-    const width = padWidthForCount(orderedIds.length);
+  async function renameActiveEntries(
+    entries: ActiveEntry[],
+    desiredOrdersById: ReadonlyMap<string, number>
+  ): Promise<void> {
+    const staged: { from: string; to: string }[] = [];
+    const maxOrder = Math.max(...desiredOrdersById.values(), entries.length);
+    const width = padWidthForCount(maxOrder);
 
-    for (let index = 0; index < orderedIds.length; index += 1) {
-      const id = orderedIds[index];
-      const entry = byId.get(id);
-      if (!entry) continue;
+    for (let index = 0; index < entries.length; index += 1) {
+      const entry = entries[index];
+      const desiredOrder = desiredOrdersById.get(entry.id);
+      if (desiredOrder === undefined) continue;
 
-      const desiredFilename = activeTaskFilename(id, index + 1, width);
+      const desiredFilename = activeTaskFilename(entry.id, desiredOrder, width);
       if (entry.filename !== desiredFilename) {
         const fromPath = path.join(listDirectoryPath, entry.filename);
         const stagingPath = path.join(
           listDirectoryPath,
           `${desiredFilename}.staging-${process.pid}-${index}`
         );
+        const targetPath = path.join(listDirectoryPath, desiredFilename);
         await deps.fs.rename(fromPath, stagingPath);
-        entry.filename = path.basename(stagingPath);
+        staged.push({ from: stagingPath, to: targetPath });
       }
     }
 
-    const refreshed = await readDirectoryNames(deps.fs, listDirectoryPath);
-    for (const entryName of refreshed) {
-      const stagingMatch = /\.staging-\d+-\d+$/.exec(entryName);
-      if (!stagingMatch) continue;
+    for (const entry of staged) {
+      await deps.fs.rename(entry.from, entry.to);
+    }
+  }
 
-      const desiredName = entryName.slice(0, stagingMatch.index);
-      await deps.fs.rename(
-        path.join(listDirectoryPath, entryName),
-        path.join(listDirectoryPath, desiredName)
-      );
+  async function rewriteListPrefixes(orderedIds: readonly string[]): Promise<void> {
+    const entries = await readActiveEntries();
+    const byId = new Map(entries.map((entry) => [entry.id, entry]));
+    const desiredOrdersById = new Map<string, number>();
+
+    for (let index = 0; index < orderedIds.length; index += 1) {
+      const id = orderedIds[index];
+      const entry = byId.get(id);
+      if (!entry) continue;
+
+      desiredOrdersById.set(id, index + 1);
+    }
+
+    await renameActiveEntries(entries, desiredOrdersById);
+  }
+
+  function entryOrder(entry: ActiveEntry, index: number): number {
+    return entry.order ?? index + 1;
+  }
+
+  async function rewriteMovedPrefix(movedId: string, orderedIds: readonly string[]): Promise<void> {
+    const entries = await readActiveEntries();
+    const byId = new Map(entries.map((entry, index) => [entry.id, { entry, index }]));
+    const movedIndex = orderedIds.indexOf(movedId);
+    const moved = byId.get(movedId);
+    if (movedIndex < 0 || moved === undefined) return;
+
+    const desiredOrdersById = new Map<string, number>();
+    const previousId = movedIndex > 0 ? orderedIds[movedIndex - 1] : undefined;
+    const nextId = movedIndex < orderedIds.length - 1 ? orderedIds[movedIndex + 1] : undefined;
+    const previous = previousId === undefined ? undefined : byId.get(previousId);
+    const next = nextId === undefined ? undefined : byId.get(nextId);
+
+    if (previous !== undefined && next === undefined) {
+      desiredOrdersById.set(movedId, entryOrder(previous.entry, previous.index) + 1);
+      await renameActiveEntries(entries, desiredOrdersById);
+      return;
+    }
+
+    if (previous === undefined && next !== undefined) {
+      const nextOrder = entryOrder(next.entry, next.index);
+      if (nextOrder > 1) {
+        desiredOrdersById.set(movedId, nextOrder - 1);
+        await renameActiveEntries(entries, desiredOrdersById);
+        return;
+      }
+
+      desiredOrdersById.set(movedId, 1);
+      let lastOrder = 1;
+      for (let index = movedIndex + 1; index < orderedIds.length; index += 1) {
+        const candidate = byId.get(orderedIds[index]);
+        if (candidate === undefined) continue;
+
+        const currentOrder = entryOrder(candidate.entry, candidate.index);
+        if (currentOrder > lastOrder) break;
+
+        lastOrder += 1;
+        desiredOrdersById.set(candidate.entry.id, lastOrder);
+      }
+
+      await renameActiveEntries(entries, desiredOrdersById);
+      return;
+    }
+
+    if (previous !== undefined && next !== undefined) {
+      const previousOrder = entryOrder(previous.entry, previous.index);
+      const nextOrder = entryOrder(next.entry, next.index);
+
+      if (nextOrder - previousOrder > 1) {
+        desiredOrdersById.set(movedId, previousOrder + 1);
+        await renameActiveEntries(entries, desiredOrdersById);
+        return;
+      }
+
+      let lastOrder = previousOrder + 1;
+      desiredOrdersById.set(movedId, lastOrder);
+      for (let index = movedIndex + 1; index < orderedIds.length; index += 1) {
+        const candidate = byId.get(orderedIds[index]);
+        if (candidate === undefined) continue;
+
+        const currentOrder = entryOrder(candidate.entry, candidate.index);
+        if (currentOrder > lastOrder) break;
+
+        lastOrder += 1;
+        desiredOrdersById.set(candidate.entry.id, lastOrder);
+      }
+
+      await renameActiveEntries(entries, desiredOrdersById);
     }
   }
 
@@ -880,8 +967,6 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
           await writeAtomically(deps.fs, existing.path, serializedTask);
           await deps.fs.mkdir(archiveDirectoryPath(deps.path, layout, list), { recursive: true });
           await deps.fs.rename(existing.path, targetPath);
-          const remainingEntries = await readActiveEntries();
-          await rewriteListPrefixes(remainingEntries.map((entry) => entry.id));
           await event.onEnter?.(nextTask);
 
           return nextTask;
@@ -958,7 +1043,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
         }
 
         ordered.splice(insertIndex, 0, id);
-        await rewriteListPrefixes(ordered);
+        await rewriteMovedPrefix(id, ordered);
 
         return tasks.get(id)!.task;
       });

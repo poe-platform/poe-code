@@ -880,8 +880,6 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
           await writeAtomically(deps.fs, existing.path, serializedTask);
           await deps.fs.mkdir(archiveDirectoryPath(deps.path, layout, list), { recursive: true });
           await deps.fs.rename(existing.path, targetPath);
-          const { entries: remainingEntries } = await readActiveTasks();
-          await rewriteListPrefixes(remainingEntries.map((entry) => entry.id));
           await event.onEnter?.(nextTask);
 
           return nextTask;

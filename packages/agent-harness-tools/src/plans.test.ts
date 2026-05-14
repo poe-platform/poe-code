@@ -254,7 +254,7 @@ No frontmatter here.
     expect(plans.map((plan) => plan.id)).toEqual(["active"]);
   });
 
-  it("archivePlan moves files to archive and leaves active prefixes gap-free", async () => {
+  it("archivePlan moves files to archive and leaves a gap in active prefixes", async () => {
     const { fs, rawFs } = createFs({
       "/repo/.poe-code/plans/01-first.md": planDoc({
         name: "First"
@@ -277,7 +277,7 @@ No frontmatter here.
 
     await expect(readSortedDirectory(rawFs, resolvedPlanDirectory)).resolves.toEqual([
       "01-first.md",
-      "02-third.md",
+      "03-third.md",
       "archive"
     ]);
     await expect(readSortedDirectory(rawFs, `${resolvedPlanDirectory}/archive`)).resolves.toEqual([
@@ -293,7 +293,7 @@ No frontmatter here.
 
     expect(plans.map((plan) => plan.absolutePath)).toEqual([
       "/repo/.poe-code/plans/01-first.md",
-      "/repo/.poe-code/plans/02-third.md"
+      "/repo/.poe-code/plans/03-third.md"
     ]);
   });
 

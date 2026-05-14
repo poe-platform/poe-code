@@ -647,7 +647,7 @@ state: draft
     ).resolves.toContain("state: archived");
   });
 
-  it("repacks active task prefixes after archiving a task in multi-list mode", async () => {
+  it("leaves a gap in active prefixes after archiving a task in multi-list mode", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/planning/01-foo.md": `---
 name: Foo
@@ -680,30 +680,15 @@ state: draft
 
     await expect(readSortedDirectory(rawFs, "/repo/tasks/planning")).resolves.toEqual([
       "01-foo.md",
-      "02-baz.md",
+      "03-baz.md",
       "archive"
     ]);
     await expect(readSortedDirectory(rawFs, "/repo/tasks/planning/archive")).resolves.toEqual([
       "bar.md"
     ]);
-    expect({
-      active: await readSortedDirectory(rawFs, "/repo/tasks/planning"),
-      archive: await readSortedDirectory(rawFs, "/repo/tasks/planning/archive")
-    }).toMatchInlineSnapshot(`
-      {
-        "active": [
-          "01-foo.md",
-          "02-baz.md",
-          "archive",
-        ],
-        "archive": [
-          "bar.md",
-        ],
-      }
-    `);
   });
 
-  it("repacks root task prefixes after archiving a task in single-list passthrough mode", async () => {
+  it("leaves a gap in root prefixes after archiving a task in single-list passthrough mode", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/01-foo.md": `---
 $schema: ${PIPELINE_SCHEMA_ID}
@@ -741,25 +726,50 @@ version: 1
 
     await expect(readSortedDirectory(rawFs, "/repo/tasks")).resolves.toEqual([
       "01-foo.md",
-      "02-baz.md",
+      "03-baz.md",
       "archive"
     ]);
     await expect(readSortedDirectory(rawFs, "/repo/tasks/archive")).resolves.toEqual(["bar.md"]);
-    expect({
-      active: await readSortedDirectory(rawFs, "/repo/tasks"),
-      archive: await readSortedDirectory(rawFs, "/repo/tasks/archive")
-    }).toMatchInlineSnapshot(`
-      {
-        "active": [
-          "01-foo.md",
-          "02-baz.md",
-          "archive",
-        ],
-        "archive": [
-          "bar.md",
-        ],
-      }
-    `);
+  });
+
+  it("assigns max(order) + 1 to a new task created after archiving, leaving the gap intact", async () => {
+    const { fs, rawFs } = createFs({
+      "/repo/tasks/planning/01-foo.md": `---
+name: Foo
+state: draft
+---
+`,
+      "/repo/tasks/planning/02-bar.md": `---
+name: Bar
+state: draft
+---
+`,
+      "/repo/tasks/planning/03-baz.md": `---
+name: Baz
+state: draft
+---
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await taskList.list("planning").fire("bar", "archive");
+    await taskList.list("planning").create({ id: "qux", name: "Qux" });
+
+    await expect(readSortedDirectory(rawFs, "/repo/tasks/planning")).resolves.toEqual([
+      "01-foo.md",
+      "03-baz.md",
+      "04-qux.md",
+      "archive"
+    ]);
   });
 
   it("archives the only task without leaving active markdown files", async () => {
@@ -876,7 +886,7 @@ state: draft
     await Promise.all([archiveFoo, archiveBar]);
 
     await expect(readSortedDirectory(baseFs.rawFs, "/repo/tasks/planning")).resolves.toEqual([
-      "01-baz.md",
+      "03-baz.md",
       "archive"
     ]);
     await expect(

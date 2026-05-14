@@ -589,6 +589,8 @@ describe("toolcraft-schema", () => {
           email: S.Number(),
         }),
       ])
-    ).toThrow("Union schema branches must have unique required-key fingerprints");
+    ).toThrow(
+      'Union branches [0, 1] share required-key fingerprint "email". Each branch must require a distinct set of keys.'
+    );
   });
 });

@@ -649,8 +649,8 @@ tasks:
         - duplicate fingerprint at build: message names the offending
           indices
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-cli-did-you-mean

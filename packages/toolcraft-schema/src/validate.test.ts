@@ -84,6 +84,81 @@ describe("validate", () => {
     });
   });
 
+  it("reports union branches tried when no branch matches", () => {
+    const schema = S.Union([
+      S.Object({ email: S.String() }),
+      S.Object({ phone: S.String(), extension: S.Optional(S.Number()) })
+    ]);
+
+    expect(validate(schema, { name: "Ada" })).toEqual({
+      ok: false,
+      issues: [
+        {
+          path: [],
+          expected: "exactly one union branch",
+          received: "0 matching branches",
+          message:
+            "No union branch matched at value. Tried 2 branches. Expected one of: email | phone."
+        }
+      ]
+    });
+  });
+
+  it("reports matching union branches when multiple branches match", () => {
+    const schema = S.Union([
+      S.Object({ email: S.String() }, { additionalProperties: true }),
+      S.Object({ phone: S.String() }, { additionalProperties: true }),
+      S.Object({ email: S.String(), phone: S.String() })
+    ]);
+
+    expect(validate(schema, { email: "ada@example.com", phone: "555-0100" })).toEqual({
+      ok: false,
+      issues: [
+        {
+          path: [],
+          expected: "exactly one union branch",
+          received: "3 matching branches",
+          message:
+            "Expected exactly one union branch at value, but matched more than one branch: email | phone | email+phone"
+        }
+      ]
+    });
+  });
+
+  it("reports received and missing oneOf discriminators", () => {
+    const schema = S.OneOf({
+      discriminator: "kind",
+      branches: {
+        text: S.Object({ value: S.String() }),
+        count: S.Object({ value: S.Number() })
+      }
+    });
+
+    expect(validate(schema, { kind: "audio", value: "hello" })).toEqual({
+      ok: false,
+      issues: [
+        {
+          path: ["kind"],
+          expected: "one of text, count",
+          received: "audio",
+          message: 'Expected one of text, count at kind, got "audio"'
+        }
+      ]
+    });
+
+    expect(validate(schema, { value: "hello" })).toEqual({
+      ok: false,
+      issues: [
+        {
+          path: ["kind"],
+          expected: "one of text, count",
+          received: "missing",
+          message: 'Missing discriminator "kind" at value. Expected one of: text, count.'
+        }
+      ]
+    });
+  });
+
   it("omits missing optionals without defaults", () => {
     const schema = S.Object({
       required: S.String(),

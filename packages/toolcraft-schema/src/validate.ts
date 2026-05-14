@@ -1,4 +1,5 @@
 import type { AnySchema, ObjectSchema, OptionalSchema, Static } from "./index.js";
+import { getRequiredKeyFingerprint } from "./union.js";
 
 export type SchemaDescriptor = AnySchema;
 
@@ -314,19 +315,31 @@ function walkOneOf(
   }
 
   const discriminatorValue = value[schema.discriminator];
+  const discriminatorPath = [...path, schema.discriminator];
+  const branchValues = Object.keys(schema.branches);
+  const expected = `one of ${branchValues.join(", ")}`;
+
+  if (!Object.hasOwn(value, schema.discriminator)) {
+    addIssueWithMessage(
+      state,
+      discriminatorPath,
+      expected,
+      "missing",
+      `Missing discriminator "${schema.discriminator}" at ${formatPath(path)}. Expected one of: ${branchValues.join(", ")}.`
+    );
+    return { present: true, value };
+  }
 
   if (
     typeof discriminatorValue !== "string" ||
     !Object.hasOwn(schema.branches, discriminatorValue)
   ) {
-    const discriminatorPath = [...path, schema.discriminator];
-    const expected = `one of ${Object.keys(schema.branches).join(", ")}`;
-    addIssue(
+    addIssueWithMessage(
       state,
       discriminatorPath,
       expected,
       receivedValue(discriminatorValue),
-      `Expected ${expected} at ${formatPath(discriminatorPath)}`
+      `Expected ${expected} at ${formatPath(discriminatorPath)}, got ${formatReceivedDiscriminator(discriminatorValue)}`
     );
     return { present: true, value };
   }
@@ -350,27 +363,39 @@ function walkUnion(
     }
   }
 
-  const matches: unknown[] = [];
+  const matches: Array<{ fingerprint: string; value: unknown }> = [];
 
   for (const branch of schema.branches) {
     const branchState: ValidationState = { issues: [] };
     const result = walkObject(branch, value, path, branchState);
 
     if (branchState.issues.length === 0 && result.present) {
-      matches.push(result.value);
+      matches.push({ fingerprint: getRequiredKeyFingerprint(branch), value: result.value });
     }
   }
 
   if (matches.length === 1) {
-    return { present: true, value: matches[0] };
+    return { present: true, value: matches[0].value };
   }
 
-  addIssue(
+  if (matches.length === 0) {
+    const branchDescriptions = schema.branches.map((branch) => getRequiredKeyFingerprint(branch));
+    addIssueWithMessage(
+      state,
+      path,
+      "exactly one union branch",
+      "0 matching branches",
+      `No union branch matched at ${formatPath(path)}. Tried ${schema.branches.length} branches. Expected one of: ${branchDescriptions.join(" | ")}.`
+    );
+    return { present: true, value };
+  }
+
+  addIssueWithMessage(
     state,
     path,
     "exactly one union branch",
-    matches.length === 0 ? "no matching branches" : `${matches.length} matching branches`,
-    `Expected exactly one union branch at ${formatPath(path)}`
+    `${matches.length} matching branches`,
+    `Expected exactly one union branch at ${formatPath(path)}, but matched more than one branch: ${matches.map((match) => match.fingerprint).join(" | ")}`
   );
   return { present: true, value };
 }
@@ -526,6 +551,21 @@ function addIssue(
   });
 }
 
+function addIssueWithMessage(
+  state: ValidationState,
+  path: readonly string[],
+  expected: string,
+  received: string,
+  message: string
+): void {
+  state.issues.push({
+    path,
+    expected,
+    received,
+    message
+  });
+}
+
 function formatIssueMessage(expected: string, path: readonly string[], received: string): string {
   return `Expected ${expected} at ${formatPath(path)}, got ${received}`;
 }
@@ -568,4 +608,12 @@ function receivedValue(value: unknown): string {
   }
 
   return String(value);
+}
+
+function formatReceivedDiscriminator(value: unknown): string {
+  if (typeof value === "string") {
+    return JSON.stringify(value);
+  }
+
+  return receivedValue(value);
 }

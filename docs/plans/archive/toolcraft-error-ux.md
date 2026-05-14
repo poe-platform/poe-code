@@ -2,18 +2,24 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: toolcraft-openapi-http-error-context
     title: HttpError carries request and response context
-    prompt: |
+    prompt: >
       Today `HttpError` in
+
       packages/toolcraft-openapi/src/http.ts only stores `status` and a
+
       parsed `body`. The class message is just `HTTP ${status}`. When an
+
       OpenAPI-driven command fails server-side, the user sees no method,
+
       no URL, no response headers, and no status text — only a stack
+
       trace once `--debug` is on. The request is the part that
+
       identifies the failure; right now it is lost.
+
 
       Rewrite the class to:
 
@@ -54,9 +60,13 @@ tasks:
           must use the same constructor, not the legacy three-arg form.
 
       Backwards compatibility: keep the `body` getter so existing
+
       tests (`http.test.ts:213`, `index.test.ts:174`) and consumers
+
       reading `err.body` keep working. The legacy `new HttpError(status, body)`
+
       shape is removed — only the new constructor remains.
+
 
       Tests in packages/toolcraft-openapi/src/http.test.ts:
         - 500 with JSON body: error has `request.method`, `request.url`,
@@ -72,23 +82,33 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-openapi-http-error-render
     title: CLI renders HttpError with request and response, not a stack
-    prompt: |
+    prompt: >
       Today `packages/toolcraft/src/cli.ts` `handleRunError` (line 3319)
+
       treats anything that is not `UserError` or `CommanderError` as
+
       "unexpected": print `${err.message} Use --debug for a stack trace.`
+
       and dump the stack on `--debug`. When the failure is an
+
       `HttpError` from a generated OpenAPI command, the stack tells the
+
       user nothing — they want the response.
+
 
       `toolcraft` cannot import `toolcraft-openapi`. Two options:
 
+
       Option A (chosen): `toolcraft` recognises any thrown error whose
+
       `name === "HttpError"` and exposes `request` + `response` shaped
+
       like the `HttpError` defined in the previous task. Use structural
+
       typing — no cross-package import.
+
 
       Add a helper in packages/toolcraft/src/cli.ts:
 
@@ -100,9 +120,13 @@ tasks:
         }
 
       Branch `handleRunError` on it. Render to stderr in this order
+
       (use text helpers from `@poe-code/design-system` so styling is
+
       consistent — `text.muted` for the dim lines, `text.error` for the
+
       status, plain text otherwise; gate styling on the same isTTY path
+
       already used by help):
 
         Request:  GET https://api.example.com/v1/widgets/42
@@ -125,27 +149,48 @@ tasks:
         - With `--debug`: print everything above PLUS the stack trace.
 
       `--verbose` is the existing OpenAPI-side flag (see http.ts:51 and
+
       its propagation via `HttpRequestOptions.verbose`). It is not a
+
       toolcraft-level flag today. Add a CLI-level boolean `--verbose`
+
       to `runCLI`'s argv parser alongside `--debug` and `--yes`, and
+
       pass it into the renderer state. It does NOT replace `--debug`
+
       — `--debug` continues to gate stack traces, `--verbose` gates
+
       detailed runtime info (the HTTP transcript here, plus
+
       whatever lands in the next task).
 
+
       Both `--verbose` and `--debug` are diagnostic-only — they must
+
       not appear in the help table. Today `--debug` is listed at
+
       packages/toolcraft/src/cli.ts:1421 (added by plan 22). Remove
+
       it from `formatGlobalOptionRows`, and do not add `--verbose`
+
       to that function. They stay registered on Commander
+
       (`.option("--debug", "...")`, `.option("--verbose", "...")`)
+
       so the parser still accepts them, but the help renderer skips
+
       them. The fact that they exist is surfaced only by the error
+
       footer itself ("Re-run with --verbose to see headers and full
+
       body." / the existing "Use --debug for a stack trace." hint).
+
       Update `ALWAYS_GLOBAL_LONG_OPTION_FLAGS` at
+
       packages/toolcraft/src/cli.ts:875 to include `--verbose` so the
+
       Commander hidden-flag set is consistent.
+
 
       Body rendering:
         - If `response.body` is a string, print as-is, indented two
@@ -153,12 +198,17 @@ tasks:
         - Otherwise `JSON.stringify(response.body, null, 2)`, indented.
 
       Header redaction: pass response headers through unchanged
+
       (response headers don't carry the client's bearer); request
+
       headers were already redacted in the previous task.
+
 
       Exit code stays 1. No stack trace unless `--debug` is set.
 
+
       Tests in packages/toolcraft/src/cli.test.ts (new file
+
       cli.http-error.test.ts is fine):
         1. Default mode: HttpError-like thrown by a fake handler →
            stderr matches the truncated snapshot; no stack
@@ -171,7 +221,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-openapi-verbose-transcript
     title: --verbose prints the request body and the response transcript
     prompt: |
@@ -235,7 +284,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-openapi-spec-source-context
     title: spec-source errors include status and response body
     prompt: |
@@ -288,12 +336,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-openapi-bug-errors-to-user-errors
     title: Reclassify "Bug:" Errors so they don't reach end users raw
-    prompt: |
+    prompt: >
       Three sites in toolcraft-openapi throw a plain `Error` (not
+
       `UserError`), so they slip past the bin's UserError catch
+
       (bin/generate.ts:105) and crash with a stack trace:
 
         - define-client.ts:128: "Bug: merged command node is missing
@@ -310,12 +359,18 @@ tasks:
         - index.ts:788 / index.ts:793: default-child guards
 
       For each: the condition is genuinely a library / config-author
+
       bug — it cannot be fixed by an end user typing different argv.
+
       But the way they surface today (raw stack) is the worst possible
+
       mode: the user sees toolcraft internals and a stack with no
+
       filename hint.
 
+
       Two changes:
+
 
       1. Introduce one shared class in
          packages/toolcraft/src/user-error.ts:
@@ -368,19 +423,23 @@ tasks:
           check `instanceof UserError`
 
       Do not silently wrap arbitrary Errors as ToolcraftBugError —
+
       keep the existing generic-Error path for genuinely unexpected
+
       throws (network failures inside a handler, OOM, etc.).
     status:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-validation-shows-received
     title: Validation errors include the received value
-    prompt: |
+    prompt: >
       Across packages/toolcraft/src/cli.ts, mcp.ts, sdk.ts, and
+
       packages/toolcraft-schema/src/validate.ts, dozens of validation
+
       errors say `Expected X` and stop there. The user has to guess
+
       what they passed. Some examples:
 
         - cli.ts:676 `Invalid value for "${label}". Expected true or false.`
@@ -393,7 +452,9 @@ tasks:
           it
 
       Add a single helper in packages/toolcraft/src/cli.ts (and
+
       mirror in sdk.ts / mcp.ts — these don't share infrastructure
+
       today):
 
         function describeReceived(value: unknown): string {
@@ -409,6 +470,7 @@ tasks:
         }
 
       Append `, got ${describeReceived(value)}` to every validation
+
       message that has the offending value in scope. Concretely:
 
         cli.ts boolean: `Invalid value for "--enabled". Expected true or false, got "yes".`
@@ -420,19 +482,30 @@ tasks:
           message text, not only the structured `received` field.
 
       For toolcraft-schema specifically (packages/toolcraft-schema/
+
       src/validate.ts), keep the structured `ValidationIssue` shape
+
       (`expected`, `received` already exist) but rewrite the `message`
+
       builder so it concatenates: `Expected ${expected} at ${path},
+
       got ${received}`. This loses zero information for callers that
+
       read structured issues and adds value for callers that read the
+
       string.
 
+
       Update the renderer at packages/agent-harness/src/loader/validate.ts:28
+
       so it no longer prepends the path a second time. New form:
         `${mdPath} (${formatPath(path)}): ${message}`.
       The message itself already mentions the path; the renderer
+
       adding `${mdPath}: ${formatPath}: ${message}` produced
+
       `…: user.name: Expected string at user.name`.
+
 
       Tests:
         - packages/toolcraft-schema/src/validate.test.ts: every
@@ -450,11 +523,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-validation-lists-options
     title: '"Unknown X" errors list available X'
-    prompt: |
+    prompt: >
       Several "X not found" errors leave the user grepping the
+
       handler for the answer:
 
         cli.ts:759 / 2714 / 2883: `Unsupported CLI schema kind.`
@@ -465,35 +538,48 @@ tasks:
         human-in-loop/runner.ts:134..154: `Unknown approval command path "${commandPath}".`
 
       Append `Available: ${list.sort().join(", ")}.` to each. Where
+
       the available set is empty (no fixtures defined yet), say
+
       `No fixtures are declared in ${fixturePath}.`
 
+
       Reserved-name lists: the reserved set is known statically. Hard-
+
       code `Available reserved names: params, secrets, fetch, fs, env,
+
       progress, runtimeOptions, root` (verify the exact set against
+
       the matching guard) — the user sees what they collided with.
 
+
       Unknown parameter on a discriminated union: include the
+
       currently-selected branch and its valid parameters:
         `Unknown parameter "destination.priority" for destination.kind="email".
          Available: destination.address, destination.subject.`
 
       Approval command paths: enumerate the root tree at the moment
+
       the error is raised. Use the same traversal that the CLI uses
+
       to render `--help`; cap at 20 entries with `…` and a count if
+
       the tree is large.
 
+
       Tests in the three affected test files; each existing
+
       "Unknown X" assertion gets a matching "Available: …" assertion.
     status:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-internal-jargon-pass
     title: Drop internal jargon and redundant Error prefixes from user messages
-    prompt: |
+    prompt: >
       Sweep across the three packages:
+
 
       1. packages/toolcraft/src/index.ts lines 561, 584, 592, 598,
          605, 611: drop the leading `Error:` prefix. The CLI logger
@@ -545,14 +631,16 @@ tasks:
          whose package.json defines "version".`
 
       Tests: each rewritten message gets a matching test case
+
       (extend cli.test.ts, mcp.test.ts, sdk.test.ts, and
+
       json-schema-converter.test.ts). The point is to pin the new
+
       text so future renames don't regress to the old jargon.
     status:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-cause-chain-on-parse-and-io
     title: JSON / YAML / fs errors carry the underlying cause
     prompt: |
@@ -603,7 +691,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-schema-union-context
     title: Union and oneof errors list the branches that were tried
     prompt: |
@@ -652,7 +739,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-cli-did-you-mean
     title: Did-you-mean for commands, flags, enum values, env vars
     prompt: |
@@ -717,7 +803,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-validation-batch
     title: Collect all validation errors before reporting
     prompt: |
@@ -776,7 +861,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-source-snippet-on-parse
     title: Source snippet with caret on config parse failures
     prompt: |
@@ -839,19 +923,26 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-network-error-classify
     title: Classify low-level network errors before re-throwing
-    prompt: |
+    prompt: >
       Today, fetch failures from the OpenAPI runtime bubble up with
+
       whatever message the platform produces — `fetch failed`,
+
       `ECONNREFUSED 127.0.0.1:8080`, `getaddrinfo ENOTFOUND api`,
+
       `The operation was aborted` — and the toolcraft handler shows
+
       them raw, often with no URL context.
 
+
       In packages/toolcraft-openapi/src/http.ts `requestJson`, wrap
+
       the `fetch(...)` call in a try/catch and translate `TypeError`
+
       / `AbortError` / Node `Error.code` into a `UserError` with a
+
       one-line classification:
 
         ECONNREFUSED  → "Connection refused: ${host}:${port}. Is the server running?"
@@ -864,17 +955,23 @@ tasks:
         Other         → re-throw unchanged
 
       Use Node 20+'s `Error.cause` chain when available (modern fetch
+
       sets `cause` to the underlying `Error` with `.code`).
 
+
       Surface the same classification on the spec fetch in
+
       spec-source.ts:41-49 — wrap with the same helper.
+
 
       Add a helper at packages/toolcraft-openapi/src/network-error.ts:
 
         export function classifyNetworkError(error: unknown, url: string): UserError | null;
 
       Returns null when the error doesn't match a known code, so the
+
       caller falls through to its existing handling.
+
 
       Tests in packages/toolcraft-openapi/src/network-error.test.ts:
         - synthetic TypeError("fetch failed") with cause = { code: "ECONNREFUSED", address: "127.0.0.1", port: 8080 }
@@ -885,7 +982,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-help-pointer-on-error
     title: Append a "Run X --help" pointer to errors that name a command
     prompt: |
@@ -924,7 +1020,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-pretty-api-errors
     title: Pretty-print common API error formats in HTTP responses
     prompt: |
@@ -988,16 +1083,20 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-stack-trim
     title: Trim and source-map JS stacks when --debug prints them
-    prompt: |
+    prompt: >
       When `--debug` prints a stack, the frames inside
+
       `node_modules/toolcraft*`, `node:internal/*`, and the
+
       `async/await` machinery dominate. The user's own code is at the
+
       bottom, off the visible terminal.
 
+
       In packages/toolcraft/src/cli.ts `handleRunError` (line 3340),
+
       pass the stack through a trimmer before writing:
 
         function trimStack(stack: string): string {
@@ -1022,21 +1121,35 @@ tasks:
         }
 
       Extend the `--debug` flag to accept an optional value: `--debug`
+
       (default trim mode) and `--debug=raw` (skip the trimmer). Use
+
       Commander's optional-arg variant.
 
+
       Source maps: toolcraft already ships `.js.map` next to its
+
       built `.js`. Node 20+ supports `process.setSourceMapsEnabled(true)`
+
       and `--enable-source-maps`. Call `setSourceMapsEnabled(true)`
+
       from runCLI / runMCP / createSDK at startup. The trimmer can
+
       then point at .ts files for toolcraft frames — though, in trim
+
       mode those are skipped anyway. The benefit is the user's own
+
       stack frames map back to their .ts sources when the user's
+
       project also ships maps.
 
+
       Cause chains: when `error.cause` is set (Node 16.9+ surfaces it
+
       in `error.stack` as `[cause]: …`), the trimmer must apply to the
+
       cause portion too — split on `\n    at ` and the `[cause]:` marker.
+
 
       Tests in packages/toolcraft/src/stack-trim.test.ts:
         - synthetic stack with 2 user frames + 5 toolcraft frames →
@@ -1049,13 +1162,16 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-error-report-capture
     title: Write a self-contained error report on failure
-    prompt: |
+    prompt: >
       When a command fails non-trivially (any error path that isn't
+
       UserError-from-validation), write a self-contained report to
-      `${projectRoot}/.toolcraft/errors/${isoTimestamp}-${commandPath || "root"}.log`
+
+      `${projectRoot}/.toolcraft/errors/${isoTimestamp}-${commandPath ||
+      "root"}.log`
+
       and print a one-liner:
 
         Saved error report to .toolcraft/errors/2026-05-14T1812-widgets-create.log
@@ -1075,13 +1191,20 @@ tasks:
         - (when HttpError) the full HTTP transcript
 
       Sensitive-param redaction: a param is sensitive if its schema
+
       has `secret: true` (extend toolcraft-schema String / Number to
+
       support this — small addition). Otherwise the value is printed
+
       verbatim. Default-redact known names: `password`, `token`,
+
       `apiKey`, `secret` (case-insensitive substring match), but allow
+
       `secret: false` to opt out for false-positive names.
 
+
       Gate the feature on a flag — opt-in by default, since writing
+
       to disk on every failure is unwanted in CI. Add:
         - `errorReports?: boolean | { dir?: string }` on
           `RunCLIOptions` / equivalent for SDK and MCP runtimes.
@@ -1089,6 +1212,7 @@ tasks:
           users without changing the source code of the CLI.
 
       When neither set, no report is written and no line is printed.
+
 
       Skip cases:
         - error is `UserError` AND no `cause` AND no HTTP context
@@ -1098,10 +1222,14 @@ tasks:
         - error is CommanderError with help/version codes
 
       Path resolution: use the same `findProjectRoot` helper as the
+
       MCP proxy cache uses (mcp-proxy.ts:492). Fall back to `os.tmpdir()`
+
       if no package.json is found.
 
+
       Tests in packages/toolcraft/src/error-report.test.ts (in-memory
+
       fs):
         - HttpError-like with errorReports=true → file is written
           with all sections
@@ -1115,7 +1243,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-error-ux-contract-snapshots
     title: Snapshot tests pin the error UX contract
     prompt: |
@@ -1159,18 +1286,24 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-error-ux-terminal-pilot-qa
     title: Terminal-pilot QA covering every user-visible feature
-    prompt: |
+    prompt: >
       Unit tests catch programmatic regressions; they do not catch
+
       "this looks bad on a real terminal" regressions. ANSI rendering,
+
       column wrapping, isTTY-gated styling, redaction, and the relative
+
       ordering of stdout / stderr / spinner output only show their
+
       true behaviour in an actual TTY. Build out terminal-pilot QA
+
       coverage for every user-visible feature in this plan.
 
+
       Deliver two artefacts:
+
 
       1. `packages/toolcraft/QA-error-ux-fixture/` — a minimal
          toolcraft consumer with `defineCommand`s that each trigger
@@ -1242,6 +1375,7 @@ tasks:
             header, no `<string>` schema-kind token)
 
       Sections to write (one per user-visible feature; aligns with
+
       the implement-tasks above):
 
         1. HttpError default render (status, request, body snippet,
@@ -1291,10 +1425,15 @@ tasks:
             toolcraft-error-report-capture
 
       Each section ends with the explicit ANSI regime to run under
+
       (TTY + colour, TTY + NO_COLOR=1, isTTY=false via piping to
+
       cat — terminal-pilot can do all three by varying the
+
       create_session args and following the command with ` | cat`
+
       where appropriate).
+
 
       Acceptance for the QA doc itself:
         - Every task in the pipeline whose change is user-visible
@@ -1312,18 +1451,27 @@ tasks:
           the QA fails when the renderer changes.
 
       Do NOT bake the QA into CI. It is human / agent-executed,
+
       consistent with the project rule "QA is not a script, it's a
+
       plan in markdown".
 
+
       Run-the-QA acceptance for THIS task: actually execute the QA
+
       doc once end-to-end using terminal-pilot before marking the
+
       task complete. Any acceptance bullet that fails is a real bug
+
       in one of the preceding tasks — fix it there, do not weaken
+
       the bullet.
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
+name: toolcraft-error-ux
+state: archived
 ---
 
 ## Toolcraft error UX overhaul

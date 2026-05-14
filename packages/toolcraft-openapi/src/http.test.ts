@@ -498,7 +498,54 @@ describe("requestJson", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("logs the request line to stderr in verbose mode", async () => {
+  it("writes a verbose request and response transcript for successful JSON bodies", async () => {
+    const stderr = vi.fn();
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "POST",
+      auth: "required",
+      tokenSource: createTokenSource("abc"),
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify({ id: "bot-1", ok: true }), {
+            status: 200,
+            statusText: "OK",
+            headers: {
+              "content-type": "application/json",
+              "x-request-id": "req-123"
+            }
+          })
+      ),
+      body: { name: "Helper", enabled: true },
+      verbose: true,
+      writeStderr: stderr
+    });
+
+    expect(stderr).toHaveBeenCalledTimes(2);
+    expect(stderr.mock.calls.map(([chunk]) => chunk).join("")).toBe(
+      [
+        "→ POST https://api.example.com/bots",
+        "    Authorization: Bearer ****",
+        "    Content-Type: application/json",
+        "    {",
+        '      "name": "Helper",',
+        '      "enabled": true',
+        "    }",
+        "← 200 OK",
+        "    content-type: application/json",
+        "    x-request-id: req-123",
+        "    {",
+        '      "id": "bot-1",',
+        '      "ok": true',
+        "    }",
+        ""
+      ].join("\n")
+    );
+  });
+
+  it("writes a verbose response transcript for successful empty 204 responses without a body section", async () => {
     const stderr = vi.fn();
 
     await requestJson({
@@ -507,18 +554,144 @@ describe("requestJson", () => {
       method: "GET",
       auth: "required",
       tokenSource: createTokenSource("abc"),
+      fetch: vi.fn(
+        async () =>
+          new Response(null, {
+            status: 204,
+            statusText: "No Content",
+            headers: {
+              "x-request-id": "req-empty"
+            }
+          })
+      ),
+      verbose: true,
+      writeStderr: stderr
+    });
+
+    const written = stderr.mock.calls.map(([chunk]) => chunk).join("");
+    expect(written).toContain("→ GET https://api.example.com/bots\n");
+    expect(written).toContain("← 204 No Content\n");
+    expect(written).toContain("    x-request-id: req-empty\n");
+    expect(written).not.toContain("{");
+  });
+
+  it("writes the verbose transcript before throwing for failed JSON responses", async () => {
+    const stderr = vi.fn();
+    let error: unknown;
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "required",
+      tokenSource: createTokenSource("abc"),
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: "boom" }), {
+            status: 500,
+            statusText: "Internal Server Error",
+            headers: {
+              "content-type": "application/json",
+              "x-request-id": "req-failed"
+            }
+          })
+      ),
+      verbose: true,
+      writeStderr: stderr
+    }).catch((caught: unknown) => {
+      error = caught;
+      expect(stderr.mock.calls.map(([chunk]) => chunk).join("")).toContain('    "error": "boom"');
+    });
+
+    expect(error).toMatchObject<HttpError>({
+      status: 500,
+      statusText: "Internal Server Error",
+      request: {
+        method: "GET",
+        url: "https://api.example.com/bots",
+        headers: {
+          Authorization: "Bearer ****"
+        }
+      },
+      response: {
+        status: 500,
+        statusText: "Internal Server Error",
+        headers: {
+          "content-type": "application/json",
+          "x-request-id": "req-failed"
+        },
+        body: { error: "boom" }
+      },
+      body: { error: "boom" },
+      message: "GET https://api.example.com/bots → 500 Internal Server Error"
+    });
+    expect(stderr.mock.calls.map(([chunk]) => chunk).join("")).toContain(
+      "← 500 Internal Server Error\n"
+    );
+  });
+
+  it("writes raw text response bodies in verbose transcripts", async () => {
+    const stderr = vi.fn();
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "required",
+      tokenSource: createTokenSource("abc"),
+      fetch: vi.fn(async () => createTextResponse("plain\nbody", 200, "OK")),
+      verbose: true,
+      writeStderr: stderr
+    }).catch(() => undefined);
+
+    expect(stderr.mock.calls.map(([chunk]) => chunk).join("")).toContain(
+      ["← 200 OK", "    content-type: text/plain", "    plain", "    body"].join("\n")
+    );
+  });
+
+  it("truncates verbose transcript bodies over four kilobytes", async () => {
+    const stderr = vi.fn();
+    const body = { value: "x".repeat(5 * 1024) };
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "POST",
+      auth: "required",
+      tokenSource: createTokenSource("abc"),
+      fetch: vi.fn(async () => createJsonResponse({ ok: true })),
+      body,
+      verbose: true,
+      writeStderr: stderr
+    });
+
+    const written = stderr.mock.calls.map(([chunk]) => chunk).join("");
+    expect(written).toContain("… (");
+    expect(written).toContain(" bytes truncated)");
+    expect(written).not.toContain("rerun without --verbose");
+    expect(written).not.toContain("set --debug");
+  });
+
+  it("redacts authorization values in verbose request transcripts", async () => {
+    const stderr = vi.fn();
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "required",
+      tokenSource: createTokenSource("raw-token"),
       fetch: vi.fn(async () => createJsonResponse({ ok: true })),
       verbose: true,
       writeStderr: stderr
     });
 
-    expect(stderr).toHaveBeenCalledTimes(1);
-    const written = stderr.mock.calls[0]?.[0] as string;
-    expect(written).toContain("GET https://api.example.com/bots");
-    expect(written.endsWith("\n")).toBe(true);
+    const written = stderr.mock.calls.map(([chunk]) => chunk).join("");
+    expect(written).toContain("Authorization: Bearer ****");
+    expect(written).not.toContain("raw-token");
   });
 
-  it("does not log the request line when verbose is omitted", async () => {
+  it("does not write to stderr when verbose is omitted", async () => {
     const stderr = vi.fn();
 
     await requestJson({

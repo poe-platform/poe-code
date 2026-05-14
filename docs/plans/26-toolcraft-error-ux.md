@@ -170,7 +170,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-openapi-verbose-transcript
     title: --verbose prints the request body and the response transcript
@@ -232,8 +232,8 @@ tasks:
           block, never the raw token
         - non-verbose: nothing written to stderr by requestJson
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-openapi-spec-source-context

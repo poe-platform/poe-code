@@ -3,6 +3,7 @@ import { UserError } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
 
 type QueryScalar = string | number | boolean | null | undefined;
+const TRANSCRIPT_BODY_BYTE_LIMIT = 4 * 1024;
 
 export type QueryValue = QueryScalar | QueryScalar[];
 
@@ -73,13 +74,15 @@ export async function requestJson<TResult = unknown>(
   const writeStderr = options.writeStderr ?? process.stderr.write.bind(process.stderr);
   const requestLine = `${method} ${url}`;
 
-  if (options.verbose) {
-    writeStderr(`${designText.muted(requestLine)}\n`);
-  }
-
   if (options.dryRun) {
     writeStdout(formatDryRunOutput(requestLine, headers, options.body));
     return undefined;
+  }
+
+  if (options.verbose) {
+    writeStderr(
+      formatTranscriptLines(formatVerboseRequestTranscript(method, url, headers, options.body))
+    );
   }
 
   const response = await (options.fetch ?? globalThis.fetch)(url, {
@@ -96,10 +99,22 @@ export async function requestJson<TResult = unknown>(
 
   if (response.ok) {
     if (text.length === 0) {
+      if (options.verbose) {
+        writeStderr(
+          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders))
+        );
+      }
+
       return undefined;
     }
 
     if (!isJsonContentType(contentType)) {
+      if (options.verbose) {
+        writeStderr(
+          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, text))
+        );
+      }
+
       throw new HttpError({
         request,
         response: {
@@ -114,11 +129,27 @@ export async function requestJson<TResult = unknown>(
       });
     }
 
-    return JSON.parse(text) as TResult;
+    const body = JSON.parse(text) as TResult;
+
+    if (options.verbose) {
+      writeStderr(
+        formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, body))
+      );
+    }
+
+    return body;
   }
 
   if (response.status === 401) {
     await options.tokenSource.invalidate?.();
+  }
+
+  const body = parseResponseBody(text, contentType);
+
+  if (options.verbose) {
+    writeStderr(
+      formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, body))
+    );
   }
 
   throw new HttpError({
@@ -127,7 +158,7 @@ export async function requestJson<TResult = unknown>(
       status: response.status,
       statusText: response.statusText,
       headers: responseHeaders,
-      body: parseResponseBody(text, contentType)
+      body
     }
   });
 }
@@ -241,6 +272,94 @@ function formatDryRunOutput(
   }
 
   return `${lines.join("\n")}\n`;
+}
+
+function formatVerboseRequestTranscript(
+  method: string,
+  url: string,
+  headers: Record<string, string>,
+  body: unknown
+): string[] {
+  const lines = [
+    `→ ${method} ${url}`,
+    ...Object.entries(headers).map(([key, value]) => {
+      const headerValue = redactHeaderValue(key, value);
+
+      return `    ${key}: ${headerValue}`;
+    })
+  ];
+
+  if (body !== undefined) {
+    lines.push(...indentTranscriptBlock(formatTranscriptBody(body)));
+  }
+
+  return lines;
+}
+
+function formatVerboseResponseTranscript(
+  response: Response,
+  headers: Record<string, string>,
+  body?: unknown
+): string[] {
+  const lines = [
+    `← ${response.status} ${response.statusText}`,
+    ...Object.entries(headers).map(([key, value]) => `    ${key}: ${value}`)
+  ];
+
+  if (body !== undefined) {
+    lines.push(...indentTranscriptBlock(formatTranscriptBody(body)));
+  }
+
+  return lines;
+}
+
+function formatTranscriptLines(lines: string[]): string {
+  return `${lines.map((line) => formatTranscriptLine(line)).join("\n")}\n`;
+}
+
+function formatTranscriptLine(line: string): string {
+  if (!process.stderr.isTTY) {
+    return line;
+  }
+
+  return designText.muted(line);
+}
+
+function formatTranscriptBody(body: unknown): string {
+  const formatted = typeof body === "string" ? body : JSON.stringify(body, null, 2);
+
+  return truncateTranscriptBody(formatted ?? String(body));
+}
+
+function indentTranscriptBlock(value: string): string[] {
+  return value.split("\n").map((line) => `    ${line}`);
+}
+
+function truncateTranscriptBody(value: string): string {
+  const encoder = new TextEncoder();
+  const encoded = encoder.encode(value);
+
+  if (encoded.byteLength <= TRANSCRIPT_BODY_BYTE_LIMIT) {
+    return value;
+  }
+
+  const truncatedChars: string[] = [];
+  let truncatedByteLength = 0;
+
+  for (const character of value) {
+    const characterByteLength = encoder.encode(character).byteLength;
+
+    if (truncatedByteLength + characterByteLength > TRANSCRIPT_BODY_BYTE_LIMIT) {
+      break;
+    }
+
+    truncatedChars.push(character);
+    truncatedByteLength += characterByteLength;
+  }
+
+  const truncatedBytes = encoded.byteLength - truncatedByteLength;
+
+  return `${truncatedChars.join("")}\n… (${truncatedBytes} bytes truncated)`;
 }
 
 function parseResponseBody(text: string, contentType: string | null): unknown {

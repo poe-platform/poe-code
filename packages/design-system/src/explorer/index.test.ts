@@ -23,14 +23,7 @@ describe("explorer public API", () => {
     await expect(Promise.resolve(items[0]?.render(ctx))).resolves.toBe("plan-1:80");
   });
 
-  it("keeps runExplorer as an explicit stub", () => {
-    expect(() =>
-      runExplorer({
-        title: "Plans",
-        rows: async () => [],
-        detail: singleDetail(() => ""),
-        actions: []
-      })
-    ).toThrow("not implemented");
+  it("exports runExplorer as the runtime entrypoint", () => {
+    expect(runExplorer).toBeTypeOf("function");
   });
 });

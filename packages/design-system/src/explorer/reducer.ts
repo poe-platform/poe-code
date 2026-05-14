@@ -10,7 +10,6 @@ import {
   REGION_HEADER,
   REGION_LIST,
   REGION_MODAL,
-  REGION_TOAST,
   type Action,
   type ActionStateEntry,
   type DetailItem,
@@ -30,10 +29,14 @@ const DEFAULT_ACTION_HANDLES: ActionRuntimeHandles = {
   exit: () => undefined
 };
 
-export function step(state: ExplorerState, event: ExplorerEvent): StepResult {
+export function step(
+  state: ExplorerState,
+  event: ExplorerEvent,
+  runtimeHandles: ActionRuntimeHandles = DEFAULT_ACTION_HANDLES
+): StepResult {
   switch (event.type) {
     case "key":
-      return stepKey(state, event.key);
+      return stepKey(state, event.key, runtimeHandles);
     case "resize":
       return resize(state, event.cols, event.rows);
     case "rowsLoaded":
@@ -49,18 +52,22 @@ export function step(state: ExplorerState, event: ExplorerEvent): StepResult {
     case "toastExpired":
       return expireToast(state);
     case "suspendResumed":
-      return suspendResumed(state, event.emit);
+      return suspendResumed(state, event.emit, runtimeHandles);
     case "modalDismissed":
-      return modalDismissed(state, event.result);
+      return modalDismissed(state, event.result, runtimeHandles);
   }
 }
 
-function stepKey(state: ExplorerState, key: KeypressEvent): StepResult {
+function stepKey(
+  state: ExplorerState,
+  key: KeypressEvent,
+  runtimeHandles: ActionRuntimeHandles
+): StepResult {
   const target = state.bindings.resolve(key);
 
   if (target?.type === "action") {
     const action = resolveAction(state, key);
-    return action === null ? mark(state, 0) : dispatchAction(state, action, false);
+    return action === null ? mark(state, 0) : dispatchAction(state, action, false, runtimeHandles);
   }
 
   if (target?.type === "builtin") {
@@ -88,9 +95,9 @@ function stepKey(state: ExplorerState, key: KeypressEvent): StepResult {
       case "focusNext":
         return focusNext(state);
       case "escape":
-        return escape(state);
+        return escape(state, runtimeHandles);
       case "confirm":
-        return confirmKey(state);
+        return confirmKey(state, runtimeHandles);
       case "toggleSelect":
         return toggleSelect(state);
       case "selectAll":
@@ -113,11 +120,11 @@ function stepKey(state: ExplorerState, key: KeypressEvent): StepResult {
   }
 
   if (state.modal?.kind === "confirm" && isConfirmNo(key)) {
-    return modalDismissed(state, false);
+    return modalDismissed(state, false, runtimeHandles);
   }
 
   if (state.modal?.kind === "confirm" && isConfirmYes(key)) {
-    return modalDismissed(state, true);
+    return modalDismissed(state, true, runtimeHandles);
   }
 
   if (state.modal?.kind === "palette") {
@@ -243,26 +250,38 @@ function expireToast(state: ExplorerState): StepResult {
     return mark(state, 0);
   }
 
-  return { state: { ...state, toast: null, dirty: REGION_TOAST }, effects: NO_EFFECTS };
+  return { state: { ...state, toast: null, dirty: REGION_FOOTER }, effects: NO_EFFECTS };
 }
 
-function suspendResumed(state: ExplorerState, emit: ExplorerEvent): StepResult {
-  const next = step(state, emit);
+function suspendResumed(
+  state: ExplorerState,
+  emit: ExplorerEvent,
+  runtimeHandles: ActionRuntimeHandles
+): StepResult {
+  const next = step(state, emit, runtimeHandles);
   return {
     state: { ...next.state, dirty: next.state.dirty | REGION_ALL },
     effects: next.effects
   };
 }
 
-function modalDismissed(state: ExplorerState, result: unknown): StepResult {
+function modalDismissed(
+  state: ExplorerState,
+  result: unknown,
+  runtimeHandles: ActionRuntimeHandles
+): StepResult {
   const modal = state.modal;
   const closed = { ...state, modal: null, dirty: REGION_MODAL | REGION_FOOTER };
+
+  if (modal?.kind === "confirm") {
+    modal.resolver(result === true);
+  }
 
   if (modal?.kind !== "confirm" || result !== true) {
     return { state: closed, effects: NO_EFFECTS };
   }
 
-  return dispatchAction(closed, modal.action, true, modal.rows);
+  return dispatchAction(closed, modal.action, true, runtimeHandles, modal.rows);
 }
 
 function moveCursor(state: ExplorerState, delta: number): StepResult {
@@ -323,7 +342,7 @@ function focusNext(state: ExplorerState): StepResult {
   };
 }
 
-function escape(state: ExplorerState): StepResult {
+function escape(state: ExplorerState, runtimeHandles: ActionRuntimeHandles): StepResult {
   if (state.filter.length > 0) {
     return updateFilter(state, "");
   }
@@ -333,18 +352,18 @@ function escape(state: ExplorerState): StepResult {
   }
 
   if (state.modal !== null) {
-    return modalDismissed(state, false);
+    return modalDismissed(state, false, runtimeHandles);
   }
 
   return { state: markDirty(state, 0), effects: [{ type: "exit", result: null }] };
 }
 
-function confirmKey(state: ExplorerState): StepResult {
+function confirmKey(state: ExplorerState, runtimeHandles: ActionRuntimeHandles): StepResult {
   if (state.modal?.kind === "confirm") {
-    return modalDismissed(state, true);
+    return modalDismissed(state, true, runtimeHandles);
   }
 
-  return dispatchPrimary(state);
+  return dispatchPrimary(state, runtimeHandles);
 }
 
 function toggleSelect(state: ExplorerState): StepResult {
@@ -487,29 +506,35 @@ function paletteInput(state: ExplorerState, key: KeypressEvent): StepResult {
   return mark(state, 0);
 }
 
-function dispatchPrimary(state: ExplorerState): StepResult {
+function dispatchPrimary(state: ExplorerState, runtimeHandles: ActionRuntimeHandles): StepResult {
   for (const [id, entry] of state.actionState.entries()) {
     if (entry.action?.primary === true) {
-      return dispatchActionById(state, id, false);
+      return dispatchActionById(state, id, false, runtimeHandles);
     }
   }
 
   return mark(state, 0);
 }
 
-function dispatchActionById(state: ExplorerState, actionId: string, confirmed: boolean): StepResult {
+function dispatchActionById(
+  state: ExplorerState,
+  actionId: string,
+  confirmed: boolean,
+  runtimeHandles: ActionRuntimeHandles
+): StepResult {
   const entry = state.actionState.get(actionId);
   if (entry?.available !== true || entry.running === true || entry.action === undefined) {
     return mark(state, 0);
   }
 
-  return dispatchAction(state, entry.action, confirmed);
+  return dispatchAction(state, entry.action, confirmed, runtimeHandles);
 }
 
 function dispatchAction(
   state: ExplorerState,
   action: Action<unknown>,
   confirmed: boolean,
+  runtimeHandles: ActionRuntimeHandles,
   modalRows?: Row[]
 ): StepResult {
   const rows = modalRows ?? selectedRows(state);
@@ -545,7 +570,7 @@ function dispatchAction(
           next,
           action,
           current?.source ?? actionSource(next, action),
-          DEFAULT_ACTION_HANDLES,
+          runtimeHandles,
           rows
         )),
         resumeWith: () => ({ type: "actionResolved", actionId: action.id })

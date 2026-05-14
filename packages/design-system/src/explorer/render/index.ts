@@ -9,6 +9,7 @@ import {
   REGION_MODAL,
   type ExplorerState
 } from "../state.js";
+import { getExplorerStyles } from "../theme.js";
 import { renderDetail } from "./detail.js";
 import { renderFooter } from "./footer.js";
 import { renderHeader } from "./header.js";
@@ -42,6 +43,36 @@ export function renderExplorer(state: ExplorerState, screen: ScreenBuffer): void
   if (state.modal !== null && (dirty & REGION_MODAL) === 0) {
     renderModal(state, screen);
   }
+
+  if (state.toast !== null) {
+    renderToast(state, screen);
+  }
+}
+
+function renderToast(state: ExplorerState, screen: ScreenBuffer): void {
+  if (screen.width <= 0 || screen.height <= 0) {
+    return;
+  }
+
+  const y = Math.max(0, screen.height - 1);
+  screen.clearRect({ x: 0, y, width: screen.width, height: 1 });
+  if (state.toast === null) {
+    return;
+  }
+
+  const styles = getExplorerStyles();
+  const message = fit(` ${state.toast.message} `, screen.width);
+  screen.put(0, y, message, styles.accent);
+}
+
+function fit(text: string, width: number): string {
+  if (width <= 0) {
+    return "";
+  }
+  if (text.length <= width) {
+    return text;
+  }
+  return width <= 1 ? text.slice(0, width) : `${text.slice(0, width - 1)}…`;
 }
 
 export { renderDetail } from "./detail.js";

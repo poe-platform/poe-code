@@ -184,7 +184,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: runtime
     title: Runtime wiring, FakeTerminalDriver, and integration tests
@@ -222,9 +222,9 @@ tasks:
       run `npm run dev -- explorer-demo` (demo lands in a later task,
       so this step is optional here and required in the demo task).
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: imports-boundary-test

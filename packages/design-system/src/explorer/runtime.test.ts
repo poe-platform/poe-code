@@ -1,0 +1,259 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { TerminalBuffer } from "../../../terminal-pilot/src/terminal-buffer.js";
+import { runExplorer } from "./runtime.js";
+import { FakeTerminalDriver } from "./runtime.test-helpers.js";
+import type { ExplorerConfig, Row } from "./state.js";
+
+const mockTerminal = vi.hoisted(() => ({
+  driver: undefined as FakeTerminalDriver | undefined
+}));
+
+vi.mock("../dashboard/terminal.js", () => ({
+  createTerminalDriver: () => {
+    if (mockTerminal.driver === undefined) {
+      throw new Error("FakeTerminalDriver was not configured");
+    }
+    return mockTerminal.driver;
+  }
+}));
+
+const rows: Row[] = [
+  { id: "one", title: "One" },
+  { id: "two", title: "Two" },
+  { id: "three", title: "Three" }
+];
+
+const originalIsTTY = process.stdout.isTTY;
+
+beforeEach(() => {
+  mockTerminal.driver = new FakeTerminalDriver();
+  Object.defineProperty(process.stdout, "isTTY", {
+    configurable: true,
+    value: true
+  });
+});
+
+afterEach(() => {
+  mockTerminal.driver = undefined;
+  Object.defineProperty(process.stdout, "isTTY", {
+    configurable: true,
+    value: originalIsTTY
+  });
+  vi.restoreAllMocks();
+});
+
+describe("runExplorer", () => {
+  it("runs and quits on q", async () => {
+    const driver = currentDriver();
+    const result = runExplorer(config());
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    driver.press(key("q"));
+
+    await expect(result).resolves.toBeNull();
+    expect(driver.enterAltScreenCount).toBe(1);
+    expect(driver.destroyed).toBe(true);
+    expect(driver.altScreen).toBe(false);
+  });
+
+  it("selects a row and exits via the primary action", async () => {
+    const driver = currentDriver();
+    const selected: string[] = [];
+    const result = runExplorer(config({
+      actions: [{
+        id: "open",
+        label: "Open",
+        primary: true,
+        handler: (ctx) => {
+          selected.push(ctx.row.id);
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    driver.press(namedKey("down"));
+    driver.press(namedKey("return"));
+
+    await expect(result).resolves.toBeNull();
+    expect(selected).toEqual(["two"]);
+  });
+
+  it("runs a confirmed multi-select bulk action", async () => {
+    const driver = currentDriver();
+    const handledRows: string[][] = [];
+    const result = runExplorer(config({
+      multiSelect: true,
+      actions: [{
+        id: "delete",
+        label: "Delete",
+        key: "d",
+        destructive: true,
+        handler: (ctx) => {
+          handledRows.push(ctx.rows.map((row) => row.id));
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    driver.press(key(" "));
+    driver.press(namedKey("down"));
+    driver.press(key(" "));
+    driver.press(key("d"));
+    await waitFor(() => strippedOutput(driver).includes("Confirm"));
+    driver.press(key("y"));
+
+    await expect(result).resolves.toBeNull();
+    expect(handledRows).toEqual([["one", "two"]]);
+  });
+
+  it("cancels stale async detail jobs when the cursor moves", async () => {
+    const driver = currentDriver();
+    let firstAborted = false;
+    const result = runExplorer(config({
+      detail: {
+        items: async (row, ctx) => {
+          if (row.id === "one") {
+            return new Promise((resolve) => {
+              ctx.signal.addEventListener("abort", () => {
+                firstAborted = true;
+                resolve([{ id: "stale", render: () => "detail one" }]);
+              });
+            });
+          }
+
+          return [{ id: row.id, render: () => `detail ${row.id}` }];
+        }
+      }
+    }));
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    driver.press(namedKey("down"));
+
+    await waitFor(() => firstAborted);
+    await waitFor(() => strippedOutput(driver).includes("detail two"));
+    expect(currentScreen(driver).join("\n")).not.toContain("detail one");
+    driver.press(key("q"));
+    await expect(result).resolves.toBeNull();
+  });
+
+  it("persists reorder and rolls back on rejection", async () => {
+    const driver = currentDriver();
+    const onReorder = vi.fn(async () => {
+      throw new Error("save failed");
+    });
+    const opened: string[] = [];
+    const result = runExplorer(config({
+      reorder: { onReorder },
+      actions: [{
+        id: "open",
+        label: "Open",
+        primary: true,
+        handler: (ctx) => {
+          opened.push(ctx.row.id);
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    driver.press({ name: "down", ctrl: true, meta: false, shift: false });
+
+    await waitFor(() => strippedOutput(driver).includes("save failed"));
+    expect(onReorder).toHaveBeenCalledWith(["two", "one", "three"]);
+    driver.press(namedKey("return"));
+
+    await expect(result).resolves.toBeNull();
+    expect(opened).toEqual(["two"]);
+  });
+
+  it("round-trips through suspendAnd", async () => {
+    const driver = currentDriver();
+    let suspended = false;
+    const result = runExplorer(config({
+      actions: [{
+        id: "edit",
+        label: "Edit",
+        key: "e",
+        handler: async (ctx) => {
+          await ctx.suspendAnd(async () => {
+            suspended = true;
+            expect(driver.altScreen).toBe(false);
+          });
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    driver.press(key("e"));
+
+    await expect(result).resolves.toBeNull();
+    expect(suspended).toBe(true);
+    expect(driver.exitAltScreenCount).toBeGreaterThanOrEqual(1);
+    expect(driver.enterAltScreenCount).toBeGreaterThanOrEqual(2);
+  });
+
+  it("rejects when stdout is not a TTY", async () => {
+    Object.defineProperty(process.stdout, "isTTY", {
+      configurable: true,
+      value: false
+    });
+
+    await expect(runExplorer(config())).rejects.toThrow("explorer requires a TTY");
+  });
+});
+
+function config(overrides: Partial<ExplorerConfig<void>> = {}): ExplorerConfig<void> {
+  return {
+    title: "Plans",
+    rows: async () => rows,
+    detail: {
+      items: async (row) => [{ id: row.id, render: () => `detail ${row.id}` }]
+    },
+    actions: [],
+    ...overrides
+  };
+}
+
+function currentDriver(): FakeTerminalDriver {
+  if (mockTerminal.driver === undefined) {
+    throw new Error("FakeTerminalDriver was not configured");
+  }
+  return mockTerminal.driver;
+}
+
+function key(ch: string) {
+  return { ch, ctrl: false, meta: false, shift: false };
+}
+
+function namedKey(name: string) {
+  return { name, ctrl: false, meta: false, shift: false };
+}
+
+function strippedOutput(driver: FakeTerminalDriver): string {
+  return driver.output.replace(/\u001b\[[0-9;?]*[A-Za-z]/g, "");
+}
+
+function currentScreen(driver: FakeTerminalDriver): string[] {
+  const terminal = new TerminalBuffer(driver.getSize().cols, driver.getSize().rows);
+  terminal.write(driver.output);
+  return Array.from({ length: driver.getSize().rows }, (_, row) => {
+    const line = terminal.displayBuffer.data[row] ?? [];
+    return Array.from(
+      { length: driver.getSize().cols },
+      (_, column) => line[column]?.[1] ?? " "
+    ).join("");
+  });
+}
+
+async function waitFor(predicate: () => boolean): Promise<void> {
+  const started = Date.now();
+  while (!predicate()) {
+    if (Date.now() - started > 1000) {
+      throw new Error("Timed out waiting for runtime condition");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+}

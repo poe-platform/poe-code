@@ -9,7 +9,6 @@ import {
   REGION_HEADER,
   REGION_LIST,
   REGION_MODAL,
-  REGION_TOAST,
   type Action,
   type ExplorerConfig,
   type ExplorerState,
@@ -256,7 +255,7 @@ describe("step", () => {
 
     expect(step(withToast, { type: "toastExpired" }).state).toMatchObject({
       toast: null,
-      dirty: REGION_TOAST
+      dirty: REGION_FOOTER
     });
     expect(step(loadedState(), { type: "toastExpired" }).state.dirty).toBe(0);
   });

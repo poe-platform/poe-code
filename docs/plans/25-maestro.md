@@ -90,7 +90,7 @@ tasks:
       `renderTaskPrompt(template, { task, attempt })` and
       `renderStepPrompt(step, { prompt, task, attempt })` are thin
       wrappers around `interpolatePipelineVars` from @poe-code/pipeline
-      (strict `{{ var }}`, throws `Missing pipeline variable "x"`).
+      (strict `\{{ var }}`, throws `Missing pipeline variable "x"`).
       Empty task-prompt template falls back to
       `"{{ task.qualifiedId }}: {{ task.name }}\n\n{{ task.description }}"`
       per docs/plans/26-maestro.md §2. Tests cover normal render,
@@ -170,7 +170,7 @@ tasks:
       to a phase per the failure category table in
       docs/plans/26-maestro.md §3. Tests: three-step happy path
       (implement/test/commit) with correct agent/model/mode per step;
-      `{{ prompt }}` is the rendered task body; phase sequence matches
+      `\{{ prompt }}` is the rendered task body; phase sequence matches
       §4 test table; mid-step abort → canceled, remaining skipped;
       setup-fail / step-fail / teardown-fail / reconcile-to-terminal
       between steps. Use a mock spawn and a real `loadResolvedSteps` over

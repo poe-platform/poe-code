@@ -1756,6 +1756,22 @@ describe("interpolatePipelineVars", () => {
       interpolatePipelineVars("{{known}} {{unknown}}", { known: "yes" }, 'task "deploy"')
     ).toThrow('Missing pipeline variable "unknown" in task "deploy".');
   });
+
+  it("treats backslash-escaped placeholders as literal text", () => {
+    expect(interpolatePipelineVars("syntax is \\{{ var }}", {})).toBe("syntax is {{ var }}");
+  });
+
+  it("mixes escaped placeholders with real ones", () => {
+    expect(
+      interpolatePipelineVars("real={{x}}, literal=\\{{ x }}", { x: "yes" })
+    ).toBe("real=yes, literal={{ x }}");
+  });
+
+  it("does not require values for escaped placeholders", () => {
+    expect(() =>
+      interpolatePipelineVars("docs say \\{{ var }}", {}, 'task "prompt-render"')
+    ).not.toThrow();
+  });
 });
 
 describe("resolveFileIncludes", () => {

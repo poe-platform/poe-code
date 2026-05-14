@@ -363,6 +363,35 @@ Body description`
     });
   });
 
+  it("reads a file with no frontmatter block as a passthrough task with empty metadata", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/foo.md": `# Heading
+
+Body paragraph.
+`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      singleList: "plans",
+      frontmatterMode: "passthrough",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("plans").get("foo")).resolves.toMatchObject({
+      id: "foo",
+      name: "foo",
+      state: "draft",
+      description: "# Heading\n\nBody paragraph.\n",
+      metadata: {}
+    });
+  });
+
   it("preserves non-task frontmatter keys when firing passthrough tasks", async () => {
     const { fs, rawFs } = createFs({
       "/repo/tasks/foo.md": `---

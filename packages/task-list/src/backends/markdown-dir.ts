@@ -178,14 +178,20 @@ function stripTrailingCarriageReturn(line: string): string {
 
 function splitTaskDocument(
   content: string,
-  filePath: string
+  filePath: string,
+  mode: BackendDeps["frontmatterMode"]
 ): {
   body: string;
   frontmatter: string;
 } {
   const lines = content.split("\n");
+  const hasFrontmatterBlock =
+    lines.length > 0 && stripTrailingCarriageReturn(lines[0]) === "---";
 
-  if (lines.length === 0 || stripTrailingCarriageReturn(lines[0]) !== "---") {
+  if (!hasFrontmatterBlock) {
+    if (mode === "passthrough") {
+      return { frontmatter: "", body: content };
+    }
     throw malformedTask(filePath, "frontmatter");
   }
 
@@ -336,7 +342,7 @@ async function readTaskFile(
   mode: BackendDeps["frontmatterMode"]
 ): Promise<TaskFile> {
   const content = await fs.readFile(filePath, "utf8");
-  const document = splitTaskDocument(content, filePath);
+  const document = splitTaskDocument(content, filePath, mode);
   const frontmatter =
     mode === "passthrough" && document.frontmatter.trim().length === 0
       ? {}

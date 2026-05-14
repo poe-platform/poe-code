@@ -117,6 +117,55 @@ describe("plans", () => {
     ]);
   });
 
+  it("discoverPlans skips plans with no frontmatter when filtering by kind", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/01-bare.md": `# Plain doc
+
+No frontmatter here.
+`,
+      "/repo/.poe-code/plans/02-pipeline.md": planDoc({
+        kind: "pipeline",
+        name: "Pipe"
+      })
+    });
+
+    const plans = await discoverPlans({
+      cwd,
+      homeDir,
+      planDirectory,
+      kinds: ["pipeline"],
+      fs
+    });
+
+    expect(plans.map((plan) => plan.id)).toEqual(["pipeline"]);
+  });
+
+  it("discoverPlans includes plans with no frontmatter under default kind 'plan'", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/01-bare.md": `# Plain doc
+
+No frontmatter here.
+`
+    });
+
+    const plans = await discoverPlans({
+      cwd,
+      homeDir,
+      planDirectory,
+      fs
+    });
+
+    expect(plans).toEqual([
+      {
+        id: "bare",
+        name: "bare",
+        kind: "plan",
+        absolutePath: "/repo/.poe-code/plans/01-bare.md",
+        displayPath: ".poe-code/plans/01-bare.md"
+      }
+    ]);
+  });
+
   it("discoverPlans defaults kind to plan and supports unprefixed filenames", async () => {
     const { fs } = createFs({
       "/repo/.poe-code/plans/backlog.md": planDoc({

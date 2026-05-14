@@ -198,7 +198,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: emit-to-braintrust
     title: Add emitToBraintrust sink in @poe-code/acp-telemetry
@@ -250,8 +250,8 @@ tasks:
       Acceptance: `npm run build` passes; new tests pass; no `braintrust`
       dep added.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: braintrust-adapter-glue

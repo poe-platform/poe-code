@@ -6,5 +6,6 @@ describe("@poe-code/acp-telemetry", () => {
 
     expect(telemetry.redact).toEqual(expect.any(Function));
     expect(telemetry.acpToTrace).toEqual(expect.any(Function));
+    expect(telemetry.emitToBraintrust).toEqual(expect.any(Function));
   });
 });

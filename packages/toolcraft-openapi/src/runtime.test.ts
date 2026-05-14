@@ -570,17 +570,21 @@ describe("commandsFromSpec", () => {
     );
   });
 
-  it("surfaces spec-fetch failures as user errors", async () => {
-    const fetch = vi.fn<typeof fetch>().mockRejectedValue(new Error("network down"));
+  it("surfaces non-2xx spec-fetch responses with body snippets", async () => {
+    const fetch = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response("<!doctype html>\n<title>Not Found</title>", {
+        status: 404,
+        statusText: "Not Found",
+        headers: { "content-type": "text/html; charset=utf-8" }
+      })
+    );
 
     await expect(
       commandsFromSpec("https://example.com/openapi.json", {
         fetch
       })
     ).rejects.toThrowError(
-      new UserError(
-        'Failed to read OpenAPI document "https://example.com/openapi.json": network down'
-      )
+      /Failed to fetch "https:\/\/example\.com\/openapi\.json": 404 Not Found \(content-type: text\/html; charset=utf-8\)\n {2}body: <!doctype html> <title>Not Found<\/title>/
     );
   });
 
@@ -1063,8 +1067,14 @@ describe("defineClientFromSpec", () => {
     ]);
   });
 
-  it("surfaces spec-fetch failures as user errors", async () => {
-    const fetch = vi.fn<typeof globalThis.fetch>().mockRejectedValue(new Error("network down"));
+  it("surfaces non-2xx spec-fetch responses with body snippets", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      new Response("<!doctype html>\n<title>Not Found</title>", {
+        status: 404,
+        statusText: "Not Found",
+        headers: { "content-type": "text/html; charset=utf-8" }
+      })
+    );
 
     await expect(
       defineClientFromSpec("https://example.com/openapi.json", {
@@ -1074,7 +1084,7 @@ describe("defineClientFromSpec", () => {
         fetch
       })
     ).rejects.toThrow(
-      new UserError('Failed to read OpenAPI document "https://example.com/openapi.json": network down')
+      /Failed to fetch "https:\/\/example\.com\/openapi\.json": 404 Not Found \(content-type: text\/html; charset=utf-8\)\n {2}body: <!doctype html> <title>Not Found<\/title>/
     );
   });
 

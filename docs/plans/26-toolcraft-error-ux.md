@@ -234,7 +234,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-openapi-spec-source-context
     title: spec-source errors include status and response body
@@ -285,8 +285,8 @@ tasks:
         - Filesystem ENOENT: error mentions the absolute resolved path,
           not just the input string
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-openapi-bug-errors-to-user-errors

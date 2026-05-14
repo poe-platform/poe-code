@@ -1,0 +1,93 @@
+import { describe, expect, it, vi } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import { parseOpenApiDocument, readOpenApiSourceText } from "./spec-source.js";
+
+describe("readOpenApiSourceText", () => {
+  it("includes status, status text, content-type, and an HTML snippet for 404 responses", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      new Response("<!doctype html>\n<title>Not Found</title>\n<h1>Missing spec</h1>", {
+        status: 404,
+        statusText: "Not Found",
+        headers: { "content-type": "text/html; charset=utf-8" }
+      })
+    );
+
+    await expect(
+      readOpenApiSourceText("https://example.com/openapi.json", {
+        cwd: "/repo",
+        fetch,
+        fs: createFsFromVolume(Volume.fromJSON({})).promises
+      })
+    ).rejects.toThrowError(
+      /Failed to fetch "https:\/\/example\.com\/openapi\.json": 404 Not Found \(content-type: text\/html; charset=utf-8\)\n {2}body: <!doctype html> <title>Not Found<\/title> <h1>Missing spec<\/h1>/
+    );
+  });
+
+  it("includes content-type and a JSON problem snippet for 500 responses", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          type: "https://example.com/problems/internal-error",
+          title: "Internal error"
+        }),
+        {
+          status: 500,
+          statusText: "Internal Server Error",
+          headers: { "content-type": "application/problem+json" }
+        }
+      )
+    );
+
+    await expect(
+      readOpenApiSourceText("https://example.com/openapi.json", {
+        cwd: "/repo",
+        fetch,
+        fs: createFsFromVolume(Volume.fromJSON({})).promises
+      })
+    ).rejects.toThrowError(
+      /Failed to fetch "https:\/\/example\.com\/openapi\.json": 500 Internal Server Error \(content-type: application\/problem\+json\)\n {2}body: \{"type":"https:\/\/example\.com\/problems\/internal-error","title":"Internal error"\}/
+    );
+  });
+
+  it("caps non-2xx response body snippets after collapsing them to one line", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockResolvedValue(
+      new Response(`${"x".repeat(250)}\n\t${"y".repeat(600)}`, {
+        status: 502,
+        statusText: "Bad Gateway",
+        headers: { "content-type": "text/plain" }
+      })
+    );
+
+    await expect(
+      readOpenApiSourceText("https://example.com/openapi.json", {
+        cwd: "/repo",
+        fetch,
+        fs: createFsFromVolume(Volume.fromJSON({})).promises
+      })
+    ).rejects.toThrowError(new RegExp(`body: ${"x".repeat(250)} ${"y".repeat(249)}…$`));
+  });
+
+  it("mentions the absolute resolved filesystem path for ENOENT errors", async () => {
+    const fs = createFsFromVolume(Volume.fromJSON({})).promises;
+
+    await expect(
+      readOpenApiSourceText("openapi.json", {
+        cwd: "/repo",
+        fetch: vi.fn<typeof globalThis.fetch>(),
+        fs
+      })
+    ).rejects.toThrowError(
+      /Failed to read OpenAPI document "openapi\.json": .*\/repo\/openapi\.json/
+    );
+  });
+});
+
+describe("parseOpenApiDocument", () => {
+  it("includes YAML parse positions from linePos when available", () => {
+    expect(() =>
+      parseOpenApiDocument("openapi: 3.0.3\ninfo:\n  title: Test\n    bad: nope\n", "openapi.yaml")
+    ).toThrowError(
+      /Failed to parse OpenAPI document "openapi\.yaml": [\s\S]*\(at line 3 column 10\)/
+    );
+  });
+});

@@ -41,8 +41,15 @@ export async function readOpenApiSourceText(
     const response = await services.fetch(inputUrl.toString());
 
     if (!response.ok) {
+      const contentType = response.headers.get("content-type") ?? "";
+      const text = await response.text().catch(() => "");
+      const snippet = text.length === 0 ? "" : `\n  body: ${truncate(text, 500)}`;
+
       throw new UserError(
-        `Failed to fetch ${JSON.stringify(inputUrl.toString())}: ${response.status} ${response.statusText}`
+        `Failed to fetch ${JSON.stringify(inputUrl.toString())}: ` +
+          `${response.status} ${response.statusText}` +
+          (contentType ? ` (content-type: ${contentType})` : "") +
+          snippet
       );
     }
 
@@ -65,7 +72,7 @@ export function parseOpenApiDocument(sourceText: string, input: string | URL): O
     parsed = parseYaml(sourceText);
   } catch (error) {
     throw new UserError(
-      `Failed to parse OpenAPI document ${JSON.stringify(formatSourceLabel(input))}: ${getErrorMessage(error)}`
+      `Failed to parse OpenAPI document ${JSON.stringify(formatSourceLabel(input))}: ${formatParseErrorMessage(error, sourceText)}`
     );
   }
 
@@ -96,4 +103,121 @@ function getErrorMessage(error: unknown): string {
   }
 
   return String(error);
+}
+
+function formatParseErrorMessage(error: unknown, sourceText: string): string {
+  const message = getErrorMessage(error);
+  const linePosition = getYamlLinePosition(error) ?? getYamlOffsetPosition(error, sourceText);
+
+  if (linePosition === null) {
+    // yaml parse errors do not always expose positional metadata for every failure mode.
+    return message;
+  }
+
+  const positionText = `at line ${linePosition.line} column ${linePosition.column}`;
+
+  if (message.includes(positionText)) {
+    return message;
+  }
+
+  return `${message} (${positionText})`;
+}
+
+function getYamlLinePosition(error: unknown): { line: number; column: number } | null {
+  if (typeof error !== "object" || error === null || !("linePos" in error)) {
+    return null;
+  }
+
+  const linePos = error.linePos;
+
+  if (!Array.isArray(linePos) || linePos.length === 0) {
+    return null;
+  }
+
+  const firstPosition = linePos[0];
+
+  if (typeof firstPosition !== "object" || firstPosition === null) {
+    return null;
+  }
+
+  const line = "line" in firstPosition ? firstPosition.line : undefined;
+  const column = "col" in firstPosition ? firstPosition.col : undefined;
+
+  if (typeof line !== "number" || typeof column !== "number") {
+    return null;
+  }
+
+  return { line, column };
+}
+
+function getYamlOffsetPosition(
+  error: unknown,
+  sourceText: string
+): { line: number; column: number } | null {
+  if (typeof error !== "object" || error === null || !("pos" in error)) {
+    return null;
+  }
+
+  const pos = error.pos;
+
+  if (!Array.isArray(pos) || typeof pos[0] !== "number" || pos[0] < 0) {
+    return null;
+  }
+
+  return getSourceTextPosition(sourceText, pos[0]);
+}
+
+function getSourceTextPosition(
+  sourceText: string,
+  offset: number
+): { line: number; column: number } {
+  let line = 1;
+  let column = 1;
+
+  for (let index = 0; index < offset && index < sourceText.length; index += 1) {
+    if (sourceText[index] === "\n") {
+      line += 1;
+      column = 1;
+      continue;
+    }
+
+    column += 1;
+  }
+
+  return { line, column };
+}
+
+function truncate(value: string, maxLength: number): string {
+  const collapsed = collapseToSingleLine(value);
+
+  if (collapsed.length <= maxLength) {
+    return collapsed;
+  }
+
+  return `${collapsed.slice(0, maxLength)}…`;
+}
+
+function collapseToSingleLine(value: string): string {
+  const characters: string[] = [];
+  let previousWasWhitespace = false;
+
+  for (const character of value) {
+    if (isWhitespace(character)) {
+      if (!previousWasWhitespace) {
+        characters.push(" ");
+        previousWasWhitespace = true;
+      }
+
+      continue;
+    }
+
+    characters.push(character);
+    previousWasWhitespace = false;
+  }
+
+  return characters.join("").trim();
+}
+
+function isWhitespace(character: string): boolean {
+  return character.trim().length === 0;
 }

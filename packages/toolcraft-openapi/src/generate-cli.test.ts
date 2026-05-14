@@ -201,7 +201,8 @@ describe("runGenerateCli", () => {
 
     expect([exitCode, harness.stderr()]).toEqual([
       1,
-      'Failed to fetch "https://example.com/openapi.json": 503 Service Unavailable\n'
+      'Failed to fetch "https://example.com/openapi.json": 503 Service Unavailable (content-type: text/plain;charset=UTF-8)\n' +
+        "  body: nope\n"
     ]);
   });
 

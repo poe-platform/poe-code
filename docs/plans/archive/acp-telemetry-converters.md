@@ -2,14 +2,15 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: spawn-options-middlewares
     title: Add middlewares to SpawnOptions and wire applyMiddlewares in spawn entry
       points
-    prompt: |
+    prompt: >
       Make middleware a first-class SDK option on `@poe-code/agent-spawn` so
+
       external callers can register ACP middleware declaratively.
+
 
       1. In `packages/agent-spawn/src/types.ts`, add to `SpawnOptions`:
 
@@ -47,16 +48,19 @@ tasks:
          the way out.
 
       Out of scope: do not move any Braintrust code yet, do not touch
+
       `@poe-code/braintrust`, do not introduce `@poe-code/acp-telemetry`.
 
+
       Acceptance: `npm run build` passes; `npm run test:unit` for
+
       `packages/agent-spawn` passes; existing CLI behavior unchanged when
+
       Braintrust is configured.
     status:
       implement: done
       test: done
       commit: done
-
   - id: acp-telemetry-scaffold
     title: Scaffold @poe-code/acp-telemetry package
     prompt: |
@@ -87,21 +91,25 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: move-redact-to-telemetry
     title: Move redact.ts from @poe-code/braintrust to @poe-code/acp-telemetry
-    prompt: |
+    prompt: >
       Move the redaction helper out of `@poe-code/braintrust` so the
+
       converters that will live in `@poe-code/acp-telemetry` can use it
+
       without depending on Braintrust.
 
+
       Steps:
+
 
       1. Read `packages/braintrust/src/redact.ts` and copy it verbatim to
          `packages/acp-telemetry/src/redact.ts`. Copy the colocated test
          (`packages/braintrust/src/redact.test.ts` if it exists) to
          `packages/acp-telemetry/src/redact.test.ts` and update imports.
       2. Re-export `redact` from `packages/acp-telemetry/src/index.ts`.
+
       3. Find every importer of `../redact.js` or `./redact.js` inside
          `packages/braintrust/src/**` (`grep -rn "redact" packages/braintrust/src`)
          and update those imports to `@poe-code/acp-telemetry`. Do not add a
@@ -111,12 +119,13 @@ tasks:
          `packages/braintrust/package.json` dependencies.
       5. Delete `packages/braintrust/src/redact.ts` and its test.
 
+
       Acceptance: `npm run build` passes; `npm run test:unit` for both
+
       `packages/acp-telemetry` and `packages/braintrust` passes.
     status:
       implement: done
       commit: done
-
   - id: acp-to-trace-converter
     title: Port logSpawnSession into acpToTrace returning a pure AcpTrace value
     prompt: |
@@ -199,13 +208,15 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: emit-to-braintrust
     title: Add emitToBraintrust sink in @poe-code/acp-telemetry
-    prompt: |
+    prompt: >
       Add a Braintrust emitter that walks an `AcpTrace` and feeds it to a
+
       Braintrust span via a structural interface. The emitter must not
+
       import the `braintrust` package — the SDK object is passed in.
+
 
       1. Create `packages/acp-telemetry/src/emit-braintrust.ts` exporting:
 
@@ -247,19 +258,23 @@ tasks:
 
       Out of scope: do not modify `@poe-code/braintrust` yet.
 
+
       Acceptance: `npm run build` passes; new tests pass; no `braintrust`
+
       dep added.
     status:
       implement: done
       test: done
       commit: done
-
   - id: braintrust-adapter-glue
     title: Shrink @poe-code/braintrust spawn adapter to acp-telemetry glue
-    prompt: |
+    prompt: >
       Rewrite the Braintrust spawn adapter to use the
+
       `@poe-code/acp-telemetry` converter and emitter, then delete the
+
       dead code it replaces.
+
 
       1. Rewrite `packages/braintrust/src/adapters/spawn.ts` so
          `createSpawnMiddleware(client: BraintrustClient): AcpMiddleware`
@@ -300,19 +315,23 @@ tasks:
          survive untouched.
 
       Acceptance: `npm run build` passes; `npm run test:unit` for
+
       `packages/braintrust` passes; running `npm run dev -- spawn …`
+
       against a Braintrust-configured profile still produces a session
+
       log (manual smoke).
     status:
       implement: done
       test: done
       commit: done
-
   - id: emit-to-otel
     title: Add emitToOtel sink mapping AcpTrace to OTEL gen_ai semconv
-    prompt: |
+    prompt: >
       Add an OTEL emitter alongside the Braintrust one. Same structural-
+
       interface pattern: no `@opentelemetry/*` import in the package.
+
 
       1. Create `packages/acp-telemetry/src/emit-otel.ts` exporting:
 
@@ -364,15 +383,21 @@ tasks:
          `packages/acp-telemetry/src/index.ts`.
 
       Out of scope: no OTEL collector wiring, no SDK setup, no end-to-end
+
       OTEL traces. The emitter takes a tracer object; how it's created is
+
       the caller's problem.
 
+
       Acceptance: `npm run build` passes; new tests pass; no
+
       `@opentelemetry/*` dep added to `packages/acp-telemetry/package.json`.
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
+name: acp-telemetry-converters
+state: archived
 ---
 
 # ACP telemetry converters (Braintrust + OTEL)

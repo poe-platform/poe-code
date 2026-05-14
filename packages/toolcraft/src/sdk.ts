@@ -14,7 +14,18 @@ import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
 
-const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
+const RESERVED_SERVICE_NAMES = new Set([
+  "params",
+  "secrets",
+  "fetch",
+  "fs",
+  "env",
+  "progress",
+  "runtimeOptions",
+  "root",
+]);
+const RESERVED_SERVICE_NAMES_MESSAGE =
+  "Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.";
 
 type ScopeInput = readonly Scope[] | undefined;
 type HumanInLoopMode = "sync" | "async";
@@ -303,9 +314,15 @@ function createEnv(values: Record<string, string | undefined> = process.env): Ha
 function validateServices(services: Record<string, unknown>): void {
   for (const name of Object.keys(services)) {
     if (RESERVED_SERVICE_NAMES.has(name)) {
-      throw new Error(`Service name "${name}" is reserved. Choose a different name.`);
+      throw new Error(
+        `Service name "${name}" is reserved. Choose a different name. ${RESERVED_SERVICE_NAMES_MESSAGE}`
+      );
     }
   }
+}
+
+function formatAvailableList(values: Iterable<string>): string {
+  return `Available: ${[...values].sort().join(", ")}.`;
 }
 
 function validateEnum(value: unknown, schema: Extract<AnySchema, { kind: "enum" }>, label: string): string | number | boolean {
@@ -399,7 +416,13 @@ function validateObjectSchema(
   for (const key of Object.keys(value)) {
     if (!expectedKeys.has(key)) {
       const fieldLabel = label.length === 0 ? key : `${label}.${key}`;
-      throw new UserError(`Unexpected parameter "${fieldLabel}".`);
+      throw new UserError(
+        `Unexpected parameter "${fieldLabel}". ${formatAvailableList(
+          [...expectedKeys.keys()].map((expectedKey) =>
+            label.length === 0 ? expectedKey : `${label}.${expectedKey}`
+          )
+        )}`
+      );
     }
   }
 

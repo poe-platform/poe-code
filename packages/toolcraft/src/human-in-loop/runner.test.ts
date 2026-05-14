@@ -257,6 +257,122 @@ describe("runApproval", () => {
     expect(typeof error?.stack).toBe("string");
   });
 
+  it("fires fail with available command paths when approval command path is unknown", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    const tasks = taskList.list("approvals");
+    const provider: HumanInLoopProvider = {
+      id: "provider",
+      requestApproval: vi.fn(async () => ({ outcome: "approved" })),
+    };
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineGroup({
+          name: "deploy",
+          children: [
+            defineCommand({
+              name: "prod",
+              params: S.Object({}),
+              handler: async () => "unused",
+            }),
+          ],
+        }),
+        defineCommand({
+          name: "inspect",
+          params: S.Object({}),
+          handler: async () => "unused",
+        }),
+      ],
+    });
+    const { approvalId } = await createApprovalTask(tasks, {
+      commandPath: "deploy.missing",
+      params: {},
+      message: "Deploy?",
+    });
+
+    await runApproval(approvalId, createRuntimeOptions(taskList, provider), root);
+
+    const task = await tasks.get(approvalId);
+    const error = readTaskError(task);
+
+    expect(task.state).toBe("approved-failed");
+    expect(error?.message).toBe(
+      'Unknown approval command path "deploy.missing". Available: deploy.prod, inspect.'
+    );
+  });
+
+  it("lists only CLI-visible approval command paths", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    const tasks = taskList.list("approvals");
+    const provider: HumanInLoopProvider = {
+      id: "provider",
+      requestApproval: vi.fn(async () => ({ outcome: "approved" })),
+    };
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "inspect",
+          params: S.Object({}),
+          handler: async () => "unused",
+        }),
+        defineCommand({
+          name: "sdk-only",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => "unused",
+        }),
+      ],
+    });
+    const { approvalId } = await createApprovalTask(tasks, {
+      commandPath: "missing",
+      params: {},
+      message: "Run?",
+    });
+
+    await runApproval(approvalId, createRuntimeOptions(taskList, provider), root);
+
+    const task = await tasks.get(approvalId);
+    const error = readTaskError(task);
+
+    expect(error?.message).toBe(
+      'Unknown approval command path "missing". Available: inspect.'
+    );
+  });
+
+  it("caps available approval command paths at 20 entries", async () => {
+    const taskList = await openApprovalTaskList("/repo/approvals.yaml");
+    const tasks = taskList.list("approvals");
+    const provider: HumanInLoopProvider = {
+      id: "provider",
+      requestApproval: vi.fn(async () => ({ outcome: "approved" })),
+    };
+    const root = defineGroup({
+      name: "root",
+      children: Array.from({ length: 22 }, (_, index) =>
+        defineCommand({
+          name: `cmd-${String(index + 1).padStart(2, "0")}`,
+          params: S.Object({}),
+          handler: async () => "unused",
+        })
+      ),
+    });
+    const { approvalId } = await createApprovalTask(tasks, {
+      commandPath: "missing",
+      params: {},
+      message: "Run?",
+    });
+
+    await runApproval(approvalId, createRuntimeOptions(taskList, provider), root);
+
+    const task = await tasks.get(approvalId);
+    const error = readTaskError(task);
+
+    expect(error?.message).toContain("cmd-01, cmd-02");
+    expect(error?.message).toContain("cmd-20, … and 2 more.");
+    expect(error?.message).not.toContain("cmd-21");
+  });
+
   it("fires fail when the handler result is not JSON-serializable", async () => {
     const taskList = await openApprovalTaskList("/repo/approvals.yaml");
     const tasks = taskList.list("approvals");

@@ -449,7 +449,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-validation-lists-options
     title: '"Unknown X" errors list available X'
@@ -486,9 +486,9 @@ tasks:
       Tests in the three affected test files; each existing
       "Unknown X" assertion gets a matching "Available: …" assertion.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: toolcraft-internal-jargon-pass
     title: Drop internal jargon and redundant Error prefixes from user messages

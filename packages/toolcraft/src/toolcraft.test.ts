@@ -2046,7 +2046,38 @@ describe("createSDK", () => {
       sdk.bots.setConversationStarters({
         startersJson: '["a"]',
       })
-    ).rejects.toThrow('Unexpected parameter "startersJson".');
+    ).rejects.toThrow('Unexpected parameter "startersJson". Available: starters.');
+  });
+
+  it("lists reserved service names for SDK and MCP service name collisions", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "deploy",
+          params: S.Object({}),
+          handler: async () => null,
+        }),
+      ],
+    });
+    const message =
+      'Service name "root" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.';
+
+    expect(() =>
+      createSDK(root, {
+        services: {
+          root: "bad",
+        },
+      })
+    ).toThrow(message);
+    expect(() =>
+      createMCPServer(root, {
+        name: "toolcraft-test",
+        services: {
+          root: "bad",
+        },
+      })
+    ).toThrow(message);
   });
 
   it("includes only sdk-scoped commands", () => {

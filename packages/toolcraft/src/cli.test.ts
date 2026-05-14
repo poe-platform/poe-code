@@ -1862,7 +1862,9 @@ describe("runCLI", () => {
           params: "bad"
         }
       })
-    ).rejects.toThrow('Service name "params" is reserved. Choose a different name.');
+    ).rejects.toThrow(
+      'Service name "params" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.'
+    );
   });
 
   it("selects fixture scenarios by 1-based index", async () => {
@@ -1955,6 +1957,47 @@ describe("runCLI", () => {
     });
     expect(realStore.readValue).not.toHaveBeenCalled();
     expect(realStore.writeValue).not.toHaveBeenCalled();
+  });
+
+  it("lists fixture scenarios when a named fixture is missing", async () => {
+    process.env.TOOLCRAFT_FIXTURE = "missing scenario";
+    process.argv = ["node", "toolcraft", "fixture-demo", "--output", "json", "--yes"];
+
+    await runCLI(fixtureRoot, {
+      services: {
+        store: {
+          readValue: async () => "live value",
+          writeValue: async () => undefined
+        }
+      }
+    });
+
+    expect(loggerState.error).toEqual([
+      'Fixture scenario "missing scenario" was not found. Available: first scenario, named scenario, no-op fallback.'
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("explains when a fixture file declares no scenarios", async () => {
+    vol.fromJSON({
+      [fixtureFilePath]: "[]"
+    });
+    process.env.TOOLCRAFT_FIXTURE = "missing scenario";
+    process.argv = ["node", "toolcraft", "fixture-demo", "--output", "json", "--yes"];
+
+    await runCLI(fixtureRoot, {
+      services: {
+        store: {
+          readValue: async () => "live value",
+          writeValue: async () => undefined
+        }
+      }
+    });
+
+    expect(loggerState.error).toEqual([
+      `Fixture scenario "missing scenario" was not found. No fixtures are declared in ${fixtureFilePath}.`
+    ]);
+    expect(process.exitCode).toBe(1);
   });
 
   it("parses oneOf params using the discriminator flag and selected branch fields", async () => {
@@ -2051,7 +2094,34 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Parameter "destination.url" is not valid when "destination.kind" is "email".'
+      'Unknown parameter "destination.url" for destination.kind="email". Available: destination.address.'
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("lists dynamic parameters when an unknown dynamic flag is passed", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const score = defineCommand({
+      name: "score",
+      params: S.Object({
+        weights: S.Record(S.Number())
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [score]
+    });
+
+    process.argv = ["node", "toolcraft", "score", "--weight.bad", "1", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Unknown parameter "weight.bad". Available: weights.<key>.'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -2141,7 +2211,7 @@ describe("runCLI", () => {
 
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      'Parameter "contact.email" is not valid when "contact-kind" is "phone".'
+      'Unknown parameter "contact.email" for contact-kind="phone". Available: contact.phone.'
     ]);
     expect(process.exitCode).toBe(1);
   });

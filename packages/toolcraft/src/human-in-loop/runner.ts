@@ -16,6 +16,8 @@ interface UnserializableJsonResult {
   ok: false;
 }
 
+const MAX_AVAILABLE_COMMAND_PATHS = 20;
+
 export async function runApproval(
   approvalId: string,
   runtimeOptions: HumanInLoopRuntimeOptions,
@@ -129,32 +131,88 @@ function readApprovalPayload(task: Task): ApprovalPayload {
 
 function findCommand(root: CommandNode<any>, commandPath: string): Command<any, any, any, any> {
   const pathSegments = commandPath.split(".").filter((segment) => segment.length > 0);
+  const unknownCommandPathError = () =>
+    new UserError(
+      `Unknown approval command path "${commandPath}". ${formatAvailableApprovalCommandPaths(root)}`
+    );
 
   if (pathSegments.length === 0) {
-    throw new UserError(`Unknown approval command path "${commandPath}".`);
+    throw unknownCommandPathError();
   }
 
   let current: CommandNode<any> = root;
 
   for (const segment of pathSegments) {
     if (current.kind !== "group") {
-      throw new UserError(`Unknown approval command path "${commandPath}".`);
+      throw unknownCommandPathError();
     }
 
     const next = current.children.find((child) => child.name === segment);
 
     if (next === undefined) {
-      throw new UserError(`Unknown approval command path "${commandPath}".`);
+      throw unknownCommandPathError();
     }
 
     current = next;
   }
 
   if (current.kind !== "command") {
-    throw new UserError(`Unknown approval command path "${commandPath}".`);
+    throw unknownCommandPathError();
   }
 
   return current;
+}
+
+function formatAvailableApprovalCommandPaths(root: CommandNode<any>): string {
+  const paths = enumerateApprovalCommandPaths(root);
+  const visiblePaths = paths.slice(0, MAX_AVAILABLE_COMMAND_PATHS);
+  const remaining = paths.length - visiblePaths.length;
+  const suffix = remaining > 0 ? `, … and ${remaining} more` : "";
+
+  return `Available: ${visiblePaths.join(", ")}${suffix}.`;
+}
+
+function enumerateApprovalCommandPaths(root: CommandNode<any>): string[] {
+  const paths: string[] = [];
+
+  const visit = (node: CommandNode<any>, path: string[]): void => {
+    if (node.kind === "command") {
+      paths.push(path.join("."));
+      return;
+    }
+
+    for (const child of getVisibleCliChildren(node)) {
+      visit(child, [...path, child.name]);
+    }
+  };
+
+  if (root.kind === "command") {
+    visit(root, [root.name]);
+    return paths.sort();
+  }
+
+  for (const child of getVisibleCliChildren(root)) {
+    visit(child, [child.name]);
+  }
+
+  return paths.sort();
+}
+
+function isNodeVisibleInCli(node: CommandNode<any>): boolean {
+  if (node.kind === "command") {
+    return node.scope.includes("cli");
+  }
+
+  return (
+    getVisibleCliChildren(node).length > 0 ||
+    Boolean(node.default && node.default.scope.includes("cli")) ||
+    node.scope === undefined ||
+    node.scope.includes("cli")
+  );
+}
+
+function getVisibleCliChildren(root: CommandNode<any>): CommandNode<any>[] {
+  return root.kind === "group" ? root.children.filter(isNodeVisibleInCli) : [];
 }
 
 function createHandlerContext(

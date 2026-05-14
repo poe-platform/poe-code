@@ -57,7 +57,18 @@ import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 
-const RESERVED_SERVICE_NAMES = new Set(["params", "secrets", "fetch", "fs", "env", "progress"]);
+const RESERVED_SERVICE_NAMES = new Set([
+  "params",
+  "secrets",
+  "fetch",
+  "fs",
+  "env",
+  "progress",
+  "runtimeOptions",
+  "root"
+]);
+const RESERVED_SERVICE_NAMES_MESSAGE =
+  "Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.";
 const NULL_OPTION_VALUE = Symbol("toolcraft.cli.null");
 
 type Casing = "kebab" | "snake";
@@ -743,6 +754,10 @@ function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function formatAvailableList(values: Iterable<string>): string {
+  return `Available: ${[...values].sort().join(", ")}.`;
+}
+
 function normalizeCommanderOptionValue(value: unknown): unknown {
   return value === NULL_OPTION_VALUE ? null : value;
 }
@@ -777,7 +792,9 @@ function parseScalarValue(
       return parseEnumValue(value, schema.values, label);
   }
 
-  throw new UserError("Unsupported CLI schema kind.");
+  throw new UserError(
+    `Unsupported CLI schema kind. ${formatAvailableList(["boolean", "enum", "number", "string"])}`
+  );
 }
 
 function splitArrayInput(value: string): string[] {
@@ -2430,7 +2447,11 @@ function resolveFixturePath(commandPath: string): string {
   return path.join(parsed.dir, `${parsed.name}.fixture.json`);
 }
 
-function selectFixtureScenario(scenarios: FixtureScenario[], selector: string): FixtureScenario {
+function selectFixtureScenario(
+  scenarios: FixtureScenario[],
+  selector: string,
+  fixturePath: string
+): FixtureScenario {
   if (isNumericFixtureSelector(selector)) {
     const index = Number(selector) - 1;
     const scenario = scenarios[index];
@@ -2447,7 +2468,14 @@ function selectFixtureScenario(scenarios: FixtureScenario[], selector: string): 
   const scenario = scenarios.find((entry) => entry.name === selector);
 
   if (scenario === undefined) {
-    throw new UserError(`Fixture scenario "${selector}" was not found.`);
+    const names = scenarios
+      .map((entry) => entry.name)
+      .filter((name): name is string => typeof name === "string" && name.length > 0);
+    const available =
+      names.length === 0
+        ? `No fixtures are declared in ${fixturePath}.`
+        : formatAvailableList(names);
+    throw new UserError(`Fixture scenario "${selector}" was not found. ${available}`);
   }
 
   return scenario;
@@ -2490,7 +2518,7 @@ async function loadFixtureScenario(
     throw new UserError(`Fixture file ${fixturePath} must contain a JSON array of scenarios.`);
   }
 
-  return selectFixtureScenario(parsed as FixtureScenario[], selector);
+  return selectFixtureScenario(parsed as FixtureScenario[], selector, fixturePath);
 }
 
 function resolveFixtureSecrets(command: Command<any, any, any, any>): Record<string, string> {
@@ -2589,7 +2617,9 @@ function renderApprovalDeclined(error: ApprovalDeclinedError): void {
 function validateServices(services: Record<string, unknown>): void {
   for (const name of Object.keys(services)) {
     if (RESERVED_SERVICE_NAMES.has(name)) {
-      throw new Error(`Service name "${name}" is reserved. Choose a different name.`);
+      throw new Error(
+        `Service name "${name}" is reserved. Choose a different name. ${RESERVED_SERVICE_NAMES_MESSAGE}`
+      );
     }
   }
 }
@@ -2733,7 +2763,18 @@ function resolveDynamicLeaf(
       };
     }
 
-    throw new UserError(`Unsupported dynamic CLI schema kind "${unwrappedSchema.kind}".`);
+    throw new UserError(
+      `Unsupported dynamic CLI schema kind "${unwrappedSchema.kind}". ${formatAvailableList([
+        "array",
+        "boolean",
+        "enum",
+        "json",
+        "number",
+        "object",
+        "record",
+        "string"
+      ])}`
+    );
   }
 
   switch (unwrappedSchema.kind) {
@@ -2756,7 +2797,13 @@ function resolveDynamicLeaf(
         );
       }
 
-      throw new UserError(`Unknown parameter "${[...displayPath, head].join(".")}".`);
+      throw new UserError(
+        `Unknown parameter "${[...displayPath, head].join(".")}". ${formatAvailableList(
+          Object.keys(unwrappedSchema.shape).map((key) =>
+            toDisplayPath([...displayPath, formatSegment(key, casing)])
+          )
+        )}`
+      );
     }
 
     case "record": {
@@ -2795,7 +2842,11 @@ function resolveDynamicLeaf(
     }
 
     default:
-      throw new UserError(`Unknown parameter "${[...displayPath, ...rawSegments].join(".")}".`);
+      throw new UserError(
+        `Unknown parameter "${[...displayPath, ...rawSegments].join(".")}". ${formatAvailableList(
+          displayPath.length === 0 ? [] : [toDisplayPath(displayPath)]
+        )}`
+      );
   }
 }
 
@@ -2908,7 +2959,18 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
     }
 
     default:
-      throw new UserError(`Unsupported dynamic CLI schema kind "${unwrappedSchema.kind}".`);
+      throw new UserError(
+        `Unsupported dynamic CLI schema kind "${unwrappedSchema.kind}". ${formatAvailableList([
+          "array",
+          "boolean",
+          "enum",
+          "json",
+          "number",
+          "object",
+          "record",
+          "string"
+        ])}`
+      );
   }
 }
 
@@ -2947,7 +3009,11 @@ function parseDynamicValues(
     });
 
     if (match === undefined) {
-      throw new UserError(`Unknown parameter "${flagName}".`);
+      throw new UserError(
+        `Unknown parameter "${flagName}". ${formatAvailableList(
+          dynamicFields.map((field) => field.optionPathDisplay)
+        )}`
+      );
     }
 
     const optionPath = match.optionPath.map((segment) => formatSegment(segment, casing));
@@ -2998,6 +3064,16 @@ async function enforceVariantConstraints(
 ): Promise<void> {
   const fieldById = new Map(fields.map((field) => [field.id, field]));
   const dynamicFieldById = new Map(dynamicFields.map((field) => [field.id, field]));
+  const getAvailableBranchParameters = (branch: VariantBranchDefinition): string[] => [
+    ...branch.fieldIds
+      .map((fieldId) => fieldById.get(fieldId))
+      .filter((field): field is FieldDefinition => field !== undefined && field.synthetic !== true)
+      .map((field) => field.displayPath),
+    ...branch.dynamicFieldIds
+      .map((fieldId) => dynamicFieldById.get(fieldId))
+      .filter((field): field is DynamicFieldDefinition => field !== undefined)
+      .map((field) => field.optionPathDisplay)
+  ];
 
   for (const variant of variants) {
     let selectedBranchId = resolvedFieldValues.get(variant.controlFieldId);
@@ -3038,7 +3114,9 @@ async function enforceVariantConstraints(
         const field = fieldById.get(invalidFieldId);
         if (field !== undefined) {
           throw new UserError(
-            `Parameter "${field.displayPath}" is not valid when "${variant.controlDisplayPath}" is "${selectedBranch.branchId}".`
+            `Unknown parameter "${field.displayPath}" for ${variant.controlDisplayPath}="${selectedBranch.branchId}". ${formatAvailableList(
+              getAvailableBranchParameters(selectedBranch)
+            )}`
           );
         }
       }
@@ -3050,7 +3128,9 @@ async function enforceVariantConstraints(
         const field = dynamicFieldById.get(invalidDynamicFieldId);
         if (field !== undefined) {
           throw new UserError(
-            `Parameter "${field.displayPath}" is not valid when "${variant.controlDisplayPath}" is "${selectedBranch.branchId}".`
+            `Unknown parameter "${field.displayPath}" for ${variant.controlDisplayPath}="${selectedBranch.branchId}". ${formatAvailableList(
+              getAvailableBranchParameters(selectedBranch)
+            )}`
           );
         }
       }

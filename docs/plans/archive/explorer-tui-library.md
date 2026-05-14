@@ -2,37 +2,52 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: scaffold-explorer-package
     title: Scaffold explorer package and public types
-    prompt: |
+    prompt: >
       Create the directory tree `packages/design-system/src/explorer/`
+
       with empty stub files: index.ts, runtime.ts, reducer.ts, state.ts,
+
       events.ts, actions.ts, keymap.ts, filter.ts, layout.ts, jobs.ts,
+
       theme.ts, and render/{index,list,detail,footer,header,modal}.ts.
 
+
       In explorer/state.ts (or a new types.ts if preferable) export the
+
       full public type surface: Tone, Row, DetailItem, Detail<R>,
+
       DetailCtx, Action<R>, ActionContext<R>, ExplorerConfig<R>. Match
+
       the type definitions from the plan body verbatim.
 
+
       In explorer/index.ts re-export: runExplorer (stub that throws
+
       "not implemented"), singleDetail (working: returns
-      `{ items: async (row, ctx) => [{ id: row.id, render: ctx => fn(row, ctx) }] }`),
+
+      `{ items: async (row, ctx) => [{ id: row.id, render: ctx => fn(row, ctx)
+      }] }`),
+
       and every public type listed above.
 
+
       In packages/design-system/src/index.ts add the namespace and named
+
       exports as in §1 of the plan body. Do not touch other exports.
 
+
       The package must build (`npm run build` in
+
       packages/design-system) and the existing test suite must still
+
       pass after this task.
     status:
       implement: done
       test: done
       commit: done
-
   - id: fuzzy-filter-and-layout
     title: Fuzzy filter and layout engine (pure)
     prompt: |
@@ -63,7 +78,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: state-events-keymap
     title: State, events, and keymap layering
     prompt: |
@@ -90,7 +104,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: reducer
     title: Pure reducer step function
     prompt: |
@@ -117,7 +130,6 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: actions-and-jobs
     title: Action dispatcher and versioned async jobs
     prompt: |
@@ -147,45 +159,67 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: theme-and-render
     title: Theme resolver and region renderers
-    prompt: |
+    prompt: >
       Implement `packages/design-system/src/explorer/theme.ts` exporting
+
       getExplorerTheme() composed from
+
       packages/design-system/src/tokens/colors.ts (accent, muted,
+
       success, warning, error, info). Map: border → divider,
+
       borderFocused → accent, matchHighlight → accent + underline. Do
+
       not invent new token values.
 
-      Implement render/index.ts plus render/{header,list,detail,footer,modal}.ts.
+
+      Implement render/index.ts plus
+      render/{header,list,detail,footer,modal}.ts.
+
 
       render/index.ts exports renderExplorer(state, screen: ScreenBuffer)
+
       which iterates state.dirty regions and dispatches to the
+
       sub-renderers. Use ScreenBuffer + cellToAnsi from
+
       packages/design-system/src/dashboard/buffer.ts.
 
+
       Region renderers (§3.11 of plan body): granular dirty regions,
+
       prevLines cache on the list region keyed by row id + selection +
+
       cursor + match-position. Modal composites over regions beneath
+
       after they are written.
 
+
       Detail rendering follows §2.1.2 rule: zero items → emptyHint;
+
       one item, no title → fills pane; any item with title → list mode.
 
-      Add snapshot tests render/{list,detail,footer,header,modal,integration}.test.ts.
+
+      Add snapshot tests
+      render/{list,detail,footer,header,modal,integration}.test.ts.
+
       Snapshots are on-disk ANSI strings produced by dumping the
+
       ScreenBuffer via cellToAnsi. Fixtures cover every state listed in
+
       §4.3 render-test bullets and the four width breakpoints.
 
+
       No terminal-pilot yet — runtime isn't wired. Visual review of
+
       snapshot diffs is the feedback loop.
     status:
       implement: done
       refactor: done
       test: done
       commit: done
-
   - id: runtime
     title: Runtime wiring, FakeTerminalDriver, and integration tests
     prompt: |
@@ -226,7 +260,6 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: imports-boundary-test
     title: Internal module boundary enforcement
     prompt: |
@@ -250,7 +283,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: smoke-and-build-test
     title: Smoke tests for SDK exports and built bundle
     prompt: |
@@ -272,7 +304,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: demo-and-manual-qa
     title: Explorer demo entry and manual QA doc
     prompt: |
@@ -302,7 +333,9 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
+name: explorer-tui-library
+state: archived
 ---
 
 **Explorer TUI library** — a reusable `list + detail + actions` explorer component in `@poe-code/design-system`, modeled on fzf's interaction loop and Textual's widget/action architecture, providing the substrate for screens like `plan browse` and the GitHub PR review queue.

@@ -45,7 +45,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: sync-gh-project-mutations
     title: Implement syncGhProject with create-only GraphQL mutations
@@ -65,8 +65,8 @@ tasks:
 
       Add `packages/task-list/src/backends/gh-issues-sync-create.spec.ts` proving: missing project → `createProjectV2` invoked with the resolved owner id; missing field with project present → `createProjectV2Field` invoked once with every required option seeded; partial options missing → exactly one `createProjectV2SingleSelectFieldOption` per missing option, no field-create call; the returned report lists what was created in the documented order.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: sync-idempotency-and-error-specs

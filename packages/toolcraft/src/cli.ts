@@ -57,6 +57,7 @@ import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 import { renderSourceSnippet } from "./source-snippet.js";
+import { enableSourceMaps, formatDebugStack, type DebugStackMode } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 
@@ -83,7 +84,7 @@ interface ResolvedFlags {
   preset?: string;
   yes?: boolean;
   output?: OutputMode;
-  debug?: boolean;
+  debug?: DebugStackMode | boolean;
   verbose?: boolean;
 }
 
@@ -1924,8 +1925,26 @@ function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): v
         })
       );
     })
-    .option("--debug", "Print stack traces for unexpected errors.")
+    .addOption(
+      new Option("--debug [mode]", "Print stack traces for unexpected errors.")
+        .preset("trim")
+        .argParser(parseDebugStackMode)
+    )
     .option("--verbose", "Print detailed runtime diagnostics.");
+}
+
+function parseDebugStackMode(value: string | boolean): DebugStackMode {
+  if (value === true || value === "trim") {
+    return "trim";
+  }
+
+  if (value === "raw") {
+    return "raw";
+  }
+
+  throw new InvalidArgumentError(
+    formatInvalidEnumMessage("--debug", String(value), ["raw"], { candidates: ["raw"] })
+  );
 }
 
 function setNestedValue(target: Record<string, unknown>, path: string[], value: unknown): void {
@@ -3913,9 +3932,9 @@ function formatHttpErrorSnippet(body: unknown): string {
 
 function renderHttpError(
   error: HttpErrorLike,
-  options: { debug: boolean; verbose: boolean }
+  options: { debugStackMode: DebugStackMode | undefined; verbose: boolean }
 ): void {
-  const detailed = options.verbose || options.debug;
+  const detailed = options.verbose || options.debugStackMode !== undefined;
   const lines: string[] = [
     styleHttpErrorLine(`Request:  ${error.request.method} ${error.request.url}`, text.muted)
   ];
@@ -3948,15 +3967,15 @@ function renderHttpError(
   process.stderr.write(`${lines.join("\n")}\n`);
 
   const stack = error instanceof Error ? (error as Error).stack : undefined;
-  if (options.debug && stack) {
-    process.stderr.write(`${stack}\n`);
+  if (options.debugStackMode !== undefined && stack) {
+    process.stderr.write(`${formatDebugStack(stack, options.debugStackMode)}\n`);
   }
 }
 
 function handleRunError(
   error: unknown,
   options: {
-    debug: boolean;
+    debugStackMode: DebugStackMode | undefined;
     verbose: boolean;
     program?: CommanderCommand;
     argv?: readonly string[];
@@ -3984,8 +4003,8 @@ function handleRunError(
         `it cannot be worked around by changing argv. ` +
         `Re-run with --debug for a stack trace and file an issue.`
     );
-    if (options.debug && error.stack) {
-      process.stderr.write(`${error.stack}\n`);
+    if (options.debugStackMode !== undefined && error.stack) {
+      process.stderr.write(`${formatDebugStack(error.stack, options.debugStackMode)}\n`);
     }
     process.exitCode = 1;
     return;
@@ -4014,10 +4033,12 @@ function handleRunError(
   }
 
   const message = error instanceof Error ? error.message : String(error);
-  logger.error(options.debug ? message : `${message} Use --debug for a stack trace.`);
+  logger.error(
+    options.debugStackMode !== undefined ? message : `${message} Use --debug for a stack trace.`
+  );
 
-  if (options.debug && error instanceof Error && error.stack) {
-    process.stderr.write(`${error.stack}\n`);
+  if (options.debugStackMode !== undefined && error instanceof Error && error.stack) {
+    process.stderr.write(`${formatDebugStack(error.stack, options.debugStackMode)}\n`);
   }
 
   process.exitCode = 1;
@@ -4136,6 +4157,37 @@ function extractBetweenQuotes(message: string, quote: "'" | '"'): string | undef
   return message.slice(start + 1, end);
 }
 
+function resolveDebugStackMode(value: unknown): DebugStackMode | undefined {
+  if (value === true || value === "trim") {
+    return "trim";
+  }
+
+  if (value === "raw") {
+    return "raw";
+  }
+
+  return undefined;
+}
+
+function getDebugStackModeFromArgv(argv: readonly string[]): DebugStackMode | undefined {
+  for (let index = 2; index < argv.length; index += 1) {
+    const token = argv[index];
+    if (token === undefined) {
+      continue;
+    }
+
+    if (token === "--debug") {
+      return "trim";
+    }
+
+    if (token === "--debug=raw") {
+      return "raw";
+    }
+  }
+
+  return undefined;
+}
+
 function findCurrentCommanderCommand(
   program: CommanderCommand,
   argv: readonly string[]
@@ -4242,6 +4294,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   roots: Group<TServices> | Group<TServices>[],
   options: RunCLIOptions<TServices> = {}
 ): Promise<void> {
+  enableSourceMaps();
   const root = mergeApprovalsGroup(normalizeRoots(roots, process.argv));
   await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const casing = options.casing ?? "kebab";
@@ -4332,7 +4385,10 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
     const resolvedFlags = lastActionCommand ? getResolvedFlags(lastActionCommand) : undefined;
     handleRunError(error, {
-      debug: resolvedFlags ? Boolean(resolvedFlags.debug) : process.argv.includes("--debug"),
+      debugStackMode:
+        resolvedFlags !== undefined
+          ? resolveDebugStackMode(resolvedFlags.debug)
+          : getDebugStackModeFromArgv(process.argv),
       verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : process.argv.includes("--verbose"),
       program,
       argv: process.argv,

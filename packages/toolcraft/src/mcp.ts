@@ -26,6 +26,7 @@ import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { filterSchemaForScope } from "./schema-scope.js";
+import { enableSourceMaps } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 
@@ -788,6 +789,7 @@ export async function runMCP<TServices extends object = Record<string, unknown>>
   roots: Group<TServices> | Group<TServices>[],
   options: RunMCPOptions<TServices>
 ): Promise<void> {
+  enableSourceMaps();
   const root = mergeApprovalsGroup(normalizeRoots(roots));
   await resolveMcpProxies(root, { projectRoot: options.projectRoot });
   const server = createResolvedMCPServer(root, options);

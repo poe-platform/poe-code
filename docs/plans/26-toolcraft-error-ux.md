@@ -987,7 +987,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-stack-trim
     title: Trim and source-map JS stacks when --debug prints them
@@ -1046,8 +1046,8 @@ tasks:
         - --debug=raw bypasses the trimmer
         - stack with no toolcraft frames → returned unchanged
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-error-report-capture

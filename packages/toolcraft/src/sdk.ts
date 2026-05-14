@@ -8,6 +8,7 @@ import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-l
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
+import { enableSourceMaps } from "./stack-trim.js";
 import { suggest } from "./suggest.js";
 import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 
@@ -515,6 +516,7 @@ export function createSDK(
   root: Group<any>,
   options: CreateSDKOptions<any> = {}
 ): Record<string, unknown> {
+  enableSourceMaps();
   const mergedRoot = mergeApprovalsGroup(root);
 
   if (!hasMcpProxyGroups(mergedRoot)) {

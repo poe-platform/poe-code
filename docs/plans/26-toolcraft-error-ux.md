@@ -775,7 +775,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-source-snippet-on-parse
     title: Source snippet with caret on config parse failures
@@ -836,8 +836,8 @@ tasks:
         - caret aligned correctly with multi-digit line numbers
           (line 1 vs line 100 produce same caret column)
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-network-error-classify

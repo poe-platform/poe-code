@@ -28,6 +28,10 @@
     "./human-in-loop": {
       "types": "./dist/human-in-loop/index.d.ts",
       "import": "./dist/human-in-loop/index.js"
+    },
+    "./source-snippet": {
+      "types": "./dist/source-snippet.d.ts",
+      "import": "./dist/source-snippet.js"
     }
   },
   "scripts": {

@@ -1,5 +1,6 @@
 import path from "node:path";
 import { UserError } from "toolcraft";
+import { renderSourceSnippet } from "toolcraft/source-snippet";
 
 export interface OpenApiLock {
   specSha: string;
@@ -21,9 +22,7 @@ export function parseOpenApiLock(contents: string, lockPath: string): OpenApiLoc
   try {
     parsed = JSON.parse(contents);
   } catch (error) {
-    throw new UserError(`Lock file "${lockPath}" is not valid JSON: ${getErrorMessage(error)}.`, {
-      cause: error
-    });
+    throw new UserError(formatJsonParseError(lockPath, contents, error), { cause: error });
   }
 
   if (
@@ -93,6 +92,123 @@ function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function formatJsonParseError(lockPath: string, source: string, error: unknown): string {
+  const location = getJsonParseErrorLocation(error, source);
+  const message = getErrorMessage(error);
+
+  if (location === null) {
+    return `Lock file "${lockPath}" is not valid JSON: ${message}.`;
+  }
+
+  return (
+    `Lock file "${lockPath}" is not valid JSON: ${message} ` +
+    `at line ${location.line} column ${location.column}.\n` +
+    renderSourceSnippet({
+      source,
+      line: location.line,
+      column: location.column,
+      filePath: lockPath
+    })
+  );
+}
+
+function getJsonParseErrorLocation(
+  error: unknown,
+  source: string
+): { line: number; column: number } | null {
+  const causeLocation = getJsonParseCauseLocation(error);
+
+  if (causeLocation !== null) {
+    return causeLocation;
+  }
+
+  const directPosition = getNumericProperty(error, "position");
+
+  if (directPosition !== null) {
+    return getSourceOffsetLocation(source, directPosition);
+  }
+
+  const messagePosition = getJsonParseMessagePosition(getErrorMessage(error));
+
+  if (messagePosition !== null) {
+    return getSourceOffsetLocation(source, messagePosition);
+  }
+
+  return null;
+}
+
+function getJsonParseCauseLocation(error: unknown): { line: number; column: number } | null {
+  if (typeof error !== "object" || error === null || !("cause" in error)) {
+    return null;
+  }
+
+  const cause = error.cause;
+  const line = getNumericProperty(cause, "line");
+  const column = getNumericProperty(cause, "column") ?? getNumericProperty(cause, "col");
+
+  if (line === null || column === null) {
+    return null;
+  }
+
+  return { line, column };
+}
+
+function getNumericProperty(value: unknown, key: string): number | null {
+  if (typeof value !== "object" || value === null || !(key in value)) {
+    return null;
+  }
+
+  const propertyValue = (value as Record<string, unknown>)[key];
+
+  return typeof propertyValue === "number" && Number.isFinite(propertyValue)
+    ? propertyValue
+    : null;
+}
+
+function getJsonParseMessagePosition(message: string): number | null {
+  const marker = " at position ";
+  const markerIndex = message.indexOf(marker);
+
+  if (markerIndex === -1) {
+    return null;
+  }
+
+  const startIndex = markerIndex + marker.length;
+  let endIndex = startIndex;
+
+  while (endIndex < message.length && isAsciiDigit(message[endIndex] ?? "")) {
+    endIndex += 1;
+  }
+
+  if (endIndex === startIndex) {
+    return null;
+  }
+
+  return Number.parseInt(message.slice(startIndex, endIndex), 10);
+}
+
+function getSourceOffsetLocation(source: string, offset: number): { line: number; column: number } {
+  let line = 1;
+  let column = 1;
+  const boundedOffset = Math.max(0, Math.floor(offset));
+
+  for (let index = 0; index < boundedOffset && index < source.length; index += 1) {
+    if (source[index] === "\n") {
+      line += 1;
+      column = 1;
+      continue;
+    }
+
+    column += 1;
+  }
+
+  return { line, column };
+}
+
+function isAsciiDigit(value: string): boolean {
+  return value >= "0" && value <= "9";
 }
 
 function getErrorCode(error: unknown): string | undefined {

@@ -2,6 +2,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 import { UserError } from "toolcraft";
+import { renderSourceSnippet } from "toolcraft/source-snippet";
 import type { OpenApiDocument } from "./generate.js";
 
 export interface OpenApiSourceFileSystem {
@@ -72,7 +73,7 @@ export function parseOpenApiDocument(sourceText: string, input: string | URL): O
     parsed = parseYaml(sourceText);
   } catch (error) {
     throw new UserError(
-      `Failed to parse OpenAPI document ${JSON.stringify(formatSourceLabel(input))}: ${formatParseErrorMessage(error, sourceText)}`
+      `Failed to parse OpenAPI document ${JSON.stringify(formatSourceLabel(input))}: ${formatParseErrorMessage(error, sourceText, formatSourceLabel(input))}`
     );
   }
 
@@ -105,7 +106,7 @@ function getErrorMessage(error: unknown): string {
   return String(error);
 }
 
-function formatParseErrorMessage(error: unknown, sourceText: string): string {
+function formatParseErrorMessage(error: unknown, sourceText: string, filePath: string): string {
   const message = getErrorMessage(error);
   const linePosition = getYamlLinePosition(error) ?? getYamlOffsetPosition(error, sourceText);
 
@@ -116,11 +117,16 @@ function formatParseErrorMessage(error: unknown, sourceText: string): string {
 
   const positionText = `at line ${linePosition.line} column ${linePosition.column}`;
 
-  if (message.includes(positionText)) {
-    return message;
-  }
+  const messageWithPosition = message.includes(positionText)
+    ? message
+    : `${message} (${positionText})`;
 
-  return `${message} (${positionText})`;
+  return `${messageWithPosition}\n${renderSourceSnippet({
+    source: sourceText,
+    line: linePosition.line,
+    column: linePosition.column,
+    filePath
+  })}`;
 }
 
 function getYamlLinePosition(error: unknown): { line: number; column: number } | null {

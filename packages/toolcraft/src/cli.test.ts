@@ -1236,7 +1236,7 @@ describe("runCLI", () => {
     });
 
     vol.fromJSON({
-      "/presets/invalid-json.json": "not json"
+      "/presets/invalid-json.json": "{\n,"
     });
 
     process.argv = [
@@ -1254,7 +1254,10 @@ describe("runCLI", () => {
     expect(loggerState.error).toHaveLength(1);
     expect(loggerState.error[0]).toContain('Preset file "/presets/invalid-json.json"');
     expect(loggerState.error[0]).toContain("is not valid JSON");
-    expect(loggerState.error[0]).toContain("Unexpected token");
+    expect(loggerState.error[0]).toContain("line 2 column 1");
+    expect(loggerState.error[0]).toContain("--> /presets/invalid-json.json:2:1");
+    expect(loggerState.error[0]).toContain("2 | ,");
+    expect(loggerState.error[0]).toContain("| ^");
     expect(process.exitCode).toBe(1);
   });
 
@@ -2271,7 +2274,7 @@ describe("runCLI", () => {
 
   it("reports the JSON parser message when the fixture file is not valid JSON", async () => {
     vol.fromJSON({
-      [fixtureFilePath]: "not json"
+      [fixtureFilePath]: "{\n,"
     });
     process.env.TOOLCRAFT_FIXTURE = "first scenario";
     process.argv = ["node", "toolcraft", "fixture-demo", "--output", "json", "--yes"];
@@ -2288,7 +2291,10 @@ describe("runCLI", () => {
     expect(loggerState.error).toHaveLength(1);
     expect(loggerState.error[0]).toContain(`Fixture file ${fixtureFilePath}`);
     expect(loggerState.error[0]).toContain("is not valid JSON");
-    expect(loggerState.error[0]).toContain("Unexpected token");
+    expect(loggerState.error[0]).toContain("line 2 column 1");
+    expect(loggerState.error[0]).toContain(`--> ${fixtureFilePath}:2:1`);
+    expect(loggerState.error[0]).toContain("2 | ,");
+    expect(loggerState.error[0]).toContain("| ^");
     expect(process.exitCode).toBe(1);
   });
 

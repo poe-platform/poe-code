@@ -1,0 +1,458 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { CommanderError } from "commander";
+import type { AnySchema } from "toolcraft-schema";
+import type { Command, SecretDeclarations } from "./index.js";
+import { ApprovalDeclinedError } from "./human-in-loop/types.js";
+import { findProjectRoot } from "./mcp-proxy.js";
+import { findPackageMetadata } from "./package-metadata.js";
+import { UserError } from "./user-error.js";
+
+const ERROR_REPORTS_ENV = "TOOLCRAFT_ERROR_REPORTS";
+const DEFAULT_SENSITIVE_NAMES = ["password", "token", "apikey", "secret"];
+
+export type ErrorReportsOption = boolean | { dir?: string };
+
+export interface ErrorReportContext {
+  argv?: readonly string[];
+  command?: Command<any, any, any, any>;
+  commandPath?: string;
+  env?: Record<string, string | undefined>;
+  error: unknown;
+  errorReports?: ErrorReportsOption;
+  params?: unknown;
+  projectRoot?: string;
+  secrets?: Record<string, string | undefined>;
+  version?: string;
+}
+
+export interface ErrorReportResult {
+  absolutePath: string;
+  displayPath: string;
+}
+
+interface HttpErrorLike {
+  name: "HttpError";
+  message: string;
+  request: {
+    method: string;
+    url: string;
+    headers: Record<string, string>;
+    body?: unknown;
+  };
+  response: {
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    body: unknown;
+  };
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function unwrapOptional(schema: AnySchema): AnySchema {
+  if (schema.kind === "optional") {
+    return unwrapOptional(schema.inner);
+  }
+
+  return schema;
+}
+
+function hasHttpContext(error: unknown): error is HttpErrorLike {
+  return (
+    error instanceof Error &&
+    error.name === "HttpError" &&
+    isPlainObject((error as { request?: unknown }).request) &&
+    isPlainObject((error as { response?: unknown }).response)
+  );
+}
+
+function isSkippedError(error: unknown): boolean {
+  if (error instanceof ApprovalDeclinedError) {
+    return true;
+  }
+
+  if (
+    error instanceof CommanderError &&
+    (error.code === "commander.helpDisplayed" || error.code === "commander.version")
+  ) {
+    return true;
+  }
+
+  return error instanceof UserError && error.cause === undefined && !hasHttpContext(error);
+}
+
+function reportsEnabled(
+  option: ErrorReportsOption | undefined,
+  env: Record<string, string | undefined>
+): boolean {
+  if (env[ERROR_REPORTS_ENV] === "1") {
+    return true;
+  }
+
+  return option !== undefined && option !== false;
+}
+
+function resolveReportDir(option: ErrorReportsOption | undefined, projectRoot: string): string {
+  const configuredDir = typeof option === "object" ? option.dir : undefined;
+
+  if (configuredDir === undefined || configuredDir.length === 0) {
+    return path.join(projectRoot, ".toolcraft", "errors");
+  }
+
+  return path.isAbsolute(configuredDir) ? configuredDir : path.join(projectRoot, configuredDir);
+}
+
+function resolveProjectRoot(projectRoot: string | undefined): string {
+  if (projectRoot !== undefined) {
+    return projectRoot;
+  }
+
+  return findProjectRoot() ?? os.tmpdir();
+}
+
+function formatTimestamp(date: Date): string {
+  const isoMinute = date.toISOString().slice(0, 16);
+  const colonIndex = isoMinute.indexOf(":");
+
+  if (colonIndex === -1) {
+    return isoMinute;
+  }
+
+  return `${isoMinute.slice(0, colonIndex)}${isoMinute.slice(colonIndex + 1)}`;
+}
+
+function slugifyCommandPath(commandPath: string | undefined): string {
+  const source = commandPath === undefined || commandPath.length === 0 ? "root" : commandPath;
+  let output = "";
+  let previousWasDash = false;
+
+  for (const char of source) {
+    const lower = char.toLowerCase();
+    const isWord = (lower >= "a" && lower <= "z") || (lower >= "0" && lower <= "9");
+
+    if (isWord) {
+      output += lower;
+      previousWasDash = false;
+      continue;
+    }
+
+    if (!previousWasDash) {
+      output += "-";
+      previousWasDash = true;
+    }
+  }
+
+  while (output.startsWith("-")) {
+    output = output.slice(1);
+  }
+
+  while (output.endsWith("-")) {
+    output = output.slice(0, -1);
+  }
+
+  return output.length === 0 ? "root" : output;
+}
+
+function relativeDisplayPath(projectRoot: string, absolutePath: string): string {
+  const relative = path.relative(projectRoot, absolutePath);
+  return relative.length === 0 || relative.startsWith("..") ? absolutePath : relative;
+}
+
+function redactValue(value: string | undefined): string {
+  if (value === undefined) {
+    return "<unset>";
+  }
+
+  return `<set, ${value.length} chars>`;
+}
+
+function isSensitiveName(name: string): boolean {
+  const normalized = name.toLowerCase();
+  return DEFAULT_SENSITIVE_NAMES.some((candidate) => normalized.includes(candidate));
+}
+
+function schemaSecretValue(schema: AnySchema): boolean | undefined {
+  const unwrapped = unwrapOptional(schema);
+
+  if (unwrapped.kind === "string" || unwrapped.kind === "number") {
+    return (unwrapped as { secret?: boolean }).secret;
+  }
+
+  return undefined;
+}
+
+function shouldRedactParam(name: string, schema: AnySchema): boolean {
+  const secret = schemaSecretValue(schema);
+
+  if (secret !== undefined) {
+    return secret;
+  }
+
+  return isSensitiveName(name);
+}
+
+function redactParamsValue(value: unknown, schema: AnySchema, name: string): unknown {
+  if (shouldRedactParam(name, schema)) {
+    return "<redacted>";
+  }
+
+  const unwrapped = unwrapOptional(schema);
+
+  if (unwrapped.kind === "object" && isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, childValue]) => {
+        const childSchema = unwrapped.shape[key];
+        return [
+          key,
+          childSchema === undefined ? childValue : redactParamsValue(childValue, childSchema, key)
+        ];
+      })
+    );
+  }
+
+  if (unwrapped.kind === "array" && Array.isArray(value)) {
+    return value.map((entry) => redactParamsValue(entry, unwrapped.item, name));
+  }
+
+  return value;
+}
+
+function redactParams(params: unknown, command: Command<any, any, any, any> | undefined): unknown {
+  if (command === undefined) {
+    return params;
+  }
+
+  return redactParamsValue(params, command.params, "");
+}
+
+function commandSecretEnvNames(secrets: SecretDeclarations | undefined): string[] {
+  if (secrets === undefined) {
+    return [];
+  }
+
+  return Object.values(secrets).map((secret) => secret.env);
+}
+
+function redactArgv(
+  argv: readonly string[] | undefined,
+  options: {
+    command?: Command<any, any, any, any>;
+    secrets?: Record<string, string | undefined>;
+  }
+): string[] {
+  if (argv === undefined) {
+    return [];
+  }
+
+  const secretValues = new Set(
+    Object.values(options.secrets ?? {}).filter(
+      (value): value is string => value !== undefined && value.length > 0
+    )
+  );
+  const secretNames = new Set([
+    ...Object.keys(options.secrets ?? {}),
+    ...commandSecretEnvNames(options.command?.secrets)
+  ]);
+  const output: string[] = [];
+  let redactNext = false;
+
+  for (const arg of argv) {
+    if (redactNext) {
+      output.push("<redacted>");
+      redactNext = false;
+      continue;
+    }
+
+    const equalsIndex = arg.indexOf("=");
+    const optionName = equalsIndex === -1 ? arg : arg.slice(0, equalsIndex);
+    const normalizedOptionName = optionName.replaceAll("-", "");
+    const sensitiveByName =
+      isSensitiveName(normalizedOptionName) ||
+      [...secretNames].some((name) =>
+        normalizedOptionName.toLowerCase().includes(name.toLowerCase())
+      );
+
+    if (equalsIndex !== -1 && sensitiveByName) {
+      output.push(`${optionName}=<redacted>`);
+      continue;
+    }
+
+    if (arg.startsWith("-") && sensitiveByName) {
+      output.push(arg);
+      redactNext = true;
+      continue;
+    }
+
+    let redactedArg = arg;
+    for (const secretValue of secretValues) {
+      redactedArg = redactedArg.split(secretValue).join("<redacted>");
+    }
+    output.push(redactedArg);
+  }
+
+  return output;
+}
+
+function stableJson(value: unknown): string {
+  return JSON.stringify(value, null, 2) ?? "undefined";
+}
+
+function ownStructuredFields(error: Error): Record<string, unknown> {
+  const fields: Record<string, unknown> = {};
+
+  for (const key of Object.keys(error)) {
+    if (key === "name" || key === "message" || key === "stack" || key === "cause") {
+      continue;
+    }
+
+    fields[key] = (error as unknown as Record<string, unknown>)[key];
+  }
+
+  return fields;
+}
+
+function formatStackChain(error: unknown): string {
+  const lines: string[] = [];
+  let current: unknown = error;
+  let index = 0;
+
+  while (current !== undefined) {
+    if (current instanceof Error) {
+      lines.push(
+        index === 0
+          ? (current.stack ?? String(current))
+          : `Caused by: ${current.stack ?? String(current)}`
+      );
+      current = current.cause;
+    } else {
+      lines.push(index === 0 ? String(current) : `Caused by: ${String(current)}`);
+      current = undefined;
+    }
+
+    index += 1;
+  }
+
+  return lines.join("\n");
+}
+
+function formatHeaders(headers: Record<string, string>): string {
+  return Object.entries(headers)
+    .map(([name, value]) => `${name}: ${value}`)
+    .join("\n");
+}
+
+function formatBody(body: unknown): string {
+  if (typeof body === "string") {
+    return body;
+  }
+
+  return stableJson(body);
+}
+
+function formatHttpTranscript(error: HttpErrorLike): string {
+  const requestLines = [
+    `${error.request.method} ${error.request.url}`,
+    formatHeaders(error.request.headers)
+  ].filter((line) => line.length > 0);
+
+  if (error.request.body !== undefined) {
+    requestLines.push("", formatBody(error.request.body));
+  }
+
+  return [
+    "Request:",
+    ...requestLines,
+    "",
+    "Response:",
+    `${error.response.status} ${error.response.statusText}`,
+    formatHeaders(error.response.headers),
+    "",
+    formatBody(error.response.body)
+  ].join("\n");
+}
+
+function resolveToolcraftVersion(version: string | undefined): string {
+  return (
+    version ??
+    findPackageMetadata(new URL("./error-report.ts", import.meta.url))?.version ??
+    "unknown"
+  );
+}
+
+function buildReport(context: ErrorReportContext): string {
+  const env = context.env ?? process.env;
+  const error = context.error;
+  const errorName = error instanceof Error ? error.name : typeof error;
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const structuredFields = error instanceof Error ? ownStructuredFields(error) : {};
+  const secretLines = Object.entries(context.command?.secrets ?? {}).map(([name, secret]) => {
+    const value = context.secrets?.[name] ?? env[secret.env];
+    return `${secret.env}=${redactValue(value)}`;
+  });
+  const lines = [
+    "Toolcraft Error Report",
+    "",
+    "Runtime",
+    `toolcraft version: ${resolveToolcraftVersion(context.version)}`,
+    `node version: ${process.version}`,
+    `platform: ${process.platform} ${process.arch}`,
+    "",
+    "Argv",
+    stableJson(redactArgv(context.argv, { command: context.command, secrets: context.secrets })),
+    "",
+    "Resolved Secrets",
+    ...(secretLines.length === 0 ? ["<none>"] : secretLines),
+    "",
+    "Command Path",
+    context.commandPath === undefined || context.commandPath.length === 0
+      ? "root"
+      : context.commandPath,
+    "",
+    "Parsed Params",
+    stableJson(redactParams(context.params, context.command)),
+    "",
+    "Error",
+    `name: ${errorName}`,
+    `message: ${errorMessage}`,
+    "structured fields:",
+    stableJson(structuredFields),
+    "",
+    "Stack",
+    formatStackChain(error)
+  ];
+
+  if (hasHttpContext(error)) {
+    lines.push("", "HTTP Transcript", formatHttpTranscript(error));
+  }
+
+  return `${lines.join("\n")}\n`;
+}
+
+export async function writeErrorReport(
+  context: ErrorReportContext
+): Promise<ErrorReportResult | undefined> {
+  const env = context.env ?? process.env;
+
+  if (!reportsEnabled(context.errorReports, env) || isSkippedError(context.error)) {
+    return undefined;
+  }
+
+  const projectRoot = resolveProjectRoot(context.projectRoot);
+  const reportDir = resolveReportDir(context.errorReports, projectRoot);
+  const fileName = `${formatTimestamp(new Date())}-${slugifyCommandPath(context.commandPath)}.log`;
+  const absolutePath = path.join(reportDir, fileName);
+
+  await mkdir(reportDir, { recursive: true });
+  await writeFile(absolutePath, buildReport(context));
+
+  return {
+    absolutePath,
+    displayPath: relativeDisplayPath(projectRoot, absolutePath)
+  };
+}
+
+export { hasHttpContext };

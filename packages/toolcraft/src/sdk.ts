@@ -2,6 +2,7 @@ import { access, readFile, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
 import { ToolcraftBugError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
 import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
@@ -219,6 +220,7 @@ export interface CreateSDKOptions<TServices extends object = Record<string, unkn
   casing?: "camel";
   humanInLoop?: HumanInLoopRuntimeOptions;
   projectRoot?: string;
+  errorReports?: ErrorReportsOption;
 }
 
 function splitWords(value: string): string[] {
@@ -538,40 +540,58 @@ function createResolvedSDK(
   function build(node: Group<any> | Command<any, any, any, any>, path: string[]): unknown {
     if (node.kind === "command") {
       return async (params: Record<string, unknown> | undefined) => {
-        const secrets = resolveCommandSecrets(node);
-        const baseContext = {
-          ...services,
-          runtimeOptions,
-          root,
-          secrets,
-          fetch: globalThis.fetch,
-          fs: createFs(),
-          env: createEnv(),
-          progress(): void {
-            return undefined;
+        const commandPath = [...path, node.name].join(".");
+        let secrets: Record<string, string | undefined> | undefined;
+        let validatedParams: unknown;
+
+        try {
+          secrets = resolveCommandSecrets(node);
+          const baseContext = {
+            ...services,
+            runtimeOptions,
+            root,
+            secrets,
+            fetch: globalThis.fetch,
+            fs: createFs(),
+            env: createEnv(),
+            progress(): void {
+              return undefined;
+            }
+          };
+
+          await assertCommandRequirements(node, { ...baseContext, params: undefined });
+
+          const paramsSchema = filterSchemaForScope(node.params, "sdk");
+
+          if (paramsSchema === undefined || paramsSchema.kind !== "object") {
+            throw new ToolcraftBugError(
+              `command "${node.name}" must define an object params schema for SDK.`
+            );
           }
-        };
 
-        await assertCommandRequirements(node, { ...baseContext, params: undefined });
-
-        const paramsSchema = filterSchemaForScope(node.params, "sdk");
-
-        if (paramsSchema === undefined || paramsSchema.kind !== "object") {
-          throw new ToolcraftBugError(
-            `command "${node.name}" must define an object params schema for SDK.`
+          validatedParams = validateSDKArguments(paramsSchema, params);
+          return await invokeWithHumanInLoop(
+            node,
+            {
+              ...baseContext,
+              params: validatedParams
+            } as Parameters<typeof node.handler>[0],
+            runtimeOptions,
+            commandPath
           );
+        } catch (error) {
+          await writeErrorReport({
+            command: node,
+            commandPath,
+            env: process.env,
+            error,
+            errorReports: options.errorReports,
+            params: validatedParams,
+            projectRoot: options.projectRoot,
+            secrets
+          });
+          throw error;
         }
-
-        const validatedParams = validateSDKArguments(paramsSchema, params);
-        return invokeWithHumanInLoop(
-          node,
-          {
-            ...baseContext,
-            params: validatedParams
-          } as Parameters<typeof node.handler>[0],
-          runtimeOptions,
-          [...path, node.name].join(".")
-        );
       };
     }
 

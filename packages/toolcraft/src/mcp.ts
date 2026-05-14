@@ -15,6 +15,7 @@ import {
   assertCommandRequirements,
   resolveCommandSecrets
 } from "./index.js";
+import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import {
   ApprovalDeclinedError,
@@ -88,6 +89,7 @@ export interface RunMCPOptions<TServices extends object = Record<string, unknown
    */
   omitRootToolNamePrefix?: boolean;
   services?: TServices;
+  errorReports?: ErrorReportsOption;
   /**
    * Controls MCP input-schema key casing and accepted argument-key casing.
    *
@@ -674,8 +676,10 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
       tool.description,
       tool.inputSchema as TypedSchema<Record<string, unknown>>,
       async (argumentsValue) => {
+        let params: unknown;
+        let secrets: Record<string, string | undefined> | undefined;
         try {
-          const secrets = resolveCommandSecrets(tool.command);
+          secrets = resolveCommandSecrets(tool.command);
           const baseContext = {
             ...servicesWithBuiltIns,
             secrets,
@@ -689,7 +693,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
 
           await assertCommandRequirements(tool.command, { ...baseContext, params: undefined });
 
-          const params = validateToolArguments(tool.command.params, argumentsValue, casing);
+          params = validateToolArguments(tool.command.params, argumentsValue, casing);
           const result = await invokeWithHumanInLoop(
             tool.command,
             {
@@ -710,6 +714,16 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
             return renderDeclinedApproval(error);
           }
 
+          await writeErrorReport({
+            command: tool.command,
+            commandPath: tool.commandPath,
+            env: process.env,
+            error,
+            errorReports: options.errorReports,
+            params,
+            projectRoot: options.projectRoot,
+            secrets
+          });
           throw toToolError(error);
         }
       }

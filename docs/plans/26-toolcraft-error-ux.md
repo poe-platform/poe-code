@@ -1048,7 +1048,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-error-report-capture
     title: Write a self-contained error report on failure
@@ -1112,8 +1112,8 @@ tasks:
           without the option
         - secret params do not appear in the report file
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-error-ux-contract-snapshots

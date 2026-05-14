@@ -33,10 +33,12 @@ type StringMetadata = {
   maxLength?: number;
   minLength?: number;
   pattern?: string;
+  secret?: boolean;
 };
 type NumberMetadata = {
   maximum?: number;
   minimum?: number;
+  secret?: boolean;
 };
 type ArrayMetadata = {
   maxItems?: number;

@@ -49,6 +49,7 @@ import {
   resolveCommandSecrets
 } from "./index.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
+import { writeErrorReport, type ErrorReportsOption } from "./error-report.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
 import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
 import { resolveMcpProxies } from "./mcp-proxy.js";
@@ -218,6 +219,7 @@ export interface RunCLIOptions<TServices extends object = Record<string, unknown
   services?: TServices;
   version?: string;
   presets?: boolean;
+  errorReports?: ErrorReportsOption;
 }
 
 function inferProgramName(argv: string[]): string {
@@ -3605,7 +3607,13 @@ async function executeCommand<TServices extends object>(
   state: ExecutionState<TServices>,
   services: TServices,
   requirementOptions: CommandRequirementOptions,
-  runtimeOptions: HumanInLoopRuntimeOptions | undefined
+  runtimeOptions: HumanInLoopRuntimeOptions | undefined,
+  onErrorReportContext?: (context: {
+    command: Command<TServices, any, any, any>;
+    commandPath: string;
+    params?: unknown;
+    secrets?: Record<string, string | undefined>;
+  }) => void
 ): Promise<void> {
   const logger = createLogger();
   const primitives = {
@@ -3630,82 +3638,97 @@ async function executeCommand<TServices extends object>(
     }
   };
 
-  await withOutputFormat(output, async () => {
-    await assertCommandRequirements(state.command, preflightContext, runtime.requirementOptions);
+  let runtimeSecrets: Record<string, string | undefined> | undefined;
+  let resolvedParams: unknown;
 
-    const params = await resolveParams(
-      state.fields,
-      state.dynamicFields,
-      state.variants,
-      state.positionalValues,
-      optionValues,
-      state.rawArgv,
-      state.casing,
-      state.presetsEnabled ? resolvedFlags.preset : undefined,
-      shouldPrompt
-    );
+  try {
+    await withOutputFormat(output, async () => {
+      await assertCommandRequirements(state.command, preflightContext, runtime.requirementOptions);
 
-    const context = {
-      ...preflightContext,
-      params
-    } as HandlerContext<any, any, TServices>;
+      const params = await resolveParams(
+        state.fields,
+        state.dynamicFields,
+        state.variants,
+        state.positionalValues,
+        optionValues,
+        state.rawArgv,
+        state.casing,
+        state.presetsEnabled ? resolvedFlags.preset : undefined,
+        shouldPrompt
+      );
+      resolvedParams = params;
+      runtimeSecrets = runtime.secrets;
 
-    if (
-      state.command.confirm &&
-      !state.command.humanInLoop &&
-      !resolvedFlags.yes &&
-      process.stdin.isTTY
-    ) {
-      for (const field of state.fields) {
-        const value = field.path.reduce<unknown>(
-          (current, segment) =>
-            current && typeof current === "object"
-              ? (current as Record<string, unknown>)[segment]
-              : undefined,
-          params
-        );
+      const context = {
+        ...preflightContext,
+        params
+      } as HandlerContext<any, any, TServices>;
 
-        if (value !== undefined) {
-          logger.resolved(field.displayPath, formatResolvedValue(value));
+      if (
+        state.command.confirm &&
+        !state.command.humanInLoop &&
+        !resolvedFlags.yes &&
+        process.stdin.isTTY
+      ) {
+        for (const field of state.fields) {
+          const value = field.path.reduce<unknown>(
+            (current, segment) =>
+              current && typeof current === "object"
+                ? (current as Record<string, unknown>)[segment]
+                : undefined,
+            params
+          );
+
+          if (value !== undefined) {
+            logger.resolved(field.displayPath, formatResolvedValue(value));
+          }
+        }
+
+        const proceed = await confirm({
+          message: "Proceed?",
+          initialValue: true
+        });
+
+        if (isCancel(proceed)) {
+          cancel("Operation cancelled.");
+          throw new UserError("Operation cancelled.");
+        }
+
+        if (proceed !== true) {
+          throw new UserError("Operation cancelled.");
         }
       }
 
-      const proceed = await confirm({
-        message: "Proceed?",
-        initialValue: true
-      });
+      const result = await invokeWithHumanInLoop(
+        state.command,
+        context,
+        runtimeOptions,
+        state.commandPath
+      );
 
-      if (isCancel(proceed)) {
-        cancel("Operation cancelled.");
-        throw new UserError("Operation cancelled.");
+      if (output === "rich" && runtime.isFixture) {
+        writeRichHeader(`${state.command.name} (fixture)`);
       }
 
-      if (proceed !== true) {
-        throw new UserError("Operation cancelled.");
+      if (isHumanInLoopPending(result)) {
+        renderHumanInLoopPending(result);
+        return;
       }
-    }
 
-    const result = await invokeWithHumanInLoop(
-      state.command,
-      context,
-      runtimeOptions,
-      state.commandPath
-    );
-
-    if (output === "rich" && runtime.isFixture) {
-      writeRichHeader(`${state.command.name} (fixture)`);
-    }
-
-    if (isHumanInLoopPending(result)) {
-      renderHumanInLoopPending(result);
-      return;
-    }
-
-    const renderStatus = renderResult(state.command, result, output, primitives);
-    if (renderStatus.mcpError) {
-      process.exitCode = 1;
-    }
-  });
+      const renderStatus = renderResult(state.command, result, output, primitives);
+      if (renderStatus.mcpError) {
+        process.exitCode = 1;
+      }
+    });
+  } catch (error) {
+    onErrorReportContext?.({
+      command: state.command,
+      commandPath: state.commandPath,
+      params: resolvedParams,
+      secrets: runtimeSecrets ?? runtime.secrets
+    });
+    throw error;
+  }
 }
 
 type HttpErrorLike = {
@@ -4333,10 +4356,26 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
   let lastActionCommand: CommanderCommand | undefined;
   let resolvedCommandPath = "";
+  let errorReportContext:
+    | {
+        command: Command<TServices, any, any, any>;
+        commandPath: string;
+        params?: unknown;
+        secrets?: Record<string, string | undefined>;
+      }
+    | undefined;
   const execute = async (state: ExecutionState<TServices>) => {
     lastActionCommand = state.actionCommand;
     resolvedCommandPath = formatCliCommandPath(state.commandPath);
-    await executeCommand(state, servicesWithBuiltIns, requirementOptions, runtimeOptions);
+    await executeCommand(
+      state,
+      servicesWithBuiltIns,
+      requirementOptions,
+      runtimeOptions,
+      (context) => {
+        errorReportContext = context;
+      }
+    );
   };
 
   for (const child of root.children) {
@@ -4384,6 +4423,23 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     }
 
     const resolvedFlags = lastActionCommand ? getResolvedFlags(lastActionCommand) : undefined;
+    const report = await writeErrorReport({
+      argv: process.argv,
+      command: errorReportContext?.command,
+      commandPath: errorReportContext?.commandPath ?? resolvedCommandPath,
+      env: process.env,
+      error,
+      errorReports: options.errorReports,
+      params: errorReportContext?.params,
+      projectRoot: options.projectRoot,
+      secrets: errorReportContext?.secrets,
+      version
+    });
+
+    if (report !== undefined) {
+      process.stderr.write(`Saved error report to ${report.displayPath}\n`);
+    }
+
     handleRunError(error, {
       debugStackMode:
         resolvedFlags !== undefined

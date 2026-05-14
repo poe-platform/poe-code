@@ -474,28 +474,37 @@ export function hasMcpProxyGroups(root: Group<any>): boolean {
   return collectProxyGroups(root).length > 0;
 }
 
-export function resolveCachePath(name: string, projectRoot?: string): string {
-  if (projectRoot !== undefined) {
-    return path.join(projectRoot, ".toolcraft", "mcp", `${name}.json`);
-  }
-
+export function findProjectRoot(from: string = process.cwd()): string | undefined {
   let current = process.cwd();
+  if (from !== current) {
+    current = path.resolve(from);
+  }
 
   while (true) {
     if (existsSync(path.join(current, "package.json"))) {
-      return path.join(current, ".toolcraft", "mcp", `${name}.json`);
+      return current;
     }
 
     const parent = path.dirname(current);
 
     if (parent === current) {
-      throw new Error(
-        `Could not find package.json above "${process.cwd()}" while resolving MCP cache path.`
-      );
+      return undefined;
     }
 
     current = parent;
   }
+}
+
+export function resolveCachePath(name: string, projectRoot?: string): string {
+  const resolvedProjectRoot = projectRoot ?? findProjectRoot();
+
+  if (resolvedProjectRoot === undefined) {
+    throw new Error(
+      `Could not find package.json above "${process.cwd()}" while resolving MCP cache path.`
+    );
+  }
+
+  return path.join(resolvedProjectRoot, ".toolcraft", "mcp", `${name}.json`);
 }
 
 export function parseRefreshEnv(

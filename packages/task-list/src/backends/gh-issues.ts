@@ -19,7 +19,7 @@ import {
 import { createGhClient, type GhClient } from "./gh-issues-client.js";
 import { applyOrder, sortTasks } from "./utils.js";
 
-const PROJECT_ORGANIZATION_QUERY = `query Project($owner: String!, $number: Int!) {
+export const PROJECT_ORGANIZATION_QUERY = `query Project($owner: String!, $number: Int!) {
   organization(login: $owner) {
     projectV2(number: $number) {
       id
@@ -27,14 +27,24 @@ const PROJECT_ORGANIZATION_QUERY = `query Project($owner: String!, $number: Int!
       field(name: "Status") {
         ... on ProjectV2SingleSelectField {
           id
+          name
           options { id name }
+        }
+      }
+      fields(first: 100) {
+        nodes {
+          ... on ProjectV2SingleSelectField {
+            id
+            name
+            options { id name }
+          }
         }
       }
     }
   }
 }`;
 
-const PROJECT_USER_QUERY = `query Project($owner: String!, $number: Int!) {
+export const PROJECT_USER_QUERY = `query Project($owner: String!, $number: Int!) {
   user(login: $owner) {
     projectV2(number: $number) {
       id
@@ -42,7 +52,17 @@ const PROJECT_USER_QUERY = `query Project($owner: String!, $number: Int!) {
       field(name: "Status") {
         ... on ProjectV2SingleSelectField {
           id
+          name
           options { id name }
+        }
+      }
+      fields(first: 100) {
+        nodes {
+          ... on ProjectV2SingleSelectField {
+            id
+            name
+            options { id name }
+          }
         }
       }
     }

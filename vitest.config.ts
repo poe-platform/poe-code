@@ -129,6 +129,7 @@ export default defineConfig({
       "tests/helpers/**/*.test.ts",    // Test helper tests
       "tests/integration/**/*.test.ts", // Integration tests
       "packages/**/*.test.ts",         // Package tests
+      "packages/**/*.spec.ts",         // Package specs
       "scripts/screenshot.test.ts"     // Script tests (explicit)
     ],
     exclude: [

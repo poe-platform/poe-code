@@ -23,7 +23,7 @@ tasks:
       Before writing the file, read `packages/task-list/src/backends/gh-issues-client.ts` and `packages/task-list/src/backends/gh-issues.ts` so the new types reference the existing `GhClient`. Do not modify `gh-issues.ts`. `npm run build` must pass after this step.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: verify-gh-project
     title: Implement verifyGhProject with read-only project/field/option checks
@@ -43,8 +43,8 @@ tasks:
 
       Do not mock real network. All GraphQL goes through `GhClient.request`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: sync-gh-project-mutations

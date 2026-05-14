@@ -634,7 +634,17 @@ exports[`ghIssuesBackend > keeps the project GraphQL request wire shape stable 1
       field(name: "Status") {
         ... on ProjectV2SingleSelectField {
           id
+          name
           options { id name }
+        }
+      }
+      fields(first: 100) {
+        nodes {
+          ... on ProjectV2SingleSelectField {
+            id
+            name
+            options { id name }
+          }
         }
       }
     }

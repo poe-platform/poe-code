@@ -356,6 +356,7 @@ describe("text", () => {
         "[https://example.com](https://example.com)"
       );
       expect(text.muted("Muted")).toBe("*Muted*");
+      expect(text.error("Error")).toBe("**Error**");
       expect(text.badge("beta")).toBe("[beta]");
       expect(text.selectLabel("provider", "claude")).toBe("provider — claude");
     });
@@ -374,6 +375,7 @@ describe("text", () => {
       expect(text.usageCommand("poe-code configure")).toBe("poe-code configure");
       expect(text.link("https://example.com")).toBe("https://example.com");
       expect(text.muted("Muted")).toBe("Muted");
+      expect(text.error("Error")).toBe("Error");
       expect(text.badge("beta")).toBe("beta");
       expect(text.selectLabel("provider", "claude")).toBe("provider — claude");
     });

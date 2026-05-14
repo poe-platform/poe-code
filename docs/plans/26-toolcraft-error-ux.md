@@ -71,7 +71,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-openapi-http-error-render
     title: CLI renders HttpError with request and response, not a stack
@@ -168,8 +168,8 @@ tasks:
         5. Generic Error is unchanged — old message + debug hint
         6. Authorization in request.headers is rendered as `Bearer ****`
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-openapi-verbose-transcript

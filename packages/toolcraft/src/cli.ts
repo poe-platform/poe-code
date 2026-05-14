@@ -70,6 +70,7 @@ interface ResolvedFlags {
   yes?: boolean;
   output?: OutputMode;
   debug?: boolean;
+  verbose?: boolean;
 }
 
 interface FieldDefinition {
@@ -872,7 +873,7 @@ function createOption(
   return [option];
 }
 
-const ALWAYS_GLOBAL_LONG_OPTION_FLAGS = ["--yes", "--output", "--debug"] as const;
+const ALWAYS_GLOBAL_LONG_OPTION_FLAGS = ["--yes", "--output", "--debug", "--verbose"] as const;
 
 function getGlobalLongOptionFlags(presetsEnabled: boolean): ReadonlySet<string> {
   return new Set(
@@ -1416,10 +1417,6 @@ function formatGlobalOptionRows(ctx: {
     {
       flags: "--output <format>",
       description: "Output format: rich, md, json."
-    },
-    {
-      flags: "--debug",
-      description: "Print stack traces for unexpected errors."
     }
   );
 
@@ -1446,6 +1443,10 @@ function collectSchemaGlobalFieldRows<TServices extends object>(
       const collected = collectFields(node.params, casing, globalLongOptionFlags);
       for (const field of collected.fields) {
         if (field.global !== true) {
+          continue;
+        }
+
+        if (globalLongOptionFlags.has(field.optionFlag)) {
           continue;
         }
 
@@ -1785,7 +1786,8 @@ function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): v
         'Invalid value for "--output". Expected one of: rich, md, markdown, json.'
       );
     })
-    .option("--debug", "Print stack traces for unexpected errors.");
+    .option("--debug", "Print stack traces for unexpected errors.")
+    .option("--verbose", "Print detailed runtime diagnostics.");
 }
 
 function setNestedValue(target: Record<string, unknown>, path: string[], value: unknown): void {
@@ -3130,6 +3132,16 @@ async function resolveParams(
 
     if (
       value === undefined &&
+      field.optionFlag === "--verbose" &&
+      Object.prototype.hasOwnProperty.call(optionValues, field.optionAttribute) &&
+      hasFieldValue(optionValues[field.optionAttribute])
+    ) {
+      value = normalizeCommanderOptionValue(optionValues[field.optionAttribute]);
+      source = "option";
+    }
+
+    if (
+      value === undefined &&
       Object.prototype.hasOwnProperty.call(presetValues, field.optionAttribute)
     ) {
       value = presetValues[field.optionAttribute];
@@ -3316,7 +3328,133 @@ async function executeCommand<TServices extends object>(
   });
 }
 
-function handleRunError(error: unknown, debug: boolean): void {
+type HttpErrorLike = {
+  name: "HttpError";
+  message: string;
+  request: {
+    method: string;
+    url: string;
+    headers: Record<string, string>;
+    body?: unknown;
+  };
+  response: {
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    body: unknown;
+  };
+};
+
+function isStringRecord(value: unknown): value is Record<string, string> {
+  return (
+    isPlainObject(value) &&
+    Object.values(value).every((entry) => typeof entry === "string")
+  );
+}
+
+function isHttpErrorLike(error: unknown): error is HttpErrorLike {
+  if (!isPlainObject(error)) {
+    return false;
+  }
+
+  if (error.name !== "HttpError" || typeof error.message !== "string") {
+    return false;
+  }
+
+  const request = error.request;
+  const response = error.response;
+
+  return (
+    isPlainObject(request) &&
+    typeof request.method === "string" &&
+    typeof request.url === "string" &&
+    isStringRecord(request.headers) &&
+    isPlainObject(response) &&
+    typeof response.status === "number" &&
+    typeof response.statusText === "string" &&
+    isStringRecord(response.headers) &&
+    "body" in response
+  );
+}
+
+function styleHttpErrorLine(value: string, style: (line: string) => string): string {
+  return process.stdout.isTTY === false ? value : style(value);
+}
+
+function formatHttpErrorStatus(value: string): string {
+  return styleHttpErrorLine(value, text.error);
+}
+
+function formatHttpErrorBody(body: unknown): string {
+  if (typeof body === "string") {
+    return body;
+  }
+
+  const serialized = JSON.stringify(body, null, 2);
+  return serialized === undefined ? String(body) : serialized;
+}
+
+function indentHttpErrorBlock(value: string): string {
+  return value
+    .split("\n")
+    .map((line) => `  ${line}`)
+    .join("\n");
+}
+
+function formatHttpErrorHeaders(headers: Record<string, string>): string[] {
+  return Object.entries(headers).map(([name, value]) => `  ${name}: ${value}`);
+}
+
+function formatHttpErrorSnippet(body: unknown): string {
+  return formatHttpErrorBody(body).replace(/\s+/g, " ").trim().slice(0, 200);
+}
+
+function renderHttpError(error: HttpErrorLike, options: { debug: boolean; verbose: boolean }): void {
+  const detailed = options.verbose || options.debug;
+  const lines: string[] = [
+    styleHttpErrorLine(`Request:  ${error.request.method} ${error.request.url}`, text.muted)
+  ];
+
+  if (detailed) {
+    lines.push("", "Request headers:", ...formatHttpErrorHeaders(error.request.headers), "");
+  }
+
+  lines.push(
+    formatHttpErrorStatus(`Status:   ${error.response.status} ${error.response.statusText}`)
+  );
+
+  if (detailed) {
+    lines.push(
+      "",
+      "Response headers:",
+      ...formatHttpErrorHeaders(error.response.headers),
+      "",
+      "Response body:",
+      indentHttpErrorBlock(formatHttpErrorBody(error.response.body))
+    );
+  } else {
+    lines.push(
+      "",
+      `Response body: ${formatHttpErrorSnippet(error.response.body)}`,
+      "Re-run with --verbose to see headers and full body."
+    );
+  }
+
+  process.stderr.write(`${lines.join("\n")}\n`);
+
+  const stack = error instanceof Error ? (error as Error).stack : undefined;
+  if (options.debug && stack) {
+    process.stderr.write(`${stack}\n`);
+  }
+}
+
+function handleRunError(
+  error: unknown,
+  options: {
+    debug: boolean;
+    verbose: boolean;
+  }
+): void {
   const logger = createLogger();
 
   if (error instanceof UserError) {
@@ -3333,10 +3471,16 @@ function handleRunError(error: unknown, debug: boolean): void {
     return;
   }
 
-  const message = error instanceof Error ? error.message : String(error);
-  logger.error(debug ? message : `${message} Use --debug for a stack trace.`);
+  if (isHttpErrorLike(error)) {
+    renderHttpError(error, options);
+    process.exitCode = 1;
+    return;
+  }
 
-  if (debug && error instanceof Error && error.stack) {
+  const message = error instanceof Error ? error.message : String(error);
+  logger.error(options.debug ? message : `${message} Use --debug for a stack trace.`);
+
+  if (options.debug && error instanceof Error && error.stack) {
     process.stderr.write(`${error.stack}\n`);
   }
 
@@ -3416,11 +3560,12 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
       return;
     }
 
-    handleRunError(
-      error,
-      lastActionCommand
-        ? Boolean(getResolvedFlags(lastActionCommand).debug)
-        : process.argv.includes("--debug")
-    );
+    const resolvedFlags = lastActionCommand ? getResolvedFlags(lastActionCommand) : undefined;
+    handleRunError(error, {
+      debug: resolvedFlags ? Boolean(resolvedFlags.debug) : process.argv.includes("--debug"),
+      verbose: resolvedFlags
+        ? Boolean(resolvedFlags.verbose)
+        : process.argv.includes("--verbose")
+    });
   }
 }

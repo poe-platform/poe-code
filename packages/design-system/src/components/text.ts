@@ -70,6 +70,12 @@ export const text = {
     if (format === "markdown") return `*${content}*`;
     return getTheme().muted(content);
   },
+  error(content: string): string {
+    const format = resolveOutputFormat();
+    if (format === "json") return content;
+    if (format === "markdown") return `**${content}**`;
+    return getTheme().error(content);
+  },
   badge(content: string): string {
     const format = resolveOutputFormat();
     if (format === "json") return content;

@@ -48,6 +48,7 @@ vi.mock("@poe-code/design-system", () => ({
     heading: (value: string) => value,
     section: (value: string) => value,
     sectionHeader: (value: string) => value,
+    error: (value: string) => value,
     muted: (value: string) => value,
     usageCommand: (value: string) => value
   },
@@ -296,6 +297,76 @@ function readStdout(stdoutWrite: ReturnType<typeof vi.spyOn>): string {
 
 function readStderr(stderrWrite: ReturnType<typeof vi.spyOn>): string {
   return stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("");
+}
+
+function createHttpErrorLike(overrides: {
+  request?: {
+    method?: string;
+    url?: string;
+    headers?: Record<string, string>;
+    body?: unknown;
+  };
+  response?: {
+    status?: number;
+    statusText?: string;
+    headers?: Record<string, string>;
+    body?: unknown;
+  };
+  stack?: string;
+} = {}): Error & {
+  name: "HttpError";
+  request: {
+    method: string;
+    url: string;
+    headers: Record<string, string>;
+    body?: unknown;
+  };
+  response: {
+    status: number;
+    statusText: string;
+    headers: Record<string, string>;
+    body: unknown;
+  };
+} {
+  const error = new Error("GET https://api.example.com/v1/widgets/42 -> 500 Internal Server Error") as Error & {
+    name: "HttpError";
+    request: {
+      method: string;
+      url: string;
+      headers: Record<string, string>;
+      body?: unknown;
+    };
+    response: {
+      status: number;
+      statusText: string;
+      headers: Record<string, string>;
+      body: unknown;
+    };
+  };
+
+  error.name = "HttpError";
+  error.request = {
+    method: overrides.request?.method ?? "GET",
+    url: overrides.request?.url ?? "https://api.example.com/v1/widgets/42",
+    headers: overrides.request?.headers ?? {
+      authorization: "Bearer ****"
+    },
+    body: overrides.request?.body
+  };
+  error.response = {
+    status: overrides.response?.status ?? 500,
+    statusText: overrides.response?.statusText ?? "Internal Server Error",
+    headers: overrides.response?.headers ?? {
+      "content-type": "application/json",
+      "x-request-id": "8f3c"
+    },
+    body: overrides.response?.body ?? {
+      error: "internal_panic",
+      trace_id: "8f3c-123"
+    }
+  };
+  error.stack = overrides.stack ?? "HttpError: request failed\n    at fake-handler";
+  return error;
 }
 
 describe("runCLI", () => {
@@ -802,7 +873,6 @@ describe("runCLI", () => {
       Options
         --yes  Accept defaults, skip prompts
         --output <format>  Output format: rich, md, json.
-        --debug  Print stack traces for unexpected errors.
       "
     `);
     expect(output).toContain("Options");
@@ -848,7 +918,6 @@ describe("runCLI", () => {
         --preset <path>  Load parameter defaults from a JSON file
         --yes  Accept defaults, skip prompts
         --output <format>  Output format: rich, md, json.
-        --debug  Print stack traces for unexpected errors.
         --version  Show version
       "
     `);
@@ -1465,6 +1534,196 @@ describe("runCLI", () => {
 
     expect(loggerState.error).toEqual(["Boom."]);
     expect(stderrWrite).toHaveBeenCalled();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("prints truncated HttpError-like details by default without a stack trace", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              error: "internal_panic",
+              trace_id: "8f3c-123",
+              details:
+                "The upstream service returned a very long diagnostic payload with whitespace\nthat should collapse into a one-line snippet for normal users."
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
+    await runCLI(root);
+
+    expect(readStderr(stderrWrite)).toMatchInlineSnapshot(`
+      "Request:  GET https://api.example.com/v1/widgets/42
+      Status:   500 Internal Server Error
+
+      Response body: { "error": "internal_panic", "trace_id": "8f3c-123", "details": "The upstream service returned a very long diagnostic payload with whitespace\\nthat should collapse into a one-line snippet for normal u
+      Re-run with --verbose to see headers and full body.
+      "
+    `);
+    expect(readStderr(stderrWrite)).not.toContain("at fake-handler");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("prints full HttpError-like details with --verbose without a stack trace", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike();
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    expect(readStderr(stderrWrite)).toMatchInlineSnapshot(`
+      "Request:  GET https://api.example.com/v1/widgets/42
+
+      Request headers:
+        authorization: Bearer ****
+
+      Status:   500 Internal Server Error
+
+      Response headers:
+        content-type: application/json
+        x-request-id: 8f3c
+
+      Response body:
+        {
+          "error": "internal_panic",
+          "trace_id": "8f3c-123"
+        }
+      "
+    `);
+    expect(readStderr(stderrWrite)).not.toContain("at fake-handler");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("prints full HttpError-like details and the stack trace with --debug", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike();
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--debug"];
+    await runCLI(root);
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain("Response headers:");
+    expect(output).toContain("Response body:");
+    expect(output).toContain("HttpError: request failed\n    at fake-handler");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("does not render an HttpError transcript for UserError", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        const error = new UserError("Invalid input.") as UserError & { name: "HttpError" };
+        error.name = "HttpError";
+        throw error;
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual(["Invalid input."]);
+    expect(readStderr(stderrWrite)).toBe("");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("keeps generic Error output unchanged", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw new Error("Boom.");
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual(["Boom. Use --debug for a stack trace."]);
+    expect(readStderr(stderrWrite)).toBe("");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("prints redacted Authorization request headers in verbose HttpError-like details", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          request: {
+            headers: {
+              authorization: "Bearer ****",
+              accept: "application/json"
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain("  authorization: Bearer ****");
+    expect(output).not.toContain("raw-token");
     expect(process.exitCode).toBe(1);
   });
 
@@ -2984,7 +3243,6 @@ describe("runCLI", () => {
       Options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
-        --debug             Print stack traces for unexpected errors.
       "
     `);
   });
@@ -3160,7 +3418,6 @@ describe("runCLI", () => {
       Options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
-        --debug             Print stack traces for unexpected errors.
       "
     `);
   });
@@ -3233,8 +3490,6 @@ describe("runCLI", () => {
       Options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
-        --debug             Print stack traces for unexpected
-                            errors.
       "
     `);
   });
@@ -3273,7 +3528,6 @@ describe("runCLI", () => {
       Options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
-        --debug             Print stack traces for unexpected errors.
       "
     `);
     expect(formatterState.plainCommandListCalls).toBeGreaterThan(0);
@@ -3338,14 +3592,11 @@ describe("runCLI", () => {
     const rootHelp = readStdout(stdoutWrite);
 
     const dryRunCount = rootHelp.match(/--dry-run/g)?.length ?? 0;
-    const verboseCount = rootHelp.match(/--verbose/g)?.length ?? 0;
     const debugCount = rootHelp.match(/--debug/g)?.length ?? 0;
     expect(dryRunCount).toBe(1);
-    expect(verboseCount).toBe(1);
-    expect(debugCount).toBe(1);
+    expect(rootHelp).not.toContain("--verbose");
+    expect(debugCount).toBe(0);
     expect(rootHelp).toContain("Options");
-    expect(rootHelp).toMatch(/-v,\s*--verbose\s+Log the request line to stderr/);
-    expect(rootHelp).toMatch(/--debug\s+Print stack traces for unexpected errors/);
 
     const commandsLine =
       rootHelp.split("\n").find((line) => line.trimStart().startsWith("bot-actions")) ?? "";

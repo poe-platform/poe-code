@@ -41,12 +41,11 @@ describe("syncGhProject create mutations", () => {
       createProjectResponse({ id: "new-project-id", number: 42 }),
       createFieldResponse({
         id: "new-status-field",
-        options: [
-          { id: "status-todo", name: "Todo" },
-          { id: "status-doing", name: "Doing" },
-          { id: "status-done", name: "Done" }
-        ]
-      })
+        options: []
+      }),
+      createOptionResponse({ id: "status-todo", name: "Todo" }),
+      createOptionResponse({ id: "status-doing", name: "Doing" }),
+      createOptionResponse({ id: "status-done", name: "Done" })
     ]);
 
     await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toEqual({
@@ -56,7 +55,7 @@ describe("syncGhProject create mutations", () => {
       missingProject: false,
       missingStatusField: false,
       missingOptions: [],
-      created: ["project", "field"],
+      created: ["project", "field", "option:Todo", "option:Doing", "option:Done"],
       updated: []
     });
 
@@ -79,12 +78,11 @@ describe("syncGhProject create mutations", () => {
       createProjectResponse({ id: "new-project-id", number: 42 }),
       createFieldResponse({
         id: "new-status-field",
-        options: [
-          { id: "status-todo", name: "Todo" },
-          { id: "status-doing", name: "Doing" },
-          { id: "status-done", name: "Done" }
-        ]
-      })
+        options: []
+      }),
+      createOptionResponse({ id: "status-todo", name: "Todo" }),
+      createOptionResponse({ id: "status-doing", name: "Doing" }),
+      createOptionResponse({ id: "status-done", name: "Done" })
     ]);
 
     await expect(
@@ -92,7 +90,7 @@ describe("syncGhProject create mutations", () => {
     ).resolves.toMatchObject({
       ok: true,
       project: { id: "new-project-id", number: 42, owner: "octo-org" },
-      created: ["project", "field"]
+      created: ["project", "field", "option:Todo", "option:Doing", "option:Done"]
     });
 
     expect(client.calls[4]?.query).toContain("createProjectV2");
@@ -112,19 +110,18 @@ describe("syncGhProject create mutations", () => {
       createProjectResponse({ id: "new-project-id", number: 42 }),
       createFieldResponse({
         id: "new-status-field",
-        options: [
-          { id: "status-todo", name: "Todo" },
-          { id: "status-doing", name: "Doing" },
-          { id: "status-done", name: "Done" }
-        ]
-      })
+        options: []
+      }),
+      createOptionResponse({ id: "status-todo", name: "Todo" }),
+      createOptionResponse({ id: "status-doing", name: "Doing" }),
+      createOptionResponse({ id: "status-done", name: "Done" })
     ]);
 
     await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toMatchObject({
       ok: true,
       project: { id: "new-project-id", number: 42, owner: "octo-org" },
       statusField: { id: "new-status-field", options: ["Todo", "Doing", "Done"] },
-      created: ["project", "field"]
+      created: ["project", "field", "option:Todo", "option:Doing", "option:Done"]
     });
 
     expect(client.calls[4]?.variables).toMatchObject({
@@ -134,7 +131,7 @@ describe("syncGhProject create mutations", () => {
     });
   });
 
-  it("creates a missing Status field with every required option seeded", async () => {
+  it("creates a missing Status field and then adds each required option", async () => {
     const client = new MockGhClient([
       projectResponse({
         organization: {
@@ -143,12 +140,11 @@ describe("syncGhProject create mutations", () => {
       }),
       createFieldResponse({
         id: "new-status-field",
-        options: [
-          { id: "status-todo", name: "Todo" },
-          { id: "status-doing", name: "Doing" },
-          { id: "status-done", name: "Done" }
-        ]
-      })
+        options: []
+      }),
+      createOptionResponse({ id: "status-todo", name: "Todo" }),
+      createOptionResponse({ id: "status-doing", name: "Doing" }),
+      createOptionResponse({ id: "status-done", name: "Done" })
     ]);
 
     await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toEqual({
@@ -158,11 +154,11 @@ describe("syncGhProject create mutations", () => {
       missingProject: false,
       missingStatusField: false,
       missingOptions: [],
-      created: ["field"],
+      created: ["field", "option:Todo", "option:Doing", "option:Done"],
       updated: []
     });
 
-    expect(client.calls).toHaveLength(2);
+    expect(client.calls).toHaveLength(5);
     expect(client.calls[1]?.query).toContain("createProjectV2Field");
     expect(client.calls[1]?.query).not.toContain("createProjectV2SingleSelectFieldOption");
     expect(client.calls[1]?.variables).toEqual({
@@ -170,11 +166,15 @@ describe("syncGhProject create mutations", () => {
         projectId: "project-id",
         dataType: "SINGLE_SELECT",
         name: "Status",
-        singleSelectOptions: [
-          { name: "Todo", color: "GRAY" },
-          { name: "Doing", color: "GRAY" },
-          { name: "Done", color: "GRAY" }
-        ]
+        singleSelectOptions: []
+      }
+    });
+    expect(client.calls[2]?.query).toContain("createProjectV2SingleSelectFieldOption");
+    expect(client.calls[2]?.variables).toEqual({
+      input: {
+        fieldId: "new-status-field",
+        name: "Todo",
+        color: "GRAY"
       }
     });
   });

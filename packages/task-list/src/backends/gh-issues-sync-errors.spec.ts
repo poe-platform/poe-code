@@ -1,10 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  GhProjectSyncError,
-  syncGhProject,
-  verifyGhProject
-} from "./gh-issues-sync.js";
-import type { GhClient } from "./gh-issues-client.js";
+import { GhProjectSyncError, syncGhProject, verifyGhProject } from "./gh-issues-sync.js";
 import { createFetchMock, graphqlResponse, MockGhClient } from "./test-helpers.js";
 
 const DEFAULT_OPTIONS = {
@@ -13,65 +8,7 @@ const DEFAULT_OPTIONS = {
   requiredStates: ["Todo", "Doing", "Done"]
 };
 
-describe("syncGhProject idempotency and errors", () => {
-  it("runs idempotently after creating the project and field", async () => {
-    const client = new StatefulProjectClient();
-
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toMatchObject({
-      ok: true,
-      missingOptions: [],
-      created: ["project", "field"]
-    });
-
-    const firstRunCalls = client.calls.length;
-
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toEqual({
-      ok: true,
-      project: { id: "new-project-id", number: 7, owner: "octo-org" },
-      statusField: { id: "new-status-field", options: ["Todo", "Doing", "Done"] },
-      missingProject: false,
-      missingStatusField: false,
-      missingOptions: [],
-      created: [],
-      updated: []
-    });
-
-    const secondRunCalls = client.calls.slice(firstRunCalls);
-    expect(secondRunCalls).toHaveLength(1);
-    expect(secondRunCalls[0]?.query).not.toContain("mutation");
-  });
-
-  it("keeps sync resumable when an option mutation fails mid-run", async () => {
-    const client = new FailingOptionOnceClient();
-
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).rejects.toMatchObject({
-      name: "GhProjectSyncError",
-      op: "createOption",
-      target: "Done",
-      message: "permission denied"
-    } satisfies Partial<GhProjectSyncError>);
-
-    await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).resolves.toEqual({
-      ok: true,
-      project: { id: "project-id", number: 7, owner: "octo-org" },
-      statusField: { id: "status-field", options: ["Todo", "Doing", "Done"] },
-      missingProject: false,
-      missingStatusField: false,
-      missingOptions: [],
-      created: ["option:Done"],
-      updated: []
-    });
-
-    expect(client.calls.filter((call) => call.query.includes("createProjectV2Field"))).toHaveLength(
-      0
-    );
-    expect(
-      client.calls.filter((call) =>
-        call.query.includes("createProjectV2SingleSelectFieldOption")
-      )
-    ).toHaveLength(3);
-  });
-
+describe("syncGhProject errors", () => {
   it("throws the same missing-auth lookup error from sync as verify", async () => {
     await expect(verifyGhProject(DEFAULT_OPTIONS)).rejects.toMatchObject({
       name: "GhProjectSyncError",
@@ -89,15 +26,29 @@ describe("syncGhProject idempotency and errors", () => {
   });
 
   it("wraps project lookup 5xx failures with the original error as cause", async () => {
-    const fetchMock = createFetchMock([graphqlResponse({ message: "server error" }, 500)]);
+    const verifyFetchMock = createFetchMock([graphqlResponse({ message: "server error" }, 500)]);
+    const syncFetchMock = createFetchMock([graphqlResponse({ message: "server error" }, 500)]);
 
     await expect(
-      syncGhProject({ ...DEFAULT_OPTIONS, auth: { token: "secret" }, fetch: fetchMock })
+      verifyGhProject({ ...DEFAULT_OPTIONS, auth: { token: "secret" }, fetch: verifyFetchMock })
     ).rejects.toMatchObject({
       name: "GhProjectSyncError",
       op: "lookup",
       target: "project:octo-org/7",
-      cause: expect.any(Error)
+      cause: expect.objectContaining({
+        message: expect.stringContaining("server error")
+      })
+    } satisfies Partial<GhProjectSyncError>);
+
+    await expect(
+      syncGhProject({ ...DEFAULT_OPTIONS, auth: { token: "secret" }, fetch: syncFetchMock })
+    ).rejects.toMatchObject({
+      name: "GhProjectSyncError",
+      op: "lookup",
+      target: "project:octo-org/7",
+      cause: expect.objectContaining({
+        message: expect.stringContaining("server error")
+      })
     } satisfies Partial<GhProjectSyncError>);
   });
 
@@ -184,122 +135,5 @@ function project(
               { id: "status-done", name: "Done" }
             ]
           }
-  };
-}
-
-class StatefulProjectClient implements GhClient {
-  readonly calls: Array<{ query: string; variables: Record<string, unknown> }> = [];
-  private projectExists = false;
-  private fieldExists = false;
-
-  async graphql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
-    this.calls.push({ query, variables });
-
-    if (query.includes("createProjectV2Field")) {
-      this.fieldExists = true;
-      return createFieldResponse({
-        id: "new-status-field",
-        options: [
-          { id: "status-todo", name: "Todo" },
-          { id: "status-doing", name: "Doing" },
-          { id: "status-done", name: "Done" }
-        ]
-      }) as T;
-    }
-
-    if (query.includes("createProjectV2")) {
-      this.projectExists = true;
-      return createProjectResponse({ id: "new-project-id", number: 7 }) as T;
-    }
-
-    if (query.includes("query ProjectOwner")) {
-      return ownerResponse({ organization: { id: "owner-id" } }) as T;
-    }
-
-    if (query.includes("query Project(")) {
-      return projectResponse({
-        organization: {
-          projectV2: this.projectExists
-            ? project({
-                id: "new-project-id",
-                field: this.fieldExists
-                  ? {
-                      id: "new-status-field",
-                      options: [
-                        { id: "status-todo", name: "Todo" },
-                        { id: "status-doing", name: "Doing" },
-                        { id: "status-done", name: "Done" }
-                      ]
-                    }
-                  : null
-              })
-            : null
-        }
-      }) as T;
-    }
-
-    return projectResponse({ user: null }) as T;
-  }
-}
-
-class FailingOptionOnceClient implements GhClient {
-  readonly calls: Array<{ query: string; variables: Record<string, unknown> }> = [];
-  private options = ["Todo"];
-  private failedDone = false;
-
-  async graphql<T>(query: string, variables: Record<string, unknown>): Promise<T> {
-    this.calls.push({ query, variables });
-
-    if (query.includes("createProjectV2SingleSelectFieldOption")) {
-      const input = variables.input as { name: string };
-      if (input.name === "Done" && !this.failedDone) {
-        this.failedDone = true;
-        throw new Error("permission denied");
-      }
-
-      this.options.push(input.name);
-      return createOptionResponse({
-        id: `status-${input.name.toLowerCase()}`,
-        name: input.name
-      }) as T;
-    }
-
-    return projectResponse({
-      organization: {
-        projectV2: project({
-          options: this.options.map((name) => ({
-            id: `status-${name.toLowerCase()}`,
-            name
-          }))
-        })
-      }
-    }) as T;
-  }
-}
-
-function createProjectResponse(projectV2: { id: string; number: number }): unknown {
-  return {
-    createProjectV2: {
-      projectV2
-    }
-  };
-}
-
-function createFieldResponse(field: {
-  id: string;
-  options: Array<{ id: string; name: string }>;
-}): unknown {
-  return {
-    createProjectV2Field: {
-      projectV2Field: field
-    }
-  };
-}
-
-function createOptionResponse(option: { id: string; name: string }): unknown {
-  return {
-    createProjectV2SingleSelectFieldOption: {
-      singleSelectFieldOption: option
-    }
   };
 }

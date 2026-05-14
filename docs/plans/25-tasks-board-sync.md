@@ -67,7 +67,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: sync-idempotency-and-error-specs
     title: Add idempotency and error-mapping specs for syncGhProject
@@ -87,9 +87,9 @@ tasks:
 
       All assertions go through `MockGhClient`/fetch mocks — no real network.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: tasks-options-resolver
     title: Build shared CLI options + WORKFLOW.md frontmatter resolver

@@ -64,6 +64,10 @@ export class MockGhClient implements GhClient {
       throw response;
     }
 
+    if (typeof response === "function") {
+      return (await response(query, variables)) as T;
+    }
+
     return response as T;
   }
 

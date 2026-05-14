@@ -191,13 +191,15 @@ export async function syncGhProject(opts: SyncGhProjectOptions): Promise<SyncGhP
   }
 
   if (statusField === null) {
-    const createdStatusField = await createStatusField(client, project.id, opts.requiredStates);
+    const createdStatusField = await createStatusField(client, project.id);
     statusField = createdStatusField;
     created.push("field");
     missingOptions = opts.requiredStates.filter(
       (state) => !createdStatusField.options.includes(state)
     );
-  } else if (missingOptions.length > 0) {
+  }
+
+  if (missingOptions.length > 0) {
     for (const optionName of missingOptions) {
       await createStatusOption(client, statusField.id, optionName);
       created.push(`option:${optionName}`);
@@ -324,8 +326,7 @@ async function lookupOwnerId(client: GhClient, owner: string): Promise<string> {
 
 async function createStatusField(
   client: GhClient,
-  projectId: string,
-  requiredStates: readonly string[]
+  projectId: string
 ): Promise<{ id: string; options: string[] }> {
   try {
     const result = await client.graphql<CreateStatusFieldResponse>(CREATE_STATUS_FIELD_MUTATION, {
@@ -333,7 +334,7 @@ async function createStatusField(
         projectId,
         dataType: "SINGLE_SELECT",
         name: "Status",
-        singleSelectOptions: requiredStates.map((name) => ({ name, color: "GRAY" }))
+        singleSelectOptions: []
       }
     });
     const field = result.createProjectV2Field?.projectV2Field;
@@ -355,11 +356,7 @@ async function createStatusField(
   }
 }
 
-async function createStatusOption(
-  client: GhClient,
-  fieldId: string,
-  name: string
-): Promise<void> {
+async function createStatusOption(client: GhClient, fieldId: string, name: string): Promise<void> {
   try {
     await client.graphql<CreateStatusOptionResponse>(CREATE_STATUS_OPTION_MUTATION, {
       input: {

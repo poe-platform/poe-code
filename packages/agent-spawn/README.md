@@ -13,8 +13,8 @@ const result = await spawn("codex", {
   mode: "edit",
   model: "openai/gpt-5.5",
   mcpServers: {
-    fs: { command: "node", args: ["./mcp/fs.js"], timeout: 30 },
-  },
+    fs: { command: "node", args: ["./mcp/fs.js"], timeout: 30 }
+  }
 });
 
 console.log(result.exitCode, result.stdout);
@@ -23,11 +23,11 @@ console.log(listMcpSupportedAgents());
 
 ## Spawn modes
 
-| Mode | Purpose |
-|------|---------|
-| `yolo` | Full automation for trusted tasks. |
+| Mode   | Purpose                                                       |
+| ------ | ------------------------------------------------------------- |
+| `yolo` | Full automation for trusted tasks.                            |
 | `edit` | File-editing mode when the agent supports scoped permissions. |
-| `read` | Read-only/research mode when the agent supports it. |
+| `read` | Read-only/research mode when the agent supports it.           |
 
 Mode-specific args and env vars are declared in each agent config. Goose uses `GOOSE_MODE` internally for mode selection; callers do not need to set it manually.
 
@@ -48,7 +48,7 @@ import { createSpawnMock } from "@poe-code/agent-spawn/testing";
 
 const spawnMock = createSpawnMock({
   spawnResult: { stdout: "ok" },
-  autonomousResult: { text: "done" },
+  autonomousResult: { text: "done" }
 });
 
 vi.mock("@poe-code/agent-spawn", spawnMock.factory);
@@ -58,18 +58,18 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 
 ## Config options
 
-| Option | Type | Description |
-|--------|------|-------------|
-| `prompt` | `string` | Prompt sent to the agent. |
-| `cwd` | `string` | Working directory. Defaults to the caller's process cwd. |
-| `model` | `string` | Optional model override. Provider prefixes are stripped or preserved per agent config. |
-| `mode` | `"yolo" \| "edit" \| "read"` | Permission mode. Defaults are chosen by the caller. |
-| `args` | `string[]` | Extra args forwarded to the agent process. |
-| `mcpServers` | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent. |
-| `useStdin` | `boolean` | Send the prompt through stdin when the agent supports it. |
-| `interactive` | `boolean` | Spawn the agent in interactive TUI mode. |
-| `activityTimeoutMs` | `number` | Kill/retry inactive streaming processes after this many milliseconds. |
-| `logPath` / `logDir` / `logFileName` | `string` | Persist spawn logs. `logPath` takes precedence. |
+| Option                               | Type                             | Description                                                                            |
+| ------------------------------------ | -------------------------------- | -------------------------------------------------------------------------------------- |
+| `prompt`                             | `string`                         | Prompt sent to the agent.                                                              |
+| `cwd`                                | `string`                         | Working directory. Defaults to the caller's process cwd.                               |
+| `model`                              | `string`                         | Optional model override. Provider prefixes are stripped or preserved per agent config. |
+| `mode`                               | `"yolo" \| "edit" \| "read"`     | Permission mode. Defaults are chosen by the caller.                                    |
+| `args`                               | `string[]`                       | Extra args forwarded to the agent process.                                             |
+| `mcpServers`                         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
+| `useStdin`                           | `boolean`                        | Send the prompt through stdin when the agent supports it.                              |
+| `interactive`                        | `boolean`                        | Spawn the agent in interactive TUI mode.                                               |
+| `activityTimeoutMs`                  | `number`                         | Kill/retry inactive streaming processes after this many milliseconds.                  |
+| `logPath` / `logDir` / `logFileName` | `string`                         | Persist spawn logs. `logPath` takes precedence.                                        |
 
 ## Environment variables
 

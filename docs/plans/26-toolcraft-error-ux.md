@@ -838,7 +838,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-network-error-classify
     title: Classify low-level network errors before re-throwing
@@ -882,9 +882,9 @@ tasks:
         - aborted fetch → message mentions abort and URL
         - unknown code → returns null
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: toolcraft-help-pointer-on-error
     title: Append a "Run X --help" pointer to errors that name a command

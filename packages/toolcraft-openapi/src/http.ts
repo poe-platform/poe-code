@@ -1,6 +1,7 @@
 import { text as designText } from "@poe-code/design-system";
 import { UserError } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
+import { classifyNetworkError } from "./network-error.js";
 
 type QueryScalar = string | number | boolean | null | undefined;
 const TRANSCRIPT_BODY_BYTE_LIMIT = 4 * 1024;
@@ -85,12 +86,18 @@ export async function requestJson<TResult = unknown>(
     );
   }
 
-  const response = await (options.fetch ?? globalThis.fetch)(url, {
-    method,
-    headers,
-    body: serializedBody,
-    signal: options.signal
-  });
+  let response: Response;
+
+  try {
+    response = await (options.fetch ?? globalThis.fetch)(url, {
+      method,
+      headers,
+      body: serializedBody,
+      signal: options.signal
+    });
+  } catch (error) {
+    throw classifyNetworkError(error, url) ?? error;
+  }
 
   const text = await response.text();
   const contentType = response.headers.get("content-type");

@@ -67,6 +67,24 @@ describe("readOpenApiSourceText", () => {
     ).rejects.toThrowError(new RegExp(`body: ${"x".repeat(250)} ${"y".repeat(249)}…$`));
   });
 
+  it("classifies spec fetch network failures before generic read handling", async () => {
+    const fetch = vi.fn<typeof globalThis.fetch>().mockRejectedValue(
+      new TypeError("fetch failed", {
+        cause: { code: "ENOTFOUND", address: "api.example.test" }
+      })
+    );
+
+    await expect(
+      readOpenApiSourceText("https://api.example.test/openapi.json", {
+        cwd: "/repo",
+        fetch,
+        fs: createFsFromVolume(Volume.fromJSON({})).promises
+      })
+    ).rejects.toThrowError(
+      "DNS lookup failed for api.example.test. Check the URL or your network."
+    );
+  });
+
   it("mentions the absolute resolved filesystem path for ENOENT errors", async () => {
     const fs = createFsFromVolume(Volume.fromJSON({})).promises;
 

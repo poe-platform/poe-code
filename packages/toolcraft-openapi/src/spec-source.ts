@@ -4,6 +4,7 @@ import { parse as parseYaml } from "yaml";
 import { UserError } from "toolcraft";
 import { renderSourceSnippet } from "toolcraft/source-snippet";
 import type { OpenApiDocument } from "./generate.js";
+import { classifyNetworkError } from "./network-error.js";
 
 export interface OpenApiSourceFileSystem {
   readFile(filePath: string, encoding: BufferEncoding): Promise<string>;
@@ -39,7 +40,13 @@ export async function readOpenApiSourceText(
       throw new UserError(`Unsupported OpenAPI input URL protocol ${JSON.stringify(inputUrl.protocol)}.`);
     }
 
-    const response = await services.fetch(inputUrl.toString());
+    let response: Response;
+
+    try {
+      response = await services.fetch(inputUrl.toString());
+    } catch (error) {
+      throw classifyNetworkError(error, inputUrl.toString()) ?? error;
+    }
 
     if (!response.ok) {
       const contentType = response.headers.get("content-type") ?? "";

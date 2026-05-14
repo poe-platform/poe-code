@@ -134,6 +134,23 @@ describe("requestJson", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("classifies fetch network failures with request URL context", async () => {
+    const error = new TypeError("fetch failed", {
+      cause: { code: "ECONNREFUSED", address: "127.0.0.1", port: 8080 }
+    });
+
+    await expect(
+      requestJson({
+        baseUrl: "http://127.0.0.1:8080",
+        path: "/bots",
+        method: "GET",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: vi.fn<typeof globalThis.fetch>().mockRejectedValue(error)
+      })
+    ).rejects.toThrow("Connection refused: 127.0.0.1:8080. Is the server running?");
+  });
+
   it("calls toUpperCase once when issuing the request", async () => {
     const toUpperCase = vi.fn(() => "GET");
 

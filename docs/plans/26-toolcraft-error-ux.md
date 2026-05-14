@@ -651,7 +651,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-cli-did-you-mean
     title: Did-you-mean for commands, flags, enum values, env vars
@@ -714,8 +714,8 @@ tasks:
           "Available: …" / "Expected: …" lines (so the user still
           sees the full list)
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-validation-batch

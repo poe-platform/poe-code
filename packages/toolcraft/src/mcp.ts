@@ -26,6 +26,7 @@ import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { filterSchemaForScope } from "./schema-scope.js";
+import { suggest } from "./suggest.js";
 
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
@@ -421,12 +422,21 @@ function validateEnum(
   label: string
 ): string | number | boolean {
   if (!schema.values.includes(value as never)) {
+    const suggestionLine =
+      typeof value === "string"
+        ? formatEnumSuggestionLine(value, schema.values.map((candidate) => String(candidate)))
+        : " ";
     throw new UserError(
-      `Invalid value for "${label}". Expected one of: ${schema.values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
+      `Invalid value for "${label}".${suggestionLine}Expected one of: ${schema.values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
     );
   }
 
   return value as string | number | boolean;
+}
+
+function formatEnumSuggestionLine(value: string, values: readonly string[]): string {
+  const suggestions = suggest(value, values);
+  return suggestions.length > 0 ? ` Did you mean: ${suggestions.join(", ")}?\n` : " ";
 }
 
 function describeReceived(value: unknown): string {

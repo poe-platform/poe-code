@@ -624,6 +624,90 @@ describe("runCLI", () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
+  it("suggests close unknown commands without Commander's default unknown command text", async () => {
+    const widgets = defineCommand({
+      name: "widgets",
+      params: S.Object({}),
+      handler: async () => "ok"
+    });
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => "ok"
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy, widgets]
+    });
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "widgts", "list"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual(['Unknown command "widgts".\nDid you mean: widgets?']);
+    const stderr = readStderr(stderrWrite);
+    expect(stderr).not.toContain("error: unknown command");
+    expect(stderr).not.toContain("Usage:");
+  });
+
+  it("does not suggest distant unknown commands for short inputs", async () => {
+    const xyz = defineCommand({
+      name: "xyz",
+      params: S.Object({}),
+      handler: async () => "ok"
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [xyz]
+    });
+
+    process.argv = ["node", "toolcraft", "abc"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual(['Unknown command "abc".']);
+  });
+
+  it("suggests close unknown options from the current command", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        name: S.Optional(S.String()),
+        namespace: S.Optional(S.String())
+      }),
+      handler: async () => "ok"
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--namee", "Ada"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual(['Unknown option "--namee".\nDid you mean: --name?']);
+    expect(readStderr(stderrWrite)).not.toContain("error: unknown option");
+  });
+
+  it("does not suggest distant unknown options for short inputs", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        xyz: S.Optional(S.String())
+      }),
+      handler: async () => "ok"
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "--abc", "Ada"];
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual(['Unknown option "--abc".']);
+  });
+
   it("rejects fractional values for integer-flavored number params", async () => {
     const handler = vi.fn(async (ctx: { params: { count: number } }) => ctx.params);
 
@@ -652,6 +736,49 @@ describe("runCLI", () => {
     );
     expect(process.exitCode).toBe(1);
     expect(handler).not.toHaveBeenCalled();
+  });
+
+  it("prepends enum suggestions without replacing the expected values list", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        mode: S.Enum(["safe", "fast"] as const)
+      }),
+      handler: async () => "ok"
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--mode", "fats"];
+    await runCLI(root);
+
+    const stderr = readStderr(stderrWrite);
+    expect(stderr).toContain('Did you mean: fast?\nExpected one of: safe, fast');
+  });
+
+  it("does not suggest distant enum values for short inputs", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        mode: S.Enum(["xyz"] as const)
+      }),
+      handler: async () => "ok"
+    });
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--mode", "abc"];
+    await runCLI(root);
+
+    const stderr = readStderr(stderrWrite);
+    expect(stderr).not.toContain("Did you mean");
+    expect(stderr).toContain('Expected one of: xyz, got "abc".');
   });
 
   it("prompts for missing required params, uses select for enums, and confirms resolved values", async () => {
@@ -1249,6 +1376,28 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(readStdout(stdoutWrite)).toBe("rendered markdown\n");
+  });
+
+  it("suggests rich for close --output rtf mistakes without replacing expected values", async () => {
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => "ok"
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    process.argv = ["node", "toolcraft", "deploy", "--output", "rtf", "--yes"];
+
+    await runCLI(root);
+
+    const stderr = readStderr(stderrWrite);
+    expect(stderr).toContain('Did you mean: rich?\nExpected one of: rich, md, markdown, json');
+    expect(process.exitCode).toBe(1);
   });
 
   it("sets exitCode when rendering an MCP error result", async () => {

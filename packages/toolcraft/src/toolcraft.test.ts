@@ -547,6 +547,84 @@ describe("toolcraft", () => {
     );
   });
 
+  it("suggests close missing required secret environment variable names", () => {
+    const cmd = defineCommand({
+      name: "cmd",
+      params: S.Object({}),
+      secrets: {
+        token: { env: "POE_API_KEY" }
+      },
+      handler: async () => null
+    });
+
+    expect(() => resolveCommandSecrets(cmd, { POE_KEY: "set" })).toThrowError(
+      new UserError("Missing required secret POE_API_KEY\nDid you mean: POE_KEY?")
+    );
+  });
+
+  it("does not filter out close missing secret names with different underscore placement", () => {
+    const cmd = defineCommand({
+      name: "cmd",
+      params: S.Object({}),
+      secrets: {
+        token: { env: "POE_API_KEY" }
+      },
+      handler: async () => null
+    });
+
+    expect(() => resolveCommandSecrets(cmd, { POE_APIKEY: "set", POE_KEY: "set" })).toThrowError(
+      new UserError("Missing required secret POE_API_KEY\nDid you mean: POE_APIKEY, POE_KEY?")
+    );
+  });
+
+  it("does not suggest distant missing required secret names for short inputs", () => {
+    const cmd = defineCommand({
+      name: "cmd",
+      params: S.Object({}),
+      secrets: {
+        token: { env: "ABC" }
+      },
+      handler: async () => null
+    });
+
+    expect(() => resolveCommandSecrets(cmd, { XYZ: "set" })).toThrowError(
+      new UserError("Missing required secret ABC")
+    );
+  });
+
+  it("does not suggest env names that only add an unrelated prefix", () => {
+    const cmd = defineCommand({
+      name: "cmd",
+      params: S.Object({}),
+      secrets: {
+        token: { env: "API_KEY" }
+      },
+      handler: async () => null
+    });
+
+    expect(() => resolveCommandSecrets(cmd, { POE_API_KEY: "set" })).toThrowError(
+      new UserError("Missing required secret API_KEY")
+    );
+  });
+
+  it("appends missing secret suggestions without replacing the description", () => {
+    const cmd = defineCommand({
+      name: "cmd",
+      params: S.Object({}),
+      secrets: {
+        token: {
+          env: "TOKEN",
+          description: "Set it before running cmd."
+        }
+      },
+      handler: async () => null
+    });
+
+    expect(() => resolveCommandSecrets(cmd, { TOKNE: "set" })).toThrowError(
+      new UserError("Missing required secret TOKEN\n  Set it before running cmd.\nDid you mean: TOKNE?")
+    );
+  });
+
   it("passes undefined for optional secrets that are missing", () => {
     const cmd = defineCommand({
       name: "cmd",
@@ -1180,6 +1258,41 @@ describe("createMCPServer", () => {
           (error: unknown) => error instanceof Error && error.message.includes(expected)
         );
       }
+
+      await expect(
+        client.callTool({
+          name: "run",
+          arguments: {
+            name: "Ada",
+            enabled: true,
+            tags: [],
+            config: { mode: "safe" },
+            mode: "fats"
+          }
+        })
+      ).rejects.toSatisfy(
+        (error: unknown) =>
+          error instanceof Error &&
+          error.message.includes('Did you mean: fast?\nExpected one of: safe, fast')
+      );
+
+      await expect(
+        client.callTool({
+          name: "run",
+          arguments: {
+            name: "Ada",
+            enabled: true,
+            tags: [],
+            config: { mode: "safe" },
+            mode: "abc"
+          }
+        })
+      ).rejects.toSatisfy(
+        (error: unknown) =>
+          error instanceof Error &&
+          !error.message.includes("Did you mean") &&
+          error.message.includes('Expected one of: safe, fast, got "abc".')
+      );
     } finally {
       await cleanup();
     }
@@ -2403,5 +2516,25 @@ describe("createSDK", () => {
         mode: "sk-secret"
       })
     ).rejects.toThrow('Invalid value for "mode". Expected one of: safe, fast, got "sk-secret".');
+
+    await expect(
+      sdk.run({
+        name: "Ada",
+        enabled: true,
+        tags: [],
+        config: { mode: "safe" },
+        mode: "fats"
+      })
+    ).rejects.toThrow('Did you mean: fast?\nExpected one of: safe, fast');
+
+    await expect(
+      sdk.run({
+        name: "Ada",
+        enabled: true,
+        tags: [],
+        config: { mode: "safe" },
+        mode: "abc"
+      })
+    ).rejects.toThrow('Invalid value for "mode". Expected one of: safe, fast, got "abc".');
   });
 });

@@ -10,6 +10,7 @@ import type {
 } from "./human-in-loop/types.js";
 import { mergeHumanInLoopFromGroup, validateHumanInLoopOnDefine } from "./human-in-loop/config.js";
 import { ToolcraftBugError, UserError } from "./user-error.js";
+import { suggest } from "./suggest.js";
 
 const commandConfigSymbol = Symbol("toolcraft.command.config");
 const groupConfigSymbol = Symbol("toolcraft.group.config");
@@ -573,13 +574,42 @@ export function resolveCommandSecrets(
 
     if (value === undefined && secret.optional !== true) {
       const details = secret.description ? `\n  ${secret.description}` : "";
-      throw new UserError(`Missing required secret ${secret.env}${details}`);
+      const candidates = Object.keys(env).filter(
+        (candidate) => candidate !== secret.env && env[candidate] !== undefined
+      );
+      const suggestions = suggestSecretEnv(secret.env, candidates);
+      const suggestionLine =
+        suggestions.length > 0 ? `\nDid you mean: ${suggestions.join(", ")}?` : "";
+      throw new UserError(`Missing required secret ${secret.env}${details}${suggestionLine}`);
     }
 
     secrets[name] = value;
   }
 
   return secrets;
+}
+
+function suggestSecretEnv(input: string, candidates: readonly string[]): string[] {
+  const directSuggestions = suggest(input, candidates);
+  if (!input.includes("_")) {
+    return directSuggestions;
+  }
+
+  const inputParts = input.split("_");
+  const firstPart = inputParts[0];
+  const lastPart = inputParts[inputParts.length - 1];
+  const relatedCandidates = candidates.filter((candidate) => {
+    const candidateParts = candidate.split("_");
+    return (
+      candidateParts[0] === firstPart &&
+      candidateParts[candidateParts.length - 1] === lastPart
+    );
+  });
+  const expandedSuggestions = suggest(input, relatedCandidates, {
+    threshold: Math.max(4, Math.floor(input.length / 4))
+  });
+
+  return [...new Set([...directSuggestions, ...expandedSuggestions])].slice(0, 3);
 }
 
 export async function assertCommandRequirements(

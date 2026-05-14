@@ -56,6 +56,7 @@ import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
+import { suggest } from "./suggest.js";
 
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
@@ -698,8 +699,14 @@ function parseEnumValue(
   const match = values.find((candidate) => String(candidate) === value);
 
   if (match === undefined) {
+    const suggestions = suggest(
+      value,
+      values.map((candidate) => String(candidate))
+    );
+    const suggestionLine =
+      suggestions.length > 0 ? ` Did you mean: ${suggestions.join(", ")}?\n` : " ";
     throw new InvalidArgumentError(
-      `Invalid value for "${label}". Expected one of: ${values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
+      `Invalid value for "${label}".${suggestionLine}Expected one of: ${values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
     );
   }
 
@@ -1818,7 +1825,10 @@ function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): v
       }
 
       throw new InvalidArgumentError(
-        `Invalid value for "--output". Expected one of: rich, md, markdown, json, got ${describeReceived(value)}.`
+        formatInvalidEnumMessage("--output", value, ["rich", "md", "markdown", "json"], {
+          candidates: ["rich", "markdown", "json"],
+          threshold: 3
+        })
       );
     })
     .option("--debug", "Print stack traces for unexpected errors.")
@@ -3593,6 +3603,8 @@ function handleRunError(
   options: {
     debug: boolean;
     verbose: boolean;
+    program?: CommanderCommand;
+    argv?: readonly string[];
   }
 ): void {
   const logger = createLogger();
@@ -3622,6 +3634,14 @@ function handleRunError(
     if (error.code === "commander.helpDisplayed" || error.code === "commander.version") {
       return;
     }
+    if (error.code === "commander.unknownCommand") {
+      logger.error(formatUnknownCommandError(error, options.program, options.argv ?? process.argv));
+      return;
+    }
+    if (error.code === "commander.unknownOption") {
+      logger.error(formatUnknownOptionError(error, options.program, options.argv ?? process.argv));
+      return;
+    }
     return;
   }
 
@@ -3639,6 +3659,193 @@ function handleRunError(
   }
 
   process.exitCode = 1;
+}
+
+function formatInvalidEnumMessage(
+  label: string,
+  value: string,
+  values: ReadonlyArray<string | number | boolean>,
+  opts: { candidates?: readonly string[]; threshold?: number } = {}
+): string {
+  const suggestions = suggest(
+    value,
+    opts.candidates ?? values.map((candidate) => String(candidate)),
+    opts
+  );
+  const suggestionLine =
+    suggestions.length > 0 ? ` Did you mean: ${suggestions.join(", ")}?\n` : " ";
+  return `Invalid value for "${label}".${suggestionLine}Expected one of: ${values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`;
+}
+
+function formatUnknownCommandError(
+  error: CommanderError,
+  program: CommanderCommand | undefined,
+  argv: readonly string[]
+): string {
+  const input = extractQuotedCommanderValue(error.message) ?? "";
+  const currentCommand = program === undefined ? undefined : findCurrentCommanderCommand(program, argv);
+  return formatUnknownCommandMessage(input, currentCommand);
+}
+
+function formatUnknownCommandMessage(
+  input: string,
+  currentCommand: CommanderCommand | undefined
+): string {
+  const suggestions =
+    currentCommand === undefined
+      ? []
+      : suggest(
+          input,
+          currentCommand.commands.map((command) => command.name())
+        );
+  return formatSuggestionMessage(`Unknown command "${input}".`, suggestions);
+}
+
+function formatUnknownOptionError(
+  error: CommanderError,
+  program: CommanderCommand | undefined,
+  argv: readonly string[]
+): string {
+  const input = extractQuotedCommanderValue(error.message) ?? "";
+  const currentCommand = program === undefined ? undefined : findCurrentCommanderCommand(program, argv);
+  const suggestions =
+    currentCommand === undefined
+      ? []
+      : suggest(
+          input,
+          currentCommand.options
+            .map((option) => option.long)
+            .filter((flag): flag is string => flag !== undefined)
+        );
+  return formatSuggestionMessage(`Unknown option "${input}".`, suggestions);
+}
+
+function formatSuggestionMessage(message: string, suggestions: readonly string[]): string {
+  if (suggestions.length === 0) {
+    return message;
+  }
+
+  return `${message}\nDid you mean: ${suggestions.join(", ")}?`;
+}
+
+function extractQuotedCommanderValue(message: string): string | undefined {
+  const singleQuoted = extractBetweenQuotes(message, "'");
+  if (singleQuoted !== undefined) {
+    return singleQuoted;
+  }
+
+  return extractBetweenQuotes(message, '"');
+}
+
+function extractBetweenQuotes(message: string, quote: "'" | '"'): string | undefined {
+  const start = message.indexOf(quote);
+  if (start === -1) {
+    return undefined;
+  }
+
+  const end = message.indexOf(quote, start + 1);
+  if (end === -1) {
+    return undefined;
+  }
+
+  return message.slice(start + 1, end);
+}
+
+function findCurrentCommanderCommand(program: CommanderCommand, argv: readonly string[]): CommanderCommand {
+  let current = program;
+  const tokens = argv.slice(2);
+
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token === undefined || token === "--") {
+      break;
+    }
+    if (token.startsWith("-")) {
+      const option = current.options.find(
+        (candidate) => candidate.long === token || candidate.short === token
+      );
+      if (option?.required === true && !token.includes("=")) {
+        index += 1;
+      }
+      continue;
+    }
+
+    const child = current.commands.find(
+      (command) => command.name() === token || command.aliases().includes(token)
+    );
+    if (child === undefined) {
+      break;
+    }
+
+    current = child;
+  }
+
+  return current;
+}
+
+function findUnknownCommanderCommand(
+  program: CommanderCommand,
+  argv: readonly string[]
+): { input: string; currentCommand: CommanderCommand } | undefined {
+  let current = program;
+  const tokens = argv.slice(2);
+
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token === undefined || token === "--") {
+      return undefined;
+    }
+    if (token.startsWith("-")) {
+      const option = current.options.find(
+        (candidate) => candidate.long === token || candidate.short === token
+      );
+      if (option?.required === true && !token.includes("=")) {
+        index += 1;
+      }
+      continue;
+    }
+
+    if (current.commands.length === 0 || getDefaultCommanderCommandName(current) !== undefined) {
+      return undefined;
+    }
+
+    const child = current.commands.find(
+      (command) => command.name() === token || command.aliases().includes(token)
+    );
+    if (child === undefined) {
+      return {
+        input: token,
+        currentCommand: current
+      };
+    }
+
+    current = child;
+  }
+
+  return undefined;
+}
+
+function getDefaultCommanderCommandName(command: CommanderCommand): string | undefined {
+  const candidate = command as CommanderCommand & { _defaultCommandName?: unknown };
+  return typeof candidate._defaultCommandName === "string" ? candidate._defaultCommandName : undefined;
+}
+
+function configureCommanderSuggestionOutput(command: CommanderCommand): void {
+  command.exitOverride();
+  command.configureOutput({
+    outputError: (message, write) => {
+      if (
+        message.includes("unknown command") ||
+        message.includes("unknown option")
+      ) {
+        return;
+      }
+
+      write(message);
+    }
+  });
+
+  command.commands.forEach((child) => configureCommanderSuggestionOutput(child));
 }
 
 export async function runCLI<TServices extends object = Record<string, unknown>>(
@@ -3705,6 +3912,16 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
 
     program.addCommand(command, isDefaultChild ? { isDefault: true } : undefined);
   }
+  configureCommanderSuggestionOutput(program);
+
+  const unknownCommand = findUnknownCommanderCommand(program, process.argv);
+  if (unknownCommand !== undefined) {
+    createLogger().error(
+      formatUnknownCommandMessage(unknownCommand.input, unknownCommand.currentCommand)
+    );
+    process.exitCode = 1;
+    return;
+  }
 
   try {
     await program.parseAsync(process.argv);
@@ -3717,7 +3934,9 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     const resolvedFlags = lastActionCommand ? getResolvedFlags(lastActionCommand) : undefined;
     handleRunError(error, {
       debug: resolvedFlags ? Boolean(resolvedFlags.debug) : process.argv.includes("--debug"),
-      verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : process.argv.includes("--verbose")
+      verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : process.argv.includes("--verbose"),
+      program,
+      argv: process.argv
     });
   }
 }

@@ -653,7 +653,13 @@ describe("runCLI", () => {
     process.argv = ["node", "toolcraft", "widgts", "list"];
     await runCLI(root);
 
-    expect(loggerState.error).toEqual(['Unknown command "widgts".\nDid you mean: widgets?']);
+    expect(loggerState.error).toEqual([
+      [
+        'Unknown command "widgts".',
+        "Did you mean: widgets?",
+        "Run toolcraft --help for usage."
+      ].join("\n")
+    ]);
     const stderr = readStderr(stderrWrite);
     expect(stderr).not.toContain("error: unknown command");
     expect(stderr).not.toContain("Usage:");
@@ -701,7 +707,9 @@ describe("runCLI", () => {
     process.argv = ["node", "toolcraft", "abc"];
     await runCLI(root);
 
-    expect(loggerState.error).toEqual(['Unknown command "abc".']);
+    expect(loggerState.error).toEqual([
+      ['Unknown command "abc".', "Run toolcraft --help for usage."].join("\n")
+    ]);
   });
 
   it("suggests close unknown options from the current command", async () => {
@@ -722,7 +730,13 @@ describe("runCLI", () => {
     process.argv = ["node", "toolcraft", "deploy", "--namee", "Ada"];
     await runCLI(root);
 
-    expect(loggerState.error).toEqual(['Unknown option "--namee".\nDid you mean: --name?']);
+    expect(loggerState.error).toEqual([
+      [
+        'Unknown option "--namee".',
+        "Did you mean: --name?",
+        "Run toolcraft deploy --help for usage."
+      ].join("\n")
+    ]);
     expect(readStderr(stderrWrite)).not.toContain("error: unknown option");
   });
 
@@ -742,7 +756,9 @@ describe("runCLI", () => {
     process.argv = ["node", "toolcraft", "deploy", "--abc", "Ada"];
     await runCLI(root);
 
-    expect(loggerState.error).toEqual(['Unknown option "--abc".']);
+    expect(loggerState.error).toEqual([
+      ['Unknown option "--abc".', "Run toolcraft deploy --help for usage."].join("\n")
+    ]);
   });
 
   it("rejects fractional values for integer-flavored number params", async () => {
@@ -2005,7 +2021,13 @@ describe("runCLI", () => {
       name: "deploy",
       params: S.Object({}),
       handler: async () => {
-        throw createHttpErrorLike();
+        throw createHttpErrorLike({
+          request: {
+            body: {
+              name: "demo"
+            }
+          }
+        });
       }
     });
 
@@ -2024,6 +2046,11 @@ describe("runCLI", () => {
 
       Request headers:
         authorization: Bearer ****
+
+      Request body:
+        {
+          "name": "demo"
+        }
 
       Status:   500 Internal Server Error
 
@@ -2379,7 +2406,7 @@ describe("runCLI", () => {
         throw createHttpErrorLike({
           request: {
             headers: {
-              authorization: "Bearer ****",
+              authorization: "Bearer raw-token",
               accept: "application/json"
             }
           }

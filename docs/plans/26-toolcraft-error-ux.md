@@ -1158,7 +1158,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-error-ux-terminal-pilot-qa
     title: Terminal-pilot QA covering every user-visible feature
@@ -1321,8 +1321,8 @@ tasks:
       in one of the preceding tasks — fix it there, do not weaken
       the bullet.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

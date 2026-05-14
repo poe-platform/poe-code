@@ -166,6 +166,8 @@ describe("writeErrorReport", () => {
     expect(report).toContain("Stack\nHttpError: request failed");
     expect(report).toContain("HTTP Transcript");
     expect(report).toContain("POST https://api.example.com/widgets");
+    expect(report).toContain("authorization: Bearer ****");
+    expect(report).not.toContain("Bearer redacted");
     expect(report).toContain("500 Internal Server Error");
   });
 

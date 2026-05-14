@@ -301,6 +301,24 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value, null, 2) ?? "undefined";
 }
 
+function redactStructuredErrorField(name: string, value: unknown): unknown {
+  if (typeof value === "string" && name.toLowerCase() === "authorization") {
+    return "Bearer ****";
+  }
+
+  if (Array.isArray(value)) {
+    return value.map((entry) => redactStructuredErrorField(name, entry));
+  }
+
+  if (isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, redactStructuredErrorField(key, entry)])
+    );
+  }
+
+  return value;
+}
+
 function ownStructuredFields(error: Error): Record<string, unknown> {
   const fields: Record<string, unknown> = {};
 
@@ -309,7 +327,10 @@ function ownStructuredFields(error: Error): Record<string, unknown> {
       continue;
     }
 
-    fields[key] = (error as unknown as Record<string, unknown>)[key];
+    fields[key] = redactStructuredErrorField(
+      key,
+      (error as unknown as Record<string, unknown>)[key]
+    );
   }
 
   return fields;
@@ -339,9 +360,13 @@ function formatStackChain(error: unknown): string {
   return lines.join("\n");
 }
 
+function formatHeaderValue(name: string, value: string): string {
+  return name.toLowerCase() === "authorization" ? "Bearer ****" : value;
+}
+
 function formatHeaders(headers: Record<string, string>): string {
   return Object.entries(headers)
-    .map(([name, value]) => `${name}: ${value}`)
+    .map(([name, value]) => `${name}: ${formatHeaderValue(name, value)}`)
     .join("\n");
 }
 

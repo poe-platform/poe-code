@@ -3949,8 +3949,14 @@ function indentHttpErrorBlock(value: string): string {
     .join("\n");
 }
 
+function formatHttpHeaderValue(name: string, value: string): string {
+  return name.toLowerCase() === "authorization" ? "Bearer ****" : value;
+}
+
 function formatHttpErrorHeaders(headers: Record<string, string>): string[] {
-  return Object.entries(headers).map(([name, value]) => `  ${name}: ${value}`);
+  return Object.entries(headers).map(
+    ([name, value]) => `  ${name}: ${formatHttpHeaderValue(name, value)}`
+  );
 }
 
 function formatHttpErrorSnippet(body: unknown): string {
@@ -3968,6 +3974,10 @@ function renderHttpError(
 
   if (detailed) {
     lines.push("", "Request headers:", ...formatHttpErrorHeaders(error.request.headers), "");
+
+    if (error.request.body !== undefined) {
+      lines.push("Request body:", indentHttpErrorBlock(formatHttpErrorBody(error.request.body)), "");
+    }
   }
 
   lines.push(
@@ -4043,11 +4053,28 @@ function handleRunError(
       return;
     }
     if (error.code === "commander.unknownCommand") {
-      logger.error(formatUnknownCommandError(error, options.program, options.argv ?? process.argv));
+      logger.error(
+        appendUsagePointer(
+          formatUnknownCommandError(error, options.program, options.argv ?? process.argv),
+          {
+            rootUsageName: options.rootUsageName,
+            commandPath: options.commandPath
+          }
+        )
+      );
       return;
     }
     if (error.code === "commander.unknownOption") {
-      logger.error(formatUnknownOptionError(error, options.program, options.argv ?? process.argv));
+      const argv = options.argv ?? process.argv;
+      logger.error(
+        appendUsagePointer(formatUnknownOptionError(error, options.program, argv), {
+          rootUsageName: options.rootUsageName,
+          commandPath:
+            options.commandPath.length > 0
+              ? options.commandPath
+              : findCurrentCommanderCommandPath(options.program, argv)
+        })
+      );
       return;
     }
     return;
@@ -4105,11 +4132,15 @@ function appendUsagePointer(
     commandPath: string;
   }
 ): string {
-  if (options.commandPath.length === 0 || message.includes("--help")) {
+  if (message.includes("--help")) {
     return message;
   }
 
-  return `${message}\nRun ${options.rootUsageName} ${options.commandPath} --help for usage.`;
+  const helpTarget =
+    options.commandPath.length === 0
+      ? options.rootUsageName
+      : `${options.rootUsageName} ${options.commandPath}`;
+  return `${message}\nRun ${helpTarget} --help for usage.`;
 }
 
 function formatCliCommandPath(commandPath: string): string {
@@ -4248,6 +4279,38 @@ function findCurrentCommanderCommand(
   }
 
   return current;
+}
+
+function findCurrentCommanderCommandPath(
+  program: CommanderCommand | undefined,
+  argv: readonly string[]
+): string {
+  if (program === undefined) {
+    return "";
+  }
+
+  let current = program;
+  const pathSegments: string[] = [];
+  const tokens = argv.slice(2);
+
+  for (let index = 0; index < tokens.length; index += 1) {
+    const token = tokens[index];
+    if (token === undefined || token === "--" || token.startsWith("-")) {
+      break;
+    }
+
+    const child = current.commands.find(
+      (command) => command.name() === token || command.aliases().includes(token)
+    );
+    if (child === undefined) {
+      break;
+    }
+
+    current = child;
+    pathSegments.push(child.name());
+  }
+
+  return pathSegments.join(" ");
 }
 
 function findUnknownCommanderCommand(

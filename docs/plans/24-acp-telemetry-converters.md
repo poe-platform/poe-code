@@ -86,7 +86,7 @@ tasks:
       in `npm ls --workspaces` (or equivalent for the repo's workspace tool).
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: move-redact-to-telemetry
     title: Move redact.ts from @poe-code/braintrust to @poe-code/acp-telemetry
@@ -114,7 +114,7 @@ tasks:
       Acceptance: `npm run build` passes; `npm run test:unit` for both
       `packages/acp-telemetry` and `packages/braintrust` passes.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: acp-to-trace-converter

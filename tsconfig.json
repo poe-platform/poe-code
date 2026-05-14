@@ -9,14 +9,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "baseUrl": ".",
-    "paths": {
-      "@poe-code/acp-telemetry": [
-        "packages/acp-telemetry/src/index.ts"
-      ],
-      "@poe-code/acp-telemetry/*": [
-        "packages/acp-telemetry/src/*"
-      ]
-    },
     "noEmit": true,
     "jsx": "react",
     "types": [

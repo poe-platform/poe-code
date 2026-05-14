@@ -20,6 +20,7 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/acp-telemetry": "*",
     "@poe-code/agent-spawn": "*",
     "@poe-code/experiment-loop": "*",
     "@poe-code/pipeline": "*",

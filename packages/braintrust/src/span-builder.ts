@@ -1,7 +1,7 @@
 import type { AcpEvent, AcpSpawnContext as SpawnContext } from "@poe-code/agent-spawn";
+import { redact } from "@poe-code/acp-telemetry";
 
 import type { BraintrustClient } from "./client.js";
-import { redact } from "./redact.js";
 
 interface BraintrustSpan {
   startSpan(args: { name: string; type: "task" | "tool" }): BraintrustSpan;

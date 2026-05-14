@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 describe("@poe-code/acp-telemetry", () => {
-  it("exposes an empty module placeholder", async () => {
+  it("exports telemetry helpers", async () => {
     const telemetry = await import("./index.js");
 
-    expect(Object.keys(telemetry)).toEqual([]);
+    expect(telemetry.redact).toEqual(expect.any(Function));
   });
 });

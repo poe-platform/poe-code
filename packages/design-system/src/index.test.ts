@@ -14,6 +14,7 @@ import {
   type Dashboard,
   type DashboardOptions,
   type Detail,
+  type DetailCtx,
   type DetailItem,
   type ExplorerConfig,
   type MdNode,
@@ -64,41 +65,75 @@ describe("design-system root exports", () => {
   it("re-exports explorer helpers from the root barrel", () => {
     expect(explorer.runExplorer).toBe(runExplorer);
     expect(explorer.singleDetail).toBe(singleDetail);
+    expectTypeOf(explorer.runExplorer).toEqualTypeOf(runExplorer);
+    expectTypeOf(explorer.singleDetail).toEqualTypeOf(singleDetail);
     expect(runExplorer).toBeTypeOf("function");
     expect(singleDetail).toBeTypeOf("function");
   });
 
   it("re-exports explorer types from the root barrel", () => {
+    expectTypeOf(runExplorer).toEqualTypeOf<
+      <R = void>(config: ExplorerConfig<R>) => Promise<R | null>
+    >();
+    expectTypeOf(singleDetail).toEqualTypeOf<
+      <R>(render: (row: Row, ctx: DetailCtx) => string | Promise<string>) => Detail<R>
+    >();
     expectTypeOf<Tone>().toEqualTypeOf<"success" | "warning" | "error" | "info" | "muted">();
-    expectTypeOf<Row>().toMatchTypeOf<{
+    expectTypeOf<Row>().toEqualTypeOf<{
       id: string;
       title: string;
       subtitle?: string;
       badge?: { text: string; tone?: Tone };
       group?: string;
     }>();
-    expectTypeOf<DetailItem>().toMatchTypeOf<{
+    expectTypeOf<DetailItem>().toEqualTypeOf<{
       id: string;
       title?: string;
       subtitle?: string;
       badge?: { text: string; tone?: Tone };
-      render: (ctx: { row: Row }) => string | Promise<string>;
+      render: (ctx: DetailCtx) => string | Promise<string>;
     }>();
-    expectTypeOf<Detail<void>>().toMatchTypeOf<{
-      items: (row: Row, ctx: { row: Row }) => Promise<DetailItem[]>;
+    expectTypeOf<Detail<void>>().toEqualTypeOf<{
+      items: (row: Row, ctx: DetailCtx) => Promise<DetailItem[]>;
       actions?: Action<void>[];
     }>();
-    expectTypeOf<ActionContext<void>>().toMatchTypeOf<{
+    expectTypeOf<DetailCtx>().toEqualTypeOf<{
+      width: number;
+      height: number;
+      signal: AbortSignal;
+      row: Row;
+    }>();
+    expectTypeOf<Action<void>>().toEqualTypeOf<{
+      id: string;
+      label: string | (() => string);
+      key?: string | string[];
+      predicate?: (ctx: ActionContext<void>) => boolean;
+      handler: (ctx: ActionContext<void>) => void | Promise<void>;
+      destructive?: boolean;
+      primary?: boolean;
+      showInFooter?: boolean;
+    }>();
+    expectTypeOf<ActionContext<void>>().toEqualTypeOf<{
       row: Row;
       rows: Row[];
       item?: DetailItem;
       filter: string;
+      refresh: () => Promise<void>;
+      suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
+      toast: (msg: string, tone?: Tone) => void;
+      confirm: (prompt: string) => Promise<boolean>;
+      exit: (after?: () => void | Promise<void>) => void;
     }>();
-    expectTypeOf<ExplorerConfig<void>>().toMatchTypeOf<{
+    expectTypeOf<ExplorerConfig<void>>().toEqualTypeOf<{
       title: string;
       rows: () => Promise<Row[]>;
       detail: Detail<void>;
       actions: Action<void>[];
+      reorder?: { onReorder: (orderedIds: string[]) => void | Promise<void> };
+      multiSelect?: boolean;
+      keybindOverrides?: Record<string, string | string[]>;
+      emptyHint?: string;
+      initialFilter?: string;
     }>();
   });
 

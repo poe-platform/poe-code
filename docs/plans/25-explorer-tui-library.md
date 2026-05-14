@@ -249,7 +249,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: smoke-and-build-test
     title: Smoke tests for SDK exports and built bundle
@@ -269,8 +269,8 @@ tasks:
       Verify `npm run build` in packages/design-system succeeds and the
       built bundle contains `runExplorer` (grep the dist).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: demo-and-manual-qa

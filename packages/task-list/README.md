@@ -140,6 +140,104 @@ await project.move(created.id, { after: "42" });
 
 `gh-issues` exposes one list named `${project.owner}/${project.number}`. `create()` ignores `TaskCreate.id` because GitHub assigns issue numbers. `fire(state)` writes the Project v2 `Status` field to the matching single-select option. `move()` reorders project items.
 
+If the GitHub Project v2 board has not been set up manually, run `poe-code tasks sync <list>` before opening the backend. `openTaskList({ type: "gh-issues" })` no longer requires manual board setup when the board was provisioned with `tasks sync` first.
+
+## Verifying and provisioning the GitHub Project v2 board
+
+Use `verifyGhProject` to check whether a GitHub Project v2 board has the required Project and `Status` single-select options:
+
+```ts
+import { verifyGhProject } from "@poe-code/task-list";
+
+const report = await verifyGhProject({
+  owner: "octo-org",
+  number: 7,
+  requiredStates: ["queued", "agent-running", "human-review", "done", "failed", "archived"],
+  auth: { token: "github-token" }
+});
+```
+
+`VerifyGhProjectOptions` has this shape:
+
+```ts
+interface VerifyGhProjectOptions {
+  owner: string;
+  number: number;
+  requiredStates: readonly string[];
+  client?: GhClient;
+  fetch?: typeof fetch;
+  auth?: { token: string };
+}
+```
+
+`verifyGhProject` returns `Promise<VerifyGhProjectReport>`:
+
+```ts
+interface VerifyGhProjectReport {
+  ok: boolean;
+  project: { id: string; number: number; owner: string } | null;
+  statusField: { id: string; options: readonly string[] } | null;
+  missingProject: boolean;
+  missingStatusField: boolean;
+  missingOptions: readonly string[];
+}
+```
+
+Use `syncGhProject` to provision anything missing:
+
+```ts
+import { syncGhProject } from "@poe-code/task-list";
+
+const report = await syncGhProject({
+  owner: "octo-org",
+  number: 7,
+  requiredStates: ["queued", "agent-running", "human-review", "done", "failed", "archived"],
+  title: "Delivery Board",
+  yes: true,
+  auth: { token: "github-token" }
+});
+```
+
+`SyncGhProjectOptions` extends `VerifyGhProjectOptions`:
+
+```ts
+interface SyncGhProjectOptions extends VerifyGhProjectOptions {
+  title?: string;
+  yes?: boolean;
+}
+```
+
+`syncGhProject` returns `Promise<SyncGhProjectReport>`:
+
+```ts
+interface SyncGhProjectReport extends VerifyGhProjectReport {
+  created: readonly string[];
+  updated: readonly string[];
+}
+```
+
+The CLI exposes the same verification and provisioning flow:
+
+```sh
+poe-code tasks verify <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --project octo-org/7 --states queued,agent-running,human-review,done,failed,archived --json
+poe-code tasks sync <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --project octo-org/7 --states queued,agent-running,human-review,done,failed,archived --json --yes
+```
+
+`<list>` and `--project` both use `<owner>/<number>` project syntax. `--workflow` defaults to `./WORKFLOW.md`. `--repo` overrides the task repository from workflow frontmatter. `--states` overrides the required state list from workflow frontmatter. `--json` prints the report object as JSON. `--yes` confirms non-interactive sync; it is only used by `poe-code tasks sync`.
+
+| Option | Commands | Behavior |
+| --- | --- | --- |
+| `--workflow <path>` | `verify`, `sync` | Workflow file path. Defaults to `./WORKFLOW.md`. |
+| `--repo <owner/name>` | `verify`, `sync` | GitHub repository owner/name. |
+| `--project <owner/number>` | `verify`, `sync` | GitHub Project v2 owner/number. Overrides `<list>`. |
+| `--states <csv>` | `verify`, `sync` | Required task state names. |
+| `--json` | `verify`, `sync` | Prints the report as JSON. |
+| `--yes` | `sync` | Confirms non-interactive provisioning. |
+
+The `Status` field name and option names are matched case-sensitively. The field must be named `Status`, and required option names must match exactly. For example, `status` is treated as a missing field, and `Done` is treated as missing when the required state is `done`.
+
+In v1, if sync creates a new GitHub Project v2 board, the CLI prints the new project number and does not rewrite `WORKFLOW.md`. The operator must update `WORKFLOW.md` by hand with the printed `<owner>/<number>`.
+
 ## Notes
 
 The package never overwrites existing task files or store files. `defaults.metadata` is applied only when creating new tasks and does not retroactively update existing tasks.

@@ -148,7 +148,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: document-tasks-commands
     title: Document verify/sync in the task-list README
@@ -163,7 +163,7 @@ tasks:
 
       Do not add new env-var documentation; this feature introduces no new env vars.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

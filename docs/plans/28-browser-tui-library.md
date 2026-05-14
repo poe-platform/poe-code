@@ -39,11 +39,11 @@ The library must also support a lazygit-style two-pane PR review queue (a separa
 
 Capabilities the library needs to cover both consumers:
 
-- **List preview mode** — preview can return `{ items, renderDetail, actions }` instead of a plain ANSI string; the right pane becomes its own cursor-driven list.
-- **Sub-item-scoped actions** — actions declare `scope: "row" | "subitem"`; dispatcher resolves the target based on which pane is focused.
-- **Grouped rows** — `Row` carries an optional `group` label; the renderer inserts dim group headers when the group key changes.
-- **State filter via plain action** — no special API; consumer owns the filter, mutates it in an action handler, calls `refresh()`.
-- **Refresh action** — exposed as a library-provided action id consumers can bind (default `r`).
+- **Unified `Detail` shape** — `detail.items` returns `DetailItem[]`; one titleless item fills the pane, multiple titled items become a cursor-driven sub-list. Single rule, no discriminated union.
+- **Detail-scoped actions** — actions declared under `detail.actions` run against the focused detail item; actions at the top level run against the highlighted row (or multi-selection).
+- **Grouped rows** — `Row.group` triggers dim group headers when the group key changes.
+- **State filter via plain action** — no special API; consumer owns the filter, mutates it in an action handler, calls `refresh()`. Action `label` may be a function to reflect current state.
+- **Refresh action** — `refresh()` exposed on `ActionContext`; consumers bind a key for it.
 
 ## 2. User-facing shape
 
@@ -51,17 +51,16 @@ Capabilities the library needs to cover both consumers:
 
 One entrypoint, `runBrowser<R>(config)`, returns a promise that resolves with whatever the actions chose to exit with (or `null` if the user quit).
 
-**Static-preview consumer (plan browser):**
+**Plan browser (single detail item — fills the pane):**
 
 ```ts
-import { runBrowser, type Row, type Action } from "@poe-code/design-system";
+import { runBrowser, singleDetail, type Row } from "@poe-code/design-system";
 
 await runBrowser<void>({
   title: "Plans",
   rows: async () => (await listPlans()).map(planToRow),
-  preview: { kind: "static",
-    render: async (row, { width }) =>
-      renderMarkdown(await readPlanFile(row.id), { width }) },
+  detail: singleDetail(async (row, { width }) =>
+    renderMarkdown(await readPlanFile(row.id), { width })),
   actions: [
     { id: "edit",    key: "e", label: "Edit",
       handler: ({ row, suspendAnd }) => suspendAnd(() => openInEditor(row.id)) },
@@ -85,9 +84,11 @@ await runBrowser<void>({
 });
 ```
 
-**List-preview consumer (PR review queue):**
+**PR review queue (detail items have titles — right pane is a list):**
 
 ```ts
+let stateFilter: "draft" | "publishing" | "published" = "draft";
+
 await runBrowser<void>({
   title: "Pending reviews",
   rows: async () => (await listDraftState({ filter: stateFilter }))
@@ -97,28 +98,32 @@ await runBrowser<void>({
       subtitle: `${pr.draftCount} drafts · ${pr.author}`,
       badge: badgeFor(pr.state),
     })),
-  preview: { kind: "list",
-    items: async (row) => (await loadReview(row.id)).comments
-      .map(c => ({ id: c.id, title: c.path, subtitle: c.bodyPreview })),
-    renderDetail: async (sub, ctx) => renderComment(sub, ctx.parentRow),
+  detail: {
+    items: async (row) => (await loadReview(row.id)).comments.map(c => ({
+      id: c.id,
+      title: c.path,
+      subtitle: c.bodyPreview,
+      render: () => renderComment(c),
+    })),
     actions: [
       { id: "edit-comment",   key: "e", label: "Edit",
-        handler: ({ subitem, suspendAnd, refresh }) =>
-          suspendAnd(() => editInlineCommentCommand(subitem.id)).then(refresh) },
+        handler: ({ item, suspendAnd, refresh }) =>
+          suspendAnd(() => editInlineCommentCommand(item.id)).then(refresh) },
       { id: "delete-comment", key: "x", label: "Delete", destructive: true,
-        handler: async ({ subitem, refresh }) => {
-          await deleteInlineCommentCommand(subitem.id);
+        handler: async ({ item, refresh }) => {
+          await deleteInlineCommentCommand(item.id);
           await refresh();
         } },
-    ] },
+    ],
+  },
   actions: [
-    { id: "commit",      key: "c", label: "Commit drafts",
+    { id: "commit",  key: "c", label: "Commit drafts",
       handler: async ({ row, refresh }) => { await commitReviewsCommand(row.id); await refresh(); } },
-    { id: "discard",     key: "d", label: "Discard", destructive: true,
+    { id: "discard", key: "d", label: "Discard", destructive: true,
       handler: async ({ row, refresh }) => { await discardDrafts(row.id); await refresh(); } },
-    { id: "toggle-state",key: "s", label: `State: ${stateFilter}`,
+    { id: "toggle-state", key: "s", label: () => `State: ${stateFilter}`,
       handler: async ({ refresh }) => { stateFilter = nextState(stateFilter); await refresh(); } },
-    { id: "refresh",     key: "r", label: "Refresh",
+    { id: "refresh", key: "r", label: "Refresh",
       handler: ({ refresh }) => refresh() },
     { id: "open-in-browser", key: "Enter", primary: true, label: "Open PR",
       handler: ({ row }) => openUrl(row.url) },
@@ -139,40 +144,37 @@ interface Row {
   group?: string;        // grouped rendering; rows with same group cluster under a header
 }
 
-interface SubRow {
+interface DetailItem {
   id: string;
-  title: string;
+  title?: string;        // absent => item fills pane with no cursor / no selection chrome
   subtitle?: string;
   badge?: { text: string; tone?: Tone };
+  render: (ctx: DetailCtx) => string | Promise<string>;
 }
 
-type Preview<R> =
-  | { kind: "none" }
-  | { kind: "static"; render: (row: Row, ctx: PreviewCtx) => Promise<string> }
-  | { kind: "list";
-      items: (row: Row) => Promise<SubRow[]>;
-      renderDetail?: (sub: SubRow, ctx: SubCtx) => Promise<string>;
-      actions?: Action<R>[]; };
+interface Detail<R> {
+  items: (row: Row, ctx: DetailCtx) => Promise<DetailItem[]>;
+  actions?: Action<R>[];      // run against the focused detail item
+}
 
-interface PreviewCtx { width: number; height: number; signal: AbortSignal }
-interface SubCtx extends PreviewCtx { parentRow: Row }
+interface DetailCtx { width: number; height: number; signal: AbortSignal; row: Row }
+interface PreviewCtx extends DetailCtx {}     // alias for actions that don't care about row
 
 interface Action<R> {
   id: string;
-  label: string;
+  label: string | (() => string);            // function form re-evaluated when state changes
   key?: string | string[];
-  scope?: "row" | "subitem";           // default "row"; "subitem" only valid inside preview.list.actions
   predicate?: (ctx: ActionContext<R>) => boolean;
   handler: (ctx: ActionContext<R>) => void | Promise<void>;
   destructive?: boolean;
-  primary?: boolean;                   // bound to Enter
-  showInFooter?: boolean;              // default true
+  primary?: boolean;                          // bound to Enter
+  showInFooter?: boolean;                     // default true
 }
 
 interface ActionContext<R> {
   row: Row;                    // currently highlighted left-pane row
   rows: Row[];                 // multi-select; falls back to [row] if no selection
-  subitem?: SubRow;            // present when scope:"subitem"
+  item?: DetailItem;           // populated for actions declared under detail.actions
   filter: string;
   refresh: () => Promise<void>;
   suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
@@ -184,7 +186,7 @@ interface ActionContext<R> {
 interface BrowserConfig<R> {
   title: string;
   rows: () => Promise<Row[]>;
-  preview: Preview<R>;
+  detail: Detail<R>;
   actions: Action<R>[];
   reorder?: { onReorder: (orderedIds: string[]) => void | Promise<void> };
   multiSelect?: boolean;
@@ -194,7 +196,22 @@ interface BrowserConfig<R> {
 }
 
 function runBrowser<R = void>(config: BrowserConfig<R>): Promise<R | null>;
+
+// Ergonomic helper for the common single-blob case.
+function singleDetail<R>(
+  render: (row: Row, ctx: DetailCtx) => string | Promise<string>
+): Detail<R>;
 ```
+
+### 2.1.2 Detail rendering rule
+
+The library renders `detail.items` uniformly:
+
+- **Zero items** — pane shows `emptyHint` or a default `No detail`.
+- **One item, no `title`** — full-pane render, no cursor, no sub-actions footer.
+- **Any item with a `title`** — list mode: header bars per item, cursor + Tab-focus, `detail.actions` enabled.
+
+This is the single rule that collapses static and list shapes into one.
 
 ### 2.2 Default keybindings
 
@@ -272,7 +289,7 @@ Legend: `●` active, `◌` draft, `▣` archived. `┃` left of row = multi-sel
   [e] edit  [a] archive  [d] delete  [r] run  [?] help  [Ctrl+P] palette  [q] quit
 ```
 
-### 2.4.1 ASCII mockup — list-preview consumer (PR review queue)
+### 2.4.1 ASCII mockup — detail-as-list (PR review queue)
 
 ```text
 ┌─ Pending reviews ─────────────────────────────────────────────────────────────────────────────────────────────────────┐

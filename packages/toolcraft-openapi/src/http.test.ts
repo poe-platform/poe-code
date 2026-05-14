@@ -17,27 +17,29 @@ function createTokenSource(
 
       return token;
     }),
-    invalidate: options?.invalidate,
+    invalidate: options?.invalidate
   };
 }
 
 function createUnauthenticatedTokenSource(message = "Authentication required.") {
   return createTokenSource("unused", {
-    getTokenError: new UserError(message),
+    getTokenError: new UserError(message)
   });
 }
 
-function createJsonResponse(body: unknown, status = 200): Response {
+function createJsonResponse(body: unknown, status = 200, statusText = ""): Response {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json" },
+    statusText,
+    headers: { "content-type": "application/json" }
   });
 }
 
-function createTextResponse(body: string, status = 200): Response {
+function createTextResponse(body: string, status = 200, statusText = ""): Response {
   return new Response(body, {
     status,
-    headers: { "content-type": "text/plain" },
+    statusText,
+    headers: { "content-type": "text/plain" }
   });
 }
 
@@ -51,15 +53,15 @@ describe("requestJson", () => {
       method: "GET",
       auth: "required",
       tokenSource: createTokenSource("abc"),
-      fetch: fetchMock,
+      fetch: fetchMock
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.example.com/bots",
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: "Bearer abc",
-        }),
+          Authorization: "Bearer abc"
+        })
       })
     );
   });
@@ -74,14 +76,14 @@ describe("requestJson", () => {
       method: "GET",
       auth: "none",
       tokenSource,
-      fetch: fetchMock,
+      fetch: fetchMock
     });
 
     expect(tokenSource.getToken).not.toHaveBeenCalled();
     expect(fetchMock).toHaveBeenCalledWith(
       "https://api.example.com/status",
       expect.objectContaining({
-        headers: {},
+        headers: {}
       })
     );
   });
@@ -95,13 +97,13 @@ describe("requestJson", () => {
       method: "GET",
       auth: "required",
       tokenSource: createTokenSource("abc"),
-      fetch: fetchMock,
+      fetch: fetchMock
     });
 
     expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
       headers: {
-        Authorization: "Bearer abc",
-      },
+        Authorization: "Bearer abc"
+      }
     });
   });
 
@@ -112,7 +114,7 @@ describe("requestJson", () => {
         path: "/bots",
         method: "GET",
         tokenSource: createUnauthenticatedTokenSource("Run auth login first."),
-        fetch: vi.fn(),
+        fetch: vi.fn()
       })
     ).rejects.toThrow("Run auth login first.");
   });
@@ -126,7 +128,7 @@ describe("requestJson", () => {
       method: "GET",
       auth: "required",
       tokenSource: createUnauthenticatedTokenSource(),
-      fetch: fetchMock,
+      fetch: fetchMock
     }).catch(() => undefined);
 
     expect(fetchMock).not.toHaveBeenCalled();
@@ -141,7 +143,7 @@ describe("requestJson", () => {
       method: { toUpperCase } as unknown as string,
       auth: "required",
       tokenSource: createTokenSource("abc"),
-      fetch: vi.fn(async () => createJsonResponse({ ok: true })),
+      fetch: vi.fn(async () => createJsonResponse({ ok: true }))
     });
 
     expect(toUpperCase).toHaveBeenCalledTimes(1);
@@ -154,7 +156,7 @@ describe("requestJson", () => {
         path: "/bots/{handle}",
         method: "GET",
         tokenSource: createTokenSource("abc"),
-        fetch: vi.fn(),
+        fetch: vi.fn()
       })
     ).rejects.toBeInstanceOf(UserError);
   });
@@ -169,7 +171,7 @@ describe("requestJson", () => {
       auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
-      pathParams: { handle: "my-bot" },
+      pathParams: { handle: "my-bot" }
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -188,7 +190,7 @@ describe("requestJson", () => {
       auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
-      pathParams: { handle: "team/red" },
+      pathParams: { handle: "team/red" }
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -205,12 +207,11 @@ describe("requestJson", () => {
         method: "GET",
         tokenSource: createTokenSource("abc"),
         fetch: vi.fn(),
-        pathParams: { handle: "my-bot" },
+        pathParams: { handle: "my-bot" }
       })
     ).rejects.toSatisfy(
       (error: unknown) =>
-        error instanceof UserError &&
-        error.message === 'Invalid path template "/bots/{handle".'
+        error instanceof UserError && error.message === 'Invalid path template "/bots/{handle".'
     );
   });
 
@@ -228,8 +229,8 @@ describe("requestJson", () => {
         owner: "alice",
         tags: ["x", "y"],
         skip: undefined,
-        cursor: null,
-      },
+        cursor: null
+      }
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -251,8 +252,8 @@ describe("requestJson", () => {
       query: {
         enabled: false,
         limit: 0,
-        flags: [false, 0],
-      },
+        flags: [false, 0]
+      }
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -271,7 +272,7 @@ describe("requestJson", () => {
       auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
-      body: { official: true },
+      body: { official: true }
     });
 
     expect(fetchMock).toHaveBeenCalledWith(
@@ -279,8 +280,8 @@ describe("requestJson", () => {
       expect.objectContaining({
         body: JSON.stringify({ official: true }),
         headers: expect.objectContaining({
-          "Content-Type": "application/json",
-        }),
+          "Content-Type": "application/json"
+        })
       })
     );
   });
@@ -294,13 +295,10 @@ describe("requestJson", () => {
       method: "GET",
       auth: "required",
       tokenSource: createTokenSource("abc"),
-      fetch: fetchMock,
+      fetch: fetchMock
     });
 
-    expect(fetchMock).toHaveBeenCalledWith(
-      "https://api.example.com/bots",
-      expect.any(Object)
-    );
+    expect(fetchMock).toHaveBeenCalledWith("https://api.example.com/bots", expect.any(Object));
   });
 
   it("returns parsed JSON for successful JSON responses", async () => {
@@ -310,7 +308,7 @@ describe("requestJson", () => {
         path: "/bots",
         method: "GET",
         tokenSource: createTokenSource("abc"),
-        fetch: vi.fn(async () => createJsonResponse({ bots: ["a"] })),
+        fetch: vi.fn(async () => createJsonResponse({ bots: ["a"] }))
       })
     ).resolves.toEqual({ bots: ["a"] });
   });
@@ -322,7 +320,7 @@ describe("requestJson", () => {
         path: "/bots",
         method: "GET",
         tokenSource: createTokenSource("abc"),
-        fetch: vi.fn(async () => new Response(null, { status: 204 })),
+        fetch: vi.fn(async () => new Response(null, { status: 204 }))
       })
     ).resolves.toBeUndefined();
   });
@@ -334,11 +332,11 @@ describe("requestJson", () => {
         path: "/bots",
         method: "GET",
         tokenSource: createTokenSource("abc"),
-        fetch: vi.fn(async () => createJsonResponse({ error: "forbidden" }, 403)),
+        fetch: vi.fn(async () => createJsonResponse({ error: "forbidden" }, 403))
       })
     ).rejects.toMatchObject<HttpError>({
       status: 403,
-      body: { error: "forbidden" },
+      body: { error: "forbidden" }
     });
   });
 
@@ -349,31 +347,45 @@ describe("requestJson", () => {
         path: "/bots",
         method: "GET",
         tokenSource: createTokenSource("abc"),
-        fetch: vi.fn(async () => createTextResponse("forbidden", 403)),
+        fetch: vi.fn(async () => createTextResponse("forbidden", 403))
       })
     ).rejects.toMatchObject<HttpError>({
       status: 403,
-      body: "forbidden",
+      body: "forbidden"
     });
   });
 
-  it("throws an HttpError with raw text bodies for server errors", async () => {
+  it("throws an HttpError with request and response details for server errors", async () => {
     await expect(
       requestJson({
         baseUrl: "https://api.example.com",
         path: "/bots",
         method: "GET",
         tokenSource: createTokenSource("abc"),
-        fetch: vi.fn(async () => createTextResponse("boom", 500)),
+        fetch: vi.fn(async () =>
+          createJsonResponse({ error: "boom" }, 500, "Internal Server Error")
+        )
       })
     ).rejects.toMatchObject<HttpError>({
       status: 500,
-      body: "boom",
+      statusText: "Internal Server Error",
+      request: {
+        method: "GET",
+        url: "https://api.example.com/bots"
+      },
+      response: {
+        status: 500,
+        statusText: "Internal Server Error",
+        body: { error: "boom" }
+      },
+      body: { error: "boom" },
+      message: "GET https://api.example.com/bots → 500 Internal Server Error"
     });
   });
 
   it("invalidates the token source before throwing on 401 responses", async () => {
     const invalidate = vi.fn(async () => undefined);
+    let error: unknown;
 
     await requestJson({
       baseUrl: "https://api.example.com",
@@ -381,10 +393,23 @@ describe("requestJson", () => {
       method: "GET",
       auth: "required",
       tokenSource: createTokenSource("abc", { invalidate }),
-      fetch: vi.fn(async () => createJsonResponse({ error: "unauthorized" }, 401)),
-    }).catch(() => undefined);
+      fetch: vi.fn(async () => createJsonResponse({ error: "unauthorized" }, 401, "Unauthorized"))
+    }).catch((caught: unknown) => {
+      error = caught;
+    });
 
     expect(invalidate).toHaveBeenCalledTimes(1);
+    expect(error).toMatchObject<HttpError>({
+      request: {
+        method: "GET",
+        url: "https://api.example.com/bots"
+      },
+      response: {
+        status: 401,
+        statusText: "Unauthorized",
+        body: { error: "unauthorized" }
+      }
+    });
   });
 
   it("throws an HttpError when a successful response is not JSON", async () => {
@@ -394,13 +419,45 @@ describe("requestJson", () => {
         path: "/bots",
         method: "GET",
         tokenSource: createTokenSource("abc"),
-        fetch: vi.fn(async () => createTextResponse("ok", 200)),
+        fetch: vi.fn(async () => createTextResponse("ok", 200))
       })
     ).rejects.toMatchObject<HttpError>({
       status: 200,
       body: "ok",
-      message: 'Expected a JSON response body but received content-type "text/plain".',
+      response: {
+        headers: {
+          "content-type": "text/plain"
+        }
+      },
+      message: 'Expected a JSON response body but received content-type "text/plain".'
     });
+  });
+
+  it("redacts the bearer token in HttpError request headers", async () => {
+    let error: unknown;
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "POST",
+      auth: "required",
+      tokenSource: createTokenSource("raw-token"),
+      fetch: vi.fn(async () => createJsonResponse({ error: "boom" }, 500)),
+      body: { official: true }
+    }).catch((caught: unknown) => {
+      error = caught;
+    });
+
+    expect(error).toMatchObject<HttpError>({
+      request: {
+        headers: {
+          Authorization: "Bearer ****",
+          "Content-Type": "application/json"
+        },
+        body: { official: true }
+      }
+    });
+    expect(JSON.stringify((error as HttpError).request.headers)).not.toContain("raw-token");
   });
 
   it("redacts the bearer token in dry-run output", async () => {
@@ -416,11 +473,11 @@ describe("requestJson", () => {
       pathParams: { handle: "my-bot" },
       body: { official: true },
       dryRun: true,
-      writeStdout: stdout,
+      writeStdout: stdout
     });
 
     expect(stdout).toHaveBeenCalledWith(
-      "POST https://api.example.com/bots/my-bot\nAuthorization: Bearer ****\nContent-Type: application/json\n\n{\"official\":true}\n"
+      'POST https://api.example.com/bots/my-bot\nAuthorization: Bearer ****\nContent-Type: application/json\n\n{"official":true}\n'
     );
   });
 
@@ -435,7 +492,7 @@ describe("requestJson", () => {
       tokenSource: createTokenSource("abc"),
       fetch: fetchMock,
       dryRun: true,
-      writeStdout: vi.fn(),
+      writeStdout: vi.fn()
     });
 
     expect(fetchMock).not.toHaveBeenCalled();
@@ -452,7 +509,7 @@ describe("requestJson", () => {
       tokenSource: createTokenSource("abc"),
       fetch: vi.fn(async () => createJsonResponse({ ok: true })),
       verbose: true,
-      writeStderr: stderr,
+      writeStderr: stderr
     });
 
     expect(stderr).toHaveBeenCalledTimes(1);
@@ -471,7 +528,7 @@ describe("requestJson", () => {
       auth: "required",
       tokenSource: createTokenSource("abc"),
       fetch: vi.fn(async () => createJsonResponse({ ok: true })),
-      writeStderr: stderr,
+      writeStderr: stderr
     });
 
     expect(stderr).not.toHaveBeenCalled();

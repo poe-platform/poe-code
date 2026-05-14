@@ -13,7 +13,7 @@ import type {
   HttpRequestOptions,
   OpenApiDocument,
   OpenApiClientServices,
-  TokenSource,
+  TokenSource
 } from "./index.js";
 import * as entrypoint from "./index.js";
 import { HttpError } from "./index.js";
@@ -28,7 +28,7 @@ describe("toolcraft-openapi", () => {
       "defineClient",
       "defineClientFromSpec",
       "generate",
-      "requestJson",
+      "requestJson"
     ]);
   });
 
@@ -171,9 +171,24 @@ describe("toolcraft-openapi", () => {
   });
 
   it("exports an HTTP error with status and body fields", () => {
-    expect(new HttpError(418, { ok: false })).toMatchObject({
+    expect(
+      new HttpError({
+        request: {
+          method: "GET",
+          url: "https://api.example.com/teapot",
+          headers: {}
+        },
+        response: {
+          status: 418,
+          statusText: "I'm a Teapot",
+          headers: {},
+          body: { ok: false }
+        }
+      })
+    ).toMatchObject({
       status: 418,
-      body: { ok: false },
+      statusText: "I'm a Teapot",
+      body: { ok: false }
     });
   });
 });

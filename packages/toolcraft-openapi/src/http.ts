@@ -23,15 +23,40 @@ export interface HttpRequestOptions {
   writeStderr?: (chunk: string) => void;
 }
 
+export interface HttpErrorRequest {
+  method: string;
+  url: string;
+  headers: Record<string, string>;
+  body?: unknown;
+}
+
+export interface HttpErrorResponse {
+  status: number;
+  statusText: string;
+  headers: Record<string, string>;
+  body: unknown;
+}
+
 export class HttpError extends Error {
   readonly status: number;
-  readonly body: unknown;
+  readonly statusText: string;
+  readonly request: HttpErrorRequest;
+  readonly response: HttpErrorResponse;
 
-  constructor(status: number, body: unknown, message = `HTTP ${status}`) {
-    super(message);
+  get body(): unknown {
+    return this.response.body;
+  }
+
+  constructor(args: { request: HttpErrorRequest; response: HttpErrorResponse; message?: string }) {
+    super(
+      args.message ??
+        `${args.request.method} ${args.request.url} → ${args.response.status} ${args.response.statusText}`
+    );
     this.name = "HttpError";
-    this.status = status;
-    this.body = body;
+    this.status = args.response.status;
+    this.statusText = args.response.statusText;
+    this.request = args.request;
+    this.response = args.response;
   }
 }
 
@@ -61,11 +86,13 @@ export async function requestJson<TResult = unknown>(
     method,
     headers,
     body: serializedBody,
-    signal: options.signal,
+    signal: options.signal
   });
 
   const text = await response.text();
   const contentType = response.headers.get("content-type");
+  const request = createHttpErrorRequest(method, url, headers, options.body);
+  const responseHeaders = serializeHeaders(response.headers);
 
   if (response.ok) {
     if (text.length === 0) {
@@ -73,13 +100,18 @@ export async function requestJson<TResult = unknown>(
     }
 
     if (!isJsonContentType(contentType)) {
-      throw new HttpError(
-        response.status,
-        text,
-        `Expected a JSON response body but received content-type ${JSON.stringify(
+      throw new HttpError({
+        request,
+        response: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          body: text
+        },
+        message: `Expected a JSON response body but received content-type ${JSON.stringify(
           contentType ?? "<missing>"
         )}.`
-      );
+      });
     }
 
     return JSON.parse(text) as TResult;
@@ -89,7 +121,15 @@ export async function requestJson<TResult = unknown>(
     await options.tokenSource.invalidate?.();
   }
 
-  throw new HttpError(response.status, parseResponseBody(text, contentType));
+  throw new HttpError({
+    request,
+    response: {
+      status: response.status,
+      statusText: response.statusText,
+      headers: responseHeaders,
+      body: parseResponseBody(text, contentType)
+    }
+  });
 }
 
 function buildRequestUrl(options: HttpRequestOptions): string {
@@ -145,8 +185,40 @@ function appendQueryValue(searchParams: URLSearchParams, key: string, value: Que
 function createHeaders(token: string | undefined, hasBody: boolean): Record<string, string> {
   return {
     ...(token === undefined ? {} : { Authorization: `Bearer ${token}` }),
-    ...(hasBody ? { "Content-Type": "application/json" } : {}),
+    ...(hasBody ? { "Content-Type": "application/json" } : {})
   };
+}
+
+function createHttpErrorRequest(
+  method: string,
+  url: string,
+  headers: Record<string, string>,
+  body: unknown
+): HttpErrorRequest {
+  return {
+    method,
+    url,
+    headers: redactHeaders(headers),
+    ...(body === undefined ? {} : { body })
+  };
+}
+
+function serializeHeaders(headers: Headers): Record<string, string> {
+  return Object.fromEntries(headers.entries());
+}
+
+function redactHeaders(headers: Record<string, string>): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(headers).map(([key, value]) => [key, redactHeaderValue(key, value)])
+  );
+}
+
+function redactHeaderValue(key: string, value: string): string {
+  if (key.toLowerCase() === "authorization" && value.startsWith("Bearer ")) {
+    return "Bearer ****";
+  }
+
+  return value;
 }
 
 function formatDryRunOutput(
@@ -157,14 +229,11 @@ function formatDryRunOutput(
   const lines = [
     requestLine,
     ...Object.entries(headers).map(([key, value]) => {
-      const headerValue =
-        key.toLowerCase() === "authorization" && value.startsWith("Bearer ")
-          ? "Bearer ****"
-          : value;
+      const headerValue = redactHeaderValue(key, value);
 
       return `${key}: ${headerValue}`;
     }),
-    "",
+    ""
   ];
 
   if (body !== undefined) {

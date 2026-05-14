@@ -69,8 +69,8 @@ tasks:
 
       No changes to consumers in this task. The render layer comes next.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-openapi-http-error-render

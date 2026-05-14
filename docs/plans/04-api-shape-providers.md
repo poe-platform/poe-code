@@ -19,7 +19,7 @@ Instead of saying a provider supports an agent directly, each coding agent decla
 - Anthropic messages
 - Google generations
 
-Each auth provider declares which API shapes it exposes, the first-party base URL defaults for those shapes, and the environment variables that can supply its API key and base URL values. Provider login captures the user's API key and base URL choices only when env vars do not already provide them. First-party providers can accept their declared base URL defaults during login, and custom or compatibility providers can override base URLs without changing agent configuration code.
+Each auth provider declares which API shapes it exposes, the first-party base URL defaults for those shapes, and the environment variable that can supply its API key. Provider login captures the user's API key and base URL choices when explicit values are needed. First-party providers can accept their declared base URL defaults during login, and custom or compatibility providers can override base URLs without changing agent configuration code.
 
 Adding a provider should be a matter of adding one declarative provider file. Everything else should be derived from that provider config. Host code must not add provider-specific if/case branches.
 
@@ -44,7 +44,7 @@ poe-code provider list
 poe-code provider login poe
 poe-code provider login openai --api-key "$OPENAI_API_KEY"
 poe-code provider login openai --api-key "$OPENAI_API_KEY" --base-url https://api.openai.com/v1
-OPENAI_API_KEY=sk-... OPENAI_BASE_URL=https://api.openai.com/v1 poe-code configure codex --provider openai --yes
+OPENAI_API_KEY=sk-... poe-code configure codex --provider openai --yes
 poe-code provider login anthropic --api-key "$ANTHROPIC_API_KEY"
 poe-code provider login google --api-key "$GEMINI_API_KEY"
 poe-code configure codex --provider openai --yes
@@ -81,15 +81,15 @@ poe-code provider login poe \
   --shape-base-url anthropic-messages=https://api.poe.com/anthropic
 ```
 
-Every provider declares the env vars it can read without an explicit `provider login` round-trip. Resolution order is:
+Every provider declares the API key env var it can read without an explicit `provider login` round-trip. Base URLs are not read from env; they come from explicit login/config values or provider-declared defaults. Resolution order is:
 
 1. Explicit CLI/SDK options, such as `--api-key`, `--base-url`, and `--shape-base-url`.
-2. Provider-declared env vars, such as `OPENAI_API_KEY`, `OPENAI_BASE_URL`, and shape-specific base URL env vars.
+2. Provider-declared API key env vars, such as `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `POE_API_KEY`.
 3. Stored provider login values.
 4. Provider-declared defaults for base URLs only.
 5. Interactive prompt when required and allowed.
 
-This keeps CI and local shell workflows equivalent to today's `POE_API_KEY` behavior: setting the provider's env vars is enough for configure, test, spawn, and SDK calls.
+This keeps CI and local shell workflows equivalent to today's `POE_API_KEY` behavior: setting the provider's API key env var is enough for configure, test, spawn, and SDK calls when default base URLs are acceptable.
 
 `configure` resolves only a provider from the user's perspective. The API shape is derived by intersecting the provider's declared shapes with the agent's declared required shapes.
 
@@ -137,7 +137,6 @@ export const openaiProvider: AuthProvider = {
     storageKey: "provider:openai",
     prompt: { title: "OpenAI API key" }
   },
-  baseUrlEnvVar: "OPENAI_BASE_URL",
   apiShapes: [
     { id: "openai-responses", defaultBaseUrl: "https://api.openai.com/v1" },
     { id: "openai-chat-completions", defaultBaseUrl: "https://api.openai.com/v1" }
@@ -155,15 +154,10 @@ export const poeProvider: AuthProvider = {
     prompt: { title: "Poe API key" },
     preferredLogin: "oauth"
   },
-  baseUrlEnvVar: "POE_BASE_URL",
   apiShapes: [
     { id: "openai-responses", defaultBaseUrl: "https://api.poe.com/v1" },
     { id: "openai-chat-completions", defaultBaseUrl: "https://api.poe.com/v1" },
-    {
-      id: "anthropic-messages",
-      defaultBaseUrl: "https://api.poe.com/anthropic",
-      baseUrlEnvVar: "POE_ANTHROPIC_BASE_URL"
-    }
+    { id: "anthropic-messages", defaultBaseUrl: "https://api.poe.com/anthropic" }
   ]
 };
 ```

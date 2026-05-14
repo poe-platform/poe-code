@@ -1,0 +1,28 @@
+{
+  "name": "@poe-code/acp-telemetry",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "test": "cd ../.. && vitest run packages/acp-telemetry/src",
+    "test:unit": "cd ../.. && vitest run packages/acp-telemetry/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-spawn": "*"
+  },
+  "devDependencies": {
+    "vitest": "^4.0.18"
+  }
+}

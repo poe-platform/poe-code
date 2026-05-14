@@ -55,7 +55,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: acp-telemetry-scaffold
     title: Scaffold @poe-code/acp-telemetry package
@@ -85,7 +85,7 @@ tasks:
       Acceptance: `npm run build` passes at repo root; the package shows up
       in `npm ls --workspaces` (or equivalent for the repo's workspace tool).
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: move-redact-to-telemetry

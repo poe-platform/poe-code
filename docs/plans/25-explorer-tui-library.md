@@ -62,7 +62,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: state-events-keymap
     title: State, events, and keymap layering
@@ -87,8 +87,8 @@ tasks:
       Add keymap.test.ts covering layering, conflicts, and the
       reorder-when-configured rule. No terminal-pilot — pure logic.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: reducer

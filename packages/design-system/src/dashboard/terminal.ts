@@ -286,6 +286,11 @@ export function parseKeypress(data: Buffer): KeypressEvent | undefined {
 }
 
 function toKeypressEvent(str: string | undefined, key: ReadlineKey | undefined): KeypressEvent | undefined {
+  const controlCharacter = controlCharacterToKeypress(key?.sequence);
+  if (controlCharacter !== undefined) {
+    return controlCharacter;
+  }
+
   const ctrl = key?.ctrl ?? false;
   const meta = key?.meta ?? false;
   const shift = key?.shift ?? false;
@@ -327,6 +332,14 @@ function isPrintableCharacter(value: string | undefined): value is string {
 
   const codePoint = value.codePointAt(0);
   return codePoint !== undefined && codePoint >= 0x20 && codePoint !== 0x7f;
+}
+
+function controlCharacterToKeypress(sequence: string | undefined): KeypressEvent | undefined {
+  if (sequence === "\u001f") {
+    return { ch: "/", ctrl: true, meta: false, shift: false };
+  }
+
+  return undefined;
 }
 
 function cursorPositionAnsi(x: number, y: number): string {

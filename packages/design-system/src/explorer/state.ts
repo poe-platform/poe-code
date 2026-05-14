@@ -1,3 +1,5 @@
+import { resolveBindings, type ResolvedBindings } from "./keymap.js";
+
 export type Tone = "success" | "warning" | "error" | "info" | "muted";
 
 export interface Row {
@@ -57,4 +59,132 @@ export interface ExplorerConfig<R> {
   keybindOverrides?: Record<string, string | string[]>;
   emptyHint?: string;
   initialFilter?: string;
+}
+
+export const REGION_HEADER = 1 << 0;
+export const REGION_LIST = 1 << 1;
+export const REGION_DETAIL = 1 << 2;
+export const REGION_FOOTER = 1 << 3;
+export const REGION_MODAL = 1 << 4;
+export const REGION_TOAST = 1 << 5;
+export const REGION_ALL =
+  REGION_HEADER |
+  REGION_LIST |
+  REGION_DETAIL |
+  REGION_FOOTER |
+  REGION_MODAL |
+  REGION_TOAST;
+
+export type Dirty = number;
+
+export type ExplorerLayoutMode =
+  | "wide"
+  | "medium"
+  | "narrow-vertical"
+  | "narrow-list-only";
+
+export interface ExplorerSize {
+  cols: number;
+  rows: number;
+}
+
+export interface ExplorerState {
+  title: string;
+  rows: Row[];
+  filtered: number[];
+  cursor: number;
+  filter: string;
+  focused: "list" | "detail";
+  detail: {
+    rowId: string | null;
+    items: DetailItem[] | null;
+    cursor: number;
+    scroll: number;
+    token: number;
+  };
+  selected: Set<string>;
+  modal:
+    | null
+    | { kind: "help" }
+    | { kind: "confirm"; action: Action<unknown>; rows: Row[]; resolver: (ok: boolean) => void }
+    | { kind: "palette"; query: string; cursor: number };
+  toast: { message: string; tone: Tone; expiresAt: number } | null;
+  dirty: Dirty;
+  size: ExplorerSize;
+  layout: ExplorerLayoutMode;
+  bindings: ResolvedBindings;
+  actionState: Map<string, { available: boolean; label: string }>;
+}
+
+export function createInitialState<R>(
+  config: ExplorerConfig<R>,
+  size: ExplorerSize
+): ExplorerState {
+  const normalizedSize = {
+    cols: normalizeSize(size.cols),
+    rows: normalizeSize(size.rows)
+  };
+
+  return {
+    title: config.title,
+    rows: [],
+    filtered: [],
+    cursor: 0,
+    filter: config.initialFilter ?? "",
+    focused: "list",
+    detail: {
+      rowId: null,
+      items: null,
+      cursor: 0,
+      scroll: 0,
+      token: 0
+    },
+    selected: new Set(),
+    modal: null,
+    toast: null,
+    dirty: REGION_ALL,
+    size: normalizedSize,
+    layout: resolveInitialLayout(normalizedSize.cols),
+    bindings: resolveBindings(config),
+    actionState: createInitialActionState(config)
+  };
+}
+
+function createInitialActionState<R>(
+  config: ExplorerConfig<R>
+): Map<string, { available: boolean; label: string }> {
+  const state = new Map<string, { available: boolean; label: string }>();
+
+  for (const action of [...config.actions, ...(config.detail.actions ?? [])]) {
+    state.set(action.id, {
+      available: true,
+      label: typeof action.label === "function" ? action.id : action.label
+    });
+  }
+
+  return state;
+}
+
+function resolveInitialLayout(cols: number): ExplorerLayoutMode {
+  if (cols < 80) {
+    return "narrow-list-only";
+  }
+
+  if (cols < 100) {
+    return "narrow-vertical";
+  }
+
+  if (cols < 120) {
+    return "medium";
+  }
+
+  return "wide";
+}
+
+function normalizeSize(value: number): number {
+  if (!Number.isFinite(value)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(value));
 }

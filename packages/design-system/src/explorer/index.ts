@@ -1,13 +1,26 @@
 import type { Detail, DetailCtx, Row } from "./state.js";
 
 export { runExplorer } from "./runtime.js";
+export { createInitialState } from "./state.js";
+export { resolveBindings } from "./keymap.js";
+export type { Effect, ExplorerEvent } from "./events.js";
+export type {
+  BindingTarget,
+  ExplorerBindingDefaults,
+  ExplorerBuiltinCommand,
+  ResolvedBindings
+} from "./keymap.js";
 export type {
   Action,
   ActionContext,
   Detail,
   DetailCtx,
   DetailItem,
+  Dirty,
   ExplorerConfig,
+  ExplorerLayoutMode,
+  ExplorerSize,
+  ExplorerState,
   Row,
   Tone
 } from "./state.js";

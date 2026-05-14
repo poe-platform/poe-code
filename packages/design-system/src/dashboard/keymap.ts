@@ -18,33 +18,117 @@ type Binding = {
   shift: boolean;
   name?: string;
   ch?: string;
+  sequence?: string;
 };
 
 export function createKeymap(
   overrides?: Partial<Record<Command, string[]>>
-): (event: KeypressEvent) => Command | undefined {
-  const bindings = new Map<Command, Binding[]>();
+): (event: KeypressEvent) => Command | undefined;
 
-  for (const command of commands) {
-    const keys = overrides?.[command] ?? defaultBindings[command];
-    bindings.set(
-      command,
-      keys
-        .map(parseBinding)
-        .filter((binding): binding is Binding => binding !== undefined)
-    );
+export function createKeymap<TCommand extends string>(
+  overrides: Partial<Record<TCommand, string[]>> | undefined,
+  options: {
+    commands: readonly TCommand[];
+    defaultBindings: Record<TCommand, readonly string[]>;
+  }
+): (event: KeypressEvent) => TCommand | undefined;
+
+export function createKeymap<TCommand extends string>(
+  overrides?: Partial<Record<TCommand, string[]>>,
+  options?: {
+    commands: readonly TCommand[];
+    defaultBindings: Record<TCommand, readonly string[]>;
+  }
+): (event: KeypressEvent) => TCommand | undefined {
+  const resolvedCommands = options?.commands ?? (commands as unknown as readonly TCommand[]);
+  const resolvedDefaults = options?.defaultBindings ?? (
+    defaultBindings as unknown as Record<TCommand, readonly string[]>
+  );
+  const bindings = new Map<TCommand, Binding[]>();
+  const sequences = new Set<string>();
+  let pendingSequence = "";
+
+  for (const command of resolvedCommands) {
+    const keys = overrides?.[command] ?? resolvedDefaults[command];
+    const commandBindings = keys
+      .map(parseBinding)
+      .filter((binding): binding is Binding => binding !== undefined);
+
+    for (const binding of commandBindings) {
+      if (binding.sequence !== undefined) {
+        sequences.add(binding.sequence);
+      }
+    }
+
+    bindings.set(command, commandBindings);
   }
 
   return (event: KeypressEvent) => {
-    for (const command of commands) {
+    for (const command of resolvedCommands) {
       const commandBindings = bindings.get(command);
-      if (commandBindings?.some((binding) => matches(binding, event))) {
+      if (commandBindings?.some((binding) => matchesSingleKey(binding, event))) {
+        pendingSequence = "";
         return command;
       }
     }
 
+    const sequenceCommand = resolveSequence(event);
+    if (sequenceCommand !== undefined) {
+      return sequenceCommand;
+    }
+
     return undefined;
   };
+
+  function resolveSequence(event: KeypressEvent): TCommand | undefined {
+    const token = eventToSequenceToken(event);
+    if (token === undefined) {
+      pendingSequence = "";
+      return undefined;
+    }
+
+    pendingSequence = `${pendingSequence}${token}`;
+
+    for (const command of resolvedCommands) {
+      const commandBindings = bindings.get(command);
+      if (commandBindings?.some((binding) => binding.sequence === pendingSequence)) {
+        pendingSequence = "";
+        return command;
+      }
+    }
+
+    if (hasSequencePrefix(sequences, pendingSequence)) {
+      return undefined;
+    }
+
+    pendingSequence = token;
+
+    if (hasSequencePrefix(sequences, pendingSequence)) {
+      return undefined;
+    }
+
+    pendingSequence = "";
+    return undefined;
+  }
+}
+
+export function canonicalizeBinding(binding: string): string | undefined {
+  const parsed = parseBinding(binding);
+  if (parsed === undefined) {
+    return undefined;
+  }
+
+  const modifiers = [
+    parsed.ctrl ? "ctrl" : undefined,
+    parsed.meta ? "meta" : undefined,
+    parsed.shift ? "shift" : undefined
+  ].filter((modifier): modifier is string => modifier !== undefined);
+  const key = parsed.name ?? parsed.ch;
+  if (parsed.sequence !== undefined) {
+    return parsed.sequence.toLowerCase();
+  }
+
+  return key === undefined ? undefined : [...modifiers, key.toLowerCase()].join("+");
 }
 
 function parseBinding(binding: string): Binding | undefined {
@@ -86,13 +170,30 @@ function parseBinding(binding: string): Binding | undefined {
     }
   }
 
-  if (parts.length === 1 && isShiftedCharacter(key)) {
+  const normalizedKey = normalizeKeyName(key);
+
+  if (parts.length === 1 && isShiftedCharacter(normalizedKey)) {
     shift = true;
   }
 
-  if (key.length === 1) {
+  if (normalizedKey.length === 1) {
     return {
-      ch: normalizeBindingCharacter(key, shift),
+      ch: normalizeBindingCharacter(normalizedKey, shift),
+      ctrl,
+      meta,
+      shift
+    };
+  }
+
+  if (
+    !ctrl &&
+    !meta &&
+    !shift &&
+    !isNamedKey(normalizedKey) &&
+    isPrintableSequence(normalizedKey)
+  ) {
+    return {
+      sequence: normalizedKey,
       ctrl,
       meta,
       shift
@@ -100,14 +201,18 @@ function parseBinding(binding: string): Binding | undefined {
   }
 
   return {
-    name: key.toLowerCase(),
+    name: normalizedKey.toLowerCase(),
     ctrl,
     meta,
     shift
   };
 }
 
-function matches(binding: Binding, event: KeypressEvent): boolean {
+function matchesSingleKey(binding: Binding, event: KeypressEvent): boolean {
+  if (binding.sequence !== undefined) {
+    return false;
+  }
+
   if (
     binding.ctrl !== event.ctrl ||
     binding.meta !== event.meta ||
@@ -127,6 +232,24 @@ function matches(binding: Binding, event: KeypressEvent): boolean {
   return false;
 }
 
+function eventToSequenceToken(event: KeypressEvent): string | undefined {
+  if (event.ctrl || event.meta || event.ch === undefined) {
+    return undefined;
+  }
+
+  return event.ch;
+}
+
+function hasSequencePrefix(sequences: Set<string>, prefix: string): boolean {
+  for (const sequence of sequences) {
+    if (sequence.startsWith(prefix)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 function isShiftedCharacter(value: string): boolean {
   return value.length === 1 && value.toLowerCase() !== value && value.toUpperCase() === value;
 }
@@ -138,3 +261,63 @@ function normalizeBindingCharacter(value: string, shift: boolean): string {
 
   return value.toUpperCase();
 }
+
+function normalizeKeyName(value: string): string {
+  if (value.toLowerCase() === "space") {
+    return " ";
+  }
+
+  if (value === "↑") {
+    return "up";
+  }
+
+  if (value === "↓") {
+    return "down";
+  }
+
+  if (value === "←") {
+    return "left";
+  }
+
+  if (value === "→") {
+    return "right";
+  }
+
+  return value;
+}
+
+function isNamedKey(value: string): boolean {
+  return namedKeys.has(value.toLowerCase());
+}
+
+function isPrintableSequence(value: string): boolean {
+  if (Array.from(value).length <= 1) {
+    return false;
+  }
+
+  for (const char of value) {
+    const codePoint = char.codePointAt(0);
+    if (codePoint === undefined || codePoint < 0x20 || codePoint === 0x7f) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+const namedKeys = new Set([
+  "backspace",
+  "delete",
+  "down",
+  "end",
+  "enter",
+  "escape",
+  "home",
+  "left",
+  "pagedown",
+  "pageup",
+  "return",
+  "right",
+  "tab",
+  "up"
+]);

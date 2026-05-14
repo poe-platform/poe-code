@@ -7,7 +7,13 @@ import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
 import { resolveSpawnExecution } from "../runtime.js";
-import { resolveModeConfig, type CliSpawnConfig, type SpawnOptions, type SpawnResult } from "../types.js";
+import {
+  resolveModeConfig,
+  type CliSpawnConfig,
+  type SpawnOptions,
+  type SpawnResult
+} from "../types.js";
+import { applyMiddlewares, type SpawnContext } from "./middleware.js";
 
 function createAbortError(): Error {
   const error = new Error("Agent spawn aborted");
@@ -26,6 +32,35 @@ export interface SpawnStreamingResult {
 
 function isAcpEvent(value: unknown): value is AcpEvent {
   return !!value && typeof value === "object" && "event" in value;
+}
+
+function accumulateUsage(ctx: SpawnContext, event: AcpEvent): void {
+  if (event.event !== "usage") {
+    return;
+  }
+
+  const usage = event as {
+    inputTokens?: unknown;
+    outputTokens?: unknown;
+    cachedTokens?: unknown;
+    costUsd?: unknown;
+  };
+
+  if (typeof usage.inputTokens === "number" && Number.isFinite(usage.inputTokens)) {
+    ctx.usage.inputTokens += usage.inputTokens;
+  }
+
+  if (typeof usage.outputTokens === "number" && Number.isFinite(usage.outputTokens)) {
+    ctx.usage.outputTokens += usage.outputTokens;
+  }
+
+  if (typeof usage.cachedTokens === "number" && Number.isFinite(usage.cachedTokens)) {
+    ctx.usage.cachedTokens = (ctx.usage.cachedTokens ?? 0) + usage.cachedTokens;
+  }
+
+  if (typeof usage.costUsd === "number" && Number.isFinite(usage.costUsd)) {
+    ctx.usage.costUsd = (ctx.usage.costUsd ?? 0) + usage.costUsd;
+  }
 }
 
 function createLineQueue(): {
@@ -250,40 +285,146 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
 
   const result: SpawnResult = { stdout: "", stderr: "", exitCode: 1 };
   const adapter = getAdapter(spawnConfig.adapter);
+  let resolveEventStreamDone: (() => void) | undefined;
+  let rejectEventStreamDone: ((error: unknown) => void) | undefined;
+  const eventStreamDone = new Promise<void>((resolve, reject) => {
+    resolveEventStreamDone = resolve;
+    rejectEventStreamDone = reject;
+  });
+  const eventQueue: AcpEvent[] = [];
+  const waiters: Array<{
+    resolve(result: IteratorResult<AcpEvent>): void;
+    reject(error: unknown): void;
+  }> = [];
+  let eventsDone = false;
+  let eventStreamError: unknown;
+  const ctx: SpawnContext = {
+    sessionId: "unknown",
+    agent: agentId,
+    ...(options.logPath !== undefined ? { logPath: options.logPath } : {}),
+    ...(options.logDir !== undefined ? { logDir: options.logDir } : {}),
+    ...(options.logFileName !== undefined ? { logFileName: options.logFileName } : {}),
+    events: [],
+    usage: {
+      inputTokens: 0,
+      outputTokens: 0
+    },
+    prompt: options.prompt,
+    model: options.model,
+    mode: options.mode,
+    cwd: options.cwd ?? process.cwd(),
+    startedAt: new Date()
+  };
 
-  const events: AsyncIterable<AcpEvent> = (async function* () {
-    for await (const output of adapter(queue.lines())) {
-      if (!isAcpEvent(output)) continue;
-      yield stampReceiveTime(output, Date.now());
+  const pushEvent = (event: AcpEvent): void => {
+    if (eventsDone) return;
+    if (event.event === "session_start") {
+      const threadId = (event as { threadId?: unknown }).threadId;
+      if (typeof threadId === "string" && threadId.length > 0) {
+        ctx.threadId = threadId;
+        ctx.sessionId = threadId;
+      }
+    }
+    ctx.events.push(event);
+    accumulateUsage(ctx, event);
+    const waiter = waiters.shift();
+    if (waiter) {
+      waiter.resolve({ done: false, value: event });
+      return;
+    }
+    eventQueue.push(event);
+  };
+
+  const completeEventStream = (): void => {
+    if (eventsDone) return;
+    eventsDone = true;
+    while (waiters.length > 0) {
+      waiters.shift()?.resolve({ done: true, value: undefined });
+    }
+  };
+
+  const failEventStream = (error: unknown): void => {
+    if (eventsDone) return;
+    eventStreamError = error;
+    eventsDone = true;
+    while (waiters.length > 0) {
+      waiters.shift()?.reject(error);
+    }
+  };
+
+  ctx.eventStream = {
+    [Symbol.asyncIterator](): AsyncIterator<AcpEvent> {
+      return {
+        next(): Promise<IteratorResult<AcpEvent>> {
+          if (eventQueue.length > 0) {
+            return Promise.resolve({ done: false, value: eventQueue.shift()! });
+          }
+          if (eventStreamError) {
+            return Promise.reject(eventStreamError);
+          }
+          if (eventsDone) {
+            return Promise.resolve({ done: true, value: undefined });
+          }
+          return new Promise((resolve, reject) => {
+            waiters.push({ resolve, reject });
+          });
+        }
+      };
+    }
+  };
+
+  void (async () => {
+    try {
+      for await (const output of adapter(queue.lines())) {
+        if (!isAcpEvent(output)) continue;
+        pushEvent(stampReceiveTime(output, Date.now()));
+      }
+      completeEventStream();
+      resolveEventStreamDone?.();
+    } catch (error) {
+      failEventStream(error);
+      rejectEventStreamDone?.(error);
     }
   })();
 
   const done = (async (): Promise<SpawnResult> => {
-    try {
-      const runResult = await runPoeCommand({
-        factory: execution.factory,
-        openSpec: execution.openSpec,
-        detach: execution.detach,
-        state: execution.state,
-        signal: options.signal
-      });
+    await applyMiddlewares(
+      [
+        ...(options.middlewares ?? []),
+        async (_ctx, next) => {
+          try {
+            const runResult = await runPoeCommand({
+              factory: execution.factory,
+              openSpec: execution.openSpec,
+              detach: execution.detach,
+              state: execution.state,
+              signal: options.signal
+            });
 
-      if (runResult.kind === "detached") {
-        return {
-          stdout: "",
-          stderr: "",
-          exitCode: 0,
-          detached: { jobId: runResult.jobId, envId: runResult.envId }
-        };
-      }
+            if (runResult.kind === "detached") {
+              result.stdout = "";
+              result.stderr = "";
+              result.exitCode = 0;
+              result.detached = { jobId: runResult.jobId, envId: runResult.envId };
+            } else {
+              result.stderr = runResult.stderr ?? "";
+              result.exitCode = runResult.exitCode;
+            }
+          } finally {
+            queue.close();
+          }
+          await eventStreamDone;
+          await next();
+        }
+      ],
+      ctx
+    );
 
-      result.stderr = runResult.stderr ?? "";
-      result.exitCode = runResult.exitCode;
-      return result;
-    } finally {
-      queue.close();
-    }
+    return {
+      ...result,
+      ...(ctx.logFile && !result.logFile ? { logFile: ctx.logFile } : {})
+    };
   })();
 
-  return { events, done };
+  return { events: ctx.eventStream, done };
 }

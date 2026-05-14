@@ -1,6 +1,7 @@
 import type { AdapterType } from "./adapters/index.js";
 import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
 import type { StateManager } from "@poe-code/poe-code-config";
+import type { AcpMiddleware } from "./acp/middleware.js";
 
 export type SpawnMode = "yolo" | "edit" | "read";
 
@@ -44,6 +45,7 @@ export interface SpawnOptions {
   useStdin?: boolean;
   interactive?: boolean;
   signal?: AbortSignal;
+  middlewares?: AcpMiddleware[];
   tee?: {
     stdout?: { write(chunk: string): void };
     stderr?: { write(chunk: string): void };

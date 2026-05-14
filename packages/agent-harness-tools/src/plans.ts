@@ -169,8 +169,11 @@ export async function discoverPlans(options: DiscoverPlansOptions): Promise<Plan
 
 export const archivePlan = async (options: ArchivePlanOptions): Promise<void> => {
   const taskList = await openPlanList(options);
+  const plans = taskList.list(PLAN_LIST_NAME);
 
-  await taskList.list(PLAN_LIST_NAME).fire(options.id, "archive");
+  await plans.fire(options.id, "archive");
+  const activePlans = await plans.all();
+  await plans.reorder(activePlans.map((plan) => plan.id));
 };
 
 export function openPlanList(options: OpenPlanListOptions): Promise<TaskList> {

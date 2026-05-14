@@ -5,7 +5,8 @@ version: 1
 
 tasks:
   - id: spawn-options-middlewares
-    title: Add middlewares to SpawnOptions and wire applyMiddlewares in spawn entry points
+    title: Add middlewares to SpawnOptions and wire applyMiddlewares in spawn entry
+      points
     prompt: |
       Make middleware a first-class SDK option on `@poe-code/agent-spawn` so
       external callers can register ACP middleware declaratively.
@@ -52,8 +53,8 @@ tasks:
       `packages/agent-spawn` passes; existing CLI behavior unchanged when
       Braintrust is configured.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: acp-telemetry-scaffold

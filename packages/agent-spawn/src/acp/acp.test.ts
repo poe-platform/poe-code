@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PassThrough, Readable } from "node:stream";
 import { EventEmitter } from "node:events";
-import { spawn as spawnChildProcess, type ChildProcessWithoutNullStreams } from "node:child_process";
+import {
+  spawn as spawnChildProcess,
+  type ChildProcessWithoutNullStreams
+} from "node:child_process";
 import {
   registerExecutionEnvFactory,
   type ExecutionEnvFactory,
@@ -31,7 +34,7 @@ vi.mock("@poe-code/design-system", () => {
       getAcpWriter: () => (line: string) => {
         process.stdout.write(`${line}\n`);
       },
-      withAcpWriter: async <T,>(_writer: (line: string) => void, fn: () => Promise<T>) => fn()
+      withAcpWriter: async <T>(_writer: (line: string) => void, fn: () => Promise<T>) => fn()
     },
     text: {
       muted: (content: string) => `<muted>${content}</muted>`
@@ -53,18 +56,18 @@ vi.mock("@poe-code/poe-acp-client", () => {
       params: {
         update: {
           sessionUpdate: "agent_message_chunk",
-          content: { type: "text", text: "Hello " },
-        },
-      },
+          content: { type: "text", text: "Hello " }
+        }
+      }
     },
     {
       params: {
         update: {
           sessionUpdate: "agent_message_chunk",
-          content: { type: "text", text: "world!" },
-        },
-      },
-    },
+          content: { type: "text", text: "world!" }
+        }
+      }
+    }
   ];
 
   class MockAcpClient {
@@ -80,7 +83,7 @@ vi.mock("@poe-code/poe-acp-client", () => {
         response: Promise.resolve({ stopReason: "completed" }),
         [Symbol.asyncIterator]: async function* () {
           for (const n of notifications) yield n;
-        },
+        }
       };
     });
     dispose = vi.fn().mockResolvedValue(undefined);
@@ -135,12 +138,10 @@ function createContext(overrides: Partial<SpawnContext> = {}): SpawnContext {
 
 function captureStdout(run: () => void): string {
   const chunks: string[] = [];
-  const spy = vi
-    .spyOn(process.stdout, "write")
-    .mockImplementation(((chunk: unknown) => {
-      chunks.push(String(chunk));
-      return true;
-    }) as unknown as typeof process.stdout.write);
+  const spy = vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+    chunks.push(String(chunk));
+    return true;
+  }) as unknown as typeof process.stdout.write);
 
   try {
     run();
@@ -161,9 +162,11 @@ interface MockChildProcessOptions {
   error?: Error;
 }
 
-function createMockChildProcess(
-  options: MockChildProcessOptions = {}
-): { child: ChildProcessWithoutNullStreams; stdin: PassThrough; getStdin(): string } {
+function createMockChildProcess(options: MockChildProcessOptions = {}): {
+  child: ChildProcessWithoutNullStreams;
+  stdin: PassThrough;
+  getStdin(): string;
+} {
   const stdout = new PassThrough();
   const stderr = new PassThrough();
   const stdin = new PassThrough();
@@ -633,7 +636,7 @@ describe("spawnAcp", () => {
     const { events, done } = spawnAcp({
       agentId: "opencode",
       prompt: "Say hello",
-      cwd: "/tmp/test",
+      cwd: "/tmp/test"
     });
 
     const collected = await collect(events);
@@ -658,9 +661,9 @@ describe("spawnAcp", () => {
         "tiny-test": {
           command: "tiny-stdio-mcp-test-server",
           args: ["serve", "word-of-the-day"],
-          env: { MCP_LOG_LEVEL: "debug" },
-        },
-      },
+          env: { MCP_LOG_LEVEL: "debug" }
+        }
+      }
     });
 
     await collect(events);
@@ -671,8 +674,8 @@ describe("spawnAcp", () => {
         name: "tiny-test",
         command: "tiny-stdio-mcp-test-server",
         args: ["serve", "word-of-the-day"],
-        env: [{ name: "MCP_LOG_LEVEL", value: "debug" }],
-      },
+        env: [{ name: "MCP_LOG_LEVEL", value: "debug" }]
+      }
     ]);
   });
 
@@ -680,7 +683,7 @@ describe("spawnAcp", () => {
     const { events, done } = spawnAcp({
       agentId: "opencode",
       prompt: "test",
-      cwd: "/tmp/test",
+      cwd: "/tmp/test"
     });
 
     await collect(events);
@@ -706,18 +709,14 @@ describe("spawnAcp", () => {
     const result = await done;
 
     expect(lastMockAcpClient.newSession).not.toHaveBeenCalled();
-    expect(lastMockAcpClient.loadSession).toHaveBeenCalledWith(
-      "ses_existing",
-      "/tmp/test",
-      [
-        {
-          name: "docs",
-          command: "markdown-reader",
-          args: [],
-          env: []
-        }
-      ]
-    );
+    expect(lastMockAcpClient.loadSession).toHaveBeenCalledWith("ses_existing", "/tmp/test", [
+      {
+        name: "docs",
+        command: "markdown-reader",
+        args: [],
+        env: []
+      }
+    ]);
     expect(lastMockAcpClient.prompt).toHaveBeenCalledWith("ses_existing", [
       { type: "text", text: "continue" }
     ]);
@@ -728,14 +727,14 @@ describe("spawnAcp", () => {
     const { events, done } = spawnAcp({
       agentId: "goose",
       prompt: "test",
-      cwd: "/tmp/test",
+      cwd: "/tmp/test"
     });
 
     await collect(events);
     await done;
 
     expect(lastMockAcpClientOptions.env).toMatchObject({
-      GOOSE_DISABLE_KEYRING: "1",
+      GOOSE_DISABLE_KEYRING: "1"
     });
   });
 
@@ -747,16 +746,16 @@ describe("spawnAcp", () => {
             sessionUpdate: "tool_call_update",
             toolCallId: "tc_1",
             status: "completed",
-            rawOutput: "bumfuzzle",
-          },
-        },
-      },
+            rawOutput: "bumfuzzle"
+          }
+        }
+      }
     ];
 
     const { events, done } = spawnAcp({
       agentId: "opencode",
       prompt: "test",
-      cwd: "/tmp/test",
+      cwd: "/tmp/test"
     });
 
     await collect(events);
@@ -769,9 +768,9 @@ describe("spawnAcp", () => {
     expect(() =>
       spawnAcp({
         agentId: "claude-code",
-        prompt: "test",
+        prompt: "test"
       })
-    ).toThrow('does not support ACP spawn');
+    ).toThrow("does not support ACP spawn");
   });
 
   it("throws when signal is already aborted", () => {
@@ -782,7 +781,7 @@ describe("spawnAcp", () => {
       spawnAcp({
         agentId: "opencode",
         prompt: "test",
-        signal: controller.signal,
+        signal: controller.signal
       })
     ).toThrow("Agent spawn aborted");
   });
@@ -838,15 +837,166 @@ describe("acp/spawnStreaming", () => {
     expect(spawnMock).toHaveBeenCalledTimes(1);
     const [command, args, spawnOptions] = spawnMock.mock.calls[0];
     expect(command).toBe("opencode");
-    expect(args).toEqual([openCodeSpawnConfig.promptFlag, "hello", ...openCodeSpawnConfig.defaultArgs, ...openCodeSpawnConfig.modes.yolo]);
+    expect(args).toEqual([
+      openCodeSpawnConfig.promptFlag,
+      "hello",
+      ...openCodeSpawnConfig.defaultArgs,
+      ...openCodeSpawnConfig.modes.yolo
+    ]);
     expect(spawnOptions).toMatchObject({ cwd: "/tmp", stdio: ["pipe", "pipe", "pipe"] });
+  });
+
+  it("runs streaming middlewares in onion order with populated context on the way out", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({
+          type: "text",
+          sessionID: "ses_middleware",
+          part: { type: "text", messageID: "msg_1", text: "hi" }
+        }),
+        JSON.stringify({
+          type: "step_finish",
+          sessionID: "ses_middleware",
+          part: { tokens: { input: 2, output: 3, cache: { read: 5, write: 0 } } }
+        })
+      ],
+      exitCode: 0
+    });
+
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const steps: string[] = [];
+    const firstMiddleware: AcpMiddleware = async (_ctx, next) => {
+      steps.push("first:before");
+      await next();
+      steps.push("first:after");
+    };
+    const secondMiddleware: AcpMiddleware = async (ctx, next) => {
+      steps.push("second:before");
+      expect(ctx).toEqual(
+        expect.objectContaining({
+          sessionId: "unknown",
+          agent: "opencode",
+          events: [],
+          usage: { inputTokens: 0, outputTokens: 0 },
+          prompt: "hello",
+          model: "poe/test-model",
+          mode: "yolo",
+          cwd: "/tmp",
+          startedAt: expect.any(Date)
+        })
+      );
+
+      await next();
+
+      steps.push("second:after");
+      expect(stripMeta(ctx.events)).toEqual([
+        { event: "session_start", threadId: "ses_middleware" },
+        { event: "agent_message", text: "hi" },
+        { event: "usage", inputTokens: 2, outputTokens: 3, cachedTokens: 5 }
+      ]);
+      expect(ctx.usage).toEqual({
+        inputTokens: 2,
+        outputTokens: 3,
+        cachedTokens: 5
+      });
+      expect(ctx.sessionId).toBe("ses_middleware");
+      expect(ctx.threadId).toBe("ses_middleware");
+    };
+
+    const { events, done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "hello",
+      cwd: "/tmp",
+      model: "poe/test-model",
+      mode: "yolo",
+      middlewares: [firstMiddleware, secondMiddleware]
+    });
+
+    steps.push("collect:before");
+    await expect(collect(events).then(stripMeta)).resolves.toEqual([
+      { event: "session_start", threadId: "ses_middleware" },
+      { event: "agent_message", text: "hi" },
+      { event: "usage", inputTokens: 2, outputTokens: 3, cachedTokens: 5 }
+    ]);
+    steps.push("collect:after");
+
+    await expect(done).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    expect(steps).toEqual([
+      "first:before",
+      "second:before",
+      "collect:before",
+      "second:after",
+      "first:after",
+      "collect:after"
+    ]);
+  });
+
+  it("populates streaming middleware context even when callers only await done", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({
+          type: "text",
+          sessionID: "ses_done_only",
+          part: { type: "text", messageID: "msg_1", text: "done" }
+        }),
+        JSON.stringify({
+          type: "step_finish",
+          sessionID: "ses_done_only",
+          part: { tokens: { input: 7, output: 11, cache: { read: 13, write: 0 } } }
+        })
+      ],
+      exitCode: 0
+    });
+
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const observed: Array<{ events: unknown[]; usage: unknown; sessionId: string }> = [];
+    const middleware: AcpMiddleware = async (ctx, next) => {
+      await next();
+      observed.push({
+        events: stripMeta(ctx.events),
+        usage: ctx.usage,
+        sessionId: ctx.sessionId
+      });
+    };
+
+    const { done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "hello",
+      cwd: "/tmp",
+      middlewares: [middleware]
+    });
+
+    await expect(done).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    });
+    expect(observed).toEqual([
+      {
+        events: [
+          { event: "session_start", threadId: "ses_done_only" },
+          { event: "agent_message", text: "done" },
+          { event: "usage", inputTokens: 7, outputTokens: 11, cachedTokens: 13 }
+        ],
+        usage: {
+          inputTokens: 7,
+          outputTokens: 11,
+          cachedTokens: 13
+        },
+        sessionId: "ses_done_only"
+      }
+    ]);
   });
 
   it("passes resumeThreadId through streaming provider args", async () => {
     const mock = createMockChildProcess({
-      stdoutLines: [
-        JSON.stringify({ event: "session_start", threadId: "thread_abc123" })
-      ],
+      stdoutLines: [JSON.stringify({ event: "session_start", threadId: "thread_abc123" })],
       exitCode: 0
     });
 
@@ -1021,19 +1171,24 @@ describe("acp/spawnStreaming", () => {
   it("ignores non-ACP adapter outputs and yields only raw ACP events", async () => {
     const mock = createMockChildProcess({ exitCode: 0 });
     const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
-    const getAdapterMock = vi.spyOn(adapterModule, "getAdapter").mockReturnValue(
-      async function* () {
-        yield { sessionUpdate: "agent_message_chunk", content: { type: "text", text: "ignore me" } };
+    const getAdapterMock = vi
+      .spyOn(adapterModule, "getAdapter")
+      .mockReturnValue(async function* () {
+        yield {
+          sessionUpdate: "agent_message_chunk",
+          content: { type: "text", text: "ignore me" }
+        };
         yield { event: "agent_message", text: "raw event" };
-      }
-    );
+      });
     try {
       const { events, done } = spawnStreaming({
         agentId: "codex",
         prompt: "hello"
       });
 
-      await expect(collect(events).then(stripMeta)).resolves.toEqual([{ event: "agent_message", text: "raw event" }]);
+      await expect(collect(events).then(stripMeta)).resolves.toEqual([
+        { event: "agent_message", text: "raw event" }
+      ]);
       await expect(done).resolves.toEqual({
         stdout: "",
         stderr: "",
@@ -1117,9 +1272,7 @@ describe("acp/spawnStreaming", () => {
   // Do NOT remove this stripping — it will break all spawns that pass a namespaced model.
   it("strips provider namespace and transforms model before passing to CLI", async () => {
     const mock = createMockChildProcess({
-      stdoutLines: [
-        JSON.stringify({ type: "system", subtype: "init", session_id: "s1" }),
-      ],
+      stdoutLines: [JSON.stringify({ type: "system", subtype: "init", session_id: "s1" })],
       exitCode: 0
     });
 
@@ -1147,7 +1300,7 @@ describe("acp/spawnStreaming", () => {
           type: "text",
           sessionID: "ses_abc",
           part: { type: "text", messageID: "msg_1", text: "hi" }
-        }),
+        })
       ],
       exitCode: 0
     });
@@ -1175,7 +1328,7 @@ describe("acp/spawnStreaming", () => {
           type: "text",
           sessionID: "ses_abc",
           part: { type: "text", messageID: "msg_1", text: "hi" }
-        }),
+        })
       ],
       exitCode: 0
     });
@@ -1198,9 +1351,7 @@ describe("acp/spawnStreaming", () => {
 
   it("serializes MCP servers for streaming spawn when supported", async () => {
     const mock = createMockChildProcess({
-      stdoutLines: [
-        JSON.stringify({ type: "thread.started", thread_id: "t1" })
-      ],
+      stdoutLines: [JSON.stringify({ type: "thread.started", thread_id: "t1" })],
       exitCode: 0
     });
 
@@ -1224,11 +1375,11 @@ describe("acp/spawnStreaming", () => {
     const [, args] = spawnMock.mock.calls[0];
     expect(args).toEqual([
       "-c",
-      "mcp_servers.test.command=\"tiny-stdio-mcp-test-server\"",
+      'mcp_servers.test.command="tiny-stdio-mcp-test-server"',
       "-c",
-      "mcp_servers.test.args=[\"serve\", \"word-of-the-day\"]",
+      'mcp_servers.test.args=["serve", "word-of-the-day"]',
       "-c",
-      "mcp_servers.test.env={\"MCP_LOG_LEVEL\"=\"debug\"}",
+      'mcp_servers.test.env={"MCP_LOG_LEVEL"="debug"}',
       codexSpawnConfig.promptFlag,
       "hello",
       ...codexSpawnConfig.defaultArgs,
@@ -1339,9 +1490,7 @@ describe("acp/spawnStreaming", () => {
 
       // Advance 4s, send data, advance another 4s — should not timeout
       await vi.advanceTimersByTimeAsync(4000);
-      mock.child.stdout.write(
-        JSON.stringify({ type: "thread.started", thread_id: "t1" }) + "\n"
-      );
+      mock.child.stdout.write(JSON.stringify({ type: "thread.started", thread_id: "t1" }) + "\n");
       await vi.advanceTimersByTimeAsync(4000);
       expect(killSpy).not.toHaveBeenCalled();
 

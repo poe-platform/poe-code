@@ -81,7 +81,8 @@ export type ExplorerLayoutMode =
   | "wide"
   | "medium"
   | "narrow-vertical"
-  | "narrow-list-only";
+  | "narrow-list-only"
+  | "too-narrow";
 
 export interface ExplorerSize {
   cols: number;
@@ -166,6 +167,10 @@ function createInitialActionState<R>(
 }
 
 function resolveInitialLayout(cols: number): ExplorerLayoutMode {
+  if (cols < 40) {
+    return "too-narrow";
+  }
+
   if (cols < 80) {
     return "narrow-list-only";
   }

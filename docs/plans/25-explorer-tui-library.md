@@ -89,7 +89,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: reducer
     title: Pure reducer step function
@@ -113,10 +113,10 @@ tasks:
       Add reducer.test.ts with the cases enumerated in §4.3. No
       terminal-pilot — pure logic.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: actions-and-jobs
     title: Action dispatcher and versioned async jobs

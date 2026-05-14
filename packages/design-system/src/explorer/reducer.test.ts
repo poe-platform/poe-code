@@ -87,13 +87,50 @@ describe("step", () => {
     expect(cleared.state.matchPositions.get(0)).toEqual([]);
   });
 
+  it("captures action keys as filter text after slash focuses the filter", () => {
+    const refresh = vi.fn();
+    const action: Action<unknown> = {
+      id: "refresh",
+      label: "Refresh",
+      key: "r",
+      handler: refresh
+    };
+    const state = loadedState({ actions: [action] });
+    state.actionState.set("refresh", actionEntry(action));
+
+    const focused = step(state, { type: "key", key: key("/") });
+    const typed = step(focused.state, { type: "key", key: key("r") });
+    const submitted = step(typed.state, { type: "key", key: key("\r") });
+    const actionRun = step(submitted.state, { type: "key", key: key("r") });
+
+    expect(focused.state.filterFocused).toBe(true);
+    expect(typed.state.filter).toBe("r");
+    expect(typed.effects).toEqual([{ type: "renderDetail", rowId: "three", token: 2 }]);
+    expect(submitted.state.filterFocused).toBe(false);
+    expect(actionRun.effects).toHaveLength(1);
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  it("leaves filter entry when backspace clears the query", () => {
+    const state = { ...loadedState(), filterFocused: true, filter: "t" };
+    const next = step(state, { type: "key", key: key("\x7f") });
+
+    expect(next.state.filter).toBe("");
+    expect(next.state.filterFocused).toBe(false);
+  });
+
   it("toggles multi-select by row id", () => {
     const selected = step(loadedState(), { type: "key", key: key(" ") });
     const cleared = step(selected.state, { type: "key", key: key(" ") });
+    const selectedByNamedSpace = step(loadedState(), {
+      type: "key",
+      key: { name: "space", ctrl: false, meta: false, shift: false }
+    });
 
     expect([...selected.state.selected]).toEqual(["one"]);
     expect(selected.state.dirty).toBe(REGION_LIST | REGION_FOOTER);
     expect(cleared.state.selected.size).toBe(0);
+    expect([...selectedByNamedSpace.state.selected]).toEqual(["one"]);
   });
 
   it("cycles focus with Tab", () => {
@@ -103,6 +140,34 @@ describe("step", () => {
     expect(detailFocused.state.focused).toBe("detail");
     expect(detailFocused.state.dirty).toBe(REGION_LIST | REGION_DETAIL | REGION_FOOTER);
     expect(listFocused.state.focused).toBe("list");
+  });
+
+  it("moves the detail item cursor when the detail pane is focused", () => {
+    const state = {
+      ...loadedState(),
+      focused: "detail" as const,
+      detail: {
+        rowId: "one",
+        items: [
+          { id: "comment-one", title: "Comment one", render: () => "one" },
+          { id: "comment-two", title: "Comment two", render: () => "two" }
+        ],
+        cursor: 0,
+        scroll: 0,
+        token: 1,
+        loading: false
+      }
+    };
+
+    const moved = step(state, { type: "key", key: key("j") });
+    const clamped = step(moved.state, { type: "key", key: key("j") });
+    const up = step(clamped.state, { type: "key", key: key("k") });
+
+    expect(moved.state.cursor).toBe(0);
+    expect(moved.state.detail.cursor).toBe(1);
+    expect(moved.effects).toEqual([]);
+    expect(clamped.state.detail.cursor).toBe(1);
+    expect(up.state.detail.cursor).toBe(0);
   });
 
   it("applies Esc semantics in priority order", () => {
@@ -166,6 +231,65 @@ describe("step", () => {
       await next.effects[0].fn();
     }
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ row: rows[0], rows: [rows[0]] }));
+  });
+
+  it("lets the command palette own text keys and run the matching action on Enter", async () => {
+    const archive = vi.fn();
+    const refresh = vi.fn();
+    const archiveAction: Action<unknown> = {
+      id: "archive",
+      label: "Archive selected",
+      key: "a",
+      destructive: true,
+      handler: archive
+    };
+    const refreshAction: Action<unknown> = {
+      id: "refresh",
+      label: "Refresh",
+      key: "r",
+      handler: refresh
+    };
+    const state = {
+      ...loadedState({ actions: [archiveAction, refreshAction] }),
+      modal: { kind: "palette" as const, query: "", cursor: 0 }
+    };
+    state.actionState.set("archive", actionEntry(archiveAction));
+    state.actionState.set("refresh", actionEntry(refreshAction));
+
+    const typedActionKey = step(state, { type: "key", key: key("r") });
+    const typedRefresh = step(typedActionKey.state, { type: "key", key: key("e") });
+    const submitted = step(typedRefresh.state, { type: "key", key: key("\r") });
+
+    expect(typedActionKey.state.modal).toMatchObject({ kind: "palette", query: "r" });
+    expect(typedActionKey.effects).toEqual([]);
+    expect(typedRefresh.state.modal).toMatchObject({ kind: "palette", query: "re" });
+    expect(submitted.state.modal).toBeNull();
+    expect(submitted.effects).toHaveLength(1);
+    if (submitted.effects[0]?.type === "suspend") {
+      await submitted.effects[0].fn();
+    }
+    expect(refresh).toHaveBeenCalledOnce();
+    expect(archive).not.toHaveBeenCalled();
+  });
+
+  it("keeps action keys inert while a confirm modal is open", () => {
+    const action: Action<unknown> = {
+      id: "archive",
+      label: "Archive selected",
+      key: "a",
+      destructive: true,
+      handler: () => undefined
+    };
+    const state = {
+      ...loadedState({ actions: [action] }),
+      modal: { kind: "confirm" as const, action, rows: [rows[0]], resolver: () => undefined }
+    };
+    state.actionState.set("archive", actionEntry(action));
+
+    const next = step(state, { type: "key", key: key("a") });
+
+    expect(next.state.modal).toEqual(state.modal);
+    expect(next.effects).toEqual([]);
   });
 
   it("keeps the modal-captured rows when confirming a destructive action", async () => {

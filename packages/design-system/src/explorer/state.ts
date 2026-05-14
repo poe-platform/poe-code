@@ -97,6 +97,7 @@ export interface ExplorerState {
   matchPositions: Map<number, number[]>;
   cursor: number;
   filter: string;
+  filterFocused: boolean;
   focused: "list" | "detail";
   detail: {
     rowId: string | null;
@@ -145,6 +146,7 @@ export function createInitialState<R>(
     matchPositions: new Map(),
     cursor: 0,
     filter: config.initialFilter ?? "",
+    filterFocused: false,
     focused: "list",
     detail: {
       rowId: null,

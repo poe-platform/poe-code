@@ -271,7 +271,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: demo-and-manual-qa
     title: Explorer demo entry and manual QA doc
@@ -300,8 +300,8 @@ tasks:
       detail modes and the --slow-detail loading spinner. Resize the
       terminal during interaction and confirm no flicker.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

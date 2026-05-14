@@ -65,6 +65,14 @@ function stepKey(
 ): StepResult {
   const target = state.bindings.resolve(key);
 
+  if (state.modal !== null) {
+    return stepModalKey(state, key, target, runtimeHandles);
+  }
+
+  if (state.filterFocused) {
+    return stepFilterKey(state, key, target, runtimeHandles);
+  }
+
   if (target?.type === "action") {
     const action = resolveAction(state, key);
     return action === null ? mark(state, 0) : dispatchAction(state, action, false, runtimeHandles);
@@ -75,7 +83,7 @@ function stepKey(
       case "quit":
         return { state: markDirty(state, 0), effects: [{ type: "exit", result: null }] };
       case "filter":
-        return mark(state, REGION_HEADER);
+        return focusFilter(state);
       case "help":
         return setModal(state, { kind: "help" });
       case "palette":
@@ -119,16 +127,32 @@ function stepKey(
     }
   }
 
-  if (state.modal?.kind === "confirm" && isConfirmNo(key)) {
-    return modalDismissed(state, false, runtimeHandles);
+  if (isBackspace(key)) {
+    return updateFilter(state, state.filter.slice(0, -1));
   }
 
-  if (state.modal?.kind === "confirm" && isConfirmYes(key)) {
-    return modalDismissed(state, true, runtimeHandles);
+  if (isPrintable(key)) {
+    return updateFilter(state, `${state.filter}${key.ch}`);
   }
 
-  if (state.modal?.kind === "palette") {
-    return paletteInput(state, key);
+  return mark(state, 0);
+}
+
+function stepFilterKey(
+  state: ExplorerState,
+  key: ExplorerKeypressEvent,
+  target: ReturnType<ExplorerState["bindings"]["resolve"]>,
+  runtimeHandles: ActionRuntimeHandles
+): StepResult {
+  if (target?.type === "builtin" && target.id === "escape") {
+    return escape(state, runtimeHandles);
+  }
+
+  if (target?.type === "builtin" && target.id === "confirm") {
+    return {
+      state: { ...state, filterFocused: false, dirty: REGION_HEADER | REGION_FOOTER },
+      effects: NO_EFFECTS
+    };
   }
 
   if (isBackspace(key)) {
@@ -137,6 +161,60 @@ function stepKey(
 
   if (isPrintable(key)) {
     return updateFilter(state, `${state.filter}${key.ch}`);
+  }
+
+  return mark(state, 0);
+}
+
+function stepModalKey(
+  state: ExplorerState,
+  key: ExplorerKeypressEvent,
+  target: ReturnType<ExplorerState["bindings"]["resolve"]>,
+  runtimeHandles: ActionRuntimeHandles
+): StepResult {
+  if (state.modal?.kind === "confirm") {
+    if (target?.type === "builtin" && target.id === "escape") {
+      return modalDismissed(state, false, runtimeHandles);
+    }
+
+    if (target?.type === "builtin" && target.id === "confirm") {
+      return modalDismissed(state, true, runtimeHandles);
+    }
+
+    if (isConfirmNo(key)) {
+      return modalDismissed(state, false, runtimeHandles);
+    }
+
+    if (isConfirmYes(key)) {
+      return modalDismissed(state, true, runtimeHandles);
+    }
+
+    return mark(state, 0);
+  }
+
+  if (state.modal?.kind === "help") {
+    if (target?.type === "builtin" && (target.id === "escape" || target.id === "help")) {
+      return modalDismissed(state, false, runtimeHandles);
+    }
+
+    return mark(state, 0);
+  }
+
+  if (state.modal?.kind === "palette") {
+    if (target?.type === "builtin") {
+      switch (target.id) {
+        case "escape":
+          return modalDismissed(state, false, runtimeHandles);
+        case "confirm":
+          return dispatchPaletteAction(state, runtimeHandles);
+        case "cursorUp":
+          return movePaletteCursor(state, -1);
+        case "cursorDown":
+          return movePaletteCursor(state, 1);
+      }
+    }
+
+    return paletteInput(state, key);
   }
 
   return mark(state, 0);
@@ -288,7 +366,35 @@ function modalDismissed(
 }
 
 function moveCursor(state: ExplorerState, delta: number): StepResult {
+  if (state.focused === "detail" && hasDetailCursor(state)) {
+    return moveDetailCursor(state, delta);
+  }
+
   return setCursor(state, state.cursor + delta);
+}
+
+function moveDetailCursor(state: ExplorerState, delta: number): StepResult {
+  const max = Math.max(0, (state.detail.items?.length ?? 0) - 1);
+  const cursor = clamp(state.detail.cursor + delta, 0, max);
+  if (cursor === state.detail.cursor) {
+    return mark(state, 0);
+  }
+
+  const detail = { ...state.detail, cursor };
+  return {
+    state: {
+      ...state,
+      detail,
+      actionState: recomputeActionState({ ...state, detail }),
+      dirty: REGION_DETAIL | REGION_FOOTER
+    },
+    effects: NO_EFFECTS
+  };
+}
+
+function hasDetailCursor(state: ExplorerState): boolean {
+  const items = state.detail.items ?? [];
+  return items.some((item) => item.title !== undefined);
 }
 
 function setCursor(state: ExplorerState, cursor: number): StepResult {
@@ -323,6 +429,7 @@ function updateFilter(state: ExplorerState, filter: string): StepResult {
   const next = {
     ...state,
     filter,
+    filterFocused: filter === "" ? false : state.filterFocused,
     filtered,
     matchPositions,
     cursor,
@@ -333,6 +440,17 @@ function updateFilter(state: ExplorerState, filter: string): StepResult {
   const effect = detailEffect(next);
 
   return { state: next, effects: effect === undefined ? NO_EFFECTS : [effect] };
+}
+
+function focusFilter(state: ExplorerState): StepResult {
+  if (state.filterFocused) {
+    return mark(state, 0);
+  }
+
+  return {
+    state: { ...state, filterFocused: true, dirty: REGION_HEADER | REGION_FOOTER },
+    effects: NO_EFFECTS
+  };
 }
 
 function focusNext(state: ExplorerState): StepResult {
@@ -349,8 +467,12 @@ function focusNext(state: ExplorerState): StepResult {
 }
 
 function escape(state: ExplorerState, runtimeHandles: ActionRuntimeHandles): StepResult {
-  if (state.filter.length > 0) {
-    return updateFilter(state, "");
+  if (state.filterFocused || state.filter.length > 0) {
+    const cleared = updateFilter({ ...state, filterFocused: false }, "");
+    return {
+      state: { ...cleared.state, filterFocused: false, dirty: cleared.state.dirty | REGION_HEADER | REGION_FOOTER },
+      effects: cleared.effects
+    };
   }
 
   if (state.selected.size > 0) {
@@ -504,14 +626,57 @@ function paletteInput(state: ExplorerState, key: ExplorerKeypressEvent): StepRes
   }
 
   if (isBackspace(key)) {
-    return setModal(state, { ...state.modal, query: state.modal.query.slice(0, -1) });
+    return setPaletteQuery(state, state.modal.query.slice(0, -1));
   }
 
   if (isPrintable(key)) {
-    return setModal(state, { ...state.modal, query: `${state.modal.query}${key.ch}` });
+    return setPaletteQuery(state, `${state.modal.query}${key.ch}`);
   }
 
   return mark(state, 0);
+}
+
+function setPaletteQuery(state: ExplorerState, query: string): StepResult {
+  if (state.modal?.kind !== "palette") {
+    return mark(state, 0);
+  }
+
+  const entries = paletteEntries({ ...state, modal: { ...state.modal, query } });
+  return setModal(state, {
+    ...state.modal,
+    query,
+    cursor: clamp(state.modal.cursor, 0, Math.max(0, entries.length - 1))
+  });
+}
+
+function movePaletteCursor(state: ExplorerState, delta: number): StepResult {
+  if (state.modal?.kind !== "palette") {
+    return mark(state, 0);
+  }
+
+  const max = Math.max(0, paletteEntries(state).length - 1);
+  const cursor = clamp(state.modal.cursor + delta, 0, max);
+  if (cursor === state.modal.cursor) {
+    return mark(state, 0);
+  }
+
+  return setModal(state, { ...state.modal, cursor });
+}
+
+function dispatchPaletteAction(
+  state: ExplorerState,
+  runtimeHandles: ActionRuntimeHandles
+): StepResult {
+  if (state.modal?.kind !== "palette") {
+    return mark(state, 0);
+  }
+
+  const entry = paletteEntries(state)[state.modal.cursor];
+  if (entry === undefined) {
+    return mark(state, 0);
+  }
+
+  return dispatchActionById({ ...state, modal: null, dirty: REGION_MODAL | REGION_FOOTER }, entry.id, false, runtimeHandles);
 }
 
 function dispatchPrimary(state: ExplorerState, runtimeHandles: ActionRuntimeHandles): StepResult {
@@ -663,6 +828,25 @@ function selectedRows(state: ExplorerState): Row[] {
   }
 
   return state.rows.filter((row) => state.selected.has(row.id));
+}
+
+function paletteEntries(state: ExplorerState): Array<{ id: string; label: string }> {
+  const query = state.modal?.kind === "palette" ? state.modal.query.toLocaleLowerCase() : "";
+  const entries: Array<{ id: string; label: string }> = [];
+
+  for (const [id, entry] of state.actionState.entries()) {
+    if (entry.available !== true || entry.running === true || entry.action === undefined) {
+      continue;
+    }
+
+    if (query !== "" && !entry.label.toLocaleLowerCase().includes(query)) {
+      continue;
+    }
+
+    entries.push({ id, label: entry.label });
+  }
+
+  return entries;
 }
 
 function setModal(state: ExplorerState, modal: ExplorerState["modal"]): StepResult {

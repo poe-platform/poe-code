@@ -405,6 +405,10 @@ function matchesSingleKey(binding: Binding, event: ExplorerKeypressEvent): boole
   }
 
   if (binding.ch !== undefined) {
+    if (binding.ch === " " && event.name === "space") {
+      return true;
+    }
+
     return event.ch === binding.ch || event.name === binding.ch.toLowerCase();
   }
 

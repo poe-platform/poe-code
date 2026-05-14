@@ -45,10 +45,7 @@ function modalLines(state: ExplorerState): string[] {
   if (state.modal?.kind === "palette") {
     return [
       `Query: ${state.modal.query}`,
-      "delete",
-      "archive",
-      "edit",
-      "open"
+      ...paletteLines(state)
     ];
   }
 
@@ -86,6 +83,30 @@ function drawBox(
     screen.put(x + width - 1, y + row, "│", style);
   }
   screen.put(x, y + height - 1, `╰${"─".repeat(Math.max(0, width - 2))}╯`, style);
+}
+
+function paletteLines(state: ExplorerState): string[] {
+  if (state.modal?.kind !== "palette") {
+    return [];
+  }
+
+  const query = state.modal.query.toLocaleLowerCase();
+  const lines: string[] = [];
+
+  for (const entry of state.actionState.values()) {
+    if (entry.available !== true || entry.running === true || entry.action === undefined) {
+      continue;
+    }
+
+    if (query !== "" && !entry.label.toLocaleLowerCase().includes(query)) {
+      continue;
+    }
+
+    const prefix = lines.length === state.modal.cursor ? "▌ " : "  ";
+    lines.push(`${prefix}${entry.label}`);
+  }
+
+  return lines.length === 0 ? ["  No actions"] : lines;
 }
 
 function labelFor(action: { label: string | (() => string) }): string {

@@ -317,12 +317,25 @@ function extractPrintableCharacter(str: string | undefined, sequence: string | u
     return str;
   }
 
+  if (isSinglePrintableSequence(sequence)) {
+    return sequence;
+  }
+
   if (sequence === undefined || sequence.length <= 1 || sequence[0] !== "\u001b") {
     return undefined;
   }
 
   const candidate = sequence.slice(1);
   return isPrintableCharacter(candidate) ? candidate : undefined;
+}
+
+function isSinglePrintableSequence(value: string | undefined): boolean {
+  if (value === undefined || Array.from(value).length !== 1) {
+    return false;
+  }
+
+  const codePoint = value.codePointAt(0);
+  return codePoint !== undefined && codePoint >= 0x20 && codePoint !== 0x7f;
 }
 
 function isPrintableCharacter(value: string | undefined): value is string {
@@ -337,6 +350,18 @@ function isPrintableCharacter(value: string | undefined): value is string {
 function controlCharacterToKeypress(sequence: string | undefined): KeypressEvent | undefined {
   if (sequence === "\u001f") {
     return { ch: "/", ctrl: true, meta: false, shift: false };
+  }
+
+  if (sequence !== undefined && sequence.length === 1) {
+    const code = sequence.charCodeAt(0);
+    if (code >= 1 && code <= 26 && code !== 9 && code !== 10 && code !== 13) {
+      return {
+        name: String.fromCharCode(code + 96),
+        ctrl: true,
+        meta: false,
+        shift: false
+      };
+    }
   }
 
   return undefined;

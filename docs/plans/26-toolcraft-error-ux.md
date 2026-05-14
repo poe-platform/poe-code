@@ -1114,7 +1114,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-error-ux-contract-snapshots
     title: Snapshot tests pin the error UX contract
@@ -1156,8 +1156,8 @@ tasks:
       coverage from earlier tasks. This file is the toolcraft-side
       consumer view only.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-error-ux-terminal-pilot-qa

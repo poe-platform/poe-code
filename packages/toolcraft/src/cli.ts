@@ -3405,7 +3405,9 @@ async function enforceVariantConstraints(
 
       errors.push({
         path: field.displayPath,
-        message: `Missing required parameter "${field.displayPath}".`
+        message: `Missing required parameter "${field.displayPath}" for ${variant.controlDisplayPath}="${selectedBranch.branchId}". ${formatAvailableList(
+          getAvailableBranchParameters(selectedBranch)
+        )}`
       });
     }
 
@@ -3421,7 +3423,9 @@ async function enforceVariantConstraints(
 
       errors.push({
         path: field.displayPath,
-        message: `Missing required parameter "${field.displayPath}".`
+        message: `Missing required parameter "${field.displayPath}" for ${variant.controlDisplayPath}="${selectedBranch.branchId}". ${formatAvailableList(
+          getAvailableBranchParameters(selectedBranch)
+        )}`
       });
     }
   }

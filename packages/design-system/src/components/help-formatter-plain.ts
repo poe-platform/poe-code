@@ -4,7 +4,7 @@ import type {
   OptionInfo
 } from "./help-formatter.js";
 
-function stripAnsi(value: string): string {
+export function stripAnsi(value: string): string {
   let output = "";
   for (let index = 0; index < value.length; index += 1) {
     if (value[index] === "\u001b") {

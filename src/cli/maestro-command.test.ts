@@ -9,6 +9,8 @@ vi.mock("@poe-code/agent-maestro", () => ({
   runMaestro: runMaestroMock
 }));
 
+import { createProgram } from "./program.js";
+
 function createMemFs(homeDir: string): FileSystem {
   const vol = new Volume();
   vol.mkdirSync(homeDir, { recursive: true });
@@ -20,12 +22,10 @@ describe("maestro command", () => {
 
   afterEach(() => {
     runMaestroMock.mockReset();
-    vi.resetModules();
   });
 
-  async function createTestProgram() {
+  function createTestProgram() {
     runMaestroMock.mockResolvedValue(async () => undefined);
-    const { createProgram } = await import("./program.js");
     return createProgram({
       fs: createMemFs(homeDir),
       prompts: async () => ({}),
@@ -37,7 +37,7 @@ describe("maestro command", () => {
   }
 
   it("passes parsed args to runMaestro", async () => {
-    const program = await createTestProgram();
+    const program = createTestProgram();
 
     await program.parseAsync([
       "node",
@@ -68,7 +68,7 @@ describe("maestro command", () => {
   });
 
   it("uses command defaults when optional args are omitted", async () => {
-    const program = await createTestProgram();
+    const program = createTestProgram();
 
     await program.parseAsync(["node", "cli", "maestro"]);
 
@@ -84,7 +84,7 @@ describe("maestro command", () => {
   });
 
   it("honors global yes and dry-run flags before the command", async () => {
-    const program = await createTestProgram();
+    const program = createTestProgram();
 
     await program.parseAsync(["node", "cli", "--yes", "--dry-run", "maestro"]);
 
@@ -107,7 +107,7 @@ describe("maestro command", () => {
     ["--poll-interval-ms", "1.5"],
     ["--poll-interval-ms", "abc"]
   ])("rejects invalid positive integer option %s %s", async (flag, value) => {
-    const program = await createTestProgram();
+    const program = createTestProgram();
 
     await expect(program.parseAsync(["node", "cli", "maestro", flag, value])).rejects.toMatchObject(
       {
@@ -119,7 +119,7 @@ describe("maestro command", () => {
   });
 
   it("rejects an unsupported log level", async () => {
-    const program = await createTestProgram();
+    const program = createTestProgram();
 
     await expect(
       program.parseAsync(["node", "cli", "maestro", "--log-level", "verbose"])

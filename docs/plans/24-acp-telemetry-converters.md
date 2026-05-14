@@ -370,8 +370,8 @@ tasks:
       Acceptance: `npm run build` passes; new tests pass; no
       `@opentelemetry/*` dep added to `packages/acp-telemetry/package.json`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

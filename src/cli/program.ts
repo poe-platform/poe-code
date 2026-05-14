@@ -34,6 +34,7 @@ import { registerProviderCommand } from "./commands/provider.js";
 import { registerRuntimeCommand } from "./commands/runtime/index.js";
 import { registerHarnessCommand } from "./commands/harness.js";
 import { registerBraintrustCommand } from "./commands/braintrust.js";
+import { registerTasksCommand } from "./commands/tasks.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
 import {
@@ -76,6 +77,8 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["test"] },
   { path: ["generate"] },
   { path: ["models"] },
+  { path: ["tasks", "verify"], args: "<list>" },
+  { path: ["tasks", "sync"], args: "<list>" },
   { path: ["mcp", "configure"] },
   { path: ["mcp", "unconfigure"] },
   { path: ["skill", "configure"] },
@@ -495,6 +498,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerRuntimeCommand(program, container);
   registerHarnessCommand(program, container);
   registerBraintrustCommand(program, container);
+  registerTasksCommand(program, container);
   registerForwardedToolcraftCommand(
     program,
     container,

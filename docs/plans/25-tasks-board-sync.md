@@ -120,7 +120,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: tasks-cli-command
     title: Register `poe-code tasks verify` and `tasks sync` subcommands
@@ -146,8 +146,8 @@ tasks:
 
       Add `src/cli/commands/tasks-command.test.ts` covering: `verify` exits 0 when report is `ok`, non-zero when not; `sync` passes the merged frontmatter+flags to the SDK call (assert via a stubbed `syncGhProject`); `--json` output exactly matches `VerifyGhProjectReport` / `SyncGhProjectReport` shapes; `--workflow` falls back to `./WORKFLOW.md`; `--states` overrides frontmatter. Mock the SDK functions at the import boundary; do not exercise the GraphQL layer here.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: document-tasks-commands

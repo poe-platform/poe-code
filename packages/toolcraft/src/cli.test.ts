@@ -2042,6 +2042,259 @@ describe("runCLI", () => {
     expect(process.exitCode).toBe(1);
   });
 
+  it("renders RFC 7807 problem detail response bodies", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              title: "Bad Request",
+              detail: "name too short"
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    expect(readStderr(stderrWrite)).toContain(
+      "Response body:\n  Problem: Bad Request\n  Detail:  name too short"
+    );
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("falls back to JSON when problem detail text is blank", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              title: " ",
+              detail: ""
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    expect(readStderr(stderrWrite)).toContain(
+      'Response body:\n  {\n    "title": " ",\n    "detail": ""\n  }'
+    );
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("renders GraphQL error envelope response bodies", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              errors: [
+                {
+                  message: "Unauthorized",
+                  path: ["viewer"]
+                }
+              ]
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    expect(readStderr(stderrWrite)).toContain(
+      "Response body:\n  GraphQL error: Unauthorized\n    at path: viewer"
+    );
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("renders multiple GraphQL errors with path and extension code", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              errors: [
+                {
+                  message: "Unauthorized",
+                  path: ["viewer"],
+                  extensions: {
+                    code: "UNAUTHENTICATED"
+                  }
+                },
+                {
+                  message: "Post missing",
+                  path: ["viewer", "posts", 0]
+                }
+              ]
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    expect(readStderr(stderrWrite)).toContain(
+      [
+        "Response body:",
+        "  GraphQL error: Unauthorized",
+        "    at path: viewer",
+        "    code:    UNAUTHENTICATED",
+        "  ",
+        "  GraphQL error: Post missing",
+        "    at path: viewer.posts.0"
+      ].join("\n")
+    );
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("falls back to JSON for GraphQL envelopes with invalid error paths", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              errors: [
+                {
+                  message: "Unauthorized",
+                  path: ["viewer", null]
+                }
+              ]
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain("Response body:\n  {");
+    expect(output).toContain('"path": [');
+    expect(output).not.toContain("GraphQL error: Unauthorized");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("falls back to JSON response body rendering for unrecognised object bodies", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              foo: 1
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    expect(readStderr(stderrWrite)).toContain('Response body:\n  {\n    "foo": 1\n  }');
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("prefers problem detail rendering for ambiguous response bodies", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        throw createHttpErrorLike({
+          response: {
+            body: {
+              title: "X",
+              errors: [
+                {
+                  message: "Unauthorized"
+                }
+              ]
+            }
+          }
+        });
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--verbose"];
+    await runCLI(root);
+
+    const output = readStderr(stderrWrite);
+    expect(output).toContain("Response body:\n  Problem: X");
+    expect(output).not.toContain("GraphQL error: Unauthorized");
+    expect(process.exitCode).toBe(1);
+  });
+
   it("prints full HttpError-like details and the stack trace with --debug", async () => {
     const deploy = defineCommand({
       name: "deploy",

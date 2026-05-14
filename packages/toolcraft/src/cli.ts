@@ -3706,6 +3706,24 @@ type HttpErrorLike = {
   };
 };
 
+type ProblemDetailsLike = {
+  type?: string;
+  title?: string;
+  status?: number;
+  detail?: string;
+  instance?: string;
+};
+
+type GraphQLErrorEnvelopeLike = {
+  errors: Array<{
+    message: string;
+    path?: Array<string | number>;
+    extensions?: {
+      code?: string;
+    };
+  }>;
+};
+
 function isStringRecord(value: unknown): value is Record<string, string> {
   return isPlainObject(value) && Object.values(value).every((entry) => typeof entry === "string");
 }
@@ -3735,6 +3753,80 @@ function isHttpErrorLike(error: unknown): error is HttpErrorLike {
   );
 }
 
+function hasTypedOptionalField(
+  value: Record<string, unknown>,
+  field: string,
+  type: "number" | "string"
+): boolean {
+  return !(field in value) || typeof value[field] === type;
+}
+
+function isNonEmptyString(value: unknown): value is string {
+  return typeof value === "string" && value.trim().length > 0;
+}
+
+function isProblemDetailsLike(body: unknown): body is ProblemDetailsLike {
+  if (!isPlainObject(body)) {
+    return false;
+  }
+
+  if (!hasTypedOptionalField(body, "type", "string")) {
+    return false;
+  }
+
+  if (!hasTypedOptionalField(body, "title", "string")) {
+    return false;
+  }
+
+  if (!hasTypedOptionalField(body, "status", "number")) {
+    return false;
+  }
+
+  if (!hasTypedOptionalField(body, "detail", "string")) {
+    return false;
+  }
+
+  if (!hasTypedOptionalField(body, "instance", "string")) {
+    return false;
+  }
+
+  return isNonEmptyString(body.title) || isNonEmptyString(body.detail);
+}
+
+function isGraphQLErrorEnvelopeLike(body: unknown): body is GraphQLErrorEnvelopeLike {
+  if (!isPlainObject(body) || !Array.isArray(body.errors) || body.errors.length === 0) {
+    return false;
+  }
+
+  return body.errors.every((error) => {
+    if (!isPlainObject(error) || typeof error.message !== "string") {
+      return false;
+    }
+
+    if ("path" in error) {
+      const pathValue = error.path;
+      if (
+        !Array.isArray(pathValue) ||
+        !pathValue.every((entry) => typeof entry === "string" || typeof entry === "number")
+      ) {
+        return false;
+      }
+    }
+
+    if ("extensions" in error) {
+      if (!isPlainObject(error.extensions)) {
+        return false;
+      }
+
+      if ("code" in error.extensions && typeof error.extensions.code !== "string") {
+        return false;
+      }
+    }
+
+    return true;
+  });
+}
+
 function styleHttpErrorLine(value: string, style: (line: string) => string): string {
   return process.stdout.isTTY === false ? value : style(value);
 }
@@ -3743,9 +3835,61 @@ function formatHttpErrorStatus(value: string): string {
   return styleHttpErrorLine(value, text.error);
 }
 
+function formatProblemDetailsBody(body: ProblemDetailsLike): string {
+  const lines: string[] = [];
+
+  if (isNonEmptyString(body.title)) {
+    lines.push(`Problem: ${body.title}`);
+  }
+
+  if (isNonEmptyString(body.detail)) {
+    lines.push(`Detail:  ${body.detail}`);
+  }
+
+  if (body.type !== undefined) {
+    lines.push(`Type:    ${body.type}`);
+  }
+
+  if (body.instance !== undefined) {
+    lines.push(`Instance: ${body.instance}`);
+  }
+
+  if (body.status !== undefined) {
+    lines.push(`Status:  ${body.status}`);
+  }
+
+  return lines.join("\n");
+}
+
+function formatGraphQLErrorEnvelopeBody(body: GraphQLErrorEnvelopeLike): string {
+  return body.errors
+    .map((error) => {
+      const lines = [`GraphQL error: ${error.message}`];
+
+      if (error.path !== undefined) {
+        lines.push(`  at path: ${error.path.join(".")}`);
+      }
+
+      if (error.extensions?.code !== undefined) {
+        lines.push(`  code:    ${error.extensions.code}`);
+      }
+
+      return lines.join("\n");
+    })
+    .join("\n\n");
+}
+
 function formatHttpErrorBody(body: unknown): string {
   if (typeof body === "string") {
     return body;
+  }
+
+  if (isProblemDetailsLike(body)) {
+    return formatProblemDetailsBody(body);
+  }
+
+  if (isGraphQLErrorEnvelopeLike(body)) {
+    return formatGraphQLErrorEnvelopeBody(body);
   }
 
   const serialized = JSON.stringify(body, null, 2);

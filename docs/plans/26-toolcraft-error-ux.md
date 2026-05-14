@@ -923,7 +923,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-pretty-api-errors
     title: Pretty-print common API error formats in HTTP responses
@@ -985,8 +985,8 @@ tasks:
           shapes) → Problem wins (it's the older, more standardised
           form and likely the deliberate one if both are present)
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-stack-trim

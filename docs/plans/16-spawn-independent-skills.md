@@ -36,6 +36,23 @@ Explicit non-goals:
 
 ## 3. Implementation details and technical decisions
 
+### Hiding staged paths from git
+
+Staged symlinks under `.codex/skills/…`, `.claude/skills/…`, `.opencode/skills/…` are untracked and would otherwise show in `git status` and be vulnerable to a blanket `git add`. Append per-run blocks to `.git/info/exclude` (repo-local, never committed) — not the project `.gitignore` and not the user's global excludes file.
+
+- Resolve the exclude file via `git rev-parse --git-dir` so worktrees and submodules work; if cwd is not inside a git repo, skip the exclude step silently.
+- Frame each run's entries with markers so cleanup is precise:
+
+  ```text
+  # poe-code-spawn-skills:<runId> begin
+  .codex/skills/skill-a
+  .claude/skills/skill-b
+  # poe-code-spawn-skills:<runId> end
+  ```
+
+- Cleanup removes only the block between this run's markers; other runs' blocks and pre-existing user entries are left intact.
+- Exclude-file edits and symlink ops share the same cleanup contract: best-effort, idempotent, never touch user-owned content.
+
 ## 4. Interfaces and test plan
 
 ## 5. Code plan

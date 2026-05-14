@@ -287,16 +287,18 @@ describe("runGenerateCli", () => {
     expect([exitCode, await readRepoFiles(harness.fs, "/repo")]).toEqual([1, before]);
   });
 
-  it("treats a malformed lock file as missing and regenerates it", async () => {
+  it("reports a corrupt lock file instead of regenerating over it", async () => {
     const specText = createSpec("List bots.");
     const harness = createCliHarness({ "/repo/openapi.json": specText });
 
     await runGenerateCli(["node", "generate"], harness.services);
-    await harness.fs.writeFile("/repo/openapi.lock", "not json\n", "utf8");
+    await harness.fs.writeFile("/repo/openapi.lock", "{\n,", "utf8");
 
-    await runGenerateCli(["node", "generate"], harness.services);
+    const exitCode = await runGenerateCli(["node", "generate"], harness.services);
 
-    expect(await readRepoFiles(harness.fs, "/repo")).toEqual(createExpectedFiles(specText));
+    expect(exitCode).toBe(1);
+    expect(harness.stderr()).toContain('Lock file "/repo/openapi.lock" is not valid JSON');
+    expect(harness.stderr()).toContain("line 2 column 1");
   });
 
   it("returns a user-facing error when the input file is missing", async () => {

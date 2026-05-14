@@ -2136,8 +2136,11 @@ async function loadPresetValues(
 
   try {
     parsedPreset = JSON.parse(rawPreset);
-  } catch {
-    throw new UserError(`Preset file "${presetPath}" is not valid JSON.`);
+  } catch (error) {
+    throw new UserError(
+      `Preset file "${presetPath}" is not valid JSON: ${getErrorMessage(error)}.`,
+      { cause: error }
+    );
   }
 
   if (!isPlainObject(parsedPreset)) {
@@ -2508,8 +2511,11 @@ async function loadFixtureScenario(
 
   try {
     parsed = JSON.parse(rawFixture);
-  } catch {
-    throw new UserError(`Fixture file ${fixturePath} is not valid JSON.`);
+  } catch (error) {
+    throw new UserError(
+      `Fixture file ${fixturePath} is not valid JSON: ${getErrorMessage(error)}.`,
+      { cause: error }
+    );
   }
 
   if (!Array.isArray(parsed)) {

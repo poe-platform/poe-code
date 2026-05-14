@@ -1112,7 +1112,7 @@ describe("runCLI", () => {
     });
 
     vol.fromJSON({
-      "/presets/invalid-json.json": "{"
+      "/presets/invalid-json.json": "not json"
     });
 
     process.argv = [
@@ -1127,9 +1127,10 @@ describe("runCLI", () => {
     await runCLI(root, { presets: true });
 
     expect(handler).not.toHaveBeenCalled();
-    expect(loggerState.error).toEqual([
-      'Preset file "/presets/invalid-json.json" is not valid JSON.'
-    ]);
+    expect(loggerState.error).toHaveLength(1);
+    expect(loggerState.error[0]).toContain('Preset file "/presets/invalid-json.json"');
+    expect(loggerState.error[0]).toContain("is not valid JSON");
+    expect(loggerState.error[0]).toContain("Unexpected token");
     expect(process.exitCode).toBe(1);
   });
 
@@ -2002,6 +2003,29 @@ describe("runCLI", () => {
     expect(loggerState.error).toEqual([
       `Fixture scenario "missing scenario" was not found. No fixtures are declared in ${fixtureFilePath}.`
     ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("reports the JSON parser message when the fixture file is not valid JSON", async () => {
+    vol.fromJSON({
+      [fixtureFilePath]: "not json"
+    });
+    process.env.TOOLCRAFT_FIXTURE = "first scenario";
+    process.argv = ["node", "toolcraft", "fixture-demo", "--output", "json", "--yes"];
+
+    await runCLI(fixtureRoot, {
+      services: {
+        store: {
+          readValue: async () => "live value",
+          writeValue: async () => undefined
+        }
+      }
+    });
+
+    expect(loggerState.error).toHaveLength(1);
+    expect(loggerState.error[0]).toContain(`Fixture file ${fixtureFilePath}`);
+    expect(loggerState.error[0]).toContain("is not valid JSON");
+    expect(loggerState.error[0]).toContain("Unexpected token");
     expect(process.exitCode).toBe(1);
   });
 

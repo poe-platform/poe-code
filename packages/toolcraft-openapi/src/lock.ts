@@ -1,4 +1,5 @@
 import path from "node:path";
+import { UserError } from "toolcraft";
 
 export interface OpenApiLock {
   specSha: string;
@@ -14,13 +15,15 @@ export interface LockFileSystem {
   writeFile(filePath: string, contents: string, encoding: BufferEncoding): Promise<void>;
 }
 
-export function parseOpenApiLock(contents: string): OpenApiLock | null {
+export function parseOpenApiLock(contents: string, lockPath: string): OpenApiLock | null {
   let parsed: unknown;
 
   try {
     parsed = JSON.parse(contents);
-  } catch {
-    return null;
+  } catch (error) {
+    throw new UserError(`Lock file "${lockPath}" is not valid JSON: ${getErrorMessage(error)}.`, {
+      cause: error
+    });
   }
 
   if (
@@ -52,7 +55,7 @@ export async function readOpenApiLock(
   lockPath: string
 ): Promise<OpenApiLock | null> {
   try {
-    return parseOpenApiLock(await fs.readFile(lockPath, "utf8"));
+    return parseOpenApiLock(await fs.readFile(lockPath, "utf8"), lockPath);
   } catch (error) {
     if (isNotFoundError(error)) {
       return null;
@@ -68,7 +71,15 @@ export async function writeOpenApiLock(
   lock: OpenApiLock
 ): Promise<void> {
   await fs.mkdir(path.dirname(lockPath), { recursive: true });
-  await fs.writeFile(lockPath, stringifyOpenApiLock(lock), "utf8");
+  try {
+    await fs.writeFile(lockPath, stringifyOpenApiLock(lock), "utf8");
+  } catch (error) {
+    const code = getErrorCode(error);
+    throw new UserError(
+      `Failed to write lock file "${lockPath}"${code === undefined ? "" : ` (${code})`}: ${getErrorMessage(error)}`,
+      { cause: error }
+    );
+  }
 }
 
 function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
@@ -78,4 +89,21 @@ function isNotFoundError(error: unknown): error is NodeJS.ErrnoException {
     "code" in error &&
     (error as NodeJS.ErrnoException).code === "ENOENT"
   );
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function getErrorCode(error: unknown): string | undefined {
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    typeof (error as NodeJS.ErrnoException).code === "string"
+  ) {
+    return (error as NodeJS.ErrnoException).code;
+  }
+
+  return undefined;
 }

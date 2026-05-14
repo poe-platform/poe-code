@@ -551,7 +551,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-cause-chain-on-parse-and-io
     title: JSON / YAML / fs errors carry the underlying cause
@@ -600,9 +600,9 @@ tasks:
         - lock write failure (mocked fs.writeFile that rejects with
           EACCES): error mentions the lock path
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: toolcraft-schema-union-context
     title: Union and oneof errors list the branches that were tried

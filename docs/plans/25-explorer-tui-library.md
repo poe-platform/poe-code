@@ -29,8 +29,8 @@ tasks:
       packages/design-system) and the existing test suite must still
       pass after this task.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: fuzzy-filter-and-layout

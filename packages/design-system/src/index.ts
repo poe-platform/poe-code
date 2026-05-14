@@ -27,6 +27,13 @@ export * as dashboard from "./dashboard/index.js";
 export { createDashboard, shouldUseInteractiveDashboard } from "./dashboard/index.js";
 export type { Dashboard, DashboardOptions } from "./dashboard/index.js";
 
+// Explorer
+export * as explorer from "./explorer/index.js";
+export { runExplorer, singleDetail } from "./explorer/index.js";
+export type {
+  Row, DetailItem, Detail, Action, ActionContext, ExplorerConfig, Tone,
+} from "./explorer/index.js";
+
 // Prompts
 export * as prompts from "./prompts/index.js";
 export { intro, introPlain, outro, note, select, multiselect, text as promptText, confirm, confirmOrCancel, password, spinner, withSpinner, isCancel, cancel, log, PromptCancelledError } from "./prompts/index.js";

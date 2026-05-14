@@ -716,7 +716,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-validation-batch
     title: Collect all validation errors before reporting
@@ -773,8 +773,8 @@ tasks:
       by cli.ts handleRunError, it should NOT prefix "error: " a
       second time — the body already says "N parameter errors".
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-source-snippet-on-parse

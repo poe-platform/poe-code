@@ -27,6 +27,7 @@ import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number
 import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { filterSchemaForScope } from "./schema-scope.js";
 import { suggest } from "./suggest.js";
+import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
@@ -416,22 +417,19 @@ function renderDeclinedApproval(error: ApprovalDeclinedError): {
   };
 }
 
-function validateEnum(
+function formatEnumError(
   value: unknown,
   schema: Extract<AnySchema, { kind: "enum" }>,
   label: string
-): string | number | boolean {
-  if (!schema.values.includes(value as never)) {
-    const suggestionLine =
-      typeof value === "string"
-        ? formatEnumSuggestionLine(value, schema.values.map((candidate) => String(candidate)))
-        : " ";
-    throw new UserError(
-      `Invalid value for "${label}".${suggestionLine}Expected one of: ${schema.values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
-    );
-  }
-
-  return value as string | number | boolean;
+): string {
+  const suggestionLine =
+    typeof value === "string"
+      ? formatEnumSuggestionLine(
+          value,
+          schema.values.map((candidate) => String(candidate))
+        )
+      : " ";
+  return `Invalid value for "${label}".${suggestionLine}Expected one of: ${schema.values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`;
 }
 
 function formatEnumSuggestionLine(value: string, values: readonly string[]): string {
@@ -455,7 +453,8 @@ function validateSchemaValue(
   schema: AnySchema,
   value: unknown,
   casing: Casing,
-  label: string
+  label: string,
+  errors: ValidationError[]
 ): unknown {
   const unwrappedSchema = unwrapOptional(schema);
 
@@ -466,43 +465,51 @@ function validateSchemaValue(
   switch (unwrappedSchema.kind) {
     case "string":
       if (typeof value !== "string") {
-        throw new UserError(
-          `Invalid value for "${label}". Expected a string, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected a string, got ${describeReceived(value)}.`
+        });
       }
       return value;
 
     case "number":
       if (!isValidNumberSchemaValue(value, unwrappedSchema)) {
-        throw new UserError(
-          `Invalid value for "${label}". Expected ${getExpectedNumberDescription(unwrappedSchema)}, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected ${getExpectedNumberDescription(unwrappedSchema)}, got ${describeReceived(value)}.`
+        });
       }
       return value;
 
     case "boolean":
       if (typeof value !== "boolean") {
-        throw new UserError(
-          `Invalid value for "${label}". Expected a boolean, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected a boolean, got ${describeReceived(value)}.`
+        });
       }
       return value;
 
     case "enum":
-      return validateEnum(value, unwrappedSchema, label);
+      if (!unwrappedSchema.values.includes(value as never)) {
+        errors.push({ path: label, message: formatEnumError(value, unwrappedSchema, label) });
+      }
+      return value;
 
     case "array":
       if (!Array.isArray(value)) {
-        throw new UserError(
-          `Invalid value for "${label}". Expected an array, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected an array, got ${describeReceived(value)}.`
+        });
+        return value;
       }
       return value.map((item, index) =>
-        validateSchemaValue(unwrappedSchema.item, item, casing, `${label}[${index}]`)
+        validateSchemaValue(unwrappedSchema.item, item, casing, `${label}[${index}]`, errors)
       );
 
     case "object":
-      return validateObjectSchema(unwrappedSchema, value, casing, label);
+      return validateObjectSchema(unwrappedSchema, value, casing, label, errors);
   }
 }
 
@@ -510,12 +517,15 @@ function validateObjectSchema(
   schema: ObjectSchema<any>,
   value: unknown,
   casing: Casing,
-  label: string
+  label: string,
+  errors: ValidationError[]
 ): Record<string, unknown> {
   if (!isPlainObject(value)) {
-    throw new UserError(
-      `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
-    );
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
+    });
+    return {};
   }
 
   const result: Record<string, unknown> = {};
@@ -528,13 +538,14 @@ function validateObjectSchema(
   for (const key of Object.keys(value)) {
     if (!expectedKeys.has(key)) {
       const fieldLabel = label.length === 0 ? key : `${label}.${key}`;
-      throw new UserError(
-        `Unexpected parameter "${fieldLabel}". ${formatAvailableList(
+      errors.push({
+        path: fieldLabel,
+        message: `Unexpected parameter "${fieldLabel}". ${formatAvailableList(
           [...expectedKeys.keys()].map((expectedKey) =>
             label.length === 0 ? expectedKey : `${label}.${expectedKey}`
           )
         )}`
-      );
+      });
     }
   }
 
@@ -553,10 +564,17 @@ function validateObjectSchema(
         continue;
       }
 
-      throw new UserError(`Missing required parameter "${fieldLabel}".`);
+      errors.push({ path: fieldLabel, message: `Missing required parameter "${fieldLabel}".` });
+      continue;
     }
 
-    result[outputKey] = validateSchemaValue(rawChildSchema, value[inputKey], casing, fieldLabel);
+    result[outputKey] = validateSchemaValue(
+      rawChildSchema,
+      value[inputKey],
+      casing,
+      fieldLabel,
+      errors
+    );
   }
 
   return result;
@@ -567,7 +585,10 @@ function validateToolArguments(
   argumentsValue: Record<string, unknown> | undefined,
   casing: Casing
 ): Record<string, unknown> {
-  return validateObjectSchema(schema, argumentsValue ?? {}, casing, "");
+  const errors: ValidationError[] = [];
+  const result = validateObjectSchema(schema, argumentsValue ?? {}, casing, "", errors);
+  throwValidationErrors(errors);
+  return result;
 }
 
 function isContentBlock(value: unknown): value is ToolContent {

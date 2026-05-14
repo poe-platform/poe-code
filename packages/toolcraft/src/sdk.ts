@@ -1,12 +1,7 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
-import {
-  ToolcraftBugError,
-  UserError,
-  assertCommandRequirements,
-  resolveCommandSecrets
-} from "./index.js";
+import { ToolcraftBugError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
 import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
@@ -14,6 +9,7 @@ import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
 import { filterSchemaForScope } from "./schema-scope.js";
 import { suggest } from "./suggest.js";
+import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
@@ -23,7 +19,7 @@ const RESERVED_SERVICE_NAMES = new Set([
   "env",
   "progress",
   "runtimeOptions",
-  "root",
+  "root"
 ]);
 const RESERVED_SERVICE_NAMES_MESSAGE =
   "Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.";
@@ -36,7 +32,7 @@ type EmptyRecord = Record<never, never>;
 
 type EffectiveCommandScope<
   TOwnScope extends ScopeInput,
-  TInheritedScope extends ScopeInput,
+  TInheritedScope extends ScopeInput
 > = TOwnScope extends readonly Scope[]
   ? TOwnScope
   : TInheritedScope extends readonly Scope[]
@@ -45,7 +41,7 @@ type EffectiveCommandScope<
 
 type EffectiveGroupScope<
   TOwnScope extends ScopeInput,
-  TInheritedScope extends ScopeInput,
+  TInheritedScope extends ScopeInput
 > = TOwnScope extends readonly Scope[]
   ? TOwnScope
   : TInheritedScope extends readonly Scope[]
@@ -60,7 +56,7 @@ type IncludesSDK<TScope> = TScope extends readonly Scope[]
 
 type EffectiveCommandHumanInLoopMode<
   TOwnHumanInLoopMode extends HumanInLoopModeInput,
-  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined,
+  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined
 > = TOwnHumanInLoopMode extends HumanInLoopMode
   ? TOwnHumanInLoopMode
   : TOwnHumanInLoopMode extends null
@@ -69,7 +65,7 @@ type EffectiveCommandHumanInLoopMode<
 
 type EffectiveGroupHumanInLoopMode<
   TOwnHumanInLoopMode extends HumanInLoopModeInput,
-  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined,
+  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined
 > = TOwnHumanInLoopMode extends HumanInLoopMode
   ? TOwnHumanInLoopMode
   : TOwnHumanInLoopMode extends null
@@ -78,17 +74,11 @@ type EffectiveGroupHumanInLoopMode<
 
 type Separator = "-" | "_" | " " | ".";
 
-type IsUppercase<TValue extends string> = TValue extends Uppercase<TValue>
-  ? TValue extends Lowercase<TValue>
-    ? false
-    : true
-  : false;
+type IsUppercase<TValue extends string> =
+  TValue extends Uppercase<TValue> ? (TValue extends Lowercase<TValue> ? false : true) : false;
 
-type IsLowercase<TValue extends string> = TValue extends Lowercase<TValue>
-  ? TValue extends Uppercase<TValue>
-    ? false
-    : true
-  : false;
+type IsLowercase<TValue extends string> =
+  TValue extends Lowercase<TValue> ? (TValue extends Uppercase<TValue> ? false : true) : false;
 
 type LastCharacter<TValue extends string> = TValue extends `${infer THead}${infer TTail}`
   ? TTail extends ""
@@ -98,13 +88,13 @@ type LastCharacter<TValue extends string> = TValue extends `${infer THead}${infe
 
 type PushCurrentWord<
   TCurrent extends string,
-  TWords extends readonly string[],
+  TWords extends readonly string[]
 > = TCurrent extends "" ? TWords : [...TWords, Lowercase<TCurrent>];
 
 type SplitCamelWords<
   TValue extends string,
   TCurrent extends string = "",
-  TWords extends readonly string[] = [],
+  TWords extends readonly string[] = []
 > = TValue extends `${infer TChar}${infer TRest}`
   ? TChar extends Separator
     ? SplitCamelWords<TRest, "", PushCurrentWord<TCurrent, TWords>>
@@ -123,14 +113,14 @@ type SplitCamelWords<
 
 type JoinCamelWords<TWords extends readonly string[]> = TWords extends readonly [
   infer THead extends string,
-  ...infer TTail extends readonly string[],
+  ...infer TTail extends readonly string[]
 ]
   ? `${THead}${CapitalizeJoinCamelWords<TTail>}`
   : "";
 
 type CapitalizeJoinCamelWords<TWords extends readonly string[]> = TWords extends readonly [
   infer THead extends string,
-  ...infer TTail extends readonly string[],
+  ...infer TTail extends readonly string[]
 ]
   ? `${Capitalize<THead>}${CapitalizeJoinCamelWords<TTail>}`
   : "";
@@ -143,13 +133,16 @@ type Camelize<TValue> = TValue extends Primitive
     ? Array<Camelize<TItem>>
     : TValue extends object
       ? {
-          [TKey in keyof TValue as TKey extends string ? CamelCase<TKey> : TKey]: Camelize<TValue[TKey]>;
+          [TKey in keyof TValue as TKey extends string ? CamelCase<TKey> : TKey]: Camelize<
+            TValue[TKey]
+          >;
         }
       : TValue;
 
-type SDKResult<TResult, THumanInLoopMode extends HumanInLoopMode | undefined> = THumanInLoopMode extends "async"
-  ? HumanInLoopPending
-  : TResult;
+type SDKResult<
+  TResult,
+  THumanInLoopMode extends HumanInLoopMode | undefined
+> = THumanInLoopMode extends "async" ? HumanInLoopPending : TResult;
 
 type SDKMethod<TParamsSchema extends ObjectSchema<any>, TResult> = (
   params: Camelize<Static<TParamsSchema>>
@@ -168,52 +161,56 @@ type RawChildrenValue<TChildren> = TChildren extends readonly unknown[] ? TChild
 type SDKNodeShape<
   TNode,
   TInheritedScope extends ScopeInput,
-  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined,
-> =
-  TNode extends {
-    kind: "command";
-    readonly __agentKitCommandTypeInfo: {
-      name: infer TName extends string;
-      params: infer TParamsSchema extends ObjectSchema<any>;
-      result: infer TResult;
-      ownScope: infer TOwnScope extends ScopeInput;
-      ownHumanInLoopMode: infer TOwnHumanInLoopMode extends HumanInLoopModeInput;
-    };
-  }
-    ? IncludesSDK<EffectiveCommandScope<TOwnScope, TInheritedScope>> extends true
-      ? {
-          [TKey in CamelCase<TName>]: SDKMethod<
-            TParamsSchema,
-            SDKResult<TResult, EffectiveCommandHumanInLoopMode<TOwnHumanInLoopMode, TInheritedHumanInLoopMode>>
-          >;
-        }
-      : EmptyRecord
-    : TNode extends {
-          kind: "group";
-          readonly __agentKitGroupTypeInfo: {
-            name: infer TName extends string;
-            children: infer TChildren extends readonly unknown[];
-            ownScope: infer TOwnScope extends ScopeInput;
-            ownHumanInLoopMode: infer TOwnHumanInLoopMode extends HumanInLoopModeInput;
-          };
-        }
-      ? SDKChildrenShape<
-          TChildren,
-          EffectiveGroupScope<TOwnScope, TInheritedScope>,
-          EffectiveGroupHumanInLoopMode<TOwnHumanInLoopMode, TInheritedHumanInLoopMode>
-        > extends infer TChildShape extends object
-        ? keyof TChildShape extends never
-          ? EmptyRecord
-          : { [TKey in CamelCase<TName>]: TChildShape }
-        : never
-      : EmptyRecord;
+  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined
+> = TNode extends {
+  kind: "command";
+  readonly __agentKitCommandTypeInfo: {
+    name: infer TName extends string;
+    params: infer TParamsSchema extends ObjectSchema<any>;
+    result: infer TResult;
+    ownScope: infer TOwnScope extends ScopeInput;
+    ownHumanInLoopMode: infer TOwnHumanInLoopMode extends HumanInLoopModeInput;
+  };
+}
+  ? IncludesSDK<EffectiveCommandScope<TOwnScope, TInheritedScope>> extends true
+    ? {
+        [TKey in CamelCase<TName>]: SDKMethod<
+          TParamsSchema,
+          SDKResult<
+            TResult,
+            EffectiveCommandHumanInLoopMode<TOwnHumanInLoopMode, TInheritedHumanInLoopMode>
+          >
+        >;
+      }
+    : EmptyRecord
+  : TNode extends {
+        kind: "group";
+        readonly __agentKitGroupTypeInfo: {
+          name: infer TName extends string;
+          children: infer TChildren extends readonly unknown[];
+          ownScope: infer TOwnScope extends ScopeInput;
+          ownHumanInLoopMode: infer TOwnHumanInLoopMode extends HumanInLoopModeInput;
+        };
+      }
+    ? SDKChildrenShape<
+        TChildren,
+        EffectiveGroupScope<TOwnScope, TInheritedScope>,
+        EffectiveGroupHumanInLoopMode<TOwnHumanInLoopMode, TInheritedHumanInLoopMode>
+      > extends infer TChildShape extends object
+      ? keyof TChildShape extends never
+        ? EmptyRecord
+        : { [TKey in CamelCase<TName>]: TChildShape }
+      : never
+    : EmptyRecord;
 
 type SDKChildrenShape<
   TChildren,
   TInheritedScope extends ScopeInput,
-  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined,
+  TInheritedHumanInLoopMode extends HumanInLoopMode | undefined
 > = Simplify<
-  UnionToIntersection<SDKNodeShape<RawChildrenValue<TChildren>, TInheritedScope, TInheritedHumanInLoopMode>>
+  UnionToIntersection<
+    SDKNodeShape<RawChildrenValue<TChildren>, TInheritedScope, TInheritedHumanInLoopMode>
+  >
 >;
 
 export interface CreateSDKOptions<TServices extends object = Record<string, unknown>> {
@@ -245,7 +242,9 @@ function splitWords(value: string): string[] {
     const previous = value[index - 1];
     const next = value[index + 1];
     const previousIsLowercase =
-      previous !== undefined && previous === previous.toLowerCase() && previous !== previous.toUpperCase();
+      previous !== undefined &&
+      previous === previous.toLowerCase() &&
+      previous !== previous.toUpperCase();
     const nextIsLowercase =
       next !== undefined && next === next.toLowerCase() && next !== next.toUpperCase();
 
@@ -300,7 +299,7 @@ function createFs(): HandlerFs {
       } catch {
         return false;
       }
-    },
+    }
   };
 }
 
@@ -308,7 +307,7 @@ function createEnv(values: Record<string, string | undefined> = process.env): Ha
   return {
     get(key: string): string | undefined {
       return values[key];
-    },
+    }
   };
 }
 
@@ -326,18 +325,19 @@ function formatAvailableList(values: Iterable<string>): string {
   return `Available: ${[...values].sort().join(", ")}.`;
 }
 
-function validateEnum(value: unknown, schema: Extract<AnySchema, { kind: "enum" }>, label: string): string | number | boolean {
-  if (!schema.values.includes(value as never)) {
-    const suggestionLine =
-      typeof value === "string"
-        ? formatEnumSuggestionLine(value, schema.values.map((candidate) => String(candidate)))
-        : " ";
-    throw new UserError(
-      `Invalid value for "${label}".${suggestionLine}Expected one of: ${schema.values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
-    );
-  }
-
-  return value as string | number | boolean;
+function formatEnumError(
+  value: unknown,
+  schema: Extract<AnySchema, { kind: "enum" }>,
+  label: string
+): string {
+  const suggestionLine =
+    typeof value === "string"
+      ? formatEnumSuggestionLine(
+          value,
+          schema.values.map((candidate) => String(candidate))
+        )
+      : " ";
+  return `Invalid value for "${label}".${suggestionLine}Expected one of: ${schema.values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`;
 }
 
 function formatEnumSuggestionLine(value: string, values: readonly string[]): string {
@@ -357,7 +357,12 @@ function describeReceived(value: unknown): string {
   return JSON.stringify(value);
 }
 
-function validateSchemaValue(schema: AnySchema, value: unknown, label: string): unknown {
+function validateSchemaValue(
+  schema: AnySchema,
+  value: unknown,
+  label: string,
+  errors: ValidationError[]
+): unknown {
   const unwrappedSchema = unwrapOptional(schema);
 
   if (value === null && unwrappedSchema.nullable === true) {
@@ -367,53 +372,66 @@ function validateSchemaValue(schema: AnySchema, value: unknown, label: string): 
   switch (unwrappedSchema.kind) {
     case "string":
       if (typeof value !== "string") {
-        throw new UserError(
-          `Invalid value for "${label}". Expected a string, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected a string, got ${describeReceived(value)}.`
+        });
       }
       return value;
 
     case "number":
       if (!isValidNumberSchemaValue(value, unwrappedSchema)) {
-        throw new UserError(
-          `Invalid value for "${label}". Expected ${getExpectedNumberDescription(unwrappedSchema)}, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected ${getExpectedNumberDescription(unwrappedSchema)}, got ${describeReceived(value)}.`
+        });
       }
       return value;
 
     case "boolean":
       if (typeof value !== "boolean") {
-        throw new UserError(
-          `Invalid value for "${label}". Expected a boolean, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected a boolean, got ${describeReceived(value)}.`
+        });
       }
       return value;
 
     case "enum":
-      return validateEnum(value, unwrappedSchema, label);
+      if (!unwrappedSchema.values.includes(value as never)) {
+        errors.push({ path: label, message: formatEnumError(value, unwrappedSchema, label) });
+      }
+      return value;
 
     case "array":
       if (!Array.isArray(value)) {
-        throw new UserError(
-          `Invalid value for "${label}". Expected an array, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: label,
+          message: `Invalid value for "${label}". Expected an array, got ${describeReceived(value)}.`
+        });
+        return value;
       }
-      return value.map((item, index) => validateSchemaValue(unwrappedSchema.item, item, `${label}[${index}]`));
+      return value.map((item, index) =>
+        validateSchemaValue(unwrappedSchema.item, item, `${label}[${index}]`, errors)
+      );
 
     case "object":
-      return validateObjectSchema(unwrappedSchema, value, label);
+      return validateObjectSchema(unwrappedSchema, value, label, errors);
   }
 }
 
 function validateObjectSchema(
   schema: ObjectSchema<any>,
   value: unknown,
-  label: string
+  label: string,
+  errors: ValidationError[]
 ): Record<string, unknown> {
   if (!isPlainObject(value)) {
-    throw new UserError(
-      `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
-    );
+    errors.push({
+      path: label,
+      message: `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
+    });
+    return {};
   }
 
   const result: Record<string, unknown> = {};
@@ -426,13 +444,14 @@ function validateObjectSchema(
   for (const key of Object.keys(value)) {
     if (!expectedKeys.has(key)) {
       const fieldLabel = label.length === 0 ? key : `${label}.${key}`;
-      throw new UserError(
-        `Unexpected parameter "${fieldLabel}". ${formatAvailableList(
+      errors.push({
+        path: fieldLabel,
+        message: `Unexpected parameter "${fieldLabel}". ${formatAvailableList(
           [...expectedKeys.keys()].map((expectedKey) =>
             label.length === 0 ? expectedKey : `${label}.${expectedKey}`
           )
         )}`
-      );
+      });
     }
   }
 
@@ -451,10 +470,11 @@ function validateObjectSchema(
         continue;
       }
 
-      throw new UserError(`Missing required parameter "${fieldLabel}".`);
+      errors.push({ path: fieldLabel, message: `Missing required parameter "${fieldLabel}".` });
+      continue;
     }
 
-    result[outputKey] = validateSchemaValue(rawChildSchema, value[inputKey], fieldLabel);
+    result[outputKey] = validateSchemaValue(rawChildSchema, value[inputKey], fieldLabel, errors);
   }
 
   return result;
@@ -464,7 +484,10 @@ function validateSDKArguments(
   schema: ObjectSchema<any>,
   argumentsValue: Record<string, unknown> | undefined
 ): Record<string, unknown> {
-  return validateObjectSchema(schema, argumentsValue ?? {}, "");
+  const errors: ValidationError[] = [];
+  const result = validateObjectSchema(schema, argumentsValue ?? {}, "", errors);
+  throwValidationErrors(errors);
+  return result;
 }
 
 function defineMember(target: Record<string, unknown>, key: string, value: unknown): void {
@@ -476,14 +499,11 @@ function defineMember(target: Record<string, unknown>, key: string, value: unkno
     value,
     enumerable: true,
     configurable: false,
-    writable: false,
+    writable: false
   });
 }
 
-export function createSDK<
-  TRootInfo,
-  TServices extends object = Record<string, unknown>,
->(
+export function createSDK<TRootInfo, TServices extends object = Record<string, unknown>>(
   root: Group<any> & {
     readonly __agentKitGroupTypeInfo: TRootInfo;
   },
@@ -527,7 +547,7 @@ function createResolvedSDK(
           env: createEnv(),
           progress(): void {
             return undefined;
-          },
+          }
         };
 
         await assertCommandRequirements(node, { ...baseContext, params: undefined });
@@ -545,7 +565,7 @@ function createResolvedSDK(
           node,
           {
             ...baseContext,
-            params: validatedParams,
+            params: validatedParams
           } as Parameters<typeof node.handler>[0],
           runtimeOptions,
           [...path, node.name].join(".")
@@ -624,7 +644,7 @@ function createDeferredSDK(
         }
 
         return createPathProxy([...path, property]);
-      },
+      }
     });
 
   return createPathProxy([]) as Record<string, unknown>;

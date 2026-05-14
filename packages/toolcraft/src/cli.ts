@@ -57,6 +57,7 @@ import { findEntrypointPackageMetadata } from "./package-metadata.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
 import { suggest } from "./suggest.js";
+import { throwValidationErrors, type ValidationError } from "./validation-errors.js";
 
 const RESERVED_SERVICE_NAMES = new Set([
   "params",
@@ -853,7 +854,6 @@ function createOption(
 ): Option[] {
   const flags = formatOptionFlags(field, globalLongOptionFlags);
   const collidesWithGlobalFlag = globalLongOptionFlags.has(field.optionFlag);
-  const commanderValue = (value: unknown): unknown => (value === null ? NULL_OPTION_VALUE : value);
 
   if (field.schema.kind === "boolean") {
     if (collidesWithGlobalFlag) {
@@ -863,11 +863,7 @@ function createOption(
     const mainOption = createCommanderOption(`${flags} [value]`, field.description, field);
     mainOption.preset(true);
     // Commander v14 passes the preset value through argParser too, so guard with typeof check
-    mainOption.argParser((value: string | boolean) =>
-      typeof value === "boolean"
-        ? value
-        : commanderValue(parseBooleanText(value, field.displayPath))
-    );
+    mainOption.argParser((value: string | boolean) => (typeof value === "boolean" ? value : value));
 
     return [
       mainOption,
@@ -878,42 +874,16 @@ function createOption(
   if (field.schema.kind === "array") {
     return [
       createCommanderOption(`${flags} <value...>`, field.description, field).argParser(
-        (value: string, previous: unknown[] | null = []) => {
-          const parsed = parseArrayValue(
-            value,
-            field.schema as ArraySchema<any>,
-            field.displayPath
-          );
-          if (parsed === null) {
-            return NULL_OPTION_VALUE as unknown as null;
-          }
-
-          return [...(previous ?? []), ...parsed];
-        }
+        (value: string, previous: string[] = []) => [...previous, value]
       )
     ];
   }
 
   if (field.schema.kind === "json") {
-    return [
-      createCommanderOption(`${flags} <json>`, field.description, field).argParser(
-        (value: string) => commanderValue(parseJsonText(value, field.displayPath))
-      )
-    ];
+    return [createCommanderOption(`${flags} <json>`, field.description, field)];
   }
 
   const option = createCommanderOption(`${flags} <value>`, field.description, field);
-
-  if (
-    field.schema.kind === "enum" &&
-    field.schema.values.every((value) => typeof value === "string")
-  ) {
-    option.choices([...field.schema.values] as string[]);
-  }
-
-  option.argParser((value: string) =>
-    commanderValue(parseScalarValue(value, field.schema as ScalarSchema, field.displayPath))
-  );
   return [option];
 }
 
@@ -2664,6 +2634,49 @@ function parseFieldInputValue(value: string, schema: FieldSchema, label: string)
   return parseScalarValue(value, schema, label);
 }
 
+function parseOptionFieldValue(
+  field: FieldDefinition,
+  value: unknown,
+  errors: ValidationError[]
+): { ok: true; value: unknown } | { ok: false } {
+  try {
+    if (value === null) {
+      return { ok: true, value };
+    }
+
+    if (field.schema.kind === "array" && Array.isArray(value)) {
+      const parsedValues: unknown[] = [];
+
+      for (const item of value) {
+        const parsed = parseArrayValue(String(item), field.schema, field.displayPath);
+        if (parsed === null) {
+          return { ok: true, value: null };
+        }
+
+        parsedValues.push(...parsed);
+      }
+
+      return { ok: true, value: parsedValues };
+    }
+
+    if (typeof value !== "string") {
+      return { ok: true, value };
+    }
+
+    return { ok: true, value: parseFieldInputValue(value, field.schema, field.displayPath) };
+  } catch (error) {
+    if (error instanceof UserError || error instanceof InvalidArgumentError) {
+      errors.push({
+        path: field.displayPath,
+        message: error.message
+      });
+      return { ok: false };
+    }
+
+    throw error;
+  }
+}
+
 function consumeFieldValue(
   args: string[],
   index: number,
@@ -2880,7 +2893,12 @@ function resolveDynamicLeaf(
   }
 }
 
-function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: string): unknown {
+function finalizeDynamicValue(
+  schema: AnySchema,
+  value: unknown,
+  displayPath: string,
+  errors: ValidationError[]
+): unknown {
   const unwrappedSchema = unwrapOptional(schema);
 
   if (value === undefined) {
@@ -2906,23 +2924,31 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
       }
 
       if (!isPlainObject(value)) {
-        throw new UserError(
-          `Invalid value for "${displayPath}". Expected indexed object entries, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: displayPath,
+          message: `Invalid value for "${displayPath}". Expected indexed object entries, got ${describeReceived(value)}.`
+        });
+        return value;
       }
 
       const entries = Object.entries(value);
       const indices = entries.map(([key]) => Number(key)).sort((left, right) => left - right);
 
       if (indices.some((index) => !Number.isInteger(index) || index < 0)) {
-        throw new UserError(`Array parameter "${displayPath}" must use numeric indices.`);
+        errors.push({
+          path: displayPath,
+          message: `Array parameter "${displayPath}" must use numeric indices.`
+        });
+        return value;
       }
 
       for (let index = 0; index < indices.length; index += 1) {
         if (indices[index] !== index) {
-          throw new UserError(
-            `Array parameter "${displayPath}" must use contiguous indices starting at 0.`
-          );
+          errors.push({
+            path: displayPath,
+            message: `Array parameter "${displayPath}" must use contiguous indices starting at 0.`
+          });
+          return value;
         }
       }
 
@@ -2930,16 +2956,19 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
         finalizeDynamicValue(
           unwrappedSchema.item,
           (value as Record<string, unknown>)[String(index)],
-          `${displayPath}.${index}`
+          `${displayPath}.${index}`,
+          errors
         )
       );
     }
 
     case "object": {
       if (!isPlainObject(value)) {
-        throw new UserError(
-          `Invalid value for "${displayPath}". Expected an object, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: displayPath,
+          message: `Invalid value for "${displayPath}". Expected an object, got ${describeReceived(value)}.`
+        });
+        return value;
       }
 
       const result: Record<string, unknown> = {};
@@ -2960,10 +2989,14 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
             continue;
           }
 
-          throw new UserError(`Missing required parameter "${childDisplayPath}".`);
+          errors.push({
+            path: childDisplayPath,
+            message: `Missing required parameter "${childDisplayPath}".`
+          });
+          continue;
         }
 
-        result[key] = finalizeDynamicValue(rawChildSchema, childValue, childDisplayPath);
+        result[key] = finalizeDynamicValue(rawChildSchema, childValue, childDisplayPath, errors);
       }
 
       return result;
@@ -2971,9 +3004,11 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
 
     case "record": {
       if (!isPlainObject(value)) {
-        throw new UserError(
-          `Invalid value for "${displayPath}". Expected an object, got ${describeReceived(value)}.`
-        );
+        errors.push({
+          path: displayPath,
+          message: `Invalid value for "${displayPath}". Expected an object, got ${describeReceived(value)}.`
+        });
+        return value;
       }
 
       return Object.fromEntries(
@@ -2982,19 +3017,22 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
           finalizeDynamicValue(
             unwrappedSchema.value,
             entryValue,
-            displayPath.length === 0 ? key : `${displayPath}.${key}`
+            displayPath.length === 0 ? key : `${displayPath}.${key}`,
+            errors
           )
         ])
       );
     }
 
     default:
-      throw new UserError(
-        formatUnsupportedDynamicSchemaMessage(
+      errors.push({
+        path: displayPath,
+        message: formatUnsupportedDynamicSchemaMessage(
           formatCliSchemaKind(unwrappedSchema.kind),
           displayPath
         )
-      );
+      });
+      return value;
   }
 }
 
@@ -3021,7 +3059,8 @@ function qualifyDisplayPath(prefix: string, displayPath: string): string {
 function parseDynamicValues(
   dynamicFields: DynamicFieldDefinition[],
   rawArgv: string[],
-  casing: Casing
+  casing: Casing,
+  errors: ValidationError[]
 ): {
   providedFieldIds: Set<string>;
   values: Map<string, unknown>;
@@ -3089,7 +3128,8 @@ function parseDynamicValues(
           finalizeDynamicValue(
             field.schema.kind === "record" ? field.schema : field.schema,
             rawValues.get(field.id),
-            field.displayPath
+            field.displayPath,
+            errors
           )
         ])
     )
@@ -3104,7 +3144,8 @@ async function enforceVariantConstraints(
   resolvedFieldValues: Map<string, unknown>,
   providedDynamicFieldIds: Set<string>,
   providedFieldIds: Set<string>,
-  shouldPrompt: boolean
+  shouldPrompt: boolean,
+  errors: ValidationError[]
 ): Promise<void> {
   const fieldById = new Map(fields.map((field) => [field.id, field]));
   const dynamicFieldById = new Map(dynamicFields.map((field) => [field.id, field]));
@@ -3138,15 +3179,23 @@ async function enforceVariantConstraints(
         continue;
       }
 
-      throw new UserError(`Missing required parameter "${variant.controlDisplayPath}".`);
+      errors.push({
+        path: variant.controlDisplayPath,
+        message: `Missing required parameter "${variant.controlDisplayPath}".`
+      });
+      continue;
     }
 
     const selectedBranch = variant.branches.find((branch) => branch.branchId === selectedBranchId);
     if (selectedBranch === undefined) {
-      throw new UserError(
-        `Invalid value for "${variant.controlDisplayPath}". Expected one of: ${variant.branches.map((branch) => branch.branchId).join(", ")}, got ${describeReceived(selectedBranchId)}.`
-      );
+      errors.push({
+        path: variant.controlDisplayPath,
+        message: `Invalid value for "${variant.controlDisplayPath}". Expected one of: ${variant.branches.map((branch) => branch.branchId).join(", ")}, got ${describeReceived(selectedBranchId)}.`
+      });
+      continue;
     }
+
+    let hasInvalidBranchParameter = false;
 
     for (const branch of variant.branches) {
       if (branch.branchId === selectedBranch.branchId) {
@@ -3157,11 +3206,13 @@ async function enforceVariantConstraints(
       if (invalidFieldId !== undefined) {
         const field = fieldById.get(invalidFieldId);
         if (field !== undefined) {
-          throw new UserError(
-            `Unknown parameter "${field.displayPath}" for ${variant.controlDisplayPath}="${selectedBranch.branchId}". ${formatAvailableList(
+          errors.push({
+            path: field.displayPath,
+            message: `Unknown parameter "${field.displayPath}" for ${variant.controlDisplayPath}="${selectedBranch.branchId}". ${formatAvailableList(
               getAvailableBranchParameters(selectedBranch)
             )}`
-          );
+          });
+          hasInvalidBranchParameter = true;
         }
       }
 
@@ -3171,13 +3222,19 @@ async function enforceVariantConstraints(
       if (invalidDynamicFieldId !== undefined) {
         const field = dynamicFieldById.get(invalidDynamicFieldId);
         if (field !== undefined) {
-          throw new UserError(
-            `Unknown parameter "${field.displayPath}" for ${variant.controlDisplayPath}="${selectedBranch.branchId}". ${formatAvailableList(
+          errors.push({
+            path: field.displayPath,
+            message: `Unknown parameter "${field.displayPath}" for ${variant.controlDisplayPath}="${selectedBranch.branchId}". ${formatAvailableList(
               getAvailableBranchParameters(selectedBranch)
             )}`
-          );
+          });
+          hasInvalidBranchParameter = true;
         }
       }
+    }
+
+    if (hasInvalidBranchParameter) {
+      continue;
     }
 
     for (const fieldId of selectedBranch.requiredFieldIds) {
@@ -3198,7 +3255,10 @@ async function enforceVariantConstraints(
         continue;
       }
 
-      throw new UserError(`Missing required parameter "${field.displayPath}".`);
+      errors.push({
+        path: field.displayPath,
+        message: `Missing required parameter "${field.displayPath}".`
+      });
     }
 
     for (const fieldId of selectedBranch.requiredDynamicFieldIds) {
@@ -3211,7 +3271,10 @@ async function enforceVariantConstraints(
         continue;
       }
 
-      throw new UserError(`Missing required parameter "${field.displayPath}".`);
+      errors.push({
+        path: field.displayPath,
+        message: `Missing required parameter "${field.displayPath}".`
+      });
     }
   }
 }
@@ -3234,6 +3297,7 @@ async function resolveParams(
       : {};
   const providedFieldIds = new Set<string>();
   const resolvedFieldValues = new Map<string, unknown>();
+  const errors: ValidationError[] = [];
 
   for (const field of fields) {
     let value: unknown;
@@ -3298,6 +3362,15 @@ async function resolveParams(
       source = "preset";
     }
 
+    if (source === "option") {
+      const parsed = parseOptionFieldValue(field, value, errors);
+      if (!parsed.ok) {
+        continue;
+      }
+
+      value = parsed.value;
+    }
+
     if (value === undefined && shouldPrompt && !field.optional) {
       value = await promptForField(field);
       source = "prompt";
@@ -3313,7 +3386,11 @@ async function resolveParams(
         continue;
       }
 
-      throw new UserError(`Missing required parameter "${field.displayPath}".`);
+      errors.push({
+        path: field.displayPath,
+        message: `Missing required parameter "${field.displayPath}".`
+      });
+      continue;
     }
 
     resolvedFieldValues.set(field.id, value);
@@ -3328,7 +3405,7 @@ async function resolveParams(
 
   const dynamicResults =
     dynamicFields.length > 0
-      ? parseDynamicValues(dynamicFields, rawArgv, casing)
+      ? parseDynamicValues(dynamicFields, rawArgv, casing, errors)
       : {
           providedFieldIds: new Set<string>(),
           values: new Map<string, unknown>()
@@ -3346,7 +3423,11 @@ async function resolveParams(
         continue;
       }
 
-      throw new UserError(`Missing required parameter "${field.displayPath}".`);
+      errors.push({
+        path: field.displayPath,
+        message: `Missing required parameter "${field.displayPath}".`
+      });
+      continue;
     }
 
     setNestedValue(params, field.path, value);
@@ -3360,8 +3441,11 @@ async function resolveParams(
     resolvedFieldValues,
     dynamicResults.providedFieldIds,
     providedFieldIds,
-    shouldPrompt
+    shouldPrompt,
+    errors
   );
+
+  throwValidationErrors(errors);
 
   return params;
 }
@@ -3683,7 +3767,8 @@ function formatUnknownCommandError(
   argv: readonly string[]
 ): string {
   const input = extractQuotedCommanderValue(error.message) ?? "";
-  const currentCommand = program === undefined ? undefined : findCurrentCommanderCommand(program, argv);
+  const currentCommand =
+    program === undefined ? undefined : findCurrentCommanderCommand(program, argv);
   return formatUnknownCommandMessage(input, currentCommand);
 }
 
@@ -3707,7 +3792,8 @@ function formatUnknownOptionError(
   argv: readonly string[]
 ): string {
   const input = extractQuotedCommanderValue(error.message) ?? "";
-  const currentCommand = program === undefined ? undefined : findCurrentCommanderCommand(program, argv);
+  const currentCommand =
+    program === undefined ? undefined : findCurrentCommanderCommand(program, argv);
   const suggestions =
     currentCommand === undefined
       ? []
@@ -3751,7 +3837,10 @@ function extractBetweenQuotes(message: string, quote: "'" | '"'): string | undef
   return message.slice(start + 1, end);
 }
 
-function findCurrentCommanderCommand(program: CommanderCommand, argv: readonly string[]): CommanderCommand {
+function findCurrentCommanderCommand(
+  program: CommanderCommand,
+  argv: readonly string[]
+): CommanderCommand {
   let current = program;
   const tokens = argv.slice(2);
 
@@ -3827,17 +3916,16 @@ function findUnknownCommanderCommand(
 
 function getDefaultCommanderCommandName(command: CommanderCommand): string | undefined {
   const candidate = command as CommanderCommand & { _defaultCommandName?: unknown };
-  return typeof candidate._defaultCommandName === "string" ? candidate._defaultCommandName : undefined;
+  return typeof candidate._defaultCommandName === "string"
+    ? candidate._defaultCommandName
+    : undefined;
 }
 
 function configureCommanderSuggestionOutput(command: CommanderCommand): void {
   command.exitOverride();
   command.configureOutput({
     outputError: (message, write) => {
-      if (
-        message.includes("unknown command") ||
-        message.includes("unknown option")
-      ) {
+      if (message.includes("unknown command") || message.includes("unknown option")) {
         return;
       }
 

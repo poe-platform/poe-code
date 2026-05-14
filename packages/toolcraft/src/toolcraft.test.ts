@@ -621,7 +621,9 @@ describe("toolcraft", () => {
     });
 
     expect(() => resolveCommandSecrets(cmd, { TOKNE: "set" })).toThrowError(
-      new UserError("Missing required secret TOKEN\n  Set it before running cmd.\nDid you mean: TOKNE?")
+      new UserError(
+        "Missing required secret TOKEN\n  Set it before running cmd.\nDid you mean: TOKNE?"
+      )
     );
   });
 
@@ -1273,7 +1275,7 @@ describe("createMCPServer", () => {
       ).rejects.toSatisfy(
         (error: unknown) =>
           error instanceof Error &&
-          error.message.includes('Did you mean: fast?\nExpected one of: safe, fast')
+          error.message.includes("Did you mean: fast?\nExpected one of: safe, fast")
       );
 
       await expect(
@@ -1628,6 +1630,61 @@ describe("createMCPServer", () => {
           code: ERROR_INVALID_PARAMS
         });
         expect((error as Error).message).toContain('Missing required parameter "name".');
+        return true;
+      });
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("maps collected validation failures to invalid params", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "deploy",
+          scope: ["mcp"],
+          params: S.Object({
+            name: S.String(),
+            retries: S.Number(),
+            dryRun: S.Boolean()
+          }),
+          handler: async ({ params }) => params
+        })
+      ]
+    });
+
+    const server = createMCPServer(root, {
+      name: "toolcraft-test",
+      version: "1.0.0",
+      casing: "camel",
+      omitRootToolNamePrefix: true
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const callPromise = client.callTool({
+        name: "deploy",
+        arguments: {
+          name: 42,
+          retries: "many",
+          dryRun: "yes"
+        }
+      });
+
+      await expect(callPromise).rejects.toSatisfy((error: unknown) => {
+        expect(error).toBeInstanceOf(McpError);
+        expect(error).toMatchObject({
+          code: ERROR_INVALID_PARAMS
+        });
+        expect((error as Error).message).toContain(
+          [
+            "3 parameter errors:",
+            '  - name: Invalid value for "name". Expected a string, got 42.',
+            '  - retries: Invalid value for "retries". Expected a number, got "many".',
+            '  - dryRun: Invalid value for "dryRun". Expected a boolean, got "yes".'
+          ].join("\n")
+        );
         return true;
       });
     } finally {
@@ -2141,6 +2198,41 @@ describe("createSDK", () => {
     );
   });
 
+  it("collects multiple SDK validation errors into one message", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "deploy",
+          scope: ["sdk"],
+          params: S.Object({
+            name: S.String(),
+            retries: S.Number(),
+            dryRun: S.Boolean()
+          }),
+          handler: async ({ params }) => params
+        })
+      ]
+    });
+
+    const sdk = createSDK(root);
+
+    await expect(
+      sdk.deploy({
+        name: 42,
+        retries: "many",
+        dryRun: "yes"
+      })
+    ).rejects.toThrow(
+      [
+        "3 parameter errors:",
+        '  - name: Invalid value for "name". Expected a string, got 42.',
+        '  - retries: Invalid value for "retries". Expected a number, got "many".',
+        '  - dryRun: Invalid value for "dryRun". Expected a boolean, got "yes".'
+      ].join("\n")
+    );
+  });
+
   it("rejects CLI-only helper flags in the SDK argument surface", async () => {
     const root = defineGroup({
       name: "root",
@@ -2525,7 +2617,7 @@ describe("createSDK", () => {
         config: { mode: "safe" },
         mode: "fats"
       })
-    ).rejects.toThrow('Did you mean: fast?\nExpected one of: safe, fast');
+    ).rejects.toThrow("Did you mean: fast?\nExpected one of: safe, fast");
 
     await expect(
       sdk.run({

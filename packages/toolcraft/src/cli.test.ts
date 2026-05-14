@@ -613,11 +613,10 @@ describe("runCLI", () => {
     const root = defineGroup({ name: "toolcraft", children: [toggle] });
 
     process.argv = ["node", "toolcraft", "toggle", "--enabled", "yes"];
-    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
     await runCLI(root);
 
-    expect(stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain(
+    expect(loggerState.error.join("\n")).toContain(
       'Invalid value for "enabled". Expected true or false, got "yes".'
     );
     expect(process.exitCode).toBe(1);
@@ -727,11 +726,10 @@ describe("runCLI", () => {
     });
 
     process.argv = ["node", "toolcraft", "deploy", "--count", "1.5"];
-    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
     await runCLI(root);
 
-    expect(stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain(
+    expect(loggerState.error.join("\n")).toContain(
       'Invalid value for "count". Expected an integer, got "1.5".'
     );
     expect(process.exitCode).toBe(1);
@@ -750,13 +748,13 @@ describe("runCLI", () => {
       name: "toolcraft",
       children: [deploy]
     });
-    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
     process.argv = ["node", "toolcraft", "deploy", "--mode", "fats"];
     await runCLI(root);
 
-    const stderr = readStderr(stderrWrite);
-    expect(stderr).toContain('Did you mean: fast?\nExpected one of: safe, fast');
+    expect(loggerState.error.join("\n")).toContain(
+      "Did you mean: fast?\nExpected one of: safe, fast"
+    );
   });
 
   it("does not suggest distant enum values for short inputs", async () => {
@@ -771,14 +769,13 @@ describe("runCLI", () => {
       name: "toolcraft",
       children: [deploy]
     });
-    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
     process.argv = ["node", "toolcraft", "deploy", "--mode", "abc"];
     await runCLI(root);
 
-    const stderr = readStderr(stderrWrite);
-    expect(stderr).not.toContain("Did you mean");
-    expect(stderr).toContain('Expected one of: xyz, got "abc".');
+    const renderedError = loggerState.error.join("\n");
+    expect(renderedError).not.toContain("Did you mean");
+    expect(renderedError).toContain('Expected one of: xyz, got "abc".');
   });
 
   it("prompts for missing required params, uses select for enums, and confirms resolved values", async () => {
@@ -1396,7 +1393,7 @@ describe("runCLI", () => {
     await runCLI(root);
 
     const stderr = readStderr(stderrWrite);
-    expect(stderr).toContain('Did you mean: rich?\nExpected one of: rich, md, markdown, json');
+    expect(stderr).toContain("Did you mean: rich?\nExpected one of: rich, md, markdown, json");
     expect(process.exitCode).toBe(1);
   });
 
@@ -1566,6 +1563,123 @@ describe("runCLI", () => {
 
     expect(promptState.text).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual(['Missing required parameter "name".']);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("reports a single validation error in the original single-error format", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        name: S.String()
+      }),
+      handler: async () => null
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    setTTY(process.stdin, false);
+    process.argv = ["node", "toolcraft", "deploy"];
+
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual(['Missing required parameter "name".']);
+    expect(loggerState.error[0]).not.toContain("parameter errors");
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("collects multiple CLI validation errors into one message", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        name: S.String({ pattern: "^[a-z]+$" }),
+        retries: S.Number(),
+        dryRun: S.Boolean()
+      }),
+      handler: async () => null
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    setTTY(process.stdin, false);
+    process.argv = [
+      "node",
+      "toolcraft",
+      "deploy",
+      "--name",
+      "42",
+      "--retries",
+      "many",
+      "--dry-run",
+      "yes"
+    ];
+
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      [
+        "3 parameter errors:",
+        '  - name: Invalid value for "name": "42" does not match pattern "^[a-z]+$".',
+        '  - retries: Invalid value for "retries". Expected a number, got "many".',
+        '  - dryRun: Invalid value for "dryRun". Expected true or false, got "yes".'
+      ].join("\n")
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("caps collected CLI validation errors at ten entries", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({
+        field01: S.String(),
+        field02: S.String(),
+        field03: S.String(),
+        field04: S.String(),
+        field05: S.String(),
+        field06: S.String(),
+        field07: S.String(),
+        field08: S.String(),
+        field09: S.String(),
+        field10: S.String(),
+        field11: S.String(),
+        field12: S.String()
+      }),
+      handler: async () => null
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    setTTY(process.stdin, false);
+    process.argv = ["node", "toolcraft", "deploy"];
+
+    await runCLI(root);
+
+    expect(loggerState.error).toEqual([
+      [
+        "12 parameter errors:",
+        '  - field01: Missing required parameter "field01".',
+        '  - field02: Missing required parameter "field02".',
+        '  - field03: Missing required parameter "field03".',
+        '  - field04: Missing required parameter "field04".',
+        '  - field05: Missing required parameter "field05".',
+        '  - field06: Missing required parameter "field06".',
+        '  - field07: Missing required parameter "field07".',
+        '  - field08: Missing required parameter "field08".',
+        '  - field09: Missing required parameter "field09".',
+        '  - field10: Missing required parameter "field10".',
+        "  … and 2 more"
+      ].join("\n")
+    ]);
+    expect(loggerState.error[0]).not.toContain("field11");
+    expect(loggerState.error[0]).not.toContain("field12");
     expect(process.exitCode).toBe(1);
   });
 
@@ -2724,13 +2838,14 @@ describe("runCLI", () => {
     });
 
     process.argv = ["node", "toolcraft", "publish", "--payload", "{foo:1}", "--yes"];
-    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
     await runCLI(root);
 
-    const stderr = readStderr(stderrWrite);
-    expect(stderr).toContain('Invalid value for "payload". Expected valid JSON, got "{foo:1}"');
-    expect(stderr).toContain("(parser: ");
+    const renderedError = loggerState.error.join("\n");
+    expect(renderedError).toContain(
+      'Invalid value for "payload". Expected valid JSON, got "{foo:1}"'
+    );
+    expect(renderedError).toContain("(parser: ");
     expect(process.exitCode).toBe(1);
     expect(handler).not.toHaveBeenCalled();
   });

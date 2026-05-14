@@ -13,11 +13,11 @@ const osascriptProviderMock = vi.hoisted(() => vi.fn());
 const spawnApprovalRunnerMock = vi.hoisted(() => vi.fn());
 
 vi.mock("./default-provider.js", () => ({
-  defaultProviderForPlatform: defaultProviderForPlatformMock,
+  defaultProviderForPlatform: defaultProviderForPlatformMock
 }));
 
 vi.mock("./spawn.js", () => ({
-  spawnApprovalRunner: spawnApprovalRunnerMock,
+  spawnApprovalRunner: spawnApprovalRunnerMock
 }));
 
 vi.mock("@poe-code/agent-human-in-loop", async (importOriginal) => {
@@ -25,7 +25,7 @@ vi.mock("@poe-code/agent-human-in-loop", async (importOriginal) => {
 
   return {
     ...actual,
-    osascriptProvider: osascriptProviderMock,
+    osascriptProvider: osascriptProviderMock
   };
 });
 
@@ -37,12 +37,12 @@ function createContext(params: { name: string } = { name: "production" }): Handl
     fs: {
       readFile: vi.fn(),
       writeFile: vi.fn(),
-      exists: vi.fn(),
+      exists: vi.fn()
     },
     env: {
-      get: vi.fn(),
+      get: vi.fn()
     },
-    progress: vi.fn(),
+    progress: vi.fn()
   };
 }
 
@@ -50,14 +50,14 @@ function createSyncCommand(handler: ReturnType<typeof vi.fn>) {
   return defineCommand({
     name: "deploy",
     params: S.Object({
-      name: S.String(),
+      name: S.String()
     }),
     humanInLoop: {
       mode: "sync",
       message: ({ params, commandPath }) => `Run ${commandPath} for ${params.name}?`,
-      declineInputPrompt: "Why not?",
+      declineInputPrompt: "Why not?"
     },
-    handler,
+    handler
   });
 }
 
@@ -65,14 +65,14 @@ function createAsyncCommand(handler: ReturnType<typeof vi.fn>) {
   return defineCommand({
     name: "deploy",
     params: S.Object({
-      name: S.String(),
+      name: S.String()
     }),
     humanInLoop: {
       mode: "async",
       message: ({ params, commandPath }) => `Queue ${commandPath} for ${params.name}?`,
-      declineInputPrompt: "Why not?",
+      declineInputPrompt: "Why not?"
     },
-    handler,
+    handler
   });
 }
 
@@ -92,12 +92,14 @@ describe("invokeWithHumanInLoop", () => {
     const command = defineCommand({
       name: "deploy",
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
-      handler,
+      handler
     });
 
-    await expect(invokeWithHumanInLoop(command, createContext(), undefined, "deploy")).resolves.toBe("done");
+    await expect(
+      invokeWithHumanInLoop(command, createContext(), undefined, "deploy")
+    ).resolves.toBe("done");
 
     expect(defaultProviderForPlatformMock).not.toHaveBeenCalled();
     expect(handler).toHaveBeenCalledTimes(1);
@@ -115,7 +117,7 @@ describe("invokeWithHumanInLoop", () => {
 
     expect(requestApprovalSpy).toHaveBeenCalledWith({
       message: "Run root.deploy for production?",
-      declineInputPrompt: "Why not?",
+      declineInputPrompt: "Why not?"
     });
     expect(handler).toHaveBeenCalledTimes(1);
   });
@@ -125,7 +127,12 @@ describe("invokeWithHumanInLoop", () => {
     const command = createSyncCommand(handler);
 
     await expect(
-      invokeWithHumanInLoop(command, createContext(), { provider: mockProvider({ outcome: "declined" }) }, "deploy")
+      invokeWithHumanInLoop(
+        command,
+        createContext(),
+        { provider: mockProvider({ outcome: "declined" }) },
+        "deploy"
+      )
     ).rejects.toBeInstanceOf(ApprovalDeclinedError);
 
     await invokeWithHumanInLoop(
@@ -138,7 +145,7 @@ describe("invokeWithHumanInLoop", () => {
       expect(error).toMatchObject({
         commandPath: "deploy",
         reason: undefined,
-        message: "Declined.",
+        message: "Declined."
       });
     });
     expect(handler).not.toHaveBeenCalled();
@@ -158,7 +165,7 @@ describe("invokeWithHumanInLoop", () => {
       expect(error).toMatchObject({
         commandPath: "deploy.production",
         reason: "Need ticket",
-        message: "Declined: Need ticket",
+        message: "Declined: Need ticket"
       });
     });
     expect(handler).not.toHaveBeenCalled();
@@ -173,13 +180,15 @@ describe("invokeWithHumanInLoop", () => {
     defaultProviderForPlatformMock.mockImplementation(() =>
       osascriptProvider({
         title: "Approval needed",
-        binary: "/fake/osascript",
+        binary: "/fake/osascript"
       })
     );
 
     expect(defaultProviderForPlatformMock).not.toHaveBeenCalled();
 
-    await expect(invokeWithHumanInLoop(command, createContext(), runtimeOptions, "deploy")).resolves.toBe("done");
+    await expect(
+      invokeWithHumanInLoop(command, createContext(), runtimeOptions, "deploy")
+    ).resolves.toBe("done");
     await expect(
       invokeWithHumanInLoop(command, createContext({ name: "staging" }), runtimeOptions, "deploy")
     ).resolves.toBe("done");
@@ -187,7 +196,7 @@ describe("invokeWithHumanInLoop", () => {
     expect(defaultProviderForPlatformMock).toHaveBeenCalledTimes(1);
     expect(osascriptProviderMock).toHaveBeenCalledWith({
       title: "Approval needed",
-      binary: "/fake/osascript",
+      binary: "/fake/osascript"
     });
   });
 
@@ -199,14 +208,16 @@ describe("invokeWithHumanInLoop", () => {
       id: "noProviderConfigured",
       async requestApproval() {
         throw new UserError(
-          "no human-in-loop provider configured for this platform — pass humanInLoop.provider to the runtime"
+          "No human-in-loop provider is configured. Pass {humanInLoop: {provider: ...}} to runCLI / createMCPServer / createSDK, or run on macOS to use the default osascript provider."
         );
-      },
+      }
     });
 
-    await expect(invokeWithHumanInLoop(command, createContext(), {}, "deploy")).rejects.toThrowError(
+    await expect(
+      invokeWithHumanInLoop(command, createContext(), {}, "deploy")
+    ).rejects.toThrowError(
       new UserError(
-        "no human-in-loop provider configured for this platform — pass humanInLoop.provider to the runtime"
+        "No human-in-loop provider is configured. Pass {humanInLoop: {provider: ...}} to runCLI / createMCPServer / createSDK, or run on macOS to use the default osascript provider."
       )
     );
     expect(handler).not.toHaveBeenCalled();
@@ -216,9 +227,9 @@ describe("invokeWithHumanInLoop", () => {
     const handler = vi.fn(async () => "done");
     const command = createAsyncCommand(handler);
 
-    await expect(invokeWithHumanInLoop(command, createContext(), undefined, "deploy")).rejects.toThrowError(
-      "humanInLoop.taskList required for async-mode commands"
-    );
+    await expect(
+      invokeWithHumanInLoop(command, createContext(), undefined, "deploy")
+    ).rejects.toThrowError("humanInLoop.taskList required for async-mode commands");
 
     expect(defaultProviderForPlatformMock).not.toHaveBeenCalled();
     expect(spawnApprovalRunnerMock).not.toHaveBeenCalled();
@@ -250,7 +261,7 @@ describe("invokeWithHumanInLoop", () => {
           name: input.name,
           description: input.description ?? "",
           state: "pending",
-          metadata: input.metadata ?? {},
+          metadata: input.metadata ?? {}
         };
       }),
       update: vi.fn(async () => {
@@ -261,7 +272,7 @@ describe("invokeWithHumanInLoop", () => {
       }),
       canFire: vi.fn(async () => false),
       events: vi.fn(async () => []),
-      delete: vi.fn(async () => undefined),
+      delete: vi.fn(async () => undefined)
     };
     const taskList: TaskList = {
       list: vi.fn(() => tasks),
@@ -269,17 +280,22 @@ describe("invokeWithHumanInLoop", () => {
       allTasks: vi.fn(async () => []),
       get: vi.fn(async () => {
         throw new Error("unused in test");
-      }),
+      })
     };
     const handler = vi.fn(async () => "done");
     const command = createAsyncCommand(handler);
 
-    const result = await invokeWithHumanInLoop(command, createContext(), { taskList }, "root.deploy");
+    const result = await invokeWithHumanInLoop(
+      command,
+      createContext(),
+      { taskList },
+      "root.deploy"
+    );
 
     expect(result).toMatchObject({
       status: "pending-approval",
       message: "Queue root.deploy for production?",
-      enqueuedAt: "2026-04-26T13:22:09.000Z",
+      enqueuedAt: "2026-04-26T13:22:09.000Z"
     });
     expect(result.approvalId).toMatch(/^2026-04-26T13-22-09-[0-9a-f]{6}$/);
 
@@ -297,8 +313,8 @@ describe("invokeWithHumanInLoop", () => {
         enqueuedAt: "2026-04-26T13:22:09.000Z",
         pid: null,
         result: null,
-        error: null,
-      },
+        error: null
+      }
     });
     expect(spawnApprovalRunnerMock).toHaveBeenCalledWith(result.approvalId, { taskList });
     expect(defaultProviderForPlatformMock).not.toHaveBeenCalled();

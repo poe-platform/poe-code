@@ -299,21 +299,23 @@ function readStderr(stderrWrite: ReturnType<typeof vi.spyOn>): string {
   return stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("");
 }
 
-function createHttpErrorLike(overrides: {
-  request?: {
-    method?: string;
-    url?: string;
-    headers?: Record<string, string>;
-    body?: unknown;
-  };
-  response?: {
-    status?: number;
-    statusText?: string;
-    headers?: Record<string, string>;
-    body?: unknown;
-  };
-  stack?: string;
-} = {}): Error & {
+function createHttpErrorLike(
+  overrides: {
+    request?: {
+      method?: string;
+      url?: string;
+      headers?: Record<string, string>;
+      body?: unknown;
+    };
+    response?: {
+      status?: number;
+      statusText?: string;
+      headers?: Record<string, string>;
+      body?: unknown;
+    };
+    stack?: string;
+  } = {}
+): Error & {
   name: "HttpError";
   request: {
     method: string;
@@ -328,7 +330,9 @@ function createHttpErrorLike(overrides: {
     body: unknown;
   };
 } {
-  const error = new Error("GET https://api.example.com/v1/widgets/42 -> 500 Internal Server Error") as Error & {
+  const error = new Error(
+    "GET https://api.example.com/v1/widgets/42 -> 500 Internal Server Error"
+  ) as Error & {
     name: "HttpError";
     request: {
       method: string;
@@ -1465,7 +1469,7 @@ describe("runCLI", () => {
     expect(handler).not.toHaveBeenCalled();
     expect(promptState.text).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      "Error: Missing required secret API_KEY\n  Set it in the environment before running this command."
+      "Missing required secret API_KEY\n  Set it in the environment before running this command."
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1497,7 +1501,7 @@ describe("runCLI", () => {
     expect(handler).not.toHaveBeenCalled();
     expect(promptState.text).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
-      `Error: Command "deploy" requires authentication.\n  Run 'poe-code login' first.`
+      `Command "deploy" requires authentication.\n  Run 'poe-code login' first.`
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -1543,7 +1547,8 @@ describe("runCLI", () => {
       params: S.Object({}),
       handler: async () => {
         const error = new ToolcraftBugError("command must define an object params schema.");
-        error.stack = "ToolcraftBugError: command must define an object params schema.\n    at fake-handler";
+        error.stack =
+          "ToolcraftBugError: command must define an object params schema.\n    at fake-handler";
         throw error;
       }
     });
@@ -2122,6 +2127,42 @@ describe("runCLI", () => {
     expect(handler).not.toHaveBeenCalled();
     expect(loggerState.error).toEqual([
       'Unknown parameter "weight.bad". Available: weights.<key>.'
+    ]);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("reports unsupported dynamic parameter types without internal schema variable names", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const configure = defineCommand({
+      name: "configure",
+      params: S.Object({
+        routes: S.Record(
+          S.OneOf({
+            discriminator: "kind",
+            branches: {
+              local: S.Object({
+                path: S.String()
+              })
+            }
+          })
+        )
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [configure]
+    });
+
+    process.argv = ["node", "toolcraft", "configure", "--routes.primary", "local", "--yes"];
+
+    await runCLI(root);
+
+    expect(handler).not.toHaveBeenCalled();
+    expect(loggerState.error).toEqual([
+      'Unsupported parameter type "oneof" for "routes.primary". Supported types: string, number, integer, boolean, array, object, enum, oneof.'
     ]);
     expect(process.exitCode).toBe(1);
   });
@@ -3493,22 +3534,14 @@ describe("runCLI", () => {
       children: [botActions]
     });
 
-    process.argv = [
-      "node",
-      "/usr/local/bin/poe-agent-tools",
-      "bot-actions",
-      "patch-bot",
-      "--help"
-    ];
+    process.argv = ["node", "/usr/local/bin/poe-agent-tools", "bot-actions", "patch-bot", "--help"];
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
     await runCLI(root);
 
     const output = readStdout(stdoutWrite);
     const usageLine = output.split("\n").find((line) => line.startsWith("Usage:")) ?? "";
-    expect(usageLine).toBe(
-      "Usage: poe-agent-tools bot-actions patch-bot [OPTIONS] <botHandle>"
-    );
+    expect(usageLine).toBe("Usage: poe-agent-tools bot-actions patch-bot [OPTIONS] <botHandle>");
     expect(usageLine.length).toBeLessThanOrEqual(100);
     expect(usageLine).not.toContain("--display-name");
     expect(usageLine).not.toContain("--description");
@@ -3711,13 +3744,7 @@ describe("runCLI", () => {
 
     const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
 
-    process.argv = [
-      "node",
-      "/usr/local/bin/poe-agent-tools",
-      "bot-actions",
-      "patch-bot",
-      "--help"
-    ];
+    process.argv = ["node", "/usr/local/bin/poe-agent-tools", "bot-actions", "patch-bot", "--help"];
     await runCLI(root);
     const leafHelp = readStdout(stdoutWrite);
 

@@ -549,8 +549,8 @@ tasks:
       json-schema-converter.test.ts). The point is to pin the new
       text so future renames don't regress to the old jargon.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-cause-chain-on-parse-and-io

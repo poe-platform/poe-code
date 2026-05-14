@@ -7,9 +7,15 @@ import {
   defineCommand,
   defineGroup,
   getCommandSourcePath,
-  resolveCommandSecrets,
+  resolveCommandSecrets
 } from "./index.js";
-import { ERROR_INTERNAL, ERROR_INVALID_PARAMS, McpClient, McpError, createSdkTestPair } from "tiny-mcp-client";
+import {
+  ERROR_INTERNAL,
+  ERROR_INVALID_PARAMS,
+  McpClient,
+  McpError,
+  createSdkTestPair
+} from "tiny-mcp-client";
 import { createMCPServer } from "./mcp.js";
 import { renderResult } from "./renderer.js";
 import type { OutputMode } from "./renderer.js";
@@ -20,11 +26,15 @@ function createPrimitives(): {
   primitives: RenderPrimitives;
   renderTable: ReturnType<typeof vi.fn>;
 } {
-  const renderTable = vi.fn((options: { columns: Array<{ name: string; title: string }>; rows: Record<string, string>[] }) =>
-    JSON.stringify({
-      columns: options.columns.map((column) => ({ name: column.name, title: column.title })),
-      rows: options.rows,
-    })
+  const renderTable = vi.fn(
+    (options: {
+      columns: Array<{ name: string; title: string }>;
+      rows: Record<string, string>[];
+    }) =>
+      JSON.stringify({
+        columns: options.columns.map((column) => ({ name: column.name, title: column.title })),
+        rows: options.rows
+      })
   );
 
   return {
@@ -36,20 +46,24 @@ function createPrimitives(): {
         error: vi.fn(),
         resolved: vi.fn(),
         errorResolved: vi.fn(),
-        message: vi.fn(),
+        message: vi.fn()
       },
       renderTable,
       getTheme: vi.fn(() => ({
         header: (value: string) => value,
-        muted: (value: string) => value,
+        muted: (value: string) => value
       })),
-      note: vi.fn(),
+      note: vi.fn()
     },
-    renderTable,
+    renderTable
   };
 }
 
-function runRender(command: ReturnType<typeof defineCommand>, result: unknown, output: OutputMode): string {
+function runRender(
+  command: ReturnType<typeof defineCommand>,
+  result: unknown,
+  output: OutputMode
+): string {
   const { primitives } = createPrimitives();
   let rendered = "";
 
@@ -67,12 +81,12 @@ describe("toolcraft", () => {
       fs: {
         readFile: async () => "",
         writeFile: async () => undefined,
-        exists: async () => true,
+        exists: async () => true
       },
       env: {
-        get: () => undefined,
+        get: () => undefined
       },
-      progress: () => undefined,
+      progress: () => undefined
     };
   }
 
@@ -80,11 +94,11 @@ describe("toolcraft", () => {
     const command = defineCommand({
       name: "deploy",
       params: S.Object({}),
-      handler: async () => null,
+      handler: async () => null
     });
     const group = defineGroup({
       name: "root",
-      children: [command],
+      children: [command]
     });
 
     expect(Object.getOwnPropertySymbols(command).map((symbol) => symbol.description)).toContain(
@@ -100,19 +114,21 @@ describe("toolcraft", () => {
       defineGroup({
         name: "root",
         rename: {
-          create_issue: "",
+          create_issue: ""
         },
-        children: [],
+        children: []
       })
-    ).toThrowError(new UserError('Invalid rename target for upstream tool "create_issue": path cannot be empty.'));
+    ).toThrowError(
+      new UserError('Invalid rename target for upstream tool "create_issue": path cannot be empty.')
+    );
 
     expect(() =>
       defineGroup({
         name: "root",
         rename: {
-          create_issue: ".issues.create",
+          create_issue: ".issues.create"
         },
-        children: [],
+        children: []
       })
     ).toThrowError(
       new UserError(
@@ -124,9 +140,9 @@ describe("toolcraft", () => {
       defineGroup({
         name: "root",
         rename: {
-          create_issue: "issues.create.",
+          create_issue: "issues.create."
         },
-        children: [],
+        children: []
       })
     ).toThrowError(
       new UserError(
@@ -138,9 +154,9 @@ describe("toolcraft", () => {
       defineGroup({
         name: "root",
         rename: {
-          create_issue: "issues..create",
+          create_issue: "issues..create"
         },
-        children: [],
+        children: []
       })
     ).toThrowError(
       new UserError(
@@ -155,9 +171,9 @@ describe("toolcraft", () => {
         name: "root",
         rename: {
           create_issue: "issues.create",
-          open_issue: "issues.create",
+          open_issue: "issues.create"
         },
-        children: [],
+        children: []
       })
     ).toThrowError(
       new UserError(
@@ -182,7 +198,7 @@ describe("toolcraft", () => {
       const command = defineCommand({
         name: "deploy",
         params: S.Object({}),
-        handler: async () => null,
+        handler: async () => null
       });
 
       expect(getCommandSourcePath(command)).toBe("/repo/src/commands/deploy.ts");
@@ -195,14 +211,14 @@ describe("toolcraft", () => {
     const leaf = defineCommand({
       name: "leaf",
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
       secrets: {
         leafToken: {
-          env: "LEAF_TOKEN",
-        },
+          env: "LEAF_TOKEN"
+        }
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
     const nested = defineGroup({
@@ -210,10 +226,10 @@ describe("toolcraft", () => {
       secrets: {
         nestedToken: {
           env: "NESTED_TOKEN",
-          optional: true,
-        },
+          optional: true
+        }
       },
-      children: [leaf],
+      children: [leaf]
     });
 
     const root = defineGroup({
@@ -221,10 +237,10 @@ describe("toolcraft", () => {
       secrets: {
         rootToken: {
           env: "ROOT_TOKEN",
-          description: "Root token",
-        },
+          description: "Root token"
+        }
       },
-      children: [nested],
+      children: [nested]
     });
 
     const inheritedLeaf = root.children[0];
@@ -242,15 +258,15 @@ describe("toolcraft", () => {
     expect(command.secrets).toEqual({
       rootToken: {
         env: "ROOT_TOKEN",
-        description: "Root token",
+        description: "Root token"
       },
       nestedToken: {
         env: "NESTED_TOKEN",
-        optional: true,
+        optional: true
       },
       leafToken: {
-        env: "LEAF_TOKEN",
-      },
+        env: "LEAF_TOKEN"
+      }
     });
   });
 
@@ -258,29 +274,29 @@ describe("toolcraft", () => {
     const inheritedLeaf = defineCommand({
       name: "inherited",
       params: S.Object({
-        value: S.String(),
+        value: S.String()
       }),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const overriddenLeaf = defineCommand({
       name: "overridden",
       scope: ["sdk"],
       params: S.Object({
-        value: S.String(),
+        value: S.String()
       }),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const nested = defineGroup({
       name: "nested",
-      children: [inheritedLeaf, overriddenLeaf],
+      children: [inheritedLeaf, overriddenLeaf]
     });
 
     const root = defineGroup({
       name: "root",
       scope: ["mcp"],
-      children: [nested],
+      children: [nested]
     });
 
     const group = root.children[0];
@@ -319,30 +335,30 @@ describe("toolcraft", () => {
     const leaf = defineCommand({
       name: "leaf",
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
       requires: {
-        check: leafCheck,
+        check: leafCheck
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
     const nested = defineGroup({
       name: "nested",
       requires: {
         apiVersion: "2026-01-01",
-        check: nestedCheck,
+        check: nestedCheck
       },
-      children: [leaf],
+      children: [leaf]
     });
 
     const root = defineGroup({
       name: "root",
       requires: {
         auth: true,
-        check: rootCheck,
+        check: rootCheck
       },
-      children: [nested],
+      children: [nested]
     });
 
     const group = root.children[0];
@@ -367,12 +383,12 @@ describe("toolcraft", () => {
       fs: {
         readFile: async () => "",
         writeFile: async () => undefined,
-        exists: async () => true,
+        exists: async () => true
       },
       env: {
-        get: () => undefined,
+        get: () => undefined
       },
-      progress: () => undefined,
+      progress: () => undefined
     });
 
     expect(result).toEqual({ ok: true });
@@ -386,20 +402,20 @@ describe("toolcraft", () => {
     const leaf = defineCommand({
       name: "leaf",
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
       requires: {
-        check: leafCheck,
+        check: leafCheck
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
     const nested = defineGroup({
       name: "nested",
       requires: {
-        check: nestedCheck,
+        check: nestedCheck
       },
-      children: [leaf],
+      children: [leaf]
     });
 
     const root = defineGroup({
@@ -407,10 +423,10 @@ describe("toolcraft", () => {
       requires: {
         check: async () => ({
           ok: false,
-          message: "blocked",
-        }),
+          message: "blocked"
+        })
       },
-      children: [nested],
+      children: [nested]
     });
 
     const group = root.children[0];
@@ -432,17 +448,17 @@ describe("toolcraft", () => {
       fs: {
         readFile: async () => "",
         writeFile: async () => undefined,
-        exists: async () => true,
+        exists: async () => true
       },
       env: {
-        get: () => undefined,
+        get: () => undefined
       },
-      progress: () => undefined,
+      progress: () => undefined
     });
 
     expect(result).toEqual({
       ok: false,
-      message: "blocked",
+      message: "blocked"
     });
     expect(nestedCheck).not.toHaveBeenCalled();
     expect(leafCheck).not.toHaveBeenCalled();
@@ -451,34 +467,34 @@ describe("toolcraft", () => {
   it("keeps secret definitions isolated from source config mutations and sibling nodes", () => {
     const rootSecret = {
       env: "ROOT_TOKEN",
-      description: "Root token",
+      description: "Root token"
     };
     const leafSecret = {
-      env: "LEAF_TOKEN",
+      env: "LEAF_TOKEN"
     };
 
     const leaf = defineCommand({
       name: "leaf",
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
       secrets: {
-        leafToken: leafSecret,
+        leafToken: leafSecret
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
     const nested = defineGroup({
       name: "nested",
-      children: [leaf],
+      children: [leaf]
     });
 
     const root = defineGroup({
       name: "root",
       secrets: {
-        rootToken: rootSecret,
+        rootToken: rootSecret
       },
-      children: [nested],
+      children: [nested]
     });
 
     rootSecret.env = "MUTATED_ROOT_TOKEN";
@@ -486,7 +502,7 @@ describe("toolcraft", () => {
 
     expect(root.secrets.rootToken).toEqual({
       env: "ROOT_TOKEN",
-      description: "Root token",
+      description: "Root token"
     });
 
     const group = root.children[0];
@@ -504,11 +520,11 @@ describe("toolcraft", () => {
     expect(command.secrets).toEqual({
       rootToken: {
         env: "ROOT_TOKEN",
-        description: "Root token",
+        description: "Root token"
       },
       leafToken: {
-        env: "LEAF_TOKEN",
-      },
+        env: "LEAF_TOKEN"
+      }
     });
 
     command.secrets.rootToken.description = "Leaf view";
@@ -521,13 +537,13 @@ describe("toolcraft", () => {
       name: "cmd",
       params: S.Object({}),
       secrets: {
-        token: { env: "TOKEN" },
+        token: { env: "TOKEN" }
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
     expect(() => resolveCommandSecrets(cmd, {})).toThrowError(
-      new UserError("Error: Missing required secret TOKEN")
+      new UserError("Missing required secret TOKEN")
     );
   });
 
@@ -536,9 +552,9 @@ describe("toolcraft", () => {
       name: "cmd",
       params: S.Object({}),
       secrets: {
-        token: { env: "TOKEN", optional: true },
+        token: { env: "TOKEN", optional: true }
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
     expect(resolveCommandSecrets(cmd, {})).toEqual({ token: undefined });
@@ -548,7 +564,7 @@ describe("toolcraft", () => {
     const deploy = defineCommand({
       name: "deploy",
       params: S.Object({}),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const root = defineGroup({
@@ -556,10 +572,10 @@ describe("toolcraft", () => {
       secrets: {
         apiKey: {
           env: "API_KEY",
-          description: "Set it before running deploy.",
-        },
+          description: "Set it before running deploy."
+        }
       },
-      children: [deploy],
+      children: [deploy]
     });
 
     const command = root.children[0];
@@ -570,10 +586,10 @@ describe("toolcraft", () => {
 
     expect(() =>
       resolveCommandSecrets(command, {
-        API_KEY: undefined,
+        API_KEY: undefined
       })
     ).toThrowError(
-      new UserError("Error: Missing required secret API_KEY\n  Set it before running deploy.")
+      new UserError("Missing required secret API_KEY\n  Set it before running deploy.")
     );
   });
 
@@ -582,17 +598,17 @@ describe("toolcraft", () => {
       name: "deploy",
       params: S.Object({}),
       requires: {
-        auth: true,
+        auth: true
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
     await expect(
       assertCommandRequirements(deploy, createPreflightContext(), {
-        env: {},
+        env: {}
       })
     ).rejects.toThrowError(
-      new UserError(`Error: Command "deploy" requires authentication.\n  Run 'poe-code login' first.`)
+      new UserError(`Command "deploy" requires authentication.\n  Run 'poe-code login' first.`)
     );
   });
 
@@ -601,18 +617,18 @@ describe("toolcraft", () => {
       name: "deploy",
       params: S.Object({}),
       requires: {
-        apiVersion: ">=2.4.0",
+        apiVersion: ">=2.4.0"
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
     await expect(
       assertCommandRequirements(deploy, createPreflightContext(), {
-        apiVersion: "2.3.9",
+        apiVersion: "2.3.9"
       })
     ).rejects.toThrowError(
       new UserError(
-        'Error: Command "deploy" requires API version >=2.4.0, but runner API version is 2.3.9.'
+        'Command "deploy" requires API version >=2.4.0, but runner API version is 2.3.9.'
       )
     );
   });
@@ -624,15 +640,15 @@ describe("toolcraft", () => {
       requires: {
         check: async () => ({
           ok: false,
-          message: "Account is not allowed to deploy.",
-        }),
+          message: "Account is not allowed to deploy."
+        })
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
-    await expect(
-      assertCommandRequirements(deploy, createPreflightContext())
-    ).rejects.toThrowError(new UserError("Account is not allowed to deploy."));
+    await expect(assertCommandRequirements(deploy, createPreflightContext())).rejects.toThrowError(
+      new UserError("Account is not allowed to deploy.")
+    );
   });
 
   it("uses a fallback message when check fails without one", async () => {
@@ -640,14 +656,14 @@ describe("toolcraft", () => {
       name: "deploy",
       params: S.Object({}),
       requires: {
-        check: async () => ({ ok: false }),
+        check: async () => ({ ok: false })
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
-    await expect(
-      assertCommandRequirements(deploy, createPreflightContext())
-    ).rejects.toThrowError(new UserError("Command precondition failed."));
+    await expect(assertCommandRequirements(deploy, createPreflightContext())).rejects.toThrowError(
+      new UserError("Command precondition failed.")
+    );
   });
 
   it("throws when apiVersion requirement has invalid format", async () => {
@@ -655,16 +671,14 @@ describe("toolcraft", () => {
       name: "deploy",
       params: S.Object({}),
       requires: {
-        apiVersion: "1.0.0",
+        apiVersion: "1.0.0"
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
-    await expect(
-      assertCommandRequirements(deploy, createPreflightContext())
-    ).rejects.toThrowError(
+    await expect(assertCommandRequirements(deploy, createPreflightContext())).rejects.toThrowError(
       new UserError(
-        'Error: Command "deploy" has invalid apiVersion requirement "1.0.0". Expected format ">=X.Y.Z".'
+        'Command "deploy" has invalid apiVersion requirement "1.0.0". Expected format ">=X.Y.Z".'
       )
     );
   });
@@ -674,16 +688,14 @@ describe("toolcraft", () => {
       name: "deploy",
       params: S.Object({}),
       requires: {
-        apiVersion: ">=1.0.0",
+        apiVersion: ">=1.0.0"
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
-    await expect(
-      assertCommandRequirements(deploy, createPreflightContext())
-    ).rejects.toThrowError(
+    await expect(assertCommandRequirements(deploy, createPreflightContext())).rejects.toThrowError(
       new UserError(
-        'Error: Command "deploy" requires API version >=1.0.0, but no runner API version was provided.'
+        'Command "deploy" requires API version >=1.0.0, but no runner API version was provided.'
       )
     );
   });
@@ -693,18 +705,18 @@ describe("toolcraft", () => {
       name: "deploy",
       params: S.Object({}),
       requires: {
-        apiVersion: ">=1.0.0",
+        apiVersion: ">=1.0.0"
       },
-      handler: async () => null,
+      handler: async () => null
     });
 
     await expect(
       assertCommandRequirements(deploy, createPreflightContext(), {
-        apiVersion: "not-semver",
+        apiVersion: "not-semver"
       })
     ).rejects.toThrowError(
       new UserError(
-        'Error: Command "deploy" requires API version >=1.0.0, but runner API version "not-semver" is not valid semver.'
+        'Command "deploy" requires API version >=1.0.0, but runner API version "not-semver" is not valid semver.'
       )
     );
   });
@@ -714,15 +726,15 @@ describe("toolcraft", () => {
       name: "run",
       positional: ["name"],
       params: S.Object({
-        name: S.String(),
+        name: S.String()
       }),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const list = defineCommand({
       name: "list",
       params: S.Object({}),
-      handler: async () => null,
+      handler: async () => null
     });
 
     const root = defineGroup({
@@ -730,38 +742,36 @@ describe("toolcraft", () => {
       scope: ["mcp"],
       secrets: {
         rootToken: {
-          env: "ROOT_TOKEN",
-        },
+          env: "ROOT_TOKEN"
+        }
       },
       requires: {
-        auth: true,
+        auth: true
       },
       children: [run, list],
-      default: run,
+      default: run
     });
 
     expect(root.default).toBe(root.children[0]);
     expect(root.default?.scope).toEqual(["mcp"]);
     expect(root.default?.secrets).toEqual({
       rootToken: {
-        env: "ROOT_TOKEN",
-      },
+        env: "ROOT_TOKEN"
+      }
     });
     expect(root.default?.requires).toEqual({
       auth: true,
       apiVersion: undefined,
-      check: undefined,
+      check: undefined
     });
 
     expect(() =>
       defineGroup({
         name: "invalid",
         children: [list],
-        default: run,
+        default: run
       })
-    ).toThrowError(
-      new ToolcraftBugError('Default command "run" must be listed in children.')
-    );
+    ).toThrowError(new ToolcraftBugError('Default command "run" must be listed in children.'));
   });
 });
 
@@ -775,13 +785,15 @@ describe("createMCPServer", () => {
   });
 
   async function createClient(server: ReturnType<typeof createMCPServer>) {
-    return createSdkTestPair(server, () =>
-      new McpClient({
-        clientInfo: {
-          name: "test-client",
-          version: "1.0.0",
-        },
-      })
+    return createSdkTestPair(
+      server,
+      () =>
+        new McpClient({
+          clientInfo: {
+            name: "test-client",
+            version: "1.0.0"
+          }
+        })
     );
   }
 
@@ -793,14 +805,14 @@ describe("createMCPServer", () => {
           name: "deploy",
           scope: ["mcp"],
           params: S.Object({}),
-          handler: async () => "ok",
-        }),
-      ],
+          handler: async () => "ok"
+        })
+      ]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
-      version: "1.0.0",
+      version: "1.0.0"
     });
     const { client, cleanup } = await createClient(server);
 
@@ -821,19 +833,19 @@ describe("createMCPServer", () => {
       params: S.Object({
         dryRun: S.Boolean(),
         botConfig: S.Object({
-          apiKey: S.String(),
-        }),
+          apiKey: S.String()
+        })
       }),
-      handler: async () => "usage",
+      handler: async () => "usage"
     });
 
     const create = defineCommand({
       name: "create",
       description: "Create bot",
       params: S.Object({
-        botName: S.String(),
+        botName: S.String()
       }),
-      handler: async () => "created",
+      handler: async () => "created"
     });
 
     const remove = defineCommand({
@@ -841,7 +853,7 @@ describe("createMCPServer", () => {
       description: "Remove bot",
       scope: ["cli"],
       params: S.Object({}),
-      handler: async () => "removed",
+      handler: async () => "removed"
     });
 
     const sdkOnly = defineCommand({
@@ -849,7 +861,7 @@ describe("createMCPServer", () => {
       description: "SDK only",
       scope: ["sdk"],
       params: S.Object({}),
-      handler: async () => "sdk",
+      handler: async () => "sdk"
     });
 
     const root = defineGroup({
@@ -859,17 +871,17 @@ describe("createMCPServer", () => {
         defineGroup({
           name: "bot",
           scope: ["mcp"],
-          children: [create, remove],
+          children: [create, remove]
         }),
-        sdkOnly,
-      ],
+        sdkOnly
+      ]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
       omitRootToolNamePrefix: true,
-      tools: ["usage", "bot"],
+      tools: ["usage", "bot"]
     });
     const { client, cleanup } = await createClient(server);
 
@@ -881,28 +893,28 @@ describe("createMCPServer", () => {
         type: "object",
         properties: {
           dry_run: {
-            type: "boolean",
+            type: "boolean"
           },
           bot_config: {
             type: "object",
             properties: {
               api_key: {
-                type: "string",
-              },
+                type: "string"
+              }
             },
-            required: ["api_key"],
-          },
+            required: ["api_key"]
+          }
         },
-        required: ["dry_run", "bot_config"],
+        required: ["dry_run", "bot_config"]
       });
       expect(result.tools[1]?.inputSchema).toEqual({
         type: "object",
         properties: {
           bot_name: {
-            type: "string",
-          },
+            type: "string"
+          }
         },
-        required: ["bot_name"],
+        required: ["bot_name"]
       });
     } finally {
       await cleanup();
@@ -917,31 +929,31 @@ describe("createMCPServer", () => {
       params: S.Object({
         starters: S.Optional(
           S.Array(S.String(), {
-            requiredScopes: ["mcp", "sdk"],
+            requiredScopes: ["mcp", "sdk"]
           })
         ),
         startersJson: S.Optional(
           S.String({
             description: "JSON-encoded value for starters.",
-            scope: ["cli"],
+            scope: ["cli"]
           })
-        ),
+        )
       }),
-      handler: async () => "generated",
+      handler: async () => "generated"
     });
     const root = defineGroup({
       name: "root",
       children: [
         defineGroup({
           name: "bots",
-          children: [generate],
-        }),
-      ],
+          children: [generate]
+        })
+      ]
     });
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
@@ -954,11 +966,11 @@ describe("createMCPServer", () => {
           starters: {
             type: "array",
             items: {
-              type: "string",
-            },
-          },
+              type: "string"
+            }
+          }
         },
-        required: ["starters"],
+        required: ["starters"]
       });
     } finally {
       await cleanup();
@@ -972,20 +984,20 @@ describe("createMCPServer", () => {
       params: S.Object({
         endpoint: S.String(),
         dryRun: S.Optional(S.Boolean({ scope: ["cli", "sdk"] })),
-        verbose: S.Optional(S.Boolean({ scope: ["cli", "sdk"] })),
+        verbose: S.Optional(S.Boolean({ scope: ["cli", "sdk"] }))
       }),
-      handler: async ({ params }) => params,
+      handler: async ({ params }) => params
     });
 
     const root = defineGroup({
       name: "root",
-      children: [run],
+      children: [run]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
@@ -998,10 +1010,10 @@ describe("createMCPServer", () => {
         type: "object",
         properties: {
           endpoint: {
-            type: "string",
-          },
+            type: "string"
+          }
         },
-        required: ["endpoint"],
+        required: ["endpoint"]
       });
     } finally {
       await cleanup();
@@ -1016,22 +1028,22 @@ describe("createMCPServer", () => {
         limit: S.Optional(
           S.Number({
             jsonType: "integer",
-            nullable: true,
+            nullable: true
           })
-        ),
+        )
       }),
-      handler: async ({ params }) => params,
+      handler: async ({ params }) => params
     });
 
     const root = defineGroup({
       name: "root",
-      children: [run],
+      children: [run]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1043,17 +1055,17 @@ describe("createMCPServer", () => {
         properties: {
           limit: {
             type: "integer",
-            nullable: true,
-          },
+            nullable: true
+          }
         },
-        required: [],
+        required: []
       });
 
       const callResult = await client.callTool({
         name: "run",
         arguments: {
-          limit: null,
-        },
+          limit: null
+        }
       });
 
       expect(callResult.isError).not.toBe(true);
@@ -1068,21 +1080,21 @@ describe("createMCPServer", () => {
       scope: ["mcp"],
       params: S.Object({
         count: S.Number({
-          jsonType: "integer",
-        }),
+          jsonType: "integer"
+        })
       }),
-      handler: async ({ params }) => params,
+      handler: async ({ params }) => params
     });
 
     const root = defineGroup({
       name: "root",
-      children: [run],
+      children: [run]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1091,8 +1103,8 @@ describe("createMCPServer", () => {
         client.callTool({
           name: "run",
           arguments: {
-            count: 1.5,
-          },
+            count: 1.5
+          }
         })
       ).rejects.toSatisfy(
         (error: unknown) =>
@@ -1180,22 +1192,22 @@ describe("createMCPServer", () => {
       params: S.Object({
         mode: S.Optional(
           S.Enum(["off", "auto", "forced"] as const, {
-            nullable: true,
+            nullable: true
           })
-        ),
+        )
       }),
-      handler: async ({ params }) => params,
+      handler: async ({ params }) => params
     });
 
     const root = defineGroup({
       name: "root",
-      children: [run],
+      children: [run]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1208,10 +1220,10 @@ describe("createMCPServer", () => {
           mode: {
             type: "string",
             enum: ["off", "auto", "forced", null],
-            nullable: true,
-          },
+            nullable: true
+          }
         },
-        required: [],
+        required: []
       });
     } finally {
       await cleanup();
@@ -1225,19 +1237,19 @@ describe("createMCPServer", () => {
       params: S.Object({
         botName: S.String(),
         botConfig: S.Object({
-          apiKey: S.String(),
-        }),
+          apiKey: S.String()
+        })
       }),
-      handler: async ({ params }) => params,
+      handler: async ({ params }) => params
     });
 
     const remove = defineCommand({
       name: "remove-bot",
       description: "Remove a bot",
       params: S.Object({
-        botName: S.String(),
+        botName: S.String()
       }),
-      handler: async ({ params }) => params,
+      handler: async ({ params }) => params
     });
 
     const root = defineGroup({
@@ -1249,11 +1261,11 @@ describe("createMCPServer", () => {
           children: [
             defineGroup({
               name: "bot",
-              children: [create, remove],
-            }),
-          ],
-        }),
-      ],
+              children: [create, remove]
+            })
+          ]
+        })
+      ]
     });
 
     const server = createMCPServer(root, {
@@ -1261,7 +1273,7 @@ describe("createMCPServer", () => {
       version: "1.0.0",
       omitRootToolNamePrefix: true,
       tools: ["bot_admin__bot"],
-      casing: "camel",
+      casing: "camel"
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1270,7 +1282,7 @@ describe("createMCPServer", () => {
 
       expect(result.tools.map((tool) => tool.name)).toEqual([
         "bot_admin__bot__create_bot",
-        "bot_admin__bot__remove_bot",
+        "bot_admin__bot__remove_bot"
       ]);
       expect(result.tools[0]).toMatchObject({
         description: "Create a bot Parameters: botName (required), botConfig.apiKey (required).",
@@ -1278,20 +1290,20 @@ describe("createMCPServer", () => {
           type: "object",
           properties: {
             botName: {
-              type: "string",
+              type: "string"
             },
             botConfig: {
               type: "object",
               properties: {
                 apiKey: {
-                  type: "string",
-                },
+                  type: "string"
+                }
               },
-              required: ["apiKey"],
-            },
+              required: ["apiKey"]
+            }
           },
-          required: ["botName", "botConfig"],
-        },
+          required: ["botName", "botConfig"]
+        }
       });
     } finally {
       await cleanup();
@@ -1301,10 +1313,10 @@ describe("createMCPServer", () => {
   it("composes tools from multiple root groups", async () => {
     const firstHandler = vi.fn(async ({ params }: { params: { name: string } }) => ({
       group: "first",
-      name: params.name,
+      name: params.name
     }));
     const secondHandler = vi.fn(async () => ({
-      group: "second",
+      group: "second"
     }));
 
     const firstRoot = defineGroup({
@@ -1314,11 +1326,11 @@ describe("createMCPServer", () => {
           name: "create-session",
           scope: ["mcp"],
           params: S.Object({
-            name: S.String(),
+            name: S.String()
           }),
-          handler: firstHandler,
-        }),
-      ],
+          handler: firstHandler
+        })
+      ]
     });
 
     const secondRoot = defineGroup({
@@ -1328,14 +1340,14 @@ describe("createMCPServer", () => {
           name: "render",
           scope: ["mcp"],
           params: S.Object({}),
-          handler: secondHandler,
-        }),
-      ],
+          handler: secondHandler
+        })
+      ]
     });
 
     const server = createMCPServer([firstRoot, secondRoot], {
       name: "toolcraft-test",
-      version: "1.0.0",
+      version: "1.0.0"
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1346,21 +1358,21 @@ describe("createMCPServer", () => {
         "terminal_pilot__create_session",
         "terminal_png__render",
         "approvals__list",
-        "approvals__show",
+        "approvals__show"
       ]);
 
       const callResult = await client.callTool({
         name: "terminal_pilot__create_session",
         arguments: {
-          name: "demo",
-        },
+          name: "demo"
+        }
       });
 
       expect(firstHandler).toHaveBeenCalledWith(
         expect.objectContaining({
           params: {
-            name: "demo",
-          },
+            name: "demo"
+          }
         })
       );
       expect(secondHandler).not.toHaveBeenCalled();
@@ -1370,10 +1382,10 @@ describe("createMCPServer", () => {
             type: "text",
             text: JSON.stringify({
               group: "first",
-              name: "demo",
-            }),
-          },
-        ],
+              name: "demo"
+            })
+          }
+        ]
       });
     } finally {
       await cleanup();
@@ -1390,35 +1402,35 @@ describe("createMCPServer", () => {
           name: "deploy",
           scope: ["mcp"],
           params: S.Object({
-            name: S.String(),
+            name: S.String()
           }),
           secrets: {
             apiKey: {
-              env: "API_KEY",
-            },
+              env: "API_KEY"
+            }
           },
-          handler: async ({ params }) => params.name,
-        }),
-      ],
+          handler: async ({ params }) => params.name
+        })
+      ]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
     try {
       const callPromise = client.callTool({
         name: "deploy",
-        arguments: {},
+        arguments: {}
       });
 
       await expect(callPromise).rejects.toSatisfy((error: unknown) => {
         expect(error).toBeInstanceOf(McpError);
         expect(error).toMatchObject({
-          code: ERROR_INVALID_PARAMS,
+          code: ERROR_INVALID_PARAMS
         });
         expect((error as Error).message).toContain("Missing required secret API_KEY");
         return true;
@@ -1439,29 +1451,31 @@ describe("createMCPServer", () => {
           scope: ["mcp"],
           params: S.Object({}),
           requires: {
-            auth: true,
+            auth: true
           },
-          handler: async () => "ok",
-        }),
-      ],
+          handler: async () => "ok"
+        })
+      ]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
     try {
-      await expect(client.callTool({ name: "deploy", arguments: {} })).rejects.toSatisfy((error: unknown) => {
-        expect(error).toBeInstanceOf(McpError);
-        expect(error).toMatchObject({
-          code: ERROR_INVALID_PARAMS,
-        });
-        expect((error as Error).message).toContain('requires authentication');
-        return true;
-      });
+      await expect(client.callTool({ name: "deploy", arguments: {} })).rejects.toSatisfy(
+        (error: unknown) => {
+          expect(error).toBeInstanceOf(McpError);
+          expect(error).toMatchObject({
+            code: ERROR_INVALID_PARAMS
+          });
+          expect((error as Error).message).toContain("requires authentication");
+          return true;
+        }
+      );
     } finally {
       await cleanup();
     }
@@ -1475,30 +1489,30 @@ describe("createMCPServer", () => {
           name: "deploy",
           scope: ["mcp"],
           params: S.Object({
-            name: S.String(),
+            name: S.String()
           }),
-          handler: async ({ params }) => params.name,
-        }),
-      ],
+          handler: async ({ params }) => params.name
+        })
+      ]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
     try {
       const callPromise = client.callTool({
         name: "deploy",
-        arguments: {},
+        arguments: {}
       });
 
       await expect(callPromise).rejects.toSatisfy((error: unknown) => {
         expect(error).toBeInstanceOf(McpError);
         expect(error).toMatchObject({
-          code: ERROR_INVALID_PARAMS,
+          code: ERROR_INVALID_PARAMS
         });
         expect((error as Error).message).toContain('Missing required parameter "name".');
         return true;
@@ -1511,25 +1525,27 @@ describe("createMCPServer", () => {
   it("maps unknown tools to invalid params", async () => {
     const root = defineGroup({
       name: "root",
-      children: [],
+      children: []
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
     try {
-      await expect(client.callTool({ name: "missing", arguments: {} })).rejects.toSatisfy((error: unknown) => {
-        expect(error).toBeInstanceOf(McpError);
-        expect(error).toMatchObject({
-          code: ERROR_INVALID_PARAMS,
-        });
-        expect((error as Error).message).toContain("missing");
-        return true;
-      });
+      await expect(client.callTool({ name: "missing", arguments: {} })).rejects.toSatisfy(
+        (error: unknown) => {
+          expect(error).toBeInstanceOf(McpError);
+          expect(error).toMatchObject({
+            code: ERROR_INVALID_PARAMS
+          });
+          expect((error as Error).message).toContain("missing");
+          return true;
+        }
+      );
     } finally {
       await cleanup();
     }
@@ -1548,12 +1564,12 @@ describe("createMCPServer", () => {
           scope: ["mcp"],
           confirm: true,
           params: S.Object({
-            botName: S.String(),
+            botName: S.String()
           }),
           secrets: {
             apiKey: {
-              env: "API_KEY",
-            },
+              env: "API_KEY"
+            }
           },
           handler: async (context) => {
             context.progress("deploying");
@@ -1562,21 +1578,21 @@ describe("createMCPServer", () => {
               botName: context.params.botName,
               apiKey: context.secrets.apiKey,
               envHasApiKey: context.env.get("API_KEY"),
-              region: context.region,
+              region: context.region
             };
-          },
-        }),
-      ],
+          }
+        })
+      ]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
       services: {
-        region: "us",
+        region: "us"
       },
       omitRootToolNamePrefix: true,
-      casing: "camel",
+      casing: "camel"
     });
     const { client, cleanup } = await createClient(server);
 
@@ -1584,8 +1600,8 @@ describe("createMCPServer", () => {
       const result = await client.callTool({
         name: "deploy",
         arguments: {
-          botName: "demo",
-        },
+          botName: "demo"
+        }
       });
 
       expect(progress).toHaveBeenCalledWith("handler-called");
@@ -1597,10 +1613,10 @@ describe("createMCPServer", () => {
               botName: "demo",
               apiKey: "secret-token",
               envHasApiKey: "secret-token",
-              region: "us",
-            }),
-          },
-        ],
+              region: "us"
+            })
+          }
+        ]
       });
     } finally {
       await cleanup();
@@ -1617,28 +1633,28 @@ describe("createMCPServer", () => {
           params: S.Object({}),
           handler: async () => {
             throw new Error("Boom.");
-          },
-        }),
-      ],
+          }
+        })
+      ]
     });
 
     const server = createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
     const { client, cleanup } = await createClient(server);
 
     try {
       const callPromise = client.callTool({
         name: "explode",
-        arguments: {},
+        arguments: {}
       });
 
       await expect(callPromise).rejects.toSatisfy((error: unknown) => {
         expect(error).toBeInstanceOf(McpError);
         expect(error).toMatchObject({
-          code: ERROR_INTERNAL,
+          code: ERROR_INTERNAL
         });
         expect((error as Error).message).toContain("Boom.");
         return true;
@@ -1655,106 +1671,107 @@ describe("renderResult", () => {
       label: "object in rich",
       output: "rich" as const,
       result: { name: "demo", count: 2 },
-      expected: "name: demo\ncount: 2\n\n",
+      expected: "name: demo\ncount: 2\n\n"
     },
     {
       label: "object in markdown",
       output: "md" as const,
       result: { name: "demo", count: 2 },
-      expected: "- name: demo\n- count: 2\n",
+      expected: "- name: demo\n- count: 2\n"
     },
     {
       label: "object in json",
       output: "json" as const,
       result: { name: "demo", count: 2 },
-      expected: '{\n  "name": "demo",\n  "count": 2\n}\n',
+      expected: '{\n  "name": "demo",\n  "count": 2\n}\n'
     },
     {
       label: "array of objects in rich",
       output: "rich" as const,
       result: [
         { name: "alpha", count: 1 },
-        { name: "beta", count: 2 },
+        { name: "beta", count: 2 }
       ],
-      expected: "- name: alpha\n  count: 1\n- name: beta\n  count: 2\n\n",
+      expected: "- name: alpha\n  count: 1\n- name: beta\n  count: 2\n\n"
     },
     {
       label: "array of objects in markdown",
       output: "md" as const,
       result: [
         { name: "alpha", count: 1 },
-        { name: "beta", count: 2 },
+        { name: "beta", count: 2 }
       ],
-      expected: "| name | count |\n| :--- | :--- |\n| alpha | 1 |\n| beta | 2 |\n",
+      expected: "| name | count |\n| :--- | :--- |\n| alpha | 1 |\n| beta | 2 |\n"
     },
     {
       label: "array of objects in json",
       output: "json" as const,
       result: [
         { name: "alpha", count: 1 },
-        { name: "beta", count: 2 },
+        { name: "beta", count: 2 }
       ],
-      expected: '[\n  {\n    "name": "alpha",\n    "count": 1\n  },\n  {\n    "name": "beta",\n    "count": 2\n  }\n]\n',
+      expected:
+        '[\n  {\n    "name": "alpha",\n    "count": 1\n  },\n  {\n    "name": "beta",\n    "count": 2\n  }\n]\n'
     },
     {
       label: "string in rich",
       output: "rich" as const,
       result: "hello",
-      expected: "hello\n",
+      expected: "hello\n"
     },
     {
       label: "string in markdown",
       output: "md" as const,
       result: "hello",
-      expected: "hello\n",
+      expected: "hello\n"
     },
     {
       label: "string in json",
       output: "json" as const,
       result: "hello",
-      expected: '{\n  "result": "hello"\n}\n',
+      expected: '{\n  "result": "hello"\n}\n'
     },
     {
       label: "null in rich",
       output: "rich" as const,
       result: null,
-      expected: "Done.\n",
+      expected: "Done.\n"
     },
     {
       label: "null in markdown",
       output: "md" as const,
       result: null,
-      expected: "Done.\n",
+      expected: "Done.\n"
     },
     {
       label: "null in json",
       output: "json" as const,
       result: null,
-      expected: '{\n  "ok": true\n}\n',
+      expected: '{\n  "ok": true\n}\n'
     },
     {
       label: "undefined in rich",
       output: "rich" as const,
       result: undefined,
-      expected: "Done.\n",
+      expected: "Done.\n"
     },
     {
       label: "undefined in markdown",
       output: "md" as const,
       result: undefined,
-      expected: "Done.\n",
+      expected: "Done.\n"
     },
     {
       label: "undefined in json",
       output: "json" as const,
       result: undefined,
-      expected: '{\n  "ok": true\n}\n',
-    },
+      expected: '{\n  "ok": true\n}\n'
+    }
   ])("auto-renders $label", ({ output, result, expected }) => {
     const command = defineCommand({
       name: "demo",
       params: S.Object({}),
-      handler: async () => result,
+      handler: async () => result
     });
 
     expect(runRender(command, result, output)).toBe(expected);
@@ -1766,8 +1783,8 @@ describe("renderResult", () => {
       params: S.Object({}),
       handler: async () => [
         { name: "alpha|beta", count: 1 },
-        { enabled: true, count: 2 },
-      ],
+        { enabled: true, count: 2 }
+      ]
     });
 
     expect(
@@ -1775,7 +1792,7 @@ describe("renderResult", () => {
         command,
         [
           { name: "alpha|beta", count: 1 },
-          { enabled: true, count: 2 },
+          { enabled: true, count: 2 }
         ],
         "rich"
       )
@@ -1786,7 +1803,7 @@ describe("renderResult", () => {
         command,
         [
           { name: "alpha|beta", count: 1 },
-          { enabled: true, count: 2 },
+          { enabled: true, count: 2 }
         ],
         "md"
       )
@@ -1808,8 +1825,8 @@ describe("renderResult", () => {
       render: {
         rich,
         markdown,
-        json,
-      },
+        json
+      }
     });
 
     renderResult(command, "value", "rich", primitives, () => undefined);
@@ -1835,8 +1852,8 @@ describe("renderResult", () => {
       render: {
         rich,
         markdown,
-        json,
-      },
+        json
+      }
     });
 
     renderResult(command, { name: "auto" }, "rich", primitives, (chunk) => {
@@ -1862,8 +1879,8 @@ describe("renderResult", () => {
       handler: async () => ({ ok: true }),
       render: {
         markdown: vi.fn(() => "" as string),
-        json: vi.fn(() => undefined),
-      },
+        json: vi.fn(() => undefined)
+      }
     });
     const { primitives } = createPrimitives();
 
@@ -1884,8 +1901,8 @@ describe("renderResult", () => {
       params: S.Object({}),
       handler: async () => ({ ok: true }),
       render: {
-        markdown: vi.fn(() => undefined as unknown as string),
-      },
+        markdown: vi.fn(() => undefined as unknown as string)
+      }
     });
     const { primitives } = createPrimitives();
 
@@ -1913,26 +1930,26 @@ describe("createSDK", () => {
                   name: "text",
                   scope: ["sdk"],
                   params: S.Object({
-                    prompt: S.String(),
+                    prompt: S.String()
                   }),
                   handler: async ({ params }) => ({
-                    content: params.prompt,
-                  }),
-                }),
-              ],
-            }),
-          ],
-        }),
-      ],
+                    content: params.prompt
+                  })
+                })
+              ]
+            })
+          ]
+        })
+      ]
     });
 
     const sdk = createSDK(root);
     const result = await sdk.generate.assets.text({
-      prompt: "hello",
+      prompt: "hello"
     });
 
     expect(result).toEqual({
-      content: "hello",
+      content: "hello"
     });
   });
 
@@ -1949,29 +1966,29 @@ describe("createSDK", () => {
               params: S.Object({
                 bot_name: S.String(),
                 bot_config: S.Object({
-                  api_key: S.String(),
-                }),
+                  api_key: S.String()
+                })
               }),
-              handler: async ({ params }) => params,
-            }),
-          ],
-        }),
-      ],
+              handler: async ({ params }) => params
+            })
+          ]
+        })
+      ]
     });
 
     const sdk = createSDK(root);
     const result = await sdk.botAdmin.createBot({
       botName: "assistant",
       botConfig: {
-        apiKey: "secret",
-      },
+        apiKey: "secret"
+      }
     });
 
     expect(result).toEqual({
       bot_name: "assistant",
       bot_config: {
-        api_key: "secret",
-      },
+        api_key: "secret"
+      }
     });
   });
 
@@ -1988,20 +2005,20 @@ describe("createSDK", () => {
               params: S.Object({
                 starters: S.Optional(
                   S.Array(S.String(), {
-                    requiredScopes: ["mcp", "sdk"],
+                    requiredScopes: ["mcp", "sdk"]
                   })
                 ),
                 startersJson: S.Optional(
                   S.String({
-                    scope: ["cli"],
+                    scope: ["cli"]
                   })
-                ),
+                )
               }),
-              handler: async ({ params }) => params,
-            }),
-          ],
-        }),
-      ],
+              handler: async ({ params }) => params
+            })
+          ]
+        })
+      ]
     });
 
     const sdk = createSDK(root);
@@ -2024,27 +2041,27 @@ describe("createSDK", () => {
               params: S.Object({
                 starters: S.Optional(
                   S.Array(S.String(), {
-                    requiredScopes: ["mcp", "sdk"],
+                    requiredScopes: ["mcp", "sdk"]
                   })
                 ),
                 startersJson: S.Optional(
                   S.String({
-                    scope: ["cli"],
+                    scope: ["cli"]
                   })
-                ),
+                )
               }),
-              handler: async ({ params }) => params,
-            }),
-          ],
-        }),
-      ],
+              handler: async ({ params }) => params
+            })
+          ]
+        })
+      ]
     });
 
     const sdk = createSDK(root);
 
     await expect(
       sdk.bots.setConversationStarters({
-        startersJson: '["a"]',
+        startersJson: '["a"]'
       })
     ).rejects.toThrow('Unexpected parameter "startersJson". Available: starters.');
   });
@@ -2056,9 +2073,9 @@ describe("createSDK", () => {
         defineCommand({
           name: "deploy",
           params: S.Object({}),
-          handler: async () => null,
-        }),
-      ],
+          handler: async () => null
+        })
+      ]
     });
     const message =
       'Service name "root" is reserved. Choose a different name. Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.';
@@ -2066,16 +2083,16 @@ describe("createSDK", () => {
     expect(() =>
       createSDK(root, {
         services: {
-          root: "bad",
-        },
+          root: "bad"
+        }
       })
     ).toThrow(message);
     expect(() =>
       createMCPServer(root, {
         name: "toolcraft-test",
         services: {
-          root: "bad",
-        },
+          root: "bad"
+        }
       })
     ).toThrow(message);
   });
@@ -2088,13 +2105,13 @@ describe("createSDK", () => {
           name: "visible-command",
           scope: ["sdk"],
           params: S.Object({}),
-          handler: async () => "visible",
+          handler: async () => "visible"
         }),
         defineCommand({
           name: "hidden-command",
           scope: ["cli"],
           params: S.Object({}),
-          handler: async () => "hidden",
+          handler: async () => "hidden"
         }),
         defineGroup({
           name: "mixed-group",
@@ -2103,17 +2120,17 @@ describe("createSDK", () => {
               name: "sdk-child",
               scope: ["sdk"],
               params: S.Object({}),
-              handler: async () => "sdk-child",
+              handler: async () => "sdk-child"
             }),
             defineCommand({
               name: "mcp-child",
               scope: ["mcp"],
               params: S.Object({}),
-              handler: async () => "mcp-child",
-            }),
-          ],
-        }),
-      ],
+              handler: async () => "mcp-child"
+            })
+          ]
+        })
+      ]
     });
 
     const sdk = createSDK(root) as Record<string, unknown>;
@@ -2122,7 +2139,7 @@ describe("createSDK", () => {
     expect("hiddenCommand" in sdk).toBe(false);
     expect("mixedGroup" in sdk).toBe(true);
     expect(sdk.mixedGroup).toEqual({
-      sdkChild: expect.any(Function),
+      sdkChild: expect.any(Function)
     });
   });
 
@@ -2136,9 +2153,9 @@ describe("createSDK", () => {
             defineCommand({
               name: "default-visible",
               params: S.Object({}),
-              handler: async () => "default-visible",
-            }),
-          ],
+              handler: async () => "default-visible"
+            })
+          ]
         }),
         defineGroup({
           name: "cli-only",
@@ -2147,26 +2164,26 @@ describe("createSDK", () => {
             defineCommand({
               name: "hidden-child",
               params: S.Object({}),
-              handler: async () => "hidden-child",
+              handler: async () => "hidden-child"
             }),
             defineCommand({
               name: "explicit-sdk-child",
               scope: ["sdk"],
               params: S.Object({}),
-              handler: async () => "explicit-sdk-child",
-            }),
-          ],
-        }),
-      ],
+              handler: async () => "explicit-sdk-child"
+            })
+          ]
+        })
+      ]
     });
 
     const sdk = createSDK(root) as Record<string, unknown>;
 
     expect(sdk.defaultScope).toEqual({
-      defaultVisible: expect.any(Function),
+      defaultVisible: expect.any(Function)
     });
     expect(sdk.cliOnly).toEqual({
-      explicitSdkChild: expect.any(Function),
+      explicitSdkChild: expect.any(Function)
     });
     expect("hiddenChild" in (sdk.cliOnly as Record<string, unknown>)).toBe(false);
   });
@@ -2187,36 +2204,36 @@ describe("createSDK", () => {
             scope: ["sdk"],
             confirm: true,
             params: S.Object({
-              project_name: S.String(),
+              project_name: S.String()
             }),
             secrets: {
-              apiKey: { env: "SDK_TEST_API_KEY" },
+              apiKey: { env: "SDK_TEST_API_KEY" }
             },
             requires: {
-              check,
+              check
             },
             handler: async ({ params, secrets, progress: reportProgress }) => {
               reportProgress("ignored");
               progress();
               return {
                 project: params.project_name,
-                apiKey: secrets.apiKey,
+                apiKey: secrets.apiKey
               };
-            },
-          }),
-        ],
+            }
+          })
+        ]
       });
 
       const sdk = createSDK(root);
       const result = await sdk.deploy({
-        projectName: "demo",
+        projectName: "demo"
       });
 
       expect(check).toHaveBeenCalledTimes(1);
       expect(progress).toHaveBeenCalledTimes(1);
       expect(result).toEqual({
         project: "demo",
-        apiKey: "secret",
+        apiKey: "secret"
       });
     } finally {
       if (originalApiKey === undefined) {
@@ -2238,9 +2255,9 @@ describe("createSDK", () => {
           params: S.Object({}),
           handler: async () => {
             throw failure;
-          },
-        }),
-      ],
+          }
+        })
+      ]
     });
 
     const sdk = createSDK(root);
@@ -2258,22 +2275,22 @@ describe("createSDK", () => {
           params: S.Object({
             limit: S.Optional(
               S.Number({
-                nullable: true,
+                nullable: true
               })
-            ),
+            )
           }),
-          handler: async ({ params }) => params,
-        }),
-      ],
+          handler: async ({ params }) => params
+        })
+      ]
     });
 
     const sdk = createSDK(root);
     const result = await sdk.configureLimit({
-      limit: null,
+      limit: null
     });
 
     expect(result).toEqual({
-      limit: null,
+      limit: null
     });
   });
 
@@ -2286,19 +2303,19 @@ describe("createSDK", () => {
           scope: ["sdk"],
           params: S.Object({
             limit: S.Number({
-              jsonType: "integer",
-            }),
+              jsonType: "integer"
+            })
           }),
-          handler: async ({ params }) => params,
-        }),
-      ],
+          handler: async ({ params }) => params
+        })
+      ]
     });
 
     const sdk = createSDK(root);
 
     await expect(
       sdk.configureLimit({
-        limit: 1.5,
+        limit: 1.5
       })
     ).rejects.toThrow('Invalid value for "limit". Expected an integer, got 1.5.');
   });

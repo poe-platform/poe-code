@@ -10,7 +10,7 @@ const serverState = {
     tools: string[];
     listen: ReturnType<typeof vi.fn>;
     connectSDK: ReturnType<typeof vi.fn>;
-  }>,
+  }>
 };
 
 type MockTool = {
@@ -27,7 +27,7 @@ type MockClientPlan = {
 
 const clientState = {
   plans: [] as MockClientPlan[],
-  instances: [] as MockMcpClient[],
+  instances: [] as MockMcpClient[]
 };
 
 class MockMcpClient {
@@ -37,14 +37,14 @@ class MockMcpClient {
     this.plan = clientState.plans.shift() ?? {};
     this.serverInfo = this.plan.serverInfo ?? {
       name: "mock-upstream",
-      version: "1.0.0",
+      version: "1.0.0"
     };
     this.state = "ready";
 
     return {
       capabilities: { tools: {} },
       protocolVersion: "2024-11-05",
-      serverInfo: this.serverInfo,
+      serverInfo: this.serverInfo
     };
   });
   readonly listTools = vi.fn(async (params: { cursor?: string } = {}) => {
@@ -59,9 +59,11 @@ class MockMcpClient {
   });
   readonly callTool = vi.fn(async (params: unknown) => {
     void params;
-    return this.plan.callToolResult ?? {
-      content: [{ type: "text", text: "ok" }],
-    };
+    return (
+      this.plan.callToolResult ?? {
+        content: [{ type: "text", text: "ok" }]
+      }
+    );
   });
   readonly close = vi.fn(async () => {
     this.state = "closed";
@@ -81,19 +83,19 @@ vi.mock("@poe-code/design-system", () => ({
     error: vi.fn(),
     resolved: vi.fn(),
     errorResolved: vi.fn(),
-    message: vi.fn(),
+    message: vi.fn()
   }),
   renderTable: vi.fn(() => "table"),
   getTheme: vi.fn(() => ({
     header: (value: string) => value,
-    muted: (value: string) => value,
+    muted: (value: string) => value
   })),
   text: {
     heading: (value: string) => value,
     section: (value: string) => value,
     sectionHeader: (value: string) => value,
     muted: (value: string) => value,
-    usageCommand: (value: string) => value,
+    usageCommand: (value: string) => value
   },
   formatCommandList: (commands: Array<{ name: string; description: string }>) =>
     commands.map((command) => `  ${command.name}  ${command.description}`).join("\n"),
@@ -105,7 +107,7 @@ vi.mock("@poe-code/design-system", () => ({
   isCancel: vi.fn(() => false),
   cancel: vi.fn(),
   resetOutputFormatCache: vi.fn(),
-  note: vi.fn(),
+  note: vi.fn()
 }));
 
 vi.mock("node:fs/promises", () => mockFsPromises);
@@ -125,13 +127,13 @@ vi.mock("tiny-mcp-client", () => ({
     class MockHttpTransport {
       constructor(_options: Record<string, unknown>) {}
     }
-  ),
+  )
 }));
 
 vi.mock("tiny-stdio-mcp-server", () => ({
   JSON_RPC_ERROR_CODES: {
     INVALID_PARAMS: -32602,
-    INTERNAL_ERROR: -32603,
+    INTERNAL_ERROR: -32603
   },
   ToolError: class ToolError extends Error {
     constructor(
@@ -147,7 +149,7 @@ vi.mock("tiny-stdio-mcp-server", () => ({
       options,
       tools: [] as string[],
       listen: vi.fn(async () => undefined),
-      connectSDK: vi.fn(async (_transport: unknown) => undefined),
+      connectSDK: vi.fn(async (_transport: unknown) => undefined)
     };
     serverState.created.push(state);
 
@@ -156,9 +158,9 @@ vi.mock("tiny-stdio-mcp-server", () => ({
         state.tools.push(name);
       },
       listen: state.listen,
-      connectSDK: state.connectSDK,
+      connectSDK: state.connectSDK
     };
-  },
+  }
 }));
 
 const { runCLI } = await import("./cli.js");
@@ -171,7 +173,7 @@ function setProjectRoot(root = "/repo"): void {
   vi.spyOn(process, "cwd").mockReturnValue(`${root}/packages/toolcraft`);
   vol.fromJSON(
     {
-      [`${root}/package.json`]: JSON.stringify({ name: "repo" }),
+      [`${root}/package.json`]: JSON.stringify({ name: "repo" })
     },
     "/"
   );
@@ -186,16 +188,16 @@ function tool(
   schema: Record<string, unknown> = {
     type: "object",
     properties: {
-      title: { type: "string" },
+      title: { type: "string" }
     },
     required: ["title"],
-    additionalProperties: false,
+    additionalProperties: false
   }
 ): MockTool {
   return {
     name,
     description: `${name} description`,
-    inputSchema: schema,
+    inputSchema: schema
   };
 }
 
@@ -203,13 +205,12 @@ function writeCache(name = "github", tools: MockTool[] = [tool("create_issue")])
   vol.fromJSON(
     {
       [`/repo/.toolcraft/mcp/${name}.json`]: JSON.stringify({
-        $schema:
-          "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
+        $schema: "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
         version: 1,
         upstream: { name: "mock-upstream", version: "1.0.0" },
         fetchedAt: "2026-04-26T12:00:00.000Z",
-        tools,
-      }),
+        tools
+      })
     },
     "/"
   );
@@ -224,11 +225,11 @@ function createProxyRoot(scope?: Array<"cli" | "mcp" | "sdk">) {
         ...(scope === undefined ? {} : { scope }),
         mcp: {
           transport: "stdio",
-          command: "mock-server",
+          command: "mock-server"
         },
-        children: [],
-      }),
-    ],
+        children: []
+      })
+    ]
   });
 }
 
@@ -258,7 +259,9 @@ describe("MCP proxy entrypoints", () => {
 
     await runCLI(root);
 
-    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("create_issue");
+    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain(
+      "create_issue"
+    );
   });
 
   it("resolves proxy children before MCP tools are registered", async () => {
@@ -268,14 +271,14 @@ describe("MCP proxy entrypoints", () => {
     await createMCPServer(root, {
       name: "toolcraft-test",
       version: "1.0.0",
-      omitRootToolNamePrefix: true,
+      omitRootToolNamePrefix: true
     });
 
     expect(serverState.created).toHaveLength(1);
     expect(serverState.created[0]?.tools).toEqual([
       "github__create_issue",
       "approvals__list",
-      "approvals__show",
+      "approvals__show"
     ]);
   });
 
@@ -285,9 +288,9 @@ describe("MCP proxy entrypoints", () => {
         "/repo/package.json": JSON.stringify({ name: "workspace", version: "0.0.1" }),
         "/repo/packages/mytool/package.json": JSON.stringify({
           name: "mytool",
-          version: "3.4.5",
+          version: "3.4.5"
         }),
-        "/repo/packages/mytool/dist/bin.js": "",
+        "/repo/packages/mytool/dist/bin.js": ""
       },
       "/"
     );
@@ -296,17 +299,42 @@ describe("MCP proxy entrypoints", () => {
     createMCPServer(
       defineGroup({
         name: "root",
-        children: [],
+        children: []
       }),
       {
-        name: "mytool",
+        name: "mytool"
       }
     );
 
     expect(serverState.created[0]?.options).toEqual({
       name: "mytool",
-      version: "3.4.5",
+      version: "3.4.5"
     });
+  });
+
+  it("reports how to provide the MCP version when it cannot be inferred", () => {
+    vol.fromJSON(
+      {
+        "/repo/package.json": JSON.stringify({ name: "workspace" }),
+        "/repo/packages/mytool/dist/bin.js": ""
+      },
+      "/"
+    );
+    process.argv = ["node", "/repo/packages/mytool/dist/bin.js"];
+
+    expect(() =>
+      createMCPServer(
+        defineGroup({
+          name: "root",
+          children: []
+        }),
+        {
+          name: "mytool"
+        }
+      )
+    ).toThrow(
+      'MCP server version is required. Pass version: "x.y.z" to createMCPServer / runMCP, or run toolcraft from a project whose package.json defines "version".'
+    );
   });
 
   it("resolves proxy children before the SDK surface is returned", async () => {
@@ -314,22 +342,22 @@ describe("MCP proxy entrypoints", () => {
     writeCache();
     setClientPlans({
       callToolResult: {
-        content: [{ type: "text", text: "ok" }],
-      },
+        content: [{ type: "text", text: "ok" }]
+      }
     });
 
     const sdk = await createSDK(root);
     const result = await sdk.github.createIssue({
-      title: "Bug",
+      title: "Bug"
     });
 
     expect(result).toEqual({
-      content: [{ type: "text", text: "ok" }],
+      content: [{ type: "text", text: "ok" }]
     });
     expect(clientState.instances).toHaveLength(1);
     expect(clientState.instances[0]?.callTool).toHaveBeenCalledWith({
       name: "create_issue",
-      arguments: { title: "Bug" },
+      arguments: { title: "Bug" }
     });
   });
 
@@ -339,12 +367,12 @@ describe("MCP proxy entrypoints", () => {
     const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
 
     setClientPlans({
-      pages: [{ tools: [tool("create_issue")] }],
+      pages: [{ tools: [tool("create_issue")] }]
     });
 
     await runMCP(root, {
       name: "toolcraft-test",
-      version: "1.0.0",
+      version: "1.0.0"
     });
 
     expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toBe("");

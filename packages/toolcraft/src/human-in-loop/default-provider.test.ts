@@ -2,18 +2,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserError } from "../user-error.js";
 
 const mockedProcess = vi.hoisted(() => ({
-  platform: "darwin" as NodeJS.Platform,
+  platform: "darwin" as NodeJS.Platform
 }));
 
 const osascriptRequestApprovalMock = vi.hoisted(() => vi.fn());
 const osascriptProviderMock = vi.hoisted(() => vi.fn());
 
 vi.mock("node:process", () => ({
-  default: mockedProcess,
+  default: mockedProcess
 }));
 
 vi.mock("@poe-code/agent-human-in-loop", () => ({
-  osascriptProvider: osascriptProviderMock,
+  osascriptProvider: osascriptProviderMock
 }));
 
 describe("defaultProviderForPlatform", () => {
@@ -24,7 +24,7 @@ describe("defaultProviderForPlatform", () => {
     osascriptProviderMock.mockReset();
     osascriptProviderMock.mockImplementation(() => ({
       id: "osascript",
-      requestApproval: osascriptRequestApprovalMock,
+      requestApproval: osascriptRequestApprovalMock
     }));
   });
 
@@ -37,7 +37,7 @@ describe("defaultProviderForPlatform", () => {
 
     expect(provider.id).toBe("osascript");
     expect(osascriptProviderMock).toHaveBeenCalledWith({
-      title: "Approval needed",
+      title: "Approval needed"
     });
     expect(osascriptRequestApprovalMock).not.toHaveBeenCalled();
   });
@@ -49,11 +49,11 @@ describe("defaultProviderForPlatform", () => {
 
     await expect(
       defaultProviderForPlatform().requestApproval({
-        message: "Approve deploy?",
+        message: "Approve deploy?"
       })
     ).rejects.toThrowError(
       new UserError(
-        "no human-in-loop provider configured for this platform — pass humanInLoop.provider to the runtime"
+        "No human-in-loop provider is configured. Pass {humanInLoop: {provider: ...}} to runCLI / createMCPServer / createSDK, or run on macOS to use the default osascript provider."
       )
     );
     expect(osascriptProviderMock).not.toHaveBeenCalled();
@@ -92,7 +92,7 @@ describe("defaultProviderForPlatform", () => {
     osascriptProviderMock.mockReset();
     osascriptProviderMock.mockImplementation(() => ({
       id: "osascript:fresh-runtime",
-      requestApproval: osascriptRequestApprovalMock,
+      requestApproval: osascriptRequestApprovalMock
     }));
 
     const secondModule = await import("./default-provider.js");

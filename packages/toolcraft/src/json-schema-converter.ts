@@ -3,18 +3,13 @@ import type { AnySchema, ObjectSchema } from "toolcraft-schema";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
 type PrimitiveEnumValue = string | number | boolean;
-type JsonValue =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: JsonValue }
-  | JsonValue[];
+type JsonValue = string | number | boolean | null | { [key: string]: JsonValue } | JsonValue[];
 
 export interface JsonSchema {
   $defs?: Record<string, JsonSchema>;
   $ref?: string;
   additionalProperties?: boolean | JsonSchema;
+  allOf?: readonly JsonSchema[];
   anyOf?: readonly JsonSchema[];
   const?: unknown;
   default?: unknown;
@@ -37,21 +32,23 @@ interface NormalizedJsonSchema {
 export function convertJsonSchema(schema: JsonSchema): AnySchema {
   if (hasSelfReferencingRef(schema, schema)) {
     return applyMetadata(S.Json(), schema, {
-      nullable: schema.nullable === true,
+      nullable: schema.nullable === true
     });
   }
 
-  return convertSchema(schema, schema);
+  return convertSchema(schema, schema, []);
 }
 
-function convertSchema(schema: JsonSchema, root: JsonSchema): AnySchema {
-  const resolvedSchema = resolveReferencedSchema(schema, root);
+function convertSchema(schema: JsonSchema, root: JsonSchema, path: readonly string[]): AnySchema {
+  const resolvedSchema = resolveReferencedSchema(schema, root, path);
   const normalizedSchema = normalizeNullability(resolvedSchema);
-  const composition = normalizedSchema.schema.oneOf ?? normalizedSchema.schema.anyOf;
+  const composition = getComposition(normalizedSchema.schema);
 
   if (Array.isArray(normalizedSchema.schema.type)) {
     throw new Error(
-      `Unsupported JSON Schema type array: ${JSON.stringify(normalizedSchema.schema.type)}.`
+      `JSON Schema "${formatJsonSchemaPath(path)}" has an unsupported type "${formatJsonSchemaType(
+        normalizedSchema.schema.type
+      )}". Supported: string, number, integer, boolean, array, object.`
     );
   }
 
@@ -64,15 +61,20 @@ function convertSchema(schema: JsonSchema, root: JsonSchema): AnySchema {
   }
 
   if (composition !== undefined) {
-    return convertCompositionSchema(normalizedSchema.schema, root, normalizedSchema.nullable);
+    return convertCompositionSchema(normalizedSchema.schema, root, normalizedSchema.nullable, path);
   }
 
   if (isRecordSchema(normalizedSchema.schema)) {
     return applyMetadata(
-      S.Record(convertSchema(normalizedSchema.schema.additionalProperties as JsonSchema, root)),
+      S.Record(
+        convertSchema(normalizedSchema.schema.additionalProperties as JsonSchema, root, [
+          ...path,
+          "additionalProperties"
+        ])
+      ),
       normalizedSchema.schema,
       {
-        nullable: normalizedSchema.nullable,
+        nullable: normalizedSchema.nullable
       }
     );
   }
@@ -87,7 +89,7 @@ function convertSchema(schema: JsonSchema, root: JsonSchema): AnySchema {
         ),
         ...(normalizedSchema.schema.pattern === undefined
           ? {}
-          : { pattern: normalizedSchema.schema.pattern }),
+          : { pattern: normalizedSchema.schema.pattern })
       });
 
     case "number":
@@ -106,7 +108,7 @@ function convertSchema(schema: JsonSchema, root: JsonSchema): AnySchema {
           normalizedSchema.nullable,
           getIntegerDefault(normalizedSchema.schema.default)
         ),
-        jsonType: "integer",
+        jsonType: "integer"
       });
 
     case "boolean":
@@ -120,11 +122,15 @@ function convertSchema(schema: JsonSchema, root: JsonSchema): AnySchema {
 
     case "array":
       if (normalizedSchema.schema.items === undefined) {
-        throw new Error('JSON Schema arrays must define "items".');
+        throw new Error(
+          `JSON Schema "${formatJsonSchemaPath(
+            path
+          )}" is an array but is missing the "items" field. Add "items": { ... } to declare the element type.`
+        );
       }
 
       return S.Array(
-        convertSchema(normalizedSchema.schema.items, root),
+        convertSchema(normalizedSchema.schema.items, root, [...path, "items"]),
         createCommonOptions(
           normalizedSchema.schema,
           normalizedSchema.nullable,
@@ -135,25 +141,34 @@ function convertSchema(schema: JsonSchema, root: JsonSchema): AnySchema {
     case "object":
       return convertObjectSchema(normalizedSchema.schema, root, {
         nullable: normalizedSchema.nullable,
+        path
       });
 
     case "null":
       return applyMetadata(S.Json(), normalizedSchema.schema, {
         default: getJsonDefault(normalizedSchema.schema.default) ?? null,
-        nullable: true,
+        nullable: true
       });
 
     case undefined:
       if (normalizedSchema.nullable) {
         return applyMetadata(S.Json(), normalizedSchema.schema, {
-          nullable: true,
+          nullable: true
         });
       }
 
-      throw new Error("Unsupported JSON Schema: missing type, enum, const, or composition.");
+      throw new Error(
+        `JSON Schema "${formatJsonSchemaPath(
+          path
+        )}" must declare one of: "type", "enum", "const", "oneOf", "anyOf", or "allOf".`
+      );
   }
 
-  throw new Error(`Unsupported JSON Schema type: ${JSON.stringify(normalizedSchema.schema.type)}.`);
+  throw new Error(
+    `JSON Schema "${formatJsonSchemaPath(path)}" has an unsupported type "${formatJsonSchemaType(
+      normalizedSchema.schema.type
+    )}". Supported: string, number, integer, boolean, array, object.`
+  );
 }
 
 function convertConstSchema(schema: JsonSchema, nullable: boolean): AnySchema {
@@ -163,7 +178,7 @@ function convertConstSchema(schema: JsonSchema, nullable: boolean): AnySchema {
       default: schema.const,
       ...(schema.type === "integer" && typeof schema.const === "number"
         ? { jsonType: "integer" as const }
-        : {}),
+        : {})
     });
   }
 
@@ -173,7 +188,7 @@ function convertConstSchema(schema: JsonSchema, nullable: boolean): AnySchema {
     description: appendDescription(
       schema.description,
       `Constant JSON value: ${JSON.stringify(schema.const)}.`
-    ),
+    )
   });
 }
 
@@ -191,7 +206,7 @@ function convertEnumSchema(schema: JsonSchema, nullable: boolean): AnySchema {
       ),
       ...(schema.type === "integer" && nonNullValues.every((value) => Number.isInteger(value))
         ? { jsonType: "integer" as const }
-        : {}),
+        : {})
     });
   }
 
@@ -200,47 +215,58 @@ function convertEnumSchema(schema: JsonSchema, nullable: boolean): AnySchema {
     description: appendDescription(
       schema.description,
       `Allowed JSON values: ${values.map((value) => JSON.stringify(value)).join(", ")}.`
-    ),
+    )
   });
 }
 
 function convertCompositionSchema(
   schema: JsonSchema,
   root: JsonSchema,
-  nullable: boolean
+  nullable: boolean,
+  path: readonly string[]
 ): AnySchema {
-  const branches = [...(schema.oneOf ?? schema.anyOf ?? [])].map((branch) =>
-    resolveReferencedSchema(branch, root)
+  const composition = getComposition(schema);
+  const branchSchemas = composition?.branches ?? [];
+  const keyword = composition?.keyword ?? "oneOf";
+  const branches = branchSchemas.map((branch, index) =>
+    resolveReferencedSchema(branch, root, [...path, keyword, String(index)])
   );
-  const discriminator = findDiscriminator(branches, root);
+  const discriminator = findDiscriminator(branches, root, path);
 
   if (discriminator !== undefined) {
     const convertedBranches = Object.fromEntries(
-      branches.map((branch) => [
+      branches.map((branch, index) => [
         getDiscriminatorLiteral(branch, discriminator, root),
         convertObjectSchema(branch, root, {
           omitProperty: discriminator,
-        }),
+          path: [...path, keyword, String(index)]
+        })
       ])
     );
 
     return applyMetadata(
       S.OneOf({
         discriminator,
-        branches: convertedBranches,
+        branches: convertedBranches
       }),
       schema,
       {
-        nullable,
+        nullable
       }
     );
   }
 
   return applyMetadata(
-    S.Union(branches.map((branch) => convertObjectSchema(branch, root, {}))),
+    S.Union(
+      branches.map((branch, index) =>
+        convertObjectSchema(branch, root, {
+          path: [...path, keyword, String(index)]
+        })
+      )
+    ),
     schema,
     {
-      nullable,
+      nullable
     }
   );
 }
@@ -251,16 +277,24 @@ function convertObjectSchema(
   options: {
     nullable?: boolean;
     omitProperty?: string;
+    path: readonly string[];
   }
 ): ObjectSchema<any> {
-  const resolvedSchema = resolveReferencedSchema(schema, root);
+  const resolvedSchema = resolveReferencedSchema(schema, root, options.path);
   const normalizedSchema = normalizeNullability(resolvedSchema);
   const properties = normalizedSchema.schema.properties ?? {};
   const requiredKeys = new Set(normalizedSchema.schema.required ?? []);
   const shape: Record<string, AnySchema> = {};
 
-  if (normalizedSchema.schema.type !== "object" && normalizedSchema.schema.properties === undefined) {
-    throw new Error("Expected an object schema branch.");
+  if (
+    normalizedSchema.schema.type !== "object" &&
+    normalizedSchema.schema.properties === undefined
+  ) {
+    throw new Error(
+      `Expected "${formatJsonSchemaPath(options.path)}" to be an object schema (got "${describeObjectSchemaKind(
+        normalizedSchema.schema
+      )}").`
+    );
   }
 
   for (const [key, propertySchema] of Object.entries(properties)) {
@@ -268,7 +302,11 @@ function convertObjectSchema(
       continue;
     }
 
-    const convertedProperty = convertSchema(propertySchema, root);
+    const convertedProperty = convertSchema(propertySchema, root, [
+      ...options.path,
+      "properties",
+      key
+    ]);
     shape[key] = requiredKeys.has(key) ? convertedProperty : S.Optional(convertedProperty);
   }
 
@@ -276,11 +314,11 @@ function convertObjectSchema(
     S.Object(shape, {
       ...(typeof normalizedSchema.schema.additionalProperties === "boolean"
         ? { additionalProperties: normalizedSchema.schema.additionalProperties }
-        : {}),
+        : {})
     }),
     normalizedSchema.schema,
     {
-      nullable: options.nullable ?? normalizedSchema.nullable,
+      nullable: options.nullable ?? normalizedSchema.nullable
     }
   );
 }
@@ -297,7 +335,7 @@ function createCommonOptions<TDefault>(
   return {
     ...(schema.description === undefined ? {} : { description: schema.description }),
     ...(defaultValue === undefined ? {} : { default: defaultValue }),
-    ...(nullable ? { nullable: true } : {}),
+    ...(nullable ? { nullable: true } : {})
   };
 }
 
@@ -338,7 +376,7 @@ function normalizeNullability(schema: JsonSchema): NormalizedJsonSchema {
   if (!Array.isArray(schema.type)) {
     return {
       schema,
-      nullable: schema.nullable === true,
+      nullable: schema.nullable === true
     };
   }
 
@@ -347,19 +385,58 @@ function normalizeNullability(schema: JsonSchema): NormalizedJsonSchema {
   if (nextTypes.length === schema.type.length) {
     return {
       schema,
-      nullable: schema.nullable === true,
+      nullable: schema.nullable === true
     };
   }
 
   return {
     schema: {
       ...schema,
-      type:
-        nextTypes.length === 0 ? undefined : nextTypes.length === 1 ? nextTypes[0] : nextTypes,
-      nullable: undefined,
+      type: nextTypes.length === 0 ? undefined : nextTypes.length === 1 ? nextTypes[0] : nextTypes,
+      nullable: undefined
     },
-    nullable: true,
+    nullable: true
   };
+}
+
+function getComposition(
+  schema: JsonSchema
+): { keyword: "oneOf" | "anyOf" | "allOf"; branches: readonly JsonSchema[] } | undefined {
+  if (schema.oneOf !== undefined) {
+    return { keyword: "oneOf", branches: schema.oneOf };
+  }
+
+  if (schema.anyOf !== undefined) {
+    return { keyword: "anyOf", branches: schema.anyOf };
+  }
+
+  if (schema.allOf !== undefined) {
+    return { keyword: "allOf", branches: schema.allOf };
+  }
+
+  return undefined;
+}
+
+function formatJsonSchemaPath(path: readonly string[]): string {
+  if (path.length === 0) {
+    return "#";
+  }
+
+  return `#/${path.map(escapeJsonPointerSegment).join("/")}`;
+}
+
+function formatJsonSchemaType(type: JsonSchema["type"]): string {
+  return Array.isArray(type) ? JSON.stringify(type) : String(type);
+}
+
+function describeObjectSchemaKind(schema: JsonSchema): string {
+  const type = schema.type;
+
+  if (typeof type === "string") {
+    return type;
+  }
+
+  return type === undefined ? "unknown" : JSON.stringify(type);
 }
 
 function isRecordSchema(schema: JsonSchema): boolean {
@@ -373,11 +450,17 @@ function isRecordSchema(schema: JsonSchema): boolean {
   );
 }
 
-function findDiscriminator(branches: JsonSchema[], root: JsonSchema): string | undefined {
+function findDiscriminator(
+  branches: JsonSchema[],
+  root: JsonSchema,
+  path: readonly string[]
+): string | undefined {
   const [firstBranch] = branches;
 
   if (firstBranch === undefined) {
-    throw new Error("JSON Schema composition requires at least one branch.");
+    throw new Error(
+      `JSON Schema "${formatJsonSchemaPath(path)}" uses oneOf/anyOf/allOf but has no branches.`
+    );
   }
 
   const candidateKeys = Object.keys(firstBranch.properties ?? {});
@@ -423,7 +506,7 @@ function getDiscriminatorLiteral(
     return undefined;
   }
 
-  const resolvedProperty = resolveReferencedSchema(propertySchema, root);
+  const resolvedProperty = resolveReferencedSchema(propertySchema, root, []);
 
   if (typeof resolvedProperty.const === "string") {
     return resolvedProperty.const;
@@ -440,7 +523,11 @@ function getDiscriminatorLiteral(
   return undefined;
 }
 
-function resolveReferencedSchema(schema: JsonSchema, root: JsonSchema): JsonSchema {
+function resolveReferencedSchema(
+  schema: JsonSchema,
+  root: JsonSchema,
+  path: readonly string[]
+): JsonSchema {
   if (schema.$ref === undefined) {
     return schema;
   }
@@ -448,12 +535,14 @@ function resolveReferencedSchema(schema: JsonSchema, root: JsonSchema): JsonSche
   const resolvedTarget = resolveLocalRef(root, schema.$ref);
 
   if (resolvedTarget === undefined) {
-    throw new Error(`Unsupported JSON Schema $ref: ${JSON.stringify(schema.$ref)}.`);
+    throw new Error(
+      `JSON Schema "${formatJsonSchemaPath(path)}" uses "$ref": ${schema.$ref}. toolcraft only supports internal refs like "#/components/schemas/Foo".`
+    );
   }
 
   const { $ref: ignoredRef, ...siblingKeywords } = schema;
   void ignoredRef;
-  const resolvedSchema = resolveReferencedSchema(resolvedTarget, root);
+  const resolvedSchema = resolveReferencedSchema(resolvedTarget, root, path);
 
   if (Object.keys(siblingKeywords).length === 0) {
     return resolvedSchema;
@@ -468,14 +557,14 @@ function mergeJsonSchemas(base: JsonSchema, overlay: JsonSchema): JsonSchema {
       ? undefined
       : {
           ...(base.properties ?? {}),
-          ...(overlay.properties ?? {}),
+          ...(overlay.properties ?? {})
         };
   const mergedDefs =
     base.$defs === undefined && overlay.$defs === undefined
       ? undefined
       : {
           ...(base.$defs ?? {}),
-          ...(overlay.$defs ?? {}),
+          ...(overlay.$defs ?? {})
         };
   const mergedRequired =
     base.required === undefined && overlay.required === undefined
@@ -487,7 +576,7 @@ function mergeJsonSchemas(base: JsonSchema, overlay: JsonSchema): JsonSchema {
     ...overlay,
     ...(mergedDefs === undefined ? {} : { $defs: mergedDefs }),
     ...(mergedProperties === undefined ? {} : { properties: mergedProperties }),
-    ...(mergedRequired === undefined ? {} : { required: mergedRequired }),
+    ...(mergedRequired === undefined ? {} : { required: mergedRequired })
   };
 }
 
@@ -508,12 +597,18 @@ function hasSelfReferencingRef(
 
     const target = resolveLocalRef(root, localRefPath);
 
-    if (target !== undefined && hasSelfReferencingRef(target, root, localRefPath, nextActivePaths)) {
+    if (
+      target !== undefined &&
+      hasSelfReferencingRef(target, root, localRefPath, nextActivePaths)
+    ) {
       return true;
     }
   }
 
-  if (schema.items !== undefined && hasSelfReferencingRef(schema.items, root, `${path}/items`, nextActivePaths)) {
+  if (
+    schema.items !== undefined &&
+    hasSelfReferencingRef(schema.items, root, `${path}/items`, nextActivePaths)
+  ) {
     return true;
   }
 
@@ -564,6 +659,12 @@ function hasSelfReferencingRef(
 
   for (const [index, childSchema] of (schema.anyOf ?? []).entries()) {
     if (hasSelfReferencingRef(childSchema, root, `${path}/anyOf/${index}`, nextActivePaths)) {
+      return true;
+    }
+  }
+
+  for (const [index, childSchema] of (schema.allOf ?? []).entries()) {
+    if (hasSelfReferencingRef(childSchema, root, `${path}/allOf/${index}`, nextActivePaths)) {
       return true;
     }
   }

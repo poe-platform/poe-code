@@ -1,5 +1,11 @@
 import { TaskAlreadyExistsError, TaskNotFoundError, openTaskList } from "@poe-code/task-list";
-import type { OpenTaskListOptions, StateMachineDef, Task, TaskList, Tasks } from "@poe-code/task-list";
+import type {
+  OpenTaskListOptions,
+  StateMachineDef,
+  Task,
+  TaskList,
+  Tasks
+} from "@poe-code/task-list";
 import { randomBytes } from "node:crypto";
 import { UserError } from "../user-error.js";
 import { approvalStateMachine } from "./state-machine.js";
@@ -26,20 +32,24 @@ export async function ensureApprovalList(
   runtimeOptions: HumanInLoopRuntimeOptions | undefined,
   deps: {
     openTaskList?: (options: OpenTaskListOptions) => Promise<TaskList>;
-  } = {},
+  } = {}
 ): Promise<{ taskList: TaskList; listName: string; tasks: Tasks }> {
   if (runtimeOptions?.taskList === undefined) {
     throw new UserError("humanInLoop.taskList required for async-mode commands");
   }
 
   const listName = runtimeOptions.listName ?? DEFAULT_LIST_NAME;
-  const taskList = await resolveTaskList(runtimeOptions, runtimeOptions.taskList, deps.openTaskList ?? openTaskList);
+  const taskList = await resolveTaskList(
+    runtimeOptions,
+    runtimeOptions.taskList,
+    deps.openTaskList ?? openTaskList
+  );
   const tasks = taskList.list(listName);
 
   if (!isListValidated(runtimeOptions, listName)) {
     if (!isApprovalStateMachine(tasks.stateMachine)) {
       throw new UserError(
-        "approvals task-list configured with a different state machine; pass approvalStateMachine when opening the list"
+        `Approvals task list was created with a different version of toolcraft. Delete the task list directory (${getTaskListDirectory(runtimeOptions.taskList)}) or pass a matching approvalStateMachine.`
       );
     }
 
@@ -49,7 +59,7 @@ export async function ensureApprovalList(
   return {
     taskList,
     listName,
-    tasks,
+    tasks
   };
 }
 
@@ -94,7 +104,7 @@ export async function loadApproval(ctx: {
 async function resolveTaskList(
   runtimeOptions: HumanInLoopRuntimeOptions,
   taskList: NonNullable<HumanInLoopRuntimeOptions["taskList"]>,
-  openTaskListFn: (options: OpenTaskListOptions) => Promise<TaskList>,
+  openTaskListFn: (options: OpenTaskListOptions) => Promise<TaskList>
 ): Promise<TaskList> {
   if (!isTaskListConfig(taskList)) {
     return taskList;
@@ -110,7 +120,7 @@ async function resolveTaskList(
     create: true,
     type: taskList.format,
     path: taskList.dir,
-    stateMachine: approvalStateMachine,
+    stateMachine: approvalStateMachine
   });
   openedTaskListsByRuntime.set(runtimeOptions, openedTaskList);
   return openedTaskList;
@@ -133,8 +143,13 @@ function isListValidated(runtimeOptions: HumanInLoopRuntimeOptions, listName: st
 
 function createApprovalRecord(
   payload: ApprovalPayload,
-  enqueuedAt: string,
-): { approvalId: string; pending: HumanInLoopPending; metadata: Record<string, unknown>; name: string } {
+  enqueuedAt: string
+): {
+  approvalId: string;
+  pending: HumanInLoopPending;
+  metadata: Record<string, unknown>;
+  name: string;
+} {
   const approvalId = `${enqueuedAt.slice(0, 19).replaceAll(":", "-")}-${randomBytes(3).toString("hex")}`;
 
   return {
@@ -150,14 +165,14 @@ function createApprovalRecord(
       enqueuedAt,
       pid: null,
       result: null,
-      error: null,
+      error: null
     },
     pending: {
       status: "pending-approval",
       approvalId,
       message: payload.message,
-      enqueuedAt,
-    },
+      enqueuedAt
+    }
   };
 }
 
@@ -168,7 +183,7 @@ async function createApprovalTask(
   await tasks.create({
     id: approval.approvalId,
     name: approval.name,
-    metadata: approval.metadata,
+    metadata: approval.metadata
   });
 }
 
@@ -181,9 +196,15 @@ function isApprovalStateMachine(stateMachine: StateMachineDef): boolean {
 }
 
 function isTaskListConfig(
-  taskList: HumanInLoopRuntimeOptions["taskList"],
+  taskList: HumanInLoopRuntimeOptions["taskList"]
 ): taskList is NonNullable<Exclude<HumanInLoopRuntimeOptions["taskList"], TaskList>> {
   return taskList !== undefined && "dir" in taskList;
+}
+
+function getTaskListDirectory(
+  taskList: NonNullable<HumanInLoopRuntimeOptions["taskList"]>
+): string {
+  return isTaskListConfig(taskList) ? taskList.dir : "unknown";
 }
 
 function isDeepEqualStateMachine(left: StateMachineDef, right: StateMachineDef): boolean {
@@ -283,6 +304,6 @@ function approvalPayloadFromTask(task: Task): ApprovalPayload | undefined {
     enqueuedAt: metadata.enqueuedAt,
     pid: typeof metadata.pid === "number" || metadata.pid === null ? metadata.pid : undefined,
     result: metadata.result,
-    error: metadata.error,
+    error: metadata.error
   };
 }

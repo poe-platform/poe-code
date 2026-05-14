@@ -8,9 +8,9 @@ function noProviderConfigured(): HumanInLoopProvider {
     id: "noProviderConfigured",
     async requestApproval() {
       throw new UserError(
-        "no human-in-loop provider configured for this platform — pass humanInLoop.provider to the runtime"
+        "No human-in-loop provider is configured. Pass {humanInLoop: {provider: ...}} to runCLI / createMCPServer / createSDK, or run on macOS to use the default osascript provider."
       );
-    },
+    }
   };
 }
 
@@ -23,7 +23,9 @@ function createDefaultProviderFactory(): () => HumanInLoopProvider {
     }
 
     provider =
-      process.platform === "darwin" ? osascriptProvider({ title: "Approval needed" }) : noProviderConfigured();
+      process.platform === "darwin"
+        ? osascriptProvider({ title: "Approval needed" })
+        : noProviderConfigured();
 
     return provider;
   };

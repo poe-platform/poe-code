@@ -1559,9 +1559,7 @@ function renderGroupHelp<TServices extends object>(
       ...formatGlobalOptionRows(globalOptions),
       ...collectSchemaGlobalFieldRows(group, scope, casing, globalLongOptionFlags)
     ];
-    sections.push(
-      `${text.sectionHeader("Options")}\n${formatHelpOptionList(globalRows)}`
-    );
+    sections.push(`${text.sectionHeader("Options")}\n${formatHelpOptionList(globalRows)}`);
   }
 
   return renderHelpDocument({
@@ -2739,13 +2737,15 @@ function resolveDynamicLeaf(
   rawSegments: string[],
   casing: Casing,
   outputPath: string[] = [],
-  displayPath: string[] = []
+  displayPath: string[] = [],
+  displayPathPrefix = ""
 ): {
   displayPath: string;
   path: string[];
   schema: FieldSchema;
 } {
   const unwrappedSchema = unwrapOptional(schema);
+  const kind = formatCliSchemaKind(unwrappedSchema.kind);
 
   if (rawSegments.length === 0) {
     if (
@@ -2764,16 +2764,10 @@ function resolveDynamicLeaf(
     }
 
     throw new UserError(
-      `Unsupported dynamic CLI schema kind "${unwrappedSchema.kind}". ${formatAvailableList([
-        "array",
-        "boolean",
-        "enum",
-        "json",
-        "number",
-        "object",
-        "record",
-        "string"
-      ])}`
+      formatUnsupportedDynamicSchemaMessage(
+        kind,
+        qualifyDisplayPath(displayPathPrefix, toDisplayPath(displayPath))
+      )
     );
   }
 
@@ -2793,14 +2787,21 @@ function resolveDynamicLeaf(
           rest,
           casing,
           [...outputPath, key],
-          [...displayPath, key]
+          [...displayPath, key],
+          displayPathPrefix
         );
       }
 
       throw new UserError(
-        `Unknown parameter "${[...displayPath, head].join(".")}". ${formatAvailableList(
+        `Unknown parameter "${qualifyDisplayPath(
+          displayPathPrefix,
+          [...displayPath, head].join(".")
+        )}". ${formatAvailableList(
           Object.keys(unwrappedSchema.shape).map((key) =>
-            toDisplayPath([...displayPath, formatSegment(key, casing)])
+            qualifyDisplayPath(
+              displayPathPrefix,
+              toDisplayPath([...displayPath, formatSegment(key, casing)])
+            )
           )
         )}`
       );
@@ -2813,7 +2814,8 @@ function resolveDynamicLeaf(
         rest,
         casing,
         [...outputPath, head ?? ""],
-        [...displayPath, head ?? ""]
+        [...displayPath, head ?? ""],
+        displayPathPrefix
       );
     }
 
@@ -2821,14 +2823,20 @@ function resolveDynamicLeaf(
       const itemSchema = unwrapOptional(unwrappedSchema.item);
       if (itemSchema.kind !== "object") {
         throw new UserError(
-          `Array parameter "${toDisplayPath(displayPath)}" must use object items.`
+          `Array parameter "${qualifyDisplayPath(
+            displayPathPrefix,
+            toDisplayPath(displayPath)
+          )}" must use object items.`
         );
       }
 
       const [head, ...rest] = rawSegments;
       if (head === undefined || !isNumericFixtureSelector(head)) {
         throw new UserError(
-          `Array parameter "${toDisplayPath(displayPath)}" must use numeric indices.`
+          `Array parameter "${qualifyDisplayPath(
+            displayPathPrefix,
+            toDisplayPath(displayPath)
+          )}" must use numeric indices.`
         );
       }
 
@@ -2837,14 +2845,20 @@ function resolveDynamicLeaf(
         rest,
         casing,
         [...outputPath, head],
-        [...displayPath, head]
+        [...displayPath, head],
+        displayPathPrefix
       );
     }
 
     default:
       throw new UserError(
-        `Unknown parameter "${[...displayPath, ...rawSegments].join(".")}". ${formatAvailableList(
-          displayPath.length === 0 ? [] : [toDisplayPath(displayPath)]
+        `Unknown parameter "${qualifyDisplayPath(
+          displayPathPrefix,
+          [...displayPath, ...rawSegments].join(".")
+        )}". ${formatAvailableList(
+          displayPath.length === 0
+            ? []
+            : [qualifyDisplayPath(displayPathPrefix, toDisplayPath(displayPath))]
         )}`
       );
   }
@@ -2960,18 +2974,32 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
 
     default:
       throw new UserError(
-        `Unsupported dynamic CLI schema kind "${unwrappedSchema.kind}". ${formatAvailableList([
-          "array",
-          "boolean",
-          "enum",
-          "json",
-          "number",
-          "object",
-          "record",
-          "string"
-        ])}`
+        formatUnsupportedDynamicSchemaMessage(
+          formatCliSchemaKind(unwrappedSchema.kind),
+          displayPath
+        )
       );
   }
+}
+
+function formatCliSchemaKind(kind: string): string {
+  return kind === "oneOf" ? "oneof" : kind;
+}
+
+function formatUnsupportedDynamicSchemaMessage(kind: string, displayPath: string): string {
+  return `Unsupported parameter type "${kind}" for "${displayPath}". Supported types: string, number, integer, boolean, array, object, enum, oneof.`;
+}
+
+function qualifyDisplayPath(prefix: string, displayPath: string): string {
+  if (prefix.length === 0) {
+    return displayPath;
+  }
+
+  if (displayPath.length === 0) {
+    return prefix;
+  }
+
+  return `${prefix}.${displayPath}`;
 }
 
 function parseDynamicValues(
@@ -3018,7 +3046,7 @@ function parseDynamicValues(
 
     const optionPath = match.optionPath.map((segment) => formatSegment(segment, casing));
     const remainder = flagPath.slice(optionPath.length);
-    const leaf = resolveDynamicLeaf(match.schema, remainder, casing);
+    const leaf = resolveDynamicLeaf(match.schema, remainder, casing, [], [], match.displayPath);
     const rawStore = rawValues.get(match.id) ?? {};
     const label = `${match.displayPath}.${leaf.displayPath}`.replace(/^\./u, "");
     const parsed =
@@ -3452,10 +3480,7 @@ type HttpErrorLike = {
 };
 
 function isStringRecord(value: unknown): value is Record<string, string> {
-  return (
-    isPlainObject(value) &&
-    Object.values(value).every((entry) => typeof entry === "string")
-  );
+  return isPlainObject(value) && Object.values(value).every((entry) => typeof entry === "string");
 }
 
 function isHttpErrorLike(error: unknown): error is HttpErrorLike {
@@ -3515,7 +3540,10 @@ function formatHttpErrorSnippet(body: unknown): string {
   return formatHttpErrorBody(body).replace(/\s+/g, " ").trim().slice(0, 200);
 }
 
-function renderHttpError(error: HttpErrorLike, options: { debug: boolean; verbose: boolean }): void {
+function renderHttpError(
+  error: HttpErrorLike,
+  options: { debug: boolean; verbose: boolean }
+): void {
   const detailed = options.verbose || options.debug;
   const lines: string[] = [
     styleHttpErrorLine(`Request:  ${error.request.method} ${error.request.url}`, text.muted)
@@ -3683,9 +3711,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
     const resolvedFlags = lastActionCommand ? getResolvedFlags(lastActionCommand) : undefined;
     handleRunError(error, {
       debug: resolvedFlags ? Boolean(resolvedFlags.debug) : process.argv.includes("--debug"),
-      verbose: resolvedFlags
-        ? Boolean(resolvedFlags.verbose)
-        : process.argv.includes("--verbose")
+      verbose: resolvedFlags ? Boolean(resolvedFlags.verbose) : process.argv.includes("--verbose")
     });
   }
 }

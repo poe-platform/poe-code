@@ -9,7 +9,7 @@ import { approvalStateMachine } from "./state-machine.js";
 import { approvalsGroup } from "./approvals-commands.js";
 
 const loggerState = {
-  error: [] as string[],
+  error: [] as string[]
 };
 
 vi.mock("@poe-code/design-system", () => ({
@@ -20,19 +20,19 @@ vi.mock("@poe-code/design-system", () => ({
     error: (message: string) => loggerState.error.push(message),
     resolved: vi.fn(),
     errorResolved: vi.fn(),
-    message: vi.fn(),
+    message: vi.fn()
   }),
   renderTable: vi.fn(() => "table"),
   getTheme: vi.fn(() => ({
     header: (value: string) => value,
-    muted: (value: string) => value,
+    muted: (value: string) => value
   })),
   text: {
     heading: (value: string) => value,
     section: (value: string) => value,
     sectionHeader: (value: string) => value,
     muted: (value: string) => value,
-    usageCommand: (value: string) => value,
+    usageCommand: (value: string) => value
   },
   formatCommandList: (commands: Array<{ name: string; description: string }>) =>
     commands.map((command) => `  ${command.name}  ${command.description}`).join("\n"),
@@ -44,7 +44,7 @@ vi.mock("@poe-code/design-system", () => ({
   isCancel: vi.fn(() => false),
   cancel: vi.fn(),
   resetOutputFormatCache: vi.fn(),
-  note: vi.fn(),
+  note: vi.fn()
 }));
 
 const { runCLI } = await import("../cli.js");
@@ -62,12 +62,14 @@ async function openApprovalTaskList(path: string): Promise<TaskList> {
     path,
     create: true,
     fs: createMemFs(),
-    stateMachine: approvalStateMachine,
+    stateMachine: approvalStateMachine
   });
 }
 
 function getApprovalCommand(name: "list" | "show" | "run") {
-  const command = approvalsGroup.children.find((child) => child.kind === "command" && child.name === name);
+  const command = approvalsGroup.children.find(
+    (child) => child.kind === "command" && child.name === name
+  );
 
   if (command === undefined || command.kind !== "command") {
     throw new Error(`Expected approvals.${name} command.`);
@@ -76,18 +78,21 @@ function getApprovalCommand(name: "list" | "show" | "run") {
   return command;
 }
 
-async function enqueueDemoApproval(taskList: TaskList, payload: {
-  commandPath?: string;
-  params?: Record<string, unknown>;
-  message?: string;
-} = {}): Promise<string> {
+async function enqueueDemoApproval(
+  taskList: TaskList,
+  payload: {
+    commandPath?: string;
+    params?: Record<string, unknown>;
+    message?: string;
+  } = {}
+): Promise<string> {
   const { approvalId } = await enqueueApproval({
     tasks: taskList.list("approvals"),
     payload: {
       commandPath: payload.commandPath ?? "deploy",
       params: payload.params ?? {},
-      message: payload.message ?? "Deploy?",
-    },
+      message: payload.message ?? "Deploy?"
+    }
   });
 
   return approvalId;
@@ -100,7 +105,7 @@ const stdinTTY = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
 function setTTY(stream: NodeJS.WriteStream | NodeJS.ReadStream, value: boolean): void {
   Object.defineProperty(stream, "isTTY", {
     configurable: true,
-    value,
+    value
   });
 }
 
@@ -132,59 +137,59 @@ describe("approvals built-in commands", () => {
     const tasks = taskList.list("approvals");
     const listCommand = getApprovalCommand("list");
     const pendingId = await enqueueDemoApproval(taskList, {
-      message: "pending",
+      message: "pending"
     });
     const runningId = await enqueueDemoApproval(taskList, {
-      message: "running",
+      message: "running"
     });
     const declinedId = await enqueueDemoApproval(taskList, {
-      message: "declined",
+      message: "declined"
     });
 
     await tasks.fire(runningId, "start", {
       metadataPatch: {
-        pid: 123,
-      },
+        pid: 123
+      }
     });
     await tasks.fire(declinedId, "decline", {
       metadataPatch: {
         error: {
-          reason: "No",
-        },
-      },
+          reason: "No"
+        }
+      }
     });
 
     const baseContext = {
       runtimeOptions: {
-        taskList,
+        taskList
       },
       root: defineGroup({
         name: "root",
-        children: [],
+        children: []
       }),
       secrets: {},
       fetch: globalThis.fetch,
       fs: {
         readFile: vi.fn(),
         writeFile: vi.fn(),
-        exists: vi.fn(),
+        exists: vi.fn()
       },
       env: {
-        get: vi.fn(),
+        get: vi.fn()
       },
-      progress: vi.fn(),
+      progress: vi.fn()
     };
 
     await expect(
       listCommand.handler({
         ...baseContext,
-        params: {},
+        params: {}
       } as Parameters<typeof listCommand.handler>[0])
     ).resolves.toEqual(
       expect.arrayContaining([
         expect.objectContaining({ id: pendingId, state: "pending" }),
         expect.objectContaining({ id: runningId, state: "approved-running" }),
-        expect.objectContaining({ id: declinedId, state: "declined" }),
+        expect.objectContaining({ id: declinedId, state: "declined" })
       ])
     );
 
@@ -192,23 +197,21 @@ describe("approvals built-in commands", () => {
       listCommand.handler({
         ...baseContext,
         params: {
-          state: "pending",
-        },
+          state: "pending"
+        }
       } as Parameters<typeof listCommand.handler>[0])
-    ).resolves.toEqual([
-      expect.objectContaining({ id: pendingId, state: "pending" }),
-    ]);
+    ).resolves.toEqual([expect.objectContaining({ id: pendingId, state: "pending" })]);
 
     await expect(
       listCommand.handler({
         ...baseContext,
         params: {
-          state: "pending, declined",
-        },
+          state: "pending, declined"
+        }
       } as Parameters<typeof listCommand.handler>[0])
     ).resolves.toEqual([
       expect.objectContaining({ id: pendingId, state: "pending" }),
-      expect.objectContaining({ id: declinedId, state: "declined" }),
+      expect.objectContaining({ id: declinedId, state: "declined" })
     ]);
   });
 
@@ -216,47 +219,47 @@ describe("approvals built-in commands", () => {
     const taskList = await openApprovalTaskList("/repo/approvals.yaml");
     const showCommand = getApprovalCommand("show");
     const approvalId = await enqueueDemoApproval(taskList, {
-      message: "show me",
+      message: "show me"
     });
     const baseContext = {
       runtimeOptions: {
-        taskList,
+        taskList
       },
       root: defineGroup({
         name: "root",
-        children: [],
+        children: []
       }),
       secrets: {},
       fetch: globalThis.fetch,
       fs: {
         readFile: vi.fn(),
         writeFile: vi.fn(),
-        exists: vi.fn(),
+        exists: vi.fn()
       },
       env: {
-        get: vi.fn(),
+        get: vi.fn()
       },
-      progress: vi.fn(),
+      progress: vi.fn()
     };
 
     await expect(
       showCommand.handler({
         ...baseContext,
         params: {
-          approvalId,
-        },
+          approvalId
+        }
       } as Parameters<typeof showCommand.handler>[0])
     ).resolves.toMatchObject({
       id: approvalId,
-      state: "pending",
+      state: "pending"
     });
 
     await expect(
       showCommand.handler({
         ...baseContext,
         params: {
-          approvalId: "missing",
-        },
+          approvalId: "missing"
+        }
       } as Parameters<typeof showCommand.handler>[0])
     ).rejects.toBeInstanceOf(TaskNotFoundError);
   });
@@ -265,10 +268,10 @@ describe("approvals built-in commands", () => {
     const taskList = await openApprovalTaskList("/repo/approvals.yaml");
     const provider = {
       id: "provider",
-      requestApproval: vi.fn(async () => ({ outcome: "approved" as const })),
+      requestApproval: vi.fn(async () => ({ outcome: "approved" as const }))
     };
     const handler = vi.fn(async () => ({
-      ok: true,
+      ok: true
     }));
     const root = defineGroup({
       name: "toolcraft",
@@ -276,20 +279,20 @@ describe("approvals built-in commands", () => {
         defineCommand({
           name: "deploy",
           params: S.Object({}),
-          handler,
-        }),
-      ],
+          handler
+        })
+      ]
     });
     const approvalId = await enqueueDemoApproval(taskList, {
-      commandPath: "deploy",
+      commandPath: "deploy"
     });
 
     process.argv = ["node", "toolcraft", "approvals", "run", "--approval-id", approvalId];
     await runCLI(root, {
       humanInLoop: {
         taskList,
-        provider,
-      },
+        provider
+      }
     });
 
     const cliTask = await taskList.list("approvals").get(approvalId);
@@ -299,24 +302,26 @@ describe("approvals built-in commands", () => {
     const mcpServer = createMCPServer(
       defineGroup({
         name: "root",
-        children: [],
+        children: []
       }),
       {
         name: "toolcraft-test",
         version: "1.0.0",
         omitRootToolNamePrefix: true,
         humanInLoop: {
-          taskList,
-        },
+          taskList
+        }
       }
     );
-    const { client, cleanup } = await createSdkTestPair(mcpServer, () =>
-      new McpClient({
-        clientInfo: {
-          name: "test-client",
-          version: "1.0.0",
-        },
-      })
+    const { client, cleanup } = await createSdkTestPair(
+      mcpServer,
+      () =>
+        new McpClient({
+          clientInfo: {
+            name: "test-client",
+            version: "1.0.0"
+          }
+        })
     );
 
     try {
@@ -333,18 +338,18 @@ describe("approvals built-in commands", () => {
     const sdk = createSDK(
       defineGroup({
         name: "root",
-        children: [],
+        children: []
       }),
       {
         humanInLoop: {
-          taskList,
-        },
+          taskList
+        }
       }
     ) as Record<string, unknown>;
 
     expect(sdk.approvals).toEqual({
       list: expect.any(Function),
-      show: expect.any(Function),
+      show: expect.any(Function)
     });
     expect("run" in (sdk.approvals as Record<string, unknown>)).toBe(false);
   });
@@ -353,7 +358,7 @@ describe("approvals built-in commands", () => {
     const runCommand = getApprovalCommand("run");
     const root = defineGroup({
       name: "root",
-      children: [],
+      children: []
     });
 
     await expect(
@@ -361,19 +366,19 @@ describe("approvals built-in commands", () => {
         runtimeOptions: {},
         root,
         params: {
-          approvalId: "approval-1",
+          approvalId: "approval-1"
         },
         secrets: {},
         fetch: globalThis.fetch,
         fs: {
           readFile: vi.fn(),
           writeFile: vi.fn(),
-          exists: vi.fn(),
+          exists: vi.fn()
         },
         env: {
-          get: vi.fn(),
+          get: vi.fn()
         },
-        progress: vi.fn(),
+        progress: vi.fn()
       } as Parameters<typeof runCommand.handler>[0])
     ).rejects.toThrowError("humanInLoop.taskList required for async-mode commands");
   });
@@ -385,30 +390,30 @@ describe("approvals built-in commands", () => {
         children: [
           defineGroup({
             name: "approvals",
-            children: [],
-          }),
-        ],
+            children: []
+          })
+        ]
       });
 
     process.argv = ["node", "toolcraft", "--help"];
 
     await expect(runCLI(rootFactory())).rejects.toThrowError(
-      "Error: 'approvals' is reserved for human-in-loop built-ins"
+      "'approvals' is reserved for human-in-loop built-ins"
     );
     expect(() =>
       createMCPServer(rootFactory(), {
         name: "toolcraft-test",
-        version: "1.0.0",
+        version: "1.0.0"
       })
-    ).toThrowError("Error: 'approvals' is reserved for human-in-loop built-ins");
+    ).toThrowError("'approvals' is reserved for human-in-loop built-ins");
     await expect(
       runMCP(rootFactory(), {
         name: "toolcraft-test",
-        version: "1.0.0",
+        version: "1.0.0"
       })
-    ).rejects.toThrowError("Error: 'approvals' is reserved for human-in-loop built-ins");
+    ).rejects.toThrowError("'approvals' is reserved for human-in-loop built-ins");
     expect(() => createSDK(rootFactory())).toThrowError(
-      "Error: 'approvals' is reserved for human-in-loop built-ins"
+      "'approvals' is reserved for human-in-loop built-ins"
     );
   });
 });

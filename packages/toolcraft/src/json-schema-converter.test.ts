@@ -7,7 +7,7 @@ import type { JsonSchema } from "./json-schema-converter.js";
 async function loadSchema(schema: JsonSchema): Promise<JsonSchema> {
   const volume = Volume.fromJSON(
     {
-      "/schema.json": JSON.stringify(schema),
+      "/schema.json": JSON.stringify(schema)
     },
     "/"
   );
@@ -23,20 +23,20 @@ describe("convertJsonSchema", () => {
       type: "object",
       properties: {
         name: { type: "string" },
-        nickname: { type: "string" },
+        nickname: { type: "string" }
       },
       required: ["name"],
-      additionalProperties: false,
+      additionalProperties: false
     });
 
     expect(convertJsonSchema(schema)).toEqual(
       S.Object(
         {
           name: S.String(),
-          nickname: S.Optional(S.String()),
+          nickname: S.Optional(S.String())
         },
         {
-          additionalProperties: false,
+          additionalProperties: false
         }
       )
     );
@@ -45,35 +45,35 @@ describe("convertJsonSchema", () => {
   it("converts strings and carries pattern metadata", async () => {
     const schema = await loadSchema({
       type: "string",
-      pattern: "^[a-z]+$",
+      pattern: "^[a-z]+$"
     });
 
     expect(convertJsonSchema(schema)).toEqual(
       S.String({
-        pattern: "^[a-z]+$",
+        pattern: "^[a-z]+$"
       })
     );
   });
 
   it("converts number and integer schemas into number schemas", async () => {
     const numberSchema = await loadSchema({
-      type: "number",
+      type: "number"
     });
     const integerSchema = await loadSchema({
-      type: "integer",
+      type: "integer"
     });
 
     expect(convertJsonSchema(numberSchema)).toEqual(S.Number());
     expect(convertJsonSchema(integerSchema)).toEqual(
       S.Number({
-        jsonType: "integer",
+        jsonType: "integer"
       })
     );
   });
 
   it("converts booleans into boolean schemas", async () => {
     const schema = await loadSchema({
-      type: "boolean",
+      type: "boolean"
     });
 
     expect(convertJsonSchema(schema)).toEqual(S.Boolean());
@@ -83,8 +83,8 @@ describe("convertJsonSchema", () => {
     const schema = await loadSchema({
       type: "array",
       items: {
-        type: "string",
-      },
+        type: "string"
+      }
     });
 
     expect(convertJsonSchema(schema)).toEqual(S.Array(S.String()));
@@ -92,7 +92,7 @@ describe("convertJsonSchema", () => {
 
   it("converts primitive enums into enum schemas", async () => {
     const schema = await loadSchema({
-      enum: ["safe", "fast"],
+      enum: ["safe", "fast"]
     });
 
     expect(convertJsonSchema(schema)).toEqual(S.Enum(["safe", "fast"] as const));
@@ -101,7 +101,7 @@ describe("convertJsonSchema", () => {
   it("converts object enums into json schemas with descriptive metadata", async () => {
     const schema = await loadSchema({
       description: "Strategy payload",
-      enum: [{ mode: "safe" }, { mode: "fast" }],
+      enum: [{ mode: "safe" }, { mode: "fast" }]
     });
 
     const converted = convertJsonSchema(schema);
@@ -119,27 +119,27 @@ describe("convertJsonSchema", () => {
           type: "object",
           properties: {
             kind: {
-              const: "text",
+              const: "text"
             },
             value: {
-              type: "string",
-            },
+              type: "string"
+            }
           },
-          required: ["kind", "value"],
+          required: ["kind", "value"]
         },
         {
           type: "object",
           properties: {
             kind: {
-              const: "count",
+              const: "count"
             },
             value: {
-              type: "integer",
-            },
+              type: "integer"
+            }
           },
-          required: ["kind", "value"],
-        },
-      ],
+          required: ["kind", "value"]
+        }
+      ]
     });
 
     expect(convertJsonSchema(schema)).toEqual(
@@ -147,14 +147,14 @@ describe("convertJsonSchema", () => {
         discriminator: "kind",
         branches: {
           text: S.Object({
-            value: S.String(),
+            value: S.String()
           }),
           count: S.Object({
             value: S.Number({
-              jsonType: "integer",
-            }),
-          }),
-        },
+              jsonType: "integer"
+            })
+          })
+        }
       })
     );
   });
@@ -166,43 +166,43 @@ describe("convertJsonSchema", () => {
           type: "object",
           properties: {
             email: {
-              type: "string",
+              type: "string"
             },
             name: {
-              type: "string",
-            },
+              type: "string"
+            }
           },
-          required: ["email"],
+          required: ["email"]
         },
         {
           type: "object",
           properties: {
             phone: {
-              type: "string",
+              type: "string"
             },
             extension: {
-              type: "integer",
-            },
+              type: "integer"
+            }
           },
-          required: ["phone"],
-        },
-      ],
+          required: ["phone"]
+        }
+      ]
     });
 
     expect(convertJsonSchema(schema)).toEqual(
       S.Union([
         S.Object({
           email: S.String(),
-          name: S.Optional(S.String()),
+          name: S.Optional(S.String())
         }),
         S.Object({
           phone: S.String(),
           extension: S.Optional(
             S.Number({
-              jsonType: "integer",
+              jsonType: "integer"
             })
-          ),
-        }),
+          )
+        })
       ])
     );
   });
@@ -212,8 +212,8 @@ describe("convertJsonSchema", () => {
       type: "object",
       properties: {},
       additionalProperties: {
-        type: "boolean",
-      },
+        type: "boolean"
+      }
     });
 
     expect(convertJsonSchema(schema)).toEqual(S.Record(S.Boolean()));
@@ -222,32 +222,32 @@ describe("convertJsonSchema", () => {
   it("converts nullable schemas without turning null into a string", async () => {
     const openApiNullable = await loadSchema({
       type: "string",
-      nullable: true,
+      nullable: true
     });
     const jsonSchemaNullable = await loadSchema({
-      type: ["string", "null"],
+      type: ["string", "null"]
     });
 
     expect(convertJsonSchema(openApiNullable)).toEqual(
       S.String({
-        nullable: true,
+        nullable: true
       })
     );
     expect(convertJsonSchema(jsonSchemaNullable)).toEqual(
       S.String({
-        nullable: true,
+        nullable: true
       })
     );
   });
 
   it("converts primitive enums with null into nullable enum schemas", async () => {
     const schema = await loadSchema({
-      enum: ["safe", "fast", null],
+      enum: ["safe", "fast", null]
     });
 
     expect(convertJsonSchema(schema)).toEqual(
       S.Enum(["safe", "fast"] as const, {
-        nullable: true,
+        nullable: true
       })
     );
   });
@@ -255,12 +255,12 @@ describe("convertJsonSchema", () => {
   it("converts const values into fixed schemas with injected defaults", async () => {
     const schema = await loadSchema({
       const: "assistant",
-      type: "string",
+      type: "string"
     });
 
     expect(convertJsonSchema(schema)).toEqual(
       S.Enum(["assistant"] as const, {
-        default: "assistant",
+        default: "assistant"
       })
     );
   });
@@ -270,9 +270,9 @@ describe("convertJsonSchema", () => {
       type: "object",
       properties: {
         child: {
-          $ref: "#",
-        },
-      },
+          $ref: "#"
+        }
+      }
     });
 
     expect(convertJsonSchema(schema)).toEqual(S.Json());
@@ -285,29 +285,96 @@ describe("convertJsonSchema", () => {
           type: "object",
           properties: {
             value: {
-              type: "string",
-            },
+              type: "string"
+            }
           },
-          required: ["value"],
-        },
+          required: ["value"]
+        }
       },
-      $ref: "#/$defs/payload",
+      $ref: "#/$defs/payload"
     });
 
     expect(convertJsonSchema(schema)).toEqual(
       S.Object({
-        value: S.String(),
+        value: S.String()
       })
     );
   });
 
   it("throws for unsupported multi-type schemas that are not nullable wrappers", async () => {
     const schema = await loadSchema({
-      type: ["string", "number"],
+      type: ["string", "number"]
     });
 
     expect(() => convertJsonSchema(schema)).toThrow(
-      'Unsupported JSON Schema type array: ["string","number"].'
+      'JSON Schema "#" has an unsupported type "["string","number"]". Supported: string, number, integer, boolean, array, object.'
+    );
+  });
+
+  it("reports the schema path when an array is missing items", async () => {
+    const schema = await loadSchema({
+      type: "object",
+      properties: {
+        tags: {
+          type: "array"
+        }
+      }
+    });
+
+    expect(() => convertJsonSchema(schema)).toThrow(
+      'JSON Schema "#/properties/tags" is an array but is missing the "items" field. Add "items": { ... } to declare the element type.'
+    );
+  });
+
+  it("reports the schema path when no schema keyword is declared", async () => {
+    const schema = await loadSchema({
+      type: "object",
+      properties: {
+        payload: {}
+      }
+    });
+
+    expect(() => convertJsonSchema(schema)).toThrow(
+      'JSON Schema "#/properties/payload" must declare one of: "type", "enum", "const", "oneOf", "anyOf", or "allOf".'
+    );
+  });
+
+  it("reports the branch path when a composition branch is not an object schema", async () => {
+    const schema = await loadSchema({
+      oneOf: [
+        {
+          type: "string"
+        }
+      ]
+    });
+
+    expect(() => convertJsonSchema(schema)).toThrow(
+      'Expected "#/oneOf/0" to be an object schema (got "string").'
+    );
+  });
+
+  it("reports the schema path when composition has no branches", async () => {
+    const schema = await loadSchema({
+      anyOf: []
+    });
+
+    expect(() => convertJsonSchema(schema)).toThrow(
+      'JSON Schema "#" uses oneOf/anyOf/allOf but has no branches.'
+    );
+  });
+
+  it("reports the schema path and ref value for unsupported refs", async () => {
+    const schema = await loadSchema({
+      type: "object",
+      properties: {
+        payload: {
+          $ref: "https://example.com/schema.json"
+        }
+      }
+    });
+
+    expect(() => convertJsonSchema(schema)).toThrow(
+      'JSON Schema "#/properties/payload" uses "$ref": https://example.com/schema.json. toolcraft only supports internal refs like "#/components/schemas/Foo".'
     );
   });
 });

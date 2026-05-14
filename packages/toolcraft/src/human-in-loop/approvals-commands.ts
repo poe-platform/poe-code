@@ -16,10 +16,10 @@ interface ApprovalBuiltInServices {
 const listScope = ["cli", "mcp", "sdk"] as const;
 const runScope = ["cli"] as const;
 const listParams = S.Object({
-  state: S.Optional(S.String()),
+  state: S.Optional(S.String())
 });
 const showParams = S.Object({
-  approvalId: S.String(),
+  approvalId: S.String()
 });
 
 export const approvalsGroup = markApprovalsBuiltIn(
@@ -46,8 +46,8 @@ export const approvalsGroup = markApprovalsBuiltIn(
         render: {
           rich: (result, primitives) => renderApprovalList(result, primitives),
           markdown: (result) => renderApprovalListMarkdown(result),
-          json: (result) => result,
-        },
+          json: (result) => result
+        }
       }),
       defineCommand<
         ApprovalBuiltInServices,
@@ -68,8 +68,8 @@ export const approvalsGroup = markApprovalsBuiltIn(
         render: {
           rich: (result, primitives) => renderApprovalDetails(result, primitives),
           markdown: (result) => renderApprovalDetailsMarkdown(result),
-          json: (result) => result,
-        },
+          json: (result) => result
+        }
       }),
       defineCommand<
         ApprovalBuiltInServices,
@@ -83,13 +83,16 @@ export const approvalsGroup = markApprovalsBuiltIn(
         description: "Run one queued approval.",
         scope: runScope as unknown as ["cli"],
         params: showParams,
-        handler: async ({ params, runtimeOptions, root }) => runApproval(params.approvalId, runtimeOptions, root),
-      }),
-    ],
+        handler: async ({ params, runtimeOptions, root }) =>
+          runApproval(params.approvalId, runtimeOptions, root)
+      })
+    ]
   })
 );
 
-export function mergeApprovalsGroup<TServices extends object>(root: Group<TServices>): Group<TServices> {
+export function mergeApprovalsGroup<TServices extends object>(
+  root: Group<TServices>
+): Group<TServices> {
   const existing = root.children.find((child) => child.name === approvalsGroup.name);
 
   if (existing !== undefined) {
@@ -97,7 +100,7 @@ export function mergeApprovalsGroup<TServices extends object>(root: Group<TServi
       return root;
     }
 
-    throw new UserError("Error: 'approvals' is reserved for human-in-loop built-ins");
+    throw new UserError("'approvals' is reserved for human-in-loop built-ins");
   }
 
   root.children = [...root.children, approvalsGroup as unknown as CommandNode<TServices>];
@@ -109,17 +112,23 @@ function markApprovalsBuiltIn<TGroup extends Group<any>>(group: TGroup): TGroup 
     configurable: false,
     enumerable: false,
     value: true,
-    writable: false,
+    writable: false
   });
 
   return group;
 }
 
 function isApprovalsBuiltIn(node: CommandNode<any>): boolean {
-  return node.kind === "group" && (node as Group<any> & { [approvalsGroupSymbol]?: true })[approvalsGroupSymbol] === true;
+  return (
+    node.kind === "group" &&
+    (node as Group<any> & { [approvalsGroupSymbol]?: true })[approvalsGroupSymbol] === true
+  );
 }
 
-async function loadApprovals(tasks: Awaited<ReturnType<typeof ensureApprovalList>>["tasks"], stateFilter?: string): Promise<Task[]> {
+async function loadApprovals(
+  tasks: Awaited<ReturnType<typeof ensureApprovalList>>["tasks"],
+  stateFilter?: string
+): Promise<Task[]> {
   const states = splitStateFilter(stateFilter);
 
   if (states.length === 0) {
@@ -131,7 +140,7 @@ async function loadApprovals(tasks: Awaited<ReturnType<typeof ensureApprovalList
 
   for (const state of states) {
     const matching = await tasks.all({
-      state,
+      state
     });
 
     for (const task of matching) {
@@ -169,7 +178,10 @@ function splitStateFilter(stateFilter: string | undefined): string[] {
   return states;
 }
 
-function renderApprovalList(result: Task[], { logger, renderTable, getTheme }: RenderPrimitives): void {
+function renderApprovalList(
+  result: Task[],
+  { logger, renderTable, getTheme }: RenderPrimitives
+): void {
   if (result.length === 0) {
     logger.message("No approvals found.");
     return;
@@ -181,13 +193,13 @@ function renderApprovalList(result: Task[], { logger, renderTable, getTheme }: R
       columns: [
         { name: "id", title: "ID", alignment: "left", maxLen: 24 },
         { name: "state", title: "State", alignment: "left", maxLen: 18 },
-        { name: "name", title: "Name", alignment: "left", maxLen: 60 },
+        { name: "name", title: "Name", alignment: "left", maxLen: 60 }
       ],
       rows: result.map((task) => ({
         id: task.id,
         state: task.state,
-        name: task.name,
-      })),
+        name: task.name
+      }))
     })
   );
 }
@@ -200,24 +212,29 @@ function renderApprovalListMarkdown(result: Task[]): string {
   const lines = ["| ID | State | Name |", "| :--- | :--- | :--- |"];
 
   for (const task of result) {
-    lines.push(`| ${escapeMarkdownCell(task.id)} | ${escapeMarkdownCell(task.state)} | ${escapeMarkdownCell(task.name)} |`);
+    lines.push(
+      `| ${escapeMarkdownCell(task.id)} | ${escapeMarkdownCell(task.state)} | ${escapeMarkdownCell(task.name)} |`
+    );
   }
 
   return lines.join("\n");
 }
 
-function renderApprovalDetails(result: Task, { logger, renderTable, getTheme }: RenderPrimitives): void {
+function renderApprovalDetails(
+  result: Task,
+  { logger, renderTable, getTheme }: RenderPrimitives
+): void {
   logger.message(
     renderTable({
       theme: getTheme(),
       columns: [
         { name: "key", title: "Key", alignment: "left", maxLen: 18 },
-        { name: "value", title: "Value", alignment: "left", maxLen: 80 },
+        { name: "value", title: "Value", alignment: "left", maxLen: 80 }
       ],
       rows: Object.entries(taskToRecord(result)).map(([key, value]) => ({
         key,
-        value: stringifyValue(value),
-      })),
+        value: stringifyValue(value)
+      }))
     })
   );
 }
@@ -236,7 +253,7 @@ function taskToRecord(task: Task): Record<string, unknown> {
     name: task.name,
     state: task.state,
     description: task.description,
-    metadata: task.metadata,
+    metadata: task.metadata
   };
 }
 

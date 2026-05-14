@@ -3,7 +3,11 @@ import type { McpServerConfig } from "@poe-code/agent-mcp-config";
 import type { ObjectSchema, Static } from "toolcraft-schema";
 import type { LoggerOutput, RenderTableOptions, ThemePalette } from "@poe-code/design-system";
 import { ApprovalDeclinedError } from "./human-in-loop/types.js";
-import type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/types.js";
+import type {
+  HumanInLoopConfig,
+  HumanInLoopPending,
+  HumanInLoopRuntimeOptions
+} from "./human-in-loop/types.js";
 import { mergeHumanInLoopFromGroup, validateHumanInLoopOnDefine } from "./human-in-loop/config.js";
 import { ToolcraftBugError, UserError } from "./user-error.js";
 
@@ -20,7 +24,9 @@ type HumanInLoopModeInput = HumanInLoopMode | null | undefined;
 
 export type Scope = ScopeValue;
 
-type ResolveOwnHumanInLoopMode<TValue> = TValue extends { mode: infer TMode extends HumanInLoopMode }
+type ResolveOwnHumanInLoopMode<TValue> = TValue extends {
+  mode: infer TMode extends HumanInLoopMode;
+}
   ? TMode
   : TValue extends null
     ? null
@@ -84,7 +90,7 @@ export type GroupCheckContext<TServices extends object = EmptyServices> = TServi
 export type CommandCheckContext<
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TSecrets extends SecretDeclarations | undefined = undefined,
-  TServices extends object = EmptyServices,
+  TServices extends object = EmptyServices
 > = TServices & {
   params?: Static<TParamsSchema>;
   secrets?: InferSecrets<TSecrets>;
@@ -109,7 +115,7 @@ export interface Renderers<TResult> {
 export type HandlerContext<
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TSecrets extends SecretDeclarations | undefined = undefined,
-  TServices extends object = EmptyServices,
+  TServices extends object = EmptyServices
 > = TServices & {
   params: Static<TParamsSchema>;
   secrets: InferSecrets<TSecrets>;
@@ -123,7 +129,7 @@ export interface CommandConfig<
   TServices extends object,
   TParamsSchema extends ObjectSchema<any>,
   TSecrets extends SecretDeclarations | undefined,
-  TResult,
+  TResult
 > {
   name: string;
   description?: string;
@@ -143,7 +149,7 @@ export interface Command<
   TServices extends object = EmptyServices,
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TSecrets extends SecretDeclarations | undefined = undefined,
-  TResult = unknown,
+  TResult = unknown
 > {
   kind: "command";
   name: string;
@@ -197,7 +203,7 @@ export interface CommandTypeInfo<
   TParamsSchema extends ObjectSchema<any> = AnyObjectSchema,
   TResult = unknown,
   TOwnScope extends ScopeInput = ScopeInput,
-  TOwnHumanInLoopMode extends HumanInLoopModeInput = undefined,
+  TOwnHumanInLoopMode extends HumanInLoopModeInput = undefined
 > {
   name: TName;
   params: TParamsSchema;
@@ -211,7 +217,7 @@ export interface GroupTypeInfo<
   TName extends string = string,
   TChildren extends readonly unknown[] = readonly CommandNode<TServices>[],
   TOwnScope extends ScopeInput = ScopeInput,
-  TOwnHumanInLoopMode extends HumanInLoopModeInput = undefined,
+  TOwnHumanInLoopMode extends HumanInLoopModeInput = undefined
 > {
   name: TName;
   children: TChildren;
@@ -224,7 +230,7 @@ type TypedCommandMetadata<
   TParamsSchema extends ObjectSchema<any>,
   TResult,
   TOwnScope extends ScopeInput,
-  TOwnHumanInLoopMode extends HumanInLoopModeInput,
+  TOwnHumanInLoopMode extends HumanInLoopModeInput
 > = {
   readonly __agentKitCommandTypeInfo: CommandTypeInfo<
     TName,
@@ -240,7 +246,7 @@ type TypedGroupMetadata<
   TName extends string,
   TChildren extends readonly unknown[],
   TOwnScope extends ScopeInput,
-  TOwnHumanInLoopMode extends HumanInLoopModeInput,
+  TOwnHumanInLoopMode extends HumanInLoopModeInput
 > = {
   readonly __agentKitGroupTypeInfo: GroupTypeInfo<
     TServices,
@@ -292,7 +298,7 @@ function cloneSecretDefinition(secret: SecretDefinition): SecretDefinition {
   return {
     env: secret.env,
     description: secret.description,
-    optional: secret.optional,
+    optional: secret.optional
   };
 }
 
@@ -306,7 +312,9 @@ function cloneSecrets(secrets: SecretDeclarations | undefined): SecretDeclaratio
   );
 }
 
-function cloneRequires<TContext>(requires: Requires<TContext> | undefined): Requires<TContext> | undefined {
+function cloneRequires<TContext>(
+  requires: Requires<TContext> | undefined
+): Requires<TContext> | undefined {
   if (requires === undefined) {
     return undefined;
   }
@@ -314,7 +322,7 @@ function cloneRequires<TContext>(requires: Requires<TContext> | undefined): Requ
   return {
     auth: requires.auth,
     apiVersion: requires.apiVersion,
-    check: requires.check,
+    check: requires.check
   };
 }
 
@@ -322,7 +330,9 @@ function cloneStringArray(values: string[] | undefined): string[] | undefined {
   return values === undefined ? undefined : [...values];
 }
 
-function cloneStringRecord(values: Record<string, string> | undefined): Record<string, string> | undefined {
+function cloneStringRecord(
+  values: Record<string, string> | undefined
+): Record<string, string> | undefined {
   return values === undefined ? undefined : { ...values };
 }
 
@@ -336,18 +346,20 @@ function cloneMcpServerConfig(config: McpServerConfig | undefined): McpServerCon
       transport: "stdio",
       command: config.command,
       args: cloneStringArray(config.args),
-      env: cloneStringRecord(config.env),
+      env: cloneStringRecord(config.env)
     };
   }
 
   return {
     transport: "http",
     url: config.url,
-    headers: cloneStringRecord(config.headers),
+    headers: cloneStringRecord(config.headers)
   };
 }
 
-function cloneRenameMap(rename: Record<string, string> | undefined): Record<string, string> | undefined {
+function cloneRenameMap(
+  rename: Record<string, string> | undefined
+): Record<string, string> | undefined {
   return rename === undefined ? undefined : { ...rename };
 }
 
@@ -360,7 +372,9 @@ function validateRenameMap(rename: Record<string, string> | undefined): void {
 
   for (const [upstreamName, targetPath] of Object.entries(rename)) {
     if (targetPath.length === 0) {
-      throw new UserError(`Invalid rename target for upstream tool "${upstreamName}": path cannot be empty.`);
+      throw new UserError(
+        `Invalid rename target for upstream tool "${upstreamName}": path cannot be empty.`
+      );
     }
 
     if (targetPath.split(".").some((segment) => segment.length === 0)) {
@@ -403,7 +417,8 @@ function extractStackPath(line: string): string | undefined {
   if (fileIndex >= 0) {
     const location = trimmed.slice(fileIndex);
     const separatorIndex = location.lastIndexOf(":");
-    const previousSeparatorIndex = separatorIndex >= 0 ? location.lastIndexOf(":", separatorIndex - 1) : -1;
+    const previousSeparatorIndex =
+      separatorIndex >= 0 ? location.lastIndexOf(":", separatorIndex - 1) : -1;
     const candidate =
       separatorIndex >= 0 && previousSeparatorIndex >= 0
         ? location.slice(0, previousSeparatorIndex)
@@ -419,7 +434,8 @@ function extractStackPath(line: string): string | undefined {
 
   const location = trimmed.slice(slashIndex);
   const separatorIndex = location.lastIndexOf(":");
-  const previousSeparatorIndex = separatorIndex >= 0 ? location.lastIndexOf(":", separatorIndex - 1) : -1;
+  const previousSeparatorIndex =
+    separatorIndex >= 0 ? location.lastIndexOf(":", separatorIndex - 1) : -1;
   const candidate =
     separatorIndex >= 0 && previousSeparatorIndex >= 0
       ? location.slice(0, previousSeparatorIndex)
@@ -478,7 +494,10 @@ function composeChecks(
   };
 }
 
-function mergeRequires(parent: Requires<any> | undefined, child: Requires<any> | undefined): Requires<any> | undefined {
+function mergeRequires(
+  parent: Requires<any> | undefined,
+  child: Requires<any> | undefined
+): Requires<any> | undefined {
   if (parent === undefined && child === undefined) {
     return undefined;
   }
@@ -486,14 +505,10 @@ function mergeRequires(parent: Requires<any> | undefined, child: Requires<any> |
   const merged: Requires<any> = {
     auth: child?.auth ?? parent?.auth,
     apiVersion: child?.apiVersion ?? parent?.apiVersion,
-    check: composeChecks(parent?.check, child?.check),
+    check: composeChecks(parent?.check, child?.check)
   };
 
-  if (
-    merged.auth === undefined &&
-    merged.apiVersion === undefined &&
-    merged.check === undefined
-  ) {
+  if (merged.auth === undefined && merged.apiVersion === undefined && merged.check === undefined) {
     return undefined;
   }
 
@@ -558,7 +573,7 @@ export function resolveCommandSecrets(
 
     if (value === undefined && secret.optional !== true) {
       const details = secret.description ? `\n  ${secret.description}` : "";
-      throw new UserError(`Error: Missing required secret ${secret.env}${details}`);
+      throw new UserError(`Missing required secret ${secret.env}${details}`);
     }
 
     secrets[name] = value;
@@ -582,7 +597,7 @@ export async function assertCommandRequirements(
 
   if (requires.auth === true && env[authEnvVar] === undefined) {
     throw new UserError(
-      `Error: Command "${command.name}" requires authentication.\n  Run 'poe-code login' first.`
+      `Command "${command.name}" requires authentication.\n  Run 'poe-code login' first.`
     );
   }
 
@@ -590,26 +605,26 @@ export async function assertCommandRequirements(
     const minimumVersion = parseMinimumApiVersion(requires.apiVersion);
     if (minimumVersion === undefined) {
       throw new UserError(
-        `Error: Command "${command.name}" has invalid apiVersion requirement "${requires.apiVersion}". Expected format ">=X.Y.Z".`
+        `Command "${command.name}" has invalid apiVersion requirement "${requires.apiVersion}". Expected format ">=X.Y.Z".`
       );
     }
 
     if (options.apiVersion === undefined) {
       throw new UserError(
-        `Error: Command "${command.name}" requires API version ${requires.apiVersion}, but no runner API version was provided.`
+        `Command "${command.name}" requires API version ${requires.apiVersion}, but no runner API version was provided.`
       );
     }
 
     const runnerVersion = parseSimpleSemver(options.apiVersion);
     if (runnerVersion === undefined) {
       throw new UserError(
-        `Error: Command "${command.name}" requires API version ${requires.apiVersion}, but runner API version "${options.apiVersion}" is not valid semver.`
+        `Command "${command.name}" requires API version ${requires.apiVersion}, but runner API version "${options.apiVersion}" is not valid semver.`
       );
     }
 
     if (compareSemver(runnerVersion, minimumVersion) < 0) {
       throw new UserError(
-        `Error: Command "${command.name}" requires API version ${requires.apiVersion}, but runner API version is ${options.apiVersion}.`
+        `Command "${command.name}" requires API version ${requires.apiVersion}, but runner API version is ${options.apiVersion}.`
       );
     }
   }
@@ -623,15 +638,21 @@ export async function assertCommandRequirements(
 function mergeSecrets(parent: SecretDeclarations, child: SecretDeclarations): SecretDeclarations {
   return cloneSecrets({
     ...parent,
-    ...child,
+    ...child
   });
 }
 
-function resolveCommandScope(ownScope: Scope[] | undefined, inheritedScope: Scope[] | undefined): Scope[] {
+function resolveCommandScope(
+  ownScope: Scope[] | undefined,
+  inheritedScope: Scope[] | undefined
+): Scope[] {
   return cloneScope(ownScope ?? inheritedScope) ?? ["cli", "sdk"];
 }
 
-function resolveGroupScope(ownScope: Scope[] | undefined, inheritedScope: Scope[] | undefined): Scope[] | undefined {
+function resolveGroupScope(
+  ownScope: Scope[] | undefined,
+  inheritedScope: Scope[] | undefined
+): Scope[] | undefined {
   return cloneScope(ownScope ?? inheritedScope);
 }
 
@@ -639,7 +660,7 @@ function createBaseCommand<
   TServices extends object,
   TParamsSchema extends ObjectSchema<any>,
   TSecrets extends SecretDeclarations | undefined,
-  TResult,
+  TResult
 >(
   config: CommandConfig<TServices, TParamsSchema, TSecrets, TResult>
 ): Command<TServices, TParamsSchema, TSecrets, TResult> {
@@ -656,7 +677,7 @@ function createBaseCommand<
     humanInLoop: config.humanInLoop,
     requires: cloneRequires(config.requires),
     handler: config.handler,
-    render: config.render,
+    render: config.render
   };
 
   Object.defineProperty(command, commandConfigSymbol, {
@@ -665,14 +686,16 @@ function createBaseCommand<
       humanInLoop: config.humanInLoop,
       secrets: cloneSecrets(config.secrets),
       requires: cloneRequires(config.requires),
-      sourcePath: inferCommandSourcePath(),
-    } satisfies InternalCommandConfig,
+      sourcePath: inferCommandSourcePath()
+    } satisfies InternalCommandConfig
   });
 
   return command;
 }
 
-function createBaseGroup<TServices extends object>(config: GroupConfig<TServices>): Group<TServices> {
+function createBaseGroup<TServices extends object>(
+  config: GroupConfig<TServices>
+): Group<TServices> {
   const group: Group<TServices> = {
     kind: "group",
     name: config.name,
@@ -683,7 +706,7 @@ function createBaseGroup<TServices extends object>(config: GroupConfig<TServices
     secrets: cloneSecrets(config.secrets),
     requires: cloneRequires(config.requires),
     children: [],
-    default: undefined,
+    default: undefined
   };
 
   Object.defineProperty(group, groupConfigSymbol, {
@@ -696,20 +719,22 @@ function createBaseGroup<TServices extends object>(config: GroupConfig<TServices
       rename: cloneRenameMap(config.rename),
       requires: cloneRequires(config.requires),
       children: [...config.children],
-      default: config.default,
-    } satisfies InternalGroupConfig<TServices>,
+      default: config.default
+    } satisfies InternalGroupConfig<TServices>
   });
 
   return group;
 }
 
 function getInternalCommandConfig(command: Command<any, any, any, any>): InternalCommandConfig {
-  return (command as Command<any, any, any, any> & { [commandConfigSymbol]: InternalCommandConfig })[
-    commandConfigSymbol
-  ];
+  return (
+    command as Command<any, any, any, any> & { [commandConfigSymbol]: InternalCommandConfig }
+  )[commandConfigSymbol];
 }
 
-function getInternalGroupConfig<TServices extends object>(group: Group<TServices>): InternalGroupConfig<TServices> {
+function getInternalGroupConfig<TServices extends object>(
+  group: Group<TServices>
+): InternalGroupConfig<TServices> {
   return (group as Group<TServices> & { [groupConfigSymbol]: InternalGroupConfig<TServices> })[
     groupConfigSymbol
   ];
@@ -719,7 +744,7 @@ function materializeCommand<
   TServices extends object,
   TParamsSchema extends ObjectSchema<any>,
   TSecrets extends SecretDeclarations | undefined,
-  TResult,
+  TResult
 >(
   command: Command<TServices, TParamsSchema, TSecrets, TResult>,
   inherited: InheritedMetadata
@@ -739,7 +764,7 @@ function materializeCommand<
     humanInLoop: mergeHumanInLoopFromGroup(inherited.humanInLoop, internal.humanInLoop),
     requires: mergeRequires(inherited.requires, internal.requires),
     handler: command.handler,
-    render: command.render,
+    render: command.render
   };
 
   Object.defineProperty(materialized, commandConfigSymbol, {
@@ -748,12 +773,12 @@ function materializeCommand<
       humanInLoop: internal.humanInLoop,
       secrets: cloneSecrets(internal.secrets),
       requires: cloneRequires(internal.requires),
-      sourcePath: internal.sourcePath,
-    } satisfies InternalCommandConfig,
+      sourcePath: internal.sourcePath
+    } satisfies InternalCommandConfig
   });
 
   Object.defineProperty(materialized, commandSourcePathSymbol, {
-    value: internal.sourcePath,
+    value: internal.sourcePath
   });
 
   return materialized;
@@ -767,7 +792,7 @@ function mergeInheritedMetadata<TServices extends object>(
     scope: resolveGroupScope(group.scope, inherited.scope),
     humanInLoop: mergeHumanInLoopFromGroup(inherited.humanInLoop, group.humanInLoop),
     secrets: mergeSecrets(inherited.secrets, group.secrets),
-    requires: mergeRequires(inherited.requires, group.requires),
+    requires: mergeRequires(inherited.requires, group.requires)
   };
 }
 
@@ -777,7 +802,9 @@ function materializeGroup<TServices extends object>(
 ): Group<TServices> {
   const internal = getInternalGroupConfig(group);
   const mergedInherited = mergeInheritedMetadata(internal, inherited);
-  const materializedChildren = internal.children.map((child) => materializeNode(child, mergedInherited));
+  const materializedChildren = internal.children.map((child) =>
+    materializeNode(child, mergedInherited)
+  );
 
   let defaultChild: Command<TServices, any, any, any> | undefined;
 
@@ -808,7 +835,7 @@ function materializeGroup<TServices extends object>(
     secrets: mergedInherited.secrets,
     requires: mergedInherited.requires,
     children: materializedChildren,
-    default: defaultChild,
+    default: defaultChild
   };
 
   Object.defineProperty(materialized, groupConfigSymbol, {
@@ -821,8 +848,8 @@ function materializeGroup<TServices extends object>(
       rename: cloneRenameMap(internal.rename),
       requires: cloneRequires(internal.requires),
       children: [...internal.children],
-      default: internal.default,
-    } satisfies InternalGroupConfig<TServices>,
+      default: internal.default
+    } satisfies InternalGroupConfig<TServices>
   });
 
   return materialized;
@@ -846,24 +873,42 @@ export function defineCommand<
   TSecrets extends SecretDeclarations | undefined = undefined,
   TResult = unknown,
   TOwnScope extends ScopeInput = undefined,
-  TOwnHumanInLoop extends HumanInLoopConfig<TParamsSchema> | null | undefined = undefined,
+  TOwnHumanInLoop extends HumanInLoopConfig<TParamsSchema> | null | undefined = undefined
 >(
-  config: Omit<CommandConfig<TServices, TParamsSchema, TSecrets, TResult>, "name" | "scope" | "humanInLoop"> & {
+  config: Omit<
+    CommandConfig<TServices, TParamsSchema, TSecrets, TResult>,
+    "name" | "scope" | "humanInLoop"
+  > & {
     name: TName;
     scope?: TOwnScope;
     humanInLoop?: TOwnHumanInLoop;
   }
 ): Command<TServices, TParamsSchema, TSecrets, TResult> &
-  TypedCommandMetadata<TName, TParamsSchema, TResult, TOwnScope, ResolveOwnHumanInLoopMode<TOwnHumanInLoop>> {
+  TypedCommandMetadata<
+    TName,
+    TParamsSchema,
+    TResult,
+    TOwnScope,
+    ResolveOwnHumanInLoopMode<TOwnHumanInLoop>
+  > {
   validateHumanInLoopOnDefine(config);
 
-  return materializeCommand(createBaseCommand(config as CommandConfig<TServices, TParamsSchema, TSecrets, TResult>), {
-    scope: undefined,
-    humanInLoop: undefined,
-    secrets: {},
-    requires: undefined,
-  }) as Command<TServices, TParamsSchema, TSecrets, TResult> &
-    TypedCommandMetadata<TName, TParamsSchema, TResult, TOwnScope, ResolveOwnHumanInLoopMode<TOwnHumanInLoop>>;
+  return materializeCommand(
+    createBaseCommand(config as CommandConfig<TServices, TParamsSchema, TSecrets, TResult>),
+    {
+      scope: undefined,
+      humanInLoop: undefined,
+      secrets: {},
+      requires: undefined
+    }
+  ) as Command<TServices, TParamsSchema, TSecrets, TResult> &
+    TypedCommandMetadata<
+      TName,
+      TParamsSchema,
+      TResult,
+      TOwnScope,
+      ResolveOwnHumanInLoopMode<TOwnHumanInLoop>
+    >;
 }
 
 export function defineGroup<
@@ -871,7 +916,7 @@ export function defineGroup<
   TName extends string = string,
   TChildren extends readonly unknown[] = readonly CommandNode<TServices>[],
   TOwnScope extends ScopeInput = undefined,
-  TOwnHumanInLoop extends HumanInLoopConfig<AnyObjectSchema> | null | undefined = undefined,
+  TOwnHumanInLoop extends HumanInLoopConfig<AnyObjectSchema> | null | undefined = undefined
 >(
   config: Omit<GroupConfig<TServices>, "name" | "children" | "scope" | "humanInLoop"> & {
     name: TName;
@@ -880,7 +925,13 @@ export function defineGroup<
     humanInLoop?: TOwnHumanInLoop;
   }
 ): Group<TServices> &
-  TypedGroupMetadata<TServices, TName, TChildren, TOwnScope, ResolveOwnHumanInLoopMode<TOwnHumanInLoop>> {
+  TypedGroupMetadata<
+    TServices,
+    TName,
+    TChildren,
+    TOwnScope,
+    ResolveOwnHumanInLoopMode<TOwnHumanInLoop>
+  > {
   validateRenameMap(config.rename);
   validateHumanInLoopOnDefine(config);
 
@@ -888,9 +939,15 @@ export function defineGroup<
     scope: undefined,
     humanInLoop: undefined,
     secrets: {},
-    requires: undefined,
+    requires: undefined
   }) as Group<TServices> &
-    TypedGroupMetadata<TServices, TName, TChildren, TOwnScope, ResolveOwnHumanInLoopMode<TOwnHumanInLoop>>;
+    TypedGroupMetadata<
+      TServices,
+      TName,
+      TChildren,
+      TOwnScope,
+      ResolveOwnHumanInLoopMode<TOwnHumanInLoop>
+    >;
 }
 
 export function getCommandSourcePath(command: Command<any, any, any, any>): string | undefined {
@@ -903,5 +960,16 @@ export { S, toJsonSchema } from "toolcraft-schema";
 export { ApprovalDeclinedError, ToolcraftBugError, UserError };
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
 export type { PackageMetadata } from "./package-metadata.js";
-export type { AnySchema, ArraySchema, BooleanSchema, EnumSchema, JsonSchema, NumberSchema, ObjectSchema, OptionalSchema, Static, StringSchema } from "toolcraft-schema";
+export type {
+  AnySchema,
+  ArraySchema,
+  BooleanSchema,
+  EnumSchema,
+  JsonSchema,
+  NumberSchema,
+  ObjectSchema,
+  OptionalSchema,
+  Static,
+  StringSchema
+} from "toolcraft-schema";
 export type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntimeOptions };

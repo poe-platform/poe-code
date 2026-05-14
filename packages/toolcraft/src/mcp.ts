@@ -5,7 +5,7 @@ import {
   ToolError,
   type SDKTransport,
   type Server as TinyServer,
-  type TypedSchema,
+  type TypedSchema
 } from "tiny-stdio-mcp-server";
 import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
@@ -20,7 +20,7 @@ import {
   ApprovalDeclinedError,
   invokeWithHumanInLoop,
   type HumanInLoopPending,
-  type HumanInLoopRuntimeOptions,
+  type HumanInLoopRuntimeOptions
 } from "./human-in-loop/index.js";
 import { hasMcpProxyGroups, resolveMcpProxies } from "./mcp-proxy.js";
 import { getExpectedNumberDescription, isValidNumberSchemaValue } from "./number-schema.js";
@@ -35,7 +35,7 @@ const RESERVED_SERVICE_NAMES = new Set([
   "env",
   "progress",
   "runtimeOptions",
-  "root",
+  "root"
 ]);
 const RESERVED_SERVICE_NAMES_MESSAGE =
   "Available reserved names: params, secrets, fetch, fs, env, progress, runtimeOptions, root.";
@@ -106,7 +106,7 @@ function normalizeRoots<TServices extends object>(
     name: "",
     aliases: [],
     secrets: {},
-    children: roots,
+    children: roots
   };
 }
 
@@ -132,7 +132,9 @@ function splitWords(value: string): string[] {
     const previous = value[index - 1];
     const next = value[index + 1];
     const previousIsLowercase =
-      previous !== undefined && previous === previous.toLowerCase() && previous !== previous.toUpperCase();
+      previous !== undefined &&
+      previous === previous.toLowerCase() &&
+      previous !== previous.toUpperCase();
     const nextIsLowercase =
       next !== undefined && next === next.toLowerCase() && next !== next.toUpperCase();
 
@@ -160,9 +162,7 @@ function formatSegment(segment: string, casing: Casing): string {
   }
 
   return words
-    .map((word, index) =>
-      index === 0 ? word : `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`
-    )
+    .map((word, index) => (index === 0 ? word : `${word[0]?.toUpperCase() ?? ""}${word.slice(1)}`))
     .join("");
 }
 
@@ -195,7 +195,7 @@ function createFs(): HandlerFs {
       } catch {
         return false;
       }
-    },
+    }
   };
 }
 
@@ -203,7 +203,7 @@ function createEnv(values: Record<string, string | undefined> = process.env): Ha
   return {
     get(key: string): string | undefined {
       return values[key];
-    },
+    }
   };
 }
 
@@ -226,7 +226,7 @@ function applySchemaCasing(schema: JsonSchema, casing: Casing): JsonSchema {
     if (schema.type === "array" && schema.items !== undefined) {
       return {
         ...schema,
-        items: applySchemaCasing(schema.items, casing),
+        items: applySchemaCasing(schema.items, casing)
       };
     }
 
@@ -236,7 +236,7 @@ function applySchemaCasing(schema: JsonSchema, casing: Casing): JsonSchema {
   const properties = Object.fromEntries(
     Object.entries(schema.properties).map(([key, value]) => [
       formatSegment(key, casing),
-      applySchemaCasing(value, casing),
+      applySchemaCasing(value, casing)
     ])
   );
   const required = schema.required?.map((key) => formatSegment(key, casing));
@@ -244,7 +244,7 @@ function applySchemaCasing(schema: JsonSchema, casing: Casing): JsonSchema {
   return {
     ...schema,
     properties,
-    ...(required === undefined ? {} : { required }),
+    ...(required === undefined ? {} : { required })
   };
 }
 
@@ -278,8 +278,7 @@ function buildToolDescription(
   casing: Casing
 ): string {
   const summary = collectParamSummaries(params, casing);
-  const parameterSummary =
-    summary.length === 0 ? "" : `Parameters: ${summary.join(", ")}.`;
+  const parameterSummary = summary.length === 0 ? "" : `Parameters: ${summary.join(", ")}.`;
 
   if (description === undefined) {
     return parameterSummary;
@@ -341,7 +340,7 @@ function enumerateTools<TServices extends object>(
         commandPath: [...commandPath, node.name].join("."),
         name,
         description: buildToolDescription(node.description, params, casing),
-        inputSchema: applySchemaCasing(toJsonSchema(params), casing),
+        inputSchema: applySchemaCasing(toJsonSchema(params), casing)
       });
       return;
     }
@@ -383,13 +382,13 @@ function renderPendingApproval(pending: HumanInLoopPending): {
     content: [
       {
         type: "text",
-        text: `Queued for human approval (id: ${pending.approvalId}). Track with \`toolcraft approvals show ${pending.approvalId}\`.`,
+        text: `Queued for human approval (id: ${pending.approvalId}). Track with \`toolcraft approvals show ${pending.approvalId}\`.`
       },
       {
         type: "text",
-        text: JSON.stringify(pending),
-      },
-    ],
+        text: JSON.stringify(pending)
+      }
+    ]
   };
 }
 
@@ -402,21 +401,25 @@ function renderDeclinedApproval(error: ApprovalDeclinedError): {
     content: [
       {
         type: "text",
-        text: error.reason === undefined ? "Declined." : `Declined: ${error.reason}`,
+        text: error.reason === undefined ? "Declined." : `Declined: ${error.reason}`
       },
       {
         type: "text",
         text: JSON.stringify({
           outcome: "declined",
           reason: error.reason,
-          commandPath: error.commandPath,
-        }),
-      },
-    ],
+          commandPath: error.commandPath
+        })
+      }
+    ]
   };
 }
 
-function validateEnum(value: unknown, schema: Extract<AnySchema, { kind: "enum" }>, label: string): string | number | boolean {
+function validateEnum(
+  value: unknown,
+  schema: Extract<AnySchema, { kind: "enum" }>,
+  label: string
+): string | number | boolean {
   if (!schema.values.includes(value as never)) {
     throw new UserError(
       `Invalid value for "${label}". Expected one of: ${schema.values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
@@ -579,11 +582,7 @@ function toToolContent(result: unknown): ToolContent[] {
     return result.flatMap((item) => toToolContent(item));
   }
 
-  if (
-    typeof result === "string" ||
-    typeof result === "number" ||
-    typeof result === "boolean"
-  ) {
+  if (typeof result === "string" || typeof result === "number" || typeof result === "boolean") {
     return [{ type: "text", text: String(result) }];
   }
 
@@ -624,11 +623,16 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
   const servicesWithBuiltIns = {
     ...services,
     runtimeOptions,
-    root,
+    root
   } as TServices;
   validateServices(services as Record<string, unknown>);
 
-  const tools = enumerateTools(root, casing, options.tools, options.omitRootToolNamePrefix ?? false);
+  const tools = enumerateTools(
+    root,
+    casing,
+    options.tools,
+    options.omitRootToolNamePrefix ?? false
+  );
   const version = resolveMCPVersion(options.version);
   const server = createServer({ name: options.name, version });
 
@@ -648,7 +652,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
             env: createEnv(),
             progress(): void {
               return undefined;
-            },
+            }
           };
 
           await assertCommandRequirements(tool.command, { ...baseContext, params: undefined });
@@ -658,10 +662,10 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
             tool.command,
             {
               ...baseContext,
-              params,
+              params
             } as Parameters<typeof tool.command.handler>[0],
             runtimeOptions,
-            tool.commandPath,
+            tool.commandPath
           );
 
           if (isHumanInLoopPending(result)) {
@@ -684,7 +688,7 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     ...server,
     connect(transport: SDKTransport): Promise<void> {
       return server.connectSDK(transport);
-    },
+    }
   };
 }
 
@@ -692,7 +696,9 @@ function resolveMCPVersion(version: string | undefined): string {
   const resolvedVersion = version ?? findEntrypointPackageMetadata(process.argv[1])?.version;
 
   if (resolvedVersion === undefined) {
-    throw new Error("MCP version is required when no package.json version can be inferred from the entrypoint.");
+    throw new Error(
+      'MCP server version is required. Pass version: "x.y.z" to createMCPServer / runMCP, or run toolcraft from a project whose package.json defines "version".'
+    );
   }
 
   return resolvedVersion;
@@ -720,7 +726,7 @@ function createDeferredMCPServer<TServices extends object = Record<string, unkno
       },
       connect(transport: SDKTransport): Promise<void> {
         return resolveServer().then((server) => server.connect(transport));
-      },
+      }
     } as CmdkitServer,
     {
       get(target, property, receiver) {
@@ -729,7 +735,7 @@ function createDeferredMCPServer<TServices extends object = Record<string, unkno
         }
 
         return Reflect.get(target, property, receiver);
-      },
+      }
     }
   );
 }

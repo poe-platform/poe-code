@@ -1,4 +1,10 @@
-import type { OpenTaskListOptions, StateMachineDef, TaskList, TaskListFs, Tasks } from "@poe-code/task-list";
+import type {
+  OpenTaskListOptions,
+  StateMachineDef,
+  TaskList,
+  TaskListFs,
+  Tasks
+} from "@poe-code/task-list";
 import { openTaskList, TaskAlreadyExistsError } from "@poe-code/task-list";
 import { createFsFromVolume, Volume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -19,8 +25,8 @@ function createDifferentStateMachine(): StateMachineDef<OtherState, OtherEvent> 
     initial: "draft",
     states: ["draft", "done"],
     events: {
-      finish: { from: ["draft"], to: "done" },
-    },
+      finish: { from: ["draft"], to: "done" }
+    }
   };
 }
 
@@ -30,7 +36,7 @@ async function openApprovalTaskList(path: string, fs: TaskListFs): Promise<TaskL
     path,
     create: true,
     fs,
-    stateMachine: approvalStateMachine,
+    stateMachine: approvalStateMachine
   });
 }
 
@@ -50,7 +56,7 @@ describe("approval tasks", () => {
 
     const resolved = await ensureApprovalList({
       taskList,
-      listName: "review-approvals",
+      listName: "review-approvals"
     });
 
     expect(resolved.taskList).toBe(taskList);
@@ -63,14 +69,14 @@ describe("approval tasks", () => {
     const runtimeOptions: HumanInLoopRuntimeOptions = {
       taskList: {
         dir: "/repo/approvals.yaml",
-        format: "yaml-file",
-      },
+        format: "yaml-file"
+      }
     };
     const openTaskListMock = vi.fn(async (options: OpenTaskListOptions) =>
       openTaskList({
         ...options,
         create: true,
-        fs,
+        fs
       })
     );
 
@@ -82,7 +88,7 @@ describe("approval tasks", () => {
       create: true,
       type: "yaml-file",
       path: "/repo/approvals.yaml",
-      stateMachine: approvalStateMachine,
+      stateMachine: approvalStateMachine
     });
     expect(first.taskList).toBe(second.taskList);
     expect(first.listName).toBe("approvals");
@@ -103,11 +109,11 @@ describe("approval tasks", () => {
             eventName,
             {
               from: eventDef.from === "*" ? "*" : [...eventDef.from],
-              to: eventDef.to,
-            },
+              to: eventDef.to
+            }
           ])
-        ),
-      },
+        )
+      }
     });
 
     const resolved = await ensureApprovalList({ taskList });
@@ -122,12 +128,19 @@ describe("approval tasks", () => {
       path: "/repo/approvals.yaml",
       create: true,
       fs: createMemFs(),
-      stateMachine: createDifferentStateMachine(),
+      stateMachine: createDifferentStateMachine()
     });
 
-    await expect(ensureApprovalList({ taskList })).rejects.toThrowError(
+    await expect(
+      ensureApprovalList(
+        { taskList: { dir: "/repo/approvals.yaml", format: "yaml-file" } },
+        {
+          openTaskList: async () => taskList
+        }
+      )
+    ).rejects.toThrowError(
       new UserError(
-        "approvals task-list configured with a different state machine; pass approvalStateMachine when opening the list"
+        "Approvals task list was created with a different version of toolcraft. Delete the task list directory (/repo/approvals.yaml) or pass a matching approvalStateMachine."
       )
     );
   });
@@ -145,8 +158,8 @@ describe("approval tasks", () => {
         commandPath: "deploy.prod",
         params: { target: "prod" },
         message: "Deploy build to prod?",
-        declineInputPrompt: "Why not?",
-      },
+        declineInputPrompt: "Why not?"
+      }
     });
 
     expect(enqueued.approvalId).toMatch(/^2026-04-26T13-22-09-[0-9a-f]{6}$/);
@@ -154,7 +167,7 @@ describe("approval tasks", () => {
       status: "pending-approval",
       approvalId: enqueued.approvalId,
       message: "Deploy build to prod?",
-      enqueuedAt: "2026-04-26T13:22:09.000Z",
+      enqueuedAt: "2026-04-26T13:22:09.000Z"
     });
 
     await expect(loadApproval({ tasks, approvalId: enqueued.approvalId })).resolves.toEqual({
@@ -166,7 +179,7 @@ describe("approval tasks", () => {
       enqueuedAt: "2026-04-26T13:22:09.000Z",
       pid: null,
       result: null,
-      error: null,
+      error: null
     });
   });
 
@@ -184,7 +197,7 @@ describe("approval tasks", () => {
         name: input.name,
         description: input.description ?? "",
         state: "pending",
-        metadata: input.metadata ?? {},
+        metadata: input.metadata ?? {}
       }));
     const tasks = {
       name: "approvals",
@@ -202,7 +215,7 @@ describe("approval tasks", () => {
       }),
       canFire: vi.fn(async () => false),
       events: vi.fn(async () => []),
-      delete: vi.fn(async () => undefined),
+      delete: vi.fn(async () => undefined)
     } satisfies Tasks;
 
     const enqueued = await enqueueApproval({
@@ -210,8 +223,8 @@ describe("approval tasks", () => {
       payload: {
         commandPath: "deploy.prod",
         params: { target: "prod" },
-        message: "Deploy build to prod?",
-      },
+        message: "Deploy build to prod?"
+      }
     });
 
     expect(createMock).toHaveBeenCalledTimes(2);
@@ -230,7 +243,9 @@ describe("approval tasks", () => {
       get: vi.fn(async () => {
         throw new Error("unused in test");
       }),
-      create: vi.fn<Tasks["create"]>().mockRejectedValue(new TaskAlreadyExistsError("Task already exists.")),
+      create: vi
+        .fn<Tasks["create"]>()
+        .mockRejectedValue(new TaskAlreadyExistsError("Task already exists.")),
       update: vi.fn(async () => {
         throw new Error("unused in test");
       }),
@@ -239,7 +254,7 @@ describe("approval tasks", () => {
       }),
       canFire: vi.fn(async () => false),
       events: vi.fn(async () => []),
-      delete: vi.fn(async () => undefined),
+      delete: vi.fn(async () => undefined)
     } satisfies Tasks;
 
     await expect(
@@ -248,8 +263,8 @@ describe("approval tasks", () => {
         payload: {
           commandPath: "deploy.prod",
           params: { target: "prod" },
-          message: "Deploy build to prod?",
-        },
+          message: "Deploy build to prod?"
+        }
       })
     ).rejects.toBeInstanceOf(TaskAlreadyExistsError);
 

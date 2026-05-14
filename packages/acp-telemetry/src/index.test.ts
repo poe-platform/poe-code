@@ -5,5 +5,6 @@ describe("@poe-code/acp-telemetry", () => {
     const telemetry = await import("./index.js");
 
     expect(telemetry.redact).toEqual(expect.any(Function));
+    expect(telemetry.acpToTrace).toEqual(expect.any(Function));
   });
 });

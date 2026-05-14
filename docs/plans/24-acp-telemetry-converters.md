@@ -115,7 +115,7 @@ tasks:
       `packages/acp-telemetry` and `packages/braintrust` passes.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: acp-to-trace-converter
     title: Port logSpawnSession into acpToTrace returning a pure AcpTrace value
@@ -196,8 +196,8 @@ tasks:
       Acceptance: `npm run build` passes; new tests pass; no new dependency
       added to `packages/acp-telemetry/package.json`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: emit-to-braintrust

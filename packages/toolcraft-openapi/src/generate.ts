@@ -1,4 +1,4 @@
-import { UserError } from "toolcraft";
+import { ToolcraftBugError, UserError } from "toolcraft";
 import {
   METHOD_DEFAULTS,
   deriveNoun,
@@ -1146,7 +1146,9 @@ function expectQueryArraySerialization(
   querySerialization: QueryArraySerialization | undefined
 ): QueryArraySerialization {
   if (querySerialization === undefined) {
-    throw new Error("Missing query array serialization for generated query array field.");
+    throw new ToolcraftBugError(
+      "Missing query array serialization for generated query array field."
+    );
   }
 
   return querySerialization;

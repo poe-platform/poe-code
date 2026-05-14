@@ -5,7 +5,7 @@ import type { LoggerOutput, RenderTableOptions, ThemePalette } from "@poe-code/d
 import { ApprovalDeclinedError } from "./human-in-loop/types.js";
 import type { HumanInLoopConfig, HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/types.js";
 import { mergeHumanInLoopFromGroup, validateHumanInLoopOnDefine } from "./human-in-loop/config.js";
-import { UserError } from "./user-error.js";
+import { ToolcraftBugError, UserError } from "./user-error.js";
 
 const commandConfigSymbol = Symbol("toolcraft.command.config");
 const groupConfigSymbol = Symbol("toolcraft.group.config");
@@ -785,12 +785,14 @@ function materializeGroup<TServices extends object>(
     const defaultIndex = internal.children.indexOf(internal.default);
 
     if (defaultIndex === -1) {
-      throw new UserError(`Default command "${internal.default.name}" must be listed in children.`);
+      throw new ToolcraftBugError(
+        `Default command "${internal.default.name}" must be listed in children.`
+      );
     }
 
     const resolvedDefault = materializedChildren[defaultIndex];
     if (resolvedDefault?.kind !== "command") {
-      throw new UserError(`Default child "${internal.default.name}" must be a command.`);
+      throw new ToolcraftBugError(`Default child "${internal.default.name}" must be a command.`);
     }
 
     defaultChild = resolvedDefault;
@@ -898,7 +900,7 @@ export function getCommandSourcePath(command: Command<any, any, any, any>): stri
 }
 
 export { S, toJsonSchema } from "toolcraft-schema";
-export { ApprovalDeclinedError, UserError };
+export { ApprovalDeclinedError, ToolcraftBugError, UserError };
 export { findPackageMetadata, packageMetadata } from "./package-metadata.js";
 export type { PackageMetadata } from "./package-metadata.js";
 export type { AnySchema, ArraySchema, BooleanSchema, EnumSchema, JsonSchema, NumberSchema, ObjectSchema, OptionalSchema, Static, StringSchema } from "toolcraft-schema";

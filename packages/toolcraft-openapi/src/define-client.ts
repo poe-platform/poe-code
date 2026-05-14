@@ -1,5 +1,5 @@
 import type { Command, CommandNode, Group, Scope } from "toolcraft";
-import { defineCommand, defineGroup, UserError } from "toolcraft";
+import { ToolcraftBugError, defineCommand, defineGroup, UserError } from "toolcraft";
 import type { AuthProvider, TokenSource } from "./auth/types.js";
 import { toMcpPrefix } from "./naming.js";
 
@@ -125,7 +125,7 @@ function getRegisteredSource<TNode extends object>(
   const source = nodeSources.get(node);
 
   if (source === undefined) {
-    throw new Error("Bug: merged command node is missing source metadata.");
+    throw new ToolcraftBugError("merged command node is missing source metadata.");
   }
 
   return source;

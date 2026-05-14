@@ -9,7 +9,12 @@ import {
 } from "tiny-stdio-mcp-server";
 import { toJsonSchema, type AnySchema, type JsonSchema, type ObjectSchema } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs } from "./index.js";
-import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import {
+  ToolcraftBugError,
+  UserError,
+  assertCommandRequirements,
+  resolveCommandSecrets
+} from "./index.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import {
   ApprovalDeclinedError,
@@ -309,7 +314,9 @@ function enumerateTools<TServices extends object>(
       }
 
       if (params === undefined || params.kind !== "object") {
-        throw new Error(`Bug: command "${name}" must define an object params schema for MCP.`);
+        throw new ToolcraftBugError(
+          `command "${name}" must define an object params schema for MCP.`
+        );
       }
 
       tools.push({

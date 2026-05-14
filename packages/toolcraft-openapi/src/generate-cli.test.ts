@@ -309,4 +309,33 @@ describe("runGenerateCli", () => {
       "Failed to read OpenAPI document \"openapi.json\": ENOENT: no such file or directory, open '/repo/openapi.json'\n"
     ]);
   });
+
+  it("returns an internal-invariant error for ToolcraftBugError-like failures", async () => {
+    const specText = createEmptySpec();
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+    const error = new Error("generated command node is missing source metadata.");
+    error.name = "ToolcraftBugError";
+    vi.spyOn(harness.services.fs, "writeFile").mockRejectedValueOnce(error);
+
+    const exitCode = await runGenerateCli(["node", "generate"], harness.services);
+
+    expect([exitCode, harness.stderr()]).toEqual([
+      1,
+      "toolcraft hit an internal invariant: generated command node is missing source metadata.\n" +
+        "This is a bug in toolcraft or in the command definition; " +
+        "it cannot be worked around by changing argv. " +
+        "File an issue.\n"
+    ]);
+  });
+
+  it("rethrows ordinary unexpected write failures", async () => {
+    const specText = createEmptySpec();
+    const harness = createCliHarness({ "/repo/openapi.json": specText });
+    vi.spyOn(harness.services.fs, "writeFile").mockRejectedValueOnce(new Error("disk full"));
+
+    await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toThrow(
+      new Error("disk full")
+    );
+    expect(harness.stderr()).toBe("");
+  });
 });

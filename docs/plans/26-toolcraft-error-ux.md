@@ -287,7 +287,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-openapi-bug-errors-to-user-errors
     title: Reclassify "Bug:" Errors so they don't reach end users raw
@@ -371,8 +371,8 @@ tasks:
       keep the existing generic-Error path for genuinely unexpected
       throws (network failures inside a handler, OOM, etc.).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-validation-shows-received

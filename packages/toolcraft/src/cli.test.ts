@@ -2,7 +2,7 @@ import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 import { S } from "toolcraft-schema";
-import { UserError, defineCommand, defineGroup } from "./index.js";
+import { ToolcraftBugError, UserError, defineCommand, defineGroup } from "./index.js";
 
 const loggerState = {
   info: [] as string[],
@@ -1534,6 +1534,48 @@ describe("runCLI", () => {
 
     expect(loggerState.error).toEqual(["Boom."]);
     expect(stderrWrite).toHaveBeenCalled();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it("prints ToolcraftBugError messages as internal invariants and only shows stacks in debug mode", async () => {
+    const deploy = defineCommand({
+      name: "deploy",
+      params: S.Object({}),
+      handler: async () => {
+        const error = new ToolcraftBugError("command must define an object params schema.");
+        error.stack = "ToolcraftBugError: command must define an object params schema.\n    at fake-handler";
+        throw error;
+      }
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [deploy]
+    });
+
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    process.argv = ["node", "toolcraft", "deploy", "--yes"];
+    await runCLI(root);
+
+    expect(loggerState.error).toHaveLength(1);
+    expect(loggerState.error[0]).toMatch(/^toolcraft hit an internal invariant:/);
+    expect(loggerState.error[0]).toContain("command must define an object params schema.");
+    expect(readStderr(stderrWrite)).toBe("");
+    expect(process.exitCode).toBe(1);
+
+    resetLoggerState();
+    stderrWrite.mockClear();
+    process.exitCode = undefined;
+    process.argv = ["node", "toolcraft", "deploy", "--yes", "--debug"];
+
+    await runCLI(root);
+
+    expect(loggerState.error).toHaveLength(1);
+    expect(loggerState.error[0]).toMatch(/^toolcraft hit an internal invariant:/);
+    expect(readStderr(stderrWrite)).toBe(
+      "ToolcraftBugError: command must define an object params schema.\n    at fake-handler\n"
+    );
     expect(process.exitCode).toBe(1);
   });
 

@@ -3463,6 +3463,20 @@ function handleRunError(
     return;
   }
 
+  if (error instanceof Error && error.name === "ToolcraftBugError") {
+    logger.error(
+      `toolcraft hit an internal invariant: ${error.message}\n` +
+        `This is a bug in toolcraft or in the command definition; ` +
+        `it cannot be worked around by changing argv. ` +
+        `Re-run with --debug for a stack trace and file an issue.`
+    );
+    if (options.debug && error.stack) {
+      process.stderr.write(`${error.stack}\n`);
+    }
+    process.exitCode = 1;
+    return;
+  }
+
   if (error instanceof CommanderError) {
     process.exitCode = error.exitCode;
     if (error.code === "commander.helpDisplayed" || error.code === "commander.version") {

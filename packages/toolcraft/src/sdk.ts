@@ -1,7 +1,12 @@
 import { access, readFile, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
-import { UserError, assertCommandRequirements, resolveCommandSecrets } from "./index.js";
+import {
+  ToolcraftBugError,
+  UserError,
+  assertCommandRequirements,
+  resolveCommandSecrets
+} from "./index.js";
 import { mergeApprovalsGroup } from "./human-in-loop/approvals-commands.js";
 import { invokeWithHumanInLoop } from "./human-in-loop/index.js";
 import type { HumanInLoopPending, HumanInLoopRuntimeOptions } from "./human-in-loop/index.js";
@@ -477,7 +482,9 @@ function createResolvedSDK(
         const paramsSchema = filterSchemaForScope(node.params, "sdk");
 
         if (paramsSchema === undefined || paramsSchema.kind !== "object") {
-          throw new Error(`Bug: command "${node.name}" must define an object params schema for SDK.`);
+          throw new ToolcraftBugError(
+            `command "${node.name}" must define an object params schema for SDK.`
+          );
         }
 
         const validatedParams = validateSDKArguments(paramsSchema, params);

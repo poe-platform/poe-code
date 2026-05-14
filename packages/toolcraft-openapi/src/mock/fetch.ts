@@ -164,7 +164,7 @@ export async function mockFetch(options: MockFetchOptions): Promise<MockFetchHan
   };
 }
 
-class MockFetchError extends Error {
+class MockFetchError extends UserError {
   constructor(message: string) {
     super(message);
     this.name = "MockFetchError";

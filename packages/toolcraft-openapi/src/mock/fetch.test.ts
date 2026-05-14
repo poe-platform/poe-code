@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
+import { UserError } from "toolcraft";
 import type { OpenApiDocument } from "../generate.js";
 import { mockFetch } from "./fetch.js";
 
@@ -584,9 +585,10 @@ describe("mockFetch", () => {
       fixtures: { whoami: { body: { handle: 42 } } }
     });
 
-    await expect(fetch("https://api.example.com/v1/whoami")).rejects.toThrow(
-      /whoami.*expected string/is
-    );
+    const error = await fetch("https://api.example.com/v1/whoami").catch((caught) => caught);
+
+    expect(error).toBeInstanceOf(UserError);
+    expect(error).toHaveProperty("message", expect.stringMatching(/whoami.*expected string/is));
   });
 
   it("skips response-fixture validation when the chosen status has no schema", async () => {

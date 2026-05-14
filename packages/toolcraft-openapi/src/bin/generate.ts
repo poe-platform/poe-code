@@ -108,6 +108,16 @@ export async function runGenerateCli(
       return 1;
     }
 
+    if (error instanceof Error && error.name === "ToolcraftBugError") {
+      services.stderr.write(
+        `toolcraft hit an internal invariant: ${error.message}\n` +
+          `This is a bug in toolcraft or in the command definition; ` +
+          `it cannot be worked around by changing argv. ` +
+          `File an issue.\n`
+      );
+      return 1;
+    }
+
     throw error;
   }
 }

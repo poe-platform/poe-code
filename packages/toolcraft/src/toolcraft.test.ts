@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
 import {
+  ToolcraftBugError,
   UserError,
   assertCommandRequirements,
   defineCommand,
@@ -759,7 +760,7 @@ describe("toolcraft", () => {
         default: run,
       })
     ).toThrowError(
-      new UserError('Default command "run" must be listed in children.')
+      new ToolcraftBugError('Default command "run" must be listed in children.')
     );
   });
 });

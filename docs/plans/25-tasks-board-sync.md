@@ -118,8 +118,8 @@ tasks:
 
       Do not add regex parsing for YAML or frontmatter — use the existing parser. Do not introduce zod.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: tasks-cli-command

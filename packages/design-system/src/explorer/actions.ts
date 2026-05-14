@@ -1,7 +1,8 @@
-import type { KeypressEvent } from "../dashboard/terminal.js";
+import type { ExplorerEvent } from "./events.js";
 import type { Action, ActionContext, DetailItem, ExplorerState, Row, Tone } from "./state.js";
 
 export type ActionSource = "row" | "detail";
+type ExplorerKeypressEvent = Extract<ExplorerEvent, { type: "key" }>["key"];
 
 export type ActionRuntimeHandles = {
   refresh: () => Promise<void>;
@@ -13,7 +14,7 @@ export type ActionRuntimeHandles = {
 
 export function resolveAction<R>(
   state: ExplorerState,
-  keyEvent: KeypressEvent
+  keyEvent: ExplorerKeypressEvent
 ): Action<R> | null {
   const target = state.bindings.resolve(keyEvent);
   if (target?.type !== "action") {

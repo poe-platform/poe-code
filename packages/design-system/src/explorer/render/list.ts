@@ -1,6 +1,4 @@
 import { ScreenBuffer } from "../../dashboard/buffer.js";
-import { stripAnsi } from "../../internal/strip-ansi.js";
-import { filterRows } from "../filter.js";
 import type { ExplorerLayout, Rect } from "../layout.js";
 import type { ExplorerState, Row } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
@@ -37,8 +35,6 @@ export function renderList(
     return;
   }
 
-  const matches = state.filter.length > 0 ? filterRows(state.filter, state.rows) : [];
-  const matchByIndex = new Map(matches.map((match) => [match.index, match.positions]));
   let lastGroup: string | undefined;
   let y = 0;
 
@@ -68,7 +64,7 @@ export function renderList(
 
     const selected = state.selected.has(row.id);
     const cursor = rowIndex === state.filtered[state.cursor];
-    const positions = matchByIndex.get(rowIndex) ?? [];
+    const positions = state.matchPositions.get(rowIndex) ?? [];
     const hash = lineHash(row, selected, cursor, positions);
 
     if (cache.get(y) !== hash) {
@@ -146,4 +142,8 @@ function fit(text: string, width: number): string {
     return text;
   }
   return width <= 1 ? text.slice(0, width) : `${text.slice(0, width - 1)}…`;
+}
+
+function stripAnsi(value: string): string {
+  return value.replace(/\u001b\[[0-9;]*m/g, "");
 }

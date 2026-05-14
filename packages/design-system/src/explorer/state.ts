@@ -94,6 +94,7 @@ export interface ExplorerState {
   emptyHint: string;
   rows: Row[];
   filtered: number[];
+  matchPositions: Map<number, number[]>;
   cursor: number;
   filter: string;
   focused: "list" | "detail";
@@ -141,6 +142,7 @@ export function createInitialState<R>(
     emptyHint: config.emptyHint ?? "No detail",
     rows: [],
     filtered: [],
+    matchPositions: new Map(),
     cursor: 0,
     filter: config.initialFilter ?? "",
     focused: "list",
@@ -157,7 +159,7 @@ export function createInitialState<R>(
     toast: null,
     dirty: REGION_ALL,
     size: normalizedSize,
-    layout: resolveInitialLayout(normalizedSize.cols),
+    layout: resolveExplorerLayoutMode(normalizedSize.cols),
     bindings: resolveBindings(config),
     actionState: createInitialActionState(config)
   };
@@ -189,7 +191,7 @@ function createInitialActionState<R>(
   return state;
 }
 
-function resolveInitialLayout(cols: number): ExplorerLayoutMode {
+export function resolveExplorerLayoutMode(cols: number): ExplorerLayoutMode {
   if (cols < 40) {
     return "too-narrow";
   }

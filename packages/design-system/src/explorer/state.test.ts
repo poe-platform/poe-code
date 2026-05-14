@@ -65,6 +65,7 @@ describe("createInitialState", () => {
       layout: "medium"
     });
     expect(state.selected.size).toBe(0);
+    expect(state.matchPositions.size).toBe(0);
     expect(state.bindings.resolve({ ch: "q", ctrl: false, meta: false, shift: false })).toEqual({
       type: "builtin",
       id: "quit"

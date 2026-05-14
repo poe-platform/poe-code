@@ -1,4 +1,3 @@
-import { stripAnsi } from "../internal/strip-ansi.js";
 import type { Row } from "./state.js";
 
 export interface FilterMatch {
@@ -46,6 +45,10 @@ function searchableText(row: Row): string {
     .filter((value): value is string => value !== undefined)
     .map(stripAnsi)
     .join(" ");
+}
+
+function stripAnsi(value: string): string {
+  return value.replace(/\u001b\[[0-9;]*m/g, "");
 }
 
 function matchSubsequence(query: string, text: string): Omit<FilterMatch, "index"> | undefined {

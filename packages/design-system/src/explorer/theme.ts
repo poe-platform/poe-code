@@ -1,7 +1,14 @@
-import { getTheme } from "../internal/theme-detect.js";
-import { light } from "../tokens/colors.js";
-import type { CellStyle } from "../dashboard/types.js";
 import type { Tone } from "./state.js";
+
+type CellStyle = {
+  fg?: string;
+  bg?: string;
+  bold?: boolean;
+  dim?: boolean;
+  underline?: boolean;
+};
+
+type ThemeName = "dark" | "light";
 
 export interface ExplorerTheme {
   accent: (text: string) => string;
@@ -22,20 +29,18 @@ export interface ExplorerStyles {
 }
 
 export function getExplorerTheme(): ExplorerTheme {
-  const palette = getTheme();
-
   return {
-    accent: palette.accent,
-    muted: palette.muted,
-    border: palette.divider,
-    borderFocused: palette.accent,
+    accent: accent,
+    muted: muted,
+    border: muted,
+    borderFocused: accent,
     badge: (text, tone) => tonePainter(tone)(` ${text} `),
-    matchHighlight: (text) => palette.accent(`\u001b[4m${text}\u001b[24m`)
+    matchHighlight: (text) => accent(`\u001b[4m${text}\u001b[24m`)
   };
 }
 
 export function getExplorerStyles(): ExplorerStyles {
-  return getTheme() === light
+  return resolveThemeName() === "light"
     ? {
         accent: { fg: "#006699", bold: true },
         muted: { fg: "#666666" },
@@ -67,20 +72,69 @@ export function getExplorerStyles(): ExplorerStyles {
 }
 
 function tonePainter(tone: Tone): (text: string) => string {
-  const palette = getTheme();
+  const light = resolveThemeName() === "light";
 
   if (tone === "success") {
-    return palette.success;
+    return light ? hex(0, 136, 0) : ansi(32);
   }
   if (tone === "warning") {
-    return palette.warning;
+    return light ? hex(204, 102, 0) : ansi(33);
   }
   if (tone === "error") {
-    return palette.error;
+    return light ? hex(204, 0, 0) : ansi(31);
   }
   if (tone === "info") {
-    return palette.info;
+    return light ? hex(162, 0, 255) : ansi(35);
   }
 
-  return palette.muted;
+  return muted;
+}
+
+function accent(text: string): string {
+  return resolveThemeName() === "light" ? ansi(38, 2, 0, 102, 153, 1)(text) : ansi(36)(text);
+}
+
+function muted(text: string): string {
+  return resolveThemeName() === "light" ? hex(102, 102, 102)(text) : ansi(2)(text);
+}
+
+function hex(red: number, green: number, blue: number): (text: string) => string {
+  return ansi(38, 2, red, green, blue);
+}
+
+function ansi(...codes: number[]): (text: string) => string {
+  return (text) => `\u001b[${codes.join(";")}m${text}\u001b[0m`;
+}
+
+function resolveThemeName(env: NodeJS.ProcessEnv = process.env): ThemeName {
+  const raw = (env.POE_CODE_THEME ?? env.POE_THEME)?.toLowerCase();
+  if (raw === "light" || raw === "dark") {
+    return raw;
+  }
+
+  const apple = env.APPLE_INTERFACE_STYLE;
+  if (typeof apple === "string") {
+    return apple.toLowerCase() === "dark" ? "dark" : "light";
+  }
+
+  const vscodeKind = env.VSCODE_COLOR_THEME_KIND;
+  if (typeof vscodeKind === "string") {
+    const normalized = vscodeKind.toLowerCase();
+    if (normalized.includes("light")) {
+      return "light";
+    }
+    if (normalized.includes("dark")) {
+      return "dark";
+    }
+  }
+
+  const colorFGBG = env.COLORFGBG;
+  if (typeof colorFGBG === "string") {
+    const background = Number.parseInt(colorFGBG.split(";").at(-1) ?? "", 10);
+    if (Number.isFinite(background)) {
+      return background >= 8 ? "light" : "dark";
+    }
+  }
+
+  return "dark";
 }

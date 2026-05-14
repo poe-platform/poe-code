@@ -1,8 +1,9 @@
 import { ScreenBuffer } from "../../dashboard/buffer.js";
-import type { CellStyle } from "../../dashboard/types.js";
 import type { ExplorerLayout } from "../layout.js";
 import type { ExplorerState } from "../state.js";
-import { getExplorerStyles } from "../theme.js";
+import { getExplorerStyles, type ExplorerStyles } from "../theme.js";
+
+type ExplorerCellStyle = ExplorerStyles["accent"];
 
 export function renderHeader(
   state: ExplorerState,
@@ -42,7 +43,7 @@ export function renderHeader(
   }
 }
 
-function drawTopBorder(screen: ScreenBuffer, title: string, width: number, style: CellStyle): void {
+function drawTopBorder(screen: ScreenBuffer, title: string, width: number, style: ExplorerCellStyle): void {
   if (width === 1) {
     screen.put(0, 0, "┌", style);
     return;
@@ -55,7 +56,7 @@ function drawTopBorder(screen: ScreenBuffer, title: string, width: number, style
   screen.put(0, 0, `┌${middle.slice(0, Math.max(0, width - 2))}┐`, style);
 }
 
-function drawHorizontal(screen: ScreenBuffer, y: number, width: number, style: CellStyle): void {
+function drawHorizontal(screen: ScreenBuffer, y: number, width: number, style: ExplorerCellStyle): void {
   if (width === 1) {
     screen.put(0, y, "├", style);
     return;

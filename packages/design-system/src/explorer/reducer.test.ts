@@ -79,9 +79,12 @@ describe("step", () => {
 
     expect(filtered.state.filter).toBe("t");
     expect(filtered.state.filtered.map((index) => rows[index]?.id)).toEqual(["two", "three"]);
+    expect(filtered.state.matchPositions.get(1)).toEqual([0]);
+    expect(filtered.state.matchPositions.get(2)).toEqual([0]);
     expect(filtered.state.dirty).toBe(REGION_HEADER | REGION_LIST | REGION_DETAIL | REGION_FOOTER);
     expect(cleared.state.filter).toBe("");
     expect(cleared.state.filtered.map((index) => rows[index]?.id)).toEqual(["one", "two", "three"]);
+    expect(cleared.state.matchPositions.get(0)).toEqual([]);
   });
 
   it("toggles multi-select by row id", () => {

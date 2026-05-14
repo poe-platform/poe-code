@@ -225,7 +225,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: imports-boundary-test
     title: Internal module boundary enforcement
@@ -247,8 +247,8 @@ tasks:
       no AST parser dep. Fail the test with a clear message listing the
       offending edge.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: smoke-and-build-test

@@ -1,7 +1,8 @@
 import { ScreenBuffer } from "../../dashboard/buffer.js";
-import type { CellStyle } from "../../dashboard/types.js";
 import type { ExplorerState } from "../state.js";
-import { getExplorerStyles } from "../theme.js";
+import { getExplorerStyles, type ExplorerStyles } from "../theme.js";
+
+type ExplorerCellStyle = ExplorerStyles["accent"];
 
 export function renderModal(state: ExplorerState, screen: ScreenBuffer): void {
   if (state.modal === null || screen.width <= 0 || screen.height <= 0) {
@@ -75,7 +76,7 @@ function drawBox(
   width: number,
   height: number,
   boxTitle: string,
-  style: CellStyle
+  style: ExplorerCellStyle
 ): void {
   screen.clearRect({ x, y, width, height });
   const titleSegment = `─ ${boxTitle} `;

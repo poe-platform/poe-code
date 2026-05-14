@@ -1,8 +1,6 @@
-import type { KeypressEvent } from "../dashboard/terminal.js";
 import { buildActionContext, resolveAction, type ActionRuntimeHandles, type ActionSource } from "./actions.js";
 import type { Effect, ExplorerEvent } from "./events.js";
-import { filterRows } from "./filter.js";
-import { computeExplorerLayout } from "./layout.js";
+import { type FilterMatch, filterRows } from "./filter.js";
 import {
   REGION_ALL,
   REGION_DETAIL,
@@ -15,10 +13,12 @@ import {
   type DetailItem,
   type Dirty,
   type ExplorerState,
-  type Row
+  type Row,
+  resolveExplorerLayoutMode
 } from "./state.js";
 
 type StepResult = { state: ExplorerState; effects: Effect[] };
+type ExplorerKeypressEvent = Extract<ExplorerEvent, { type: "key" }>["key"];
 
 const NO_EFFECTS: Effect[] = [];
 const DEFAULT_ACTION_HANDLES: ActionRuntimeHandles = {
@@ -60,7 +60,7 @@ export function step(
 
 function stepKey(
   state: ExplorerState,
-  key: KeypressEvent,
+  key: ExplorerKeypressEvent,
   runtimeHandles: ActionRuntimeHandles
 ): StepResult {
   const target = state.bindings.resolve(key);
@@ -144,7 +144,7 @@ function stepKey(
 
 function resize(state: ExplorerState, cols: number, rows: number): StepResult {
   const size = { cols: normalizeSize(cols), rows: normalizeSize(rows) };
-  const layout = computeExplorerLayout(size).mode;
+  const layout = resolveExplorerLayoutMode(size.cols);
 
   if (state.size.cols === size.cols && state.size.rows === size.rows && state.layout === layout) {
     return mark(state, 0);
@@ -157,17 +157,20 @@ function resize(state: ExplorerState, cols: number, rows: number): StepResult {
 }
 
 function rowsLoaded(state: ExplorerState, rows: Row[]): StepResult {
-  const filtered = filterRows(state.filter, rows).map((match) => match.index);
+  const matches = filterRows(state.filter, rows);
+  const filtered = matches.map((match) => match.index);
+  const matchPositions = createMatchPositions(matches);
   const cursor = clamp(state.cursor, 0, Math.max(0, filtered.length - 1));
   const next = {
     ...state,
     rows,
     filtered,
+    matchPositions,
     cursor,
     selected: pruneSelection(state.selected, rows),
     detail: resetDetailForCursor(state, rows, filtered, cursor),
     modal: modalStillValid(state.modal, rows),
-    actionState: recomputeActionState({ ...state, rows, filtered, cursor }),
+    actionState: recomputeActionState({ ...state, rows, filtered, matchPositions, cursor }),
     dirty: REGION_HEADER | REGION_LIST | REGION_DETAIL | REGION_FOOTER | REGION_MODAL
   };
   const effect = detailEffect(next);
@@ -312,16 +315,19 @@ function updateFilter(state: ExplorerState, filter: string): StepResult {
     return mark(state, 0);
   }
 
-  const filtered = filterRows(filter, state.rows).map((match) => match.index);
+  const matches = filterRows(filter, state.rows);
+  const filtered = matches.map((match) => match.index);
+  const matchPositions = createMatchPositions(matches);
   const cursor = clamp(0, 0, Math.max(0, filtered.length - 1));
   const detail = resetDetailForCursor({ ...state, filter }, state.rows, filtered, cursor);
   const next = {
     ...state,
     filter,
     filtered,
+    matchPositions,
     cursor,
     detail,
-    actionState: recomputeActionState({ ...state, filter, filtered, cursor, detail }),
+    actionState: recomputeActionState({ ...state, filter, filtered, matchPositions, cursor, detail }),
     dirty: REGION_HEADER | REGION_LIST | REGION_DETAIL | REGION_FOOTER
   };
   const effect = detailEffect(next);
@@ -477,20 +483,22 @@ function reorder(state: ExplorerState, delta: number): StepResult {
   rows[rowIndex] = target;
   rows[targetIndex] = current;
   const filtered = rows.map((_, index) => index);
+  const matchPositions = new Map<number, number[]>();
   const cursor = targetIndex;
   const next = {
     ...state,
     rows,
     filtered,
+    matchPositions,
     cursor,
-    actionState: recomputeActionState({ ...state, rows, filtered, cursor }),
+    actionState: recomputeActionState({ ...state, rows, filtered, matchPositions, cursor }),
     dirty: REGION_LIST | REGION_FOOTER
   };
 
   return { state: next, effects: [{ type: "persistOrder", orderedIds: rows.map((row) => row.id) }] };
 }
 
-function paletteInput(state: ExplorerState, key: KeypressEvent): StepResult {
+function paletteInput(state: ExplorerState, key: ExplorerKeypressEvent): StepResult {
   if (state.modal?.kind !== "palette") {
     return mark(state, 0);
   }
@@ -702,6 +710,10 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
 
+function createMatchPositions(matches: FilterMatch[]): Map<number, number[]> {
+  return new Map(matches.map((match) => [match.index, match.positions]));
+}
+
 function setsEqual(left: Set<string>, right: Set<string>): boolean {
   if (left.size !== right.size) {
     return false;
@@ -716,18 +728,18 @@ function setsEqual(left: Set<string>, right: Set<string>): boolean {
   return true;
 }
 
-function isPrintable(key: KeypressEvent): key is KeypressEvent & { ch: string } {
+function isPrintable(key: ExplorerKeypressEvent): key is ExplorerKeypressEvent & { ch: string } {
   return key.ch !== undefined && !key.ctrl && !key.meta;
 }
 
-function isBackspace(key: KeypressEvent): boolean {
+function isBackspace(key: ExplorerKeypressEvent): boolean {
   return key.name === "backspace" || key.name === "delete";
 }
 
-function isConfirmYes(key: KeypressEvent): boolean {
+function isConfirmYes(key: ExplorerKeypressEvent): boolean {
   return key.ch === "y" || key.ch === "Y";
 }
 
-function isConfirmNo(key: KeypressEvent): boolean {
+function isConfirmNo(key: ExplorerKeypressEvent): boolean {
   return key.ch === "n" || key.ch === "N";
 }

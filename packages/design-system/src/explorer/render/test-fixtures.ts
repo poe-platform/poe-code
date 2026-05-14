@@ -39,7 +39,9 @@ export function fixtureState(overrides: Partial<ExplorerState> = {}): ExplorerSt
   const state = createInitialState(config, size);
   state.rows = rows;
   state.filter = filter;
-  state.filtered = filterRows(filter, rows).map((match) => match.index);
+  const matches = filterRows(filter, rows);
+  state.filtered = matches.map((match) => match.index);
+  state.matchPositions = new Map(matches.map((match) => [match.index, match.positions]));
   state.cursor = overrides.cursor ?? 0;
   state.detail = overrides.detail ?? {
     rowId: rows[0]?.id ?? null,

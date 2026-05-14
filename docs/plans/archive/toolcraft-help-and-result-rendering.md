@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: design-system-format-columns
     title: Width-aware formatColumns helper in design-system
@@ -61,7 +60,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: design-system-section-header
     title: Add text.sectionHeader to design-system
     prompt: |
@@ -94,7 +92,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: design-system-help-formatter-plain
     title: Plain-text fallback module for help-formatter
     prompt: |
@@ -132,7 +129,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-help-global-options-gate
     title: Gate global option rows in toolcraft help
     prompt: |
@@ -183,7 +179,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-help-field-tokens
     title: Boolean-aware and pattern-aware help field tokens
     prompt: |
@@ -243,7 +238,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-help-document-layout
     title: Heading line, Usage line, breadcrumb, flat commands list
     prompt: |
@@ -307,7 +301,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-renderer-mcp-unwrap
     title: Auto-unwrap MCP CallToolResult in renderer
     prompt: |
@@ -383,7 +376,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-renderer-yaml-fallback
     title: String/string[] shortcuts plus YAML fallback in autoRender
     prompt: |
@@ -435,7 +427,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: toolcraft-help-output-qa
     title: Markdown QA for help output at multiple terminal widths
     prompt: |
@@ -494,13 +485,15 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: toolcraft-release-and-vendor-refresh
     title: Release toolcraft 0.0.4 and refresh ashby-mcp vendor stub
-    prompt: |
+    prompt: >
       Cut a release that ships the help and renderer fixes, and
+
       regenerate the consumer-side vendor stub so ashby-mcp picks
+
       them up.
+
 
       Steps:
 
@@ -550,13 +543,19 @@ tasks:
                envelope
 
       Do not run any of the destructive paths flagged in
+
       todos_mcp_cli/bin/todos-mcp-cli.mjs's
+
       destructiveCommandsByGroupPath (asana add_task / delete,
+
       calendar.meeting create / edit). Only --help and known
+
       read-only commands.
     status:
       implement: done
-      commit: open
+      commit: done
+name: toolcraft-help-and-result-rendering
+state: archived
 ---
 
 ## Toolcraft help and result rendering overhaul

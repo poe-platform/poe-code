@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: scaffold-package
     title: Scaffold packages/agent-maestro
@@ -15,7 +14,6 @@ tasks:
       an empty index. See docs/plans/26-maestro.md §3 package layout.
     status:
       implement: done
-
   - id: runtime-sanitize
     title: Workspace-key sanitizer
     prompt: |
@@ -29,7 +27,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: runtime-phases
     title: Attempt phase state machine
     prompt: |
@@ -44,7 +41,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: state-machine-export
     title: Recommended task state machine constant
     prompt: |
@@ -60,7 +56,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: config-load-and-schema
     title: WORKFLOW.md loader, schema, preflight validation
     prompt: |
@@ -82,7 +77,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: prompt-render
     title: Task and step prompt renderers
     prompt: |
@@ -98,7 +92,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: workspace-manager
     title: Per-task workspace manager
     prompt: |
@@ -115,7 +108,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: runtime-retry-and-state
     title: Retry math and claim state mutators
     prompt: |
@@ -134,7 +126,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: runtime-reconcile
     title: Reconciliation against task store
     prompt: |
@@ -151,34 +142,52 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: agent-runner
     title: Per-attempt step pipeline runner
-    prompt: |
+    prompt: >
       Implement packages/agent-maestro/src/agent/runner.ts exporting
+
       `runAttempt({ task, attempt, cfg, steps, deps, abort })`. Walk
+
       `setup → steps[*] → teardown` in declared order, calling
+
       `agent-spawn` once per step with that step's `agent`/`model`/`mode`
-      and `renderStepPrompt(step, { prompt: renderTaskPrompt(...), task, attempt })`.
+
+      and `renderStepPrompt(step, { prompt: renderTaskPrompt(...), task, attempt
+      })`.
+
       Between every step boundary check the abort signal AND refresh the
+
       task state via reconcile; if terminal or aborted, enter `canceled`
+
       and skip remaining steps. Setup failure aborts steps but still runs
+
       teardown best-effort; step failure skips remaining steps but still
+
       runs teardown best-effort; teardown failure is logged and ignored.
+
       Emit `attempt_phase` events on every phase change. Return
+
       `AttemptOutcome { reason, failure?, failedStep?, error? }` mapping
+
       to a phase per the failure category table in
+
       docs/plans/26-maestro.md §3. Tests: three-step happy path
+
       (implement/test/commit) with correct agent/model/mode per step;
+
       `\{{ prompt }}` is the rendered task body; phase sequence matches
+
       §4 test table; mid-step abort → canceled, remaining skipped;
+
       setup-fail / step-fail / teardown-fail / reconcile-to-terminal
+
       between steps. Use a mock spawn and a real `loadResolvedSteps` over
+
       a memfs `steps.yaml`.
     status:
       implement: done
       test: done
-
   - id: runtime-loop
     title: Poll-tick orchestration
     prompt: |
@@ -197,7 +206,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: index-and-integration
     title: Public SDK wire-up and integration tests
     prompt: |
@@ -222,7 +230,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: cli-register
     title: Register `poe-code maestro` command
     prompt: |
@@ -238,7 +245,6 @@ tasks:
     status:
       implement: done
       test: done
-
   - id: package-readme
     title: agent-maestro README
     prompt: |
@@ -252,7 +258,6 @@ tasks:
       env-vars/config/examples sections without user approval.
     status:
       implement: done
-
   - id: dry-run-smoke
     title: Manual --dry-run smoke check
     prompt: |
@@ -266,7 +271,9 @@ tasks:
       docs/plans/26-maestro.md §4 autonomy checklist.
     status:
       implement: done
-      commit: open
+      commit: done
+name: maestro
+state: archived
 ---
 
 # Maestro — Task-driven agent daemon

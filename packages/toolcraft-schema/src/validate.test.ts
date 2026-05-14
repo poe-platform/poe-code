@@ -78,7 +78,7 @@ describe("validate", () => {
           path: ["email"],
           expected: "string",
           received: "integer",
-          message: "Expected string at email"
+          message: "Expected string at email, got integer"
         }
       ]
     });
@@ -132,37 +132,37 @@ describe("validate", () => {
           path: ["user", "name"],
           expected: "string with length at least 3",
           received: "string with length 2",
-          message: "Expected string with length at least 3 at user.name"
+          message: "Expected string with length at least 3 at user.name, got string with length 2"
         },
         {
           path: ["user", "retries"],
           expected: "number greater than or equal to 1",
           received: "0",
-          message: "Expected number greater than or equal to 1 at user.retries"
+          message: "Expected number greater than or equal to 1 at user.retries, got 0"
         },
         {
           path: ["user", "tags"],
           expected: "array with at least 2 items",
           received: "array with 0 items",
-          message: "Expected array with at least 2 items at user.tags"
+          message: "Expected array with at least 2 items at user.tags, got array with 0 items"
         },
         {
           path: ["user", "mode"],
           expected: "one of fast, safe",
           received: "slow",
-          message: "Expected one of fast, safe at user.mode"
+          message: "Expected one of fast, safe at user.mode, got slow"
         },
         {
           path: ["user", "extra"],
           expected: "no additional properties",
           received: "unknown property",
-          message: "Unexpected property user.extra"
+          message: "Expected no additional properties at user.extra, got unknown property"
         },
         {
           path: ["rootExtra"],
           expected: "no additional properties",
           received: "unknown property",
-          message: "Unexpected property rootExtra"
+          message: "Expected no additional properties at rootExtra, got unknown property"
         }
       ]
     });
@@ -181,19 +181,19 @@ describe("validate", () => {
           path: ["items", "0"],
           expected: "number greater than or equal to 10",
           received: "1",
-          message: "Expected number greater than or equal to 10 at items.0"
+          message: "Expected number greater than or equal to 10 at items.0, got 1"
         },
         {
           path: ["items", "1"],
           expected: "number",
           received: "string",
-          message: "Expected number at items.1"
+          message: "Expected number at items.1, got string"
         },
         {
           path: ["flags", "bad"],
           expected: "boolean",
           received: "string",
-          message: "Expected boolean at flags.bad"
+          message: "Expected boolean at flags.bad, got string"
         }
       ]
     });
@@ -213,25 +213,25 @@ describe("validate", () => {
           path: ["code"],
           expected: "string with length at most 4",
           received: "string with length 5",
-          message: "Expected string with length at most 4 at code"
+          message: "Expected string with length at most 4 at code, got string with length 5"
         },
         {
           path: ["code"],
           expected: "string matching pattern ^[A-Z]+$",
           received: "abcde",
-          message: "Expected string matching pattern ^[A-Z]+$ at code"
+          message: "Expected string matching pattern ^[A-Z]+$ at code, got abcde"
         },
         {
           path: ["score"],
           expected: "number less than or equal to 5",
           received: "6",
-          message: "Expected number less than or equal to 5 at score"
+          message: "Expected number less than or equal to 5 at score, got 6"
         },
         {
           path: ["values"],
           expected: "array with at most 1 items",
           received: "array with 2 items",
-          message: "Expected array with at most 1 items at values"
+          message: "Expected array with at most 1 items at values, got array with 2 items"
         }
       ]
     });
@@ -267,13 +267,13 @@ describe("validate", () => {
           path: ["required"],
           expected: "string",
           received: "missing",
-          message: "Expected string at required"
+          message: "Expected string at required, got missing"
         },
         {
           path: ["payload"],
           expected: "JSON value",
           received: "object",
-          message: "Expected JSON value at payload"
+          message: "Expected JSON value at payload, got object"
         }
       ]
     });

@@ -127,7 +127,7 @@ describe("runHarnessPair", () => {
         modulesFor: () => ({}),
         snapshotPath
       })
-    ).rejects.toThrow(`${mdPath}: title: Expected string at title`);
+    ).rejects.toThrow(`${mdPath} (title): Expected string at title, got integer`);
 
     expect(vol.existsSync(`${mdPath}.lock`)).toBe(false);
     expect(vol.existsSync(snapshotPath)).toBe(false);

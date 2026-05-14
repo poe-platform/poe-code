@@ -674,7 +674,9 @@ function parseBooleanText(value: string, label: string): boolean {
     return false;
   }
 
-  throw new InvalidArgumentError(`Invalid value for "${label}". Expected true or false.`);
+  throw new InvalidArgumentError(
+    `Invalid value for "${label}". Expected true or false, got ${describeReceived(value)}.`
+  );
 }
 
 function parseEnumValue(
@@ -686,7 +688,7 @@ function parseEnumValue(
 
   if (match === undefined) {
     throw new InvalidArgumentError(
-      `Invalid value for "${label}". Expected one of: ${values.map((candidate) => String(candidate)).join(", ")}.`
+      `Invalid value for "${label}". Expected one of: ${values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
     );
   }
 
@@ -718,9 +720,27 @@ function matchesStringPattern(value: string, pattern: string): boolean {
 function parseJsonText(value: string, label: string): unknown {
   try {
     return JSON.parse(value);
-  } catch {
-    throw new InvalidArgumentError(`Invalid value for "${label}". Expected valid JSON.`);
+  } catch (error) {
+    throw new InvalidArgumentError(
+      `Invalid value for "${label}". Expected valid JSON, got ${describeReceived(value)} (parser: ${getErrorMessage(error)}).`
+    );
   }
+}
+
+function describeReceived(value: unknown): string {
+  if (value === null) return "null";
+  if (value === undefined) return "missing";
+  if (Array.isArray(value)) return `array(${value.length})`;
+  if (typeof value === "object") return "object";
+  if (typeof value === "string") {
+    const s = value.length > 40 ? `${value.slice(0, 40)}…` : value;
+    return `${JSON.stringify(s)}`;
+  }
+  return JSON.stringify(value);
+}
+
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }
 
 function normalizeCommanderOptionValue(value: unknown): unknown {
@@ -744,7 +764,7 @@ function parseScalarValue(
       const parsed = Number(value);
       if (!isValidNumberSchemaValue(parsed, schema)) {
         throw new InvalidArgumentError(
-          `Invalid value for "${label}". Expected ${getExpectedNumberDescription(schema)}.`
+          `Invalid value for "${label}". Expected ${getExpectedNumberDescription(schema)}, got ${describeReceived(value)}.`
         );
       }
       return parsed;
@@ -1783,7 +1803,7 @@ function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): v
       }
 
       throw new InvalidArgumentError(
-        'Invalid value for "--output". Expected one of: rich, md, markdown, json.'
+        `Invalid value for "--output". Expected one of: rich, md, markdown, json, got ${describeReceived(value)}.`
       );
     })
     .option("--debug", "Print stack traces for unexpected errors.")
@@ -2038,7 +2058,7 @@ function validatePresetScalarValue(
   }
 
   throw new UserError(
-    `Preset file "${presetPath}" has an invalid value for "${fieldPath}". Expected ${describeExpectedPresetValue(schema)}.`
+    `Preset file "${presetPath}" has an invalid value for "${fieldPath}". Expected ${describeExpectedPresetValue(schema)}, got ${describeReceived(value)}.`
   );
 }
 
@@ -2068,7 +2088,7 @@ function validatePresetFieldValue(
 
   if (!Array.isArray(value)) {
     throw new UserError(
-      `Preset file "${presetPath}" has an invalid value for "${field.displayPath}". Expected an array.`
+      `Preset file "${presetPath}" has an invalid value for "${field.displayPath}". Expected an array, got ${describeReceived(value)}.`
     );
   }
 
@@ -2131,7 +2151,7 @@ async function loadPresetValues(
 
       if (!isPlainObject(value)) {
         throw new UserError(
-          `Preset file "${presetPath}" has an invalid value for "${displayPath}". Expected an object.`
+          `Preset file "${presetPath}" has an invalid value for "${displayPath}". Expected an object, got ${describeReceived(value)}.`
         );
       }
 
@@ -2805,7 +2825,9 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
       }
 
       if (!isPlainObject(value)) {
-        throw new UserError(`Invalid value for "${displayPath}". Expected indexed object entries.`);
+        throw new UserError(
+          `Invalid value for "${displayPath}". Expected indexed object entries, got ${describeReceived(value)}.`
+        );
       }
 
       const entries = Object.entries(value);
@@ -2834,7 +2856,9 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
 
     case "object": {
       if (!isPlainObject(value)) {
-        throw new UserError(`Invalid value for "${displayPath}". Expected an object.`);
+        throw new UserError(
+          `Invalid value for "${displayPath}". Expected an object, got ${describeReceived(value)}.`
+        );
       }
 
       const result: Record<string, unknown> = {};
@@ -2866,7 +2890,9 @@ function finalizeDynamicValue(schema: AnySchema, value: unknown, displayPath: st
 
     case "record": {
       if (!isPlainObject(value)) {
-        throw new UserError(`Invalid value for "${displayPath}". Expected an object.`);
+        throw new UserError(
+          `Invalid value for "${displayPath}". Expected an object, got ${describeReceived(value)}.`
+        );
       }
 
       return Object.fromEntries(
@@ -2998,7 +3024,7 @@ async function enforceVariantConstraints(
     const selectedBranch = variant.branches.find((branch) => branch.branchId === selectedBranchId);
     if (selectedBranch === undefined) {
       throw new UserError(
-        `Invalid value for "${variant.controlDisplayPath}". Expected one of: ${variant.branches.map((branch) => branch.branchId).join(", ")}.`
+        `Invalid value for "${variant.controlDisplayPath}". Expected one of: ${variant.branches.map((branch) => branch.branchId).join(", ")}, got ${describeReceived(selectedBranchId)}.`
       );
     }
 

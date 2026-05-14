@@ -614,7 +614,7 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain(
-      'Invalid value for "enabled". Expected true or false.'
+      'Invalid value for "enabled". Expected true or false, got "yes".'
     );
     expect(process.exitCode).toBe(1);
     expect(handler).not.toHaveBeenCalled();
@@ -644,7 +644,7 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(stderrWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain(
-      'Invalid value for "count". Expected an integer.'
+      'Invalid value for "count". Expected an integer, got "1.5".'
     );
     expect(process.exitCode).toBe(1);
     expect(handler).not.toHaveBeenCalled();
@@ -2421,6 +2421,34 @@ describe("runCLI", () => {
         }
       })
     );
+  });
+
+  it("reports invalid json flag values with the received text and parser error", async () => {
+    const handler = vi.fn(async ({ params }: { params: unknown }) => params);
+
+    const publish = defineCommand({
+      name: "publish",
+      params: S.Object({
+        payload: S.Json()
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [publish]
+    });
+
+    process.argv = ["node", "toolcraft", "publish", "--payload", "{foo:1}", "--yes"];
+    const stderrWrite = vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+
+    await runCLI(root);
+
+    const stderr = readStderr(stderrWrite);
+    expect(stderr).toContain('Invalid value for "payload". Expected valid JSON, got "{foo:1}"');
+    expect(stderr).toContain("(parser: ");
+    expect(process.exitCode).toBe(1);
+    expect(handler).not.toHaveBeenCalled();
   });
 
   it("renders root help with breadcrumb path", async () => {

@@ -26,7 +26,9 @@ export function validateFrontmatter<S extends SchemaDescriptor>(
 }
 
 function formatIssues(mdPath: string, issues: readonly ValidationIssue[]): string {
-  return issues.map((issue) => `${mdPath}: ${formatPath(issue.path)}: ${issue.message}`).join("\n");
+  return issues
+    .map((issue) => `${mdPath} (${formatPath(issue.path)}): ${issue.message}`)
+    .join("\n");
 }
 
 function formatPath(path: readonly string[]): string {

@@ -1097,8 +1097,77 @@ describe("createMCPServer", () => {
       ).rejects.toSatisfy(
         (error: unknown) =>
           error instanceof Error &&
-          error.message.includes('Invalid value for "count". Expected an integer.')
+          error.message.includes('Invalid value for "count". Expected an integer, got 1.5.')
       );
+    } finally {
+      await cleanup();
+    }
+  });
+
+  it("describes received MCP argument values in validation errors", async () => {
+    const run = defineCommand({
+      name: "run",
+      scope: ["mcp"],
+      params: S.Object({
+        name: S.String(),
+        enabled: S.Boolean(),
+        tags: S.Array(S.String()),
+        config: S.Object({ mode: S.String() }),
+        mode: S.Enum(["safe", "fast"] as const)
+      }),
+      handler: async ({ params }) => params
+    });
+
+    const root = defineGroup({
+      name: "root",
+      children: [run]
+    });
+
+    const server = createMCPServer(root, {
+      name: "toolcraft-test",
+      version: "1.0.0",
+      omitRootToolNamePrefix: true
+    });
+    const { client, cleanup } = await createClient(server);
+
+    try {
+      const longMode = "x".repeat(45);
+
+      for (const [argumentsValue, expected] of [
+        [
+          { name: 123, enabled: true, tags: [], config: { mode: "safe" }, mode: "safe" },
+          'Invalid value for "name". Expected a string, got 123.'
+        ],
+        [
+          { name: "Ada", enabled: "yes", tags: [], config: { mode: "safe" }, mode: "safe" },
+          'Invalid value for "enabled". Expected a boolean, got "yes".'
+        ],
+        [
+          { name: "Ada", enabled: true, tags: "core", config: { mode: "safe" }, mode: "safe" },
+          'Invalid value for "tags". Expected an array, got "core".'
+        ],
+        [
+          { name: "Ada", enabled: true, tags: [], config: [], mode: "safe" },
+          'Invalid value for "config". Expected an object, got array(0).'
+        ],
+        [
+          { name: "Ada", enabled: true, tags: [], config: { mode: "safe" }, mode: longMode },
+          `Invalid value for "mode". Expected one of: safe, fast, got "${"x".repeat(40)}…".`
+        ],
+        [
+          { name: "Ada", enabled: true, tags: [], config: { mode: "safe" }, mode: "sk-secret" },
+          'Invalid value for "mode". Expected one of: safe, fast, got "sk-secret".'
+        ]
+      ] as const) {
+        await expect(
+          client.callTool({
+            name: "run",
+            arguments: argumentsValue
+          })
+        ).rejects.toSatisfy(
+          (error: unknown) => error instanceof Error && error.message.includes(expected)
+        );
+      }
     } finally {
       await cleanup();
     }
@@ -2200,6 +2269,91 @@ describe("createSDK", () => {
       sdk.configureLimit({
         limit: 1.5,
       })
-    ).rejects.toThrow('Invalid value for "limit". Expected an integer.');
+    ).rejects.toThrow('Invalid value for "limit". Expected an integer, got 1.5.');
+  });
+
+  it("describes received SDK argument values in validation errors", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "run",
+          scope: ["sdk"],
+          params: S.Object({
+            name: S.String(),
+            enabled: S.Boolean(),
+            tags: S.Array(S.String()),
+            config: S.Object({ mode: S.String() }),
+            mode: S.Enum(["safe", "fast"] as const)
+          }),
+          handler: async ({ params }) => params
+        })
+      ]
+    });
+
+    const sdk = createSDK(root);
+    const longMode = "x".repeat(45);
+
+    await expect(
+      sdk.run({
+        name: 123,
+        enabled: true,
+        tags: [],
+        config: { mode: "safe" },
+        mode: "safe"
+      })
+    ).rejects.toThrow('Invalid value for "name". Expected a string, got 123.');
+
+    await expect(
+      sdk.run({
+        name: "Ada",
+        enabled: "yes",
+        tags: [],
+        config: { mode: "safe" },
+        mode: "safe"
+      })
+    ).rejects.toThrow('Invalid value for "enabled". Expected a boolean, got "yes".');
+
+    await expect(
+      sdk.run({
+        name: "Ada",
+        enabled: true,
+        tags: "core",
+        config: { mode: "safe" },
+        mode: "safe"
+      })
+    ).rejects.toThrow('Invalid value for "tags". Expected an array, got "core".');
+
+    await expect(
+      sdk.run({
+        name: "Ada",
+        enabled: true,
+        tags: [],
+        config: [],
+        mode: "safe"
+      })
+    ).rejects.toThrow('Invalid value for "config". Expected an object, got array(0).');
+
+    await expect(
+      sdk.run({
+        name: "Ada",
+        enabled: true,
+        tags: [],
+        config: { mode: "safe" },
+        mode: longMode
+      })
+    ).rejects.toThrow(
+      `Invalid value for "mode". Expected one of: safe, fast, got "${"x".repeat(40)}…".`
+    );
+
+    await expect(
+      sdk.run({
+        name: "Ada",
+        enabled: true,
+        tags: [],
+        config: { mode: "safe" },
+        mode: "sk-secret"
+      })
+    ).rejects.toThrow('Invalid value for "mode". Expected one of: safe, fast, got "sk-secret".');
   });
 });

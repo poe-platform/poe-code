@@ -311,11 +311,23 @@ function validateServices(services: Record<string, unknown>): void {
 function validateEnum(value: unknown, schema: Extract<AnySchema, { kind: "enum" }>, label: string): string | number | boolean {
   if (!schema.values.includes(value as never)) {
     throw new UserError(
-      `Invalid value for "${label}". Expected one of: ${schema.values.map((candidate) => String(candidate)).join(", ")}.`
+      `Invalid value for "${label}". Expected one of: ${schema.values.map((candidate) => String(candidate)).join(", ")}, got ${describeReceived(value)}.`
     );
   }
 
   return value as string | number | boolean;
+}
+
+function describeReceived(value: unknown): string {
+  if (value === null) return "null";
+  if (value === undefined) return "missing";
+  if (Array.isArray(value)) return `array(${value.length})`;
+  if (typeof value === "object") return "object";
+  if (typeof value === "string") {
+    const s = value.length > 40 ? `${value.slice(0, 40)}…` : value;
+    return `${JSON.stringify(s)}`;
+  }
+  return JSON.stringify(value);
 }
 
 function validateSchemaValue(schema: AnySchema, value: unknown, label: string): unknown {
@@ -328,21 +340,25 @@ function validateSchemaValue(schema: AnySchema, value: unknown, label: string): 
   switch (unwrappedSchema.kind) {
     case "string":
       if (typeof value !== "string") {
-        throw new UserError(`Invalid value for "${label}". Expected a string.`);
+        throw new UserError(
+          `Invalid value for "${label}". Expected a string, got ${describeReceived(value)}.`
+        );
       }
       return value;
 
     case "number":
       if (!isValidNumberSchemaValue(value, unwrappedSchema)) {
         throw new UserError(
-          `Invalid value for "${label}". Expected ${getExpectedNumberDescription(unwrappedSchema)}.`
+          `Invalid value for "${label}". Expected ${getExpectedNumberDescription(unwrappedSchema)}, got ${describeReceived(value)}.`
         );
       }
       return value;
 
     case "boolean":
       if (typeof value !== "boolean") {
-        throw new UserError(`Invalid value for "${label}". Expected a boolean.`);
+        throw new UserError(
+          `Invalid value for "${label}". Expected a boolean, got ${describeReceived(value)}.`
+        );
       }
       return value;
 
@@ -351,7 +367,9 @@ function validateSchemaValue(schema: AnySchema, value: unknown, label: string): 
 
     case "array":
       if (!Array.isArray(value)) {
-        throw new UserError(`Invalid value for "${label}". Expected an array.`);
+        throw new UserError(
+          `Invalid value for "${label}". Expected an array, got ${describeReceived(value)}.`
+        );
       }
       return value.map((item, index) => validateSchemaValue(unwrappedSchema.item, item, `${label}[${index}]`));
 
@@ -366,7 +384,9 @@ function validateObjectSchema(
   label: string
 ): Record<string, unknown> {
   if (!isPlainObject(value)) {
-    throw new UserError(`Invalid value for "${label}". Expected an object.`);
+    throw new UserError(
+      `Invalid value for "${label}". Expected an object, got ${describeReceived(value)}.`
+    );
   }
 
   const result: Record<string, unknown> = {};

@@ -33,17 +33,15 @@ describe("validateFrontmatter", () => {
       title: S.String()
     });
 
-    expect(() =>
-      validateFrontmatter(schema, { title: 123 }, "docs/plans/build.md")
-    ).toThrow(
+    expect(() => validateFrontmatter(schema, { title: 123 }, "docs/plans/build.md")).toThrow(
       new FrontmatterValidationError(
-        "docs/plans/build.md: title: Expected string at title",
+        "docs/plans/build.md (title): Expected string at title, got integer",
         [
           {
             path: ["title"],
             expected: "string",
             received: "integer",
-            message: "Expected string at title"
+            message: "Expected string at title, got integer"
           }
         ]
       )
@@ -67,8 +65,8 @@ describe("validateFrontmatter", () => {
       )
     ).toThrow(
       [
-        "docs/plans/build.md: title: Expected string at title",
-        "docs/plans/build.md: retries: Expected number greater than or equal to 1 at retries"
+        "docs/plans/build.md (title): Expected string at title, got integer",
+        "docs/plans/build.md (retries): Expected number greater than or equal to 1 at retries, got 0"
       ].join("\n")
     );
   });
@@ -84,7 +82,7 @@ describe("validateFrontmatter", () => {
 
     expect(() =>
       validateFrontmatter(schema, { jobs: [{ title: "Build" }, { title: 123 }] }, "jobs.md")
-    ).toThrow("jobs.md: jobs.1.title: Expected string at jobs.1.title");
+    ).toThrow("jobs.md (jobs.1.title): Expected string at jobs.1.title, got integer");
   });
 
   it("formats an empty issue path as frontmatter", () => {
@@ -94,7 +92,7 @@ describe("validateFrontmatter", () => {
 
     expect(() =>
       validateFrontmatter(schema, [] as unknown as Record<string, unknown>, "jobs.md")
-    ).toThrow("jobs.md: frontmatter: Expected object at value");
+    ).toThrow("jobs.md (frontmatter): Expected object at value, got array");
   });
 
   it("exposes the original issues on the error", () => {
@@ -112,13 +110,13 @@ describe("validateFrontmatter", () => {
           path: ["title"],
           expected: "string",
           received: "integer",
-          message: "Expected string at title"
+          message: "Expected string at title, got integer"
         },
         {
           path: ["retries"],
           expected: "number greater than or equal to 1",
           received: "0",
-          message: "Expected number greater than or equal to 1 at retries"
+          message: "Expected number greater than or equal to 1 at retries, got 0"
         }
       ]);
       return;
@@ -135,8 +133,8 @@ describe("validateFrontmatter", () => {
 
     expect(() => validateFrontmatter(schema, {}, "docs/plans/build.md")).toThrow(
       [
-        "docs/plans/build.md: title: Expected string at title",
-        "docs/plans/build.md: owner: Expected string at owner"
+        "docs/plans/build.md (title): Expected string at title, got missing",
+        "docs/plans/build.md (owner): Expected string at owner, got missing"
       ].join("\n")
     );
   });

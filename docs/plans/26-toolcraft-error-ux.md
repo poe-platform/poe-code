@@ -373,7 +373,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: toolcraft-validation-shows-received
     title: Validation errors include the received value
@@ -447,8 +447,8 @@ tasks:
         - Receiving a secret-looking value: do NOT redact here; this
           is the user's input back to them, they already typed it
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: toolcraft-validation-lists-options

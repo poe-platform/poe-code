@@ -516,9 +516,18 @@ function addIssue(
   path: readonly string[],
   expected: string,
   received: string,
-  message: string
+  _message: string
 ): void {
-  state.issues.push({ path, expected, received, message });
+  state.issues.push({
+    path,
+    expected,
+    received,
+    message: formatIssueMessage(expected, path, received)
+  });
+}
+
+function formatIssueMessage(expected: string, path: readonly string[], received: string): string {
+  return `Expected ${expected} at ${formatPath(path)}, got ${received}`;
 }
 
 function formatPath(path: readonly string[]): string {

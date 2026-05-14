@@ -102,6 +102,7 @@ export interface ExplorerState {
     cursor: number;
     scroll: number;
     token: number;
+    loading: boolean;
   };
   selected: Set<string>;
   modal:
@@ -114,7 +115,15 @@ export interface ExplorerState {
   size: ExplorerSize;
   layout: ExplorerLayoutMode;
   bindings: ResolvedBindings;
-  actionState: Map<string, { available: boolean; label: string }>;
+  actionState: Map<string, ActionStateEntry>;
+}
+
+export interface ActionStateEntry {
+  available: boolean;
+  label: string;
+  running?: boolean;
+  action?: Action<unknown>;
+  source?: "row" | "detail";
 }
 
 export function createInitialState<R>(
@@ -138,7 +147,8 @@ export function createInitialState<R>(
       items: null,
       cursor: 0,
       scroll: 0,
-      token: 0
+      token: 0,
+      loading: false
     },
     selected: new Set(),
     modal: null,
@@ -153,13 +163,24 @@ export function createInitialState<R>(
 
 function createInitialActionState<R>(
   config: ExplorerConfig<R>
-): Map<string, { available: boolean; label: string }> {
-  const state = new Map<string, { available: boolean; label: string }>();
+): Map<string, ActionStateEntry> {
+  const state = new Map<string, ActionStateEntry>();
 
-  for (const action of [...config.actions, ...(config.detail.actions ?? [])]) {
+  for (const action of config.actions) {
     state.set(action.id, {
       available: true,
-      label: typeof action.label === "function" ? action.id : action.label
+      label: typeof action.label === "function" ? action.id : action.label,
+      action: action as Action<unknown>,
+      source: "row"
+    });
+  }
+
+  for (const action of config.detail.actions ?? []) {
+    state.set(action.id, {
+      available: true,
+      label: typeof action.label === "function" ? action.id : action.label,
+      action: action as Action<unknown>,
+      source: "detail"
     });
   }
 

@@ -11,6 +11,7 @@ export type ExplorerEvent =
   | { type: "key"; key: KeypressEvent }
   | { type: "resize"; cols: number; rows: number }
   | { type: "rowsLoaded"; rows: Row[] }
+  | { type: "detailLoading"; rowId: string; token: number }
   | { type: "detailLoaded"; rowId: string; token: number; items: DetailItem[] }
   | { type: "detailError"; rowId: string; token: number; error: Error }
   | { type: "actionResolved"; actionId: string }

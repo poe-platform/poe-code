@@ -1,4 +1,5 @@
 import type { KeypressEvent } from "../dashboard/terminal.js";
+import { buildActionContext, resolveAction, type ActionRuntimeHandles, type ActionSource } from "./actions.js";
 import type { Effect, ExplorerEvent } from "./events.js";
 import { filterRows } from "./filter.js";
 import { computeExplorerLayout } from "./layout.js";
@@ -11,7 +12,7 @@ import {
   REGION_MODAL,
   REGION_TOAST,
   type Action,
-  type ActionContext,
+  type ActionStateEntry,
   type DetailItem,
   type Dirty,
   type ExplorerState,
@@ -20,14 +21,14 @@ import {
 
 type StepResult = { state: ExplorerState; effects: Effect[] };
 
-type InternalActionState = {
-  available: boolean;
-  label: string;
-  running?: boolean;
-  action?: Action<unknown>;
-};
-
 const NO_EFFECTS: Effect[] = [];
+const DEFAULT_ACTION_HANDLES: ActionRuntimeHandles = {
+  refresh: async () => undefined,
+  suspendAnd: async (fn) => fn(),
+  toast: () => undefined,
+  confirm: async () => false,
+  exit: () => undefined
+};
 
 export function step(state: ExplorerState, event: ExplorerEvent): StepResult {
   switch (event.type) {
@@ -37,6 +38,8 @@ export function step(state: ExplorerState, event: ExplorerEvent): StepResult {
       return resize(state, event.cols, event.rows);
     case "rowsLoaded":
       return rowsLoaded(state, event.rows);
+    case "detailLoading":
+      return detailLoading(state, event.rowId, event.token);
     case "detailLoaded":
       return detailLoaded(state, event.rowId, event.token, event.items);
     case "detailError":
@@ -56,7 +59,8 @@ function stepKey(state: ExplorerState, key: KeypressEvent): StepResult {
   const target = state.bindings.resolve(key);
 
   if (target?.type === "action") {
-    return dispatchActionById(state, target.id, false);
+    const action = resolveAction(state, key);
+    return action === null ? mark(state, 0) : dispatchAction(state, action, false);
   }
 
   if (target?.type === "builtin") {
@@ -164,6 +168,21 @@ function rowsLoaded(state: ExplorerState, rows: Row[]): StepResult {
   return { state: next, effects: effect === undefined ? NO_EFFECTS : [effect] };
 }
 
+function detailLoading(state: ExplorerState, rowId: string, token: number): StepResult {
+  if (state.detail.rowId !== rowId || state.detail.token !== token) {
+    return mark(state, 0);
+  }
+
+  if (state.detail.loading) {
+    return mark(state, 0);
+  }
+
+  return {
+    state: { ...state, detail: { ...state.detail, loading: true }, dirty: REGION_DETAIL },
+    effects: NO_EFFECTS
+  };
+}
+
 function detailLoaded(
   state: ExplorerState,
   rowId: string,
@@ -178,7 +197,8 @@ function detailLoaded(
     ...state.detail,
     items,
     cursor: clamp(state.detail.cursor, 0, Math.max(0, items.length - 1)),
-    scroll: 0
+    scroll: 0,
+    loading: false
   };
 
   return {
@@ -208,12 +228,12 @@ function detailError(state: ExplorerState, rowId: string, token: number, error: 
 }
 
 function actionResolved(state: ExplorerState, actionId: string): StepResult {
-  const current = state.actionState.get(actionId) as InternalActionState | undefined;
+  const current = state.actionState.get(actionId);
   if (current === undefined || current.running !== true) {
     return mark(state, 0);
   }
 
-  const actionState = new Map(state.actionState) as Map<string, InternalActionState>;
+  const actionState = new Map(state.actionState);
   actionState.set(actionId, { ...current, running: false });
   return { state: { ...state, actionState, dirty: REGION_FOOTER }, effects: NO_EFFECTS };
 }
@@ -469,8 +489,7 @@ function paletteInput(state: ExplorerState, key: KeypressEvent): StepResult {
 
 function dispatchPrimary(state: ExplorerState): StepResult {
   for (const [id, entry] of state.actionState.entries()) {
-    const internal = entry as InternalActionState;
-    if (internal.action?.primary === true) {
+    if (entry.action?.primary === true) {
       return dispatchActionById(state, id, false);
     }
   }
@@ -479,7 +498,7 @@ function dispatchPrimary(state: ExplorerState): StepResult {
 }
 
 function dispatchActionById(state: ExplorerState, actionId: string, confirmed: boolean): StepResult {
-  const entry = state.actionState.get(actionId) as InternalActionState | undefined;
+  const entry = state.actionState.get(actionId);
   if (entry?.available !== true || entry.running === true || entry.action === undefined) {
     return mark(state, 0);
   }
@@ -509,8 +528,8 @@ function dispatchAction(
     };
   }
 
-  const actionState = new Map(state.actionState) as Map<string, InternalActionState>;
-  const current = actionState.get(action.id) as InternalActionState | undefined;
+  const actionState = new Map(state.actionState);
+  const current = actionState.get(action.id);
   if (current !== undefined) {
     actionState.set(action.id, { ...current, running: true });
   }
@@ -522,49 +541,39 @@ function dispatchAction(
     effects: [
       {
         type: "suspend",
-        fn: async () => action.handler(buildActionContext(next, action, rows)),
+        fn: async () => action.handler(buildActionContext(
+          next,
+          action,
+          current?.source ?? actionSource(next, action),
+          DEFAULT_ACTION_HANDLES,
+          rows
+        )),
         resumeWith: () => ({ type: "actionResolved", actionId: action.id })
       }
     ]
   };
 }
 
-function buildActionContext(
-  state: ExplorerState,
-  _action: Action<unknown>,
-  rows: Row[]
-): ActionContext<unknown> {
-  const row = rows[0] ?? currentRow(state) ?? { id: "", title: "" };
-
-  return {
-    row,
-    rows,
-    item: state.focused === "detail" ? currentDetailItem(state) : undefined,
-    filter: state.filter,
-    refresh: async () => undefined,
-    suspendAnd: async (fn) => fn(),
-    toast: () => undefined,
-    confirm: async () => false,
-    exit: () => undefined
-  };
-}
-
 function recomputeActionState(view: ExplorerState): ExplorerState["actionState"] {
-  const next = new Map<string, InternalActionState>();
+  const next = new Map<string, ActionStateEntry>();
 
   for (const [id, entry] of view.actionState.entries()) {
-    const internal = entry as InternalActionState;
-    const { action } = internal;
+    const { action } = entry;
 
     if (action === undefined) {
-      next.set(id, internal);
+      next.set(id, entry);
       continue;
     }
 
-    const ctx = buildActionContext(view, action, selectedRows(view));
+    const ctx = buildActionContext(
+      view,
+      action,
+      entry.source ?? actionSource(view, action),
+      DEFAULT_ACTION_HANDLES
+    );
     const available = action.predicate === undefined ? entry.available : action.predicate(ctx);
     const label = typeof action.label === "function" ? action.label() : action.label;
-    next.set(id, { ...internal, available, label });
+    next.set(id, { ...entry, available, label });
   }
 
   return next as ExplorerState["actionState"];
@@ -583,7 +592,8 @@ function resetDetailForCursor(
       items: null,
       cursor: 0,
       scroll: 0,
-      token: state.detail.token + 1
+      token: state.detail.token + 1,
+      loading: false
     };
   }
 
@@ -592,7 +602,8 @@ function resetDetailForCursor(
     items: null,
     cursor: 0,
     scroll: 0,
-    token: state.detail.token + 1
+    token: state.detail.token + 1,
+    loading: false
   };
 }
 
@@ -608,8 +619,8 @@ function currentRow(state: ExplorerState): Row | undefined {
   return state.rows[state.filtered[state.cursor] ?? -1];
 }
 
-function currentDetailItem(state: ExplorerState): DetailItem | undefined {
-  return state.detail.items?.[state.detail.cursor];
+function actionSource(state: ExplorerState, action: Action<unknown>): ActionSource {
+  return state.actionState.get(action.id)?.source ?? "row";
 }
 
 function selectedRows(state: ExplorerState): Row[] {

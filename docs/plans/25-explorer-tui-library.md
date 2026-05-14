@@ -144,8 +144,8 @@ tasks:
       on next schedule, and the 150ms loading-flag flip. No
       terminal-pilot — pure logic with fake timers.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: theme-and-render

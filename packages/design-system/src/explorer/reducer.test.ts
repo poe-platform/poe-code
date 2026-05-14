@@ -166,6 +166,30 @@ describe("step", () => {
     expect(handler).toHaveBeenCalledWith(expect.objectContaining({ row: rows[0], rows: [rows[0]] }));
   });
 
+  it("keeps the modal-captured rows when confirming a destructive action", async () => {
+    const handler = vi.fn();
+    const action: Action<unknown> = {
+      id: "delete",
+      label: "Delete",
+      destructive: true,
+      handler
+    };
+    const state = {
+      ...loadedState(),
+      cursor: 2,
+      selected: new Set(["three"]),
+      modal: { kind: "confirm" as const, action, rows: [rows[0]], resolver: () => undefined }
+    };
+
+    const next = step(state, { type: "modalDismissed", result: true });
+
+    expect(next.effects).toHaveLength(1);
+    if (next.effects[0]?.type === "suspend") {
+      await next.effects[0].fn();
+    }
+    expect(handler).toHaveBeenCalledWith(expect.objectContaining({ row: rows[0], rows: [rows[0]] }));
+  });
+
   it("gates reorder to an unfiltered list focus with no modal", () => {
     const state = loadedState({ reorder: { onReorder: () => undefined } });
     const moved = step(state, {

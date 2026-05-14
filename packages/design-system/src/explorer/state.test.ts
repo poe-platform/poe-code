@@ -55,7 +55,8 @@ describe("createInitialState", () => {
         items: null,
         cursor: 0,
         scroll: 0,
-        token: 0
+        token: 0,
+        loading: false
       },
       modal: null,
       toast: null,
@@ -68,9 +69,21 @@ describe("createInitialState", () => {
       type: "builtin",
       id: "quit"
     });
-    expect(state.actionState.get("archive")).toEqual({ available: true, label: "Archive" });
-    expect(state.actionState.get("dynamic")).toEqual({ available: true, label: "dynamic" });
-    expect(state.actionState.get("comment")).toEqual({ available: true, label: "Comment" });
+    expect(state.actionState.get("archive")).toMatchObject({
+      available: true,
+      label: "Archive",
+      source: "row"
+    });
+    expect(state.actionState.get("dynamic")).toMatchObject({
+      available: true,
+      label: "dynamic",
+      source: "row"
+    });
+    expect(state.actionState.get("comment")).toMatchObject({
+      available: true,
+      label: "Comment",
+      source: "detail"
+    });
   });
 
   it.each([

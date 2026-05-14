@@ -31,7 +31,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: fuzzy-filter-and-layout
     title: Fuzzy filter and layout engine (pure)
@@ -60,8 +60,8 @@ tasks:
       branch in the plan's §4.3 unit-test bullet list. No terminal-pilot
       — pure logic.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: state-events-keymap
@@ -328,7 +328,13 @@ The library handles: layout, focus, fuzzy filtering, async loading + cancellatio
 export * as explorer from "./explorer/index.js";
 export { runExplorer, singleDetail } from "./explorer/index.js";
 export type {
-  Row, DetailItem, Detail, Action, ActionContext, ExplorerConfig, Tone,
+  Row,
+  DetailItem,
+  Detail,
+  Action,
+  ActionContext,
+  ExplorerConfig,
+  Tone
 } from "./explorer/index.js";
 ```
 
@@ -336,7 +342,7 @@ Smoke tests in [packages/design-system/src/index.test.ts](packages/design-system
 
 ### Scope
 
-**This plan covers the library only.** The two consumer sketches below — plan browser and PR review queue — are *API illustrations*, not work items. Wiring real consumers (migrating [packages/plan-browser/src/browser.ts](packages/plan-browser/src/browser.ts), or building the GitHub draft review TUI in [packages/agent-github-review-tools/](packages/agent-github-review-tools/)) is downstream work, handled in separate plans once the library lands.
+**This plan covers the library only.** The two consumer sketches below — plan browser and PR review queue — are _API illustrations_, not work items. Wiring real consumers (migrating [packages/plan-browser/src/browser.ts](packages/plan-browser/src/browser.ts), or building the GitHub draft review TUI in [packages/agent-github-review-tools/](packages/agent-github-review-tools/)) is downstream work, handled in separate plans once the library lands.
 
 What this plan delivers:
 
@@ -358,7 +364,7 @@ What this plan delivers:
 
 ### Second consumer: GitHub PR review queue
 
-The library must also support a lazygit-style two-pane PR review queue (a separate tool by the same author, [packages/agent-github-review-tools/](packages/agent-github-review-tools/)) — left pane = PRs grouped with pending drafts, right pane = drill-down into the selected review's summary + inline comments, with per-comment actions. This means the detail pane is *itself* a list (comments), with its own cursor, its own actions, and Tab-focus.
+The library must also support a lazygit-style two-pane PR review queue (a separate tool by the same author, [packages/agent-github-review-tools/](packages/agent-github-review-tools/)) — left pane = PRs grouped with pending drafts, right pane = drill-down into the selected review's summary + inline comments, with per-comment actions. This means the detail pane is _itself_ a list (comments), with its own cursor, its own actions, and Tab-focus.
 
 Capabilities the library needs to cover both consumers:
 
@@ -385,27 +391,40 @@ await runExplorer<void>({
   title: "Plans",
   rows: async () => (await listPlans()).map(planToRow),
   detail: singleDetail(async (row, { width }) =>
-    renderMarkdown(await readPlanFile(row.id), { width })),
+    renderMarkdown(await readPlanFile(row.id), { width })
+  ),
   actions: [
-    { id: "edit",    key: "e", label: "Edit",
-      handler: ({ row, suspendAnd }) => suspendAnd(() => openInEditor(row.id)) },
-    { id: "archive", key: "a", label: "Archive",
+    {
+      id: "edit",
+      key: "e",
+      label: "Edit",
+      handler: ({ row, suspendAnd }) => suspendAnd(() => openInEditor(row.id))
+    },
+    {
+      id: "archive",
+      key: "a",
+      label: "Archive",
       predicate: ({ row }) => row.badge?.text !== "archived",
       handler: async ({ rows, refresh, toast }) => {
         for (const r of rows) await archivePlan(r.id);
         await refresh();
         toast(`archived ${rows.length}`, "success");
-      } },
-    { id: "delete",  key: "d", label: "Delete", destructive: true,
+      }
+    },
+    {
+      id: "delete",
+      key: "d",
+      label: "Delete",
+      destructive: true,
       handler: async ({ rows, refresh }) => {
         for (const r of rows) await deletePlan(r.id);
         await refresh();
-      } },
-    { id: "run",     key: "r", label: "Run",
-      handler: ({ row, exit }) => exit(() => runPlan(row.id)) },
+      }
+    },
+    { id: "run", key: "r", label: "Run", handler: ({ row, exit }) => exit(() => runPlan(row.id)) }
   ],
   reorder: { onReorder: async (orderedIds) => writePlanOrder(orderedIds) },
-  multiSelect: true,
+  multiSelect: true
 });
 ```
 
@@ -416,55 +435,91 @@ let stateFilter: "draft" | "publishing" | "published" = "draft";
 
 await runExplorer<void>({
   title: "Pending reviews",
-  rows: async () => (await listDraftState({ filter: stateFilter }))
-    .map(pr => ({
-      id: pr.id, group: pr.repo,
+  rows: async () =>
+    (await listDraftState({ filter: stateFilter })).map((pr) => ({
+      id: pr.id,
+      group: pr.repo,
       title: `#${pr.number} ${pr.title}`,
       subtitle: `${pr.draftCount} drafts · ${pr.author}`,
-      badge: badgeFor(pr.state),
+      badge: badgeFor(pr.state)
     })),
   detail: {
-    items: async (row) => (await loadReview(row.id)).comments.map(c => ({
-      id: c.id,
-      title: c.path,
-      subtitle: c.bodyPreview,
-      render: () => renderComment(c),
-    })),
+    items: async (row) =>
+      (await loadReview(row.id)).comments.map((c) => ({
+        id: c.id,
+        title: c.path,
+        subtitle: c.bodyPreview,
+        render: () => renderComment(c)
+      })),
     actions: [
-      { id: "edit-comment",   key: "e", label: "Edit",
+      {
+        id: "edit-comment",
+        key: "e",
+        label: "Edit",
         handler: ({ item, suspendAnd, refresh }) =>
-          suspendAnd(() => editInlineCommentCommand(item.id)).then(refresh) },
-      { id: "delete-comment", key: "x", label: "Delete", destructive: true,
+          suspendAnd(() => editInlineCommentCommand(item.id)).then(refresh)
+      },
+      {
+        id: "delete-comment",
+        key: "x",
+        label: "Delete",
+        destructive: true,
         handler: async ({ item, refresh }) => {
           await deleteInlineCommentCommand(item.id);
           await refresh();
-        } },
-    ],
+        }
+      }
+    ]
   },
   actions: [
     // Per-review actions: small curated set
-    { id: "commit", key: "c", label: "Commit",
+    {
+      id: "commit",
+      key: "c",
+      label: "Commit",
       handler: async ({ rows, refresh }) => {
         for (const r of rows) await commitReviewsCommand(r.id);
         await refresh();
-      } },
-    { id: "redo",   key: "R", label: "Redo",
+      }
+    },
+    {
+      id: "redo",
+      key: "R",
+      label: "Redo",
       handler: async ({ row, suspendAnd, refresh }) => {
         await suspendAnd(() => regenerateReview(row.id));
         await refresh();
-      } },
-    { id: "delete", key: "d", label: "Delete", destructive: true,
+      }
+    },
+    {
+      id: "delete",
+      key: "d",
+      label: "Delete",
+      destructive: true,
       handler: async ({ rows, refresh }) => {
         for (const r of rows) await discardDrafts(r.id);
         await refresh();
-      } },
+      }
+    },
     // Utility actions
-    { id: "toggle-state", key: "s", label: () => `State: ${stateFilter}`,
-      handler: async ({ refresh }) => { stateFilter = nextState(stateFilter); await refresh(); } },
+    {
+      id: "toggle-state",
+      key: "s",
+      label: () => `State: ${stateFilter}`,
+      handler: async ({ refresh }) => {
+        stateFilter = nextState(stateFilter);
+        await refresh();
+      }
+    },
     { id: "refresh", key: "r", label: "Refresh", handler: ({ refresh }) => refresh() },
-    { id: "open-in-browser", key: "Enter", primary: true, label: "Open PR",
-      handler: ({ row }) => openUrl(row.url) },
-  ],
+    {
+      id: "open-in-browser",
+      key: "Enter",
+      primary: true,
+      label: "Open PR",
+      handler: ({ row }) => openUrl(row.url)
+    }
+  ]
 });
 ```
 
@@ -478,12 +533,12 @@ interface Row {
   title: string;
   subtitle?: string;
   badge?: { text: string; tone?: Tone };
-  group?: string;        // grouped rendering; rows with same group cluster under a header
+  group?: string; // grouped rendering; rows with same group cluster under a header
 }
 
 interface DetailItem {
   id: string;
-  title?: string;        // absent => item fills pane with no cursor / no selection chrome
+  title?: string; // absent => item fills pane with no cursor / no selection chrome
   subtitle?: string;
   badge?: { text: string; tone?: Tone };
   render: (ctx: DetailCtx) => string | Promise<string>;
@@ -491,26 +546,31 @@ interface DetailItem {
 
 interface Detail<R> {
   items: (row: Row, ctx: DetailCtx) => Promise<DetailItem[]>;
-  actions?: Action<R>[];      // run against the focused detail item
+  actions?: Action<R>[]; // run against the focused detail item
 }
 
-interface DetailCtx { width: number; height: number; signal: AbortSignal; row: Row }
+interface DetailCtx {
+  width: number;
+  height: number;
+  signal: AbortSignal;
+  row: Row;
+}
 
 interface Action<R> {
   id: string;
-  label: string | (() => string);            // function form re-evaluated when state changes
+  label: string | (() => string); // function form re-evaluated when state changes
   key?: string | string[];
   predicate?: (ctx: ActionContext<R>) => boolean;
   handler: (ctx: ActionContext<R>) => void | Promise<void>;
   destructive?: boolean;
-  primary?: boolean;                          // bound to Enter
-  showInFooter?: boolean;                     // default true
+  primary?: boolean; // bound to Enter
+  showInFooter?: boolean; // default true
 }
 
 interface ActionContext<R> {
-  row: Row;                    // currently highlighted left-pane row
-  rows: Row[];                 // multi-select; falls back to [row] if no selection
-  item?: DetailItem;           // populated for actions declared under detail.actions
+  row: Row; // currently highlighted left-pane row
+  rows: Row[]; // multi-select; falls back to [row] if no selection
+  item?: DetailItem; // populated for actions declared under detail.actions
   filter: string;
   refresh: () => Promise<void>;
   suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
@@ -534,9 +594,7 @@ interface ExplorerConfig<R> {
 function runExplorer<R = void>(config: ExplorerConfig<R>): Promise<R | null>;
 
 // Ergonomic helper for the common single-blob case.
-function singleDetail<R>(
-  render: (row: Row, ctx: DetailCtx) => string | Promise<string>
-): Detail<R>;
+function singleDetail<R>(render: (row: Row, ctx: DetailCtx) => string | Promise<string>): Detail<R>;
 ```
 
 ### 2.1.2 Detail rendering rule
@@ -551,24 +609,24 @@ This is the single rule that collapses static and list shapes into one.
 
 ### 2.2 Default keybindings
 
-| Action               | Default key(s)            | Notes                                              |
-| -------------------- | ------------------------- | -------------------------------------------------- |
-| Move cursor          | `↑`/`↓`, `k`/`j`          | Within focused pane                                |
-| Page                 | `Ctrl+u`/`Ctrl+d`         |                                                    |
-| Top / Bottom         | `gg` / `G`                | vim style                                          |
-| Filter (focus input) | `/`                       | Type to filter; `Esc` clears                       |
-| Command palette      | `Ctrl+P`, `Ctrl+K`        | Fuzzy over all actions                             |
-| Toggle help          | `?`                       | Modal listing every binding                        |
-| Toggle detail        | `Ctrl+/`                  | Hide / show detail pane                            |
-| Cycle panes          | `Tab`                     | List → Detail → List                               |
-| Scroll detail        | `Shift+↑`/`↓`, `Ctrl+f/b` | Independent of list cursor                         |
-| Multi-select toggle  | `Space`                   | Only if `multiSelect: true`                        |
-| Select all visible   | `Ctrl+a`                  |                                                    |
-| Clear selection      | `Esc` (when selection)    |                                                    |
-| **Reorder up/down**  | `Ctrl+↑` / `Ctrl+↓`       | Disabled while filter active; vim alias `K` / `J`  |
-| Refresh              | `r` — bound by consumer   | Library exposes the action; not bound by default   |
-| Primary action       | `Enter`                   | Maps to the action flagged `primary: true`         |
-| Quit                 | `q`, `Ctrl+c`             | Not rebindable                                     |
+| Action               | Default key(s)            | Notes                                             |
+| -------------------- | ------------------------- | ------------------------------------------------- |
+| Move cursor          | `↑`/`↓`, `k`/`j`          | Within focused pane                               |
+| Page                 | `Ctrl+u`/`Ctrl+d`         |                                                   |
+| Top / Bottom         | `gg` / `G`                | vim style                                         |
+| Filter (focus input) | `/`                       | Type to filter; `Esc` clears                      |
+| Command palette      | `Ctrl+P`, `Ctrl+K`        | Fuzzy over all actions                            |
+| Toggle help          | `?`                       | Modal listing every binding                       |
+| Toggle detail        | `Ctrl+/`                  | Hide / show detail pane                           |
+| Cycle panes          | `Tab`                     | List → Detail → List                              |
+| Scroll detail        | `Shift+↑`/`↓`, `Ctrl+f/b` | Independent of list cursor                        |
+| Multi-select toggle  | `Space`                   | Only if `multiSelect: true`                       |
+| Select all visible   | `Ctrl+a`                  |                                                   |
+| Clear selection      | `Esc` (when selection)    |                                                   |
+| **Reorder up/down**  | `Ctrl+↑` / `Ctrl+↓`       | Disabled while filter active; vim alias `K` / `J` |
+| Refresh              | `r` — bound by consumer   | Library exposes the action; not bound by default  |
+| Primary action       | `Enter`                   | Maps to the action flagged `primary: true`        |
+| Quit                 | `q`, `Ctrl+c`             | Not rebindable                                    |
 
 Per-action overrides via `keybindOverrides`:
 
@@ -744,13 +802,13 @@ The right pane is its own scrollable list. `Tab` moves focus into it; the footer
 ### 2.7 Behavioural rules
 
 - **Always-on filter input** at the top; typing anywhere in the list focuses it. `Esc` clears it.
-- **Highlight vs Select** (Textual's `ListView` contract): moving the cursor *highlights* (drives detail re-render). `Enter` triggers the primary action; `Space` toggles multi-select.
+- **Highlight vs Select** (Textual's `ListView` contract): moving the cursor _highlights_ (drives detail re-render). `Enter` triggers the primary action; `Space` toggles multi-select.
 - **Focus indicator** is the border color (`accent` token when focused, `muted` when not) — lazygit pattern.
 - **Footer is context-sensitive**: when multi-select is non-empty, the footer swaps to bulk-action hints with counts (`[a] archive 2`).
 - **Reorder is disabled while filter is non-empty** — predicate evaluates `filter === ""`. The footer hint hides itself in that state.
 - **Destructive actions** (`destructive: true`) auto-route through a confirm modal that lists the affected rows.
 - **`suspendAnd(fn)`** restores the terminal, runs `fn` (e.g. `$EDITOR`), then re-enters the alt-screen and refreshes — handles SIGTSTP/SIGCONT cleanly.
-- **`exit(fn?)`** tears down the TUI and resolves the `runExplorer` promise; if `fn` is supplied, it runs *after* teardown (so commands like "run plan" stream to stdout cleanly).
+- **`exit(fn?)`** tears down the TUI and resolves the `runExplorer` promise; if `fn` is supplied, it runs _after_ teardown (so commands like "run plan" stream to stdout cleanly).
 
 > **Naming note**: what fzf calls the "preview window" is called the **detail pane** here. The term "preview" is not used in the API.
 
@@ -808,33 +866,33 @@ The runtime is the only place that touches the terminal driver, `process.stdout`
 ```ts
 interface ExplorerState {
   title: string;
-  rows: Row[];                       // immutable after load (until refresh)
-  filtered: number[];                // indices into rows that match filter
-  cursor: number;                    // index into filtered
+  rows: Row[]; // immutable after load (until refresh)
+  filtered: number[]; // indices into rows that match filter
+  cursor: number; // index into filtered
   filter: string;
   focused: "list" | "detail";
   detail: {
-    rowId: string | null;            // which row's items we currently have
-    items: DetailItem[] | null;      // null = loading
-    cursor: number;                  // index into items when in list mode
-    scroll: number;                  // line offset within rendered content
-    token: number;                   // versioning for async work
+    rowId: string | null; // which row's items we currently have
+    items: DetailItem[] | null; // null = loading
+    cursor: number; // index into items when in list mode
+    scroll: number; // line offset within rendered content
+    token: number; // versioning for async work
   };
-  selected: Set<string>;             // row ids in multi-select
+  selected: Set<string>; // row ids in multi-select
   modal:
     | null
     | { kind: "help" }
     | { kind: "confirm"; action: Action<unknown>; rows: Row[]; resolver: (ok: boolean) => void }
     | { kind: "palette"; query: string; cursor: number };
   toast: { message: string; tone: Tone; expiresAt: number } | null;
-  dirty: Dirty;                      // bitmask of regions to repaint
+  dirty: Dirty; // bitmask of regions to repaint
   size: { cols: number; rows: number };
   layout: "wide" | "medium" | "narrow-vertical" | "narrow-list-only";
-  bindings: ResolvedBindings;        // computed once from defaults + overrides
-  actionState: Map<string, { available: boolean; label: string }>;  // memoized predicate/label eval
+  bindings: ResolvedBindings; // computed once from defaults + overrides
+  actionState: Map<string, { available: boolean; label: string }>; // memoized predicate/label eval
 }
 
-type Dirty = number;   // bitwise OR of REGION_HEADER | REGION_LIST | REGION_DETAIL | REGION_FOOTER | REGION_MODAL | REGION_TOAST | REGION_ALL
+type Dirty = number; // bitwise OR of REGION_HEADER | REGION_LIST | REGION_DETAIL | REGION_FOOTER | REGION_MODAL | REGION_TOAST | REGION_ALL
 ```
 
 ### 3.4 Event taxonomy
@@ -846,7 +904,7 @@ type Event =
   | { type: "rowsLoaded"; rows: Row[] }
   | { type: "detailLoaded"; rowId: string; token: number; items: DetailItem[] }
   | { type: "detailError"; rowId: string; token: number; error: Error }
-  | { type: "actionResolved"; actionId: string }      // bumps actionState after async handler returns
+  | { type: "actionResolved"; actionId: string } // bumps actionState after async handler returns
   | { type: "toastExpired" }
   | { type: "suspendResumed"; value: unknown; emit: Event }
   | { type: "modalDismissed"; result: unknown };
@@ -987,32 +1045,62 @@ export function singleDetail<R>(
 
 // Types
 export type Tone = "success" | "warning" | "error" | "info" | "muted";
-export interface Row { id: string; title: string; subtitle?: string;
-  badge?: { text: string; tone?: Tone }; group?: string; }
-export interface DetailItem { id: string; title?: string; subtitle?: string;
+export interface Row {
+  id: string;
+  title: string;
+  subtitle?: string;
   badge?: { text: string; tone?: Tone };
-  render: (ctx: DetailCtx) => string | Promise<string>; }
+  group?: string;
+}
+export interface DetailItem {
+  id: string;
+  title?: string;
+  subtitle?: string;
+  badge?: { text: string; tone?: Tone };
+  render: (ctx: DetailCtx) => string | Promise<string>;
+}
 export interface Detail<R> {
   items: (row: Row, ctx: DetailCtx) => Promise<DetailItem[]>;
-  actions?: Action<R>[]; }
-export interface DetailCtx { width: number; height: number; signal: AbortSignal; row: Row }
-export interface Action<R> { id: string; label: string | (() => string);
-  key?: string | string[]; predicate?: (ctx: ActionContext<R>) => boolean;
+  actions?: Action<R>[];
+}
+export interface DetailCtx {
+  width: number;
+  height: number;
+  signal: AbortSignal;
+  row: Row;
+}
+export interface Action<R> {
+  id: string;
+  label: string | (() => string);
+  key?: string | string[];
+  predicate?: (ctx: ActionContext<R>) => boolean;
   handler: (ctx: ActionContext<R>) => void | Promise<void>;
-  destructive?: boolean; primary?: boolean; showInFooter?: boolean; }
-export interface ActionContext<R> { row: Row; rows: Row[]; item?: DetailItem;
+  destructive?: boolean;
+  primary?: boolean;
+  showInFooter?: boolean;
+}
+export interface ActionContext<R> {
+  row: Row;
+  rows: Row[];
+  item?: DetailItem;
   filter: string;
   refresh: () => Promise<void>;
   suspendAnd: <T>(fn: () => Promise<T>) => Promise<T>;
   toast: (msg: string, tone?: Tone) => void;
   confirm: (prompt: string) => Promise<boolean>;
-  exit: (after?: () => void | Promise<void>) => void; }
-export interface ExplorerConfig<R> { title: string; rows: () => Promise<Row[]>;
-  detail: Detail<R>; actions: Action<R>[];
+  exit: (after?: () => void | Promise<void>) => void;
+}
+export interface ExplorerConfig<R> {
+  title: string;
+  rows: () => Promise<Row[]>;
+  detail: Detail<R>;
+  actions: Action<R>[];
   reorder?: { onReorder: (orderedIds: string[]) => void | Promise<void> };
   multiSelect?: boolean;
   keybindOverrides?: Record<string, string | string[]>;
-  emptyHint?: string; initialFilter?: string; }
+  emptyHint?: string;
+  initialFilter?: string;
+}
 ```
 
 Anything not in this list is internal to `packages/design-system/src/explorer/` and may change without notice.
@@ -1044,7 +1132,7 @@ All tests live alongside their source as `*.test.ts` and run under `vitest`. Spe
 
 #### Render snapshot tests
 
-`render/__snapshots__/` holds ANSI snapshots produced by feeding canonical `ExplorerState` fixtures through the renderer and dumping the resulting `ScreenBuffer`. Snapshots use the existing `cellToAnsi` from `dashboard/buffer.ts` and live on disk (per CLAUDE.md: file-creating tests are forbidden *except* for snapshots).
+`render/__snapshots__/` holds ANSI snapshots produced by feeding canonical `ExplorerState` fixtures through the renderer and dumping the resulting `ScreenBuffer`. Snapshots use the existing `cellToAnsi` from `dashboard/buffer.ts` and live on disk (per CLAUDE.md: file-creating tests are forbidden _except_ for snapshots).
 
 - **`render/list.test.ts`** — wide list, multi-select active, filter active with highlights, grouped rows, empty list.
 - **`render/detail.test.ts`** — single-detail mode (markdown blob), list-detail mode (titled items), loading spinner, error.
@@ -1126,4 +1214,4 @@ Anything outside this list (consumer migrations, real-data demos, dashboard refa
 
 ## 5. Code plan
 
-*To be drafted in the next pass.*
+_To be drafted in the next pass._

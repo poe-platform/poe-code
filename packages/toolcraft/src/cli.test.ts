@@ -799,13 +799,14 @@ describe("runCLI", () => {
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Global options
+      Options
         --yes  Accept defaults, skip prompts
         --output <format>  Output format: rich, md, json.
         --debug  Print stack traces for unexpected errors.
       "
     `);
-    expect(output).toContain("Global options");
+    expect(output).toContain("Options");
+    expect(output).not.toContain("Global options");
     expect(output).not.toContain("--preset");
     expect(output).toContain("--yes");
     expect(output).toContain("--output <format>");
@@ -843,7 +844,7 @@ describe("runCLI", () => {
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Global options
+      Options
         --preset <path>  Load parameter defaults from a JSON file
         --yes  Accept defaults, skip prompts
         --output <format>  Output format: rich, md, json.
@@ -851,7 +852,8 @@ describe("runCLI", () => {
         --version  Show version
       "
     `);
-    expect(output).toContain("Global options");
+    expect(output).toContain("Options");
+    expect(output).not.toContain("Global options");
     expect(output).toContain("--preset <path>");
     expect(output).toContain("--version");
     expect(output).not.toContain("-h, --help");
@@ -2979,7 +2981,7 @@ describe("runCLI", () => {
         deploy
         approvals   Inspect and execute queued approvals.
 
-      Global options
+      Options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
         --debug             Print stack traces for unexpected errors.
@@ -3155,7 +3157,7 @@ describe("runCLI", () => {
         sibling     Sibling leaf
         approvals   Inspect and execute queued approvals.
 
-      Global options
+      Options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
         --debug             Print stack traces for unexpected errors.
@@ -3228,7 +3230,7 @@ describe("runCLI", () => {
         approvals                       Inspect and execute queued
                                         approvals.
 
-      Global options
+      Options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
         --debug             Print stack traces for unexpected
@@ -3268,7 +3270,7 @@ describe("runCLI", () => {
         deploy      Deploy a service
         approvals   Inspect and execute queued approvals.
 
-      Global options
+      Options
         --yes               Accept defaults, skip prompts
         --output <format>   Output format: rich, md, json.
         --debug             Print stack traces for unexpected errors.
@@ -3341,7 +3343,7 @@ describe("runCLI", () => {
     expect(dryRunCount).toBe(1);
     expect(verboseCount).toBe(1);
     expect(debugCount).toBe(1);
-    expect(rootHelp).toContain("Global options");
+    expect(rootHelp).toContain("Options");
     expect(rootHelp).toMatch(/-v,\s*--verbose\s+Log the request line to stderr/);
     expect(rootHelp).toMatch(/--debug\s+Print stack traces for unexpected errors/);
 

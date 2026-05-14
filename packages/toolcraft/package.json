@@ -1,6 +1,6 @@
 {
   "name": "toolcraft",
-  "version": "0.0.1",
+  "version": "0.0.4",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -77,7 +77,7 @@
     "auth-store"
   ],
   "optionalDependencies": {
-    "@poe-code/design-system": "^0.0.1",
+    "@poe-code/design-system": "^0.0.2",
     "@poe-code/agent-mcp-config": "*",
     "@poe-code/agent-human-in-loop": "*",
     "@poe-code/task-list": "*",

@@ -1,15 +1,13 @@
 import type { AcpMiddleware, AcpSpawnContext as SpawnContext } from "@poe-code/agent-spawn";
+import { acpToTrace, emitToBraintrust, type BraintrustSpanLike } from "@poe-code/acp-telemetry";
 
 import type { BraintrustClient } from "../client.js";
-import { logSpawnSession } from "../span-builder.js";
 
 type SpawnContextWithMetadata = SpawnContext & {
   metadata?: Record<string, unknown>;
 };
 
-export function createSpawnMiddleware(
-  client: BraintrustClient,
-): AcpMiddleware {
+export function createSpawnMiddleware(client: BraintrustClient): AcpMiddleware {
   return async (ctx, next) => {
     try {
       await next();
@@ -17,11 +15,16 @@ export function createSpawnMiddleware(
       const metadataCtx = ctx as SpawnContextWithMetadata;
       metadataCtx.metadata = {
         ...metadataCtx.metadata,
-        aborted: true,
+        aborted: true
       };
       throw err;
     } finally {
-      await logSpawnSession(client, ctx);
+      try {
+        const { currentSpan } = await import("braintrust");
+        emitToBraintrust(acpToTrace(ctx), currentSpan() as BraintrustSpanLike);
+      } catch (err) {
+        client.recordError(err, "log spawn session");
+      }
     }
   };
 }

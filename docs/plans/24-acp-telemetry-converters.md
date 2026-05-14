@@ -252,7 +252,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: braintrust-adapter-glue
     title: Shrink @poe-code/braintrust spawn adapter to acp-telemetry glue
@@ -304,9 +304,9 @@ tasks:
       against a Braintrust-configured profile still produces a session
       log (manual smoke).
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: emit-to-otel
     title: Add emitToOtel sink mapping AcpTrace to OTEL gen_ai semconv

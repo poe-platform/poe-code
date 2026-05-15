@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { parse, type ParseResult } from "../parse.js";
+import { parse, type ParseResult, type Statement } from "../parse.js";
 import { Budget, SandboxError } from "./budget.js";
 import { createConsoleJsonGlobals } from "./globals/console-json.js";
 import { createErrorGlobals } from "./globals/error.js";
@@ -1039,7 +1039,169 @@ describe("interpret", () => {
       returnValue: "boom"
     });
   });
+
+  it("evaluates a truthy if consequent return", async () => {
+    await expect(
+      interpret(block(parse("if (true) { return 1; }"), parse("return 2;")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+  });
+
+  it("skips a falsy if consequent and continues", async () => {
+    await expect(
+      interpret(block(parse("if (false) { return 1; }"), parse("return 2;")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+  });
+
+  it.each([
+    [1, "a"],
+    [2, "b"]
+  ])("evaluates if tests through binary expressions for x=%s", async (x, expected) => {
+    await expect(
+      interpret(block(parse('if (x === 1) { return "a"; }'), parse('return "b";')), {
+        bindings: { x }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it("evaluates an else block when the if test is falsy", async () => {
+    await expect(
+      interpret(parse("if (false) { return 1; } else { return 2; }"))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+  });
+
+  it("returns the first truthy branch in an else-if chain", async () => {
+    await expect(
+      interpret(
+        parse(
+          'if (true) { return "first"; } else if (true) { return "second"; } else { return "else"; }'
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "first"
+    });
+  });
+
+  it("returns the second branch in an else-if chain when the first branch is falsy", async () => {
+    await expect(
+      interpret(
+        parse(
+          'if (false) { return "first"; } else if (true) { return "second"; } else { return "else"; }'
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "second"
+    });
+  });
+
+  it("returns the else branch in an else-if chain when all tests are falsy", async () => {
+    await expect(
+      interpret(
+        parse(
+          'if (false) { return "first"; } else if (false) { return "second"; } else { return "else"; }'
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "else"
+    });
+  });
+
+  it("surfaces a nested if result from inside an if block", async () => {
+    await expect(
+      interpret(parse('if (true) { if (true) { return "inner"; } return "outer"; }'))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "inner"
+    });
+  });
+
+  it("exits the enclosing arrow when returning inside an if block", async () => {
+    await expect(
+      interpret(parse("return (() => { if (true) { return 1; } return 2; })()"))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+  });
+
+  it("propagates throws from inside an if block", async () => {
+    await expect(interpret(parse('if (true) { throw "boom"; }'))).rejects.toBe("boom");
+  });
+
+  it("returns no value for a falsy if without an alternate", async () => {
+    await expect(interpret(parse("if (false) { return 1; }"))).resolves.toEqual({
+      ok: true,
+      snapshot: {
+        bindings: {}
+      },
+      stats: {
+        nodeVisits: 2
+      }
+    });
+  });
+
+  it.each(["0", '""', "null", "undefined"])("treats if (%s) as falsy", async (test) => {
+    await expect(
+      interpret(block(parse(`if (${test}) { return "truthy"; }`), parse('return "falsy";')))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "falsy"
+    });
+  });
+
+  it.each(["1", '"x"', "{}", "[]"])("treats if (%s) as truthy", async (test) => {
+    await expect(
+      interpret(block(parse(`if (${test}) { return "truthy"; }`), parse('return "falsy";')))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "truthy"
+    });
+  });
+
+  it("does not charge budget for a skipped if branch", async () => {
+    await expect(
+      interpret(
+        block(parse('if (false) { return missing.value.call("skipped"); }'), parse("return 2;")),
+        {
+          budget: new Budget({
+            maxSteps: 5
+          })
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2,
+      stats: {
+        nodeVisits: 5
+      }
+    });
+  });
 });
+
+function block(...statements: Statement[]): ParseResult {
+  return {
+    type: "BlockStatement",
+    body: statements,
+    span: {
+      start: statements[0]?.span.start ?? span(1, 1, 0).start,
+      end: statements.at(-1)?.span.end ?? span(1, 1, 0).end
+    }
+  };
+}
 
 function span(line: number, column: number, offset: number) {
   return {

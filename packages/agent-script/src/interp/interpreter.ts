@@ -11,6 +11,7 @@ import type {
   Identifier,
   ExportDefaultDeclaration,
   ExportNamedDeclaration,
+  IfStatement,
   MemberExpression,
   MetaProperty,
   NullLiteral,
@@ -147,6 +148,7 @@ const dispatchTable: DispatchTable = {
   ExportDefaultDeclaration: evaluateExportDefaultDeclaration,
   ExportNamedDeclaration: evaluateExportNamedDeclaration,
   ExpressionStatement: evaluateExpressionStatement,
+  IfStatement: evaluateIfStatement,
   Identifier: evaluateIdentifier,
   MemberExpression: evaluateMemberExpression,
   MetaProperty: evaluateMetaProperty,
@@ -484,6 +486,27 @@ async function evaluateBlockStatement(
     hasValue: false,
     value: undefined
   };
+}
+
+async function evaluateIfStatement(
+  node: IfStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const test = await evaluateNode(node.test, context);
+  if (test.kind !== "normal") {
+    return test;
+  }
+
+  const branch = isTruthy(test.value) ? node.consequent : node.alternate;
+  if (branch === undefined) {
+    return {
+      kind: "normal",
+      hasValue: false,
+      value: undefined
+    };
+  }
+
+  return evaluateNode(branch, context);
 }
 
 async function evaluateExpressionStatement(
@@ -929,6 +952,10 @@ function applyUnaryOperator(
     case "~":
       return ~(value as number);
   }
+}
+
+function isTruthy(value: InterpreterValue): boolean {
+  return applyUnaryOperator("!", value) === false;
 }
 
 function applyBinaryOperator(

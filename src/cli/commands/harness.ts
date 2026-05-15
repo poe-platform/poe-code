@@ -14,7 +14,8 @@ import {
   makeGitModule,
   makeHarnessModule,
   makeLogModule,
-  makeMetricModule
+  makeMetricModule,
+  restore
 } from "@poe-code/agent-script";
 import {
   cancel,
@@ -31,6 +32,8 @@ import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 
 type HarnessRunOptions = {
+  resume?: boolean;
+  snapshotPath?: string;
   yes?: boolean;
 };
 
@@ -54,6 +57,8 @@ export function registerHarnessCommand(program: Command, container: CliContainer
     .command("run")
     .description("Run a harness pair.")
     .argument("[md-path]", "Path to the harness .md file")
+    .option("--snapshot-path <path>", "File to write/read harness snapshots.")
+    .option("--resume", "Resume from the snapshot file when it exists.")
     .option("-y, --yes", "Accept defaults without prompting.")
     .action(async (mdPath: string | undefined, options: HarnessRunOptions) => {
       await executeHarnessRun(program, container, mdPath, options);
@@ -89,19 +94,159 @@ async function executeHarnessRun(
   const selectedPath = mdPath
     ? path.resolve(container.env.cwd, mdPath)
     : (await resolveDiscoveredHarness(container, flags.assumeYes)).mdPath;
+  const snapshotPath = resolveRunSnapshotPath(container, selectedPath, options.snapshotPath);
+  await prepareHarnessSnapshot(container, selectedPath, snapshotPath, Boolean(options.resume));
 
   resources.logger.intro("harness run");
 
+  const baseMessage = `Running ${formatDisplayPath(container, selectedPath)}`;
+  const progress = createSnapshotProgressReader(container, snapshotPath);
   const result = await withSpinner({
-    message: `Running ${formatDisplayPath(container, selectedPath)}`,
+    message: () => formatRunMessage(baseMessage, progress.current()),
     fn: () =>
       runHarnessPair(selectedPath, {
-        modulesFor: (frontmatter, meta) => createHarnessModules(container, frontmatter, meta)
+        modulesFor: (frontmatter, meta) => createHarnessModules(container, frontmatter, meta),
+        resume: Boolean(options.resume),
+        snapshotPath
       }),
     stopMessage: () => `Ran ${formatDisplayPath(container, selectedPath)}`
   });
 
   resources.logger.info(JSON.stringify(result, null, 2));
+}
+
+function resolveRunSnapshotPath(
+  container: CliContainer,
+  mdPath: string,
+  snapshotPath: string | undefined
+): string {
+  if (snapshotPath !== undefined) {
+    return path.resolve(container.env.cwd, snapshotPath);
+  }
+
+  const basename = path.basename(mdPath, path.extname(mdPath));
+  return path.join(container.env.cwd, ".poe-code", "harnesses", basename, "snapshot.json");
+}
+
+async function prepareHarnessSnapshot(
+  container: CliContainer,
+  mdPath: string,
+  snapshotPath: string,
+  resumeRequested: boolean
+): Promise<void> {
+  const snapshotExists = await pathExists(container, snapshotPath);
+
+  if (!resumeRequested) {
+    return;
+  }
+
+  if (!snapshotExists) {
+    return;
+  }
+
+  const [snapshotSource, scriptSource] = await Promise.all([
+    container.fs.readFile(snapshotPath, "utf8"),
+    container.fs.readFile(resolveAjsPath(mdPath), "utf8")
+  ]);
+
+  try {
+    restore(JSON.parse(snapshotSource) as Parameters<typeof restore>[0], { source: scriptSource });
+  } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message.includes("source changed since snapshot was taken")
+    ) {
+      throw new ValidationError(
+        `Cannot resume harness from ${formatDisplayPath(container, snapshotPath)}: source changed since the snapshot was taken. The .ajs script was edited; start a fresh run without --resume to discard the old snapshot.`
+      );
+    }
+
+    throw error;
+  }
+}
+
+function createSnapshotProgressReader(
+  container: CliContainer,
+  snapshotPath: string
+): { current(): string | undefined } {
+  let progress: string | undefined;
+  let lastReadStartedAt = 0;
+
+  return {
+    current() {
+      const now = Date.now();
+      if (now - lastReadStartedAt > 750) {
+        lastReadStartedAt = now;
+        void readSnapshotProgress(container, snapshotPath).then((next) => {
+          if (next !== undefined) {
+            progress = next;
+          }
+        });
+      }
+
+      return progress;
+    }
+  };
+}
+
+async function readSnapshotProgress(
+  container: CliContainer,
+  snapshotPath: string
+): Promise<string | undefined> {
+  try {
+    const parsed = JSON.parse(await container.fs.readFile(snapshotPath, "utf8")) as unknown;
+    const step = readSnapshotStep(parsed);
+    return step === undefined ? undefined : `step ${step}`;
+  } catch {
+    return undefined;
+  }
+}
+
+function readSnapshotStep(snapshot: unknown): number | undefined {
+  if (typeof snapshot !== "object" || snapshot === null) {
+    return undefined;
+  }
+
+  const record = snapshot as Record<string, unknown>;
+  for (const key of ["step", "currentStep", "currentAstNodeId"]) {
+    const value = record[key];
+    if (typeof value === "number" && Number.isFinite(value)) {
+      return value;
+    }
+  }
+
+  return undefined;
+}
+
+function formatRunMessage(baseMessage: string, progress: string | undefined): string {
+  return progress === undefined ? baseMessage : `${baseMessage} (${progress})`;
+}
+
+function resolveAjsPath(mdPath: string): string {
+  const parsed = path.parse(mdPath);
+  return path.join(parsed.dir, `${parsed.name}.ajs`);
+}
+
+async function pathExists(container: CliContainer, targetPath: string): Promise<boolean> {
+  try {
+    await container.fs.stat(targetPath);
+    return true;
+  } catch (error) {
+    if (hasErrorCode(error, "ENOENT")) {
+      return false;
+    }
+
+    throw error;
+  }
+}
+
+function hasErrorCode(error: unknown, code: string): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === code
+  );
 }
 
 async function executeHarnessNew(
@@ -290,18 +435,6 @@ async function assertFilesDoNotExist(container: CliContainer, filePaths: string[
         `Refusing to overwrite existing file: ${formatDisplayPath(container, filePath)}`
       );
     }
-  }
-}
-
-async function pathExists(container: CliContainer, filePath: string): Promise<boolean> {
-  try {
-    await container.fs.stat(filePath);
-    return true;
-  } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
-      return false;
-    }
-    throw error;
   }
 }
 

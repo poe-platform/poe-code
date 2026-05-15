@@ -30,7 +30,9 @@ describe("runHarnessPair", () => {
   it("validates frontmatter, invokes the default export with the validated value, and returns its result", async () => {
     const mdPath = "/repo/harness/review.md";
     vol.fromJSON({
-      [mdPath]: ["---", "kind: review", "version: 1", "title: Build", "---", "", "# Review"].join("\n"),
+      [mdPath]: ["---", "kind: review", "version: 1", "title: Build", "---", "", "# Review"].join(
+        "\n"
+      ),
       "/repo/harness/review.ajs": [
         'import { check } from "test";',
         'import { S } from "schema";',
@@ -114,7 +116,9 @@ describe("runHarnessPair", () => {
     const mdPath = "/repo/harness/invalid.md";
     const snapshotPath = "/snapshots/invalid.json";
     vol.fromJSON({
-      [mdPath]: ["---", "kind: review", "version: 1", "title: 123", "---", "", "# Invalid"].join("\n"),
+      [mdPath]: ["---", "kind: review", "version: 1", "title: 123", "---", "", "# Invalid"].join(
+        "\n"
+      ),
       "/repo/harness/invalid.ajs": [
         'import { S } from "schema";',
         "export const schema = S.Object({ title: S.String() });",
@@ -166,7 +170,8 @@ describe("runHarnessPair", () => {
     const mdPath = "/repo/harness/allowed-global.md";
     vol.fromJSON({
       [mdPath]: "---\nkind: review\nversion: 1\n---\n",
-      "/repo/harness/allowed-global.ajs": "const unused = () => Custom.x;\nexport default () => 'ok';"
+      "/repo/harness/allowed-global.ajs":
+        "const unused = () => Custom.x;\nexport default () => 'ok';"
     });
 
     await expect(
@@ -294,6 +299,41 @@ describe("runHarnessPair", () => {
       returnValue: "second"
     });
     expect(secondRead).toHaveBeenCalledTimes(1);
+  });
+
+  it("starts fresh with an existing snapshotPath when resume is false", async () => {
+    const mdPath = "/repo/harness/no-resume.md";
+    const snapshotPath = "/snapshots/no-resume.json";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: fresh\nversion: 1\n---\n",
+      "/repo/harness/no-resume.ajs": [
+        'import { read } from "host";',
+        "export default async () => read();"
+      ].join("\n"),
+      [snapshotPath]: JSON.stringify({ sourceHash: "stale" }),
+      [`${snapshotPath}.host-calls.json`]: JSON.stringify([
+        { key: "host.read", args: [], result: "stale" }
+      ])
+    });
+
+    const read = vi.fn(() => "fresh");
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({
+          host: {
+            read
+          }
+        }),
+        resume: false,
+        snapshotPath
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "fresh"
+    });
+    expect(read).toHaveBeenCalledTimes(1);
+    expect(vol.existsSync(snapshotPath)).toBe(false);
+    expect(vol.existsSync(`${snapshotPath}.host-calls.json`)).toBe(false);
   });
 
   it("rejects a concurrent run against the same .md while the first run holds the lock", async () => {

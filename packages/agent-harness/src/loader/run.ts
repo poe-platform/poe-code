@@ -3,13 +3,7 @@ import os from "node:os";
 import { dirname, join } from "node:path";
 
 import { lockWorkflow, resolveRunLogDir } from "@poe-code/agent-harness-tools";
-import {
-  lint,
-  parseModule,
-  run,
-  splitFrontmatter,
-  type Diagnostic
-} from "@poe-code/agent-script";
+import { lint, parseModule, run, splitFrontmatter, type Diagnostic } from "@poe-code/agent-script";
 
 import { makeSchemaModule } from "../modules/schema.js";
 import { extractSchema } from "./extract-schema.js";
@@ -32,10 +26,8 @@ export type HarnessImportMeta = {
 
 export type RunHarnessPairOptions = {
   allowedGlobals?: LintOptions["allowedGlobals"];
-  modulesFor: (
-    frontmatter: Record<string, unknown>,
-    meta: HarnessImportMeta
-  ) => ModuleRegistry;
+  modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessImportMeta) => ModuleRegistry;
+  resume?: boolean;
   signal?: AbortSignal;
   snapshotPath?: string;
 };
@@ -75,8 +67,14 @@ export async function runHarnessPair(
       body
     };
     const snapshotPath = resolveSnapshotPath(pair.mdPath, options.snapshotPath);
+    const shouldResume = options.resume ?? true;
+    if (!shouldResume) {
+      await cleanupCompletedSnapshot(snapshotPath);
+    }
     const hostCallReplay = await createHostCallReplay(snapshotPath);
-    const modules = withSchemaModule(hostCallReplay.wrapModules(options.modulesFor(validated, meta)));
+    const modules = withSchemaModule(
+      hostCallReplay.wrapModules(options.modulesFor(validated, meta))
+    );
 
     throwOnLintErrors([
       ...lint(ajsSource, {
@@ -88,7 +86,7 @@ export async function runHarnessPair(
       ...missingDefaultExportDiagnostics(ajsSource, pair.ajsPath)
     ]);
 
-    const snapshot = await readSnapshot(snapshotPath);
+    const snapshot = shouldResume ? await readSnapshot(snapshotPath) : undefined;
 
     let result: RunResult;
     try {
@@ -140,7 +138,9 @@ function throwOnLintErrors(diagnostics: readonly Diagnostic[]): void {
 
 function missingDefaultExportDiagnostics(source: string, filename: string): Diagnostic[] {
   const module = parseModule(source, filename);
-  const hasDefaultExport = module.body.some((statement) => statement.type === "ExportDefaultDeclaration");
+  const hasDefaultExport = module.body.some(
+    (statement) => statement.type === "ExportDefaultDeclaration"
+  );
   if (hasDefaultExport) {
     return [];
   }
@@ -342,13 +342,18 @@ function createLintModules(modules: ModuleRegistry): NonNullable<LintOptions["mo
   const entries = modules instanceof Map ? [...modules.entries()] : Object.entries(modules);
 
   return new Map(
-    entries.map(([moduleName, moduleExports]) => [moduleName, listModuleExports(moduleExports)] as const)
+    entries.map(
+      ([moduleName, moduleExports]) => [moduleName, listModuleExports(moduleExports)] as const
+    )
   );
 }
 
 function listModuleExports(moduleExports: ModuleExports): string[] {
-  const exportNames = moduleExports instanceof Map ? [...moduleExports.keys()] : Object.keys(moduleExports);
-  return exportNames.filter((exportName) => exportName.length > 0).sort((left, right) => left.localeCompare(right));
+  const exportNames =
+    moduleExports instanceof Map ? [...moduleExports.keys()] : Object.keys(moduleExports);
+  return exportNames
+    .filter((exportName) => exportName.length > 0)
+    .sort((left, right) => left.localeCompare(right));
 }
 
 function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined): string {

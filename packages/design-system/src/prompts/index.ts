@@ -30,9 +30,7 @@ export interface SelectOptions<Value> {
   initialValue?: Value;
 }
 
-export async function select<Value>(
-  opts: SelectOptions<Value>
-): Promise<Value | symbol> {
+export async function select<Value>(opts: SelectOptions<Value>): Promise<Value | symbol> {
   return clack.select(opts as Parameters<typeof clack.select<Value>>[0]);
 }
 
@@ -110,7 +108,7 @@ export type SpinnerOptions = {
 };
 
 export interface WithSpinnerOptions<T> {
-  message: string;
+  message: string | (() => string);
   fn: () => Promise<T>;
   stopMessage?: (result: T) => string;
   subtext?: (result: T) => string | undefined;
@@ -128,6 +126,7 @@ function formatElapsed(ms: number): string {
 
 export async function withSpinner<T>(options: WithSpinnerOptions<T>): Promise<T> {
   const { message, fn, stopMessage, subtext } = options;
+  const readMessage = () => (typeof message === "function" ? message() : message);
 
   if (resolveOutputFormat() === "json") {
     const result = await fn();
@@ -158,10 +157,10 @@ export async function withSpinner<T>(options: WithSpinnerOptions<T>): Promise<T>
 
   const s = spinner();
   const start = Date.now();
-  s.start(message);
+  s.start(readMessage());
 
   const timer = setInterval(() => {
-    s.message(`${message} [${formatElapsed(Date.now() - start)}]`);
+    s.message(`${readMessage()} [${formatElapsed(Date.now() - start)}]`);
   }, 1000);
 
   try {

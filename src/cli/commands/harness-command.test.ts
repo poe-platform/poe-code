@@ -38,7 +38,12 @@ vi.mock("@poe-code/design-system", async () => {
     ...actual,
     select: harnessMocks.selectMock,
     promptText: harnessMocks.promptTextMock,
-    withSpinner: async <T>(options: { fn: () => Promise<T> }) => options.fn()
+    withSpinner: async <T>(options: { message: string | (() => string); fn: () => Promise<T> }) => {
+      if (typeof options.message === "function") {
+        options.message();
+      }
+      return options.fn();
+    }
   };
 });
 
@@ -51,6 +56,7 @@ vi.mock("../../providers/index.js", () => ({
 }));
 
 const { registerHarnessCommand } = await import("./harness.js");
+const { run: runAgentScript } = await import("@poe-code/agent-script");
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -78,11 +84,45 @@ async function runHarnessCommand(args: string[], logs: string[] = []): Promise<v
   await program.parseAsync(["node", "cli", ...args]);
 }
 
-function writePair(root: string, basename: string): void {
+function writePair(
+  root: string,
+  basename: string,
+  ajsSource = "export default () => true;\n"
+): void {
   vol.fromJSON({
     [path.join(root, basename, `${basename}.md`)]: "---\nkind: test\nversion: 1\n---\n",
-    [path.join(root, basename, `${basename}.ajs`)]: "export default () => true;\n"
+    [path.join(root, basename, `${basename}.ajs`)]: ajsSource
   });
+}
+
+function createDeferred<T = void>(): {
+  promise: Promise<T>;
+  reject: (error: unknown) => void;
+  resolve: (value: T | PromiseLike<T>) => void;
+} {
+  let reject: (error: unknown) => void = () => undefined;
+  let resolve: (value: T | PromiseLike<T>) => void = () => undefined;
+  const promise = new Promise<T>((innerResolve, innerReject) => {
+    resolve = innerResolve;
+    reject = innerReject;
+  });
+  return { promise, reject, resolve };
+}
+
+async function waitForPath(filePath: string): Promise<void> {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < 1_000) {
+    if (vol.existsSync(filePath)) {
+      return;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+  throw new Error(`Timed out waiting for ${filePath}`);
+}
+
+async function snapshotForSource(source: string): Promise<string> {
+  const result = await runAgentScript(source);
+  return JSON.stringify(result.snapshot, null, 2);
 }
 
 describe("harness command", () => {
@@ -91,6 +131,8 @@ describe("harness command", () => {
     vol.mkdirSync(cwd, { recursive: true });
     vol.mkdirSync(homeDir, { recursive: true });
     vol.fromJSON({
+      "/repo/harness.md": "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness.ajs": "export default () => true;\n",
       "/templates/demo.md": "---\nkind: demo\nversion: 1\n---\n# Demo\n",
       "/templates/demo.ajs": "export default () => true;\n"
     });
@@ -141,6 +183,152 @@ describe("harness command", () => {
       "codex",
       expect.objectContaining({ cwd: "/repo", prompt: "Build it" })
     );
+  });
+
+  it("passes an explicit snapshot path and writes checkpoints while running", async () => {
+    const snapshotPath = "/repo/tmp/harness.snapshot.json";
+    const runFinished = createDeferred();
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      await memfs.promises.mkdir(path.dirname(options.snapshotPath), { recursive: true });
+      await memfs.promises.writeFile(options.snapshotPath, JSON.stringify({ step: 1 }));
+      await runFinished.promise;
+      return { ok: true, returnValue: "done" };
+    });
+
+    const command = runHarnessCommand([
+      "harness",
+      "run",
+      "harness.md",
+      "--snapshot-path",
+      "tmp/harness.snapshot.json"
+    ]);
+
+    await waitForPath(snapshotPath);
+    await expect(memfs.promises.readFile(snapshotPath, "utf8")).resolves.toContain('"step":1');
+    runFinished.resolve();
+    await command;
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({ snapshotPath })
+    );
+  });
+
+  it("resumes from an existing snapshot after an interrupted run", async () => {
+    const source = "export default () => true;\n";
+    const snapshotPath = "/repo/tmp/resume.snapshot.json";
+    harnessMocks.runHarnessPairMock.mockImplementationOnce(async (_mdPath, options) => {
+      await memfs.promises.mkdir(path.dirname(options.snapshotPath), { recursive: true });
+      await memfs.promises.writeFile(options.snapshotPath, await snapshotForSource(source));
+      throw new Error("interrupted");
+    });
+    harnessMocks.runHarnessPairMock.mockResolvedValueOnce({ ok: true, returnValue: "resumed" });
+
+    await expect(
+      runHarnessCommand(["harness", "run", "harness.md", "--snapshot-path", snapshotPath])
+    ).rejects.toThrow("interrupted");
+
+    await runHarnessCommand([
+      "harness",
+      "run",
+      "harness.md",
+      "--snapshot-path",
+      snapshotPath,
+      "--resume"
+    ]);
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenLastCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({ snapshotPath })
+    );
+  });
+
+  it("fails resume clearly when the .ajs source changed", async () => {
+    const snapshotPath = "/repo/tmp/source-changed.snapshot.json";
+    await memfs.promises.mkdir(path.dirname(snapshotPath), { recursive: true });
+    await memfs.promises.writeFile(
+      snapshotPath,
+      await snapshotForSource("export default () => true;\n")
+    );
+    await memfs.promises.writeFile("/repo/harness.ajs", "export default () => false;\n");
+
+    await expect(
+      runHarnessCommand([
+        "harness",
+        "run",
+        "harness.md",
+        "--snapshot-path",
+        snapshotPath,
+        "--resume"
+      ])
+    ).rejects.toThrow(/source changed.*script was edited/i);
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+  });
+
+  it("starts fresh when --resume is set and the snapshot file does not exist", async () => {
+    const snapshotPath = "/repo/tmp/missing.snapshot.json";
+
+    await runHarnessCommand([
+      "harness",
+      "run",
+      "harness.md",
+      "--snapshot-path",
+      snapshotPath,
+      "--resume"
+    ]);
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({ snapshotPath })
+    );
+  });
+
+  it("writes the default snapshot path under .poe-code/harnesses/<basename>", async () => {
+    const snapshotPath = "/repo/.poe-code/harnesses/harness/snapshot.json";
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      await memfs.promises.mkdir(path.dirname(options.snapshotPath), { recursive: true });
+      await memfs.promises.writeFile(options.snapshotPath, JSON.stringify({ step: 2 }));
+      return { ok: true, returnValue: "done" };
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"]);
+
+    await expect(memfs.promises.readFile(snapshotPath, "utf8")).resolves.toContain('"step":2');
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({ snapshotPath })
+    );
+  });
+
+  it("surfaces the existing lock error for concurrent invocations with the same snapshot path", async () => {
+    const snapshotPath = "/repo/tmp/concurrent.snapshot.json";
+    const releaseFirstRun = createDeferred();
+    let inFlight = false;
+    harnessMocks.runHarnessPairMock.mockImplementation(async () => {
+      if (inFlight) {
+        throw new Error('Failed to acquire lock on "/repo/harness.md".');
+      }
+      inFlight = true;
+      await releaseFirstRun.promise;
+      inFlight = false;
+      return { ok: true, returnValue: "done" };
+    });
+
+    const first = runHarnessCommand([
+      "harness",
+      "run",
+      "harness.md",
+      "--snapshot-path",
+      snapshotPath
+    ]);
+    await vi.waitFor(() => expect(inFlight).toBe(true));
+
+    await expect(
+      runHarnessCommand(["harness", "run", "harness.md", "--snapshot-path", snapshotPath])
+    ).rejects.toThrow(/failed to acquire lock/i);
+
+    releaseFirstRun.resolve();
+    await first;
   });
 
   it("runs the single discovered project harness when no path is provided", async () => {

@@ -411,7 +411,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-spread-object-literal
     title: Support spread in object literals
@@ -443,8 +443,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): object spread in literals`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: add-destructuring-const

@@ -16,6 +16,7 @@ describe("harness schema codegen", () => {
     await expect(
       fs.readdir("/repo/docs/schemas/harnesses").then((entries) => [...entries].sort())
     ).resolves.toEqual([
+      "coverage-demo.schema.json",
       "experiment-demo.schema.json",
       "pipeline-demo.schema.json",
       "ralph-demo.schema.json",
@@ -23,6 +24,7 @@ describe("harness schema codegen", () => {
     ]);
 
     for (const kind of [
+      "coverage-demo",
       "experiment-demo",
       "pipeline-demo",
       "ralph-demo",
@@ -39,7 +41,10 @@ describe("harness schema codegen", () => {
       expect(schema.$id).toBe(
         `https://poe-platform.github.io/poe-code/schemas/harnesses/${kind}.schema.json`
       );
-      expect(schema.properties).toHaveProperty("$schema");
+      expect(schema.properties).toHaveProperty("kind");
+      if (kind !== "coverage-demo") {
+        expect(schema.properties).toHaveProperty("$schema");
+      }
     }
   });
 

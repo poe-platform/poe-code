@@ -21,9 +21,10 @@ describe("builtin harness templates", () => {
     expect(api.listBuiltinTemplates).toBe(listBuiltinTemplates);
   });
 
-  it("lists the four demo template pairs", () => {
+  it("lists the five demo template pairs", () => {
     expect(listBuiltinTemplates().map((template) => template.kind)).toEqual([
       "ralph-demo",
+      "coverage-demo",
       "experiment-demo",
       "pipeline-demo",
       "superintendent-demo"
@@ -65,7 +66,9 @@ describe("builtin harness templates", () => {
         summary: `stub summary ${spawn.mock.calls.length}`
       }));
       const event = vi.fn((name: string, payload: Record<string, unknown>) => {
-        flow.push(`${name}:${String(payload.id ?? payload.attempt ?? payload.iteration ?? payload.round)}`);
+        flow.push(
+          `${name}:${String(payload.id ?? payload.attempt ?? payload.iteration ?? payload.round)}`
+        );
       });
       spawn.mockImplementation(async (_agent, options: { prompt: string }) => {
         flow.push(`spawn:${options.prompt.split("\n", 1)[0]}`);
@@ -97,7 +100,11 @@ describe("builtin harness templates", () => {
       expect(result).toMatchObject({
         ok: true
       });
-      expect(spawn).toHaveBeenCalled();
+      if (template.kind === "coverage-demo") {
+        expect(spawn).not.toHaveBeenCalled();
+      } else {
+        expect(spawn).toHaveBeenCalled();
+      }
       expect(result.ok ? result.returnValue : undefined).toMatchObject({
         kind: template.kind
       });
@@ -107,6 +114,7 @@ describe("builtin harness templates", () => {
 });
 
 const expectedFlow: Record<string, string[]> = {
+  "coverage-demo": [],
   "ralph-demo": [
     "spawn:Improve the current repository state while preserving tests.",
     "iteration.completed:inspect",

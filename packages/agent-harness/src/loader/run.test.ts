@@ -1,6 +1,9 @@
+import { readFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
+
+import { lint } from "@poe-code/agent-script";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -12,6 +15,21 @@ vi.mock("node:fs/promises", async () => {
 
 const { runHarnessPair } = await import("./run.js");
 const api = await import("../index.js");
+
+const expectedCoverageDemoReturnValue = {
+  kind: "coverage-demo",
+  version: 1,
+  message: "coverage-demo:high:short-circuit-ok",
+  numbers: {
+    first: 1,
+    second: 2,
+    third: 3,
+    optionalValue: 4,
+    total: 18
+  },
+  branches: ["if", "else-if", "else"],
+  comparison: true
+};
 
 describe("runHarnessPair", () => {
   beforeEach(() => {
@@ -25,6 +43,98 @@ describe("runHarnessPair", () => {
 
   it("is re-exported from the package entrypoint", () => {
     expect(api.runHarnessPair).toBe(runHarnessPair);
+  });
+
+  it("runs the coverage demo template with a stub agent module and returns a stable exact value", async () => {
+    const mdPath = "/repo/templates/coverage-demo/coverage-demo.md";
+    vol.fromJSON({
+      [mdPath]: readCoverageDemoTemplate("coverage-demo.md"),
+      "/repo/templates/coverage-demo/coverage-demo.ajs":
+        readCoverageDemoTemplate("coverage-demo.ajs")
+    });
+
+    const spawn = vi.fn();
+    const first = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: {
+          spawn
+        }
+      })
+    });
+    const second = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: {
+          spawn
+        }
+      })
+    });
+
+    expect(first).toMatchObject({
+      ok: true,
+      returnValue: expectedCoverageDemoReturnValue
+    });
+    expect(second).toMatchObject({
+      ok: true,
+      returnValue: expectedCoverageDemoReturnValue
+    });
+    expect(first.ok ? first.returnValue : undefined).toEqual(
+      second.ok ? second.returnValue : undefined
+    );
+    expect(spawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects a saved coverage demo snapshot after the .ajs source changes", async () => {
+    const mdPath = "/repo/templates/coverage-demo/coverage-demo.md";
+    const ajsPath = "/repo/templates/coverage-demo/coverage-demo.ajs";
+    const snapshotPath = "/snapshots/coverage-demo.json";
+    const originalSource = readCoverageDemoTemplate("coverage-demo.ajs");
+    vol.fromJSON({
+      [mdPath]: readCoverageDemoTemplate("coverage-demo.md"),
+      [ajsPath]: originalSource
+    });
+
+    const first = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: {
+          spawn: vi.fn()
+        }
+      })
+    });
+    expect(first).toMatchObject({
+      ok: true,
+      returnValue: expectedCoverageDemoReturnValue
+    });
+    vol.mkdirSync(dirname(snapshotPath), { recursive: true });
+    vol.writeFileSync(snapshotPath, JSON.stringify(first.snapshot, null, 2));
+    vol.writeFileSync(
+      ajsPath,
+      originalSource.replace("total: merged.total", "total: merged.total + 1")
+    );
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({
+          agent: {
+            spawn: vi.fn()
+          }
+        }),
+        snapshotPath
+      })
+    ).rejects.toThrow("source changed since snapshot was taken");
+  });
+
+  it("lints the coverage demo .ajs without diagnostics", () => {
+    const ajsPath = "/repo/templates/coverage-demo/coverage-demo.ajs";
+    expect(
+      lint(readCoverageDemoTemplate("coverage-demo.ajs"), {
+        allowedExportNames: ["schema"],
+        filename: ajsPath,
+        modules: {
+          agent: ["spawn"],
+          schema: ["S"]
+        }
+      })
+    ).toEqual([]);
   });
 
   it("validates frontmatter, invokes the default export with the validated value, and returns its result", async () => {
@@ -393,4 +503,8 @@ async function flushMicrotasks(): Promise<void> {
   await Promise.resolve();
   await Promise.resolve();
   await Promise.resolve();
+}
+
+function readCoverageDemoTemplate(fileName: "coverage-demo.ajs" | "coverage-demo.md"): string {
+  return readFileSync(new URL(`../templates/coverage-demo/${fileName}`, import.meta.url), "utf8");
 }

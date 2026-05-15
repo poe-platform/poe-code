@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://poe-platform.github.io/poe-code/schemas/harnesses/coverage-demo.schema.json",
+  "type": "object",
+  "properties": {
+    "kind": {
+      "type": "string",
+      "enum": ["coverage-demo"]
+    },
+    "version": {
+      "type": "number"
+    }
+  },
+  "required": ["kind", "version"]
+}

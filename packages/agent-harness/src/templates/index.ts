@@ -9,6 +9,7 @@ export type BuiltinTemplate = {
 export function listBuiltinTemplates(): readonly BuiltinTemplate[] {
   return [
     template("ralph-demo"),
+    template("coverage-demo"),
     template("experiment-demo"),
     template("pipeline-demo"),
     template("superintendent-demo")

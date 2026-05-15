@@ -6,6 +6,7 @@ import type {
   BlockStatement,
   BooleanLiteral,
   CallExpression,
+  ConditionalExpression,
   ContinueStatement,
   Expression,
   Identifier,
@@ -145,6 +146,7 @@ const dispatchTable: DispatchTable = {
   BlockStatement: evaluateBlockStatement,
   BooleanLiteral: evaluatePrimitiveLiteral,
   CallExpression: evaluateCallExpression,
+  ConditionalExpression: evaluateConditionalExpression,
   ContinueStatement: evaluateContinueStatement,
   ExportDefaultDeclaration: evaluateExportDefaultDeclaration,
   ExportNamedDeclaration: evaluateExportNamedDeclaration,
@@ -412,6 +414,18 @@ async function evaluateLogicalExpression(
   }
 
   return evaluateNode(node.right, context);
+}
+
+async function evaluateConditionalExpression(
+  node: ConditionalExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const test = await evaluateNode(node.test, context);
+  if (test.kind !== "normal") {
+    return test;
+  }
+
+  return evaluateNode(isTruthy(test.value) ? node.consequent : node.alternate, context);
 }
 
 async function evaluateIdentifier(

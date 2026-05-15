@@ -189,6 +189,67 @@ describe("interpret", () => {
     expect(throwing).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ["true ? 1 : 2", 1],
+    ["false ? 1 : 2", 2],
+    ['0 ? "a" : "b"', "b"],
+    ['"" ? "a" : "b"', "b"],
+    ['null ? "a" : "b"', "b"],
+    ['[] ? "a" : "b"', "a"]
+  ])("evaluates conditional expression %s", async (source, expected) => {
+    await expect(interpret(parse(source))).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it.each([
+    ["true ? 1 : throwing()", 1],
+    ["false ? throwing() : 2", 2]
+  ])("does not evaluate untaken conditional expression branch %s", async (source, expected) => {
+    const throwing = vi.fn(() => {
+      throw new Error("untaken branch should not be evaluated");
+    });
+
+    await expect(
+      interpret(parse(source), {
+        bindings: {
+          throwing: createSandboxClosure({
+            call: throwing,
+            name: "throwing"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+    expect(throwing).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [true, true, 1],
+    [true, false, 2],
+    [false, true, 3],
+    [false, false, 3]
+  ])("evaluates nested conditional expressions", async (a, b, expected) => {
+    await expect(
+      interpret(parse("a ? b ? 1 : 2 : 3"), {
+        bindings: {
+          a,
+          b
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it("propagates throws from the chosen conditional expression branch", async () => {
+    await expect(interpret(parse('true ? (() => { throw "boom"; })() : 1'))).rejects.toBe("boom");
+  });
+
   it("throws a sandbox error when binary string concatenation exceeds the allocation budget", async () => {
     await expect(
       interpret(parse('"hello" + "!"'), {

@@ -658,7 +658,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-script-skill-template
     title: Add a SKILL_agent-script.md template
@@ -727,7 +727,7 @@ tasks:
 
       Conventional commit: `docs(agent-script): author skill`.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: skill-auto-install

@@ -2,28 +2,42 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: add-binary-expression
     title: Add BinaryExpression interpreter handler
-    prompt: |
+    prompt: >
       The interpreter dispatch table in
+
       `packages/agent-script/src/interp/interpreter.ts` (around line 137)
+
       has no handler for `BinaryExpression`. Every numeric/string/comparison
+
       operation (`a + b`, `i >= n`, `x === y`, etc.) crashes at runtime
+
       with `UNSUPPORTED_NODE` even though the parser and linter accept it.
 
+
       Add an `evaluateBinaryExpression` handler that evaluates `node.left`
+
       and `node.right` via the existing `evaluateNode`, then applies the
+
       operator. Support: `+`, `-`, `*`, `/`, `%`, `**`, `<`, `<=`, `>`,
+
       `>=`, `===`, `!==`, `==` (use `===` semantics), `!=` (use `!==`
+
       semantics — no implicit coercion), `&`, `|`, `^`, `<<`, `>>`,
+
       `>>>`. For `+` with at least one string operand, coerce to string
+
       concatenation per ECMAScript. Honor the `stringLength` budget for
+
       string concatenation, `arrayLength` budget where relevant.
 
+
       Register the handler in `dispatchTable`. Charge budget per node via
+
       `context.budget.visitNode()`.
+
 
       Edge-case tests (add to `interp/interpreter.test.ts`):
         1. `1 + 2` returns 3.
@@ -54,26 +68,39 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-if-statement
     title: Add IfStatement interpreter handler
-    prompt: |
+    prompt: >
       The interpreter dispatch table at
+
       `packages/agent-script/src/interp/interpreter.ts` (around line 137)
+
       has no handler for `IfStatement`. Any `if (cond) { ... } else { ... }`
+
       crashes with `UNSUPPORTED_NODE`. Most real harness scripts hit this.
 
+
       Add `evaluateIfStatement`. Evaluate `node.test` via `evaluateNode`,
+
       coerce to boolean using the same truthiness the existing
+
       `UnaryExpression` `!` operator uses, then evaluate the consequent
+
       or (if present) the alternate. Propagate `kind`
+
       (`normal`/`throw`/`return`/`error`) from the chosen branch so
+
       returns surface for the enclosing function. Both branches can
+
       themselves be `BlockStatement` or another `IfStatement` (chained
+
       `else if`).
 
+
       Register in `dispatchTable`. Charge budget for the test and the
+
       chosen branch only.
+
 
       Edge-case tests (interp/interpreter.test.ts):
         1. `if (true) { return 1; } return 2;` returns 1.
@@ -96,21 +123,30 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-logical-expression
     title: Add LogicalExpression handler with short-circuit
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/interpreter.ts` lacks a handler
+
       for `LogicalExpression`. `a && b`, `a || b`, `a ?? b` all crash
+
       with `UNSUPPORTED_NODE`.
 
+
       Add `evaluateLogicalExpression`. Evaluate `node.left`. For `&&`: if
+
       left is falsy, return left unchanged without evaluating right;
+
       else evaluate and return right. For `||`: if left is truthy,
+
       return left unchanged; else evaluate and return right. For `??`:
+
       if left is `null` or `undefined`, evaluate and return right; else
+
       return left. Short-circuit: the right side must not be evaluated
+
       when skipped — its budget visits must not be charged.
+
 
       Edge-case tests:
         1. `true && true` → true. `true && false` → false. `false && X` → false; X never evaluated (assert via side-effect: bind X to a throwing call).
@@ -126,17 +162,22 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-conditional-expression
     title: Add ConditionalExpression (ternary) handler
-    prompt: |
+    prompt: >
       No handler for `ConditionalExpression` in
+
       `packages/agent-script/src/interp/interpreter.ts`. `a ? b : c`
+
       crashes with `UNSUPPORTED_NODE`.
 
+
       Add `evaluateConditionalExpression`. Evaluate `node.test`, coerce
+
       to boolean, then evaluate and return either `node.consequent` or
+
       `node.alternate`. Do not evaluate the branch not taken.
+
 
       Edge-case tests:
         1. `true ? 1 : 2` returns 1.
@@ -151,23 +192,33 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-template-literal
     title: Add TemplateLiteral handler
-    prompt: |
+    prompt: >
       `TemplateLiteral` has no interpreter handler in
+
       `packages/agent-script/src/interp/interpreter.ts`. Any `` `${x}` ``
+
       string crashes with `UNSUPPORTED_NODE`.
 
+
       The parser emits `TemplateLiteral` with `quasis` (static parts)
+
       and `expressions` (interpolated subexpressions). Invariant:
+
       `quasis.length === expressions.length + 1`.
 
+
       Add `evaluateTemplateLiteral`. Walk quasis and expressions in
+
       order; for each expression evaluate it, coerce its sandbox value
+
       to string using the same coercion as a `String(value)` factory
+
       call, and concatenate. Honor the `stringLength` budget at each
+
       concatenation; throw `SandboxError`/`budgetExceeded` on overflow.
+
 
       Edge-case tests:
         1. Literal-only `` `hello` `` returns "hello".
@@ -187,27 +238,41 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-for-of-statement
     title: Add ForOfStatement handler over arrays
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/interpreter.ts` has no
+
       `ForOfStatement` handler. `for (const x of arr) { ... }` crashes
+
       with `UNSUPPORTED_NODE`.
 
+
       Add `evaluateForOfStatement`. Evaluate the iterable expression;
+
       require it to be a sandbox array (mirror what the existing array
+
       method machinery accepts). For each element, declare the loop
+
       variable in a fresh child scope (the parser's `node.left` is a
+
       `VariableDeclaration` with one declarator), then evaluate
+
       `node.body`. Wire `break`/`continue` signals: `BreakStatement`
+
       and `ContinueStatement` are already dispatched but currently
+
       have no enclosing loop to consume them — this is the first loop
+
       handler so it must wire that consumption.
 
+
       Iterables other than arrays (strings, maps, etc.) are not yet
+
       supported. Throw a `TypeError`-shaped sandbox error (`"<value>
+
       is not a supported iterable"`) rather than crashing.
+
 
       Edge-case tests:
         1. Iterate over `[1, 2, 3]`, accumulating into an array, returns `[1, 2, 3]`.
@@ -226,20 +291,28 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-while-statement
     title: Add WhileStatement handler
-    prompt: |
+    prompt: >
       `WhileStatement` has no handler in
+
       `packages/agent-script/src/interp/interpreter.ts`.
 
+
       Add `evaluateWhileStatement`. Re-evaluate `node.test` each
+
       iteration, coerce to boolean, evaluate `node.body` on truthy.
+
       Wire `break` and `continue` signals (reuse the mechanism from
+
       `add-for-of-statement` if landed first; if not, build it here).
+
       Re-evaluate the test after each body execution. Charge budget
+
       per iteration so the existing `maxSteps` budget catches infinite
+
       loops.
+
 
       Edge-case tests:
         1. Counter loop terminating on `<` (requires BinaryExpression + AssignmentExpression — see notes).
@@ -256,25 +329,37 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-for-statement
     title: Add C-style ForStatement handler
-    prompt: |
+    prompt: >
       No handler for `ForStatement` in
+
       `packages/agent-script/src/interp/interpreter.ts`. The README
+
       already lists `for` in the allowed-syntax table.
 
+
       Add `evaluateForStatement`. Evaluate `init` (a
+
       `VariableDeclaration` or expression) in a child scope, then loop:
+
       evaluate `test` (truthy continues, falsy exits, missing test
+
       always continues), evaluate `body`, evaluate `update`. Honor
+
       `break`/`continue`. Charge budget per iteration.
 
+
       This handler depends on `AssignmentExpression` for the `update`
+
       slot in the common `i = i + 1` shape; the trailing `i++` is not
+
       part of the subset. If `AssignmentExpression` hasn't landed yet,
+
       mutate via a recursive-style alternative test (e.g. count down
+
       from an inlined literal range).
+
 
       Edge-case tests:
         1. `for (let i = 0; i < 3; i = i + 1) { ... }` runs body 3 times.
@@ -292,29 +377,45 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-assignment-expression
     title: Add AssignmentExpression handler for `let` rebinds
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/interpreter.ts` has no
+
       `AssignmentExpression` handler. The subset already allows `let`
+
       declarations, but rebinding (`x = 5` after `let x = 1`) crashes
+
       with `UNSUPPORTED_NODE`. This forces every script into recursive
+
       style.
 
+
       Add `evaluateAssignmentExpression`. Support targets that resolve
+
       to a `let` binding in scope. Reject `const` targets with a clear
+
       sandbox error (`"Cannot assign to const 'x'"`). Reject computed
+
       and member-target assignments (`obj.x = 1`, `arr[0] = 1`) — the
+
       sandbox does not model mutable shared object state; throw a
+
       clear error.
 
+
       Operators: `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `**=`, `&=`, `|=`,
+
       `^=`, `<<=`, `>>=`, `>>>=`, `&&=`, `||=`, `??=`. Compound
+
       assigns: read current value, compute new, write back. Logical
+
       compound assigns must short-circuit (do not evaluate right side
+
       when not needed). `+=` with a string operand follows
+
       ECMAScript concat semantics.
+
 
       Edge-case tests:
         1. `let x = 1; x = 2; return x;` returns 2.
@@ -335,19 +436,26 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: lint-known-globals
     title: Teach lint about runtime globals
-    prompt: |
+    prompt: >
       `packages/agent-script/src/lint/rules/AS003.ts` flags every bare
+
       reference to `String`, `Number`, `Boolean`, `Math`, `Object`,
+
       `Array`, `JSON`, `console`, `Promise`, `Error`, `TypeError` as
+
       `Unknown identifier`, even though all of these are pre-bound at
+
       runtime (see `interp/globals/*.ts` and the snapshot bindings
+
       dump). README documents them as available globals. Result:
+
       `String(n).padStart(3, "0")` lints red, runs fine.
 
+
       Fix:
+
       1. Add an `allowedGlobals?: readonly string[]` option to
          `LintOptions` in `packages/agent-script/src/lint/index.ts`
          and the corresponding parameter in `AS003`.
@@ -374,23 +482,30 @@ tasks:
         7. Local `const String = "foo"` shadows the global — `String("x")` then lints clean against the local binding (no error).
         8. Importing a module named `String` is not affected (modules use their own scope).
 
-      Conventional commit: `feat(agent-script): lint recognizes runtime globals`.
+      Conventional commit: `feat(agent-script): lint recognizes runtime
+      globals`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: add-optional-chaining
     title: Support optional chaining (`a?.b`, `a?.()`)
-    prompt: |
+    prompt: >
       The README lists optional chaining as supported but the
+
       interpreter does not implement it. First confirm the parser
+
       already emits an `optional` flag on `MemberExpression` and
+
       `CallExpression` (`packages/agent-script/src/parse/parser.ts`);
+
       if not, add parse-side support including the `?.` token.
 
+
       Interpreter changes in
+
       `packages/agent-script/src/interp/interpreter.ts`:
+
       - `evaluateMemberExpression`: if `node.optional === true` and
         the object resolves to `null` or `undefined`, short-circuit
         and return `undefined` rather than throwing.
@@ -412,23 +527,33 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-spread-object-literal
     title: Support spread in object literals
-    prompt: |
+    prompt: >
       Object spread (`{ ...obj, extra: 1 }`) is documented as allowed.
+
       Confirm whether `evaluateObjectExpression` in
+
       `packages/agent-script/src/interp/interpreter.ts` handles
+
       `SpreadElement` properties; if not, add it.
 
+
       For each spread property: evaluate the source; require a sandbox
+
       object (not array or primitive — throw a clear error
+
       otherwise); copy own enumerable string-keyed entries onto the
+
       target. Honor ECMAScript order: later writes (whether literal
+
       properties or later spreads) overwrite earlier ones.
 
+
       Charge `arrayLength` (used here as a property-count proxy) per
+
       copied property to bound huge-spread DoS.
+
 
       Edge-case tests:
         1. `{ ...{} }` returns `{}`.
@@ -446,29 +571,40 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: add-destructuring-const
     title: Support destructuring in const/let declarations
-    prompt: |
+    prompt: >
       `const { a, b } = obj` and `const [x, y] = arr` are commonly used
+
       but the interpreter's `evaluateVariableDeclaration` may only
+
       handle `Identifier` declarator IDs. Confirm the current
+
       implementation in
+
       `packages/agent-script/src/interp/interpreter.ts`.
 
+
       Extend the declarator path to recognize:
+
       - `ObjectPattern` with `Property` entries (shorthand and full),
         rest element (`...rest`), and default values (`{ a = 1 } = obj`).
       - `ArrayPattern` with elements (some may be `null` for holes:
         `const [, b] = arr`) and a rest element.
 
       Evaluate the initializer once, then walk the pattern, declaring
+
       each leaf identifier in scope with `const`/`let` matching the
+
       enclosing declaration's kind.
 
+
       Reject the pattern when the initializer is not the expected
+
       shape (object pattern on non-object, array pattern on non-array)
+
       with a clear sandbox error.
+
 
       Edge-case tests:
         1. `const { a, b } = { a: 1, b: 2 }; return a + b;` returns 3.
@@ -490,22 +626,32 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: agent-script-cli-runs-default
     title: Make `poe-agent-script` actually execute user scripts
-    prompt: |
+    prompt: >
       `packages/agent-script/src/cli.ts` and `example-runner.ts`
+
       together provide `npx poe-agent-script <file>`. The README's
+
       quickstart example (`npx poe-agent-script examples/pipeline.md`)
+
       implies a general-purpose runner. It is not:
+
       `example-runner.ts` dispatches by frontmatter `kind:` to one of
+
       three hardcoded shapes (`runPipelineExample`,
+
       `runSuperintendentExample`, `runExperimentExample`). The user's
+
       exported default function in the markdown's `js` fenced block is
+
       ignored.
 
+
       Replace the dispatch-by-kind logic with execution of the user's
+
       script source:
+
       1. Read the markdown. Split frontmatter via `splitFrontmatter`.
          Extract the first `js` fenced block via `extractBlock`.
       2. Lint the extracted source with the example runtime's module
@@ -517,14 +663,22 @@ tasks:
          CLI remains zero-cost.
       4. Print the result envelope.
 
+
       Keep the three hardcoded demo shapes as fallbacks invoked only
+
       when the markdown has no `js` fenced block. Document this
+
       fallback in `--help`.
 
+
       Update README in the same commit: clarify what
+
       `npx poe-agent-script` does (lints + runs against stub agents)
+
       and how it differs from `poe-code harness run` (lints + runs
+
       against real agents).
+
 
       Edge-case tests (cli.test.ts):
         1. Markdown with a `js` block that returns `42` exits 0 and prints `{"ok":true,"returnValue":42}` on stdout.
@@ -539,18 +693,24 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: harness-run-resume
     title: Wire `--snapshot-path` and `--resume` into `harness run`
-    prompt: |
+    prompt: >
       `runHarnessPair` in
+
       `packages/agent-harness/src/loader/run.ts` accepts `snapshotPath`
+
       and resumes from disk via `restore()` on sourceHash match, but
+
       `poe-code harness run` (`src/cli/commands/harness.ts:95-102`)
+
       never passes it through. The whole run is wrapped in one
+
       `withSpinner` call; a crash or Ctrl-C wipes hours of progress.
 
+
       Add two flags to `harness run` in `src/cli/commands/harness.ts`:
+
       - `--snapshot-path <path>` — file to write/read snapshots. Default:
         `.poe-code/harnesses/<basename>/snapshot.json` (computed from
         `mdPath`).
@@ -559,10 +719,14 @@ tasks:
         with a clear message explaining the script was edited.
 
       Pass `snapshotPath` through to `runHarnessPair`. The existing
+
       lock acquisition handles concurrent invocations.
 
+
       Show progress in the spinner using a best-effort step counter
+
       read from yielded snapshots.
+
 
       Edge-case tests (harness-command.test.ts or harness.test.ts):
         1. Run a fake harness with `--snapshot-path <tmp>`; confirm a snapshot file appears mid-run.
@@ -577,21 +741,30 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: schema-initializer-outer-consts
     title: Schema initializer error message names the constraint
-    prompt: |
+    prompt: >
       `packages/agent-harness/src/loader/extract-schema.ts:43`
+
       evaluates the `schema` initializer in a fresh sandbox with only
+
       the `schema` import in scope. Any reference to an outer const
+
       declared earlier in the same `.ajs` file (e.g. a shared
+
       `AgentSchema = S.Object({...})`) fails with a generic
+
       "unbound identifier" error, leaving the user to guess.
 
+
       Fix the user-facing error. When `evaluateSchemaInitializer`
+
       fails with an `UNBOUND_IDENTIFIER` referencing a name declared
+
       earlier in the .ajs source (detect by scanning the AST for prior
+
       `const`/`let` declarators ahead of the schema export), wrap the
+
       thrown error with:
 
         "Failed to evaluate schema initializer in <path>: schema
@@ -600,6 +773,7 @@ tasks:
          literal."
 
       Other unbound identifiers retain their original message.
+
 
       Edge-case tests (loader/extract-schema.test.ts — create if missing):
         1. .ajs with `const Inner = S.String();` then
@@ -613,23 +787,30 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: principles-prompt-helper
     title: Helper to fold frontmatter principles into prompts
-    prompt: |
+    prompt: >
       Harness frontmatter often declares cross-cutting constraints
+
       (e.g. `principles: ["Cloudflare only", "REST only", ...]`) that
+
       every spawned agent should honor. Today these are validated by
+
       schema, made available as `frontmatter.principles`, then almost
+
       always forgotten — `spawn(agent, { prompt })` has no automatic
+
       route to them.
 
+
       Add a helper to the `harness` host module
+
       (`packages/agent-script/src/modules/harness.ts`):
 
         `harness.applyConstraints(prompt: string): string`
 
       Behavior: if frontmatter has a `principles` (or `constraints`)
+
       array of strings, prepend:
 
         "CONSTRAINTS (hard rules, honor all):
@@ -639,11 +820,16 @@ tasks:
          <original prompt>"
 
       Absent or empty → unchanged. `applyConstraints` closes over the
+
       validated frontmatter.
 
+
       Update `makeHarnessModule` and the lint module declaration so
+
       the helper is reachable. Document in the README's "Built-in
+
       host modules" → `harness` row.
+
 
       Edge-case tests (modules/harness.test.ts):
         1. With `principles: ["a", "b"]`, applyConstraints prepends both as bullets.
@@ -654,26 +840,36 @@ tasks:
         6. With non-string array entries, throws "constraints/principles must be strings".
         7. Empty prompt + principles → preamble only (no trailing whitespace before EOF).
 
-      Conventional commit: `feat(agent-script): harness.applyConstraints helper`.
+      Conventional commit: `feat(agent-script): harness.applyConstraints
+      helper`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: agent-script-skill-template
     title: Add a SKILL_agent-script.md template
-    prompt: |
+    prompt: >
       The user has hit several authoring pitfalls writing harness
+
       pairs: which subset of JS is actually supported by the
+
       interpreter (separate from what lint allows), the .md/.ajs pair
+
       layout, the schema initializer isolation constraint, the
+
       difference between `npx poe-agent-script` (stub) and
+
       `poe-code harness run` (real), how to lint locally, and how to
+
       pass principles into agent prompts. We need a skill that
+
       teaches future Claude/codex sessions how to build a harness
+
       without re-discovering these.
 
+
       Add `packages/agent-script/src/templates/skill/SKILL_agent-script.md`
+
       (create the `templates/skill/` directory if absent). Frontmatter:
 
         ---
@@ -682,6 +878,7 @@ tasks:
         ---
 
       Body: ~120 lines, dense, no fluff. Cover, in order:
+
       1. What runs the script: `poe-code harness run <path>` reads a
          `.md` + `.ajs` pair, validates frontmatter against the .ajs
          schema, lints the .ajs source, then executes the default
@@ -729,33 +926,52 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: skill-auto-install
     title: Auto-install skills on `npm install`
-    prompt: |
+    prompt: >
       Skill templates under `**/SKILL_*.md` are synced into user
+
       skill directories via `npm run sync-skills` (see
+
       `scripts/sync-skills.ts`). Today this is manual — fresh clones
+
       don't get the skills until someone runs the script.
 
+
       Add a `postinstall` script in the root `package.json` that runs
+
       `npm run sync-skills`. Guard it so it does not run in CI when
+
       `CI=1` (or when `SKIP_SYNC_SKILLS=1` is set) to avoid surprising
+
       side effects in automated environments — sync-skills writes
+
       into `~/.claude/skills/` and similar, which is a user-scoped
+
       side effect, not a build artifact.
 
+
       Update the root README's "Getting started" / "Development"
+
       section (whatever the repo uses) to mention that skills install
+
       automatically on `npm install` and document `SKIP_SYNC_SKILLS=1`
+
       as the opt-out.
 
+
       Test: in a temp directory simulating a fresh clone, run
+
       `npm install` with a stub `~/.claude` HOME and confirm the
+
       skill files land in the expected paths. This may require a
+
       small integration test under `scripts/sync-skills.test.ts` or
+
       similar; use the existing test layout for sync-skills as a
+
       pattern.
+
 
       Edge-case tests:
         1. With `CI=1` set, postinstall is a no-op (no file writes).
@@ -769,7 +985,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: readme-sync
     title: Sync agent-script README with the actual implementation
     prompt: |
@@ -804,7 +1019,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: example-coverage-harness
     title: Add an end-to-end harness exercising the fixed subset
     prompt: |
@@ -843,7 +1057,9 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
+name: agent-script-runtime-gaps
+state: archived
 ---
 
 # Agent-script runtime gaps and language polish

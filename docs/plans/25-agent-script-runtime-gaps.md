@@ -576,7 +576,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: schema-initializer-outer-consts
     title: Schema initializer error message names the constraint
@@ -610,8 +610,8 @@ tasks:
 
       Conventional commit: `fix(agent-harness): clearer schema-init error`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: principles-prompt-helper

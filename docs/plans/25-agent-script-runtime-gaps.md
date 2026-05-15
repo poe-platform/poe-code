@@ -95,7 +95,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-logical-expression
     title: Add LogicalExpression handler with short-circuit
@@ -123,8 +123,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): evaluate LogicalExpression`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: add-conditional-expression

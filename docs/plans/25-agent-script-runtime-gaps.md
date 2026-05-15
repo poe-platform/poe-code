@@ -768,7 +768,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: readme-sync
     title: Sync agent-script README with the actual implementation
@@ -802,7 +802,7 @@ tasks:
 
       Conventional commit: `docs(agent-script): sync README with runtime`.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: example-coverage-harness

@@ -29,6 +29,7 @@ export type Diagnostic = {
 
 export type LintOptions = {
   allowedExportNames?: readonly string[];
+  allowedGlobals?: readonly string[];
   filename?: string;
   modules?: Modules;
 };

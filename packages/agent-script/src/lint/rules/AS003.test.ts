@@ -3,6 +3,66 @@ import { describe, expect, it } from "vitest";
 import { AS003 } from "./AS003.js";
 
 describe("AS003", () => {
+  it("allows runtime globals by default", () => {
+    expect(AS003('String("x");')).toEqual([]);
+    expect(AS003("Math.PI;")).toEqual([]);
+    expect(AS003("JSON.stringify({});")).toEqual([]);
+  });
+
+  it("suggests nearby runtime globals for unresolved identifiers", () => {
+    const source = "Maths.PI;";
+
+    expect(AS003(source)).toEqual([
+      {
+        code: "AS003",
+        severity: "error",
+        message: "Unknown identifier 'Maths'. Did you mean 'Math'?",
+        filename: "<input>",
+        line: 1,
+        column: 1,
+        span: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 6, offset: "Maths".length }
+        }
+      }
+    ]);
+  });
+
+  it("keeps unknown member objects unresolved when no suggestion matches", () => {
+    const source = "Unknown.thing;";
+
+    expect(AS003(source)).toEqual([
+      {
+        code: "AS003",
+        severity: "error",
+        message: "Unknown identifier 'Unknown'. No names are in scope.",
+        filename: "<input>",
+        line: 1,
+        column: 1,
+        span: {
+          start: { line: 1, column: 1, offset: 0 },
+          end: { line: 1, column: 8, offset: "Unknown".length }
+        }
+      }
+    ]);
+  });
+
+  it("allows additional caller-provided globals", () => {
+    expect(AS003("Custom.x;", { allowedGlobals: ["Custom"] })).toEqual([]);
+  });
+
+  it("lets local bindings shadow runtime globals", () => {
+    const source = 'const String = (value) => value; String("x");';
+
+    expect(AS003(source)).toEqual([]);
+  });
+
+  it("does not treat module names as global bindings", () => {
+    const source = 'import { value } from "String"; value;';
+
+    expect(AS003(source)).toEqual([]);
+  });
+
   it("allows identifiers that resolve through the current scope chain and imports", () => {
     const source = [
       'import { fetchData as importedFetch } from "api";',

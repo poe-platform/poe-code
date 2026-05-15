@@ -57,15 +57,38 @@ type Binding = {
 
 type Scope = Map<string, Binding>;
 
-export function AS003(source: string, options: { filename?: string } = {}): Diagnostic[] {
-  return new AS003Scanner(options.filename ?? "<input>").scan(source);
+const DEFAULT_ALLOWED_GLOBALS = [
+  "Array",
+  "Boolean",
+  "Error",
+  "JSON",
+  "Math",
+  "Number",
+  "Object",
+  "Promise",
+  "String",
+  "TypeError",
+  "console"
+] as const;
+
+export function AS003(
+  source: string,
+  options: { allowedGlobals?: readonly string[]; filename?: string } = {}
+): Diagnostic[] {
+  return new AS003Scanner(
+    options.filename ?? "<input>",
+    new Set([...DEFAULT_ALLOWED_GLOBALS, ...(options.allowedGlobals ?? [])])
+  ).scan(source);
 }
 
 class AS003Scanner {
   private readonly diagnostics: Diagnostic[] = [];
   private readonly scopes: Scope[] = [];
 
-  constructor(private readonly filename: string) {}
+  constructor(
+    private readonly filename: string,
+    private readonly allowedGlobals: ReadonlySet<string>
+  ) {}
 
   scan(source: string): Diagnostic[] {
     const module = parseModule(source, this.filename);
@@ -459,8 +482,12 @@ class AS003Scanner {
       return;
     }
 
+    if (this.allowedGlobals.has(node.name)) {
+      return;
+    }
+
     const visibleNames = this.collectVisibleNames();
-    const nearMatches = visibleNames
+    const nearMatches = this.collectSuggestionNames(visibleNames)
       .map((name) => ({ distance: getLevenshteinDistance(node.name, name), name }))
       .filter((entry) => entry.distance <= 2)
       .sort((left, right) => left.distance - right.distance || left.name.localeCompare(right.name))
@@ -511,6 +538,11 @@ class AS003Scanner {
       }
     }
 
+    return [...names].sort((left, right) => left.localeCompare(right));
+  }
+
+  private collectSuggestionNames(visibleNames: readonly string[]): string[] {
+    const names = new Set([...visibleNames, ...this.allowedGlobals]);
     return [...names].sort((left, right) => left.localeCompare(right));
   }
 

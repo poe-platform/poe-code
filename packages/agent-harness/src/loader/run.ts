@@ -31,6 +31,7 @@ export type HarnessImportMeta = {
 };
 
 export type RunHarnessPairOptions = {
+  allowedGlobals?: LintOptions["allowedGlobals"];
   modulesFor: (
     frontmatter: Record<string, unknown>,
     meta: HarnessImportMeta
@@ -80,6 +81,7 @@ export async function runHarnessPair(
     throwOnLintErrors([
       ...lint(ajsSource, {
         allowedExportNames: ["schema"],
+        allowedGlobals: options.allowedGlobals,
         filename: pair.ajsPath,
         modules: createLintModules(modules)
       }),

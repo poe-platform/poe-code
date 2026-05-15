@@ -162,6 +162,24 @@ describe("runHarnessPair", () => {
     });
   });
 
+  it("passes caller-provided allowed globals to lint", async () => {
+    const mdPath = "/repo/harness/allowed-global.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: review\nversion: 1\n---\n",
+      "/repo/harness/allowed-global.ajs": "const unused = () => Custom.x;\nexport default () => 'ok';"
+    });
+
+    await expect(
+      runHarnessPair(mdPath, {
+        allowedGlobals: ["Custom"],
+        modulesFor: () => ({})
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "ok"
+    });
+  });
+
   it("resumes from an existing snapshotPath at the next host call", async () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-05-04T00:00:00.000Z"));

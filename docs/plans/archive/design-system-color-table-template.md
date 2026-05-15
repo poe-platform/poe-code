@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: ds-color-api
     title: Add ANSI color API to @poe-code/design-system
@@ -43,7 +42,6 @@ tasks:
       test: done
       refactor: done
       commit: done
-
   - id: ds-color-tests
     title: Unit + snapshot tests for design-system color API
     prompt: |
@@ -69,7 +67,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: ds-table-internal
     title: Replace console-table-printer with internal renderer
     prompt: |
@@ -100,7 +97,6 @@ tasks:
       test: done
       refactor: done
       commit: done
-
   - id: ds-template-api
     title: Add mustache-compatible template renderer (no partials)
     prompt: |
@@ -179,7 +175,6 @@ tasks:
       test: done
       refactor: done
       commit: done
-
   - id: ds-template-tests
     title: Mustache parity tests for design-system template
     prompt: |
@@ -239,7 +234,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: migrate-chalk-design-system-internal
     title: Migrate design-system's own files off chalk
     prompt: |
@@ -278,7 +272,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: migrate-chalk-consumers
     title: Migrate remaining packages off direct chalk imports
     prompt: |
@@ -310,7 +303,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: migrate-mustache-consumers
     title: Migrate mustache consumers to design-system template
     prompt: |
@@ -349,7 +341,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: migrate-config-extends-yield
     title: Replace config-extends yield substitution with renderTemplate
     prompt: |
@@ -383,12 +374,10 @@ tasks:
 
       This task makes renderTemplate the sole templating substrate in
       the monorepo.
-
     status:
       implement: done
       test: done
       commit: done
-
   - id: drop-dead-deps
     title: Drop chalk / console-table-printer / mustache from all package.json
     prompt: |
@@ -416,8 +405,7 @@ tasks:
         - `npm run lint` succeeds from the repo root
     status:
       implement: done
-      commit: open
-
+      commit: done
   - id: visual-verify
     title: Screenshot + demo verification of CLI output
     prompt: |
@@ -443,6 +431,8 @@ tasks:
     status:
       implement: done
       commit: done
+name: design-system-color-table-template
+state: archived
 ---
 
 ## Context

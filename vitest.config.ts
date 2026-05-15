@@ -130,7 +130,7 @@ export default defineConfig({
       "tests/integration/**/*.test.ts", // Integration tests
       "packages/**/*.test.ts",         // Package tests
       "packages/**/*.spec.ts",         // Package specs
-      "scripts/screenshot.test.ts"     // Script tests (explicit)
+      "scripts/**/*.test.ts"           // Script tests
     ],
     exclude: [
       "**/node_modules/**",

@@ -75,7 +75,8 @@
     "codegen:plan-schemas": "tsx scripts/generate-plan-schemas.ts",
     "codegen:harness-schemas": "tsx scripts/generate-harness-schemas.ts",
     "smoke:toolcraft-standalone": "node scripts/verify-toolcraft-standalone.mjs",
-    "sync-skills": "tsx scripts/sync-skills.ts"
+    "sync-skills": "tsx scripts/sync-skills.ts",
+    "postinstall": "node scripts/postinstall-sync-skills.mjs"
   },
   "bin": {
     "poe": "dist/bin.cjs",
@@ -96,6 +97,7 @@
     "packages/config-mutations/dist",
     "packages/design-system/dist",
     "packages/memory/dist",
+    "scripts/postinstall-sync-skills.mjs",
     "packages/superintendent/dist",
     "packages/tiny-stdio-mcp-server/dist"
   ],

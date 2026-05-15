@@ -1,5 +1,5 @@
 #!/usr/bin/env tsx
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import fg from "fast-glob";
@@ -31,16 +31,33 @@ async function main() {
   const changed: string[] = [];
   let unchanged = 0;
 
+  const scopes =
+    process.env.SYNC_SKILLS_SCOPE === "global"
+      ? (["global"] as const)
+      : (["global", "local"] as const);
+
   for (const agent of supportedAgents) {
     const config = getAgentConfig(agent);
     if (!config) continue;
 
-    for (const scope of ["global", "local"] as const) {
+    for (const scope of scopes) {
       const skillDir = resolveSkillDir(config, scope, process.cwd());
+      const shouldInstallMissing = scope === "global";
+
+      if (!shouldInstallMissing && !existsSync(skillDir)) {
+        continue;
+      }
 
       for (const skill of skills) {
         const skillFilePath = join(skillDir, skill.name, "SKILL.md");
-        if (!existsSync(skillFilePath)) continue;
+        if (!existsSync(skillFilePath)) {
+          if (!shouldInstallMissing) continue;
+
+          mkdirSync(join(skillDir, skill.name), { recursive: true });
+          writeFileSync(skillFilePath, skill.content);
+          changed.push(skillFilePath);
+          continue;
+        }
 
         const current = readFileSync(skillFilePath, "utf8");
         if (current === skill.content) {

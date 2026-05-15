@@ -10,3 +10,5 @@ export { formatCommandNotFound } from "./command-errors.js";
 export { formatCommandNotFoundPanel } from "./command-errors.js";
 export { renderTable } from "./table.js";
 export type { TableColumn, RenderTableOptions } from "./table.js";
+export { renderTemplate } from "./template.js";
+export type { RenderTemplateOptions, TemplateEscape } from "./template.js";

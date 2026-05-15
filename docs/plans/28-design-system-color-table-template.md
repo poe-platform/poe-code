@@ -99,7 +99,7 @@ tasks:
       implement: done
       test: done
       refactor: done
-      commit: open
+      commit: done
 
   - id: ds-template-api
     title: Add mustache-compatible template renderer (no partials)
@@ -175,9 +175,9 @@ tasks:
         - yield value containing mustache tags is re-rendered against
           the view (covered by ds-template-tests)
     status:
-      implement: open
-      test: open
-      refactor: open
+      implement: done
+      test: done
+      refactor: done
       commit: open
 
   - id: ds-template-tests

@@ -8,6 +8,7 @@ import {
   render,
   renderMarkdown,
   runExplorer,
+  renderTemplate,
   singleDetail,
   text,
   type Color,
@@ -62,6 +63,10 @@ describe("design-system root exports", () => {
 
   it("re-exports text helpers from the root barrel", () => {
     expect(text.sectionHeader("Title")).toBeTypeOf("string");
+  });
+
+  it("re-exports template rendering from the root barrel", () => {
+    expect(renderTemplate("Hello {{name}}", { name: "K" })).toBe("Hello K");
   });
 
   it("re-exports color helpers from the root barrel", () => {

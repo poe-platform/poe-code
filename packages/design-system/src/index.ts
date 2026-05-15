@@ -20,6 +20,8 @@ export { formatCommandNotFound } from "./components/command-errors.js";
 export { formatCommandNotFoundPanel } from "./components/command-errors.js";
 export { renderTable } from "./components/table.js";
 export type { TableColumn, RenderTableOptions } from "./components/table.js";
+export { renderTemplate } from "./components/template.js";
+export type { RenderTemplateOptions, TemplateEscape } from "./components/template.js";
 
 // ACP rendering
 export * as acp from "./acp/index.js";

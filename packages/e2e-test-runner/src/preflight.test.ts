@@ -59,7 +59,7 @@ describe('runPreflight', () => {
     const { detectEngine } = await import('./engine.js');
     const { hasApiKey } = await import('./credentials.js');
     const { getWorkspaceDir } = await import('./runtime.js');
-    const { runPreflight } = await import('./preflight.js');
+    const { formatPreflightResults, runPreflight } = await import('./preflight.js');
 
     vi.mocked(resolveBackend).mockReturnValue('sandbox');
     vi.mocked(detectEngine).mockReturnValue('podman');
@@ -79,9 +79,48 @@ describe('runPreflight', () => {
       mkdtemp: vi.mocked(mkdtemp),
       resolveBackend: vi.mocked(resolveBackend),
       rm: vi.mocked(rm),
+      formatPreflightResults,
       runPreflight,
     };
   }
+
+  it('formats preflight output through the shared design-system colors', async () => {
+    const originalNoColor = process.env.NO_COLOR;
+    const originalForceColor = process.env.FORCE_COLOR;
+    delete process.env.FORCE_COLOR;
+    process.env.NO_COLOR = '1';
+
+    try {
+      const { formatPreflightResults } = await setup();
+
+      const output = formatPreflightResults(
+        [
+          { name: 'API key available', passed: true, message: 'ok' },
+          { name: 'Podman installed', passed: false, message: 'missing', fix: 'Install Podman.' },
+        ],
+        { backend: 'podman', workspace: '/workspace', home: '/tmp/home' },
+      );
+
+      expect(output).toContain('Environment:');
+      expect(output).toContain('  backend:   podman');
+      expect(output).toContain('Preflight checks:');
+      expect(output).toContain('✓ API key available: ok');
+      expect(output).toContain('✗ Podman installed: missing');
+      expect(output).toContain('Install Podman.');
+    } finally {
+      if (originalNoColor === undefined) {
+        delete process.env.NO_COLOR;
+      } else {
+        process.env.NO_COLOR = originalNoColor;
+      }
+
+      if (originalForceColor === undefined) {
+        delete process.env.FORCE_COLOR;
+      } else {
+        process.env.FORCE_COLOR = originalForceColor;
+      }
+    }
+  });
 
   it('runs env-only checks for the env backend', async () => {
     const { access, detectEngine, execSync, mkdtemp, resolveBackend, rm, runPreflight } = await setup();

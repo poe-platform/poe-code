@@ -277,7 +277,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: migrate-chalk-consumers
     title: Migrate remaining packages off direct chalk imports
@@ -307,8 +307,8 @@ tasks:
           empty — verify and report if any remain)
         - all package test suites pass
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: migrate-mustache-consumers

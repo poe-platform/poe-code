@@ -23,8 +23,8 @@
     "build": "tsc -p tsconfig.build.json"
   },
   "dependencies": {
-    "auth-store": "*",
-    "chalk": "^5.3.0"
+    "@poe-code/design-system": "*",
+    "auth-store": "*"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

@@ -2,7 +2,7 @@ import { execSync } from 'node:child_process';
 import { access, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import chalk from 'chalk';
+import { color } from '@poe-code/design-system';
 import { resolveBackend, type Backend } from './backend.js';
 import { hasApiKey } from './credentials.js';
 import { detectEngine } from './engine.js';
@@ -310,24 +310,24 @@ export function formatPreflightResults(results: CheckResult[], environment?: Pre
   const lines: string[] = [];
 
   if (environment) {
-    lines.push(chalk.bold('Environment:'));
-    lines.push(`  backend:   ${chalk.cyan(environment.backend)}`);
-    lines.push(`  workspace: ${chalk.cyan(environment.workspace)}`);
-    lines.push(`  home:      ${chalk.cyan(environment.home)}`);
+    lines.push(color.bold('Environment:'));
+    lines.push(`  backend:   ${color.cyan(environment.backend)}`);
+    lines.push(`  workspace: ${color.cyan(environment.workspace)}`);
+    lines.push(`  home:      ${color.cyan(environment.home)}`);
     lines.push('');
   }
 
-  lines.push(chalk.bold('Preflight checks:'));
+  lines.push(color.bold('Preflight checks:'));
 
   for (const result of results) {
     if (result.passed) {
-      lines.push(`  ${chalk.green('✓')} ${result.name}${result.message ? chalk.dim(`: ${result.message}`) : ''}`);
+      lines.push(`  ${color.green('✓')} ${result.name}${result.message ? color.dim(`: ${result.message}`) : ''}`);
     } else {
-      lines.push(`  ${chalk.red.bold('✗')} ${chalk.red(result.name)}${result.message ? chalk.red(`: ${result.message}`) : ''}`);
+      lines.push(`  ${color.red.bold('✗')} ${color.red(result.name)}${result.message ? color.red(`: ${result.message}`) : ''}`);
 
       if (result.fix) {
         lines.push('');
-        lines.push(chalk.yellow(result.fix));
+        lines.push(color.yellow(result.fix));
       }
     }
   }

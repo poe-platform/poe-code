@@ -728,7 +728,7 @@ tasks:
       Conventional commit: `docs(agent-script): author skill`.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: skill-auto-install
     title: Auto-install skills on `npm install`
@@ -766,8 +766,8 @@ tasks:
 
       Conventional commit: `chore: install skills on npm install`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: readme-sync

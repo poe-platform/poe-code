@@ -72,23 +72,6 @@ describe("interpret", () => {
     });
   });
 
-  it("reports unsupported nodes through the result envelope", async () => {
-    await expect(interpret(parse("for (;;) {}"))).resolves.toMatchObject({
-      ok: false,
-      error: {
-        code: "UNSUPPORTED_NODE",
-        message: "Unsupported AST node type 'ForStatement'.",
-        nodeType: "ForStatement"
-      },
-      snapshot: {
-        bindings: {}
-      },
-      stats: {
-        nodeVisits: 1
-      }
-    });
-  });
-
   it.each([
     ["1 + 2", 3],
     ["5 - 3", 2],
@@ -414,27 +397,6 @@ describe("interpret", () => {
       },
       stats: {
         nodeVisits: 5
-      }
-    });
-  });
-
-  it("reports unsupported nested nodes with the nested node metadata", async () => {
-    const forStatement = parse("for (;;) {}");
-
-    await expect(
-      interpret(block(forStatement))
-    ).resolves.toMatchObject({
-      ok: false,
-      error: {
-        code: "UNSUPPORTED_NODE",
-        message: "Unsupported AST node type 'ForStatement'.",
-        nodeType: "ForStatement"
-      },
-      snapshot: {
-        bindings: {}
-      },
-      stats: {
-        nodeVisits: 2
       }
     });
   });
@@ -1277,6 +1239,148 @@ describe("interpret", () => {
     ).rejects.toEqual(
       expect.objectContaining({
         name: "SandboxError",
+        budget: "steps",
+        limit: 20
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
+  it("evaluates for loops with init, test, update, and body", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("for (let i = 0; i < 3; i = i + 1) { count = count + 1; }"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
+    });
+  });
+
+  it("continues for loops without a test until break exits", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("for (let i = 0; ; i = i + 1) { if (i >= 2) { break; } count = count + 1; }"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+  });
+
+  it("evaluates for loops without an init", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let i = 0"),
+          parse("let count = 0"),
+          parse("for (; i < 3; i = i + 1) { count = count + 1; }"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
+    });
+  });
+
+  it("evaluates for loops without an update", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("for (let i = 0; i < 3;) { count = count + 1; i = i + 1; }"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
+    });
+  });
+
+  it("evaluates for loops with no init, test, or update", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("for (;;) { count = count + 1; break; }"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+  });
+
+  it("consumes break completions inside for bodies", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("for (let i = 0; i < 3; i = i + 1) { count = count + 1; break; }"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+  });
+
+  it("consumes continue completions inside for bodies and still evaluates the update", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let out = 0"),
+          parse("for (let i = 0; i < 3; i = i + 1) { if (i === 1) { continue; } out = out + i; }"),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+  });
+
+  it("propagates throws from inside for bodies", async () => {
+    await expect(
+      interpret(parse('for (let i = 0; i < 1; i = i + 1) { throw "boom"; }'))
+    ).rejects.toBe("boom");
+  });
+
+  it("scopes variables declared in for init to the loop", async () => {
+    await expect(
+      interpret(block(parse("for (let i = 0; i < 1; i = i + 1) {}"), parse("return i")))
+    ).resolves.toMatchObject({
+      ok: false,
+      error: {
+        code: "UNBOUND_IDENTIFIER",
+        message: "Identifier 'i' is not defined.",
+        nodeType: "Identifier"
+      }
+    });
+  });
+
+  it("caps infinite for loops through the step budget", async () => {
+    await expect(
+      interpret(parse("for (;;) {}"), {
+        budget: new Budget({
+          maxSteps: 20
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
         budget: "steps",
         limit: 20
       } satisfies Partial<SandboxError>)

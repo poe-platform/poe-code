@@ -14,6 +14,7 @@ import type {
   ExportDefaultDeclaration,
   ExportNamedDeclaration,
   ForOfStatement,
+  ForStatement,
   IfStatement,
   LogicalExpression,
   MemberExpression,
@@ -157,6 +158,7 @@ const dispatchTable: DispatchTable = {
   ExportNamedDeclaration: evaluateExportNamedDeclaration,
   ExpressionStatement: evaluateExpressionStatement,
   ForOfStatement: evaluateForOfStatement,
+  ForStatement: evaluateForStatement,
   IfStatement: evaluateIfStatement,
   Identifier: evaluateIdentifier,
   LogicalExpression: evaluateLogicalExpression,
@@ -662,6 +664,64 @@ async function evaluateForOfStatement(
     hasValue: false,
     value: undefined
   };
+}
+
+async function evaluateForStatement(
+  node: ForStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const loopContext = {
+    ...context,
+    scope: context.scope.child()
+  };
+
+  if (node.init !== undefined) {
+    const init = await evaluateNode(node.init, loopContext);
+    if (init.kind !== "normal") {
+      return init;
+    }
+  }
+
+  while (true) {
+    context.budget.visitNode();
+    context.stats.nodeVisits += 1;
+
+    if (node.test !== undefined) {
+      const test = await evaluateNode(node.test, loopContext);
+      if (test.kind !== "normal") {
+        return test;
+      }
+
+      if (!isTruthy(test.value)) {
+        return {
+          kind: "normal",
+          hasValue: false,
+          value: undefined
+        };
+      }
+    }
+
+    const result = await evaluateNode(node.body, loopContext);
+
+    if (result.kind === "break") {
+      return {
+        kind: "normal",
+        hasValue: false,
+        value: undefined
+      };
+    }
+
+    if (result.kind !== "normal" && result.kind !== "continue") {
+      return result;
+    }
+
+    if (node.update !== undefined) {
+      const update = await evaluateNode(node.update, loopContext);
+      if (update.kind !== "normal") {
+        return update;
+      }
+    }
+  }
 }
 
 async function evaluateWhileStatement(

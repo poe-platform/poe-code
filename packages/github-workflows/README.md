@@ -168,7 +168,7 @@ Rules:
 - Only one `{{yield}}` per prompt is allowed.
 - If neither side uses `{{yield}}`, the child prompt replaces the base (existing behavior).
 - If the child has no prompt body, `{{yield}}` resolves to an empty string.
-- `{{yield}}` is resolved before Mustache template variables like `{{url}}`, so both work together seamlessly.
+- `{{yield}}` is resolved before template variables like `{{url}}`, so both work together seamlessly.
 
 ### `extends` vs `--eject`
 

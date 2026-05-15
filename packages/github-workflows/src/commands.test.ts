@@ -18,11 +18,15 @@ vi.mock("@poe-code/agent-spawn", () => ({
   runCommand: spawnState.runCommand
 }));
 
-vi.mock("@poe-code/design-system", () => ({
-  select: designSystemState.select,
-  isCancel: () => false,
-  cancel: vi.fn()
-}));
+vi.mock("@poe-code/design-system", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+  return {
+    renderTemplate: actual.renderTemplate,
+    select: designSystemState.select,
+    isCancel: () => false,
+    cancel: vi.fn()
+  };
+});
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");

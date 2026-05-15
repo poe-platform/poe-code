@@ -11,7 +11,7 @@ export interface WriteOptions {
   target: ValueResolver<string>;
   /** Template ID to load via template loader */
   templateId: string;
-  /** Context to pass to Mustache.render() */
+  /** Context to pass to renderTemplate() */
   context?: ValueResolver<ConfigObject>;
   /** Optional human-readable label for logging */
   label?: string;
@@ -22,7 +22,7 @@ export interface MergeTomlOptions {
   target: ValueResolver<string>;
   /** Template ID to load via template loader */
   templateId: string;
-  /** Context to pass to Mustache.render() */
+  /** Context to pass to renderTemplate() */
   context?: ValueResolver<ConfigObject>;
   /** Optional human-readable label for logging */
   label?: string;
@@ -33,7 +33,7 @@ export interface MergeJsonOptions {
   target: ValueResolver<string>;
   /** Template ID to load via template loader */
   templateId: string;
-  /** Context to pass to Mustache.render() */
+  /** Context to pass to renderTemplate() */
   context?: ValueResolver<ConfigObject>;
   /** Optional human-readable label for logging */
   label?: string;

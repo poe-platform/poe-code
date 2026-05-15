@@ -241,7 +241,7 @@ function scanPromptVariables(prompt: string): string[] {
     }
 
     const rawToken = prompt.slice(opening + (triple ? 3 : 2), closing);
-    const variableName = normalizeMustacheToken(rawToken);
+    const variableName = normalizeTemplateToken(rawToken);
 
     if (variableName !== undefined) {
       variables.push(variableName);
@@ -253,7 +253,7 @@ function scanPromptVariables(prompt: string): string[] {
   return variables;
 }
 
-function normalizeMustacheToken(token: string): string | undefined {
+function normalizeTemplateToken(token: string): string | undefined {
   const trimmed = token.trim();
 
   if (trimmed.length === 0) {

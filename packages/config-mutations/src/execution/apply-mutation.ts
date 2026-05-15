@@ -1,4 +1,4 @@
-import Mustache from "mustache";
+import { renderTemplate } from "@poe-code/design-system";
 import type {
   Mutation,
   MutationContext,
@@ -635,7 +635,7 @@ async function applyTemplateWrite(
   const templateContext = mutation.context
     ? resolveValue(mutation.context, options)
     : {};
-  const rendered = Mustache.render(template, templateContext);
+  const rendered = renderTemplate(template, templateContext);
 
   const existed = await pathExists(context.fs, targetPath);
 
@@ -682,7 +682,7 @@ async function applyTemplateMerge(
   const templateContext = mutation.context
     ? resolveValue(mutation.context, options)
     : {};
-  const rendered = Mustache.render(template, templateContext);
+  const rendered = renderTemplate(template, templateContext);
 
   // Parse rendered template
   let templateDoc: ConfigObject;

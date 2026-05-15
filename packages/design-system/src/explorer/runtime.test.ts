@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TerminalBuffer } from "../../../terminal-pilot/src/terminal-buffer.js";
-import { runExplorer } from "./runtime.js";
 import { FakeTerminalDriver } from "./runtime.test-helpers.js";
 import type { ExplorerConfig, Row } from "./state.js";
 
@@ -24,13 +23,16 @@ const rows: Row[] = [
 ];
 
 const originalIsTTY = process.stdout.isTTY;
+let runExplorer: typeof import("./runtime.js").runExplorer;
 
-beforeEach(() => {
+beforeEach(async () => {
+  vi.resetModules();
   mockTerminal.driver = new FakeTerminalDriver();
   Object.defineProperty(process.stdout, "isTTY", {
     configurable: true,
     value: true
   });
+  ({ runExplorer } = await import("./runtime.js"));
 });
 
 afterEach(() => {

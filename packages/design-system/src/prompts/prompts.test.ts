@@ -1,6 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
-import { withSpinner } from "./index.js";
-import { resetOutputFormatCache, resolveOutputFormat } from "../internal/output-format.js";
 import { spinner as primitiveSpinner } from "./primitives/spinner.js";
 
 vi.mock("./primitives/spinner.js", () => ({
@@ -25,20 +23,26 @@ const spinnerFactory = vi.mocked(primitiveSpinner);
 
 describe("withSpinner", () => {
   let stdoutSpy: ReturnType<typeof vi.spyOn>;
+  let withSpinner: typeof import("./index.js").withSpinner;
+  let resetOutputFormatCache: typeof import("../internal/output-format.js").resetOutputFormatCache;
+  let resolveOutputFormat: typeof import("../internal/output-format.js").resolveOutputFormat;
   const originalEnv = process.env.POE_NO_SPINNER;
   const originalIsTTY = process.stdout.isTTY;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.useFakeTimers();
+    vi.resetModules();
     spinnerFactory.mockClear();
     stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
     process.env.POE_NO_SPINNER = undefined;
+    ({ resetOutputFormatCache, resolveOutputFormat } = await import("../internal/output-format.js"));
     resetOutputFormatCache();
     Object.defineProperty(process.stdout, "isTTY", {
       value: true,
       writable: true,
       configurable: true
     });
+    ({ withSpinner } = await import("./index.js"));
   });
 
   afterEach(() => {

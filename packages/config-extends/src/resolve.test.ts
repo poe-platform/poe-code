@@ -758,7 +758,7 @@ describe("resolve", () => {
     expect(result.sources.prompt).toBe("document");
   });
 
-  it("nests chained layouts while keeping one final Mustache template", async () => {
+  it("nests chained layouts while keeping one final template", async () => {
     const fs = createMemFs({
       "/base-a/review.md": ["---", "extends: true", "---", "Base A intro", "", "{{yield}}"].join("\n"),
       "/base-b/review.md": ["---", "extends: true", "---", "Base B intro", "", "{{yield}}", "", "Base B outro"].join(

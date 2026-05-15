@@ -1,13 +1,12 @@
 import { access, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import Mustache from "mustache";
 import type { McpSpawnConfig, SpawnResult } from "@poe-code/agent-spawn";
 import { runCommand, spawn } from "@poe-code/agent-spawn";
 import { S } from "toolcraft-schema";
 import { UserError, defineCommand, defineGroup } from "toolcraft";
 import type { Group } from "toolcraft";
-import { cancel, isCancel, select } from "@poe-code/design-system";
+import { cancel, isCancel, renderTemplate, select } from "@poe-code/design-system";
 import { discoverAutomations, loadAutomation } from "./discover.js";
 import { checkUserAllow } from "./exec/check-user-allow.js";
 import { requireCommentPrefix } from "./exec/require-comment-prefix.js";
@@ -28,7 +27,6 @@ const builtInWorkflowTemplatesDirCandidates = [
   fileURLToPath(new URL("./workflow-templates", import.meta.url)),
   fileURLToPath(new URL("../src/workflow-templates", import.meta.url))
 ];
-Mustache.escape = (value: string) => value;
 
 interface RunItemResult {
   prompt: string;
@@ -672,7 +670,7 @@ function buildPerItemTemplateContext(
 }
 
 function renderPrompt(template: string, view: Record<string, unknown>): string {
-  return Mustache.render(template, view);
+  return renderTemplate(template, view, { escape: "none" });
 }
 
 function requireSuccessfulRuns(name: string, items: RunItemResult[]): void {

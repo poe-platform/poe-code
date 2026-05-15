@@ -26,7 +26,9 @@ function writeLine(line: string): void {
   getAcpWriter()(line);
 }
 
-const AGENT_PREFIX = `${color.green.bold("✓")} agent: `;
+function agentPrefix(): string {
+  return `${color.green.bold("✓")} agent: `;
+}
 
 function formatCost(costUsd: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -51,7 +53,7 @@ export function renderAgentMessage(text: string): void {
   }
 
   const rendered = renderMarkdown(text).trimEnd();
-  writeLine(`${AGENT_PREFIX}${rendered}`);
+  writeLine(`${agentPrefix()}${rendered}`);
 }
 
 export function renderToolStart(kind: string, title: string): void {

@@ -309,7 +309,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: migrate-mustache-consumers
     title: Migrate mustache consumers to design-system template
@@ -346,8 +346,8 @@ tasks:
           modification (the renderer is drop-in)
         - github-workflows golden snapshots, if any, are unchanged
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: migrate-config-extends-yield

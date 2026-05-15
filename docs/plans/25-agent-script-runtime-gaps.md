@@ -803,7 +803,7 @@ tasks:
       Conventional commit: `docs(agent-script): sync README with runtime`.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: example-coverage-harness
     title: Add an end-to-end harness exercising the fixed subset
@@ -841,8 +841,8 @@ tasks:
 
       Conventional commit: `test(agent-harness): coverage-demo template`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

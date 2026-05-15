@@ -141,6 +141,47 @@ describe("interpret", () => {
   });
 
   it.each([
+    ["literal-only template", "`hello`", {}, "hello"],
+    ["one interpolation", "`n=${1}`", {}, "n=1"],
+    ["multiple interpolations", "`a=${a} b=${b}`", { a: "left", b: 2 }, "a=left b=2"],
+    ["number coercion", "`${42}`", {}, "42"],
+    ["true coercion", "`${true}`", {}, "true"],
+    ["false coercion", "`${false}`", {}, "false"],
+    ["null coercion", "`${null}`", {}, "null"],
+    ["undefined coercion", "`${undefined}`", {}, "undefined"],
+    ["string passthrough", '`${"x"}`', {}, "x"],
+    ["nested template", "`${`x:${1}`}`", {}, "x:1"],
+    ["empty interpolation", '`${""}`', {}, ""]
+  ])("evaluates %s", async (_label, source, bindings, expected) => {
+    await expect(interpret(parse(source), { bindings })).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it("propagates throws from template literal interpolations", async () => {
+    await expect(interpret(parse('`${(() => { throw "boom"; })()}`'))).rejects.toBe("boom");
+  });
+
+  it("throws a sandbox error when template literal concatenation exceeds the allocation budget", async () => {
+    await expect(
+      interpret(parse('`hello${"!"}`'), {
+        budget: new Budget({
+          stringLength: 5
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "stringLength",
+        current: 6,
+        limit: 5
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
+  it.each([
     ["true && true", true],
     ["true && false", false],
     ["false || true", true],

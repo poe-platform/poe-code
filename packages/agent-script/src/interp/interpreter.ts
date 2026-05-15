@@ -26,6 +26,7 @@ import type {
   SourceSpan,
   SpreadElement,
   StringLiteral,
+  TemplateLiteral,
   ThrowStatement,
   TryStatement,
   UnaryExpression,
@@ -162,6 +163,7 @@ const dispatchTable: DispatchTable = {
   BreakStatement: evaluateBreakStatement,
   ReturnStatement: evaluateReturnStatement,
   StringLiteral: evaluatePrimitiveLiteral,
+  TemplateLiteral: evaluateTemplateLiteral,
   ThrowStatement: evaluateThrowStatement,
   TryStatement: evaluateTryStatement,
   UnaryExpression: evaluateUnaryExpression,
@@ -346,6 +348,32 @@ async function evaluateObjectExpression(
     kind: "normal",
     hasValue: true,
     value: object
+  };
+}
+
+async function evaluateTemplateLiteral(
+  node: TemplateLiteral,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  let value = context.budget.allocateString(node.quasis[0]?.value.cooked ?? "");
+
+  for (let index = 0; index < node.expressions.length; index += 1) {
+    const expression = await evaluateNode(node.expressions[index], context);
+    if (expression.kind !== "normal") {
+      return expression;
+    }
+
+    const expressionText = context.budget.allocateString(String(expression.value));
+    value = context.budget.allocateString(value + expressionText);
+
+    const quasiText = context.budget.allocateString(node.quasis[index + 1]?.value.cooked ?? "");
+    value = context.budget.allocateString(value + quasiText);
+  }
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value
   };
 }
 

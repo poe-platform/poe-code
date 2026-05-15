@@ -253,8 +253,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): evaluate WhileStatement`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: add-for-statement

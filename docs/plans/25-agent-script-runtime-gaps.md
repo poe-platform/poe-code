@@ -53,7 +53,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-if-statement
     title: Add IfStatement interpreter handler
@@ -93,8 +93,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): evaluate IfStatement`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: add-logical-expression

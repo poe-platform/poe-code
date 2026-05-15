@@ -1,11 +1,6 @@
 name: Release opencode-poe-auth
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - 'packages/opencode-poe-auth/**'
 concurrency:
   group: release-opencode-poe-auth
   cancel-in-progress: false

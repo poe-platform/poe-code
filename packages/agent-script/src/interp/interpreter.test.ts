@@ -656,7 +656,8 @@ describe("interpret", () => {
     ).rejects.toMatchObject({
       name: "RangeError",
       message: "Number#toString radix must be between 2 and 36.",
-      stack: "RangeError: Number#toString radix must be between 2 and 36.\n    at toString (line 1, column 8)"
+      stack:
+        "RangeError: Number#toString radix must be between 2 and 36.\n    at toString (line 1, column 8)"
     });
 
     await expect(
@@ -668,7 +669,8 @@ describe("interpret", () => {
     ).rejects.toMatchObject({
       name: "RangeError",
       message: "Number#toFixed digits must be between 0 and 100.",
-      stack: "RangeError: Number#toFixed digits must be between 0 and 100.\n    at toFixed (line 1, column 8)"
+      stack:
+        "RangeError: Number#toFixed digits must be between 0 and 100.\n    at toFixed (line 1, column 8)"
     });
 
     await expect(
@@ -840,10 +842,7 @@ describe("interpret", () => {
       }
     });
 
-    expect(yieldNodeIds).toEqual([
-      topLevelAwait.nodeId,
-      topLevelAwait.argument.callee.body.nodeId
-    ]);
+    expect(yieldNodeIds).toEqual([topLevelAwait.nodeId, topLevelAwait.argument.callee.body.nodeId]);
   });
 
   it("treats await on plain values as a yield point and returns the original value", async () => {
@@ -1058,9 +1057,9 @@ describe("interpret", () => {
 
     expect(cleanup).toHaveBeenCalledTimes(1);
 
-    await expect(
-      interpret(parse("try { return 1; } finally { throw 'override'; }"))
-    ).rejects.toBe("override");
+    await expect(interpret(parse("try { return 1; } finally { throw 'override'; }"))).rejects.toBe(
+      "override"
+    );
   });
 
   it("runs finally on break and continue completions", async () => {
@@ -1170,21 +1169,136 @@ describe("interpret", () => {
     expect(cleanup).toHaveBeenCalledTimes(2);
   });
 
+  it("evaluates for...of over sandbox arrays", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse("for (const x of [1, 2, 3]) { out.push(x); }"),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2, 3]
+    });
+  });
+
+  it("skips for...of bodies for empty arrays", async () => {
+    const body = vi.fn(() => undefined);
+
+    await expect(
+      interpret(parse("for (const x of []) { body(); }"), {
+        bindings: {
+          body: createSandboxClosure({
+            call: body,
+            name: "body"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true
+    });
+
+    expect(body).not.toHaveBeenCalled();
+  });
+
+  it("consumes break completions inside for...of", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse("for (const x of [1, 2, 3]) { out.push(x); if (x === 2) { break; } }"),
+          parse("return out.length")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+  });
+
+  it("consumes continue completions inside for...of", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse("for (const x of [1, 2, 3]) { if (x === 2) { continue; } out.push(x); }"),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 3]
+    });
+  });
+
+  it("propagates throws from inside for...of bodies", async () => {
+    await expect(interpret(parse('for (const x of [1]) { throw "boom"; }'))).rejects.toBe("boom");
+  });
+
+  it("returns from the enclosing arrow inside for...of bodies", async () => {
+    await expect(
+      interpret(parse("return (() => { for (const x of [1, 2]) { return x; } return 0; })()"))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+  });
+
+  it("throws a TypeError-shaped sandbox error for unsupported for...of iterables", async () => {
+    await expect(interpret(parse('for (const x of "abc") { return x; }'))).rejects.toMatchObject({
+      name: "TypeError",
+      message: "abc is not a supported iterable"
+    });
+  });
+
+  it.each(["null", "undefined"])(
+    "throws a TypeError-shaped sandbox error for for...of over %s",
+    async (value) => {
+      await expect(
+        interpret(parse(`for (const x of ${value}) { return x; }`))
+      ).rejects.toMatchObject({
+        name: "TypeError",
+        message: `${value} is not a supported iterable`
+      });
+    }
+  );
+
+  // TODO: Assert that assigning to the const loop variable throws once AssignmentExpression is supported.
+
+  it("caps million-element for...of iteration through the step budget", async () => {
+    await expect(
+      interpret(parse("for (const x of values) { sink.push(x); }"), {
+        bindings: {
+          sink: [],
+          values: new Array(1_000_000).fill(1)
+        },
+        budget: new Budget({
+          maxSteps: 20
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        budget: "steps",
+        limit: 20
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
   it("binds catch parameters in a dedicated catch scope", async () => {
     const budget = new Budget();
 
     await expect(
-      interpret(
-        parse("try { throw Error('boom'); } catch ({ message }) { return message; }"),
-        {
-          bindings: {
-            ...createErrorGlobals({
-              budget
-            })
-          },
-          budget
-        }
-      )
+      interpret(parse("try { throw Error('boom'); } catch ({ message }) { return message; }"), {
+        bindings: {
+          ...createErrorGlobals({
+            budget
+          })
+        },
+        budget
+      })
     ).resolves.toMatchObject({
       ok: true,
       returnValue: "boom"

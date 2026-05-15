@@ -12,6 +12,7 @@ import type {
   Identifier,
   ExportDefaultDeclaration,
   ExportNamedDeclaration,
+  ForOfStatement,
   IfStatement,
   LogicalExpression,
   MemberExpression,
@@ -152,6 +153,7 @@ const dispatchTable: DispatchTable = {
   ExportDefaultDeclaration: evaluateExportDefaultDeclaration,
   ExportNamedDeclaration: evaluateExportNamedDeclaration,
   ExpressionStatement: evaluateExpressionStatement,
+  ForOfStatement: evaluateForOfStatement,
   IfStatement: evaluateIfStatement,
   Identifier: evaluateIdentifier,
   LogicalExpression: evaluateLogicalExpression,
@@ -581,6 +583,73 @@ async function evaluateIfStatement(
   }
 
   return evaluateNode(branch, context);
+}
+
+async function evaluateForOfStatement(
+  node: ForOfStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const iterable = await evaluateNode(node.right, context);
+  if (iterable.kind !== "normal") {
+    return iterable;
+  }
+
+  if (!Array.isArray(iterable.value)) {
+    throw new TypeError(`${String(iterable.value)} is not a supported iterable`);
+  }
+
+  for (const entry of iterable.value) {
+    const scope = context.scope.child();
+    bindForOfLoopVariable(node.left, entry, scope);
+
+    const result = await evaluateNode(node.body, {
+      ...context,
+      scope
+    });
+
+    if (result.kind === "break") {
+      return {
+        kind: "normal",
+        hasValue: false,
+        value: undefined
+      };
+    }
+
+    if (result.kind === "continue") {
+      continue;
+    }
+
+    if (result.kind !== "normal") {
+      return result;
+    }
+  }
+
+  return {
+    kind: "normal",
+    hasValue: false,
+    value: undefined
+  };
+}
+
+function bindForOfLoopVariable(
+  left: ForOfStatement["left"],
+  value: SandboxValue,
+  scope: Scope
+): void {
+  if (left.type !== "VariableDeclaration") {
+    throw new TypeError(`Unsupported for...of left-hand side '${left.type}'.`);
+  }
+
+  const [declarator] = left.declarations;
+  if (left.declarations.length !== 1 || declarator === undefined) {
+    throw new TypeError("for...of declarations must include exactly one declarator.");
+  }
+
+  if (declarator.id.type !== "Identifier") {
+    throw new TypeError(`Unsupported for...of declaration pattern '${declarator.id.type}'.`);
+  }
+
+  scope.declare(declarator.id.name, left.kind, value);
 }
 
 async function evaluateExpressionStatement(

@@ -102,6 +102,27 @@ describe("createObjectArrayGlobals", () => {
     await expect(getClosure(getProperty(globals.Array, "from")).call(["10", globals.Number])).resolves.toEqual([1, 0]);
   });
 
+
+  it("blocks assign and freeze on host prototype objects", async () => {
+    const globals = createObjectArrayGlobals({
+      budget: new Budget()
+    });
+
+    expect(() =>
+      getClosure(getProperty(globals.Object, "assign")).call([
+        Object.prototype as unknown as SandboxObject,
+        {
+          polluted: true
+        }
+      ])
+    ).toThrowError("Object.assign(target, ...sources) requires an object or array target.");
+
+    expect(await getClosure(getProperty(globals.Object, "freeze")).call([Object.prototype as unknown as SandboxObject])).toBe(
+      Object.prototype
+    );
+    expect(Object.isFrozen(Object.prototype)).toBe(false);
+  });
+
   it("treats sandbox coercion helpers as opaque Object sources", async () => {
     const globals = createObjectArrayGlobals({
       budget: new Budget()

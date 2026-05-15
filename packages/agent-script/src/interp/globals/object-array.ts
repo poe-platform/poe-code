@@ -37,13 +37,7 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         name: "fromEntries"
       }),
       freeze: createSandboxClosure({
-        call: ([value]) => {
-          if (typeof value === "object" && value !== null) {
-            Object.freeze(value);
-          }
-
-          return value;
-        },
+        call: ([value]) => freezeSandboxValue(value),
         name: "freeze"
       }),
       assign: createSandboxClosure({
@@ -80,6 +74,15 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
   };
 }
 
+function freezeSandboxValue(value: SandboxValue): SandboxValue {
+  if (!isAssignableSandboxTarget(value)) {
+    return value;
+  }
+
+  Object.freeze(value);
+  return value;
+}
+
 function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValue[]): SandboxValue {
   if (target === null || target === undefined) {
     throw new TypeError("Object.assign(target, ...sources) requires a non-null target.");
@@ -105,7 +108,15 @@ function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValu
 function isAssignableSandboxTarget(
   value: SandboxValue
 ): value is SandboxObject & Record<string, SandboxValue> | SandboxValue[] & Record<string, SandboxValue> {
-  return typeof value === "object" && value !== null && !isSandboxClosure(value) && !isSandboxPromise(value);
+  if (typeof value !== "object" || value === null || isSandboxClosure(value) || isSandboxPromise(value)) {
+    return false;
+  }
+
+  if (Array.isArray(value)) {
+    return true;
+  }
+
+  return Object.getPrototypeOf(value) === Object.prototype;
 }
 
 async function arrayFromSandboxValues(args: readonly SandboxValue[], budget: Budget): Promise<SandboxValue> {

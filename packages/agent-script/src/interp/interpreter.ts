@@ -2,6 +2,7 @@ import type {
   ArrayExpression,
   ArrowFunctionExpression,
   AwaitExpression,
+  BinaryExpression,
   BlockStatement,
   BooleanLiteral,
   CallExpression,
@@ -138,6 +139,7 @@ const dispatchTable: DispatchTable = {
   ArrayExpression: evaluateArrayExpression,
   ArrowFunctionExpression: evaluateArrowFunction,
   AwaitExpression: evaluateAwait,
+  BinaryExpression: evaluateBinaryExpression,
   BlockStatement: evaluateBlockStatement,
   BooleanLiteral: evaluatePrimitiveLiteral,
   CallExpression: evaluateCallExpression,
@@ -353,6 +355,29 @@ async function evaluateAwait(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   return evaluateAwaitExpression(node, context, evaluateNode);
+}
+
+async function evaluateBinaryExpression(
+  node: BinaryExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const left = await evaluateNode(node.left, context);
+  if (left.kind !== "normal") {
+    return left;
+  }
+
+  const right = await evaluateNode(node.right, context);
+  if (right.kind !== "normal") {
+    return right;
+  }
+
+  const value = applyBinaryOperator(node, left.value, right.value, context);
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value
+  };
 }
 
 async function evaluateIdentifier(
@@ -904,6 +929,92 @@ function applyUnaryOperator(
     case "~":
       return ~(value as number);
   }
+}
+
+function applyBinaryOperator(
+  node: BinaryExpression,
+  left: InterpreterValue,
+  right: InterpreterValue,
+  context: EvaluationContext
+): InterpreterValue {
+  switch (node.operator) {
+    case "+":
+      return applyAdditionOperator(left, right, context);
+    case "-":
+      return Number(left) - Number(right);
+    case "*":
+      return Number(left) * Number(right);
+    case "/":
+      return Number(left) / Number(right);
+    case "%":
+      return Number(left) % Number(right);
+    case "**":
+      return Number(left) ** Number(right);
+    case "<":
+      return compareLessThan(left, right);
+    case "<=":
+      return compareLessThanOrEqual(left, right);
+    case ">":
+      return compareGreaterThan(left, right);
+    case ">=":
+      return compareGreaterThanOrEqual(left, right);
+    case "===":
+    case "==":
+      return left === right;
+    case "!==":
+    case "!=":
+      return left !== right;
+    case "&":
+      return Number(left) & Number(right);
+    case "|":
+      return Number(left) | Number(right);
+    case "^":
+      return Number(left) ^ Number(right);
+    case "<<":
+      return Number(left) << Number(right);
+    case ">>":
+      return Number(left) >> Number(right);
+    case ">>>":
+      return Number(left) >>> Number(right);
+    case "in":
+      throw createError("UNSUPPORTED_NODE", node, "Binary operator 'in' is not supported.");
+  }
+}
+
+function applyAdditionOperator(
+  left: InterpreterValue,
+  right: InterpreterValue,
+  context: EvaluationContext
+): InterpreterValue {
+  if (typeof left === "string" || typeof right === "string") {
+    return context.budget.allocateString(String(left) + String(right));
+  }
+
+  return Number(left) + Number(right);
+}
+
+function compareLessThan(left: InterpreterValue, right: InterpreterValue): boolean {
+  return typeof left === "string" && typeof right === "string"
+    ? left < right
+    : Number(left) < Number(right);
+}
+
+function compareLessThanOrEqual(left: InterpreterValue, right: InterpreterValue): boolean {
+  return typeof left === "string" && typeof right === "string"
+    ? left <= right
+    : Number(left) <= Number(right);
+}
+
+function compareGreaterThan(left: InterpreterValue, right: InterpreterValue): boolean {
+  return typeof left === "string" && typeof right === "string"
+    ? left > right
+    : Number(left) > Number(right);
+}
+
+function compareGreaterThanOrEqual(left: InterpreterValue, right: InterpreterValue): boolean {
+  return typeof left === "string" && typeof right === "string"
+    ? left >= right
+    : Number(left) >= Number(right);
 }
 
 function isIndexableSandboxValue(value: SandboxValue): value is SandboxArray | SandboxObject {

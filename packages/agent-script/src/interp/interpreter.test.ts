@@ -73,12 +73,12 @@ describe("interpret", () => {
   });
 
   it("reports unsupported nodes through the result envelope", async () => {
-    await expect(interpret(parse("left + right"))).resolves.toMatchObject({
+    await expect(interpret(parse("left = right"))).resolves.toMatchObject({
       ok: false,
       error: {
         code: "UNSUPPORTED_NODE",
-        message: "Unsupported AST node type 'BinaryExpression'.",
-        nodeType: "BinaryExpression"
+        message: "Unsupported AST node type 'AssignmentExpression'.",
+        nodeType: "AssignmentExpression"
       },
       snapshot: {
         bindings: {}
@@ -87,6 +87,75 @@ describe("interpret", () => {
         nodeVisits: 1
       }
     });
+  });
+
+  it.each([
+    ["1 + 2", 3],
+    ["5 - 3", 2],
+    ["4 * 6", 24],
+    ["10 / 4", 2.5],
+    ["10 % 3", 1],
+    ["2 ** 10", 1024],
+    ['"a" + "b"', "ab"],
+    ['"v" + 1', "v1"],
+    ['1 + "v"', "1v"],
+    ["2 < 3", true],
+    ["3 < 2", false],
+    ["3 < 3", false],
+    ["2 <= 2", true],
+    ["3 <= 2", false],
+    ["3 > 2", true],
+    ["2 > 3", false],
+    ["3 >= 3", true],
+    ["2 >= 3", false],
+    ["1 === 1", true],
+    ['1 === "1"', false],
+    ["1 !== 2", true],
+    ["1 !== 1", false],
+    ["1 == 1", true],
+    ['1 == "1"', false],
+    ["1 != 2", true],
+    ["1 != 1", false],
+    ["5 & 3", 1],
+    ["5 | 3", 7],
+    ["5 ^ 3", 6],
+    ["1 << 3", 8],
+    ["16 >> 2", 4],
+    ["-1 >>> 28", 15],
+    ["null + 1", 1]
+  ])("evaluates binary expression %s", async (source, expected) => {
+    await expect(interpret(parse(source))).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it("evaluates undefined plus a number as NaN", async () => {
+    const result = await interpret(parse("undefined + 1"));
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.returnValue).toBeNaN();
+  });
+
+  it("throws a sandbox error when binary string concatenation exceeds the allocation budget", async () => {
+    await expect(
+      interpret(parse('"hello" + "!"'), {
+        budget: new Budget({
+          stringLength: 5
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "stringLength",
+        current: 6,
+        limit: 5
+      } satisfies Partial<SandboxError>)
+    );
   });
 
   it("evaluates unary operators used by numeric expressions", async () => {
@@ -199,20 +268,20 @@ describe("interpret", () => {
   });
 
   it("reports unsupported nested nodes with the nested node metadata", async () => {
-    const returnBinaryExpression = parse("return left + right");
+    const returnAssignmentExpression = parse("return left = right");
 
     await expect(
       interpret({
         type: "BlockStatement",
-        body: [returnBinaryExpression],
-        span: returnBinaryExpression.span
+        body: [returnAssignmentExpression],
+        span: returnAssignmentExpression.span
       })
     ).resolves.toMatchObject({
       ok: false,
       error: {
         code: "UNSUPPORTED_NODE",
-        message: "Unsupported AST node type 'BinaryExpression'.",
-        nodeType: "BinaryExpression"
+        message: "Unsupported AST node type 'AssignmentExpression'.",
+        nodeType: "AssignmentExpression"
       },
       snapshot: {
         bindings: {}

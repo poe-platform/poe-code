@@ -538,7 +538,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: harness-run-resume
     title: Wire `--snapshot-path` and `--resume` into `harness run`
@@ -574,8 +574,8 @@ tasks:
 
       Conventional commit: `feat(harness): resume from snapshot path`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: schema-initializer-outer-consts

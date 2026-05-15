@@ -714,6 +714,49 @@ describe("interpret", () => {
     });
   });
 
+  it.each([
+    ["null object", "return obj?.prop", { obj: null }, undefined],
+    ["undefined object", "return obj?.prop", { obj: undefined }, undefined],
+    ["defined object", "return obj?.prop", { obj: { prop: 1 } }, 1],
+    ["first nullish chain segment", "return a?.b?.c", { a: null }, undefined],
+    ["undefined existing property", "return obj?.prop", { obj: { prop: undefined } }, undefined]
+  ])("evaluates optional member access for %s", async (_label, source, bindings, expected) => {
+    await expect(
+      interpret(parse(source), {
+        bindings
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it.each([
+    ["undefined function", "return fn?.()", { fn: undefined }, undefined],
+    [
+      "defined function",
+      "return fn?.()",
+      {
+        fn: createSandboxClosure({
+          call: () => 7,
+          name: "fn"
+        })
+      },
+      7
+    ],
+    ["falsy number member", "return value?.toString()", { value: 0 }, "0"],
+    ["undefined method", "return obj.method?.()", { obj: { method: undefined } }, undefined]
+  ])("evaluates optional calls for %s", async (_label, source, bindings, expected) => {
+    await expect(
+      interpret(parse(source), {
+        bindings
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
   it("returns subset RangeError values for intercepted number methods with out-of-range arguments", async () => {
     await expect(
       interpret(parse("return value.toString(1)"), {

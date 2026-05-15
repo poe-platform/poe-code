@@ -348,7 +348,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: migrate-config-extends-yield
     title: Replace config-extends yield substitution with renderTemplate
@@ -385,9 +385,9 @@ tasks:
       the monorepo.
 
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: drop-dead-deps
     title: Drop chalk / console-table-printer / mustache from all package.json

@@ -1,4 +1,5 @@
 import path from "node:path";
+import { renderTemplate } from "@poe-code/design-system";
 import { findBase } from "./discover.js";
 import { mergeLayers } from "./merge.js";
 import { parseDocument } from "./parse.js";
@@ -264,7 +265,7 @@ function replaceYield(
   prompt: string,
   replacement: string
 ): string {
-  return prompt.replace(YIELD_TOKEN, replacement);
+  return renderTemplate(prompt, {}, { yield: replacement, escape: "none" });
 }
 
 function assertValidYieldCount(prompt: string): void {

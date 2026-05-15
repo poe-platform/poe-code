@@ -230,6 +230,11 @@ describe("yield", () => {
     expect(renderTemplate("hi {{yield}}", { name: "K" }, { yield: "{{name}}" })).toBe("hi K");
   });
 
+  it("preserves unresolved tags during raw yield substitution", () => {
+    expect(renderTemplate("Read {{url}}. {{yield}}", {}, { yield: "Focus on {{repo}}.", escape: "none" }))
+      .toBe("Read {{url}}. Focus on {{repo}}.");
+  });
+
   it("treats yield as a normal variable when the option is omitted", () => {
     expect(renderTemplate("a {{yield}} b", {})).toBe("a  b");
     expect(renderTemplate("a {{yield}} b", { yield: "Y" })).toBe("a Y b");

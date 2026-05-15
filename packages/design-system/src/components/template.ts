@@ -7,7 +7,7 @@ export interface RenderTemplateOptions {
 
 type Token =
   | { type: "text"; value: string; start: number }
-  | { type: "name" | "unescaped"; name: string }
+  | { type: "name" | "unescaped"; name: string; raw: string }
   | { type: "section" | "inverted"; name: string; children: Token[]; rawStart: number; rawEnd: number };
 
 interface SectionFrame {
@@ -43,16 +43,18 @@ export function renderTemplate(
     : template.split("{{yield}}").join(options.yield);
   const tokens = parseTemplate(prepared);
   const escape = options.escape === "none" ? String : escapeHtml;
+  const preserveMissing = options.yield !== undefined && options.escape === "none";
 
-  return renderTokens(tokens, { view }, prepared, escape);
+  return renderTokens(tokens, { view }, prepared, escape, preserveMissing);
 }
 
 function renderTemplateInContext(
   template: string,
   context: Context,
-  escape: (value: string) => string
+  escape: (value: string) => string,
+  preserveMissing: boolean
 ): string {
-  return renderTokens(parseTemplate(template), context, template, escape);
+  return renderTokens(parseTemplate(template), context, template, escape, preserveMissing);
 }
 
 function parseTemplate(template: string): Token[] {
@@ -118,7 +120,7 @@ function parseTemplate(template: string): Token[] {
       continue;
     }
 
-    tokens.push({ type: parsed.kind, name: parsed.name });
+    tokens.push({ type: parsed.kind, name: parsed.name, raw: template.slice(open, parsed.end) });
     index = parsed.end;
   }
 
@@ -203,7 +205,8 @@ function renderTokens(
   tokens: Token[],
   context: Context,
   template: string,
-  escape: (value: string) => string
+  escape: (value: string) => string,
+  preserveMissing: boolean
 ): string {
   let output = "";
 
@@ -217,6 +220,9 @@ function renderTokens(
       case "unescaped": {
         const value = lookup(context, token.name);
         if (value == null) {
+          if (preserveMissing) {
+            output += token.raw;
+          }
           continue;
         }
         const rendered = String(value);
@@ -227,7 +233,7 @@ function renderTokens(
       case "inverted": {
         const value = lookup(context, token.name);
         if (!value || (Array.isArray(value) && value.length === 0)) {
-          output += renderTokens(token.children, context, template, escape);
+          output += renderTokens(token.children, context, template, escape, preserveMissing);
         }
         continue;
       }
@@ -240,7 +246,7 @@ function renderTokens(
 
         if (Array.isArray(value)) {
           for (const item of value) {
-            output += renderTokens(token.children, pushContext(context, item), template, escape);
+            output += renderTokens(token.children, pushContext(context, item), template, escape, preserveMissing);
           }
           continue;
         }
@@ -248,7 +254,7 @@ function renderTokens(
         if (typeof value === "function") {
           const raw = template.slice(token.rawStart, token.rawEnd);
           const rendered = (value as Lambda).call(context.view, raw, (nextTemplate: string) =>
-            renderTemplateInContext(nextTemplate, context, escape)
+            renderTemplateInContext(nextTemplate, context, escape, preserveMissing)
           );
           if (rendered != null) {
             output += String(rendered);
@@ -257,11 +263,11 @@ function renderTokens(
         }
 
         if (typeof value === "object" || typeof value === "string" || typeof value === "number") {
-          output += renderTokens(token.children, pushContext(context, value), template, escape);
+          output += renderTokens(token.children, pushContext(context, value), template, escape, preserveMissing);
           continue;
         }
 
-        output += renderTokens(token.children, context, template, escape);
+        output += renderTokens(token.children, context, template, escape, preserveMissing);
       }
     }
   }

@@ -521,14 +521,13 @@ const output = renderTable({
 Unified diff display for file changes (used in --dry-run)
 
 ```typescript
-import { log } from "@poe-code/design-system";
-import chalk from "chalk";
+import { color, log } from "@poe-code/design-system";
 const diffLines = [
-  chalk.gray("--- config.json"),
-  chalk.red('-  "model": "gpt-4",'),
-  chalk.green('+  "model": "claude-sonnet-4",')
+  color.gray("--- config.json"),
+  color.red('-  "model": "gpt-4",'),
+  color.green('+  "model": "claude-sonnet-4",')
 ];
-log.message(diffLines.join("\n"), { symbol: chalk.yellow("~") });
+log.message(diffLines.join("\n"), { symbol: color.yellow("~") });
 ```
 
 ```markdown
@@ -583,7 +582,7 @@ dashboard.updateStats({ status: "running", iterations: 5, tokensIn: 685, tokensO
 │                                                    │                         │
 │                                                    │                         │
 ├────────────────────────────────────────────────────┴─────────────────────────┤
-│                 q Quit  e Edit  p Pause  r Retry  ↑↓ Scroll                  │
+│                   q Quit  e Edit  l Log  p Pause  r Retry                    │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
 

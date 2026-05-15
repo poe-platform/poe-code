@@ -441,8 +441,8 @@ tasks:
       If the design-docs generator output diffs, regenerate and commit
       the docs along with the code.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 ---
 
 ## Context

@@ -73,12 +73,12 @@ describe("interpret", () => {
   });
 
   it("reports unsupported nodes through the result envelope", async () => {
-    await expect(interpret(parse("left = right"))).resolves.toMatchObject({
+    await expect(interpret(parse("for (;;) {}"))).resolves.toMatchObject({
       ok: false,
       error: {
         code: "UNSUPPORTED_NODE",
-        message: "Unsupported AST node type 'AssignmentExpression'.",
-        nodeType: "AssignmentExpression"
+        message: "Unsupported AST node type 'ForStatement'.",
+        nodeType: "ForStatement"
       },
       snapshot: {
         bindings: {}
@@ -419,26 +419,22 @@ describe("interpret", () => {
   });
 
   it("reports unsupported nested nodes with the nested node metadata", async () => {
-    const returnAssignmentExpression = parse("return left = right");
+    const forStatement = parse("for (;;) {}");
 
     await expect(
-      interpret({
-        type: "BlockStatement",
-        body: [returnAssignmentExpression],
-        span: returnAssignmentExpression.span
-      })
+      interpret(block(forStatement))
     ).resolves.toMatchObject({
       ok: false,
       error: {
         code: "UNSUPPORTED_NODE",
-        message: "Unsupported AST node type 'AssignmentExpression'.",
-        nodeType: "AssignmentExpression"
+        message: "Unsupported AST node type 'ForStatement'.",
+        nodeType: "ForStatement"
       },
       snapshot: {
         bindings: {}
       },
       stats: {
-        nodeVisits: 3
+        nodeVisits: 2
       }
     });
   });
@@ -1285,6 +1281,122 @@ describe("interpret", () => {
         limit: 20
       } satisfies Partial<SandboxError>)
     );
+  });
+
+  it("evaluates while loops by re-checking the test expression each iteration", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("while (count < 3) { count = count + 1; }"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
+    });
+  });
+
+  it("skips while bodies when the initial test is false", async () => {
+    const body = vi.fn(() => undefined);
+
+    await expect(
+      interpret(parse("while (false) { body(); }"), {
+        bindings: {
+          body: createSandboxClosure({
+            call: body,
+            name: "body"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true
+    });
+
+    expect(body).not.toHaveBeenCalled();
+  });
+
+  it("consumes break completions inside while bodies", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("while (true) { count = count + 1; break; }"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+  });
+
+  it("consumes continue completions inside while bodies", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("let out = 0"),
+          parse(
+            "while (count < 3) { count = count + 1; if (count === 2) { continue; } out = out + count; }"
+          ),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 4
+    });
+  });
+
+  it("returns from the enclosing arrow inside while bodies", async () => {
+    await expect(
+      interpret(parse("return (() => { while (true) { return 7; } return 0; })()"))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 7
+    });
+  });
+
+  it("propagates throws from inside while bodies", async () => {
+    await expect(interpret(parse('while (true) { throw "boom"; }'))).rejects.toBe("boom");
+  });
+
+  it("caps infinite while loops through the step budget", async () => {
+    await expect(
+      interpret(parse("while (true) {}"), {
+        budget: new Budget({
+          maxSteps: 20
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "steps",
+        limit: 20
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
+  it.each([
+    ["1", 1],
+    ["0", 0],
+    ['""', 0]
+  ])("coerces while (%s) tests with JavaScript truthiness", async (test, expected) => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse(`while (${test}) { count = count + 1; break; }`),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
   });
 
   it("binds catch parameters in a dedicated catch scope", async () => {

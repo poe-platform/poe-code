@@ -1,5 +1,6 @@
 import type {
   ArrayExpression,
+  AssignmentExpression,
   ArrowFunctionExpression,
   AwaitExpression,
   BinaryExpression,
@@ -33,7 +34,8 @@ import type {
   UnaryExpression,
   UndefinedLiteral,
   ExpressionStatement,
-  VariableDeclaration
+  VariableDeclaration,
+  WhileStatement
 } from "../parse.js";
 import {
   evaluateArrowFunctionExpression,
@@ -142,6 +144,7 @@ type DispatchTable = Partial<{
 
 const dispatchTable: DispatchTable = {
   ArrayExpression: evaluateArrayExpression,
+  AssignmentExpression: evaluateAssignmentExpression,
   ArrowFunctionExpression: evaluateArrowFunction,
   AwaitExpression: evaluateAwait,
   BinaryExpression: evaluateBinaryExpression,
@@ -170,6 +173,7 @@ const dispatchTable: DispatchTable = {
   TryStatement: evaluateTryStatement,
   UnaryExpression: evaluateUnaryExpression,
   VariableDeclaration: evaluateVariableDeclaration,
+  WhileStatement: evaluateWhileStatement,
   UndefinedLiteral: evaluatePrimitiveLiteral
 };
 
@@ -416,6 +420,35 @@ async function evaluateBinaryExpression(
   };
 }
 
+async function evaluateAssignmentExpression(
+  node: AssignmentExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  if (node.left.type !== "Identifier") {
+    return {
+      kind: "error",
+      error: createError(
+        "UNSUPPORTED_NODE",
+        node,
+        `Unsupported assignment target '${node.left.type}'.`
+      )
+    };
+  }
+
+  const value = await evaluateNode(node.right, context);
+  if (value.kind !== "normal") {
+    return value;
+  }
+
+  context.scope.assign(node.left.name, value.value);
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: value.value
+  };
+}
+
 async function evaluateLogicalExpression(
   node: LogicalExpression,
   context: EvaluationContext
@@ -629,6 +662,44 @@ async function evaluateForOfStatement(
     hasValue: false,
     value: undefined
   };
+}
+
+async function evaluateWhileStatement(
+  node: WhileStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  while (true) {
+    const test = await evaluateNode(node.test, context);
+    if (test.kind !== "normal") {
+      return test;
+    }
+
+    if (!isTruthy(test.value)) {
+      return {
+        kind: "normal",
+        hasValue: false,
+        value: undefined
+      };
+    }
+
+    const result = await evaluateNode(node.body, context);
+
+    if (result.kind === "break") {
+      return {
+        kind: "normal",
+        hasValue: false,
+        value: undefined
+      };
+    }
+
+    if (result.kind === "continue") {
+      continue;
+    }
+
+    if (result.kind !== "normal") {
+      return result;
+    }
+  }
 }
 
 function bindForOfLoopVariable(

@@ -1984,6 +1984,10 @@ function formatResolvedValue(value: unknown): string {
   return JSON.stringify(value);
 }
 
+function fieldPromptLabel(field: FieldDefinition): string {
+  return field.positionalIndex === undefined ? field.optionFlag : `<${field.displayPath}>`;
+}
+
 async function promptForField(field: FieldDefinition): Promise<unknown> {
   const schema = field.schema;
   if (schema.kind === "enum") {
@@ -1994,7 +1998,7 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
           value
         }));
     const selected = await select({
-      message: field.description ?? field.displayPath,
+      message: field.description ?? fieldPromptLabel(field),
       options,
       initialValue: field.hasDefault ? field.defaultValue : undefined
     });
@@ -2009,7 +2013,7 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
 
   if (field.schema.kind === "boolean") {
     const selected = await confirm({
-      message: field.displayPath,
+      message: fieldPromptLabel(field),
       initialValue: field.hasDefault ? Boolean(field.defaultValue) : undefined
     });
 
@@ -2022,7 +2026,7 @@ async function promptForField(field: FieldDefinition): Promise<unknown> {
   }
 
   const entered = await promptText({
-    message: field.displayPath,
+    message: fieldPromptLabel(field),
     initialValue:
       field.hasDefault && field.defaultValue !== undefined
         ? formatResolvedValue(field.defaultValue)

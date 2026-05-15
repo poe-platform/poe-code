@@ -863,11 +863,11 @@ describe("runCLI", () => {
     await runCLI(root);
 
     expect(promptState.text).toHaveBeenCalledWith({
-      message: "name",
+      message: "--name",
       initialValue: "demo-service"
     });
     expect(promptState.select).toHaveBeenCalledWith({
-      message: "mode",
+      message: "--mode",
       options: [
         { label: "safe", value: "safe" },
         { label: "fast", value: "fast" }
@@ -885,6 +885,78 @@ describe("runCLI", () => {
     expect(handler.mock.calls[0]?.[0].params).toEqual({
       name: "demo-service",
       mode: "fast"
+    });
+  });
+
+  it("labels option prompts with the kebab-case flag the user must actually type", async () => {
+    const handler = vi.fn(
+      async (ctx: { params: { botHandle: string; isOfficial: boolean } }) => ctx.params
+    );
+
+    const view = defineCommand({
+      name: "view",
+      params: S.Object({
+        botHandle: S.String(),
+        isOfficial: S.Boolean()
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "poe-agent-tools",
+      children: [view]
+    });
+
+    promptState.text.mockResolvedValueOnce("sage-bot");
+    promptState.confirm.mockResolvedValueOnce(true);
+
+    process.argv = ["node", "poe-agent-tools", "view"];
+
+    await runCLI(root);
+
+    expect(promptState.text).toHaveBeenCalledWith({
+      message: "--bot-handle",
+      initialValue: undefined
+    });
+    expect(promptState.confirm).toHaveBeenCalledWith({
+      message: "--is-official",
+      initialValue: undefined
+    });
+    expect(handler.mock.calls[0]?.[0].params).toEqual({
+      botHandle: "sage-bot",
+      isOfficial: true
+    });
+  });
+
+  it("wraps positional prompt labels in angle brackets to mirror usage syntax", async () => {
+    const handler = vi.fn(async (ctx: { params: { botHandle: string } }) => ctx.params);
+
+    const view = defineCommand({
+      name: "view",
+      positional: ["botHandle"],
+      params: S.Object({
+        botHandle: S.String({ default: "default-bot" })
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "poe-agent-tools",
+      children: [view]
+    });
+
+    promptState.text.mockResolvedValueOnce("sage-bot");
+
+    process.argv = ["node", "poe-agent-tools", "view"];
+
+    await runCLI(root);
+
+    expect(promptState.text).toHaveBeenCalledWith({
+      message: "<botHandle>",
+      initialValue: "default-bot"
+    });
+    expect(handler.mock.calls[0]?.[0].params).toEqual({
+      botHandle: "sage-bot"
     });
   });
 
@@ -1006,7 +1078,7 @@ describe("runCLI", () => {
 
     expect(promptState.text).not.toHaveBeenCalled();
     expect(promptState.select).toHaveBeenCalledWith({
-      message: "mode",
+      message: "--mode",
       options: [
         { label: "safe", value: "safe" },
         { label: "fast", value: "fast" }

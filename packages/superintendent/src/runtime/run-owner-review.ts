@@ -1,5 +1,5 @@
 import "@poe-code/agent-spawn/register-factories";
-import type { McpConfig, SuperintendentDoc } from "../document/parse.js";
+import type { SuperintendentDoc } from "../document/parse.js";
 import {
   runAutonomousAgent,
   type AutonomousOutput,
@@ -77,21 +77,10 @@ function buildTemplateContext(
   return { ...context, plan: { path: doc.filePath } };
 }
 
-function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig {
-  const servers: McpSpawnConfig = {
+function buildMcpServers(_doc: SuperintendentDoc): McpSpawnConfig {
+  return {
     [WORKFLOW_SERVER_NAME]: createWorkflowServer()
   };
-
-  const merged = {
-    ...(doc.frontmatter.mcp ?? {}),
-    ...(doc.frontmatter.owner.mcp ?? {})
-  };
-
-  for (const [name, config] of Object.entries(merged)) {
-    servers[name] = toSpawnMcpServer(config);
-  }
-
-  return servers;
 }
 
 function createWorkflowServer(): McpSpawnConfig[string] {
@@ -101,14 +90,6 @@ function createWorkflowServer(): McpSpawnConfig[string] {
     command: WORKFLOW_SERVER_COMMAND,
     args: [WORKFLOW_SERVER_SUBCOMMAND, encodeJson(workflowTool)],
     timeout: WORKFLOW_SERVER_TIMEOUT_SECONDS
-  };
-}
-
-function toSpawnMcpServer(config: McpConfig): McpSpawnConfig[string] {
-  return {
-    command: config.command,
-    ...(config.args ? { args: [...config.args] } : {}),
-    ...(config.timeout !== undefined ? { timeout: config.timeout } : {})
   };
 }
 

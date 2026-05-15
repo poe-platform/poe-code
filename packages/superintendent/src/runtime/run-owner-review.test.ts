@@ -206,15 +206,10 @@ describe("runOwnerReview", () => {
     });
   });
 
-  it("propagates mcp timeout values to spawn", async () => {
+  it("ignores document-defined MCP servers during owner review", async () => {
     autonomousMock.mockImplementation(async (_, { mcpServers }) => {
-      expect(mcpServers).toMatchObject({
-        "plan-browser": {
-          command: "poe-code",
-          args: ["plan", "list"],
-          timeout: 90
-        }
-      });
+      expect(mcpServers).not.toHaveProperty("plan-browser");
+      expect(findWorkflowServer(mcpServers)).toBeDefined();
 
       return {
         toolCalls: [

@@ -125,7 +125,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-conditional-expression
     title: Add ConditionalExpression (ternary) handler
@@ -148,8 +148,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): evaluate ConditionalExpression`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: add-template-literal

@@ -489,7 +489,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: agent-script-cli-runs-default
     title: Make `poe-agent-script` actually execute user scripts
@@ -536,8 +536,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): cli runs user script`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: harness-run-resume

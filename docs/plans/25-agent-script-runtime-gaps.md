@@ -291,7 +291,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-assignment-expression
     title: Add AssignmentExpression handler for `let` rebinds
@@ -332,8 +332,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): evaluate AssignmentExpression`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-known-globals

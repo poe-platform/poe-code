@@ -33,7 +33,6 @@
     "@poe-code/design-system": "^0.0.2",
     "toolcraft": "^0.0.4",
     "auth-store": "^0.0.1",
-    "console-table-printer": "^2.15.0",
     "yaml": "^2.8.2"
   },
   "engines": {

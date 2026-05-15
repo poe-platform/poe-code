@@ -415,7 +415,7 @@ tasks:
         - `npm run build` succeeds from the repo root
         - `npm run lint` succeeds from the repo root
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: visual-verify

@@ -53,7 +53,6 @@
     "@clack/prompts": "^1.0.0",
     "@resvg/resvg-js": "^2.6.2",
     "commander": "^14.0.3",
-    "console-table-printer": "^2.15.0",
     "jetbrains-mono": "^1.0.6",
     "jose": "^6.1.2",
     "jsonc-parser": "^3.3.1",

@@ -445,7 +445,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-destructuring-const
     title: Support destructuring in const/let declarations
@@ -487,8 +487,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): destructuring in declarations`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-script-cli-runs-default

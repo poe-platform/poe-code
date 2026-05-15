@@ -487,7 +487,10 @@ async function evaluateAssignmentExpression(
   }
 
   const value =
-    node.operator === "=" || node.operator === "&&=" || node.operator === "||=" || node.operator === "??="
+    node.operator === "=" ||
+    node.operator === "&&=" ||
+    node.operator === "||=" ||
+    node.operator === "??="
       ? right.value
       : applyCompoundAssignmentOperator(node.operator, binding.value, right.value, context);
 
@@ -1594,16 +1597,44 @@ async function evaluateObjectSpread(
     };
   }
 
-  if (!isIndexableSandboxValue(value.value)) {
-    throw new TypeError("Spread properties must evaluate to an object or array.");
+  if (Array.isArray(value.value)) {
+    throw new TypeError("Cannot spread array into object literal.");
+  }
+
+  if (!isPlainSandboxObject(value.value)) {
+    throw new TypeError(
+      `Cannot spread ${describeObjectSpreadValue(value.value)} into object literal.`
+    );
   }
 
   const spreadValue = value.value;
+  const keys = Object.keys(spreadValue);
+  context.budget.allocateArrayLength(keys.length);
 
   return {
     ok: true,
-    value: Object.keys(spreadValue).map((key) => [key, getMemberValue(spreadValue, key)] as const)
+    value: keys.map((key) => [key, spreadValue[key]] as const)
   };
+}
+
+function describeObjectSpreadValue(value: SandboxValue): string {
+  if (value === null) {
+    return "null";
+  }
+
+  if (value === undefined) {
+    return "undefined";
+  }
+
+  if (isSandboxClosure(value)) {
+    return "function";
+  }
+
+  if (isSandboxPromise(value)) {
+    return "promise";
+  }
+
+  return typeof value;
 }
 
 function defineSandboxProperty(target: SandboxObject, key: string, value: SandboxValue): void {

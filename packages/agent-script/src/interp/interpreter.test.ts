@@ -123,6 +123,68 @@ describe("interpret", () => {
     expect(result.returnValue).toBeNaN();
   });
 
+  it.each([
+    ["{ ...{} }", {}],
+    ["{ ...{ a: 1 } }", { a: 1 }],
+    ["{ ...{ a: 1 }, b: 2 }", { a: 1, b: 2 }],
+    ["{ a: 1, ...{ a: 2 } }", { a: 2 }],
+    ["{ ...{ a: 1 }, a: 9 }", { a: 9 }],
+    ["{ ...{ a: 1 }, ...{ a: 2 } }", { a: 2 }]
+  ])("evaluates object spread literal %s", async (source, expected) => {
+    await expect(interpret(parse(`return (${source})`))).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it("rejects array spread in object literals", async () => {
+    await expect(interpret(parse("return ({ ...[1] })"))).rejects.toThrow(
+      "Cannot spread array into object literal."
+    );
+  });
+
+  it.each(["string", "number", "boolean"] as const)(
+    "rejects %s spread in object literals",
+    async (type) => {
+      const source = {
+        string: '"value"',
+        number: "1",
+        boolean: "true"
+      }[type];
+
+      await expect(interpret(parse(`return ({ ...${source} })`))).rejects.toThrow(
+        `Cannot spread ${type} into object literal.`
+      );
+    }
+  );
+
+  it("charges arrayLength budget for object spread properties", async () => {
+    const source = Object.create(null) as Record<string, number>;
+
+    for (let index = 0; index < 10_000; index += 1) {
+      source[`key${index}`] = index;
+    }
+
+    await expect(
+      interpret(parse("return ({ ...source })"), {
+        bindings: {
+          source
+        },
+        budget: new Budget({
+          arrayLength: 9_999
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "arrayLength",
+        current: 10_000,
+        limit: 9_999
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
   it("assigns a new value to a let binding", async () => {
     await expect(
       interpret(block(parse("let x = 1"), parse("x = 2"), parse("return x")))
@@ -189,26 +251,29 @@ describe("interpret", () => {
   it.each([
     ["let x = 1", "x ||= throwing()", 1],
     ["let x = 0", "x &&= throwing()", 0]
-  ])("short-circuits logical compound assignment %s; %s", async (declaration, assignment, expected) => {
-    const throwing = vi.fn(() => {
-      throw new Error("right side should not be evaluated");
-    });
+  ])(
+    "short-circuits logical compound assignment %s; %s",
+    async (declaration, assignment, expected) => {
+      const throwing = vi.fn(() => {
+        throw new Error("right side should not be evaluated");
+      });
 
-    await expect(
-      interpret(block(parse(declaration), parse(assignment), parse("return x")), {
-        bindings: {
-          throwing: createSandboxClosure({
-            call: throwing,
-            name: "throwing"
-          })
-        }
-      })
-    ).resolves.toMatchObject({
-      ok: true,
-      returnValue: expected
-    });
-    expect(throwing).not.toHaveBeenCalled();
-  });
+      await expect(
+        interpret(block(parse(declaration), parse(assignment), parse("return x")), {
+          bindings: {
+            throwing: createSandboxClosure({
+              call: throwing,
+              name: "throwing"
+            })
+          }
+        })
+      ).resolves.toMatchObject({
+        ok: true,
+        returnValue: expected
+      });
+      expect(throwing).not.toHaveBeenCalled();
+    }
+  );
 
   it("rejects assignment to a const binding with a clear sandbox error", async () => {
     await expect(interpret(block(parse("const x = 1"), parse("x = 2")))).rejects.toMatchObject({

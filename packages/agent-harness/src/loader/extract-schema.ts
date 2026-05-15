@@ -9,6 +9,10 @@ import type { AnySchema as SchemaDescriptor } from "toolcraft-schema";
 
 import { makeSchemaModule } from "../modules/schema.js";
 
+type ParsedModule = ReturnType<typeof parseModule>;
+type ParsedStatement = ParsedModule["body"][number];
+type ParsedVariableDeclaration = Extract<ParsedStatement, { type: "VariableDeclaration" }>;
+
 const SCHEMA_EXTRACTION_BUDGET = {
   arrayLength: 1_000,
   maxCallDepth: 20,
@@ -34,7 +38,11 @@ export async function extractSchema(
   const result = await evaluateSchemaInitializer(initializerSource, ajsPath);
 
   if (!result.ok) {
-    throwSchemaInitializerError(ajsPath, result.error.message);
+    throwSchemaInitializerError(
+      ajsPath,
+      result.error,
+      findPriorOuterSchemaBinding(module, initializer.span.start.offset, result.error)
+    );
   }
 
   return (await deepCopyFromSandbox(result.returnValue)) as SchemaDescriptor;
@@ -54,12 +62,98 @@ async function evaluateSchemaInitializer(initializerSource: string, ajsPath: str
   }
 }
 
-function throwSchemaInitializerError(ajsPath: string, cause: unknown): never {
+function throwSchemaInitializerError(
+  ajsPath: string,
+  cause: unknown,
+  outerSchemaBindingName?: string
+): never {
+  if (outerSchemaBindingName !== undefined) {
+    throw new Error(
+      `Failed to evaluate schema initializer in ${ajsPath}: schema initializer is evaluated in isolation; outer const '${outerSchemaBindingName}' is not in scope. Inline the value or move it into the schema literal.`,
+      { cause }
+    );
+  }
+
   const detail = readErrorMessage(cause);
   throw new Error(
     `Failed to evaluate schema initializer in ${ajsPath}: schema initializer must be pure; only "schema" module imports allowed. ${detail}`,
     { cause }
   );
+}
+
+function findPriorOuterSchemaBinding(
+  module: ParsedModule,
+  initializerStartOffset: number,
+  cause: unknown
+): string | undefined {
+  const unboundName = readUnboundIdentifierName(cause);
+  if (unboundName === undefined) {
+    return undefined;
+  }
+
+  return collectPriorTopLevelBindings(module, initializerStartOffset).has(unboundName)
+    ? unboundName
+    : undefined;
+}
+
+function collectPriorTopLevelBindings(
+  module: ParsedModule,
+  initializerStartOffset: number
+): Set<string> {
+  const bindingNames = new Set<string>();
+
+  for (const statement of module.body) {
+    const declaration = readVariableDeclaration(statement);
+    if (
+      declaration === undefined ||
+      (declaration.kind !== "const" && declaration.kind !== "let")
+    ) {
+      continue;
+    }
+
+    for (const declarator of declaration.declarations) {
+      if (
+        declarator.id.type === "Identifier" &&
+        declarator.id.span.start.offset < initializerStartOffset
+      ) {
+        bindingNames.add(declarator.id.name);
+      }
+    }
+  }
+
+  return bindingNames;
+}
+
+function readVariableDeclaration(statement: ParsedStatement): ParsedVariableDeclaration | undefined {
+  if (statement.type === "VariableDeclaration") {
+    return statement;
+  }
+
+  if (statement.type === "ExportNamedDeclaration") {
+    return statement.declaration;
+  }
+
+  return undefined;
+}
+
+function readUnboundIdentifierName(error: unknown): string | undefined {
+  if (
+    typeof error !== "object" ||
+    error === null ||
+    !("code" in error) ||
+    error.code !== "UNBOUND_IDENTIFIER"
+  ) {
+    return undefined;
+  }
+
+  const message = readErrorMessage(error);
+  const prefix = "Identifier '";
+  if (!message.startsWith(prefix)) {
+    return undefined;
+  }
+
+  const nameEnd = message.indexOf("'", prefix.length);
+  return nameEnd === -1 ? undefined : message.slice(prefix.length, nameEnd);
 }
 
 function readErrorMessage(error: unknown): string {

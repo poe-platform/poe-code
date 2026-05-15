@@ -79,14 +79,68 @@ describe("extractSchema", () => {
     );
   });
 
-  it("throws a clear error when the initializer references a non-schema identifier", async () => {
+  it("explains when the initializer directly references an earlier outer const", async () => {
     await expect(
       extractSchema(
         "const external = S.String(); export const schema = external;",
         "/tmp/external.ajs"
       )
     ).rejects.toThrow(
-      /Failed to evaluate schema initializer in \/tmp\/external\.ajs: schema initializer must be pure/
+      "Failed to evaluate schema initializer in /tmp/external.ajs: schema initializer is evaluated in isolation; outer const 'external' is not in scope. Inline the value or move it into the schema literal."
+    );
+  });
+
+  it("explains when the schema initializer references an earlier outer const", async () => {
+    await expect(
+      extractSchema(
+        [
+          "const Inner = S.String();",
+          "export const schema = S.Object({ a: Inner });"
+        ].join("\n"),
+        "/tmp/outer-const.ajs"
+      )
+    ).rejects.toThrow(
+      "Failed to evaluate schema initializer in /tmp/outer-const.ajs: schema initializer is evaluated in isolation; outer const 'Inner' is not in scope. Inline the value or move it into the schema literal."
+    );
+  });
+
+  it("keeps the original unbound identifier detail for schema initializer typos", async () => {
+    await expect(
+      extractSchema(
+        "export const schema = S.Object({ a: Nopee });",
+        "/tmp/schema-typo.ajs"
+      )
+    ).rejects.toThrow("Identifier 'Nopee' is not defined.");
+  });
+
+  it("evaluates schema identifiers supplied by the schema import", async () => {
+    await expect(
+      extractSchema(
+        [
+          'import { S } from "schema";',
+          "export const schema = S.Object({ a: S.String() });"
+        ].join("\n"),
+        "/tmp/imported-schema.ajs"
+      )
+    ).resolves.toEqual(
+      S.Object({
+        a: S.String()
+      })
+    );
+  });
+
+  it("reports the first referenced earlier outer const when several are used", async () => {
+    await expect(
+      extractSchema(
+        [
+          "const First = S.String();",
+          "const Second = S.Number();",
+          "export const schema = S.Object({ a: First, b: Second });"
+        ].join("\n"),
+        "/tmp/multiple-outer-consts.ajs"
+      )
+    ).rejects.toThrow(
+      "Failed to evaluate schema initializer in /tmp/multiple-outer-consts.ajs: schema initializer is evaluated in isolation; outer const 'First' is not in scope. Inline the value or move it into the schema literal."
     );
   });
 

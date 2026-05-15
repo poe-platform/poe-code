@@ -612,7 +612,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: principles-prompt-helper
     title: Helper to fold frontmatter principles into prompts
@@ -656,8 +656,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): harness.applyConstraints helper`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: agent-script-skill-template

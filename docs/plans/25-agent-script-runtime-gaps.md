@@ -223,9 +223,9 @@ tasks:
 
       Conventional commit: `feat(agent-script): evaluate ForOfStatement`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: add-while-statement
     title: Add WhileStatement handler

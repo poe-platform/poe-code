@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "../../components/color.js";
 import { resolveOutputFormat } from "../../internal/output-format.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
 
@@ -13,16 +13,16 @@ function renderTerminalNote(message: string, title?: string): string {
     visibleTitle.length,
     ...contentLines.map((line) => getVisibleWidth(line))
   ) + 2;
-  const titleLine = `${chalk.green("◇")}  ${chalk.reset(title ?? "")} ${chalk.gray(
+  const titleLine = `${color.green("◇")}  ${color.reset(title ?? "")} ${color.gray(
     `${"─".repeat(Math.max(contentWidth - visibleTitle.length - 1, 1))}╮`
   )}`;
   const content = contentLines.map((line) => {
     const padding = " ".repeat(contentWidth - getVisibleWidth(line));
-    return `${chalk.gray("│")}  ${line}${padding}${chalk.gray("│")}`;
+    return `${color.gray("│")}  ${line}${padding}${color.gray("│")}`;
   });
-  const bottom = chalk.gray(`├${"─".repeat(contentWidth + 2)}╯`);
+  const bottom = color.gray(`├${"─".repeat(contentWidth + 2)}╯`);
 
-  return [chalk.gray("│"), titleLine, ...content, bottom].join("\n");
+  return [color.gray("│"), titleLine, ...content, bottom].join("\n");
 }
 
 export function note(message: string, title?: string): void {

@@ -1,11 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import chalk from "chalk";
 import { resetOutputFormatCache, withOutputFormat } from "../internal/output-format.js";
 import { renderMenu } from "./menu.js";
 import { renderSpinnerFrame, renderSpinnerStopped } from "./spinner.js";
 
+function restoreEnv(name: "FORCE_COLOR" | "NO_COLOR", value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}
+
 describe("static/menu", () => {
   const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
   const options = [
     { value: "claude", label: "Claude Code", hint: "Recommended" },
     { value: "codex", label: "Codex CLI" }
@@ -13,11 +21,13 @@ describe("static/menu", () => {
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
     resetOutputFormatCache();
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
     resetOutputFormatCache();
   });
 
@@ -30,9 +40,9 @@ describe("static/menu", () => {
       })
     );
 
-    expect(output).toContain(`${chalk.cyan("◆")}  Pick an agent:`);
-    expect(output).toContain(`${chalk.gray("│")}  ${chalk.cyan("◆")} `);
-    expect(output).toContain(`${chalk.gray("│")}  ${chalk.gray("○")} Codex CLI`);
+    expect(output).toContain("\x1b[36m◆\x1b[0m  Pick an agent:");
+    expect(output).toContain("\x1b[90m│\x1b[0m  \x1b[36m◆\x1b[0m ");
+    expect(output).toContain("\x1b[90m│\x1b[0m  \x1b[90m○\x1b[0m Codex CLI");
   });
 
   it("renders markdown menu output", () => {
@@ -69,14 +79,17 @@ describe("static/menu", () => {
 
 describe("static/spinner", () => {
   const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
     resetOutputFormatCache();
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
     resetOutputFormatCache();
   });
 
@@ -92,9 +105,9 @@ describe("static/spinner", () => {
       })
     );
 
-    expect(frame).toBe(`${chalk.magenta("◐")}  Loading${chalk.dim(" [1s]")}\n${chalk.gray("│")}`);
+    expect(frame).toBe("\x1b[35m◐\x1b[0m  Loading\x1b[2m [1s]\x1b[0m\n\x1b[90m│\x1b[0m");
     expect(stopped).toBe(
-      `${chalk.green("◆")}  Done${chalk.dim(" [2s]")}\n${chalk.gray("│")}     ${chalk.dim("Finished")}`
+      "\x1b[32m◆\x1b[0m  Done\x1b[2m [2s]\x1b[0m\n\x1b[90m│\x1b[0m     \x1b[2mFinished\x1b[0m"
     );
   });
 

@@ -113,12 +113,11 @@ describe("color", () => {
     expect(color.red.bold("hi")).not.toContain("\u001b");
   });
 
-  it("lets NO_COLOR disable color when FORCE_COLOR is also set", () => {
+  it("lets FORCE_COLOR override NO_COLOR", () => {
     process.env.NO_COLOR = "1";
     process.env.FORCE_COLOR = "1";
 
-    expect(color.red.bold("hi")).toBe("hi");
-    expect(color.red.bold("hi")).not.toContain("\u001b");
+    expect(color.red.bold("hi")).toBe("\x1b[31m\x1b[1mhi\x1b[0m");
   });
 
   it("forces color when FORCE_COLOR is set", () => {

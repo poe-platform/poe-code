@@ -84,7 +84,7 @@ describe("parseAnsi", () => {
     ]);
   });
 
-  it("maps 256-color indexes 0-7 to named chalk colors", () => {
+  it("maps 256-color indexes 0-7 to named ANSI colors", () => {
     const result = parseAnsi("\u001b[38;5;2mgreen");
     expect(result).toEqual([
       { segments: [{ text: "green", style: { fg: "green" } }] }

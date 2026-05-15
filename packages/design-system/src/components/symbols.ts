@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "./color.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { getTheme } from "../internal/theme-detect.js";
 
@@ -7,13 +7,13 @@ export const symbols = {
     const format = resolveOutputFormat();
     if (format === "json") return "info";
     if (format === "markdown") return "(i)";
-    return chalk.magenta("●");
+    return color.magenta("●");
   },
   get success(): string {
     const format = resolveOutputFormat();
     if (format === "json") return "success";
     if (format === "markdown") return "[ok]";
-    return chalk.magenta("◆");
+    return color.magenta("◆");
   },
   get resolved(): string {
     const format = resolveOutputFormat();

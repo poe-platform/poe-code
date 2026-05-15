@@ -12,12 +12,12 @@ export function supportsColor(
   env: ColorSupportEnv = process.env as ColorSupportEnv,
   stream: ColorSupportStream = process.stdout
 ): boolean {
-  if (env.NO_COLOR !== undefined) {
-    return false;
-  }
-
   if (env.FORCE_COLOR !== undefined && env.FORCE_COLOR !== "0") {
     return true;
+  }
+
+  if (env.NO_COLOR !== undefined) {
+    return false;
   }
 
   if (stream.isTTY !== true) {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import chalk from "chalk";
+import { color } from "../../components/color.js";
 import {
   resetOutputFormatCache,
   withOutputFormat
@@ -10,7 +10,14 @@ import { info, message, warn, error } from "./log.js";
 import { note } from "./note.js";
 import { outro } from "./outro.js";
 import { spinner } from "./spinner.js";
-import { text } from "../../components/text.js";
+
+function restoreEnv(name: "FORCE_COLOR" | "NO_COLOR" | "POE_NO_SPINNER", value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}
 
 function captureStdout(run: () => void): string {
   const chunks: string[] = [];
@@ -32,14 +39,17 @@ function captureStdout(run: () => void): string {
 
 describe("prompts/primitives/cancel", () => {
   const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
     resetOutputFormatCache();
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
     resetOutputFormatCache();
   });
 
@@ -50,9 +60,7 @@ describe("prompts/primitives/cancel", () => {
       });
     });
 
-    expect(output).toBe(
-      `${chalk.gray("└")}  ${chalk.red("Operation cancelled.")}\n\n`
-    );
+    expect(output).toBe("\x1b[90m└\x1b[0m  \x1b[31mOperation cancelled.\x1b[0m\n\n");
   });
 
   it("is silent for markdown output", () => {
@@ -78,14 +86,17 @@ describe("prompts/primitives/cancel", () => {
 
 describe("prompts/primitives/intro", () => {
   const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
     resetOutputFormatCache();
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
     resetOutputFormatCache();
   });
 
@@ -96,7 +107,7 @@ describe("prompts/primitives/intro", () => {
       });
     });
 
-    expect(output).toBe(`${chalk.gray("┌")}  ${text.intro("Configure")}\n`);
+    expect(output).toBe("\x1b[90m┌\x1b[0m  \x1b[45m\x1b[37m Poe - Configure \x1b[0m\n");
   });
 
   it("writes markdown intro output", () => {
@@ -112,7 +123,7 @@ describe("prompts/primitives/intro", () => {
   it("strips ansi in markdown output", () => {
     const output = captureStdout(() => {
       withOutputFormat("markdown", () => {
-        intro(chalk.green("Configure"));
+        intro(color.green("Configure"));
       });
     });
 
@@ -132,14 +143,17 @@ describe("prompts/primitives/intro", () => {
 
 describe("prompts/primitives/log", () => {
   const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
     resetOutputFormatCache();
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
     resetOutputFormatCache();
   });
 
@@ -150,9 +164,7 @@ describe("prompts/primitives/log", () => {
       });
     });
 
-    expect(output).toBe(
-      `${chalk.gray("│")}\n◆  first\n${chalk.gray("│")}  second\n`
-    );
+    expect(output).toBe("\x1b[90m│\x1b[0m\n◆  first\n\x1b[90m│\x1b[0m  second\n");
   });
 
   it("writes terminal info output with the info symbol", () => {
@@ -162,15 +174,13 @@ describe("prompts/primitives/log", () => {
       });
     });
 
-    expect(output).toBe(
-      `${chalk.gray("│")}\n${chalk.magenta("●")}  heads up\n`
-    );
+    expect(output).toBe("\x1b[90m│\x1b[0m\n\x1b[35m●\x1b[0m  heads up\n");
   });
 
   it("strips ansi and writes markdown message output", () => {
     const output = captureStdout(() => {
       withOutputFormat("markdown", () => {
-        message(`${chalk.red("alert")}\n${chalk.blue("later")}`, {
+        message(`${color.red("alert")}\n${color.blue("later")}`, {
           symbol: "◆"
         });
       });
@@ -182,7 +192,7 @@ describe("prompts/primitives/log", () => {
   it("strips ansi and writes json message output", () => {
     const output = captureStdout(() => {
       withOutputFormat("json", () => {
-        message(`${chalk.red("alert")}\n${chalk.blue("later")}`, {
+        message(`${color.red("alert")}\n${color.blue("later")}`, {
           symbol: "◆"
         });
       });
@@ -221,10 +231,10 @@ describe("prompts/primitives/log", () => {
 
     expect(output).toBe(
       [
-        chalk.gray("│"),
-        `${chalk.yellow("▲")}  watch out`,
-        chalk.gray("│"),
-        `${chalk.red("■")}  boom`,
+        "\x1b[90m│\x1b[0m",
+        "\x1b[33m▲\x1b[0m  watch out",
+        "\x1b[90m│\x1b[0m",
+        "\x1b[31m■\x1b[0m  boom",
         ""
       ].join("\n")
     );
@@ -233,14 +243,17 @@ describe("prompts/primitives/log", () => {
 
 describe("prompts/primitives/note", () => {
   const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
     resetOutputFormatCache();
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
     resetOutputFormatCache();
   });
 
@@ -253,13 +266,13 @@ describe("prompts/primitives/note", () => {
 
     expect(output).toBe(
       [
-        chalk.gray("│"),
-        `${chalk.green("◇")}  ${chalk.reset("Title")} ${chalk.gray("──────────╮")}`,
-        `${chalk.gray("│")}                  ${chalk.gray("│")}`,
-        `${chalk.gray("│")}  message line 1  ${chalk.gray("│")}`,
-        `${chalk.gray("│")}  message line 2  ${chalk.gray("│")}`,
-        `${chalk.gray("│")}                  ${chalk.gray("│")}`,
-        chalk.gray("├──────────────────╯"),
+        "\x1b[90m│\x1b[0m",
+        "\x1b[32m◇\x1b[0m  \x1b[0mTitle\x1b[0m \x1b[90m──────────╮\x1b[0m",
+        "\x1b[90m│\x1b[0m                  \x1b[90m│\x1b[0m",
+        "\x1b[90m│\x1b[0m  message line 1  \x1b[90m│\x1b[0m",
+        "\x1b[90m│\x1b[0m  message line 2  \x1b[90m│\x1b[0m",
+        "\x1b[90m│\x1b[0m                  \x1b[90m│\x1b[0m",
+        "\x1b[90m├──────────────────╯\x1b[0m",
         ""
       ].join("\n")
     );
@@ -268,7 +281,7 @@ describe("prompts/primitives/note", () => {
   it("strips ansi and writes markdown note output", () => {
     const output = captureStdout(() => {
       withOutputFormat("markdown", () => {
-        note(`${chalk.green("message line 1")}\nmessage line 2`, chalk.bold("Title"));
+        note(`${color.green("message line 1")}\nmessage line 2`, color.bold("Title"));
       });
     });
 
@@ -278,7 +291,7 @@ describe("prompts/primitives/note", () => {
   it("strips ansi and writes json note output", () => {
     const output = captureStdout(() => {
       withOutputFormat("json", () => {
-        note(`${chalk.green("message line 1")}\nmessage line 2`, chalk.bold("Title"));
+        note(`${color.green("message line 1")}\nmessage line 2`, color.bold("Title"));
       });
     });
 
@@ -290,19 +303,19 @@ describe("prompts/primitives/note", () => {
   it("pads terminal content using visible width when ansi is present", () => {
     const output = captureStdout(() => {
       withOutputFormat("terminal", () => {
-        note(`${chalk.green("short")}\nlonger line`, chalk.bold("T"));
+        note(`${color.green("short")}\nlonger line`, color.bold("T"));
       });
     });
 
     expect(output).toBe(
       [
-        chalk.gray("│"),
-        `${chalk.green("◇")}  ${chalk.reset(chalk.bold("T"))} ${chalk.gray("───────────╮")}`,
-        `${chalk.gray("│")}               ${chalk.gray("│")}`,
-        `${chalk.gray("│")}  ${chalk.green("short")}        ${chalk.gray("│")}`,
-        `${chalk.gray("│")}  longer line  ${chalk.gray("│")}`,
-        `${chalk.gray("│")}               ${chalk.gray("│")}`,
-        chalk.gray("├───────────────╯"),
+        "\x1b[90m│\x1b[0m",
+        "\x1b[32m◇\x1b[0m  \x1b[0m\x1b[1mT\x1b[0m\x1b[0m\x1b[0m \x1b[90m───────────╮\x1b[0m",
+        "\x1b[90m│\x1b[0m               \x1b[90m│\x1b[0m",
+        "\x1b[90m│\x1b[0m  \x1b[32mshort\x1b[0m        \x1b[90m│\x1b[0m",
+        "\x1b[90m│\x1b[0m  longer line  \x1b[90m│\x1b[0m",
+        "\x1b[90m│\x1b[0m               \x1b[90m│\x1b[0m",
+        "\x1b[90m├───────────────╯\x1b[0m",
         ""
       ].join("\n")
     );
@@ -321,14 +334,17 @@ describe("prompts/primitives/note", () => {
 
 describe("prompts/primitives/outro", () => {
   const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
     resetOutputFormatCache();
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
     resetOutputFormatCache();
   });
 
@@ -339,13 +355,13 @@ describe("prompts/primitives/outro", () => {
       });
     });
 
-    expect(output).toBe(`${chalk.gray("│")}\n${chalk.gray("└")}  Finished.\n\n`);
+    expect(output).toBe("\x1b[90m│\x1b[0m\n\x1b[90m└\x1b[0m  Finished.\n\n");
   });
 
   it("strips ansi and writes markdown outro output", () => {
     const output = captureStdout(() => {
       withOutputFormat("markdown", () => {
-        outro(`${chalk.green("Finished.")}`);
+        outro(`${color.green("Finished.")}`);
       });
     });
 
@@ -355,7 +371,7 @@ describe("prompts/primitives/outro", () => {
   it("strips ansi and writes json outro output", () => {
     const output = captureStdout(() => {
       withOutputFormat("json", () => {
-        outro(`${chalk.green("Finished.")}`);
+        outro(`${color.green("Finished.")}`);
       });
     });
 
@@ -375,12 +391,14 @@ describe("prompts/primitives/outro", () => {
 
 describe("prompts/primitives/spinner", () => {
   const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
   const originalNoSpinner = process.env.POE_NO_SPINNER;
   const originalIsTTY = process.stdout.isTTY;
 
   beforeEach(() => {
     vi.useFakeTimers();
     process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
     process.env.POE_NO_SPINNER = undefined;
     resetOutputFormatCache();
     Object.defineProperty(process.stdout, "isTTY", {
@@ -392,8 +410,9 @@ describe("prompts/primitives/spinner", () => {
 
   afterEach(() => {
     vi.useRealTimers();
-    process.env.FORCE_COLOR = originalForceColor;
-    process.env.POE_NO_SPINNER = originalNoSpinner;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
+    restoreEnv("POE_NO_SPINNER", originalNoSpinner);
     resetOutputFormatCache();
     Object.defineProperty(process.stdout, "isTTY", {
       value: originalIsTTY,
@@ -416,7 +435,7 @@ describe("prompts/primitives/spinner", () => {
     expect(output).toContain(`\r\u001b[K◒  Loading...`);
     expect(output).toContain(`\r\u001b[K◐  Loading...`);
     expect(output).toContain(`\r\u001b[K◐  Almost there`);
-    expect(output).toContain(`\r\u001b[K${chalk.green("◆")}  Done\n`);
+    expect(output).toContain("\r\u001b[K\x1b[32m◆\x1b[0m  Done\n");
   });
 
   it("writes plain terminal start and stop lines when spinner fallback is enabled", () => {
@@ -431,7 +450,7 @@ describe("prompts/primitives/spinner", () => {
       });
     });
 
-    expect(output).toBe(`Loading...\n${chalk.red("■")}  Failed\n`);
+    expect(output).toBe("Loading...\n\x1b[31m■\x1b[0m  Failed\n");
   });
 
   it("writes plain terminal start and stop lines when stdout is not a tty", () => {
@@ -449,7 +468,7 @@ describe("prompts/primitives/spinner", () => {
       });
     });
 
-    expect(output).toBe(`Loading...\n${chalk.green("◆")}  Done\n`);
+    expect(output).toBe("Loading...\n\x1b[32m◆\x1b[0m  Done\n");
   });
 
   it("writes markdown start and stop output", () => {

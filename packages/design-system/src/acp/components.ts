@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "../components/color.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { renderMarkdown } from "../terminal-markdown/index.js";
 import { getAcpWriter } from "./writer.js";
@@ -10,23 +10,23 @@ function truncate(text: string, maxLength: number): string {
 }
 
 const KIND_COLORS: Record<string, (text: string) => string> = {
-  exec: (text) => chalk.yellow(text),
-  edit: (text) => chalk.magenta(text),
-  read: (text) => chalk.cyan(text),
-  search: (text) => chalk.blue(text),
-  think: (text) => chalk.dim(text),
-  other: (text) => chalk.dim(text)
+  exec: (text) => color.yellow(text),
+  edit: (text) => color.magenta(text),
+  read: (text) => color.cyan(text),
+  search: (text) => color.blue(text),
+  think: (text) => color.dim(text),
+  other: (text) => color.dim(text)
 };
 
 function colorForKind(kind: string): (text: string) => string {
-  return KIND_COLORS[kind] ?? ((text) => chalk.dim(text));
+  return KIND_COLORS[kind] ?? ((text) => color.dim(text));
 }
 
 function writeLine(line: string): void {
   getAcpWriter()(line);
 }
 
-const AGENT_PREFIX = `${chalk.green.bold("✓")} agent: `;
+const AGENT_PREFIX = `${color.green.bold("✓")} agent: `;
 
 function formatCost(costUsd: number): string {
   return new Intl.NumberFormat("en-US", {
@@ -101,7 +101,7 @@ export function renderReasoning(text: string): void {
     return;
   }
 
-  writeLine(chalk.dim(`  ✓ ${truncate(text, 80)}`));
+  writeLine(color.dim(`  ✓ ${truncate(text, 80)}`));
 }
 
 export function renderUsage(tokens: {
@@ -138,7 +138,7 @@ export function renderUsage(tokens: {
   }
 
   writeLine("");
-  writeLine(chalk.green(`✓ tokens: ${tokens.input} in${cached} → ${tokens.output} out${cost}`));
+  writeLine(color.green(`✓ tokens: ${tokens.input} in${cached} → ${tokens.output} out${cost}`));
 }
 
 export function renderError(message: string): void {
@@ -154,5 +154,5 @@ export function renderError(message: string): void {
     return;
   }
 
-  writeLine(chalk.red(`✗ ${message}`));
+  writeLine(color.red(`✗ ${message}`));
 }

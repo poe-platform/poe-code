@@ -5,6 +5,7 @@ import {
   withOutputFormat
 } from "./output-format.js";
 import { resolveThemeName, getTheme, resetThemeCache } from "./theme-detect.js";
+import { supportsColor } from "./color-support.js";
 import { dark, light } from "../tokens/colors.js";
 
 describe("resolveOutputFormat", () => {
@@ -102,6 +103,20 @@ describe("resolveOutputFormat", () => {
 
     expect(scoped).toBe("markdown");
     expect(resolveOutputFormat({ OUTPUT_FORMAT: "json" })).toBe("json");
+  });
+});
+
+describe("supportsColor", () => {
+  it("lets FORCE_COLOR override NO_COLOR", () => {
+    expect(supportsColor({ FORCE_COLOR: "1", NO_COLOR: "1" }, {})).toBe(true);
+  });
+
+  it("honors NO_COLOR when FORCE_COLOR is not set", () => {
+    expect(supportsColor({ NO_COLOR: "1", TERM: "xterm-256color" }, { isTTY: true })).toBe(false);
+  });
+
+  it("does not force color for FORCE_COLOR=0", () => {
+    expect(supportsColor({ FORCE_COLOR: "0", TERM: "xterm-256color" }, { isTTY: false })).toBe(false);
   });
 });
 

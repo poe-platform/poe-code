@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "../../components/color.js";
 import { resolveOutputFormat } from "../../internal/output-format.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
 import { SPINNER_FRAMES } from "../../static/spinner.js";
@@ -88,8 +88,8 @@ export function spinner(): SpinnerOptions {
       clearTimer();
 
       const symbol = code === undefined || code === 0
-        ? chalk.green("◆")
-        : chalk.red("■");
+        ? color.green("◆")
+        : color.red("■");
 
       if (fallback) {
         process.stdout.write(`${symbol}  ${currentMessage}\n`);

@@ -1,5 +1,4 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import chalk from "chalk";
 import {
   resetOutputFormatCache,
   withOutputFormat,
@@ -52,6 +51,14 @@ function stripAnsi(value: string): string {
   return result;
 }
 
+function restoreEnv(name: "FORCE_COLOR" | "NO_COLOR", value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
+}
+
 describe("formatCommandNotFoundPanel", () => {
   it("formats a title, label, and footer", () => {
     const panel = formatCommandNotFoundPanel({
@@ -88,7 +95,7 @@ describe("components/logger", () => {
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
     resetOutputFormatCache();
   });
 
@@ -126,7 +133,7 @@ describe("symbols", () => {
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
     resetOutputFormatCache();
   });
 
@@ -200,14 +207,14 @@ describe("renderTable", () => {
   const originalNoColor = process.env.NO_COLOR;
 
   beforeEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
-    process.env.NO_COLOR = originalNoColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
     resetOutputFormatCache();
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
-    process.env.NO_COLOR = originalNoColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
   });
 
   describe("terminal format (default)", () => {
@@ -378,7 +385,7 @@ describe("renderTable", () => {
         columns: [
           { name: "Name", title: "Name", alignment: "left", maxLen: 20 },
         ],
-        rows: [{ Name: chalk.red("colored") }],
+        rows: [{ Name: color.red("colored") }],
       });
 
       const lines = result.split("\n");
@@ -441,7 +448,7 @@ describe("renderTable", () => {
         columns: [
           { name: "Name", title: "Name", alignment: "left", maxLen: 20 },
         ],
-        rows: [{ Name: chalk.red("colored") }],
+        rows: [{ Name: color.red("colored") }],
       });
 
       const parsed = JSON.parse(result);
@@ -464,14 +471,17 @@ describe("renderTable", () => {
 
 describe("text", () => {
   const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
 
   beforeEach(() => {
     process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
     resetOutputFormatCache();
   });
 
   afterEach(() => {
-    process.env.FORCE_COLOR = originalForceColor;
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
     resetOutputFormatCache();
   });
 
@@ -531,7 +541,7 @@ describe("text", () => {
       text.sectionHeader("Title")
     );
 
-    expect(result).toBe(chalk.bold("TITLE"));
+    expect(result).toBe("\x1b[1mTITLE\x1b[0m");
     expect(result).not.toContain(":");
   });
 });

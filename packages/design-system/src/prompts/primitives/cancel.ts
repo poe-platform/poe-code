@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "../../components/color.js";
 export { isCancel } from "@clack/prompts";
 import { resolveOutputFormat } from "../../internal/output-format.js";
 
@@ -7,5 +7,5 @@ export function cancel(msg = ""): void {
     return;
   }
 
-  process.stdout.write(`${chalk.gray("└")}  ${chalk.red(msg)}\n\n`);
+  process.stdout.write(`${color.gray("└")}  ${color.red(msg)}\n\n`);
 }

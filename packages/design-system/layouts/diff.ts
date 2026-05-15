@@ -2,26 +2,25 @@
 /**
  * Diff layout: showing file changes
  */
-import chalk from "chalk";
-import { log } from "../src/index.js";
+import { color, log } from "../src/index.js";
 
 function renderSimpleDiff(): string {
   const lines = [
-    chalk.gray("--- config.json"),
-    chalk.gray("+++ config.json"),
-    chalk.gray("@@ -1,3 +1,5 @@"),
+    color.gray("--- config.json"),
+    color.gray("+++ config.json"),
+    color.gray("@@ -1,3 +1,5 @@"),
     " {",
-    chalk.red('-  "model": "gpt-4",'),
-    chalk.green('+  "model": "claude-sonnet-4",'),
+    color.red('-  "model": "gpt-4",'),
+    color.green('+  "model": "claude-sonnet-4",'),
     '   "temperature": 0.7',
-    chalk.green('+  "maxTokens": 4096'),
+    color.green('+  "maxTokens": 4096'),
     " }"
   ];
   return lines.join("\n");
 }
 
 export function render(): void {
-  log.message(renderSimpleDiff(), { symbol: chalk.yellow("~") });
+  log.message(renderSimpleDiff(), { symbol: color.yellow("~") });
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

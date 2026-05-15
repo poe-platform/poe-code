@@ -1,39 +1,39 @@
-import chalk from "chalk";
+import { color } from "../components/color.js";
 
 export const brand = "#a200ff";
 
 export const dark = {
-  header: (text: string) => chalk.magentaBright.bold(text),
-  divider: (text: string) => chalk.dim(text),
-  prompt: (text: string) => chalk.cyan(text),
-  number: (text: string) => chalk.cyanBright(text),
-  intro: (text: string) => chalk.bgMagenta.white(` Poe - ${text} `),
-  resolvedSymbol: chalk.magenta("◇"),
-  errorSymbol: chalk.red("■"),
-  accent: (text: string) => chalk.cyan(text),
-  muted: (text: string) => chalk.dim(text),
-  success: (text: string) => chalk.green(text),
-  warning: (text: string) => chalk.yellow(text),
-  error: (text: string) => chalk.red(text),
-  info: (text: string) => chalk.magenta(text),
-  badge: (text: string) => chalk.bgYellow.black(` ${text} `)
+  header: (text: string) => color.magentaBright.bold(text),
+  divider: (text: string) => color.dim(text),
+  prompt: (text: string) => color.cyan(text),
+  number: (text: string) => color.cyanBright(text),
+  intro: (text: string) => color.bgMagenta.white(` Poe - ${text} `),
+  resolvedSymbol: color.magenta("◇"),
+  errorSymbol: color.red("■"),
+  accent: (text: string) => color.cyan(text),
+  muted: (text: string) => color.dim(text),
+  success: (text: string) => color.green(text),
+  warning: (text: string) => color.yellow(text),
+  error: (text: string) => color.red(text),
+  info: (text: string) => color.magenta(text),
+  badge: (text: string) => color.bgYellow.black(` ${text} `)
 };
 
 export const light = {
-  header: (text: string) => chalk.hex("#a200ff").bold(text),
-  divider: (text: string) => chalk.hex("#666666")(text),
-  prompt: (text: string) => chalk.hex("#006699").bold(text),
-  number: (text: string) => chalk.hex("#0077cc").bold(text),
-  intro: (text: string) => chalk.bgHex("#a200ff").white(` Poe - ${text} `),
-  resolvedSymbol: chalk.hex("#a200ff")("◇"),
-  errorSymbol: chalk.hex("#cc0000")("■"),
-  accent: (text: string) => chalk.hex("#006699").bold(text),
-  muted: (text: string) => chalk.hex("#666666")(text),
-  success: (text: string) => chalk.hex("#008800")(text),
-  warning: (text: string) => chalk.hex("#cc6600")(text),
-  error: (text: string) => chalk.hex("#cc0000")(text),
-  info: (text: string) => chalk.hex("#a200ff")(text),
-  badge: (text: string) => chalk.bgHex("#cc6600").white(` ${text} `)
+  header: (text: string) => color.hex("#a200ff").bold(text),
+  divider: (text: string) => color.hex("#666666")(text),
+  prompt: (text: string) => color.hex("#006699").bold(text),
+  number: (text: string) => color.hex("#0077cc").bold(text),
+  intro: (text: string) => color.bgHex("#a200ff").white(` Poe - ${text} `),
+  resolvedSymbol: color.hex("#a200ff")("◇"),
+  errorSymbol: color.hex("#cc0000")("■"),
+  accent: (text: string) => color.hex("#006699").bold(text),
+  muted: (text: string) => color.hex("#666666")(text),
+  success: (text: string) => color.hex("#008800")(text),
+  warning: (text: string) => color.hex("#cc6600")(text),
+  error: (text: string) => color.hex("#cc0000")(text),
+  info: (text: string) => color.hex("#a200ff")(text),
+  badge: (text: string) => color.bgHex("#cc6600").white(` ${text} `)
 };
 
 export type ThemeName = "dark" | "light";

@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "../../components/color.js";
 import { symbols } from "../../components/symbols.js";
 import { resolveOutputFormat } from "../../internal/output-format.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
@@ -13,8 +13,8 @@ export interface LogMessageOptions {
 function writeTerminalMessage(
   msg: string,
   {
-    symbol = chalk.gray("│"),
-    secondarySymbol = chalk.gray("│"),
+    symbol = color.gray("│"),
+    secondarySymbol = color.gray("│"),
     spacing = 1,
     withGuide = true
   }: LogMessageOptions = {}
@@ -114,7 +114,7 @@ export function warn(msg: string): void {
     return;
   }
 
-  message(msg, { symbol: chalk.yellow("▲") });
+  message(msg, { symbol: color.yellow("▲") });
 }
 
 export function error(msg: string): void {
@@ -130,7 +130,7 @@ export function error(msg: string): void {
     return;
   }
 
-  message(msg, { symbol: chalk.red("■") });
+  message(msg, { symbol: color.red("■") });
 }
 
 export const log = {

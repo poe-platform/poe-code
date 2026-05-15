@@ -2,8 +2,7 @@
 /**
  * Expanded layout: intro → resolved prompts → success → note → outro
  */
-import chalk from "chalk";
-import { intro, note, outro, log, symbols } from "../src/index.js";
+import { color, intro, note, outro, log, symbols } from "../src/index.js";
 
 export function render(): void {
   intro("configure claude-code");
@@ -15,7 +14,7 @@ export function render(): void {
     "If using VSCode - Open the Disable Login Prompt setting and check the box.\nvscode://settings/claudeCode.disableLoginPrompt",
     "Next steps."
   );
-  outro(chalk.dim("Problems? https://github.com/poe-platform/poe-code/issues"));
+  outro(color.dim("Problems? https://github.com/poe-platform/poe-code/issues"));
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

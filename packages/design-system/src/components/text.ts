@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "./color.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { getTheme } from "../internal/theme-detect.js";
 import { typography } from "../tokens/typography.js";
@@ -44,7 +44,7 @@ export const text = {
     const format = resolveOutputFormat();
     if (format === "json") return content;
     if (format === "markdown") return `\`${content}\``;
-    return chalk.yellow(content);
+    return color.yellow(content);
   },
   example(content: string): string {
     const format = resolveOutputFormat();
@@ -56,7 +56,7 @@ export const text = {
     const format = resolveOutputFormat();
     if (format === "json") return content;
     if (format === "markdown") return `\`${content}\``;
-    return chalk.green(content);
+    return color.green(content);
   },
   link(content: string): string {
     const format = resolveOutputFormat();

@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "./color.js";
 import { log } from "../prompts/primitives/log.js";
 import { symbols } from "./symbols.js";
 
@@ -68,7 +68,7 @@ export function createLogger(emitter?: (message: string) => void): LoggerOutput 
         emitter(message);
         return;
       }
-      log.message(message, { symbol: symbol ?? chalk.gray("│") });
+      log.message(message, { symbol: symbol ?? color.gray("│") });
     }
   };
 }

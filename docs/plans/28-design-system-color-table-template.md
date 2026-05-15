@@ -238,7 +238,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: migrate-chalk-design-system-internal
     title: Migrate design-system's own files off chalk
@@ -275,8 +275,8 @@ tasks:
       peerDependencies. Run package tests and `npm run demo` to spot
       regressions.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: migrate-chalk-consumers

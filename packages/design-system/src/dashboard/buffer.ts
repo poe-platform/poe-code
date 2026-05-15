@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color, type Color } from "../components/color.js";
 import type { Cell, CellStyle, Rect } from "./types.js";
 
 const EMPTY_CELL: Cell = { ch: " ", style: {} };
@@ -157,7 +157,7 @@ export function diff(
 
 export function cellToAnsi(cell: Cell): string {
   const style = cell.style ?? {};
-  let painter = chalk;
+  let painter = color;
 
   if (style.bold) {
     painter = painter.bold;
@@ -232,23 +232,23 @@ function cellsEqual(left: Cell, right: Cell): boolean {
     && left.style.underline === right.style.underline;
 }
 
-function applyForegroundColor(instance: typeof chalk, color: string): typeof chalk {
-  if (color.startsWith("#")) {
-    return instance.hex(color);
+function applyForegroundColor(instance: Color, ansiColor: string): Color {
+  if (ansiColor.startsWith("#")) {
+    return instance.hex(ansiColor);
   }
 
-  const painter = (instance as unknown as Record<string, unknown>)[color];
-  return typeof painter === "function" ? (painter as typeof chalk) : instance;
+  const painter = (instance as unknown as Record<string, unknown>)[ansiColor];
+  return typeof painter === "function" ? (painter as Color) : instance;
 }
 
-function applyBackgroundColor(instance: typeof chalk, color: string): typeof chalk {
-  if (color.startsWith("#")) {
-    return instance.bgHex(color);
+function applyBackgroundColor(instance: Color, ansiColor: string): Color {
+  if (ansiColor.startsWith("#")) {
+    return instance.bgHex(ansiColor);
   }
 
-  const methodName = color.startsWith("bg")
-    ? color
-    : `bg${color.charAt(0).toUpperCase()}${color.slice(1)}`;
+  const methodName = ansiColor.startsWith("bg")
+    ? ansiColor
+    : `bg${ansiColor.charAt(0).toUpperCase()}${ansiColor.slice(1)}`;
   const painter = (instance as unknown as Record<string, unknown>)[methodName];
-  return typeof painter === "function" ? (painter as typeof chalk) : instance;
+  return typeof painter === "function" ? (painter as Color) : instance;
 }

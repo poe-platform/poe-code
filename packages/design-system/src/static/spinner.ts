@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "../components/color.js";
 import { symbols } from "../components/symbols.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 
@@ -27,9 +27,9 @@ export function renderSpinnerFrame(options: SpinnerFrameOptions): string {
   }
 
   const frame = options.frame ?? 0;
-  const spinnerChar = chalk.magenta(SPINNER_FRAMES[frame % SPINNER_FRAMES.length]);
-  const timerSuffix = options.timer ? chalk.dim(` [${options.timer}]`) : "";
-  const bar = chalk.gray(symbols.bar);
+  const spinnerChar = color.magenta(SPINNER_FRAMES[frame % SPINNER_FRAMES.length]);
+  const timerSuffix = options.timer ? color.dim(` [${options.timer}]`) : "";
+  const bar = color.gray(symbols.bar);
 
   return `${spinnerChar}  ${options.message}${timerSuffix}\n${bar}`;
 }
@@ -58,13 +58,13 @@ export function renderSpinnerStopped(options: SpinnerStoppedOptions): string {
   }
 
   const code = options.code ?? 0;
-  const symbol = code === 0 ? chalk.green("◆") : chalk.red("■");
-  const timerSuffix = options.timer ? chalk.dim(` [${options.timer}]`) : "";
-  const bar = chalk.gray(symbols.bar);
+  const symbol = code === 0 ? color.green("◆") : color.red("■");
+  const timerSuffix = options.timer ? color.dim(` [${options.timer}]`) : "";
+  const bar = color.gray(symbols.bar);
 
   let output = `${symbol}  ${options.message}${timerSuffix}`;
   if (options.subtext) {
-    output += `\n${bar}     ${chalk.dim(options.subtext)}`;
+    output += `\n${bar}     ${color.dim(options.subtext)}`;
   }
   return output;
 }

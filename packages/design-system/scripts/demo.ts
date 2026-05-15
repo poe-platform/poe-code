@@ -3,12 +3,12 @@
  * Demo script for design-system components.
  * Usage: tsx scripts/demo.ts <type> [value...]
  */
-import chalk from "chalk";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import {
+  color,
   intro,
   log,
   note,
@@ -78,7 +78,7 @@ function runTextDemo(style: string, content: string): void {
     const result = styleFn(content);
     const format = resolveOutputFormat();
     if (format === "terminal") {
-      log.message(result, { symbol: chalk.gray("│") });
+      log.message(result, { symbol: color.gray("│") });
     } else {
       process.stdout.write(result + "\n");
     }
@@ -120,17 +120,17 @@ function runLogDemo(level: string): void {
 
 function runDiffDemo(): void {
   const lines = [
-    chalk.gray("--- config.json"),
-    chalk.gray("+++ config.json"),
-    chalk.gray("@@ -1,3 +1,5 @@"),
+    color.gray("--- config.json"),
+    color.gray("+++ config.json"),
+    color.gray("@@ -1,3 +1,5 @@"),
     " {",
-    chalk.red('-  "model": "gpt-4",'),
-    chalk.green('+  "model": "claude-sonnet-4",'),
+    color.red('-  "model": "gpt-4",'),
+    color.green('+  "model": "claude-sonnet-4",'),
     '   "temperature": 0.7',
-    chalk.green('+  "maxTokens": 4096'),
+    color.green('+  "maxTokens": 4096'),
     " }"
   ];
-  log.message(lines.join("\n"), { symbol: chalk.yellow("~") });
+  log.message(lines.join("\n"), { symbol: color.yellow("~") });
 }
 
 function runMenuDemo(): void {
@@ -156,7 +156,7 @@ function runNoteDemo(): void {
 }
 
 function runOutroDemo(): void {
-  outro(chalk.dim("Problems? https://github.com/poe-platform/poe-code/issues"));
+  outro(color.dim("Problems? https://github.com/poe-platform/poe-code/issues"));
 }
 
 function runResolvedDemo(): void {
@@ -249,7 +249,7 @@ function runLayoutExpandedDemo(): void {
     "If using VSCode - Open the Disable Login Prompt setting and check the box.\nvscode://settings/claudeCode.disableLoginPrompt",
     "Next steps."
   );
-  outro(chalk.dim("Problems? https://github.com/poe-platform/poe-code/issues"));
+  outro(color.dim("Problems? https://github.com/poe-platform/poe-code/issues"));
 }
 
 export function resolveDemoWorkingDirectory(env: NodeJS.ProcessEnv, cwd: string): string {

@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "../../components/color.js";
 import { text } from "../../components/text.js";
 import { resolveOutputFormat } from "../../internal/output-format.js";
 import { stripAnsi } from "../../internal/strip-ansi.js";
@@ -14,5 +14,5 @@ export function intro(title: string): void {
     return;
   }
 
-  process.stdout.write(`${chalk.gray("┌")}  ${text.intro(title)}\n`);
+  process.stdout.write(`${color.gray("┌")}  ${text.intro(title)}\n`);
 }

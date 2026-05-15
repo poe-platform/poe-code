@@ -1,9 +1,9 @@
-import chalk from "chalk";
+import { color } from "../components/color.js";
 
 export const typography = {
-  bold: (text: string) => chalk.bold(text),
-  dim: (text: string) => chalk.dim(text),
-  italic: (text: string) => chalk.italic(text),
-  underline: (text: string) => chalk.underline(text),
-  strikethrough: (text: string) => chalk.strikethrough(text)
+  bold: (text: string) => color.bold(text),
+  dim: (text: string) => color.dim(text),
+  italic: (text: string) => color.italic(text),
+  underline: (text: string) => color.underline(text),
+  strikethrough: (text: string) => color.strikethrough(text)
 } as const;

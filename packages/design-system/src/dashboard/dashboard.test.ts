@@ -1,5 +1,4 @@
 import { PassThrough } from "node:stream";
-import chalk from "chalk";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { ScreenBuffer, cellToAnsi, diff } from "./buffer.js";
 import { renderBorder } from "./components/border.js";
@@ -47,6 +46,14 @@ function readScreenRect(screen: string[], rect: Rect): string[] {
   return screen
     .slice(rect.y, rect.y + rect.height)
     .map((row) => row.slice(rect.x, rect.x + rect.width));
+}
+
+function restoreEnv(name: "FORCE_COLOR" | "NO_COLOR", value: string | undefined): void {
+  if (value === undefined) {
+    delete process.env[name];
+  } else {
+    process.env[name] = value;
+  }
 }
 
 function footerDividerRow(layout: DashboardLayout): string {
@@ -283,13 +290,26 @@ describe("diff", () => {
 });
 
 describe("cellToAnsi", () => {
+  const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
+
+  beforeEach(() => {
+    process.env.FORCE_COLOR = "1";
+    delete process.env.NO_COLOR;
+  });
+
+  afterEach(() => {
+    restoreEnv("FORCE_COLOR", originalForceColor);
+    restoreEnv("NO_COLOR", originalNoColor);
+  });
+
   it("converts a styled cell to ANSI text", () => {
     expect(
       cellToAnsi({
         ch: "A",
         style: { fg: "red", bg: "blue", bold: true, dim: true }
       })
-    ).toBe(chalk.bold.dim.red.bgBlue("A"));
+    ).toBe("\x1b[1m\x1b[2m\x1b[31m\x1b[44mA\x1b[0m");
   });
 
   it("supports hex foreground and background colors", () => {
@@ -298,7 +318,7 @@ describe("cellToAnsi", () => {
         ch: "A",
         style: { fg: "#ff0000", bg: "#0000ff" }
       })
-    ).toBe(chalk.hex("#ff0000").bgHex("#0000ff")("A"));
+    ).toBe("\x1b[38;2;255;0;0m\x1b[48;2;0;0;255mA\x1b[0m");
   });
 });
 

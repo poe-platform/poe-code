@@ -1,4 +1,4 @@
-import chalk from "chalk";
+import { color } from "../components/color.js";
 import * as clack from "@clack/prompts";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
@@ -21,7 +21,7 @@ export function introPlain(title: string): void {
   if (format === "json") {
     return;
   }
-  process.stdout.write(`${chalk.gray("┌")}  ${title}\n`);
+  process.stdout.write(`${color.gray("┌")}  ${title}\n`);
 }
 
 export interface SelectOptions<Value> {

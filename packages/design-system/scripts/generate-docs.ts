@@ -353,14 +353,13 @@ const output = renderTable({
       {
         name: "diff",
         description: "Unified diff display for file changes (used in --dry-run)",
-        codeSnippet: `import { log } from "@poe-code/design-system";
-import chalk from "chalk";
+        codeSnippet: `import { color, log } from "@poe-code/design-system";
 const diffLines = [
-  chalk.gray("--- config.json"),
-  chalk.red('-  "model": "gpt-4",'),
-  chalk.green('+  "model": "claude-sonnet-4",')
+  color.gray("--- config.json"),
+  color.red('-  "model": "gpt-4",'),
+  color.green('+  "model": "claude-sonnet-4",')
 ];
-log.message(diffLines.join("\\n"), { symbol: chalk.yellow("~") });`,
+log.message(diffLines.join("\\n"), { symbol: color.yellow("~") });`,
         demoArgs: `diff`
       }
     ]

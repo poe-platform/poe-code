@@ -1124,9 +1124,7 @@ describe("runCLI", () => {
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Options
-        --yes  Accept defaults, skip prompts
-        --output <format>  Output format: rich, md, json.
+      Options: --yes  --output <format>
       "
     `);
     expect(output).toContain("Options");
@@ -1168,11 +1166,7 @@ describe("runCLI", () => {
         deploy --service <value>
         approvals  Inspect and execute queued approvals.
 
-      Options
-        --preset <path>  Load parameter defaults from a JSON file
-        --yes  Accept defaults, skip prompts
-        --output <format>  Output format: rich, md, json.
-        --version  Show version
+      Options: --preset <path>  --yes  --output <format>  --version
       "
     `);
     expect(output).toContain("Options");
@@ -4197,9 +4191,7 @@ describe("runCLI", () => {
         deploy
         approvals   Inspect and execute queued approvals.
 
-      Options
-        --yes               Accept defaults, skip prompts
-        --output <format>   Output format: rich, md, json.
+      Options: --yes  --output <format>
       "
     `);
   });
@@ -4364,9 +4356,7 @@ describe("runCLI", () => {
         sibling     Sibling leaf
         approvals   Inspect and execute queued approvals.
 
-      Options
-        --yes               Accept defaults, skip prompts
-        --output <format>   Output format: rich, md, json.
+      Options: --yes  --output <format>
       "
     `);
   });
@@ -4436,9 +4426,7 @@ describe("runCLI", () => {
         approvals                       Inspect and execute queued
                                         approvals.
 
-      Options
-        --yes               Accept defaults, skip prompts
-        --output <format>   Output format: rich, md, json.
+      Options: --yes  --output <format>
       "
     `);
   });
@@ -4474,13 +4462,10 @@ describe("runCLI", () => {
         deploy      Deploy a service
         approvals   Inspect and execute queued approvals.
 
-      Options
-        --yes               Accept defaults, skip prompts
-        --output <format>   Output format: rich, md, json.
+      Options: --yes  --output <format>
       "
     `);
     expect(formatterState.plainCommandListCalls).toBeGreaterThan(0);
-    expect(formatterState.plainOptionListCalls).toBeGreaterThan(0);
     expect(output).not.toContain("\u001b[");
   });
 

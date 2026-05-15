@@ -1536,38 +1536,23 @@ function formatCommandRows<TServices extends object>(
   }));
 }
 
-function formatGlobalOptionRows(ctx: {
+function formatGlobalOptionsLine(ctx: {
   showVersion: boolean;
   presetsEnabled: boolean;
-}): HelpOptionRow[] {
-  const rows: HelpOptionRow[] = [];
+}): string {
+  const flags: string[] = [];
 
   if (ctx.presetsEnabled) {
-    rows.push({
-      flags: "--preset <path>",
-      description: "Load parameter defaults from a JSON file"
-    });
+    flags.push("--preset <path>");
   }
 
-  rows.push(
-    {
-      flags: "--yes",
-      description: "Accept defaults, skip prompts"
-    },
-    {
-      flags: "--output <format>",
-      description: "Output format: rich, md, json."
-    }
-  );
+  flags.push("--yes", "--output <format>");
 
   if (ctx.showVersion) {
-    rows.push({
-      flags: "--version",
-      description: "Show version"
-    });
+    flags.push("--version");
   }
 
-  return rows;
+  return `${text.section("Options:")} ${flags.join("  ")}`;
 }
 
 function collectSchemaGlobalFieldRows<TServices extends object>(
@@ -1658,11 +1643,21 @@ function renderGroupHelp<TServices extends object>(
   }
 
   if (isRoot) {
-    const globalRows = [
-      ...formatGlobalOptionRows(globalOptions),
-      ...collectSchemaGlobalFieldRows(group, scope, casing, globalLongOptionFlags)
-    ];
-    sections.push(`${text.sectionHeader("Options")}\n${formatHelpOptionList(globalRows)}`);
+    const schemaGlobalRows = collectSchemaGlobalFieldRows(
+      group,
+      scope,
+      casing,
+      globalLongOptionFlags
+    );
+    const builtInLine = formatGlobalOptionsLine(globalOptions);
+
+    if (schemaGlobalRows.length > 0) {
+      sections.push(
+        `${text.sectionHeader("Options")}\n${formatHelpOptionList(schemaGlobalRows)}\n${builtInLine}`
+      );
+    } else {
+      sections.push(builtInLine);
+    }
   }
 
   return renderHelpDocument({
@@ -1905,13 +1900,15 @@ function createNodeCommand<TServices extends object>(
 }
 
 function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): void {
+  const options: Option[] = [];
+
   if (presetsEnabled) {
-    command.option("--preset <path>", "Load parameter defaults from a JSON file.");
+    options.push(new Option("--preset <path>", "Load parameter defaults from a JSON file."));
   }
 
-  command
-    .option("--yes", "Accept defaults and skip prompts.")
-    .option("--output <format>", "Output format.", (value: string) => {
+  options.push(new Option("--yes", "Accept defaults and skip prompts."));
+  options.push(
+    new Option("--output <format>", "Output format.").argParser((value: string) => {
       if (value === "rich" || value === "md" || value === "json") {
         return value;
       }
@@ -1927,12 +1924,18 @@ function addGlobalOptions(command: CommanderCommand, presetsEnabled: boolean): v
         })
       );
     })
-    .addOption(
-      new Option("--debug [mode]", "Print stack traces for unexpected errors.")
-        .preset("trim")
-        .argParser(parseDebugStackMode)
-    )
-    .option("--verbose", "Print detailed runtime diagnostics.");
+  );
+  options.push(
+    new Option("--debug [mode]", "Print stack traces for unexpected errors.")
+      .preset("trim")
+      .argParser(parseDebugStackMode)
+  );
+  options.push(new Option("--verbose", "Print detailed runtime diagnostics."));
+
+  for (const option of options) {
+    option.hideHelp(true);
+    command.addOption(option);
+  }
 }
 
 function parseDebugStackMode(value: string | boolean): DebugStackMode {

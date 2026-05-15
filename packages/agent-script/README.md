@@ -55,7 +55,7 @@ then runs it with stub host modules: `agent.spawn` returns a canned successful
 summary, `git` and `metric` are deterministic fakes, and logs are printed as
 JSONL. If a markdown file has no `js` block, the CLI keeps backwards-compatible
 demo mode and dispatches `kind: pipeline`, `superintendent`, or `experiment`
-frontmatter to the bundled shapes.
+frontmatter to the bundled shapes. Use `runHarness()` for raw `.ajs` files.
 
 Use `poe-code harness run` when you want the same lint-and-run flow against real
 configured agents and host integrations.
@@ -80,17 +80,17 @@ Embed agent-script in your own product when you want to let users (or models) wr
 
 ## Spec — index card
 
-| Aspect | Detail |
-| --- | --- |
-| **Source unit** | one module body; `import` from registered modules only |
-| **Allowed** | `const`, `let`, arrays, objects, destructuring, rest, spread, arrow funcs (incl. `async`), top-level `await`, `if`, `for`, `for...of`, `while`, `break`, `continue`, `try`/`catch`/`finally`, `throw`, `return`, template literals, optional chaining |
-| **Disallowed** | `function`, `class`, `new`, `this`, `var`, `do…while`, `switch`, labels, regex literals, generators, `eval`, `Function` |
-| **Lint extras** | `await` only at top level or inside `async` arrows; lambdas can't close over outer `let`; no `__proto__` / `prototype` / `constructor`; no regex args to `String#split` / `replace` / `replaceAll`; `Array#sort` only takes an arrow returning a number |
-| **Built-in globals** | `console`, `Error` and friends, `Math`, `Object`, `Array`, `Promise.all` / `race` / `allSettled` / `any` |
-| **Determinism** | `Math.random()` requires `randomSeed`; otherwise unbound. Snapshots include the RNG state. |
-| **Snapshots** | written at most every `snapshotIntervalMs` (default 30 s) to `snapshotPath`; resumed via `restore()` if `sourceHash` matches |
-| **Budgets** | `maxSteps`, `deadline`, `maxCallDepth`, `stringLength`, `arrayLength` |
-| **Cancellation** | `AbortSignal`, observed at every host call and yield point |
+| Aspect               | Detail                                                                                                                                                                                                                                                                                                                                                           |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Source unit**      | one module body; `import` from registered modules only                                                                                                                                                                                                                                                                                                           |
+| **Allowed**          | `const`, `let`, arrays, objects, destructuring declarations, rest, spread, object spread, arrow funcs (incl. `async`), top-level `await`, `if`, `for`, `for...of`, `while`, `break`, `continue`, `try`/`catch`/`finally`, `throw`, `return`, binary/logical/conditional expressions, assignment to existing `let` bindings, template literals, optional chaining |
+| **Disallowed**       | `function`, `class`, `new`, `this`, `var`, `do…while`, `switch`, labels, regex literals, generators, `eval`, `Function`                                                                                                                                                                                                                                          |
+| **Lint extras**      | `await` only at top level or inside `async` arrows; lambdas can't close over outer `let`; no `__proto__` / `prototype` / `constructor`; no regex args to `String#split` / `replace` / `replaceAll`; `Array#sort` only takes an arrow returning a number                                                                                                          |
+| **Built-in globals** | `console`, `JSON`, `Error`, `TypeError`, `Math`, `Object`, `Array`, `String`, `Number`, `Boolean`, `Promise.all` / `race` / `allSettled` / `any` / `resolve` / `reject`                                                                                                                                                                                          |
+| **Determinism**      | Pass `randomSeed` for deterministic `Math.random()`; snapshots include the seeded RNG state.                                                                                                                                                                                                                                                                     |
+| **Snapshots**        | written at most every `snapshotIntervalMs` (default 30 s) to `snapshotPath`; resumed via `restore()` if `sourceHash` matches                                                                                                                                                                                                                                     |
+| **Budgets**          | `maxSteps`, `deadline`, `maxCallDepth`, `stringLength`, `arrayLength`                                                                                                                                                                                                                                                                                            |
+| **Cancellation**     | `AbortSignal`, observed at every host call and yield point                                                                                                                                                                                                                                                                                                       |
 
 ## Supported globals
 
@@ -100,7 +100,8 @@ These are pre-bound in every script — you don't need to import them.
 - **`Promise.race(values)`** — settle with the first promise to settle, fulfilled or rejected
 - **`Promise.allSettled(values)`** — never rejects; resolves to `{ status, value | reason }` entries
 - **`Promise.any(values)`** — resolves with the first fulfillment; rejects with `AggregateError` only if all reject
-- **`Math`** — `abs`, `ceil`, `exp`, `floor`, `log`, `max`, `min`, `pow`, `round`, `sign`, `sqrt`, `trunc`, plus `E`, `PI`, and `random` (only when `randomSeed` is set)
+- **`Promise.resolve(value)` / `Promise.reject(reason)`** — create settled sandbox promises
+- **`Math`** — `abs`, `ceil`, `cos`, `exp`, `floor`, `log`, `log10`, `log2`, `max`, `min`, `pow`, `round`, `sign`, `sin`, `sqrt`, `tan`, `trunc`, plus `E`, `PI`, and `random`
 - **`Object`** — `keys`, `values`, `entries`, `fromEntries`, `assign`, `freeze`
 - **`Array`** — `isArray`, `from`, `of`
 - **`JSON`** — `parse`, `stringify` (replacer must be `null`/`undefined`; indent must be number/string/undefined)
@@ -116,17 +117,17 @@ Method coverage on plain values follows ECMAScript with a few removals: `String#
 
 Registered by the caller via the factory functions exported from the package. None of them are auto-installed — you choose which to wire up per run.
 
-| Import | Factory | What it gives the script |
-|---|---|---|
-| `agent` | `makeAgentModule(spawnAgent)` | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs })` |
-| `git` | `makeGitModule(cwd)` | `head`, `checkpoint`, `commit`, `revert`, `diff` |
+| Import    | Factory                                | What it gives the script                                                                     |
+| --------- | -------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `agent`   | `makeAgentModule(spawnAgent)`          | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs })`                            |
+| `git`     | `makeGitModule(cwd)`                   | `head`, `checkpoint`, `commit`, `revert`, `diff`                                             |
 | `harness` | `makeHarnessModule(frontmatter, meta)` | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)` |
-| `log` | `makeLogModule(sink?)` | `info`, `error`, `event` (JSONL by default) |
-| `metric` | `makeMetricModule(npmRunner)` | `run(name)` — runs an npm script and parses its last numeric line |
-| `mcp` | `makeMcpModule(connectMcp)` | `server(handle)`, `client(handle)` → `{ tools(), tool(name, args) }` |
-| `env` | `makeEnvModule(allowList)` | `get(name)` — only for names in the allowlist |
-| `time` | `makeTimeModule({ now?, random? })` | `now`, `uuid` |
-| `fail` | `makeFailModule()` | `default(message)` — throws `HarnessFailure` |
+| `log`     | `makeLogModule(sink?)`                 | `info`, `error`, `event` (JSONL by default)                                                  |
+| `metric`  | `makeMetricModule(npmRunner)`          | `run(name)` — runs an npm script and parses its last numeric line                            |
+| `mcp`     | `makeMcpModule(connectMcp)`            | `server(handle)`, `client(handle)` → `{ tools(), tool(name, args) }`                         |
+| `env`     | `makeEnvModule(allowList)`             | `get(name)` — only for names in the allowlist                                                |
+| `time`    | `makeTimeModule({ now?, random? })`    | `now`, `uuid`                                                                                |
+| `fail`    | `makeFailModule()`                     | `default(message)` — throws `HarnessFailure`                                                 |
 
 ## Quick start
 
@@ -135,21 +136,29 @@ import { lint, run } from "@poe-code/agent-script";
 
 const source = `
   import { greet } from "custom";
-  return await greet("Ada");
+
+  const user = { profile: { name: "Ada" }, tags: ["admin", "builder"] };
+  const { profile: { name }, tags: [primaryTag] } = user;
+  const greeting = await greet(name);
+
+  return \`\${greeting} [\${primaryTag ?? "user"}] \${user.profile?.name}\`;
 `;
 
 const modules = {
   custom: { greet: async (name) => `hello ${name}` }
 };
 
-const errors = lint(source, { modules: { custom: ["greet"] } })
-  .filter((d) => d.severity === "error");
+const errors = lint(source, { modules: { custom: ["greet"] } }).filter(
+  (d) => d.severity === "error"
+);
 if (errors.length > 0) throw new Error(errors.map((d) => d.message).join("\n"));
 
 const result = await run(source, { modules });
 if (!result.ok) throw result.error;
-console.log(result.returnValue); // "hello Ada"
+console.log(result.returnValue); // "hello Ada [admin] Ada"
 ```
+
+That prints `"hello Ada [admin] Ada"`.
 
 ## Harness files
 
@@ -184,6 +193,20 @@ Returns diagnostics for the agent-script subset and registered modules.
 - `modules?` — registered module metadata used to validate `import` statements
 
 Diagnostics cover parse errors, unknown modules and exports, unknown identifiers, closure and async-safety violations, subset-specific method restrictions, and warnings for unused bindings.
+
+### Lint vs. runtime
+
+Lint validates names and imports before runtime. By default it knows the built-in
+globals listed above, but it does not inspect `run({ bindings })` or host module
+objects. Pass `modules` when the script imports host modules, and pass
+`allowedGlobals` for any extra names you provide through `bindings`.
+
+The harness CLI mirrors its stub runtime by calling `lint(source, {
+allowedExportNames: ["schema"], filename, modules })`, where `modules` is derived
+from the example registry. `runHarness()` derives the same `modules` metadata from
+`modulesFor(frontmatter, meta)`. External editors or CI checks should use the
+same `filename`, `modules`, `allowedExportNames`, and any extra `allowedGlobals`
+as the runner they are mirroring.
 
 ### `run(source, options?)`
 
@@ -221,9 +244,7 @@ Loads, lints, and runs a harness file.
 The runtime accepts plain objects or `Map`s at both levels:
 
 ```ts
-const modules = new Map([
-  ["custom", new Map([["hello", (name: string) => `hello ${name}`]])]
-]);
+const modules = new Map([["custom", new Map([["hello", (name: string) => `hello ${name}`]])]]);
 ```
 
 For lint, the simplest shape is just an export list:
@@ -246,8 +267,8 @@ const lintModules = {
 - **No `function` at all.** Use arrow functions everywhere. The lint error is explicit but easy to hit when porting existing JS.
 - **Markdown parsing is greedy and quiet.** Only the first `js` fenced block runs.
 - **Snapshots are source-pinned.** Editing the script invalidates every prior snapshot for it. There is no migration path; bump or fork the file if you need to keep an old run resumable.
-- **`Math.random()` is unbound by default.** Pass `randomSeed` to enable it. Snapshots persist the RNG state so resumes stay deterministic.
-- **`Promise.all` is fine; user-defined concurrency primitives are not.** `Promise` is exposed only for `all` / `race` / `allSettled` / `any`. There is no `new Promise(...)`.
+- **Seed `Math.random()` when replay matters.** Pass `randomSeed` to make random values deterministic. Snapshots persist the seeded RNG state so resumes stay deterministic.
+- **`Promise.all` is fine; user-defined concurrency primitives are not.** `Promise` is exposed only for static helpers. There is no `new Promise(...)`.
 - **Agent failures throw.** `agent.spawn` rejects when the child agent's `exitCode !== 0`. Catch it if your shape needs to recover.
 - **MCP module is BYO transport.** `makeMcpModule` requires a `connectMcp` callback that returns a working `listTools` / `callTool` connection. The package does not bundle a transport.
 - **`env` module is allowlisted.** `makeEnvModule(["FOO"])` will only return `FOO`. Anything else returns `undefined` even if it's set in `process.env`.
@@ -255,9 +276,11 @@ const lintModules = {
 
 ## What's not here yet
 
-- No regex support of any kind (literals, `RegExp`, regex args to string methods).
+- No regex support of any kind: literals, `RegExp`, and regex args to string methods are gated.
+- No `do…while` or `switch`.
+- No generators or streaming iterator protocol. `for…of` works on arrays.
+- No member-target assignment such as `object.value = next`; assign to local `let` bindings or create a new object value instead.
 - No user-defined classes or prototype chains.
-- No streaming/iterator protocol — `for…of` works on arrays, not generators.
 - No filesystem, network, or process modules in the box. Build them as host modules with the surface you actually want to expose.
 - No multi-file imports — a script is a single module body. Compose by registering more modules.
 

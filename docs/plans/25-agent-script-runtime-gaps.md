@@ -150,7 +150,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-template-literal
     title: Add TemplateLiteral handler
@@ -184,9 +184,9 @@ tasks:
 
       Conventional commit: `feat(agent-script): evaluate TemplateLiteral`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: add-for-of-statement
     title: Add ForOfStatement handler over arrays

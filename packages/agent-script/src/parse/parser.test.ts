@@ -1582,6 +1582,37 @@ describe("parse", () => {
     });
   });
 
+  it.each([
+    "+=",
+    "-=",
+    "*=",
+    "/=",
+    "%=",
+    "**=",
+    "&=",
+    "|=",
+    "^=",
+    "<<=",
+    ">>=",
+    ">>>=",
+    "&&=",
+    "||=",
+    "??="
+  ])("parses assignment operator %s", (operator) => {
+    expect(parse(`x ${operator} 1`)).toMatchObject({
+      type: "AssignmentExpression",
+      operator,
+      left: {
+        type: "Identifier",
+        name: "x"
+      },
+      right: {
+        type: "NumericLiteral",
+        value: 1
+      }
+    });
+  });
+
   it("parses array pattern elisions across declarations, params, and assignments", () => {
     expect(parse("const [, second = fallback, ...rest] = values")).toMatchObject({
       type: "VariableDeclaration",

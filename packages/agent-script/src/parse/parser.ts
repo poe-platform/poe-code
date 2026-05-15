@@ -213,9 +213,27 @@ export type MetaProperty = BaseNode & {
   property: Identifier & { name: "meta" };
 };
 
+export type AssignmentOperator =
+  | "="
+  | "+="
+  | "-="
+  | "*="
+  | "/="
+  | "%="
+  | "**="
+  | "&="
+  | "|="
+  | "^="
+  | "<<="
+  | ">>="
+  | ">>>="
+  | "&&="
+  | "||="
+  | "??=";
+
 export type AssignmentExpression = BaseNode & {
   type: "AssignmentExpression";
-  operator: "=";
+  operator: AssignmentOperator;
   left: AssignmentTarget;
   right: Expression;
 };
@@ -550,7 +568,8 @@ class Parser {
     }
 
     const left = this.parseConditionalExpression();
-    if (this.consumePunctuator("=") === undefined) {
+    const operator = this.consumeAssignmentOperator();
+    if (operator === undefined) {
       return left;
     }
 
@@ -558,7 +577,7 @@ class Parser {
     return {
       node: {
         type: "AssignmentExpression",
-        operator: "=",
+        operator,
         left: this.toAssignmentTarget(left.node),
         right: right.node,
         span: createSpan(left.node.span.start, right.node.span.end)
@@ -2647,6 +2666,16 @@ class Parser {
     return token;
   }
 
+  private consumeAssignmentOperator(): AssignmentOperator | undefined {
+    const token = this.currentToken();
+    if (token.type !== "punctuator" || !isAssignmentOperator(token.value)) {
+      return undefined;
+    }
+
+    this.index += 1;
+    return token.value;
+  }
+
   private expectPunctuator(value: string): Token {
     const token = this.currentToken();
     if (token.type !== "punctuator" || token.value !== value) {
@@ -2896,6 +2925,30 @@ function isImportMetaReference(node: Expression): boolean {
     node.type === "MemberExpression" &&
     (isImportMetaReference(node.object) || (node.computed && isImportMetaReference(node.property)))
   );
+}
+
+function isAssignmentOperator(value: string): value is AssignmentOperator {
+  switch (value) {
+    case "=":
+    case "+=":
+    case "-=":
+    case "*=":
+    case "/=":
+    case "%=":
+    case "**=":
+    case "&=":
+    case "|=":
+    case "^=":
+    case "<<=":
+    case ">>=":
+    case ">>>=":
+    case "&&=":
+    case "||=":
+    case "??=":
+      return true;
+    default:
+      return false;
+  }
 }
 
 function createNumericLiteral(token: Token): NumericLiteral {

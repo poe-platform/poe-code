@@ -123,6 +123,116 @@ describe("interpret", () => {
     expect(result.returnValue).toBeNaN();
   });
 
+  it("assigns a new value to a let binding", async () => {
+    await expect(
+      interpret(block(parse("let x = 1"), parse("x = 2"), parse("return x")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+  });
+
+  it("evaluates assignment expressions to the assigned value", async () => {
+    await expect(
+      interpret(block(parse("let x = 1"), parse("return (x = 5) + 1")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 6
+    });
+  });
+
+  it.each([
+    ["+=", "1", "5", 6],
+    ["-=", "10", "4", 6],
+    ["*=", "3", "4", 12],
+    ["/=", "12", "4", 3],
+    ["%=", "13", "5", 3],
+    ["**=", "2", "5", 32],
+    ["&=", "6", "3", 2],
+    ["|=", "4", "3", 7],
+    ["^=", "6", "3", 5],
+    ["<<=", "3", "2", 12],
+    [">>=", "16", "2", 4],
+    [">>>=", "-1", "28", 15]
+  ])("evaluates compound assignment %s", async (operator, left, right, expected) => {
+    await expect(
+      interpret(block(parse(`let x = ${left}`), parse(`x ${operator} ${right}`), parse("return x")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it("concatenates strings for += when either operand is a string", async () => {
+    await expect(
+      interpret(block(parse('let s = "a"'), parse('s += "b"'), parse("return s")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "ab"
+    });
+  });
+
+  it.each([
+    ["let x = null", "x ??= 5", 5],
+    ["let x = 0", "x ??= 5", 0],
+    ["let x = 0", "x ||= 5", 5],
+    ["let x = 1", "x &&= 5", 5]
+  ])("evaluates logical compound assignment %s; %s", async (declaration, assignment, expected) => {
+    await expect(
+      interpret(block(parse(declaration), parse(assignment), parse("return x")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it.each([
+    ["let x = 1", "x ||= throwing()", 1],
+    ["let x = 0", "x &&= throwing()", 0]
+  ])("short-circuits logical compound assignment %s; %s", async (declaration, assignment, expected) => {
+    const throwing = vi.fn(() => {
+      throw new Error("right side should not be evaluated");
+    });
+
+    await expect(
+      interpret(block(parse(declaration), parse(assignment), parse("return x")), {
+        bindings: {
+          throwing: createSandboxClosure({
+            call: throwing,
+            name: "throwing"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+    expect(throwing).not.toHaveBeenCalled();
+  });
+
+  it("rejects assignment to a const binding with a clear sandbox error", async () => {
+    await expect(interpret(block(parse("const x = 1"), parse("x = 2")))).rejects.toMatchObject({
+      message: "Cannot assign to const 'x'"
+    });
+  });
+
+  it.each(["obj.x = 1", "arr[0] = 1"])("rejects member-target assignment %s", async (source) => {
+    await expect(interpret(parse(source))).rejects.toMatchObject({
+      message: "member-target assignment is not supported"
+    });
+  });
+
+  it("reports compound assignment to an undeclared identifier as unbound", async () => {
+    await expect(interpret(parse("missing += 1"))).resolves.toMatchObject({
+      ok: false,
+      error: {
+        code: "UNBOUND_IDENTIFIER",
+        message: "Identifier 'missing' is not defined.",
+        nodeType: "Identifier"
+      }
+    });
+  });
+
   it.each([
     ["literal-only template", "`hello`", {}, "hello"],
     ["one interpolation", "`n=${1}`", {}, "n=1"],

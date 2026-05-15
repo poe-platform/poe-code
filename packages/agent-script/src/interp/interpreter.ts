@@ -426,6 +426,10 @@ async function evaluateAssignmentExpression(
   node: AssignmentExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (node.left.type === "MemberExpression") {
+    throw new Error("member-target assignment is not supported");
+  }
+
   if (node.left.type !== "Identifier") {
     return {
       kind: "error",
@@ -437,17 +441,62 @@ async function evaluateAssignmentExpression(
     };
   }
 
-  const value = await evaluateNode(node.right, context);
-  if (value.kind !== "normal") {
-    return value;
+  const binding = context.scope.lookup(node.left.name);
+  if (!binding.found) {
+    return {
+      kind: "error",
+      error: createError(
+        "UNBOUND_IDENTIFIER",
+        node.left,
+        `Identifier '${node.left.name}' is not defined.`
+      )
+    };
   }
 
-  context.scope.assign(node.left.name, value.value);
+  if (binding.kind === "const") {
+    throw new Error(`Cannot assign to const '${node.left.name}'`);
+  }
+
+  if (node.operator === "&&=" && !isTruthy(binding.value)) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: binding.value
+    };
+  }
+
+  if (node.operator === "||=" && isTruthy(binding.value)) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: binding.value
+    };
+  }
+
+  if (node.operator === "??=" && binding.value !== null && binding.value !== undefined) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: binding.value
+    };
+  }
+
+  const right = await evaluateNode(node.right, context);
+  if (right.kind !== "normal") {
+    return right;
+  }
+
+  const value =
+    node.operator === "=" || node.operator === "&&=" || node.operator === "||=" || node.operator === "??="
+      ? right.value
+      : applyCompoundAssignmentOperator(node.operator, binding.value, right.value, context);
+
+  context.scope.assign(node.left.name, value);
 
   return {
     kind: "normal",
     hasValue: true,
-    value: value.value
+    value
   };
 }
 
@@ -1279,6 +1328,40 @@ function applyBinaryOperator(
       return Number(left) >>> Number(right);
     case "in":
       throw createError("UNSUPPORTED_NODE", node, "Binary operator 'in' is not supported.");
+  }
+}
+
+function applyCompoundAssignmentOperator(
+  operator: Exclude<AssignmentExpression["operator"], "=" | "&&=" | "||=" | "??=">,
+  left: InterpreterValue,
+  right: InterpreterValue,
+  context: EvaluationContext
+): InterpreterValue {
+  switch (operator) {
+    case "+=":
+      return applyAdditionOperator(left, right, context);
+    case "-=":
+      return Number(left) - Number(right);
+    case "*=":
+      return Number(left) * Number(right);
+    case "/=":
+      return Number(left) / Number(right);
+    case "%=":
+      return Number(left) % Number(right);
+    case "**=":
+      return Number(left) ** Number(right);
+    case "&=":
+      return Number(left) & Number(right);
+    case "|=":
+      return Number(left) | Number(right);
+    case "^=":
+      return Number(left) ^ Number(right);
+    case "<<=":
+      return Number(left) << Number(right);
+    case ">>=":
+      return Number(left) >> Number(right);
+    case ">>>=":
+      return Number(left) >>> Number(right);
   }
 }
 

@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { pathToFileURL } from "node:url";
 
 import { extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
@@ -9,9 +10,19 @@ import { makeHarnessModule } from "./modules/harness.js";
 import { makeLogModule, type LogModuleEntry } from "./modules/log.js";
 import { makeMetricModule } from "./modules/metric.js";
 import type { ModuleExports, ModuleRegistry } from "./modules/registry.js";
+import { parseModule } from "./parse/parser.js";
+import { run } from "./run.js";
 
 type CliStream = {
   write(chunk: string): void;
+};
+
+export type ReadMarkdownFile = (filepath: string, encoding: "utf8") => Promise<string>;
+
+export type RunExampleFileOptions = {
+  readFile?: ReadMarkdownFile;
+  stderr?: CliStream;
+  stdout?: CliStream;
 };
 
 type HarnessMeta = {
@@ -45,34 +56,59 @@ async function main(argv: readonly string[]): Promise<number> {
     return 1;
   }
 
+  return await runExampleFile(filepath);
+}
+
+export async function runExampleFile(
+  filepath: string,
+  options: RunExampleFileOptions = {}
+): Promise<number> {
+  const stdout = options.stdout ?? process.stdout;
+  const stderr = options.stderr ?? process.stderr;
+  const readMarkdownFile = options.readFile ?? readFile;
+
   try {
-    const rawSource = await readFile(filepath, "utf8");
-    const { frontmatter, executableSource } = loadExecutableSource(rawSource);
+    const rawSource = await readMarkdownFile(filepath, "utf8");
+    const { frontmatter, executableSource, hasScriptBlock } = loadExecutableSource(rawSource);
     const meta = {
       filepath,
       kind: frontmatter.kind,
       version: frontmatter.version
     };
-    const runtime = createExampleRuntime(frontmatter, meta, process.stdout);
-    const errors = lint(executableSource, {
+    const runtime = createExampleRuntime(frontmatter, meta, stdout);
+
+    if (!hasScriptBlock) {
+      const returnValue = await runDemoFallback(frontmatter, runtime);
+      stdout.write(`${JSON.stringify({ ok: true, returnValue })}\n`);
+      return 0;
+    }
+
+    const lintErrors = lint(executableSource, {
+      allowedExportNames: ["schema"],
       filename: filepath,
       modules: createLintModules(runtime.registry)
     }).filter((diagnostic) => diagnostic.severity === "error");
 
-    if (errors.length > 0) {
-      process.stderr.write(
-        `${errors
-          .map((diagnostic) => `${diagnostic.filename}:${diagnostic.line}:${diagnostic.column} ${diagnostic.code} ${diagnostic.message}`)
-          .join("\n")}\n`
-      );
+    if (lintErrors.length > 0) {
+      stderr.write(`Lint failed:\n${formatDiagnostics(lintErrors)}\n`);
       return 1;
     }
 
-    const returnValue = await runExample(frontmatter, runtime);
-    process.stdout.write(`${JSON.stringify({ ok: true, returnValue })}\n`);
+    const result = await run(executableSource, {
+      entryPointArgs: hasDefaultExport(executableSource, filepath) ? [] : undefined,
+      filename: filepath,
+      modules: runtime.registry
+    });
+
+    if (!result.ok) {
+      stderr.write(`${readErrorMessage(result.error)}\n`);
+      return 1;
+    }
+
+    stdout.write(`${JSON.stringify({ ok: true, returnValue: result.returnValue })}\n`);
     return 0;
   } catch (error) {
-    process.stderr.write(`${readErrorMessage(error)}\n`);
+    stderr.write(`${readErrorMessage(error)}\n`);
     return 1;
   }
 }
@@ -80,13 +116,16 @@ async function main(argv: readonly string[]): Promise<number> {
 function loadExecutableSource(source: string): {
   executableSource: string;
   frontmatter: Record<string, unknown>;
+  hasScriptBlock: boolean;
 } {
   const { frontmatter, body } = splitFrontmatter(source);
   const executableBlock = extractBlock(body);
+  const hasScriptBlock = executableBlock.source !== body || executableBlock.lineOffset !== 1;
 
   return {
     executableSource: executableBlock.source,
-    frontmatter
+    frontmatter,
+    hasScriptBlock
   };
 }
 
@@ -129,7 +168,7 @@ function createExampleRuntime(
     }
   };
   const metric = makeMetricModule(async (scriptName) => `${readMetricScore(scriptName, state)}\n`);
-  const registry = createExampleRegistry(frontmatter.kind, {
+  const registry = createExampleRegistry({
     agent,
     fail,
     git,
@@ -150,36 +189,19 @@ function createExampleRuntime(
 }
 
 function createExampleRegistry(
-  kind: unknown,
   modules: Omit<ExampleRuntime, "registry">
 ): ModuleRegistry {
-  if (kind === "superintendent") {
-    return new Map<string, ModuleExports>([
-      ["agent", toModuleExports(new Map(Object.entries(modules.agent)))],
-      ["fail", toModuleExports(new Map([["default", modules.fail]]))],
-      ["harness", toModuleExports(new Map(Object.entries(modules.harness)))],
-      ["log", toModuleExports(new Map(Object.entries(modules.log)))]
-    ]);
-  }
-
-  if (kind === "experiment") {
-    return {
-      agent: toModuleExports(modules.agent),
-      harness: toModuleExports(new Map(Object.entries(modules.harness))),
-      git: toModuleExports(new Map<string, unknown>([
-        ["checkpoint", modules.git.checkpoint],
-        ["commit", modules.git.commit],
-        ["revert", modules.git.revert]
-      ])),
-      log: toModuleExports(modules.log),
-      metric: toModuleExports(modules.metric)
-    };
-  }
-
   return {
     agent: toModuleExports(modules.agent),
+    fail: toModuleExports(new Map([["default", modules.fail]])),
+    git: toModuleExports(new Map<string, unknown>([
+      ["checkpoint", modules.git.checkpoint],
+      ["commit", modules.git.commit],
+      ["revert", modules.git.revert]
+    ])),
     harness: toModuleExports(modules.harness),
-    log: toModuleExports(modules.log)
+    log: toModuleExports(modules.log),
+    metric: toModuleExports(modules.metric)
   };
 }
 
@@ -196,20 +218,20 @@ function listModuleExports(moduleExports: ModuleExports): string[] {
   return exportNames.filter((exportName) => exportName.length > 0).sort((left, right) => left.localeCompare(right));
 }
 
-async function runExample(frontmatter: Record<string, unknown>, runtime: ExampleRuntime): Promise<unknown> {
-  if (frontmatter.kind === "pipeline") {
+async function runDemoFallback(frontmatter: Record<string, unknown>, runtime: ExampleRuntime): Promise<unknown> {
+  if (frontmatter.kind === "pipeline" || frontmatter.kind === "pipeline-demo") {
     return await runPipelineExample(runtime);
   }
 
-  if (frontmatter.kind === "superintendent") {
+  if (frontmatter.kind === "superintendent" || frontmatter.kind === "superintendent-demo") {
     return await runSuperintendentExample(runtime);
   }
 
-  if (frontmatter.kind === "experiment") {
+  if (frontmatter.kind === "experiment" || frontmatter.kind === "experiment-demo") {
     return await runExperimentExample(runtime);
   }
 
-  throw new Error(`Unsupported example kind: ${String(frontmatter.kind)}`);
+  throw new Error(`Unsupported demo kind: ${String(frontmatter.kind)}`);
 }
 
 async function runPipelineExample(runtime: ExampleRuntime): Promise<{
@@ -426,6 +448,16 @@ function toModuleExports(value: unknown): ModuleExports {
   return value as ModuleExports;
 }
 
+function formatDiagnostics(diagnostics: ReturnType<typeof lint>): string {
+  return diagnostics
+    .map((diagnostic) => `${diagnostic.filename}:${diagnostic.line}:${diagnostic.column} ${diagnostic.code} ${diagnostic.message}`)
+    .join("\n");
+}
+
+function hasDefaultExport(source: string, filename: string): boolean {
+  return parseModule(source, filename).body.some((statement) => statement.type === "ExportDefaultDeclaration");
+}
+
 function readRecord(value: unknown, label: string): Record<string, unknown> {
   if (typeof value !== "object" || value === null || Array.isArray(value)) {
     throw new Error(`${label} must be an object.`);
@@ -463,9 +495,20 @@ function readErrorMessage(error: unknown): string {
     return error.message;
   }
 
+  if (
+    typeof error === "object" &&
+    error !== null &&
+    "message" in error &&
+    typeof error.message === "string"
+  ) {
+    return error.message;
+  }
+
   return String(error);
 }
 
-main(process.argv.slice(2)).then((exitCode) => {
-  process.exitCode = exitCode;
-});
+if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main(process.argv.slice(2)).then((exitCode) => {
+    process.exitCode = exitCode;
+  });
+}

@@ -49,6 +49,17 @@ Run any of them with the bundled CLI:
 npx poe-agent-script examples/pipeline.md
 ```
 
+`poe-agent-script` is a zero-cost local runner for markdown harness files. It
+reads the first `js` fenced block, lints it against the example module registry,
+then runs it with stub host modules: `agent.spawn` returns a canned successful
+summary, `git` and `metric` are deterministic fakes, and logs are printed as
+JSONL. If a markdown file has no `js` block, the CLI keeps backwards-compatible
+demo mode and dispatches `kind: pipeline`, `superintendent`, or `experiment`
+frontmatter to the bundled shapes.
+
+Use `poe-code harness run` when you want the same lint-and-run flow against real
+configured agents and host integrations.
+
 ### 2. MCP code mode
 
 Letting an LLM call MCP tools turn-by-turn is expensive, slow, and non-deterministic. With agent-script, the LLM produces (or you author) a script that calls MCP tools directly:
@@ -233,7 +244,7 @@ const lintModules = {
 
 - **No mutable closures.** Lambdas cannot capture an outer `let`. The idiomatic loop is recursion (see `examples/experiment.md`) or `for…of` whose body does not return a closure that reads the loop variable.
 - **No `function` at all.** Use arrow functions everywhere. The lint error is explicit but easy to hit when porting existing JS.
-- **Markdown parsing is greedy and quiet.** Only the first `js` fenced block runs. If there is no fenced block, the *entire* markdown body becomes the script source — which often fails to parse but the failure mode surprises people.
+- **Markdown parsing is greedy and quiet.** Only the first `js` fenced block runs.
 - **Snapshots are source-pinned.** Editing the script invalidates every prior snapshot for it. There is no migration path; bump or fork the file if you need to keep an old run resumable.
 - **`Math.random()` is unbound by default.** Pass `randomSeed` to enable it. Snapshots persist the RNG state so resumes stay deterministic.
 - **`Promise.all` is fine; user-defined concurrency primitives are not.** `Promise` is exposed only for `all` / `race` / `allSettled` / `any`. There is no `new Promise(...)`.

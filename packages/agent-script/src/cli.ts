@@ -6,8 +6,11 @@ type CliStream = {
   write(chunk: string): void;
 };
 
+export type ReadMarkdownFile = (filepath: string, encoding: "utf8") => Promise<string>;
+
 export type RunCliOptions = {
   cwd?: string;
+  readFile?: ReadMarkdownFile;
   stdout?: CliStream;
   stderr?: CliStream;
 };
@@ -30,6 +33,25 @@ export async function runCli(argv: readonly string[], options: RunCliOptions = {
   }
 
   try {
+    if (options.readFile !== undefined) {
+      const { runExampleFile } = await import("./example-runner.js") as {
+        runExampleFile: (
+          filepath: string,
+          options: {
+            readFile?: ReadMarkdownFile;
+            stderr?: CliStream;
+            stdout?: CliStream;
+          }
+        ) => Promise<number>;
+      };
+
+      return await runExampleFile(path.resolve(cwd, filepath), {
+        readFile: options.readFile,
+        stderr,
+        stdout
+      });
+    }
+
     const result = await runRunner(path.resolve(cwd, filepath), cwd);
     stdout.write(result.stdout);
     stderr.write(result.stderr);
@@ -89,7 +111,13 @@ function createRunnerArgs(filepath: string): string[] {
 }
 
 function createUsage(): string {
-  return "Usage: node --experimental-strip-types packages/agent-script/src/cli.ts <script.md>";
+  return [
+    "Usage: node --experimental-strip-types packages/agent-script/src/cli.ts <script.md>",
+    "",
+    "Modes:",
+    "  user-script mode: lints and runs the first ```js fenced block against stub example modules.",
+    "  demo fallback mode: when no ```js block exists, runs bundled pipeline, superintendent, or experiment demos by frontmatter kind."
+  ].join("\n");
 }
 
 function createChildEnv(): NodeJS.ProcessEnv {

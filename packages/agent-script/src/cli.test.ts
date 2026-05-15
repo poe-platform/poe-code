@@ -37,6 +37,8 @@ describe("agent-script CLI", () => {
     expect(exitCode).toBe(0);
     expect(stdout.output()).toBe("");
     expect(stderr.output()).toContain("Usage: node --experimental-strip-types");
+    expect(stderr.output()).toContain("user-script mode");
+    expect(stderr.output()).toContain("demo fallback mode");
   });
 
   it("prints usage when no filepath is provided", async () => {
@@ -91,6 +93,115 @@ describe("agent-script CLI", () => {
       ok: true,
       returnValue: expected
     });
+  });
+
+  it("runs a markdown js block and prints the result envelope", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    const exitCode = await runCli(["script.md"], {
+      readFile: async () => [
+        "---",
+        "kind: custom",
+        "---",
+        "",
+        "```js",
+        "return 42;",
+        "```"
+      ].join("\n"),
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stderr.output()).toBe("");
+    expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: 42 })}\n`);
+  });
+
+  it("prints script errors and exits non-zero", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    const exitCode = await runCli(["script.md"], {
+      readFile: async () => ["```js", 'throw Error("boom");', "```"].join("\n"),
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(1);
+    expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("boom");
+  });
+
+  it("falls back to the bundled pipeline demo when no js block exists", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    const exitCode = await runCli(["pipeline.md"], {
+      readFile: async () => [
+        "---",
+        "kind: pipeline-demo",
+        "version: 1",
+        "agents:",
+        "  builder:",
+        "    agent: claude-code",
+        "  reviewer:",
+        "    agent: claude-code",
+        "tasks:",
+        "  - id: inspect-worktree",
+        "    title: Inspect worktree",
+        "    prompt: Summarize the worktree.",
+        "  - id: review-diff",
+        "    title: Review diff",
+        "    prompt: Review the diff.",
+        "---",
+        "",
+        "# Pipeline demo"
+      ].join("\n"),
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stderr.output()).toBe("");
+    expect(readLastJsonLine(stdout.output())).toEqual({
+      ok: true,
+      returnValue: {
+        kind: "pipeline-demo",
+        taskIds: ["inspect-worktree", "review-diff"]
+      }
+    });
+  });
+
+  it("fails clearly when no js block exists and the demo kind is unknown", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    const exitCode = await runCli(["unknown.md"], {
+      readFile: async () => ["---", "kind: unknown-demo", "---", "", "# Unknown"].join("\n"),
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(1);
+    expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("Unsupported demo kind: unknown-demo");
+  });
+
+  it("exits non-zero before running when the js block fails lint", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    const exitCode = await runCli(["lint.md"], {
+      readFile: async () => ["```js", 'import { missing } from "agent";', "return missing();", "```"].join("\n"),
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(1);
+    expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("Lint failed");
+    expect(stderr.output()).toContain("does not export 'missing'");
   });
 
   it("returns an error when the markdown file does not exist", async () => {

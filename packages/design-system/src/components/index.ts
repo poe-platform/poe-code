@@ -1,4 +1,6 @@
 export { text } from "./text.js";
+export { color } from "./color.js";
+export type { Color } from "./color.js";
 export { symbols } from "./symbols.js";
 export { createLogger, logger } from "./logger.js";
 export type { LoggerOutput } from "./logger.js";

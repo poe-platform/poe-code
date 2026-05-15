@@ -2,6 +2,7 @@ import { describe, expect, expectTypeOf, it } from "vitest";
 import {
   dashboard,
   createDashboard,
+  color,
   explorer,
   parse,
   render,
@@ -9,6 +10,7 @@ import {
   runExplorer,
   singleDetail,
   text,
+  type Color,
   type Action,
   type ActionContext,
   type Dashboard,
@@ -60,6 +62,11 @@ describe("design-system root exports", () => {
 
   it("re-exports text helpers from the root barrel", () => {
     expect(text.sectionHeader("Title")).toBeTypeOf("string");
+  });
+
+  it("re-exports color helpers from the root barrel", () => {
+    expect(color.red.bold("Title")).toBeTypeOf("string");
+    expectTypeOf(color).toMatchTypeOf<Color>();
   });
 
   it("re-exports explorer helpers from the root barrel", () => {

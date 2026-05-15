@@ -8,6 +8,8 @@ export { widths } from "./tokens/widths.js";
 
 // Components
 export { text } from "./components/text.js";
+export { color } from "./components/color.js";
+export type { Color } from "./components/color.js";
 export { symbols } from "./components/symbols.js";
 export { createLogger, logger } from "./components/logger.js";
 export type { LoggerOutput } from "./components/logger.js";

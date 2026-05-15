@@ -427,7 +427,7 @@ export function registerModelsCommand(
           columns = [
             { name: "Model", title: "Model", alignment: "left" as const, maxLen: 35 },
             { name: "Date", title: "Date Added", alignment: "left" as const, maxLen: 12 },
-            { name: "Modality", title: "Modality", alignment: "left" as const, maxLen: 18 },
+            { name: "Modality", title: "Modality", alignment: "left" as const, maxLen: 24 },
             { name: "Context", title: "Context", alignment: "right" as const, maxLen: 9 },
             { name: "Reasoning", title: "Reasoning", alignment: "left" as const, maxLen: 9 },
             ...allFeatures.map((feature) => ({

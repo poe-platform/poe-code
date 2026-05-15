@@ -1098,7 +1098,7 @@ describe("models command", () => {
 
     const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
 
-    expect(output).toContain("...");
+    expect(output).toContain("…");
     expect(output).not.toContain("voice-049");
   });
 
@@ -1121,7 +1121,7 @@ describe("models command", () => {
 
     const output = await runModels({ fs, httpClient, logs, args: ["--view", "parameters"] });
 
-    expect(output).toContain("...");
+    expect(output).toContain("…");
     expect(output).not.toContain("a]".repeat(30));
   });
 });

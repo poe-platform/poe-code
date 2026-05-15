@@ -96,9 +96,9 @@ tasks:
         - new snapshot tests cover: ANSI in cells, unicode width
           (e.g. emoji, CJK), truncation, alignment
     status:
-      implement: open
-      test: open
-      refactor: open
+      implement: done
+      test: done
+      refactor: done
       commit: open
 
   - id: ds-template-api

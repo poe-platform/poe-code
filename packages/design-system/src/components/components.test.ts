@@ -6,6 +6,7 @@ import {
   resolveOutputFormat
 } from "../internal/output-format.js";
 import { formatCommandNotFoundPanel } from "./command-errors.js";
+import { color } from "./color.js";
 import { createLogger } from "./logger.js";
 import { symbols } from "./symbols.js";
 import { renderTable } from "./table.js";
@@ -195,8 +196,18 @@ function setFormat(format: string): void {
 }
 
 describe("renderTable", () => {
+  const originalForceColor = process.env.FORCE_COLOR;
+  const originalNoColor = process.env.NO_COLOR;
+
   beforeEach(() => {
+    process.env.FORCE_COLOR = originalForceColor;
+    process.env.NO_COLOR = originalNoColor;
     resetOutputFormatCache();
+  });
+
+  afterEach(() => {
+    process.env.FORCE_COLOR = originalForceColor;
+    process.env.NO_COLOR = originalNoColor;
   });
 
   describe("terminal format (default)", () => {
@@ -205,6 +216,129 @@ describe("renderTable", () => {
       expect(result).toContain("alpha");
       expect(result).toContain("beta");
       expect(result).toContain("┌");
+    });
+
+    it("keeps ANSI in cells without using it for width calculations", () => {
+      process.env.FORCE_COLOR = "1";
+      delete process.env.NO_COLOR;
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Name", title: "Name", alignment: "left", maxLen: 8 },
+          { name: "State", title: "State", alignment: "right", maxLen: 6 },
+        ],
+        rows: [{ Name: color.red("alpha"), State: "ok" }],
+      });
+
+      expect(result).toContain("\u001b[31m");
+      expect(stripAnsi(result)).toMatchInlineSnapshot(`
+        "┌──────────┬────────┐
+        │ Name     │  State │
+        ├──────────┼────────┤
+        │ alpha    │     ok │
+        └──────────┴────────┘"
+      `);
+    });
+
+    it("uses unicode display width for emoji and CJK cells", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Kind", title: "Kind", alignment: "left", maxLen: 6 },
+          { name: "Name", title: "Name", alignment: "left", maxLen: 8 },
+        ],
+        rows: [
+          { Kind: "✅", Name: "東京" },
+          { Kind: "text", Name: "alpha" },
+        ],
+      });
+
+      expect(result).toMatchInlineSnapshot(`
+        "┌────────┬──────────┐
+        │ Kind   │ Name     │
+        ├────────┼──────────┤
+        │ ✅     │ 東京     │
+        │ text   │ alpha    │
+        └────────┴──────────┘"
+      `);
+    });
+
+    it("keeps multi-codepoint emoji sequences intact when measuring width", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Icon", title: "Icon", alignment: "left", maxLen: 6 },
+          { name: "Name", title: "Name", alignment: "left", maxLen: 6 },
+        ],
+        rows: [{ Icon: "👨‍👩‍👧‍👦", Name: "family" }],
+      });
+
+      expect(result).toMatchInlineSnapshot(`
+        "┌────────┬────────┐
+        │ Icon   │ Name   │
+        ├────────┼────────┤
+        │ 👨‍👩‍👧‍👦     │ family │
+        └────────┴────────┘"
+      `);
+    });
+
+    it("truncates cells with an ellipsis at the column width", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Value", title: "Value", alignment: "left", maxLen: 7 },
+        ],
+        rows: [{ Value: "super-long-value" }],
+      });
+
+      expect(result).toMatchInlineSnapshot(`
+        "┌─────────┐
+        │ Value   │
+        ├─────────┤
+        │ super-… │
+        └─────────┘"
+      `);
+    });
+
+    it("aligns left, center, and right columns", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Left", title: "Left", alignment: "left", maxLen: 6 },
+          { name: "Center", title: "Center", alignment: "center", maxLen: 8 },
+          { name: "Right", title: "Right", alignment: "right", maxLen: 6 },
+        ] as never,
+        rows: [{ Left: "a", Center: "b", Right: "c" }],
+      });
+
+      expect(result).toMatchInlineSnapshot(`
+        "┌────────┬──────────┬────────┐
+        │ Left   │  Center  │  Right │
+        ├────────┼──────────┼────────┤
+        │ a      │    b     │      c │
+        └────────┴──────────┴────────┘"
+      `);
+    });
+
+    it("can render separators between rows", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Name", title: "Name", alignment: "left", maxLen: 5 },
+        ],
+        rows: [{ Name: "one" }, { Name: "two" }],
+        rowSeparator: true,
+      } as never);
+
+      expect(result).toMatchInlineSnapshot(`
+        "┌───────┐
+        │ Name  │
+        ├───────┤
+        │ one   │
+        ├───────┤
+        │ two   │
+        └───────┘"
+      `);
     });
   });
 

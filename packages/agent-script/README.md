@@ -120,7 +120,7 @@ Registered by the caller via the factory functions exported from the package. No
 |---|---|---|
 | `agent` | `makeAgentModule(spawnAgent)` | `spawn(definition, { prompt, mode, model, mcp, cwd, timeoutMs })` |
 | `git` | `makeGitModule(cwd)` | `head`, `checkpoint`, `commit`, `revert`, `diff` |
-| `harness` | `makeHarnessModule(frontmatter, meta)` | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter) |
+| `harness` | `makeHarnessModule(frontmatter, meta)` | `tasks`, `agents`, `meta` (kind, version, filepath, frontmatter), `applyConstraints(prompt)` |
 | `log` | `makeLogModule(sink?)` | `info`, `error`, `event` (JSONL by default) |
 | `metric` | `makeMetricModule(npmRunner)` | `run(name)` — runs an npm script and parses its last numeric line |
 | `mcp` | `makeMcpModule(connectMcp)` | `server(handle)`, `client(handle)` → `{ tools(), tool(name, args) }` |

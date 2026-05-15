@@ -78,6 +78,39 @@ describe("runHarness", () => {
     });
   });
 
+  it("allows harness applyConstraints through lint and runtime module exports", async () => {
+    const filepath = "/repo/docs/plans/constrained.md";
+
+    vol.fromJSON({
+      [filepath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "principles:",
+        "  - Cloudflare only",
+        "  - REST only",
+        "---",
+        "",
+        "```js",
+        'import { applyConstraints } from "harness";',
+        'return applyConstraints("Build the API.");',
+        "```"
+      ].join("\n")
+    });
+
+    const result = await runHarness(filepath, {
+      modulesFor: (frontmatter, meta) => ({
+        harness: makeHarnessModule(frontmatter, meta)
+      })
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue:
+        "CONSTRAINTS (hard rules, honor all):\n- Cloudflare only\n- REST only\n\nBuild the API."
+    });
+  });
+
   it("aborts before execution when lint reports an error diagnostic", async () => {
     const filepath = "/repo/docs/plans/invalid.md";
     const execute = vi.fn(() => "ran");

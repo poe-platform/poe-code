@@ -34,6 +34,7 @@ describe("makeHarnessModule", () => {
           model: "openai/gpt-5.4"
         }
       },
+      applyConstraints: expect.any(Function),
       meta: {
         filepath: "/repo/docs/plans/test.md",
         frontmatter: {
@@ -113,6 +114,7 @@ describe("makeHarnessModule", () => {
       )
     ).toEqual({
       agents: undefined,
+      applyConstraints: expect.any(Function),
       meta: {
         filepath: "/repo/docs/plans/untitled.md",
         frontmatter: {
@@ -208,5 +210,129 @@ describe("makeHarnessModule", () => {
         }
       )
     ).toThrow("Unsupported sandbox value at <root>: Date");
+  });
+
+  it("prepends frontmatter principles as hard constraints", () => {
+    const module = makeHarnessModule(
+      {
+        principles: ["a", "b"]
+      },
+      {
+        filepath: "/repo/docs/plans/principles.md",
+        kind: "pipeline",
+        version: 1
+      }
+    );
+
+    expect(module.applyConstraints("Build the thing.")).toBe(
+      "CONSTRAINTS (hard rules, honor all):\n- a\n- b\n\nBuild the thing."
+    );
+  });
+
+  it("returns the prompt unchanged when principles are empty", () => {
+    const module = makeHarnessModule(
+      {
+        principles: []
+      },
+      {
+        filepath: "/repo/docs/plans/empty-principles.md",
+        kind: "pipeline",
+        version: 1
+      }
+    );
+
+    expect(module.applyConstraints("Build the thing.")).toBe("Build the thing.");
+  });
+
+  it("returns the prompt unchanged when principles are omitted", () => {
+    const module = makeHarnessModule(
+      {
+        title: "No constraints"
+      },
+      {
+        filepath: "/repo/docs/plans/no-principles.md",
+        kind: "pipeline",
+        version: 1
+      }
+    );
+
+    expect(module.applyConstraints("Build the thing.")).toBe("Build the thing.");
+  });
+
+  it("prepends frontmatter constraints as hard constraints", () => {
+    const module = makeHarnessModule(
+      {
+        constraints: ["a", "b"]
+      },
+      {
+        filepath: "/repo/docs/plans/constraints.md",
+        kind: "pipeline",
+        version: 1
+      }
+    );
+
+    expect(module.applyConstraints("Build the thing.")).toBe(
+      "CONSTRAINTS (hard rules, honor all):\n- a\n- b\n\nBuild the thing."
+    );
+  });
+
+  it("merges and de-duplicates principles and constraints with principles first", () => {
+    const module = makeHarnessModule(
+      {
+        constraints: ["b", "c"],
+        principles: ["a", "b"]
+      },
+      {
+        filepath: "/repo/docs/plans/merged-constraints.md",
+        kind: "pipeline",
+        version: 1
+      }
+    );
+
+    expect(module.applyConstraints("Build the thing.")).toBe(
+      "CONSTRAINTS (hard rules, honor all):\n- a\n- b\n- c\n\nBuild the thing."
+    );
+  });
+
+  it("rejects non-string principles or constraints", () => {
+    expect(() =>
+      makeHarnessModule(
+        {
+          principles: ["a", 1]
+        },
+        {
+          filepath: "/repo/docs/plans/invalid-principles.md",
+          kind: "pipeline",
+          version: 1
+        }
+      )
+    ).toThrow("constraints/principles must be strings");
+    expect(() =>
+      makeHarnessModule(
+        {
+          constraints: ["a", false]
+        },
+        {
+          filepath: "/repo/docs/plans/invalid-constraints.md",
+          kind: "pipeline",
+          version: 1
+        }
+      )
+    ).toThrow("constraints/principles must be strings");
+  });
+
+  it("returns only the preamble for an empty prompt with principles", () => {
+    const module = makeHarnessModule(
+      {
+        principles: ["a", "b"]
+      },
+      {
+        filepath: "/repo/docs/plans/empty-prompt.md",
+        kind: "pipeline",
+        version: 1
+      }
+    );
+
+    expect(module.applyConstraints("")).toBe("CONSTRAINTS (hard rules, honor all):\n- a\n- b");
   });
 });

@@ -13,6 +13,7 @@ export type HarnessModule = {
   tasks: SandboxValue;
   agents: SandboxValue;
   meta: HarnessModuleMeta;
+  applyConstraints: (prompt: string) => string;
 };
 
 export function makeHarnessModule(
@@ -24,6 +25,7 @@ export function makeHarnessModule(
   }
 ): HarnessModule {
   const copiedFrontmatter = copyHarnessValue(frontmatter) as HarnessFrontmatter;
+  const constraints = readConstraints(copiedFrontmatter);
 
   return {
     tasks: copyHarnessValue(copiedFrontmatter.tasks),
@@ -33,10 +35,46 @@ export function makeHarnessModule(
       version: copyHarnessValue(meta.version),
       filepath: meta.filepath,
       frontmatter: copiedFrontmatter
-    }
+    },
+    applyConstraints: (prompt: string) => applyConstraints(prompt, constraints)
   };
 }
 
 function copyHarnessValue(value: unknown): SandboxValue {
   return deepCopyToSandbox(value);
+}
+
+function readConstraints(frontmatter: HarnessFrontmatter): string[] {
+  const constraints = new Set<string>();
+
+  appendConstraintValues(constraints, frontmatter.principles);
+  appendConstraintValues(constraints, frontmatter.constraints);
+
+  return [...constraints];
+}
+
+function appendConstraintValues(constraints: Set<string>, value: SandboxValue): void {
+  if (!Array.isArray(value)) {
+    return;
+  }
+
+  for (const item of value) {
+    if (typeof item !== "string") {
+      throw new Error("constraints/principles must be strings");
+    }
+
+    constraints.add(item);
+  }
+}
+
+function applyConstraints(prompt: string, constraints: readonly string[]): string {
+  if (constraints.length === 0) {
+    return prompt;
+  }
+
+  const preamble = `CONSTRAINTS (hard rules, honor all):\n${constraints
+    .map((constraint) => `- ${constraint}`)
+    .join("\n")}`;
+
+  return prompt.length === 0 ? preamble : `${preamble}\n\n${prompt}`;
 }

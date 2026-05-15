@@ -334,7 +334,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-known-globals
     title: Teach lint about runtime globals
@@ -376,8 +376,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): lint recognizes runtime globals`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: add-optional-chaining

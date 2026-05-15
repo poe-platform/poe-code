@@ -12,6 +12,7 @@ import type {
   ExportDefaultDeclaration,
   ExportNamedDeclaration,
   IfStatement,
+  LogicalExpression,
   MemberExpression,
   MetaProperty,
   NullLiteral,
@@ -150,6 +151,7 @@ const dispatchTable: DispatchTable = {
   ExpressionStatement: evaluateExpressionStatement,
   IfStatement: evaluateIfStatement,
   Identifier: evaluateIdentifier,
+  LogicalExpression: evaluateLogicalExpression,
   MemberExpression: evaluateMemberExpression,
   MetaProperty: evaluateMetaProperty,
   NullLiteral: evaluatePrimitiveLiteral,
@@ -380,6 +382,36 @@ async function evaluateBinaryExpression(
     hasValue: true,
     value
   };
+}
+
+async function evaluateLogicalExpression(
+  node: LogicalExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const left = await evaluateNode(node.left, context);
+  if (left.kind !== "normal") {
+    return left;
+  }
+
+  switch (node.operator) {
+    case "&&":
+      if (!isTruthy(left.value)) {
+        return left;
+      }
+      break;
+    case "||":
+      if (isTruthy(left.value)) {
+        return left;
+      }
+      break;
+    case "??":
+      if (left.value !== null && left.value !== undefined) {
+        return left;
+      }
+      break;
+  }
+
+  return evaluateNode(node.right, context);
 }
 
 async function evaluateIdentifier(

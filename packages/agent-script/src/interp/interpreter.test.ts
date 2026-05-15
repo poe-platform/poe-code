@@ -140,6 +140,55 @@ describe("interpret", () => {
     expect(result.returnValue).toBeNaN();
   });
 
+  it.each([
+    ["true && true", true],
+    ["true && false", false],
+    ["false || true", true],
+    ['null ?? "fallback"', "fallback"],
+    ['undefined ?? "fallback"', "fallback"],
+    ['0 ?? "fallback"', 0],
+    ['"" ?? "fallback"', ""],
+    ["0 && 1", 0],
+    ['"x" || 1', "x"],
+    ["null ?? 0 ?? 1", 0]
+  ])("evaluates logical expression %s", async (source, expected) => {
+    await expect(interpret(parse(source))).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it.each([
+    ["false && throwing()", false, 2],
+    ["true || throwing()", true, 2],
+    ["true || throwing() || throwing()", true, 3]
+  ])("short-circuits logical expression %s", async (source, expected, nodeVisits) => {
+    const throwing = vi.fn(() => {
+      throw new Error("right side should not be evaluated");
+    });
+
+    await expect(
+      interpret(parse(source), {
+        bindings: {
+          throwing: createSandboxClosure({
+            call: throwing,
+            name: "throwing"
+          })
+        },
+        budget: new Budget({
+          maxSteps: nodeVisits
+        })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected,
+      stats: {
+        nodeVisits
+      }
+    });
+    expect(throwing).not.toHaveBeenCalled();
+  });
+
   it("throws a sandbox error when binary string concatenation exceeds the allocation budget", async () => {
     await expect(
       interpret(parse('"hello" + "!"'), {

@@ -27,7 +27,6 @@ type AnsiStyleName =
 
 interface AnsiPair {
   open: string;
-  close: string;
 }
 
 export interface Color {
@@ -61,30 +60,32 @@ export interface Color {
   bgRgb: (red: number, green: number, blue: number) => Color;
 }
 
+const reset = "\x1b[0m";
+
 const ansiStyles: Record<AnsiStyleName, AnsiPair> = {
-  reset: { open: "\u001b[0m", close: "\u001b[0m" },
-  bold: { open: "\u001b[1m", close: "\u001b[22m" },
-  dim: { open: "\u001b[2m", close: "\u001b[22m" },
-  italic: { open: "\u001b[3m", close: "\u001b[23m" },
-  underline: { open: "\u001b[4m", close: "\u001b[24m" },
-  inverse: { open: "\u001b[7m", close: "\u001b[27m" },
-  strikethrough: { open: "\u001b[9m", close: "\u001b[29m" },
-  black: { open: "\u001b[30m", close: "\u001b[39m" },
-  red: { open: "\u001b[31m", close: "\u001b[39m" },
-  green: { open: "\u001b[32m", close: "\u001b[39m" },
-  yellow: { open: "\u001b[33m", close: "\u001b[39m" },
-  blue: { open: "\u001b[34m", close: "\u001b[39m" },
-  magenta: { open: "\u001b[35m", close: "\u001b[39m" },
-  cyan: { open: "\u001b[36m", close: "\u001b[39m" },
-  white: { open: "\u001b[37m", close: "\u001b[39m" },
-  gray: { open: "\u001b[90m", close: "\u001b[39m" },
-  magentaBright: { open: "\u001b[95m", close: "\u001b[39m" },
-  cyanBright: { open: "\u001b[96m", close: "\u001b[39m" },
-  bgRed: { open: "\u001b[41m", close: "\u001b[49m" },
-  bgGreen: { open: "\u001b[42m", close: "\u001b[49m" },
-  bgYellow: { open: "\u001b[43m", close: "\u001b[49m" },
-  bgBlue: { open: "\u001b[44m", close: "\u001b[49m" },
-  bgMagenta: { open: "\u001b[45m", close: "\u001b[49m" }
+  reset: { open: reset },
+  bold: { open: "\x1b[1m" },
+  dim: { open: "\x1b[2m" },
+  italic: { open: "\x1b[3m" },
+  underline: { open: "\x1b[4m" },
+  inverse: { open: "\x1b[7m" },
+  strikethrough: { open: "\x1b[9m" },
+  black: { open: "\x1b[30m" },
+  red: { open: "\x1b[31m" },
+  green: { open: "\x1b[32m" },
+  yellow: { open: "\x1b[33m" },
+  blue: { open: "\x1b[34m" },
+  magenta: { open: "\x1b[35m" },
+  cyan: { open: "\x1b[36m" },
+  white: { open: "\x1b[37m" },
+  gray: { open: "\x1b[90m" },
+  magentaBright: { open: "\x1b[95m" },
+  cyanBright: { open: "\x1b[96m" },
+  bgRed: { open: "\x1b[41m" },
+  bgGreen: { open: "\x1b[42m" },
+  bgYellow: { open: "\x1b[43m" },
+  bgBlue: { open: "\x1b[44m" },
+  bgMagenta: { open: "\x1b[45m" }
 };
 
 const styleNames = Object.keys(ansiStyles) as AnsiStyleName[];
@@ -98,20 +99,10 @@ function applyStyles(text: string, styles: AnsiPair[]): string {
     return text;
   }
 
-  let output = text;
-  for (const style of styles) {
-    if (output.includes(style.close)) {
-      output = replaceAll(output, style.close, `${style.close}${style.open}`);
-    }
-  }
-
   const open = styles.map((style) => style.open).join("");
-  const close = styles
-    .map((style) => style.close)
-    .reverse()
-    .join("");
+  const output = text.includes(reset) ? replaceAll(text, reset, `${reset}${open}`) : text;
 
-  return `${open}${output}${close}`;
+  return `${open}${output}${reset}`;
 }
 
 function clampRgb(value: number): number {
@@ -154,15 +145,13 @@ function normalizeHex(value: string): [number, number, number] {
 
 function rgbStyle(red: number, green: number, blue: number): AnsiPair {
   return {
-    open: `\u001b[38;2;${clampRgb(red)};${clampRgb(green)};${clampRgb(blue)}m`,
-    close: "\u001b[39m"
+    open: `\x1b[38;2;${clampRgb(red)};${clampRgb(green)};${clampRgb(blue)}m`
   };
 }
 
 function bgRgbStyle(red: number, green: number, blue: number): AnsiPair {
   return {
-    open: `\u001b[48;2;${clampRgb(red)};${clampRgb(green)};${clampRgb(blue)}m`,
-    close: "\u001b[49m"
+    open: `\x1b[48;2;${clampRgb(red)};${clampRgb(green)};${clampRgb(blue)}m`
   };
 }
 

@@ -42,7 +42,7 @@ tasks:
       implement: done
       test: done
       refactor: done
-      commit: open
+      commit: done
 
   - id: ds-color-tests
     title: Unit + snapshot tests for design-system color API
@@ -66,9 +66,9 @@ tasks:
       Do not create files on disk (memfs rule does not apply here —
       no fs involved).
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: ds-table-internal
     title: Replace console-table-printer with internal renderer

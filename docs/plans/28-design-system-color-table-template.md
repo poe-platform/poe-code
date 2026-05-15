@@ -178,7 +178,7 @@ tasks:
       implement: done
       test: done
       refactor: done
-      commit: open
+      commit: done
 
   - id: ds-template-tests
     title: Mustache parity tests for design-system template
@@ -236,8 +236,8 @@ tasks:
       devDependencies of @poe-code/design-system. Do NOT add them as
       runtime deps.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: migrate-chalk-design-system-internal

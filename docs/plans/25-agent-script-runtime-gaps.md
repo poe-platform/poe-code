@@ -255,7 +255,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-for-statement
     title: Add C-style ForStatement handler
@@ -289,8 +289,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): evaluate ForStatement`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: add-assignment-expression

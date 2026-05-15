@@ -299,6 +299,63 @@ describe("interpret", () => {
   });
 
   it.each([
+    ["object shorthand", ["const { a, b } = { a: 1, b: 2 }", "return a + b"], 3],
+    ["object rename", ["const { a: x } = { a: 1 }", "return x"], 1],
+    ["object default missing", ["const { a = 9 } = {}", "return a"], 9],
+    ["object default undefined", ["const { a = 9 } = { a: undefined }", "return a"], 9],
+    ["object default null", ["const { a = 9 } = { a: null }", "return a"], null],
+    ["object rest", ["const { a, ...rest } = { a: 1, b: 2, c: 3 }", "return rest"], { b: 2, c: 3 }],
+    ["array elements", ["const [x, y] = [1, 2]", "return x + y"], 3],
+    ["array hole", ["const [, b] = [1, 2]", "return b"], 2],
+    ["array rest", ["const [x, ...rest] = [1, 2, 3]", "return rest"], [2, 3]],
+    ["let object pattern", ["let { a } = { a: 1 }", "a = 2", "return a"], 2],
+    ["nested object pattern", ["const { a: { b } } = { a: { b: 7 } }", "return b"], 7]
+  ])(
+    "evaluates destructuring variable declaration with %s",
+    async (_label, statements, expected) => {
+      await expect(
+        interpret(block(...statements.map((statement) => parse(statement))))
+      ).resolves.toMatchObject({
+        ok: true,
+        returnValue: expected
+      });
+    }
+  );
+
+  it("throws a TypeError-shaped sandbox error for object destructuring from null", async () => {
+    await expect(interpret(parse("const { a } = null;"))).rejects.toMatchObject({
+      name: "TypeError",
+      message: "Object destructuring declarations require a non-null object value."
+    });
+  });
+
+  it("throws a TypeError-shaped sandbox error for array destructuring from null", async () => {
+    await expect(interpret(parse("const [x] = null;"))).rejects.toMatchObject({
+      name: "TypeError",
+      message: "Array destructuring declarations require an array value."
+    });
+  });
+
+  it("evaluates destructuring declaration initializers once", async () => {
+    const load = vi.fn(() => ({ a: 1, b: 2 }));
+
+    await expect(
+      interpret(block(parse("const { a, b } = load()"), parse("return a + b")), {
+        bindings: {
+          load: createSandboxClosure({
+            call: load,
+            name: "load"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
+    });
+    expect(load).toHaveBeenCalledOnce();
+  });
+
+  it.each([
     ["literal-only template", "`hello`", {}, "hello"],
     ["one interpolation", "`n=${1}`", {}, "n=1"],
     ["multiple interpolations", "`a=${a} b=${b}`", { a: "left", b: 2 }, "a=left b=2"],

@@ -1,5 +1,8 @@
 import type {
   ArrayExpression,
+  ArrayPattern,
+  AssignmentPattern,
+  AssignmentProperty,
   AssignmentExpression,
   ArrowFunctionExpression,
   AwaitExpression,
@@ -22,6 +25,7 @@ import type {
   NullLiteral,
   NumericLiteral,
   ObjectExpression,
+  ObjectPattern,
   ParseResult,
   Property,
   BreakStatement,
@@ -36,6 +40,9 @@ import type {
   UndefinedLiteral,
   ExpressionStatement,
   VariableDeclaration,
+  VariableDeclarationKind,
+  VariableDeclarator,
+  RestElement,
   WhileStatement
 } from "../parse.js";
 import {
@@ -606,10 +613,6 @@ async function evaluateVariableDeclaration(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   for (const declarator of node.declarations) {
-    if (declarator.id.type !== "Identifier") {
-      throw new TypeError(`Unsupported variable declaration pattern '${declarator.id.type}'.`);
-    }
-
     const value =
       declarator.init === undefined
         ? {
@@ -623,7 +626,10 @@ async function evaluateVariableDeclaration(
       return value;
     }
 
-    context.scope.declare(declarator.id.name, node.kind, value.value);
+    const binding = await bindDeclarationPattern(declarator.id, value.value, node.kind, context);
+    if (!binding.ok) {
+      return binding.result;
+    }
   }
 
   return {
@@ -631,6 +637,187 @@ async function evaluateVariableDeclaration(
     hasValue: false,
     value: undefined
   };
+}
+
+async function bindDeclarationPattern(
+  pattern: VariableDeclarator["id"] | AssignmentPattern | MemberExpression | RestElement,
+  value: SandboxValue,
+  kind: VariableDeclarationKind,
+  context: EvaluationContext
+): Promise<
+  | {
+      ok: true;
+    }
+  | {
+      ok: false;
+      result: EvaluationResult;
+    }
+> {
+  switch (pattern.type) {
+    case "Identifier":
+      context.scope.declare(pattern.name, kind, value);
+      return { ok: true };
+    case "MemberExpression":
+      throw new TypeError("Destructuring declarations cannot bind to member expressions.");
+    case "AssignmentPattern":
+      return bindDeclarationAssignmentPattern(pattern, value, kind, context);
+    case "ArrayPattern":
+      return bindDeclarationArrayPattern(pattern, value, kind, context);
+    case "ObjectPattern":
+      return bindDeclarationObjectPattern(pattern, value, kind, context);
+    case "RestElement":
+      return bindDeclarationPattern(pattern.argument, value, kind, context);
+  }
+}
+
+async function bindDeclarationAssignmentPattern(
+  pattern: AssignmentPattern,
+  value: SandboxValue,
+  kind: VariableDeclarationKind,
+  context: EvaluationContext
+): Promise<
+  | {
+      ok: true;
+    }
+  | {
+      ok: false;
+      result: EvaluationResult;
+    }
+> {
+  if (value !== undefined) {
+    return bindDeclarationPattern(pattern.left, value, kind, context);
+  }
+
+  const defaultValue = await evaluateNode(pattern.right, context);
+  if (defaultValue.kind !== "normal") {
+    return {
+      ok: false,
+      result: defaultValue
+    };
+  }
+
+  return bindDeclarationPattern(pattern.left, defaultValue.value, kind, context);
+}
+
+async function bindDeclarationArrayPattern(
+  pattern: ArrayPattern,
+  value: SandboxValue,
+  kind: VariableDeclarationKind,
+  context: EvaluationContext
+): Promise<
+  | {
+      ok: true;
+    }
+  | {
+      ok: false;
+      result: EvaluationResult;
+    }
+> {
+  if (!Array.isArray(value)) {
+    throw new TypeError("Array destructuring declarations require an array value.");
+  }
+
+  for (let index = 0; index < pattern.elements.length; index += 1) {
+    const element = pattern.elements[index];
+    if (element === null) {
+      continue;
+    }
+
+    const elementValue =
+      element.type === "RestElement" ? value.slice(index) : (value[index] as SandboxValue);
+    const binding = await bindDeclarationPattern(element, elementValue, kind, context);
+    if (!binding.ok) {
+      return binding;
+    }
+  }
+
+  return { ok: true };
+}
+
+async function bindDeclarationObjectPattern(
+  pattern: ObjectPattern,
+  value: SandboxValue,
+  kind: VariableDeclarationKind,
+  context: EvaluationContext
+): Promise<
+  | {
+      ok: true;
+    }
+  | {
+      ok: false;
+      result: EvaluationResult;
+    }
+> {
+  if (typeof value !== "object" || value === null) {
+    throw new TypeError("Object destructuring declarations require a non-null object value.");
+  }
+
+  const excludedKeys = new Set<string>();
+
+  for (const property of pattern.properties) {
+    if (property.type === "RestElement") {
+      const binding = await bindDeclarationPattern(
+        property,
+        copyObjectRestValue(value, excludedKeys),
+        kind,
+        context
+      );
+      if (!binding.ok) {
+        return binding;
+      }
+
+      continue;
+    }
+
+    const key = await evaluateDeclarationPatternKey(property, context);
+    if (!key.ok) {
+      return key;
+    }
+
+    excludedKeys.add(String(key.value));
+    const binding = await bindDeclarationPattern(
+      property.value,
+      (value as Record<string | number, SandboxValue>)[key.value],
+      kind,
+      context
+    );
+    if (!binding.ok) {
+      return binding;
+    }
+  }
+
+  return { ok: true };
+}
+
+async function evaluateDeclarationPatternKey(
+  property: AssignmentProperty,
+  context: EvaluationContext
+): Promise<HelperResult<string | number>> {
+  if (!property.computed) {
+    return {
+      ok: true,
+      value: getStaticPropertyName(property.key)
+    };
+  }
+
+  return evaluateMemberProperty(property.key, context);
+}
+
+function copyObjectRestValue(
+  value: Exclude<SandboxValue, null | undefined>,
+  excludedKeys: ReadonlySet<string>
+): SandboxObject {
+  const rest = Object.create(null) as SandboxObject;
+
+  for (const [key, entryValue] of Object.entries(value)) {
+    if (excludedKeys.has(key)) {
+      continue;
+    }
+
+    defineSandboxProperty(rest, key, entryValue);
+  }
+
+  return rest;
 }
 
 async function evaluateBlockStatement(

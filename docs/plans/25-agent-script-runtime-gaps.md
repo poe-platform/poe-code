@@ -378,7 +378,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-optional-chaining
     title: Support optional chaining (`a?.b`, `a?.()`)
@@ -409,8 +409,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): support optional chaining`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: add-spread-object-literal

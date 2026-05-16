@@ -394,7 +394,11 @@ export function slackApprovalProvider(opts: {
 
 ## Errors
 
-Throw `UserError` for expected, user-facing failures. The CLI prints the message without a stack trace and sets exit code 1; MCP and SDK surface the message as the error body. Any other thrown error is treated as unexpected and shows a stack with `--debug`.
+Throw `UserError` for expected, user-facing failures. The CLI prints the message without a stack trace and sets exit code 1; MCP and SDK surface the message as the error body. Usage mistakes include a pointer to the relevant command help. Any other thrown error is treated as unexpected and shows a trimmed stack with `--debug`; use `--debug=raw` to include framework and runtime frames.
+
+HTTP-style errors with request/response context print the request, status, and a response-body snippet by default. `--verbose` or `--debug` prints headers and the full request/response bodies, with authorization headers redacted.
+
+Enable structured error reports with `errorReports: true`, `errorReports: { dir }`, or `TOOLCRAFT_ERROR_REPORTS=1`. Reports are written under `.toolcraft/errors` by default, include argv, parsed params, resolved secret presence, structured error fields, stack/cause chains, and HTTP transcripts, and redact declared secrets plus parameter names that look sensitive.
 
 ## Migrating from a folder of scripts
 
@@ -412,6 +416,7 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 ## Environment variables
 
 - `TOOLCRAFT_MCP_REFRESH` — MCP proxy cache refresh (`unset` = use cache, `1`/`true` = refresh all, comma-separated names = refresh those).
+- `TOOLCRAFT_ERROR_REPORTS=1` — enables structured error report files for CLI, MCP, and SDK surfaces that wire `errorReports`.
 - Per-command `secrets` declarations name additional env vars. They are read at command run time and passed to the handler.
 
 ## API reference
@@ -451,19 +456,20 @@ If you have an existing MCP server you want to keep running, use the MCP proxy: 
 - `presets?: boolean` — enables `--preset <path>` for loading parameter defaults from JSON files.
 - `apiVersion?: string` — for `requires.apiVersion`.
 - `humanInLoop?: HumanInLoopRuntimeOptions`
+- `errorReports?: boolean | { dir?: string }`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 
 ### `createSDK(root, options)`
 
 - `casing?: "camel"` — generated SDK member style.
-- `services?` / `humanInLoop?` / `apiVersion?`
+- `services?` / `humanInLoop?` / `apiVersion?` / `errorReports?`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 
 ### `createMCPServer(root, options)` / `runMCP(root, options)`
 
 - `name: string`
 - `version: string`
-- `services?` / `humanInLoop?` / `apiVersion?`
+- `services?` / `humanInLoop?` / `apiVersion?` / `errorReports?`
 - `projectRoot?: string` — root used for MCP proxy cache files (`.toolcraft/mcp/*.json`).
 - `tools?: string[]` — allowlist of MCP tool names or group prefixes. Tool names are `__`-joined snake_case path segments (`root__bot__create`); a prefix like `root__bot` includes every descendant tool.
 - `omitRootToolNamePrefix?: boolean` — defaults to `false`. Set to `true` to omit the root group name from single-root MCP tool names (`bot__create`).

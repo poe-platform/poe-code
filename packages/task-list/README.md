@@ -6,11 +6,11 @@ Multi-list task manager with pluggable storage backends.
 
 `@poe-code/task-list` exposes one API over these backends:
 
-| Backend | Storage |
-| --- | --- |
-| `markdown-dir` | One Markdown file per task, organized into subdirectories per list. |
-| `yaml-file` | One YAML document with a top-level `lists:` mapping. |
-| `gh-issues` | GitHub Issues in one repository, ordered and state-tracked through a GitHub Project v2 Status field. |
+| Backend        | Storage                                                                                              |
+| -------------- | ---------------------------------------------------------------------------------------------------- |
+| `markdown-dir` | One Markdown file per task, organized into subdirectories per list.                                  |
+| `yaml-file`    | One YAML document with a top-level `lists:` mapping.                                                 |
+| `gh-issues`    | GitHub Issues in one repository, ordered and state-tracked through a GitHub Project v2 Status field. |
 
 The task lifecycle is `draft -> planned -> in-progress -> done -> archived`. `archived` is terminal.
 
@@ -18,13 +18,13 @@ The task lifecycle is `draft -> planned -> in-progress -> done -> archived`. `ar
 
 - `openTaskList(options)`: opens a task store and returns a `TaskList`
 - `TaskList`: top-level interface for listing lists, querying all tasks, and resolving qualified IDs
-- `Tasks`: per-list interface for create, update, `fire`, `canFire`, `events`, delete, and list operations
+- `Tasks`: per-list interface for create, update, `fire`, `canFire`, `events`, delete, `move`, `reorder`, and list operations
 - `Task`: normalized task record with `list`, `id`, `qualifiedId`, `name`, `state`, `description`, and `metadata`
 - `TaskState`: `"draft" | "planned" | "in-progress" | "done" | "archived"`
 - `TaskDefaults`: default `metadata` applied when creating new tasks
 - `StateMachineDef` / `EventDef`: exported types for custom task lifecycle definitions passed via `openTaskList({ stateMachine })`
 - `defaultStateMachine`: exported default lifecycle with `plan`, `start`, `complete`, and `archive` events
-- Error classes: `TaskNotFoundError`, `TaskAlreadyExistsError`, `InvalidTransitionError`, `MalformedTaskError`
+- Error classes: `TaskNotFoundError`, `TaskAlreadyExistsError`, `InvalidTransitionError`, `MalformedTaskError`, `OrderMismatchError`, `AnchorNotFoundError`
 
 ## State Machines
 
@@ -48,21 +48,23 @@ Pass a custom machine with `openTaskList({ stateMachine })`. If omitted, the pac
 
 ## Options
 
-| Option | Type | Default | Behavior |
-| --- | --- | --- | --- |
-| `type` | `"markdown-dir" \| "yaml-file" \| "gh-issues"` | required | Selects the backend implementation. |
-| `path` | `string` | required | Root directory for `markdown-dir` or YAML file path for `yaml-file`. |
-| `defaults` | `TaskDefaults` | `{ metadata: {} }` | Seeds omitted metadata on new tasks only. New tasks always start at the configured state machine's initial state. |
-| `create` | `boolean` | `false` | Creates missing storage for the selected backend when enabled. |
-| `lockStaleMs` | `number` | `30_000` | Stale threshold passed to backend file locking. |
-| `lockRetries` | `number` | `20` | Retry count passed to backend file locking. |
-| `fs` | `TaskListFs` | `node:fs/promises` adapter | Injectable filesystem, primarily for tests. |
-| `stateMachine` | `StateMachineDef` | `defaultStateMachine` | Overrides the task lifecycle used by `create`, `fire`, `canFire`, and `events`. |
+| Option            | Type                                           | Default                    | Behavior                                                                                                          |
+| ----------------- | ---------------------------------------------- | -------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `type`            | `"markdown-dir" \| "yaml-file" \| "gh-issues"` | required                   | Selects the backend implementation.                                                                               |
+| `path`            | `string`                                       | required                   | Root directory for `markdown-dir` or YAML file path for `yaml-file`.                                              |
+| `defaults`        | `TaskDefaults`                                 | `{ metadata: {} }`         | Seeds omitted metadata on new tasks only. New tasks always start at the configured state machine's initial state. |
+| `create`          | `boolean`                                      | `false`                    | Creates missing storage for the selected backend when enabled.                                                    |
+| `singleList`      | `string`                                       | unset                      | `markdown-dir` only. Treats `path` as one list with this name instead of one subdirectory per list.               |
+| `frontmatterMode` | `"strict" \| "passthrough"`                    | `"strict"`                 | `markdown-dir` only. `passthrough` preserves non-task frontmatter and allows files without a frontmatter block.   |
+| `lockStaleMs`     | `number`                                       | `30_000`                   | Stale threshold passed to backend file locking.                                                                   |
+| `lockRetries`     | `number`                                       | `20`                       | Retry count passed to backend file locking.                                                                       |
+| `fs`              | `TaskListFs`                                   | `node:fs/promises` adapter | Injectable filesystem, primarily for tests.                                                                       |
+| `stateMachine`    | `StateMachineDef`                              | `defaultStateMachine`      | Overrides the task lifecycle used by `create`, `fire`, `canFire`, and `events`.                                   |
 
 ## Env vars
 
-| Env var | Behavior |
-| --- | --- |
+| Env var   | Behavior                                                        |
+| --------- | --------------------------------------------------------------- |
 | `GH_HOST` | Defers to gh CLI's host configuration; set GH_HOST to override. |
 
 ## Usage
@@ -87,6 +89,21 @@ await planning.create({
 
 await planning.fire("ship-readme", "plan");
 ```
+
+By default, `markdown-dir` stores tasks as `<path>/<list>/<nn-id>.md`. Set `singleList` to treat the root directory as one list, which is how plan folders such as `docs/plans` are exposed through the task API:
+
+```ts
+const plans = await openTaskList({
+  type: "markdown-dir",
+  path: "/repo/docs/plans",
+  singleList: "plans",
+  frontmatterMode: "passthrough"
+});
+
+await plans.list("plans").reorder(["api-shape-providers", "memory"]);
+```
+
+`frontmatterMode: "strict"` expects full task frontmatter (`kind`, `version`, `name`, `state`, and related task fields). `frontmatterMode: "passthrough"` keeps unrelated frontmatter keys as task metadata and writes back only the task-owned fields (`name`, `description`, `state`), so existing plan metadata is preserved.
 
 ### `yaml-file`
 
@@ -225,14 +242,14 @@ poe-code tasks sync <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --
 
 `<list>` and `--project` both use `<owner>/<number>` project syntax. `--workflow` defaults to `./WORKFLOW.md`. `--repo` overrides the task repository from workflow frontmatter. `--states` overrides the required state list from workflow frontmatter. `--json` prints the report object as JSON. `--yes` confirms non-interactive sync; it is only used by `poe-code tasks sync`.
 
-| Option | Commands | Behavior |
-| --- | --- | --- |
-| `--workflow <path>` | `verify`, `sync` | Workflow file path. Defaults to `./WORKFLOW.md`. |
-| `--repo <owner/name>` | `verify`, `sync` | GitHub repository owner/name. |
+| Option                     | Commands         | Behavior                                            |
+| -------------------------- | ---------------- | --------------------------------------------------- |
+| `--workflow <path>`        | `verify`, `sync` | Workflow file path. Defaults to `./WORKFLOW.md`.    |
+| `--repo <owner/name>`      | `verify`, `sync` | GitHub repository owner/name.                       |
 | `--project <owner/number>` | `verify`, `sync` | GitHub Project v2 owner/number. Overrides `<list>`. |
-| `--states <csv>` | `verify`, `sync` | Required task state names. |
-| `--json` | `verify`, `sync` | Prints the report as JSON. |
-| `--yes` | `sync` | Confirms non-interactive provisioning. |
+| `--states <csv>`           | `verify`, `sync` | Required task state names.                          |
+| `--json`                   | `verify`, `sync` | Prints the report as JSON.                          |
+| `--yes`                    | `sync`           | Confirms non-interactive provisioning.              |
 
 The `Status` field name and option names are matched case-sensitively. The field must be named `Status`, and required option names must match exactly. For example, `status` is treated as a missing field, and `Done` is treated as missing when the required state is `done`.
 

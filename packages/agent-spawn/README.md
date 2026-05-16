@@ -39,6 +39,22 @@ Pass `mcpServers` as a map of server names to `{ command, args?, env?, timeout? 
 
 `spawnAutonomous(streamSpawn, options)` drives a streaming ACP spawn to completion, renders events through the design-system ACP writer, and retries activity timeouts. It is shared by SDK autonomous spawn flows and loop runners.
 
+## ACP middlewares
+
+Pass `middlewares` to `spawnStreaming` or `spawnAcp` to wrap the ACP session lifecycle. A middleware receives a mutable `SpawnContext` with session id, agent id, prompt/model/mode/cwd, accumulated events, usage, optional event stream, and any log file selected by the middleware. Middlewares must call `next()` at most once.
+
+```ts
+import { spawnStreaming, type AcpMiddleware } from "@poe-code/agent-spawn";
+
+const telemetry: AcpMiddleware = async (ctx, next) => {
+  await next();
+  console.log(ctx.agent, ctx.threadId, ctx.usage);
+};
+
+const run = spawnStreaming({ agentId: "codex", prompt: "Summarize", middlewares: [telemetry] });
+await run.done;
+```
+
 ## Testing helper
 
 The `./testing` export provides a Vitest helper for code that depends on `spawn`:
@@ -66,6 +82,7 @@ vi.mock("@poe-code/agent-spawn", spawnMock.factory);
 | `mode`                               | `"yolo" \| "edit" \| "read"`     | Permission mode. Defaults are chosen by the caller.                                    |
 | `args`                               | `string[]`                       | Extra args forwarded to the agent process.                                             |
 | `mcpServers`                         | `Record<string, McpSpawnServer>` | MCP servers injected into the spawned agent.                                           |
+| `middlewares`                        | `AcpMiddleware[]`                | Wrap `spawnStreaming`/`spawnAcp` execution for telemetry, logging, or post-processing. |
 | `useStdin`                           | `boolean`                        | Send the prompt through stdin when the agent supports it.                              |
 | `interactive`                        | `boolean`                        | Spawn the agent in interactive TUI mode.                                               |
 | `activityTimeoutMs`                  | `number`                         | Kill/retry inactive streaming processes after this many milliseconds.                  |

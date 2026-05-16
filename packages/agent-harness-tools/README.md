@@ -64,6 +64,14 @@ Notes:
 - Cancellation is only possible in the interactive prompt path. If `select(...)` returns a value that `isCancel(...)` recognizes, the function returns `{ cancelled: true }` and does not throw. Callers are responsible for showing the cancellation message and stopping the command cleanly.
 - `pipeline`, `experiment`, `ralph`, and `superintendent` all route their single-agent loop selection through this function so the precedence stays aligned across commands.
 
+## Plan document helpers
+
+`openPlanList`, `discoverPlans`, and `archivePlan` expose numbered Markdown plan folders through `@poe-code/task-list`. They resolve the configured plan directory with the same cwd/home rules as workflow docs, open it as a `markdown-dir` single-list named `plans`, and use `frontmatterMode: "passthrough"` so plan-specific metadata survives task updates.
+
+- `discoverPlans({ cwd, homeDir, planDirectory, kinds? })` returns plan ids, names, kinds, absolute paths, and display paths. Numeric filename prefixes such as `04-api-shape-providers.md` are stripped from ids.
+- `archivePlan({ cwd, homeDir, planDirectory, id })` fires the task-list `archive` event, moves the document under `archive/`, and repacks active plan prefixes.
+- `openPlanList(...)` returns the underlying `TaskList` for commands that need direct task operations.
+
 ## Configuration
 
 This package does not read config files directly, but Poe Code callers commonly pass `configuredDefaultAgent` from merged `core.defaultAgent`.

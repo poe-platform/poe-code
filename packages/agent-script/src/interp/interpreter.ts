@@ -1400,7 +1400,7 @@ async function evaluateMemberAccess(
     };
   }
 
-  if (object.value === null || object.value === undefined) {
+  if ((object.value === null || object.value === undefined) && node.optional) {
     return {
       kind: "nullish"
     };
@@ -1419,6 +1419,12 @@ async function evaluateMemberAccess(
           kind: "completion",
           result: property.result
         };
+  }
+
+  if (object.value === null || object.value === undefined) {
+    return {
+      kind: "nullish"
+    };
   }
 
   return {

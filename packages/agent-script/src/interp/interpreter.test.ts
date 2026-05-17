@@ -1105,6 +1105,91 @@ describe("interpret", () => {
   });
 
   it.each([
+    ["null array", { arr: null }, undefined],
+    ["undefined array", { arr: undefined }, undefined],
+    ["defined array", { arr: [10] }, 10],
+    ["out-of-bounds array index", { arr: [10] }, undefined, "return arr?.[1]"]
+  ])(
+    "evaluates computed optional member access for %s",
+    async (_label, bindings, expected, source = "return arr?.[0]") => {
+      await expect(
+        interpret(parse(source), {
+          bindings
+        })
+      ).resolves.toMatchObject({
+        ok: true,
+        returnValue: expected
+      });
+    }
+  );
+
+  it("does not evaluate computed optional member keys when the object is nullish", async () => {
+    const key = vi.fn(() => 0);
+
+    await expect(
+      interpret(parse("return arr?.[key()]"), {
+        bindings: {
+          arr: null,
+          key: createSandboxClosure({
+            call: key,
+            name: "key"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: undefined
+    });
+
+    expect(key).not.toHaveBeenCalled();
+  });
+
+  it("short-circuits chained computed optional member access at the first nullish segment", async () => {
+    const k2 = vi.fn(() => "second");
+
+    await expect(
+      interpret(parse("return obj?.[k]?.[k2()]"), {
+        bindings: {
+          obj: {
+            first: null
+          },
+          k: "first",
+          k2: createSandboxClosure({
+            call: k2,
+            name: "k2"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: undefined
+    });
+
+    expect(k2).not.toHaveBeenCalled();
+  });
+
+  it("does not short-circuit computed optional member access for non-nullish falsy values", async () => {
+    const key = vi.fn(() => "length");
+
+    await expect(
+      interpret(parse("return value?.[key()]"), {
+        bindings: {
+          value: "",
+          key: createSandboxClosure({
+            call: key,
+            name: "key"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 0
+    });
+
+    expect(key).toHaveBeenCalledOnce();
+  });
+
+  it.each([
     ["undefined function", "return fn?.()", { fn: undefined }, undefined],
     [
       "defined function",

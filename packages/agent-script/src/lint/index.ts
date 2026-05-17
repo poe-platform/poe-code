@@ -26,7 +26,8 @@ import { AS_SHADOW_GLOBAL } from "./rules/AS-shadow-global.js";
 import { AS_UNBOUNDED_LOOP } from "./rules/AS-unbounded-loop.js";
 import { AS_UNREACHABLE } from "./rules/AS-unreachable.js";
 import { AS_UNUSED_IMPORT } from "./rules/AS-unused-import.js";
-import type { SourceSpan } from "../parse/parser.js";
+import { collectComments, tokenize, type Comment, type Position } from "../parse/tokenizer.js";
+import { parseModule, type SourceSpan } from "../parse/parser.js";
 import type { Modules } from "./rules/module-registry.js";
 
 export type Diagnostic = {
@@ -80,10 +81,56 @@ const RULES: readonly LintRule[] = [
   AS_EXPORT_IMPORT_META
 ];
 
+const KNOWN_DIAGNOSTIC_CODES = new Set([
+  "AS001",
+  "AS002",
+  "AS003",
+  "AS004",
+  "AS005",
+  "AS006",
+  "AS007",
+  "AS008",
+  "AS009",
+  "AS010",
+  "AS011",
+  "AS012",
+  "AS013",
+  "AS014",
+  "AS015",
+  "AS-ASYNC-NOT-NEEDED",
+  "AS-AWAIT-NON-PROMISE",
+  "AS-DESTRUCTURE-NULL-DEFAULT",
+  "AS-EXPORT-DEFAULT-MULTIPLE",
+  "AS-EXPORT-DEFAULT-NOT-ARROW",
+  "AS-EXPORT-IMPORT-META",
+  "AS-EXPORT-UNKNOWN",
+  "AS-FLOATING-PROMISE",
+  "AS-IMPORT-CYCLE",
+  "AS-IMPORT-META-ASSIGN",
+  "AS-JSDOC-TYPE",
+  "AS-LARGE-LITERAL",
+  "AS-MISSING-ASYNC",
+  "AS-MUTATING-FROZEN",
+  "AS-NEEDLESS-TEMPLATE",
+  "AS-RETURN-AT-TOP",
+  "AS-SHADOW-GLOBAL",
+  "AS-UNBOUNDED-LOOP",
+  "AS-UNKNOWN-DIRECTIVE",
+  "AS-UNREACHABLE",
+  "AS-UNUSED-IMPORT"
+]);
+
+type SuppressionState = {
+  diagnostics: Diagnostic[];
+  fileCodes: ReadonlySet<string>;
+  lineCodes: ReadonlySet<string>;
+};
+
 export function lint(source: string, options: LintOptions = {}): Diagnostic[] {
+  const suppressions = buildSuppressionState(source, options);
   const as001Diagnostics = AS001(source, options);
   if (as001Diagnostics.length > 0 && !hasOnlyRegexLiteralDiagnostics(as001Diagnostics)) {
-    return [...as001Diagnostics].sort(compareDiagnostics);
+    return finalizeDiagnostics(as001Diagnostics, suppressions);
   }
 
   const diagnostics: Diagnostic[] = [...as001Diagnostics];
@@ -97,17 +144,340 @@ export function lint(source: string, options: LintOptions = {}): Diagnostic[] {
       .map((diagnostic) => createSpanKey(diagnostic.span))
   );
 
-  return diagnostics
-    .filter(
+  return finalizeDiagnostics(
+    diagnostics.filter(
       (diagnostic) => diagnostic.code !== "AS007" || !as010Keys.has(createSpanKey(diagnostic.span))
-    )
-    .sort(compareDiagnostics);
+    ),
+    suppressions
+  );
+}
+
+function finalizeDiagnostics(
+  diagnostics: readonly Diagnostic[],
+  suppressions: SuppressionState
+): Diagnostic[] {
+  return [
+    ...diagnostics.filter((diagnostic) => !isSuppressed(diagnostic, suppressions)),
+    ...suppressions.diagnostics
+  ].sort(compareDiagnostics);
+}
+
+function isSuppressed(diagnostic: Diagnostic, suppressions: SuppressionState): boolean {
+  return (
+    suppressions.fileCodes.has(diagnostic.code) ||
+    suppressions.lineCodes.has(createSuppressionKey(diagnostic.line, diagnostic.code))
+  );
+}
+
+function buildSuppressionState(source: string, options: LintOptions): SuppressionState {
+  const comments = collectComments(source);
+  const lineCodes = new Set<string>();
+  const fileCodes = new Set<string>();
+  const diagnostics: Diagnostic[] = [];
+  const statementSpans = collectStatementSpans(source);
+  const lineStarts = createLineStarts(source);
+  const filename = options.filename ?? "<input>";
+
+  for (const comment of comments) {
+    const directive = parseDirective(comment);
+    if (directive === undefined) {
+      continue;
+    }
+
+    const codes = directive.codes.filter(({ code, startOffset, endOffset }) => {
+      if (KNOWN_DIAGNOSTIC_CODES.has(code)) {
+        return true;
+      }
+
+      diagnostics.push(
+        createUnknownDirectiveDiagnostic(filename, source, lineStarts, code, startOffset, endOffset)
+      );
+      return false;
+    });
+
+    if (directive.kind === "file") {
+      if (comment.type !== "block" || !isTopOfFileComment(source, comment)) {
+        continue;
+      }
+
+      for (const { code } of codes) {
+        fileCodes.add(code);
+      }
+      continue;
+    }
+
+    if (directive.kind === "line") {
+      for (const { code } of codes) {
+        lineCodes.add(createSuppressionKey(comment.start.line, code));
+      }
+      continue;
+    }
+
+    const span =
+      findNextStatementSpan(comment, statementSpans) ?? findNextTokenSpan(source, comment);
+    if (span === undefined) {
+      continue;
+    }
+
+    for (const { code } of codes) {
+      for (let line = span.start.line; line <= span.end.line; line += 1) {
+        lineCodes.add(createSuppressionKey(line, code));
+      }
+    }
+  }
+
+  return { diagnostics, fileCodes, lineCodes };
 }
 
 function compareDiagnostics(left: Diagnostic, right: Diagnostic): number {
   return (
     left.line - right.line || left.column - right.column || left.code.localeCompare(right.code)
   );
+}
+
+type ParsedDirective = {
+  kind: "file" | "line" | "next";
+  codes: Array<{
+    code: string;
+    startOffset: number;
+    endOffset: number;
+  }>;
+};
+
+type CommentWord = {
+  value: string;
+  startOffset: number;
+  endOffset: number;
+};
+
+function parseDirective(comment: Comment): ParsedDirective | undefined {
+  const words = splitCommentWords(comment);
+  const markerIndex = words.findIndex((word) => isDirectiveMarker(word.value));
+  if (markerIndex < 0) {
+    return undefined;
+  }
+
+  const marker = words[markerIndex]!;
+  const codes = words
+    .slice(markerIndex + 1)
+    .filter((word) => isDirectiveCode(word.value))
+    .map((word) => ({
+      code: word.value,
+      startOffset: word.startOffset,
+      endOffset: word.endOffset
+    }));
+
+  if (marker.value === "@as-disable-file") {
+    return { kind: "file", codes };
+  }
+
+  if (marker.value === "@as-disable-line") {
+    return { kind: "line", codes };
+  }
+
+  return { kind: "next", codes };
+}
+
+function splitCommentWords(comment: Comment): CommentWord[] {
+  const words: CommentWord[] = [];
+  const contentOffset = comment.start.offset + 2;
+  let index = 0;
+
+  while (index < comment.value.length) {
+    while (index < comment.value.length && isWhitespace(comment.value[index]!)) {
+      index += 1;
+    }
+
+    const start = index;
+    while (index < comment.value.length && !isWhitespace(comment.value[index]!)) {
+      index += 1;
+    }
+
+    if (start < index) {
+      words.push({
+        value: comment.value.slice(start, index),
+        startOffset: contentOffset + start,
+        endOffset: contentOffset + index
+      });
+    }
+  }
+
+  return words;
+}
+
+function isDirectiveMarker(value: string): boolean {
+  return value === "@as-disable" || value === "@as-disable-line" || value === "@as-disable-file";
+}
+
+function isDirectiveCode(value: string): boolean {
+  if (!value.startsWith("AS") || value.length === 2) {
+    return false;
+  }
+
+  for (let index = 2; index < value.length; index += 1) {
+    const char = value[index]!;
+    if (!isUppercaseAsciiLetter(char) && !isDecimalDigit(char) && char !== "-") {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function collectStatementSpans(source: string): SourceSpan[] {
+  try {
+    const module = parseModule(source);
+    const spans: SourceSpan[] = [];
+    for (const statement of module.body) {
+      collectStatementSpan(statement, spans);
+    }
+    return spans.sort((left, right) => left.start.offset - right.start.offset);
+  } catch {
+    return [];
+  }
+}
+
+function collectStatementSpan(
+  statement: { type: string; span: SourceSpan },
+  spans: SourceSpan[]
+): void {
+  spans.push(statement.span);
+
+  switch (statement.type) {
+    case "BlockStatement":
+      for (const child of (statement as { body: Array<{ type: string; span: SourceSpan }> }).body) {
+        collectStatementSpan(child, spans);
+      }
+      return;
+    case "DoWhileStatement":
+    case "ForOfStatement":
+    case "ForStatement":
+    case "WhileStatement":
+      collectStatementSpan((statement as { body: { type: string; span: SourceSpan } }).body, spans);
+      return;
+    case "IfStatement": {
+      const node = statement as {
+        consequent: { type: string; span: SourceSpan };
+        alternate?: { type: string; span: SourceSpan };
+      };
+      collectStatementSpan(node.consequent, spans);
+      if (node.alternate !== undefined) {
+        collectStatementSpan(node.alternate, spans);
+      }
+      return;
+    }
+    case "TryStatement": {
+      const node = statement as {
+        block: { type: string; span: SourceSpan };
+        handler?: { body: { type: string; span: SourceSpan } };
+        finalizer?: { type: string; span: SourceSpan };
+      };
+      collectStatementSpan(node.block, spans);
+      if (node.handler !== undefined) {
+        collectStatementSpan(node.handler.body, spans);
+      }
+      if (node.finalizer !== undefined) {
+        collectStatementSpan(node.finalizer, spans);
+      }
+      return;
+    }
+  }
+}
+
+function findNextStatementSpan(
+  comment: Comment,
+  statementSpans: readonly SourceSpan[]
+): SourceSpan | undefined {
+  return statementSpans.find((span) => span.start.offset >= comment.end.offset);
+}
+
+function findNextTokenSpan(source: string, comment: Comment): SourceSpan | undefined {
+  try {
+    const token = tokenize(source, { allowRegexLiterals: true }).find(
+      (candidate) => candidate.type !== "eof" && candidate.start.offset >= comment.end.offset
+    );
+    if (token === undefined) {
+      return undefined;
+    }
+    return { start: token.start, end: token.end };
+  } catch {
+    return undefined;
+  }
+}
+
+function isTopOfFileComment(source: string, comment: Comment): boolean {
+  for (let index = 0; index < comment.start.offset; index += 1) {
+    if (!isWhitespace(source[index]!)) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function createUnknownDirectiveDiagnostic(
+  filename: string,
+  source: string,
+  lineStarts: readonly number[],
+  code: string,
+  startOffset: number,
+  endOffset: number
+): Diagnostic {
+  const start = positionAt(lineStarts, startOffset);
+  const end = positionAt(lineStarts, endOffset);
+  return {
+    code: "AS-UNKNOWN-DIRECTIVE",
+    severity: "warning",
+    message: `Unknown lint disable rule code '${code}'.`,
+    filename,
+    line: start.line,
+    column: start.column,
+    span: { start, end }
+  };
+}
+
+function createLineStarts(source: string): number[] {
+  const starts = [0];
+  for (let index = 0; index < source.length; index += 1) {
+    const char = source[index]!;
+    if (char === "\n") {
+      starts.push(index + 1);
+    }
+  }
+  return starts;
+}
+
+function positionAt(lineStarts: readonly number[], offset: number): Position {
+  let lineIndex = 0;
+  for (let index = 0; index < lineStarts.length; index += 1) {
+    if (lineStarts[index]! > offset) {
+      break;
+    }
+    lineIndex = index;
+  }
+
+  const lineStart = lineStarts[lineIndex]!;
+  return {
+    line: lineIndex + 1,
+    column: offset - lineStart + 1,
+    offset
+  };
+}
+
+function createSuppressionKey(line: number, code: string): string {
+  return `${line}:${code}`;
+}
+
+function isWhitespace(value: string): boolean {
+  return value === " " || value === "\t" || value === "\n" || value === "\r";
+}
+
+function isUppercaseAsciiLetter(value: string): boolean {
+  return value >= "A" && value <= "Z";
+}
+
+function isDecimalDigit(value: string): boolean {
+  return value >= "0" && value <= "9";
 }
 
 function createSpanKey(span: SourceSpan): string {

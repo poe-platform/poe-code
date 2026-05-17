@@ -21,8 +21,16 @@ export type Token = {
   end: Position;
 };
 
+export type Comment = {
+  type: "block" | "line";
+  value: string;
+  start: Position;
+  end: Position;
+};
+
 export type TokenizeOptions = {
   allowRegexLiterals?: boolean;
+  comments?: Comment[];
 };
 
 const KEYWORDS = new Set([
@@ -123,6 +131,12 @@ export function tokenize(source: string, options: TokenizeOptions = {}): Token[]
   return lexer.tokenize();
 }
 
+export function collectComments(source: string): Comment[] {
+  const comments: Comment[] = [];
+  tokenize(source, { allowRegexLiterals: true, comments });
+  return comments;
+}
+
 type GroupingContext = {
   value: "(" | "[" | "{";
   isControlCondition?: boolean;
@@ -195,11 +209,14 @@ class Lexer {
       }
 
       if (char === "/" && this.peekChar(1) === "/") {
+        const start = this.position();
         this.advance();
         this.advance();
+        const valueStart = this.index;
         while (!this.isAtEnd() && !isLineBreak(this.currentChar())) {
           this.advance();
         }
+        this.recordComment("line", start, valueStart);
         continue;
       }
 
@@ -455,28 +472,48 @@ class Lexer {
   }
 
   private skipLineComment(): void {
+    const start = this.position();
     this.advance();
     this.advance();
+    const valueStart = this.index;
     while (!this.isAtEnd() && !isLineBreak(this.currentChar())) {
       this.advance();
     }
+    this.recordComment("line", start, valueStart);
   }
 
   private skipBlockComment(): void {
     const start = this.position();
     this.advance();
     this.advance();
+    const valueStart = this.index;
 
     while (!this.isAtEnd()) {
       if (this.currentChar() === "*" && this.peekChar(1) === "/") {
+        const valueEnd = this.index;
         this.advance();
         this.advance();
+        this.recordComment("block", start, valueStart, valueEnd);
         return;
       }
       this.advance();
     }
 
     this.syntaxError("Unterminated block comment", start);
+  }
+
+  private recordComment(
+    type: Comment["type"],
+    start: Position,
+    valueStart: number,
+    valueEnd = this.index
+  ): void {
+    this.options.comments?.push({
+      type,
+      value: this.source.slice(valueStart, valueEnd),
+      start,
+      end: this.position()
+    });
   }
 
   private readNumber(start: Position): void {

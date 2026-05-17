@@ -219,4 +219,48 @@ describe("lint", () => {
       }).map((diagnostic) => diagnostic.code)
     ).toContain("AS-JSDOC-TYPE");
   });
+
+  it("suppresses the next statement with @as-disable", () => {
+    const source = ["// @as-disable AS003", "missing;"].join("\n");
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).not.toContain("AS003");
+  });
+
+  it("suppresses same-line diagnostics with @as-disable-line", () => {
+    const source = "missing; // @as-disable-line AS003";
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).not.toContain("AS003");
+  });
+
+  it("does not suppress diagnostics after the next statement", () => {
+    const source = ["// @as-disable AS003", "const ok = 1;", "missing;"].join("\n");
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS003");
+  });
+
+  it("suppresses file diagnostics with top-level @as-disable-file", () => {
+    const source = ["/* @as-disable-file AS003 */", "missing;", "alsoMissing;"].join("\n");
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).not.toContain("AS003");
+  });
+
+  it("reports unknown disable directive rule codes", () => {
+    const source = ["// @as-disable ASXXX", "missing;"].join("\n");
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-UNKNOWN-DIRECTIVE");
+  });
+
+  it("suppresses multiple rule codes from one directive", () => {
+    const source = ["// @as-disable AS003 AS012", "missing.replace('a', () => 'b');"].join("\n");
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).not.toEqual(
+      expect.arrayContaining(["AS003", "AS012"])
+    );
+  });
+
+  it("does not report unused disable directives", () => {
+    const source = ["// @as-disable AS003", "const ok = 1;"].join("\n");
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).not.toContain("AS-UNKNOWN-DIRECTIVE");
+  });
 });

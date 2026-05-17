@@ -10,6 +10,8 @@ describe("AS_AWAIT_NON_PROMISE", () => {
   it.each([
     ["await 1;", "1"],
     ['await "x";', '"x"'],
+    ["await true;", "true"],
+    ["await null;", "null"],
     ["await { a: 1 };", "{ a: 1 }"],
     ["await [1, 2];", "[1, 2]"]
   ])("reports awaiting a known non-promise expression in %s", (source, expression) => {
@@ -65,5 +67,36 @@ describe("AS_AWAIT_NON_PROMISE", () => {
     ].join("\n");
 
     expect(codes(source)).toEqual([]);
+  });
+
+  it.each([
+    ["await `x`;", "`x`"],
+    ["await `x${1}`;", "`x${1}`"],
+    ["await -1;", "-1"],
+    ["await !ready;", "!ready"],
+    ["await (1 + 2);", "(1 + 2)"],
+    ["await (() => 1);", "(() => 1)"]
+  ])("reports awaiting a statically non-promise expression in %s", (source, expression) => {
+    const diagnostics = AS_AWAIT_NON_PROMISE(source, { filename: "rule.js" });
+
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0]).toMatchObject({
+      code: "AS-AWAIT-NON-PROMISE",
+      severity: "warning",
+      line: 1,
+      column: source.indexOf(expression) + 1,
+      span: {
+        start: {
+          line: 1,
+          column: source.indexOf(expression) + 1,
+          offset: source.indexOf(expression)
+        },
+        end: {
+          line: 1,
+          column: source.indexOf(expression) + expression.length + 1,
+          offset: source.indexOf(expression) + expression.length
+        }
+      }
+    });
   });
 });

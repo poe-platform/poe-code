@@ -355,11 +355,16 @@ class ASAwaitNonPromiseScanner {
 
 function isKnownNonPromiseExpression(node: Expression): boolean {
   switch (node.type) {
+    case "ArrowFunctionExpression":
     case "ArrayExpression":
+    case "BinaryExpression":
     case "BooleanLiteral":
+    case "NullLiteral":
     case "NumericLiteral":
     case "ObjectExpression":
     case "StringLiteral":
+    case "TemplateLiteral":
+    case "UnaryExpression":
       return true;
     default:
       return false;

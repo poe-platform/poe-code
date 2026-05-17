@@ -80,6 +80,36 @@ describe("AS_UNUSED_IMPORT", () => {
     expect(AS_UNUSED_IMPORT('import { a } from "x"; return `${a}`;')).toEqual([]);
   });
 
+  it("counts references inside object shorthand and computed members", () => {
+    expect(AS_UNUSED_IMPORT('import { a, key } from "x"; return { a, value: target[key] };')).toEqual([]);
+  });
+
+  it("does not count object property keys as references", () => {
+    const source = 'import { a } from "x"; return { a: 1 };';
+
+    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toMatchObject([
+      {
+        code: "AS-UNUSED-IMPORT",
+        message: "Import 'a' is never referenced.",
+        line: 1,
+        column: 10
+      }
+    ]);
+  });
+
+  it("does not count shadowed nested bindings as import references", () => {
+    const source = 'import { a } from "x"; const fn = (a) => a; return fn;';
+
+    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toMatchObject([
+      {
+        code: "AS-UNUSED-IMPORT",
+        message: "Import 'a' is never referenced.",
+        line: 1,
+        column: 10
+      }
+    ]);
+  });
+
   it("warns for unused default imports", () => {
     const source = 'import value from "x";';
 
@@ -121,6 +151,8 @@ describe("AS_UNUSED_IMPORT", () => {
 
   it("fixes unused specifiers and deletes imports that become empty", () => {
     expect(fixASUnusedImports('import { a, b } from "x"; return a;')).toBe('import { a } from "x"; return a;');
+    expect(fixASUnusedImports('import { a, b, c } from "x"; return b;')).toBe('import { b } from "x"; return b;');
+    expect(fixASUnusedImports('import { a, b, } from "x"; return a;')).toBe('import { a } from "x"; return a;');
     expect(fixASUnusedImports(['import { a } from "x";', "return 1;"].join("\n"))).toBe("return 1;");
     expect(fixASUnusedImports(['import value from "x";', "return 1;"].join("\n"))).toBe("return 1;");
   });

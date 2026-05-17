@@ -105,8 +105,10 @@ export function fixASUnusedImports(source: string, options: { filename?: string 
 
     replacements.push({
       start: declaration.specifiers[0]?.span.start.offset ?? declaration.span.start.offset,
-      end: declaration.specifiers[declaration.specifiers.length - 1]?.span.end.offset ?? declaration.span.end.offset,
-      text: keptSpecifiers.map((specifier) => source.slice(specifier.span.start.offset, specifier.span.end.offset)).join(", ")
+      end: createSpecifierListReplacementEnd(source, declaration),
+      text: keptSpecifiers
+        .map((specifier) => source.slice(specifier.span.start.offset, specifier.span.end.offset))
+        .join(", ")
     });
   }
 
@@ -698,6 +700,33 @@ function createImportLineDeletion(source: string, declaration: ImportDeclaration
     end,
     text: ""
   };
+}
+
+function createSpecifierListReplacementEnd(source: string, declaration: ImportDeclaration): number {
+  const lastSpecifier = declaration.specifiers[declaration.specifiers.length - 1];
+  if (lastSpecifier === undefined) {
+    return declaration.span.end.offset;
+  }
+
+  const end = skipInlineWhitespace(source, lastSpecifier.span.end.offset);
+  if (source[end] !== ",") {
+    return lastSpecifier.span.end.offset;
+  }
+
+  return end + 1;
+}
+
+function skipInlineWhitespace(source: string, offset: number): number {
+  let index = offset;
+  while (
+    source[index] === " " ||
+    source[index] === "\t" ||
+    source[index] === "\r" ||
+    source[index] === "\n"
+  ) {
+    index += 1;
+  }
+  return index;
 }
 
 function applyReplacements(source: string, replacements: readonly Replacement[]): string {

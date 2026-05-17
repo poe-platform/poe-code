@@ -259,6 +259,9 @@ class ASDestructureNullDefaultScanner {
 
   private visitArrowFunction(node: ArrowFunctionExpression): void {
     for (const parameter of node.params) {
+      if (parameter.type === "AssignmentPattern") {
+        this.matchPatternAgainstExpression(parameter.left, parameter.right);
+      }
       this.visitBindingElement(parameter);
     }
     if (node.body.type === "BlockStatement") {
@@ -312,7 +315,7 @@ class ASDestructureNullDefaultScanner {
 
   private visitAssignmentExpression(node: AssignmentExpression): void {
     this.matchPatternAgainstExpression(node.left, node.right);
-    this.visitBindingPattern(node.left);
+    this.visitAssignmentTarget(node.left);
     this.visitExpression(node.right);
   }
 
@@ -405,6 +408,13 @@ class ASDestructureNullDefaultScanner {
       this.visitExpression(node.key);
     }
     this.visitBindingPattern(node.value);
+  }
+
+  private visitAssignmentTarget(node: AssignmentExpression["left"]): void {
+    if (node.type === "MetaProperty") {
+      return;
+    }
+    this.visitBindingPattern(node);
   }
 
   private matchPatternAgainstExpression(

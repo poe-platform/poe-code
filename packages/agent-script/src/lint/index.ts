@@ -18,6 +18,7 @@ import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
 import { AS_FLOATING_PROMISE } from "./rules/AS-floating-promise.js";
 import { AS_IMPORT_CYCLE } from "./rules/AS-import-cycle.js";
 import { AS_JSDOC_TYPE } from "./rules/AS-jsdoc-type.js";
+import { AS_LARGE_LITERAL } from "./rules/AS-large-literal.js";
 import { AS_MISSING_ASYNC } from "./rules/AS-missing-async.js";
 import { AS_MUTATING_FROZEN } from "./rules/AS-mutating-frozen.js";
 import { AS_NEEDLESS_TEMPLATE } from "./rules/AS-needless-template.js";
@@ -43,6 +44,7 @@ export type LintOptions = {
   allowedExportNames?: readonly string[];
   allowedGlobals?: readonly string[];
   filename?: string;
+  largeLiteralThreshold?: number;
   modules?: Modules;
 };
 
@@ -70,6 +72,7 @@ const RULES: readonly LintRule[] = [
   AS_ASYNC_NOT_NEEDED,
   AS_JSDOC_TYPE,
   AS_NEEDLESS_TEMPLATE,
+  AS_LARGE_LITERAL,
   AS_MUTATING_FROZEN,
   AS_DESTRUCTURE_NULL_DEFAULT,
   AS_UNBOUNDED_LOOP,

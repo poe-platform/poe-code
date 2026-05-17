@@ -179,6 +179,14 @@ describe("lint", () => {
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-NEEDLESS-TEMPLATE");
   });
 
+  it("includes AS-LARGE-LITERAL diagnostics", () => {
+    const source = `const value = [${Array.from({ length: 11 }, (_, index) => index).join(", ")}];`;
+
+    expect(
+      lint(source, { largeLiteralThreshold: 10 }).map((diagnostic) => diagnostic.code)
+    ).toContain("AS-LARGE-LITERAL");
+  });
+
   it("includes AS-MUTATING-FROZEN diagnostics", () => {
     const source = "Object.freeze([1]).push(2);";
 

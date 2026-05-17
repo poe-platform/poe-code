@@ -235,7 +235,11 @@ class ASMutatingFrozenScanner {
 
     this.setBinding(
       node.id.name,
-      isImmutableArrayOrigin(node.init, (name) => this.lookup(name))
+      isImmutableArrayOrigin(
+        node.init,
+        (name) => this.lookup(name),
+        (name) => this.isBound(name)
+      )
     );
   }
 
@@ -369,13 +373,23 @@ class ASMutatingFrozenScanner {
     if (node.left.type === "Identifier" && node.operator === "=") {
       this.setBinding(
         node.left.name,
-        isImmutableArrayOrigin(node.right, (name) => this.lookup(name))
+        isImmutableArrayOrigin(
+          node.right,
+          (name) => this.lookup(name),
+          (name) => this.isBound(name)
+        )
       );
     }
   }
 
   private visitCallExpression(node: CallExpression): void {
-    if (isMutatingFrozenCall(node, (name) => this.lookup(name))) {
+    if (
+      isMutatingFrozenCall(
+        node,
+        (name) => this.lookup(name),
+        (name) => this.isBound(name)
+      )
+    ) {
       const methodName = getCalledMethodName(node);
       this.report(node.span, methodName ?? "method");
     }
@@ -488,6 +502,13 @@ class ASMutatingFrozenScanner {
         return this.collectDeclarationBindings(statement.declaration);
       }
 
+      if (statement.type === "ImportDeclaration") {
+        return statement.specifiers.map((specifier): [string, FrozenState] => [
+          specifier.local.name,
+          "unknown"
+        ]);
+      }
+
       return [];
     });
   }
@@ -571,6 +592,10 @@ class ASMutatingFrozenScanner {
     return "unknown";
   }
 
+  private isBound(name: string): boolean {
+    return this.scopes.some((scope) => scope.has(name));
+  }
+
   private setBinding(name: string, state: FrozenState): void {
     for (let index = this.scopes.length - 1; index >= 0; index -= 1) {
       const scope = this.scopes[index];
@@ -596,7 +621,8 @@ class ASMutatingFrozenScanner {
 
 function isMutatingFrozenCall(
   node: CallExpression,
-  lookup: (name: string) => FrozenState
+  lookup: (name: string) => FrozenState,
+  isBound: (name: string) => boolean
 ): boolean {
   const methodName = getCalledMethodName(node);
 
@@ -604,21 +630,26 @@ function isMutatingFrozenCall(
     methodName !== undefined &&
     MUTATING_ARRAY_METHODS.has(methodName) &&
     node.callee.type === "MemberExpression" &&
-    isImmutableArrayOrigin(node.callee.object, lookup) === "frozen"
+    isImmutableArrayOrigin(node.callee.object, lookup, isBound) === "frozen"
   );
 }
 
 function getCalledMethodName(node: CallExpression): string | undefined {
-  if (node.callee.type !== "MemberExpression" || node.callee.computed) {
+  if (node.callee.type !== "MemberExpression") {
     return undefined;
   }
 
-  return node.callee.property.type === "Identifier" ? node.callee.property.name : undefined;
+  if (!node.callee.computed) {
+    return node.callee.property.type === "Identifier" ? node.callee.property.name : undefined;
+  }
+
+  return node.callee.property.type === "StringLiteral" ? node.callee.property.value : undefined;
 }
 
 function isImmutableArrayOrigin(
   node: Expression | undefined,
-  lookup: (name: string) => FrozenState
+  lookup: (name: string) => FrozenState,
+  isBound: (name: string) => boolean
 ): FrozenState {
   if (node === undefined) {
     return "unknown";
@@ -628,10 +659,13 @@ function isImmutableArrayOrigin(
     return lookup(node.name);
   }
 
-  return isImmutableArrayFactoryCall(node) ? "frozen" : "unknown";
+  return isImmutableArrayFactoryCall(node, isBound) ? "frozen" : "unknown";
 }
 
-function isImmutableArrayFactoryCall(node: Expression): boolean {
+function isImmutableArrayFactoryCall(
+  node: Expression,
+  isBound: (name: string) => boolean
+): boolean {
   if (node.type !== "CallExpression" || node.callee.type !== "MemberExpression") {
     return false;
   }
@@ -645,7 +679,7 @@ function isImmutableArrayFactoryCall(node: Expression): boolean {
     node.callee.property.type === "Identifier" ? node.callee.property.name : undefined;
 
   return (
-    (objectName === "Object" && propertyName === "freeze") ||
-    (objectName === "Array" && propertyName === "of")
+    (objectName === "Object" && propertyName === "freeze" && !isBound(objectName)) ||
+    (objectName === "Array" && propertyName === "of" && !isBound(objectName))
   );
 }

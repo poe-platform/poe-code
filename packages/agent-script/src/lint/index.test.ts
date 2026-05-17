@@ -129,6 +129,25 @@ describe("lint", () => {
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-AWAIT-NON-PROMISE");
   });
 
+  it("includes AS-FLOATING-PROMISE diagnostics", () => {
+    const source = ['import { spawn } from "agent";', "spawn();"].join("\n");
+
+    expect(
+      lint(source, {
+        modules: {
+          agent: {
+            exports: {
+              spawn: {
+                async: true,
+                type: "() => Promise<unknown>"
+              }
+            }
+          }
+        }
+      }).map((diagnostic) => diagnostic.code)
+    ).toContain("AS-FLOATING-PROMISE");
+  });
+
   it("includes AS-ASYNC-NOT-NEEDED diagnostics", () => {
     const source = "const run = async () => 1;";
 

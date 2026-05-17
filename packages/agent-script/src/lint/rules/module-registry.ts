@@ -3,15 +3,25 @@ import { parseModule, type ImportDeclaration } from "../../parse/parser.js";
 export type ModuleRegistration =
   | readonly string[]
   | {
-      exports?: readonly string[] | ModuleExportTypes;
+      exports?: readonly string[] | LintModuleExports;
       filename?: string;
       source?: string;
     };
 
 export type Modules = ReadonlyMap<string, ModuleRegistration> | Record<string, ModuleRegistration>;
-export type ModuleExportTypes = ReadonlyMap<string, string> | Record<string, string>;
+export type LintModuleExport =
+  | string
+  | {
+      async?: boolean;
+      type?: string;
+    };
+export type LintModuleExports =
+  | ReadonlyMap<string, LintModuleExport>
+  | Record<string, LintModuleExport>;
+export type ModuleExportTypes = LintModuleExports;
 
 export type NormalizedModuleRegistration = {
+  asyncExports: ReadonlySet<string>;
   exports: string[];
   exportTypes: ReadonlyMap<string, string>;
   filename?: string;
@@ -111,6 +121,7 @@ function normalizeModuleRegistration(
 ): NormalizedModuleRegistration {
   if (isExportList(registration)) {
     return {
+      asyncExports: new Set(),
       exports: dedupeAndSort(registration),
       exportTypes: new Map()
     };
@@ -119,6 +130,7 @@ function normalizeModuleRegistration(
   const exports = registration.exports ?? [];
 
   return {
+    asyncExports: isExportList(exports) ? new Set() : normalizeAsyncExports(exports),
     exports: dedupeAndSort(isExportList(exports) ? exports : listTypedExports(exports)),
     exportTypes: isExportList(exports) ? new Map() : normalizeExportTypes(exports),
     filename: registration.filename,
@@ -134,16 +146,37 @@ function dedupeAndSort(exportedNames: readonly string[]): string[] {
   return [...new Set(exportedNames)].sort((left, right) => left.localeCompare(right));
 }
 
-function listTypedExports(exports: ModuleExportTypes): string[] {
+function listTypedExports(exports: LintModuleExports): string[] {
   return exports instanceof Map ? [...exports.keys()] : Object.keys(exports);
 }
 
-function normalizeExportTypes(exports: ModuleExportTypes): ReadonlyMap<string, string> {
+function normalizeExportTypes(exports: LintModuleExports): ReadonlyMap<string, string> {
   const entries = exports instanceof Map ? [...exports.entries()] : Object.entries(exports);
 
   return new Map(
     entries
-      .filter(([exportName]) => exportName.length > 0)
+      .flatMap(([exportName, metadata]) => {
+        if (exportName.length === 0) {
+          return [];
+        }
+
+        const type = typeof metadata === "string" ? metadata : metadata.type;
+        return type === undefined ? [] : [[exportName, type] as const];
+      })
       .sort(([left], [right]) => left.localeCompare(right))
+  );
+}
+
+function normalizeAsyncExports(exports: LintModuleExports): ReadonlySet<string> {
+  const entries = exports instanceof Map ? [...exports.entries()] : Object.entries(exports);
+
+  return new Set(
+    entries
+      .filter(
+        ([exportName, metadata]) =>
+          exportName.length > 0 && typeof metadata !== "string" && metadata.async === true
+      )
+      .map(([exportName]) => exportName)
+      .sort((left, right) => left.localeCompare(right))
   );
 }

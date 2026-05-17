@@ -15,6 +15,7 @@ import { AS015 } from "./rules/AS015.js";
 import { AS_ASYNC_NOT_NEEDED } from "./rules/AS-async-not-needed.js";
 import { AS_AWAIT_NON_PROMISE } from "./rules/AS-await-non-promise.js";
 import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
+import { AS_FLOATING_PROMISE } from "./rules/AS-floating-promise.js";
 import { AS_JSDOC_TYPE } from "./rules/AS-jsdoc-type.js";
 import { AS_MISSING_ASYNC } from "./rules/AS-missing-async.js";
 import { AS_NEEDLESS_TEMPLATE } from "./rules/AS-needless-template.js";
@@ -62,6 +63,7 @@ const RULES: readonly LintRule[] = [
   AS014,
   AS015,
   AS_AWAIT_NON_PROMISE,
+  AS_FLOATING_PROMISE,
   AS_ASYNC_NOT_NEEDED,
   AS_JSDOC_TYPE,
   AS_NEEDLESS_TEMPLATE,

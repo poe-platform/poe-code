@@ -250,6 +250,12 @@ describe("lint", () => {
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-UNKNOWN-DIRECTIVE");
   });
 
+  it("reports code-like disable directive typos", () => {
+    const source = ["// @as-disable ASxxx", "missing;"].join("\n");
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-UNKNOWN-DIRECTIVE");
+  });
+
   it("suppresses multiple rule codes from one directive", () => {
     const source = ["// @as-disable AS003 AS012", "missing.replace('a', () => 'b');"].join("\n");
 
@@ -262,5 +268,11 @@ describe("lint", () => {
     const source = ["// @as-disable AS003", "const ok = 1;"].join("\n");
 
     expect(lint(source).map((diagnostic) => diagnostic.code)).not.toContain("AS-UNKNOWN-DIRECTIVE");
+  });
+
+  it("ignores non-file disable directives in block comments", () => {
+    const source = ["/* @as-disable AS003 */", "missing;"].join("\n");
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS003");
   });
 });

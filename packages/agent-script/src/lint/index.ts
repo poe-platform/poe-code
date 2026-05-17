@@ -260,7 +260,7 @@ function parseDirective(comment: Comment): ParsedDirective | undefined {
   const marker = words[markerIndex]!;
   const codes = words
     .slice(markerIndex + 1)
-    .filter((word) => isDirectiveCode(word.value))
+    .filter((word) => isDirectiveCodeLike(word.value))
     .map((word) => ({
       code: word.value,
       startOffset: word.startOffset,
@@ -268,7 +268,14 @@ function parseDirective(comment: Comment): ParsedDirective | undefined {
     }));
 
   if (marker.value === "@as-disable-file") {
+    if (comment.type !== "block") {
+      return undefined;
+    }
     return { kind: "file", codes };
+  }
+
+  if (comment.type !== "line") {
+    return undefined;
   }
 
   if (marker.value === "@as-disable-line") {
@@ -309,14 +316,14 @@ function isDirectiveMarker(value: string): boolean {
   return value === "@as-disable" || value === "@as-disable-line" || value === "@as-disable-file";
 }
 
-function isDirectiveCode(value: string): boolean {
-  if (!value.startsWith("AS") || value.length === 2) {
+function isDirectiveCodeLike(value: string): boolean {
+  if (value.length <= 2 || value.slice(0, 2).toUpperCase() !== "AS") {
     return false;
   }
 
   for (let index = 2; index < value.length; index += 1) {
     const char = value[index]!;
-    if (!isUppercaseAsciiLetter(char) && !isDecimalDigit(char) && char !== "-") {
+    if (!isAsciiLetter(char) && !isDecimalDigit(char) && char !== "-") {
       return false;
     }
   }
@@ -472,8 +479,8 @@ function isWhitespace(value: string): boolean {
   return value === " " || value === "\t" || value === "\n" || value === "\r";
 }
 
-function isUppercaseAsciiLetter(value: string): boolean {
-  return value >= "A" && value <= "Z";
+function isAsciiLetter(value: string): boolean {
+  return (value >= "A" && value <= "Z") || (value >= "a" && value <= "z");
 }
 
 function isDecimalDigit(value: string): boolean {

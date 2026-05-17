@@ -81,19 +81,19 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
-  let result = await evaluateNode(node.block, context);
+  const tryResult = await evaluateNode(node.block, context);
+  const tryOrCatchResult =
+    tryResult.kind === "throw" && node.handler !== undefined
+      ? await evaluateCatchClause(node.handler, tryResult.value, context, evaluateNode)
+      : tryResult;
 
-  if (result.kind === "throw" && node.handler !== undefined) {
-    result = await evaluateCatchClause(node.handler, result.value, context, evaluateNode);
-  }
-
-  if (node.finalizer === undefined || result.kind === "error") {
-    return result;
+  if (node.finalizer === undefined || tryOrCatchResult.kind === "error") {
+    return tryOrCatchResult;
   }
 
   const finalizerResult = await evaluateNode(node.finalizer, context);
   if (finalizerResult.kind === "normal") {
-    return result;
+    return tryOrCatchResult;
   }
 
   return finalizerResult;

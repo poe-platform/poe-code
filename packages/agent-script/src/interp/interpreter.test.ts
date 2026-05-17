@@ -1387,31 +1387,22 @@ describe("interpret", () => {
     });
   });
 
-  it("runs finally before returning from try blocks", async () => {
-    const cleanup = vi.fn();
-
+  it("runs finally after normal try completion without replacing the following return value", async () => {
     await expect(
-      interpret(parse("try { return answer; } finally { cleanup(); }"), {
-        bindings: {
-          answer: 42,
-          cleanup: createSandboxClosure({
-            call: () => {
-              cleanup();
-              return undefined;
-            },
-            name: "cleanup"
-          })
-        }
-      })
+      interpret(
+        block(
+          parse("const events = []"),
+          parse("try { events.push('try'); } finally { events.push('finally'); }"),
+          parse("return events")
+        )
+      )
     ).resolves.toMatchObject({
       ok: true,
-      returnValue: 42
+      returnValue: ["try", "finally"]
     });
-
-    expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
-  it("runs finally before propagating throws and lets finally override prior exits", async () => {
+  it("runs finally when try throws and rethrows the original error", async () => {
     const cleanup = vi.fn();
 
     await expect(
@@ -1429,117 +1420,82 @@ describe("interpret", () => {
     ).rejects.toBe("boom");
 
     expect(cleanup).toHaveBeenCalledTimes(1);
-
-    await expect(interpret(parse("try { return 1; } finally { throw 'override'; }"))).rejects.toBe(
-      "override"
-    );
   });
 
-  it("runs finally on break and continue completions", async () => {
+  it("runs finally when try returns and preserves the try return value", async () => {
     const cleanup = vi.fn();
-    const cleanupClosure = createSandboxClosure({
-      call: () => {
-        cleanup();
-        return undefined;
-      },
-      name: "cleanup"
-    });
-
-    const breakProgram = {
-      type: "TryStatement",
-      block: {
-        type: "BlockStatement",
-        body: [
-          {
-            type: "BreakStatement",
-            span: span(1, 7, 12)
-          }
-        ],
-        span: span(1, 1, 14)
-      },
-      handler: undefined,
-      finalizer: {
-        type: "BlockStatement",
-        body: [
-          {
-            type: "ExpressionStatement",
-            expression: {
-              type: "CallExpression",
-              callee: {
-                type: "Identifier",
-                name: "cleanup",
-                span: span(1, 25, 32)
-              },
-              arguments: [],
-              optional: false,
-              span: span(1, 25, 34)
-            },
-            span: span(1, 25, 35)
-          }
-        ],
-        span: span(1, 23, 37)
-      },
-      span: span(1, 1, 37)
-    } satisfies ParseResult;
-
-    const continueProgram = {
-      type: "TryStatement",
-      block: {
-        type: "BlockStatement",
-        body: [
-          {
-            type: "ContinueStatement",
-            span: span(1, 7, 15)
-          }
-        ],
-        span: span(1, 1, 17)
-      },
-      handler: undefined,
-      finalizer: {
-        type: "BlockStatement",
-        body: [
-          {
-            type: "ExpressionStatement",
-            expression: {
-              type: "CallExpression",
-              callee: {
-                type: "Identifier",
-                name: "cleanup",
-                span: span(1, 28, 35)
-              },
-              arguments: [],
-              optional: false,
-              span: span(1, 28, 37)
-            },
-            span: span(1, 28, 38)
-          }
-        ],
-        span: span(1, 26, 40)
-      },
-      span: span(1, 1, 40)
-    } satisfies ParseResult;
 
     await expect(
-      interpret(breakProgram, {
+      interpret(parse("try { return 'value'; } finally { cleanup(); }"), {
         bindings: {
-          cleanup: cleanupClosure
+          cleanup: createSandboxClosure({
+            call: () => {
+              cleanup();
+              return undefined;
+            },
+            name: "cleanup"
+          })
         }
       })
     ).resolves.toMatchObject({
-      ok: true
+      ok: true,
+      returnValue: "value"
     });
 
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("lets a return from finally override a return from try", async () => {
     await expect(
-      interpret(continueProgram, {
-        bindings: {
-          cleanup: cleanupClosure
-        }
-      })
+      interpret(parse("try { return 'try'; } finally { return 'finally'; }"))
     ).resolves.toMatchObject({
-      ok: true
+      ok: true,
+      returnValue: "finally"
     });
+  });
 
-    expect(cleanup).toHaveBeenCalledTimes(2);
+  it("lets a throw from finally override a throw from try", async () => {
+    await expect(
+      interpret(parse("try { throw 'try'; } finally { throw 'finally'; }"))
+    ).rejects.toBe("finally");
+  });
+
+  it("runs finally before propagating break from try inside for...of", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const events = []"),
+          parse(
+            "for (const value of [1, 2, 3]) { try { events.push(value); break; } finally { events.push('finally'); } }"
+          ),
+          parse("return events")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, "finally"]
+    });
+  });
+
+  it("runs finally before propagating continue from try inside for...of", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const events = []"),
+          parse(
+            "for (const value of [1, 2, 3]) { try { events.push(value); continue; } finally { events.push('finally'); } events.push('skipped'); }"
+          ),
+          parse("return events")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, "finally", 2, "finally", 3, "finally"]
+    });
+  });
+
+  it("rejects try without catch or finally while parsing", () => {
+    expect(() => parse("try { work(); }")).toThrowError("Expected 'catch' or 'finally'");
   });
 
   it("evaluates for...of over sandbox arrays", async () => {

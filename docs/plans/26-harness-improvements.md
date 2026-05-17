@@ -699,7 +699,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-fix-flag
     title: --fix flag wired through lint API and CLI
@@ -736,8 +736,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): --fix flag`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: spawn-retry

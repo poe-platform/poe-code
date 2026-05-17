@@ -399,8 +399,8 @@ describe("createJwksTokenVerifier", () => {
       .setAudience("https://resource.example.com/mcp")
       .setSubject("demo-client")
       .setIssuedAt(now)
-      .setNotBefore(now + 31)
-      .setExpirationTime(now + 120)
+      .setNotBefore(now + 90)
+      .setExpirationTime(now + 180)
       .sign(privateKey);
 
     await expect(

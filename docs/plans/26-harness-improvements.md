@@ -992,7 +992,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: snapshot-replay-equivalence
     title: Replay-equivalence test harness
@@ -1024,8 +1024,8 @@ tasks:
 
       Conventional commit: `test(agent-harness): replay-equivalence assertion`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: otel-interface

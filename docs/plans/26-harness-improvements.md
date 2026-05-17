@@ -612,7 +612,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-large-literal
     title: AS-LARGE-LITERAL lint rule
@@ -633,8 +633,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-LARGE-LITERAL lint rule`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-disabled-rule-comment

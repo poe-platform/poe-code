@@ -3,7 +3,12 @@ const sandboxPromiseBrand = Symbol("SandboxPromise");
 
 export type SandboxPrimitive = string | number | boolean | null | undefined;
 
-export type SandboxValue = SandboxPrimitive | SandboxObject | SandboxArray | SandboxClosure | SandboxPromise;
+export type SandboxValue =
+  | SandboxPrimitive
+  | SandboxObject
+  | SandboxArray
+  | SandboxClosure
+  | SandboxPromise;
 
 export type SandboxObject = {
   [key: string]: SandboxValue;
@@ -19,7 +24,11 @@ export type SandboxClosure = {
   readonly async?: true;
   readonly kind: "fn";
   readonly name?: string;
-  readonly call: (args: readonly SandboxValue[], context?: SandboxCallContext) => SandboxValue | Promise<SandboxValue>;
+  readonly properties?: SandboxObject;
+  readonly call: (
+    args: readonly SandboxValue[],
+    context?: SandboxCallContext
+  ) => SandboxValue | Promise<SandboxValue>;
   readonly [sandboxClosureBrand]: true;
 };
 
@@ -39,8 +48,12 @@ type CopyState<TValue> = {
 
 export function createSandboxClosure(input: {
   async?: boolean;
-  call: (args: readonly SandboxValue[], context?: SandboxCallContext) => SandboxValue | Promise<SandboxValue>;
+  call: (
+    args: readonly SandboxValue[],
+    context?: SandboxCallContext
+  ) => SandboxValue | Promise<SandboxValue>;
   name?: string;
+  properties?: SandboxObject;
 }): SandboxClosure {
   const closure = {
     kind: "fn" as const,
@@ -53,6 +66,13 @@ export function createSandboxClosure(input: {
     enumerable: false,
     value: true
   });
+
+  if (input.properties !== undefined) {
+    Object.defineProperty(closure, "properties", {
+      enumerable: false,
+      value: Object.freeze(input.properties)
+    });
+  }
 
   return Object.freeze(closure);
 }
@@ -90,7 +110,10 @@ export function deepCopyFromSandbox(
   options?: CopyFromSandboxOptions
 ): Promise<unknown>;
 export function deepCopyFromSandbox(value: SandboxValue, options?: CopyFromSandboxOptions): unknown;
-export function deepCopyFromSandbox(value: SandboxValue, options: CopyFromSandboxOptions = {}): unknown {
+export function deepCopyFromSandbox(
+  value: SandboxValue,
+  options: CopyFromSandboxOptions = {}
+): unknown {
   return copyFromSandbox(
     value,
     {
@@ -101,7 +124,11 @@ export function deepCopyFromSandbox(value: SandboxValue, options: CopyFromSandbo
   );
 }
 
-function copyToSandbox(value: unknown, state: CopyState<SandboxValue>, path = "<root>"): SandboxValue {
+function copyToSandbox(
+  value: unknown,
+  state: CopyState<SandboxValue>,
+  path = "<root>"
+): SandboxValue {
   if (isSandboxPrimitive(value)) {
     return value;
   }
@@ -145,7 +172,11 @@ function copyToSandbox(value: unknown, state: CopyState<SandboxValue>, path = "<
     state.seen.set(value, copy);
 
     for (const entry of getEnumerableObjectEntries(value, path)) {
-      defineOwnDataProperty(copy, entry.key, copyToSandbox(entry.value, state, joinPath(path, entry.key)));
+      defineOwnDataProperty(
+        copy,
+        entry.key,
+        copyToSandbox(entry.value, state, joinPath(path, entry.key))
+      );
     }
 
     return copy;
@@ -166,7 +197,9 @@ function copyFromSandbox(
 
   if (isSandboxClosure(value)) {
     if (options.wrapClosure === undefined) {
-      throw new TypeError("Sandbox closures cannot cross into host values without an explicit wrapper.");
+      throw new TypeError(
+        "Sandbox closures cannot cross into host values without an explicit wrapper."
+      );
     }
 
     const existing = state.seen.get(value);
@@ -209,7 +242,10 @@ function copyFromSandbox(
       return existing;
     }
 
-    const copy = createPlainObject(Object.getPrototypeOf(value) === null) as Record<string, unknown>;
+    const copy = createPlainObject(Object.getPrototypeOf(value) === null) as Record<
+      string,
+      unknown
+    >;
     state.seen.set(value, copy);
 
     for (const entry of getEnumerableObjectEntries(value, path)) {
@@ -227,7 +263,13 @@ function copyFromSandbox(
 }
 
 function isSandboxPrimitive(value: unknown): value is SandboxPrimitive {
-  return value === null || value === undefined || typeof value === "string" || typeof value === "number" || typeof value === "boolean";
+  return (
+    value === null ||
+    value === undefined ||
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  );
 }
 
 function isHostPromise(value: unknown): value is Promise<unknown> {
@@ -285,7 +327,10 @@ function getEnumerableObjectEntries<TValue>(
   return entries;
 }
 
-function getEnumerableArrayEntries<TValue>(value: TValue[], path: string): Array<{ index: number; value: TValue }> {
+function getEnumerableArrayEntries<TValue>(
+  value: TValue[],
+  path: string
+): Array<{ index: number; value: TValue }> {
   const descriptors = Object.getOwnPropertyDescriptors(value);
   const entries: Array<{ index: number; value: TValue }> = [];
 
@@ -295,7 +340,9 @@ function getEnumerableArrayEntries<TValue>(value: TValue[], path: string): Array
     }
 
     if (!isArrayIndexKey(key)) {
-      throw new TypeError(`Unsupported sandbox value at ${path}: non-index array property '${key}'`);
+      throw new TypeError(
+        `Unsupported sandbox value at ${path}: non-index array property '${key}'`
+      );
     }
 
     if ("get" in descriptor || "set" in descriptor) {

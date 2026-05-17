@@ -4,7 +4,15 @@ export type Position = {
   offset: number;
 };
 
-export type TokenType = "identifier" | "keyword" | "numeric" | "regex" | "string" | "template" | "punctuator" | "eof";
+export type TokenType =
+  | "identifier"
+  | "keyword"
+  | "numeric"
+  | "regex"
+  | "string"
+  | "template"
+  | "punctuator"
+  | "eof";
 
 export type Token = {
   type: TokenType;
@@ -41,6 +49,7 @@ const KEYWORDS = new Set([
   "false",
   "null",
   "undefined",
+  "typeof",
   "in",
   "of"
 ]);
@@ -148,7 +157,7 @@ class Lexer {
         continue;
       }
 
-      if (char === "'" || char === "\"") {
+      if (char === "'" || char === '"') {
         this.readString(start, char);
         continue;
       }
@@ -285,7 +294,7 @@ class Lexer {
     while (!this.isAtEnd() && depth > 0) {
       const char = this.currentChar();
 
-      if (char === "'" || char === "\"") {
+      if (char === "'" || char === '"') {
         this.skipQuotedString(char);
         tokens.push({ type: "string", value: char });
         lastClosedControlParenthesis = false;
@@ -353,7 +362,11 @@ class Lexer {
         continue;
       }
 
-      if (char === "/" && this.peekChar(1) !== "=" && shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedControlParenthesis)) {
+      if (
+        char === "/" &&
+        this.peekChar(1) !== "=" &&
+        shouldRejectRegexLiteral(tokens[tokens.length - 1], lastClosedControlParenthesis)
+      ) {
         if (!this.options.allowRegexLiterals) {
           this.syntaxError("Regular expression literals are not supported", this.position());
         }
@@ -642,7 +655,11 @@ class Lexer {
   }
 
   private readSlashOrPunctuator(start: Position): void {
-    if (this.currentChar() === "/" && this.peekChar(1) !== "=" && shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedControlParenthesis)) {
+    if (
+      this.currentChar() === "/" &&
+      this.peekChar(1) !== "=" &&
+      shouldRejectRegexLiteral(this.lastSignificantToken(), this.lastClosedControlParenthesis)
+    ) {
       if (!this.options.allowRegexLiterals) {
         this.syntaxError("Regular expression literals are not supported", start);
       }
@@ -833,7 +850,7 @@ function isExpressionEndingPunctuator(value: string): boolean {
 }
 
 function matchPunctuator(source: string, index: number): string | undefined {
-  return PUNCTUATORS.find(punctuator => source.startsWith(punctuator, index));
+  return PUNCTUATORS.find((punctuator) => source.startsWith(punctuator, index));
 }
 
 function shouldRejectRegexLiteral(
@@ -872,7 +889,8 @@ function updateGroupingState(
   if (punctuator === "(") {
     groupingStack.push({
       value: "(",
-      isControlCondition: previousToken?.type === "keyword" && CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value)
+      isControlCondition:
+        previousToken?.type === "keyword" && CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value)
     });
     return false;
   }

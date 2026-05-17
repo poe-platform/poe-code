@@ -33,7 +33,8 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         name: "entries"
       }),
       fromEntries: createSandboxClosure({
-        call: ([value]) => budgetSandboxValue(Reflect.apply(Object.fromEntries, Object, [value]), options.budget),
+        call: ([value]) =>
+          budgetSandboxValue(Reflect.apply(Object.fromEntries, Object, [value]), options.budget),
         name: "fromEntries"
       }),
       freeze: createSandboxClosure({
@@ -61,7 +62,8 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         name: "from"
       }),
       of: createSandboxClosure({
-        call: (args) => budgetSandboxValue(Reflect.apply(Array.of, Array, [...args]), options.budget),
+        call: (args) =>
+          budgetSandboxValue(Reflect.apply(Array.of, Array, [...args]), options.budget),
         name: "of"
       })
     },
@@ -71,7 +73,21 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
     }),
     Number: createSandboxClosure({
       call: ([value]) => Number(value),
-      name: "Number"
+      name: "Number",
+      properties: {
+        isFinite: createSandboxClosure({
+          call: ([value]) => typeof value === "number" && Number.isFinite(value),
+          name: "isFinite"
+        }),
+        isNaN: createSandboxClosure({
+          call: ([value]) => typeof value === "number" && Number.isNaN(value),
+          name: "isNaN"
+        }),
+        isInteger: createSandboxClosure({
+          call: ([value]) => typeof value === "number" && Number.isInteger(value),
+          name: "isInteger"
+        })
+      }
     }),
     Boolean: createSandboxClosure({
       call: ([value]) => Boolean(value),
@@ -104,11 +120,21 @@ function assignSandboxValues(target: SandboxValue, sources: readonly SandboxValu
 
 function isAssignableSandboxTarget(
   value: SandboxValue
-): value is SandboxObject & Record<string, SandboxValue> | SandboxValue[] & Record<string, SandboxValue> {
-  return typeof value === "object" && value !== null && !isSandboxClosure(value) && !isSandboxPromise(value);
+): value is
+  | (SandboxObject & Record<string, SandboxValue>)
+  | (SandboxValue[] & Record<string, SandboxValue>) {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !isSandboxClosure(value) &&
+    !isSandboxPromise(value)
+  );
 }
 
-async function arrayFromSandboxValues(args: readonly SandboxValue[], budget: Budget): Promise<SandboxValue> {
+async function arrayFromSandboxValues(
+  args: readonly SandboxValue[],
+  budget: Budget
+): Promise<SandboxValue> {
   const [items, mapFn] = args;
 
   if (mapFn === undefined || !isSandboxClosure(mapFn)) {
@@ -174,7 +200,12 @@ function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet
     return;
   }
 
-  if (typeof value !== "object" || value === null || isSandboxClosure(value) || isSandboxPromise(value)) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    isSandboxClosure(value) ||
+    isSandboxPromise(value)
+  ) {
     return;
   }
 

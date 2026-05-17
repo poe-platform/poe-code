@@ -7,6 +7,7 @@ describe("AS003", () => {
     expect(AS003('String("x");')).toEqual([]);
     expect(AS003("Math.PI;")).toEqual([]);
     expect(AS003("JSON.stringify({});")).toEqual([]);
+    expect(AS003("Number.isFinite(1); Number.isNaN(0 / 0); Number.isInteger(1);")).toEqual([]);
   });
 
   it("suggests nearby runtime globals for unresolved identifiers", () => {
@@ -193,11 +194,9 @@ describe("AS003", () => {
   });
 
   it("checks computed member expressions against the current scope chain", () => {
-    const source = [
-      "const key = 'id';",
-      "const record = { id: 1 };",
-      "() => record[keyy];"
-    ].join("\n");
+    const source = ["const key = 'id';", "const record = { id: 1 };", "() => record[keyy];"].join(
+      "\n"
+    );
 
     expect(AS003(source)).toEqual([
       {

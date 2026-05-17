@@ -82,6 +82,7 @@ import {
   isSandboxClosure,
   isSandboxPromise,
   type SandboxArray,
+  type SandboxClosure,
   type SandboxObject,
   type SandboxValue
 } from "./values.js";
@@ -1258,7 +1259,7 @@ async function evaluateUnaryExpression(
     return argument;
   }
 
-  if (node.operator !== "!" && typeof argument.value !== "number") {
+  if (node.operator !== "!" && node.operator !== "typeof" && typeof argument.value !== "number") {
     throw new TypeError(`Unary operator '${node.operator}' requires a numeric operand.`);
   }
 
@@ -1322,6 +1323,14 @@ async function evaluateMemberExpression(
         value: arrayMember
       };
     }
+  }
+
+  if (isSandboxClosure(member.object)) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getClosureMemberValue(member.object, member.property)
+    };
   }
 
   if (!isIndexableSandboxValue(member.object)) {
@@ -1538,6 +1547,14 @@ async function evaluateMemberCallExpression(
     );
   }
 
+  if (isSandboxClosure(member.object)) {
+    return evaluateResolvedCallExpression(
+      node,
+      getClosureMemberValue(member.object, member.property),
+      context
+    );
+  }
+
   if (!isIndexableSandboxValue(member.object)) {
     throw new TypeError("Attempted to read a property from a non-object value.");
   }
@@ -1624,6 +1641,8 @@ function applyUnaryOperator(
   switch (operator) {
     case "!":
       return !value;
+    case "typeof":
+      return describeTypeofValue(value);
     case "+":
       return +(value as number);
     case "-":
@@ -1631,6 +1650,18 @@ function applyUnaryOperator(
     case "~":
       return ~(value as number);
   }
+}
+
+function describeTypeofValue(value: InterpreterValue): string {
+  if (isSandboxClosure(value)) {
+    return "function";
+  }
+
+  if (value === null || typeof value === "object") {
+    return "object";
+  }
+
+  return typeof value;
 }
 
 function isTruthy(value: InterpreterValue): boolean {
@@ -1786,6 +1817,10 @@ function getMemberValue(
   }
 
   return target[String(property)];
+}
+
+function getClosureMemberValue(target: SandboxClosure, property: string | number): SandboxValue {
+  return target.properties?.[String(property)];
 }
 
 async function evaluateResolvedCallExpression(

@@ -696,6 +696,16 @@ describe("parse", () => {
       }
     });
 
+    expect(parse("typeof value")).toMatchObject({
+      type: "UnaryExpression",
+      operator: "typeof",
+      prefix: true,
+      argument: {
+        type: "Identifier",
+        name: "value"
+      }
+    });
+
     expect(parse("value in fallback || ready")).toMatchObject({
       type: "LogicalExpression",
       operator: "||",
@@ -1223,7 +1233,9 @@ describe("parse", () => {
 
   it("parses statement edge cases users will hit in scripts", () => {
     expect(
-      parse("() => { if (ready) return; else return value; for (;;) { break; } for ({ item } of items) continue; }")
+      parse(
+        "() => { if (ready) return; else return value; for (;;) { break; } for ({ item } of items) continue; }"
+      )
     ).toMatchObject({
       type: "ArrowFunctionExpression",
       expression: false,
@@ -1315,7 +1327,9 @@ describe("parse", () => {
       }
     });
 
-    expect(parse("() => { outer: inner: for (;;) { break outer; continue inner; } }")).toMatchObject({
+    expect(
+      parse("() => { outer: inner: for (;;) { break outer; continue inner; } }")
+    ).toMatchObject({
       type: "ArrowFunctionExpression",
       body: {
         type: "BlockStatement",
@@ -1990,7 +2004,9 @@ describe("parse", () => {
       }
     });
 
-    expect(parse('import { default as fallback, from as source, x as y, z, } from "name"')).toMatchObject({
+    expect(
+      parse('import { default as fallback, from as source, x as y, z, } from "name"')
+    ).toMatchObject({
       type: "ImportDeclaration",
       specifiers: [
         {
@@ -2134,9 +2150,7 @@ describe("parse", () => {
     expect(() => parse('import { x as from } from "name"')).toThrowError(
       "Unexpected token 'from' at line 1, column 15."
     );
-    expect(() => parse('import * from "name"')).toThrowError(
-      "Expected 'as' at line 1, column 10."
-    );
+    expect(() => parse('import * from "name"')).toThrowError("Expected 'as' at line 1, column 10.");
     expect(() => parse('import x, { y } from "name"')).toThrowError(
       "Expected 'from' at line 1, column 9."
     );
@@ -2295,14 +2309,10 @@ describe("parse", () => {
     );
 
     expect(() => parse("this.value")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("this.value")).toThrowError(
-      "Disallowed syntax 'this' at line 1, column 1."
-    );
+    expect(() => parse("this.value")).toThrowError("Disallowed syntax 'this' at line 1, column 1.");
 
     expect(() => parse("`${this}`")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("`${this}`")).toThrowError(
-      "Disallowed syntax 'this' at line 1, column 4."
-    );
+    expect(() => parse("`${this}`")).toThrowError("Disallowed syntax 'this' at line 1, column 4.");
 
     expect(() => parse("`${new Service()}`")).toThrowError(DisallowedSyntaxError);
     expect(() => parse("`${new Service()}`")).toThrowError(
@@ -2348,7 +2358,9 @@ describe("parse", () => {
       "Disallowed syntax 'switch' at line 1, column 9."
     );
 
-    expect(() => parse("() => { for (item in items) work(item); }")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("() => { for (item in items) work(item); }")).toThrowError(
+      DisallowedSyntaxError
+    );
     expect(() => parse("() => { for (item in items) work(item); }")).toThrowError(
       "Disallowed syntax 'for...in' at line 1, column 19."
     );
@@ -2363,23 +2375,26 @@ describe("parse", () => {
       "Disallowed syntax 'var' at line 1, column 1."
     );
 
-    expect(() => parse("() => { for (var value = 1; ready; value = value + 1) work(value); }")).toThrowError(
+    expect(() =>
+      parse("() => { for (var value = 1; ready; value = value + 1) work(value); }")
+    ).toThrowError(DisallowedSyntaxError);
+    expect(() =>
+      parse("() => { for (var value = 1; ready; value = value + 1) work(value); }")
+    ).toThrowError("Disallowed syntax 'var' at line 1, column 14.");
+
+    expect(() => parse("() => { for (var item of items) work(item); }")).toThrowError(
       DisallowedSyntaxError
     );
-    expect(() => parse("() => { for (var value = 1; ready; value = value + 1) work(value); }")).toThrowError(
-      "Disallowed syntax 'var' at line 1, column 14."
-    );
-
-    expect(() => parse("() => { for (var item of items) work(item); }")).toThrowError(DisallowedSyntaxError);
     expect(() => parse("() => { for (var item of items) work(item); }")).toThrowError(
       "Disallowed syntax 'var' at line 1, column 14."
     );
-
   });
 
   it("rejects invalid try/catch/finally forms and invalid throw statements", () => {
     expect(() => parse("try { work(); }")).toThrowError("Expected 'catch' or 'finally'");
-    expect(() => parse("try { work(); } catch () { cleanup(); }")).toThrowError("Unexpected token ')'");
+    expect(() => parse("try { work(); } catch () { cleanup(); }")).toThrowError(
+      "Unexpected token ')'"
+    );
     expect(() => parse("try { work(); } catch (error = fallback) { cleanup(); }")).toThrowError(
       "Expected ')'"
     );
@@ -2389,7 +2404,12 @@ describe("parse", () => {
 
   it("rethrows generic parser failures as structured parse diagnostics", () => {
     try {
-      parse(["() => {", "  const alpha = 1;", "  const beta = );", "  const delta = 4;", "}"].join("\n"), "flow.agent.ts");
+      parse(
+        ["() => {", "  const alpha = 1;", "  const beta = );", "  const delta = 4;", "}"].join(
+          "\n"
+        ),
+        "flow.agent.ts"
+      );
       throw new Error("Expected parse to fail.");
     } catch (error) {
       expect(error).toMatchObject({
@@ -2398,7 +2418,12 @@ describe("parse", () => {
         line: 3,
         column: 16,
         message: "Unexpected token ')' at line 3, column 16.",
-        excerpt: ["1 | () => {", "2 |   const alpha = 1;", "3 |   const beta = );", "4 |   const delta = 4;"].join("\n"),
+        excerpt: [
+          "1 | () => {",
+          "2 |   const alpha = 1;",
+          "3 |   const beta = );",
+          "4 |   const delta = 4;"
+        ].join("\n"),
         caret: "  |                ^"
       });
     }

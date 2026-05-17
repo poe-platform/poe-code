@@ -121,14 +121,11 @@ describe("run", () => {
 
   it("rejects unhandled fail module throws with a HarnessFailure subset error", async () => {
     await expect(
-      run(
-        ['import fail from "fail";', 'fail("stop now");'].join("\n"),
-        {
-          modules: {
-            fail: makeFailModule()
-          }
+      run(['import fail from "fail";', 'fail("stop now");'].join("\n"), {
+        modules: {
+          fail: makeFailModule()
         }
-      )
+      })
     ).rejects.toEqual(
       expect.objectContaining({
         name: "HarnessFailure",
@@ -139,14 +136,11 @@ describe("run", () => {
 
   it("preserves fail module message whitespace through unhandled runner failures", async () => {
     await expect(
-      run(
-        ['import fail from "fail";', 'fail("  stop now  ");'].join("\n"),
-        {
-          modules: {
-            fail: makeFailModule()
-          }
+      run(['import fail from "fail";', 'fail("  stop now  ");'].join("\n"), {
+        modules: {
+          fail: makeFailModule()
         }
-      )
+      })
     ).rejects.toEqual(
       expect.objectContaining({
         name: "HarnessFailure",
@@ -157,14 +151,7 @@ describe("run", () => {
 
   it("accepts Map-based registries and module export maps at runtime", async () => {
     const result = await run('import { answer } from "numbers"; return answer;', {
-      modules: new Map([
-        [
-          "numbers",
-          new Map([
-            ["answer", 42]
-          ])
-        ]
-      ])
+      modules: new Map([["numbers", new Map([["answer", 42]])]])
     });
 
     expect(result).toMatchObject({
@@ -174,9 +161,9 @@ describe("run", () => {
   });
 
   it("throws the lint-style unknown module error when a module import is missing at runtime", async () => {
-    await expect(run('import { request } from "htp"; return request();', { modules: {} })).rejects.toThrow(
-      "Unknown module 'htp'. No modules are registered."
-    );
+    await expect(
+      run('import { request } from "htp"; return request();', { modules: {} })
+    ).rejects.toThrow("Unknown module 'htp'. No modules are registered.");
   });
 
   it("throws the lint-style unknown export error when an imported export is missing at runtime", async () => {
@@ -476,6 +463,19 @@ describe("run", () => {
       Array.of(1, 2, 3),
       String(123),
       Number('42.5'),
+      Number.isFinite(1),
+      Number.isFinite(1 / 0),
+      Number.isFinite(0 / 0),
+      Number.isFinite('1'),
+      Number.isNaN(0 / 0),
+      Number.isNaN(1),
+      Number.isNaN('NaN'),
+      Number.isInteger(1),
+      Number.isInteger(1.5),
+      Number.isInteger('1'),
+      typeof Number.isFinite,
+      typeof Number.isNaN,
+      typeof Number.isInteger,
       Boolean(0)
     ))`);
 
@@ -505,6 +505,19 @@ describe("run", () => {
       [1, 2, 3],
       "123",
       42.5,
+      true,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      false,
+      false,
+      "function",
+      "function",
+      "function",
       false
     ]);
   });
@@ -892,14 +905,11 @@ try {
       await callback(1),
       await callback(2)
     ]);
-    const result = await run(
-      "return await inspect(async (value) => value)",
-      {
-        bindings: {
-          inspect: host
-        }
+    const result = await run("return await inspect(async (value) => value)", {
+      bindings: {
+        inspect: host
       }
-    );
+    });
 
     expect(result).toMatchObject({
       ok: true,

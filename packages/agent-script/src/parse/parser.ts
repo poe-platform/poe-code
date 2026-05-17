@@ -127,7 +127,15 @@ export type AssignmentProperty = BaseNode & {
 
 export type ArrayPattern = BaseNode & {
   type: "ArrayPattern";
-  elements: Array<AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement | null>;
+  elements: Array<
+    | AssignmentPattern
+    | ArrayPattern
+    | Identifier
+    | MemberExpression
+    | ObjectPattern
+    | RestElement
+    | null
+  >;
 };
 
 export type ObjectPattern = BaseNode & {
@@ -145,7 +153,7 @@ export type ObjectExpression = BaseNode & {
   properties: Array<Property | SpreadElement>;
 };
 
-export type UnaryOperator = "!" | "+" | "-" | "~";
+export type UnaryOperator = "!" | "+" | "-" | "~" | "typeof";
 
 export type UnaryExpression = BaseNode & {
   type: "UnaryExpression";
@@ -707,7 +715,11 @@ class Parser {
   private parseStatement(): Statement {
     const token = this.currentToken();
 
-    if (token.type === "identifier" && this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":") {
+    if (
+      token.type === "identifier" &&
+      this.peekToken(1).type === "punctuator" &&
+      this.peekToken(1).value === ":"
+    ) {
       this.index += 2;
       return this.parseLabeledStatement([token.value], token);
     }
@@ -746,8 +758,8 @@ class Parser {
       this.index += 1;
       const hasArgument = !(
         hasLineBreakBetween(token, this.currentToken()) ||
-        this.currentToken().type === "punctuator" &&
-        (this.currentToken().value === ";" || this.currentToken().value === "}") ||
+        (this.currentToken().type === "punctuator" &&
+          (this.currentToken().value === ";" || this.currentToken().value === "}")) ||
         this.currentToken().type === "eof"
       );
       const argument = hasArgument ? this.parseExpression().node : undefined;
@@ -762,7 +774,9 @@ class Parser {
     if (token.type === "keyword" && token.value === "throw") {
       this.index += 1;
       if (hasLineBreakBetween(token, this.currentToken())) {
-        throw new Error(`Illegal newline after throw at line ${token.start.line}, column ${token.start.column}.`);
+        throw new Error(
+          `Illegal newline after throw at line ${token.start.line}, column ${token.start.column}.`
+        );
       }
       if (
         this.currentToken().type === "punctuator" &&
@@ -816,7 +830,11 @@ class Parser {
   private parseLabeledStatement(labels: string[], firstLabelToken: Token): Statement {
     const token = this.currentToken();
 
-    if (token.type === "identifier" && this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":") {
+    if (
+      token.type === "identifier" &&
+      this.peekToken(1).type === "punctuator" &&
+      this.peekToken(1).value === ":"
+    ) {
       this.index += 2;
       return this.parseLabeledStatement([...labels, token.value], firstLabelToken);
     }
@@ -908,7 +926,9 @@ class Parser {
     }
 
     const update =
-      this.currentToken().type === "punctuator" && this.currentToken().value === ")" ? undefined : this.parseExpression().node;
+      this.currentToken().type === "punctuator" && this.currentToken().value === ")"
+        ? undefined
+        : this.parseExpression().node;
 
     this.expectPunctuator(")");
     const body = this.parseStatement();
@@ -936,7 +956,10 @@ class Parser {
 
   private parseForOfDeclaration(): VariableDeclaration {
     const kindToken = this.currentToken();
-    if (kindToken.type !== "keyword" || (kindToken.value !== "const" && kindToken.value !== "let")) {
+    if (
+      kindToken.type !== "keyword" ||
+      (kindToken.value !== "const" && kindToken.value !== "let")
+    ) {
       throw unexpectedTokenError(kindToken);
     }
 
@@ -1143,7 +1166,10 @@ class Parser {
     this.index += 1;
 
     if (this.currentToken().value === "function" || this.currentToken().value === "class") {
-      throw new DisallowedSyntaxError(`export default ${this.currentToken().value}`, this.currentToken().start);
+      throw new DisallowedSyntaxError(
+        `export default ${this.currentToken().value}`,
+        this.currentToken().start
+      );
     }
 
     const declaration = this.parseExpression().node;
@@ -1520,7 +1546,10 @@ class Parser {
       return undefined;
     }
 
-    const left = token.value === "[" ? this.parseAssignmentArrayPattern() : this.parseAssignmentObjectPattern();
+    const left =
+      token.value === "["
+        ? this.parseAssignmentArrayPattern()
+        : this.parseAssignmentObjectPattern();
     this.expectPunctuator("=");
     const right = this.parseAssignmentExpression().node;
     return {
@@ -1579,7 +1608,10 @@ class Parser {
       return expression;
     }
 
-    if (expression.type === "MetaProperty" || (expression.type === "MemberExpression" && !expression.optional)) {
+    if (
+      expression.type === "MetaProperty" ||
+      (expression.type === "MemberExpression" && !expression.optional)
+    ) {
       return expression;
     }
 
@@ -1735,7 +1767,8 @@ class Parser {
         };
       }
 
-      let value: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern = key;
+      let value: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern =
+        key;
       if (this.consumePunctuator("=") !== undefined) {
         const right = this.parseAssignmentExpression().node;
         value = {
@@ -1812,24 +1845,15 @@ class Parser {
   }
 
   private parseLogicalOrExpression(): ParsedExpression {
-    return this.parseLogicalExpression(
-      () => this.parseLogicalAndExpression(),
-      "||"
-    );
+    return this.parseLogicalExpression(() => this.parseLogicalAndExpression(), "||");
   }
 
   private parseLogicalAndExpression(): ParsedExpression {
-    return this.parseLogicalExpression(
-      () => this.parseBitwiseOrExpression(),
-      "&&"
-    );
+    return this.parseLogicalExpression(() => this.parseBitwiseOrExpression(), "&&");
   }
 
   private parseBitwiseOrExpression(): ParsedExpression {
-    return this.parseBinaryExpression(
-      () => this.parseBitwiseXorExpression(),
-      BITWISE_OR_OPERATORS
-    );
+    return this.parseBinaryExpression(() => this.parseBitwiseXorExpression(), BITWISE_OR_OPERATORS);
   }
 
   private parseBitwiseXorExpression(): ParsedExpression {
@@ -1840,31 +1864,19 @@ class Parser {
   }
 
   private parseBitwiseAndExpression(): ParsedExpression {
-    return this.parseBinaryExpression(
-      () => this.parseEqualityExpression(),
-      BITWISE_AND_OPERATORS
-    );
+    return this.parseBinaryExpression(() => this.parseEqualityExpression(), BITWISE_AND_OPERATORS);
   }
 
   private parseEqualityExpression(): ParsedExpression {
-    return this.parseBinaryExpression(
-      () => this.parseRelationalExpression(),
-      EQUALITY_OPERATORS
-    );
+    return this.parseBinaryExpression(() => this.parseRelationalExpression(), EQUALITY_OPERATORS);
   }
 
   private parseRelationalExpression(): ParsedExpression {
-    return this.parseBinaryExpression(
-      () => this.parseShiftExpression(),
-      RELATIONAL_OPERATORS
-    );
+    return this.parseBinaryExpression(() => this.parseShiftExpression(), RELATIONAL_OPERATORS);
   }
 
   private parseShiftExpression(): ParsedExpression {
-    return this.parseBinaryExpression(
-      () => this.parseAdditiveExpression(),
-      SHIFT_OPERATORS
-    );
+    return this.parseBinaryExpression(() => this.parseAdditiveExpression(), SHIFT_OPERATORS);
   }
 
   private parseAdditiveExpression(): ParsedExpression {
@@ -1916,6 +1928,21 @@ class Parser {
       return {
         node: {
           type: "AwaitExpression",
+          argument: argument.node,
+          span: createSpan(token.start, argument.node.span.end)
+        },
+        parenthesized: false
+      };
+    }
+
+    if (token.type === "keyword" && token.value === "typeof") {
+      this.index += 1;
+      const argument = this.parseUnaryExpression();
+      return {
+        node: {
+          type: "UnaryExpression",
+          operator: token.value,
+          prefix: true,
           argument: argument.node,
           span: createSpan(token.start, argument.node.span.end)
         },
@@ -2437,14 +2464,20 @@ class Parser {
   private arrayExpressionToPattern(node: ArrayExpression): ArrayPattern {
     return {
       type: "ArrayPattern",
-      elements: node.elements.map(element => this.toArrayPatternElement(element)),
+      elements: node.elements.map((element) => this.toArrayPatternElement(element)),
       span: node.span
     };
   }
 
   private toArrayPatternElement(
     element: Expression | SpreadElement
-  ): AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement {
+  ):
+    | AssignmentPattern
+    | ArrayPattern
+    | Identifier
+    | MemberExpression
+    | ObjectPattern
+    | RestElement {
     if (element.type === "SpreadElement") {
       const argument = this.toPatternTarget(this.toAssignmentTarget(element.argument));
       return {
@@ -2469,12 +2502,14 @@ class Parser {
   private objectExpressionToPattern(node: ObjectExpression): ObjectPattern {
     return {
       type: "ObjectPattern",
-      properties: node.properties.map(property => this.toObjectPatternProperty(property)),
+      properties: node.properties.map((property) => this.toObjectPatternProperty(property)),
       span: node.span
     };
   }
 
-  private toObjectPatternProperty(property: Property | SpreadElement): AssignmentProperty | RestElement {
+  private toObjectPatternProperty(
+    property: Property | SpreadElement
+  ): AssignmentProperty | RestElement {
     if (property.type === "SpreadElement") {
       if (property.argument.type !== "Identifier") {
         throw new Error(
@@ -2527,7 +2562,10 @@ class Parser {
 
   private isPatternAssignmentStart(startIndex: number): boolean {
     const startToken = this.tokens[startIndex];
-    if (startToken?.type !== "punctuator" || (startToken.value !== "[" && startToken.value !== "{")) {
+    if (
+      startToken?.type !== "punctuator" ||
+      (startToken.value !== "[" && startToken.value !== "{")
+    ) {
       return false;
     }
 
@@ -2550,7 +2588,9 @@ class Parser {
         }
 
         if (stack.length === 0) {
-          return this.tokens[index + 1]?.type === "punctuator" && this.tokens[index + 1]?.value === "=";
+          return (
+            this.tokens[index + 1]?.type === "punctuator" && this.tokens[index + 1]?.value === "="
+          );
         }
       }
     }
@@ -2732,7 +2772,11 @@ class Parser {
       throw new DisallowedSyntaxError("var", token.start);
     }
 
-    if (token.type === "identifier" && this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":") {
+    if (
+      token.type === "identifier" &&
+      this.peekToken(1).type === "punctuator" &&
+      this.peekToken(1).value === ":"
+    ) {
       throw new DisallowedSyntaxError("label", token.start);
     }
   }
@@ -2772,7 +2816,9 @@ class Parser {
   private expectPunctuator(value: string): Token {
     const token = this.currentToken();
     if (token.type !== "punctuator" || token.value !== value) {
-      throw new Error(`Expected '${value}' at line ${token.start.line}, column ${token.start.column}.`);
+      throw new Error(
+        `Expected '${value}' at line ${token.start.line}, column ${token.start.column}.`
+      );
     }
     this.index += 1;
     return token;
@@ -2790,7 +2836,9 @@ class Parser {
   private expectKeyword(value: string): Token {
     const token = this.currentToken();
     if (token.type !== "keyword" || token.value !== value) {
-      throw new Error(`Expected '${value}' at line ${token.start.line}, column ${token.start.column}.`);
+      throw new Error(
+        `Expected '${value}' at line ${token.start.line}, column ${token.start.column}.`
+      );
     }
     this.index += 1;
     return token;
@@ -2840,7 +2888,6 @@ class Parser {
 
     return target;
   }
-
 }
 
 function createIdentifier(token: Token): Identifier {
@@ -2859,7 +2906,10 @@ function createIdentifierName(token: Token): Identifier {
   };
 }
 
-function createLoopLabelFields(labels: string[] | undefined): { label?: string; labels?: string[] } {
+function createLoopLabelFields(labels: string[] | undefined): {
+  label?: string;
+  labels?: string[];
+} {
   if (labels === undefined || labels.length === 0) {
     return {};
   }
@@ -2883,7 +2933,9 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
       if (node.left.type !== "VariableDeclaration" && isImportMetaAssignmentTarget(node.left)) {
         return node.left.span;
       }
-      return findImportMetaAssignmentInNode(node.right) ?? findImportMetaAssignmentInNode(node.body);
+      return (
+        findImportMetaAssignmentInNode(node.right) ?? findImportMetaAssignmentInNode(node.body)
+      );
     case "BlockStatement":
       return findImportMetaAssignmentInList(node.body);
     case "ExpressionStatement":
@@ -2908,7 +2960,9 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
     case "TryStatement":
       return (
         findImportMetaAssignmentInNode(node.block) ??
-        (node.handler === undefined ? undefined : findImportMetaAssignmentInNode(node.handler.body)) ??
+        (node.handler === undefined
+          ? undefined
+          : findImportMetaAssignmentInNode(node.handler.body)) ??
         (node.finalizer === undefined ? undefined : findImportMetaAssignmentInNode(node.finalizer))
       );
     case "VariableDeclaration":
@@ -2922,11 +2976,15 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
       }
       return undefined;
     case "ReturnStatement":
-      return node.argument === undefined ? undefined : findImportMetaAssignmentInNode(node.argument);
+      return node.argument === undefined
+        ? undefined
+        : findImportMetaAssignmentInNode(node.argument);
     case "ThrowStatement":
       return findImportMetaAssignmentInNode(node.argument);
     case "ArrowFunctionExpression":
-      return node.body.type === "BlockStatement" ? findImportMetaAssignmentInNode(node.body) : findImportMetaAssignmentInNode(node.body);
+      return node.body.type === "BlockStatement"
+        ? findImportMetaAssignmentInNode(node.body)
+        : findImportMetaAssignmentInNode(node.body);
     case "AwaitExpression":
       return findImportMetaAssignmentInNode(node.argument);
     case "ArrayExpression":
@@ -2946,7 +3004,9 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
       return findImportMetaAssignmentInNode(node.argument);
     case "BinaryExpression":
     case "LogicalExpression":
-      return findImportMetaAssignmentInNode(node.left) ?? findImportMetaAssignmentInNode(node.right);
+      return (
+        findImportMetaAssignmentInNode(node.left) ?? findImportMetaAssignmentInNode(node.right)
+      );
     case "ConditionalExpression":
       return (
         findImportMetaAssignmentInNode(node.test) ??
@@ -2959,7 +3019,10 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
         (node.computed ? findImportMetaAssignmentInNode(node.property) : undefined)
       );
     case "CallExpression":
-      return findImportMetaAssignmentInNode(node.callee) ?? findImportMetaAssignmentInList(node.arguments);
+      return (
+        findImportMetaAssignmentInNode(node.callee) ??
+        findImportMetaAssignmentInList(node.arguments)
+      );
     case "TaggedTemplateExpression":
       return findImportMetaAssignmentInNode(node.tag) ?? findImportMetaAssignmentInNode(node.quasi);
     case "TemplateLiteral":
@@ -2981,18 +3044,26 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
   }
 }
 
-function findImportMetaAssignmentInOptionalForInit(node: Expression | VariableDeclaration | undefined): SourceSpan | undefined {
+function findImportMetaAssignmentInOptionalForInit(
+  node: Expression | VariableDeclaration | undefined
+): SourceSpan | undefined {
   return node === undefined ? undefined : findImportMetaAssignmentInNode(node);
 }
 
-function findImportMetaAssignmentInOptionalExpression(node: Expression | undefined): SourceSpan | undefined {
+function findImportMetaAssignmentInOptionalExpression(
+  node: Expression | undefined
+): SourceSpan | undefined {
   return node === undefined ? undefined : findImportMetaAssignmentInNode(node);
 }
 
-function findImportMetaAssignmentInList(nodes: ReadonlyArray<Expression | SpreadElement | Statement>): SourceSpan | undefined {
+function findImportMetaAssignmentInList(
+  nodes: ReadonlyArray<Expression | SpreadElement | Statement>
+): SourceSpan | undefined {
   for (const node of nodes) {
     const result =
-      node.type === "SpreadElement" ? findImportMetaAssignmentInNode(node.argument) : findImportMetaAssignmentInNode(node);
+      node.type === "SpreadElement"
+        ? findImportMetaAssignmentInNode(node.argument)
+        : findImportMetaAssignmentInNode(node);
     if (result !== undefined) {
       return result;
     }
@@ -3001,7 +3072,9 @@ function findImportMetaAssignmentInList(nodes: ReadonlyArray<Expression | Spread
   return undefined;
 }
 
-function isImportMetaAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): boolean {
+function isImportMetaAssignmentTarget(
+  node: AssignmentExpression["left"] | AssignmentPattern | RestElement
+): boolean {
   switch (node.type) {
     case "MetaProperty":
       return true;
@@ -3012,7 +3085,9 @@ function isImportMetaAssignmentTarget(node: AssignmentExpression["left"] | Assig
     case "RestElement":
       return isImportMetaAssignmentTarget(node.argument);
     case "ArrayPattern":
-      return node.elements.some((element) => element !== null && isImportMetaAssignmentTarget(element));
+      return node.elements.some(
+        (element) => element !== null && isImportMetaAssignmentTarget(element)
+      );
     case "ObjectPattern":
       return node.properties.some((property) =>
         isImportMetaAssignmentTarget(property.type === "RestElement" ? property : property.value)
@@ -3199,7 +3274,13 @@ function hasProtocolPrefix(value: string): boolean {
     if (char === undefined) {
       return false;
     }
-    if (isAsciiLetter(char) || isDecimalDigit(char) || char === "+" || char === "-" || char === ".") {
+    if (
+      isAsciiLetter(char) ||
+      isDecimalDigit(char) ||
+      char === "+" ||
+      char === "-" ||
+      char === "."
+    ) {
       continue;
     }
     return false;
@@ -3247,7 +3328,7 @@ function findTemplateExpressionEnd(raw: string, start: number): number {
   while (index < raw.length - 1) {
     const char = raw[index];
 
-    if (char === "'" || char === "\"") {
+    if (char === "'" || char === '"') {
       index = skipQuotedString(raw, index, char);
       continue;
     }
@@ -3403,7 +3484,7 @@ function decodeEscapedText(value: string): string {
 }
 
 function parseEmbeddedExpression(source: string, base: Position): Expression {
-  const tokens = tokenize(source, { allowRegexLiterals: true }).map(token => ({
+  const tokens = tokenize(source, { allowRegexLiterals: true }).map((token) => ({
     ...token,
     start: rebasePosition(token.start, base),
     end: rebasePosition(token.end, base)
@@ -3518,7 +3599,10 @@ function isLiteralPropertyKey(token: Token): boolean {
 
   return (
     token.type === "keyword" &&
-    (token.value === "true" || token.value === "false" || token.value === "null" || token.value === "undefined")
+    (token.value === "true" ||
+      token.value === "false" ||
+      token.value === "null" ||
+      token.value === "undefined")
   );
 }
 
@@ -3545,14 +3629,20 @@ function hasLineBreakBetween(left: Token, right: Token): boolean {
 
 function unexpectedTokenError(token: Token): Error {
   if (token.type === "eof") {
-    return new Error(`Unexpected end of input at line ${token.start.line}, column ${token.start.column}.`);
+    return new Error(
+      `Unexpected end of input at line ${token.start.line}, column ${token.start.column}.`
+    );
   }
 
-  return new Error(`Unexpected token '${token.value}' at line ${token.start.line}, column ${token.start.column}.`);
+  return new Error(
+    `Unexpected token '${token.value}' at line ${token.start.line}, column ${token.start.column}.`
+  );
 }
 
 function invalidAssignmentTargetError(position: Position): Error {
-  return new Error(`Invalid assignment target at line ${position.line}, column ${position.column}.`);
+  return new Error(
+    `Invalid assignment target at line ${position.line}, column ${position.column}.`
+  );
 }
 
 function matchingOpeningPunctuator(value: ")" | "]" | "}"): "(" | "[" | "{" {

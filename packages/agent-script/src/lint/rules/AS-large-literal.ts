@@ -182,6 +182,9 @@ class ASLargeLiteralScanner {
   }
 
   private visitCatchClause(node: CatchClause): void {
+    if (node.param !== undefined) {
+      this.visitBindingPattern(node.param);
+    }
     this.visitBlockStatement(node.body);
   }
 

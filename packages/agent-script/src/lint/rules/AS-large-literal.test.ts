@@ -71,4 +71,10 @@ describe("AS_LARGE_LITERAL", () => {
   it("does not count spread elements toward the static element count", () => {
     expect(codes(`const value = [${"1, ".repeat(1000)}...extra];`)).toEqual([]);
   });
+
+  it("reports array literals in catch parameter defaults", () => {
+    expect(codes(`try {} catch ({ items = ${arrayLiteral(1001)} }) {}`)).toEqual([
+      "AS-LARGE-LITERAL"
+    ]);
+  });
 });

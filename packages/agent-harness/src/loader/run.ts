@@ -4,6 +4,7 @@ import { dirname, join } from "node:path";
 
 import { lockWorkflow, resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import { lint, parseModule, run, splitFrontmatter, type Diagnostic } from "@poe-code/agent-script";
+import type { AnySchema } from "toolcraft-schema";
 
 import { makeSchemaModule } from "../modules/schema.js";
 import { extractSchema } from "./extract-schema.js";
@@ -81,6 +82,7 @@ export async function runHarnessPair(
         allowedExportNames: ["schema"],
         allowedGlobals: options.allowedGlobals,
         filename: pair.ajsPath,
+        frontmatterFields: readSchemaTopLevelFields(schema),
         modules: createLintModules(modules)
       }),
       ...missingDefaultExportDiagnostics(ajsSource, pair.ajsPath)
@@ -156,6 +158,14 @@ function missingDefaultExportDiagnostics(source: string, filename: string): Diag
       span: module.span
     }
   ];
+}
+
+function readSchemaTopLevelFields(schema: AnySchema | undefined): string[] | undefined {
+  if (schema?.kind !== "object") {
+    return undefined;
+  }
+
+  return Object.keys(schema.shape);
 }
 
 function withSchemaModule(modules: ModuleRegistry): ModuleRegistry {

@@ -16,6 +16,7 @@ import { AS_AWAIT_NON_PROMISE } from "./rules/AS-await-non-promise.js";
 import { AS_DESTRUCTURE_NULL_DEFAULT } from "./rules/AS-destructure-null-default.js";
 import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
 import { AS_FLOATING_PROMISE } from "./rules/AS-floating-promise.js";
+import { AS_FRONTMATTER_FIELD_UNUSED } from "./rules/AS-frontmatter-field-unused.js";
 import { AS_IMPORT_CYCLE } from "./rules/AS-import-cycle.js";
 import { AS_JSDOC_TYPE } from "./rules/AS-jsdoc-type.js";
 import { AS_LARGE_LITERAL } from "./rules/AS-large-literal.js";
@@ -46,6 +47,7 @@ export type LintOptions = {
   allowedGlobals?: readonly string[];
   filename?: string;
   largeLiteralThreshold?: number;
+  frontmatterFields?: readonly string[];
   modules?: Modules;
 };
 
@@ -75,6 +77,7 @@ const RULES: readonly LintRule[] = [
   AS_NEEDLESS_TEMPLATE,
   AS_LARGE_LITERAL,
   AS_MUTATING_FROZEN,
+  AS_FRONTMATTER_FIELD_UNUSED,
   AS_DESTRUCTURE_NULL_DEFAULT,
   AS_UNBOUNDED_LOOP,
   AS_UNREACHABLE,
@@ -105,6 +108,7 @@ const KNOWN_DIAGNOSTIC_CODES = new Set([
   "AS-EXPORT-IMPORT-META",
   "AS-EXPORT-UNKNOWN",
   "AS-FLOATING-PROMISE",
+  "AS-FRONTMATTER-FIELD-UNUSED",
   "AS-IMPORT-CYCLE",
   "AS-IMPORT-META-ASSIGN",
   "AS-JSDOC-TYPE",

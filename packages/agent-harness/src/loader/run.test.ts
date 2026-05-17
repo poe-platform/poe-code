@@ -458,6 +458,176 @@ describe("runHarnessPair", () => {
     });
   });
 
+  it("restores snapshotted clock state so replay keeps the same time.now sequence", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000);
+
+    const mdPath = "/repo/harness/clock.md";
+    const snapshotPath = "/snapshots/clock.json";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: clock\nversion: 1\n---\n",
+      "/repo/harness/clock.ajs": [
+        'import * as time from "time";',
+        'import { wait } from "host";',
+        "export default async () => {",
+        "  const first = time.now();",
+        "  await wait('first');",
+        "  const second = time.now();",
+        "  await wait('second');",
+        "  const third = time.now();",
+        "  return String(first).concat('|').concat(String(second)).concat('|').concat(String(third));",
+        "};"
+      ].join("\n")
+    });
+
+    const first = createDeferred<string>();
+    const second = createDeferred<string>();
+    const controller = new AbortController();
+    const firstCalls: string[] = [];
+    const firstRun = runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        host: {
+          async wait(name: string) {
+            firstCalls.push(name);
+            return name === "first" ? first.promise : second.promise;
+          }
+        }
+      }),
+      signal: controller.signal,
+      snapshotPath
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(firstCalls).toEqual(["first"]);
+
+    await vi.advanceTimersByTimeAsync(30_000);
+    first.resolve("alpha");
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(firstCalls).toEqual(["first", "second"]);
+    expect(JSON.parse(vol.readFileSync(snapshotPath, "utf8") as string)).toMatchObject({
+      clock: {
+        next: 1_001
+      }
+    });
+
+    controller.abort();
+    second.reject(new Error("aborted"));
+    await expect(firstRun).rejects.toMatchObject({
+      name: "SandboxError"
+    });
+
+    vi.setSystemTime(9_999);
+    const secondCalls: string[] = [];
+    const resumed = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        host: {
+          async wait(name: string) {
+            secondCalls.push(name);
+            return "beta";
+          }
+        }
+      }),
+      snapshotPath
+    });
+
+    expect(secondCalls).toEqual(["second"]);
+    expect(resumed).toMatchObject({
+      ok: true,
+      returnValue: "1000|1001|1002"
+    });
+  });
+
+  it("keeps seeded time.uuid and time.now stable across snapshot replay", async () => {
+    vi.useFakeTimers();
+
+    const mdPath = "/repo/harness/stable-id.md";
+    const snapshotPath = "/snapshots/stable-id.json";
+    const script = [
+      'import * as time from "time";',
+      'import { wait } from "host";',
+      "export default async () => {",
+      "  const first = time.uuid().concat('@').concat(String(time.now()));",
+      "  await wait('first');",
+      "  const second = time.uuid().concat('@').concat(String(time.now()));",
+      "  await wait('second');",
+      "  const third = time.uuid().concat('@').concat(String(time.now()));",
+      "  return first.concat('|').concat(second).concat('|').concat(third);",
+      "};"
+    ].join("\n");
+    vol.fromJSON({
+      [mdPath]: "---\nkind: stable-id\nversion: 1\n---\n",
+      "/repo/harness/stable-id.ajs": script
+    });
+
+    const first = createDeferred<string>();
+    const second = createDeferred<string>();
+    const controller = new AbortController();
+    const firstRun = runHarnessPair(mdPath, {
+      clock: {
+        now: () => 5_000
+      },
+      modulesFor: () => ({
+        host: {
+          async wait(name: string) {
+            return name === "first" ? first.promise : second.promise;
+          }
+        }
+      }),
+      randomSeed: 123,
+      signal: controller.signal,
+      snapshotPath
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(30_000);
+    first.resolve("alpha");
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(0);
+
+    controller.abort();
+    second.reject(new Error("aborted"));
+    await expect(firstRun).rejects.toMatchObject({
+      name: "SandboxError"
+    });
+
+    const resumed = await runHarnessPair(mdPath, {
+      clock: {
+        now: () => 99_999
+      },
+      modulesFor: () => ({
+        host: {
+          async wait() {
+            return "beta";
+          }
+        }
+      }),
+      randomSeed: 123,
+      snapshotPath
+    });
+
+    const fresh = await runHarnessPair(mdPath, {
+      clock: {
+        now: () => 5_000
+      },
+      modulesFor: () => ({
+        host: {
+          async wait() {
+            return "done";
+          }
+        }
+      }),
+      randomSeed: 123,
+      snapshotPath: "/snapshots/stable-id-fresh.json"
+    });
+
+    expect(resumed).toMatchObject({
+      ok: true,
+      returnValue: fresh.ok ? fresh.returnValue : undefined
+    });
+  });
+
   it("does not replay stale host calls after a successful run with the same snapshotPath", async () => {
     const mdPath = "/repo/harness/fresh.md";
     const snapshotPath = "/snapshots/fresh.json";

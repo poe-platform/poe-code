@@ -2,6 +2,7 @@ export { parse } from "./parse.js";
 export { parseModule } from "./parse/parser.js";
 export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
 export { run } from "./run.js";
+export type { RunClock, RunClockSnapshot, RunRandom } from "./run.js";
 export { dump } from "./dump.js";
 export { restore } from "./restore.js";
 export { Budget, SandboxError } from "./interp/budget.js";

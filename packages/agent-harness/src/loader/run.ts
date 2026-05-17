@@ -3,7 +3,17 @@ import os from "node:os";
 import { dirname, join } from "node:path";
 
 import { lockWorkflow, resolveRunLogDir } from "@poe-code/agent-harness-tools";
-import { lint, parseModule, run, splitFrontmatter, type Diagnostic } from "@poe-code/agent-script";
+import {
+  lint,
+  makeTimeModule,
+  parseModule,
+  run,
+  splitFrontmatter,
+  type Diagnostic,
+  type RunClock,
+  type RunClockSnapshot,
+  type RunRandom
+} from "@poe-code/agent-script";
 import type { AnySchema } from "toolcraft-schema";
 
 import { makeSchemaModule } from "../modules/schema.js";
@@ -27,9 +37,13 @@ export type HarnessImportMeta = {
 
 export type RunHarnessPairOptions = {
   allowedGlobals?: LintOptions["allowedGlobals"];
+  clock?: {
+    now: () => number;
+  };
   fix?: boolean;
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessImportMeta) => ModuleRegistry;
   onDiagnostics?: (diagnostics: readonly Diagnostic[]) => void;
+  randomSeed?: number;
   resume?: boolean;
   signal?: AbortSignal;
   snapshotPath?: string;
@@ -74,9 +88,41 @@ export async function runHarnessPair(
     if (!shouldResume) {
       await cleanupCompletedSnapshot(snapshotPath);
     }
-    const hostCallReplay = await createHostCallReplay(snapshotPath);
-    const modules = withSchemaModule(
-      hostCallReplay.wrapModules(options.modulesFor(validated, meta))
+    const snapshot = shouldResume ? await readSnapshot(snapshotPath) : undefined;
+    const runtimeClock = createReplayableClock({
+      now: options.clock?.now,
+      snapshot: snapshot?.clock
+    });
+    const runtimeRandom = createReplayableRandom({
+      seed: options.randomSeed,
+      snapshot
+    });
+    const hostCallReplay = await createHostCallReplay(snapshotPath, {
+      "time.now": {
+        restore: restoreClockState(runtimeClock),
+        snapshot: runtimeClock.snapshot
+      },
+      ...(runtimeRandom === undefined
+        ? {}
+        : {
+            "time.random": {
+              restore: restoreRandomState(runtimeRandom),
+              snapshot: runtimeRandom.snapshot
+            },
+            "time.uuid": {
+              restore: restoreRandomState(runtimeRandom),
+              snapshot: runtimeRandom.snapshot
+            }
+          })
+    });
+    const modules = hostCallReplay.wrapModules(
+      withBuiltinModules(
+        options.modulesFor(validated, meta),
+        makeTimeModule({
+          now: runtimeClock.now,
+          random: runtimeRandom?.next
+        })
+      )
     );
 
     let executableSource = ajsSource;
@@ -105,15 +151,15 @@ export async function runHarnessPair(
     options.onDiagnostics?.(diagnostics);
     throwOnLintErrors(diagnostics);
 
-    const snapshot = shouldResume ? await readSnapshot(snapshotPath) : undefined;
-
     let result: RunResult;
     try {
       result = await run(executableSource, {
+        clock: runtimeClock,
         importMeta: meta,
         entryPointArgs: [validated],
         filename: pair.ajsPath,
         modules: modules as RunOptions["modules"],
+        random: runtimeRandom,
         signal: options.signal,
         snapshot,
         snapshotPath
@@ -185,23 +231,145 @@ function readSchemaTopLevelFields(schema: AnySchema | undefined): string[] | und
   return Object.keys(schema.shape);
 }
 
-function withSchemaModule(modules: ModuleRegistry): ModuleRegistry {
+function withBuiltinModules(modules: ModuleRegistry, time: ModuleExports): ModuleRegistry {
   if (modules instanceof Map) {
     const merged = new Map(modules);
+    if (!merged.has("time")) {
+      merged.set("time", time);
+    }
     merged.set("schema", makeSchemaModule() as ModuleExports);
     return merged as ModuleRegistry;
   }
 
   return {
+    time,
     ...modules,
     schema: makeSchemaModule()
   } as ModuleRegistry;
+}
+
+type ReplayableClock = RunClock & {
+  now: () => number;
+  restore: (snapshot: RunClockSnapshot) => void;
+};
+
+function createReplayableClock(input: {
+  now: (() => number) | undefined;
+  snapshot: RunClockSnapshot | undefined;
+}): ReplayableClock {
+  let next = input.snapshot?.next;
+  const hostNow = input.now ?? Date.now;
+
+  return {
+    now() {
+      if (next === undefined) {
+        const value = hostNow();
+        next = value + 1;
+        return value;
+      }
+
+      const value = next;
+      next += 1;
+      return value;
+    },
+    restore(snapshot) {
+      next = snapshot.next;
+    },
+    snapshot() {
+      return next === undefined
+        ? undefined
+        : {
+            next
+          };
+    }
+  };
+}
+
+type ReplayableRandom = RunRandom & {
+  restore: (state: number) => void;
+};
+
+function createReplayableRandom(input: {
+  seed: number | undefined;
+  snapshot: RunOptions["snapshot"] | undefined;
+}): ReplayableRandom | undefined {
+  if (input.snapshot?.random !== undefined) {
+    const generator = createSeededRandom(input.snapshot.random.state);
+    return {
+      seed: input.snapshot.random.seed,
+      next: generator.next,
+      restore: generator.restore,
+      snapshot: generator.snapshot
+    };
+  }
+
+  if (input.seed === undefined) {
+    return undefined;
+  }
+
+  const generator = createSeededRandom(input.seed);
+  return {
+    seed: Math.trunc(input.seed),
+    next: generator.next,
+    restore: generator.restore,
+    snapshot: generator.snapshot
+  };
+}
+
+function createSeededRandom(seed: number): Omit<ReplayableRandom, "seed"> {
+  let state = normalizeSeed(seed);
+
+  return {
+    next: () => {
+      state = (Math.imul(state, 1_664_525) + 1_013_904_223) >>> 0;
+      return state / 4_294_967_296;
+    },
+    restore: (nextState) => {
+      state = normalizeSeed(nextState);
+    },
+    snapshot: () => state
+  };
+}
+
+function normalizeSeed(seed: number): number {
+  if (!Number.isFinite(seed)) {
+    throw new TypeError("Seeded random requires a finite numeric seed.");
+  }
+
+  return Math.trunc(seed) >>> 0;
+}
+
+function restoreClockState(clock: ReplayableClock): (state: unknown) => void {
+  return (state) => {
+    if (isClockState(state)) {
+      clock.restore(state);
+    }
+  };
+}
+
+function restoreRandomState(random: ReplayableRandom): (state: unknown) => void {
+  return (state) => {
+    if (typeof state === "number") {
+      random.restore(state);
+    }
+  };
+}
+
+function isClockState(value: unknown): value is RunClockSnapshot {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "next" in value &&
+    typeof value.next === "number" &&
+    Number.isFinite(value.next)
+  );
 }
 
 type HostCallRecord = {
   key: string;
   args: readonly unknown[];
   result: unknown;
+  state?: unknown;
 };
 
 type HostCallReplay = {
@@ -209,7 +377,15 @@ type HostCallReplay = {
   wrapModules(modules: ModuleRegistry): ModuleRegistry;
 };
 
-async function createHostCallReplay(snapshotPath: string): Promise<HostCallReplay> {
+type StatefulHostBinding = {
+  restore: (state: unknown) => void;
+  snapshot: () => unknown;
+};
+
+async function createHostCallReplay(
+  snapshotPath: string,
+  statefulBindings: Record<string, StatefulHostBinding> = {}
+): Promise<HostCallReplay> {
   const storePath = hostCallStorePath(snapshotPath);
   const records = await readHostCallRecords(storePath);
   const pendingWrites = new Set<Promise<void>>();
@@ -266,6 +442,10 @@ async function createHostCallReplay(snapshotPath: string): Promise<HostCallRepla
     return (...args: readonly unknown[]) => {
       const replay = records[cursor];
       if (replay !== undefined && replay.key === key && sameJsonValue(replay.args, args)) {
+        const stateful = statefulBindings[key];
+        if (stateful !== undefined && replay.state !== undefined) {
+          stateful.restore(replay.state);
+        }
         cursor += 1;
         return replay.result;
       }
@@ -291,7 +471,8 @@ async function createHostCallReplay(snapshotPath: string): Promise<HostCallRepla
     records.push({
       key,
       args,
-      result
+      result,
+      state: statefulBindings[key]?.snapshot()
     });
     cursor = records.length;
     const write = writeHostCallRecords(storePath, records);

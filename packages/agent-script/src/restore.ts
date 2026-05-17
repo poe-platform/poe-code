@@ -2,6 +2,9 @@ import { hashSource } from "./parse/hash.js";
 
 export type AgentScriptSnapshot = {
   sourceHash: string;
+  clock?: {
+    next: number;
+  };
   random?: {
     seed: number;
     state: number;

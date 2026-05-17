@@ -18,6 +18,27 @@ describe("makeTimeModule", () => {
     expect(time.uuid()).toBe("123e4567-e89b-42d3-a456-426614174000");
   });
 
+  it("returns a number within 5ms of Date.now at call time by default", () => {
+    const time = makeTimeModule();
+    const observed = time.now();
+
+    expect(typeof observed).toBe("number");
+    expect(Math.abs(observed - Date.now())).toBeLessThanOrEqual(5);
+  });
+
+  it("uses an injected now function deterministically", () => {
+    const time = makeTimeModule({ now: () => 1_000 });
+
+    expect(time.now()).toBe(1_000);
+    expect(time.now()).toBe(1_000);
+  });
+
+  it("returns non-decreasing values with the default clock", () => {
+    const time = makeTimeModule();
+
+    expect(time.now()).toBeLessThanOrEqual(time.now());
+  });
+
   it("uses host randomness when no seed is provided", () => {
     vi.spyOn(Math, "random").mockReturnValue(0.25);
 
@@ -48,6 +69,22 @@ describe("makeTimeModule", () => {
 
     expect([zero.random(), zero.random()]).toEqual([0.23606797284446657, 0.278566908556968]);
     expect([negative.random(), negative.random()]).toEqual([wrapped.random(), wrapped.random()]);
+  });
+
+  it("generates deterministic uuid sequences when seeded", () => {
+    const first = makeTimeModule({ seed: 123 });
+    const second = makeTimeModule({ seed: 123 });
+    const third = makeTimeModule({ seed: 456 });
+
+    const firstSequence = [first.uuid(), first.uuid()];
+    const secondSequence = [second.uuid(), second.uuid()];
+    const thirdSequence = [third.uuid(), third.uuid()];
+
+    expect(firstSequence).toEqual(secondSequence);
+    expect(firstSequence).not.toEqual(thirdSequence);
+    expect(firstSequence[0]).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/
+    );
   });
 
   it("validates seeded randomness input", () => {

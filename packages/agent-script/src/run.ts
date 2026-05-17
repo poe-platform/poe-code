@@ -27,10 +27,12 @@ import { createSnapshotScheduler } from "./snapshot/scheduler.js";
 export type RunOptions = {
   bindings?: Record<string, CallerInjectedBinding>;
   budget?: Budget;
+  clock?: RunClock;
   entryPointArgs?: readonly unknown[];
   filename?: string;
   importMeta?: Record<string, unknown>;
   modules?: ModuleRegistry;
+  random?: RunRandom;
   randomSeed?: number;
   signal?: AbortSignal;
   snapshot?: AgentScriptSnapshot;
@@ -41,10 +43,25 @@ export type RunOptions = {
 
 export type RunSnapshot = AgentScriptSnapshot & {
   bindings: InterpreterResult["snapshot"]["bindings"];
+  clock?: RunClockSnapshot;
   random?: {
     seed: number;
     state: number;
   };
+};
+
+export type RunClockSnapshot = {
+  next: number;
+};
+
+export type RunClock = {
+  snapshot: () => RunClockSnapshot | undefined;
+};
+
+export type RunRandom = {
+  next: () => number;
+  seed: number;
+  snapshot: () => number;
 };
 
 type WithRunSnapshot<TResult extends InterpreterResult> = TResult extends unknown
@@ -64,7 +81,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
     const filename = options.filename ?? "<input>";
     const module = parseModule(source, filename);
     const sourceHash = hashSource(source);
-    const random = createRandomState(restoredSnapshot, options.randomSeed);
+    const random = createRandomState(restoredSnapshot, options.randomSeed, options.random);
     const entryPointArgs = options.entryPointArgs?.map((value) => deepCopyToSandbox(value));
     const callerBindings =
       options.bindings === undefined
@@ -111,6 +128,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           const createSnapshot = () =>
             (snapshot ??= createRunSnapshot({
               bindings: yieldPoint.snapshot.bindings,
+              clock: options.clock,
               random,
               sourceHash
             }));
@@ -134,6 +152,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                 const createSnapshot = () =>
                   (snapshot ??= createRunSnapshot({
                     bindings: yieldPoint.snapshot.bindings,
+                    clock: options.clock,
                     random,
                     sourceHash
                   }));
@@ -147,6 +166,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
 
       const snapshot = createRunSnapshot({
         bindings: scope.snapshot().bindings,
+        clock: options.clock,
         random,
         sourceHash
       });
@@ -233,8 +253,16 @@ function createEntryPointArgName(index: number): string {
 
 function createRandomState(
   snapshot: AgentScriptSnapshot | undefined,
-  randomSeed: number | undefined
+  randomSeed: number | undefined,
+  random: RunRandom | undefined
 ) {
+  if (random !== undefined) {
+    return {
+      seed: random.seed,
+      generator: random
+    };
+  }
+
   if (snapshot?.random !== undefined) {
     return {
       seed: snapshot.random.seed,
@@ -280,6 +308,7 @@ function createExecutableNode(module: Module): ParseResult {
 
 function createRunSnapshot(input: {
   bindings: InterpreterResult["snapshot"]["bindings"];
+  clock: RunClock | undefined;
   random:
     | {
         seed: number;
@@ -291,6 +320,7 @@ function createRunSnapshot(input: {
   return {
     sourceHash: input.sourceHash,
     bindings: input.bindings,
+    clock: input.clock?.snapshot(),
     random:
       input.random === undefined
         ? undefined

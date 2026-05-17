@@ -535,7 +535,35 @@ describe("runHarnessPair", () => {
     expect(secondCalls).toEqual(["second"]);
     expect(resumed).toMatchObject({
       ok: true,
-      returnValue: "1000|1001|1002"
+      returnValue: "1000|31000|31001"
+    });
+  });
+
+  it("uses the injected clock source for each live time.now call", async () => {
+    const mdPath = "/repo/harness/live-clock.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: live-clock\nversion: 1\n---\n",
+      "/repo/harness/live-clock.ajs": [
+        'import * as time from "time";',
+        "export default () => {",
+        "  const first = time.now();",
+        "  const second = time.now();",
+        "  return String(first).concat('|').concat(String(second));",
+        "};"
+      ].join("\n")
+    });
+
+    const values = [1_000, 5_000];
+    const result = await runHarnessPair(mdPath, {
+      clock: {
+        now: () => values.shift() ?? 9_000
+      },
+      modulesFor: () => ({})
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "1000|5000"
     });
   });
 

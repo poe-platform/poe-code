@@ -258,22 +258,25 @@ function createReplayableClock(input: {
   snapshot: RunClockSnapshot | undefined;
 }): ReplayableClock {
   let next = input.snapshot?.next;
+  let replaying = input.snapshot !== undefined;
   const hostNow = input.now ?? Date.now;
 
   return {
     now() {
-      if (next === undefined) {
-        const value = hostNow();
+      if (replaying && next !== undefined) {
+        const value = next;
         next = value + 1;
         return value;
       }
 
-      const value = next;
-      next += 1;
+      const current = hostNow();
+      const value = next === undefined ? current : Math.max(current, next);
+      next = value + 1;
       return value;
     },
     restore(snapshot) {
       next = snapshot.next;
+      replaying = true;
     },
     snapshot() {
       return next === undefined

@@ -230,7 +230,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-string-raw
     title: String.raw static method
@@ -256,8 +256,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): String.raw`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-unused-import

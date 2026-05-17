@@ -107,4 +107,10 @@ describe("lint", () => {
       }
     ]);
   });
+
+  it("includes AS-UNREACHABLE diagnostics", () => {
+    const source = "export default () => { return 1; 2; };";
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-UNREACHABLE");
+  });
 });

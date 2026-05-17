@@ -13,6 +13,7 @@ import { AS013 } from "./rules/AS013.js";
 import { AS014 } from "./rules/AS014.js";
 import { AS015 } from "./rules/AS015.js";
 import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
+import { AS_UNREACHABLE } from "./rules/AS-unreachable.js";
 import { AS_UNUSED_IMPORT } from "./rules/AS-unused-import.js";
 import type { SourceSpan } from "../parse/parser.js";
 import type { Modules } from "./rules/module-registry.js";
@@ -52,6 +53,7 @@ const RULES: readonly LintRule[] = [
   AS013,
   AS014,
   AS015,
+  AS_UNREACHABLE,
   AS_EXPORT_IMPORT_META
 ];
 
@@ -67,16 +69,22 @@ export function lint(source: string, options: LintOptions = {}): Diagnostic[] {
   }
 
   const as010Keys = new Set(
-    diagnostics.filter((diagnostic) => diagnostic.code === "AS010").map((diagnostic) => createSpanKey(diagnostic.span))
+    diagnostics
+      .filter((diagnostic) => diagnostic.code === "AS010")
+      .map((diagnostic) => createSpanKey(diagnostic.span))
   );
 
   return diagnostics
-    .filter((diagnostic) => diagnostic.code !== "AS007" || !as010Keys.has(createSpanKey(diagnostic.span)))
+    .filter(
+      (diagnostic) => diagnostic.code !== "AS007" || !as010Keys.has(createSpanKey(diagnostic.span))
+    )
     .sort(compareDiagnostics);
 }
 
 function compareDiagnostics(left: Diagnostic, right: Diagnostic): number {
-  return left.line - right.line || left.column - right.column || left.code.localeCompare(right.code);
+  return (
+    left.line - right.line || left.column - right.column || left.code.localeCompare(right.code)
+  );
 }
 
 function createSpanKey(span: SourceSpan): string {
@@ -84,5 +92,7 @@ function createSpanKey(span: SourceSpan): string {
 }
 
 function hasOnlyRegexLiteralDiagnostics(diagnostics: readonly Diagnostic[]): boolean {
-  return diagnostics.every((diagnostic) => diagnostic.message === "Disallowed syntax: regex literal.");
+  return diagnostics.every(
+    (diagnostic) => diagnostic.message === "Disallowed syntax: regex literal."
+  );
 }

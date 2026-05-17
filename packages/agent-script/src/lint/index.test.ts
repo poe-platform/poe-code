@@ -122,4 +122,10 @@ describe("lint", () => {
     expect(codes).not.toContain("AS001");
     expect(codes).toContain("AS-UNREACHABLE");
   });
+
+  it("includes AS-AWAIT-NON-PROMISE diagnostics", () => {
+    const source = "await 1;";
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-AWAIT-NON-PROMISE");
+  });
 });

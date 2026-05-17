@@ -12,6 +12,7 @@ import { AS012 } from "./rules/AS012.js";
 import { AS013 } from "./rules/AS013.js";
 import { AS014 } from "./rules/AS014.js";
 import { AS015 } from "./rules/AS015.js";
+import { AS_AWAIT_NON_PROMISE } from "./rules/AS-await-non-promise.js";
 import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
 import { AS_UNREACHABLE } from "./rules/AS-unreachable.js";
 import { AS_UNUSED_IMPORT } from "./rules/AS-unused-import.js";
@@ -53,6 +54,7 @@ const RULES: readonly LintRule[] = [
   AS013,
   AS014,
   AS015,
+  AS_AWAIT_NON_PROMISE,
   AS_UNREACHABLE,
   AS_EXPORT_IMPORT_META
 ];

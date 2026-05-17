@@ -4,6 +4,8 @@ import type {
   AssignmentProperty,
   BlockStatement,
   CatchClause,
+  BreakStatement,
+  ContinueStatement,
   Expression,
   Identifier,
   MemberExpression,
@@ -25,6 +27,8 @@ export type CompletionResult = {
   kind: CompletionKind;
   hasValue: boolean;
   value: SandboxValue;
+  label?: string;
+  node?: BreakStatement | ContinueStatement;
 };
 
 export type EvaluationResult<TError> =

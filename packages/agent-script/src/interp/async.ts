@@ -24,7 +24,7 @@ export type InterpreterYieldPoint = {
 };
 
 export type AsyncInterpreterError = {
-  code: "UNBOUND_IDENTIFIER" | "UNSUPPORTED_NODE";
+  code: "LABEL_NOT_FOUND" | "UNBOUND_IDENTIFIER" | "UNSUPPORTED_NODE";
   message: string;
   nodeId?: number;
   nodeType: ParseResult["type"];

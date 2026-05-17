@@ -97,7 +97,7 @@ export type InterpreterSnapshot = {
   bindings: Record<string, InterpreterValue>;
 };
 
-export type InterpreterErrorCode = "UNBOUND_IDENTIFIER" | "UNSUPPORTED_NODE";
+export type InterpreterErrorCode = "LABEL_NOT_FOUND" | "UNBOUND_IDENTIFIER" | "UNSUPPORTED_NODE";
 
 export type InterpreterError = {
   code: InterpreterErrorCode;
@@ -224,6 +224,19 @@ export async function interpret(
 
   if (evaluation.kind === "throw") {
     throw evaluation.value;
+  }
+
+  if ((evaluation.kind === "break" || evaluation.kind === "continue") && evaluation.label !== undefined) {
+    return {
+      ok: false,
+      error: createError(
+        "LABEL_NOT_FOUND",
+        evaluation.node ?? node,
+        `Label '${evaluation.label}' not found`
+      ),
+      snapshot,
+      stats
+    };
   }
 
   if (evaluation.hasValue) {
@@ -957,7 +970,7 @@ async function evaluateForOfStatement(
       scope
     });
 
-    if (result.kind === "break") {
+    if (isMatchingBreak(result, node.label)) {
       return {
         kind: "normal",
         hasValue: false,
@@ -965,7 +978,7 @@ async function evaluateForOfStatement(
       };
     }
 
-    if (result.kind === "continue") {
+    if (isMatchingContinue(result, node.label)) {
       continue;
     }
 
@@ -1018,7 +1031,7 @@ async function evaluateForStatement(
 
     const result = await evaluateNode(node.body, loopContext);
 
-    if (result.kind === "break") {
+    if (isMatchingBreak(result, node.label)) {
       return {
         kind: "normal",
         hasValue: false,
@@ -1026,7 +1039,7 @@ async function evaluateForStatement(
       };
     }
 
-    if (result.kind !== "normal" && result.kind !== "continue") {
+    if (result.kind !== "normal" && !isMatchingContinue(result, node.label)) {
       return result;
     }
 
@@ -1059,7 +1072,7 @@ async function evaluateWhileStatement(
 
     const result = await evaluateNode(node.body, context);
 
-    if (result.kind === "break") {
+    if (isMatchingBreak(result, node.label)) {
       return {
         kind: "normal",
         hasValue: false,
@@ -1067,7 +1080,7 @@ async function evaluateWhileStatement(
       };
     }
 
-    if (result.kind === "continue") {
+    if (isMatchingContinue(result, node.label)) {
       continue;
     }
 
@@ -1084,7 +1097,7 @@ async function evaluateDoWhileStatement(
   while (true) {
     const result = await evaluateNode(node.body, context);
 
-    if (result.kind === "break") {
+    if (isMatchingBreak(result, node.label)) {
       return {
         kind: "normal",
         hasValue: false,
@@ -1092,7 +1105,7 @@ async function evaluateDoWhileStatement(
       };
     }
 
-    if (result.kind !== "normal" && result.kind !== "continue") {
+    if (result.kind !== "normal" && !isMatchingContinue(result, node.label)) {
       return result;
     }
 
@@ -1109,6 +1122,14 @@ async function evaluateDoWhileStatement(
       };
     }
   }
+}
+
+function isMatchingBreak(result: EvaluationResult, label: string | undefined): boolean {
+  return result.kind === "break" && (result.label === undefined || result.label === label);
+}
+
+function isMatchingContinue(result: EvaluationResult, label: string | undefined): boolean {
+  return result.kind === "continue" && (result.label === undefined || result.label === label);
 }
 
 function bindForOfLoopVariable(
@@ -1140,23 +1161,27 @@ async function evaluateExpressionStatement(
 }
 
 async function evaluateBreakStatement(
-  _node: BreakStatement,
+  node: BreakStatement,
   _context: EvaluationContext
 ): Promise<EvaluationResult> {
   return {
     kind: "break",
     hasValue: false,
+    ...(node.label === undefined ? {} : { label: node.label }),
+    node,
     value: undefined
   };
 }
 
 async function evaluateContinueStatement(
-  _node: ContinueStatement,
+  node: ContinueStatement,
   _context: EvaluationContext
 ): Promise<EvaluationResult> {
   return {
     kind: "continue",
     hasValue: false,
+    ...(node.label === undefined ? {} : { label: node.label }),
+    node,
     value: undefined
   };
 }

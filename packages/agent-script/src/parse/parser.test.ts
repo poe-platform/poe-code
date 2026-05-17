@@ -1289,6 +1289,32 @@ describe("parse", () => {
       }
     });
 
+    expect(parse("() => { outer: for (;;) { break outer; continue outer; } }")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      body: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ForStatement",
+            label: "outer",
+            body: {
+              type: "BlockStatement",
+              body: [
+                {
+                  type: "BreakStatement",
+                  label: "outer"
+                },
+                {
+                  type: "ContinueStatement",
+                  label: "outer"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    });
+
     expect(parse("() => { return\nvalue; }")).toMatchObject({
       type: "ArrowFunctionExpression",
       body: {
@@ -2322,15 +2348,6 @@ describe("parse", () => {
       "Disallowed syntax 'var' at line 1, column 14."
     );
 
-    expect(() => parse("() => { break label; }")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("() => { break label; }")).toThrowError(
-      "Disallowed syntax 'label' at line 1, column 15."
-    );
-
-    expect(() => parse("() => { continue label; }")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("() => { continue label; }")).toThrowError(
-      "Disallowed syntax 'label' at line 1, column 18."
-    );
   });
 
   it("rejects invalid try/catch/finally forms and invalid throw statements", () => {

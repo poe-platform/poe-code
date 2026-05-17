@@ -1745,6 +1745,117 @@ describe("interpret", () => {
     });
   });
 
+  it("exits an outer for loop with a labeled break from a nested loop", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse(
+            "outer: for (let i = 0; i < 3; i = i + 1) { out.push(i); for (let j = 0; j < 3; j = j + 1) { break outer; } out.push(99); }"
+          ),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [0]
+    });
+  });
+
+  it("continues an outer for loop with a labeled continue from a nested loop", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse(
+            "outer: for (let i = 0; i < 3; i = i + 1) { out.push(i); for (let j = 0; j < 3; j = j + 1) { continue outer; } out.push(99); }"
+          ),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [0, 1, 2]
+    });
+  });
+
+  it("lets an adjacent inner loop label mask an outer loop label with the same name", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse(
+            "outer: for (let i = 0; i < 2; i = i + 1) { out.push(i); outer: outer: for (let j = 0; j < 2; j = j + 1) { out.push(j); break outer; } out.push(9); }"
+          ),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [0, 0, 9, 1, 0, 9]
+    });
+  });
+
+  it("reports a clear error when a labeled break target is not in scope", async () => {
+    await expect(interpret(parse("for (;;) { break foo; }"))).resolves.toMatchObject({
+      ok: false,
+      error: {
+        message: "Label 'foo' not found"
+      }
+    });
+  });
+
+  it("keeps unlabeled break scoped to the inner loop", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse(
+            "for (let i = 0; i < 2; i = i + 1) { for (let j = 0; j < 3; j = j + 1) { out.push(j); break; } out.push(9); }"
+          ),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [0, 9, 0, 9]
+    });
+  });
+
+  it("preserves a labeled break across try/finally", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse(
+            "outer: for (let i = 0; i < 3; i = i + 1) { try { for (let j = 0; j < 3; j = j + 1) { break outer; } } finally { out.push('finally'); } out.push('skipped'); }"
+          ),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["finally"]
+    });
+  });
+
+  it("preserves a labeled break across return-and-rethrow finally handling", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse(
+            "outer: for (let i = 0; i < 3; i = i + 1) { try { try { throw 'boom'; } catch (error) { break outer; } finally { out.push('inner-finally'); } } finally { out.push('outer-finally'); } out.push('skipped'); }"
+          ),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["inner-finally", "outer-finally"]
+    });
+  });
+
   it("propagates throws from inside for bodies", async () => {
     await expect(
       interpret(parse('for (let i = 0; i < 1; i = i + 1) { throw "boom"; }'))

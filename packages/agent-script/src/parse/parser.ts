@@ -272,10 +272,12 @@ export type ReturnStatement = BaseNode & {
 
 export type BreakStatement = BaseNode & {
   type: "BreakStatement";
+  label?: string;
 };
 
 export type ContinueStatement = BaseNode & {
   type: "ContinueStatement";
+  label?: string;
 };
 
 export type ExpressionStatement = BaseNode & {
@@ -301,6 +303,7 @@ export type ForStatement = BaseNode & {
   test?: Expression;
   update?: Expression;
   body: Statement;
+  label?: string;
 };
 
 export type ForOfStatement = BaseNode & {
@@ -308,18 +311,21 @@ export type ForOfStatement = BaseNode & {
   left: PatternTarget | VariableDeclaration;
   right: Expression;
   body: Statement;
+  label?: string;
 };
 
 export type WhileStatement = BaseNode & {
   type: "WhileStatement";
   test: Expression;
   body: Statement;
+  label?: string;
 };
 
 export type DoWhileStatement = BaseNode & {
   type: "DoWhileStatement";
   body: Statement;
   test: Expression;
+  label?: string;
 };
 
 export type ThrowStatement = BaseNode & {
@@ -696,6 +702,12 @@ class Parser {
 
   private parseStatement(): Statement {
     const token = this.currentToken();
+
+    if (token.type === "identifier" && this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":") {
+      this.index += 2;
+      return this.parseLabeledStatement(token);
+    }
+
     this.assertAllowedStatementStart(token);
 
     if (token.type === "punctuator" && token.value === "{") {
@@ -771,19 +783,21 @@ class Parser {
 
     if (token.type === "keyword" && token.value === "break") {
       this.index += 1;
-      this.assertNoLabel(token);
+      const label = this.consumeControlLabel(token);
       return {
         type: "BreakStatement",
-        span: createSpan(token.start, token.end)
+        ...(label === undefined ? {} : { label: label.value }),
+        span: createSpan(token.start, label?.end ?? token.end)
       };
     }
 
     if (token.type === "keyword" && token.value === "continue") {
       this.index += 1;
-      this.assertNoLabel(token);
+      const label = this.consumeControlLabel(token);
       return {
         type: "ContinueStatement",
-        span: createSpan(token.start, token.end)
+        ...(label === undefined ? {} : { label: label.value }),
+        span: createSpan(token.start, label?.end ?? token.end)
       };
     }
 
@@ -793,6 +807,29 @@ class Parser {
       expression,
       span: createSpan(expression.span.start, expression.span.end)
     };
+  }
+
+  private parseLabeledStatement(labelToken: Token): Statement {
+    const token = this.currentToken();
+
+    if (token.type === "identifier" && this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":") {
+      this.index += 2;
+      return this.parseLabeledStatement(token);
+    }
+
+    if (token.type === "keyword" && token.value === "for") {
+      return this.parseForStatement(labelToken.value);
+    }
+
+    if (token.type === "keyword" && token.value === "while") {
+      return this.parseWhileStatement(labelToken.value);
+    }
+
+    if (token.type === "keyword" && token.value === "do") {
+      return this.parseDoWhileStatement(labelToken.value);
+    }
+
+    throw new DisallowedSyntaxError("label", labelToken.start);
   }
 
   private parseIfStatement(): IfStatement {
@@ -822,7 +859,7 @@ class Parser {
     };
   }
 
-  private parseForStatement(): ForOfStatement | ForStatement {
+  private parseForStatement(label?: string): ForOfStatement | ForStatement {
     const forToken = this.expectKeyword("for");
     this.expectPunctuator("(");
     if (this.currentToken().type === "identifier" && this.currentToken().value === "var") {
@@ -845,6 +882,7 @@ class Parser {
         left,
         right,
         body,
+        ...(label === undefined ? {} : { label }),
         span: createSpan(forToken.start, body.span.end)
       };
     }
@@ -876,6 +914,7 @@ class Parser {
       test,
       update,
       body,
+      ...(label === undefined ? {} : { label }),
       span: createSpan(forToken.start, body.span.end)
     };
   }
@@ -924,7 +963,7 @@ class Parser {
     };
   }
 
-  private parseWhileStatement(): WhileStatement {
+  private parseWhileStatement(label?: string): WhileStatement {
     const whileToken = this.expectKeyword("while");
     this.expectPunctuator("(");
     const test = this.parseExpression().node;
@@ -934,11 +973,12 @@ class Parser {
       type: "WhileStatement",
       test,
       body,
+      ...(label === undefined ? {} : { label }),
       span: createSpan(whileToken.start, body.span.end)
     };
   }
 
-  private parseDoWhileStatement(): DoWhileStatement {
+  private parseDoWhileStatement(label?: string): DoWhileStatement {
     const doToken = this.expectKeyword("do");
     const body = this.parseStatement();
     this.expectKeyword("while");
@@ -949,6 +989,7 @@ class Parser {
       type: "DoWhileStatement",
       body,
       test,
+      ...(label === undefined ? {} : { label }),
       span: createSpan(doToken.start, closeParen.end)
     };
   }
@@ -2692,13 +2733,17 @@ class Parser {
     }
   }
 
-  private assertNoLabel(token: Token): void {
+  private consumeControlLabel(token: Token): Token | undefined {
     if (
       this.currentToken().type === "identifier" &&
       !hasLineBreakBetween(token, this.currentToken())
     ) {
-      throw new DisallowedSyntaxError("label", this.currentToken().start);
+      const label = this.currentToken();
+      this.index += 1;
+      return label;
     }
+
+    return undefined;
   }
 
   private consumePunctuator(value: string): Token | undefined {

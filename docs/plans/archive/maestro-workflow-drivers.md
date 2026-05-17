@@ -2,16 +2,18 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: driver-interface
     title: WorkflowDriver interface and registry in agent-maestro
-    prompt: |
+    prompt: >
       Add a pluggable workflow driver layer to `@poe-code/agent-maestro`.
+
 
       Create `packages/agent-maestro/src/drivers/types.ts` defining:
 
+
       ```ts
+
       export interface WorkflowDriverContext {
         task: Task;                       // from @poe-code/task-list
         attempt: number | null;
@@ -25,38 +27,53 @@ tasks:
         logger: { warn(msg: string, meta?: Record<string, unknown>): void };
       }
 
+
       export interface WorkflowDriver {
         readonly kind: string;            // matches plan frontmatter `kind:`
         run(ctx: WorkflowDriverContext): Promise<AttemptOutcome>;
       }
+
       ```
+
 
       Create `packages/agent-maestro/src/drivers/registry.ts` exposing:
 
+
       - `registerDriver(driver: WorkflowDriver): void`
+
       - `getDriver(kind: string): WorkflowDriver | undefined`
+
       - `listDrivers(): readonly WorkflowDriver[]`
 
+
       Registry is a module-level Map keyed by `kind`. `registerDriver` is
+
       idempotent on identical (===) driver instances and throws on a kind
+
       collision with a different instance.
+
 
       Export both modules from `packages/agent-maestro/src/index.ts`.
 
+
       Constraints:
+
       - Do not touch `AttemptRunner` yet — this task is types and registry only.
+
       - No driver implementations in this task.
+
       - Re-use existing `AttemptOutcome` / `AttemptEvent` from `agent/runner.ts`
         (move them to a sibling file if importing causes a cycle).
-      - Tests in `drivers/registry.test.ts`: register/get/list; collision throws;
+      - Tests in `drivers/registry.test.ts`: register/get/list; collision
+      throws;
         idempotent on same instance.
 
-      Conventional commit: `feat(agent-maestro): workflow driver interface and registry`.
+      Conventional commit: `feat(agent-maestro): workflow driver interface and
+      registry`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: pipeline-driver
     title: Extract current pipeline behavior into PipelineDriver
     prompt: |
@@ -99,46 +116,64 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: expose-plan-path
     title: Expose plan file path through task-list and maestro
-    prompt: |
+    prompt: >
       Drivers other than `pipeline` need the absolute path to the plan's
+
       source markdown file (ralph reads/writes frontmatter on it in place).
+
       `task-list`'s `Task` interface intentionally hides storage details, so
+
       thread the path through a sibling channel.
+
 
       In `packages/task-list/src/types.ts`, add to `Task`:
 
+
       ```ts
-      sourcePath?: string;     // backend-specific absolute path, set by file-based backends
+
+      sourcePath?: string;     // backend-specific absolute path, set by
+      file-based backends
+
       ```
 
+
       Markdown-dir and yaml-file backends populate `sourcePath` when reading
+
       a task (absolute path to the on-disk file). `gh-issues` leaves it
+
       `undefined`.
 
-      In `agent-maestro`, set `WorkflowDriverContext.planPath = task.sourcePath ?? null`.
+
+      In `agent-maestro`, set `WorkflowDriverContext.planPath = task.sourcePath
+      ?? null`.
+
 
       Constraints:
+
       - Optional field; no existing call sites need updates.
+
       - Tests in `markdown-dir.test.ts` and `yaml-file.test.ts`: assert
         `sourcePath` is set and absolute on read.
       - Tests in `gh-issues.test.ts`: assert `sourcePath` is `undefined`.
+
 
       Conventional commit: `feat(task-list): expose sourcePath on Task`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: ralph-driver
     title: RalphDriver that delegates to @poe-code/ralph runRalph
-    prompt: |
+    prompt: >
       Add `packages/agent-maestro/src/drivers/ralph.ts` exporting
+
       `ralphDriver: WorkflowDriver` with `kind: "ralph"`.
 
+
       Implementation:
+
 
       1. Require `ctx.planPath` to be set; if null, fail the attempt with
          `failure: "step_failed"`, `failedStep: "ralph"`, error message
@@ -171,35 +206,47 @@ tasks:
 
       Register `ralphDriver` in `drivers/index.ts`.
 
+
       Add `@poe-code/ralph` as a regular `dependencies` entry in
+
       `packages/agent-maestro/package.json`. Do not use optional peers.
 
+
       Tests in `drivers/ralph.test.ts`:
+
       1. Drives a 1-iteration plan to completion; verifies the workspace
          copy was edited and the original was overwritten.
       2. `planPath === null` fails with the expected outcome.
+
       3. Abort mid-iteration produces `failure: "canceled"`.
+
       4. Spawn throwing an activity timeout yields `failure: "step_timeout"`.
+
       5. The `runAgent` wrapper forwards `agent`, `prompt`, `model`, `signal`
          to `spawn` unchanged.
 
       Use memfs + a mock `runAgent` (do not invoke real agents in unit tests).
+
 
       Conventional commit: `feat(agent-maestro): ralph workflow driver`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: kind-validation
     title: Validate task kind at dispatch and surface unsupported kinds early
-    prompt: |
+    prompt: >
       Today `runMaestro` opens the task store and silently dispatches
+
       anything in `active_states`. With pluggable drivers, a task whose
+
       plan declares `kind: superintendent` (no driver registered) must fail
+
       fast with an actionable error rather than crashing inside the runner.
 
+
       Changes in `packages/agent-maestro/src/runtime/loop.ts` `tick()`:
+
 
       1. Before acquiring a dispatch slot for a task, read
          `task.metadata.kind` (default `"pipeline"`).
@@ -208,27 +255,36 @@ tasks:
          and skip the task this tick. Do not transition state.
       3. Add `task_skipped` to `MaestroEvent` and `TickEvent`.
 
+
       In `--dry-run`, the CLI surface reports the count of skipped tasks
+
       and lists their kinds in the log line that today reports
+
       `candidates`.
 
+
       Tests in `runtime/loop.test.ts`:
-      1. Task with `kind: "pipeline"` and pipeline driver registered: dispatched.
+
+      1. Task with `kind: "pipeline"` and pipeline driver registered:
+      dispatched.
+
       2. Task with `kind: "ralph"` and only pipeline registered: skipped,
          event emitted.
       3. Task with no `kind`: dispatched via pipeline (default).
 
-      Conventional commit: `feat(agent-maestro): skip tasks with unsupported workflow kind`.
+
+      Conventional commit: `feat(agent-maestro): skip tasks with unsupported
+      workflow kind`.
     status:
       implement: done
       refactor: done
       test: done
       commit: done
-
   - id: docs-readme
     title: Document workflow drivers in agent-maestro README
-    prompt: |
+    prompt: >
       Update `packages/agent-maestro/README.md`:
+
 
       - New section "Workflow drivers" between "Examples" and the existing
         sections. Lists the built-in drivers (`pipeline`, `ralph`) and
@@ -246,44 +302,64 @@ tasks:
 
       No code changes. Documentation only.
 
-      Conventional commit: `docs(agent-maestro): workflow drivers and ralph integration`.
+
+      Conventional commit: `docs(agent-maestro): workflow drivers and ralph
+      integration`.
     status:
       implement: done
       commit: done
-
   - id: deferred-drivers
     title: Stubs for experiment, superintendent, harness drivers
-    prompt: |
+    prompt: >
       Not in use today but the registry should be obvious to extend. Add
+
       three placeholder files under `packages/agent-maestro/src/drivers/`:
+
 
       - `experiment.ts`: `experimentDriver` with `kind: "experiment"` whose
         `run()` throws `Error("experiment driver not implemented")`. Not
         auto-registered.
       - `superintendent.ts`: same pattern, `kind: "superintendent"`.
+
       - `harness.ts`: same pattern, `kind: "harness"`.
 
+
       Each file imports the relevant package's public entry point as a
+
       type-only import so changes there get caught at build time:
 
+
       ```ts
+
       import type { runLoop } from "@poe-code/superintendent";
+
       ```
 
+
       Add `@poe-code/experiment-loop`, `@poe-code/superintendent`,
+
       `@poe-code/agent-harness` to `agent-maestro` `dependencies`.
 
+
       `drivers/index.ts` documents (in a one-line comment) that these
+
       drivers exist but are not registered by default; users opt in by
+
       calling `registerDriver(experimentDriver)` from their own code.
 
+
       No tests for the stubs themselves; the registry tests already cover
+
       register/get.
 
-      Conventional commit: `feat(agent-maestro): scaffold experiment/superintendent/harness driver stubs`.
+
+      Conventional commit: `feat(agent-maestro): scaffold
+      experiment/superintendent/harness driver stubs`.
     status:
       implement: done
-      commit: open
+      commit: done
+name: maestro-workflow-drivers
+state: archived
 ---
 
 # Maestro workflow drivers

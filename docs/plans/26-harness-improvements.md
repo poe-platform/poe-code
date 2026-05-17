@@ -881,7 +881,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: git-worktree
     title: git.worktreeCreate / worktreeRemove primitives
@@ -916,8 +916,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): git worktree primitives`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: mcp-tool-batch

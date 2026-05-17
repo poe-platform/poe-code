@@ -4,6 +4,7 @@ import {
   deepCopyToSandbox,
   isSandboxClosure,
   isSandboxPromise,
+  type SandboxArray,
   type SandboxClosure,
   type SandboxObject,
   type SandboxValue
@@ -69,7 +70,13 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
     },
     String: createSandboxClosure({
       call: ([value]) => options.budget.allocateString(String(value)),
-      name: "String"
+      name: "String",
+      properties: {
+        raw: createSandboxClosure({
+          call: (args) => stringRaw(args, options.budget),
+          name: "raw"
+        })
+      }
     }),
     Number: createSandboxClosure({
       call: ([value]) => Number(value),
@@ -177,6 +184,40 @@ function budgetSandboxValue(value: unknown, budget: Budget): SandboxValue {
 
   allocateSandboxValue(sandboxValue, budget, new WeakSet());
   return sandboxValue;
+}
+
+function stringRaw(args: readonly SandboxValue[], budget: Budget): string {
+  const [template, ...substitutions] = args;
+  const raw = getTemplateRawParts(template);
+
+  let result = "";
+  for (let index = 0; index < raw.length; index += 1) {
+    result += String(raw[index]);
+    if (index < substitutions.length) {
+      result += String(substitutions[index]);
+    }
+  }
+
+  return budget.allocateString(result);
+}
+
+function getTemplateRawParts(template: SandboxValue): SandboxArray {
+  const raw =
+    typeof template === "object" && template !== null
+      ? (template as Record<string, SandboxValue>).raw
+      : undefined;
+
+  if (
+    typeof template !== "object" ||
+    template === null ||
+    isSandboxClosure(template) ||
+    isSandboxPromise(template) ||
+    !Array.isArray(raw)
+  ) {
+    throw new TypeError("String.raw requires a raw strings array.");
+  }
+
+  return raw;
 }
 
 function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {

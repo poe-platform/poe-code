@@ -509,11 +509,26 @@ describe("interpret", () => {
   it("evaluates String.raw tagged templates with raw quasis", async () => {
     await expect(
       interpret(parse("return String.raw`a\\nb`"), {
-        bindings: createStringRawBindings()
+        bindings: createObjectArrayGlobals({
+          budget: new Budget()
+        })
       })
     ).resolves.toMatchObject({
       ok: true,
       returnValue: "a\\nb"
+    });
+  });
+
+  it("evaluates String.raw tagged templates with substitutions", async () => {
+    await expect(
+      interpret(parse("return String.raw`\\n${1}\\t`"), {
+        bindings: createObjectArrayGlobals({
+          budget: new Budget()
+        })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "\\n1\\t"
     });
   });
 
@@ -2541,32 +2556,6 @@ function block(...statements: Statement[]): ParseResult {
     span: {
       start: statements[0]?.span.start ?? span(1, 1, 0).start,
       end: statements.at(-1)?.span.end ?? span(1, 1, 0).end
-    }
-  };
-}
-
-function createStringRawBindings() {
-  return {
-    String: {
-      raw: createSandboxClosure({
-        call: ([strings, ...values]) => {
-          const raw = (strings as { raw?: unknown }).raw;
-          if (!Array.isArray(raw)) {
-            throw new TypeError("String.raw requires a raw strings array.");
-          }
-
-          let result = "";
-          for (let index = 0; index < raw.length; index += 1) {
-            result += String(raw[index]);
-            if (index < values.length) {
-              result += String(values[index]);
-            }
-          }
-
-          return result;
-        },
-        name: "raw"
-      })
     }
   };
 }

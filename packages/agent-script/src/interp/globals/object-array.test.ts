@@ -74,6 +74,18 @@ describe("createObjectArrayGlobals", () => {
     expect(await globals.Boolean.call([0])).toBe(false);
   });
 
+  it("exposes String.raw as a static method", async () => {
+    const globals = createObjectArrayGlobals({
+      budget: new Budget()
+    });
+    const raw = getClosure(getClosureProperty(globals.String, "raw"));
+
+    expect(await raw.call([{ raw: ["a", "b"] }, 1])).toBe("a1b");
+    expect(await raw.call([{ raw: ["a", "b", "c"] }, 1])).toBe("a1bc");
+    expect(await raw.call([{ raw: [] }])).toBe("");
+    expect(() => raw.call([{}])).toThrow("String.raw requires a raw strings array.");
+  });
+
   it("applies string and array budgets to produced values", () => {
     const stringGlobals = createObjectArrayGlobals({
       budget: new Budget({

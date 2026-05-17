@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { createSpawnParallel } from "./parallel.js";
 import { spawn } from "./spawn.js";
 import type { AcpEvent } from "./acp/types.js";
 import type { SpawnResult } from "./types.js";
@@ -7,6 +8,11 @@ import type { SpawnResult } from "./types.js";
 type TestHandle = {
   events: AsyncIterable<AcpEvent>;
   result: Promise<SpawnResult>;
+};
+
+type TupleOptions = {
+  prompt: string;
+  signal?: AbortSignal;
 };
 
 const emptyEvents = async function* (): AsyncIterable<AcpEvent> {};
@@ -179,5 +185,99 @@ describe("spawn.parallel()", () => {
     await expect(promise).rejects.toMatchObject({ name: "AbortError" });
     expect(aborted).toEqual([0, 1]);
     expect(started).toBe(2);
+  });
+
+  it("uses the default maxConcurrent of 4 for tuple calls", async () => {
+    let active = 0;
+    let maxActive = 0;
+    const parallel = createSpawnParallel<string, TupleOptions, SpawnResult>(
+      (_service, options) => {
+        active += 1;
+        maxActive = Math.max(maxActive, active);
+
+        return {
+          events: emptyEvents(),
+          result: new Promise<SpawnResult>((resolve) => {
+            setTimeout(() => {
+              active -= 1;
+              resolve(result(Number(options.prompt)));
+            }, 5);
+          })
+        };
+      }
+    );
+
+    const results = await parallel(
+      Array.from({ length: 6 }, (_, index) => ["codex", { prompt: String(index) }] as const)
+    );
+
+    expect(results.map((item) => item.stdout)).toEqual(["0", "1", "2", "3", "4", "5"]);
+    expect(maxActive).toBe(4);
+  });
+
+  it("aborts tuple calls when the parent signal aborts", async () => {
+    const parent = new AbortController();
+    const call = new AbortController();
+    const forwardedSignals: AbortSignal[] = [];
+    const parallel = createSpawnParallel<string, TupleOptions, SpawnResult>(
+      (_service, options) => {
+        forwardedSignals.push(options.signal as AbortSignal);
+        return {
+          events: emptyEvents(),
+          result: new Promise<SpawnResult>((_resolve, reject) => {
+            options.signal?.addEventListener("abort", () => {
+              reject(new Error(`aborted ${options.prompt}`));
+            });
+          })
+        };
+      }
+    );
+
+    const callPromise = parallel(
+      [
+        ["codex", { prompt: "parent" }],
+        ["codex", { prompt: "call", signal: call.signal }]
+      ],
+      { maxConcurrent: 2, signal: parent.signal }
+    );
+
+    await vi.waitFor(() => {
+      expect(forwardedSignals).toHaveLength(2);
+    });
+    expect(forwardedSignals.every((signal) => !signal.aborted)).toBe(true);
+
+    parent.abort();
+
+    await expect(callPromise).rejects.toMatchObject({ name: "AbortError" });
+    expect(forwardedSignals.every((signal) => signal.aborted)).toBe(true);
+  });
+
+  it("aborts the parallel group when a tuple call signal aborts", async () => {
+    const call = new AbortController();
+    const aborted: string[] = [];
+    const parallel = createSpawnParallel<string, TupleOptions, SpawnResult>(
+      (_service, options) => ({
+        events: emptyEvents(),
+        result: new Promise<SpawnResult>((_resolve, reject) => {
+          options.signal?.addEventListener("abort", () => {
+            aborted.push(options.prompt);
+            reject(new Error(`aborted ${options.prompt}`));
+          });
+        })
+      })
+    );
+
+    const promise = parallel(
+      [
+        ["codex", { prompt: "group" }],
+        ["codex", { prompt: "call", signal: call.signal }]
+      ],
+      { maxConcurrent: 2 }
+    );
+
+    call.abort();
+
+    await expect(promise).rejects.toThrow("aborted call");
+    expect(aborted).toEqual(["call", "group"]);
   });
 });

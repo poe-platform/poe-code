@@ -19,6 +19,7 @@ import { AS_FLOATING_PROMISE } from "./rules/AS-floating-promise.js";
 import { AS_IMPORT_CYCLE } from "./rules/AS-import-cycle.js";
 import { AS_JSDOC_TYPE } from "./rules/AS-jsdoc-type.js";
 import { AS_MISSING_ASYNC } from "./rules/AS-missing-async.js";
+import { AS_MUTATING_FROZEN } from "./rules/AS-mutating-frozen.js";
 import { AS_NEEDLESS_TEMPLATE } from "./rules/AS-needless-template.js";
 import { AS_SHADOW_GLOBAL } from "./rules/AS-shadow-global.js";
 import { AS_UNBOUNDED_LOOP } from "./rules/AS-unbounded-loop.js";
@@ -69,6 +70,7 @@ const RULES: readonly LintRule[] = [
   AS_ASYNC_NOT_NEEDED,
   AS_JSDOC_TYPE,
   AS_NEEDLESS_TEMPLATE,
+  AS_MUTATING_FROZEN,
   AS_DESTRUCTURE_NULL_DEFAULT,
   AS_UNBOUNDED_LOOP,
   AS_UNREACHABLE,

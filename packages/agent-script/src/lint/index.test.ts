@@ -179,6 +179,12 @@ describe("lint", () => {
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-NEEDLESS-TEMPLATE");
   });
 
+  it("includes AS-MUTATING-FROZEN diagnostics", () => {
+    const source = "Object.freeze([1]).push(2);";
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-MUTATING-FROZEN");
+  });
+
   it("includes AS-DESTRUCTURE-NULL-DEFAULT diagnostics", () => {
     const source = "const { a = 1 } = { a: null };";
 

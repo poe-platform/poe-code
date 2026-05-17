@@ -443,7 +443,7 @@ class AS008Scanner {
   private isAwaitAllowed(): boolean {
     const currentFunction = this.functionStack.at(-1);
     if (currentFunction !== undefined) {
-      return currentFunction;
+      return true;
     }
 
     return this.scopeDepth === 0;

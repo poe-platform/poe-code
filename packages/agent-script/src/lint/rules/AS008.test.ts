@@ -13,23 +13,8 @@ describe("AS008", () => {
     expect(AS008(source, { filename: "rule.js" })).toEqual([]);
   });
 
-  it("reports await inside non-async arrow functions", () => {
-    const source = "const run = () => await load();";
-
-    expect(AS008(source, { filename: "rule.js" })).toEqual([
-      {
-        code: "AS008",
-        severity: "error",
-        message: "Await is only allowed at the script top level or inside async arrow functions.",
-        filename: "rule.js",
-        line: 1,
-        column: 19,
-        span: {
-          start: { line: 1, column: 19, offset: source.indexOf("await") },
-          end: { line: 1, column: 31, offset: source.indexOf("await") + "await load()".length }
-        }
-      }
-    ]);
+  it("lets AS-MISSING-ASYNC own await inside non-async arrow functions", () => {
+    expect(AS008("const run = () => await load();", { filename: "rule.js" })).toEqual([]);
   });
 
   it("reports await inside nested blocks outside async arrow functions", () => {

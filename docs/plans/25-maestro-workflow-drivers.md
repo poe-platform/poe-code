@@ -189,7 +189,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: kind-validation
     title: Validate task kind at dispatch and surface unsupported kinds early
@@ -220,9 +220,9 @@ tasks:
 
       Conventional commit: `feat(agent-maestro): skip tasks with unsupported workflow kind`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: docs-readme

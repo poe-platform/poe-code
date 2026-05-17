@@ -249,7 +249,7 @@ tasks:
       Conventional commit: `docs(agent-maestro): workflow drivers and ralph integration`.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: deferred-drivers
     title: Stubs for experiment, superintendent, harness drivers
@@ -282,7 +282,7 @@ tasks:
 
       Conventional commit: `feat(agent-maestro): scaffold experiment/superintendent/harness driver stubs`.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

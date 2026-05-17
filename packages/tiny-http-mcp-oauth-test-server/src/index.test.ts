@@ -1,6 +1,11 @@
 import http from "node:http";
 import { afterEach, describe, expect, it } from "vitest";
-import { HttpTransport, McpClient } from "tiny-mcp-client";
+import {
+  HttpTransport,
+  McpClient,
+  type OAuthSessionStore,
+  type StoredOAuthSession,
+} from "tiny-mcp-client";
 import { nodeFetch } from "tiny-http-mcp-server";
 import { createMcpOAuthTestServer } from "./index.js";
 
@@ -90,6 +95,22 @@ async function reservePort(hostname: string): Promise<number> {
     });
   });
   return port;
+}
+
+function createMemorySessionStore(): OAuthSessionStore {
+  const sessions = new Map<string, StoredOAuthSession>();
+
+  return {
+    async load(resource: string): Promise<StoredOAuthSession | null> {
+      return sessions.get(resource) ?? null;
+    },
+    async save(resource: string, session: StoredOAuthSession): Promise<void> {
+      sessions.set(resource, session);
+    },
+    async clear(resource: string): Promise<void> {
+      sessions.delete(resource);
+    },
+  };
 }
 
 describe("createMcpOAuthTestServer", () => {
@@ -268,6 +289,7 @@ describe("createMcpOAuthTestServer", () => {
             clientName: "tiny-http-mcp-oauth-test-server test client",
           },
         },
+        sessionStore: createMemorySessionStore(),
         browser: {
           async openBrowser(authorizationUrl) {
             authorizationRequests.push(authorizationUrl);

@@ -145,8 +145,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): spread in call arguments`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-computed-optional-chain

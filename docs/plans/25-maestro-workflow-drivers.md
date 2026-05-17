@@ -223,7 +223,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: docs-readme
     title: Document workflow drivers in agent-maestro README
@@ -248,7 +248,7 @@ tasks:
 
       Conventional commit: `docs(agent-maestro): workflow drivers and ralph integration`.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: deferred-drivers

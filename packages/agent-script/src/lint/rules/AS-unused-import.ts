@@ -43,6 +43,10 @@ export type Diagnostic = {
   line: number;
   column: number;
   span: SourceSpan;
+  fix: {
+    range: readonly [number, number];
+    replacement: string;
+  };
 };
 
 type BindingKind = "const" | "import" | "let" | "param";
@@ -76,9 +80,12 @@ type Replacement = {
   text: string;
 };
 
-export function AS_UNUSED_IMPORT(source: string, options: { filename?: string } = {}): Diagnostic[] {
-  return collectUnusedImports(source, options.filename ?? "<input>").map(({ specifier }) =>
-    createDiagnostic(options.filename ?? "<input>", specifier)
+export function AS_UNUSED_IMPORT(
+  source: string,
+  options: { filename?: string } = {}
+): Diagnostic[] {
+  return collectUnusedImports(source, options.filename ?? "<input>").map((unusedImport) =>
+    createDiagnostic(options.filename ?? "<input>", source, unusedImport)
   );
 }
 
@@ -88,7 +95,10 @@ export function fixASUnusedImports(source: string, options: { filename?: string 
     return source;
   }
 
-  const unusedByDeclaration = new Map<ImportDeclaration, Set<ImportDeclaration["specifiers"][number]>>();
+  const unusedByDeclaration = new Map<
+    ImportDeclaration,
+    Set<ImportDeclaration["specifiers"][number]>
+  >();
   for (const unusedImport of unusedImports) {
     const specifiers = unusedByDeclaration.get(unusedImport.declaration) ?? new Set();
     specifiers.add(unusedImport.specifier);
@@ -97,7 +107,9 @@ export function fixASUnusedImports(source: string, options: { filename?: string 
 
   const replacements: Replacement[] = [];
   for (const [declaration, unusedSpecifiers] of unusedByDeclaration.entries()) {
-    const keptSpecifiers = declaration.specifiers.filter((specifier) => !unusedSpecifiers.has(specifier));
+    const keptSpecifiers = declaration.specifiers.filter(
+      (specifier) => !unusedSpecifiers.has(specifier)
+    );
     if (keptSpecifiers.length === 0) {
       replacements.push(createImportLineDeletion(source, declaration));
       continue;
@@ -209,7 +221,8 @@ class ASUnusedImportScanner {
   }
 
   private visitForStatement(node: ForStatement): void {
-    const bindings = node.init?.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.init) : [];
+    const bindings =
+      node.init?.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.init) : [];
 
     this.withScope(bindings, () => {
       if (node.init !== undefined) {
@@ -230,7 +243,8 @@ class ASUnusedImportScanner {
   }
 
   private visitForOfStatement(node: ForOfStatement): void {
-    const bindings = node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
+    const bindings =
+      node.left.type === "VariableDeclaration" ? this.collectDeclarationBindings(node.left) : [];
 
     this.withScope(bindings, () => {
       if (node.left.type === "VariableDeclaration") {
@@ -416,7 +430,13 @@ class ASUnusedImportScanner {
   }
 
   private visitBindingElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement
   ): void {
     switch (node.type) {
       case "AssignmentPattern":
@@ -432,7 +452,9 @@ class ASUnusedImportScanner {
     }
   }
 
-  private visitBindingPattern(node: ArrayPattern | Identifier | MemberExpression | ObjectPattern): void {
+  private visitBindingPattern(
+    node: ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): void {
     switch (node.type) {
       case "Identifier":
         return;
@@ -465,7 +487,9 @@ class ASUnusedImportScanner {
     this.visitBindingElement(node.value);
   }
 
-  private visitAssignmentTarget(node: AssignmentExpression["left"] | AssignmentPattern | RestElement): void {
+  private visitAssignmentTarget(
+    node: AssignmentExpression["left"] | AssignmentPattern | RestElement
+  ): void {
     switch (node.type) {
       case "AssignmentPattern":
         this.visitAssignmentTarget(node.left);
@@ -610,7 +634,13 @@ class ASUnusedImportScanner {
   }
 
   private collectBindingNamesFromElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement,
     kind: Exclude<BindingKind, "import">,
     bindings: Binding[]
   ): void {
@@ -663,8 +693,11 @@ class ASUnusedImportScanner {
 
 function createDiagnostic(
   filename: string,
-  specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier
+  source: string,
+  unusedImport: UnusedImport
 ): Diagnostic {
+  const { declaration, specifier } = unusedImport;
+  const replacement = createUnusedSpecifierReplacement(source, declaration, specifier);
   return {
     code: "AS-UNUSED-IMPORT",
     severity: "warning",
@@ -672,7 +705,30 @@ function createDiagnostic(
     filename,
     line: specifier.span.start.line,
     column: specifier.span.start.column,
-    span: specifier.span
+    span: specifier.span,
+    fix: {
+      range: [replacement.start, replacement.end],
+      replacement: replacement.text
+    }
+  };
+}
+
+function createUnusedSpecifierReplacement(
+  source: string,
+  declaration: ImportDeclaration,
+  specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier
+): Replacement {
+  if (declaration.specifiers.length === 1) {
+    return createImportLineDeletion(source, declaration);
+  }
+
+  return {
+    start: declaration.specifiers[0]?.span.start.offset ?? declaration.span.start.offset,
+    end: createSpecifierListReplacementEnd(source, declaration),
+    text: declaration.specifiers
+      .filter((candidate) => candidate !== specifier)
+      .map((candidate) => source.slice(candidate.span.start.offset, candidate.span.end.offset))
+      .join(", ")
   };
 }
 
@@ -698,8 +754,19 @@ function createImportLineDeletion(source: string, declaration: ImportDeclaration
   return {
     start: lineStart,
     end,
-    text: ""
+    text:
+      lineStart === 0 && end >= source.length && hasTrailingLineBreak(source)
+        ? readTrailingLineBreak(source)
+        : ""
   };
+}
+
+function hasTrailingLineBreak(source: string): boolean {
+  return source.endsWith("\n") || source.endsWith("\r");
+}
+
+function readTrailingLineBreak(source: string): string {
+  return source.endsWith("\r\n") ? "\r\n" : "\n";
 }
 
 function createSpecifierListReplacementEnd(source: string, declaration: ImportDeclaration): number {

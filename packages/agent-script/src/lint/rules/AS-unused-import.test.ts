@@ -10,7 +10,7 @@ describe("AS_UNUSED_IMPORT", () => {
   it("warns at the named import specifier span when it is never referenced", () => {
     const source = 'import { a } from "x";';
 
-    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toEqual([
+    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-UNUSED-IMPORT",
         severity: "warning",
@@ -29,7 +29,7 @@ describe("AS_UNUSED_IMPORT", () => {
   it("warns only for the unreferenced specifier in a named import list", () => {
     const source = 'import { a, b } from "x"; return a;';
 
-    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toEqual([
+    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-UNUSED-IMPORT",
         severity: "warning",
@@ -52,7 +52,7 @@ describe("AS_UNUSED_IMPORT", () => {
   it("warns at the full aliased specifier span when the local alias is unused", () => {
     const source = 'import { a as alias } from "x";';
 
-    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toEqual([
+    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-UNUSED-IMPORT",
         severity: "warning",
@@ -73,7 +73,9 @@ describe("AS_UNUSED_IMPORT", () => {
   });
 
   it("counts references inside nested arrow functions", () => {
-    expect(AS_UNUSED_IMPORT('import { a } from "x"; const fn = () => () => a; return fn;')).toEqual([]);
+    expect(AS_UNUSED_IMPORT('import { a } from "x"; const fn = () => () => a; return fn;')).toEqual(
+      []
+    );
   });
 
   it("counts references inside template literal interpolations", () => {
@@ -81,7 +83,9 @@ describe("AS_UNUSED_IMPORT", () => {
   });
 
   it("counts references inside object shorthand and computed members", () => {
-    expect(AS_UNUSED_IMPORT('import { a, key } from "x"; return { a, value: target[key] };')).toEqual([]);
+    expect(
+      AS_UNUSED_IMPORT('import { a, key } from "x"; return { a, value: target[key] };')
+    ).toEqual([]);
   });
 
   it("does not count object property keys as references", () => {
@@ -113,7 +117,7 @@ describe("AS_UNUSED_IMPORT", () => {
   it("warns for unused default imports", () => {
     const source = 'import value from "x";';
 
-    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toEqual([
+    expect(AS_UNUSED_IMPORT(source, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-UNUSED-IMPORT",
         severity: "warning",
@@ -133,7 +137,7 @@ describe("AS_UNUSED_IMPORT", () => {
     const unused = 'import * as ns from "x";';
 
     expect(AS_UNUSED_IMPORT('import * as ns from "x"; return ns.run();')).toEqual([]);
-    expect(AS_UNUSED_IMPORT(unused, { filename: "rule.js" })).toEqual([
+    expect(AS_UNUSED_IMPORT(unused, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-UNUSED-IMPORT",
         severity: "warning",
@@ -150,10 +154,20 @@ describe("AS_UNUSED_IMPORT", () => {
   });
 
   it("fixes unused specifiers and deletes imports that become empty", () => {
-    expect(fixASUnusedImports('import { a, b } from "x"; return a;')).toBe('import { a } from "x"; return a;');
-    expect(fixASUnusedImports('import { a, b, c } from "x"; return b;')).toBe('import { b } from "x"; return b;');
-    expect(fixASUnusedImports('import { a, b, } from "x"; return a;')).toBe('import { a } from "x"; return a;');
-    expect(fixASUnusedImports(['import { a } from "x";', "return 1;"].join("\n"))).toBe("return 1;");
-    expect(fixASUnusedImports(['import value from "x";', "return 1;"].join("\n"))).toBe("return 1;");
+    expect(fixASUnusedImports('import { a, b } from "x"; return a;')).toBe(
+      'import { a } from "x"; return a;'
+    );
+    expect(fixASUnusedImports('import { a, b, c } from "x"; return b;')).toBe(
+      'import { b } from "x"; return b;'
+    );
+    expect(fixASUnusedImports('import { a, b, } from "x"; return a;')).toBe(
+      'import { a } from "x"; return a;'
+    );
+    expect(fixASUnusedImports(['import { a } from "x";', "return 1;"].join("\n"))).toBe(
+      "return 1;"
+    );
+    expect(fixASUnusedImports(['import value from "x";', "return 1;"].join("\n"))).toBe(
+      "return 1;"
+    );
   });
 });

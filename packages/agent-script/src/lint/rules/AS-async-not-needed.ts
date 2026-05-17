@@ -46,6 +46,10 @@ export type Diagnostic = {
   line: number;
   column: number;
   span: SourceSpan;
+  fix: {
+    range: readonly [number, number];
+    replacement: string;
+  };
 };
 
 export const AS_ASYNC_NOT_NEEDED_MESSAGE =
@@ -55,7 +59,7 @@ export function AS_ASYNC_NOT_NEEDED(
   source: string,
   options: { filename?: string } = {}
 ): Diagnostic[] {
-  return new ASAsyncNotNeededScanner(options.filename ?? "<input>").scan(source);
+  return new ASAsyncNotNeededScanner(source, options.filename ?? "<input>").scan();
 }
 
 export function fixASAsyncNotNeeded(source: string, options: { filename?: string } = {}): string {
@@ -74,10 +78,13 @@ export function fixASAsyncNotNeeded(source: string, options: { filename?: string
 class ASAsyncNotNeededScanner {
   private readonly diagnostics: Diagnostic[] = [];
 
-  constructor(private readonly filename: string) {}
+  constructor(
+    private readonly source: string,
+    private readonly filename: string
+  ) {}
 
-  scan(source: string): Diagnostic[] {
-    this.visitModule(parseModule(source, this.filename));
+  scan(): Diagnostic[] {
+    this.visitModule(parseModule(this.source, this.filename));
     return this.diagnostics;
   }
 
@@ -446,6 +453,10 @@ class ASAsyncNotNeededScanner {
   }
 
   private report(span: SourceSpan): void {
+    const end =
+      this.source[span.start.offset + "async".length] === " "
+        ? span.end.offset + 1
+        : span.end.offset;
     this.diagnostics.push({
       code: "AS-ASYNC-NOT-NEEDED",
       severity: "info",
@@ -453,7 +464,11 @@ class ASAsyncNotNeededScanner {
       filename: this.filename,
       line: span.start.line,
       column: span.start.column,
-      span
+      span,
+      fix: {
+        range: [span.start.offset, end],
+        replacement: ""
+      }
     });
   }
 }

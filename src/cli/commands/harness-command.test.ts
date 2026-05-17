@@ -185,6 +185,15 @@ describe("harness command", () => {
     );
   });
 
+  it("passes --fix through to the harness runner explicitly", async () => {
+    await runHarnessCommand(["harness", "run", "harness.md", "--fix"]);
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({ fix: true })
+    );
+  });
+
   it("prints non-error lint diagnostics reported by the harness runner", async () => {
     const logs: string[] = [];
     harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {

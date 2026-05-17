@@ -235,6 +235,67 @@ describe("runHarnessPair", () => {
     ]);
   });
 
+  it("reports fix metadata without rewriting the harness script when fix is omitted", async () => {
+    const mdPath = "/repo/harness/no-fix.md";
+    const ajsPath = "/repo/harness/no-fix.ajs";
+    const ajsSource = ['import { log } from "log";', "export default () => true;", ""].join("\n");
+    const onDiagnostics = vi.fn();
+    vol.fromJSON({
+      [mdPath]: ["---", "kind: test", "version: 1", "---", "", "# No fix"].join("\n"),
+      [ajsPath]: ajsSource
+    });
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({
+          log: {
+            log: vi.fn()
+          }
+        }),
+        onDiagnostics
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: true
+    });
+
+    expect(onDiagnostics).toHaveBeenCalledWith([
+      expect.objectContaining({
+        code: "AS-UNUSED-IMPORT",
+        fix: {
+          range: [0, 'import { log } from "log";\n'.length],
+          replacement: ""
+        }
+      })
+    ]);
+    expect(vol.readFileSync(ajsPath, "utf8")).toBe(ajsSource);
+  });
+
+  it("writes fixed harness scripts before execution when fix is explicit", async () => {
+    const mdPath = "/repo/harness/fix.md";
+    const ajsPath = "/repo/harness/fix.ajs";
+    vol.fromJSON({
+      [mdPath]: ["---", "kind: test", "version: 1", "---", "", "# Fix"].join("\n"),
+      [ajsPath]: ['import { log } from "log";', "export default () => true;", ""].join("\n")
+    });
+
+    await expect(
+      runHarnessPair(mdPath, {
+        fix: true,
+        modulesFor: () => ({
+          log: {
+            log: vi.fn()
+          }
+        })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: true
+    });
+
+    expect(vol.readFileSync(ajsPath, "utf8")).toBe("export default () => true;\n");
+  });
+
   it("passes raw frontmatter through when the script does not export a schema", async () => {
     const mdPath = "/repo/harness/raw.md";
     vol.fromJSON({

@@ -1,6 +1,6 @@
 import path from "node:path";
 
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { runCli } from "./cli.js";
 
@@ -100,15 +100,8 @@ describe("agent-script CLI", () => {
     const stderr = createSink();
 
     const exitCode = await runCli(["script.md"], {
-      readFile: async () => [
-        "---",
-        "kind: custom",
-        "---",
-        "",
-        "```js",
-        "return 42;",
-        "```"
-      ].join("\n"),
+      readFile: async () =>
+        ["---", "kind: custom", "---", "", "```js", "return 42;", "```"].join("\n"),
       stdout,
       stderr
     });
@@ -118,20 +111,55 @@ describe("agent-script CLI", () => {
     expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: 42 })}\n`);
   });
 
+  it("writes fixed markdown back to disk when --fix is passed", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    const writeFile = vi.fn();
+
+    const exitCode = await runCli(["--fix", "script.md"], {
+      readFile: async () =>
+        [
+          "---",
+          "kind: custom",
+          "---",
+          "",
+          "```js",
+          'const x = "ok";',
+          "const value = `${x}`;",
+          "return value;",
+          "```"
+        ].join("\n"),
+      stdout,
+      stderr,
+      writeFile
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stderr.output()).toBe("");
+    expect(writeFile).toHaveBeenCalledWith(
+      path.resolve(process.cwd(), "script.md"),
+      [
+        "---",
+        "kind: custom",
+        "---",
+        "",
+        "```js",
+        'const x = "ok";',
+        "const value = String(x);",
+        "return value;",
+        "```"
+      ].join("\n"),
+      { encoding: "utf8" }
+    );
+  });
+
   it("prints lint warnings without failing the script", async () => {
     const stdout = createSink();
     const stderr = createSink();
 
     const exitCode = await runCli(["script.md"], {
       readFile: async () =>
-        [
-          "```js",
-          "if (false) {",
-          "  while (true) {}",
-          "}",
-          "return 42;",
-          "```"
-        ].join("\n"),
+        ["```js", "if (false) {", "  while (true) {}", "}", "return 42;", "```"].join("\n"),
       stdout,
       stderr
     });
@@ -162,26 +190,27 @@ describe("agent-script CLI", () => {
     const stderr = createSink();
 
     const exitCode = await runCli(["pipeline.md"], {
-      readFile: async () => [
-        "---",
-        "kind: pipeline-demo",
-        "version: 1",
-        "agents:",
-        "  builder:",
-        "    agent: claude-code",
-        "  reviewer:",
-        "    agent: claude-code",
-        "tasks:",
-        "  - id: inspect-worktree",
-        "    title: Inspect worktree",
-        "    prompt: Summarize the worktree.",
-        "  - id: review-diff",
-        "    title: Review diff",
-        "    prompt: Review the diff.",
-        "---",
-        "",
-        "# Pipeline demo"
-      ].join("\n"),
+      readFile: async () =>
+        [
+          "---",
+          "kind: pipeline-demo",
+          "version: 1",
+          "agents:",
+          "  builder:",
+          "    agent: claude-code",
+          "  reviewer:",
+          "    agent: claude-code",
+          "tasks:",
+          "  - id: inspect-worktree",
+          "    title: Inspect worktree",
+          "    prompt: Summarize the worktree.",
+          "  - id: review-diff",
+          "    title: Review diff",
+          "    prompt: Review the diff.",
+          "---",
+          "",
+          "# Pipeline demo"
+        ].join("\n"),
       stdout,
       stderr
     });
@@ -217,7 +246,8 @@ describe("agent-script CLI", () => {
     const stderr = createSink();
 
     const exitCode = await runCli(["lint.md"], {
-      readFile: async () => ["```js", 'import { missing } from "agent";', "return missing();", "```"].join("\n"),
+      readFile: async () =>
+        ["```js", 'import { missing } from "agent";', "return missing();", "```"].join("\n"),
       stdout,
       stderr
     });

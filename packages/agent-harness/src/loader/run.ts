@@ -27,6 +27,7 @@ export type HarnessImportMeta = {
 
 export type RunHarnessPairOptions = {
   allowedGlobals?: LintOptions["allowedGlobals"];
+  fix?: boolean;
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessImportMeta) => ModuleRegistry;
   onDiagnostics?: (diagnostics: readonly Diagnostic[]) => void;
   resume?: boolean;
@@ -78,15 +79,28 @@ export async function runHarnessPair(
       hostCallReplay.wrapModules(options.modulesFor(validated, meta))
     );
 
+    let executableSource = ajsSource;
+    const lintOptions = {
+      allowedExportNames: ["schema"],
+      allowedGlobals: options.allowedGlobals,
+      filename: pair.ajsPath,
+      frontmatterFields: readSchemaTopLevelFields(schema),
+      modules: createLintModules(modules)
+    };
+    const lintDiagnostics = options.fix
+      ? lint(ajsSource, { ...lintOptions, fix: true })
+      : lint(ajsSource, lintOptions);
+
+    if (!Array.isArray(lintDiagnostics)) {
+      executableSource = lintDiagnostics.fixed;
+      if (executableSource !== ajsSource) {
+        await writeFile(pair.ajsPath, executableSource, { encoding: "utf8" });
+      }
+    }
+
     const diagnostics = [
-      ...lint(ajsSource, {
-        allowedExportNames: ["schema"],
-        allowedGlobals: options.allowedGlobals,
-        filename: pair.ajsPath,
-        frontmatterFields: readSchemaTopLevelFields(schema),
-        modules: createLintModules(modules)
-      }),
-      ...missingDefaultExportDiagnostics(ajsSource, pair.ajsPath)
+      ...(Array.isArray(lintDiagnostics) ? lintDiagnostics : lintDiagnostics.diagnostics),
+      ...missingDefaultExportDiagnostics(executableSource, pair.ajsPath)
     ];
     options.onDiagnostics?.(diagnostics);
     throwOnLintErrors(diagnostics);
@@ -95,7 +109,7 @@ export async function runHarnessPair(
 
     let result: RunResult;
     try {
-      result = await run(ajsSource, {
+      result = await run(executableSource, {
         importMeta: meta,
         entryPointArgs: [validated],
         filename: pair.ajsPath,

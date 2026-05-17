@@ -7,15 +7,24 @@ type CliStream = {
 };
 
 export type ReadMarkdownFile = (filepath: string, encoding: "utf8") => Promise<string>;
+export type WriteMarkdownFile = (
+  filepath: string,
+  source: string,
+  options: { encoding: "utf8" }
+) => Promise<void>;
 
 export type RunCliOptions = {
   cwd?: string;
   readFile?: ReadMarkdownFile;
   stdout?: CliStream;
   stderr?: CliStream;
+  writeFile?: WriteMarkdownFile;
 };
 
-export async function runCli(argv: readonly string[], options: RunCliOptions = {}): Promise<number> {
+export async function runCli(
+  argv: readonly string[],
+  options: RunCliOptions = {}
+): Promise<number> {
   const stdout = options.stdout ?? process.stdout;
   const stderr = options.stderr ?? process.stderr;
   const cwd = options.cwd ?? process.cwd();
@@ -25,34 +34,39 @@ export async function runCli(argv: readonly string[], options: RunCliOptions = {
     return 0;
   }
 
-  const [filepath] = argv;
+  const parsed = parseArgs(argv);
+  const filepath = parsed.filepath;
 
-  if (filepath === undefined || argv.length !== 1) {
+  if (filepath === undefined) {
     stderr.write(`${createUsage()}\n`);
     return 1;
   }
 
   try {
     if (options.readFile !== undefined) {
-      const { runExampleFile } = await import("./example-runner.js") as {
+      const { runExampleFile } = (await import("./example-runner.js")) as {
         runExampleFile: (
           filepath: string,
           options: {
             readFile?: ReadMarkdownFile;
             stderr?: CliStream;
             stdout?: CliStream;
+            fix?: boolean;
+            writeFile?: WriteMarkdownFile;
           }
         ) => Promise<number>;
       };
 
       return await runExampleFile(path.resolve(cwd, filepath), {
+        fix: parsed.fix,
         readFile: options.readFile,
         stderr,
-        stdout
+        stdout,
+        writeFile: options.writeFile
       });
     }
 
-    const result = await runRunner(path.resolve(cwd, filepath), cwd);
+    const result = await runRunner(path.resolve(cwd, filepath), cwd, parsed.fix);
     stdout.write(result.stdout);
     stderr.write(result.stderr);
     return result.exitCode;
@@ -62,16 +76,36 @@ export async function runCli(argv: readonly string[], options: RunCliOptions = {
   }
 }
 
+function parseArgs(argv: readonly string[]): { filepath: string | undefined; fix: boolean } {
+  let fix = false;
+  let filepath: string | undefined;
+
+  for (const arg of argv) {
+    if (arg === "--fix") {
+      fix = true;
+      continue;
+    }
+
+    if (filepath !== undefined) {
+      return { filepath: undefined, fix };
+    }
+    filepath = arg;
+  }
+
+  return { filepath, fix };
+}
+
 function runRunner(
   filepath: string,
-  cwd: string
+  cwd: string,
+  fix: boolean
 ): Promise<{
   exitCode: number;
   stderr: string;
   stdout: string;
 }> {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, createRunnerArgs(filepath), {
+    const child = spawn(process.execPath, createRunnerArgs(filepath, fix), {
       cwd,
       env: createChildEnv(),
       stdio: ["ignore", "pipe", "pipe"]
@@ -100,19 +134,24 @@ function runRunner(
   });
 }
 
-function createRunnerArgs(filepath: string): string[] {
-  const runnerPath = new URL(import.meta.url.endsWith(".ts") ? "./example-runner.ts" : "./example-runner.js", import.meta.url);
+function createRunnerArgs(filepath: string, fix: boolean): string[] {
+  const runnerPath = new URL(
+    import.meta.url.endsWith(".ts") ? "./example-runner.ts" : "./example-runner.js",
+    import.meta.url
+  );
+  const args = fix ? ["--fix", filepath] : [filepath];
 
   if (runnerPath.pathname.endsWith(".ts")) {
-    return ["--import", "tsx", runnerPath.pathname, filepath];
+    return ["--import", "tsx", runnerPath.pathname, ...args];
   }
 
-  return [runnerPath.pathname, filepath];
+  return [runnerPath.pathname, ...args];
 }
 
 function createUsage(): string {
   return [
     "Usage: node --experimental-strip-types packages/agent-script/src/cli.ts <script.md>",
+    "       node --experimental-strip-types packages/agent-script/src/cli.ts --fix <script.md>",
     "",
     "Modes:",
     "  user-script mode: lints and runs the first ```js fenced block against stub example modules.",

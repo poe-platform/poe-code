@@ -1,6 +1,8 @@
 export interface ExtractBlockResult {
+  endOffset: number;
   source: string;
   lineOffset: number;
+  startOffset: number;
 }
 
 export function extractBlock(markdown: string): ExtractBlockResult {
@@ -19,8 +21,10 @@ export function extractBlock(markdown: string): ExtractBlockResult {
 
       if (matchesScriptInfo(fence.info)) {
         return {
+          endOffset: closingFenceStart,
           lineOffset: line,
-          source: markdown.slice(blockStart, closingFenceStart)
+          source: markdown.slice(blockStart, closingFenceStart),
+          startOffset: blockStart
         };
       }
 
@@ -39,8 +43,10 @@ export function extractBlock(markdown: string): ExtractBlockResult {
   }
 
   return {
+    endOffset: markdown.length,
     lineOffset: 1,
-    source: markdown
+    source: markdown,
+    startOffset: 0
   };
 }
 

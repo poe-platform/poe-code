@@ -45,6 +45,10 @@ export type Diagnostic = {
   line: number;
   column: number;
   span: SourceSpan;
+  fix: {
+    range: readonly [number, number];
+    replacement: string;
+  };
   hint: string;
 };
 
@@ -480,6 +484,13 @@ class ASNeedlessTemplateScanner {
       line: template.span.start.line,
       column: template.span.start.column,
       span: template.span,
+      fix: {
+        range: [template.span.start.offset, template.span.end.offset],
+        replacement: createStringReplacement(
+          this.source.slice(expression.span.start.offset, expression.span.end.offset),
+          expression
+        )
+      },
       expression,
       expressionSpan: expression.span
     });

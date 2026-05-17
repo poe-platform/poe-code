@@ -10,7 +10,7 @@ describe("AS_ASYNC_NOT_NEEDED", () => {
   it("reports async arrow functions without await in the body", () => {
     const source = "const f = async () => 1;";
 
-    expect(AS_ASYNC_NOT_NEEDED(source, { filename: "rule.js" })).toEqual([
+    expect(AS_ASYNC_NOT_NEEDED(source, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-ASYNC-NOT-NEEDED",
         severity: "info",
@@ -41,7 +41,7 @@ describe("AS_ASYNC_NOT_NEEDED", () => {
   it("reports nested async arrows without await inside async arrows with await", () => {
     const source = "const f = async () => { const g = async () => 1; return await x; };";
 
-    expect(AS_ASYNC_NOT_NEEDED(source, { filename: "rule.js" })).toEqual([
+    expect(AS_ASYNC_NOT_NEEDED(source, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-ASYNC-NOT-NEEDED",
         severity: "info",

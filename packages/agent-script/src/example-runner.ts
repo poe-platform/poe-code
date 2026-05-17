@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
 import { extractBlock } from "./loader/extract-block.js";
@@ -19,11 +19,18 @@ type CliStream = {
 };
 
 export type ReadMarkdownFile = (filepath: string, encoding: "utf8") => Promise<string>;
+export type WriteMarkdownFile = (
+  filepath: string,
+  source: string,
+  options: { encoding: "utf8" }
+) => Promise<void>;
 
 export type RunExampleFileOptions = {
+  fix?: boolean;
   readFile?: ReadMarkdownFile;
   stderr?: CliStream;
   stdout?: CliStream;
+  writeFile?: WriteMarkdownFile;
 };
 
 type HarnessMeta = {
@@ -50,14 +57,14 @@ type ExampleRuntime = {
 };
 
 async function main(argv: readonly string[]): Promise<number> {
-  const [filepath] = argv;
+  const { filepath, fix } = parseArgs(argv);
 
   if (filepath === undefined) {
     process.stderr.write("Missing script path.\n");
     return 1;
   }
 
-  return await runExampleFile(filepath);
+  return await runExampleFile(filepath, { fix });
 }
 
 export async function runExampleFile(
@@ -67,10 +74,13 @@ export async function runExampleFile(
   const stdout = options.stdout ?? process.stdout;
   const stderr = options.stderr ?? process.stderr;
   const readMarkdownFile = options.readFile ?? readFile;
+  const writeMarkdownFile = options.writeFile ?? writeFile;
 
   try {
     const rawSource = await readMarkdownFile(filepath, "utf8");
-    const { frontmatter, executableSource, hasScriptBlock } = loadExecutableSource(rawSource);
+    const loaded = loadExecutableSource(rawSource);
+    const { frontmatter, hasScriptBlock } = loaded;
+    let executableSource = loaded.executableSource;
     const meta = {
       filepath,
       kind: frontmatter.kind,
@@ -84,11 +94,28 @@ export async function runExampleFile(
       return 0;
     }
 
-    const diagnostics = lint(executableSource, {
+    const lintOptions = {
       allowedExportNames: ["schema"],
       filename: filepath,
       modules: createLintModulesFromRuntimeRegistry(runtime.registry)
-    });
+    };
+    const lintResult = options.fix
+      ? lint(executableSource, { ...lintOptions, fix: true })
+      : lint(executableSource, lintOptions);
+    const diagnostics = Array.isArray(lintResult) ? lintResult : lintResult.diagnostics;
+
+    if (!Array.isArray(lintResult)) {
+      executableSource = lintResult.fixed;
+      if (lintResult.fixed !== loaded.executableSource) {
+        await writeMarkdownFile(
+          filepath,
+          replaceExecutableSource(rawSource, loaded, lintResult.fixed),
+          {
+            encoding: "utf8"
+          }
+        );
+      }
+    }
     const lintErrors = diagnostics.filter((diagnostic) => diagnostic.severity === "error");
 
     if (lintErrors.length > 0) {
@@ -121,6 +148,8 @@ export async function runExampleFile(
 }
 
 function loadExecutableSource(source: string): {
+  blockEndOffset: number;
+  blockStartOffset: number;
   executableSource: string;
   frontmatter: Record<string, unknown>;
   hasScriptBlock: boolean;
@@ -128,12 +157,42 @@ function loadExecutableSource(source: string): {
   const { frontmatter, body } = splitFrontmatter(source);
   const executableBlock = extractBlock(body);
   const hasScriptBlock = executableBlock.source !== body || executableBlock.lineOffset !== 1;
+  const bodyStartOffset = source.length - body.length;
 
   return {
+    blockEndOffset: bodyStartOffset + executableBlock.endOffset,
+    blockStartOffset: bodyStartOffset + executableBlock.startOffset,
     executableSource: executableBlock.source,
     frontmatter,
     hasScriptBlock
   };
+}
+
+function replaceExecutableSource(
+  source: string,
+  loaded: ReturnType<typeof loadExecutableSource>,
+  fixed: string
+): string {
+  return `${source.slice(0, loaded.blockStartOffset)}${fixed}${source.slice(loaded.blockEndOffset)}`;
+}
+
+function parseArgs(argv: readonly string[]): { filepath: string | undefined; fix: boolean } {
+  let fix = false;
+  let filepath: string | undefined;
+
+  for (const arg of argv) {
+    if (arg === "--fix") {
+      fix = true;
+      continue;
+    }
+
+    if (filepath !== undefined) {
+      return { filepath: undefined, fix };
+    }
+    filepath = arg;
+  }
+
+  return { filepath, fix };
 }
 
 function createExampleRuntime(

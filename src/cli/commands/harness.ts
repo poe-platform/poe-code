@@ -33,6 +33,7 @@ import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { spawn as sdkSpawn } from "../../sdk/spawn.js";
 
 type HarnessRunOptions = {
+  fix?: boolean;
   resume?: boolean;
   snapshotPath?: string;
   yes?: boolean;
@@ -58,6 +59,7 @@ export function registerHarnessCommand(program: Command, container: CliContainer
     .command("run")
     .description("Run a harness pair.")
     .argument("[md-path]", "Path to the harness .md file")
+    .option("--fix", "Apply supported lint fixes to the harness .ajs file before running.")
     .option("--snapshot-path <path>", "File to write/read harness snapshots.")
     .option("--resume", "Resume from the snapshot file when it exists.")
     .option("-y, --yes", "Accept defaults without prompting.")
@@ -111,6 +113,7 @@ async function executeHarnessRun(
         onDiagnostics: (diagnostics) => {
           lintDiagnostics.push(...diagnostics);
         },
+        fix: Boolean(options.fix),
         resume: Boolean(options.resume),
         snapshotPath
       }),

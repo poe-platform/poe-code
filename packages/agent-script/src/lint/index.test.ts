@@ -38,6 +38,10 @@ describe("lint", () => {
         filename: "<input>",
         line: 1,
         column: 10,
+        fix: {
+          range: [0, source.indexOf("import { request }")],
+          replacement: ""
+        },
         span: {
           start: { line: 1, column: 10, offset: source.indexOf("missing") },
           end: { line: 1, column: 17, offset: source.indexOf("missing") + "missing".length }
@@ -62,6 +66,10 @@ describe("lint", () => {
         filename: "<input>",
         line: 2,
         column: 10,
+        fix: {
+          range: [source.indexOf("import { request }"), source.length],
+          replacement: ""
+        },
         span: {
           start: { line: 2, column: 10, offset: source.lastIndexOf("request") },
           end: { line: 2, column: 17, offset: source.lastIndexOf("request") + "request".length }
@@ -177,6 +185,72 @@ describe("lint", () => {
     const source = "const value = `${x}`;";
 
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-NEEDLESS-TEMPLATE");
+  });
+
+  it("includes fix metadata on fixable diagnostics without applying fixes", () => {
+    const source = "const value = `${x}`;";
+    const [diagnostic] = lint(source).filter((entry) => entry.code === "AS-NEEDLESS-TEMPLATE");
+
+    expect(diagnostic).toMatchObject({
+      fix: {
+        range: [source.indexOf("`"), source.lastIndexOf("`") + 1],
+        replacement: "String(x)"
+      }
+    });
+  });
+
+  it("returns an idempotent fixed source when fix is enabled", () => {
+    const source = 'const x = "ok"; const value = `${x}`; return value;';
+    const first = lint(source, { fix: true });
+    const second = lint(first.fixed, { fix: true });
+
+    expect(first.fixed).toBe('const x = "ok"; const value = String(x); return value;');
+    expect(first.diagnostics.map((diagnostic) => diagnostic.code)).not.toContain(
+      "AS-NEEDLESS-TEMPLATE"
+    );
+    expect(second.fixed).toBe(first.fixed);
+    expect(second.diagnostics).toEqual([]);
+  });
+
+  it("applies disjoint fixes in the same lint pass", () => {
+    const source = ["const value = `${x}`;", "const run = async () => 1;"].join("\n");
+    const result = lint(source, { fix: true });
+
+    expect(result.fixed).toBe(["const value = String(x);", "const run = () => 1;"].join("\n"));
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).not.toEqual(
+      expect.arrayContaining(["AS-NEEDLESS-TEMPLATE", "AS-ASYNC-NOT-NEEDED"])
+    );
+  });
+
+  it("applies only the first overlapping fix and reports the remaining diagnostic", () => {
+    const source = 'const x = "ok"; const value = `${`${x}`.trim()}`; return value;';
+    const result = lint(source, { fix: true });
+
+    expect(result.fixed).toBe('const x = "ok"; const value = String(`${x}`.trim()); return value;');
+    expect(result.diagnostics).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          code: "AS-NEEDLESS-TEMPLATE",
+          fix: expect.objectContaining({
+            replacement: "String(x)"
+          })
+        })
+      ])
+    );
+  });
+
+  it("preserves a trailing newline when fixing away the only import line", () => {
+    const result = lint('import { unused } from "api";\n', {
+      fix: true,
+      modules: {
+        api: ["unused"]
+      }
+    });
+
+    expect(result.fixed).toBe("\n");
+    expect(result.diagnostics.map((diagnostic) => diagnostic.code)).not.toContain(
+      "AS-UNUSED-IMPORT"
+    );
   });
 
   it("includes AS-LARGE-LITERAL diagnostics", () => {

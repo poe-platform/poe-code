@@ -10,7 +10,7 @@ describe("AS_NEEDLESS_TEMPLATE", () => {
   it("reports a template with only one interpolation", () => {
     const source = "const value = `${x}`;";
 
-    expect(AS_NEEDLESS_TEMPLATE(source, { filename: "rule.js" })).toEqual([
+    expect(AS_NEEDLESS_TEMPLATE(source, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-NEEDLESS-TEMPLATE",
         severity: "info",

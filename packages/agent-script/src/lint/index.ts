@@ -39,16 +39,28 @@ export type Diagnostic = {
   line: number;
   column: number;
   span: SourceSpan;
+  fix?: Fix;
   hint?: string;
+};
+
+export type Fix = {
+  range: readonly [number, number];
+  replacement: string;
 };
 
 export type LintOptions = {
   allowedExportNames?: readonly string[];
   allowedGlobals?: readonly string[];
+  fix?: boolean;
   filename?: string;
   largeLiteralThreshold?: number;
   frontmatterFields?: readonly string[];
   modules?: Modules;
+};
+
+export type LintFixResult = {
+  diagnostics: Diagnostic[];
+  fixed: string;
 };
 
 type LintRule = (source: string, options: LintOptions) => readonly Diagnostic[];
@@ -130,7 +142,24 @@ type SuppressionState = {
   lineCodes: ReadonlySet<string>;
 };
 
-export function lint(source: string, options: LintOptions = {}): Diagnostic[] {
+export function lint(source: string, options: LintOptions & { fix: true }): LintFixResult;
+export function lint(source: string, options?: LintOptions): Diagnostic[];
+export function lint(source: string, options: LintOptions = {}): Diagnostic[] | LintFixResult {
+  const diagnostics = collectDiagnostics(source, options);
+
+  if (!options.fix) {
+    return diagnostics;
+  }
+
+  const fixed = applyNonOverlappingFixes(source, diagnostics);
+  return {
+    diagnostics:
+      fixed === source ? diagnostics : collectDiagnostics(fixed, { ...options, fix: false }),
+    fixed
+  };
+}
+
+function collectDiagnostics(source: string, options: LintOptions): Diagnostic[] {
   const suppressions = buildSuppressionState(source, options);
   const as001Diagnostics = AS001(source, options);
   if (as001Diagnostics.length > 0 && !hasOnlyRegexLiteralDiagnostics(as001Diagnostics)) {
@@ -154,6 +183,36 @@ export function lint(source: string, options: LintOptions = {}): Diagnostic[] {
     ),
     suppressions
   );
+}
+
+function applyNonOverlappingFixes(source: string, diagnostics: readonly Diagnostic[]): string {
+  const fixes = diagnostics
+    .flatMap((diagnostic) => (diagnostic.fix === undefined ? [] : [diagnostic.fix]))
+    .sort(compareFixes);
+  const selected: Fix[] = [];
+
+  for (const fix of fixes) {
+    if (selected.some((applied) => fixesOverlap(applied, fix))) {
+      continue;
+    }
+    selected.push(fix);
+  }
+
+  return selected
+    .sort((left, right) => right.range[0] - left.range[0] || right.range[1] - left.range[1])
+    .reduce(
+      (result, fix) =>
+        `${result.slice(0, fix.range[0])}${fix.replacement}${result.slice(fix.range[1])}`,
+      source
+    );
+}
+
+function compareFixes(left: Fix, right: Fix): number {
+  return left.range[0] - right.range[0] || left.range[1] - right.range[1];
+}
+
+function fixesOverlap(left: Fix, right: Fix): boolean {
+  return left.range[0] < right.range[1] && right.range[0] < left.range[1];
 }
 
 function finalizeDiagnostics(

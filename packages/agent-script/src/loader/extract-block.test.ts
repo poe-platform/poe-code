@@ -16,22 +16,16 @@ describe("extractBlock", () => {
       "```"
     ].join("\n");
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 3,
       source: "const value = 1;\nreturn value;\n"
     });
   });
 
   it("accepts ajs info strings and ignores trailing info text", () => {
-    const markdown = [
-      "Before",
-      "",
-      "```ajs title=example",
-      "await step();",
-      "```"
-    ].join("\n");
+    const markdown = ["Before", "", "```ajs title=example", "await step();", "```"].join("\n");
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 3,
       source: "await step();\n"
     });
@@ -48,7 +42,7 @@ describe("extractBlock", () => {
       "```"
     ].join("\n");
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 5,
       source: "const actual = true;\n"
     });
@@ -69,7 +63,7 @@ describe("extractBlock", () => {
       "```"
     ].join("\n");
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 9,
       source: "await actualStep();\n"
     });
@@ -86,7 +80,7 @@ describe("extractBlock", () => {
       "```"
     ].join("\n");
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 1,
       source: "const actual = true;\n"
     });
@@ -103,7 +97,7 @@ describe("extractBlock", () => {
       "```"
     ].join("\n");
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 5,
       source: "const actual = true;\n"
     });
@@ -122,23 +116,18 @@ describe("extractBlock", () => {
       "```"
     ].join("\n");
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 7,
       source: "const answer = 42;\n"
     });
   });
 
   it("tracks line offsets correctly for CRLF content", () => {
-    const markdown = [
-      "# Heading",
-      "",
-      "```js",
-      "const answer = 42;",
-      "return answer;",
-      "```"
-    ].join("\r\n");
+    const markdown = ["# Heading", "", "```js", "const answer = 42;", "return answer;", "```"].join(
+      "\r\n"
+    );
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 3,
       source: "const answer = 42;\r\nreturn answer;\r\n"
     });
@@ -155,22 +144,18 @@ describe("extractBlock", () => {
       "```"
     ].join("\r\n");
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 5,
       source: "const answer = 42;\r\n"
     });
   });
 
   it("returns the original markdown when an earlier non-script fence is unclosed", () => {
-    const markdown = [
-      "```ts",
-      "const typed = true;",
-      "",
-      "```js",
-      "const hidden = true;"
-    ].join("\n");
+    const markdown = ["```ts", "const typed = true;", "", "```js", "const hidden = true;"].join(
+      "\n"
+    );
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 1,
       source: markdown
     });
@@ -179,7 +164,7 @@ describe("extractBlock", () => {
   it("returns the original markdown when no js-compatible fence exists", () => {
     const markdown = ["# Heading", "", "Body"].join("\n");
 
-    expect(extractBlock(markdown)).toEqual({
+    expect(extractBlock(markdown)).toMatchObject({
       lineOffset: 1,
       source: markdown
     });

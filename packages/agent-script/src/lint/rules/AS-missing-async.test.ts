@@ -10,7 +10,7 @@ describe("AS_MISSING_ASYNC", () => {
   it("reports a non-async arrow function with an expression-body await", () => {
     const source = "const f = () => await x;";
 
-    expect(AS_MISSING_ASYNC(source, { filename: "rule.js" })).toEqual([
+    expect(AS_MISSING_ASYNC(source, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-MISSING-ASYNC",
         severity: "error",
@@ -45,7 +45,7 @@ describe("AS_MISSING_ASYNC", () => {
   it("reports an outer non-async arrow when await appears outside the nested arrow", () => {
     const source = "const f = () => { const g = async () => await y; return await x; };";
 
-    expect(AS_MISSING_ASYNC(source, { filename: "rule.js" })).toEqual([
+    expect(AS_MISSING_ASYNC(source, { filename: "rule.js" })).toMatchObject([
       {
         code: "AS-MISSING-ASYNC",
         severity: "error",

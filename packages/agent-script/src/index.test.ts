@@ -99,7 +99,7 @@ describe("@poe-code/agent-script public exports", () => {
           fs: ["readFile"]
         }
       })
-    ).toEqual([
+    ).toMatchObject([
       {
         code: "AS-UNUSED-IMPORT",
         severity: "warning",
@@ -161,10 +161,7 @@ describe("@poe-code/agent-script public exports", () => {
   });
 
   it("includes import module and export diagnostics in lint results", () => {
-    const source = [
-      'import { missing } from "api";',
-      'import { request } from "htp";'
-    ].join("\n");
+    const source = ['import { missing } from "api";', 'import { request } from "htp";'].join("\n");
 
     expect(
       lint(source, {
@@ -172,7 +169,7 @@ describe("@poe-code/agent-script public exports", () => {
           api: ["request"]
         }
       })
-    ).toEqual([
+    ).toMatchObject([
       {
         code: "AS-UNUSED-IMPORT",
         severity: "warning",
@@ -235,7 +232,7 @@ describe("@poe-code/agent-script public exports", () => {
 
     expect(
       lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS012")
-    ).toEqual([
+    ).toMatchObject([
       {
         code: "AS012",
         severity: "error",
@@ -274,7 +271,7 @@ describe("@poe-code/agent-script public exports", () => {
           git: ["status"]
         }
       }).filter((diagnostic) => diagnostic.code === "AS013")
-    ).toEqual([
+    ).toMatchObject([
       {
         code: "AS013",
         severity: "error",
@@ -305,17 +302,24 @@ describe("@poe-code/agent-script public exports", () => {
   it("includes single-element Promise.race diagnostics in lint results", () => {
     const source = "const result = Promise.race([runTask()]);";
 
-    expect(lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS015")).toEqual([
+    expect(
+      lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS015")
+    ).toEqual([
       {
         code: "AS015",
         severity: "warning",
-        message: "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
+        message:
+          "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
         filename: "rule.js",
         line: 1,
         column: 16,
         span: {
           start: { line: 1, column: 16, offset: source.indexOf("Promise.race") },
-          end: { line: 1, column: 41, offset: source.indexOf("Promise.race([runTask()])") + "Promise.race([runTask()])".length }
+          end: {
+            line: 1,
+            column: 41,
+            offset: source.indexOf("Promise.race([runTask()])") + "Promise.race([runTask()])".length
+          }
         }
       }
     ]);
@@ -324,11 +328,14 @@ describe("@poe-code/agent-script public exports", () => {
   it("includes single-element Promise['race'] diagnostics in lint results", () => {
     const source = 'const result = Promise["race"]([runTask()]);';
 
-    expect(lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS015")).toEqual([
+    expect(
+      lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS015")
+    ).toEqual([
       {
         code: "AS015",
         severity: "warning",
-        message: "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
+        message:
+          "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
         filename: "rule.js",
         line: 1,
         column: 16,
@@ -337,7 +344,8 @@ describe("@poe-code/agent-script public exports", () => {
           end: {
             line: 1,
             column: 44,
-            offset: source.indexOf('Promise["race"]([runTask()])') + 'Promise["race"]([runTask()])'.length
+            offset:
+              source.indexOf('Promise["race"]([runTask()])') + 'Promise["race"]([runTask()])'.length
           }
         }
       }
@@ -364,7 +372,7 @@ describe("@poe-code/agent-script public exports", () => {
           }
         }
       }).filter((diagnostic) => diagnostic.code === "AS-IMPORT-CYCLE")
-    ).toEqual([
+    ).toMatchObject([
       {
         code: "AS-IMPORT-CYCLE",
         severity: "error",
@@ -422,8 +430,10 @@ describe("@poe-code/agent-script public exports", () => {
     ].join("\n");
 
     expect(
-      lint(source, { filename: "rule.js" }).filter((diagnostic) => diagnostic.code === "AS001" || diagnostic.code === "AS012")
-    ).toEqual([
+      lint(source, { filename: "rule.js" }).filter(
+        (diagnostic) => diagnostic.code === "AS001" || diagnostic.code === "AS012"
+      )
+    ).toMatchObject([
       {
         code: "AS001",
         severity: "error",
@@ -502,7 +512,7 @@ describe("@poe-code/agent-script public exports", () => {
           ["api", ["request", "request"]]
         ])
       })
-    ).toEqual([
+    ).toMatchObject([
       {
         code: "AS-UNUSED-IMPORT",
         severity: "warning",
@@ -579,7 +589,11 @@ describe("@poe-code/agent-script public exports", () => {
   });
 
   it("includes unused import and binding warnings in lint results", () => {
-    const source = ['import { used, unused } from "api";', "const value = used(1);", "let stale = 0;"].join("\n");
+    const source = [
+      'import { used, unused } from "api";',
+      "const value = used(1);",
+      "let stale = 0;"
+    ].join("\n");
 
     expect(
       lint(source, {
@@ -588,7 +602,7 @@ describe("@poe-code/agent-script public exports", () => {
           api: ["used", "unused"]
         }
       })
-    ).toEqual([
+    ).toMatchObject([
       {
         code: "AS-UNUSED-IMPORT",
         severity: "warning",
@@ -629,7 +643,11 @@ describe("@poe-code/agent-script public exports", () => {
   });
 
   it("includes async host promise return diagnostics in lint results", () => {
-    const source = ['import { spawn } from "agent";', "const run = async () => spawn();", "run;"].join("\n");
+    const source = [
+      'import { spawn } from "agent";',
+      "const run = async () => spawn();",
+      "run;"
+    ].join("\n");
 
     expect(
       lint(source, {
@@ -638,7 +656,7 @@ describe("@poe-code/agent-script public exports", () => {
           agent: ["spawn"]
         }
       })
-    ).toEqual([
+    ).toMatchObject([
       {
         code: "AS-ASYNC-NOT-NEEDED",
         severity: "info",
@@ -706,7 +724,11 @@ describe("@poe-code/agent-script public exports", () => {
         column: 15,
         span: {
           start: { line: 2, column: 15, offset: source.indexOf('"constructor"') },
-          end: { line: 2, column: 28, offset: source.indexOf('"constructor"') + '"constructor"'.length }
+          end: {
+            line: 2,
+            column: 28,
+            offset: source.indexOf('"constructor"') + '"constructor"'.length
+          }
         }
       }
     ]);

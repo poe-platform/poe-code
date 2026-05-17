@@ -46,6 +46,10 @@ export type Diagnostic = {
   line: number;
   column: number;
   span: SourceSpan;
+  fix: {
+    range: readonly [number, number];
+    replacement: string;
+  };
 };
 
 export const AS_MISSING_ASYNC_MESSAGE = "Arrow functions that contain await must be marked async.";
@@ -378,7 +382,13 @@ class ASMissingAsyncScanner {
   }
 
   private visitBindingElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+    node:
+      | AssignmentPattern
+      | ArrayPattern
+      | Identifier
+      | MemberExpression
+      | ObjectPattern
+      | RestElement
   ): void {
     if (node.type === "RestElement") {
       this.visitAssignmentTarget(node.argument);
@@ -436,7 +446,11 @@ class ASMissingAsyncScanner {
       filename: this.filename,
       line: span.start.line,
       column: span.start.column,
-      span
+      span,
+      fix: {
+        range: [span.start.offset, span.start.offset],
+        replacement: "async "
+      }
     });
   }
 }
@@ -605,7 +619,13 @@ function assignmentTargetContainsAwait(node: AssignmentExpression["left"]): bool
 }
 
 function bindingElementContainsAwait(
-  node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+  node:
+    | AssignmentPattern
+    | ArrayPattern
+    | Identifier
+    | MemberExpression
+    | ObjectPattern
+    | RestElement
 ): boolean {
   if (node.type === "RestElement") {
     return patternTargetContainsAwait(node.argument);

@@ -40,6 +40,18 @@ describe("workflow driver registry", () => {
     expect(getDriver("pipeline")).toBe(pipeline);
     expect(listDrivers()).toEqual([pipeline]);
   });
+
+  it("returns a copy when listing drivers", async () => {
+    const { getDriver, listDrivers, registerDriver } = await import("./registry.js");
+    const pipeline = createDriver("pipeline");
+
+    registerDriver(pipeline);
+    const listed = listDrivers() as WorkflowDriver[];
+    listed.pop();
+
+    expect(getDriver("pipeline")).toBe(pipeline);
+    expect(listDrivers()).toEqual([pipeline]);
+  });
 });
 
 function createDriver(kind: string): WorkflowDriver {

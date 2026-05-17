@@ -8,11 +8,6 @@ import {
   type SandboxValue
 } from "../values.js";
 
-const flatArray = Array.prototype.flat as unknown as (
-  this: SandboxArray,
-  depth?: number
-) => SandboxArray;
-
 export type ArrayMethodName =
   | "map"
   | "filter"
@@ -158,7 +153,10 @@ export async function callArrayMethod(
         options.budget
       );
     case "flat":
-      return budgetProducedValue(flatArray.call(value, asNumberOrUndefined(args[0]) ?? 1), options.budget);
+      return budgetProducedValue(
+        flattenArray(value, toIntegerOrInfinity(args[0] ?? 1), options.budget),
+        options.budget
+      );
     case "includes":
       return Reflect.apply(Array.prototype.includes, value, [...args]);
     case "indexOf":
@@ -449,15 +447,45 @@ async function flatMapArray(
         }
 
         result.push(mapped[mappedIndex]);
+        options.budget.allocateArrayLength(result.length);
       }
 
       continue;
     }
 
     result.push(mapped);
+    options.budget.allocateArrayLength(result.length);
   }
 
   return result;
+}
+
+function flattenArray(value: SandboxArray, depth: number, budget: Budget): SandboxArray {
+  const result: SandboxArray = [];
+  appendFlattenedEntries(value, depth, result, budget);
+  return result;
+}
+
+function appendFlattenedEntries(
+  value: SandboxArray,
+  depth: number,
+  result: SandboxArray,
+  budget: Budget
+): void {
+  for (let index = 0; index < value.length; index += 1) {
+    if (!(index in value)) {
+      continue;
+    }
+
+    const entry = value[index];
+    if (depth > 0 && Array.isArray(entry)) {
+      appendFlattenedEntries(entry, depth - 1, result, budget);
+      continue;
+    }
+
+    result.push(entry);
+    budget.allocateArrayLength(result.length);
+  }
 }
 
 async function sortArray(
@@ -592,6 +620,16 @@ function allocateProducedValue(value: SandboxValue, budget: Budget, seen: WeakSe
   }
 }
 
-function asNumberOrUndefined(value: SandboxValue | undefined): number | undefined {
-  return value === undefined ? undefined : Number(value);
+function toIntegerOrInfinity(value: SandboxValue): number {
+  const number = Number(value);
+
+  if (Number.isNaN(number) || Object.is(number, 0) || Object.is(number, -0)) {
+    return 0;
+  }
+
+  if (!Number.isFinite(number)) {
+    return number;
+  }
+
+  return Math.trunc(number);
 }

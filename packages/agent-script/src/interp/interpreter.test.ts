@@ -1045,6 +1045,13 @@ describe("interpret", () => {
         nodeVisits: 5
       }
     });
+
+    await expect(
+      interpret(parse("return [1, 2, 3].flatMap(x => [x, x * 2])"))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2, 2, 4, 3, 6]
+    });
   });
 
   it("evaluates intercepted number methods through member expressions", async () => {

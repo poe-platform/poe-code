@@ -156,7 +156,20 @@ describe("array methods", () => {
     const budget = new Budget();
     const options = createOptions(budget);
 
+    await expect(callArrayMethod([1, [2], [3, [4]]], "flat", [], options)).resolves.toEqual([
+      1,
+      2,
+      3,
+      [4]
+    ]);
     await expect(callArrayMethod([1, [2], [3, [4]]], "flat", [2], options)).resolves.toEqual([1, 2, 3, 4]);
+    await expect(callArrayMethod([1, [2, [3]]], "flat", [2], options)).resolves.toEqual([1, 2, 3]);
+    await expect(callArrayMethod([1, [2, [3]]], "flat", [Infinity], options)).resolves.toEqual([
+      1,
+      2,
+      3
+    ]);
+    await expect(callArrayMethod([], "flat", [], options)).resolves.toEqual([]);
     await expect(callArrayMethod(["a", "b", "a"], "includes", ["b"], options)).resolves.toBe(true);
     await expect(callArrayMethod(["a", "b", "a"], "indexOf", ["a", 1], options)).resolves.toBe(2);
     await expect(callArrayMethod(["a", "b", "a"], "lastIndexOf", ["a", 1], options)).resolves.toBe(0);
@@ -191,6 +204,44 @@ describe("array methods", () => {
     const shifted = [1, 2, 3];
     await expect(callArrayMethod(shifted, "shift", [], options)).resolves.toBe(1);
     expect(shifted).toEqual([2, 3]);
+  });
+
+  it("supports flatMap return shapes and callback arguments", async () => {
+    const budget = new Budget();
+    const options = createOptions(budget);
+    const seen: Array<readonly SandboxValue[]> = [];
+
+    const duplicateWithIndex = createSandboxClosure({
+      call: ([value, index]) => {
+        seen.push([value, index]);
+        return [value, Number(value) + Number(index)];
+      },
+      name: "duplicateWithIndex"
+    });
+    const identity = createSandboxClosure({
+      call: ([value]) => value,
+      name: "identity"
+    });
+    const fail = createSandboxClosure({
+      call: () => {
+        throw "boom";
+      },
+      name: "fail"
+    });
+
+    await expect(callArrayMethod([10, 20], "flatMap", [duplicateWithIndex], options)).resolves.toEqual([
+      10,
+      10,
+      20,
+      21
+    ]);
+    expect(seen).toEqual([
+      [10, 0],
+      [20, 1]
+    ]);
+    await expect(callArrayMethod([1], "flatMap", [identity], options)).resolves.toEqual([1]);
+    await expect(callArrayMethod([], "flatMap", [fail], options)).resolves.toEqual([]);
+    await expect(callArrayMethod([1], "flatMap", [fail], options)).rejects.toBe("boom");
   });
 
   it("matches sparse-array behavior for flatMap and sort", async () => {
@@ -256,6 +307,14 @@ describe("array methods", () => {
     );
     await expect(callArrayMethod([1, 2], "slice", [0], arrayBudget)).rejects.toEqual(
       expect.objectContaining({
+        budget: "arrayLength",
+        current: 2,
+        limit: 1
+      } satisfies Partial<SandboxError>)
+    );
+    await expect(callArrayMethod([[1, 2]], "flat", [], arrayBudget)).rejects.toEqual(
+      expect.objectContaining({
+        code: "budgetExceeded",
         budget: "arrayLength",
         current: 2,
         limit: 1

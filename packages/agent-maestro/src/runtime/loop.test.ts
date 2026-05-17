@@ -1,12 +1,18 @@
 import type { ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { Task, TaskList } from "@poe-code/task-list";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { tick, type TickDeps } from "./loop.js";
 import { createState, markRunning, scheduleRetry } from "./state.js";
 import type { ResolvedConfig } from "../config/schema.js";
+import { pipelineDriver } from "../drivers/pipeline.js";
+import { registerDriver } from "../drivers/registry.js";
 
 describe("tick", () => {
+  beforeEach(() => {
+    registerDriver(pipelineDriver);
+  });
+
   it("reconciles before preflight, dispatches, and schedules retry after worker exit", async () => {
     const task = createTask("tasks/next", {
       state: "planned",
@@ -338,6 +344,79 @@ describe("tick", () => {
 
     expect(allTasks).not.toHaveBeenCalled();
     expect(events).toEqual(["tick_started", "validation_failed"]);
+  });
+
+  it("dispatches pipeline tasks when the pipeline driver is registered", async () => {
+    const task = createTask("tasks/pipeline", {
+      metadata: { kind: "pipeline", createdAt: "2026-01-01T00:00:00.000Z" }
+    });
+    const state = createState(createConfig());
+    const dispatched: string[] = [];
+
+    await tick(
+      state,
+      createDeps({
+        tasks: createTaskList([task]),
+        ensureWorkspace: async (_root, qualifiedId) => {
+          dispatched.push(qualifiedId);
+          return { path: `/repo/workspaces/${qualifiedId}`, createdNow: true };
+        },
+        runAttempt: async () => ({ reason: "abnormal", failure: "canceled" })
+      })
+    );
+
+    expect(dispatched).toEqual(["tasks/pipeline"]);
+    expect(state.running.has("tasks/pipeline")).toBe(true);
+  });
+
+  it("skips tasks whose workflow kind has no registered driver", async () => {
+    const task = createTask("tasks/ralph", {
+      metadata: { kind: "ralph", createdAt: "2026-01-01T00:00:00.000Z" }
+    });
+    const state = createState(createConfig());
+    const ensureWorkspace = vi.fn();
+    const events: Array<Parameters<NonNullable<TickDeps["onEvent"]>>[0]> = [];
+
+    await tick(
+      state,
+      createDeps({
+        tasks: createTaskList([task]),
+        ensureWorkspace,
+        onEvent: (event) => events.push(event)
+      })
+    );
+
+    expect(ensureWorkspace).not.toHaveBeenCalled();
+    expect(state.running.has("tasks/ralph")).toBe(false);
+    expect(events).toContainEqual({
+      type: "task_skipped",
+      task_id: "tasks/ralph",
+      reason: "unsupported_kind",
+      kind: "ralph"
+    });
+  });
+
+  it("dispatches tasks with no workflow kind through the default pipeline driver", async () => {
+    const task = createTask("tasks/default-kind", {
+      metadata: { createdAt: "2026-01-01T00:00:00.000Z" }
+    });
+    const state = createState(createConfig());
+    const dispatched: string[] = [];
+
+    await tick(
+      state,
+      createDeps({
+        tasks: createTaskList([task]),
+        ensureWorkspace: async (_root, qualifiedId) => {
+          dispatched.push(qualifiedId);
+          return { path: `/repo/workspaces/${qualifiedId}`, createdNow: true };
+        },
+        runAttempt: async () => ({ reason: "abnormal", failure: "canceled" })
+      })
+    );
+
+    expect(dispatched).toEqual(["tasks/default-kind"]);
+    expect(state.running.has("tasks/default-kind")).toBe(true);
   });
 });
 

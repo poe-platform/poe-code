@@ -200,11 +200,78 @@ describe("runMaestro", () => {
     });
     expect(logger.info).toHaveBeenCalledWith("maestro task store open OK", {
       candidates: 1,
-      candidateIds: ["tasks/one"]
+      candidateIds: ["tasks/one"],
+      skipped: 0,
+      skippedKinds: []
     });
     expect(logger.info).toHaveBeenCalledWith("maestro dry-run complete");
 
     await expect(stop()).resolves.toBeUndefined();
+  });
+
+  it("reports unsupported workflow kinds in dry-run candidate logs", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": workflowFrontmatter({
+        tasks: ["  type: yaml-file", "  path: /repo/tasks.yaml"],
+        agent: ["  list: tasks"],
+        workspace: ["  root: /repo/workspaces"],
+        polling: ["  interval_ms: 25"]
+      }),
+      "/repo/.poe-code/pipeline/steps.yaml": [
+        "steps:",
+        "  implement:",
+        "    agent: codex",
+        "    mode: edit",
+        "    prompt: Implement {{ prompt }}"
+      ].join("\n")
+    });
+    const activeTasks = [
+      {
+        list: "tasks",
+        id: "one",
+        qualifiedId: "tasks/one",
+        name: "One",
+        state: "planned",
+        description: "Do the work",
+        metadata: { kind: "pipeline" }
+      },
+      {
+        list: "tasks",
+        id: "two",
+        qualifiedId: "tasks/two",
+        name: "Two",
+        state: "planned",
+        description: "Coordinate the work",
+        metadata: { kind: "superintendent" }
+      }
+    ];
+    const taskList = {
+      allTasks: async ({ state }: { state?: string } = {}) =>
+        activeTasks.filter((task) => state === undefined || task.state === state),
+      lists: async () => ["tasks"]
+    } as TaskList;
+    const spawn = vi.fn(async (): Promise<SpawnResult> => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+    const logger = { info: vi.fn(), error: vi.fn() };
+    const { runMaestro } = await import("./index.js");
+
+    await runMaestro({
+      workflowPath: "/repo/WORKFLOW.md",
+      dryRun: true,
+      taskList,
+      agentSpawn: spawn,
+      logger
+    });
+
+    expect(logger.info).toHaveBeenCalledWith("maestro task store open OK", {
+      candidates: 2,
+      candidateIds: ["tasks/one", "tasks/two"],
+      skipped: 1,
+      skippedKinds: ["superintendent"]
+    });
   });
 });
 

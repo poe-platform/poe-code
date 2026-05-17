@@ -1,5 +1,5 @@
 import { createFsFromVolume, Volume } from "memfs";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { loadResolvedSteps, type ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { SpawnResult } from "@poe-code/agent-spawn";
 import type { Task } from "@poe-code/task-list";
@@ -7,10 +7,15 @@ import type { Task } from "@poe-code/task-list";
 import { runAttempt, type AttemptDeps } from "./runner.js";
 import type { ResolvedConfig } from "../config/schema.js";
 import { pipelineDriver } from "../drivers/pipeline.js";
+import { registerDriver } from "../drivers/registry.js";
 
 type TestFs = ReturnType<typeof createFsFromVolume>["promises"];
 
 describe("runAttempt", () => {
+  beforeEach(() => {
+    registerDriver(pipelineDriver);
+  });
+
   afterEach(() => {
     vi.restoreAllMocks();
   });

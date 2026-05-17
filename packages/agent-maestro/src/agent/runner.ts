@@ -1,10 +1,9 @@
-import "../drivers/index.js";
-
 import { spawn as defaultSpawn } from "@poe-code/agent-spawn";
 import type { ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { Task } from "@poe-code/task-list";
 
 import type { ResolvedConfig } from "../config/schema.js";
+import { resolveWorkflowKind } from "../drivers/kind.js";
 import { getDriver } from "../drivers/registry.js";
 import type { WorkflowDriverContext } from "../drivers/types.js";
 import type { AttemptPhase, FailureCategory } from "../runtime/phases.js";
@@ -70,7 +69,7 @@ class AttemptRunner {
   constructor(private readonly args: RunnerArgs) {}
 
   async run(): Promise<AttemptOutcome> {
-    const planKind = resolvePlanKind(this.args.task);
+    const planKind = resolveWorkflowKind(this.args.task);
     const driver = getDriver(planKind);
 
     if (driver === undefined) {
@@ -96,12 +95,6 @@ class AttemptRunner {
       logger: this.args.deps.logger ?? noopLogger
     };
   }
-}
-
-function resolvePlanKind(task: Task): string {
-  const kind = task.metadata.kind;
-
-  return kind === undefined ? "pipeline" : String(kind);
 }
 
 const noopLogger = {

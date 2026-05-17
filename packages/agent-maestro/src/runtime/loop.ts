@@ -9,6 +9,8 @@ import {
 } from "../agent/runner.js";
 import type { DispatchValidationResult } from "../config/validate.js";
 import { validateDispatch as defaultValidateDispatch } from "../config/validate.js";
+import { resolveWorkflowKind } from "../drivers/kind.js";
+import { getDriver } from "../drivers/registry.js";
 import {
   ensureWorkspace as defaultEnsureWorkspace,
   removeWorkspace as defaultRemoveWorkspace,
@@ -29,6 +31,7 @@ import {
 
 export type TickEvent =
   | { type: "tick_started"; running: number }
+  | { type: "task_skipped"; task_id: string; reason: "unsupported_kind"; kind: string }
   | { type: "dispatch"; task_id: string; attempt: number; workspace: string }
   | {
       type: "worker_exit";
@@ -111,6 +114,17 @@ export async function tick(state: MaestroState, deps: TickDeps): Promise<void> {
   for (const task of candidates) {
     if (dispatched >= capacity) {
       return;
+    }
+
+    const kind = resolveWorkflowKind(task);
+    if (getDriver(kind) === undefined) {
+      deps.onEvent?.({
+        type: "task_skipped",
+        task_id: task.qualifiedId,
+        reason: "unsupported_kind",
+        kind
+      });
+      continue;
     }
 
     const attempt = acquireDispatchSlot(state, task, now);

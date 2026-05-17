@@ -14,6 +14,8 @@ import {
 import { loadWorkflow } from "./config/load.js";
 import { resolveConfig, type ResolvedConfig } from "./config/schema.js";
 import { validateDispatch } from "./config/validate.js";
+import { resolveWorkflowKind } from "./drivers/kind.js";
+import { getDriver } from "./drivers/registry.js";
 import { reconcileRunning as defaultReconcileRunning } from "./runtime/reconcile.js";
 import type { AttemptPhase, FailureCategory } from "./runtime/phases.js";
 import { createState, type RunningEntry } from "./runtime/state.js";
@@ -43,6 +45,7 @@ export interface RunMaestroOptions {
 
 export type MaestroEvent =
   | { type: "tick_started"; at: string }
+  | { type: "task_skipped"; task_id: string; reason: "unsupported_kind"; kind: string }
   | { type: "dispatch"; task_id: string; qualified_id: string; workspace: string }
   | {
       type: "attempt_phase";
@@ -222,13 +225,16 @@ async function runDryRun(
   }
 
   const candidates = await collectActiveCandidates(cfg, taskList);
+  const unsupported = summarizeUnsupportedCandidates(candidates);
   logger.info?.("maestro config OK", {
     tasks: cfg.tasks?.type,
     list: cfg.agent.list
   });
   logger.info?.("maestro task store open OK", {
     candidates: candidates.length,
-    candidateIds: candidates.map((task) => task.qualifiedId)
+    candidateIds: candidates.map((task) => task.qualifiedId),
+    skipped: unsupported.skipped,
+    skippedKinds: unsupported.kinds
   });
   logger.info?.("maestro dry-run complete");
 }
@@ -246,6 +252,23 @@ async function collectActiveCandidates(
   }
 
   return [...byId.values()].sort((a, b) => a.qualifiedId.localeCompare(b.qualifiedId));
+}
+
+function summarizeUnsupportedCandidates(tasks: Task[]): { skipped: number; kinds: string[] } {
+  const kinds = new Set<string>();
+  let skipped = 0;
+
+  for (const task of tasks) {
+    const kind = resolveWorkflowKind(task);
+    if (getDriver(kind) !== undefined) {
+      continue;
+    }
+
+    skipped += 1;
+    kinds.add(kind);
+  }
+
+  return { skipped, kinds: [...kinds].sort() };
 }
 
 const logLevelPriority = {
@@ -335,6 +358,8 @@ function mapTickEvent(event: TickEvent): MaestroEvent | undefined {
   switch (event.type) {
     case "tick_started":
       return { type: "tick_started", at: new Date().toISOString() };
+    case "task_skipped":
+      return event;
     case "dispatch":
       return {
         type: "dispatch",

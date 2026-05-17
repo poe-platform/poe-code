@@ -585,7 +585,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-mutating-frozen
     title: AS-MUTATING-FROZEN lint rule
@@ -610,8 +610,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-MUTATING-FROZEN lint rule`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-large-literal

@@ -27,7 +27,7 @@ import { AS_UNBOUNDED_LOOP } from "./rules/AS-unbounded-loop.js";
 import { AS_UNREACHABLE } from "./rules/AS-unreachable.js";
 import { AS_UNUSED_IMPORT } from "./rules/AS-unused-import.js";
 import { collectComments, tokenize, type Comment, type Position } from "../parse/tokenizer.js";
-import { parseModule, type SourceSpan } from "../parse/parser.js";
+import { parseModule, type SourceSpan, type Statement } from "../parse/parser.js";
 import type { Modules } from "./rules/module-registry.js";
 
 export type Diagnostic = {
@@ -344,15 +344,12 @@ function collectStatementSpans(source: string): SourceSpan[] {
   }
 }
 
-function collectStatementSpan(
-  statement: { type: string; span: SourceSpan },
-  spans: SourceSpan[]
-): void {
+function collectStatementSpan(statement: Statement, spans: SourceSpan[]): void {
   spans.push(statement.span);
 
   switch (statement.type) {
     case "BlockStatement":
-      for (const child of (statement as { body: Array<{ type: string; span: SourceSpan }> }).body) {
+      for (const child of statement.body) {
         collectStatementSpan(child, spans);
       }
       return;
@@ -360,31 +357,22 @@ function collectStatementSpan(
     case "ForOfStatement":
     case "ForStatement":
     case "WhileStatement":
-      collectStatementSpan((statement as { body: { type: string; span: SourceSpan } }).body, spans);
+      collectStatementSpan(statement.body, spans);
       return;
     case "IfStatement": {
-      const node = statement as {
-        consequent: { type: string; span: SourceSpan };
-        alternate?: { type: string; span: SourceSpan };
-      };
-      collectStatementSpan(node.consequent, spans);
-      if (node.alternate !== undefined) {
-        collectStatementSpan(node.alternate, spans);
+      collectStatementSpan(statement.consequent, spans);
+      if (statement.alternate !== undefined) {
+        collectStatementSpan(statement.alternate, spans);
       }
       return;
     }
     case "TryStatement": {
-      const node = statement as {
-        block: { type: string; span: SourceSpan };
-        handler?: { body: { type: string; span: SourceSpan } };
-        finalizer?: { type: string; span: SourceSpan };
-      };
-      collectStatementSpan(node.block, spans);
-      if (node.handler !== undefined) {
-        collectStatementSpan(node.handler.body, spans);
+      collectStatementSpan(statement.block, spans);
+      if (statement.handler !== undefined) {
+        collectStatementSpan(statement.handler.body, spans);
       }
-      if (node.finalizer !== undefined) {
-        collectStatementSpan(node.finalizer, spans);
+      if (statement.finalizer !== undefined) {
+        collectStatementSpan(statement.finalizer, spans);
       }
       return;
     }

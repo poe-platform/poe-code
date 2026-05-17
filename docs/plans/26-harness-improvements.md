@@ -635,7 +635,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-disabled-rule-comment
     title: Recognize //@as-disable comments
@@ -666,9 +666,9 @@ tasks:
 
       Conventional commit: `feat(agent-script): @as-disable comments`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: lint-frontmatter-field-unused
     title: AS-FRONTMATTER-FIELD-UNUSED lint rule

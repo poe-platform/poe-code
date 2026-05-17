@@ -114,6 +114,12 @@ describe("lint", () => {
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-UNREACHABLE");
   });
 
+  it("includes AS-UNBOUNDED-LOOP diagnostics", () => {
+    const source = "while (true) { tick(); }";
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-UNBOUNDED-LOOP");
+  });
+
   it("includes AS-UNREACHABLE diagnostics after labeled breaks to enclosing loops", () => {
     const source =
       "outer: for (const value of values) { for (const item of value.items) { break outer; log(item); } }";

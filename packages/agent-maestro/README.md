@@ -47,6 +47,7 @@
 | Field | Type | Default | Behavior |
 | --- | --- | --- | --- |
 | `service` | string | `"codex"` | Default agent service for steps that do not set `agent` in `steps.yaml` or `step_overrides`. |
+| `service` for `ralph` tasks | string | ignored | Ignored by the `ralph` workflow driver; ralph reads its agent from the plan doc frontmatter. |
 | `list` | string | required | Task list to poll. For `gh-issues`, this is `<project.owner>/<project.number>`. |
 | `max_concurrent_agents` | number | `1` | Maximum number of task workers running at once. |
 | `max_turns` | number | `20` | Maximum turns passed to each spawned agent execution. |
@@ -87,6 +88,17 @@
 
 Step definitions are loaded from `.poe-code/pipeline/steps.yaml` or `~/.poe-code/pipeline/steps.yaml`; see the `@poe-code/pipeline` README for the `steps.yaml` schema.
 
+## Workflow drivers
+
+Agent maestro includes two built-in workflow drivers:
+
+- `pipeline`: runs tasks through `@poe-code/pipeline`.
+- `ralph`: runs plan-doc tasks through the ralph workflow driver.
+
+The driver is selected from the task plan doc frontmatter `kind:` field. Tasks without `kind:` use the `pipeline` driver.
+
+The `ralph` driver requires a file-backed task backend, such as `markdown-dir` or `yaml-file`. `gh-issues` tasks always use the `pipeline` driver.
+
 ## Examples
 
 `markdown-dir` `WORKFLOW.md`:
@@ -97,9 +109,11 @@ tasks:
   type: markdown-dir
   path: ./tasks
   create: true
+  frontmatterMode: passthrough
+  singleList: plans
 agent:
   service: codex
-  list: backlog
+  list: plans
   max_concurrent_agents: 1
   max_turns: 20
   max_retry_backoff_ms: 300000

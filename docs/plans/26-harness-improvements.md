@@ -67,7 +67,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-do-while
     title: do/while statement
@@ -91,8 +91,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): evaluate DoWhileStatement`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-labeled-break-continue

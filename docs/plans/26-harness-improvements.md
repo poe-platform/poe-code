@@ -318,7 +318,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-await-non-promise
     title: AS-AWAIT-NON-PROMISE lint rule
@@ -344,8 +344,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-AWAIT-NON-PROMISE lint rule`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-missing-async

@@ -4,8 +4,16 @@ vi.mock("node:child_process", () => ({
   execFile: vi.fn()
 }));
 
-import { execFile } from "node:child_process";
+vi.mock("node:fs/promises", () => ({
+  mkdir: vi.fn(async () => undefined),
+  rm: vi.fn(async () => undefined)
+}));
 
+import { execFile } from "node:child_process";
+import { mkdir, rm } from "node:fs/promises";
+
+import { run } from "../run.js";
+import { makeAgentModule } from "./agent.js";
 import { makeGitModule, type GitSavepoint } from "./git.js";
 
 type ExecFileCallback = (error: Error | null, stdout: string, stderr: string) => void;
@@ -20,11 +28,19 @@ type ExecFileCall = {
   };
 };
 
-function createGitFailure(message: string, stdout = "", stderr = ""): Error & { stdout: string; stderr: string } {
+function createGitFailure(
+  message: string,
+  stdout = "",
+  stderr = ""
+): Error & { stdout: string; stderr: string } {
   return Object.assign(new Error(message), { stdout, stderr });
 }
 
-function mockExecFileSequence(handlers: Array<(call: ExecFileCall) => { error?: Error | null; stdout?: string; stderr?: string }>) {
+function mockExecFileSequence(
+  handlers: Array<
+    (call: ExecFileCall) => { error?: Error | null; stdout?: string; stderr?: string }
+  >
+) {
   const execFileMock = vi.mocked(execFile);
 
   execFileMock.mockImplementation(((file, args, options, callback) => {
@@ -54,6 +70,8 @@ function mockExecFileSequence(handlers: Array<(call: ExecFileCall) => { error?: 
 describe("makeGitModule", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    vi.mocked(mkdir).mockResolvedValue(undefined);
+    vi.mocked(rm).mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -310,5 +328,287 @@ describe("makeGitModule", () => {
     await expect(git.commit({ message: "save progress" })).rejects.toThrow(
       "git commit --message save progress failed: nothing to commit"
     );
+  });
+
+  it("creates a worktree at the default path and lists it", async () => {
+    const worktreePath = "/repo/.poe-code/worktrees/feature%2Fx";
+
+    const execFileMock = mockExecFileSequence([
+      (call) => {
+        expect(call.args).toEqual(["rev-parse", "--show-toplevel"]);
+        return { stdout: "/repo\n" };
+      },
+      (call) => {
+        expect(call.args).toEqual(["show-ref", "--verify", "--quiet", "refs/heads/feature/x"]);
+        return { error: createGitFailure("missing ref") };
+      },
+      (call) => {
+        expect(call.args).toEqual(["worktree", "add", "-b", "feature/x", worktreePath, "HEAD"]);
+        return { stdout: "Preparing worktree\n" };
+      },
+      (call) => {
+        expect(call.args).toEqual(["worktree", "list", "--porcelain"]);
+        return {
+          stdout: [
+            "worktree /repo",
+            "HEAD base-head",
+            "branch refs/heads/main",
+            "",
+            `worktree ${worktreePath}`,
+            "HEAD feature-head",
+            "branch refs/heads/feature/x",
+            ""
+          ].join("\n")
+        };
+      }
+    ]);
+
+    const git = makeGitModule("/repo");
+
+    await expect(git.worktreeCreate("feature/x")).resolves.toEqual({
+      path: worktreePath,
+      branch: "feature/x"
+    });
+    await expect(git.worktreeList()).resolves.toEqual([
+      { path: "/repo", branch: "main" },
+      { path: worktreePath, branch: "feature/x" }
+    ]);
+    expect(mkdir).toHaveBeenCalledWith("/repo/.poe-code/worktrees", { recursive: true });
+    expect(execFileMock).toHaveBeenCalledTimes(4);
+  });
+
+  it("uses HEAD as the default worktree base and accepts an explicit base ref", async () => {
+    mockExecFileSequence([
+      () => ({ stdout: "/repo\n" }),
+      () => ({ error: createGitFailure("missing ref") }),
+      (call) => {
+        expect(call.args).toEqual([
+          "worktree",
+          "add",
+          "-b",
+          "feature/default",
+          "/repo/.poe-code/worktrees/feature%2Fdefault",
+          "HEAD"
+        ]);
+        return { stdout: "" };
+      },
+      () => ({ stdout: "/repo\n" }),
+      () => ({ error: createGitFailure("missing ref") }),
+      (call) => {
+        expect(call.args).toEqual([
+          "worktree",
+          "add",
+          "-b",
+          "feature/base",
+          "/repo/custom-worktrees/base",
+          "origin/main"
+        ]);
+        return { stdout: "" };
+      }
+    ]);
+
+    const git = makeGitModule("/repo");
+
+    await expect(git.worktreeCreate("feature/default")).resolves.toEqual({
+      path: "/repo/.poe-code/worktrees/feature%2Fdefault",
+      branch: "feature/default"
+    });
+    await expect(
+      git.worktreeCreate("feature/base", {
+        base: "origin/main",
+        path: "custom-worktrees/base"
+      })
+    ).resolves.toEqual({
+      path: "/repo/custom-worktrees/base",
+      branch: "feature/base"
+    });
+  });
+
+  it("removes a worktree and treats a second removal as a no-op", async () => {
+    const worktreePath = "/repo/.poe-code/worktrees/feature%2Fx";
+
+    mockExecFileSequence([
+      () => ({ stdout: "/repo\n" }),
+      (call) => {
+        expect(call.args).toEqual(["worktree", "list", "--porcelain"]);
+        return {
+          stdout: [
+            "worktree /repo",
+            "branch refs/heads/main",
+            "",
+            `worktree ${worktreePath}`,
+            "branch refs/heads/feature/x",
+            ""
+          ].join("\n")
+        };
+      },
+      (call) => {
+        expect(call.args).toEqual(["worktree", "remove", "--force", worktreePath]);
+        return { stdout: "" };
+      },
+      () => ({ stdout: "/repo\n" }),
+      (call) => {
+        expect(call.args).toEqual(["worktree", "list", "--porcelain"]);
+        return {
+          stdout: ["worktree /repo", "branch refs/heads/main", ""].join("\n")
+        };
+      }
+    ]);
+
+    const git = makeGitModule("/repo");
+
+    await expect(git.worktreeRemove(worktreePath)).resolves.toBeUndefined();
+    await expect(git.worktreeRemove(worktreePath)).resolves.toBeUndefined();
+    expect(rm).toHaveBeenCalledTimes(1);
+    expect(rm).toHaveBeenCalledWith(worktreePath, { recursive: true, force: true });
+  });
+
+  it("lists current worktrees across multiple creates and removes", async () => {
+    const firstPath = "/repo/.poe-code/worktrees/feature%2Fone";
+    const secondPath = "/repo/.poe-code/worktrees/feature%2Ftwo";
+
+    mockExecFileSequence([
+      () => ({ stdout: "/repo\n" }),
+      () => ({ error: createGitFailure("missing ref") }),
+      () => ({ stdout: "" }),
+      () => ({ stdout: "/repo\n" }),
+      () => ({ error: createGitFailure("missing ref") }),
+      () => ({ stdout: "" }),
+      () => ({
+        stdout: [
+          "worktree /repo",
+          "branch refs/heads/main",
+          "",
+          `worktree ${firstPath}`,
+          "branch refs/heads/feature/one",
+          "",
+          `worktree ${secondPath}`,
+          "branch refs/heads/feature/two",
+          ""
+        ].join("\n")
+      }),
+      () => ({ stdout: "/repo\n" }),
+      () => ({
+        stdout: [
+          "worktree /repo",
+          "branch refs/heads/main",
+          "",
+          `worktree ${firstPath}`,
+          "branch refs/heads/feature/one",
+          "",
+          `worktree ${secondPath}`,
+          "branch refs/heads/feature/two",
+          ""
+        ].join("\n")
+      }),
+      () => ({ stdout: "" }),
+      () => ({
+        stdout: [
+          "worktree /repo",
+          "branch refs/heads/main",
+          "",
+          `worktree ${secondPath}`,
+          "branch refs/heads/feature/two",
+          ""
+        ].join("\n")
+      })
+    ]);
+
+    const git = makeGitModule("/repo");
+
+    await git.worktreeCreate("feature/one");
+    await git.worktreeCreate("feature/two");
+    await expect(git.worktreeList()).resolves.toEqual([
+      { path: "/repo", branch: "main" },
+      { path: firstPath, branch: "feature/one" },
+      { path: secondPath, branch: "feature/two" }
+    ]);
+    await git.worktreeRemove(firstPath);
+    await expect(git.worktreeList()).resolves.toEqual([
+      { path: "/repo", branch: "main" },
+      { path: secondPath, branch: "feature/two" }
+    ]);
+  });
+
+  it("throws a clear error when the worktree branch already exists", async () => {
+    mockExecFileSequence([
+      () => ({ stdout: "/repo\n" }),
+      (call) => {
+        expect(call.args).toEqual([
+          "show-ref",
+          "--verify",
+          "--quiet",
+          "refs/heads/feature/existing"
+        ]);
+        return { stdout: "" };
+      }
+    ]);
+
+    const git = makeGitModule("/repo");
+
+    await expect(git.worktreeCreate("feature/existing")).rejects.toThrow(
+      "Git worktree branch 'feature/existing' already exists."
+    );
+    expect(mkdir).not.toHaveBeenCalled();
+  });
+
+  it("rejects worktree paths outside the repository", async () => {
+    mockExecFileSequence([() => ({ stdout: "/repo\n" })]);
+
+    const git = makeGitModule("/repo");
+
+    await expect(git.worktreeCreate("feature/escape", { path: "/tmp/outside" })).rejects.toThrow(
+      "Git worktree path must be inside the git repository."
+    );
+    expect(mkdir).not.toHaveBeenCalled();
+  });
+
+  it("passes a created worktree path to spawn so edits stay outside the main checkout", async () => {
+    const worktreePath = "/repo/.poe-code/worktrees/feature%2Fspawn";
+    const edits = new Map<string, string>();
+    const spawnAgent = vi.fn(async (input: { cwd?: string }) => {
+      edits.set(input.cwd ?? "", "edited");
+      return {
+        exitCode: 0,
+        stdout: "",
+        stderr: "",
+        summary: "edited",
+        durationMs: 1
+      };
+    });
+
+    mockExecFileSequence([
+      () => ({ stdout: "/repo\n" }),
+      () => ({ error: createGitFailure("missing ref") }),
+      () => ({ stdout: "" })
+    ]);
+
+    const result = await run(
+      [
+        'import { worktreeCreate } from "git";',
+        'import { spawn } from "agent";',
+        'const worktree = await worktreeCreate("feature/spawn");',
+        'await spawn("codex", { prompt: "Edit files.", cwd: worktree.path });',
+        "return worktree.path;"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent),
+          git: makeGitModule("/repo")
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: worktreePath
+    });
+    expect(edits.get(worktreePath)).toBe("edited");
+    expect(edits.has("/repo")).toBe(false);
+    expect(spawnAgent).toHaveBeenCalledWith({
+      agent: "codex",
+      prompt: "Edit files.",
+      cwd: worktreePath
+    });
   });
 });

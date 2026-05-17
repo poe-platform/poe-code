@@ -37,7 +37,9 @@ const MODULE_PENDING_HOST_CALL_POLICIES: ModulePolicyRegistry = {
   git: {
     checkpoint: "read-side-effect",
     commit: "read-side-effect",
-    revert: "read-side-effect"
+    revert: "read-side-effect",
+    worktreeCreate: "read-side-effect",
+    worktreeRemove: "read-side-effect"
   }
 };
 
@@ -85,7 +87,9 @@ export function resolvePendingHostCallResumePolicy(
     const sideEffectTag = normalizePendingHostCallSideEffectTag(call.sideEffectTag);
 
     if (sideEffectTag.callId !== expectedTag.callId) {
-      throw new Error("Pending host call side-effect tag callId must match the pending host call id.");
+      throw new Error(
+        "Pending host call side-effect tag callId must match the pending host call id."
+      );
     }
 
     if (
@@ -121,11 +125,18 @@ function readPendingHostCallPolicyMode(call: PendingHostCallDescriptor): Pending
   const moduleId = call.moduleId?.trim();
   const operation = call.operation?.trim();
 
-  if (moduleId === undefined || moduleId.length === 0 || operation === undefined || operation.length === 0) {
+  if (
+    moduleId === undefined ||
+    moduleId.length === 0 ||
+    operation === undefined ||
+    operation.length === 0
+  ) {
     return DEFAULT_PENDING_HOST_CALL_POLICY;
   }
 
-  return MODULE_PENDING_HOST_CALL_POLICIES[moduleId]?.[operation] ?? DEFAULT_PENDING_HOST_CALL_POLICY;
+  return (
+    MODULE_PENDING_HOST_CALL_POLICIES[moduleId]?.[operation] ?? DEFAULT_PENDING_HOST_CALL_POLICY
+  );
 }
 
 function readRequiredString(value: string | undefined, label: string): string {

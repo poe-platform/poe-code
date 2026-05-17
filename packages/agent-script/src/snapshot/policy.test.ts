@@ -99,6 +99,46 @@ describe("snapshot pending host-call policy", () => {
     });
   });
 
+  it("tags git worktree mutations at issue time", () => {
+    expect(
+      tagPendingHostCallAtIssue({
+        id: "git-worktree-create-1",
+        moduleId: "git",
+        operation: "worktreeCreate"
+      }).sideEffectTag
+    ).toEqual({
+      kind: "host-call-side-effect",
+      callId: "git-worktree-create-1",
+      moduleId: "git",
+      operation: "worktreeCreate"
+    });
+
+    expect(
+      tagPendingHostCallAtIssue({
+        id: "git-worktree-remove-1",
+        moduleId: "git",
+        operation: "worktreeRemove"
+      }).sideEffectTag
+    ).toEqual({
+      kind: "host-call-side-effect",
+      callId: "git-worktree-remove-1",
+      moduleId: "git",
+      operation: "worktreeRemove"
+    });
+
+    expect(
+      tagPendingHostCallAtIssue({
+        id: "git-worktree-list-1",
+        moduleId: "git",
+        operation: "worktreeList"
+      })
+    ).toEqual({
+      id: "git-worktree-list-1",
+      moduleId: "git",
+      operation: "worktreeList"
+    });
+  });
+
   it("tags agent spawns at issue time so resume can read completed results", () => {
     const tagged = tagPendingHostCallAtIssue({
       id: 42,

@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import { mkdir, rm } from "node:fs/promises";
+import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 export type GitSavepoint = {
   head: string;
@@ -8,6 +10,16 @@ export type GitSavepoint = {
 export type GitCommitOptions = {
   message: string;
   files?: string[];
+};
+
+export type GitWorktree = {
+  path: string;
+  branch: string;
+};
+
+export type GitWorktreeCreateOptions = {
+  base?: string;
+  path?: string;
 };
 
 type ExecFileResult = {
@@ -23,6 +35,9 @@ export function makeGitModule(cwd: string): {
   commit(options: GitCommitOptions): Promise<string>;
   revert(savepoint: GitSavepoint): Promise<void>;
   diff(): Promise<string>;
+  worktreeCreate(branch: string, options?: GitWorktreeCreateOptions): Promise<GitWorktree>;
+  worktreeRemove(path: string): Promise<void>;
+  worktreeList(): Promise<GitWorktree[]>;
 } {
   const normalizedCwd = readNonEmptyString(cwd, "Git module cwd");
 
@@ -44,7 +59,13 @@ export function makeGitModule(cwd: string): {
       const stashRef = createSavepointRef();
       const stashMessage = `poe-code checkpoint ${stashRef}`;
 
-      await runGit(normalizedCwd, ["stash", "push", "--include-untracked", "--message", stashMessage]);
+      await runGit(normalizedCwd, [
+        "stash",
+        "push",
+        "--include-untracked",
+        "--message",
+        stashMessage
+      ]);
 
       try {
         const stashOid = await runGitAndTrim(normalizedCwd, ["rev-parse", "stash@{0}"]);
@@ -101,6 +122,62 @@ export function makeGitModule(cwd: string): {
     async diff() {
       const { stdout } = await runGit(normalizedCwd, ["diff", "HEAD", "--"]);
       return stdout;
+    },
+
+    async worktreeCreate(branch, options) {
+      const normalizedBranch = readNonEmptyString(branch, "Git worktree branch");
+      const normalizedOptions = normalizeWorktreeCreateOptions(options);
+      const repoRoot = await getRepoRoot(normalizedCwd);
+      const worktreePath = resolveWorktreePath(
+        repoRoot,
+        normalizedOptions.path ?? createDefaultWorktreePath(repoRoot, normalizedBranch),
+        "Git worktree path"
+      );
+
+      if (await gitRefExists(normalizedCwd, `refs/heads/${normalizedBranch}`)) {
+        throw new Error(`Git worktree branch '${normalizedBranch}' already exists.`);
+      }
+
+      await mkdir(dirname(worktreePath), { recursive: true });
+
+      try {
+        await runGit(normalizedCwd, [
+          "worktree",
+          "add",
+          "-b",
+          normalizedBranch,
+          worktreePath,
+          normalizedOptions.base
+        ]);
+      } catch (error) {
+        if (isBranchAlreadyExistsError(error, normalizedBranch)) {
+          throw new Error(`Git worktree branch '${normalizedBranch}' already exists.`);
+        }
+
+        throw error;
+      }
+
+      return {
+        path: worktreePath,
+        branch: normalizedBranch
+      };
+    },
+
+    async worktreeRemove(path) {
+      const repoRoot = await getRepoRoot(normalizedCwd);
+      const worktreePath = resolveWorktreePath(repoRoot, path, "Git worktree path");
+      const worktrees = await listWorktrees(normalizedCwd);
+
+      if (!worktrees.some((worktree) => resolve(worktree.path) === worktreePath)) {
+        return;
+      }
+
+      await runGit(normalizedCwd, ["worktree", "remove", "--force", worktreePath]);
+      await rm(worktreePath, { recursive: true, force: true });
+    },
+
+    async worktreeList() {
+      return listWorktrees(normalizedCwd);
     }
   };
 }
@@ -112,7 +189,9 @@ function normalizeCommitOptions(options: GitCommitOptions | unknown): GitCommitO
 
   return {
     message: readNonEmptyString(options.message, "Git commit options message"),
-    ...(options.files === undefined ? {} : { files: readNonEmptyStringArray(options.files, "Git commit options files") })
+    ...(options.files === undefined
+      ? {}
+      : { files: readNonEmptyStringArray(options.files, "Git commit options files") })
   };
 }
 
@@ -129,8 +208,126 @@ function normalizeSavepoint(savepoint: GitSavepoint | unknown): GitSavepoint {
   };
 }
 
+function normalizeWorktreeCreateOptions(
+  options: GitWorktreeCreateOptions | unknown
+): GitWorktreeCreateOptions & {
+  base: string;
+} {
+  if (options === undefined) {
+    return {
+      base: "HEAD"
+    };
+  }
+
+  if (!isRecord(options)) {
+    throw new Error("Git worktree create options must be an object.");
+  }
+
+  return {
+    base:
+      options.base === undefined
+        ? "HEAD"
+        : readNonEmptyString(options.base, "Git worktree create options base"),
+    ...(options.path === undefined
+      ? {}
+      : { path: readNonEmptyString(options.path, "Git worktree create options path") })
+  };
+}
+
 function createSavepointRef(): string {
   return `refs/poe-code/checkpoints/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function createDefaultWorktreePath(repoRoot: string, branch: string): string {
+  return resolve(repoRoot, ".poe-code", "worktrees", createSafeBranchDirectoryName(branch));
+}
+
+function createSafeBranchDirectoryName(branch: string): string {
+  return encodeURIComponent(branch);
+}
+
+async function getRepoRoot(cwd: string): Promise<string> {
+  return runGitAndTrim(cwd, ["rev-parse", "--show-toplevel"]);
+}
+
+async function gitRefExists(cwd: string, ref: string): Promise<boolean> {
+  try {
+    await runGit(cwd, ["show-ref", "--verify", "--quiet", ref]);
+    return true;
+  } catch (error) {
+    void error;
+    return false;
+  }
+}
+
+async function listWorktrees(cwd: string): Promise<GitWorktree[]> {
+  const { stdout } = await runGit(cwd, ["worktree", "list", "--porcelain"]);
+  return parseWorktreeList(stdout);
+}
+
+function parseWorktreeList(output: string): GitWorktree[] {
+  const worktrees: GitWorktree[] = [];
+  let current: Partial<GitWorktree> = {};
+
+  const finishCurrent = () => {
+    if (current.path !== undefined && current.branch !== undefined) {
+      worktrees.push({
+        path: current.path,
+        branch: current.branch
+      });
+    }
+
+    current = {};
+  };
+
+  for (const line of output.split("\n")) {
+    if (line.length === 0) {
+      finishCurrent();
+      continue;
+    }
+
+    if (line.startsWith("worktree ")) {
+      current.path = line.slice("worktree ".length);
+      continue;
+    }
+
+    if (line.startsWith("branch ")) {
+      current.branch = parseBranchRef(line.slice("branch ".length));
+    }
+  }
+
+  finishCurrent();
+  return worktrees;
+}
+
+function parseBranchRef(ref: string): string {
+  const branchPrefix = "refs/heads/";
+  return ref.startsWith(branchPrefix) ? ref.slice(branchPrefix.length) : ref;
+}
+
+function resolveWorktreePath(repoRoot: string, path: string, label: string): string {
+  const resolvedRoot = resolve(repoRoot);
+  const resolvedPath = isAbsolute(path) ? resolve(path) : resolve(resolvedRoot, path);
+  const relativePath = relative(resolvedRoot, resolvedPath);
+
+  if (
+    relativePath.length === 0 ||
+    relativePath === ".." ||
+    relativePath.startsWith(`..${sep}`) ||
+    isAbsolute(relativePath)
+  ) {
+    throw new Error(`${label} must be inside the git repository.`);
+  }
+
+  return resolvedPath;
+}
+
+function isBranchAlreadyExistsError(error: unknown, branch: string): boolean {
+  return (
+    error instanceof Error &&
+    error.message.includes(branch) &&
+    error.message.includes("already exists")
+  );
 }
 
 async function runGitAndTrim(cwd: string, args: string[]): Promise<string> {
@@ -150,7 +347,11 @@ async function runGit(cwd: string, args: string[]): Promise<ExecFileResult> {
       },
       (error, stdout, stderr) => {
         if (error) {
-          reject(new Error(`${formatGitCommand(args)} failed: ${pickGitFailureMessage(stdout, stderr, error)}`));
+          reject(
+            new Error(
+              `${formatGitCommand(args)} failed: ${pickGitFailureMessage(stdout, stderr, error)}`
+            )
+          );
           return;
         }
 

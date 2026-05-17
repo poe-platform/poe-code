@@ -825,8 +825,8 @@ tasks:
 
       Conventional commit: `feat(agent-spawn): spawn.parallel helper`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: time-sleep

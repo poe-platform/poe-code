@@ -5,6 +5,7 @@ import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
+import { createSpawnParallel } from "./parallel.js";
 import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { spawnStreaming } from "./acp/spawn.js";
@@ -277,6 +278,11 @@ spawn.retry = createSpawnRetry<SpawnOptions, SpawnResult>((service, options) => 
     result: handle.done
   };
 });
+
+spawn.parallel = createSpawnParallel<string, SpawnOptions, SpawnResult>((service, options) => ({
+  events: (async function* () {})(),
+  result: spawn(service, options)
+}));
 
 function resolveSpawnLogPath(options: SpawnOptions): string | undefined {
   if (options.logPath) {

@@ -485,7 +485,7 @@ function createHarnessModules(
       model: input.model,
       mode: input.mode,
       mcpServers: input.mcp,
-      signal: undefined
+      signal: input.signal
     });
     const resolved = await result;
     return {

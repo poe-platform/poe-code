@@ -38,6 +38,13 @@ export type {
   GenerateResult,
   MediaGenerateResult
 } from "./sdk/types.js";
+export { SpawnParallelError } from "@poe-code/agent-spawn";
+export type {
+  SpawnParallelCall,
+  SpawnParallelOptions,
+  SpawnParallelThunk,
+  SpawnParallelTuple
+} from "@poe-code/agent-spawn";
 export type {
   FollowLaunchLogsSdkOptions,
   ListLaunchesOptions,

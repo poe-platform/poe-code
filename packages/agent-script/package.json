@@ -18,6 +18,9 @@
       "import": "./dist/cli.js"
     }
   },
+  "dependencies": {
+    "@poe-code/agent-spawn": "*"
+  },
   "scripts": {
     "build": "tsc",
     "example:experiment": "node --experimental-strip-types src/cli.ts examples/experiment.md",

@@ -11,6 +11,7 @@ import {
   spawnAcp,
   spawnInteractive,
   spawnStreaming,
+  createSpawnParallel,
   renderAcpStream,
   applyMiddlewares,
   sessionCapture,
@@ -400,6 +401,10 @@ spawn.autonomous = async function autonomous(
     service
   });
 };
+
+spawn.parallel = createSpawnParallel<string, SpawnOptions, SpawnResult>((service, options) =>
+  spawn(service, options)
+);
 
 spawn.retry = function retry(
   service: string,

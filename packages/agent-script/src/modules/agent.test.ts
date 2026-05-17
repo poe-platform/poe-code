@@ -163,6 +163,41 @@ describe("makeAgentModule", () => {
     });
   });
 
+  it("exposes spawn.parallel with agent definitions and preserves non-zero results when failFast is false", async () => {
+    const spawnAgent = vi.fn(async (input: { prompt: string }) => ({
+      exitCode: input.prompt.includes("Fail") ? 2 : 0,
+      stdout: input.prompt,
+      stderr: input.prompt.includes("Fail") ? "failed" : "",
+      summary: "",
+      durationMs: 1
+    }));
+    const agent = makeAgentModule(spawnAgent);
+
+    const results = await agent.spawn.parallel(
+      [
+        [{ agent: "codex", prompt: "Be precise." }, { prompt: "Build" }],
+        ["claude-code", { prompt: "Fail this" }]
+      ],
+      { maxConcurrent: 1, failFast: false }
+    );
+
+    expect(results.map((result) => result.exitCode)).toEqual([0, 2]);
+    expect(spawnAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "codex",
+        prompt: "Be precise.\n\n# Task\n\nBuild",
+        signal: expect.objectContaining({ aborted: false })
+      })
+    );
+    expect(spawnAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agent: "claude-code",
+        prompt: "Fail this",
+        signal: expect.objectContaining({ aborted: false })
+      })
+    );
+  });
+
   it("rejects whitespace-only agent ids from either string or object definitions", async () => {
     const spawnAgent = vi.fn();
     const agent = makeAgentModule(spawnAgent);

@@ -53,6 +53,14 @@ export {
   type SpawnRetryFunction,
   type SpawnRetryOptions
 } from "./retry.js";
+export {
+  createSpawnParallel,
+  SpawnParallelError,
+  type SpawnParallelCall,
+  type SpawnParallelOptions,
+  type SpawnParallelThunk,
+  type SpawnParallelTuple
+} from "./parallel.js";
 export { spawnInteractive } from "./spawn-interactive.js";
 export { spawnAutonomous } from "./autonomous.js";
 export type { AutonomousOptions, StreamingSpawnFn, StreamingSpawnReturn } from "./autonomous.js";

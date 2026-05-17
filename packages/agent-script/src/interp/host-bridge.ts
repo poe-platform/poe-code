@@ -50,6 +50,8 @@ function wrapCallerInjectedValue(
 
   const bindingName = name === "default" && value.name.length > 0 ? value.name : name;
   const callable = value as (...args: readonly unknown[]) => unknown;
+  const state = { seen: new WeakMap<object, SandboxValue>() };
+  const properties = copyFunctionProperties(callable, [], budget, state, bindingName);
 
   return createSandboxClosure({
     ...(isAsyncFunction(callable) ? { async: true as const } : {}),
@@ -71,7 +73,8 @@ function wrapCallerInjectedValue(
         throw createHostErrorValue(error, context?.stack ?? [], budget);
       }
     },
-    name: bindingName
+    name: bindingName,
+    ...(properties ? { properties } : {})
   });
 }
 
@@ -207,6 +210,7 @@ function copyHostValueToSandbox(
       return existing;
     }
 
+    const properties = copyFunctionProperties(callable, stackFrames, budget, state, path);
     const wrapped = createSandboxClosure({
       ...(isAsyncFunction(callable) ? { async: true as const } : {}),
       call: (args, context) => {
@@ -228,7 +232,8 @@ function copyHostValueToSandbox(
           throw createHostErrorValue(error, context?.stack ?? [], budget);
         }
       },
-      name: callable.name.length > 0 ? callable.name : readPathName(path)
+      name: callable.name.length > 0 ? callable.name : readPathName(path),
+      ...(properties ? { properties } : {})
     });
 
     state.seen.set(value, wrapped);
@@ -312,6 +317,42 @@ function copyHostValueToSandbox(
   }
 
   throw new TypeError(`Unsupported sandbox value at ${path}: ${describeValue(value)}`);
+}
+
+function copyFunctionProperties(
+  callable: (...args: readonly unknown[]) => unknown,
+  stackFrames: readonly string[],
+  budget: Budget,
+  state: {
+    seen: WeakMap<object, SandboxValue>;
+  },
+  path: string
+): SandboxObject | undefined {
+  const properties: SandboxObject = {};
+
+  for (const key of Object.keys(callable)) {
+    const descriptor = Object.getOwnPropertyDescriptor(callable, key);
+    if (descriptor === undefined) {
+      continue;
+    }
+    if ("get" in descriptor || "set" in descriptor) {
+      continue;
+    }
+
+    if (typeof descriptor.value !== "function") {
+      continue;
+    }
+
+    properties[key] = copyHostValueToSandbox(
+      descriptor.value,
+      stackFrames,
+      budget,
+      state,
+      joinPath(path, key)
+    );
+  }
+
+  return Object.keys(properties).length > 0 ? properties : undefined;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {

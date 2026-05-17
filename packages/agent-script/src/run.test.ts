@@ -273,6 +273,38 @@ describe("run", () => {
     });
   });
 
+  it("runs agent.spawn.parallel through the injected module", async () => {
+    const spawnAgent = vi.fn(async (input: { prompt: string }) => ({
+      exitCode: input.prompt.includes("Fail") ? 5 : 0,
+      stdout: input.prompt,
+      stderr: input.prompt.includes("Fail") ? "failed" : "",
+      summary: "",
+      durationMs: 10
+    }));
+
+    const result = await run(
+      [
+        'import { spawn } from "agent";',
+        "const results = await spawn.parallel([",
+        '  ["codex", { prompt: "Build" }],',
+        '  ["claude-code", { prompt: "Fail" }]',
+        "], { maxConcurrent: 1, failFast: false });",
+        "return JSON.stringify(results.map((result) => result.exitCode));"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(spawnAgent)
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([0, 5])
+    });
+    expect(spawnAgent).toHaveBeenCalledTimes(2);
+  });
+
   it("surfaces agent spawn failures as catchable sandbox errors", async () => {
     const spawnAgent = vi.fn(async () => ({
       exitCode: 23,

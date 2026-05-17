@@ -1,3 +1,5 @@
+import { createSpawnParallel, type SpawnParallelOptions } from "@poe-code/agent-spawn";
+
 export type AgentSpawnMode = "read" | "edit" | "yolo";
 
 export type AgentModuleMcpServer = {
@@ -27,6 +29,7 @@ export type AgentModuleSpawnOptions = {
   mode?: AgentSpawnMode;
   cwd?: string;
   timeoutMs?: number;
+  signal?: AbortSignal;
 };
 
 export type SpawnAgentInput = AgentModuleSpawnOptions & {
@@ -49,6 +52,13 @@ export type AgentModuleRetryOptions = {
   isRetryable?: (result: SpawnAgentResult) => boolean;
 };
 
+export type AgentModuleParallelCall =
+  | readonly [agentDef: AgentModuleDefinition, options: AgentModuleSpawnOptions]
+  | ((signal?: AbortSignal) => {
+      events: AsyncIterable<never>;
+      result: Promise<SpawnAgentResult>;
+    });
+
 type AgentModuleSpawn = {
   (agentDef: AgentModuleDefinition, options: AgentModuleSpawnOptions): Promise<SpawnAgentResult>;
   retry(
@@ -56,6 +66,10 @@ type AgentModuleSpawn = {
     options: AgentModuleSpawnOptions,
     retryOptions: AgentModuleRetryOptions
   ): Promise<SpawnAgentResult>;
+  parallel(
+    calls: AgentModuleParallelCall[],
+    options?: SpawnParallelOptions
+  ): Promise<SpawnAgentResult[]>;
 };
 
 export function makeAgentModule(spawnAgent: SpawnAgent): {
@@ -84,7 +98,18 @@ export function makeAgentModule(spawnAgent: SpawnAgent): {
       ) {
         const input = resolveSpawnInput(agentDef, options);
         return await runSpawnRetry(spawnAgent, input, normalizeRetryOptions(retryOptions));
-      }
+      },
+      parallel: createSpawnParallel<
+        AgentModuleDefinition,
+        AgentModuleSpawnOptions,
+        SpawnAgentResult
+      >((agentDef, options) => ({
+        events: (async function* () {})(),
+        result: (async () => {
+          const input = resolveSpawnInput(agentDef, options);
+          return validateSpawnResult(await spawnAgent(input));
+        })()
+      }))
     })
   };
 }
@@ -181,7 +206,8 @@ function resolveSpawnInput(
     ...((normalizedOptions.mcp ?? definition.mcp)
       ? { mcp: normalizedOptions.mcp ?? definition.mcp }
       : {}),
-    ...(normalizedOptions.timeoutMs !== undefined ? { timeoutMs: normalizedOptions.timeoutMs } : {})
+    ...(normalizedOptions.timeoutMs !== undefined ? { timeoutMs: normalizedOptions.timeoutMs } : {}),
+    ...(normalizedOptions.signal !== undefined ? { signal: normalizedOptions.signal } : {})
   };
 }
 
@@ -243,7 +269,10 @@ function normalizeSpawnOptions(
       ? {}
       : {
           timeoutMs: readNonNegativeFiniteNumber(options.timeoutMs, "Agent spawn options timeoutMs")
-        })
+        }),
+    ...(options.signal === undefined
+      ? {}
+      : { signal: readAbortSignal(options.signal, "Agent spawn options signal") })
   };
 }
 
@@ -403,6 +432,20 @@ function readPositiveFiniteNumber(value: unknown, label: string): number {
   }
 
   return number;
+}
+
+function readAbortSignal(value: unknown, label: string): AbortSignal {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    typeof (value as { aborted?: unknown }).aborted !== "boolean" ||
+    typeof (value as { addEventListener?: unknown }).addEventListener !== "function" ||
+    typeof (value as { removeEventListener?: unknown }).removeEventListener !== "function"
+  ) {
+    throw new Error(`${label} must be an AbortSignal.`);
+  }
+
+  return value as AbortSignal;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

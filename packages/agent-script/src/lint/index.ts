@@ -12,6 +12,7 @@ import { AS012 } from "./rules/AS012.js";
 import { AS013 } from "./rules/AS013.js";
 import { AS014 } from "./rules/AS014.js";
 import { AS015 } from "./rules/AS015.js";
+import { AS_ASYNC_NOT_NEEDED } from "./rules/AS-async-not-needed.js";
 import { AS_AWAIT_NON_PROMISE } from "./rules/AS-await-non-promise.js";
 import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
 import { AS_MISSING_ASYNC } from "./rules/AS-missing-async.js";
@@ -22,7 +23,7 @@ import type { Modules } from "./rules/module-registry.js";
 
 export type Diagnostic = {
   code: string;
-  severity: "error" | "warning";
+  severity: "error" | "info" | "warning";
   message: string;
   filename: string;
   line: number;
@@ -57,6 +58,7 @@ const RULES: readonly LintRule[] = [
   AS014,
   AS015,
   AS_AWAIT_NON_PROMISE,
+  AS_ASYNC_NOT_NEEDED,
   AS_UNREACHABLE,
   AS_EXPORT_IMPORT_META
 ];

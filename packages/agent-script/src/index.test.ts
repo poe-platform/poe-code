@@ -606,6 +606,18 @@ describe("@poe-code/agent-script public exports", () => {
       })
     ).toEqual([
       {
+        code: "AS-ASYNC-NOT-NEEDED",
+        severity: "info",
+        message: "Async arrow functions without await should remove the async keyword.",
+        filename: "rule.js",
+        line: 2,
+        column: 13,
+        span: {
+          start: { line: 2, column: 13, offset: source.indexOf("async") },
+          end: { line: 2, column: 18, offset: source.indexOf("async") + "async".length }
+        }
+      },
+      {
         code: "AS009",
         severity: "error",
         message:

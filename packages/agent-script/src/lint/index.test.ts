@@ -129,6 +129,12 @@ describe("lint", () => {
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-AWAIT-NON-PROMISE");
   });
 
+  it("includes AS-ASYNC-NOT-NEEDED diagnostics", () => {
+    const source = "const run = async () => 1;";
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-ASYNC-NOT-NEEDED");
+  });
+
   it("includes AS-MISSING-ASYNC diagnostics", () => {
     const source = "const run = () => await load();";
 

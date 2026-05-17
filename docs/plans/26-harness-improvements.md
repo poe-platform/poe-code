@@ -827,7 +827,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: time-sleep
     title: time.sleep(ms) host primitive
@@ -854,8 +854,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): time.sleep with abort`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: time-now-deterministic

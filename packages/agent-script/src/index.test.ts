@@ -9,7 +9,11 @@ import { Budget, SandboxError } from "./interp/budget.js";
 import { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
 import { lint } from "./lint.js";
 import { lint as lintFromIndex } from "./lint/index.js";
-import { makeAgentModule } from "./modules/agent.js";
+import {
+  createSpawnUsageAccumulator,
+  makeAgentModule,
+  runWithSpawnUsageAccumulator
+} from "./modules/agent.js";
 import { makeEnvModule } from "./modules/env.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeGitModule } from "./modules/git.js";
@@ -47,7 +51,9 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.formatInterpreterError).toBe(formatInterpreterError);
     expect(api.deepCopyToSandbox).toBe(deepCopyToSandbox);
     expect(api.deepCopyFromSandbox).toBe(deepCopyFromSandbox);
+    expect(api.createSpawnUsageAccumulator).toBe(createSpawnUsageAccumulator);
     expect(api.makeAgentModule).toBe(makeAgentModule);
+    expect(api.runWithSpawnUsageAccumulator).toBe(runWithSpawnUsageAccumulator);
     expect(api.makeEnvModule).toBe(makeEnvModule);
     expect(api.makeFailModule).toBe(makeFailModule);
     expect(api.makeGitModule).toBe(makeGitModule);
@@ -61,6 +67,7 @@ describe("@poe-code/agent-script public exports", () => {
       "Budget",
       "FileSnapshotBackend",
       "SandboxError",
+      "createSpawnUsageAccumulator",
       "deepCopyFromSandbox",
       "deepCopyToSandbox",
       "dump",
@@ -83,6 +90,7 @@ describe("@poe-code/agent-script public exports", () => {
       "restore",
       "run",
       "runHarness",
+      "runWithSpawnUsageAccumulator",
       "splitFrontmatter"
     ]);
   });

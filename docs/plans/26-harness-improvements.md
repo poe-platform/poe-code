@@ -1069,7 +1069,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: cost-aggregation
     title: Internal cost aggregation across spawns
@@ -1099,8 +1099,8 @@ tasks:
 
       Conventional commit: `feat(harness): aggregate cost across spawns`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

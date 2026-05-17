@@ -199,7 +199,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-array-flat
     title: Array.prototype.flat and flatMap
@@ -228,8 +228,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): Array#flat and #flatMap`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-string-raw

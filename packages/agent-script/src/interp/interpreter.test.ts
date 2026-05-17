@@ -396,6 +396,146 @@ describe("interpret", () => {
     );
   });
 
+  it("evaluates String.raw tagged templates with raw quasis", async () => {
+    await expect(
+      interpret(parse("return String.raw`a\\nb`"), {
+        bindings: createStringRawBindings()
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "a\\nb"
+    });
+  });
+
+  it("calls tagged template functions with cooked strings and interpolation values", async () => {
+    const calls: unknown[][] = [];
+
+    await expect(
+      interpret(parse("return myTag`x=${1} y=${2}`"), {
+        bindings: {
+          myTag: createSandboxClosure({
+            call: (args) => {
+              calls.push([...args]);
+              return "tagged";
+            },
+            name: "myTag"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "tagged"
+    });
+
+    expect(calls).toHaveLength(1);
+    expect(Array.from(calls[0]?.[0] as string[])).toEqual(["x=", " y=", ""]);
+    expect(calls[0]?.slice(1)).toEqual([1, 2]);
+  });
+
+  it("exposes strings.raw as a different array that survives the tag call", async () => {
+    await expect(
+      interpret(
+        block(
+          parse(
+            'const myTag = (strings) => strings.raw !== strings && strings.raw[0] === "a\\\\nb" && strings[0] === "a\\nb"'
+          ),
+          parse("return myTag`a\\nb`")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: true
+    });
+  });
+
+  it("throws clearly when a tagged template tag is undefined", async () => {
+    await expect(
+      interpret(parse("missingTag`value`"), {
+        bindings: {
+          missingTag: undefined
+        }
+      })
+    ).rejects.toMatchObject({
+      name: "TypeError",
+      message: "Tagged template tag must be a function."
+    });
+  });
+
+  it("propagates throws from tagged template tag bodies as thrown completions", async () => {
+    await expect(
+      interpret(
+        block(
+          parse('const myTag = () => { throw "tag failed"; }'),
+          parse("try { myTag`value`; } catch (error) { return error; }")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "tag failed"
+    });
+  });
+
+  it("does not call tagged template tags when an interpolation throws", async () => {
+    const tag = vi.fn(() => "unused");
+
+    await expect(
+      interpret(parse('myTag`${(() => { throw "interpolation failed"; })()}`'), {
+        bindings: {
+          myTag: createSandboxClosure({
+            call: tag,
+            name: "myTag"
+          })
+        }
+      })
+    ).rejects.toBe("interpolation failed");
+
+    expect(tag).not.toHaveBeenCalled();
+  });
+
+  it("evaluates nested tagged templates inside interpolations", async () => {
+    await expect(
+      interpret(parse("return outer`value=${inner`nested=${1}`}`"), {
+        bindings: {
+          inner: createSandboxClosure({
+            call: ([strings, value]) => `${(strings as string[])[0]}${String(value)}`,
+            name: "inner"
+          }),
+          outer: createSandboxClosure({
+            call: ([strings, value]) => `${(strings as string[])[0]}${String(value)}${(strings as string[])[1]}`,
+            name: "outer"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "value=nested=1"
+    });
+  });
+
+  it("honors stringLength budget for tagged template quasis", async () => {
+    await expect(
+      interpret(parse("myTag`abcd${1}`"), {
+        bindings: {
+          myTag: createSandboxClosure({
+            call: () => "unused",
+            name: "myTag"
+          })
+        },
+        budget: new Budget({
+          stringLength: 3
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "stringLength",
+        current: 4,
+        limit: 3
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
   it.each([
     ["true && true", true],
     ["true && false", false],
@@ -1955,6 +2095,32 @@ function block(...statements: Statement[]): ParseResult {
     span: {
       start: statements[0]?.span.start ?? span(1, 1, 0).start,
       end: statements.at(-1)?.span.end ?? span(1, 1, 0).end
+    }
+  };
+}
+
+function createStringRawBindings() {
+  return {
+    String: {
+      raw: createSandboxClosure({
+        call: ([strings, ...values]) => {
+          const raw = (strings as { raw?: unknown }).raw;
+          if (!Array.isArray(raw)) {
+            throw new TypeError("String.raw requires a raw strings array.");
+          }
+
+          let result = "";
+          for (let index = 0; index < raw.length; index += 1) {
+            result += String(raw[index]);
+            if (index < values.length) {
+              result += String(values[index]);
+            }
+          }
+
+          return result;
+        },
+        name: "raw"
+      })
     }
   };
 }

@@ -44,6 +44,7 @@ export type {
   SpreadElement,
   Statement,
   StringLiteral,
+  TaggedTemplateExpression,
   TemplateElement,
   TemplateLiteral,
   ThrowStatement,

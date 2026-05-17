@@ -33,6 +33,7 @@ import type {
   SourceSpan,
   SpreadElement,
   StringLiteral,
+  TaggedTemplateExpression,
   TemplateLiteral,
   ThrowStatement,
   TryStatement,
@@ -177,6 +178,7 @@ const dispatchTable: DispatchTable = {
   BreakStatement: evaluateBreakStatement,
   ReturnStatement: evaluateReturnStatement,
   StringLiteral: evaluatePrimitiveLiteral,
+  TaggedTemplateExpression: evaluateTaggedTemplateExpression,
   TemplateLiteral: evaluateTemplateLiteral,
   ThrowStatement: evaluateThrowStatement,
   TryStatement: evaluateTryStatement,
@@ -390,6 +392,78 @@ async function evaluateTemplateLiteral(
     hasValue: true,
     value
   };
+}
+
+async function evaluateTaggedTemplateExpression(
+  node: TaggedTemplateExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  const tag = await evaluateNode(node.tag, context);
+  if (tag.kind !== "normal") {
+    return tag;
+  }
+
+  if (!isSandboxClosure(tag.value)) {
+    throw new TypeError("Tagged template tag must be a function.");
+  }
+
+  const values = await evaluateTemplateExpressionValues(node.quasi, context);
+  if (!values.ok) {
+    return values.result;
+  }
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: await invokeSandboxClosure(
+      tag.value,
+      [createTaggedTemplateStrings(node.quasi, context), ...values.value],
+      context,
+      [...context.callStack, formatStackFrame(node, tag.value.name)]
+    )
+  };
+}
+
+async function evaluateTemplateExpressionValues(
+  node: TemplateLiteral,
+  context: EvaluationContext
+): Promise<HelperResult<SandboxValue[]>> {
+  const values: SandboxValue[] = [];
+
+  for (const expressionNode of node.expressions) {
+    const expression = await evaluateNode(expressionNode, context);
+    if (expression.kind !== "normal") {
+      return {
+        ok: false,
+        result: expression
+      };
+    }
+
+    values.push(expression.value);
+  }
+
+  return {
+    ok: true,
+    value: values
+  };
+}
+
+function createTaggedTemplateStrings(node: TemplateLiteral, context: EvaluationContext): SandboxArray {
+  context.budget.allocateArrayLength(node.quasis.length);
+  const strings = node.quasis.map(quasi =>
+    context.budget.allocateString(quasi.value.cooked)
+  ) as SandboxArray;
+
+  context.budget.allocateArrayLength(node.quasis.length);
+  const raw = node.quasis.map(quasi => context.budget.allocateString(quasi.value.raw)) as SandboxArray;
+  Object.defineProperty(strings, "raw", {
+    configurable: false,
+    enumerable: false,
+    value: raw,
+    writable: false
+  });
+
+  return strings;
 }
 
 async function evaluateArrowFunction(
@@ -1193,7 +1267,7 @@ async function evaluateCallExpression(
   return evaluateResolvedCallExpression(node, callee.value, context);
 }
 
-function formatStackFrame(node: CallExpression, name: string | undefined): string {
+function formatStackFrame(node: { span: SourceSpan }, name: string | undefined): string {
   return `    at ${name ?? "<anonymous>"} (line ${node.span.start.line}, column ${node.span.start.column})`;
 }
 
@@ -1610,7 +1684,11 @@ function getMemberValue(
   property: string | number
 ): SandboxValue {
   if (Array.isArray(target)) {
-    return target[typeof property === "number" ? property : Number(property)];
+    if (typeof property === "number") {
+      return target[property];
+    }
+
+    return (target as unknown as Record<string, SandboxValue>)[property] ?? target[Number(property)];
   }
 
   return target[String(property)];

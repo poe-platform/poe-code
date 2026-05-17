@@ -446,6 +446,51 @@ describe("parse", () => {
     });
   });
 
+  it("parses tagged template expressions", () => {
+    expect(parse("String.raw`a\\nb${value}`")).toMatchObject({
+      type: "TaggedTemplateExpression",
+      tag: {
+        type: "MemberExpression",
+        computed: false,
+        object: {
+          type: "Identifier",
+          name: "String"
+        },
+        property: {
+          type: "Identifier",
+          name: "raw"
+        }
+      },
+      quasi: {
+        type: "TemplateLiteral",
+        expressions: [
+          {
+            type: "Identifier",
+            name: "value"
+          }
+        ],
+        quasis: [
+          {
+            type: "TemplateElement",
+            tail: false,
+            value: {
+              raw: "a\\nb",
+              cooked: "a\nb"
+            }
+          },
+          {
+            type: "TemplateElement",
+            tail: true,
+            value: {
+              raw: "",
+              cooked: ""
+            }
+          }
+        ]
+      }
+    });
+  });
+
   it("rebases spans for multiline template expressions", () => {
     expect(parse("`A\\n${\n  { value, list: [1, ...rest] }\n}Z`")).toEqual({
       type: "TemplateLiteral",

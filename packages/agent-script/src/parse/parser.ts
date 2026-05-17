@@ -84,6 +84,12 @@ export type TemplateLiteral = BaseNode & {
   quasis: TemplateElement[];
 };
 
+export type TaggedTemplateExpression = BaseNode & {
+  type: "TaggedTemplateExpression";
+  tag: Expression;
+  quasi: TemplateLiteral;
+};
+
 export type SpreadElement = BaseNode & {
   type: "SpreadElement";
   argument: Expression;
@@ -398,6 +404,7 @@ export type Expression =
   | ObjectExpression
   | RegexLiteral
   | StringLiteral
+  | TaggedTemplateExpression
   | TemplateLiteral
   | UnaryExpression
   | UndefinedLiteral;
@@ -1952,6 +1959,21 @@ class Parser {
         continue;
       }
 
+      if (this.currentToken().type === "template") {
+        const quasi = createTemplateLiteral(this.currentToken());
+        this.index += 1;
+        expression = {
+          node: {
+            type: "TaggedTemplateExpression",
+            tag: expression.node,
+            quasi,
+            span: createSpan(expression.node.span.start, quasi.span.end)
+          },
+          parenthesized: false
+        };
+        continue;
+      }
+
       break;
     }
 
@@ -2856,6 +2878,8 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
       );
     case "CallExpression":
       return findImportMetaAssignmentInNode(node.callee) ?? findImportMetaAssignmentInList(node.arguments);
+    case "TaggedTemplateExpression":
+      return findImportMetaAssignmentInNode(node.tag) ?? findImportMetaAssignmentInNode(node.quasi);
     case "TemplateLiteral":
       return findImportMetaAssignmentInList(node.expressions);
     case "BreakStatement":

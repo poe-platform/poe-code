@@ -153,7 +153,6 @@ class Lexer {
       }
 
       if (char === "`") {
-        this.rejectTaggedTemplate(start);
         this.readTemplate(start);
         continue;
       }
@@ -733,32 +732,6 @@ class Lexer {
     }
 
     this.lastClosedControlParenthesis = false;
-  }
-
-  private rejectTaggedTemplate(position: Position): void {
-    const previousToken = this.lastSignificantToken();
-    if (previousToken === undefined) {
-      return;
-    }
-
-    if (previousToken.type === "identifier" || previousToken.type === "template") {
-      this.syntaxError("Tagged template literals are not supported", position);
-    }
-
-    if (
-      previousToken.type === "punctuator" &&
-      (previousToken.value === "]" || previousToken.value === "}" || previousToken.value === "?.")
-    ) {
-      this.syntaxError("Tagged template literals are not supported", position);
-    }
-
-    if (
-      previousToken.type === "punctuator" &&
-      previousToken.value === ")" &&
-      !this.lastClosedControlParenthesis
-    ) {
-      this.syntaxError("Tagged template literals are not supported", position);
-    }
   }
 
   private currentChar(): string {

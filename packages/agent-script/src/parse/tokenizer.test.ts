@@ -281,10 +281,33 @@ describe("tokenize", () => {
     ]);
   });
 
-  it("rejects tagged templates", () => {
-    expect(() => tokenize("render`value`;")).toThrowError(
-      "Tagged template literals are not supported at line 1, column 7."
-    );
+  it("tokenizes tagged templates", () => {
+    expect(simplify(tokenize("render`value`;"))).toEqual([
+      {
+        type: "identifier",
+        value: "render",
+        start: { line: 1, column: 1, offset: 0 },
+        end: { line: 1, column: 7, offset: 6 }
+      },
+      {
+        type: "template",
+        value: "`value`",
+        start: { line: 1, column: 7, offset: 6 },
+        end: { line: 1, column: 14, offset: 13 }
+      },
+      {
+        type: "punctuator",
+        value: ";",
+        start: { line: 1, column: 14, offset: 13 },
+        end: { line: 1, column: 15, offset: 14 }
+      },
+      {
+        type: "eof",
+        value: "",
+        start: { line: 1, column: 15, offset: 14 },
+        end: { line: 1, column: 15, offset: 14 }
+      }
+    ]);
   });
 
   it("rejects regex literals after control flow conditions", () => {

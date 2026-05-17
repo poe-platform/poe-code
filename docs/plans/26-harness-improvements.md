@@ -918,7 +918,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: mcp-tool-batch
     title: mcp client toolBatch primitive
@@ -946,8 +946,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): mcp toolBatch`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: snapshot-pluggable-backend

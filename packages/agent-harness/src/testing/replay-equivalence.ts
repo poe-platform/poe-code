@@ -28,19 +28,32 @@ export async function assertReplayEquivalent(path: string, modulesFor: ModulesFo
     });
     const originalReturnValue = readReturnValue(original, "original");
     const originalHostCalls = await readOptionalTextFile(hostCallStorePath);
-    const snapshots = [...originalBackend.writes, original.snapshot];
+    const snapshots: ReplaySnapshot[] = [
+      ...originalBackend.writes.map((snapshot) => ({ kind: "yielded" as const, snapshot })),
+      {
+        kind: "completed",
+        returnValue: originalReturnValue,
+        snapshot: original.snapshot
+      }
+    ];
 
     for (let index = 0; index < snapshots.length; index += 1) {
+      const replaySnapshot = snapshots[index];
       await restoreOptionalTextFile(hostCallStorePath, originalHostCalls);
-      const replay = await runHarnessPair(path, {
-        clock: createDeterministicClock(),
-        modulesFor,
-        preserveSnapshotOnSuccess: true,
-        snapshotBackend: new MemorySnapshotBackend(snapshots[index]),
-        snapshotIntervalMs: 0,
-        snapshotPath
-      });
-      const replayReturnValue = readReturnValue(replay, `replay ${index + 1}`);
+      const replayReturnValue =
+        replaySnapshot.kind === "completed"
+          ? replaySnapshot.returnValue
+          : readReturnValue(
+              await runHarnessPair(path, {
+                clock: createDeterministicClock(),
+                modulesFor,
+                preserveSnapshotOnSuccess: true,
+                snapshotBackend: new MemorySnapshotBackend(replaySnapshot.snapshot),
+                snapshotIntervalMs: 0,
+                snapshotPath
+              }),
+              `replay ${index + 1}`
+            );
 
       if (!isDeepStrictEqual(replayReturnValue, originalReturnValue)) {
         throw new Error(
@@ -60,6 +73,17 @@ export async function assertReplayEquivalent(path: string, modulesFor: ModulesFo
     ]);
   }
 }
+
+type ReplaySnapshot =
+  | {
+      kind: "yielded";
+      snapshot: Snapshot;
+    }
+  | {
+      kind: "completed";
+      returnValue: unknown;
+      snapshot: Snapshot;
+    };
 
 class MemorySnapshotBackend implements SnapshotBackend {
   readonly writes: Snapshot[] = [];

@@ -73,6 +73,7 @@ describe("assertReplayEquivalent", () => {
   it("replays the completed snapshot without re-executing host side effects", async () => {
     const mdPath = "/repo/harness/after-last-await.md";
     const value = vi.fn(async () => "cached");
+    let modulesForCalls = 0;
     vol.fromJSON({
       [mdPath]: "---\nkind: after-last-await\nversion: 1\n---\n",
       "/repo/harness/after-last-await.ajs": [
@@ -85,13 +86,21 @@ describe("assertReplayEquivalent", () => {
     });
 
     await expect(
-      assertReplayEquivalent(mdPath, () => ({
-        host: {
-          value
+      assertReplayEquivalent(mdPath, () => {
+        modulesForCalls += 1;
+        if (modulesForCalls > 3) {
+          throw new Error("completed snapshot should not re-enter the harness");
         }
-      }))
+
+        return {
+          host: {
+            value
+          }
+        };
+      })
     ).resolves.toBeUndefined();
     expect(value).toHaveBeenCalledTimes(1);
+    expect(modulesForCalls).toBe(3);
   });
 
   it("surfaces sourceHash mismatches from tampered snapshots", async () => {

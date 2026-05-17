@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { createSandboxClosure } from "../interp/values.js";
+import { makeTimeModule } from "../modules/time.js";
 import { lint } from "./index.js";
 import { createLintModulesFromRuntimeRegistry } from "./runtime-modules.js";
 
@@ -37,5 +38,17 @@ describe("runtime lint modules", () => {
         { modules }
       ).map((diagnostic) => diagnostic.code)
     ).toEqual(["AS-FLOATING-PROMISE", "AS-FLOATING-PROMISE"]);
+  });
+
+  it("marks time.sleep as async from the runtime module declaration", () => {
+    const modules = createLintModulesFromRuntimeRegistry({
+      time: makeTimeModule()
+    });
+
+    expect(lint('import * as time from "time";\ntime.sleep(1);', { modules })).toMatchObject([
+      {
+        code: "AS-FLOATING-PROMISE"
+      }
+    ]);
   });
 });

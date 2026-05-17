@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { run } from "../run.js";
 import { makeTimeModule } from "./time.js";
 
 describe("makeTimeModule", () => {
@@ -73,5 +74,113 @@ describe("makeTimeModule", () => {
     expect(randomSpy).toHaveBeenCalledTimes(1);
     expect(nowSpy).toHaveBeenCalledTimes(1);
     expect(uuidSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("resolves sleep after at least the requested milliseconds", async () => {
+    const time = makeTimeModule();
+    const start = performance.now();
+
+    await time.sleep(50);
+
+    expect(performance.now() - start).toBeGreaterThanOrEqual(50);
+  });
+
+  it("resolves sleep(0) asynchronously", async () => {
+    const time = makeTimeModule();
+    let resolved = false;
+
+    const sleep = time.sleep(0).then(() => {
+      resolved = true;
+    });
+
+    expect(resolved).toBe(false);
+    await sleep;
+    expect(resolved).toBe(true);
+  });
+
+  it("rejects negative sleep input with a RangeError", async () => {
+    const time = makeTimeModule();
+
+    await expect(time.sleep(-1)).rejects.toThrow(
+      new RangeError("time.sleep(ms) requires a non-negative finite millisecond delay.")
+    );
+  });
+
+  it("surfaces negative sleep input as a RangeError-shaped sandbox error", async () => {
+    const result = await run(
+      [
+        'import * as time from "time";',
+        "try {",
+        "  await time.sleep(-1);",
+        "} catch ({ name, message }) {",
+        "  return JSON.stringify(Array.of(name, message));",
+        "}"
+      ].join("\n"),
+      {
+        modules: {
+          time: makeTimeModule()
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify([
+        "RangeError",
+        "time.sleep(ms) requires a non-negative finite millisecond delay."
+      ])
+    });
+  });
+
+  it("rejects immediately when sleep is called after abort", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const time = makeTimeModule({ signal: controller.signal });
+    const start = performance.now();
+
+    await expect(time.sleep(1_000)).rejects.toThrow(new Error("time.sleep aborted."));
+
+    expect(performance.now() - start).toBeLessThan(20);
+  });
+
+  it("rejects promptly when sleep is aborted during the wait", async () => {
+    const controller = new AbortController();
+    const time = makeTimeModule({ signal: controller.signal });
+    let abortAt = 0;
+
+    const sleep = time.sleep(1_000).then(
+      () => {
+        throw new Error("Expected sleep to reject after abort.");
+      },
+      (error) => ({
+        elapsedAfterAbort: performance.now() - abortAt,
+        error
+      })
+    );
+
+    setTimeout(() => {
+      abortAt = performance.now();
+      controller.abort();
+    }, 20);
+
+    await expect(sleep).resolves.toMatchObject({
+      elapsedAfterAbort: expect.any(Number),
+      error: new Error("time.sleep aborted.")
+    });
+    const result = await sleep;
+    expect(result.elapsedAfterAbort).toBeLessThan(30);
+  });
+
+  it("resolves concurrent sleeps independently", async () => {
+    const time = makeTimeModule();
+    const completed: string[] = [];
+
+    await Promise.all([
+      time.sleep(5).then(() => completed.push("short")),
+      time.sleep(15).then(() => completed.push("medium")),
+      time.sleep(25).then(() => completed.push("long"))
+    ]);
+
+    expect(completed.sort()).toEqual(["long", "medium", "short"]);
   });
 });

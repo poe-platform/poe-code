@@ -33,8 +33,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): tagged template literals`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-try-finally

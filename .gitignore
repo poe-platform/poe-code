@@ -54,3 +54,6 @@ openspec
 .colima-logs/
 .turbo
 *.tsbuildinfo
+
+# maestro workspaces
+.poe-code/maestro/

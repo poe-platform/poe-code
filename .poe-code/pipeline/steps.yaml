@@ -6,7 +6,6 @@ steps:
       {{prompt}}
 
   refactor:
-    agent: claude-code
     prompt: |
       Original task:
       {{prompt}}

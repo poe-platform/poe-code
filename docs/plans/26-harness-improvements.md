@@ -421,7 +421,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-jsdoc-types
     title: JSDoc type validation against module shapes
@@ -450,9 +450,9 @@ tasks:
 
       Conventional commit: `feat(agent-script): JSDoc type lint rule`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: lint-shadow-global
     title: AS-SHADOW-GLOBAL lint rule

@@ -126,7 +126,7 @@ function normalizeModuleRegistration(
   };
 }
 
-function isExportList(registration: ModuleRegistration): registration is readonly string[] {
+function isExportList(registration: unknown): registration is readonly string[] {
   return Array.isArray(registration);
 }
 

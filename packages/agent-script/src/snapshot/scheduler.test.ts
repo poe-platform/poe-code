@@ -9,6 +9,7 @@ vi.mock("node:fs/promises", async () => {
 });
 
 const { createSnapshotScheduler } = await import("./scheduler.js");
+type SnapshotBackend = Awaited<typeof import("./backend.js")>["SnapshotBackend"];
 
 describe("snapshot scheduler", () => {
   beforeEach(() => {
@@ -141,4 +142,90 @@ describe("snapshot scheduler", () => {
 
     expect(vol.existsSync("/state.json")).toBe(false);
   });
+
+  it("surfaces the underlying backend write error", async () => {
+    const error = new Error("backend write failed");
+    const scheduler = createSnapshotScheduler<{ sourceHash: string }>({
+      snapshotBackend: {
+        async read() {
+          return undefined;
+        },
+        async write() {
+          throw error;
+        },
+        async remove() {}
+      }
+    });
+
+    vi.advanceTimersByTime(30_000);
+    scheduler.onYield(() => ({
+      sourceHash: "abc123"
+    }));
+
+    await expect(scheduler.finish()).rejects.toBe(error);
+  });
+
+  it("serializes concurrent writes through the existing pending write lock", async () => {
+    const firstWrite = createDeferred<void>();
+    const writes: string[] = [];
+    let activeWrites = 0;
+    let maxActiveWrites = 0;
+    const backend: SnapshotBackend = {
+      async read() {
+        return undefined;
+      },
+      async write(snapshot) {
+        activeWrites += 1;
+        maxActiveWrites = Math.max(maxActiveWrites, activeWrites);
+        writes.push(snapshot.sourceHash);
+        if (snapshot.sourceHash === "first") {
+          await firstWrite.promise;
+        }
+        activeWrites -= 1;
+      },
+      async remove() {}
+    };
+    const scheduler = createSnapshotScheduler({
+      snapshotBackend: backend
+    });
+
+    vi.advanceTimersByTime(30_000);
+    scheduler.onYield(() => ({
+      sourceHash: "first"
+    }));
+    vi.advanceTimersByTime(30_000);
+    scheduler.onYield(() => ({
+      sourceHash: "second"
+    }));
+
+    await flushMicrotasks();
+    expect(writes).toEqual(["first"]);
+
+    firstWrite.resolve();
+    await scheduler.finish();
+
+    expect(writes).toEqual(["first", "second"]);
+    expect(maxActiveWrites).toBe(1);
+  });
 });
+
+function createDeferred<TValue>() {
+  let resolve!: (value: TValue) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<TValue>((innerResolve, innerReject) => {
+    resolve = innerResolve;
+    reject = innerReject;
+  });
+
+  return {
+    promise,
+    reject,
+    resolve
+  };
+}
+
+async function flushMicrotasks(): Promise<void> {
+  await Promise.resolve();
+  await Promise.resolve();
+  await Promise.resolve();
+}

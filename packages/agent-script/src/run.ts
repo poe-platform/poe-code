@@ -21,6 +21,7 @@ import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.j
 import { createPromiseGlobals } from "./interp/promise.js";
 import { deepCopyToSandbox, isSandboxClosure, type SandboxValue } from "./interp/values.js";
 import { resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
+import type { SnapshotBackend } from "./snapshot/backend.js";
 import { attachDumpController, createDumpController } from "./snapshot/dump.js";
 import { createSnapshotScheduler } from "./snapshot/scheduler.js";
 
@@ -36,6 +37,7 @@ export type RunOptions = {
   randomSeed?: number;
   signal?: AbortSignal;
   snapshot?: AgentScriptSnapshot;
+  snapshotBackend?: SnapshotBackend;
   snapshotIntervalMs?: number;
   snapshotPath?: string;
   sink?: ConsoleSink;
@@ -116,6 +118,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       resolveModuleImports(module, options.modules, { budget, signal: options.signal })
     );
     const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
+      snapshotBackend: options.snapshotBackend,
       snapshotIntervalMs: options.snapshotIntervalMs,
       snapshotPath: options.snapshotPath
     });

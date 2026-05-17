@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
 import { lint } from "@poe-code/agent-script";
+import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -700,6 +701,102 @@ describe("runHarnessPair", () => {
     expect(secondRead).toHaveBeenCalledTimes(1);
   });
 
+  it("drives a custom snapshot backend during checkpoint, resume, and cleanup", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-04T00:00:00.000Z"));
+
+    const mdPath = "/repo/harness/backend.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: backend\nversion: 1\n---\n",
+      "/repo/harness/backend.ajs": [
+        'import { step } from "host";',
+        "export default async () => {",
+        "  const first = await step('first');",
+        "  const second = await step('second');",
+        "  return first.concat('|').concat(second);",
+        "};"
+      ].join("\n")
+    });
+
+    const snapshotBackend = new MemorySnapshotBackend();
+    const first = createDeferred<string>();
+    const second = createDeferred<string>();
+    const controller = new AbortController();
+    const firstCalls: string[] = [];
+    const firstRun = runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        host: {
+          async step(name: string) {
+            firstCalls.push(name);
+            return name === "first" ? first.promise : second.promise;
+          }
+        }
+      }),
+      signal: controller.signal,
+      snapshotBackend
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    expect(firstCalls).toEqual(["first"]);
+
+    await vi.advanceTimersByTimeAsync(30_000);
+    first.resolve("alpha");
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(firstCalls).toEqual(["first", "second"]);
+    expect(snapshotBackend.writes).toHaveLength(1);
+    expect(snapshotBackend.snapshot).toMatchObject({
+      sourceHash: expect.any(String)
+    });
+
+    controller.abort();
+    second.reject(new Error("aborted"));
+    await expect(firstRun).rejects.toMatchObject({
+      name: "SandboxError"
+    });
+
+    const secondCalls: string[] = [];
+    const resumed = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        host: {
+          async step(name: string) {
+            secondCalls.push(name);
+            return "beta";
+          }
+        }
+      }),
+      snapshotBackend
+    });
+
+    expect(secondCalls).toEqual(["second"]);
+    expect(snapshotBackend.reads).toBeGreaterThanOrEqual(2);
+    expect(snapshotBackend.removes).toBe(1);
+    expect(snapshotBackend.snapshot).toBeUndefined();
+    expect(resumed).toMatchObject({
+      ok: true,
+      returnValue: "alpha|beta"
+    });
+  });
+
+  it("reports source hash mismatches from a custom snapshot backend clearly", async () => {
+    const mdPath = "/repo/harness/backend-mismatch.md";
+    const snapshotBackend = new MemorySnapshotBackend({
+      sourceHash: "stale"
+    });
+    vol.fromJSON({
+      [mdPath]: "---\nkind: mismatch\nversion: 1\n---\n",
+      "/repo/harness/backend-mismatch.ajs": "export default () => 'fresh';"
+    });
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({}),
+        snapshotBackend
+      })
+    ).rejects.toThrow("source changed since snapshot was taken");
+  });
+
   it("starts fresh with an existing snapshotPath when resume is false", async () => {
     const mdPath = "/repo/harness/no-resume.md";
     const snapshotPath = "/snapshots/no-resume.json";
@@ -772,6 +869,32 @@ describe("runHarnessPair", () => {
     });
   });
 });
+
+class MemorySnapshotBackend implements SnapshotBackend {
+  reads = 0;
+  removes = 0;
+  snapshot: Snapshot | undefined;
+  writes: Snapshot[] = [];
+
+  constructor(snapshot?: Snapshot) {
+    this.snapshot = snapshot;
+  }
+
+  async read(): Promise<Snapshot | undefined> {
+    this.reads += 1;
+    return this.snapshot;
+  }
+
+  async write(snapshot: Snapshot): Promise<void> {
+    this.writes.push(snapshot);
+    this.snapshot = snapshot;
+  }
+
+  async remove(): Promise<void> {
+    this.removes += 1;
+    this.snapshot = undefined;
+  }
+}
 
 function createDeferred<TValue>() {
   let resolve!: (value: TValue) => void;

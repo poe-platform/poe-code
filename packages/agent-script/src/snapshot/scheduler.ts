@@ -1,9 +1,9 @@
-import { mkdir, rename, writeFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { FileSnapshotBackend, type Snapshot, type SnapshotBackend } from "./backend.js";
 
 const DEFAULT_SNAPSHOT_INTERVAL_MS = 30_000;
 
 export type SnapshotSchedulerOptions = {
+  snapshotBackend?: SnapshotBackend;
   snapshotIntervalMs?: number;
   snapshotPath?: string;
 };
@@ -16,7 +16,13 @@ export type SnapshotScheduler<TSnapshot> = {
 export function createSnapshotScheduler<TSnapshot>(
   options: SnapshotSchedulerOptions
 ): SnapshotScheduler<TSnapshot> {
-  if (options.snapshotPath === undefined) {
+  const snapshotBackend =
+    options.snapshotBackend ??
+    (options.snapshotPath === undefined
+      ? undefined
+      : new FileSnapshotBackend(options.snapshotPath));
+
+  if (snapshotBackend === undefined) {
     return {
       async finish() {},
       onYield() {}
@@ -39,19 +45,8 @@ export function createSnapshotScheduler<TSnapshot>(
       const snapshot = createSnapshot();
       nextCheckpointAt = Date.now() + intervalMs;
       pendingWrite = pendingWrite.then(async () => {
-        await writeSnapshotAtomically(options.snapshotPath as string, snapshot);
+        await snapshotBackend.write(snapshot as Snapshot);
       });
     }
   };
-}
-
-async function writeSnapshotAtomically<TSnapshot>(
-  snapshotPath: string,
-  snapshot: TSnapshot
-): Promise<void> {
-  const temporaryPath = `${snapshotPath}.tmp`;
-
-  await mkdir(dirname(snapshotPath), { recursive: true });
-  await writeFile(temporaryPath, JSON.stringify(snapshot, null, 2));
-  await rename(temporaryPath, snapshotPath);
 }

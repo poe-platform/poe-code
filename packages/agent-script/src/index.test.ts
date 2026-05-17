@@ -25,6 +25,7 @@ import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
 import { runHarness } from "./runner/run-harness.js";
+import { FileSnapshotBackend } from "./snapshot/backend.js";
 
 describe("@poe-code/agent-script public exports", () => {
   it("re-exports the public entrypoints", () => {
@@ -53,8 +54,10 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.makeMetricModule).toBe(makeMetricModule);
     expect(api.makeMcpModule).toBe(makeMcpModule);
     expect(api.makeTimeModule).toBe(makeTimeModule);
+    expect(api.FileSnapshotBackend).toBe(FileSnapshotBackend);
     expect(Object.keys(api).sort()).toEqual([
       "Budget",
+      "FileSnapshotBackend",
       "SandboxError",
       "deepCopyFromSandbox",
       "deepCopyToSandbox",

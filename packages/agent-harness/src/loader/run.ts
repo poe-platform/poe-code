@@ -5,6 +5,7 @@ import { dirname, join } from "node:path";
 import { lockWorkflow, resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import {
   lint,
+  FileSnapshotBackend,
   makeTimeModule,
   parseModule,
   run,
@@ -12,7 +13,8 @@ import {
   type Diagnostic,
   type RunClock,
   type RunClockSnapshot,
-  type RunRandom
+  type RunRandom,
+  type SnapshotBackend
 } from "@poe-code/agent-script";
 import type { AnySchema } from "toolcraft-schema";
 
@@ -46,6 +48,7 @@ export type RunHarnessPairOptions = {
   randomSeed?: number;
   resume?: boolean;
   signal?: AbortSignal;
+  snapshotBackend?: SnapshotBackend;
   snapshotPath?: string;
 };
 
@@ -84,11 +87,12 @@ export async function runHarnessPair(
       body
     };
     const snapshotPath = resolveSnapshotPath(pair.mdPath, options.snapshotPath);
+    const snapshotBackend = options.snapshotBackend ?? new FileSnapshotBackend(snapshotPath);
     const shouldResume = options.resume ?? true;
     if (!shouldResume) {
-      await cleanupCompletedSnapshot(snapshotPath);
+      await cleanupCompletedSnapshot(snapshotBackend, snapshotPath);
     }
-    const snapshot = shouldResume ? await readSnapshot(snapshotPath) : undefined;
+    const snapshot = shouldResume ? await snapshotBackend.read() : undefined;
     const runtimeClock = createReplayableClock({
       now: options.clock?.now,
       snapshot: snapshot?.clock
@@ -162,6 +166,7 @@ export async function runHarnessPair(
         random: runtimeRandom,
         signal: options.signal,
         snapshot,
+        snapshotBackend,
         snapshotPath
       });
     } catch (error) {
@@ -171,7 +176,7 @@ export async function runHarnessPair(
 
     await hostCallReplay.flush();
     if (result.ok) {
-      await cleanupCompletedSnapshot(snapshotPath);
+      await cleanupCompletedSnapshot(snapshotBackend, snapshotPath);
     }
 
     return result;
@@ -516,11 +521,11 @@ async function writeHostCallRecords(
   await writeFile(storePath, serialized);
 }
 
-async function cleanupCompletedSnapshot(snapshotPath: string): Promise<void> {
-  await Promise.all([
-    unlinkIfExists(snapshotPath),
-    unlinkIfExists(hostCallStorePath(snapshotPath))
-  ]);
+async function cleanupCompletedSnapshot(
+  snapshotBackend: SnapshotBackend,
+  snapshotPath: string
+): Promise<void> {
+  await Promise.all([snapshotBackend.remove(), unlinkIfExists(hostCallStorePath(snapshotPath))]);
 }
 
 async function unlinkIfExists(path: string): Promise<void> {
@@ -579,18 +584,6 @@ function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined): 
       "snapshot.json"
     )
   );
-}
-
-async function readSnapshot(snapshotPath: string): Promise<RunOptions["snapshot"]> {
-  try {
-    return JSON.parse(await readFile(snapshotPath, "utf8")) as RunOptions["snapshot"];
-  } catch (error) {
-    if (hasErrorCode(error, "ENOENT")) {
-      return undefined;
-    }
-
-    throw error;
-  }
 }
 
 async function readTextFile(path: string): Promise<string> {

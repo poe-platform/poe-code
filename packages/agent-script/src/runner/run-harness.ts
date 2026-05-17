@@ -7,6 +7,7 @@ import { lint, type Diagnostic } from "../lint.js";
 import { createLintModulesFromRuntimeRegistry } from "../lint/runtime-modules.js";
 import type { ModuleExports, ModuleRegistry } from "../modules/registry.js";
 import { run, type RunResult } from "../run.js";
+import type { SnapshotBackend } from "../snapshot/backend.js";
 
 type HarnessMeta = {
   filepath: string;
@@ -17,6 +18,7 @@ type HarnessMeta = {
 export type RunHarnessOptions = {
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessMeta) => ModuleRegistry;
   signal?: AbortSignal;
+  snapshotBackend?: SnapshotBackend;
   snapshotPath?: string;
 };
 
@@ -52,6 +54,7 @@ export async function runHarness(filepath: string, options: RunHarnessOptions): 
   return run(executableSource, {
     modules,
     signal: options.signal,
+    snapshotBackend: options.snapshotBackend,
     snapshotPath: options.snapshotPath
   });
 }

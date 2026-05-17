@@ -4,6 +4,7 @@ import { pathToFileURL } from "node:url";
 import { extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
 import { lint } from "./lint.js";
+import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
 import { makeAgentModule } from "./modules/agent.js";
 import { makeFailModule } from "./modules/fail.js";
 import { makeHarnessModule } from "./modules/harness.js";
@@ -86,7 +87,7 @@ export async function runExampleFile(
     const lintErrors = lint(executableSource, {
       allowedExportNames: ["schema"],
       filename: filepath,
-      modules: createLintModules(runtime.registry)
+      modules: createLintModulesFromRuntimeRegistry(runtime.registry)
     }).filter((diagnostic) => diagnostic.severity === "error");
 
     if (lintErrors.length > 0) {
@@ -188,37 +189,27 @@ function createExampleRuntime(
   };
 }
 
-function createExampleRegistry(
-  modules: Omit<ExampleRuntime, "registry">
-): ModuleRegistry {
+function createExampleRegistry(modules: Omit<ExampleRuntime, "registry">): ModuleRegistry {
   return {
     agent: toModuleExports(modules.agent),
     fail: toModuleExports(new Map([["default", modules.fail]])),
-    git: toModuleExports(new Map<string, unknown>([
-      ["checkpoint", modules.git.checkpoint],
-      ["commit", modules.git.commit],
-      ["revert", modules.git.revert]
-    ])),
+    git: toModuleExports(
+      new Map<string, unknown>([
+        ["checkpoint", modules.git.checkpoint],
+        ["commit", modules.git.commit],
+        ["revert", modules.git.revert]
+      ])
+    ),
     harness: toModuleExports(modules.harness),
     log: toModuleExports(modules.log),
     metric: toModuleExports(modules.metric)
   };
 }
 
-function createLintModules(modules: ModuleRegistry): Map<string, string[]> {
-  const entries = modules instanceof Map ? [...modules.entries()] : Object.entries(modules);
-
-  return new Map(
-    entries.map(([moduleName, moduleExports]) => [moduleName, listModuleExports(moduleExports)] as const)
-  );
-}
-
-function listModuleExports(moduleExports: ModuleExports): string[] {
-  const exportNames = moduleExports instanceof Map ? [...moduleExports.keys()] : Object.keys(moduleExports);
-  return exportNames.filter((exportName) => exportName.length > 0).sort((left, right) => left.localeCompare(right));
-}
-
-async function runDemoFallback(frontmatter: Record<string, unknown>, runtime: ExampleRuntime): Promise<unknown> {
+async function runDemoFallback(
+  frontmatter: Record<string, unknown>,
+  runtime: ExampleRuntime
+): Promise<unknown> {
   if (frontmatter.kind === "pipeline" || frontmatter.kind === "pipeline-demo") {
     return await runPipelineExample(runtime);
   }
@@ -259,9 +250,12 @@ async function runPipelineExample(runtime: ExampleRuntime): Promise<{
     const build = await runtime.agent.spawn(builder as Parameters<typeof runtime.agent.spawn>[0], {
       prompt: `${id}: ${title}\n\n${prompt}`
     });
-    const review = await runtime.agent.spawn(reviewer as Parameters<typeof runtime.agent.spawn>[0], {
-      prompt: `Review ${id}\n\n${build.summary}`
-    });
+    const review = await runtime.agent.spawn(
+      reviewer as Parameters<typeof runtime.agent.spawn>[0],
+      {
+        prompt: `Review ${id}\n\n${build.summary}`
+      }
+    );
     runtime.log.info(id, build.summary, review.summary);
     runtime.log.event("task.completed", { id });
     taskIds.push(id);
@@ -282,7 +276,9 @@ async function runSuperintendentExample(runtime: ExampleRuntime): Promise<{
   const builder = readPresent(agents.builder, "agents.builder");
   const judge = readPresent(agents.judge, "agents.judge");
   const ownerAgent = readPresent(agents.owner, "agents.owner");
-  const inspectors = [agents.security, agents.perf, agents.tests].filter((agent) => agent !== undefined);
+  const inspectors = [agents.security, agents.perf, agents.tests].filter(
+    (agent) => agent !== undefined
+  );
   const frontmatter = readRecord(runtime.harness.meta.frontmatter, "frontmatter");
   const maxRounds = readNumber(frontmatter.max_rounds, "frontmatter.max_rounds");
 
@@ -291,20 +287,29 @@ async function runSuperintendentExample(runtime: ExampleRuntime): Promise<{
   }
 
   for (let round = 0; round < maxRounds; round += 1) {
-    const builderRun = await runtime.agent.spawn(builder as Parameters<typeof runtime.agent.spawn>[0], {
-      prompt: `Round ${round + 1}: continue from the current plan state.`
-    });
+    const builderRun = await runtime.agent.spawn(
+      builder as Parameters<typeof runtime.agent.spawn>[0],
+      {
+        prompt: `Round ${round + 1}: continue from the current plan state.`
+      }
+    );
     const reports = await Promise.all(
-      inspectors.map(async (inspector) => await runtime.agent.spawn(inspector as Parameters<typeof runtime.agent.spawn>[0], {
-        prompt: `Inspect round ${round + 1}\n\n${builderRun.summary}`
-      }))
+      inspectors.map(
+        async (inspector) =>
+          await runtime.agent.spawn(inspector as Parameters<typeof runtime.agent.spawn>[0], {
+            prompt: `Inspect round ${round + 1}\n\n${builderRun.summary}`
+          })
+      )
     );
     const verdict = await runtime.agent.spawn(judge as Parameters<typeof runtime.agent.spawn>[0], {
       prompt: `Judge round ${round + 1}\n\n${reports.map((report) => report.summary).join("\n")}`
     });
-    const owner = await runtime.agent.spawn(ownerAgent as Parameters<typeof runtime.agent.spawn>[0], {
-      prompt: verdict.summary
-    });
+    const owner = await runtime.agent.spawn(
+      ownerAgent as Parameters<typeof runtime.agent.spawn>[0],
+      {
+        prompt: verdict.summary
+      }
+    );
 
     runtime.log.event("round.completed", {
       round: round + 1,
@@ -343,9 +348,12 @@ async function runExperimentExample(runtime: ExampleRuntime): Promise<{
   while (kept < maxKept) {
     const savepoint = await runtime.git.checkpoint();
     const attemptNumber = attempts.length + 1;
-    const result = await runtime.agent.spawn(experimenter as Parameters<typeof runtime.agent.spawn>[0], {
-      prompt: `Attempt ${attemptNumber}\n\n${summarizeAttempts(attempts)}`
-    });
+    const result = await runtime.agent.spawn(
+      experimenter as Parameters<typeof runtime.agent.spawn>[0],
+      {
+        prompt: `Attempt ${attemptNumber}\n\n${summarizeAttempts(attempts)}`
+      }
+    );
     const score = await runtime.metric.run(metricName);
 
     if (score >= baseline) {
@@ -441,7 +449,9 @@ function summarizeAttempts(
     score: number;
   }>
 ): string {
-  return attempts.map((attempt) => `${attempt.event}:${attempt.attempt}:${attempt.score}`).join("\n");
+  return attempts
+    .map((attempt) => `${attempt.event}:${attempt.attempt}:${attempt.score}`)
+    .join("\n");
 }
 
 function toModuleExports(value: unknown): ModuleExports {
@@ -450,12 +460,17 @@ function toModuleExports(value: unknown): ModuleExports {
 
 function formatDiagnostics(diagnostics: ReturnType<typeof lint>): string {
   return diagnostics
-    .map((diagnostic) => `${diagnostic.filename}:${diagnostic.line}:${diagnostic.column} ${diagnostic.code} ${diagnostic.message}`)
+    .map(
+      (diagnostic) =>
+        `${diagnostic.filename}:${diagnostic.line}:${diagnostic.column} ${diagnostic.code} ${diagnostic.message}`
+    )
     .join("\n");
 }
 
 function hasDefaultExport(source: string, filename: string): boolean {
-  return parseModule(source, filename).body.some((statement) => statement.type === "ExportDefaultDeclaration");
+  return parseModule(source, filename).body.some(
+    (statement) => statement.type === "ExportDefaultDeclaration"
+  );
 }
 
 function readRecord(value: unknown, label: string): Record<string, unknown> {

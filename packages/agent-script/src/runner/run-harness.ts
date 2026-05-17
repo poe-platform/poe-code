@@ -3,7 +3,8 @@ import { extname } from "node:path";
 
 import { extractBlock } from "../loader/extract-block.js";
 import { splitFrontmatter } from "../loader/frontmatter.js";
-import { lint, type Diagnostic, type LintOptions } from "../lint.js";
+import { lint, type Diagnostic } from "../lint.js";
+import { createLintModulesFromRuntimeRegistry } from "../lint/runtime-modules.js";
 import type { ModuleExports, ModuleRegistry } from "../modules/registry.js";
 import { run, type RunResult } from "../run.js";
 
@@ -40,7 +41,7 @@ export async function runHarness(filepath: string, options: RunHarnessOptions): 
   const modules = excludeHarnessModule(options.modulesFor(frontmatter, meta), isRawScript);
   const diagnostics = lint(executableSource, {
     filename: filepath,
-    modules: createLintModules(modules)
+    modules: createLintModulesFromRuntimeRegistry(modules)
   });
   const lintErrors = diagnostics.filter((diagnostic) => diagnostic.severity === "error");
 
@@ -55,7 +56,10 @@ export async function runHarness(filepath: string, options: RunHarnessOptions): 
   });
 }
 
-function loadExecutableSource(filepath: string, source: string): {
+function loadExecutableSource(
+  filepath: string,
+  source: string
+): {
   executableSource: string;
   frontmatter: Record<string, unknown>;
   isRawScript: boolean;
@@ -70,7 +74,8 @@ function loadExecutableSource(filepath: string, source: string): {
 
   const { frontmatter, body } = splitFrontmatter(source);
   const { source: executableBlock, lineOffset } = extractBlock(body);
-  const absoluteLineOffset = countLineBreaks(source.slice(0, source.length - body.length)) + lineOffset;
+  const absoluteLineOffset =
+    countLineBreaks(source.slice(0, source.length - body.length)) + lineOffset;
 
   return {
     executableSource: createLineOffsetSource(executableBlock, absoluteLineOffset),
@@ -101,19 +106,6 @@ function excludeHarnessModule(modules: ModuleRegistry, isRawScript: boolean): Mo
   return rawModules;
 }
 
-function createLintModules(modules: ModuleRegistry): NonNullable<LintOptions["modules"]> {
-  const entries = modules instanceof Map ? [...modules.entries()] : Object.entries(modules);
-
-  return new Map(
-    entries.map(([moduleName, moduleExports]) => [moduleName, listModuleExports(moduleExports)] as const)
-  );
-}
-
-function listModuleExports(moduleExports: ModuleExports): string[] {
-  const exportNames = moduleExports instanceof Map ? [...moduleExports.keys()] : Object.keys(moduleExports);
-  return exportNames.filter((exportName) => exportName.length > 0).sort((left, right) => left.localeCompare(right));
-}
-
 function stripByteOrderMark(source: string): string {
   return source.startsWith("\uFEFF") ? source.slice(1) : source;
 }
@@ -140,6 +132,9 @@ function formatLintErrorMessage(diagnostics: readonly Diagnostic[]): string {
   }
 
   return diagnostics
-    .map((diagnostic) => `${diagnostic.filename}:${diagnostic.line}:${diagnostic.column} ${diagnostic.code} ${diagnostic.message}`)
+    .map(
+      (diagnostic) =>
+        `${diagnostic.filename}:${diagnostic.line}:${diagnostic.column} ${diagnostic.code} ${diagnostic.message}`
+    )
     .join("\n");
 }

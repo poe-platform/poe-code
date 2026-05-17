@@ -116,9 +116,7 @@ class ASFloatingPromiseScanner {
         this.visitBlockStatement(node);
         return;
       case "ExpressionStatement":
-        if (this.isUnhandledLikelyPromiseExpression(node.expression)) {
-          this.report(node.expression.span);
-        }
+        this.reportUnhandledLikelyPromiseStatementExpression(node.expression);
         this.visitExpression(node.expression);
         return;
       case "IfStatement":
@@ -488,6 +486,44 @@ class ASFloatingPromiseScanner {
     }
 
     return this.isLikelyPromiseCall(node);
+  }
+
+  private reportUnhandledLikelyPromiseStatementExpression(node: Expression): void {
+    if (this.isUnhandledLikelyPromiseExpression(node)) {
+      this.report(node.span);
+      return;
+    }
+
+    switch (node.type) {
+      case "LogicalExpression":
+        this.reportUnhandledLikelyPromiseStatementExpression(node.left);
+        this.reportUnhandledLikelyPromiseStatementExpression(node.right);
+        return;
+      case "ConditionalExpression":
+        this.reportUnhandledLikelyPromiseStatementExpression(node.consequent);
+        this.reportUnhandledLikelyPromiseStatementExpression(node.alternate);
+        return;
+      case "CallExpression":
+      case "ArrowFunctionExpression":
+      case "AwaitExpression":
+      case "ArrayExpression":
+      case "ObjectExpression":
+      case "UnaryExpression":
+      case "BinaryExpression":
+      case "MemberExpression":
+      case "AssignmentExpression":
+      case "TemplateLiteral":
+      case "TaggedTemplateExpression":
+      case "Identifier":
+      case "BooleanLiteral":
+      case "MetaProperty":
+      case "NullLiteral":
+      case "NumericLiteral":
+      case "RegexLiteral":
+      case "StringLiteral":
+      case "UndefinedLiteral":
+        return;
+    }
   }
 
   private isLikelyPromiseCall(node: CallExpression): boolean {

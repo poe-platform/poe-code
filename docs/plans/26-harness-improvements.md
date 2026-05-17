@@ -505,9 +505,9 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-FLOATING-PROMISE lint rule`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: lint-import-cycle
     title: AS-IMPORT-CYCLE lint rule

@@ -10,6 +10,10 @@ const modules: Modules = {
         async: true,
         type: "() => Promise<unknown>"
       },
+      default: {
+        async: true,
+        type: "() => Promise<unknown>"
+      },
       other: "() => unknown",
       syncHost: "() => unknown"
     }
@@ -92,6 +96,57 @@ describe("AS_FLOATING_PROMISE", () => {
     expect(codes(["const load = async () => 1;", "load();"].join("\n"))).toEqual([
       "AS-FLOATING-PROMISE"
     ]);
+  });
+
+  it("reports async host calls imported through namespace and default bindings", () => {
+    expect(codes(['import * as host from "host";', "host.myAsyncHost();"].join("\n"))).toEqual([
+      "AS-FLOATING-PROMISE"
+    ]);
+    expect(codes(['import myAsyncHost from "host";', "myAsyncHost();"].join("\n"))).toEqual([
+      "AS-FLOATING-PROMISE"
+    ]);
+  });
+
+  it("reports async calls in statement-position logical and conditional branches", () => {
+    expect(
+      codes(['import { myAsyncHost } from "host";', "cond && myAsyncHost();"].join("\n"))
+    ).toEqual(["AS-FLOATING-PROMISE"]);
+    expect(
+      codes(['import { myAsyncHost } from "host";', "cond ? myAsyncHost() : other();"].join("\n"))
+    ).toEqual(["AS-FLOATING-PROMISE"]);
+  });
+
+  it("does not report returned or stored logical and conditional async branches", () => {
+    expect(
+      codes(
+        [
+          'import { myAsyncHost } from "host";',
+          "const run = async () => {",
+          "  return cond && myAsyncHost();",
+          "};"
+        ].join("\n")
+      )
+    ).toEqual([]);
+    expect(
+      codes(
+        ['import { myAsyncHost } from "host";', "const p = cond ? myAsyncHost() : other();"].join(
+          "\n"
+        )
+      )
+    ).toEqual([]);
+  });
+
+  it("uses local scope shadowing before reporting async host calls", () => {
+    expect(
+      codes(
+        [
+          'import { myAsyncHost } from "host";',
+          "const run = (myAsyncHost) => {",
+          "  myAsyncHost();",
+          "};"
+        ].join("\n")
+      )
+    ).toEqual([]);
   });
 
   it("allows a sync host call used as a statement", () => {

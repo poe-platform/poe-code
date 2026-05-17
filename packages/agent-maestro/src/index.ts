@@ -4,7 +4,12 @@ import path from "node:path";
 import { spawn as defaultSpawn } from "@poe-code/agent-spawn";
 import { acquireFileLock } from "@poe-code/file-lock";
 import { loadResolvedSteps } from "@poe-code/pipeline";
-import { openTaskList, type OpenTaskListOptions, type Task, type TaskList } from "@poe-code/task-list";
+import {
+  openTaskList,
+  type OpenTaskListOptions,
+  type Task,
+  type TaskList
+} from "@poe-code/task-list";
 
 import { loadWorkflow } from "./config/load.js";
 import { resolveConfig, type ResolvedConfig } from "./config/schema.js";
@@ -250,8 +255,12 @@ const logLevelPriority = {
   error: 50
 } satisfies Record<NonNullable<RunMaestroOptions["logLevel"]>, number>;
 
-function createLevelLogger(logger: Logger, logLevel: NonNullable<RunMaestroOptions["logLevel"]>): Logger {
-  const enabled = (level: keyof Logger): boolean => logLevelPriority[level] >= logLevelPriority[logLevel];
+function createLevelLogger(
+  logger: Logger,
+  logLevel: NonNullable<RunMaestroOptions["logLevel"]>
+): Logger {
+  const enabled = (level: keyof Logger): boolean =>
+    logLevelPriority[level] >= logLevelPriority[logLevel];
 
   return {
     info: enabled("info") ? logger.info?.bind(logger) : undefined,
@@ -440,6 +449,8 @@ export {
   type AttemptOutcome,
   type AttemptReconcileResult
 } from "./agent/runner.js";
+export { getDriver, listDrivers, registerDriver } from "./drivers/registry.js";
+export { type WorkflowDriver, type WorkflowDriverContext } from "./drivers/types.js";
 export {
   ensureWorkspace,
   removeWorkspace,

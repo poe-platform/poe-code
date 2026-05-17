@@ -1,6 +1,6 @@
 import { execFile } from "node:child_process";
-import { mkdir, rm } from "node:fs/promises";
-import { dirname, isAbsolute, relative, resolve, sep } from "node:path";
+import { mkdir, realpath, rm } from "node:fs/promises";
+import { basename, dirname, isAbsolute, relative, resolve, sep } from "node:path";
 
 export type GitSavepoint = {
   head: string;
@@ -128,7 +128,7 @@ export function makeGitModule(cwd: string): {
       const normalizedBranch = readNonEmptyString(branch, "Git worktree branch");
       const normalizedOptions = normalizeWorktreeCreateOptions(options);
       const repoRoot = await getRepoRoot(normalizedCwd);
-      const worktreePath = resolveWorktreePath(
+      const worktreePath = await resolveWorktreePath(
         repoRoot,
         normalizedOptions.path ?? createDefaultWorktreePath(repoRoot, normalizedBranch),
         "Git worktree path"
@@ -165,7 +165,7 @@ export function makeGitModule(cwd: string): {
 
     async worktreeRemove(path) {
       const repoRoot = await getRepoRoot(normalizedCwd);
-      const worktreePath = resolveWorktreePath(repoRoot, path, "Git worktree path");
+      const worktreePath = await resolveWorktreePath(repoRoot, path, "Git worktree path");
       const worktrees = await listWorktrees(normalizedCwd);
 
       if (!worktrees.some((worktree) => resolve(worktree.path) === worktreePath)) {
@@ -305,10 +305,12 @@ function parseBranchRef(ref: string): string {
   return ref.startsWith(branchPrefix) ? ref.slice(branchPrefix.length) : ref;
 }
 
-function resolveWorktreePath(repoRoot: string, path: string, label: string): string {
+async function resolveWorktreePath(repoRoot: string, path: string, label: string): Promise<string> {
   const resolvedRoot = resolve(repoRoot);
   const resolvedPath = isAbsolute(path) ? resolve(path) : resolve(resolvedRoot, path);
-  const relativePath = relative(resolvedRoot, resolvedPath);
+  const canonicalRoot = await realpath(resolvedRoot);
+  const canonicalPath = await resolveCanonicalPath(resolvedPath);
+  const relativePath = relative(canonicalRoot, canonicalPath);
 
   if (
     relativePath.length === 0 ||
@@ -319,7 +321,36 @@ function resolveWorktreePath(repoRoot: string, path: string, label: string): str
     throw new Error(`${label} must be inside the git repository.`);
   }
 
-  return resolvedPath;
+  return canonicalPath;
+}
+
+async function resolveCanonicalPath(path: string): Promise<string> {
+  const missingSegments: string[] = [];
+  let current = path;
+
+  while (true) {
+    try {
+      const canonicalCurrent = await realpath(current);
+      return resolve(canonicalCurrent, ...missingSegments.reverse());
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        throw error;
+      }
+
+      const parent = dirname(current);
+
+      if (parent === current) {
+        return resolve(path);
+      }
+
+      missingSegments.push(basename(current));
+      current = parent;
+    }
+  }
+}
+
+function isNotFoundError(error: unknown): boolean {
+  return isRecord(error) && error.code === "ENOENT";
 }
 
 function isBranchAlreadyExistsError(error: unknown, branch: string): boolean {

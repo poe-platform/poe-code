@@ -6,11 +6,12 @@ vi.mock("node:child_process", () => ({
 
 vi.mock("node:fs/promises", () => ({
   mkdir: vi.fn(async () => undefined),
+  realpath: vi.fn(async (path: string) => path),
   rm: vi.fn(async () => undefined)
 }));
 
 import { execFile } from "node:child_process";
-import { mkdir, rm } from "node:fs/promises";
+import { mkdir, realpath, rm } from "node:fs/promises";
 
 import { run } from "../run.js";
 import { makeAgentModule } from "./agent.js";
@@ -71,6 +72,7 @@ describe("makeGitModule", () => {
   beforeEach(() => {
     vi.resetAllMocks();
     vi.mocked(mkdir).mockResolvedValue(undefined);
+    vi.mocked(realpath).mockImplementation(async (path) => String(path));
     vi.mocked(rm).mockResolvedValue(undefined);
   });
 
@@ -560,6 +562,76 @@ describe("makeGitModule", () => {
     await expect(git.worktreeCreate("feature/escape", { path: "/tmp/outside" })).rejects.toThrow(
       "Git worktree path must be inside the git repository."
     );
+    expect(mkdir).not.toHaveBeenCalled();
+  });
+
+  it("accepts a worktree path through a symlinked repo path after canonical validation", async () => {
+    vi.mocked(realpath).mockImplementation(async (path) => {
+      if (
+        String(path) === "/var/tmp/repo/worktrees" ||
+        String(path) === "/var/tmp/repo/worktrees/feature"
+      ) {
+        const error = Object.assign(new Error("missing path"), { code: "ENOENT" });
+        throw error;
+      }
+
+      if (String(path) === "/var/tmp/repo") {
+        return "/private/var/tmp/repo";
+      }
+
+      return String(path);
+    });
+
+    mockExecFileSequence([
+      () => ({ stdout: "/private/var/tmp/repo\n" }),
+      () => ({ error: createGitFailure("missing ref") }),
+      (call) => {
+        expect(call.args).toEqual([
+          "worktree",
+          "add",
+          "-b",
+          "feature/symlink-root",
+          "/private/var/tmp/repo/worktrees/feature",
+          "HEAD"
+        ]);
+        return { stdout: "" };
+      }
+    ]);
+
+    const git = makeGitModule("/var/tmp/repo");
+
+    await expect(
+      git.worktreeCreate("feature/symlink-root", {
+        path: "/var/tmp/repo/worktrees/feature"
+      })
+    ).resolves.toEqual({
+      path: "/private/var/tmp/repo/worktrees/feature",
+      branch: "feature/symlink-root"
+    });
+  });
+
+  it("rejects worktree paths whose existing parent resolves outside the repository", async () => {
+    vi.mocked(realpath).mockImplementation(async (path) => {
+      if (String(path) === "/repo/linked-out/worktree") {
+        const error = Object.assign(new Error("missing path"), { code: "ENOENT" });
+        throw error;
+      }
+
+      if (String(path) === "/repo/linked-out") {
+        return "/tmp/outside";
+      }
+
+      return String(path);
+    });
+    mockExecFileSequence([() => ({ stdout: "/repo\n" })]);
+
+    const git = makeGitModule("/repo");
+
+    await expect(
+      git.worktreeCreate("feature/symlink-escape", {
+        path: "/repo/linked-out/worktree"
+      })
+    ).rejects.toThrow("Git worktree path must be inside the git repository.");
     expect(mkdir).not.toHaveBeenCalled();
   });
 

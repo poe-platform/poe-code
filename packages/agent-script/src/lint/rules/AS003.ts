@@ -38,6 +38,7 @@ import {
   type VariableDeclarator,
   type WhileStatement
 } from "../../parse/parser.js";
+import { KNOWN_RUNTIME_GLOBALS } from "./known-globals.js";
 
 export type Diagnostic = {
   code: "AS003";
@@ -58,27 +59,13 @@ type Binding = {
 
 type Scope = Map<string, Binding>;
 
-const DEFAULT_ALLOWED_GLOBALS = [
-  "Array",
-  "Boolean",
-  "Error",
-  "JSON",
-  "Math",
-  "Number",
-  "Object",
-  "Promise",
-  "String",
-  "TypeError",
-  "console"
-] as const;
-
 export function AS003(
   source: string,
   options: { allowedGlobals?: readonly string[]; filename?: string } = {}
 ): Diagnostic[] {
   return new AS003Scanner(
     options.filename ?? "<input>",
-    new Set([...DEFAULT_ALLOWED_GLOBALS, ...(options.allowedGlobals ?? [])])
+    new Set([...KNOWN_RUNTIME_GLOBALS, ...(options.allowedGlobals ?? [])])
   ).scan(source);
 }
 

@@ -18,6 +18,7 @@ import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
 import { AS_JSDOC_TYPE } from "./rules/AS-jsdoc-type.js";
 import { AS_MISSING_ASYNC } from "./rules/AS-missing-async.js";
 import { AS_NEEDLESS_TEMPLATE } from "./rules/AS-needless-template.js";
+import { AS_SHADOW_GLOBAL } from "./rules/AS-shadow-global.js";
 import { AS_UNREACHABLE } from "./rules/AS-unreachable.js";
 import { AS_UNUSED_IMPORT } from "./rules/AS-unused-import.js";
 import type { SourceSpan } from "../parse/parser.js";
@@ -48,6 +49,7 @@ const RULES: readonly LintRule[] = [
   AS003,
   AS004,
   AS005,
+  AS_SHADOW_GLOBAL,
   AS_UNUSED_IMPORT,
   AS006_007,
   AS_MISSING_ASYNC,

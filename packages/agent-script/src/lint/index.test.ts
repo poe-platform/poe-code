@@ -135,6 +135,12 @@ describe("lint", () => {
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-ASYNC-NOT-NEEDED");
   });
 
+  it("includes AS-SHADOW-GLOBAL diagnostics", () => {
+    const source = 'const String = "x";';
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-SHADOW-GLOBAL");
+  });
+
   it("includes AS-MISSING-ASYNC diagnostics", () => {
     const source = "const run = () => await load();";
 

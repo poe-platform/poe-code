@@ -697,8 +697,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-FRONTMATTER-FIELD-UNUSED lint rule`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-fix-flag

@@ -53,9 +53,9 @@ tasks:
 
       Conventional commit: `feat(agent-maestro): workflow driver interface and registry`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: pipeline-driver
     title: Extract current pipeline behavior into PipelineDriver

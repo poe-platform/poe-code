@@ -35,7 +35,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-try-finally
     title: try/finally without catch
@@ -65,8 +65,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): try/finally without catch`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-do-while

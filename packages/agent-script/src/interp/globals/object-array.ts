@@ -193,7 +193,7 @@ function stringRaw(args: readonly SandboxValue[], budget: Budget): string {
   let result = "";
   for (let index = 0; index < raw.length; index += 1) {
     result += String(raw[index]);
-    if (index < substitutions.length) {
+    if (index < raw.length - 1 && index < substitutions.length) {
       result += String(substitutions[index]);
     }
   }

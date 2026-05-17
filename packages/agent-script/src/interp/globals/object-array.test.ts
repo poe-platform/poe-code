@@ -82,6 +82,8 @@ describe("createObjectArrayGlobals", () => {
 
     expect(await raw.call([{ raw: ["a", "b"] }, 1])).toBe("a1b");
     expect(await raw.call([{ raw: ["a", "b", "c"] }, 1])).toBe("a1bc");
+    expect(await raw.call([{ raw: ["a"] }, 1])).toBe("a");
+    expect(await raw.call([{ raw: ["a", "b"] }, 1, 2])).toBe("a1b");
     expect(await raw.call([{ raw: [] }])).toBe("");
     expect(() => raw.call([{}])).toThrow("String.raw requires a raw strings array.");
   });

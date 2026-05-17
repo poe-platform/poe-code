@@ -50,13 +50,14 @@ export type Diagnostic = {
 };
 
 type BindingKind = "const" | "import" | "let" | "param";
+type ImportSpecifierNode = ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier;
 
 type ImportBinding = {
   declaration: ImportDeclaration;
   kind: "import";
   name: string;
   reads: number;
-  specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier;
+  specifier: ImportSpecifierNode;
   span: SourceSpan;
 };
 
@@ -71,7 +72,7 @@ type Scope = Map<string, Binding>;
 
 type UnusedImport = {
   declaration: ImportDeclaration;
-  specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier;
+  specifier: ImportSpecifierNode;
 };
 
 type Replacement = {
@@ -84,8 +85,17 @@ export function AS_UNUSED_IMPORT(
   source: string,
   options: { filename?: string } = {}
 ): Diagnostic[] {
-  return collectUnusedImports(source, options.filename ?? "<input>").map((unusedImport) =>
-    createDiagnostic(options.filename ?? "<input>", source, unusedImport)
+  const filename = options.filename ?? "<input>";
+  const unusedImports = collectUnusedImports(source, filename);
+  const unusedByDeclaration = groupUnusedSpecifiers(unusedImports);
+
+  return unusedImports.map((unusedImport) =>
+    createDiagnostic(
+      filename,
+      source,
+      unusedImport,
+      unusedByDeclaration.get(unusedImport.declaration) ?? new Set([unusedImport.specifier])
+    )
   );
 }
 
@@ -95,36 +105,26 @@ export function fixASUnusedImports(source: string, options: { filename?: string 
     return source;
   }
 
-  const unusedByDeclaration = new Map<
-    ImportDeclaration,
-    Set<ImportDeclaration["specifiers"][number]>
-  >();
+  const unusedByDeclaration = groupUnusedSpecifiers(unusedImports);
+
+  const replacements: Replacement[] = [];
+  for (const [declaration, unusedSpecifiers] of unusedByDeclaration.entries()) {
+    replacements.push(createUnusedImportReplacement(source, declaration, unusedSpecifiers));
+  }
+
+  return applyReplacements(source, replacements);
+}
+
+function groupUnusedSpecifiers(
+  unusedImports: readonly UnusedImport[]
+): Map<ImportDeclaration, Set<ImportSpecifierNode>> {
+  const unusedByDeclaration = new Map<ImportDeclaration, Set<ImportSpecifierNode>>();
   for (const unusedImport of unusedImports) {
     const specifiers = unusedByDeclaration.get(unusedImport.declaration) ?? new Set();
     specifiers.add(unusedImport.specifier);
     unusedByDeclaration.set(unusedImport.declaration, specifiers);
   }
-
-  const replacements: Replacement[] = [];
-  for (const [declaration, unusedSpecifiers] of unusedByDeclaration.entries()) {
-    const keptSpecifiers = declaration.specifiers.filter(
-      (specifier) => !unusedSpecifiers.has(specifier)
-    );
-    if (keptSpecifiers.length === 0) {
-      replacements.push(createImportLineDeletion(source, declaration));
-      continue;
-    }
-
-    replacements.push({
-      start: declaration.specifiers[0]?.span.start.offset ?? declaration.span.start.offset,
-      end: createSpecifierListReplacementEnd(source, declaration),
-      text: keptSpecifiers
-        .map((specifier) => source.slice(specifier.span.start.offset, specifier.span.end.offset))
-        .join(", ")
-    });
-  }
-
-  return applyReplacements(source, replacements);
+  return unusedByDeclaration;
 }
 
 function collectUnusedImports(source: string, filename: string): UnusedImport[] {
@@ -694,10 +694,11 @@ class ASUnusedImportScanner {
 function createDiagnostic(
   filename: string,
   source: string,
-  unusedImport: UnusedImport
+  unusedImport: UnusedImport,
+  unusedSpecifiers: ReadonlySet<ImportSpecifierNode>
 ): Diagnostic {
   const { declaration, specifier } = unusedImport;
-  const replacement = createUnusedSpecifierReplacement(source, declaration, specifier);
+  const replacement = createUnusedImportReplacement(source, declaration, unusedSpecifiers);
   return {
     code: "AS-UNUSED-IMPORT",
     severity: "warning",
@@ -713,21 +714,23 @@ function createDiagnostic(
   };
 }
 
-function createUnusedSpecifierReplacement(
+function createUnusedImportReplacement(
   source: string,
   declaration: ImportDeclaration,
-  specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier
+  unusedSpecifiers: ReadonlySet<ImportSpecifierNode>
 ): Replacement {
-  if (declaration.specifiers.length === 1) {
+  const keptSpecifiers = declaration.specifiers.filter(
+    (specifier) => !unusedSpecifiers.has(specifier)
+  );
+  if (keptSpecifiers.length === 0) {
     return createImportLineDeletion(source, declaration);
   }
 
   return {
     start: declaration.specifiers[0]?.span.start.offset ?? declaration.span.start.offset,
     end: createSpecifierListReplacementEnd(source, declaration),
-    text: declaration.specifiers
-      .filter((candidate) => candidate !== specifier)
-      .map((candidate) => source.slice(candidate.span.start.offset, candidate.span.end.offset))
+    text: keptSpecifiers
+      .map((specifier) => source.slice(specifier.span.start.offset, specifier.span.end.offset))
       .join(", ")
   };
 }

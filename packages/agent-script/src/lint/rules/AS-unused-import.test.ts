@@ -170,4 +170,11 @@ describe("AS_UNUSED_IMPORT", () => {
       "return 1;"
     );
   });
+
+  it("fixes every unused specifier in an import list in one pass", () => {
+    expect(fixASUnusedImports('import { a, b, c } from "x"; return b;')).toBe(
+      'import { b } from "x"; return b;'
+    );
+    expect(fixASUnusedImports('import { a, b, c } from "x"; return 1;')).toBe("return 1;");
+  });
 });

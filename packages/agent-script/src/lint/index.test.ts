@@ -253,6 +253,28 @@ describe("lint", () => {
     );
   });
 
+  it("fixes multiple unused specifiers from one import idempotently", () => {
+    const source = 'import { a, b, c } from "api";\nreturn b;\n';
+    const first = lint(source, {
+      fix: true,
+      modules: {
+        api: ["a", "b", "c"]
+      }
+    });
+    const second = lint(first.fixed, {
+      fix: true,
+      modules: {
+        api: ["a", "b", "c"]
+      }
+    });
+
+    expect(first.fixed).toBe('import { b } from "api";\nreturn b;\n');
+    expect(first.diagnostics.map((diagnostic) => diagnostic.code)).not.toContain(
+      "AS-UNUSED-IMPORT"
+    );
+    expect(second.fixed).toBe(first.fixed);
+  });
+
   it("includes AS-LARGE-LITERAL diagnostics", () => {
     const source = `const value = [${Array.from({ length: 11 }, (_, index) => index).join(", ")}];`;
 

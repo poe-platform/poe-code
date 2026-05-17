@@ -130,7 +130,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: ralph-driver
     title: RalphDriver that delegates to @poe-code/ralph runRalph
@@ -187,8 +187,8 @@ tasks:
 
       Conventional commit: `feat(agent-maestro): ralph workflow driver`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: kind-validation

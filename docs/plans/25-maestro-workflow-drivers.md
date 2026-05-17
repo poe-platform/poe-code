@@ -95,10 +95,10 @@ tasks:
 
       Conventional commit: `refactor(agent-maestro): extract pipeline driver`.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: expose-plan-path
     title: Expose plan file path through task-list and maestro

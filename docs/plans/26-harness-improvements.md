@@ -474,9 +474,9 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-SHADOW-GLOBAL lint rule`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: lint-floating-promise
     title: AS-FLOATING-PROMISE lint rule

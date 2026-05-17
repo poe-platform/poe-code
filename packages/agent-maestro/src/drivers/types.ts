@@ -2,7 +2,11 @@ import type { ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { Task } from "@poe-code/task-list";
 
 import type { ResolvedConfig } from "../config/schema.js";
-import type { AttemptEvent, AttemptOutcome } from "../agent/runner.js";
+import type {
+  AttemptEvent,
+  AttemptOutcome,
+  AttemptReconcileResult
+} from "../agent/runner.js";
 
 export interface WorkflowDriverContext {
   task: Task;
@@ -14,6 +18,12 @@ export interface WorkflowDriverContext {
   abort: AbortSignal;
   emit: (event: AttemptEvent) => void;
   spawn: typeof import("@poe-code/agent-spawn").spawn;
+  taskPromptTemplate?: string;
+  reconcile?: (ctx: {
+    task: Task;
+    attempt: number | null;
+    cfg: ResolvedConfig;
+  }) => Promise<AttemptReconcileResult>;
   logger: { warn(msg: string, meta?: Record<string, unknown>): void };
 }
 

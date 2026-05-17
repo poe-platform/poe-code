@@ -19,6 +19,7 @@ import type { AttemptPhase, FailureCategory } from "./runtime/phases.js";
 import { createState, type RunningEntry } from "./runtime/state.js";
 import { tick, type TickEvent, type TrackedWorker } from "./runtime/loop.js";
 import { removeWorkspace, startupTerminalCleanup } from "./workspace/manager.js";
+import "./drivers/index.js";
 
 export interface Logger {
   info?(message: string, meta?: Record<string, unknown>): void;
@@ -417,6 +418,7 @@ export {
   type RetryEntry,
   type RunningEntry
 } from "./runtime/state.js";
+
 export {
   reconcileRunning,
   type ReconcileAction,

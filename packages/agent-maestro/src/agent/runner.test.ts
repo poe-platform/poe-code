@@ -1,15 +1,20 @@
 import { createFsFromVolume, Volume } from "memfs";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadResolvedSteps, type ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { SpawnResult } from "@poe-code/agent-spawn";
 import type { Task } from "@poe-code/task-list";
 
 import { runAttempt, type AttemptDeps } from "./runner.js";
 import type { ResolvedConfig } from "../config/schema.js";
+import { pipelineDriver } from "../drivers/pipeline.js";
 
 type TestFs = ReturnType<typeof createFsFromVolume>["promises"];
 
 describe("runAttempt", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("runs three declared steps with step agent, model, mode, prompt body, and phase events", async () => {
     const steps = await loadSteps(`
 steps:
@@ -356,6 +361,41 @@ steps:
       "canceled"
     ]);
   });
+
+  it("routes explicit and default pipeline tasks through the pipeline driver", async () => {
+    const steps = await loadSteps(`
+steps:
+  implement:
+    mode: edit
+    prompt: "Implement {{ prompt }}"
+`);
+    const driverRun = vi
+      .spyOn(pipelineDriver, "run")
+      .mockResolvedValue({ reason: "normal" });
+
+    await runAttempt({
+      task: createTask({ metadata: { kind: "pipeline" } }),
+      attempt: 1,
+      cfg: createConfig(),
+      steps,
+      deps: createDeps(),
+      abort: new AbortController().signal
+    });
+    await runAttempt({
+      task: createTask(),
+      attempt: 1,
+      cfg: createConfig(),
+      steps,
+      deps: createDeps(),
+      abort: new AbortController().signal
+    });
+
+    expect(driverRun).toHaveBeenCalledTimes(2);
+    expect(driverRun.mock.calls.map(([ctx]) => ctx.task.metadata.kind)).toEqual([
+      "pipeline",
+      undefined
+    ]);
+  });
 });
 
 async function loadSteps(content: string): Promise<ResolvedStepsConfig> {
@@ -368,7 +408,7 @@ function createFs(files: Record<string, string> = {}): TestFs {
   return createFsFromVolume(volume).promises;
 }
 
-function createTask(): Task {
+function createTask(overrides: Partial<Task> = {}): Task {
   return {
     list: "tasks",
     id: "task-1",
@@ -376,7 +416,8 @@ function createTask(): Task {
     name: "Build runner",
     state: "in-progress",
     description: "Render this task body",
-    metadata: {}
+    metadata: {},
+    ...overrides
   };
 }
 

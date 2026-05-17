@@ -239,6 +239,7 @@ function startWorker(
         attempt,
         cfg: state.cfg,
         steps,
+        workspaceDir: workspace.path,
         deps: {
           spawn: deps.spawn,
           taskPromptTemplate: deps.taskPromptTemplate,

@@ -192,7 +192,7 @@ Returns diagnostics for the agent-script subset and registered modules.
 - `filename?` — used in diagnostics, defaults to `<input>`
 - `modules?` — registered module metadata used to validate `import` statements
 
-Diagnostics cover parse errors, unknown modules and exports, unknown identifiers, closure and async-safety violations, subset-specific method restrictions, and warnings for unused bindings.
+Diagnostics cover parse errors, unknown modules and exports, import cycles, unknown identifiers, closure and async-safety violations, subset-specific method restrictions, and warnings for unused bindings.
 
 ### Lint vs. runtime
 
@@ -260,6 +260,12 @@ const lintModules = {
   custom: { exports: ["hello"], filename: "/repo/custom.ajs", source: "…" }
 };
 ```
+
+`AS-IMPORT-CYCLE` only runs against source-backed modules. External tooling that
+wants cycle diagnostics must pass each module with `filename` and `source`; a
+bare export-list registry such as `{ custom: ["hello"] }` remains valid for
+import/export validation, but cycle detection is a no-op because the linter has
+no module bodies to inspect.
 
 ## Gotchas
 

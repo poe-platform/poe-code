@@ -363,10 +363,10 @@ describe("@poe-code/agent-script public exports", () => {
             source: betaSource
           }
         }
-      }).filter((diagnostic) => diagnostic.code === "AS014")
+      }).filter((diagnostic) => diagnostic.code === "AS-IMPORT-CYCLE")
     ).toEqual([
       {
-        code: "AS014",
+        code: "AS-IMPORT-CYCLE",
         severity: "error",
         message: "Import from 'beta' participates in a cyclic dependency: alpha -> beta -> alpha.",
         filename: "/agents/alpha.ajs",
@@ -375,6 +375,18 @@ describe("@poe-code/agent-script public exports", () => {
         span: {
           start: { line: 1, column: 21, offset: alphaSource.indexOf('"beta"') },
           end: { line: 1, column: 27, offset: alphaSource.indexOf('"beta"') + '"beta"'.length }
+        }
+      },
+      {
+        code: "AS-IMPORT-CYCLE",
+        severity: "error",
+        message: "Import from 'alpha' participates in a cyclic dependency: beta -> alpha -> beta.",
+        filename: "/agents/beta.ajs",
+        line: 1,
+        column: 23,
+        span: {
+          start: { line: 1, column: 23, offset: betaSource.indexOf('"alpha"') },
+          end: { line: 1, column: 30, offset: betaSource.indexOf('"alpha"') + '"alpha"'.length }
         }
       }
     ]);

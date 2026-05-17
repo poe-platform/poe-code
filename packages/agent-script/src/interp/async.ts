@@ -3,6 +3,7 @@ import type {
   AwaitExpression,
   Identifier,
   ParseResult,
+  RestElement,
   SourceSpan
 } from "../parse.js";
 import type { Budget } from "./budget.js";
@@ -123,7 +124,7 @@ async function executeArrow(
   evaluateNode: EvaluateAsyncNode
 ): Promise<SandboxValue> {
   const scope = context.scope.child();
-  bindIdentifierParameters(node.params, args, scope);
+  bindIdentifierParameters(node.params, args, scope, context.budget);
 
   const result = await evaluateNode(node.body, {
     ...context,
@@ -148,16 +149,38 @@ async function executeArrow(
 function bindIdentifierParameters(
   params: ArrowFunctionExpression["params"],
   args: readonly SandboxValue[],
-  scope: Scope
+  scope: Scope,
+  budget: Budget
 ): void {
   for (let index = 0; index < params.length; index += 1) {
     const param = params[index];
+    if (param.type === "RestElement") {
+      bindRestParameter(param, args, index, scope, budget);
+      return;
+    }
+
     if (param.type !== "Identifier") {
       throw new TypeError(`Unsupported async arrow parameter pattern '${param.type}'.`);
     }
 
     declareIdentifier(scope, param, args[index]);
   }
+}
+
+function bindRestParameter(
+  param: RestElement,
+  args: readonly SandboxValue[],
+  index: number,
+  scope: Scope,
+  budget: Budget
+): void {
+  if (param.argument.type !== "Identifier") {
+    throw new TypeError(`Unsupported async arrow rest parameter pattern '${param.argument.type}'.`);
+  }
+
+  const rest = args.slice(index);
+  budget.allocateArrayLength(rest.length);
+  declareIdentifier(scope, param.argument, rest);
 }
 
 function declareIdentifier(scope: Scope, param: Identifier, value: SandboxValue): void {

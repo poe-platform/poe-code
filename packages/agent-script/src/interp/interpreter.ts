@@ -226,7 +226,10 @@ export async function interpret(
     throw evaluation.value;
   }
 
-  if ((evaluation.kind === "break" || evaluation.kind === "continue") && evaluation.label !== undefined) {
+  if (
+    (evaluation.kind === "break" || evaluation.kind === "continue") &&
+    evaluation.label !== undefined
+  ) {
     return {
       ok: false,
       error: createError(
@@ -463,14 +466,19 @@ async function evaluateTemplateExpressionValues(
   };
 }
 
-function createTaggedTemplateStrings(node: TemplateLiteral, context: EvaluationContext): SandboxArray {
+function createTaggedTemplateStrings(
+  node: TemplateLiteral,
+  context: EvaluationContext
+): SandboxArray {
   context.budget.allocateArrayLength(node.quasis.length);
-  const strings = node.quasis.map(quasi =>
+  const strings = node.quasis.map((quasi) =>
     context.budget.allocateString(quasi.value.cooked)
   ) as SandboxArray;
 
   context.budget.allocateArrayLength(node.quasis.length);
-  const raw = node.quasis.map(quasi => context.budget.allocateString(quasi.value.raw)) as SandboxArray;
+  const raw = node.quasis.map((quasi) =>
+    context.budget.allocateString(quasi.value.raw)
+  ) as SandboxArray;
   Object.defineProperty(strings, "raw", {
     configurable: false,
     enumerable: false,
@@ -1125,14 +1133,23 @@ async function evaluateDoWhileStatement(
 }
 
 function isMatchingBreak(result: EvaluationResult, labels: string[] | string | undefined): boolean {
-  return result.kind === "break" && (result.label === undefined || hasLoopLabel(labels, result.label));
+  return (
+    result.kind === "break" && (result.label === undefined || hasLoopLabel(labels, result.label))
+  );
 }
 
-function isMatchingContinue(result: EvaluationResult, labels: string[] | string | undefined): boolean {
-  return result.kind === "continue" && (result.label === undefined || hasLoopLabel(labels, result.label));
+function isMatchingContinue(
+  result: EvaluationResult,
+  labels: string[] | string | undefined
+): boolean {
+  return (
+    result.kind === "continue" && (result.label === undefined || hasLoopLabel(labels, result.label))
+  );
 }
 
-function loopLabels(node: ForOfStatement | ForStatement | WhileStatement | DoWhileStatement): string[] | string | undefined {
+function loopLabels(
+  node: ForOfStatement | ForStatement | WhileStatement | DoWhileStatement
+): string[] | string | undefined {
   return node.labels ?? node.label;
 }
 
@@ -1757,7 +1774,9 @@ function getMemberValue(
       return target[property];
     }
 
-    return (target as unknown as Record<string, SandboxValue>)[property] ?? target[Number(property)];
+    return (
+      (target as unknown as Record<string, SandboxValue>)[property] ?? target[Number(property)]
+    );
   }
 
   return target[String(property)];
@@ -1877,6 +1896,7 @@ async function evaluateCallArguments(
       }
 
       values.push(...spreadValues.value);
+      context.budget.allocateArrayLength(values.length);
       continue;
     }
 
@@ -1889,6 +1909,7 @@ async function evaluateCallArguments(
     }
 
     values.push(result.value);
+    context.budget.allocateArrayLength(values.length);
   }
 
   return {

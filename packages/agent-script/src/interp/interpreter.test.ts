@@ -185,6 +185,116 @@ describe("interpret", () => {
     );
   });
 
+  it("spreads call arguments in place of positional arguments", async () => {
+    const fn = vi.fn((args: readonly unknown[]) => [...args]);
+
+    await expect(
+      interpret(parse("return fn(...[1, 2, 3])"), {
+        bindings: {
+          fn: createSandboxClosure({
+            call: fn,
+            name: "fn"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2, 3]
+    });
+    expect(fn).toHaveBeenCalledWith([1, 2, 3], expect.any(Object));
+  });
+
+  it("preserves call argument order when positional and spread arguments are mixed", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const a = 1"),
+          parse("const mid = [2, 3]"),
+          parse("const z = 4"),
+          parse("return ((...args) => args)(a, ...mid, z)")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2, 3, 4]
+    });
+  });
+
+  it("spreads empty call argument arrays like no arguments", async () => {
+    const fn = vi.fn((args: readonly unknown[]) => args.length);
+
+    await expect(
+      interpret(parse("return fn(...[])"), {
+        bindings: {
+          fn: createSandboxClosure({
+            call: fn,
+            name: "fn"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 0
+    });
+    expect(fn).toHaveBeenCalledWith([], expect.any(Object));
+  });
+
+  it.each([
+    ["string", '"value"'],
+    ["object", "{}"],
+    ["number", "1"],
+    ["boolean", "true"],
+    ["null", "null"],
+    ["undefined", "undefined"]
+  ])("rejects %s spread in call arguments", async (_label, source) => {
+    await expect(
+      interpret(parse(`return fn(...${source})`), {
+        bindings: {
+          fn: createSandboxClosure({
+            call: () => undefined,
+            name: "fn"
+          })
+        }
+      })
+    ).rejects.toThrow("Spread arguments must evaluate to an array.");
+  });
+
+  it("aggregates spread call arguments into receiving arrow rest parameters", async () => {
+    await expect(
+      interpret(parse("return ((first, ...rest) => [first, rest])(...[1, 2, 3, 4])"))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, [2, 3, 4]]
+    });
+  });
+
+  it("charges arrayLength budget for spread call arguments", async () => {
+    const values = Array.from({ length: 10_000 }, (_, index) => index);
+
+    await expect(
+      interpret(parse("return fn(...values)"), {
+        bindings: {
+          fn: createSandboxClosure({
+            call: () => undefined,
+            name: "fn"
+          }),
+          values
+        },
+        budget: new Budget({
+          arrayLength: 9_999
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "arrayLength",
+        current: 10_000,
+        limit: 9_999
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
   it("assigns a new value to a let binding", async () => {
     await expect(
       interpret(block(parse("let x = 1"), parse("x = 2"), parse("return x")))
@@ -501,7 +611,8 @@ describe("interpret", () => {
             name: "inner"
           }),
           outer: createSandboxClosure({
-            call: ([strings, value]) => `${(strings as string[])[0]}${String(value)}${(strings as string[])[1]}`,
+            call: ([strings, value]) =>
+              `${(strings as string[])[0]}${String(value)}${(strings as string[])[1]}`,
             name: "outer"
           })
         }
@@ -1406,17 +1517,20 @@ describe("interpret", () => {
     const events: string[] = [];
 
     await expect(
-      interpret(parse("try { push('try'); 'try-value'; } finally { push('finally'); 'finally-value'; }"), {
-        bindings: {
-          push: createSandboxClosure({
-            call: ([event]) => {
-              events.push(String(event));
-              return undefined;
-            },
-            name: "push"
-          })
+      interpret(
+        parse("try { push('try'); 'try-value'; } finally { push('finally'); 'finally-value'; }"),
+        {
+          bindings: {
+            push: createSandboxClosure({
+              call: ([event]) => {
+                events.push(String(event));
+                return undefined;
+              },
+              name: "push"
+            })
+          }
         }
-      })
+      )
     ).resolves.toMatchObject({
       ok: true,
       returnValue: "try-value"

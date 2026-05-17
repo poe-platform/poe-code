@@ -59,19 +59,31 @@ export function AS_NEEDLESS_TEMPLATE(
 }
 
 export function fixASNeedlessTemplate(source: string, options: { filename?: string } = {}): string {
-  return new ASNeedlessTemplateScanner(source, options.filename ?? "<input>")
-    .collect()
-    .sort((left, right) => right.span.start.offset - left.span.start.offset)
-    .reduce((result, diagnostic) => {
-      const expressionSource = source.slice(
-        diagnostic.expressionSpan.start.offset,
-        diagnostic.expressionSpan.end.offset
-      );
-      return `${result.slice(0, diagnostic.span.start.offset)}String(${expressionSource})${result.slice(diagnostic.span.end.offset)}`;
-    }, source);
+  const filename = options.filename ?? "<input>";
+  let result = source;
+
+  while (true) {
+    const diagnostics = new ASNeedlessTemplateScanner(result, filename).collect();
+    if (diagnostics.length === 0) {
+      return result;
+    }
+
+    const next = selectInnermostDiagnostics(diagnostics)
+      .sort((left, right) => right.span.start.offset - left.span.start.offset)
+      .reduce((current, diagnostic) => {
+        return `${current.slice(0, diagnostic.span.start.offset)}${createReplacement(current, diagnostic)}${current.slice(diagnostic.span.end.offset)}`;
+      }, result);
+
+    if (next === result) {
+      return result;
+    }
+
+    result = next;
+  }
 }
 
 type InternalDiagnostic = Diagnostic & {
+  expression: Expression;
   expressionSpan: SourceSpan;
 };
 
@@ -85,7 +97,9 @@ class ASNeedlessTemplateScanner {
 
   scan(): Diagnostic[] {
     this.visitModule(parseModule(this.source, this.filename));
-    return this.diagnostics.map(({ expressionSpan: _expressionSpan, ...diagnostic }) => diagnostic);
+    return this.diagnostics.map(
+      ({ expression: _expression, expressionSpan: _expressionSpan, ...diagnostic }) => diagnostic
+    );
   }
 
   collect(): InternalDiagnostic[] {
@@ -458,14 +472,54 @@ class ASNeedlessTemplateScanner {
       code: "AS-NEEDLESS-TEMPLATE",
       severity: "info",
       message: AS_NEEDLESS_TEMPLATE_MESSAGE,
-      hint: `Use String(${this.source.slice(expression.span.start.offset, expression.span.end.offset)}).`,
+      hint: `Use ${createStringReplacement(
+        this.source.slice(expression.span.start.offset, expression.span.end.offset),
+        expression
+      )}.`,
       filename: this.filename,
       line: template.span.start.line,
       column: template.span.start.column,
       span: template.span,
+      expression,
       expressionSpan: expression.span
     });
   }
+}
+
+function selectInnermostDiagnostics(
+  diagnostics: readonly InternalDiagnostic[]
+): InternalDiagnostic[] {
+  return diagnostics.filter(
+    (candidate) =>
+      !diagnostics.some((other) => other !== candidate && containsSpan(candidate.span, other.span))
+  );
+}
+
+function containsSpan(outer: SourceSpan, inner: SourceSpan): boolean {
+  return outer.start.offset <= inner.start.offset && inner.end.offset <= outer.end.offset;
+}
+
+function createReplacement(source: string, diagnostic: InternalDiagnostic): string {
+  return createStringReplacement(
+    source.slice(diagnostic.expressionSpan.start.offset, diagnostic.expressionSpan.end.offset),
+    diagnostic.expression
+  );
+}
+
+function createStringReplacement(expressionSource: string, expression: Expression): string {
+  if (isStringCallExpression(expression)) {
+    return expressionSource;
+  }
+
+  return `String(${expressionSource})`;
+}
+
+function isStringCallExpression(expression: Expression): boolean {
+  return (
+    expression.type === "CallExpression" &&
+    expression.callee.type === "Identifier" &&
+    expression.callee.name === "String"
+  );
 }
 
 function isNeedlessTemplate(node: TemplateLiteral): boolean {

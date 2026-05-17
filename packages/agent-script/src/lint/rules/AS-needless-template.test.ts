@@ -14,7 +14,8 @@ describe("AS_NEEDLESS_TEMPLATE", () => {
       {
         code: "AS-NEEDLESS-TEMPLATE",
         severity: "info",
-        message: "Template literals with only one interpolation should use the value or String(value).",
+        message:
+          "Template literals with only one interpolation should use the value or String(value).",
         hint: "Use String(x).",
         filename: "rule.js",
         line: 1,
@@ -62,5 +63,29 @@ describe("AS_NEEDLESS_TEMPLATE", () => {
 
   it("fixes needless templates with String calls", () => {
     expect(fixASNeedlessTemplate("const value = `${x}`;")).toBe("const value = String(x);");
+  });
+
+  it("fixes multiple needless templates", () => {
+    expect(fixASNeedlessTemplate("const values = [`${a}`, `${b.c()}`];")).toBe(
+      "const values = [String(a), String(b.c())];"
+    );
+  });
+
+  it("fixes nested needless templates without leaving another needless template", () => {
+    const fixed = fixASNeedlessTemplate("const value = `${`${x}`}`;");
+
+    expect(fixed).toBe("const value = String(x);");
+    expect(codes(fixed)).toEqual([]);
+  });
+
+  it("fixes overlapping needless templates without corrupting the source", () => {
+    const fixed = fixASNeedlessTemplate("const value = `${`${x}`.trim()}`;");
+
+    expect(fixed).toBe("const value = String(String(x).trim());");
+    expect(codes(fixed)).toEqual([]);
+  });
+
+  it("does not wrap an existing String call while fixing", () => {
+    expect(fixASNeedlessTemplate("const value = `${String(x)}`;")).toBe("const value = String(x);");
   });
 });

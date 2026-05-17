@@ -176,7 +176,15 @@ class ASUnreachableScanner {
     const finallyTerminates =
       node.finalizer === undefined ? false : this.visitBlock(node.finalizer);
 
-    return finallyTerminates || (node.handler !== undefined && tryTerminates && catchTerminates);
+    if (finallyTerminates) {
+      return true;
+    }
+
+    if (node.handler === undefined) {
+      return tryTerminates;
+    }
+
+    return tryTerminates && catchTerminates;
   }
 
   private visitCatchClause(node: CatchClause): boolean {

@@ -15,7 +15,15 @@ export function AS001(source: string, options: { filename?: string } = {}): Diag
   return new AS001Scanner(source, options.filename ?? "<input>").scan();
 }
 
-type TokenType = "eof" | "identifier" | "keyword" | "numeric" | "punctuator" | "regex" | "string" | "template";
+type TokenType =
+  | "eof"
+  | "identifier"
+  | "keyword"
+  | "numeric"
+  | "punctuator"
+  | "regex"
+  | "string"
+  | "template";
 
 type Token = {
   type: TokenType;
@@ -173,7 +181,7 @@ class AS001Scanner {
 
       if (isIdentifierStart(char)) {
         token = this.readIdentifierOrKeyword(start);
-      } else if (char === "'" || char === "\"") {
+      } else if (char === "'" || char === '"') {
         token = this.readString(start, char);
       } else if (char === "`") {
         token = this.readTemplate(start);
@@ -192,7 +200,9 @@ class AS001Scanner {
 
       if (token.type === "identifier" || token.type === "keyword") {
         const nextSignificantChar = this.peekNextSignificantChar();
-        const isMemberProperty = previousToken?.type === "punctuator" && (previousToken.value === "." || previousToken.value === "?.");
+        const isMemberProperty =
+          previousToken?.type === "punctuator" &&
+          (previousToken.value === "." || previousToken.value === "?.");
         const isPropertyKey = nextSignificantChar === ":" && !canStartStatement;
         const isMemberName = isMemberNameToken(
           token,
@@ -202,8 +212,12 @@ class AS001Scanner {
           nextSignificantChar
         );
 
-        if (canStartStatement && nextSignificantChar === ":") {
-          this.report("label", token.start, this.positionWithinSource(token.start.offset + token.value.length));
+        if (canStartStatement && nextSignificantChar === ":" && !this.isLoopLabelStart()) {
+          this.report(
+            "label",
+            token.start,
+            this.positionWithinSource(token.start.offset + token.value.length)
+          );
         } else if (!isMemberProperty && !isPropertyKey && !isMemberName) {
           this.reportForbiddenIdentifier(token);
           if (token.value === "class") {
@@ -218,11 +232,17 @@ class AS001Scanner {
         }
       }
 
-      const isStatementBrace = token.type === "punctuator" && token.value === "{" && canStartStatement;
+      const isStatementBrace =
+        token.type === "punctuator" && token.value === "{" && canStartStatement;
 
       if (token.type === "punctuator" && token.value === "{") {
         braceContextStack.push({
-          kind: pendingClassBody && !canStartStatement ? "class" : isStatementBrace ? "statement" : "object"
+          kind:
+            pendingClassBody && !canStartStatement
+              ? "class"
+              : isStatementBrace
+                ? "statement"
+                : "object"
         });
         pendingClassBody = false;
         if (stopAtTemplateExpressionEnd) {
@@ -235,8 +255,15 @@ class AS001Scanner {
           templateExpressionBraceDepth -= 1;
         }
         lastClosedControlParenthesis =
-          token.type === "punctuator" ? updateGroupingState(groupingStack, previousToken, token.value) : false;
-        canStartStatement = updateStatementStart(token, lastClosedControlParenthesis, false, closedStatementBrace);
+          token.type === "punctuator"
+            ? updateGroupingState(groupingStack, previousToken, token.value)
+            : false;
+        canStartStatement = updateStatementStart(
+          token,
+          lastClosedControlParenthesis,
+          false,
+          closedStatementBrace
+        );
         previousPreviousToken = previousToken;
         previousToken = token;
         continue;
@@ -251,8 +278,15 @@ class AS001Scanner {
       }
 
       lastClosedControlParenthesis =
-        token.type === "punctuator" ? updateGroupingState(groupingStack, previousToken, token.value) : false;
-      canStartStatement = updateStatementStart(token, lastClosedControlParenthesis, isStatementBrace, false);
+        token.type === "punctuator"
+          ? updateGroupingState(groupingStack, previousToken, token.value)
+          : false;
+      canStartStatement = updateStatementStart(
+        token,
+        lastClosedControlParenthesis,
+        isStatementBrace,
+        false
+      );
       previousPreviousToken = previousToken;
       previousToken = token;
     }
@@ -497,6 +531,35 @@ class AS001Scanner {
     return nextIndex >= this.source.length ? undefined : this.source[nextIndex];
   }
 
+  private isLoopLabelStart(): boolean {
+    let index = this.skipTriviaFrom(this.index);
+    if (this.source[index] !== ":") {
+      return false;
+    }
+
+    index = this.skipTriviaFrom(index + 1);
+
+    while (index < this.source.length) {
+      const identifier = readIdentifierAt(this.source, index);
+      if (identifier === undefined) {
+        return false;
+      }
+
+      if (identifier.value === "for" || identifier.value === "while" || identifier.value === "do") {
+        return true;
+      }
+
+      const nextIndex = this.skipTriviaFrom(identifier.end);
+      if (this.source[nextIndex] !== ":") {
+        return false;
+      }
+
+      index = this.skipTriviaFrom(nextIndex + 1);
+    }
+
+    return false;
+  }
+
   private skipTriviaFrom(start: number): number {
     let index = start;
 
@@ -648,7 +711,10 @@ function isGeneratorMemberToken(
     return true;
   }
 
-  return isMemberModifierToken(previousToken) && isMemberEntryStart(previousPreviousToken, memberContext.kind);
+  return (
+    isMemberModifierToken(previousToken) &&
+    isMemberEntryStart(previousPreviousToken, memberContext.kind)
+  );
 }
 
 function isMemberEntryStart(token: Token | undefined, kind: BraceContext["kind"]): boolean {
@@ -680,7 +746,12 @@ function isMemberModifierToken(token: Token | undefined): boolean {
     return false;
   }
 
-  return token.value === "async" || token.value === "get" || token.value === "set" || token.value === "static";
+  return (
+    token.value === "async" ||
+    token.value === "get" ||
+    token.value === "set" ||
+    token.value === "static"
+  );
 }
 
 function updateStatementStart(
@@ -713,10 +784,13 @@ function updateStatementStart(
 }
 
 function matchPunctuator(source: string, index: number): string | undefined {
-  return PUNCTUATORS.find(punctuator => source.startsWith(punctuator, index));
+  return PUNCTUATORS.find((punctuator) => source.startsWith(punctuator, index));
 }
 
-function shouldRejectRegexLiteral(previousToken: Token | undefined, lastClosedControlParenthesis: boolean): boolean {
+function shouldRejectRegexLiteral(
+  previousToken: Token | undefined,
+  lastClosedControlParenthesis: boolean
+): boolean {
   if (previousToken === undefined) {
     return true;
   }
@@ -750,7 +824,8 @@ function updateGroupingState(
   if (punctuator === "(") {
     groupingStack.push({
       value: "(",
-      isControlCondition: previousToken?.type === "keyword" && CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value)
+      isControlCondition:
+        previousToken?.type === "keyword" && CONTROL_FLOW_PAREN_KEYWORDS.has(previousToken.value)
     });
     return false;
   }
@@ -773,7 +848,10 @@ function updateGroupingState(
   return false;
 }
 
-function popGroupingContext(groupingStack: GroupingContext[], expected: "(" | "[" | "{"): GroupingContext | undefined {
+function popGroupingContext(
+  groupingStack: GroupingContext[],
+  expected: "(" | "[" | "{"
+): GroupingContext | undefined {
   const context = groupingStack.pop();
   if (context?.value !== expected) {
     return undefined;
@@ -800,6 +878,25 @@ function isIdentifierPart(char: string): boolean {
   return isIdentifierStart(char) || isDecimalDigit(char);
 }
 
+function readIdentifierAt(
+  source: string,
+  start: number
+): { value: string; end: number } | undefined {
+  if (!isIdentifierStart(source[start] ?? "")) {
+    return undefined;
+  }
+
+  let end = start + 1;
+  while (end < source.length && isIdentifierPart(source[end] ?? "")) {
+    end += 1;
+  }
+
+  return {
+    value: source.slice(start, end),
+    end
+  };
+}
+
 function isAsciiLetter(char: string): boolean {
   return (char >= "a" && char <= "z") || (char >= "A" && char <= "Z");
 }
@@ -809,7 +906,14 @@ function isDecimalDigit(char: string): boolean {
 }
 
 function isWhitespace(char: string): boolean {
-  return char === " " || char === "\t" || char === "\v" || char === "\f" || char === "\u00A0" || char === "\uFEFF";
+  return (
+    char === " " ||
+    char === "\t" ||
+    char === "\v" ||
+    char === "\f" ||
+    char === "\u00A0" ||
+    char === "\uFEFF"
+  );
 }
 
 function isLineBreak(char: string): boolean {

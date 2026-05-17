@@ -51,6 +51,13 @@ describe("AS_UNREACHABLE", () => {
     expect(codes(source)).toEqual([]);
   });
 
+  it("reports a trailing statement after try/finally when try returns and there is no catch", () => {
+    const source =
+      "const run = () => { try { return 1; } finally { log('cleanup'); } log('unreachable'); };";
+
+    expect(codes(source)).toEqual(["AS-UNREACHABLE"]);
+  });
+
   it("reports a statement after a labeled break to an enclosing loop", () => {
     const source = [
       "outer: for (const value of values) {",

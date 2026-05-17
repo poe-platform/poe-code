@@ -197,6 +197,12 @@ describe("AS001", () => {
     ]);
   });
 
+  it("allows labels on loops", () => {
+    expect(AS001("outer: for (;;) { break outer; }")).toEqual([]);
+    expect(AS001("outer: inner: while (ready) { continue inner; }")).toEqual([]);
+    expect(AS001("outer: do { break outer; } while (ready);")).toEqual([]);
+  });
+
   it("ignores comments, string content, and property names while scanning code", () => {
     const source = [
       "// function class /value/",

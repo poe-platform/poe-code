@@ -6,6 +6,7 @@ import type { AcpEvent } from "./types.js";
 import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
+import { observeAgentSpawn } from "../observability/otel.js";
 import { resolveSpawnExecution } from "../runtime.js";
 import {
   resolveModeConfig,
@@ -426,5 +427,17 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     };
   })();
 
-  return { events: ctx.eventStream, done };
+  return {
+    events: ctx.eventStream,
+    done: observeAgentSpawn(
+      {
+        agent: agentId,
+        cwd: options.cwd,
+        mode: options.mode,
+        otelSink: options.otelSink,
+        prompt: options.prompt
+      },
+      () => done
+    )
+  };
 }

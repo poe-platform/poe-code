@@ -5,6 +5,7 @@ import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
+import { observeAgentSpawn } from "./observability/otel.js";
 import { createSpawnParallel } from "./parallel.js";
 import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
@@ -178,6 +179,23 @@ export function buildSpawnArgs(
 }
 
 export async function spawn(
+  agentId: string,
+  options: SpawnOptions,
+  context?: SpawnContext
+): Promise<SpawnResult> {
+  return observeAgentSpawn(
+    {
+      agent: agentId,
+      cwd: options.cwd,
+      mode: options.mode,
+      otelSink: options.otelSink,
+      prompt: options.prompt
+    },
+    () => runSpawn(agentId, options, context)
+  );
+}
+
+async function runSpawn(
   agentId: string,
   options: SpawnOptions,
   context?: SpawnContext

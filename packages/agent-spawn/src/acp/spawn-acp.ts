@@ -6,6 +6,7 @@ import type { AcpEvent } from "./types.js";
 import { stampReceiveTime } from "./meta.js";
 import { sessionUpdateToEvents, createToolRenderState } from "./session-update-converter.js";
 import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "./middleware.js";
+import { observeAgentSpawn } from "../observability/otel.js";
 
 export interface SpawnAcpOptions {
   agentId: string;
@@ -305,5 +306,17 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
     };
   })();
 
-  return { events, done };
+  return {
+    events,
+    done: observeAgentSpawn(
+      {
+        agent: resolvedId,
+        cwd: options.cwd,
+        mode: options.mode,
+        otelSink: options.otelSink,
+        prompt: options.prompt
+      },
+      () => done
+    )
+  };
 }

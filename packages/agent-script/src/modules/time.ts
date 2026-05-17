@@ -29,7 +29,8 @@ export function makeTimeModule(options: TimeModuleOptions = {}): {
         return;
       }
 
-      const timeout = setTimeout(resolveSleep, ms);
+      const start = performance.now();
+      let timeout = setTimeout(resolveSleep, ms);
 
       function cleanup(): void {
         clearTimeout(timeout);
@@ -37,6 +38,12 @@ export function makeTimeModule(options: TimeModuleOptions = {}): {
       }
 
       function resolveSleep(): void {
+        const remainingMs = ms - (performance.now() - start);
+        if (remainingMs > 0) {
+          timeout = setTimeout(resolveSleep, remainingMs);
+          return;
+        }
+
         cleanup();
         resolve();
       }

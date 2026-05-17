@@ -15,7 +15,7 @@ import { buildSpawnArgs } from "./spawn.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { spawn } from "./spawn.js";
 import { stripModelNamespace } from "./model-utils.js";
-import type { CliSpawnConfig } from "./types.js";
+import type { CliSpawnConfig, OtelSink } from "./types.js";
 
 vi.mock("node:child_process", () => ({
   spawn: vi.fn()
@@ -110,6 +110,7 @@ describe("@poe-code/agent-spawn", () => {
 
   it("exports streaming + adapters API", () => {
     expect(typeof agentSpawnApi.spawn).toBe("function");
+    expect(typeof agentSpawnApi.noopOtelSink.startSpan).toBe("function");
     expect(typeof agentSpawnApi.spawn.retry).toBe("function");
     expect(typeof agentSpawnApi.spawnAcp).toBe("function");
     expect(typeof agentSpawnApi.spawnInteractive).toBe("function");
@@ -867,6 +868,77 @@ describe("spawn", () => {
     expect(dryRunMessages[0]).toContain("claude");
   });
 
+  it("records the expected otel span lifecycle for a CLI spawn", async () => {
+    const events: string[] = [];
+    const sink = createRecordingOtelSink(events);
+    vi.mocked(spawnChildProcess).mockReturnValue(
+      createMockChildProcess({ stdout: "finished\n", exitCode: 0 })
+    );
+
+    await spawn("codex", {
+      prompt: "Inspect.",
+      mode: "read",
+      cwd: "/repo",
+      otelSink: sink
+    });
+
+    expect(events).toEqual([
+      'start:agent.spawn:{"agent":"codex","mode":"read","cwd":"/repo"}',
+      'event:prompt:{"prompt":"Inspect."}',
+      'event:summary:{"summary":"finished"}',
+      'event:exit:{"exitCode":0}',
+      "end"
+    ]);
+  });
+
+  it("records an otel exception when a CLI spawn rejects", async () => {
+    const events: string[] = [];
+    const sink = createRecordingOtelSink(events);
+    const failure = new Error("spawn exploded");
+    vi.mocked(spawnChildProcess).mockImplementation(() => {
+      throw failure;
+    });
+
+    await expect(spawn("codex", { prompt: "Try.", otelSink: sink })).rejects.toThrow(
+      "spawn exploded"
+    );
+
+    expect(events.filter((event) => event === "exception:spawn exploded")).toHaveLength(1);
+    expect(events.at(-1)).toBe("end");
+  });
+
+  it("does not crash CLI spawns when otel sink methods throw", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const span = {
+      setAttribute: vi.fn(() => {
+        throw new Error("set failed");
+      }),
+      addEvent: vi.fn(() => {
+        throw new Error("event failed");
+      }),
+      end: vi.fn(() => {
+        throw new Error("end failed");
+      })
+    };
+    const sink: OtelSink = {
+      startSpan: vi.fn(() => span),
+      recordException: vi.fn(() => {
+        throw new Error("exception failed");
+      })
+    };
+    const failure = new Error("spawn exploded");
+    vi.mocked(spawnChildProcess).mockImplementation(() => {
+      throw failure;
+    });
+
+    await expect(spawn("codex", { prompt: "Try.", otelSink: sink })).rejects.toThrow(
+      "spawn exploded"
+    );
+
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+
   it("spawn.retry streams attempt-prefixed events from each retry attempt", async () => {
     vi.mocked(spawnChildProcess)
       .mockImplementationOnce(() =>
@@ -906,6 +978,54 @@ describe("spawn", () => {
       { event: "agent_message", text: "attempt: 2 second" }
     ]);
     expect(spawnChildProcess).toHaveBeenCalledTimes(2);
+  });
+
+  it("spawn.retry records otel spans for each retry attempt", async () => {
+    const otelEvents: string[] = [];
+    vi.mocked(spawnChildProcess)
+      .mockImplementationOnce(() =>
+        createMockChildProcess({
+          stdoutLines: [
+            JSON.stringify({
+              type: "item.completed",
+              item: { type: "agent_message", text: "first" }
+            })
+          ],
+          exitCode: 1
+        })
+      )
+      .mockImplementationOnce(() =>
+        createMockChildProcess({
+          stdoutLines: [
+            JSON.stringify({
+              type: "item.completed",
+              item: { type: "agent_message", text: "second" }
+            })
+          ],
+          exitCode: 0
+        })
+      );
+
+    const { events, result } = spawn.retry(
+      "codex",
+      { prompt: "hello", cwd: "/repo", otelSink: createRecordingOtelSink(otelEvents) },
+      { maxAttempts: 2, backoffMs: 1 }
+    );
+
+    await Promise.all([collect(events), result]);
+
+    expect(otelEvents).toEqual([
+      'start:agent.spawn:{"agent":"codex","mode":"yolo","cwd":"/repo"}',
+      'event:prompt:{"prompt":"hello"}',
+      'event:summary:{"summary":""}',
+      'event:exit:{"exitCode":1}',
+      "end",
+      'start:agent.spawn:{"agent":"codex","mode":"yolo","cwd":"/repo"}',
+      'event:prompt:{"prompt":"hello"}',
+      'event:summary:{"summary":""}',
+      'event:exit:{"exitCode":0}',
+      "end"
+    ]);
   });
 
   it("falls back to prompt args when stdin is unsupported", async () => {
@@ -1033,3 +1153,25 @@ describe("spawn", () => {
     });
   });
 });
+
+function createRecordingOtelSink(events: string[]): OtelSink {
+  return {
+    startSpan(name, attrs) {
+      events.push(`start:${name}:${JSON.stringify(attrs)}`);
+      return {
+        setAttribute(key, value) {
+          events.push(`attr:${key}:${JSON.stringify(value)}`);
+        },
+        addEvent(name, attrs) {
+          events.push(`event:${name}:${JSON.stringify(attrs)}`);
+        },
+        end() {
+          events.push("end");
+        }
+      };
+    },
+    recordException(_span, error) {
+      events.push(`exception:${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+}

@@ -10,6 +10,8 @@ export interface Task {
   state: string;
   description: string;
   metadata: Record<string, unknown>;
+  // Backend-specific absolute path, set by file-based backends.
+  sourcePath?: string;
 }
 
 export interface TaskCreate {

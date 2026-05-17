@@ -85,7 +85,7 @@ class AttemptRunner {
       task: this.args.task,
       attempt: this.args.attempt,
       workspaceDir: this.args.workspaceDir ?? "",
-      planPath: this.args.planPath ?? null,
+      planPath: this.args.task.sourcePath ?? null,
       cfg: this.args.cfg,
       steps: this.args.steps,
       abort: this.args.abort,

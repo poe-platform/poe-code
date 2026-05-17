@@ -396,6 +396,34 @@ steps:
       undefined
     ]);
   });
+
+  it("passes task sourcePath as the workflow driver planPath", async () => {
+    const steps = await loadSteps(`
+steps:
+  implement:
+    mode: edit
+    prompt: "Implement {{ prompt }}"
+`);
+    const driverRun = vi
+      .spyOn(pipelineDriver, "run")
+      .mockResolvedValue({ reason: "normal" });
+
+    await runAttempt({
+      task: createTask({ sourcePath: "/repo/docs/plans/source.md" }),
+      attempt: 1,
+      cfg: createConfig(),
+      steps,
+      planPath: "/repo/docs/plans/legacy.md",
+      deps: createDeps(),
+      abort: new AbortController().signal
+    });
+
+    expect(driverRun).toHaveBeenCalledWith(
+      expect.objectContaining({
+        planPath: "/repo/docs/plans/source.md"
+      })
+    );
+  });
 });
 
 async function loadSteps(content: string): Promise<ResolvedStepsConfig> {

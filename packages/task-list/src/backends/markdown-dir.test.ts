@@ -1,3 +1,4 @@
+import path from "node:path";
 import { parseDocument } from "yaml";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { openTaskList } from "../open.js";
@@ -126,6 +127,34 @@ Initial body`
       owner: "pm",
       estimate: 3
     });
+  });
+
+  it("sets an absolute sourcePath when reading tasks", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/planning/01-source-path.md": `---
+name: Source path
+state: draft
+---
+
+Body`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    const task = await taskList.list("planning").get("source-path");
+    const [listedTask] = await taskList.list("planning").all();
+
+    expect(task.sourcePath).toBe("/repo/tasks/planning/01-source-path.md");
+    expect(path.isAbsolute(task.sourcePath ?? "")).toBe(true);
+    expect(listedTask?.sourcePath).toBe(task.sourcePath);
   });
 
   it("throws MalformedTaskError with the file path and field name", async () => {
@@ -327,6 +356,7 @@ Body description`
       name: "foo",
       state: "draft",
       description: "Body description",
+      sourcePath: "/repo/tasks/07-foo.md",
       metadata: {
         $schema: PIPELINE_SCHEMA_ID,
         kind: "pipeline",

@@ -134,7 +134,8 @@ function describeBackendConformance(
         metadata: {
           owner: "kj",
           priority: "high"
-        }
+        },
+        sourcePath: persistedPaths.taskPath
       });
       await expect(rawFs.readFile(persistedPaths.taskPath, "utf8")).resolves.toContain("Ship it");
       await expect(tasks.get("ship-it")).resolves.toEqual(created);
@@ -159,6 +160,7 @@ function describeBackendConformance(
           priority: "high"
         }
       });
+      const persistedPaths = pathsForTask(rootPath, "planning", "defaulted");
 
       expect(task).toEqual({
         list: "planning",
@@ -170,7 +172,8 @@ function describeBackendConformance(
         metadata: {
           owner: "default-owner",
           priority: "high"
-        }
+        },
+        sourcePath: persistedPaths.taskPath
       });
     });
 
@@ -199,6 +202,7 @@ function describeBackendConformance(
     it("supports create, update, get, and delete", async () => {
       const { taskList } = await openBackend(factory, { path: rootPath });
       const tasks = taskList.list("planning");
+      const persistedPaths = pathsForTask(rootPath, "planning", "crud");
 
       await tasks.create({
         id: "crud",
@@ -230,7 +234,8 @@ function describeBackendConformance(
           owner: "kj",
           priority: "high",
           reviewer: "pm"
-        }
+        },
+        sourcePath: persistedPaths.taskPath
       });
 
       await expect(tasks.get("crud")).resolves.toMatchObject({

@@ -1,3 +1,4 @@
+import path from "node:path";
 import { acquireFileLock } from "@poe-code/file-lock";
 import { isMap, parseDocument, type Document, type YAMLMap } from "yaml";
 import storeSchema from "../schema/store.schema.json" with { type: "json" };
@@ -109,7 +110,7 @@ function metadataFromTaskRecord(taskRecord: TaskRecord): Record<string, unknown>
   return metadata;
 }
 
-function createTask(list: string, id: string, taskRecord: TaskRecord): Task {
+function createTask(list: string, id: string, taskRecord: TaskRecord, sourcePath?: string): Task {
   return {
     list,
     id,
@@ -117,7 +118,8 @@ function createTask(list: string, id: string, taskRecord: TaskRecord): Task {
     name: taskRecord.name as string,
     state: taskRecord.state as string,
     description: descriptionFromTaskRecord(taskRecord),
-    metadata: metadataFromTaskRecord(taskRecord)
+    metadata: metadataFromTaskRecord(taskRecord),
+    ...(sourcePath !== undefined && { sourcePath: path.resolve(sourcePath) })
   };
 }
 
@@ -493,7 +495,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
     const entries: OrderedEntry[] = Object.entries(listRecord)
       .map(([id, taskRecord]) => ({
-        task: createTask(list, id, taskRecord as TaskRecord),
+        task: createTask(list, id, taskRecord as TaskRecord, deps.path),
         raw: taskRecord as TaskRecord
       }))
       .filter(({ task }) => matchesFilter(task, filter));
@@ -525,7 +527,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     async get(id: string): Promise<Task> {
       validateTaskId(id);
       const { store } = await readStore(deps.fs, deps.path, validStates);
-      return createTask(list, id, getTaskOrThrow(store, list, id));
+      return createTask(list, id, getTaskOrThrow(store, list, id), deps.path);
     },
     async create(input: TaskCreate): Promise<Task> {
       assertCreateDoesNotSetState(input);
@@ -542,7 +544,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
         document.setIn(["lists", list, input.id], taskRecord);
         await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-        return createTask(list, input.id, taskRecord);
+        return createTask(list, input.id, taskRecord, deps.path);
       });
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
@@ -570,7 +572,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
         await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-        return createTask(list, id, nextTaskRecord);
+        return createTask(list, id, nextTaskRecord, deps.path);
       });
     },
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
@@ -579,7 +581,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       return withStoreLock(deps, async () => {
         const { document, store } = await readStore(deps.fs, deps.path, validStates);
         const existing = getTaskOrThrow(store, list, id);
-        const task = createTask(list, id, existing);
+        const task = createTask(list, id, existing, deps.path);
         const event = assertFireableTaskEvent(task, eventName);
         const guardResult = event.guard?.(task) ?? true;
 
@@ -605,7 +607,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
 
         await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-        const nextTask = createTask(list, id, nextTaskRecord);
+        const nextTask = createTask(list, id, nextTaskRecord, deps.path);
         await event.onEnter?.(nextTask);
 
         return nextTask;
@@ -614,7 +616,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     async canFire(id: string, eventName: string): Promise<boolean> {
       validateTaskId(id);
       const { store } = await readStore(deps.fs, deps.path, validStates);
-      const task = createTask(list, id, getTaskOrThrow(store, list, id));
+      const task = createTask(list, id, getTaskOrThrow(store, list, id), deps.path);
       const event = findEvent(stateMachine, task.state, eventName);
 
       if (event === undefined) {
@@ -626,7 +628,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     async events(id: string): Promise<readonly string[]> {
       validateTaskId(id);
       const { store } = await readStore(deps.fs, deps.path, validStates);
-      const task = createTask(list, id, getTaskOrThrow(store, list, id));
+      const task = createTask(list, id, getTaskOrThrow(store, list, id), deps.path);
 
       return eventsFromState(stateMachine, task.state);
     },
@@ -674,7 +676,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
         listNode.items.splice(insertIndex, 0, movedPair);
         await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-        return createTask(list, id, taskRecord);
+        return createTask(list, id, taskRecord, deps.path);
       });
     },
     async reorder(ids: readonly string[]): Promise<readonly Task[]> {
@@ -714,7 +716,9 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
         listNode.items.splice(0, listNode.items.length, ...orderedActive, ...archivedPairs);
         await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-        const tasks = ids.map((id) => createTask(list, id, getTaskOrThrow(store, list, id)));
+        const tasks = ids.map((id) =>
+          createTask(list, id, getTaskOrThrow(store, list, id), deps.path)
+        );
         return tasks;
       });
     }
@@ -747,7 +751,7 @@ export async function yamlFileBackend(deps: BackendDeps): Promise<TaskList> {
 
       const entries: OrderedEntry[] = Object.entries(listRecord)
         .map(([id, taskRecord]) => ({
-          task: createTask(listName, id, taskRecord as TaskRecord),
+          task: createTask(listName, id, taskRecord as TaskRecord, deps.path),
           raw: taskRecord as TaskRecord
         }))
         .filter(({ task }) => matchesFilter(task, filter));
@@ -772,7 +776,7 @@ export async function yamlFileBackend(deps: BackendDeps): Promise<TaskList> {
       const taskRecord = getTaskOrThrow(store, sourceListName, id);
 
       if (sourceListName === targetListName) {
-        return createTask(targetListName, id, taskRecord);
+        return createTask(targetListName, id, taskRecord, deps.path);
       }
 
       if (getTaskRecord(store, targetListName, id)) {
@@ -783,7 +787,7 @@ export async function yamlFileBackend(deps: BackendDeps): Promise<TaskList> {
       document.setIn(["lists", targetListName, id], taskRecord);
       await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-      return createTask(targetListName, id, taskRecord);
+      return createTask(targetListName, id, taskRecord, deps.path);
     });
   };
 

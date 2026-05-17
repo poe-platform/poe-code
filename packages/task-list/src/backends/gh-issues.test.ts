@@ -215,10 +215,12 @@ describe("ghIssuesBackend", () => {
     });
 
     await expect(taskList.allTasks({ state: "Todo" }).then(ids)).resolves.toEqual(["482"]);
-    await expect(taskList.get("octo-org/7/482")).resolves.toMatchObject({
+    const task = await taskList.get("octo-org/7/482");
+    expect(task).toMatchObject({
       qualifiedId: "octo-org/7/482",
       name: "Ship GitHub issue backend"
     });
+    expect(task.sourcePath).toBeUndefined();
   });
 
   it("uses the cached state machine for events and canFire without refetching", async () => {
@@ -279,7 +281,9 @@ describe("ghIssuesBackend", () => {
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
 
-    await expect(taskList.list("octo-org/7").all()).resolves.toEqual([
+    const tasks = await taskList.list("octo-org/7").all();
+    expect(tasks.map((task) => task.sourcePath)).toEqual([undefined, undefined, undefined]);
+    expect(tasks).toEqual([
       {
         list: "octo-org/7",
         id: "482",

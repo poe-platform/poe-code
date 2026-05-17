@@ -294,7 +294,8 @@ function createTask(
   id: string,
   frontmatter: TaskRecord,
   body: string,
-  mode: BackendDeps["frontmatterMode"]
+  mode: BackendDeps["frontmatterMode"],
+  sourcePath?: string
 ): Task {
   return {
     list,
@@ -303,7 +304,8 @@ function createTask(
     name: frontmatter.name as string,
     state: frontmatter.state as string,
     description: body,
-    metadata: metadataFromFrontmatter(frontmatter, mode)
+    metadata: metadataFromFrontmatter(frontmatter, mode),
+    ...(sourcePath !== undefined && { sourcePath: path.resolve(sourcePath) })
   };
 }
 
@@ -353,7 +355,7 @@ async function readTaskFile(
     return {
       path: filePath,
       frontmatter,
-      task: createTask(list, id, frontmatter, document.body, mode)
+      task: createTask(list, id, frontmatter, document.body, mode, filePath)
     };
   }
 
@@ -371,7 +373,7 @@ async function readTaskFile(
   return {
     path: filePath,
     frontmatter,
-    task: createTask(list, id, effectiveFrontmatter, document.body, mode)
+    task: createTask(list, id, effectiveFrontmatter, document.body, mode, filePath)
   };
 }
 
@@ -899,7 +901,14 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
         await writeAtomically(deps.fs, targetPath, serializeTaskDocument(frontmatter, description));
 
-        return createTask(list, input.id, frontmatter, description, deps.frontmatterMode);
+        return createTask(
+          list,
+          input.id,
+          frontmatter,
+          description,
+          deps.frontmatterMode,
+          targetPath
+        );
       });
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
@@ -921,7 +930,14 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
           serializeTaskDocument(nextFrontmatter, description)
         );
 
-        return createTask(list, id, nextFrontmatter, description, deps.frontmatterMode);
+        return createTask(
+          list,
+          id,
+          nextFrontmatter,
+          description,
+          deps.frontmatterMode,
+          existing.path
+        );
       });
     },
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
@@ -948,13 +964,6 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
           deps.frontmatterMode,
           opts?.metadataPatch
         );
-        const nextTask = createTask(
-          list,
-          id,
-          nextFrontmatter,
-          existing.task.description,
-          deps.frontmatterMode
-        );
         const serializedTask = serializeTaskDocument(nextFrontmatter, existing.task.description);
 
         if (event.to === "archived") {
@@ -967,12 +976,28 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
           await writeAtomically(deps.fs, existing.path, serializedTask);
           await deps.fs.mkdir(archiveDirectoryPath(deps.path, layout, list), { recursive: true });
           await deps.fs.rename(existing.path, targetPath);
+          const nextTask = createTask(
+            list,
+            id,
+            nextFrontmatter,
+            existing.task.description,
+            deps.frontmatterMode,
+            targetPath
+          );
           await event.onEnter?.(nextTask);
 
           return nextTask;
         }
 
         await writeAtomically(deps.fs, existing.path, serializedTask);
+        const nextTask = createTask(
+          list,
+          id,
+          nextFrontmatter,
+          existing.task.description,
+          deps.frontmatterMode,
+          existing.path
+        );
         await event.onEnter?.(nextTask);
 
         return nextTask;
@@ -1021,7 +1046,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       validateTaskId(id);
 
       return withListLock(async () => {
-        const { entries, tasks } = await readActiveTasks();
+        const { entries } = await readActiveTasks();
         const fromIndex = entries.findIndex((entry) => entry.id === id);
         if (fromIndex < 0) {
           throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
@@ -1045,7 +1070,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
         ordered.splice(insertIndex, 0, id);
         await rewriteMovedPrefix(id, ordered);
 
-        return tasks.get(id)!.task;
+        return (await getTaskFile(id)).task;
       });
     },
     async reorder(ids: readonly string[]): Promise<readonly Task[]> {
@@ -1054,7 +1079,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       }
 
       return withListLock(async () => {
-        const { entries, tasks } = await readActiveTasks();
+        const { entries } = await readActiveTasks();
         const currentIds = entries.map((entry) => entry.id);
         const currentSet = new Set(currentIds);
         const inputSet = new Set(ids);
@@ -1067,7 +1092,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
         await rewriteListPrefixes(ids);
 
-        return ids.map((id) => tasks.get(id)!.task);
+        return Promise.all(ids.map(async (id) => (await getTaskFile(id)).task));
       });
     }
   };

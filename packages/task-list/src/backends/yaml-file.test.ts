@@ -1,3 +1,4 @@
+import path from "node:path";
 import { parseDocument } from "yaml";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { openTaskList } from "../open.js";
@@ -127,6 +128,40 @@ describe("yamlFileBackend", () => {
         }
       }
     });
+  });
+
+  it("sets an absolute sourcePath when reading tasks", async () => {
+    const { fs } = createFs({
+      "/repo/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  planning:",
+        "    source-path:",
+        "      name: Source path",
+        "      state: draft",
+        "      description: Body",
+        ""
+      ].join("\n")
+    });
+    const taskList = await yamlFileBackend({
+      path: "/repo/tasks.yaml",
+      defaults: {
+        metadata: {}
+      },
+      lockStaleMs: 30_000,
+      lockRetries: 20,
+      create: false,
+      fs
+    });
+
+    const task = await taskList.list("planning").get("source-path");
+    const [listedTask] = await taskList.list("planning").all();
+
+    expect(task.sourcePath).toBe("/repo/tasks.yaml");
+    expect(path.isAbsolute(task.sourcePath ?? "")).toBe(true);
+    expect(listedTask?.sourcePath).toBe(task.sourcePath);
   });
 
   it("throws MalformedTaskError naming the invalid list and id", async () => {

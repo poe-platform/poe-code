@@ -948,7 +948,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: snapshot-pluggable-backend
     title: Pluggable snapshot backend interface (no built-in backends)
@@ -990,8 +990,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): pluggable snapshot backend`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: snapshot-replay-equivalence

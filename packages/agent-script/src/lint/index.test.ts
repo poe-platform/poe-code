@@ -32,6 +32,18 @@ describe("lint", () => {
       })
     ).toEqual([
       {
+        code: "AS-UNUSED-IMPORT",
+        severity: "warning",
+        message: "Import 'missing' is never referenced.",
+        filename: "<input>",
+        line: 1,
+        column: 10,
+        span: {
+          start: { line: 1, column: 10, offset: source.indexOf("missing") },
+          end: { line: 1, column: 17, offset: source.indexOf("missing") + "missing".length }
+        }
+      },
+      {
         code: "AS005",
         severity: "error",
         message: "Module 'api' does not export 'missing'. Available exports: request.",
@@ -44,19 +56,7 @@ describe("lint", () => {
         }
       },
       {
-        code: "AS006",
-        severity: "warning",
-        message: "Import 'missing' is never referenced.",
-        filename: "<input>",
-        line: 1,
-        column: 10,
-        span: {
-          start: { line: 1, column: 10, offset: source.indexOf("missing") },
-          end: { line: 1, column: 17, offset: source.indexOf("missing") + "missing".length }
-        }
-      },
-      {
-        code: "AS006",
+        code: "AS-UNUSED-IMPORT",
         severity: "warning",
         message: "Import 'request' is never referenced.",
         filename: "<input>",

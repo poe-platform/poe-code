@@ -13,6 +13,7 @@ import { AS013 } from "./rules/AS013.js";
 import { AS014 } from "./rules/AS014.js";
 import { AS015 } from "./rules/AS015.js";
 import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
+import { AS_UNUSED_IMPORT } from "./rules/AS-unused-import.js";
 import type { SourceSpan } from "../parse/parser.js";
 import type { Modules } from "./rules/module-registry.js";
 
@@ -41,6 +42,7 @@ const RULES: readonly LintRule[] = [
   AS003,
   AS004,
   AS005,
+  AS_UNUSED_IMPORT,
   AS006_007,
   AS008,
   AS009,

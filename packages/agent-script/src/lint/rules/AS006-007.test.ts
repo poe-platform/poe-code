@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { AS006_007 } from "./AS006-007.js";
 
 describe("AS006_007", () => {
-  it("reports unused imports as AS006 warnings and skips underscore-prefixed names", () => {
+  it("does not report unused imports because AS-UNUSED-IMPORT owns them", () => {
     const source = [
       'import value from "api";',
       'import { used, missing as unused, _ignored } from "other";',
@@ -12,20 +12,7 @@ describe("AS006_007", () => {
       "tools.run(result);"
     ].join("\n");
 
-    expect(AS006_007(source, { filename: "rule.js" })).toEqual([
-      {
-        code: "AS006",
-        severity: "warning",
-        message: "Import 'unused' is never referenced.",
-        filename: "rule.js",
-        line: 2,
-        column: 27,
-        span: {
-          start: { line: 2, column: 27, offset: source.indexOf("unused") },
-          end: { line: 2, column: 33, offset: source.indexOf("unused") + "unused".length }
-        }
-      }
-    ]);
+    expect(AS006_007(source, { filename: "rule.js" })).toEqual([]);
   });
 
   it("counts reads inside named and default export declarations", () => {

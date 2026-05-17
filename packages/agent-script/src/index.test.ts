@@ -101,7 +101,7 @@ describe("@poe-code/agent-script public exports", () => {
       })
     ).toEqual([
       {
-        code: "AS006",
+        code: "AS-UNUSED-IMPORT",
         severity: "warning",
         message: "Import 'missing' is never referenced.",
         filename: "rule.js",
@@ -174,6 +174,18 @@ describe("@poe-code/agent-script public exports", () => {
       })
     ).toEqual([
       {
+        code: "AS-UNUSED-IMPORT",
+        severity: "warning",
+        message: "Import 'missing' is never referenced.",
+        filename: "<input>",
+        line: 1,
+        column: 10,
+        span: {
+          start: { line: 1, column: 10, offset: source.indexOf("missing") },
+          end: { line: 1, column: 17, offset: source.indexOf("missing") + "missing".length }
+        }
+      },
+      {
         code: "AS005",
         severity: "error",
         message: "Module 'api' does not export 'missing'. Available exports: request.",
@@ -186,19 +198,7 @@ describe("@poe-code/agent-script public exports", () => {
         }
       },
       {
-        code: "AS006",
-        severity: "warning",
-        message: "Import 'missing' is never referenced.",
-        filename: "<input>",
-        line: 1,
-        column: 10,
-        span: {
-          start: { line: 1, column: 10, offset: source.indexOf("missing") },
-          end: { line: 1, column: 17, offset: source.indexOf("missing") + "missing".length }
-        }
-      },
-      {
-        code: "AS006",
+        code: "AS-UNUSED-IMPORT",
         severity: "warning",
         message: "Import 'request' is never referenced.",
         filename: "<input>",
@@ -470,6 +470,18 @@ describe("@poe-code/agent-script public exports", () => {
       })
     ).toEqual([
       {
+        code: "AS-UNUSED-IMPORT",
+        severity: "warning",
+        message: "Import 'value' is never referenced.",
+        filename: "rule.js",
+        line: 1,
+        column: 8,
+        span: {
+          start: { line: 1, column: 8, offset: source.indexOf("value") },
+          end: { line: 1, column: 13, offset: source.indexOf("value") + "value".length }
+        }
+      },
+      {
         code: "AS005",
         severity: "error",
         message: "Module 'api' does not export 'default'. Available exports: request.",
@@ -482,19 +494,7 @@ describe("@poe-code/agent-script public exports", () => {
         }
       },
       {
-        code: "AS006",
-        severity: "warning",
-        message: "Import 'value' is never referenced.",
-        filename: "rule.js",
-        line: 1,
-        column: 8,
-        span: {
-          start: { line: 1, column: 8, offset: source.indexOf("value") },
-          end: { line: 1, column: 13, offset: source.indexOf("value") + "value".length }
-        }
-      },
-      {
-        code: "AS006",
+        code: "AS-UNUSED-IMPORT",
         severity: "warning",
         message: "Import 'request' is never referenced.",
         filename: "rule.js",
@@ -518,9 +518,9 @@ describe("@poe-code/agent-script public exports", () => {
         }
       },
       {
-        code: "AS005",
-        severity: "error",
-        message: "Module 'api' does not export 'missing'. Available exports: request.",
+        code: "AS-UNUSED-IMPORT",
+        severity: "warning",
+        message: "Import 'missing' is never referenced.",
         filename: "rule.js",
         line: 3,
         column: 10,
@@ -530,9 +530,9 @@ describe("@poe-code/agent-script public exports", () => {
         }
       },
       {
-        code: "AS006",
-        severity: "warning",
-        message: "Import 'missing' is never referenced.",
+        code: "AS005",
+        severity: "error",
+        message: "Module 'api' does not export 'missing'. Available exports: request.",
         filename: "rule.js",
         line: 3,
         column: 10,
@@ -556,7 +556,7 @@ describe("@poe-code/agent-script public exports", () => {
       })
     ).toEqual([
       {
-        code: "AS006",
+        code: "AS-UNUSED-IMPORT",
         severity: "warning",
         message: "Import 'unused' is never referenced.",
         filename: "rule.js",

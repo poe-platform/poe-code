@@ -6,12 +6,9 @@ import {
   type AssignmentExpression,
   type AssignmentPattern,
   type AssignmentProperty,
-  type AwaitExpression,
-  type BinaryExpression,
   type BlockStatement,
   type CallExpression,
   type CatchClause,
-  type ConditionalExpression,
   type DoWhileStatement,
   type Expression,
   type ForOfStatement,
@@ -22,7 +19,6 @@ import {
   type ImportDefaultSpecifier,
   type ImportNamespaceSpecifier,
   type ImportSpecifier,
-  type LogicalExpression,
   type MemberExpression,
   type Module,
   type ObjectExpression,
@@ -33,18 +29,14 @@ import {
   type SpreadElement,
   type Statement,
   type TemplateLiteral,
-  type ThrowStatement,
   type TryStatement,
-  type UnaryExpression,
   type VariableDeclaration,
   type VariableDeclarator,
   type WhileStatement
 } from "../../parse/parser.js";
 
-type DiagnosticCode = "AS006" | "AS007";
-
 export type Diagnostic = {
-  code: DiagnosticCode;
+  code: "AS-UNUSED-IMPORT";
   severity: "warning";
   message: string;
   filename: string;
@@ -55,38 +47,91 @@ export type Diagnostic = {
 
 type BindingKind = "const" | "import" | "let" | "param";
 
-type Binding = {
-  code?: DiagnosticCode;
-  kind: BindingKind;
-  message: string;
+type ImportBinding = {
+  declaration: ImportDeclaration;
+  kind: "import";
   name: string;
   reads: number;
+  specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier;
   span: SourceSpan;
 };
 
+type LocalBinding = {
+  kind: Exclude<BindingKind, "import">;
+  name: string;
+};
+
+type Binding = ImportBinding | LocalBinding;
+
 type Scope = Map<string, Binding>;
 
-export function AS006_007(source: string, options: { filename?: string } = {}): Diagnostic[] {
-  return new AS006007Scanner(options.filename ?? "<input>").scan(source);
+type UnusedImport = {
+  declaration: ImportDeclaration;
+  specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier;
+};
+
+type Replacement = {
+  end: number;
+  start: number;
+  text: string;
+};
+
+export function AS_UNUSED_IMPORT(source: string, options: { filename?: string } = {}): Diagnostic[] {
+  return collectUnusedImports(source, options.filename ?? "<input>").map(({ specifier }) =>
+    createDiagnostic(options.filename ?? "<input>", specifier)
+  );
 }
 
-class AS006007Scanner {
-  private readonly diagnostics: Diagnostic[] = [];
-  private readonly ignoredReads: Array<Set<Binding>> = [];
+export function fixASUnusedImports(source: string, options: { filename?: string } = {}): string {
+  const unusedImports = collectUnusedImports(source, options.filename ?? "<input>");
+  if (unusedImports.length === 0) {
+    return source;
+  }
+
+  const unusedByDeclaration = new Map<ImportDeclaration, Set<ImportDeclaration["specifiers"][number]>>();
+  for (const unusedImport of unusedImports) {
+    const specifiers = unusedByDeclaration.get(unusedImport.declaration) ?? new Set();
+    specifiers.add(unusedImport.specifier);
+    unusedByDeclaration.set(unusedImport.declaration, specifiers);
+  }
+
+  const replacements: Replacement[] = [];
+  for (const [declaration, unusedSpecifiers] of unusedByDeclaration.entries()) {
+    const keptSpecifiers = declaration.specifiers.filter((specifier) => !unusedSpecifiers.has(specifier));
+    if (keptSpecifiers.length === 0) {
+      replacements.push(createImportLineDeletion(source, declaration));
+      continue;
+    }
+
+    replacements.push({
+      start: declaration.specifiers[0]?.span.start.offset ?? declaration.span.start.offset,
+      end: declaration.specifiers[declaration.specifiers.length - 1]?.span.end.offset ?? declaration.span.end.offset,
+      text: keptSpecifiers.map((specifier) => source.slice(specifier.span.start.offset, specifier.span.end.offset)).join(", ")
+    });
+  }
+
+  return applyReplacements(source, replacements);
+}
+
+function collectUnusedImports(source: string, filename: string): UnusedImport[] {
+  return new ASUnusedImportScanner(filename).scan(source);
+}
+
+class ASUnusedImportScanner {
+  private readonly imports: ImportBinding[] = [];
   private readonly scopes: Scope[] = [];
 
   constructor(private readonly filename: string) {}
 
-  scan(source: string): Diagnostic[] {
+  scan(source: string): UnusedImport[] {
     const module = parseModule(source, this.filename);
     this.visitModule(module);
-
-    return this.diagnostics.sort(
-      (left, right) =>
-        left.span.start.offset - right.span.start.offset ||
-        left.span.end.offset - right.span.end.offset ||
-        left.code.localeCompare(right.code)
-    );
+    return this.imports
+      .filter((binding) => binding.reads === 0)
+      .map((binding) => ({
+        declaration: binding.declaration,
+        specifier: binding.specifier
+      }));
   }
 
   private visitModule(node: Module): void {
@@ -136,7 +181,7 @@ class AS006007Scanner {
         }
         return;
       case "ThrowStatement":
-        this.visitThrowStatement(node);
+        this.visitExpression(node.argument);
         return;
       case "ImportDeclaration":
       case "BreakStatement":
@@ -220,10 +265,6 @@ class AS006007Scanner {
     });
   }
 
-  private visitThrowStatement(node: ThrowStatement): void {
-    this.visitExpression(node.argument);
-  }
-
   private visitVariableDeclaration(node: VariableDeclaration): void {
     for (const declarator of node.declarations) {
       this.visitVariableDeclarator(declarator);
@@ -232,11 +273,8 @@ class AS006007Scanner {
 
   private visitVariableDeclarator(node: VariableDeclarator): void {
     this.visitBindingPattern(node.id);
-    const init = node.init;
-    if (init !== undefined) {
-      this.withIgnoredReads(this.resolveBindings(this.collectPatternBindingNames(node.id)), () => {
-        this.visitExpression(init);
-      });
+    if (node.init !== undefined) {
+      this.visitExpression(node.init);
     }
   }
 
@@ -249,7 +287,7 @@ class AS006007Scanner {
         this.visitArrowFunction(node);
         return;
       case "AwaitExpression":
-        this.visitAwaitExpression(node);
+        this.visitExpression(node.argument);
         return;
       case "ArrayExpression":
         this.visitArrayExpression(node);
@@ -258,16 +296,17 @@ class AS006007Scanner {
         this.visitObjectExpression(node);
         return;
       case "UnaryExpression":
-        this.visitUnaryExpression(node);
+        this.visitExpression(node.argument);
         return;
       case "BinaryExpression":
-        this.visitBinaryExpression(node);
-        return;
       case "LogicalExpression":
-        this.visitLogicalExpression(node);
+        this.visitExpression(node.left);
+        this.visitExpression(node.right);
         return;
       case "ConditionalExpression":
-        this.visitConditionalExpression(node);
+        this.visitExpression(node.test);
+        this.visitExpression(node.consequent);
+        this.visitExpression(node.alternate);
         return;
       case "MemberExpression":
         this.visitMemberExpression(node);
@@ -281,9 +320,16 @@ class AS006007Scanner {
       case "TemplateLiteral":
         this.visitTemplateLiteral(node);
         return;
+      case "TaggedTemplateExpression":
+        this.visitExpression(node.tag);
+        this.visitTemplateLiteral(node.quasi);
+        return;
+      case "MetaProperty":
+        return;
       case "BooleanLiteral":
       case "NullLiteral":
       case "NumericLiteral":
+      case "RegexLiteral":
       case "StringLiteral":
       case "UndefinedLiteral":
         return;
@@ -291,24 +337,18 @@ class AS006007Scanner {
   }
 
   private visitArrowFunction(node: ArrowFunctionExpression): void {
-    this.withDeferredReads(() => {
-      this.withScope(this.collectParameterBindings(node), () => {
-        for (const parameter of node.params) {
-          this.visitBindingElement(parameter);
-        }
+    this.withScope(this.collectParameterBindings(node), () => {
+      for (const parameter of node.params) {
+        this.visitBindingElement(parameter);
+      }
 
-        if (node.body.type === "BlockStatement") {
-          this.visitBlock(node.body);
-          return;
-        }
+      if (node.body.type === "BlockStatement") {
+        this.visitBlock(node.body);
+        return;
+      }
 
-        this.visitExpression(node.body);
-      });
+      this.visitExpression(node.body);
     });
-  }
-
-  private visitAwaitExpression(node: AwaitExpression): void {
-    this.visitExpression(node.argument);
   }
 
   private visitArrayExpression(node: ArrayExpression): void {
@@ -331,26 +371,6 @@ class AS006007Scanner {
       }
       this.visitProperty(property);
     }
-  }
-
-  private visitUnaryExpression(node: UnaryExpression): void {
-    this.visitExpression(node.argument);
-  }
-
-  private visitBinaryExpression(node: BinaryExpression): void {
-    this.visitExpression(node.left);
-    this.visitExpression(node.right);
-  }
-
-  private visitLogicalExpression(node: LogicalExpression): void {
-    this.visitExpression(node.left);
-    this.visitExpression(node.right);
-  }
-
-  private visitConditionalExpression(node: ConditionalExpression): void {
-    this.visitExpression(node.test);
-    this.visitExpression(node.consequent);
-    this.visitExpression(node.alternate);
   }
 
   private visitMemberExpression(node: MemberExpression): void {
@@ -399,9 +419,7 @@ class AS006007Scanner {
     switch (node.type) {
       case "AssignmentPattern":
         this.visitBindingPattern(node.left);
-        this.withIgnoredReads(this.resolveBindings(this.collectPatternBindingNames(node.left)), () => {
-          this.visitExpression(node.right);
-        });
+        this.visitExpression(node.right);
         return;
       case "RestElement":
         this.visitBindingPattern(node.argument);
@@ -455,16 +473,16 @@ class AS006007Scanner {
         this.visitAssignmentTarget(node.argument);
         return;
       case "Identifier":
+        this.markRead(node);
         return;
       case "MemberExpression":
         this.visitMemberExpression(node);
         return;
       case "ArrayPattern":
         for (const element of node.elements) {
-          if (element === null) {
-            continue;
+          if (element !== null) {
+            this.visitAssignmentTarget(element);
           }
-          this.visitAssignmentTarget(element);
         }
         return;
       case "ObjectPattern":
@@ -479,6 +497,8 @@ class AS006007Scanner {
           this.visitAssignmentTarget(property.value);
         }
         return;
+      case "MetaProperty":
+        return;
     }
   }
 
@@ -490,42 +510,14 @@ class AS006007Scanner {
 
     this.scopes.push(scope);
     visit();
-    this.reportUnreadBindings(scope);
     this.scopes.pop();
-  }
-
-  private reportUnreadBindings(scope: Scope): void {
-    for (const binding of scope.values()) {
-      if (binding.code === undefined || binding.reads > 0 || binding.name.startsWith("_")) {
-        continue;
-      }
-
-      this.diagnostics.push({
-        code: binding.code,
-        severity: "warning",
-        message: binding.message,
-        filename: this.filename,
-        line: binding.span.start.line,
-        column: binding.span.start.column,
-        span: binding.span
-      });
-    }
   }
 
   private markRead(node: Identifier): void {
     const binding = this.resolveBinding(node.name);
-    if (binding !== undefined && !this.isIgnoredRead(binding)) {
+    if (binding?.kind === "import") {
       binding.reads += 1;
     }
-  }
-
-  private isIgnoredRead(binding: Binding): boolean {
-    for (let index = this.ignoredReads.length - 1; index >= 0; index -= 1) {
-      if (this.ignoredReads[index]?.has(binding)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   private resolveBinding(name: string): Binding | undefined {
@@ -551,7 +543,7 @@ class AS006007Scanner {
         continue;
       }
       if (statement.type === "ExportNamedDeclaration") {
-        bindings.push(...this.collectExportDeclarationBindings(statement.declaration));
+        bindings.push(...this.collectDeclarationBindings(statement.declaration));
       }
     }
 
@@ -590,13 +582,6 @@ class AS006007Scanner {
     return bindings;
   }
 
-  private collectExportDeclarationBindings(node: VariableDeclaration): Binding[] {
-    return this.collectDeclarationBindings(node).map((binding) => ({
-      ...binding,
-      code: undefined
-    }));
-  }
-
   private collectCatchBindings(node: CatchClause): Binding[] {
     const bindings: Binding[] = [];
 
@@ -607,23 +592,24 @@ class AS006007Scanner {
     return bindings;
   }
 
-  private collectImportBindings(node: ImportDeclaration): Binding[] {
-    return node.specifiers.map((specifier) => this.createImportBinding(specifier));
-  }
-
-  private createImportBinding(specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier): Binding {
-    return {
-      kind: "import",
-      message: `Import '${specifier.local.name}' is never referenced.`,
-      name: specifier.local.name,
-      reads: 0,
-      span: specifier.local.span
-    };
+  private collectImportBindings(node: ImportDeclaration): ImportBinding[] {
+    return node.specifiers.map((specifier) => {
+      const binding: ImportBinding = {
+        declaration: node,
+        kind: "import",
+        name: specifier.local.name,
+        reads: 0,
+        specifier,
+        span: specifier.span
+      };
+      this.imports.push(binding);
+      return binding;
+    });
   }
 
   private collectBindingNamesFromElement(
     node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
-    kind: BindingKind,
+    kind: Exclude<BindingKind, "import">,
     bindings: Binding[]
   ): void {
     switch (node.type) {
@@ -641,12 +627,15 @@ class AS006007Scanner {
 
   private collectBindingNamesFromPattern(
     node: ArrayPattern | Identifier | MemberExpression | ObjectPattern,
-    kind: BindingKind,
+    kind: Exclude<BindingKind, "import">,
     bindings: Binding[]
   ): void {
     switch (node.type) {
       case "Identifier":
-        bindings.push(this.createBinding(node, kind));
+        bindings.push({
+          kind,
+          name: node.name
+        });
         return;
       case "MemberExpression":
         return;
@@ -668,76 +657,53 @@ class AS006007Scanner {
         return;
     }
   }
+}
 
-  private createBinding(node: Identifier, kind: BindingKind): Binding {
-    return {
-      code: kind === "const" || kind === "let" ? "AS007" : undefined,
-      kind,
-      message: `Binding '${node.name}' is declared but never read.`,
-      name: node.name,
-      reads: 0,
-      span: node.span
-    };
+function createDiagnostic(
+  filename: string,
+  specifier: ImportDefaultSpecifier | ImportNamespaceSpecifier | ImportSpecifier
+): Diagnostic {
+  return {
+    code: "AS-UNUSED-IMPORT",
+    severity: "warning",
+    message: `Import '${specifier.local.name}' is never referenced.`,
+    filename,
+    line: specifier.span.start.line,
+    column: specifier.span.start.column,
+    span: specifier.span
+  };
+}
+
+function createImportLineDeletion(source: string, declaration: ImportDeclaration): Replacement {
+  const lineStart = source.lastIndexOf("\n", declaration.span.start.offset - 1) + 1;
+  let end = declaration.span.end.offset;
+
+  while (source[end] === " " || source[end] === "\t") {
+    end += 1;
+  }
+  if (source[end] === ";") {
+    end += 1;
+  }
+  while (source[end] === " " || source[end] === "\t") {
+    end += 1;
+  }
+  if (source.slice(end, end + 2) === "\r\n") {
+    end += 2;
+  } else if (source[end] === "\n") {
+    end += 1;
   }
 
-  private collectPatternBindingNames(node: ArrayPattern | Identifier | MemberExpression | ObjectPattern): string[] {
-    const names: string[] = [];
-    this.collectBindingNames(node, names);
-    return names;
-  }
+  return {
+    start: lineStart,
+    end,
+    text: ""
+  };
+}
 
-  private collectBindingNames(
-    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
-    names: string[]
-  ): void {
-    switch (node.type) {
-      case "AssignmentPattern":
-        this.collectBindingNames(node.left, names);
-        return;
-      case "RestElement":
-        this.collectBindingNames(node.argument, names);
-        return;
-      case "Identifier":
-        names.push(node.name);
-        return;
-      case "MemberExpression":
-        return;
-      case "ArrayPattern":
-        for (const element of node.elements) {
-          if (element !== null) {
-            this.collectBindingNames(element, names);
-          }
-        }
-        return;
-      case "ObjectPattern":
-        for (const property of node.properties) {
-          this.collectBindingNames(property.type === "RestElement" ? property.argument : property.value, names);
-        }
-        return;
-    }
-  }
-
-  private resolveBindings(names: string[]): Binding[] {
-    return names.flatMap((name) => {
-      const binding = this.resolveBinding(name);
-      return binding === undefined ? [] : [binding];
-    });
-  }
-
-  private withIgnoredReads(bindings: Binding[], visit: () => void): void {
-    if (bindings.length === 0) {
-      visit();
-      return;
-    }
-
-    this.ignoredReads.push(new Set(bindings));
-    visit();
-    this.ignoredReads.pop();
-  }
-
-  private withDeferredReads(visit: () => void): void {
-    const ignoredReads = this.ignoredReads.splice(0);
-    visit();
-    this.ignoredReads.push(...ignoredReads);
-  }
+function applyReplacements(source: string, replacements: readonly Replacement[]): string {
+  return [...replacements]
+    .sort((left, right) => right.start - left.start)
+    .reduce((result, replacement) => {
+      return `${result.slice(0, replacement.start)}${replacement.text}${result.slice(replacement.end)}`;
+    }, source);
 }

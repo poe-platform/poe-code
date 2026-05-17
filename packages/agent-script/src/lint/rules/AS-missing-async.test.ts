@@ -75,4 +75,36 @@ describe("AS_MISSING_ASYNC", () => {
     expect(fixASMissingAsync("const f = () => await x;")).toBe("const f = async () => await x;");
     expect(fixASMissingAsync("const f = x => await x;")).toBe("const f = async x => await x;");
   });
+
+  it("reports awaits in binding patterns inside non-async arrow bodies", () => {
+    expect(codes("const f = () => { const [value = await load()] = values; };")).toEqual([
+      "AS-MISSING-ASYNC"
+    ]);
+    expect(codes("const f = () => { const { value = await load() } = values; };")).toEqual([
+      "AS-MISSING-ASYNC"
+    ]);
+  });
+
+  it("reports awaits in assignment targets inside non-async arrow bodies", () => {
+    expect(codes("const f = () => { target[await key()] = value; };")).toEqual([
+      "AS-MISSING-ASYNC"
+    ]);
+    expect(codes("const f = () => { ({ value = await load() } = source); };")).toEqual([
+      "AS-MISSING-ASYNC"
+    ]);
+    expect(codes("const f = () => { for (target[await key()] of values) run(); };")).toEqual([
+      "AS-MISSING-ASYNC"
+    ]);
+  });
+
+  it("reports awaits in catch parameters inside non-async arrow bodies", () => {
+    expect(
+      codes("const f = () => { try { run(); } catch ({ value = await load() }) {} };")
+    ).toEqual(["AS-MISSING-ASYNC"]);
+  });
+
+  it("reports nested non-async arrows from arrow parameters and assignment targets", () => {
+    expect(codes("const f = (value = (() => await x)) => value;")).toEqual(["AS-MISSING-ASYNC"]);
+    expect(codes("const f = () => { (() => await x).value = 1; };")).toEqual(["AS-MISSING-ASYNC"]);
+  });
 });

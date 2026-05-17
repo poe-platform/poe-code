@@ -1,8 +1,11 @@
 import {
   parseModule,
   type ArrayExpression,
+  type ArrayPattern,
   type ArrowFunctionExpression,
   type AssignmentExpression,
+  type AssignmentPattern,
+  type AssignmentProperty,
   type BinaryExpression,
   type BlockStatement,
   type CallExpression,
@@ -17,7 +20,10 @@ import {
   type MemberExpression,
   type Module,
   type ObjectExpression,
+  type ObjectPattern,
+  type PatternTarget,
   type Property,
+  type RestElement,
   type ReturnStatement,
   type SourceSpan,
   type Statement,
@@ -179,6 +185,9 @@ class ASMissingAsyncScanner {
   }
 
   private visitCatchClause(node: CatchClause): void {
+    if (node.param !== undefined) {
+      this.visitBindingPattern(node.param);
+    }
     this.visitBlockStatement(node.body);
   }
 
@@ -189,6 +198,7 @@ class ASMissingAsyncScanner {
   }
 
   private visitVariableDeclarator(node: VariableDeclarator): void {
+    this.visitBindingPattern(node.id);
     if (node.init !== undefined) {
       this.visitExpression(node.init);
     }
@@ -260,6 +270,10 @@ class ASMissingAsyncScanner {
       this.report(node.span);
     }
 
+    for (const param of node.params) {
+      this.visitBindingElement(param);
+    }
+
     if (node.body.type === "BlockStatement") {
       this.visitBlockStatement(node.body);
       return;
@@ -320,6 +334,7 @@ class ASMissingAsyncScanner {
   }
 
   private visitAssignmentExpression(node: AssignmentExpression): void {
+    this.visitAssignmentTarget(node.left);
     this.visitExpression(node.right);
   }
 
@@ -344,6 +359,73 @@ class ASMissingAsyncScanner {
   private visitTaggedTemplateExpression(node: TaggedTemplateExpression): void {
     this.visitExpression(node.tag);
     this.visitTemplateLiteral(node.quasi);
+  }
+
+  private visitAssignmentTarget(node: AssignmentExpression["left"]): void {
+    switch (node.type) {
+      case "Identifier":
+      case "MetaProperty":
+        return;
+      case "MemberExpression":
+        this.visitMemberExpression(node);
+        return;
+      case "ArrayPattern":
+      case "AssignmentPattern":
+      case "ObjectPattern":
+        this.visitBindingPattern(node);
+        return;
+    }
+  }
+
+  private visitBindingElement(
+    node: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement
+  ): void {
+    if (node.type === "RestElement") {
+      this.visitAssignmentTarget(node.argument);
+      return;
+    }
+
+    this.visitBindingPattern(node);
+  }
+
+  private visitBindingPattern(
+    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern
+  ): void {
+    switch (node.type) {
+      case "Identifier":
+        return;
+      case "MemberExpression":
+        this.visitMemberExpression(node);
+        return;
+      case "AssignmentPattern":
+        this.visitBindingPattern(node.left);
+        this.visitExpression(node.right);
+        return;
+      case "ArrayPattern":
+        for (const element of node.elements) {
+          if (element === null) {
+            continue;
+          }
+          this.visitBindingElement(element);
+        }
+        return;
+      case "ObjectPattern":
+        for (const property of node.properties) {
+          if (property.type === "RestElement") {
+            this.visitAssignmentTarget(property.argument);
+            continue;
+          }
+          this.visitAssignmentProperty(property);
+        }
+        return;
+    }
+  }
+
+  private visitAssignmentProperty(node: AssignmentProperty): void {
+    if (node.computed) {
+      this.visitExpression(node.key);
+    }
+    this.visitBindingPattern(node.value);
   }
 
   private report(span: SourceSpan): void {
@@ -393,6 +475,7 @@ function statementContainsAwait(node: Statement): boolean {
     case "ForOfStatement":
       return (
         (node.left.type === "VariableDeclaration" && variableDeclarationContainsAwait(node.left)) ||
+        (node.left.type !== "VariableDeclaration" && assignmentTargetContainsAwait(node.left)) ||
         expressionContainsAwait(node.right) ||
         statementContainsAwait(node.body)
       );
@@ -423,12 +506,18 @@ function statementContainsAwait(node: Statement): boolean {
 }
 
 function catchClauseContainsAwait(node: CatchClause): boolean {
-  return statementListContainsAwait(node.body.body);
+  return (
+    (node.param !== undefined && bindingPatternContainsAwait(node.param)) ||
+    statementListContainsAwait(node.body.body)
+  );
 }
 
 function variableDeclarationContainsAwait(node: VariableDeclaration): boolean {
   return node.declarations.some((declarator) => {
-    return declarator.init !== undefined && expressionContainsAwait(declarator.init);
+    return (
+      bindingPatternContainsAwait(declarator.id) ||
+      (declarator.init !== undefined && expressionContainsAwait(declarator.init))
+    );
   });
 }
 
@@ -463,7 +552,7 @@ function expressionContainsAwait(node: Expression): boolean {
         (node.computed && expressionContainsAwait(node.property))
       );
     case "AssignmentExpression":
-      return expressionContainsAwait(node.right);
+      return assignmentTargetContainsAwait(node.left) || expressionContainsAwait(node.right);
     case "CallExpression":
       return (
         expressionContainsAwait(node.callee) ||
@@ -500,4 +589,69 @@ function objectExpressionContainsAwait(node: ObjectExpression): boolean {
       expressionContainsAwait(property.value)
     );
   });
+}
+
+function assignmentTargetContainsAwait(node: AssignmentExpression["left"]): boolean {
+  switch (node.type) {
+    case "Identifier":
+    case "MetaProperty":
+      return false;
+    case "MemberExpression":
+      return expressionContainsAwait(node);
+    case "ArrayPattern":
+    case "AssignmentPattern":
+    case "ObjectPattern":
+      return bindingPatternContainsAwait(node);
+  }
+}
+
+function bindingElementContainsAwait(
+  node: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement
+): boolean {
+  if (node.type === "RestElement") {
+    return patternTargetContainsAwait(node.argument);
+  }
+
+  return bindingPatternContainsAwait(node);
+}
+
+function bindingPatternContainsAwait(
+  node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern
+): boolean {
+  switch (node.type) {
+    case "Identifier":
+      return false;
+    case "MemberExpression":
+      return expressionContainsAwait(node);
+    case "AssignmentPattern":
+      return bindingPatternContainsAwait(node.left) || expressionContainsAwait(node.right);
+    case "ArrayPattern":
+      return node.elements.some((element) => {
+        return element !== null && bindingElementContainsAwait(element);
+      });
+    case "ObjectPattern":
+      return node.properties.some(assignmentPropertyContainsAwait);
+  }
+}
+
+function assignmentPropertyContainsAwait(node: AssignmentProperty | RestElement): boolean {
+  if (node.type === "RestElement") {
+    return patternTargetContainsAwait(node.argument);
+  }
+
+  return (
+    (node.computed && expressionContainsAwait(node.key)) || bindingPatternContainsAwait(node.value)
+  );
+}
+
+function patternTargetContainsAwait(node: PatternTarget): boolean {
+  switch (node.type) {
+    case "Identifier":
+      return false;
+    case "MemberExpression":
+      return expressionContainsAwait(node);
+    case "ArrayPattern":
+    case "ObjectPattern":
+      return bindingPatternContainsAwait(node);
+  }
 }

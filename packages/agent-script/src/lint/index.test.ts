@@ -173,6 +173,14 @@ describe("lint", () => {
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-NEEDLESS-TEMPLATE");
   });
 
+  it("includes AS-DESTRUCTURE-NULL-DEFAULT diagnostics", () => {
+    const source = "const { a = 1 } = { a: null };";
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain(
+      "AS-DESTRUCTURE-NULL-DEFAULT"
+    );
+  });
+
   it("includes AS-JSDOC-TYPE diagnostics when typed modules opt in", () => {
     const source = "/** @type {string} */ const x = 1;";
 

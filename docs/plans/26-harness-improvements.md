@@ -147,7 +147,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-computed-optional-chain
     title: Computed optional chaining (arr?.[i])
@@ -171,8 +171,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): computed optional chaining`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-number-statics

@@ -1402,6 +1402,29 @@ describe("interpret", () => {
     });
   });
 
+  it("preserves a normal try completion value while running finally", async () => {
+    const events: string[] = [];
+
+    await expect(
+      interpret(parse("try { push('try'); 'try-value'; } finally { push('finally'); 'finally-value'; }"), {
+        bindings: {
+          push: createSandboxClosure({
+            call: ([event]) => {
+              events.push(String(event));
+              return undefined;
+            },
+            name: "push"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "try-value"
+    });
+
+    expect(events).toEqual(["try", "finally"]);
+  });
+
   it("runs finally when try throws and rethrows the original error", async () => {
     const cleanup = vi.fn();
 

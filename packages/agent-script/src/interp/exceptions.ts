@@ -2,6 +2,7 @@ import type {
   ArrayPattern,
   AssignmentPattern,
   AssignmentProperty,
+  BlockStatement,
   CatchClause,
   Expression,
   Identifier,
@@ -81,7 +82,7 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
-  const tryResult = await evaluateNode(node.block, context);
+  const tryResult = await evaluateBlockCompletion(node.block, context, evaluateNode);
   const tryOrCatchResult =
     tryResult.kind === "throw" && node.handler !== undefined
       ? await evaluateCatchClause(node.handler, tryResult.value, context, evaluateNode)
@@ -91,7 +92,7 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
     return tryOrCatchResult;
   }
 
-  const finalizerResult = await evaluateNode(node.finalizer, context);
+  const finalizerResult = await evaluateBlockCompletion(node.finalizer, context, evaluateNode);
   if (finalizerResult.kind === "normal") {
     return tryOrCatchResult;
   }
@@ -160,7 +161,28 @@ async function evaluateCatchClause<TContext extends ExceptionContext, TError>(
     }
   }
 
-  return evaluateNode(node.body, catchContext);
+  return evaluateBlockCompletion(node.body, catchContext, evaluateNode);
+}
+
+async function evaluateBlockCompletion<TContext extends ExceptionContext, TError>(
+  node: BlockStatement,
+  context: TContext,
+  evaluateNode: EvaluateExceptionNode<TContext, TError>
+): Promise<EvaluationResult<TError>> {
+  let result: EvaluationResult<TError> = {
+    kind: "normal",
+    hasValue: false,
+    value: undefined
+  };
+
+  for (const statement of node.body) {
+    result = await evaluateNode(statement, context);
+    if (result.kind !== "normal") {
+      return result;
+    }
+  }
+
+  return result;
 }
 
 async function bindPattern<TContext extends ExceptionContext, TError>(

@@ -970,7 +970,7 @@ async function evaluateForOfStatement(
       scope
     });
 
-    if (isMatchingBreak(result, node.label)) {
+    if (isMatchingBreak(result, loopLabels(node))) {
       return {
         kind: "normal",
         hasValue: false,
@@ -978,7 +978,7 @@ async function evaluateForOfStatement(
       };
     }
 
-    if (isMatchingContinue(result, node.label)) {
+    if (isMatchingContinue(result, loopLabels(node))) {
       continue;
     }
 
@@ -1031,7 +1031,7 @@ async function evaluateForStatement(
 
     const result = await evaluateNode(node.body, loopContext);
 
-    if (isMatchingBreak(result, node.label)) {
+    if (isMatchingBreak(result, loopLabels(node))) {
       return {
         kind: "normal",
         hasValue: false,
@@ -1039,7 +1039,7 @@ async function evaluateForStatement(
       };
     }
 
-    if (result.kind !== "normal" && !isMatchingContinue(result, node.label)) {
+    if (result.kind !== "normal" && !isMatchingContinue(result, loopLabels(node))) {
       return result;
     }
 
@@ -1072,7 +1072,7 @@ async function evaluateWhileStatement(
 
     const result = await evaluateNode(node.body, context);
 
-    if (isMatchingBreak(result, node.label)) {
+    if (isMatchingBreak(result, loopLabels(node))) {
       return {
         kind: "normal",
         hasValue: false,
@@ -1080,7 +1080,7 @@ async function evaluateWhileStatement(
       };
     }
 
-    if (isMatchingContinue(result, node.label)) {
+    if (isMatchingContinue(result, loopLabels(node))) {
       continue;
     }
 
@@ -1097,7 +1097,7 @@ async function evaluateDoWhileStatement(
   while (true) {
     const result = await evaluateNode(node.body, context);
 
-    if (isMatchingBreak(result, node.label)) {
+    if (isMatchingBreak(result, loopLabels(node))) {
       return {
         kind: "normal",
         hasValue: false,
@@ -1105,7 +1105,7 @@ async function evaluateDoWhileStatement(
       };
     }
 
-    if (result.kind !== "normal" && !isMatchingContinue(result, node.label)) {
+    if (result.kind !== "normal" && !isMatchingContinue(result, loopLabels(node))) {
       return result;
     }
 
@@ -1124,12 +1124,20 @@ async function evaluateDoWhileStatement(
   }
 }
 
-function isMatchingBreak(result: EvaluationResult, label: string | undefined): boolean {
-  return result.kind === "break" && (result.label === undefined || result.label === label);
+function isMatchingBreak(result: EvaluationResult, labels: string[] | string | undefined): boolean {
+  return result.kind === "break" && (result.label === undefined || hasLoopLabel(labels, result.label));
 }
 
-function isMatchingContinue(result: EvaluationResult, label: string | undefined): boolean {
-  return result.kind === "continue" && (result.label === undefined || result.label === label);
+function isMatchingContinue(result: EvaluationResult, labels: string[] | string | undefined): boolean {
+  return result.kind === "continue" && (result.label === undefined || hasLoopLabel(labels, result.label));
+}
+
+function loopLabels(node: ForOfStatement | ForStatement | WhileStatement | DoWhileStatement): string[] | string | undefined {
+  return node.labels ?? node.label;
+}
+
+function hasLoopLabel(labels: string[] | string | undefined, target: string): boolean {
+  return Array.isArray(labels) ? labels.includes(target) : labels === target;
 }
 
 function bindForOfLoopVariable(

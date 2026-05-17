@@ -1315,6 +1315,33 @@ describe("parse", () => {
       }
     });
 
+    expect(parse("() => { outer: inner: for (;;) { break outer; continue inner; } }")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      body: {
+        type: "BlockStatement",
+        body: [
+          {
+            type: "ForStatement",
+            label: "inner",
+            labels: ["outer", "inner"],
+            body: {
+              type: "BlockStatement",
+              body: [
+                {
+                  type: "BreakStatement",
+                  label: "outer"
+                },
+                {
+                  type: "ContinueStatement",
+                  label: "inner"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    });
+
     expect(parse("() => { return\nvalue; }")).toMatchObject({
       type: "ArrowFunctionExpression",
       body: {

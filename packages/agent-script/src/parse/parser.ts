@@ -304,6 +304,7 @@ export type ForStatement = BaseNode & {
   update?: Expression;
   body: Statement;
   label?: string;
+  labels?: string[];
 };
 
 export type ForOfStatement = BaseNode & {
@@ -312,6 +313,7 @@ export type ForOfStatement = BaseNode & {
   right: Expression;
   body: Statement;
   label?: string;
+  labels?: string[];
 };
 
 export type WhileStatement = BaseNode & {
@@ -319,6 +321,7 @@ export type WhileStatement = BaseNode & {
   test: Expression;
   body: Statement;
   label?: string;
+  labels?: string[];
 };
 
 export type DoWhileStatement = BaseNode & {
@@ -326,6 +329,7 @@ export type DoWhileStatement = BaseNode & {
   body: Statement;
   test: Expression;
   label?: string;
+  labels?: string[];
 };
 
 export type ThrowStatement = BaseNode & {
@@ -705,7 +709,7 @@ class Parser {
 
     if (token.type === "identifier" && this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":") {
       this.index += 2;
-      return this.parseLabeledStatement(token);
+      return this.parseLabeledStatement([token.value], token);
     }
 
     this.assertAllowedStatementStart(token);
@@ -809,27 +813,27 @@ class Parser {
     };
   }
 
-  private parseLabeledStatement(labelToken: Token): Statement {
+  private parseLabeledStatement(labels: string[], firstLabelToken: Token): Statement {
     const token = this.currentToken();
 
     if (token.type === "identifier" && this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":") {
       this.index += 2;
-      return this.parseLabeledStatement(token);
+      return this.parseLabeledStatement([...labels, token.value], firstLabelToken);
     }
 
     if (token.type === "keyword" && token.value === "for") {
-      return this.parseForStatement(labelToken.value);
+      return this.parseForStatement(labels);
     }
 
     if (token.type === "keyword" && token.value === "while") {
-      return this.parseWhileStatement(labelToken.value);
+      return this.parseWhileStatement(labels);
     }
 
     if (token.type === "keyword" && token.value === "do") {
-      return this.parseDoWhileStatement(labelToken.value);
+      return this.parseDoWhileStatement(labels);
     }
 
-    throw new DisallowedSyntaxError("label", labelToken.start);
+    throw new DisallowedSyntaxError("label", firstLabelToken.start);
   }
 
   private parseIfStatement(): IfStatement {
@@ -859,7 +863,7 @@ class Parser {
     };
   }
 
-  private parseForStatement(label?: string): ForOfStatement | ForStatement {
+  private parseForStatement(labels?: string[]): ForOfStatement | ForStatement {
     const forToken = this.expectKeyword("for");
     this.expectPunctuator("(");
     if (this.currentToken().type === "identifier" && this.currentToken().value === "var") {
@@ -882,7 +886,7 @@ class Parser {
         left,
         right,
         body,
-        ...(label === undefined ? {} : { label }),
+        ...createLoopLabelFields(labels),
         span: createSpan(forToken.start, body.span.end)
       };
     }
@@ -914,7 +918,7 @@ class Parser {
       test,
       update,
       body,
-      ...(label === undefined ? {} : { label }),
+      ...createLoopLabelFields(labels),
       span: createSpan(forToken.start, body.span.end)
     };
   }
@@ -963,7 +967,7 @@ class Parser {
     };
   }
 
-  private parseWhileStatement(label?: string): WhileStatement {
+  private parseWhileStatement(labels?: string[]): WhileStatement {
     const whileToken = this.expectKeyword("while");
     this.expectPunctuator("(");
     const test = this.parseExpression().node;
@@ -973,12 +977,12 @@ class Parser {
       type: "WhileStatement",
       test,
       body,
-      ...(label === undefined ? {} : { label }),
+      ...createLoopLabelFields(labels),
       span: createSpan(whileToken.start, body.span.end)
     };
   }
 
-  private parseDoWhileStatement(label?: string): DoWhileStatement {
+  private parseDoWhileStatement(labels?: string[]): DoWhileStatement {
     const doToken = this.expectKeyword("do");
     const body = this.parseStatement();
     this.expectKeyword("while");
@@ -989,7 +993,7 @@ class Parser {
       type: "DoWhileStatement",
       body,
       test,
-      ...(label === undefined ? {} : { label }),
+      ...createLoopLabelFields(labels),
       span: createSpan(doToken.start, closeParen.end)
     };
   }
@@ -2853,6 +2857,15 @@ function createIdentifierName(token: Token): Identifier {
     name: token.value,
     span: createTokenSpan(token)
   };
+}
+
+function createLoopLabelFields(labels: string[] | undefined): { label?: string; labels?: string[] } {
+  if (labels === undefined || labels.length === 0) {
+    return {};
+  }
+
+  const label = labels[labels.length - 1]!;
+  return labels.length === 1 ? { label } : { label, labels };
 }
 
 function findImportMetaAssignmentTarget(node: ParseResult): SourceSpan | undefined {

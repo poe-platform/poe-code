@@ -93,7 +93,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-labeled-break-continue
     title: Labeled break/continue for nested loops
@@ -119,9 +119,9 @@ tasks:
 
       Conventional commit: `feat(agent-script): labeled break/continue`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: interp-spread-call-args
     title: Spread in function call arguments

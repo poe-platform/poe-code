@@ -1796,6 +1796,38 @@ describe("interpret", () => {
     });
   });
 
+  it("allows any distinct adjacent label to target the same loop", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse("outer: inner: for (let i = 0; i < 3; i = i + 1) { out.push(i); break outer; }"),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [0]
+    });
+  });
+
+  it("continues a loop through any distinct adjacent label on that loop", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const out = []"),
+          parse(
+            "outer: inner: for (let i = 0; i < 3; i = i + 1) { out.push(i); if (i < 2) { continue outer; } out.push(9); }"
+          ),
+          parse("return out")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [0, 1, 2, 9]
+    });
+  });
+
   it("reports a clear error when a labeled break target is not in scope", async () => {
     await expect(interpret(parse("for (;;) { break foo; }"))).resolves.toMatchObject({
       ok: false,

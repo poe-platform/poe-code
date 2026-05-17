@@ -205,6 +205,36 @@ describe("runHarnessPair", () => {
     });
   });
 
+  it("reports schema-derived frontmatter field info diagnostics without failing the run", async () => {
+    const mdPath = "/repo/harness/frontmatter-fields.md";
+    const onDiagnostics = vi.fn();
+    vol.fromJSON({
+      [mdPath]: ["---", "a: alpha", "b: beta", "---", "", "# Frontmatter fields"].join("\n"),
+      "/repo/harness/frontmatter-fields.ajs": [
+        'import { S } from "schema";',
+        "export const schema = S.Object({ a: S.String(), b: S.String() });",
+        "export default (frontmatter) => frontmatter.a;"
+      ].join("\n")
+    });
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({}),
+        onDiagnostics
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "alpha"
+    });
+    expect(onDiagnostics).toHaveBeenCalledWith([
+      expect.objectContaining({
+        code: "AS-FRONTMATTER-FIELD-UNUSED",
+        message: "Frontmatter field 'b' is declared by the schema but never read.",
+        severity: "info"
+      })
+    ]);
+  });
+
   it("passes raw frontmatter through when the script does not export a schema", async () => {
     const mdPath = "/repo/harness/raw.md";
     vol.fromJSON({

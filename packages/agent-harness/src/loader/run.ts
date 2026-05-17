@@ -28,6 +28,7 @@ export type HarnessImportMeta = {
 export type RunHarnessPairOptions = {
   allowedGlobals?: LintOptions["allowedGlobals"];
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessImportMeta) => ModuleRegistry;
+  onDiagnostics?: (diagnostics: readonly Diagnostic[]) => void;
   resume?: boolean;
   signal?: AbortSignal;
   snapshotPath?: string;
@@ -77,7 +78,7 @@ export async function runHarnessPair(
       hostCallReplay.wrapModules(options.modulesFor(validated, meta))
     );
 
-    throwOnLintErrors([
+    const diagnostics = [
       ...lint(ajsSource, {
         allowedExportNames: ["schema"],
         allowedGlobals: options.allowedGlobals,
@@ -86,7 +87,9 @@ export async function runHarnessPair(
         modules: createLintModules(modules)
       }),
       ...missingDefaultExportDiagnostics(ajsSource, pair.ajsPath)
-    ]);
+    ];
+    options.onDiagnostics?.(diagnostics);
+    throwOnLintErrors(diagnostics);
 
     const snapshot = shouldResume ? await readSnapshot(snapshotPath) : undefined;
 

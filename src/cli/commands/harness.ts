@@ -15,7 +15,8 @@ import {
   makeHarnessModule,
   makeLogModule,
   makeMetricModule,
-  restore
+  restore,
+  type Diagnostic
 } from "@poe-code/agent-script";
 import {
   cancel,
@@ -101,18 +102,44 @@ async function executeHarnessRun(
 
   const baseMessage = `Running ${formatDisplayPath(container, selectedPath)}`;
   const progress = createSnapshotProgressReader(container, snapshotPath);
+  const lintDiagnostics: Diagnostic[] = [];
   const result = await withSpinner({
     message: () => formatRunMessage(baseMessage, progress.current()),
     fn: () =>
       runHarnessPair(selectedPath, {
         modulesFor: (frontmatter, meta) => createHarnessModules(container, frontmatter, meta),
+        onDiagnostics: (diagnostics) => {
+          lintDiagnostics.push(...diagnostics);
+        },
         resume: Boolean(options.resume),
         snapshotPath
       }),
     stopMessage: () => `Ran ${formatDisplayPath(container, selectedPath)}`
   });
 
+  logNonErrorLintDiagnostics(resources.logger, lintDiagnostics);
   resources.logger.info(JSON.stringify(result, null, 2));
+}
+
+function logNonErrorLintDiagnostics(
+  logger: ReturnType<typeof createExecutionResources>["logger"],
+  diagnostics: readonly Diagnostic[]
+): void {
+  const nonErrors = diagnostics.filter((diagnostic) => diagnostic.severity !== "error");
+  if (nonErrors.length === 0) {
+    return;
+  }
+
+  logger.warn(`Lint diagnostics:\n${formatDiagnostics(nonErrors)}`);
+}
+
+function formatDiagnostics(diagnostics: readonly Diagnostic[]): string {
+  return diagnostics
+    .map(
+      (diagnostic) =>
+        `${diagnostic.filename}:${diagnostic.line}:${diagnostic.column} ${diagnostic.severity} ${diagnostic.code} ${diagnostic.message}`
+    )
+    .join("\n");
 }
 
 function resolveRunSnapshotPath(

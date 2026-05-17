@@ -185,6 +185,34 @@ describe("harness command", () => {
     );
   });
 
+  it("prints non-error lint diagnostics reported by the harness runner", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {
+      options.onDiagnostics([
+        {
+          code: "AS-FRONTMATTER-FIELD-UNUSED",
+          severity: "info",
+          message: "Frontmatter field 'b' is declared by the schema but never read.",
+          filename: "/repo/harness.ajs",
+          line: 2,
+          column: 1,
+          span: {
+            start: { line: 2, column: 1, offset: 10 },
+            end: { line: 2, column: 1, offset: 10 }
+          }
+        }
+      ]);
+      return { ok: true, returnValue: "done" };
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    expect(logs.join("\n")).toContain("Lint diagnostics:");
+    expect(logs.join("\n")).toContain(
+      "/repo/harness.ajs:2:1 info AS-FRONTMATTER-FIELD-UNUSED Frontmatter field 'b' is declared by the schema but never read."
+    );
+  });
+
   it("passes an explicit snapshot path and writes checkpoints while running", async () => {
     const snapshotPath = "/repo/tmp/harness.snapshot.json";
     const runFinished = createDeferred();

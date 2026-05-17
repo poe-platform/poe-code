@@ -141,6 +141,395 @@ describe("makeMcpModule", () => {
     expect(callTool).not.toHaveBeenCalled();
   });
 
+  it("returns an empty toolBatch without protocol calls", async () => {
+    const callTool = vi.fn(async () => ({}));
+    const callToolBatch = vi.fn(async () => []);
+    const mcp = makeMcpModule(async () => ({
+      async listTools() {
+        return {
+          tools: []
+        };
+      },
+      callTool,
+      callToolBatch
+    }));
+    const client = await mcp.client({
+      command: "mcp-server"
+    });
+
+    await expect(client.toolBatch([])).resolves.toEqual([]);
+    expect(callTool).not.toHaveBeenCalled();
+    expect(callToolBatch).not.toHaveBeenCalled();
+  });
+
+  it("returns successful toolBatch values in input order", async () => {
+    const callTool = vi.fn(async (params: { name: string }) => ({
+      tool: params.name
+    }));
+    const mcp = makeMcpModule(async () => ({
+      async listTools() {
+        return {
+          tools: []
+        };
+      },
+      callTool
+    }));
+    const client = await mcp.client({
+      command: "mcp-server"
+    });
+
+    await expect(
+      client.toolBatch([
+        { name: "first", args: { value: 1 } },
+        { name: "second", args: { value: 2 } }
+      ])
+    ).resolves.toEqual([
+      {
+        ok: true,
+        value: {
+          tool: "first"
+        }
+      },
+      {
+        ok: true,
+        value: {
+          tool: "second"
+        }
+      }
+    ]);
+    expect(callTool).toHaveBeenNthCalledWith(1, {
+      name: "first",
+      arguments: {
+        value: 1
+      }
+    });
+    expect(callTool).toHaveBeenNthCalledWith(2, {
+      name: "second",
+      arguments: {
+        value: 2
+      }
+    });
+  });
+
+  it("resolves toolBatch with an error envelope when one call fails", async () => {
+    const callTool = vi.fn(async (params: { name: string }) => {
+      if (params.name === "fail") {
+        throw new Error("tool failed");
+      }
+
+      return {
+        tool: params.name
+      };
+    });
+    const mcp = makeMcpModule(async () => ({
+      async listTools() {
+        return {
+          tools: []
+        };
+      },
+      callTool
+    }));
+    const client = await mcp.client({
+      command: "mcp-server"
+    });
+
+    await expect(
+      client.toolBatch([
+        { name: "fail" },
+        { name: "ok" }
+      ])
+    ).resolves.toEqual([
+      {
+        ok: false,
+        error: {
+          message: "tool failed",
+          name: "Error"
+        }
+      },
+      {
+        ok: true,
+        value: {
+          tool: "ok"
+        }
+      }
+    ]);
+  });
+
+  it("preserves toolBatch order across concurrent fallback execution", async () => {
+    const resolvers = new Map<string, (value: unknown) => void>();
+    const callTool = vi.fn(
+      (params: { name: string }) =>
+        new Promise((resolve) => {
+          resolvers.set(params.name, resolve);
+        })
+    );
+    const mcp = makeMcpModule(async () => ({
+      async listTools() {
+        return {
+          tools: []
+        };
+      },
+      callTool
+    }));
+    const client = await mcp.client({
+      command: "mcp-server"
+    });
+
+    const batch = client.toolBatch([
+      { name: "slow" },
+      { name: "fast" },
+      { name: "middle" }
+    ]);
+
+    resolvers.get("fast")?.("fast-result");
+    resolvers.get("middle")?.("middle-result");
+    resolvers.get("slow")?.("slow-result");
+
+    await expect(batch).resolves.toEqual([
+      {
+        ok: true,
+        value: "slow-result"
+      },
+      {
+        ok: true,
+        value: "fast-result"
+      },
+      {
+        ok: true,
+        value: "middle-result"
+      }
+    ]);
+  });
+
+  it("returns clear errors for remaining toolBatch calls after MCP disconnect", async () => {
+    let activeCalls = 0;
+    let peakActiveCalls = 0;
+    const callTool = vi.fn(async (params: { name: string }) => {
+      activeCalls += 1;
+      peakActiveCalls = Math.max(peakActiveCalls, activeCalls);
+
+      if (params.name === "disconnect") {
+        activeCalls -= 1;
+        throw new Error("MCP connection disconnected");
+      }
+
+      await new Promise<void>((resolve) => {
+        setTimeout(resolve, 0);
+      });
+      activeCalls -= 1;
+      return params.name;
+    });
+    const mcp = makeMcpModule(async () => ({
+      async listTools() {
+        return {
+          tools: []
+        };
+      },
+      callTool
+    }));
+    const client = await mcp.client({
+      command: "mcp-server"
+    });
+
+    await expect(
+      client.toolBatch([
+        { name: "disconnect" },
+        { name: "one" },
+        { name: "two" },
+        { name: "three" },
+        { name: "queued" }
+      ])
+    ).resolves.toEqual([
+      {
+        ok: false,
+        error: {
+          message: "MCP connection disconnected",
+          name: "Error"
+        }
+      },
+      {
+        ok: true,
+        value: "one"
+      },
+      {
+        ok: true,
+        value: "two"
+      },
+      {
+        ok: true,
+        value: "three"
+      },
+      {
+        ok: false,
+        error: {
+          message: "MCP connection disconnected",
+          name: "Error"
+        }
+      }
+    ]);
+    expect(callTool).toHaveBeenCalledTimes(4);
+    expect(peakActiveCalls).toBeLessThanOrEqual(4);
+  });
+
+  it("enforces existing client tool budget per toolBatch call", async () => {
+    const callTool = vi.fn(async (params: { name: string }) => {
+      if (params.name === "limited") {
+        throw new Error("tool budget exceeded");
+      }
+
+      return "ok";
+    });
+    const mcp = makeMcpModule(async () => ({
+      async listTools() {
+        return {
+          tools: []
+        };
+      },
+      callTool
+    }));
+    const client = await mcp.client({
+      command: "mcp-server"
+    });
+
+    await expect(
+      client.toolBatch([
+        { name: "limited" },
+        { name: "small" }
+      ])
+    ).resolves.toEqual([
+      {
+        ok: false,
+        error: {
+          message: "tool budget exceeded",
+          name: "Error"
+        }
+      },
+      {
+        ok: true,
+        value: "ok"
+      }
+    ]);
+    expect(callTool).toHaveBeenCalledTimes(2);
+  });
+
+  it("uses protocol batch calls when the connection exposes them", async () => {
+    const callTool = vi.fn(async () => ({}));
+    const callToolBatch = vi.fn(async () => [
+      {
+        ok: true,
+        value: "first"
+      },
+      {
+        ok: false,
+        error: {
+          message: "failed",
+          name: "Error"
+        }
+      }
+    ]);
+    const mcp = makeMcpModule(async () => ({
+      async listTools() {
+        return {
+          tools: []
+        };
+      },
+      callTool,
+      callToolBatch
+    }));
+    const client = await mcp.client({
+      command: "mcp-server"
+    });
+
+    await expect(
+      client.toolBatch([
+        { name: "first", args: { value: 1 } },
+        { name: "second" }
+      ])
+    ).resolves.toEqual([
+      {
+        ok: true,
+        value: "first"
+      },
+      {
+        ok: false,
+        error: {
+          message: "failed",
+          name: "Error"
+        }
+      }
+    ]);
+    expect(callTool).not.toHaveBeenCalled();
+    expect(callToolBatch).toHaveBeenCalledWith([
+      {
+        name: "first",
+        arguments: {
+          value: 1
+        }
+      },
+      {
+        name: "second"
+      }
+    ]);
+  });
+
+  it("falls back to concurrent calls when protocol batch input has validation failures", async () => {
+    const callTool = vi.fn(async (params: { name: string }) => params.name);
+    const callToolBatch = vi.fn(async () => []);
+    const mcp = makeMcpModule(async () => ({
+      async listTools() {
+        return {
+          tools: []
+        };
+      },
+      callTool,
+      callToolBatch
+    }));
+    const client = await mcp.client({
+      command: "mcp-server"
+    });
+
+    await expect(
+      client.toolBatch([
+        { name: "valid" },
+        { name: "invalid", args: null }
+      ])
+    ).resolves.toEqual([
+      {
+        ok: true,
+        value: "valid"
+      },
+      {
+        ok: false,
+        error: {
+          message: "MCP tool arguments must be an object.",
+          name: "Error"
+        }
+      }
+    ]);
+    expect(callTool).toHaveBeenCalledTimes(1);
+    expect(callToolBatch).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-array toolBatch input", async () => {
+    const callTool = vi.fn(async () => ({}));
+    const mcp = makeMcpModule(async () => ({
+      async listTools() {
+        return {
+          tools: []
+        };
+      },
+      callTool
+    }));
+    const client = await mcp.client({
+      command: "mcp-server"
+    });
+
+    await expect(client.toolBatch({ name: "search" } as never)).rejects.toThrow(
+      "MCP toolBatch calls must be an array."
+    );
+    expect(callTool).not.toHaveBeenCalled();
+  });
+
   it("rejects malformed tools/list payloads with explicit errors", async () => {
     const mcp = makeMcpModule(async () => ({
       async listTools() {

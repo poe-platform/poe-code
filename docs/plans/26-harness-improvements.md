@@ -1026,7 +1026,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: otel-interface
     title: OpenTelemetry exporter interface (no built-in deps)
@@ -1067,8 +1067,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): otel sink interface`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: cost-aggregation

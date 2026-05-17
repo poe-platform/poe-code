@@ -534,7 +534,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-destructure-null-default
     title: AS-DESTRUCTURE-NULL-DEFAULT lint rule
@@ -558,8 +558,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-DESTRUCTURE-NULL-DEFAULT lint rule`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-unbounded-loop

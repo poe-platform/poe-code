@@ -222,6 +222,25 @@ describe("harness command", () => {
     );
   });
 
+  it("prints the total cost line when the harness result includes usage cost", async () => {
+    const logs: string[] = [];
+    harnessMocks.runHarnessPairMock.mockResolvedValueOnce({
+      ok: true,
+      returnValue: "done",
+      usage: {
+        inputTokens: 10,
+        outputTokens: 5,
+        cachedTokens: 2,
+        costUsd: 0.125,
+        spawnCount: 1
+      }
+    });
+
+    await runHarnessCommand(["harness", "run", "harness.md"], logs);
+
+    expect(logs.join("\n")).toContain("Total cost: $0.13");
+  });
+
   it("passes an explicit snapshot path and writes checkpoints while running", async () => {
     const snapshotPath = "/repo/tmp/harness.snapshot.json";
     const runFinished = createDeferred();

@@ -1,4 +1,7 @@
+import { AsyncLocalStorage } from "node:async_hooks";
+
 import { createSpawnParallel, type SpawnParallelOptions } from "@poe-code/agent-spawn";
+import type { SpawnUsage } from "@poe-code/agent-spawn";
 import {
   bindOtelSpan,
   activateOtelSpan,
@@ -53,6 +56,7 @@ export type SpawnAgentResult = {
   stderr: string;
   summary: string;
   durationMs: number;
+  usage?: SpawnUsage;
 };
 
 export type SpawnAgent = (input: SpawnAgentInput) => Promise<SpawnAgentResult>;
@@ -60,6 +64,72 @@ export type SpawnAgent = (input: SpawnAgentInput) => Promise<SpawnAgentResult>;
 export type AgentModuleOptions = {
   otelSink?: OtelSink;
 };
+
+export type SpawnUsageTotal = {
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens: number;
+  costUsd?: number;
+  spawnCount: number;
+};
+
+export type SpawnUsageAccumulator = {
+  record(usage: SpawnUsage | undefined): void;
+  reset(): void;
+  snapshot(): SpawnUsageTotal;
+};
+
+const activeUsageAccumulator = new AsyncLocalStorage<SpawnUsageAccumulator>();
+
+export function createSpawnUsageAccumulator(): SpawnUsageAccumulator {
+  let inputTokens = 0;
+  let outputTokens = 0;
+  let cachedTokens = 0;
+  let costUsd: number | undefined;
+  let spawnCount = 0;
+
+  return {
+    record(usage) {
+      spawnCount += 1;
+
+      if (usage === undefined) {
+        return;
+      }
+
+      inputTokens += usage.inputTokens;
+      outputTokens += usage.outputTokens;
+      cachedTokens += usage.cachedTokens ?? 0;
+
+      if (usage.costUsd !== undefined) {
+        costUsd = (costUsd ?? 0) + usage.costUsd;
+      }
+    },
+    reset() {
+      inputTokens = 0;
+      outputTokens = 0;
+      cachedTokens = 0;
+      costUsd = undefined;
+      spawnCount = 0;
+    },
+    snapshot() {
+      return {
+        inputTokens,
+        outputTokens,
+        cachedTokens,
+        ...(costUsd === undefined ? {} : { costUsd }),
+        spawnCount
+      };
+    }
+  };
+}
+
+export async function runWithSpawnUsageAccumulator<TResult>(
+  accumulator: SpawnUsageAccumulator,
+  operation: () => Promise<TResult>
+): Promise<TResult> {
+  accumulator.reset();
+  return await activeUsageAccumulator.run(accumulator, operation);
+}
 
 export type AgentModuleRetryOptions = {
   maxAttempts: number;
@@ -100,6 +170,7 @@ export function makeAgentModule(
     const input = resolveSpawnInput(agentDef, options);
     return runObservedSpawn(moduleOptions.otelSink, input, async () => {
       const result = validateSpawnResult(await spawnAgent(input));
+      recordActiveSpawnUsage(result.usage);
 
       if (result.exitCode !== 0) {
         throw new Error(createSpawnFailureMessage(result));
@@ -129,9 +200,11 @@ export function makeAgentModule(
         events: (async function* () {})(),
         result: (() => {
           const input = resolveSpawnInput(agentDef, options);
-          return runObservedSpawn(moduleOptions.otelSink, input, async () =>
-            validateSpawnResult(await spawnAgent(input))
-          );
+          return runObservedSpawn(moduleOptions.otelSink, input, async () => {
+            const result = validateSpawnResult(await spawnAgent(input));
+            recordActiveSpawnUsage(result.usage);
+            return result;
+          });
         })()
       }))
     })
@@ -181,6 +254,7 @@ async function runSpawnRetry(
 ): Promise<SpawnAgentResult> {
   for (let attempt = 1; attempt <= retryOptions.maxAttempts; attempt += 1) {
     const result = validateSpawnResult(await spawnAgent(input));
+    recordActiveSpawnUsage(result.usage);
     const isLastAttempt = attempt >= retryOptions.maxAttempts;
 
     if (result.exitCode === 0 || isLastAttempt || !retryOptions.isRetryable(result)) {
@@ -350,7 +424,42 @@ function validateSpawnResult(result: unknown): SpawnAgentResult {
     stdout: readOptionalString(result.stdout, "spawnAgent result stdout") ?? "",
     stderr: readOptionalString(result.stderr, "spawnAgent result stderr") ?? "",
     summary: readOptionalString(result.summary, "spawnAgent result summary") ?? "",
-    durationMs: readNonNegativeFiniteNumber(result.durationMs, "spawnAgent result durationMs")
+    durationMs: readNonNegativeFiniteNumber(result.durationMs, "spawnAgent result durationMs"),
+    ...(result.usage === undefined ? {} : { usage: readSpawnUsage(result.usage) })
+  };
+}
+
+function recordActiveSpawnUsage(usage: SpawnUsage | undefined): void {
+  activeUsageAccumulator.getStore()?.record(usage);
+}
+
+function readSpawnUsage(value: unknown): SpawnUsage {
+  if (!isRecord(value)) {
+    throw new Error("spawnAgent result usage must be an object.");
+  }
+
+  return {
+    inputTokens: readNonNegativeFiniteNumber(
+      value.inputTokens,
+      "spawnAgent result usage inputTokens"
+    ),
+    outputTokens: readNonNegativeFiniteNumber(
+      value.outputTokens,
+      "spawnAgent result usage outputTokens"
+    ),
+    ...(value.cachedTokens === undefined
+      ? {}
+      : {
+          cachedTokens: readNonNegativeFiniteNumber(
+            value.cachedTokens,
+            "spawnAgent result usage cachedTokens"
+          )
+        }),
+    ...(value.costUsd === undefined
+      ? {}
+      : {
+          costUsd: readNonNegativeFiniteNumber(value.costUsd, "spawnAgent result usage costUsd")
+        })
   };
 }
 

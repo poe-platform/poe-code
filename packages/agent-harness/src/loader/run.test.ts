@@ -3,7 +3,7 @@ import { dirname } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
-import { lint } from "@poe-code/agent-script";
+import { lint, makeAgentModule } from "@poe-code/agent-script";
 import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 
 vi.mock("node:fs/promises", async () => {
@@ -203,6 +203,177 @@ describe("runHarnessPair", () => {
         kind: "review",
         version: 1
       }
+    });
+  });
+
+  it("returns zero usage when a harness run produces no spawns", async () => {
+    const mdPath = "/repo/harness/no-spawns.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/no-spawns.ajs": "export default () => true;\n"
+    });
+
+    await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).resolves.toMatchObject({
+      ok: true,
+      usage: {
+        inputTokens: 0,
+        outputTokens: 0,
+        cachedTokens: 0,
+        spawnCount: 0
+      }
+    });
+  });
+
+  it("totals usage for every spawn produced by a harness run and emits the totalled event", async () => {
+    const mdPath = "/repo/harness/usage.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/usage.ajs": [
+        'import { spawn } from "agent";',
+        "export default async () => {",
+        '  await spawn("codex", { prompt: "one" });',
+        '  await spawn("codex", { prompt: "two" });',
+        '  await spawn("codex", { prompt: "three" });',
+        '  return "done";',
+        "};"
+      ].join("\n")
+    });
+    const usages = [
+      { inputTokens: 10, outputTokens: 1, cachedTokens: 2, costUsd: 0.01 },
+      { inputTokens: 20, outputTokens: 2, cachedTokens: 3 },
+      { inputTokens: 30, outputTokens: 4, cachedTokens: 5, costUsd: 0.04 }
+    ];
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      summary: "done",
+      durationMs: 1,
+      usage: usages.shift()
+    }));
+    const events: unknown[] = [];
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: makeAgentModule(spawnAgent)
+      }),
+      onEvent: (event) => events.push(event)
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      usage: {
+        inputTokens: 60,
+        outputTokens: 7,
+        cachedTokens: 10,
+        costUsd: 0.05,
+        spawnCount: 3
+      }
+    });
+    expect(events).toContainEqual({
+      name: "harness.usage.totalled",
+      payload: {
+        inputTokens: 60,
+        outputTokens: 7,
+        cachedTokens: 10,
+        costUsd: 0.05,
+        spawnCount: 3
+      }
+    });
+  });
+
+  it("leaves cost undefined when no spawn reports cost and sums cost when any spawn reports it", async () => {
+    const mdPath = "/repo/harness/cost-optional.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/cost-optional.ajs": [
+        'import { spawn } from "agent";',
+        "export default async () => {",
+        '  await spawn("codex", { prompt: "one" });',
+        '  await spawn("codex", { prompt: "two" });',
+        '  return "done";',
+        "};"
+      ].join("\n")
+    });
+
+    const noCost = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: makeAgentModule(
+          vi
+            .fn()
+            .mockResolvedValueOnce(createSpawnResult({ inputTokens: 1, outputTokens: 2 }))
+            .mockResolvedValueOnce(createSpawnResult({ inputTokens: 3, outputTokens: 4 }))
+        )
+      })
+    });
+    expect(noCost.usage).toEqual({
+      inputTokens: 4,
+      outputTokens: 6,
+      cachedTokens: 0,
+      spawnCount: 2
+    });
+
+    const oneCost = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: makeAgentModule(
+          vi
+            .fn()
+            .mockResolvedValueOnce(createSpawnResult({ inputTokens: 1, outputTokens: 2 }))
+            .mockResolvedValueOnce(
+              createSpawnResult({ inputTokens: 3, outputTokens: 4, costUsd: 0.02 })
+            )
+        )
+      })
+    });
+    expect(oneCost.usage).toEqual({
+      inputTokens: 4,
+      outputTokens: 6,
+      cachedTokens: 0,
+      costUsd: 0.02,
+      spawnCount: 2
+    });
+  });
+
+  it("resets usage aggregation between runs in the same process", async () => {
+    const mdPath = "/repo/harness/reset-usage.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: test\nversion: 1\n---\n",
+      "/repo/harness/reset-usage.ajs": [
+        'import { spawn } from "agent";',
+        "export default async () => {",
+        '  await spawn("codex", { prompt: "one" });',
+        '  return "done";',
+        "};"
+      ].join("\n")
+    });
+
+    const first = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: makeAgentModule(
+          vi.fn(async () => createSpawnResult({ inputTokens: 10, outputTokens: 5, costUsd: 0.03 }))
+        )
+      })
+    });
+    const second = await runHarnessPair(mdPath, {
+      modulesFor: () => ({
+        agent: makeAgentModule(
+          vi.fn(async () => createSpawnResult({ inputTokens: 2, outputTokens: 1 }))
+        )
+      })
+    });
+
+    expect(first.usage).toEqual({
+      inputTokens: 10,
+      outputTokens: 5,
+      cachedTokens: 0,
+      costUsd: 0.03,
+      spawnCount: 1
+    });
+    expect(second.usage).toEqual({
+      inputTokens: 2,
+      outputTokens: 1,
+      cachedTokens: 0,
+      spawnCount: 1
     });
   });
 
@@ -919,4 +1090,20 @@ async function flushMicrotasks(): Promise<void> {
 
 function readCoverageDemoTemplate(fileName: "coverage-demo.ajs" | "coverage-demo.md"): string {
   return readFileSync(new URL(`../templates/coverage-demo/${fileName}`, import.meta.url), "utf8");
+}
+
+function createSpawnResult(usage: {
+  inputTokens: number;
+  outputTokens: number;
+  cachedTokens?: number;
+  costUsd?: number;
+}) {
+  return {
+    exitCode: 0,
+    stdout: "",
+    stderr: "",
+    summary: "done",
+    durationMs: 1,
+    usage
+  };
 }

@@ -122,6 +122,10 @@ async function executeHarnessRun(
 
   logNonErrorLintDiagnostics(resources.logger, lintDiagnostics);
   resources.logger.info(JSON.stringify(result, null, 2));
+  const costLine = formatTotalCostLine(result);
+  if (costLine !== undefined) {
+    resources.logger.info(costLine);
+  }
 }
 
 function logNonErrorLintDiagnostics(
@@ -493,7 +497,8 @@ function createHarnessModules(
       stdout: resolved.stdout,
       stderr: resolved.stderr,
       summary: resolved.stdout || resolved.stderr,
-      durationMs: 0
+      durationMs: 0,
+      ...(resolved.usage ? { usage: resolved.usage } : {})
     };
   });
   const fail = makeFailModule().default;
@@ -518,6 +523,30 @@ function createHarnessModules(
     log: toModuleExports(log),
     metric: toModuleExports(metric)
   };
+}
+
+function formatTotalCostLine(result: unknown): string | undefined {
+  const costUsd = readResultCostUsd(result);
+  if (costUsd === undefined) {
+    return undefined;
+  }
+
+  return `Total cost: $${costUsd.toFixed(2)}`;
+}
+
+function readResultCostUsd(result: unknown): number | undefined {
+  if (typeof result !== "object" || result === null || !("usage" in result)) {
+    return undefined;
+  }
+
+  const usage = result.usage;
+  if (typeof usage !== "object" || usage === null || !("costUsd" in usage)) {
+    return undefined;
+  }
+
+  return typeof usage.costUsd === "number" && Number.isFinite(usage.costUsd)
+    ? usage.costUsd
+    : undefined;
 }
 
 function toModuleExports(moduleExports: ModuleExports): ModuleExports {

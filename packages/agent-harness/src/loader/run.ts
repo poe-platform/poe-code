@@ -6,16 +6,19 @@ import { lockWorkflow, resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import {
   lint,
   FileSnapshotBackend,
+  createSpawnUsageAccumulator,
   makeTimeModule,
   parseModule,
   run,
   splitFrontmatter,
+  runWithSpawnUsageAccumulator,
   type Diagnostic,
   type OtelSink,
   type RunClock,
   type RunClockSnapshot,
   type RunRandom,
-  type SnapshotBackend
+  type SnapshotBackend,
+  type SpawnUsageTotal
 } from "@poe-code/agent-script";
 import type { AnySchema } from "toolcraft-schema";
 
@@ -26,9 +29,14 @@ import { validateFrontmatter } from "./validate.js";
 
 type RunOptions = NonNullable<Parameters<typeof run>[1]>;
 type LintOptions = NonNullable<Parameters<typeof lint>[1]>;
-export type RunResult = Awaited<ReturnType<typeof run>>;
+export type RunResult = Awaited<ReturnType<typeof run>> & { usage: SpawnUsageTotal };
 export type ModuleExports = ReadonlyMap<string, unknown> | Record<string, unknown>;
 export type ModuleRegistry = ReadonlyMap<string, ModuleExports> | Record<string, ModuleExports>;
+
+export type HarnessRunEvent = {
+  name: "harness.usage.totalled";
+  payload: SpawnUsageTotal;
+};
 
 export type HarnessImportMeta = {
   kind: string | undefined;
@@ -46,6 +54,7 @@ export type RunHarnessPairOptions = {
   fix?: boolean;
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessImportMeta) => ModuleRegistry;
   onDiagnostics?: (diagnostics: readonly Diagnostic[]) => void;
+  onEvent?: (event: HarnessRunEvent) => void;
   otelSink?: OtelSink;
   preserveSnapshotOnSuccess?: boolean;
   randomSeed?: number;
@@ -159,22 +168,25 @@ export async function runHarnessPair(
     options.onDiagnostics?.(diagnostics);
     throwOnLintErrors(diagnostics);
 
-    let result: RunResult;
+    const usageAccumulator = createSpawnUsageAccumulator();
+    let result: Awaited<ReturnType<typeof run>>;
     try {
-      result = await run(executableSource, {
-        clock: runtimeClock,
-        importMeta: meta,
-        entryPointArgs: [validated],
-        filename: pair.ajsPath,
-        modules: modules as RunOptions["modules"],
-        otelSink: options.otelSink,
-        random: runtimeRandom,
-        signal: options.signal,
-        snapshot,
-        snapshotBackend,
-        snapshotIntervalMs: options.snapshotIntervalMs,
-        snapshotPath
-      });
+      result = await runWithSpawnUsageAccumulator(usageAccumulator, () =>
+        run(executableSource, {
+          clock: runtimeClock,
+          importMeta: meta,
+          entryPointArgs: [validated],
+          filename: pair.ajsPath,
+          modules: modules as RunOptions["modules"],
+          otelSink: options.otelSink,
+          random: runtimeRandom,
+          signal: options.signal,
+          snapshot,
+          snapshotBackend,
+          snapshotIntervalMs: options.snapshotIntervalMs,
+          snapshotPath
+        })
+      );
     } catch (error) {
       await hostCallReplay.flush().catch(() => undefined);
       throw error;
@@ -185,7 +197,16 @@ export async function runHarnessPair(
       await cleanupCompletedSnapshot(snapshotBackend, snapshotPath);
     }
 
-    return result;
+    const usage = usageAccumulator.snapshot();
+    options.onEvent?.({
+      name: "harness.usage.totalled",
+      payload: usage
+    });
+
+    return {
+      ...result,
+      usage
+    };
   } finally {
     await releaseLock();
   }

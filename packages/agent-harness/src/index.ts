@@ -7,5 +7,10 @@ export { assertReplayEquivalent } from "./testing/replay-equivalence.js";
 export { listBuiltinTemplates } from "./templates/index.js";
 export { FrontmatterValidationError, validateFrontmatter } from "./loader/validate.js";
 export { InvalidPairExtensionError, MissingPairError, resolvePair } from "./loader/pair.js";
-export type { HarnessImportMeta, RunHarnessPairOptions } from "./loader/run.js";
+export type {
+  HarnessImportMeta,
+  HarnessRunEvent,
+  RunHarnessPairOptions,
+  RunResult
+} from "./loader/run.js";
 export type { HarnessFs, HarnessPair } from "./loader/pair.js";

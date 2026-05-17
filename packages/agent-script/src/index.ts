@@ -17,7 +17,12 @@ export { extractBlock } from "./loader/extract-block.js";
 export { findExportedConstInitializer } from "./loader/find-exported.js";
 export { splitFrontmatter } from "./loader/frontmatter.js";
 export type { ExportDefaultDeclaration, ExportNamedDeclaration, MetaProperty } from "./parse.js";
-export { makeAgentModule } from "./modules/agent.js";
+export {
+  createSpawnUsageAccumulator,
+  makeAgentModule,
+  runWithSpawnUsageAccumulator
+} from "./modules/agent.js";
+export type { SpawnUsageAccumulator, SpawnUsageTotal } from "./modules/agent.js";
 export { makeEnvModule } from "./modules/env.js";
 export { makeFailModule } from "./modules/fail.js";
 export { makeGitModule } from "./modules/git.js";

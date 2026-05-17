@@ -118,6 +118,30 @@ describe("agent-script CLI", () => {
     expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: 42 })}\n`);
   });
 
+  it("prints lint warnings without failing the script", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    const exitCode = await runCli(["script.md"], {
+      readFile: async () =>
+        [
+          "```js",
+          "if (false) {",
+          "  while (true) {}",
+          "}",
+          "return 42;",
+          "```"
+        ].join("\n"),
+      stdout,
+      stderr
+    });
+
+    expect(exitCode).toBe(0);
+    expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: 42 })}\n`);
+    expect(stderr.output()).toContain("Lint warnings:");
+    expect(stderr.output()).toContain("AS-UNBOUNDED-LOOP");
+  });
+
   it("prints script errors and exits non-zero", async () => {
     const stdout = createSink();
     const stderr = createSink();

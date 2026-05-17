@@ -84,15 +84,21 @@ export async function runExampleFile(
       return 0;
     }
 
-    const lintErrors = lint(executableSource, {
+    const diagnostics = lint(executableSource, {
       allowedExportNames: ["schema"],
       filename: filepath,
       modules: createLintModulesFromRuntimeRegistry(runtime.registry)
-    }).filter((diagnostic) => diagnostic.severity === "error");
+    });
+    const lintErrors = diagnostics.filter((diagnostic) => diagnostic.severity === "error");
 
     if (lintErrors.length > 0) {
       stderr.write(`Lint failed:\n${formatDiagnostics(lintErrors)}\n`);
       return 1;
+    }
+
+    const lintWarnings = diagnostics.filter((diagnostic) => diagnostic.severity === "warning");
+    if (lintWarnings.length > 0) {
+      stderr.write(`Lint warnings:\n${formatDiagnostics(lintWarnings)}\n`);
     }
 
     const result = await run(executableSource, {

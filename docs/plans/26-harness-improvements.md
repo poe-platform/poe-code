@@ -560,7 +560,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-unbounded-loop
     title: AS-UNBOUNDED-LOOP lint rule
@@ -583,8 +583,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-UNBOUNDED-LOOP lint rule`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-mutating-frozen

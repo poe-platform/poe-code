@@ -118,17 +118,20 @@ beforeEach(() => {
     cwd: input,
     locator: { scheme: "local", path: input }
   }));
-  vi.mocked(createSdkContainer).mockImplementation(() => ({
-    fs: createMemFs(),
-    env: {
-      configPath: resolveConfigPath(homeDir),
-      projectConfigPath: resolveConfigPath(homeDir),
-      variables: {}
-    },
-    registry: {
-      get: vi.fn(() => undefined)
-    }
-  } as any));
+  vi.mocked(createSdkContainer).mockImplementation(
+    () =>
+      ({
+        fs: createMemFs(),
+        env: {
+          configPath: resolveConfigPath(homeDir),
+          projectConfigPath: resolveConfigPath(homeDir),
+          variables: {}
+        },
+        registry: {
+          get: vi.fn(() => undefined)
+        }
+      }) as any
+  );
   loadIntegrationsMock.mockReset();
   loadIntegrationsMock.mockResolvedValue(null);
 });
@@ -136,6 +139,48 @@ beforeEach(() => {
 afterEach(() => {
   process.env = { ...originalEnv };
 });
+
+function configureStreamingAttempts(
+  attempts: Array<{
+    events?: unknown[];
+    result: { stdout?: string; stderr?: string; exitCode: number; threadId?: string };
+  }>
+): void {
+  vi.mocked(getSpawnConfig).mockReturnValue({
+    kind: "cli",
+    agentId: "codex",
+    adapter: "codex"
+  } as any);
+
+  vi.mocked(spawnStreaming).mockImplementation(() => {
+    const attempt = attempts.shift();
+    if (!attempt) {
+      throw new Error("Unexpected extra spawn attempt.");
+    }
+
+    return {
+      events: (async function* () {
+        for (const event of attempt.events ?? []) {
+          yield event;
+        }
+      })(),
+      done: Promise.resolve({
+        stdout: attempt.result.stdout ?? "",
+        stderr: attempt.result.stderr ?? "",
+        exitCode: attempt.result.exitCode,
+        ...(attempt.result.threadId ? { threadId: attempt.result.threadId } : {})
+      })
+    };
+  });
+}
+
+async function collectEvents(events: AsyncIterable<unknown>): Promise<unknown[]> {
+  const received: unknown[] = [];
+  for await (const event of events) {
+    received.push(event);
+  }
+  return received;
+}
 
 describe("SDK spawn()", () => {
   it("returns events and result from spawnStreaming() when supported", async () => {
@@ -1260,6 +1305,150 @@ describe("SDK spawn()", () => {
       threadId: "thread_usage",
       usage: { inputTokens: 33, outputTokens: 12, cachedTokens: 4 }
     });
+  });
+});
+
+describe("SDK spawn.retry()", () => {
+  it("does not retry when the first attempt succeeds", async () => {
+    configureStreamingAttempts([
+      {
+        events: [{ event: "agent_message", text: "done" }],
+        result: { stdout: "ok", stderr: "", exitCode: 0 }
+      }
+    ]);
+
+    const { events, result } = spawn.retry(
+      "codex",
+      { prompt: "test prompt" },
+      { maxAttempts: 3, backoffMs: 1 }
+    );
+    const eventsPromise = collectEvents(events);
+
+    await expect(result).resolves.toEqual({ stdout: "ok", stderr: "", exitCode: 0 });
+    await expect(eventsPromise).resolves.toEqual([
+      { event: "agent_message", text: "attempt: 1 done" }
+    ]);
+    expect(spawnStreaming).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries retryable failures and returns the successful final result", async () => {
+    configureStreamingAttempts([
+      {
+        events: [{ event: "agent_message", text: "first" }],
+        result: { stdout: "", stderr: "failed", exitCode: 1 }
+      },
+      {
+        events: [{ event: "agent_message", text: "second" }],
+        result: { stdout: "ok", stderr: "", exitCode: 0 }
+      }
+    ]);
+
+    const { events, result } = spawn.retry(
+      "codex",
+      { prompt: "test prompt" },
+      { maxAttempts: 2, backoffMs: 1 }
+    );
+    const eventsPromise = collectEvents(events);
+
+    await expect(result).resolves.toEqual({ stdout: "ok", stderr: "", exitCode: 0 });
+    await expect(eventsPromise).resolves.toEqual([
+      { event: "agent_message", text: "attempt: 1 first" },
+      { event: "agent_message", text: "attempt: 1 wait 1ms before retry" },
+      { event: "agent_message", text: "attempt: 2 second" }
+    ]);
+    expect(spawnStreaming).toHaveBeenCalledTimes(2);
+  });
+
+  it("returns the last failed result after all attempts fail", async () => {
+    configureStreamingAttempts([
+      { result: { stdout: "first", stderr: "", exitCode: 1 } },
+      { result: { stdout: "second", stderr: "", exitCode: 124 } },
+      { result: { stdout: "third", stderr: "last", exitCode: 137 } }
+    ]);
+
+    const { result } = spawn.retry(
+      "codex",
+      { prompt: "test prompt" },
+      { maxAttempts: 3, backoffMs: 1 }
+    );
+
+    await expect(result).resolves.toEqual({ stdout: "third", stderr: "last", exitCode: 137 });
+    expect(spawnStreaming).toHaveBeenCalledTimes(3);
+  });
+
+  it.each([130, 143])("does not retry non-retryable exit code %s", async (exitCode) => {
+    configureStreamingAttempts([
+      { result: { stdout: "", stderr: "interrupted", exitCode } },
+      { result: { stdout: "unexpected", stderr: "", exitCode: 0 } }
+    ]);
+
+    const { result } = spawn.retry(
+      "codex",
+      { prompt: "test prompt" },
+      { maxAttempts: 2, backoffMs: 1 }
+    );
+
+    await expect(result).resolves.toEqual({ stdout: "", stderr: "interrupted", exitCode });
+    expect(spawnStreaming).toHaveBeenCalledTimes(1);
+  });
+
+  it("honors custom retry predicates", async () => {
+    configureStreamingAttempts([
+      { result: { stdout: "", stderr: "failed", exitCode: 1 } },
+      { result: { stdout: "unexpected", stderr: "", exitCode: 0 } }
+    ]);
+
+    const { result } = spawn.retry(
+      "codex",
+      { prompt: "test prompt" },
+      { maxAttempts: 2, backoffMs: 1, isRetryable: () => false }
+    );
+
+    await expect(result).resolves.toEqual({ stdout: "", stderr: "failed", exitCode: 1 });
+    expect(spawnStreaming).toHaveBeenCalledTimes(1);
+  });
+
+  it("emits wait markers and waits for exponential backoff delays", async () => {
+    configureStreamingAttempts([
+      { result: { stdout: "", stderr: "failed", exitCode: 1 } },
+      { result: { stdout: "", stderr: "failed again", exitCode: 1 } },
+      { result: { stdout: "ok", stderr: "", exitCode: 0 } }
+    ]);
+
+    const startedAt = Date.now();
+    const { events, result } = spawn.retry(
+      "codex",
+      { prompt: "test prompt" },
+      { maxAttempts: 3, backoffMs: 10 }
+    );
+    const eventsPromise = collectEvents(events);
+
+    await expect(result).resolves.toEqual({ stdout: "ok", stderr: "", exitCode: 0 });
+    expect(Date.now() - startedAt).toBeGreaterThanOrEqual(30);
+    await expect(eventsPromise).resolves.toEqual([
+      { event: "agent_message", text: "attempt: 1 wait 10ms before retry" },
+      { event: "agent_message", text: "attempt: 2 wait 20ms before retry" }
+    ]);
+  });
+
+  it("rejects on abort during backoff and does not start another attempt", async () => {
+    configureStreamingAttempts([
+      { result: { stdout: "", stderr: "failed", exitCode: 1 } },
+      { result: { stdout: "unexpected", stderr: "", exitCode: 0 } }
+    ]);
+    const controller = new AbortController();
+
+    const { events, result } = spawn.retry(
+      "codex",
+      { prompt: "test prompt", signal: controller.signal },
+      { maxAttempts: 2, backoffMs: 50 }
+    );
+    const eventsPromise = collectEvents(events).catch(() => []);
+    setTimeout(() => controller.abort(), 5);
+
+    await expect(result).rejects.toMatchObject({ name: "AbortError" });
+    await eventsPromise;
+    expect(spawnStreaming).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -30,6 +30,7 @@ export {
 } from "./sdk/launch.js";
 export type {
   SpawnOptions,
+  SpawnRetryOptions,
   SpawnUsage,
   SpawnResult,
   GenerateOptions,

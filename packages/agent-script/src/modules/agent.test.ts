@@ -102,9 +102,9 @@ describe("makeAgentModule", () => {
     }));
     const agent = makeAgentModule(spawnAgent);
 
-    await expect(
-      agent.spawn({ agent: "codex" }, { prompt: "Try once." })
-    ).rejects.toThrow("Agent spawn failed with exit code 7: agent failed");
+    await expect(agent.spawn({ agent: "codex" }, { prompt: "Try once." })).rejects.toThrow(
+      "Agent spawn failed with exit code 7: agent failed"
+    );
   });
 
   it("falls back to the summary in the failure message when stderr is empty", async () => {
@@ -117,9 +117,50 @@ describe("makeAgentModule", () => {
     }));
     const agent = makeAgentModule(spawnAgent);
 
-    await expect(
-      agent.spawn({ agent: "codex" }, { prompt: "Try again." })
-    ).rejects.toThrow("Agent spawn failed with exit code 9: timeout waiting for tool");
+    await expect(agent.spawn({ agent: "codex" }, { prompt: "Try again." })).rejects.toThrow(
+      "Agent spawn failed with exit code 9: timeout waiting for tool"
+    );
+  });
+
+  it("exposes spawn.retry with the same agent definition and options arity", async () => {
+    const spawnAgent = vi
+      .fn()
+      .mockResolvedValueOnce({
+        exitCode: 1,
+        stdout: "",
+        stderr: "failed",
+        summary: "",
+        durationMs: 10
+      })
+      .mockResolvedValueOnce({
+        exitCode: 0,
+        stdout: "ok",
+        stderr: "",
+        summary: "done",
+        durationMs: 11
+      });
+    const agent = makeAgentModule(spawnAgent);
+
+    const result = await agent.spawn.retry(
+      { agent: "codex", prompt: "Be concise.", model: "openai/gpt-5.4" },
+      { prompt: "Try this.", mode: "edit" },
+      { maxAttempts: 2, backoffMs: 1 }
+    );
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: "ok",
+      stderr: "",
+      summary: "done",
+      durationMs: 11
+    });
+    expect(spawnAgent).toHaveBeenCalledTimes(2);
+    expect(spawnAgent).toHaveBeenCalledWith({
+      agent: "codex",
+      prompt: "Be concise.\n\n# Task\n\nTry this.",
+      model: "openai/gpt-5.4",
+      mode: "edit"
+    });
   });
 
   it("rejects whitespace-only agent ids from either string or object definitions", async () => {
@@ -129,9 +170,9 @@ describe("makeAgentModule", () => {
     await expect(agent.spawn("   ", { prompt: "Inspect the diff." })).rejects.toThrow(
       "Agent definition must define a non-empty agent."
     );
-    await expect(
-      agent.spawn({ agent: "   " }, { prompt: "Inspect the diff." })
-    ).rejects.toThrow("Agent definition must define a non-empty agent.");
+    await expect(agent.spawn({ agent: "   " }, { prompt: "Inspect the diff." })).rejects.toThrow(
+      "Agent definition must define a non-empty agent."
+    );
     expect(spawnAgent).not.toHaveBeenCalled();
   });
 });

@@ -43,24 +43,120 @@ export type SpawnAgentResult = {
 
 export type SpawnAgent = (input: SpawnAgentInput) => Promise<SpawnAgentResult>;
 
+export type AgentModuleRetryOptions = {
+  maxAttempts: number;
+  backoffMs: number;
+  isRetryable?: (result: SpawnAgentResult) => boolean;
+};
+
+type AgentModuleSpawn = {
+  (agentDef: AgentModuleDefinition, options: AgentModuleSpawnOptions): Promise<SpawnAgentResult>;
+  retry(
+    agentDef: AgentModuleDefinition,
+    options: AgentModuleSpawnOptions,
+    retryOptions: AgentModuleRetryOptions
+  ): Promise<SpawnAgentResult>;
+};
+
 export function makeAgentModule(spawnAgent: SpawnAgent): {
-  spawn(
+  spawn: AgentModuleSpawn;
+} {
+  const spawnOnce = async (
     agentDef: AgentModuleDefinition,
     options: AgentModuleSpawnOptions
-  ): Promise<SpawnAgentResult>;
-} {
+  ): Promise<SpawnAgentResult> => {
+    const input = resolveSpawnInput(agentDef, options);
+    const result = validateSpawnResult(await spawnAgent(input));
+
+    if (result.exitCode !== 0) {
+      throw new Error(createSpawnFailureMessage(result));
+    }
+
+    return result;
+  };
+
   return {
-    async spawn(agentDef, options) {
-      const input = resolveSpawnInput(agentDef, options);
-      const result = validateSpawnResult(await spawnAgent(input));
-
-      if (result.exitCode !== 0) {
-        throw new Error(createSpawnFailureMessage(result));
+    spawn: Object.assign(spawnOnce, {
+      async retry(
+        agentDef: AgentModuleDefinition,
+        options: AgentModuleSpawnOptions,
+        retryOptions: AgentModuleRetryOptions
+      ) {
+        const input = resolveSpawnInput(agentDef, options);
+        return await runSpawnRetry(spawnAgent, input, normalizeRetryOptions(retryOptions));
       }
+    })
+  };
+}
 
+async function runSpawnRetry(
+  spawnAgent: SpawnAgent,
+  input: SpawnAgentInput,
+  retryOptions: Required<AgentModuleRetryOptions>
+): Promise<SpawnAgentResult> {
+  for (let attempt = 1; attempt <= retryOptions.maxAttempts; attempt += 1) {
+    const result = validateSpawnResult(await spawnAgent(input));
+    const isLastAttempt = attempt >= retryOptions.maxAttempts;
+
+    if (result.exitCode === 0 || isLastAttempt || !retryOptions.isRetryable(result)) {
       return result;
     }
+
+    await sleep(calculateBackoffMs(retryOptions.backoffMs, attempt));
+  }
+
+  throw new Error("agent.spawn.retry reached an unreachable retry state.");
+}
+
+function normalizeRetryOptions(
+  retryOptions: AgentModuleRetryOptions | unknown
+): Required<AgentModuleRetryOptions> {
+  if (!isRecord(retryOptions)) {
+    throw new Error("Agent spawn retry options must be an object.");
+  }
+
+  const maxAttempts = readFiniteNumber(retryOptions.maxAttempts, "Agent spawn retry maxAttempts");
+  if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
+    throw new Error("Agent spawn retry maxAttempts must be an integer greater than or equal to 1.");
+  }
+
+  const backoffMs = readNonNegativeFiniteNumber(
+    retryOptions.backoffMs,
+    "Agent spawn retry backoffMs"
+  );
+
+  if (retryOptions.isRetryable !== undefined && typeof retryOptions.isRetryable !== "function") {
+    throw new Error("Agent spawn retry isRetryable must be a function.");
+  }
+  const isRetryable =
+    retryOptions.isRetryable === undefined
+      ? defaultIsRetryable
+      : (retryOptions.isRetryable as (result: SpawnAgentResult) => boolean);
+
+  return {
+    maxAttempts,
+    backoffMs,
+    isRetryable
   };
+}
+
+function defaultIsRetryable(result: SpawnAgentResult): boolean {
+  return (
+    result.exitCode === 1 ||
+    result.exitCode === 124 ||
+    result.exitCode === 125 ||
+    result.exitCode === 137
+  );
+}
+
+function calculateBackoffMs(baseBackoffMs: number, completedAttempt: number): number {
+  return Math.min(baseBackoffMs * 2 ** (completedAttempt - 1), 30_000);
+}
+
+function sleep(delayMs: number): Promise<void> {
+  return new Promise((resolve) => {
+    setTimeout(resolve, delayMs);
+  });
 }
 
 function resolveSpawnInput(
@@ -73,14 +169,18 @@ function resolveSpawnInput(
   return {
     agent: definition.agent,
     prompt: prependSystemPrompt(definition.prompt, normalizedOptions.prompt),
-    ...(normalizedOptions.model ?? definition.model
+    ...((normalizedOptions.model ?? definition.model)
       ? { model: normalizedOptions.model ?? definition.model }
       : {}),
-    ...(normalizedOptions.mode ?? definition.mode
+    ...((normalizedOptions.mode ?? definition.mode)
       ? { mode: normalizedOptions.mode ?? definition.mode }
       : {}),
-    ...(normalizedOptions.cwd ?? definition.cwd ? { cwd: normalizedOptions.cwd ?? definition.cwd } : {}),
-    ...(normalizedOptions.mcp ?? definition.mcp ? { mcp: normalizedOptions.mcp ?? definition.mcp } : {}),
+    ...((normalizedOptions.cwd ?? definition.cwd)
+      ? { cwd: normalizedOptions.cwd ?? definition.cwd }
+      : {}),
+    ...((normalizedOptions.mcp ?? definition.mcp)
+      ? { mcp: normalizedOptions.mcp ?? definition.mcp }
+      : {}),
     ...(normalizedOptions.timeoutMs !== undefined ? { timeoutMs: normalizedOptions.timeoutMs } : {})
   };
 }
@@ -109,25 +209,41 @@ function normalizeAgentDefinition(
     ...(agentDef.mode === undefined
       ? {}
       : { mode: readSpawnMode(agentDef.mode, "Agent definition mode") }),
-    ...(agentDef.cwd === undefined ? {} : { cwd: readOptionalString(agentDef.cwd, "Agent definition cwd") }),
-    ...(agentDef.mcp === undefined ? {} : { mcp: readMcpConfig(agentDef.mcp, "Agent definition mcp") })
+    ...(agentDef.cwd === undefined
+      ? {}
+      : { cwd: readOptionalString(agentDef.cwd, "Agent definition cwd") }),
+    ...(agentDef.mcp === undefined
+      ? {}
+      : { mcp: readMcpConfig(agentDef.mcp, "Agent definition mcp") })
   };
 }
 
-function normalizeSpawnOptions(options: AgentModuleSpawnOptions | unknown): AgentModuleSpawnOptions {
+function normalizeSpawnOptions(
+  options: AgentModuleSpawnOptions | unknown
+): AgentModuleSpawnOptions {
   if (!isRecord(options)) {
     throw new Error("Agent spawn options must be an object.");
   }
 
   return {
     prompt: readRequiredPrompt(options.prompt),
-    ...(options.model === undefined ? {} : { model: readOptionalString(options.model, "Agent spawn options model") }),
-    ...(options.mode === undefined ? {} : { mode: readSpawnMode(options.mode, "Agent spawn options mode") }),
-    ...(options.cwd === undefined ? {} : { cwd: readOptionalString(options.cwd, "Agent spawn options cwd") }),
-    ...(options.mcp === undefined ? {} : { mcp: readMcpConfig(options.mcp, "Agent spawn options mcp") }),
+    ...(options.model === undefined
+      ? {}
+      : { model: readOptionalString(options.model, "Agent spawn options model") }),
+    ...(options.mode === undefined
+      ? {}
+      : { mode: readSpawnMode(options.mode, "Agent spawn options mode") }),
+    ...(options.cwd === undefined
+      ? {}
+      : { cwd: readOptionalString(options.cwd, "Agent spawn options cwd") }),
+    ...(options.mcp === undefined
+      ? {}
+      : { mcp: readMcpConfig(options.mcp, "Agent spawn options mcp") }),
     ...(options.timeoutMs === undefined
       ? {}
-      : { timeoutMs: readNonNegativeFiniteNumber(options.timeoutMs, "Agent spawn options timeoutMs") })
+      : {
+          timeoutMs: readNonNegativeFiniteNumber(options.timeoutMs, "Agent spawn options timeoutMs")
+        })
   };
 }
 
@@ -196,7 +312,9 @@ function readMcpConfig(value: unknown, label: string): AgentModuleMcpConfig {
     throw new Error(`${label} must be an object.`);
   }
 
-  const entries = Object.entries(value).map(([name, server]) => [name, readMcpServer(server, `${label}.${name}`)] as const);
+  const entries = Object.entries(value).map(
+    ([name, server]) => [name, readMcpServer(server, `${label}.${name}`)] as const
+  );
   return Object.fromEntries(entries) as AgentModuleMcpConfig;
 }
 
@@ -209,7 +327,9 @@ function readMcpServer(value: unknown, label: string): AgentModuleMcpServer {
     command: readNonEmptyString(value.command, `${label}.command`),
     ...(value.args === undefined ? {} : { args: readStringArray(value.args, `${label}.args`) }),
     ...(value.env === undefined ? {} : { env: readStringRecord(value.env, `${label}.env`) }),
-    ...(value.timeout === undefined ? {} : { timeout: readPositiveFiniteNumber(value.timeout, `${label}.timeout`) })
+    ...(value.timeout === undefined
+      ? {}
+      : { timeout: readPositiveFiniteNumber(value.timeout, `${label}.timeout`) })
   };
 }
 

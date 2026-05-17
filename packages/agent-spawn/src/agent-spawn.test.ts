@@ -88,6 +88,7 @@ describe("@poe-code/agent-spawn", () => {
 
   it("exports streaming + adapters API", () => {
     expect(typeof agentSpawnApi.spawn).toBe("function");
+    expect(typeof agentSpawnApi.spawn.retry).toBe("function");
     expect(typeof agentSpawnApi.spawnAcp).toBe("function");
     expect(typeof agentSpawnApi.spawnInteractive).toBe("function");
     expect(typeof agentSpawnApi.spawnStreaming).toBe("function");

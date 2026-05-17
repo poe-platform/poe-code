@@ -45,6 +45,14 @@ export {
   type BuildSpawnArgsResult
 } from "./spawn.js";
 export { spawn } from "./spawn.js";
+export {
+  calculateBackoffMs,
+  createSpawnRetry,
+  defaultIsRetryable,
+  type SpawnHandle,
+  type SpawnRetryFunction,
+  type SpawnRetryOptions
+} from "./retry.js";
 export { spawnInteractive } from "./spawn-interactive.js";
 export { spawnAutonomous } from "./autonomous.js";
 export type { AutonomousOptions, StreamingSpawnFn, StreamingSpawnReturn } from "./autonomous.js";

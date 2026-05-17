@@ -5,6 +5,7 @@ import { runPoeCommand } from "@poe-code/agent-harness-tools";
 import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
+import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import {
   resolveModeConfig,
@@ -267,6 +268,11 @@ export async function spawn(
     closeSpawnLog(logFd);
   }
 }
+
+spawn.retry = createSpawnRetry<SpawnOptions, SpawnResult>((service, options) => ({
+  events: (async function* () {})(),
+  result: spawn(service, options)
+}));
 
 function resolveSpawnLogPath(options: SpawnOptions): string | undefined {
   if (options.logPath) {

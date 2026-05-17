@@ -96,6 +96,12 @@ export interface SpawnResult {
   sessionResult?: SessionResult;
 }
 
+export interface SpawnRetryOptions {
+  maxAttempts: number;
+  backoffMs: number;
+  isRetryable?: (result: SpawnResult) => boolean;
+}
+
 export interface GenerateOptions {
   /** Model identifier override */
   model?: string;

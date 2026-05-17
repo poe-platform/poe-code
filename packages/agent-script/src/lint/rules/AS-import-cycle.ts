@@ -1,4 +1,9 @@
-import type { ImportDeclaration, SourceSpan } from "../../parse/parser.js";
+import { ParseError } from "../../parse/format-error.js";
+import {
+  DisallowedSyntaxError,
+  type ImportDeclaration,
+  type SourceSpan
+} from "../../parse/parser.js";
 import {
   collectAgentScriptSourceModules,
   collectImportDeclarations,
@@ -38,7 +43,7 @@ export function AS_IMPORT_CYCLE(
 
   for (const sourceModule of sourceModules.values()) {
     const moduleSource = sourceModule.filename === filename ? source : sourceModule.source;
-    const declarations = collectImportDeclarations(moduleSource, sourceModule.filename);
+    const declarations = collectImportDeclarationsForCycleRule(moduleSource, sourceModule.filename);
     const targetModuleNames = declarations
       .map((declaration) => declaration.source.value)
       .filter((targetModuleName) => sourceModules.has(targetModuleName));
@@ -75,6 +80,21 @@ export function AS_IMPORT_CYCLE(
           )
         ];
   });
+}
+
+function collectImportDeclarationsForCycleRule(
+  source: string,
+  filename: string
+): ImportDeclaration[] {
+  try {
+    return collectImportDeclarations(source, filename);
+  } catch (error) {
+    if (error instanceof ParseError || error instanceof DisallowedSyntaxError) {
+      return [];
+    }
+
+    throw error;
+  }
 }
 
 function createDiagnostic(

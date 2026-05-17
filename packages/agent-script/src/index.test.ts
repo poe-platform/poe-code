@@ -392,6 +392,28 @@ describe("@poe-code/agent-script public exports", () => {
     ]);
   });
 
+  it("does not throw when an unrelated source-backed module has invalid source", () => {
+    const source = "const current = () => 1;";
+
+    expect(() =>
+      lint(source, {
+        filename: "/agents/current.ajs",
+        modules: {
+          current: {
+            exports: ["current"],
+            filename: "/agents/current.ajs",
+            source
+          },
+          broken: {
+            exports: ["broken"],
+            filename: "/agents/broken.ajs",
+            source: "import { x } from ;"
+          }
+        }
+      })
+    ).not.toThrow();
+  });
+
   it("keeps linting when regex literals appear in unsupported method calls", () => {
     const source = [
       "const value = 'abba';",

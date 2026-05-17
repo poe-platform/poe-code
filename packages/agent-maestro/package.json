@@ -20,12 +20,15 @@
     "dist"
   ],
   "dependencies": {
+    "@poe-code/agent-harness": "*",
     "@poe-code/agent-spawn": "*",
+    "@poe-code/experiment-loop": "*",
     "@poe-code/file-lock": "*",
     "@poe-code/markdown-reader": "*",
     "@poe-code/pipeline": "*",
     "@poe-code/poe-code-config": "*",
     "@poe-code/ralph": "*",
+    "@poe-code/superintendent": "*",
     "@poe-code/task-list": "*"
   }
 }

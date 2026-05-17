@@ -141,4 +141,10 @@ describe("lint", () => {
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-MISSING-ASYNC");
     expect(lint(source).map((diagnostic) => diagnostic.code)).not.toContain("AS008");
   });
+
+  it("includes AS-NEEDLESS-TEMPLATE diagnostics", () => {
+    const source = "const value = `${x}`;";
+
+    expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-NEEDLESS-TEMPLATE");
+  });
 });

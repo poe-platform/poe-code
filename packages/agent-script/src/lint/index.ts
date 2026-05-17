@@ -16,6 +16,7 @@ import { AS_ASYNC_NOT_NEEDED } from "./rules/AS-async-not-needed.js";
 import { AS_AWAIT_NON_PROMISE } from "./rules/AS-await-non-promise.js";
 import { AS_EXPORT_IMPORT_META } from "./rules/AS-export-import-meta.js";
 import { AS_MISSING_ASYNC } from "./rules/AS-missing-async.js";
+import { AS_NEEDLESS_TEMPLATE } from "./rules/AS-needless-template.js";
 import { AS_UNREACHABLE } from "./rules/AS-unreachable.js";
 import { AS_UNUSED_IMPORT } from "./rules/AS-unused-import.js";
 import type { SourceSpan } from "../parse/parser.js";
@@ -59,6 +60,7 @@ const RULES: readonly LintRule[] = [
   AS015,
   AS_AWAIT_NON_PROMISE,
   AS_ASYNC_NOT_NEEDED,
+  AS_NEEDLESS_TEMPLATE,
   AS_UNREACHABLE,
   AS_EXPORT_IMPORT_META
 ];

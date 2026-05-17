@@ -173,7 +173,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-number-statics
     title: Number.isFinite, isNaN, isInteger
@@ -197,8 +197,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): Number.isFinite/isNaN/isInteger`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-array-flat

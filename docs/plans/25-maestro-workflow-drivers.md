@@ -128,8 +128,8 @@ tasks:
 
       Conventional commit: `feat(task-list): expose sourcePath on Task`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: ralph-driver

@@ -3,6 +3,7 @@ export { runHarnessCodegen } from "./codegen/emit-schemas.js";
 export { discoverHarnesses } from "./discovery/discover.js";
 export { extractSchema } from "./loader/extract-schema.js";
 export { runHarnessPair } from "./loader/run.js";
+export { assertReplayEquivalent } from "./testing/replay-equivalence.js";
 export { listBuiltinTemplates } from "./templates/index.js";
 export { FrontmatterValidationError, validateFrontmatter } from "./loader/validate.js";
 export { InvalidPairExtensionError, MissingPairError, resolvePair } from "./loader/pair.js";

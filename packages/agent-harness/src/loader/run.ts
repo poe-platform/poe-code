@@ -45,10 +45,12 @@ export type RunHarnessPairOptions = {
   fix?: boolean;
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessImportMeta) => ModuleRegistry;
   onDiagnostics?: (diagnostics: readonly Diagnostic[]) => void;
+  preserveSnapshotOnSuccess?: boolean;
   randomSeed?: number;
   resume?: boolean;
   signal?: AbortSignal;
   snapshotBackend?: SnapshotBackend;
+  snapshotIntervalMs?: number;
   snapshotPath?: string;
 };
 
@@ -167,6 +169,7 @@ export async function runHarnessPair(
         signal: options.signal,
         snapshot,
         snapshotBackend,
+        snapshotIntervalMs: options.snapshotIntervalMs,
         snapshotPath
       });
     } catch (error) {
@@ -175,7 +178,7 @@ export async function runHarnessPair(
     }
 
     await hostCallReplay.flush();
-    if (result.ok) {
+    if (result.ok && options.preserveSnapshotOnSuccess !== true) {
       await cleanupCompletedSnapshot(snapshotBackend, snapshotPath);
     }
 

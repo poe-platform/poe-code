@@ -292,7 +292,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-unreachable
     title: AS-UNREACHABLE lint rule
@@ -316,8 +316,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-UNREACHABLE lint rule`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-await-non-promise

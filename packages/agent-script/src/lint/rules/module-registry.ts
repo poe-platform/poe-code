@@ -3,15 +3,17 @@ import { parseModule, type ImportDeclaration } from "../../parse/parser.js";
 export type ModuleRegistration =
   | readonly string[]
   | {
-      exports?: readonly string[];
+      exports?: readonly string[] | ModuleExportTypes;
       filename?: string;
       source?: string;
     };
 
 export type Modules = ReadonlyMap<string, ModuleRegistration> | Record<string, ModuleRegistration>;
+export type ModuleExportTypes = ReadonlyMap<string, string> | Record<string, string>;
 
 export type NormalizedModuleRegistration = {
   exports: string[];
+  exportTypes: ReadonlyMap<string, string>;
   filename?: string;
   source?: string;
 };
@@ -25,10 +27,15 @@ export type AgentScriptSourceModule = {
 
 export function collectImportDeclarations(source: string, filename: string): ImportDeclaration[] {
   const module = parseModule(source, filename);
-  return module.body.flatMap((statement) => (statement.type === "ImportDeclaration" ? [statement] : []));
+  return module.body.flatMap((statement) =>
+    statement.type === "ImportDeclaration" ? [statement] : []
+  );
 }
 
-export function createUnknownModuleMessage(moduleName: string, moduleNames: readonly string[]): string {
+export function createUnknownModuleMessage(
+  moduleName: string,
+  moduleNames: readonly string[]
+): string {
   if (moduleNames.length === 0) {
     return `Unknown module '${moduleName}'. No modules are registered.`;
   }
@@ -50,11 +57,16 @@ export function createUnknownExportMessage(
 
 export function normalizeModules(modules: Modules | undefined): Map<string, string[]> {
   return new Map(
-    [...normalizeModuleRegistrations(modules).entries()].map(([moduleName, registration]) => [moduleName, registration.exports])
+    [...normalizeModuleRegistrations(modules).entries()].map(([moduleName, registration]) => [
+      moduleName,
+      registration.exports
+    ])
   );
 }
 
-export function normalizeModuleRegistrations(modules: Modules | undefined): Map<string, NormalizedModuleRegistration> {
+export function normalizeModuleRegistrations(
+  modules: Modules | undefined
+): Map<string, NormalizedModuleRegistration> {
   if (modules === undefined) {
     return new Map();
   }
@@ -69,7 +81,9 @@ export function normalizeModuleRegistrations(modules: Modules | undefined): Map<
   return normalized;
 }
 
-export function collectAgentScriptSourceModules(modules: Modules | undefined): Map<string, AgentScriptSourceModule> {
+export function collectAgentScriptSourceModules(
+  modules: Modules | undefined
+): Map<string, AgentScriptSourceModule> {
   return new Map(
     [...normalizeModuleRegistrations(modules).entries()].flatMap(([moduleName, registration]) =>
       registration.filename !== undefined && registration.source !== undefined
@@ -86,15 +100,27 @@ export function collectAgentScriptSourceModules(modules: Modules | undefined): M
   );
 }
 
-function normalizeModuleRegistration(registration: ModuleRegistration): NormalizedModuleRegistration {
+export function hasTypedModuleRegistrations(modules: Modules | undefined): boolean {
+  return [...normalizeModuleRegistrations(modules).values()].some(
+    (registration) => registration.exportTypes.size > 0
+  );
+}
+
+function normalizeModuleRegistration(
+  registration: ModuleRegistration
+): NormalizedModuleRegistration {
   if (isExportList(registration)) {
     return {
-      exports: dedupeAndSort(registration)
+      exports: dedupeAndSort(registration),
+      exportTypes: new Map()
     };
   }
 
+  const exports = registration.exports ?? [];
+
   return {
-    exports: dedupeAndSort(registration.exports ?? []),
+    exports: dedupeAndSort(isExportList(exports) ? exports : listTypedExports(exports)),
+    exportTypes: isExportList(exports) ? new Map() : normalizeExportTypes(exports),
     filename: registration.filename,
     source: registration.source
   };
@@ -106,4 +132,18 @@ function isExportList(registration: ModuleRegistration): registration is readonl
 
 function dedupeAndSort(exportedNames: readonly string[]): string[] {
   return [...new Set(exportedNames)].sort((left, right) => left.localeCompare(right));
+}
+
+function listTypedExports(exports: ModuleExportTypes): string[] {
+  return exports instanceof Map ? [...exports.keys()] : Object.keys(exports);
+}
+
+function normalizeExportTypes(exports: ModuleExportTypes): ReadonlyMap<string, string> {
+  const entries = exports instanceof Map ? [...exports.entries()] : Object.entries(exports);
+
+  return new Map(
+    entries
+      .filter(([exportName]) => exportName.length > 0)
+      .sort(([left], [right]) => left.localeCompare(right))
+  );
 }

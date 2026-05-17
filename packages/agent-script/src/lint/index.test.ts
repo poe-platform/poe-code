@@ -147,4 +147,23 @@ describe("lint", () => {
 
     expect(lint(source).map((diagnostic) => diagnostic.code)).toContain("AS-NEEDLESS-TEMPLATE");
   });
+
+  it("includes AS-JSDOC-TYPE diagnostics when typed modules opt in", () => {
+    const source = "/** @type {string} */ const x = 1;";
+
+    expect(
+      lint(source, {
+        filename: "rule.ajs",
+        modules: {
+          current: {
+            exports: {
+              default: "unknown"
+            },
+            filename: "rule.ajs",
+            source
+          }
+        }
+      }).map((diagnostic) => diagnostic.code)
+    ).toContain("AS-JSDOC-TYPE");
+  });
 });

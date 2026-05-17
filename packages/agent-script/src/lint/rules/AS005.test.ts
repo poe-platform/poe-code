@@ -120,6 +120,22 @@ describe("AS005", () => {
     ]);
   });
 
+  it("accepts typed export maps as registered module exports", () => {
+    const source = 'import { request } from "api";';
+
+    expect(
+      AS005(source, {
+        modules: {
+          api: {
+            exports: {
+              request: "(url: string) => string"
+            }
+          }
+        }
+      })
+    ).toEqual([]);
+  });
+
   it("reports each invalid named import and keeps namespace imports valid", () => {
     const source = [
       'import { missing, absent as alias } from "api";',

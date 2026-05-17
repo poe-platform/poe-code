@@ -1,7 +1,7 @@
 import { allAgents, resolveAgentId } from "@poe-code/agent-defs";
 import { AcpClient, type McpServer } from "@poe-code/poe-acp-client";
 import { getAcpSpawnConfig } from "../configs/index.js";
-import type { McpSpawnConfig, SpawnMode, SpawnResult } from "../types.js";
+import type { McpSpawnConfig, OtelSink, SpawnMode, SpawnResult } from "../types.js";
 import type { AcpEvent } from "./types.js";
 import { stampReceiveTime } from "./meta.js";
 import { sessionUpdateToEvents, createToolRenderState } from "./session-update-converter.js";
@@ -22,6 +22,7 @@ export interface SpawnAcpOptions {
   mountPoeCode?: boolean;
   runnerSync?: "both" | "upload" | "none";
   signal?: AbortSignal;
+  otelSink?: OtelSink;
   middlewares?: AcpMiddleware[];
 }
 

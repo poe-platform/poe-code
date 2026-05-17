@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { makeAgentModule } from "./agent.js";
+import type { OtelSink } from "../observability/otel.js";
 
 describe("makeAgentModule", () => {
   it("merges agent defaults into spawn inputs and prepends the system prompt", async () => {
@@ -210,4 +211,117 @@ describe("makeAgentModule", () => {
     );
     expect(spawnAgent).not.toHaveBeenCalled();
   });
+
+  it("does not require an otel sink to run spawns", async () => {
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      summary: "done",
+      durationMs: 1
+    }));
+    const agent = makeAgentModule(spawnAgent);
+
+    await expect(agent.spawn("codex", { prompt: "Inspect." })).resolves.toMatchObject({
+      exitCode: 0,
+      summary: "done"
+    });
+  });
+
+  it("records the expected otel span lifecycle for a spawn", async () => {
+    const events: string[] = [];
+    const sink = createRecordingOtelSink(events);
+    const spawnAgent = vi.fn(async () => ({
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      summary: "finished",
+      durationMs: 12
+    }));
+    const agent = makeAgentModule(spawnAgent, { otelSink: sink });
+
+    await agent.spawn({ agent: "codex", mode: "read", cwd: "/repo" }, { prompt: "Inspect." });
+
+    expect(events).toEqual([
+      'start:agent.spawn:{"agent":"codex","mode":"read","cwd":"/repo"}',
+      'event:prompt:{"prompt":"Inspect."}',
+      'event:summary:{"summary":"finished"}',
+      'event:exit:{"exitCode":0,"durationMs":12}',
+      "end"
+    ]);
+  });
+
+  it("records an otel exception when a spawn fails", async () => {
+    const events: string[] = [];
+    const sink = createRecordingOtelSink(events);
+    const failure = new Error("spawn failed");
+    const agent = makeAgentModule(
+      vi.fn(async () => Promise.reject(failure)),
+      { otelSink: sink }
+    );
+
+    await expect(agent.spawn("codex", { prompt: "Try." })).rejects.toThrow("spawn failed");
+
+    expect(events.filter((event) => event === "exception:spawn failed")).toHaveLength(1);
+    expect(events.at(-1)).toBe("end");
+  });
+
+  it("does not crash when otel sink methods throw", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+    const span = {
+      setAttribute: vi.fn(() => {
+        throw new Error("set failed");
+      }),
+      addEvent: vi.fn(() => {
+        throw new Error("event failed");
+      }),
+      end: vi.fn(() => {
+        throw new Error("end failed");
+      })
+    };
+    const sink: OtelSink = {
+      startSpan: vi.fn(() => span),
+      recordException: vi.fn(() => {
+        throw new Error("exception failed");
+      })
+    };
+    const agent = makeAgentModule(
+      vi.fn(async () => ({
+        exitCode: 3,
+        stdout: "",
+        stderr: "denied",
+        summary: "",
+        durationMs: 1
+      })),
+      { otelSink: sink }
+    );
+
+    await expect(agent.spawn("codex", { prompt: "Try." })).rejects.toThrow(
+      "Agent spawn failed with exit code 3: denied"
+    );
+
+    expect(warn).toHaveBeenCalled();
+  });
 });
+
+function createRecordingOtelSink(events: string[]): OtelSink {
+  return {
+    startSpan(name, attrs) {
+      events.push(`start:${name}:${JSON.stringify(attrs)}`);
+      return {
+        setAttribute(key, value) {
+          events.push(`attr:${key}:${JSON.stringify(value)}`);
+        },
+        addEvent(name, attrs) {
+          events.push(`event:${name}:${JSON.stringify(attrs)}`);
+        },
+        end() {
+          events.push("end");
+        }
+      };
+    },
+    recordException(_span, error) {
+      events.push(`exception:${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
+}

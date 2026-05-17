@@ -6,6 +6,7 @@ import { splitFrontmatter } from "../loader/frontmatter.js";
 import { lint, type Diagnostic } from "../lint.js";
 import { createLintModulesFromRuntimeRegistry } from "../lint/runtime-modules.js";
 import type { ModuleExports, ModuleRegistry } from "../modules/registry.js";
+import type { OtelSink } from "../observability/otel.js";
 import { run, type RunResult } from "../run.js";
 import type { SnapshotBackend } from "../snapshot/backend.js";
 
@@ -17,6 +18,7 @@ type HarnessMeta = {
 
 export type RunHarnessOptions = {
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessMeta) => ModuleRegistry;
+  otelSink?: OtelSink;
   signal?: AbortSignal;
   snapshotBackend?: SnapshotBackend;
   snapshotPath?: string;
@@ -53,6 +55,7 @@ export async function runHarness(filepath: string, options: RunHarnessOptions): 
 
   return run(executableSource, {
     modules,
+    otelSink: options.otelSink,
     signal: options.signal,
     snapshotBackend: options.snapshotBackend,
     snapshotPath: options.snapshotPath

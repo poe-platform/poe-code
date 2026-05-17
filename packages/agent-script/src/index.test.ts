@@ -25,6 +25,7 @@ import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
 import { runHarness } from "./runner/run-harness.js";
+import { noopOtelSink } from "./observability/otel.js";
 import { FileSnapshotBackend } from "./snapshot/backend.js";
 
 describe("@poe-code/agent-script public exports", () => {
@@ -37,6 +38,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(lint).toBe(lintFromIndex);
     expect(api.run).toBe(run);
     expect(api.runHarness).toBe(runHarness);
+    expect(api.noopOtelSink).toBe(noopOtelSink);
     expect(api.dump).toBe(dump);
     expect(api.restore).toBe(restore);
     expect(api.extractBlock).toBe(extractBlock);
@@ -75,6 +77,7 @@ describe("@poe-code/agent-script public exports", () => {
       "makeMcpModule",
       "makeMetricModule",
       "makeTimeModule",
+      "noopOtelSink",
       "parse",
       "parseModule",
       "restore",

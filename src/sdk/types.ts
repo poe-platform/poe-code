@@ -2,6 +2,7 @@ import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
 import type {
   AcpMiddleware,
   McpSpawnConfig,
+  OtelSink,
   SessionResult,
   SpawnMode
 } from "@poe-code/agent-spawn";
@@ -36,6 +37,8 @@ export interface SpawnOptions {
   interactive?: boolean;
   /** Abort signal used to terminate the spawned agent */
   signal?: AbortSignal;
+  /** OpenTelemetry-compatible sink supplied by the consumer */
+  otelSink?: OtelSink;
   /** Send the prompt over stdin when the provider supports it */
   useStdin?: boolean;
   /** Mirror spawned stdout/stderr chunks to additional writers while preserving the final result */

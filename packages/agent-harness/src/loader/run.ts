@@ -11,6 +11,7 @@ import {
   run,
   splitFrontmatter,
   type Diagnostic,
+  type OtelSink,
   type RunClock,
   type RunClockSnapshot,
   type RunRandom,
@@ -45,6 +46,7 @@ export type RunHarnessPairOptions = {
   fix?: boolean;
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessImportMeta) => ModuleRegistry;
   onDiagnostics?: (diagnostics: readonly Diagnostic[]) => void;
+  otelSink?: OtelSink;
   preserveSnapshotOnSuccess?: boolean;
   randomSeed?: number;
   resume?: boolean;
@@ -165,6 +167,7 @@ export async function runHarnessPair(
         entryPointArgs: [validated],
         filename: pair.ajsPath,
         modules: modules as RunOptions["modules"],
+        otelSink: options.otelSink,
         random: runtimeRandom,
         signal: options.signal,
         snapshot,

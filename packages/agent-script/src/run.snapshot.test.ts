@@ -8,6 +8,7 @@ vi.mock("node:fs/promises", async () => {
 
 const { dump } = await import("./dump.js");
 const { createSandboxClosure, createSandboxPromise } = await import("./interp/values.js");
+const { makeAgentModule } = await import("./modules/agent.js");
 const { run } = await import("./run.js");
 
 describe("run snapshot checkpointing", () => {
@@ -28,12 +29,15 @@ describe("run snapshot checkpointing", () => {
     let waitCalls = 0;
 
     const result = run(
-      ["return await (async () => { await wait(); await wait(); return Math.random(); })();"].join("\n"),
+      ["return await (async () => { await wait(); await wait(); return Math.random(); })();"].join(
+        "\n"
+      ),
       {
         bindings: {
           wait: createSandboxClosure({
             async: true,
-            call: () => createSandboxPromise((waitCalls += 1) === 1 ? first.promise : second.promise),
+            call: () =>
+              createSandboxPromise((waitCalls += 1) === 1 ? first.promise : second.promise),
             name: "wait"
           })
         },
@@ -64,7 +68,9 @@ describe("run snapshot checkpointing", () => {
       }
     });
 
-    const checkpoint = JSON.parse(vol.readFileSync("/checkpoints/agent-script.json", "utf8") as string) as {
+    const checkpoint = JSON.parse(
+      vol.readFileSync("/checkpoints/agent-script.json", "utf8") as string
+    ) as {
       random?: {
         seed: number;
         state: number;
@@ -76,7 +82,9 @@ describe("run snapshot checkpointing", () => {
         seed: 123
       }
     });
-    expect(checkpoint.random?.state).not.toBe(finished.ok ? finished.snapshot.random?.state : undefined);
+    expect(checkpoint.random?.state).not.toBe(
+      finished.ok ? finished.snapshot.random?.state : undefined
+    );
   });
 
   it("does not write a checkpoint when the interval elapses but execution finishes before another yield", async () => {
@@ -122,7 +130,8 @@ describe("run snapshot checkpointing", () => {
         bindings: {
           wait: createSandboxClosure({
             async: true,
-            call: () => createSandboxPromise((waitCalls += 1) === 1 ? first.promise : second.promise),
+            call: () =>
+              createSandboxPromise((waitCalls += 1) === 1 ? first.promise : second.promise),
             name: "wait"
           })
         }
@@ -243,6 +252,62 @@ describe("run snapshot checkpointing", () => {
     });
     await expect(dump(result)).rejects.toMatchObject({
       message: "boom"
+    });
+  });
+
+  it("records snapshot.saved otel events on yielded agent spawn snapshots", async () => {
+    const first = createDeferred<{
+      exitCode: number;
+      stdout: string;
+      stderr: string;
+      summary: string;
+      durationMs: number;
+    }>();
+    const events: Array<{ attrs: Record<string, unknown> | undefined; name: string }> = [];
+    const sink = {
+      startSpan: vi.fn(() => ({
+        setAttribute: vi.fn(),
+        addEvent: vi.fn((name: string, attrs?: Record<string, unknown>) => {
+          events.push({ name, attrs });
+        }),
+        end: vi.fn()
+      })),
+      recordException: vi.fn()
+    };
+
+    const result = run(
+      [
+        'import { spawn } from "agent";',
+        'await spawn("codex", { prompt: "Inspect." });',
+        "return 'done';"
+      ].join("\n"),
+      {
+        modules: {
+          agent: makeAgentModule(vi.fn(() => first.promise))
+        },
+        otelSink: sink,
+        snapshotPath: "/checkpoints/agent-script.json"
+      }
+    );
+
+    await flushMicrotasks();
+    first.resolve({
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      summary: "finished",
+      durationMs: 1
+    });
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "done"
+    });
+    expect(events).toContainEqual({
+      name: "snapshot.saved",
+      attrs: {
+        iteration: 1
+      }
     });
   });
 });

@@ -3,6 +3,8 @@ export { parseModule } from "./parse/parser.js";
 export { lint, type Diagnostic, type Fix, type LintFixResult, type LintOptions } from "./lint.js";
 export { run } from "./run.js";
 export type { RunClock, RunClockSnapshot, RunRandom } from "./run.js";
+export { noopOtelSink } from "./observability/otel.js";
+export type { OtelSink, OtelSpan } from "./observability/otel.js";
 export { FileSnapshotBackend } from "./snapshot/backend.js";
 export type { Snapshot, SnapshotBackend } from "./snapshot/backend.js";
 export { dump } from "./dump.js";

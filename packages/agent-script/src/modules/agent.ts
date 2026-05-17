@@ -1,4 +1,14 @@
 import { createSpawnParallel, type SpawnParallelOptions } from "@poe-code/agent-spawn";
+import {
+  bindOtelSpan,
+  activateOtelSpan,
+  getActiveOtelSink,
+  safeAddEvent,
+  safeEndSpan,
+  safeRecordException,
+  safeStartSpan,
+  type OtelSink
+} from "../observability/otel.js";
 
 export type AgentSpawnMode = "read" | "edit" | "yolo";
 
@@ -28,6 +38,7 @@ export type AgentModuleSpawnOptions = {
   model?: string;
   mode?: AgentSpawnMode;
   cwd?: string;
+  otelSink?: OtelSink;
   timeoutMs?: number;
   signal?: AbortSignal;
 };
@@ -45,6 +56,10 @@ export type SpawnAgentResult = {
 };
 
 export type SpawnAgent = (input: SpawnAgentInput) => Promise<SpawnAgentResult>;
+
+export type AgentModuleOptions = {
+  otelSink?: OtelSink;
+};
 
 export type AgentModuleRetryOptions = {
   maxAttempts: number;
@@ -72,7 +87,10 @@ type AgentModuleSpawn = {
   ): Promise<SpawnAgentResult[]>;
 };
 
-export function makeAgentModule(spawnAgent: SpawnAgent): {
+export function makeAgentModule(
+  spawnAgent: SpawnAgent,
+  moduleOptions: AgentModuleOptions = {}
+): {
   spawn: AgentModuleSpawn;
 } {
   const spawnOnce = async (
@@ -80,13 +98,15 @@ export function makeAgentModule(spawnAgent: SpawnAgent): {
     options: AgentModuleSpawnOptions
   ): Promise<SpawnAgentResult> => {
     const input = resolveSpawnInput(agentDef, options);
-    const result = validateSpawnResult(await spawnAgent(input));
+    return runObservedSpawn(moduleOptions.otelSink, input, async () => {
+      const result = validateSpawnResult(await spawnAgent(input));
 
-    if (result.exitCode !== 0) {
-      throw new Error(createSpawnFailureMessage(result));
-    }
+      if (result.exitCode !== 0) {
+        throw new Error(createSpawnFailureMessage(result));
+      }
 
-    return result;
+      return result;
+    });
   };
 
   return {
@@ -97,7 +117,9 @@ export function makeAgentModule(spawnAgent: SpawnAgent): {
         retryOptions: AgentModuleRetryOptions
       ) {
         const input = resolveSpawnInput(agentDef, options);
-        return await runSpawnRetry(spawnAgent, input, normalizeRetryOptions(retryOptions));
+        return await runObservedSpawn(moduleOptions.otelSink, input, () =>
+          runSpawnRetry(spawnAgent, input, normalizeRetryOptions(retryOptions))
+        );
       },
       parallel: createSpawnParallel<
         AgentModuleDefinition,
@@ -105,13 +127,51 @@ export function makeAgentModule(spawnAgent: SpawnAgent): {
         SpawnAgentResult
       >((agentDef, options) => ({
         events: (async function* () {})(),
-        result: (async () => {
+        result: (() => {
           const input = resolveSpawnInput(agentDef, options);
-          return validateSpawnResult(await spawnAgent(input));
+          return runObservedSpawn(moduleOptions.otelSink, input, async () =>
+            validateSpawnResult(await spawnAgent(input))
+          );
         })()
       }))
     })
   };
+}
+
+function runObservedSpawn(
+  moduleSink: OtelSink | undefined,
+  input: SpawnAgentInput,
+  operation: () => Promise<SpawnAgentResult>
+): Promise<SpawnAgentResult> {
+  const otelSink = input.otelSink ?? moduleSink ?? getActiveOtelSink();
+  const span = safeStartSpan(otelSink, "agent.spawn", {
+    agent: input.agent,
+    mode: input.mode ?? "yolo",
+    cwd: input.cwd ?? process.cwd()
+  });
+  const deactivateSpan = activateOtelSpan(span);
+  safeAddEvent(span, "prompt", { prompt: input.prompt });
+
+  const promise = (async () => {
+    try {
+      const result = await operation();
+      safeAddEvent(span, "summary", { summary: result.summary });
+      safeAddEvent(span, "exit", {
+        exitCode: result.exitCode,
+        durationMs: result.durationMs
+      });
+      return result;
+    } catch (error) {
+      safeRecordException(otelSink, span, error);
+      throw error;
+    } finally {
+      deactivateSpan();
+      safeEndSpan(span);
+    }
+  })();
+
+  bindOtelSpan(promise, span);
+  return promise;
 }
 
 async function runSpawnRetry(
@@ -203,10 +263,13 @@ function resolveSpawnInput(
     ...((normalizedOptions.cwd ?? definition.cwd)
       ? { cwd: normalizedOptions.cwd ?? definition.cwd }
       : {}),
+    ...(normalizedOptions.otelSink !== undefined ? { otelSink: normalizedOptions.otelSink } : {}),
     ...((normalizedOptions.mcp ?? definition.mcp)
       ? { mcp: normalizedOptions.mcp ?? definition.mcp }
       : {}),
-    ...(normalizedOptions.timeoutMs !== undefined ? { timeoutMs: normalizedOptions.timeoutMs } : {}),
+    ...(normalizedOptions.timeoutMs !== undefined
+      ? { timeoutMs: normalizedOptions.timeoutMs }
+      : {}),
     ...(normalizedOptions.signal !== undefined ? { signal: normalizedOptions.signal } : {})
   };
 }
@@ -262,6 +325,7 @@ function normalizeSpawnOptions(
     ...(options.cwd === undefined
       ? {}
       : { cwd: readOptionalString(options.cwd, "Agent spawn options cwd") }),
+    ...(options.otelSink === undefined ? {} : { otelSink: readOtelSink(options.otelSink) }),
     ...(options.mcp === undefined
       ? {}
       : { mcp: readMcpConfig(options.mcp, "Agent spawn options mcp") }),
@@ -446,6 +510,18 @@ function readAbortSignal(value: unknown, label: string): AbortSignal {
   }
 
   return value as AbortSignal;
+}
+
+function readOtelSink(value: unknown): OtelSink {
+  if (
+    !isRecord(value) ||
+    typeof value.startSpan !== "function" ||
+    typeof value.recordException !== "function"
+  ) {
+    throw new Error("Agent spawn options otelSink must be an OtelSink.");
+  }
+
+  return value as unknown as OtelSink;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -6,6 +6,7 @@ import type {
   RestElement,
   SourceSpan
 } from "../parse.js";
+import { getBoundOtelSpan, type OtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
 import type { EvaluationResult } from "./exceptions.js";
 import type { InterpreterSnapshot } from "./interpreter.js";
@@ -20,6 +21,7 @@ import {
 export type InterpreterYieldPoint = {
   kind: "await";
   nodeId?: number;
+  otelSpan?: OtelSpan;
   snapshot: InterpreterSnapshot;
   span: SourceSpan;
 };
@@ -98,6 +100,9 @@ export async function evaluateAwaitExpression(
   context.onYield?.({
     kind: "await",
     nodeId: node.nodeId,
+    ...(getBoundOtelSpan(argument.value) === undefined
+      ? {}
+      : { otelSpan: getBoundOtelSpan(argument.value) }),
     snapshot: context.scope.snapshot(),
     span: node.span
   });

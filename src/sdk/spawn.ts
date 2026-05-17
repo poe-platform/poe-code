@@ -149,6 +149,7 @@ export function spawn(
           model,
           mode: options.mode,
           signal: options.signal,
+          otelSink: options.otelSink,
           args: options.args,
           resumeThreadId: options.resumeThreadId,
           runtimeConfigCwd: options.runtimeConfigCwd,
@@ -175,6 +176,7 @@ export function spawn(
           mcpServers: options.mcpServers,
           resumeThreadId: options.resumeThreadId,
           signal: options.signal,
+          otelSink: options.otelSink,
           ...runtimeOverrides
         });
 
@@ -232,6 +234,7 @@ export function spawn(
           args: options.args,
           resumeThreadId: options.resumeThreadId,
           signal: options.signal,
+          otelSink: options.otelSink,
           runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),
@@ -291,6 +294,7 @@ export function spawn(
           args: options.args,
           resumeThreadId: options.resumeThreadId,
           signal: options.signal,
+          otelSink: options.otelSink,
           runtimeConfigCwd: options.runtimeConfigCwd,
           ...runtimeOverrides,
           ...(resolvedMcpServers ? { mcpServers: resolvedMcpServers } : {}),

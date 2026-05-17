@@ -21,6 +21,8 @@ export type {
   SpawnLogger,
   McpSpawnConfig,
   McpSpawnServer,
+  OtelSink,
+  OtelSpan,
   SpawnMode,
   SpawnModeConfig,
   SpawnOptions,

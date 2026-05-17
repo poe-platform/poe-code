@@ -1,3 +1,5 @@
+import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
+
 const sandboxClosureBrand = Symbol("SandboxClosure");
 const sandboxPromiseBrand = Symbol("SandboxPromise");
 
@@ -138,12 +140,17 @@ function copyToSandbox(
   }
 
   if (isHostPromise(value)) {
-    return createSandboxPromise(
-      Promise.resolve(value).then(
-        (resolved) => copyToSandbox(resolved, { seen: new WeakMap() }),
-        (reason) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap() }))
-      )
+    const promise = Promise.resolve(value).then(
+      (resolved) => copyToSandbox(resolved, { seen: new WeakMap() }),
+      (reason) => Promise.reject(copyToSandbox(reason, { seen: new WeakMap() }))
     );
+    const sandboxPromise = createSandboxPromise(promise);
+    const span = getBoundOtelSpan(value);
+    if (span !== undefined) {
+      bindOtelSpan(promise, span);
+      bindOtelSpan(sandboxPromise, span);
+    }
+    return sandboxPromise;
   }
 
   if (isPlainArray(value)) {

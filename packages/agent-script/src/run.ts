@@ -21,6 +21,12 @@ import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.j
 import { createPromiseGlobals } from "./interp/promise.js";
 import { deepCopyToSandbox, isSandboxClosure, type SandboxValue } from "./interp/values.js";
 import { resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
+import {
+  activateOtelSink,
+  getActiveOtelSpan,
+  safeAddEvent,
+  type OtelSink
+} from "./observability/otel.js";
 import type { SnapshotBackend } from "./snapshot/backend.js";
 import { attachDumpController, createDumpController } from "./snapshot/dump.js";
 import { createSnapshotScheduler } from "./snapshot/scheduler.js";
@@ -35,6 +41,7 @@ export type RunOptions = {
   modules?: ModuleRegistry;
   random?: RunRandom;
   randomSeed?: number;
+  otelSink?: OtelSink;
   signal?: AbortSignal;
   snapshot?: AgentScriptSnapshot;
   snapshotBackend?: SnapshotBackend;
@@ -77,56 +84,64 @@ export type RunResult = WithRunSnapshot<InterpreterResult>;
 export function run(source: string, options: RunOptions = {}): Promise<RunResult> {
   const dumpController = createDumpController();
   const result = (async () => {
-    const restoredSnapshot =
-      options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
-    const budget = options.budget ?? new Budget();
-    const filename = options.filename ?? "<input>";
-    const module = parseModule(source, filename);
-    const sourceHash = hashSource(source);
-    const random = createRandomState(restoredSnapshot, options.randomSeed, options.random);
-    const entryPointArgs = options.entryPointArgs?.map((value) => deepCopyToSandbox(value));
-    const callerBindings =
-      options.bindings === undefined
-        ? {}
-        : wrapCallerInjectedBindings(options.bindings, {
-            budget
-          });
-    const bindings = wrapCancelableBindings(
-      {
-        ...createConsoleJsonGlobals({
-          budget,
-          sink: options.sink
-        }),
-        ...createErrorGlobals({
-          budget
-        }),
-        ...createMathGlobals({
-          random: random?.generator.next
-        }),
-        ...createObjectArrayGlobals({
-          budget
-        }),
-        ...createPromiseGlobals({
-          budget
-        }),
-        ...callerBindings
-      },
-      options.signal
-    );
-
-    const scope = new Scope(bindings, undefined, deepCopyToSandbox(options.importMeta ?? {})).child(
-      resolveModuleImports(module, options.modules, { budget, signal: options.signal })
-    );
-    const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
-      snapshotBackend: options.snapshotBackend,
-      snapshotIntervalMs: options.snapshotIntervalMs,
-      snapshotPath: options.snapshotPath
-    });
-
+    const deactivateOtelSink = activateOtelSink(options.otelSink);
     try {
+      const restoredSnapshot =
+        options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
+      const budget = options.budget ?? new Budget();
+      const filename = options.filename ?? "<input>";
+      const module = parseModule(source, filename);
+      const sourceHash = hashSource(source);
+      const random = createRandomState(restoredSnapshot, options.randomSeed, options.random);
+      const entryPointArgs = options.entryPointArgs?.map((value) => deepCopyToSandbox(value));
+      const callerBindings =
+        options.bindings === undefined
+          ? {}
+          : wrapCallerInjectedBindings(options.bindings, {
+              budget
+            });
+      const bindings = wrapCancelableBindings(
+        {
+          ...createConsoleJsonGlobals({
+            budget,
+            sink: options.sink
+          }),
+          ...createErrorGlobals({
+            budget
+          }),
+          ...createMathGlobals({
+            random: random?.generator.next
+          }),
+          ...createObjectArrayGlobals({
+            budget
+          }),
+          ...createPromiseGlobals({
+            budget
+          }),
+          ...callerBindings
+        },
+        options.signal
+      );
+
+      const scope = new Scope(
+        bindings,
+        undefined,
+        deepCopyToSandbox(options.importMeta ?? {})
+      ).child(resolveModuleImports(module, options.modules, { budget, signal: options.signal }));
+      const snapshotScheduler = createSnapshotScheduler<RunSnapshot>({
+        snapshotBackend: options.snapshotBackend,
+        snapshotIntervalMs: options.snapshotIntervalMs,
+        snapshotPath: options.snapshotPath
+      });
+      let snapshotIteration = 0;
+
       const topLevelResult = await interpret(createExecutableNode(module), {
         budget,
         onYield: (yieldPoint) => {
+          snapshotIteration += 1;
+          safeAddEvent(yieldPoint.otelSpan ?? getActiveOtelSpan(), "snapshot.saved", {
+            iteration: snapshotIteration
+          });
           let snapshot: RunSnapshot | undefined;
           const createSnapshot = () =>
             (snapshot ??= createRunSnapshot({
@@ -151,6 +166,10 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
               filename,
               module,
               onYield: (yieldPoint) => {
+                snapshotIteration += 1;
+                safeAddEvent(yieldPoint.otelSpan ?? getActiveOtelSpan(), "snapshot.saved", {
+                  iteration: snapshotIteration
+                });
                 let snapshot: RunSnapshot | undefined;
                 const createSnapshot = () =>
                   (snapshot ??= createRunSnapshot({
@@ -182,6 +201,8 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
     } catch (error) {
       dumpController.fail(error);
       throw error;
+    } finally {
+      deactivateOtelSink();
     }
   })();
 

@@ -33,6 +33,17 @@ export interface McpSpawnServer {
 
 export type McpSpawnConfig = Record<string, McpSpawnServer>;
 
+export type OtelSpan = {
+  setAttribute(key: string, value: unknown): void;
+  addEvent(name: string, attrs: Record<string, unknown>): void;
+  end(): void;
+};
+
+export interface OtelSink {
+  startSpan(name: string, attrs: Record<string, unknown>): OtelSpan;
+  recordException(span: ReturnType<OtelSink["startSpan"]>, error: unknown): void;
+}
+
 export interface SpawnOptions {
   prompt: string;
   cwd?: string;
@@ -45,6 +56,7 @@ export interface SpawnOptions {
   useStdin?: boolean;
   interactive?: boolean;
   signal?: AbortSignal;
+  otelSink?: OtelSink;
   middlewares?: AcpMiddleware[];
   tee?: {
     stdout?: { write(chunk: string): void };

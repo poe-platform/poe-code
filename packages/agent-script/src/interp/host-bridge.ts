@@ -1,6 +1,7 @@
 import { normalizeClosureResult } from "./async.js";
 import type { Budget } from "./budget.js";
 import { createSubsetErrorValue } from "./exceptions.js";
+import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
@@ -241,26 +242,31 @@ function copyHostValueToSandbox(
   }
 
   if (isPromiseLike(value)) {
-    return createSandboxPromise(
-      Promise.resolve(value).then(
-        (resolved) => {
-          try {
-            return copyHostValueToSandbox(
-              resolved,
-              stackFrames,
-              budget,
-              {
-                seen: new WeakMap()
-              },
-              "<root>"
-            );
-          } catch (error) {
-            return Promise.reject(createHostErrorValue(error, stackFrames, budget));
-          }
-        },
-        (reason) => Promise.reject(createHostErrorValue(reason, stackFrames, budget))
-      )
+    const promise = Promise.resolve(value).then(
+      (resolved) => {
+        try {
+          return copyHostValueToSandbox(
+            resolved,
+            stackFrames,
+            budget,
+            {
+              seen: new WeakMap()
+            },
+            "<root>"
+          );
+        } catch (error) {
+          return Promise.reject(createHostErrorValue(error, stackFrames, budget));
+        }
+      },
+      (reason) => Promise.reject(createHostErrorValue(reason, stackFrames, budget))
     );
+    const sandboxPromise = createSandboxPromise(promise);
+    const span = getBoundOtelSpan(value);
+    if (span !== undefined) {
+      bindOtelSpan(promise, span);
+      bindOtelSpan(sandboxPromise, span);
+    }
+    return sandboxPromise;
   }
 
   if (Array.isArray(value) && Object.getPrototypeOf(value) === Array.prototype) {

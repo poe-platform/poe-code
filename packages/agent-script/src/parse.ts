@@ -15,6 +15,7 @@ export type {
   CatchClause,
   ConditionalExpression,
   ContinueStatement,
+  DoWhileStatement,
   Expression,
   ExpressionStatement,
   ExportDefaultDeclaration,

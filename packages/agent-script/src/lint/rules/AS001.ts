@@ -271,9 +271,6 @@ class AS001Scanner {
       case "with":
         this.report(token.value, token.start, token.end);
         return;
-      case "do":
-        this.report("do/while", token.start, token.end);
-        return;
       default:
         return;
     }

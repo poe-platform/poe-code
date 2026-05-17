@@ -1110,7 +1110,7 @@ describe("parse", () => {
   it("parses control-flow statements in block bodies", () => {
     expect(
       parse(
-        "() => { if (ready) { return value; } else { while (pending) { continue; } } for (let index = 0; index < total; index = index + 1) work(index); for (const item of items) { break; } }"
+        "() => { if (ready) { return value; } else { while (pending) { continue; } } do { tick(); } while (pending); for (let index = 0; index < total; index = index + 1) work(index); for (const item of items) { break; } }"
       )
     ).toMatchObject({
       type: "ArrowFunctionExpression",
@@ -1156,6 +1156,24 @@ describe("parse", () => {
                   }
                 }
               ]
+            }
+          },
+          {
+            type: "DoWhileStatement",
+            body: {
+              type: "BlockStatement",
+              body: [
+                {
+                  type: "ExpressionStatement",
+                  expression: {
+                    type: "CallExpression"
+                  }
+                }
+              ]
+            },
+            test: {
+              type: "Identifier",
+              name: "pending"
             }
           },
           {
@@ -2272,11 +2290,6 @@ describe("parse", () => {
   });
 
   it("rejects disallowed statement syntax", () => {
-    expect(() => parse("() => { do { work(); } while (ready); }")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("() => { do { work(); } while (ready); }")).toThrowError(
-      "Disallowed syntax 'do/while' at line 1, column 9."
-    );
-
     expect(() => parse("() => { switch (value) {} }")).toThrowError(DisallowedSyntaxError);
     expect(() => parse("() => { switch (value) {} }")).toThrowError(
       "Disallowed syntax 'switch' at line 1, column 9."

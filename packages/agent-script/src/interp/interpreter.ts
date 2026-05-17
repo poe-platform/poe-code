@@ -12,6 +12,7 @@ import type {
   CallExpression,
   ConditionalExpression,
   ContinueStatement,
+  DoWhileStatement,
   Expression,
   Identifier,
   ExportDefaultDeclaration,
@@ -162,6 +163,7 @@ const dispatchTable: DispatchTable = {
   CallExpression: evaluateCallExpression,
   ConditionalExpression: evaluateConditionalExpression,
   ContinueStatement: evaluateContinueStatement,
+  DoWhileStatement: evaluateDoWhileStatement,
   ExportDefaultDeclaration: evaluateExportDefaultDeclaration,
   ExportNamedDeclaration: evaluateExportNamedDeclaration,
   ExpressionStatement: evaluateExpressionStatement,
@@ -1071,6 +1073,40 @@ async function evaluateWhileStatement(
 
     if (result.kind !== "normal") {
       return result;
+    }
+  }
+}
+
+async function evaluateDoWhileStatement(
+  node: DoWhileStatement,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  while (true) {
+    const result = await evaluateNode(node.body, context);
+
+    if (result.kind === "break") {
+      return {
+        kind: "normal",
+        hasValue: false,
+        value: undefined
+      };
+    }
+
+    if (result.kind !== "normal" && result.kind !== "continue") {
+      return result;
+    }
+
+    const test = await evaluateNode(node.test, context);
+    if (test.kind !== "normal") {
+      return test;
+    }
+
+    if (!isTruthy(test.value)) {
+      return {
+        kind: "normal",
+        hasValue: false,
+        value: undefined
+      };
     }
   }
 }

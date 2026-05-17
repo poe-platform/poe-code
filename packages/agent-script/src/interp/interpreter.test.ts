@@ -1878,6 +1878,124 @@ describe("interpret", () => {
     );
   });
 
+  it("runs do/while bodies once before a false test", async () => {
+    const body = vi.fn(() => undefined);
+
+    await expect(
+      interpret(parse("do { body(); } while (false)"), {
+        bindings: {
+          body: createSandboxClosure({
+            call: body,
+            name: "body"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true
+    });
+
+    expect(body).toHaveBeenCalledOnce();
+  });
+
+  it("evaluates do/while counter loops by testing after each body run", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("do { count = count + 1; } while (count < 3)"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
+    });
+  });
+
+  it("consumes break completions inside do/while bodies", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("do { count = count + 1; break; } while (true)"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+  });
+
+  it("runs the do/while test after continue completions", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("do { count = count + 1; continue; count = count + 100; } while (count < 3)"),
+          parse("return count")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
+    });
+  });
+
+  it("returns from the enclosing arrow inside do/while bodies", async () => {
+    await expect(
+      interpret(parse("return (() => { do { return 7; } while (true); return 0; })()"))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 7
+    });
+  });
+
+  it("propagates throws from inside do/while bodies", async () => {
+    await expect(interpret(parse('do { throw "boom"; } while (true)'))).rejects.toBe("boom");
+  });
+
+  it("caps infinite do/while loops through the step budget", async () => {
+    await expect(
+      interpret(parse("do {} while (true)"), {
+        budget: new Budget({
+          maxSteps: 20
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "steps",
+        limit: 20
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
+  it("charges the step budget during do/while iterations", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let count = 0"),
+          parse("do { count = count + 1; } while (count < 3)"),
+          parse("return count")
+        ),
+        {
+          budget: new Budget({
+            maxSteps: 10
+          })
+        }
+      )
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "steps",
+        limit: 10
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
   it.each([
     ["1", 1],
     ["0", 0],

@@ -12,6 +12,7 @@ import {
   type CallExpression,
   type CatchClause,
   type ConditionalExpression,
+  type DoWhileStatement,
   type Expression,
   type ForOfStatement,
   type ForStatement,
@@ -120,6 +121,7 @@ class AS006007Scanner {
         this.visitForOfStatement(node);
         return;
       case "WhileStatement":
+      case "DoWhileStatement":
         this.visitWhileStatement(node);
         return;
       case "TryStatement":
@@ -194,7 +196,7 @@ class AS006007Scanner {
     });
   }
 
-  private visitWhileStatement(node: WhileStatement): void {
+  private visitWhileStatement(node: WhileStatement | DoWhileStatement): void {
     this.visitExpression(node.test);
     this.visitStatement(node.body);
   }

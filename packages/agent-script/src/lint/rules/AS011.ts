@@ -79,6 +79,7 @@ class AS011Scanner {
         this.visitForOfStatement(node);
         return;
       case "WhileStatement":
+      case "DoWhileStatement":
         this.visitExpression(node.test);
         this.visitStatement(node.body);
         return;

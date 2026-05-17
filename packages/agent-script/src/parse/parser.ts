@@ -316,6 +316,12 @@ export type WhileStatement = BaseNode & {
   body: Statement;
 };
 
+export type DoWhileStatement = BaseNode & {
+  type: "DoWhileStatement";
+  body: Statement;
+  test: Expression;
+};
+
 export type ThrowStatement = BaseNode & {
   type: "ThrowStatement";
   argument: Expression;
@@ -364,6 +370,7 @@ export type Module = BaseNode & {
 export type Statement =
   | BlockStatement
   | BreakStatement
+  | DoWhileStatement
   | ExportDefaultDeclaration
   | ExportNamedDeclaration
   | ImportDeclaration
@@ -428,6 +435,7 @@ const TOP_LEVEL_STATEMENT_KEYWORDS = new Set([
   "break",
   "const",
   "continue",
+  "do",
   "for",
   "if",
   "import",
@@ -706,6 +714,10 @@ class Parser {
       return this.parseWhileStatement();
     }
 
+    if (token.type === "keyword" && token.value === "do") {
+      return this.parseDoWhileStatement();
+    }
+
     if (token.type === "keyword" && token.value === "try") {
       return this.parseTryStatement();
     }
@@ -923,6 +935,21 @@ class Parser {
       test,
       body,
       span: createSpan(whileToken.start, body.span.end)
+    };
+  }
+
+  private parseDoWhileStatement(): DoWhileStatement {
+    const doToken = this.expectKeyword("do");
+    const body = this.parseStatement();
+    this.expectKeyword("while");
+    this.expectPunctuator("(");
+    const test = this.parseExpression().node;
+    const closeParen = this.expectPunctuator(")");
+    return {
+      type: "DoWhileStatement",
+      body,
+      test,
+      span: createSpan(doToken.start, closeParen.end)
     };
   }
 
@@ -2641,8 +2668,7 @@ class Parser {
 
     return (
       token.type === "identifier" &&
-      (token.value === "do" ||
-        token.value === "switch" ||
+      (token.value === "switch" ||
         token.value === "var" ||
         (this.peekToken(1).type === "punctuator" && this.peekToken(1).value === ":"))
     );
@@ -2651,10 +2677,6 @@ class Parser {
   private assertAllowedStatementStart(token: Token): void {
     if (this.isExportToken(token)) {
       throw new DisallowedSyntaxError("export", token.start);
-    }
-
-    if (token.type === "identifier" && token.value === "do") {
-      throw new DisallowedSyntaxError("do/while", token.start);
     }
 
     if (token.type === "identifier" && token.value === "switch") {
@@ -2823,6 +2845,8 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
       );
     case "WhileStatement":
       return findImportMetaAssignmentInNode(node.test) ?? findImportMetaAssignmentInNode(node.body);
+    case "DoWhileStatement":
+      return findImportMetaAssignmentInNode(node.body) ?? findImportMetaAssignmentInNode(node.test);
     case "TryStatement":
       return (
         findImportMetaAssignmentInNode(node.block) ??

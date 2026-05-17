@@ -106,21 +106,6 @@ describe("AS001", () => {
       }
     ]);
 
-    expect(AS001("do { value += 1; } while (value < 3);")).toEqual([
-      {
-        code: "AS001",
-        severity: "error",
-        message: "Disallowed syntax: do/while.",
-        filename: "<input>",
-        line: 1,
-        column: 1,
-        span: {
-          start: { line: 1, column: 1, offset: 0 },
-          end: { line: 1, column: 3, offset: 2 }
-        }
-      }
-    ]);
-
     expect(AS001("switch (value) { case 1: break; }")).toEqual([
       {
         code: "AS001",

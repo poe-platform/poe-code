@@ -856,7 +856,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: time-now-deterministic
     title: time.now() with deterministic injection
@@ -879,8 +879,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): deterministic time.now`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: git-worktree

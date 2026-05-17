@@ -346,7 +346,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-missing-async
     title: AS-MISSING-ASYNC lint rule
@@ -370,9 +370,9 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-MISSING-ASYNC lint rule`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: lint-async-not-needed
     title: AS-ASYNC-NOT-NEEDED lint rule

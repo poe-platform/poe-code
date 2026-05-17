@@ -16,6 +16,7 @@ import {
   type ForOfStatement,
   type ForStatement,
   type IfStatement,
+  type Identifier,
   type LogicalExpression,
   type MemberExpression,
   type Module,
@@ -370,7 +371,6 @@ class ASMissingAsyncScanner {
         this.visitMemberExpression(node);
         return;
       case "ArrayPattern":
-      case "AssignmentPattern":
       case "ObjectPattern":
         this.visitBindingPattern(node);
         return;
@@ -378,7 +378,7 @@ class ASMissingAsyncScanner {
   }
 
   private visitBindingElement(
-    node: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement
+    node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement
   ): void {
     if (node.type === "RestElement") {
       this.visitAssignmentTarget(node.argument);
@@ -599,14 +599,13 @@ function assignmentTargetContainsAwait(node: AssignmentExpression["left"]): bool
     case "MemberExpression":
       return expressionContainsAwait(node);
     case "ArrayPattern":
-    case "AssignmentPattern":
     case "ObjectPattern":
       return bindingPatternContainsAwait(node);
   }
 }
 
 function bindingElementContainsAwait(
-  node: AssignmentPattern | ArrayPattern | Identifier | ObjectPattern | RestElement
+  node: AssignmentPattern | ArrayPattern | Identifier | MemberExpression | ObjectPattern | RestElement
 ): boolean {
   if (node.type === "RestElement") {
     return patternTargetContainsAwait(node.argument);

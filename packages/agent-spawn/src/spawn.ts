@@ -7,6 +7,7 @@ import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
+import { spawnStreaming } from "./acp/spawn.js";
 import {
   resolveModeConfig,
   type CliSpawnConfig,
@@ -269,10 +270,13 @@ export async function spawn(
   }
 }
 
-spawn.retry = createSpawnRetry<SpawnOptions, SpawnResult>((service, options) => ({
-  events: (async function* () {})(),
-  result: spawn(service, options)
-}));
+spawn.retry = createSpawnRetry<SpawnOptions, SpawnResult>((service, options) => {
+  const handle = spawnStreaming({ ...options, agentId: service });
+  return {
+    events: handle.events,
+    result: handle.done
+  };
+});
 
 function resolveSpawnLogPath(options: SpawnOptions): string | undefined {
   if (options.logPath) {

@@ -25,9 +25,27 @@ vi.mock("node:child_process", () => ({
 
 interface MockChildProcessOptions {
   stdout?: string;
+  stdoutLines?: string[];
   stderr?: string;
   exitCode?: number;
   autoClose?: boolean;
+}
+
+async function collect<T>(iterable: AsyncIterable<T>): Promise<T[]> {
+  const items: T[] = [];
+  for await (const item of iterable) items.push(item);
+  return items;
+}
+
+function stripMeta<T>(events: T[]): T[] {
+  return events.map((event) => {
+    if (event && typeof event === "object") {
+      const { _meta: _ignored, ...rest } = event as Record<string, unknown>;
+      void _ignored;
+      return rest as T;
+    }
+    return event;
+  });
 }
 
 function createMockChildProcess(
@@ -60,10 +78,14 @@ function createMockChildProcess(
 
   const exitCode = options.exitCode ?? 0;
   const output = options.stdout ?? "";
+  const outputLines = options.stdoutLines ?? [];
   const errorOutput = options.stderr ?? "";
 
   if (options.autoClose !== false) {
     setImmediate(() => {
+      for (const line of outputLines) {
+        stdout.write(`${line}\n`, "utf8");
+      }
       if (output) {
         stdout.write(output, "utf8");
       }
@@ -843,6 +865,47 @@ describe("spawn", () => {
     expect(result.stderr).toBe("");
     expect(dryRunMessages).toHaveLength(1);
     expect(dryRunMessages[0]).toContain("claude");
+  });
+
+  it("spawn.retry streams attempt-prefixed events from each retry attempt", async () => {
+    vi.mocked(spawnChildProcess)
+      .mockImplementationOnce(() =>
+        createMockChildProcess({
+          stdoutLines: [
+            JSON.stringify({
+              type: "item.completed",
+              item: { type: "agent_message", text: "first" }
+            })
+          ],
+          exitCode: 1
+        })
+      )
+      .mockImplementationOnce(() =>
+        createMockChildProcess({
+          stdoutLines: [
+            JSON.stringify({
+              type: "item.completed",
+              item: { type: "agent_message", text: "second" }
+            })
+          ],
+          exitCode: 0
+        })
+      );
+
+    const { events, result } = spawn.retry(
+      "codex",
+      { prompt: "hello" },
+      { maxAttempts: 2, backoffMs: 1 }
+    );
+    const eventsPromise = collect(events).then(stripMeta);
+
+    await expect(result).resolves.toEqual({ stdout: "", stderr: "", exitCode: 0 });
+    await expect(eventsPromise).resolves.toEqual([
+      { event: "agent_message", text: "attempt: 1 first" },
+      { event: "agent_message", text: "attempt: 1 wait 1ms before retry" },
+      { event: "agent_message", text: "attempt: 2 second" }
+    ]);
+    expect(spawnChildProcess).toHaveBeenCalledTimes(2);
   });
 
   it("falls back to prompt args when stdin is unsupported", async () => {

@@ -104,6 +104,38 @@ describe("AS_JSDOC_TYPE", () => {
     ]);
   });
 
+  it("supports multiline JSDoc object annotations", () => {
+    const source = [
+      "/**",
+      " * @type {{name: string, count: number}}",
+      " */",
+      'const item = { name: "ok", count: false };'
+    ].join("\n");
+
+    expect(diagnostics(source)).toMatchObject([
+      {
+        code: "AS-JSDOC-TYPE",
+        message:
+          "JSDoc type '{name: string, count: number}' does not match boolean value for property 'count'.",
+        line: 4,
+        column: source.indexOf("false") - source.lastIndexOf("\n", source.indexOf("false"))
+      }
+    ]);
+  });
+
+  it("ignores unsupported complex types instead of guessing", () => {
+    expect(
+      diagnostics('/** @type {Record<string, number>} */ const item = { count: "wrong" };')
+    ).toEqual([]);
+    expect(diagnostics('/** @type {string | number} */ const value = true;')).toEqual([]);
+    expect(diagnostics('/** @type {{items: string[]}} */ const item = { items: [1] };')).toEqual(
+      []
+    );
+    expect(
+      diagnostics('/** @type {{meta: {ready: boolean}}} */ const item = { meta: 1 };')
+    ).toEqual([]);
+  });
+
   it("validates assignment expressions with leading @type annotations", () => {
     const source = "/** @type {boolean} */ ready = 1;";
 
@@ -119,6 +151,23 @@ describe("AS_JSDOC_TYPE", () => {
 
   it("ignores unknown JSDoc tags", () => {
     expect(diagnostics("/** @unknown {number} */ const x = 1;")).toEqual([]);
+  });
+
+  it("does not attach a JSDoc block across intervening code", () => {
+    expect(diagnostics('/** @type {string} */ const y = "ok"; const x = 1;')).toEqual([]);
+  });
+
+  it("validates arrow parameter default values when @param is explicit", () => {
+    const source = '/** @param {string} name */ const greet = (name = 1) => name;';
+
+    expect(diagnostics(source)).toMatchObject([
+      {
+        code: "AS-JSDOC-TYPE",
+        message: "JSDoc type 'string' does not match number value.",
+        line: 1,
+        column: source.indexOf("1") + 1
+      }
+    ]);
   });
 
   it("emits one parse warning for malformed JSDoc and continues", () => {

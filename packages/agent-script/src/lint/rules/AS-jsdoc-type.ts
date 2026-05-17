@@ -58,6 +58,15 @@ type ParsedType =
       status: "unsupported";
     };
 
+type ParsedObjectFields =
+  | {
+      fields: ReadonlyMap<string, PrimitiveType>;
+      status: "supported";
+    }
+  | {
+      status: "invalid" | "unsupported";
+    };
+
 type JsdocTypeTag = {
   kind: "type";
   raw: string;
@@ -730,13 +739,13 @@ function parseSupportedType(source: string): ParsedType {
 
   if (source.startsWith("{") && source.endsWith("}")) {
     const fields = parseObjectFields(source.slice(1, -1));
-    return fields === undefined
-      ? { status: "invalid" }
+    return fields.status !== "supported"
+      ? { status: fields.status }
       : {
           status: "supported",
           type: {
             kind: "object",
-            fields
+            fields: fields.fields
           }
         };
   }
@@ -748,19 +757,22 @@ function parseSupportedType(source: string): ParsedType {
   return source.includes(" ") ? { status: "invalid" } : { status: "unsupported" };
 }
 
-function parseObjectFields(source: string): ReadonlyMap<string, PrimitiveType> | undefined {
+function parseObjectFields(source: string): ParsedObjectFields {
   const fields = new Map<string, PrimitiveType>();
   let index = 0;
 
   while (index < source.length) {
     index = skipWhitespace(source, index, source.length);
     if (index >= source.length) {
-      return fields;
+      return {
+        fields,
+        status: "supported"
+      };
     }
 
     const nameStart = index;
     if (!isIdentifierStart(source[index])) {
-      return undefined;
+      return { status: "invalid" };
     }
 
     index += 1;
@@ -775,33 +787,68 @@ function parseObjectFields(source: string): ReadonlyMap<string, PrimitiveType> |
       index = skipWhitespace(source, index, source.length);
     }
     if (source[index] !== ":") {
-      return undefined;
+      return { status: "invalid" };
     }
 
     index += 1;
     index = skipWhitespace(source, index, source.length);
     const typeStart = index;
-    while (index < source.length && isIdentifierPart(source[index])) {
+    while (index < source.length && source[index] !== "," && source[index] !== ";") {
       index += 1;
     }
 
-    const fieldType = source.slice(typeStart, index);
+    const trimmed = trimAnnotation(source, typeStart, index);
+    const fieldType = source.slice(trimmed.startOffset, trimmed.endOffset);
     if (!isPrimitiveType(fieldType)) {
-      return undefined;
+      return classifyObjectFieldType(fieldType);
     }
 
     fields.set(fieldName, fieldType);
     index = skipWhitespace(source, index, source.length);
     if (index >= source.length) {
-      return fields;
+      return {
+        fields,
+        status: "supported"
+      };
     }
     if (source[index] !== "," && source[index] !== ";") {
-      return undefined;
+      return { status: "invalid" };
     }
     index += 1;
   }
 
-  return fields;
+  return {
+    fields,
+    status: "supported"
+  };
+}
+
+function classifyObjectFieldType(source: string): ParsedObjectFields {
+  if (source.length === 0) {
+    return { status: "invalid" };
+  }
+
+  for (const char of source) {
+    if (
+      char === "<" ||
+      char === ">" ||
+      char === "[" ||
+      char === "]" ||
+      char === "{" ||
+      char === "}" ||
+      char === "|" ||
+      char === "&" ||
+      char === "(" ||
+      char === ")" ||
+      char === "?"
+    ) {
+      return { status: "unsupported" };
+    }
+  }
+
+  return source.includes(" ") || source.includes(":")
+    ? { status: "invalid" }
+    : { status: "unsupported" };
 }
 
 function inferExpressionKind(

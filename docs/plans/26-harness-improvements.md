@@ -258,7 +258,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-unused-import
     title: AS-UNUSED-IMPORT lint rule
@@ -290,8 +290,8 @@ tasks:
 
       Conventional commit: `feat(agent-script): AS-UNUSED-IMPORT lint rule`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-unreachable

@@ -738,7 +738,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: spawn-retry
     title: spawn.retry in the agent-spawn SDK
@@ -781,9 +781,9 @@ tasks:
 
       Conventional commit: `feat(agent-spawn): spawn.retry helper`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: spawn-parallel
     title: spawn.parallel in the agent-spawn SDK

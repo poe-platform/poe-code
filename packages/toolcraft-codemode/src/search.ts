@@ -1,17 +1,19 @@
-import { defineCommand } from "toolcraft";
+import { defineCommand, type Scope } from "toolcraft";
 import { S, toJsonSchema } from "toolcraft-schema";
 
-import type { CommandEntry } from "./tree.js";
+import { resolveCommandEntries, type CommandEntry, type CommandEntryList } from "./tree.js";
 
-type SearchDetail = "brief" | "detailed" | "full";
+export type SearchDetail = "brief" | "detailed" | "full";
 
 export type SearchDefaults = {
+  detail?: SearchDetail;
   limit?: number;
 };
 
 export type SearchCommandOptions = {
-  entries: CommandEntry[];
+  entries: CommandEntryList;
   defaults?: SearchDefaults;
+  scope?: Scope[];
 };
 
 export type SearchResult = {
@@ -35,8 +37,7 @@ const searchParams = S.Object({
   limit: S.Optional(S.Number({ description: "Maximum result count." })),
   detail: S.Optional(
     S.Enum(["brief", "detailed", "full"] as const, {
-      description: "Result detail level.",
-      default: "brief"
+      description: "Result detail level."
     })
   )
 });
@@ -166,13 +167,18 @@ function toSearchResult(entry: CommandEntry, detail: SearchDetail): SearchResult
   return result;
 }
 
-export function makeSearchCommand({ entries, defaults = {} }: SearchCommandOptions) {
+export function makeSearchCommand({
+  entries,
+  defaults = {},
+  scope = ["mcp", "sdk"]
+}: SearchCommandOptions) {
   return defineCommand({
     name: "search",
     description: "Search available commands.",
-    scope: ["mcp", "sdk"],
+    scope,
     params: searchParams,
     handler: async ({ params }): Promise<SearchResult[]> => {
+      const resolvedEntries = await resolveCommandEntries(entries);
       const queryTokens = tokenize(params.query);
 
       if (queryTokens.length === 0) {
@@ -185,8 +191,8 @@ export function makeSearchCommand({ entries, defaults = {} }: SearchCommandOptio
         return [];
       }
 
-      const detail = params.detail ?? "brief";
-      const indexedEntries = entries.map(indexEntry);
+      const detail = params.detail ?? defaults.detail ?? "brief";
+      const indexedEntries = resolvedEntries.map(indexEntry);
       const frequencies = documentFrequencies(indexedEntries);
       const averageLength = averageDocumentLength(indexedEntries);
 

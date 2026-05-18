@@ -219,6 +219,7 @@ export interface CreateSDKOptions<TServices extends object = Record<string, unkn
   services?: TServices;
   casing?: "camel";
   humanInLoop?: HumanInLoopRuntimeOptions;
+  apiVersion?: string;
   projectRoot?: string;
   errorReports?: ErrorReportsOption;
 }
@@ -514,6 +515,10 @@ export function createSDK<TRootInfo, TServices extends object = Record<string, u
 ): TRootInfo extends { children: infer TChildren extends readonly unknown[] }
   ? SDKChildrenShape<TChildren, undefined, undefined>
   : EmptyRecord;
+export function createSDK<TServices extends object = Record<string, unknown>>(
+  root: Group<TServices>,
+  options?: CreateSDKOptions<TServices>
+): Record<string, unknown>;
 export function createSDK(
   root: Group<any>,
   options: CreateSDKOptions<any> = {}
@@ -559,7 +564,9 @@ function createResolvedSDK(
             }
           };
 
-          await assertCommandRequirements(node, { ...baseContext, params: undefined });
+          await assertCommandRequirements(node, { ...baseContext, params: undefined }, {
+            apiVersion: options.apiVersion
+          });
 
           const paramsSchema = filterSchemaForScope(node.params, "sdk");
 

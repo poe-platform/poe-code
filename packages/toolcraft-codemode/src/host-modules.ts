@@ -1,6 +1,11 @@
 import type { Group } from "toolcraft";
 
-import { resolveCommandTree } from "./tree.js";
+import {
+  resolveCommandEntries,
+  resolveCommandTree,
+  type CommandEntry,
+  type CommandEntryList
+} from "./tree.js";
 
 export type HostModuleFunction = (params: unknown) => Promise<unknown>;
 export type HostModules = Record<string, Record<string, HostModuleFunction>>;
@@ -77,7 +82,7 @@ function formatModulePath(path: string): string {
     .join(".");
 }
 
-function getModuleName(root: Group, groupPath: string): string {
+function getModuleName(root: Group<any>, groupPath: string): string {
   return formatModulePath(groupPath.length === 0 ? root.name : groupPath);
 }
 
@@ -118,14 +123,18 @@ function createHostFunction(sdk: Record<string, unknown>, path: string): HostMod
 }
 
 export async function buildHostModules(
-  root: Group,
-  sdk: Record<string, unknown>
+  root: Group<any>,
+  sdk: Record<string, unknown>,
+  entries?: CommandEntryList
 ): Promise<BuildHostModulesResult> {
-  const tree = await resolveCommandTree(root);
+  const resolvedEntries: CommandEntry[] =
+    entries === undefined
+      ? (await resolveCommandTree(root)).entries
+      : await resolveCommandEntries(entries);
   const modules: HostModules = {};
   const lintModules: HostLintModules = {};
 
-  for (const entry of tree.entries) {
+  for (const entry of resolvedEntries) {
     const moduleName = getModuleName(root, entry.groupPath);
     const module = getOrCreateModule(modules, moduleName);
     const lintModule = getOrCreateLintModule(lintModules, moduleName);

@@ -228,7 +228,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
     follow_up:
       - Toolcraft `HandlerContext` does not expose an `AbortSignal` today;
         `execute` currently runs agent-script without cancellation plumbing
@@ -282,8 +282,8 @@ tasks:
       shape; execute runs a tiny script that calls two fixture
       commands and returns a derived value).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: package-readme

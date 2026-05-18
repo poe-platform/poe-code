@@ -52,3 +52,33 @@ describe("createSDK human-in-loop runtime options plumbing", () => {
     });
   });
 });
+
+describe("createSDK API version runtime options plumbing", () => {
+  it("passes options.apiVersion to command requirement checks", async () => {
+    invokeWithHumanInLoopMock.mockReset();
+    invokeWithHumanInLoopMock.mockImplementation(async (command, context) => command.handler(context));
+
+    const sdk = createSDK(
+      defineGroup({
+        name: "root",
+        children: [
+          defineCommand({
+            name: "deploy",
+            params: S.Object({}),
+            requires: {
+              apiVersion: ">=1.2.3",
+            },
+            handler: async () => "deployed",
+          }),
+        ],
+      }),
+      {
+        apiVersion: "1.2.3",
+      }
+    ) as {
+      deploy(params: Record<string, never>): Promise<string>;
+    };
+
+    await expect(sdk.deploy({})).resolves.toBe("deployed");
+  });
+});

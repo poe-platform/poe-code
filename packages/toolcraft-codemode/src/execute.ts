@@ -1,8 +1,9 @@
 import { Budget, lint, run, type Diagnostic } from "@poe-code/agent-script";
-import { defineCommand, type Group } from "toolcraft";
+import { defineCommand, type Group, type Scope } from "toolcraft";
 import { S } from "toolcraft-schema";
 
 import { buildHostModules } from "./host-modules.js";
+import type { CommandEntryList } from "./tree.js";
 
 export type ExecuteBudgetOptions = {
   maxSteps?: number;
@@ -18,9 +19,11 @@ export type ExecuteSink = {
 };
 
 export type ExecuteCommandOptions = {
-  root: Group;
+  root: Group<any>;
   sdk: Record<string, unknown>;
+  entries?: CommandEntryList;
   budget?: ExecuteBudgetOptions;
+  scope?: Scope[];
   sink?: ExecuteSink;
 };
 
@@ -109,14 +112,21 @@ function toResultError(error: {
   };
 }
 
-export function makeExecuteCommand({ root, sdk, budget, sink }: ExecuteCommandOptions) {
+export function makeExecuteCommand({
+  root,
+  sdk,
+  entries,
+  budget,
+  scope = ["mcp", "sdk"],
+  sink
+}: ExecuteCommandOptions) {
   return defineCommand({
     name: "execute",
     description: "Execute agent-script source against the available host commands.",
-    scope: ["mcp", "sdk"],
+    scope,
     params: executeParams,
     handler: async ({ params }): Promise<ExecuteResult> => {
-      const { lintModules, modules } = await buildHostModules(root, sdk);
+      const { lintModules, modules } = await buildHostModules(root, sdk, entries);
       const diagnostics = lint(params.source, {
         modules: lintModules,
         filename: "<execute>"

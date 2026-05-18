@@ -1,10 +1,11 @@
-import { defineCommand, UserError } from "toolcraft";
+import { defineCommand, type Scope, UserError } from "toolcraft";
 import { S, toJsonSchema, type JsonSchema } from "toolcraft-schema";
 
-import type { CommandEntry } from "./tree.js";
+import { resolveCommandEntries, type CommandEntry, type CommandEntryList } from "./tree.js";
 
 export type GetSchemasCommandOptions = {
-  entries: CommandEntry[];
+  entries: CommandEntryList;
+  scope?: Scope[];
 };
 
 export type GetSchemasResult = Record<
@@ -31,15 +32,20 @@ function indexEntriesByPath(entries: CommandEntry[]): Map<string, CommandEntry> 
   return entriesByPath;
 }
 
-export function makeGetSchemasCommand({ entries }: GetSchemasCommandOptions) {
-  const entriesByPath = indexEntriesByPath(entries);
+export function makeGetSchemasCommand({
+  entries,
+  scope = ["mcp", "sdk"]
+}: GetSchemasCommandOptions) {
+  let entriesByPathPromise: Promise<Map<string, CommandEntry>> | undefined;
 
   return defineCommand({
     name: "get_schemas",
     description: "Get params schemas for commands by path.",
-    scope: ["mcp", "sdk"],
+    scope,
     params: getSchemasParams,
     handler: async ({ params }): Promise<GetSchemasResult> => {
+      entriesByPathPromise ??= resolveCommandEntries(entries).then(indexEntriesByPath);
+      const entriesByPath = await entriesByPathPromise;
       const missingNames = new Set<string>();
       const result: GetSchemasResult = {};
 

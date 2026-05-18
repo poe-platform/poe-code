@@ -13,7 +13,13 @@ export type CommandTree = {
   exportsByGroupPath: Map<string, string[]>;
 };
 
+export type CommandEntryList = CommandEntry[] | Promise<CommandEntry[]>;
+
 export type ResolveCommandTreeOptions = ResolveMcpProxyOptions;
+
+export async function resolveCommandEntries(entries: CommandEntryList): Promise<CommandEntry[]> {
+  return entries;
+}
 
 function commandIsProgrammatic(command: Command): boolean {
   return command.scope.includes("mcp") || command.scope.includes("sdk");
@@ -35,7 +41,7 @@ function addExport(
 }
 
 export async function resolveCommandTree(
-  root: Group,
+  root: Group<any>,
   options: ResolveCommandTreeOptions = {}
 ): Promise<CommandTree> {
   await resolveMcpProxies(root, options);

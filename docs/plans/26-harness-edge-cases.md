@@ -442,7 +442,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-control-flow
     title: Interpreter — control flow edges
@@ -469,8 +469,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): interpreter control flow edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-spread-rest-runtime

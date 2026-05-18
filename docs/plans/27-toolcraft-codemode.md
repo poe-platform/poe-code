@@ -36,7 +36,7 @@ tasks:
       Do not add any logic yet. Do not write tests for this scaffolding.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: walk-toolcraft-tree
     title: Flatten a resolved toolcraft root into command entries
@@ -71,9 +71,9 @@ tasks:
       the export map groups correctly. Use `memfs` for any file I/O, but
       this code should not touch the filesystem.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: build-host-modules
     title: Expose toolcraft commands as agent-script host modules

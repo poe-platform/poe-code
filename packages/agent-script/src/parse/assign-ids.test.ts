@@ -1,4 +1,3 @@
-import { performance } from "node:perf_hooks";
 import { describe, expect, it } from "vitest";
 
 import { assignIds } from "./assign-ids.js";
@@ -228,6 +227,13 @@ function createDeepModule(totalNodeCount: number): Module {
   } as Module;
 }
 
+function measureCpuMs(action: () => void): number {
+  const start = process.cpuUsage();
+  action();
+  const elapsed = process.cpuUsage(start);
+  return (elapsed.user + elapsed.system) / 1000;
+}
+
 describe("assignIds", () => {
   it.each([
     "const { user = fallback, profile: { name }, ...rest } = config",
@@ -281,9 +287,7 @@ describe("assignIds", () => {
   it("assigns ids to more than 10k AST nodes in under 100ms", () => {
     const module = createLargeModule(10_001);
 
-    const start = performance.now();
-    assignIds(module);
-    const elapsedMs = performance.now() - start;
+    const elapsedMs = measureCpuMs(() => assignIds(module));
 
     expect(collectNodesInIdOrder(module)).toHaveLength(10_001);
     expect(elapsedMs).toBeLessThan(100);
@@ -292,9 +296,7 @@ describe("assignIds", () => {
   it("assigns ids to more than 20k deeply nested AST nodes in under 100ms", () => {
     const module = createDeepModule(20_001);
 
-    const start = performance.now();
-    assignIds(module);
-    const elapsedMs = performance.now() - start;
+    const elapsedMs = measureCpuMs(() => assignIds(module));
 
     expect(collectNodesInIdOrder(module)).toHaveLength(20_001);
     expect(elapsedMs).toBeLessThan(100);

@@ -192,6 +192,7 @@
     "tiny-stdio-mcp-test-server": "*",
     "tokenfill": "*",
     "toolcraft": "*",
+    "toolcraft-codemode": "*",
     "toolcraft-openapi": "*",
     "toolcraft-schema": "*",
     "ts-morph": "^27.0.2",

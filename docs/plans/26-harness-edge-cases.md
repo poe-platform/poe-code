@@ -681,7 +681,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-exceptions-tests
     title: interp/exceptions — add test coverage
@@ -707,8 +707,8 @@ tasks:
 
       Conventional commit: `test(agent-script): exceptions coverage`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-host-bridge-edges

@@ -618,6 +618,7 @@ describe("runHarness", () => {
   });
 
   it("checkpoints the running script to snapshotPath", async () => {
+    vol.mkdirSync("/checkpoints");
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-29T00:00:00.000Z"));
 

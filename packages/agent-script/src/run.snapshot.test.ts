@@ -25,6 +25,7 @@ describe("run snapshot checkpointing", () => {
   });
 
   it("writes the current snapshot at the next yield after the interval elapses", async () => {
+    vol.mkdirSync("/checkpoints");
     const first = createDeferred<string>();
     const second = createDeferred<string>();
     let waitCalls = 0;
@@ -118,6 +119,47 @@ describe("run snapshot checkpointing", () => {
       returnValue: "done"
     });
     expect(vol.existsSync("/checkpoints/agent-script.json")).toBe(false);
+  });
+
+  it("continues execution after a scheduled snapshot write fails and surfaces the write error at finish", async () => {
+    const diskFull = new Error("no space left on device");
+    const first = createDeferred<string>();
+    const second = createDeferred<string>();
+    let waitCalls = 0;
+
+    const result = run("await wait(); await wait(); return 'done';", {
+      bindings: {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => {
+            waitCalls += 1;
+            return createSandboxPromise(waitCalls === 1 ? first.promise : second.promise);
+          },
+          name: "wait"
+        })
+      },
+      snapshotBackend: {
+        async read() {
+          return undefined;
+        },
+        async write() {
+          throw diskFull;
+        },
+        async remove() {}
+      }
+    });
+
+    await flushMicrotasks();
+    expect(waitCalls).toBe(1);
+
+    vi.advanceTimersByTime(30_000);
+    first.resolve("alpha");
+    await flushMicrotasks();
+
+    expect(waitCalls).toBe(2);
+
+    second.resolve("omega");
+    await expect(result).rejects.toBe(diskFull);
   });
 
   it("resolves dump() with the next yielded snapshot when requested mid-run", async () => {

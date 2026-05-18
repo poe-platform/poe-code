@@ -18,6 +18,7 @@ describe("FileSnapshotBackend", () => {
   });
 
   it("preserves a snapshot value through a write/read round-trip", async () => {
+    vol.mkdirSync("/snapshots");
     const backend = new FileSnapshotBackend("/snapshots/run.json");
     const snapshot = {
       sourceHash: "abc123",
@@ -53,6 +54,7 @@ describe("FileSnapshotBackend", () => {
   });
 
   it("removes snapshots idempotently", async () => {
+    vol.mkdirSync("/snapshots");
     const backend = new FileSnapshotBackend("/snapshots/run.json");
 
     await backend.remove();

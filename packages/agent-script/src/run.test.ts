@@ -22,6 +22,25 @@ describe("run", () => {
     });
   });
 
+  it("registers standard numeric globals used by Math edge cases", async () => {
+    await expect(run("return Math.min(1, NaN, 2);")).resolves.toMatchObject({
+      ok: true,
+      returnValue: Number.NaN
+    });
+    await expect(run("return Math.max(1, NaN, 2);")).resolves.toMatchObject({
+      ok: true,
+      returnValue: Number.NaN
+    });
+    await expect(run("return Math.min();")).resolves.toMatchObject({
+      ok: true,
+      returnValue: Infinity
+    });
+    await expect(run("return Math.max();")).resolves.toMatchObject({
+      ok: true,
+      returnValue: -Infinity
+    });
+  });
+
   it("keeps caught circular JSON.stringify failures from failing final snapshotting", async () => {
     await expect(
       run(

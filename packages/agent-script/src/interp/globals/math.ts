@@ -31,7 +31,13 @@ export type MathGlobalsOptions = {
   random?: () => number;
 };
 
-export function createMathGlobals(options: MathGlobalsOptions = {}): Record<"Math", SandboxObject> {
+export type MathGlobals = {
+  Infinity: number;
+  Math: SandboxObject;
+  NaN: number;
+};
+
+export function createMathGlobals(options: MathGlobalsOptions = {}): MathGlobals {
   const random = options.random ?? Math.random;
   const mathObject: SandboxObject = {
     E: Math.E,
@@ -50,7 +56,9 @@ export function createMathGlobals(options: MathGlobalsOptions = {}): Record<"Mat
   }
 
   return {
-    Math: mathObject
+    Infinity,
+    Math: mathObject,
+    NaN: Number.NaN
   };
 }
 

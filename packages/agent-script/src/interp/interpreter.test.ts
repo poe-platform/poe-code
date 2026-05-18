@@ -1087,6 +1087,8 @@ describe("interpret", () => {
       returnValue: 4,
       snapshot: {
         bindings: {
+          Infinity,
+          NaN: Number.NaN,
           Math: expect.any(Object)
         }
       },
@@ -1777,6 +1779,8 @@ describe("interpret", () => {
       returnValue: Math.E,
       snapshot: {
         bindings: {
+          Infinity,
+          NaN: Number.NaN,
           Math: expect.any(Object)
         }
       },
@@ -1794,6 +1798,8 @@ describe("interpret", () => {
       returnValue: Math.PI,
       snapshot: {
         bindings: {
+          Infinity,
+          NaN: Number.NaN,
           Math: expect.any(Object)
         }
       },
@@ -1815,6 +1821,8 @@ describe("interpret", () => {
       returnValue: 0.2837369213812053,
       snapshot: {
         bindings: {
+          Infinity,
+          NaN: Number.NaN,
           Math: expect.any(Object)
         }
       },
@@ -1827,6 +1835,8 @@ describe("interpret", () => {
       returnValue: 0.4351300236303359,
       snapshot: {
         bindings: {
+          Infinity,
+          NaN: Number.NaN,
           Math: expect.any(Object)
         }
       },

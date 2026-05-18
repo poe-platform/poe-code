@@ -9,6 +9,8 @@ describe("createMathGlobals", () => {
 
     expect(getProperty(globals.Math, "PI")).toBe(Math.PI);
     expect(getProperty(globals.Math, "E")).toBe(Math.E);
+    expect(globals.Infinity).toBe(Infinity);
+    expect(globals.NaN).toBeNaN();
 
     expect(getClosure(getProperty(globals.Math, "min")).call([5, -2, 9])).toBe(-2);
     expect(getClosure(getProperty(globals.Math, "max")).call([5, -2, 9])).toBe(9);

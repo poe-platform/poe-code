@@ -1,9 +1,34 @@
-import path from "node:path";
-import { spawn } from "node:child_process";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import path, { dirname, extname } from "node:path";
+import { inspect } from "node:util";
 import { pathToFileURL } from "node:url";
+
+import { formatInterpreterError } from "./error/format.js";
+import { Budget, SandboxError } from "./interp/budget.js";
+import { extractBlock } from "./loader/extract-block.js";
+import { splitFrontmatter } from "./loader/frontmatter.js";
+import { lint, type Diagnostic } from "./lint.js";
+import { createLintModulesFromRuntimeRegistry } from "./lint/runtime-modules.js";
+import { makeAgentModule } from "./modules/agent.js";
+import { makeFailModule } from "./modules/fail.js";
+import { makeHarnessModule } from "./modules/harness.js";
+import { makeLogModule, type LogModuleEntry } from "./modules/log.js";
+import { makeMetricModule } from "./modules/metric.js";
+import type { CallerInjectedBinding } from "./interp/host-bridge.js";
+import type { ModuleExports, ModuleRegistry } from "./modules/registry.js";
+import { parseModule } from "./parse/parser.js";
+import { restore, type AgentScriptSnapshot } from "./restore.js";
+import { run, type RunResult } from "./run.js";
+import { dump, dumpCurrent } from "./snapshot/dump.js";
 
 type CliStream = {
   write(chunk: string): void;
+};
+
+type CliProcess = Pick<NodeJS.Process, "off" | "on">;
+
+type FileStats = {
+  isFile(): boolean;
 };
 
 export type ReadMarkdownFile = (filepath: string, encoding: "utf8") => Promise<string>;
@@ -15,11 +40,50 @@ export type WriteMarkdownFile = (
 
 export type RunCliOptions = {
   cwd?: string;
+  modulesFor?: (
+    frontmatter: Record<string, unknown>,
+    meta: HarnessMeta,
+    streams: { stderr: CliStream; stdout: CliStream }
+  ) => ModuleRegistry;
+  process?: CliProcess;
   readFile?: ReadMarkdownFile;
+  stat?: (filepath: string) => Promise<FileStats>;
   stdout?: CliStream;
   stderr?: CliStream;
   writeFile?: WriteMarkdownFile;
 };
+
+type HarnessMeta = {
+  filepath: string;
+  kind: unknown;
+  version: unknown;
+};
+
+type ParsedArgs = {
+  filepath?: string;
+  fix: boolean;
+  maxSteps?: number;
+  restorePath?: string;
+  snapshotPath?: string;
+};
+
+type LoadedSource = {
+  blockEndOffset: number;
+  blockStartOffset: number;
+  executableSource: string;
+  frontmatter: Record<string, unknown>;
+  isRawScript: boolean;
+  rawSource: string;
+};
+
+type CliRuntime = {
+  registry: ModuleRegistry;
+};
+
+const EXIT_RUNTIME = 1;
+const EXIT_PARSE = 2;
+const EXIT_BUDGET = 3;
+const EXIT_SIGINT = 130;
 
 export async function runCli(
   argv: readonly string[],
@@ -29,144 +93,603 @@ export async function runCli(
   const stderr = options.stderr ?? process.stderr;
   const cwd = options.cwd ?? process.cwd();
 
-  if (argv.includes("--help") || argv.includes("-h")) {
-    stderr.write(`${createUsage()}\n`);
-    return 0;
-  }
-
-  const parsed = parseArgs(argv);
-  const filepath = parsed.filepath;
-
-  if (filepath === undefined) {
-    stderr.write(`${createUsage()}\n`);
-    return 1;
-  }
-
   try {
-    if (options.readFile !== undefined) {
-      const { runExampleFile } = (await import("./example-runner.js")) as {
-        runExampleFile: (
-          filepath: string,
-          options: {
-            readFile?: ReadMarkdownFile;
-            stderr?: CliStream;
-            stdout?: CliStream;
-            fix?: boolean;
-            writeFile?: WriteMarkdownFile;
-          }
-        ) => Promise<number>;
-      };
-
-      return await runExampleFile(path.resolve(cwd, filepath), {
-        fix: parsed.fix,
-        readFile: options.readFile,
-        stderr,
-        stdout,
-        writeFile: options.writeFile
-      });
+    if (argv.includes("--help") || argv.includes("-h")) {
+      stdout.write(`${createUsage()}\n`);
+      return 0;
     }
 
-    const result = await runRunner(path.resolve(cwd, filepath), cwd, parsed.fix);
-    stdout.write(result.stdout);
-    stderr.write(result.stderr);
-    return result.exitCode;
+    const parsed = parseArgs(argv);
+    if (parsed.filepath === undefined) {
+      stderr.write(`${createUsage()}\n`);
+      return EXIT_RUNTIME;
+    }
+
+    const filepath = path.resolve(cwd, parsed.filepath);
+    await assertHarnessFile({
+      displayPath: parsed.filepath,
+      filepath,
+      statFile: options.stat ?? stat
+    });
+
+    return await runScriptFile(filepath, parsed, {
+      cwd,
+      modulesFor: options.modulesFor,
+      process: options.process ?? process,
+      readFile: options.readFile ?? readFile,
+      stderr,
+      stdout,
+      writeFile: options.writeFile ?? writeFile
+    });
   } catch (error) {
     stderr.write(`${readErrorMessage(error)}\n`);
-    return 1;
+    return error instanceof CliExitError ? error.exitCode : exitCodeForError(error);
   }
 }
 
-function parseArgs(argv: readonly string[]): { filepath: string | undefined; fix: boolean } {
-  let fix = false;
-  let filepath: string | undefined;
+function parseArgs(argv: readonly string[]): ParsedArgs {
+  const parsed: ParsedArgs = {
+    fix: false
+  };
 
-  for (const arg of argv) {
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+
     if (arg === "--fix") {
-      fix = true;
+      parsed.fix = true;
       continue;
     }
 
-    if (filepath !== undefined) {
-      return { filepath: undefined, fix };
+    if (arg === "--snapshot") {
+      parsed.snapshotPath = readFlagValue(argv, index, arg);
+      index += 1;
+      continue;
     }
-    filepath = arg;
+
+    if (arg === "--restore") {
+      parsed.restorePath = readFlagValue(argv, index, arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--max-steps") {
+      parsed.maxSteps = readMaxSteps(readFlagValue(argv, index, arg), arg);
+      index += 1;
+      continue;
+    }
+
+    if (arg.startsWith("-")) {
+      throw new CliExitError(`Unknown flag: ${arg}`, EXIT_RUNTIME);
+    }
+
+    if (parsed.filepath !== undefined) {
+      throw new CliExitError(`Unexpected argument: ${arg}`, EXIT_RUNTIME);
+    }
+
+    parsed.filepath = arg;
   }
 
-  return { filepath, fix };
+  return parsed;
 }
 
-function runRunner(
+function readFlagValue(argv: readonly string[], index: number, flag: string): string {
+  const value = argv[index + 1];
+  if (value === undefined || value.length === 0) {
+    throw new CliExitError(`Missing value for ${flag}`, EXIT_RUNTIME);
+  }
+
+  return value;
+}
+
+function readMaxSteps(value: string, flag: string): number {
+  const parsed = Number(value);
+
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw new CliExitError(`${flag} must be a positive integer`, EXIT_RUNTIME);
+  }
+
+  return parsed;
+}
+
+async function assertHarnessFile(input: {
+  displayPath: string;
+  filepath: string;
+  statFile: (filepath: string) => Promise<FileStats>;
+}): Promise<void> {
+  let stats: FileStats;
+  try {
+    stats = await input.statFile(input.filepath);
+  } catch (error) {
+    if (hasErrorCode(error, "ENOENT")) {
+      throw new CliExitError(`File not found: ${input.displayPath}`, EXIT_RUNTIME);
+    }
+
+    throw error;
+  }
+
+  if (!stats.isFile()) {
+    throw new CliExitError(`Harness path must point to a file: ${input.displayPath}`, EXIT_RUNTIME);
+  }
+}
+
+async function runScriptFile(
   filepath: string,
-  cwd: string,
-  fix: boolean
-): Promise<{
-  exitCode: number;
-  stderr: string;
-  stdout: string;
-}> {
-  return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, createRunnerArgs(filepath, fix), {
-      cwd,
-      env: createChildEnv(),
-      stdio: ["ignore", "pipe", "pipe"]
-    });
-    let stdout = "";
-    let stderr = "";
-
-    child.stdout.setEncoding("utf8");
-    child.stdout.on("data", (chunk: string) => {
-      stdout += chunk;
-    });
-
-    child.stderr.setEncoding("utf8");
-    child.stderr.on("data", (chunk: string) => {
-      stderr += chunk;
-    });
-
-    child.on("error", reject);
-    child.on("close", (code) => {
-      resolve({
-        exitCode: code ?? 1,
-        stderr,
-        stdout
-      });
-    });
+  parsed: ParsedArgs,
+  options: {
+    cwd: string;
+    modulesFor: RunCliOptions["modulesFor"];
+    process: CliProcess;
+    readFile: ReadMarkdownFile;
+    stderr: CliStream;
+    stdout: CliStream;
+    writeFile: WriteMarkdownFile;
+  }
+): Promise<number> {
+  const loaded = loadExecutableSource(filepath, await options.readFile(filepath, "utf8"));
+  const meta = {
+    filepath,
+    kind: loaded.frontmatter.kind,
+    version: loaded.frontmatter.version
+  };
+  const runtime = createRuntime(loaded.frontmatter, meta, {
+    modulesFor: options.modulesFor,
+    stderr: options.stderr,
+    stdout: options.stdout
   });
-}
+  const modules = excludeHarnessModule(runtime.registry, loaded.isRawScript);
+  let executableSource = loaded.executableSource;
+  const lintResult = parsed.fix
+    ? lint(executableSource, {
+        allowedExportNames: ["schema"],
+        filename: filepath,
+        fix: true,
+        frontmatterFields: Object.keys(loaded.frontmatter),
+        modules: createLintModulesFromRuntimeRegistry(modules)
+      })
+    : lint(executableSource, {
+        allowedExportNames: ["schema"],
+        filename: filepath,
+        frontmatterFields: Object.keys(loaded.frontmatter),
+        modules: createLintModulesFromRuntimeRegistry(modules)
+      });
+  const diagnostics = Array.isArray(lintResult) ? lintResult : lintResult.diagnostics;
 
-function createRunnerArgs(filepath: string, fix: boolean): string[] {
-  const runnerPath = new URL(
-    import.meta.url.endsWith(".ts") ? "./example-runner.ts" : "./example-runner.js",
-    import.meta.url
-  );
-  const args = fix ? ["--fix", filepath] : [filepath];
-
-  if (runnerPath.pathname.endsWith(".ts")) {
-    return ["--import", "tsx", runnerPath.pathname, ...args];
+  if (!Array.isArray(lintResult)) {
+    executableSource = lintResult.fixed;
+    if (lintResult.fixed !== loaded.executableSource) {
+      await options.writeFile(
+        filepath,
+        replaceExecutableSource(loaded.rawSource, loaded, lintResult.fixed),
+        {
+          encoding: "utf8"
+        }
+      );
+    }
   }
 
-  return [runnerPath.pathname, ...args];
+  const lintErrors = diagnostics.filter((diagnostic) => diagnostic.severity === "error");
+  if (lintErrors.length > 0) {
+    options.stderr.write(`Lint failed:\n${formatDiagnostics(lintErrors)}\n`);
+    return lintErrors.some((diagnostic) => diagnostic.code === "AS001") ? EXIT_PARSE : EXIT_RUNTIME;
+  }
+
+  const lintWarnings = diagnostics.filter((diagnostic) => diagnostic.severity === "warning");
+  if (lintWarnings.length > 0) {
+    options.stderr.write(`Lint warnings:\n${formatDiagnostics(lintWarnings)}\n`);
+  }
+
+  const snapshot = await readRestoreSnapshot(parsed.restorePath, options);
+  if (snapshot !== undefined) {
+    restore(snapshot, { source: executableSource });
+  }
+
+  const abortController = new AbortController();
+  let interrupted = false;
+  let runPromise: Promise<RunResult> | undefined;
+  let signalSnapshotWrite: Promise<void> | undefined;
+  const onSigint = () => {
+    interrupted = true;
+    abortController.abort(createAbortError());
+    options.stderr.write("Interrupted by SIGINT\n");
+
+    if (parsed.snapshotPath !== undefined && runPromise !== undefined) {
+      signalSnapshotWrite = writeCurrentSnapshot(runPromise, parsed.snapshotPath, options);
+    }
+  };
+
+  options.process.on("SIGINT", onSigint);
+  try {
+    runPromise = run(executableSource, {
+      budget: parsed.maxSteps === undefined ? undefined : new Budget({ maxSteps: parsed.maxSteps }),
+      entryPointArgs: hasDefaultExport(executableSource, filepath) ? [] : undefined,
+      filename: filepath,
+      modules,
+      signal: abortController.signal,
+      sink: createConsoleSink(options.stdout, options.stderr),
+      snapshot
+    });
+    const result = await runPromise;
+    await signalSnapshotWrite;
+
+    if (parsed.snapshotPath !== undefined) {
+      await writeSnapshot(parsed.snapshotPath, await dump(result), options);
+    }
+
+    if (!result.ok) {
+      options.stderr.write(
+        `${formatInterpreterError(result.error, {
+          filename: filepath,
+          source: executableSource
+        })}\n`
+      );
+      return interrupted ? EXIT_SIGINT : exitCodeForError(result.error);
+    }
+
+    options.stdout.write(`${JSON.stringify({ ok: true, returnValue: result.returnValue })}\n`);
+    return interrupted ? EXIT_SIGINT : 0;
+  } catch (error) {
+    await signalSnapshotWrite;
+    options.stderr.write(
+      `${formatInterpreterError(error, {
+        filename: filepath,
+        source: executableSource
+      })}\n`
+    );
+    return interrupted ? EXIT_SIGINT : exitCodeForError(error);
+  } finally {
+    options.process.off("SIGINT", onSigint);
+  }
+}
+
+function loadExecutableSource(filepath: string, rawSource: string): LoadedSource {
+  const source = stripByteOrderMark(rawSource);
+
+  if (extname(filepath) === ".ajs") {
+    return {
+      blockEndOffset: source.length,
+      blockStartOffset: 0,
+      executableSource: source,
+      frontmatter: {},
+      isRawScript: true,
+      rawSource: source
+    };
+  }
+
+  const { frontmatter, body } = splitFrontmatter(source);
+  const executableBlock = extractBlock(body);
+  const bodyStartOffset = source.length - body.length;
+
+  return {
+    blockEndOffset: bodyStartOffset + executableBlock.endOffset,
+    blockStartOffset: bodyStartOffset + executableBlock.startOffset,
+    executableSource: createLineOffsetSource(executableBlock.source, executableBlock.lineOffset),
+    frontmatter,
+    isRawScript: false,
+    rawSource: source
+  };
+}
+
+function replaceExecutableSource(source: string, loaded: LoadedSource, fixed: string): string {
+  const lineOffset = countLeadingLineBreaks(fixed);
+  const fixedWithoutLineOffset = lineOffset === 0 ? fixed : fixed.slice(lineOffset);
+
+  return `${source.slice(0, loaded.blockStartOffset)}${fixedWithoutLineOffset}${source.slice(
+    loaded.blockEndOffset
+  )}`;
+}
+
+function createRuntime(
+  frontmatter: Record<string, unknown>,
+  meta: HarnessMeta,
+  options: {
+    modulesFor: RunCliOptions["modulesFor"];
+    stderr: CliStream;
+    stdout: CliStream;
+  }
+): CliRuntime {
+  if (options.modulesFor !== undefined) {
+    return {
+      registry: options.modulesFor(frontmatter, meta, {
+        stderr: options.stderr,
+        stdout: options.stdout
+      })
+    };
+  }
+
+  const state = {
+    checkpointCount: 0,
+    commitCount: 0,
+    metricCalls: new Map<string, number>(),
+    spawnCount: 0
+  };
+  const harness = makeHarnessModule(frontmatter, meta);
+  const agent = makeAgentModule(async (input) => {
+    state.spawnCount += 1;
+
+    return {
+      exitCode: 0,
+      stdout: "",
+      stderr: "",
+      summary: `${input.agent} handled ${summarizePrompt(input.prompt)}`,
+      durationMs: 25 * state.spawnCount
+    };
+  });
+  const git = {
+    async checkpoint() {
+      state.checkpointCount += 1;
+      return {
+        head: `head-${state.checkpointCount}`,
+        stashRef: `savepoint-${state.checkpointCount}`
+      };
+    },
+    async commit() {
+      state.commitCount += 1;
+      return `commit-${state.commitCount}`;
+    },
+    async revert() {
+      return undefined;
+    }
+  };
+  const log = makeLogModule((entry) => {
+    const normalized = normalizeLogEntry(entry);
+    const stream = normalized.type === "error" ? options.stderr : options.stdout;
+    stream.write(`${JSON.stringify(normalized)}\n`);
+  });
+  const metric = makeMetricModule(async (scriptName) => `${readMetricScore(scriptName, state)}\n`);
+
+  return {
+    registry: {
+      agent: toModuleExports(agent),
+      fail: toModuleExports(new Map([["default", makeFailModule().default]])),
+      git: toModuleExports(
+        new Map<string, CallerInjectedBinding>([
+          ["checkpoint", git.checkpoint],
+          ["commit", git.commit],
+          ["revert", git.revert]
+        ])
+      ),
+      harness: toModuleExports(harness),
+      log: toModuleExports(log),
+      metric: toModuleExports(metric)
+    }
+  };
+}
+
+async function readRestoreSnapshot(
+  restorePath: string | undefined,
+  options: {
+    cwd: string;
+    readFile: ReadMarkdownFile;
+  }
+): Promise<AgentScriptSnapshot | undefined> {
+  if (restorePath === undefined) {
+    return undefined;
+  }
+
+  const snapshotPath = path.resolve(options.cwd, restorePath);
+  let rawSnapshot: string;
+  try {
+    rawSnapshot = await options.readFile(snapshotPath, "utf8");
+  } catch (error) {
+    if (hasErrorCode(error, "ENOENT")) {
+      throw new CliExitError(`Snapshot not found: ${restorePath}`, EXIT_RUNTIME);
+    }
+
+    throw error;
+  }
+
+  try {
+    return JSON.parse(rawSnapshot) as AgentScriptSnapshot;
+  } catch (error) {
+    throw new Error(`Failed to parse snapshot at ${restorePath}: ${readErrorMessage(error)}`);
+  }
+}
+
+async function writeCurrentSnapshot(
+  result: PromiseLike<RunResult>,
+  snapshotPath: string,
+  options: {
+    cwd: string;
+    stderr: CliStream;
+    writeFile: WriteMarkdownFile;
+  }
+): Promise<void> {
+  try {
+    await writeSnapshot(snapshotPath, await dumpCurrent(result), options);
+  } catch (error) {
+    options.stderr.write(
+      `Failed to write snapshot at ${snapshotPath}: ${readErrorMessage(error)}\n`
+    );
+  }
+}
+
+async function writeSnapshot(
+  snapshotPath: string,
+  content: string,
+  options: {
+    cwd: string;
+    writeFile: WriteMarkdownFile;
+  }
+): Promise<void> {
+  const resolvedPath = path.resolve(options.cwd, snapshotPath);
+  await mkdir(dirname(resolvedPath), { recursive: true });
+  await options.writeFile(resolvedPath, content, { encoding: "utf8" });
+}
+
+function createConsoleSink(
+  stdout: CliStream,
+  stderr: CliStream
+): {
+  error: (...args: unknown[]) => void;
+  log: (...args: unknown[]) => void;
+} {
+  return {
+    error(...args) {
+      stderr.write(`${formatConsoleArgs(args)}\n`);
+    },
+    log(...args) {
+      stdout.write(`${formatConsoleArgs(args)}\n`);
+    }
+  };
+}
+
+function formatConsoleArgs(args: readonly unknown[]): string {
+  return args.map(formatConsoleArg).join(" ");
+}
+
+function formatConsoleArg(value: unknown): string {
+  return typeof value === "string" ? value : inspect(value, { colors: false, depth: 4 });
 }
 
 function createUsage(): string {
   return [
-    "Usage: node --experimental-strip-types packages/agent-script/src/cli.ts <script.md>",
-    "       node --experimental-strip-types packages/agent-script/src/cli.ts --fix <script.md>",
+    "Usage: poe-agent-script [options] <script.md|script.ajs>",
     "",
-    "Modes:",
-    "  user-script mode: lints and runs the first ```js fenced block against stub example modules.",
-    "  demo fallback mode: when no ```js block exists, runs bundled pipeline, superintendent, or experiment demos by frontmatter kind."
+    "Options:",
+    "  --fix                 apply lint fixes before running",
+    "  --snapshot <path>     write the final snapshot, and best-effort snapshot on SIGINT",
+    "  --restore <path>      restore from a snapshot before running",
+    "  --max-steps <n>       cap interpreter step budget",
+    "  -h, --help            print this help",
+    "",
+    "Exit codes:",
+    "  0 success",
+    "  1 runtime, usage, file, or restore error",
+    "  2 parse error",
+    "  3 budget exceeded",
+    "  130 interrupted by SIGINT"
   ].join("\n");
 }
 
-function createChildEnv(): NodeJS.ProcessEnv {
-  const env = {
-    ...process.env
-  };
+function formatDiagnostics(diagnostics: readonly Diagnostic[]): string {
+  return diagnostics
+    .map(
+      (diagnostic) =>
+        `${diagnostic.filename}:${diagnostic.line}:${diagnostic.column} ${diagnostic.code} ${diagnostic.message}`
+    )
+    .join("\n");
+}
 
-  delete env.FORCE_COLOR;
-  delete env.NO_COLOR;
-  return env;
+function exitCodeForError(error: unknown): number {
+  if (error instanceof SandboxError && error.code === "budgetExceeded") {
+    return EXIT_BUDGET;
+  }
+
+  if (isParseError(error)) {
+    return EXIT_PARSE;
+  }
+
+  return EXIT_RUNTIME;
+}
+
+function isParseError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name?: unknown }).name === "ParseError"
+  );
+}
+
+function hasDefaultExport(source: string, filename: string): boolean {
+  return parseModule(source, filename).body.some(
+    (statement) => statement.type === "ExportDefaultDeclaration"
+  );
+}
+
+function excludeHarnessModule(modules: ModuleRegistry, isRawScript: boolean): ModuleRegistry {
+  if (!isRawScript) {
+    return modules;
+  }
+
+  if (modules instanceof Map) {
+    const rawModules = new Map(modules);
+    rawModules.delete("harness");
+    return rawModules;
+  }
+
+  const rawModules: Record<string, ModuleExports> = {};
+
+  for (const [moduleName, moduleExports] of Object.entries(modules)) {
+    if (moduleName !== "harness") {
+      rawModules[moduleName] = moduleExports;
+    }
+  }
+
+  return rawModules;
+}
+
+function stripByteOrderMark(source: string): string {
+  return source.startsWith("\uFEFF") ? source.slice(1) : source;
+}
+
+function createLineOffsetSource(source: string, lineOffset: number): string {
+  return `${"\n".repeat(Math.max(lineOffset, 0))}${source}`;
+}
+
+function countLeadingLineBreaks(source: string): number {
+  let count = 0;
+
+  while (source[count] === "\n") {
+    count += 1;
+  }
+
+  return count;
+}
+
+function normalizeLogEntry(entry: LogModuleEntry): LogModuleEntry {
+  return {
+    ...entry,
+    ts: "2026-04-29T00:00:00.000Z"
+  };
+}
+
+function summarizePrompt(prompt: string): string {
+  const normalizedPrompt = prompt.trim().replaceAll("\n", " ");
+  return normalizedPrompt.length <= 48 ? normalizedPrompt : `${normalizedPrompt.slice(0, 45)}...`;
+}
+
+function readMetricScore(
+  scriptName: string,
+  state: {
+    metricCalls: Map<string, number>;
+  }
+): number {
+  const callCount = (state.metricCalls.get(scriptName) ?? 0) + 1;
+  state.metricCalls.set(scriptName, callCount);
+
+  if (scriptName === "tests" && callCount === 1) {
+    return 10;
+  }
+
+  if (scriptName === "tests" && callCount === 2) {
+    return 9;
+  }
+
+  return 9 + callCount;
+}
+
+function toModuleExports(value: unknown): ModuleExports {
+  return value as ModuleExports;
+}
+
+function createAbortError(): Error {
+  if (typeof DOMException === "function") {
+    return new DOMException("This operation was aborted", "AbortError");
+  }
+
+  const error = new Error("This operation was aborted");
+  error.name = "AbortError";
+  return error;
+}
+
+function hasErrorCode(error: unknown, code: string): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === code
+  );
 }
 
 function readErrorMessage(error: unknown): string {
@@ -175,6 +698,16 @@ function readErrorMessage(error: unknown): string {
   }
 
   return String(error);
+}
+
+class CliExitError extends Error {
+  readonly exitCode: number;
+
+  constructor(message: string, exitCode: number) {
+    super(message);
+    this.name = "CliExitError";
+    this.exitCode = exitCode;
+  }
 }
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {

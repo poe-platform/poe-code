@@ -1,8 +1,15 @@
-import path from "node:path";
+import { EventEmitter } from "node:events";
 
-import { describe, expect, it, vi } from "vitest";
+import { vol } from "memfs";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { runCli } from "./cli.js";
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return fs.promises;
+});
+
+const { createSandboxClosure, createSandboxPromise } = await import("./interp/values.js");
+const { runCli } = await import("./cli.js");
 
 function createSink(): {
   output: () => string;
@@ -18,258 +25,262 @@ function createSink(): {
   };
 }
 
-function readLastJsonLine(output: string): unknown {
-  const lines = output
-    .split("\n")
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
-
-  return JSON.parse(lines.at(-1) ?? "");
-}
-
 describe("agent-script CLI", () => {
-  it("prints usage and exits zero for help", async () => {
+  beforeEach(() => {
+    vol.reset();
+    vol.mkdirSync("/repo", { recursive: true });
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("prints help and exits zero for --help", async () => {
     const stdout = createSink();
     const stderr = createSink();
 
-    const exitCode = await runCli(["--help"], { stdout, stderr });
+    const exitCode = await runCli(["--help"], { cwd: "/repo", stdout, stderr });
 
     expect(exitCode).toBe(0);
+    expect(stdout.output()).toContain("Usage: poe-agent-script [options] <script.md|script.ajs>");
+    expect(stdout.output()).toContain("--snapshot <path>");
+    expect(stderr.output()).toBe("");
+  });
+
+  it("prints usage to stderr and exits non-zero when no path is provided", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+
+    const exitCode = await runCli([], { cwd: "/repo", stdout, stderr });
+
+    expect(exitCode).not.toBe(0);
     expect(stdout.output()).toBe("");
-    expect(stderr.output()).toContain("Usage: node --experimental-strip-types");
-    expect(stderr.output()).toContain("user-script mode");
-    expect(stderr.output()).toContain("demo fallback mode");
+    expect(stderr.output()).toContain("Usage: poe-agent-script [options] <script.md|script.ajs>");
   });
 
-  it("prints usage when no filepath is provided", async () => {
+  it("rejects unknown flags with the flag named", async () => {
     const stdout = createSink();
     const stderr = createSink();
 
-    const exitCode = await runCli([], { stdout, stderr });
+    const exitCode = await runCli(["--bogus", "script.md"], { cwd: "/repo", stdout, stderr });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).not.toBe(0);
     expect(stdout.output()).toBe("");
-    expect(stderr.output()).toContain("Usage: node --experimental-strip-types");
+    expect(stderr.output()).toContain("Unknown flag: --bogus");
   });
 
-  it.each([
-    [
-      "single-file pipeline",
-      "pipeline.md",
-      {
-        kind: "pipeline",
-        taskIds: ["inspect-worktree", "review-diff"]
-      }
-    ],
-    [
-      "superintendent document",
-      "superintendent.md",
-      {
-        kind: "superintendent",
-        rounds: 1,
-        inspectors: 3
-      }
-    ],
-    [
-      "experiment loop",
-      "experiment.md",
-      {
-        kind: "experiment",
-        kept: 2,
-        baseline: 10
-      }
-    ]
-  ])("runs the %s example end-to-end", async (_label, filename, expected) => {
-    const stdout = createSink();
-    const stderr = createSink();
-    const cwd = path.join(process.cwd(), "packages/agent-script");
-    const filepath = path.join("examples", filename);
-
-    const exitCode = await runCli([filepath], { cwd, stdout, stderr });
-
-    expect(exitCode).toBe(0);
-    expect(stderr.output()).toBe("");
-    expect(readLastJsonLine(stdout.output())).toEqual({
-      ok: true,
-      returnValue: expected
-    });
-  });
-
-  it("runs a markdown js block and prints the result envelope", async () => {
+  it("reports file not found with the requested path", async () => {
     const stdout = createSink();
     const stderr = createSink();
 
-    const exitCode = await runCli(["script.md"], {
-      readFile: async () =>
-        ["---", "kind: custom", "---", "", "```js", "return 42;", "```"].join("\n"),
-      stdout,
-      stderr
-    });
+    const exitCode = await runCli(["missing.md"], { cwd: "/repo", stdout, stderr });
 
-    expect(exitCode).toBe(0);
-    expect(stderr.output()).toBe("");
-    expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: 42 })}\n`);
+    expect(exitCode).not.toBe(0);
+    expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("File not found: missing.md");
   });
 
-  it("writes fixed markdown back to disk when --fix is passed", async () => {
+  it("reports a clear error when the path is a directory", async () => {
     const stdout = createSink();
     const stderr = createSink();
-    const writeFile = vi.fn();
+    vol.mkdirSync("/repo/directory.md");
 
-    const exitCode = await runCli(["--fix", "script.md"], {
-      readFile: async () =>
-        [
-          "---",
-          "kind: custom",
-          "---",
-          "",
-          "```js",
-          'const x = "ok";',
-          "const value = `${x}`;",
-          "return value;",
-          "```"
-        ].join("\n"),
-      stdout,
-      stderr,
-      writeFile
-    });
+    const exitCode = await runCli(["directory.md"], { cwd: "/repo", stdout, stderr });
 
-    expect(exitCode).toBe(0);
-    expect(stderr.output()).toBe("");
-    expect(writeFile).toHaveBeenCalledWith(
-      path.resolve(process.cwd(), "script.md"),
-      [
-        "---",
-        "kind: custom",
-        "---",
-        "",
-        "```js",
-        'const x = "ok";',
-        "const value = String(x);",
-        "return value;",
-        "```"
-      ].join("\n"),
-      { encoding: "utf8" }
+    expect(exitCode).not.toBe(0);
+    expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("Harness path must point to a file: directory.md");
+  });
+
+  it("writes a snapshot at the requested path when the run completes", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync(
+      "/repo/script.md",
+      ["```js", 'console.log("done");', "return 7;", "```"].join("\n")
     );
-  });
 
-  it("prints lint warnings without failing the script", async () => {
-    const stdout = createSink();
-    const stderr = createSink();
-
-    const exitCode = await runCli(["script.md"], {
-      readFile: async () =>
-        ["```js", "if (false) {", "  while (true) {}", "}", "return 42;", "```"].join("\n"),
+    const exitCode = await runCli(["--snapshot", "snapshots/run.json", "script.md"], {
+      cwd: "/repo",
       stdout,
       stderr
     });
 
     expect(exitCode).toBe(0);
-    expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: 42 })}\n`);
-    expect(stderr.output()).toContain("Lint warnings:");
-    expect(stderr.output()).toContain("AS-UNBOUNDED-LOOP");
+    expect(stderr.output()).toBe("");
+    expect(stdout.output()).toContain("done\n");
+    expect(
+      JSON.parse(vol.readFileSync("/repo/snapshots/run.json", "utf8") as string)
+    ).toMatchObject({
+      sourceHash: expect.any(String)
+    });
   });
 
-  it("prints script errors and exits non-zero", async () => {
+  it("restores from a snapshot and fails clearly when restore is invalid", async () => {
     const stdout = createSink();
     const stderr = createSink();
+    vol.writeFileSync("/repo/script.md", ["```js", "return Math.random();", "```"].join("\n"));
 
-    const exitCode = await runCli(["script.md"], {
-      readFile: async () => ["```js", 'throw Error("boom");', "```"].join("\n"),
+    const firstExitCode = await runCli(["--snapshot", "snapshots/run.json", "script.md"], {
+      cwd: "/repo",
+      stdout,
+      stderr
+    });
+    const restoredExitCode = await runCli(["--restore", "snapshots/run.json", "script.md"], {
+      cwd: "/repo",
+      stdout: createSink(),
+      stderr: createSink()
+    });
+
+    vol.writeFileSync(
+      "/repo/snapshots/bad.json",
+      JSON.stringify({ sourceHash: "not-the-current-source" })
+    );
+    const badStderr = createSink();
+    const badExitCode = await runCli(["--restore", "snapshots/bad.json", "script.md"], {
+      cwd: "/repo",
+      stdout: createSink(),
+      stderr: badStderr
+    });
+
+    expect(firstExitCode).toBe(0);
+    expect(restoredExitCode).toBe(0);
+    expect(badExitCode).not.toBe(0);
+    expect(badStderr.output()).toContain("source changed since snapshot was taken");
+  });
+
+  it("enforces --max-steps and exits with the budget message when exceeded", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync(
+      "/repo/script.ajs",
+      ["const loop = (value) => loop(value + 1);", "return loop(0);"].join("\n")
+    );
+
+    const exitCode = await runCli(["--max-steps", "20", "script.ajs"], {
+      cwd: "/repo",
       stdout,
       stderr
     });
 
-    expect(exitCode).toBe(1);
+    expect(exitCode).toBe(3);
     expect(stdout.output()).toBe("");
+    expect(stderr.output()).toContain("Budget exceeded: steps");
+  });
+
+  it("handles SIGINT with graceful shutdown, finally blocks, and a non-zero exit", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    const process = new EventEmitter();
+    const wait = createDeferred<void>();
+
+    vol.writeFileSync(
+      "/repo/script.md",
+      [
+        "```js",
+        'import { wait } from "api";',
+        "const main = async () => {",
+        "try {",
+        "  await wait();",
+        "} finally {",
+        '  return "cleanup";',
+        "}",
+        "};",
+        "return await main();",
+        "```"
+      ].join("\n")
+    );
+
+    const result = runCli(["--snapshot", "snapshots/signal.json", "script.md"], {
+      cwd: "/repo",
+      modulesFor: () => ({
+        api: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(wait.promise),
+            name: "wait"
+          })
+        }
+      }),
+      process,
+      stdout,
+      stderr
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGINT");
+    const exitCode = await result;
+
+    expect(exitCode).toBe(130);
+    expect(stdout.output()).toBe(`${JSON.stringify({ ok: true, returnValue: "cleanup" })}\n`);
+    expect(stderr.output()).toContain("Interrupted by SIGINT");
+    expect(
+      JSON.parse(vol.readFileSync("/repo/snapshots/signal.json", "utf8") as string)
+    ).toMatchObject({
+      sourceHash: expect.any(String)
+    });
+  });
+
+  it("routes console.log to stdout and console.error plus runtime errors to stderr", async () => {
+    const stdout = createSink();
+    const stderr = createSink();
+    vol.writeFileSync(
+      "/repo/script.md",
+      [
+        "```js",
+        'console.log("hello", 3);',
+        'console.error("bad");',
+        'throw Error("boom");',
+        "```"
+      ].join("\n")
+    );
+
+    const exitCode = await runCli(["script.md"], { cwd: "/repo", stdout, stderr });
+
+    expect(exitCode).toBe(1);
+    expect(stdout.output()).toContain("hello 3\n");
+    expect(stderr.output()).toContain("bad\n");
     expect(stderr.output()).toContain("boom");
   });
 
-  it("falls back to the bundled pipeline demo when no js block exists", async () => {
-    const stdout = createSink();
-    const stderr = createSink();
+  it("maps parse, runtime, and budget failures to documented exit codes", async () => {
+    vol.writeFileSync("/repo/parse.ajs", "const value = ;");
+    vol.writeFileSync("/repo/runtime.ajs", 'throw Error("boom");');
+    vol.writeFileSync(
+      "/repo/budget.ajs",
+      ["const loop = (value) => loop(value + 1);", "return loop(0);"].join("\n")
+    );
 
-    const exitCode = await runCli(["pipeline.md"], {
-      readFile: async () =>
-        [
-          "---",
-          "kind: pipeline-demo",
-          "version: 1",
-          "agents:",
-          "  builder:",
-          "    agent: claude-code",
-          "  reviewer:",
-          "    agent: claude-code",
-          "tasks:",
-          "  - id: inspect-worktree",
-          "    title: Inspect worktree",
-          "    prompt: Summarize the worktree.",
-          "  - id: review-diff",
-          "    title: Review diff",
-          "    prompt: Review the diff.",
-          "---",
-          "",
-          "# Pipeline demo"
-        ].join("\n"),
-      stdout,
-      stderr
-    });
-
-    expect(exitCode).toBe(0);
-    expect(stderr.output()).toBe("");
-    expect(readLastJsonLine(stdout.output())).toEqual({
-      ok: true,
-      returnValue: {
-        kind: "pipeline-demo",
-        taskIds: ["inspect-worktree", "review-diff"]
-      }
-    });
-  });
-
-  it("fails clearly when no js block exists and the demo kind is unknown", async () => {
-    const stdout = createSink();
-    const stderr = createSink();
-
-    const exitCode = await runCli(["unknown.md"], {
-      readFile: async () => ["---", "kind: unknown-demo", "---", "", "# Unknown"].join("\n"),
-      stdout,
-      stderr
-    });
-
-    expect(exitCode).toBe(1);
-    expect(stdout.output()).toBe("");
-    expect(stderr.output()).toContain("Unsupported demo kind: unknown-demo");
-  });
-
-  it("exits non-zero before running when the js block fails lint", async () => {
-    const stdout = createSink();
-    const stderr = createSink();
-
-    const exitCode = await runCli(["lint.md"], {
-      readFile: async () =>
-        ["```js", 'import { missing } from "agent";', "return missing();", "```"].join("\n"),
-      stdout,
-      stderr
-    });
-
-    expect(exitCode).toBe(1);
-    expect(stdout.output()).toBe("");
-    expect(stderr.output()).toContain("Lint failed");
-    expect(stderr.output()).toContain("does not export 'missing'");
-  });
-
-  it("returns an error when the markdown file does not exist", async () => {
-    const stdout = createSink();
-    const stderr = createSink();
-
-    const exitCode = await runCli(["examples/missing.md"], {
-      cwd: path.join(process.cwd(), "packages/agent-script"),
-      stdout,
-      stderr
-    });
-
-    expect(exitCode).toBe(1);
-    expect(stdout.output()).toBe("");
-    expect(stderr.output()).toContain("ENOENT");
+    await expectRunExitCode(["parse.ajs"], 2);
+    await expectRunExitCode(["runtime.ajs"], 1);
+    await expectRunExitCode(["--max-steps", "20", "budget.ajs"], 3);
   });
 });
+
+async function expectRunExitCode(argv: readonly string[], expectedExitCode: number): Promise<void> {
+  const exitCode = await runCli(argv, {
+    cwd: "/repo",
+    stdout: createSink(),
+    stderr: createSink()
+  });
+
+  expect(exitCode).toBe(expectedExitCode);
+}
+
+function createDeferred<T>() {
+  let resolve: (value: T) => void = () => undefined;
+  const promise = new Promise<T>((nextResolve) => {
+    resolve = nextResolve;
+  });
+
+  return {
+    promise,
+    resolve
+  };
+}
+
+async function flushMicrotasks(iterations = 20): Promise<void> {
+  for (let index = 0; index < iterations; index += 1) {
+    await Promise.resolve();
+  }
+}

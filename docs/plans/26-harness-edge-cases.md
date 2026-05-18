@@ -1173,7 +1173,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-edges
     title: agent-script CLI — argument and IO edges
@@ -1195,9 +1195,9 @@ tasks:
 
       Conventional commit: `fix(agent-script): cli edges`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: dump-edges
     title: dump.ts — snapshot dump format

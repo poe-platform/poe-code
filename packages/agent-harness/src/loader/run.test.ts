@@ -607,7 +607,7 @@ describe("runHarnessPair", () => {
     firstController.abort();
     second.reject(new Error("aborted"));
     await expect(firstRun).rejects.toMatchObject({
-      name: "SandboxError"
+      name: "AbortError"
     });
 
     const secondCalls: string[] = [];
@@ -687,7 +687,7 @@ describe("runHarnessPair", () => {
     controller.abort();
     second.reject(new Error("aborted"));
     await expect(firstRun).rejects.toMatchObject({
-      name: "SandboxError"
+      name: "AbortError"
     });
 
     vi.setSystemTime(9_999);
@@ -789,7 +789,7 @@ describe("runHarnessPair", () => {
     controller.abort();
     second.reject(new Error("aborted"));
     await expect(firstRun).rejects.toMatchObject({
-      name: "SandboxError"
+      name: "AbortError"
     });
 
     const resumed = await runHarnessPair(mdPath, {
@@ -924,7 +924,7 @@ describe("runHarnessPair", () => {
     controller.abort();
     second.reject(new Error("aborted"));
     await expect(firstRun).rejects.toMatchObject({
-      name: "SandboxError"
+      name: "AbortError"
     });
 
     const secondCalls: string[] = [];

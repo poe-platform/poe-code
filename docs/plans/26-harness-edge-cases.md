@@ -583,7 +583,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-cancel-paths
     title: Cancellation — abort signal propagation
@@ -604,9 +604,9 @@ tasks:
 
       Conventional commit: `fix(agent-script): cancellation edges`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: interp-budget-boundaries
     title: Budget — exact-boundary exhaustion

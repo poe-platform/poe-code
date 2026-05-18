@@ -9,6 +9,7 @@ vi.mock("node:fs/promises", async () => {
 const { dump } = await import("./dump.js");
 const { createSandboxClosure, createSandboxPromise } = await import("./interp/values.js");
 const { makeAgentModule } = await import("./modules/agent.js");
+const { restore } = await import("./restore.js");
 const { run } = await import("./run.js");
 
 describe("run snapshot checkpointing", () => {
@@ -237,6 +238,259 @@ describe("run snapshot checkpointing", () => {
     await expect(result).resolves.toMatchObject({
       ok: true,
       returnValue: "done"
+    });
+  });
+
+  it("restores a snapshot taken before the first await and returns the original value", async () => {
+    const source = ["const value = await wait();", 'return value.concat(":done");'].join("\n");
+    const first = createDeferred<string>();
+    const result = run(source, {
+      bindings: {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(first.promise),
+          name: "wait"
+        })
+      }
+    });
+    const snapshotPromise = dump(result);
+
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+
+    first.resolve("original");
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "original:done"
+    });
+
+    await expect(
+      run(source, {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(Promise.resolve("original")),
+            name: "wait"
+          })
+        },
+        snapshot: restore(snapshot, { source })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "original:done"
+    });
+  });
+
+  it("restores a snapshot taken after a loop let mutation with the mutated binding", async () => {
+    const source = [
+      "let total = 0;",
+      "for (let i = 0; i < 3; i = i + 1) {",
+      "  total = total + i;",
+      "  await wait();",
+      "}",
+      "return total;"
+    ].join("\n");
+    const waits = [createDeferred<void>(), createDeferred<void>(), createDeferred<void>()];
+    let waitCalls = 0;
+    const result = run(source, {
+      bindings: {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(waits[waitCalls++]?.promise ?? Promise.resolve()),
+          name: "wait"
+        })
+      }
+    });
+
+    const firstSnapshot = JSON.parse(await dump(result)) as {
+      bindings: Record<string, unknown>;
+    };
+    expect(firstSnapshot.bindings).toMatchObject({
+      i: 0,
+      total: 0
+    });
+    const snapshotPromise = dump(result);
+    waits[0]?.resolve();
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise) as {
+      bindings: Record<string, unknown>;
+    };
+    const restored = restore(snapshot, { source }) as typeof snapshot;
+
+    expect(restored.bindings).toMatchObject({
+      i: 1,
+      total: 1
+    });
+
+    waits[1]?.resolve();
+    waits[2]?.resolve();
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
+    });
+    await expect(
+      run(source, {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(Promise.resolve()),
+            name: "wait"
+          })
+        },
+        snapshot: restored
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 3
+    });
+  });
+
+  it("restores from a mid-try snapshot and lets the original catch handle the throw", async () => {
+    const source = [
+      "try {",
+      "  await wait();",
+      '  throw Error("boom");',
+      "} catch (error) {",
+      '  return "caught:".concat(error.message);',
+      "}"
+    ].join("\n");
+    const first = createDeferred<void>();
+    const result = run(source, {
+      bindings: {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(first.promise),
+          name: "wait"
+        })
+      }
+    });
+    const snapshotPromise = dump(result);
+
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+    first.resolve();
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "caught:boom"
+    });
+    await expect(
+      run(source, {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(Promise.resolve()),
+            name: "wait"
+          })
+        },
+        snapshot: restore(snapshot, { source })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "caught:boom"
+    });
+  });
+
+  it("restores a snapshot from inside finally and preserves the pending return", async () => {
+    const source = ["try {", '  return "body";', "} finally {", "  await wait();", "}"].join(
+      "\n"
+    );
+    const first = createDeferred<void>();
+    const result = run(source, {
+      bindings: {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(first.promise),
+          name: "wait"
+        })
+      }
+    });
+    const snapshotPromise = dump(result);
+
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+    first.resolve();
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "body"
+    });
+    await expect(
+      run(source, {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(Promise.resolve()),
+            name: "wait"
+          })
+        },
+        snapshot: restore(snapshot, { source })
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "body"
+    });
+  });
+
+  it("restores while two unawaited promises are pending and keeps the result order", async () => {
+    const source = [
+      'const left = later("left");',
+      'const right = later("right");',
+      "const values = await Promise.all([left, right]);",
+      "return JSON.stringify(values);"
+    ].join("\n");
+    const firstRun = {
+      left: createDeferred<string>(),
+      right: createDeferred<string>()
+    };
+    const result = run(source, {
+      bindings: {
+        later: createSandboxClosure({
+          async: true,
+          call: ([label]) =>
+            createSandboxPromise(
+              label === "left" ? firstRun.left.promise : firstRun.right.promise
+            ),
+          name: "later"
+        })
+      }
+    });
+    const snapshotPromise = dump(result);
+
+    await flushMicrotasks();
+    const snapshot = JSON.parse(await snapshotPromise);
+    firstRun.left.resolve("left");
+    firstRun.right.resolve("right");
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["left", "right"])
+    });
+
+    const secondRun = {
+      left: createDeferred<string>(),
+      right: createDeferred<string>()
+    };
+    const resumed = run(source, {
+      bindings: {
+        later: createSandboxClosure({
+          async: true,
+          call: ([label]) =>
+            createSandboxPromise(
+              label === "left" ? secondRun.left.promise : secondRun.right.promise
+            ),
+          name: "later"
+        })
+      },
+      snapshot: restore(snapshot, { source })
+    });
+
+    await flushMicrotasks();
+    secondRun.left.resolve("left");
+    secondRun.right.resolve("right");
+    await expect(resumed).resolves.toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["left", "right"])
     });
   });
 

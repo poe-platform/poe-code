@@ -165,6 +165,26 @@ describe("snapshot restore", () => {
     );
   });
 
+  it("checks the source hash before parsing changed source", () => {
+    const snapshot = {
+      sourceHash: hashSource("return 1;"),
+      currentAstNodeId: 1,
+      scopeChain: [],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    };
+
+    expect(() =>
+      restore(snapshot, {
+        source: "return {",
+        budget: new Budget()
+      })
+    ).toThrowError(
+      `source changed since snapshot was taken (hash ${snapshot.sourceHash} expected, but current source could not be hashed); pass --reset to discard`
+    );
+  });
+
   it("rejects snapshots when a saved module is no longer registered", () => {
     const source = 'import * as time from "time"; await time.now();';
     const awaitNodeId = getNodeIdByType(parseModule(source), "AwaitExpression");

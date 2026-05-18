@@ -83,8 +83,14 @@ type RestoreState = {
 };
 
 export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): RestoredSnapshot {
-  const ast = parseModule(options.source);
-  const currentSourceHash = hashSource(options.source);
+  let currentSourceHash: string;
+  try {
+    currentSourceHash = hashSource(options.source);
+  } catch {
+    throw new Error(
+      `source changed since snapshot was taken (hash ${snapshot.sourceHash} expected, but current source could not be hashed); pass --reset to discard`
+    );
+  }
 
   if (snapshot.sourceHash !== currentSourceHash) {
     throw new Error(
@@ -92,6 +98,7 @@ export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): 
     );
   }
 
+  const ast = parseModule(options.source);
   const nodeById = indexAstNodes(ast);
   const currentNode = nodeById.get(snapshot.currentAstNodeId);
 

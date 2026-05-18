@@ -1,7 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { Budget, SandboxError } from "../budget.js";
-import { createSandboxClosure, type SandboxClosure, type SandboxObject } from "../values.js";
+import {
+  createSandboxClosure,
+  type SandboxArray,
+  type SandboxClosure,
+  type SandboxObject
+} from "../values.js";
 import { createConsoleJsonGlobals } from "./console-json.js";
 
 describe("createConsoleJsonGlobals", () => {
@@ -184,6 +189,21 @@ describe("createConsoleJsonGlobals", () => {
         }
       ])
     ).resolves.toBe('"x"');
+  });
+
+  it("honors sandbox array toJSON methods before JSON.stringify serializes", async () => {
+    const globals = createConsoleJsonGlobals({
+      budget: new Budget()
+    });
+    const stringifyJson = getClosure(getProperty(globals.JSON, "stringify"));
+    const value = [1, 2] as SandboxArray;
+    Object.defineProperty(value, "toJSON", {
+      value: createSandboxClosure({
+        call: () => ({ length: value.length })
+      })
+    });
+
+    await expect(stringifyJson.call([value])).resolves.toBe('{"length":2}');
   });
 
   it("passes console edge primitives as separate readable sink arguments", async () => {

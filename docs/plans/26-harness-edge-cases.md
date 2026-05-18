@@ -735,7 +735,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: globals-json-edges
     title: globals — JSON.parse / JSON.stringify edges
@@ -766,9 +766,9 @@ tasks:
 
       Conventional commit: `fix(agent-script): JSON edges`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: globals-error-edges
     title: globals — Error constructor edges

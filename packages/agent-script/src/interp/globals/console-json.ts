@@ -126,7 +126,7 @@ async function stringifyProperty(
 ): Promise<string | undefined> {
   let value = getOwnDataValue(holder, key);
 
-  if (isStringifyObject(value)) {
+  if (isStringifyContainer(value)) {
     const toJSON = getOwnDataValue(value, "toJSON");
     if (isSandboxClosure(toJSON)) {
       value = await callStringifyClosure(toJSON, [key], state);
@@ -285,13 +285,17 @@ function quoteJsonString(value: string): string {
   return JSON.stringify(value);
 }
 
-function isStringifyObject(value: unknown): value is SandboxArray | SandboxObject {
+function isStringifyContainer(value: unknown): value is SandboxArray | SandboxObject {
   return (
     typeof value === "object" &&
     value !== null &&
     !isSandboxClosure(value) &&
     !isSandboxPromise(value)
   );
+}
+
+function isStringifyObject(value: unknown): value is SandboxObject {
+  return isStringifyContainer(value) && !Array.isArray(value);
 }
 
 function toSandboxValue(value: unknown): SandboxValue {
@@ -304,7 +308,7 @@ function toSandboxValue(value: unknown): SandboxValue {
     isSandboxClosure(value) ||
     isSandboxPromise(value) ||
     Array.isArray(value) ||
-    isStringifyObject(value)
+    isStringifyContainer(value)
   ) {
     return value as SandboxValue;
   }

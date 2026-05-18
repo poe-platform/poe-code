@@ -226,9 +226,13 @@ tasks:
         - budget: `maxSteps: 1`, source loops, response is
           `{ ok: false, kind: "runtime" }` with `code: "budgetExceeded"`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
+    follow_up:
+      - Toolcraft `HandlerContext` does not expose an `AbortSignal` today;
+        `execute` currently runs agent-script without cancellation plumbing
+        until toolcraft surfaces one.
 
   - id: code-mode-entrypoint
     title: codeMode(root, options) returning a Group of meta-tools

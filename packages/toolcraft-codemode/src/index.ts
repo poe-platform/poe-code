@@ -1,4 +1,12 @@
 export {
+  makeExecuteCommand,
+  type ExecuteBudgetOptions,
+  type ExecuteCommandOptions,
+  type ExecuteResult,
+  type ExecuteRuntimeError,
+  type ExecuteSink
+} from "./execute.js";
+export {
   makeGetSchemasCommand,
   type GetSchemasCommandOptions,
   type GetSchemasResult

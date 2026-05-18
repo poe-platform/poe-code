@@ -1,180 +1,123 @@
 import { describe, expect, it } from "vitest";
 
+import { SandboxError } from "../interp/budget.js";
+import { formatParseError } from "../parse/format-error.js";
 import { formatInterpreterError } from "./format.js";
 
 describe("formatInterpreterError", () => {
-  it("renders the error header, surrounding context, caret, and message", () => {
-    const source = [
-      "const alpha = 1;",
-      "const beta = 2;",
-      "return missingValue;",
-      "const omega = 4;"
-    ].join("\n");
+  it("renders a parser syntax error with a source excerpt and aligned caret", () => {
+    const source = ["const alpha = 1;", "const beta = );", "const gamma = 3;"].join("\n");
+    const diagnostic = formatParseError(
+      source,
+      "script.ajs",
+      new Error("Unexpected token ')' at line 2, column 14.")
+    );
 
-    expect(
-      formatInterpreterError(source, {
-        kind: "InterpreterError",
-        filename: "script.ajs",
-        line: 3,
-        column: 8,
-        message: "Identifier 'missingValue' is not defined."
-      })
-    ).toBe(
+    const formatted = formatInterpreterError(diagnostic);
+
+    expect(formatted).toBe(
       [
-        "InterpreterError: script.ajs:3:8",
+        "ParseError: script.ajs:2:14",
         "",
         "1 | const alpha = 1;",
-        "2 | const beta = 2;",
-        "3 | return missingValue;",
-        "4 | const omega = 4;",
-        "  |        ^",
+        "2 | const beta = );",
+        "3 | const gamma = 3;",
+        "  |              ^",
         "",
-        "Identifier 'missingValue' is not defined."
+        "Unexpected token ')' at line 2, column 14."
+      ].join("\n")
+    );
+    const [, , , sourceLine, , caretLine] = formatted.split("\n");
+    expect(caretLine?.indexOf("^")).toBe(sourceLine?.indexOf(")"));
+  });
+
+  it("renders a runtime error with a sandbox-only stack", () => {
+    expect(
+      formatInterpreterError({
+        name: "TypeError",
+        message: "boom",
+        stack: [
+          "TypeError: boom",
+          "    at explode (line 4, column 3)",
+          "    at main (line 8, column 1)",
+          "    at hostFrame (/Users/kjopek/Workspace/poe-code/packages/agent-script/src/run.ts:1:1)"
+        ].join("\n")
+      })
+    ).toBe(
+      [
+        "TypeError: boom",
+        "    at explode (line 4, column 3)",
+        "    at main (line 8, column 1)"
       ].join("\n")
     );
   });
 
-  it("clips context at file boundaries and preserves tabs for caret alignment", () => {
-    const source = ["line 1", "\t\tvalue()", "line 3"].join("\n");
-
+  it("renders a budget-exceeded error with the limit that fired", () => {
     expect(
-      formatInterpreterError(source, {
-        kind: "InterpreterError",
-        filename: "script.ajs",
-        line: 2,
-        column: 5,
-        message: "Boom."
-      })
+      formatInterpreterError(
+        new SandboxError({
+          budget: "steps",
+          current: 101,
+          limit: 100
+        })
+      )
     ).toBe(
       [
-        "InterpreterError: script.ajs:2:5",
+        "SandboxError: Sandbox budget exceeded for steps: 101 > 100.",
         "",
-        "1 | line 1",
-        "2 | \t\tvalue()",
-        "3 | line 3",
-        "  | \t\t  ^",
-        "",
-        "Boom."
+        "Budget exceeded: steps (101 > 100)"
       ].join("\n")
     );
   });
 
-  it("renders the first line without negative context and clamps columns below 1", () => {
-    const source = ["alpha()", "beta()", "gamma()"].join("\n");
-
+  it("renders a thrown-from-sandbox non-error value with a JSON-ish representation", () => {
     expect(
-      formatInterpreterError(source, {
-        kind: "InterpreterError",
-        filename: "script.ajs",
-        line: 1,
-        column: 0,
-        message: "Boom."
+      formatInterpreterError({
+        code: "failed",
+        nested: {
+          value: 1
+        }
       })
-    ).toBe(
-      [
-        "InterpreterError: script.ajs:1:0",
-        "",
-        "1 | alpha()",
-        "2 | beta()",
-        "  | ^",
-        "",
-        "Boom."
-      ].join("\n")
+    ).toBe('Thrown value: {"code":"failed","nested":{"value":1}}');
+  });
+
+  it("renders every error in a three-deep cause chain", () => {
+    const error = new Error("top", {
+      cause: new TypeError("middle", {
+        cause: new RangeError("bottom")
+      })
+    });
+
+    expect(formatInterpreterError(error)).toBe(
+      ["Error: top", "", "Caused by: TypeError: middle", "Caused by: RangeError: bottom"].join("\n")
     );
   });
 
-  it("renders the last line with two preceding lines of context", () => {
-    const source = ["line 1", "line 2", "line 3", "line 4"].join("\n");
-
-    expect(
-      formatInterpreterError(source, {
-        kind: "InterpreterError",
-        filename: "script.ajs",
-        line: 4,
-        column: 6,
-        message: "Unexpected token."
-      })
-    ).toBe(
-      [
-        "InterpreterError: script.ajs:4:6",
-        "",
-        "2 | line 2",
-        "3 | line 3",
-        "4 | line 4",
-        "  |      ^",
-        "",
-        "Unexpected token."
-      ].join("\n")
+  it("wraps an error from a host call with the host call name", () => {
+    expect(formatInterpreterError(new Error("ECONNRESET"), { hostCallName: "loadProfile" })).toBe(
+      "Host call loadProfile failed: Error: ECONNRESET"
     );
   });
 
-  it("keeps the caret aligned when the reported column is past the end of the line", () => {
-    const source = ["short"].join("\n");
-
+  it("falls back to the plain message when source is not provided", () => {
     expect(
-      formatInterpreterError(source, {
-        kind: "InterpreterError",
-        filename: "script.ajs",
-        line: 1,
-        column: 99,
-        message: "Past end."
+      formatInterpreterError({
+        code: "UNBOUND_IDENTIFIER",
+        message: "Identifier 'missing' is not defined.",
+        nodeType: "Identifier",
+        span: {
+          start: { line: 3, column: 8, offset: 32 },
+          end: { line: 3, column: 15, offset: 39 }
+        }
       })
-    ).toBe(
-      [
-        "InterpreterError: script.ajs:1:99",
-        "",
-        "1 | short",
-        "  |      ^",
-        "",
-        "Past end."
-      ].join("\n")
-    );
+    ).toBe("Identifier 'missing' is not defined.");
   });
 
-  it("renders a placeholder line when the reported line is outside the source", () => {
-    expect(
-      formatInterpreterError("", {
-        kind: "InterpreterError",
-        filename: "script.ajs",
-        line: 3,
-        column: 4,
-        message: "No source."
-      })
-    ).toBe(
-      [
-        "InterpreterError: script.ajs:3:4",
-        "",
-        "3 | ",
-        "  |    ^",
-        "",
-        "No source."
-      ].join("\n")
-    );
-  });
+  it("truncates very long error messages with an explicit suffix", () => {
+    const formatted = formatInterpreterError(new Error("x".repeat(10_025)));
 
-  it("pads multi-digit line numbers correctly", () => {
-    const source = Array.from({ length: 12 }, (_, index) => `line ${index + 1}`).join("\n");
-
-    expect(
-      formatInterpreterError(source, {
-        kind: "InterpreterError",
-        filename: "script.ajs",
-        line: 10,
-        column: 3,
-        message: "Tenth line."
-      })
-    ).toBe(
-      [
-        "InterpreterError: script.ajs:10:3",
-        "",
-        " 8 | line 8",
-        " 9 | line 9",
-        "10 | line 10",
-        "11 | line 11",
-        "   |   ^",
-        "",
-        "Tenth line."
-      ].join("\n")
-    );
+    expect(formatted).toHaveLength("Error: ".length + 10_000 + "... [truncated 25 chars]".length);
+    expect(formatted.startsWith("Error: xxx")).toBe(true);
+    expect(formatted.endsWith("... [truncated 25 chars]")).toBe(true);
   });
 });

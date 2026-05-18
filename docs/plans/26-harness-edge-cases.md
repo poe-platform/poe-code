@@ -552,8 +552,8 @@ tasks:
 
       Conventional commit: `test(agent-script): async/await microtask edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-promise-combinator-edges

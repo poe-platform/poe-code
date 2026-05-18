@@ -1,4 +1,5 @@
 import type {
+  AssignmentPattern,
   ArrowFunctionExpression,
   AwaitExpression,
   Identifier,
@@ -129,7 +130,7 @@ async function executeArrow(
   evaluateNode: EvaluateAsyncNode
 ): Promise<SandboxValue> {
   const scope = context.scope.child();
-  bindIdentifierParameters(node.params, args, scope, context.budget);
+  await bindArrowParameters(node.params, args, scope, context, evaluateNode);
 
   const result = await evaluateNode(node.body, {
     ...context,
@@ -151,25 +152,80 @@ async function executeArrow(
   return result.value;
 }
 
-function bindIdentifierParameters(
+async function bindArrowParameters(
   params: ArrowFunctionExpression["params"],
   args: readonly SandboxValue[],
   scope: Scope,
-  budget: Budget
-): void {
+  context: AsyncEvaluationContext,
+  evaluateNode: EvaluateAsyncNode
+): Promise<void> {
   for (let index = 0; index < params.length; index += 1) {
     const param = params[index];
     if (param.type === "RestElement") {
-      bindRestParameter(param, args, index, scope, budget);
+      bindRestParameter(param, args, index, scope, context.budget);
       return;
     }
 
-    if (param.type !== "Identifier") {
-      throw new TypeError(`Unsupported async arrow parameter pattern '${param.type}'.`);
-    }
-
-    declareIdentifier(scope, param, args[index]);
+    await bindArrowParameter(param, args[index], scope, context, evaluateNode);
   }
+}
+
+async function bindArrowParameter(
+  param: Exclude<ArrowFunctionExpression["params"][number], RestElement>,
+  arg: SandboxValue,
+  scope: Scope,
+  context: AsyncEvaluationContext,
+  evaluateNode: EvaluateAsyncNode
+): Promise<void> {
+  if (param.type === "AssignmentPattern") {
+    await bindAssignmentParameter(param, arg, scope, context, evaluateNode);
+    return;
+  }
+
+  if (param.type !== "Identifier") {
+    throw new TypeError(`Unsupported async arrow parameter pattern '${param.type}'.`);
+  }
+
+  declareIdentifier(scope, param, arg);
+}
+
+async function bindAssignmentParameter(
+  param: AssignmentPattern,
+  arg: SandboxValue,
+  scope: Scope,
+  context: AsyncEvaluationContext,
+  evaluateNode: EvaluateAsyncNode
+): Promise<void> {
+  const value =
+    arg === undefined ? await evaluateParameterDefault(param, scope, context, evaluateNode) : arg;
+
+  if (param.left.type !== "Identifier") {
+    throw new TypeError(`Unsupported async arrow parameter pattern '${param.left.type}'.`);
+  }
+
+  declareIdentifier(scope, param.left, value);
+}
+
+async function evaluateParameterDefault(
+  param: AssignmentPattern,
+  scope: Scope,
+  context: AsyncEvaluationContext,
+  evaluateNode: EvaluateAsyncNode
+): Promise<SandboxValue> {
+  const result = await evaluateNode(param.right, {
+    ...context,
+    scope
+  });
+
+  if (result.kind === "error") {
+    throw result.error;
+  }
+
+  if (result.kind === "throw") {
+    throw result.value;
+  }
+
+  return result.hasValue ? result.value : undefined;
 }
 
 function bindRestParameter(

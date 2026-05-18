@@ -3221,7 +3221,9 @@ function findImportMetaAssignmentTarget(node: ParseResult | Module): SourceSpan 
   return findImportMetaAssignmentInNode(node);
 }
 
-function findImportMetaAssignmentInNode(node: Expression | Statement | Module): SourceSpan | undefined {
+function findImportMetaAssignmentInNode(
+  node: Expression | Statement | Module
+): SourceSpan | undefined {
   switch (node.type) {
     case "Module":
       return findImportMetaAssignmentInList(node.body);
@@ -4014,7 +4016,7 @@ function createTokenSpan(token: Token): SourceSpan {
 }
 
 function assertAllowedIdentifierReference(token: Token): void {
-  if (token.value === "new" || token.value === "this") {
+  if (token.value === "new") {
     throw new DisallowedSyntaxError(token.value, token.start);
   }
 }

@@ -697,6 +697,14 @@ async function evaluateIdentifier(
   const binding = context.scope.lookup(node.name);
 
   if (!binding.found) {
+    if (node.name === "this") {
+      return {
+        kind: "normal",
+        hasValue: true,
+        value: undefined
+      };
+    }
+
     return {
       kind: "error",
       error: createError("UNBOUND_IDENTIFIER", node, `Identifier '${node.name}' is not defined.`)

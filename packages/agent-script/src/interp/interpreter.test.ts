@@ -6,6 +6,7 @@ import { createConsoleJsonGlobals } from "./globals/console-json.js";
 import { createErrorGlobals } from "./globals/error.js";
 import { createMathGlobals, createSeededRandom } from "./globals/math.js";
 import { createObjectArrayGlobals } from "./globals/object-array.js";
+import { wrapCallerInjectedBindings } from "./host-bridge.js";
 import { interpret, Scope } from "./interpreter.js";
 import { createSandboxClosure, createSandboxPromise, isSandboxPromise } from "./values.js";
 
@@ -1499,6 +1500,7 @@ describe("interpret", () => {
 
   it.each([
     ["undefined function", "return fn?.()", { fn: undefined }, undefined],
+    ["null function", "return fn?.()", { fn: null }, undefined],
     [
       "defined function",
       "return fn?.()",
@@ -1520,6 +1522,181 @@ describe("interpret", () => {
     ).resolves.toMatchObject({
       ok: true,
       returnValue: expected
+    });
+  });
+
+  it("evaluates recursive arrow calls", async () => {
+    await expect(
+      interpret(
+        block(parse("const fact = n => n <= 1 ? 1 : n * fact(n - 1)"), parse("return fact(5)"))
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 120
+    });
+  });
+
+  it("evaluates mutually recursive arrows assigned through let declarations", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let even = n => n === 0 ? true : odd(n - 1)"),
+          parse("let odd = n => n === 0 ? false : even(n - 1)"),
+          parse("return even(8) && !odd(8)")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: true
+    });
+  });
+
+  it("reports a clear budget cause for self-recursive arrows that exceed maxCallDepth", async () => {
+    await expect(
+      interpret(block(parse("const loop = () => loop()"), parse("return loop()")), {
+        budget: new Budget({
+          maxCallDepth: 3
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "callDepth",
+        current: 4,
+        limit: 3,
+        message: "Sandbox budget exceeded for callDepth: 4 > 3."
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
+  it.each(["(1)()", "null()", "undefined()"])(
+    "throws TypeError for non-function calls %s",
+    async (source) => {
+      await expect(interpret(parse(`return ${source}`))).rejects.toMatchObject({
+        name: "TypeError",
+        message: "Attempted to call a non-function value."
+      });
+    }
+  );
+
+  it("applies arrow parameter defaults only for undefined arguments", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const fn = (value = 7) => value"),
+          parse("return [fn(undefined), fn(null), fn()]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [7, null, 7]
+    });
+  });
+
+  it("ignores extra call arguments after evaluating them", async () => {
+    const observe = vi.fn(() => 2);
+
+    await expect(
+      interpret(block(parse("const fn = value => value"), parse("return fn(1, observe())")), {
+        bindings: {
+          observe: createSandboxClosure({
+            call: observe,
+            name: "observe"
+          })
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+    expect(observe).toHaveBeenCalledOnce();
+  });
+
+  it("binds missing call arguments as undefined and fires defaults for missing parameters", async () => {
+    await expect(
+      interpret(block(parse("const fn = (a, b = 2, c) => [a, b, c]"), parse("return fn(1)")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2, undefined]
+    });
+  });
+
+  it("evaluates arrows that return themselves through another arrow", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const self = () => self"),
+          parse("const pick = fn => fn()"),
+          parse("return pick(self)() === self")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: true
+    });
+  });
+
+  it("evaluates top-level this inside arrows as undefined", async () => {
+    await expect(
+      interpret(block(parse("const getThis = () => this"), parse("return getThis()")))
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: undefined
+    });
+  });
+
+  it("deep-copies sandbox-only call arguments before invoking host functions", async () => {
+    const observedArgs: unknown[] = [];
+    const host = vi.fn((input: { nested: { value: number } }) => {
+      observedArgs.push(structuredClone(input));
+      input.nested.value = 2;
+      return input;
+    });
+
+    await expect(
+      interpret(
+        block(parse("const input = { nested: { value: 1 } }"), parse("return host(input)")),
+        {
+          bindings: wrapCallerInjectedBindings(
+            {
+              host
+            },
+            {
+              budget: new Budget()
+            }
+          )
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: {
+        nested: {
+          value: 2
+        }
+      },
+      snapshot: {
+        bindings: {
+          input: {
+            nested: {
+              value: 1
+            }
+          }
+        }
+      }
+    });
+    expect(host).toHaveBeenCalledTimes(1);
+    expect(observedArgs).toEqual([
+      {
+        nested: {
+          value: 1
+        }
+      }
+    ]);
+    expect(host.mock.calls[0]?.[0]).toEqual({
+      nested: {
+        value: 2
+      }
     });
   });
 

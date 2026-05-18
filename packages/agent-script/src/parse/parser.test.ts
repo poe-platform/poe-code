@@ -3163,26 +3163,15 @@ describe("parse", () => {
     );
   });
 
-  it("rejects disallowed syntax for new and this", () => {
+  it("rejects disallowed syntax for new", () => {
     expect(() => parse("new Service()")).toThrowError(DisallowedSyntaxError);
     expect(() => parse("new Service()")).toThrowError(
       "Disallowed syntax 'new' at line 1, column 1."
     );
 
-    expect(() => parse("this.value")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("this.value")).toThrowError("Disallowed syntax 'this' at line 1, column 1.");
-
-    expect(() => parse("`${this}`")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("`${this}`")).toThrowError("Disallowed syntax 'this' at line 1, column 4.");
-
     expect(() => parse("`${new Service()}`")).toThrowError(DisallowedSyntaxError);
     expect(() => parse("`${new Service()}`")).toThrowError(
       "Disallowed syntax 'new' at line 1, column 4."
-    );
-
-    expect(() => parse("`prefix ${\n  this\n}`")).toThrowError(DisallowedSyntaxError);
-    expect(() => parse("`prefix ${\n  this\n}`")).toThrowError(
-      "Disallowed syntax 'this' at line 2, column 3."
     );
 
     expect(parse("service.this")).toMatchObject({
@@ -3195,6 +3184,35 @@ describe("parse", () => {
         type: "Identifier",
         name: "this"
       }
+    });
+  });
+
+  it("parses this as a lexical identifier reference", () => {
+    expect(parse("this")).toMatchObject({
+      type: "Identifier",
+      name: "this"
+    });
+
+    expect(parse("this.value")).toMatchObject({
+      type: "MemberExpression",
+      object: {
+        type: "Identifier",
+        name: "this"
+      },
+      property: {
+        type: "Identifier",
+        name: "value"
+      }
+    });
+
+    expect(parse("`${this}`")).toMatchObject({
+      type: "TemplateLiteral",
+      expressions: [
+        {
+          type: "Identifier",
+          name: "this"
+        }
+      ]
     });
   });
 

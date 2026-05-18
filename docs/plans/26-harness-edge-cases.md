@@ -630,7 +630,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-scope-edges
     title: Scope — chain edges and binding semantics
@@ -652,8 +652,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): scope chain edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-values-deepcopy

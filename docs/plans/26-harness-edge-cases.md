@@ -1016,7 +1016,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: loader-extract-block-edges
     title: loader/extract-block — fenced-block edges
@@ -1038,8 +1038,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): extract-block edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: loader-find-exported-edges

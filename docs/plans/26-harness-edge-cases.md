@@ -276,7 +276,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: parse-hash-semantic-equivalence
     title: parse/hash — semantic-equivalence edges
@@ -303,8 +303,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): parse/hash semantic edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: parse-assign-ids-determinism

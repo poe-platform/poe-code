@@ -794,7 +794,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: globals-math-edges
     title: globals — Math edges
@@ -824,8 +824,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): Math edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: globals-object-array-edges

@@ -1108,7 +1108,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: snapshot-serialize-restore-roundtrip
     title: snapshot — serialize/restore round-trip
@@ -1131,8 +1131,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): snapshot round-trip edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: snapshot-policy-edges

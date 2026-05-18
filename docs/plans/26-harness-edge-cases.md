@@ -709,7 +709,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-host-bridge-edges
     title: host-bridge — argument and result edges
@@ -733,8 +733,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): host-bridge edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: globals-json-edges

@@ -1087,7 +1087,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: runner-signal-dump-edges
     title: runner/signal-dump — handler edges
@@ -1106,8 +1106,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): signal-dump edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: snapshot-serialize-restore-roundtrip

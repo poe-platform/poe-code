@@ -170,6 +170,14 @@ class Lexer {
       const char = this.currentChar();
       const codePointChar = this.currentCodePointChar();
 
+      if (this.isHtmlStyleCommentDelimiter()) {
+        this.syntaxError("HTML-style comments are not supported in Agent Script", start);
+      }
+
+      if (char === "*" && this.peekChar(1) === "/") {
+        this.syntaxError("Unexpected block comment terminator", start);
+      }
+
       if (isIdentifierStart(codePointChar) || this.startsUnicodeEscape()) {
         this.readIdentifierOrKeyword(start);
         continue;
@@ -335,6 +343,10 @@ class Lexer {
     while (!this.isAtEnd() && depth > 0) {
       const char = this.currentChar();
 
+      if (this.isHtmlStyleCommentDelimiter()) {
+        this.syntaxError("HTML-style comments are not supported in Agent Script", this.position());
+      }
+
       if (char === "'" || char === '"') {
         this.skipQuotedString(char);
         tokens.push({ type: "string", value: char });
@@ -357,6 +369,10 @@ class Lexer {
       if (char === "/" && this.peekChar(1) === "*") {
         this.skipBlockComment();
         continue;
+      }
+
+      if (char === "*" && this.peekChar(1) === "/") {
+        this.syntaxError("Unexpected block comment terminator", this.position());
       }
 
       if (isIdentifierStart(this.currentCodePointChar()) || this.startsUnicodeEscape()) {
@@ -867,6 +883,10 @@ class Lexer {
 
   private startsUnicodeEscape(): boolean {
     return this.currentChar() === "\\" && this.peekChar(1) === "u";
+  }
+
+  private isHtmlStyleCommentDelimiter(): boolean {
+    return this.source.startsWith("<!--", this.index) || this.source.startsWith("-->", this.index);
   }
 
   private readUnicodeEscape(): string {

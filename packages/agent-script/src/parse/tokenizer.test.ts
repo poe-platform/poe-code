@@ -7,7 +7,8 @@ import {
   type TemplateLiteral,
   type VariableDeclaration
 } from "./parser.js";
-import { tokenize, type Token } from "./tokenizer.js";
+import { formatParseError } from "./format-error.js";
+import { collectComments, tokenize, type Token } from "./tokenizer.js";
 
 function simplify(tokens: Token[]): Array<Record<string, unknown>> {
   return tokens.map((token) => ({
@@ -408,6 +409,117 @@ describe("tokenize", () => {
     expect(() => tokenize("/* comment /")).toThrowError(
       "Unterminated block comment at line 1, column 1."
     );
+  });
+
+  it("terminates line comments at LF and resumes tokenization on the next line", () => {
+    const tokens = tokenize("// comment\nx");
+    const comments = collectComments("// comment\nx");
+
+    expect(tokens[0]).toMatchObject({
+      type: "identifier",
+      value: "x",
+      start: { line: 2, column: 1, offset: "// comment\n".length }
+    });
+    expect(comments).toEqual([
+      {
+        type: "line",
+        value: " comment",
+        start: { line: 1, column: 1, offset: 0 },
+        end: { line: 1, column: 11, offset: 10 }
+      }
+    ]);
+  });
+
+  it("treats CRLF as one line ending after line comments", () => {
+    const tokens = tokenize("// comment\r\nx");
+    const comments = collectComments("// comment\r\nx");
+
+    expect(tokens[0]).toMatchObject({
+      type: "identifier",
+      value: "x",
+      start: { line: 2, column: 1, offset: "// comment\r\n".length }
+    });
+    expect(comments[0]).toMatchObject({
+      type: "line",
+      value: " comment",
+      start: { line: 1, column: 1, offset: 0 },
+      end: { line: 1, column: 11, offset: 10 }
+    });
+  });
+
+  it("terminates a line comment at EOF without requiring a trailing newline", () => {
+    expect(collectComments("// comment")).toEqual([
+      {
+        type: "line",
+        value: " comment",
+        start: { line: 1, column: 1, offset: 0 },
+        end: { line: 1, column: 11, offset: 10 }
+      }
+    ]);
+  });
+
+  it("does not nest block comments", () => {
+    expect(() => tokenize("/* a /* b */ c */")).toThrowError(
+      "Unexpected block comment terminator at line 1, column 16."
+    );
+  });
+
+  it("reports unterminated block comments at the opening delimiter", () => {
+    expect(() => tokenize("/* unterminated")).toThrowError(
+      "Unterminated block comment at line 1, column 1."
+    );
+  });
+
+  it("treats mixed CRLF and LF line endings as one line each", () => {
+    const tokens = tokenize("a\r\nb\nc");
+
+    expect(tokens[0]).toMatchObject({
+      type: "identifier",
+      value: "a",
+      start: { line: 1, column: 1, offset: 0 }
+    });
+    expect(tokens[1]).toMatchObject({
+      type: "identifier",
+      value: "b",
+      start: { line: 2, column: 1, offset: 3 }
+    });
+    expect(tokens[2]).toMatchObject({
+      type: "identifier",
+      value: "c",
+      start: { line: 3, column: 1, offset: 5 }
+    });
+  });
+
+  it("rejects HTML-style comment delimiters because Agent Script is not Browser-ES", () => {
+    expect(() => tokenize("<!-- comment")).toThrowError(
+      "HTML-style comments are not supported in Agent Script at line 1, column 1."
+    );
+    expect(() => tokenize("--> comment")).toThrowError(
+      "HTML-style comments are not supported in Agent Script at line 1, column 1."
+    );
+  });
+
+  it("ends block comments at the next terminator even when it appears inside comment text", () => {
+    expect(() => tokenize('/* "*/" */ x')).toThrowError(
+      "Unterminated string literal at line 1, column 7."
+    );
+  });
+
+  it("formats unterminated block comment errors at the opening comment span", () => {
+    const source = ["const value = 1;", "  /* unterminated"].join("\n");
+
+    expect(
+      formatParseError(
+        source,
+        "script.agent.ts",
+        new Error("Unterminated block comment at line 2, column 3.")
+      )
+    ).toMatchObject({
+      line: 2,
+      column: 3,
+      excerpt: ["1 | const value = 1;", "2 |   /* unterminated"].join("\n"),
+      caret: "  |   ^"
+    });
   });
 
   it("allows numeric literals with trailing decimal points before property access", () => {

@@ -49,7 +49,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: tokenizer-numeric-literals
     title: Tokenizer — numeric literal edges
@@ -76,8 +76,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): tokenizer numeric edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: tokenizer-strings-templates

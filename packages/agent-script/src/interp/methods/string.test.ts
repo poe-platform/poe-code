@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { run } from "../../run.js";
 import { Budget, SandboxError } from "../budget.js";
 import { createSandboxClosure, isSandboxClosure, type SandboxValue } from "../values.js";
 import { callStringMethod, getStringMember, validateStringMethodArguments } from "./string.js";
@@ -14,6 +15,101 @@ describe("string methods", () => {
     expect(isSandboxClosure(getStringMember("abc", "charAt", budget))).toBe(true);
     expect(isSandboxClosure(getStringMember("abc", "at", budget))).toBe(true);
     expect(getStringMember("abc", "missing", budget)).toBeUndefined();
+  });
+
+  it("evaluates string methods through script member calls", async () => {
+    const result = await run(
+      [
+        "return [",
+        '  "abc".charAt(0),',
+        '  "abc".charAt(10),',
+        '  "abc".charCodeAt(0),',
+        '  Number.isNaN("abc".charCodeAt(10)),',
+        '  "\\uD83D\\uDE00".codePointAt(0),',
+        '  "\\uD83D\\uDE00".charCodeAt(0),',
+        '  "abc".at(-1),',
+        '  "abc".concat("d", "e"),',
+        '  "abcd".startsWith("ab"),',
+        '  "abcd".startsWith("bc", 1),',
+        '  "abcd".endsWith("cd"),',
+        '  "abcd".endsWith("ab", 2),',
+        '  "abc".indexOf("b"),',
+        '  "abc".indexOf("z"),',
+        '  "abc".indexOf("a", 1),',
+        '  "aba".lastIndexOf("a"),',
+        '  "abc".includes("b"),',
+        '  "abc".includes("z"),',
+        '  "a,b,c".split(","),',
+        '  "abc".split(""),',
+        '  "".split(","),',
+        '  "abc".replace("b", "X"),',
+        '  "aba".replaceAll("a", "X"),',
+        '  "abc".repeat(3),',
+        '  "abc".repeat(0),',
+        '  "  abc  ".trim(),',
+        '  "  abc  ".trimStart(),',
+        '  "  abc  ".trimEnd(),',
+        '  "abc".padStart(5, "0"),',
+        '  "abc".padStart(2),',
+        '  "abc".padEnd(5),',
+        '  "ABC".toLowerCase(),',
+        '  "abc".toUpperCase(),',
+        '  "\\u0130".toLowerCase(),',
+        '  "abc".slice(1, 2),',
+        '  "abc".slice(-2),',
+        '  "abc".slice(1, -1),',
+        '  "abc".substring(2, 0),',
+        '  "abc".substr(1, 2),',
+        '  "e\\u0301".normalize("NFC")',
+        "];"
+      ].join("\n")
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: [
+        "a",
+        "",
+        97,
+        true,
+        128512,
+        55357,
+        "c",
+        "abcde",
+        true,
+        true,
+        true,
+        true,
+        1,
+        -1,
+        -1,
+        2,
+        true,
+        false,
+        ["a", "b", "c"],
+        ["a", "b", "c"],
+        [""],
+        "aXc",
+        "XbX",
+        "abcabcabc",
+        "",
+        "abc",
+        "abc  ",
+        "  abc",
+        "00abc",
+        "abc",
+        "abc  ",
+        "abc",
+        "ABC",
+        "i\u0307",
+        "b",
+        "bc",
+        "b",
+        "ab",
+        "bc",
+        "\u00e9"
+      ]
+    });
   });
 
   it("supports character lookup methods", () => {

@@ -160,4 +160,59 @@ describe("dump", () => {
     expect(dumped).not.toContain("call");
     expect(dumped).not.toContain("do-not-dump");
   });
+
+  it("does not invoke object accessors while excluding host state", async () => {
+    const source = "return state";
+    const hostState = {
+      secret: "do-not-dump"
+    };
+    const state: Record<string, unknown> = {
+      visible: true
+    };
+    Object.defineProperty(state, "leaked", {
+      enumerable: true,
+      get: () => hostState.secret
+    });
+
+    const dumped = await dump({
+      snapshot: {
+        sourceHash: hashSource(source),
+        bindings: {
+          state
+        }
+      }
+    });
+    const snapshot = JSON.parse(dumped);
+
+    expect(snapshot.bindings.state).toEqual({
+      visible: true
+    });
+    expect(dumped).not.toContain("leaked");
+    expect(dumped).not.toContain("do-not-dump");
+  });
+
+  it("does not invoke array accessors while excluding host state", async () => {
+    const source = "return values";
+    const hostState = {
+      secret: "do-not-dump"
+    };
+    const values: unknown[] = ["safe"];
+    Object.defineProperty(values, "1", {
+      enumerable: true,
+      get: () => hostState.secret
+    });
+
+    const dumped = await dump({
+      snapshot: {
+        sourceHash: hashSource(source),
+        bindings: {
+          values
+        }
+      }
+    });
+    const snapshot = JSON.parse(dumped);
+
+    expect(snapshot.bindings.values).toEqual(["safe", { kind: "undefined" }]);
+    expect(dumped).not.toContain("do-not-dump");
+  });
 });

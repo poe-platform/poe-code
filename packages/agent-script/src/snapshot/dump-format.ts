@@ -53,7 +53,7 @@ function createDumpFile(snapshot: DumpableSnapshot): Record<string, DumpValue> {
     sourceHash: snapshot.sourceHash
   };
 
-  for (const [key, value] of Object.entries(snapshot)) {
+  for (const [key, value] of getEnumerableDataEntries(snapshot)) {
     if (key === "version" || key === "sourceHash" || key === "heap") {
       continue;
     }
@@ -102,10 +102,7 @@ function serializeDumpValue(
       return reference;
     }
 
-    return value.map((entry, index) => {
-      const serialized = serializeDumpValue(entry, `${path}[${index}]`, state);
-      return serialized === SKIP_VALUE ? { kind: "undefined" } : serialized;
-    });
+    return serializeArrayItems(value, path, state);
   }
 
   if (!isPlainObject(value)) {
@@ -141,10 +138,7 @@ function serializeHeapReference(
     if (Array.isArray(value)) {
       state.heap[String(id)] = {
         kind: "array",
-        items: value.map((entry, index) => {
-          const serialized = serializeDumpValue(entry, `${path}[${index}]`, state);
-          return serialized === SKIP_VALUE ? { kind: "undefined" } : serialized;
-        })
+        items: serializeArrayItems(value, path, state)
       };
     } else {
       state.heap[String(id)] = {
@@ -167,7 +161,7 @@ function serializeObjectEntries(
 ): Record<string, DumpValue> {
   const serialized: Record<string, DumpValue> = {};
 
-  for (const [key, entry] of Object.entries(value)) {
+  for (const [key, entry] of getEnumerableDataEntries(value)) {
     const dumped = serializeDumpValue(entry, `${path}.${key}`, state);
     if (dumped !== SKIP_VALUE) {
       serialized[key] = dumped;
@@ -181,7 +175,7 @@ function indexHeapContainers(snapshot: DumpableSnapshot): WeakMap<object, number
   const stats = new Map<object, ContainerStat>();
   const ancestors = new WeakSet<object>();
 
-  for (const [key, value] of Object.entries(snapshot)) {
+  for (const [key, value] of getEnumerableDataEntries(snapshot)) {
     if (key === "version" || key === "sourceHash" || key === "heap") {
       continue;
     }
@@ -238,7 +232,7 @@ function collectContainerStats(
   stat.expanded = true;
   ancestors.add(value);
 
-  const entries = Array.isArray(value) ? value : Object.values(value);
+  const entries = Array.isArray(value) ? getArrayDataItems(value) : getEnumerableDataValues(value);
   for (const entry of entries) {
     collectContainerStats(entry, stats, ancestors);
   }
@@ -249,4 +243,40 @@ function collectContainerStats(
 function isPlainObject(value: object): value is Record<string, unknown> {
   const prototype = Object.getPrototypeOf(value);
   return prototype === Object.prototype || prototype === null;
+}
+
+function serializeArrayItems(value: unknown[], path: string, state: DumpState): DumpValue[] {
+  return getArrayDataItems(value).map((entry, index) => {
+    const serialized = serializeDumpValue(entry, `${path}[${index}]`, state);
+    return serialized === SKIP_VALUE ? { kind: "undefined" } : serialized;
+  });
+}
+
+function getArrayDataItems(value: unknown[]): unknown[] {
+  const items: unknown[] = [];
+
+  for (let index = 0; index < value.length; index += 1) {
+    const descriptor = Object.getOwnPropertyDescriptor(value, String(index));
+    items.push(descriptor !== undefined && "value" in descriptor ? descriptor.value : undefined);
+  }
+
+  return items;
+}
+
+function getEnumerableDataEntries(value: Record<string, unknown>): Array<[string, unknown]> {
+  const entries: Array<[string, unknown]> = [];
+
+  for (const [key, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(value))) {
+    if (!descriptor.enumerable || !("value" in descriptor)) {
+      continue;
+    }
+
+    entries.push([key, descriptor.value]);
+  }
+
+  return entries;
+}
+
+function getEnumerableDataValues(value: Record<string, unknown>): unknown[] {
+  return getEnumerableDataEntries(value).map(([, entry]) => entry);
 }

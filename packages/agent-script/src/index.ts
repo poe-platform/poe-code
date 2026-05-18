@@ -12,7 +12,7 @@ export { restore } from "./restore.js";
 export { Budget, SandboxError } from "./interp/budget.js";
 export { formatInterpreterError, type InterpreterDiagnostic } from "./error/format.js";
 export { deepCopyFromSandbox, deepCopyToSandbox } from "./interp/values.js";
-export { runHarness } from "./runner/run-harness.js";
+export { runHarness, runHarnessPair } from "./runner/run-harness.js";
 export { extractBlock } from "./loader/extract-block.js";
 export { findExportedConstInitializer } from "./loader/find-exported.js";
 export { splitFrontmatter } from "./loader/frontmatter.js";

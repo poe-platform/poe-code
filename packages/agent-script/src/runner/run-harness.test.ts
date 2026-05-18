@@ -8,7 +8,7 @@ vi.mock("node:fs/promises", async () => {
 
 const { createSandboxClosure, createSandboxPromise } = await import("../interp/values.js");
 const { makeHarnessModule } = await import("../modules/harness.js");
-const { runHarness } = await import("./run-harness.js");
+const { runHarness, runHarnessPair } = await import("./run-harness.js");
 
 describe("runHarness", () => {
   beforeEach(() => {
@@ -76,6 +76,247 @@ describe("runHarness", () => {
       ok: true,
       returnValue: `inspect|codex|pipeline|1|${filepath}`
     });
+  });
+
+  it("surfaces ENOENT with the missing path in the message", async () => {
+    const filepath = "/repo/docs/plans/missing.md";
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => ({})
+      })
+    ).rejects.toMatchObject({
+      code: "ENOENT",
+      message: expect.stringContaining(filepath)
+    });
+  });
+
+  it("throws a clear error when the path points at a directory", async () => {
+    const filepath = "/repo/docs/plans/directory.md";
+    vol.mkdirSync(filepath, { recursive: true });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => ({})
+      })
+    ).rejects.toThrow(`Harness path must point to a file: ${filepath}`);
+  });
+
+  it("throws a no code block error when the file is empty", async () => {
+    const filepath = "/repo/docs/plans/empty.md";
+
+    vol.fromJSON({
+      [filepath]: ""
+    });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => ({})
+      })
+    ).rejects.toThrow("No code block found");
+  });
+
+  it("reports parse errors on source-mapped markdown lines", async () => {
+    const filepath = "/repo/docs/plans/syntax.md";
+
+    vol.fromJSON({
+      [filepath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "---",
+        "",
+        "```js",
+        "const value = ;",
+        "```"
+      ].join("\n")
+    });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => ({})
+      })
+    ).rejects.toMatchObject({
+      filename: filepath,
+      line: 7,
+      name: "ParseError"
+    });
+  });
+
+  it("returns an execution error result when the first await throws and still runs finally", async () => {
+    const filepath = "/repo/docs/plans/await-throws.md";
+    const cleanup = vi.fn(() => undefined);
+
+    vol.fromJSON({
+      [filepath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "---",
+        "",
+        "```js",
+        'import { cleanup, fail } from "api";',
+        "try {",
+        "  await fail();",
+        "  return 'missed';",
+        "} finally {",
+        "  cleanup();",
+        "}",
+        "```"
+      ].join("\n")
+    });
+
+    const ajsPath = "/repo/docs/plans/await-throws.ajs";
+
+    vol.fromJSON({
+      [ajsPath]: [
+        'import { cleanup, fail } from "api";',
+        "export default async () => {",
+        "  try {",
+        "    await fail();",
+        "    return 'missed';",
+        "  } finally {",
+        "    cleanup();",
+        "  }",
+        "};"
+      ].join("\n")
+    });
+
+    const result = await runHarnessPair(filepath, {
+      modulesFor: () => ({
+        api: {
+          cleanup: createSandboxClosure({
+            call: () => cleanup(),
+            name: "cleanup"
+          }),
+          fail: createSandboxClosure({
+            async: true,
+            call: () => createSandboxPromise(Promise.reject(new Error("first await failed"))),
+            name: "fail"
+          })
+        }
+      })
+    });
+
+    expect(result).toMatchObject({
+      ok: false,
+      error: {
+        message: "first await failed",
+        name: "Error"
+      }
+    });
+    expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("returns the value when the harness completes with no awaits", async () => {
+    const filepath = "/repo/docs/plans/no-awaits.md";
+
+    vol.fromJSON({
+      [filepath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "---",
+        "",
+        "```js",
+        "return 42;",
+        "```"
+      ].join("\n")
+    });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => ({})
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 42
+    });
+  });
+
+  it("surfaces modulesFor errors before code runs", async () => {
+    const filepath = "/repo/docs/plans/modules-for-throws.md";
+    const error = new Error("module setup failed");
+
+    vol.fromJSON({
+      [filepath]: ["```js", "return 'missed';", "```"].join("\n")
+    });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => {
+          throw error;
+        }
+      })
+    ).rejects.toBe(error);
+  });
+
+  it("names the missing module when modulesFor omits a required module", async () => {
+    const filepath = "/repo/docs/plans/missing-module.md";
+
+    vol.fromJSON({
+      [filepath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "---",
+        "",
+        "```js",
+        'import { run } from "api";',
+        "return run();",
+        "```"
+      ].join("\n")
+    });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => ({})
+      })
+    ).rejects.toThrow("Unknown module 'api'");
+  });
+
+  it("does not snapshot when snapshotIntervalMs is zero", async () => {
+    const filepath = "/repo/docs/plans/no-snapshots.md";
+    const write = vi.fn(async () => undefined);
+
+    vol.fromJSON({
+      [filepath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "---",
+        "",
+        "```js",
+        'import { wait } from "api";',
+        "await wait();",
+        "return 'done';",
+        "```"
+      ].join("\n")
+    });
+
+    await expect(
+      runHarness(filepath, {
+        modulesFor: () => ({
+          api: {
+            wait: createSandboxClosure({
+              async: true,
+              call: () => createSandboxPromise(Promise.resolve("ok")),
+              name: "wait"
+            })
+          }
+        }),
+        snapshotBackend: {
+          read: async () => undefined,
+          remove: async () => undefined,
+          write
+        },
+        snapshotIntervalMs: 0
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "done"
+    });
+    expect(write).not.toHaveBeenCalled();
   });
 
   it("allows harness applyConstraints through lint and runtime module exports", async () => {
@@ -332,7 +573,7 @@ describe("runHarness", () => {
     });
   });
 
-  it("passes an already-aborted signal through to execution", async () => {
+  it("returns an aborted result when the signal is aborted before the first step", async () => {
     const filepath = "/repo/docs/plans/abort.md";
     const controller = new AbortController();
     const after = vi.fn(() => "after");
@@ -353,7 +594,7 @@ describe("runHarness", () => {
 
     controller.abort();
 
-    const result = runHarness(filepath, {
+    const result = await runHarness(filepath, {
       modulesFor: () => ({
         async: {
           wait: createSandboxClosure({
@@ -365,9 +606,13 @@ describe("runHarness", () => {
       signal: controller.signal
     });
 
-    await expect(result).rejects.toMatchObject({
-      message: "This operation was aborted",
-      name: "AbortError"
+    expect(result).toMatchObject({
+      aborted: true,
+      error: {
+        message: "This operation was aborted",
+        name: "AbortError"
+      },
+      ok: false
     });
     expect(after).not.toHaveBeenCalled();
   });
@@ -432,6 +677,64 @@ describe("runHarness", () => {
     await expect(result).resolves.toMatchObject({
       ok: true,
       returnValue: "done"
+    });
+  });
+});
+
+describe("runHarnessPair", () => {
+  beforeEach(() => {
+    vol.reset();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("keeps concurrent runs against the same pair independent", async () => {
+    const mdPath = "/repo/harnesses/example.md";
+    const ajsPath = "/repo/harnesses/example.ajs";
+
+    vol.fromJSON({
+      [mdPath]: ["---", "name: alpha", "---", "", "Body"].join("\n"),
+      [ajsPath]: [
+        'import { step } from "state";',
+        "export default async (frontmatter) => {",
+        "  const first = await step();",
+        "  const second = await step();",
+        "  return JSON.stringify([frontmatter.name, first, second]);",
+        "};"
+      ].join("\n")
+    });
+
+    const modulesFor = vi.fn(() => {
+      let count = 0;
+      return {
+        state: {
+          step: createSandboxClosure({
+            async: true,
+            call: () => {
+              count += 1;
+              return createSandboxPromise(Promise.resolve(count));
+            },
+            name: "step"
+          })
+        }
+      };
+    });
+
+    const [first, second] = await Promise.all([
+      runHarnessPair(mdPath, { modulesFor }),
+      runHarnessPair(mdPath, { modulesFor })
+    ]);
+
+    expect(modulesFor).toHaveBeenCalledTimes(2);
+    expect(first).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["alpha", 1, 2])
+    });
+    expect(second).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["alpha", 1, 2])
     });
   });
 });

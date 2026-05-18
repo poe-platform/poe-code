@@ -30,6 +30,13 @@ export function createSnapshotScheduler<TSnapshot>(
   }
 
   const intervalMs = options.snapshotIntervalMs ?? DEFAULT_SNAPSHOT_INTERVAL_MS;
+  if (intervalMs === 0) {
+    return {
+      async finish() {},
+      onYield() {}
+    };
+  }
+
   let nextCheckpointAt = Date.now() + intervalMs;
   let pendingWrite = Promise.resolve();
 

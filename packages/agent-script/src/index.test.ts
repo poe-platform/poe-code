@@ -28,7 +28,7 @@ import { findExportedConstInitializer } from "./loader/find-exported.js";
 import { hashSource } from "./parse/hash.js";
 import { restore } from "./restore.js";
 import { run } from "./run.js";
-import { runHarness } from "./runner/run-harness.js";
+import { runHarness, runHarnessPair } from "./runner/run-harness.js";
 import { noopOtelSink } from "./observability/otel.js";
 import { FileSnapshotBackend } from "./snapshot/backend.js";
 
@@ -42,6 +42,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(lint).toBe(lintFromIndex);
     expect(api.run).toBe(run);
     expect(api.runHarness).toBe(runHarness);
+    expect(api.runHarnessPair).toBe(runHarnessPair);
     expect(api.noopOtelSink).toBe(noopOtelSink);
     expect(api.dump).toBe(dump);
     expect(api.restore).toBe(restore);
@@ -90,6 +91,7 @@ describe("@poe-code/agent-script public exports", () => {
       "restore",
       "run",
       "runHarness",
+      "runHarnessPair",
       "runWithSpawnUsageAccumulator",
       "splitFrontmatter"
     ]);

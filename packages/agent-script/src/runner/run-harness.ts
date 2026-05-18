@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { extname } from "node:path";
 
 import { extractBlock } from "../loader/extract-block.js";
@@ -21,8 +21,17 @@ export type RunHarnessOptions = {
   otelSink?: OtelSink;
   signal?: AbortSignal;
   snapshotBackend?: SnapshotBackend;
+  snapshotIntervalMs?: number;
   snapshotPath?: string;
 };
+
+export type RunHarnessExecutionErrorResult = {
+  aborted?: true;
+  error: unknown;
+  ok: false;
+};
+
+export type RunHarnessResult = RunResult | RunHarnessExecutionErrorResult;
 
 export class LintError extends Error {
   readonly diagnostics: readonly Diagnostic[];
@@ -34,8 +43,11 @@ export class LintError extends Error {
   }
 }
 
-export async function runHarness(filepath: string, options: RunHarnessOptions): Promise<RunResult> {
-  const rawSource = stripByteOrderMark(await readFile(filepath, "utf8"));
+export async function runHarness(
+  filepath: string,
+  options: RunHarnessOptions
+): Promise<RunHarnessResult> {
+  const rawSource = stripByteOrderMark(await readHarnessFile(filepath));
   const { executableSource, frontmatter, isRawScript } = loadExecutableSource(filepath, rawSource);
   const meta = {
     filepath,
@@ -53,13 +65,71 @@ export async function runHarness(filepath: string, options: RunHarnessOptions): 
     throw new LintError(lintErrors);
   }
 
-  return run(executableSource, {
+  return runHarnessSource(executableSource, {
+    filename: filepath,
     modules,
     otelSink: options.otelSink,
     signal: options.signal,
     snapshotBackend: options.snapshotBackend,
+    snapshotIntervalMs: options.snapshotIntervalMs,
     snapshotPath: options.snapshotPath
   });
+}
+
+export async function runHarnessPair(
+  filepath: string,
+  options: RunHarnessOptions
+): Promise<RunHarnessResult> {
+  const pair = resolveHarnessPair(filepath);
+  const [rawMarkdown, rawScript] = await Promise.all([
+    readHarnessFile(pair.markdownPath),
+    readHarnessFile(pair.scriptPath)
+  ]);
+  const { frontmatter, body } = splitFrontmatter(stripByteOrderMark(rawMarkdown));
+  const executableSource = stripByteOrderMark(rawScript);
+  const meta = {
+    filepath: pair.markdownPath,
+    kind: frontmatter.kind,
+    version: frontmatter.version
+  };
+  const modules = options.modulesFor(frontmatter, meta);
+  const diagnostics = lint(executableSource, {
+    allowedExportNames: ["schema"],
+    filename: pair.scriptPath,
+    frontmatterFields: Object.keys(frontmatter),
+    modules: createLintModulesFromRuntimeRegistry(modules)
+  });
+  const lintErrors = diagnostics.filter((diagnostic) => diagnostic.severity === "error");
+
+  if (lintErrors.length > 0) {
+    throw new LintError(lintErrors);
+  }
+
+  return runHarnessSource(executableSource, {
+    entryPointArgs: [frontmatter],
+    filename: pair.scriptPath,
+    importMeta: {
+      body,
+      filepath: pair.markdownPath,
+      kind: frontmatter.kind,
+      version: frontmatter.version
+    },
+    modules,
+    otelSink: options.otelSink,
+    signal: options.signal,
+    snapshotBackend: options.snapshotBackend,
+    snapshotIntervalMs: options.snapshotIntervalMs,
+    snapshotPath: options.snapshotPath
+  });
+}
+
+async function readHarnessFile(filepath: string): Promise<string> {
+  const stats = await stat(filepath);
+  if (!stats.isFile()) {
+    throw new Error(`Harness path must point to a file: ${filepath}`);
+  }
+
+  return readFile(filepath, "utf8");
 }
 
 function loadExecutableSource(
@@ -71,6 +141,10 @@ function loadExecutableSource(
   isRawScript: boolean;
 } {
   if (extname(filepath) === ".ajs") {
+    if (source.length === 0) {
+      throw new Error(`No code block found in empty harness file: ${filepath}`);
+    }
+
     return {
       executableSource: source,
       frontmatter: {},
@@ -79,6 +153,10 @@ function loadExecutableSource(
   }
 
   const { frontmatter, body } = splitFrontmatter(source);
+  if (source.length === 0 || body.trim().length === 0) {
+    throw new Error(`No code block found in empty harness file: ${filepath}`);
+  }
+
   const { source: executableBlock, lineOffset } = extractBlock(body);
   const absoluteLineOffset =
     countLineBreaks(source.slice(0, source.length - body.length)) + lineOffset;
@@ -88,6 +166,55 @@ function loadExecutableSource(
     frontmatter,
     isRawScript: false
   };
+}
+
+function resolveHarnessPair(filepath: string): { markdownPath: string; scriptPath: string } {
+  const extension = extname(filepath);
+  const basename = extension.length === 0 ? filepath : filepath.slice(0, -extension.length);
+
+  if (extension === ".ajs") {
+    return {
+      markdownPath: `${basename}.md`,
+      scriptPath: filepath
+    };
+  }
+
+  return {
+    markdownPath: filepath,
+    scriptPath: `${basename}.ajs`
+  };
+}
+
+async function runHarnessSource(
+  executableSource: string,
+  options: Parameters<typeof run>[1]
+): Promise<RunHarnessResult> {
+  try {
+    return await run(executableSource, options);
+  } catch (error) {
+    if (isSetupError(error)) {
+      throw error;
+    }
+
+    return {
+      ...(isAbortError(error) ? { aborted: true as const } : {}),
+      error,
+      ok: false
+    };
+  }
+}
+
+function isSetupError(error: unknown): boolean {
+  return error instanceof Error && error.name === "ParseError";
+}
+
+function isAbortError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    (error as { name?: unknown }).name === "AbortError"
+  );
 }
 
 function excludeHarnessModule(modules: ModuleRegistry, isRawScript: boolean): ModuleRegistry {

@@ -436,6 +436,19 @@ describe("buildSpawnArgs", () => {
     expect(result.args).not.toContain("test");
   });
 
+  it("uses stdin args for codex when the prompt contains a null byte", () => {
+    const prompt = 'Test "a\0b" literal';
+    const result = buildSpawnArgs("codex", { prompt });
+
+    expect(result.args).toEqual([
+      codexSpawnConfig.promptFlag,
+      ...codexSpawnConfig.stdinMode!.extraArgs,
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo
+    ]);
+    expect(result.args).not.toContain(prompt);
+  });
+
   it("ignores useStdin for agents without stdinMode", () => {
     const result = buildSpawnArgs("opencode", { prompt: "hello", useStdin: true });
 

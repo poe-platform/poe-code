@@ -7,6 +7,7 @@ import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { observeAgentSpawn } from "./observability/otel.js";
 import { createSpawnParallel } from "./parallel.js";
+import { shouldSendPromptViaStdin } from "./prompt-transport.js";
 import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
 import { spawnStreaming } from "./acp/spawn.js";
@@ -173,7 +174,9 @@ export function buildSpawnArgs(
   options: BuildSpawnArgsOptions
 ): BuildSpawnArgsResult {
   const { binaryName, spawnConfig } = resolveCliConfig(agentId);
-  const stdinMode = options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
+  const stdinMode = shouldSendPromptViaStdin(spawnConfig, options)
+    ? spawnConfig.stdinMode
+    : undefined;
   const result = buildCliArgs(spawnConfig, options, stdinMode);
   return { binaryName, args: result.args, env: result.env };
 }
@@ -206,7 +209,9 @@ async function runSpawn(
 
   const { agentId: resolvedId, binaryName, spawnConfig } = resolveCliConfig(agentId);
 
-  const stdinMode = options.useStdin && spawnConfig.stdinMode ? spawnConfig.stdinMode : undefined;
+  const stdinMode = shouldSendPromptViaStdin(spawnConfig, options)
+    ? spawnConfig.stdinMode
+    : undefined;
 
   const { args: spawnArgs, env: modeEnv } = buildCliArgs(spawnConfig, options, stdinMode);
 

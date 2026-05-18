@@ -1266,6 +1266,41 @@ describe("acp/spawnStreaming", () => {
     expect(mock.getStdin()).toBe("hello from stdin");
   });
 
+  it("writes prompts containing null bytes to stdin when stdinMode is available", async () => {
+    const prompt = 'Tokenize "a\0b" without crashing';
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({ type: "thread.started", thread_id: "t1" }),
+        JSON.stringify({
+          type: "turn.completed",
+          usage: { input_tokens: 1, output_tokens: 2, cached_input_tokens: 0 }
+        })
+      ],
+      exitCode: 0
+    });
+
+    const spawnMock = vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const { events, done } = spawnStreaming({
+      agentId: "codex",
+      prompt
+    });
+
+    await collect(events);
+    await done;
+
+    expect(spawnMock).toHaveBeenCalledTimes(1);
+    const [, args] = spawnMock.mock.calls[0];
+    expect(args).toEqual([
+      codexSpawnConfig.promptFlag,
+      ...codexSpawnConfig.defaultArgs,
+      ...codexSpawnConfig.modes.yolo,
+      ...codexSpawnConfig.stdinMode!.extraArgs
+    ]);
+    expect(args).not.toContain(prompt);
+    expect(mock.getStdin()).toBe(prompt);
+  });
+
   // IMPORTANT: CLI binaries (claude, codex, etc.) only accept bare model IDs
   // (e.g. "claude-opus-4-6"), not namespaced ones (e.g. "anthropic/claude-opus-4.6").
   // The namespace MUST be stripped and dots converted to hyphens before invoking the binary.

@@ -7,6 +7,7 @@ import { resolveConfig } from "../configs/resolve-config.js";
 import { getMcpArgs, getMcpEnv } from "../mcp-args.js";
 import { stripModelNamespace } from "../model-utils.js";
 import { observeAgentSpawn } from "../observability/otel.js";
+import { shouldSendPromptViaStdin } from "../prompt-transport.js";
 import { resolveSpawnExecution } from "../runtime.js";
 import {
   resolveModeConfig,
@@ -208,7 +209,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     args.push(...resumeArgs);
   }
 
-  const useStdin = !!options.useStdin && !!spawnConfig.stdinMode;
+  const useStdin = shouldSendPromptViaStdin(spawnConfig, options);
   if (!useStdin || !spawnConfig.stdinMode?.omitPrompt) {
     args.push(options.prompt);
   }

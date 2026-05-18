@@ -1063,7 +1063,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: runner-run-harness-edges
     title: runner/run-harness — top-level run failures
@@ -1085,8 +1085,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): run-harness top-level edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: runner-signal-dump-edges

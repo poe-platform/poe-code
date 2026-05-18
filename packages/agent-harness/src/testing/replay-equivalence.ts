@@ -23,37 +23,28 @@ export async function assertReplayEquivalent(path: string, modulesFor: ModulesFo
       preserveSnapshotOnSuccess: true,
       resume: false,
       snapshotBackend: originalBackend,
-      snapshotIntervalMs: 0,
+      // Force the scheduler threshold into the past so every yielded snapshot is captured.
+      snapshotIntervalMs: -1,
       snapshotPath
     });
     const originalReturnValue = readReturnValue(original, "original");
     const originalHostCalls = await readOptionalTextFile(hostCallStorePath);
-    const snapshots: ReplaySnapshot[] = [
-      ...originalBackend.writes.map((snapshot) => ({ kind: "yielded" as const, snapshot })),
-      {
-        kind: "completed",
-        returnValue: originalReturnValue,
-        snapshot: original.snapshot
-      }
-    ];
+    const snapshots = [...originalBackend.writes, original.snapshot];
 
     for (let index = 0; index < snapshots.length; index += 1) {
       const replaySnapshot = snapshots[index];
       await restoreOptionalTextFile(hostCallStorePath, originalHostCalls);
-      const replayReturnValue =
-        replaySnapshot.kind === "completed"
-          ? replaySnapshot.returnValue
-          : readReturnValue(
-              await runHarnessPair(path, {
-                clock: createDeterministicClock(),
-                modulesFor,
-                preserveSnapshotOnSuccess: true,
-                snapshotBackend: new MemorySnapshotBackend(replaySnapshot.snapshot),
-                snapshotIntervalMs: 0,
-                snapshotPath
-              }),
-              `replay ${index + 1}`
-            );
+      const replayReturnValue = readReturnValue(
+        await runHarnessPair(path, {
+          clock: createDeterministicClock(),
+          modulesFor,
+          preserveSnapshotOnSuccess: true,
+          snapshotBackend: new MemorySnapshotBackend(replaySnapshot),
+          snapshotIntervalMs: 0,
+          snapshotPath
+        }),
+        `replay ${index + 1}`
+      );
 
       if (!isDeepStrictEqual(replayReturnValue, originalReturnValue)) {
         throw new Error(
@@ -73,17 +64,6 @@ export async function assertReplayEquivalent(path: string, modulesFor: ModulesFo
     ]);
   }
 }
-
-type ReplaySnapshot =
-  | {
-      kind: "yielded";
-      snapshot: Snapshot;
-    }
-  | {
-      kind: "completed";
-      returnValue: unknown;
-      snapshot: Snapshot;
-    };
 
 class MemorySnapshotBackend implements SnapshotBackend {
   readonly writes: Snapshot[] = [];

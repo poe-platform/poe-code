@@ -3592,13 +3592,26 @@ function createTemplateLiteral(token: Token): TemplateLiteral {
 function assertBareImportSpecifier(specifier: StringLiteral): void {
   if (
     specifier.value.includes("/") ||
-    specifier.value.includes(".") ||
+    hasInvalidImportPathDots(specifier.value) ||
     hasProtocolPrefix(specifier.value)
   ) {
     throw new Error(
       `Invalid import specifier '${specifier.value}' at line ${specifier.span.start.line}, column ${specifier.span.start.column}.`
     );
   }
+}
+
+function hasInvalidImportPathDots(value: string): boolean {
+  const segments = value.split(".");
+
+  if (segments.some((segment) => segment.length === 0)) {
+    return true;
+  }
+
+  return (
+    segments.length > 1 &&
+    ["js", "mjs", "cjs", "ts", "mts", "cts", "json"].includes(segments.at(-1) ?? "")
+  );
 }
 
 function hasProtocolPrefix(value: string): boolean {

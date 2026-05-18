@@ -2945,6 +2945,14 @@ describe("parse", () => {
         value: "name"
       }
     });
+
+    expect(parse('import { x } from "pulls.reviews"')).toMatchObject({
+      type: "ImportDeclaration",
+      source: {
+        type: "StringLiteral",
+        value: "pulls.reviews"
+      }
+    });
   });
 
   it("rejects non-bare import specifiers with the bad value in the message", () => {

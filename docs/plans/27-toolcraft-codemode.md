@@ -107,8 +107,8 @@ tasks:
       direct SDK call. Stub the humanInLoop provider in-memory; no real
       approvals.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: search-meta-tool

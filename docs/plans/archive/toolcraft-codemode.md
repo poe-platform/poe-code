@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: scaffold-package
     title: Scaffold packages/toolcraft-codemode
@@ -37,7 +36,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: walk-toolcraft-tree
     title: Flatten a resolved toolcraft root into command entries
     prompt: |
@@ -74,7 +72,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: build-host-modules
     title: Expose toolcraft commands as agent-script host modules
     prompt: |
@@ -110,7 +107,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: search-meta-tool
     title: Search meta-tool with BM25 over the command tree
     prompt: |
@@ -148,7 +144,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: get-schemas-meta-tool
     title: get_schemas meta-tool returning JSON schemas by path
     prompt: |
@@ -179,7 +174,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: execute-meta-tool
     title: execute meta-tool running agent-script with the host modules
     prompt: |
@@ -233,7 +227,6 @@ tasks:
       - Toolcraft `HandlerContext` does not expose an `AbortSignal` today;
         `execute` currently runs agent-script without cancellation plumbing
         until toolcraft surfaces one.
-
   - id: code-mode-entrypoint
     title: codeMode(root, options) returning a Group of meta-tools
     prompt: |
@@ -285,7 +278,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: package-readme
     title: Write the toolcraft-codemode README
     prompt: |
@@ -322,7 +314,9 @@ tasks:
       No tests for the README.
     status:
       implement: done
-      commit: open
+      commit: done
+name: toolcraft-codemode
+state: archived
 ---
 
 # Context

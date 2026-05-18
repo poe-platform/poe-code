@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AS010 } from "./AS010.js";
 
 describe("AS010", () => {
+  const warningNames = (source: string) =>
+    AS010(source).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
+
   it("reports a top-level let that stores a host call result and is never read", () => {
     const source = ['import { spawn } from "agent";', "let handle = spawn();"].join("\n");
 
@@ -110,5 +113,45 @@ describe("AS010", () => {
         }
       }
     ]);
+  });
+
+  it("counts reads inside template-literal interpolations", () => {
+    const source = ['import { spawn } from "agent";', "let handle = spawn();", "`${handle}`;"].join("\n");
+
+    expect(AS010(source)).toEqual([]);
+  });
+
+  it("counts reads inside parameter and destructuring defaults", () => {
+    const source = [
+      'import { spawn } from "agent";',
+      "let handle = spawn();",
+      "const readParam = (value = handle) => value;",
+      "let other = spawn();",
+      "const readObject = ({ value = other } = {}) => value;"
+    ].join("\n");
+
+    expect(AS010(source)).toEqual([]);
+  });
+
+  it("counts reads inside catch binding pattern defaults", () => {
+    const source = [
+      'import { spawn } from "agent";',
+      "let handle = spawn();",
+      "try {",
+      "  fail();",
+      "} catch ({ value = handle }) {",
+      "  value;",
+      "}"
+    ].join("\n");
+
+    expect(AS010(source)).toEqual([]);
+  });
+
+  it("counts reads inside inner arrows that are exported handlers", () => {
+    const source = ['import { spawn } from "agent";', "let handle = spawn();", "export default () => () => handle;"].join(
+      "\n"
+    );
+
+    expect(warningNames(source)).toEqual([]);
   });
 });

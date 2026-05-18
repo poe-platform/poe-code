@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AS002 } from "./AS002.js";
 
 describe("AS002", () => {
+  const reportedNames = (source: string) =>
+    AS002(source).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
+
   it("allows lambdas to close over const bindings, parameters, and imports", () => {
     const source = [
       'import { delay as importedDelay } from "delay";',
@@ -138,5 +141,40 @@ describe("AS002", () => {
         }
       }
     ]);
+  });
+
+  it("reports captures inside template-literal interpolations", () => {
+    const source = ["let counter = 0;", "const read = () => `${counter}`;"].join("\n");
+
+    expect(reportedNames(source)).toEqual(["counter"]);
+  });
+
+  it("reports captures inside catch binding pattern defaults", () => {
+    const source = [
+      "let fallback = 1;",
+      "try {",
+      "  fail();",
+      "} catch ({ read = () => fallback }) {",
+      "  read();",
+      "}"
+    ].join("\n");
+
+    expect(reportedNames(source)).toEqual(["fallback"]);
+  });
+
+  it("reports captures inside object and array destructuring defaults", () => {
+    const source = [
+      "let fallback = 1;",
+      "const readObject = ({ value = () => fallback } = {}) => value();",
+      "const readArray = ([value = () => fallback] = []) => value();"
+    ].join("\n");
+
+    expect(reportedNames(source)).toEqual(["fallback", "fallback"]);
+  });
+
+  it("reports captures inside inner arrows that are exported handlers", () => {
+    const source = ["let counter = 0;", "export default () => () => counter;"].join("\n");
+
+    expect(reportedNames(source)).toEqual(["counter"]);
   });
 });

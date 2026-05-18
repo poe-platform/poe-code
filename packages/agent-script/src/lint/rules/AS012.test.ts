@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { AS012 } from "./AS012.js";
 
 describe("AS012", () => {
+  const messages = (source: string) => AS012(source).map((diagnostic) => diagnostic.message);
+
   it("reports function replacers for replace and replaceAll", () => {
     const source = [
       "const once = value.replace('a', () => 'b');",
@@ -261,5 +263,41 @@ describe("AS012", () => {
     ].join("\n");
 
     expect(AS012(source, { filename: "rule.js" })).toEqual([]);
+  });
+
+  it("reports unsupported calls inside template-literal interpolations", () => {
+    const source = "const value = `${text.replace(/a/, 'b')}`;";
+
+    expect(messages(source)).toEqual([
+      "String#replace does not support function replacers or regex search values."
+    ]);
+  });
+
+  it("reports unsupported calls inside parameter and destructuring defaults", () => {
+    const source = [
+      "const readParam = (value = text.split(/,/)) => value;",
+      "const { value = text.replaceAll(/a/g, 'b') } = input;",
+      "const [item = values.sort(compare)] = input;"
+    ].join("\n");
+
+    expect(messages(source)).toEqual([
+      "String#split does not support regex separator values.",
+      "String#replaceAll does not support function replacers or regex search values.",
+      "Array#sort only supports comparators that are arrows returning a number."
+    ]);
+  });
+
+  it("reports unsupported calls inside catch binding pattern defaults", () => {
+    const source = "try { fail(); } catch ({ value = text.replace('a', () => 'b') }) { value; }";
+
+    expect(messages(source)).toEqual([
+      "String#replace does not support function replacers or regex search values."
+    ]);
+  });
+
+  it("reports unsupported calls inside inner arrows that are exported handlers", () => {
+    const source = "export default () => () => text.split(/,/);";
+
+    expect(messages(source)).toEqual(["String#split does not support regex separator values."]);
   });
 });

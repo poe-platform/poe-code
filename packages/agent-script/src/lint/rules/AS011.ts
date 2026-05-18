@@ -95,6 +95,12 @@ class AS011Scanner {
       case "ThrowStatement":
         this.visitThrowStatement(node);
         return;
+      case "ExportNamedDeclaration":
+        this.visitVariableDeclaration(node.declaration);
+        return;
+      case "ExportDefaultDeclaration":
+        this.visitExpression(node.declaration);
+        return;
       case "ImportDeclaration":
       case "BreakStatement":
       case "ContinueStatement":

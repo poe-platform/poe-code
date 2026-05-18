@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AS011 } from "./AS011.js";
 
 describe("AS011", () => {
+  const forbiddenSnippets = (source: string) =>
+    AS011(source).map((diagnostic) => source.slice(diagnostic.span.start.offset, diagnostic.span.end.offset));
+
   it("reports dotted access to forbidden property names", () => {
     const source = ["value.__proto__;", "value.prototype;", "value.constructor;"].join("\n");
 
@@ -138,5 +141,31 @@ describe("AS011", () => {
     ].join("\n");
 
     expect(AS011(source)).toEqual([]);
+  });
+
+  it("reports forbidden access inside template-literal interpolations", () => {
+    expect(forbiddenSnippets("const value = `${record.constructor}`;")).toEqual(["constructor"]);
+  });
+
+  it("reports forbidden access inside parameter and destructuring defaults", () => {
+    const source = [
+      "const readParam = (value = record.__proto__) => value;",
+      "const { value = record.prototype } = input;",
+      "const [item = record.constructor] = input;"
+    ].join("\n");
+
+    expect(forbiddenSnippets(source)).toEqual(["__proto__", "prototype", "constructor"]);
+  });
+
+  it("reports forbidden access inside catch binding pattern defaults", () => {
+    const source = ["try { fail(); } catch ({ value = record.constructor }) { value; }"].join("\n");
+
+    expect(forbiddenSnippets(source)).toEqual(["constructor"]);
+  });
+
+  it("reports forbidden access inside inner arrows that are exported handlers", () => {
+    const source = "export default () => () => record.constructor;";
+
+    expect(forbiddenSnippets(source)).toEqual(["constructor"]);
   });
 });

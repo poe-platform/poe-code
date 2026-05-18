@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AS003 } from "./AS003.js";
 
 describe("AS003", () => {
+  const unknownNames = (source: string) =>
+    AS003(source).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
+
   it("allows runtime globals by default", () => {
     expect(AS003('String("x");')).toEqual([]);
     expect(AS003("Math.PI;")).toEqual([]);
@@ -236,5 +239,36 @@ describe("AS003", () => {
         }
       }
     ]);
+  });
+
+  it("reports unresolved identifiers inside template-literal interpolations", () => {
+    expect(unknownNames("const value = `${missing}`; value;")).toEqual(["missing"]);
+  });
+
+  it("reports unresolved identifiers inside binding defaults", () => {
+    const source = [
+      "const input = {};",
+      "const { value = missingObjectDefault } = input;",
+      "const [item = missingArrayDefault] = [];",
+      "value; item;"
+    ].join("\n");
+
+    expect(unknownNames(source)).toEqual(["missingObjectDefault", "missingArrayDefault"]);
+  });
+
+  it("reports unresolved identifiers inside catch binding pattern defaults", () => {
+    const source = [
+      "try {",
+      "  fail();",
+      "} catch ({ message = missingMessage }) {",
+      "  message;",
+      "}"
+    ].join("\n");
+
+    expect(unknownNames(source)).toEqual(["fail", "missingMessage"]);
+  });
+
+  it("reports unresolved identifiers inside inner arrows that are exported handlers", () => {
+    expect(unknownNames("export default () => () => missing;")).toEqual(["missing"]);
   });
 });

@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AS005 } from "./AS005.js";
 
 describe("AS005", () => {
+  const missingExports = (source: string, modules: NonNullable<Parameters<typeof AS005>[1]>["modules"]) =>
+    AS005(source, { modules }).map((diagnostic) => diagnostic.message.match(/export '([^']+)'/)?.[1]);
+
   it("allows imports of exported names from registered modules", () => {
     const source = [
       'import value from "delay";',
@@ -175,5 +178,23 @@ describe("AS005", () => {
         }
       }
     ]);
+  });
+
+  it("reports invalid default and named imports at file boundaries", () => {
+    const source = ['import first from "api";', 'import { missing } from "api";'].join("\n");
+
+    expect(missingExports(source, { api: ["request"] })).toEqual(["default", "missing"]);
+  });
+
+  it("ignores unknown modules because AS004 owns module existence", () => {
+    const source = 'import { missing } from "unknown";';
+
+    expect(AS005(source, { modules: { api: ["missing"] } })).toEqual([]);
+  });
+
+  it("keeps namespace imports valid while checking adjacent named imports", () => {
+    const source = ['import * as api from "api";', 'import { absent } from "api";'].join("\n");
+
+    expect(missingExports(source, { api: ["request"] })).toEqual(["absent"]);
   });
 });

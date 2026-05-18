@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AS013 } from "./AS013.js";
 
 describe("AS013", () => {
+  const shadowedNames = (source: string, modules: NonNullable<Parameters<typeof AS013>[1]>["modules"]) =>
+    AS013(source, { modules }).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
+
   it("reports top-level const and let bindings that shadow registered module names", () => {
     const source = [
       "const agent = createAgent();",
@@ -166,5 +169,25 @@ describe("AS013", () => {
 
   it("returns no diagnostics when no modules are registered", () => {
     expect(AS013("const agent = value;", { modules: {} })).toEqual([]);
+  });
+
+  it("reports shadowing exported named bindings at file boundaries", () => {
+    const source = ["export const agent = value;", "const safe = value;", "export const git = value;"].join(
+      "\n"
+    );
+
+    expect(shadowedNames(source, { agent: ["run"], git: ["status"] })).toEqual(["agent", "git"]);
+  });
+
+  it("reports shadowing exported const bindings inside multi-declarator declarations", () => {
+    const source = "export const safe = value, agent = createAgent(), git = repo;";
+
+    expect(shadowedNames(source, { agent: ["run"], git: ["status"] })).toEqual(["agent", "git"]);
+  });
+
+  it("ignores module names referenced only in export initializer expressions", () => {
+    const source = "export const safe = agent.run();";
+
+    expect(shadowedNames(source, { agent: ["run"] })).toEqual([]);
   });
 });

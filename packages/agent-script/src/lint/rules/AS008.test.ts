@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { AS008 } from "./AS008.js";
 
 describe("AS008", () => {
+  const reportedLines = (source: string) => AS008(source).map((diagnostic) => diagnostic.line);
+
   it("allows await at the script top level and inside async arrow functions", () => {
     const source = [
       "await load();",
@@ -98,5 +100,28 @@ describe("AS008", () => {
         }
       }
     ]);
+  });
+
+  it("reports await inside template-literal interpolations in nested blocks", () => {
+    const source = ["if (ready) {", "  const value = `${await load()}`;", "}"].join("\n");
+
+    expect(reportedLines(source)).toEqual([2]);
+  });
+
+  it("reports await inside catch binding pattern defaults", () => {
+    const source = ["try {", "  fail();", "} catch ({ value = await load() }) {", "  value;", "}"].join("\n");
+
+    expect(reportedLines(source)).toEqual([3]);
+  });
+
+  it("allows await at file boundaries when it remains top-level", () => {
+    expect(AS008("await start();")).toEqual([]);
+    expect(AS008("const ready = true;\nawait finish();")).toEqual([]);
+  });
+
+  it("visits exported default arrows and leaves nested await ownership to AS-MISSING-ASYNC", () => {
+    const source = "export default () => () => await load();";
+
+    expect(AS008(source)).toEqual([]);
   });
 });

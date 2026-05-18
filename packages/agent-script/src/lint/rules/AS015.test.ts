@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { AS015 } from "./AS015.js";
 
 describe("AS015", () => {
+  const reportedLines = (source: string) => AS015(source).map((diagnostic) => diagnostic.line);
+
   it("reports Promise.race calls with a single-element array literal", () => {
     const source = "const result = Promise.race([runTask()]);";
 
@@ -87,5 +89,33 @@ describe("AS015", () => {
     ].join("\n");
 
     expect(AS015(source, { filename: "rule.js" })).toEqual([]);
+  });
+
+  it("reports single-element races inside template-literal interpolations", () => {
+    const source = "const value = `${Promise.race([task()])}`;";
+
+    expect(reportedLines(source)).toEqual([1]);
+  });
+
+  it("reports single-element races inside parameter and destructuring defaults", () => {
+    const source = [
+      "const readParam = (value = Promise.race([task()])) => value;",
+      "const { value = Promise.race([task()]) } = input;",
+      "const [item = Promise.race([task()])] = input;"
+    ].join("\n");
+
+    expect(reportedLines(source)).toEqual([1, 2, 3]);
+  });
+
+  it("reports single-element races inside catch binding pattern defaults", () => {
+    const source = "try { fail(); } catch ({ value = Promise.race([task()]) }) { value; }";
+
+    expect(reportedLines(source)).toEqual([1]);
+  });
+
+  it("reports single-element races inside inner arrows that are exported handlers", () => {
+    const source = "export default () => () => Promise.race([task()]);";
+
+    expect(reportedLines(source)).toEqual([1]);
   });
 });

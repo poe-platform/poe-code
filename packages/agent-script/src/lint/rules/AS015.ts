@@ -1,6 +1,8 @@
 import {
   parseModule,
   type ArrayExpression,
+  type ArrayPattern,
+  type AssignmentPattern,
   type ArrowFunctionExpression,
   type AssignmentExpression,
   type CatchClause,
@@ -10,12 +12,15 @@ import {
   type Expression,
   type ForOfStatement,
   type ForStatement,
+  type Identifier,
   type IfStatement,
   type LogicalExpression,
   type MemberExpression,
   type Module,
   type ObjectExpression,
+  type ObjectPattern,
   type Property,
+  type RestElement,
   type ReturnStatement,
   type SourceSpan,
   type Statement,
@@ -93,6 +98,12 @@ class AS015Scanner {
       case "ThrowStatement":
         this.visitThrowStatement(node);
         return;
+      case "ExportNamedDeclaration":
+        this.visitVariableDeclaration(node.declaration);
+        return;
+      case "ExportDefaultDeclaration":
+        this.visitExpression(node.declaration);
+        return;
       case "ImportDeclaration":
       case "BreakStatement":
       case "ContinueStatement":
@@ -154,6 +165,9 @@ class AS015Scanner {
   }
 
   private visitCatchClause(node: CatchClause): void {
+    if (node.param !== undefined) {
+      this.visitPattern(node.param);
+    }
     this.visitStatement(node.body);
   }
 
@@ -164,6 +178,7 @@ class AS015Scanner {
   }
 
   private visitVariableDeclarator(node: VariableDeclarator): void {
+    this.visitPattern(node.id);
     if (node.init !== undefined) {
       this.visitExpression(node.init);
     }
@@ -226,6 +241,10 @@ class AS015Scanner {
   }
 
   private visitArrowFunction(node: ArrowFunctionExpression): void {
+    for (const parameter of node.params) {
+      this.visitPattern(parameter);
+    }
+
     if (node.body.type === "BlockStatement") {
       for (const statement of node.body.body) {
         this.visitStatement(statement);
@@ -321,6 +340,37 @@ class AS015Scanner {
   private visitTemplateLiteral(node: TemplateLiteral): void {
     for (const expression of node.expressions) {
       this.visitExpression(expression);
+    }
+  }
+
+  private visitPattern(
+    node: ArrayPattern | AssignmentPattern | Identifier | MemberExpression | ObjectPattern | RestElement
+  ): void {
+    switch (node.type) {
+      case "AssignmentPattern":
+        this.visitPattern(node.left);
+        this.visitExpression(node.right);
+        return;
+      case "RestElement":
+        this.visitPattern(node.argument);
+        return;
+      case "ArrayPattern":
+        for (const element of node.elements) {
+          if (element !== null) {
+            this.visitPattern(element);
+          }
+        }
+        return;
+      case "ObjectPattern":
+        for (const property of node.properties) {
+          this.visitPattern(property.type === "RestElement" ? property : property.value);
+        }
+        return;
+      case "MemberExpression":
+        this.visitMemberExpression(node);
+        return;
+      case "Identifier":
+        return;
     }
   }
 }

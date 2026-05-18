@@ -33,11 +33,14 @@ export function AS013(source: string, options: { filename?: string; modules?: Mo
   const module = parseModule(source, filename);
 
   for (const statement of module.body) {
-    if (statement.type !== "VariableDeclaration") {
+    if (statement.type === "VariableDeclaration") {
+      collectShadowedBindings(statement, reservedNames, diagnostics, filename);
       continue;
     }
 
-    collectShadowedBindings(statement, reservedNames, diagnostics, filename);
+    if (statement.type === "ExportNamedDeclaration") {
+      collectShadowedBindings(statement.declaration, reservedNames, diagnostics, filename);
+    }
   }
 
   return diagnostics;

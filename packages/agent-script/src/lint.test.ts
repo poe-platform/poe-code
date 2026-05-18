@@ -51,6 +51,23 @@ describe("lint export and import.meta module syntax", () => {
     expect(diagnosticCodes("for (import.meta.url of urls) {}")).toContain("AS-IMPORT-META-ASSIGN");
   });
 
+  it("visits import.meta assignment inside nested arrows that are exported handlers", () => {
+    expect(diagnosticCodes("export default () => () => { import.meta.url = 'agent.md'; };")).toContain(
+      "AS-IMPORT-META-ASSIGN"
+    );
+  });
+
+  it("keeps import.meta binding reads within the direct static reach of the rule", () => {
+    expect(diagnosticCodes("const m = import.meta; m.url;")).not.toContain("AS-IMPORT-META-ASSIGN");
+    expect(diagnosticCodes("const m = import.meta; m.url = 'agent.md';")).not.toContain("AS-IMPORT-META-ASSIGN");
+  });
+
+  it("allows destructured aliases of import.meta", () => {
+    expect(diagnosticCodes("const { url: agentUrl } = import.meta; agentUrl;")).not.toContain(
+      "AS-IMPORT-META-ASSIGN"
+    );
+  });
+
   it("does not require a default export", () => {
     expect(diagnosticCodes("export const schema = {};", { allowedExportNames: ["schema"] })).not.toContain(
       "AS-EXPORT-DEFAULT-NOT-ARROW"

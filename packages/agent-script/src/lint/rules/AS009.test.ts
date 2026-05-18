@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AS009 } from "./AS009.js";
 
 describe("AS009", () => {
+  const reportedCalls = (source: string) =>
+    AS009(source).map((diagnostic) => source.slice(diagnostic.span.start.offset, diagnostic.span.end.offset));
+
   it("reports async arrows that return a direct host call without awaiting it", () => {
     const source = ['import { request } from "api";', "const run = async () => request();"].join("\n");
 
@@ -97,5 +100,35 @@ describe("AS009", () => {
         }
       }
     ]);
+  });
+
+  it("allows host calls nested inside conditional return expressions", () => {
+    const source = [
+      'import { request } from "api";',
+      "const run = async () => ready ? request() : 'skip';"
+    ].join("\n");
+
+    expect(reportedCalls(source)).toEqual([]);
+  });
+
+  it("reports host calls returned from default-exported async arrows", () => {
+    const source = ['import { request } from "api";', "export default async () => request();"].join("\n");
+
+    expect(reportedCalls(source)).toEqual(["request()"]);
+  });
+
+  it("reports host calls returned from inner async arrows that are exported handlers", () => {
+    const source = [
+      'import * as agent from "agent";',
+      "export default () => async () => agent.spawn();"
+    ].join("\n");
+
+    expect(reportedCalls(source)).toEqual(["agent.spawn()"]);
+  });
+
+  it("allows host calls nested inside template-literal interpolation because they are not directly returned", () => {
+    const source = ['import { request } from "api";', "const run = async () => `${request()}`;"].join("\n");
+
+    expect(AS009(source)).toEqual([]);
   });
 });

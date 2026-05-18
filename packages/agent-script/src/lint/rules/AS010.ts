@@ -139,6 +139,12 @@ class AS010Scanner {
       case "ThrowStatement":
         this.visitThrowStatement(node);
         return;
+      case "ExportNamedDeclaration":
+        this.visitVariableDeclaration(node.declaration);
+        return;
+      case "ExportDefaultDeclaration":
+        this.visitExpression(node.declaration);
+        return;
       case "ImportDeclaration":
       case "BreakStatement":
       case "ContinueStatement":
@@ -536,6 +542,11 @@ class AS010Scanner {
 
       if (statement.type === "VariableDeclaration") {
         this.mergeScope(scope, this.collectDeclarationBindings(statement));
+        continue;
+      }
+
+      if (statement.type === "ExportNamedDeclaration") {
+        this.mergeScope(scope, this.collectDeclarationBindings(statement.declaration));
       }
     }
 

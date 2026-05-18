@@ -1,7 +1,6 @@
 import {
   parseModule,
   type ArrayExpression,
-  type ArrayPattern,
   type ArrowFunctionExpression,
   type AssignmentExpression,
   type AssignmentPattern,
@@ -13,13 +12,11 @@ import {
   type Expression,
   type ForOfStatement,
   type ForStatement,
-  type Identifier,
   type IfStatement,
   type LogicalExpression,
   type MemberExpression,
   type Module,
   type ObjectExpression,
-  type ObjectPattern,
   type Property,
   type ReturnStatement,
   type RestElement,
@@ -105,6 +102,12 @@ class AS012Scanner {
         return;
       case "ThrowStatement":
         this.visitThrowStatement(node);
+        return;
+      case "ExportNamedDeclaration":
+        this.visitVariableDeclaration(node.declaration);
+        return;
+      case "ExportDefaultDeclaration":
+        this.visitExpression(node.declaration);
         return;
       case "ImportDeclaration":
       case "BreakStatement":

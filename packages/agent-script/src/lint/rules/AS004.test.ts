@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AS004 } from "./AS004.js";
 
 describe("AS004", () => {
+  const unknownModules = (source: string, modules: NonNullable<Parameters<typeof AS004>[1]>["modules"]) =>
+    AS004(source, { modules }).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
+
   it("allows imports from registered modules", () => {
     const source = [
       'import value from "delay";',
@@ -100,5 +103,32 @@ describe("AS004", () => {
         }
       }
     ]);
+  });
+
+  it("reports unknown modules at the start and end of a file", () => {
+    const source = ['import { early } from "early";', "const value = 1;", 'import { late } from "late";'].join(
+      "\n"
+    );
+
+    expect(unknownModules(source, { known: ["early"] })).toEqual(["early", "late"]);
+  });
+
+  it("ignores module-like text outside import declarations", () => {
+    const source = [
+      'const text = "import { request } from \\"missing\\"";',
+      "const template = `import { request } from \"also-missing\"`;"
+    ].join("\n");
+
+    expect(AS004(source, { modules: {} })).toEqual([]);
+  });
+
+  it("keeps registered namespace and default imports valid while reporting later unknown imports", () => {
+    const source = [
+      'import value from "api";',
+      'import * as tools from "tools";',
+      'import { run } from "missing";'
+    ].join("\n");
+
+    expect(unknownModules(source, { api: ["default"], tools: ["run"] })).toEqual(["missing"]);
   });
 });

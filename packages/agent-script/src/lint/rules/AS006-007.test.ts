@@ -3,6 +3,9 @@ import { describe, expect, it } from "vitest";
 import { AS006_007 } from "./AS006-007.js";
 
 describe("AS006_007", () => {
+  const warningNames = (source: string) =>
+    AS006_007(source).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
+
   it("does not report unused imports because AS-UNUSED-IMPORT owns them", () => {
     const source = [
       'import value from "api";',
@@ -123,5 +126,42 @@ describe("AS006_007", () => {
         }
       }
     ]);
+  });
+
+  it("counts reads inside template-literal interpolations", () => {
+    const source = ["const used = 1;", "const message = `${used}`;", "message;"].join("\n");
+
+    expect(AS006_007(source)).toEqual([]);
+  });
+
+  it("counts reads inside parameter and destructuring defaults", () => {
+    const source = [
+      "const fallback = 1;",
+      "const readParam = (value = fallback) => value;",
+      "const readObject = ({ value = fallback } = {}) => value;",
+      "const readArray = ([value = fallback] = []) => value;",
+      "readParam(); readObject(); readArray();"
+    ].join("\n");
+
+    expect(AS006_007(source)).toEqual([]);
+  });
+
+  it("counts reads inside catch binding pattern defaults", () => {
+    const source = [
+      "const fallback = 1;",
+      "try {",
+      "  fail();",
+      "} catch ({ value = fallback }) {",
+      "  value;",
+      "}"
+    ].join("\n");
+
+    expect(warningNames(source)).toEqual([]);
+  });
+
+  it("counts reads inside inner arrows that are exported handlers", () => {
+    const source = ["const value = 1;", "export default () => () => value;"].join("\n");
+
+    expect(AS006_007(source)).toEqual([]);
   });
 });

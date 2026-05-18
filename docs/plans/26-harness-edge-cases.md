@@ -903,7 +903,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: methods-string-tests
     title: methods/string — add full test coverage
@@ -940,8 +940,8 @@ tasks:
 
       Conventional commit: `test(agent-script): string methods coverage`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: methods-number-edges

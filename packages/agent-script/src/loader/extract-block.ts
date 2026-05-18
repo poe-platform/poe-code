@@ -17,18 +17,24 @@ export function extractBlock(markdown: string): ExtractBlockResult {
 
     if (fence !== undefined) {
       const blockStart = lineEnd.index + lineEnd.lineBreakLength;
-      const closingFenceStart = findClosingFenceStart(markdown, blockStart, fence.marker);
+      const closingFence = findClosingFence(markdown, blockStart, fence);
 
       if (matchesScriptInfo(fence.info)) {
+        if (!closingFence.found) {
+          throw new Error(
+            `Unclosed ${readInfoWord(fence.info)} fenced block opened at line ${line}.`
+          );
+        }
+
         return {
-          endOffset: closingFenceStart,
+          endOffset: closingFence.start,
           lineOffset: line,
-          source: markdown.slice(blockStart, closingFenceStart),
+          source: markdown.slice(blockStart, closingFence.start),
           startOffset: blockStart
         };
       }
 
-      const resumeIndex = findBlockResumeIndex(markdown, closingFenceStart);
+      const resumeIndex = findBlockResumeIndex(markdown, closingFence);
       line += countLineBreaks(markdown, index, resumeIndex);
       index = resumeIndex;
       continue;
@@ -50,7 +56,13 @@ export function extractBlock(markdown: string): ExtractBlockResult {
   };
 }
 
-function readOpeningFence(line: string): { marker: string; info: string } | undefined {
+interface Fence {
+  indent: string;
+  marker: string;
+  info: string;
+}
+
+function readOpeningFence(line: string): Fence | undefined {
   const indentLength = readFenceIndentLength(line);
   if (indentLength === undefined) {
     return undefined;
@@ -69,6 +81,7 @@ function readOpeningFence(line: string): { marker: string; info: string } | unde
   const info = line.slice(markerEnd).trimStart();
 
   return {
+    indent: line.slice(0, indentLength),
     marker,
     info
   };
@@ -77,7 +90,7 @@ function readOpeningFence(line: string): { marker: string; info: string } | unde
 function readFenceIndentLength(line: string): number | undefined {
   let index = 0;
 
-  while (index < line.length && index < 3 && line[index] === " ") {
+  while (index < line.length && line[index] === " ") {
     index += 1;
   }
 
@@ -86,7 +99,7 @@ function readFenceIndentLength(line: string): number | undefined {
 
 function matchesScriptInfo(info: string): boolean {
   const infoWord = readInfoWord(info);
-  return infoWord === "js" || infoWord === "ajs";
+  return infoWord === "js" || infoWord === "javascript" || infoWord === "ajs";
 }
 
 function readInfoWord(info: string): string {
@@ -103,12 +116,17 @@ function isWhitespace(character: string): boolean {
   return character === " " || character === "\t";
 }
 
-function findBlockResumeIndex(markdown: string, closingFenceStart: number): number {
-  if (closingFenceStart >= markdown.length) {
+interface ClosingFence {
+  found: boolean;
+  start: number;
+}
+
+function findBlockResumeIndex(markdown: string, closingFence: ClosingFence): number {
+  if (!closingFence.found || closingFence.start >= markdown.length) {
     return markdown.length;
   }
 
-  const closingLineEnd = findLineEnd(markdown, closingFenceStart);
+  const closingLineEnd = findLineEnd(markdown, closingFence.start);
   return closingLineEnd.index + closingLineEnd.lineBreakLength;
 }
 
@@ -136,29 +154,42 @@ function countLineBreaks(markdown: string, start: number, end: number): number {
   return count;
 }
 
-function findClosingFenceStart(markdown: string, searchStart: number, marker: string): number {
+function findClosingFence(markdown: string, searchStart: number, fence: Fence): ClosingFence {
   let lineStart = searchStart;
 
   while (lineStart <= markdown.length) {
     const lineEnd = findLineEnd(markdown, lineStart);
     const lineContent = markdown.slice(lineStart, lineEnd.index);
-    if (isClosingFence(lineContent, marker)) {
-      return lineStart;
+    if (isClosingFence(lineContent, fence)) {
+      return {
+        found: true,
+        start: lineStart
+      };
     }
 
     if (lineEnd.lineBreakLength === 0) {
-      return markdown.length;
+      return {
+        found: false,
+        start: markdown.length
+      };
     }
 
     lineStart = lineEnd.index + lineEnd.lineBreakLength;
   }
 
-  return markdown.length;
+  return {
+    found: false,
+    start: markdown.length
+  };
 }
 
-function isClosingFence(line: string, marker: string): boolean {
+function isClosingFence(line: string, fence: Fence): boolean {
   const indentLength = readFenceIndentLength(line);
   if (indentLength === undefined) {
+    return false;
+  }
+
+  if (line.slice(0, indentLength) !== fence.indent) {
     return false;
   }
 
@@ -168,7 +199,7 @@ function isClosingFence(line: string, marker: string): boolean {
   }
 
   const closingMarker = line.slice(indentLength, markerEnd);
-  if (closingMarker.length < marker.length) {
+  if (closingMarker.length !== fence.marker.length) {
     return false;
   }
 

@@ -103,6 +103,118 @@ describe("extractBlock", () => {
     });
   });
 
+  it("ignores fenced blocks with no language tag", () => {
+    const markdown = [
+      "```",
+      "const ignored = true;",
+      "```",
+      "",
+      "```ajs",
+      "const actual = true;",
+      "```"
+    ].join("\n");
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 5,
+      source: "const actual = true;\n"
+    });
+  });
+
+  it("accepts javascript as a js-compatible info string", () => {
+    const markdown = ["Intro", "", "```javascript", "const actual = true;", "```"].join("\n");
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 3,
+      source: "const actual = true;\n"
+    });
+  });
+
+  it("requires the closing fence to use exactly the opening marker length", () => {
+    const markdown = [
+      "````js",
+      "const nested = `",
+      "```",
+      "`;",
+      "`````",
+      "const stillInside = true;",
+      "````",
+      "",
+      "```js",
+      "throw new Error('ignored');",
+      "```"
+    ].join("\n");
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 1,
+      source: "const nested = `\n```\n`;\n`````\nconst stillInside = true;\n"
+    });
+  });
+
+  it("does not close on a fence marker embedded in a string", () => {
+    const markdown = ["```js", "const marker = '```';", "const actual = true;", "```"].join("\n");
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 1,
+      source: "const marker = '```';\nconst actual = true;\n"
+    });
+  });
+
+  it("extracts a fenced block indented under a list item", () => {
+    const markdown = ["- Run this:", "    ```js", "    const actual = true;", "    ```"].join("\n");
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 2,
+      source: "    const actual = true;\n"
+    });
+  });
+
+  it("extracts a block at the start of the file", () => {
+    const markdown = ["```js", "const actual = true;", "```", "", "Tail"].join("\n");
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 1,
+      source: "const actual = true;\n"
+    });
+  });
+
+  it("extracts a block at the end of the file with no closing newline", () => {
+    const markdown = ["Intro", "", "```js", "const actual = true;", "```"].join("\n");
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 3,
+      source: "const actual = true;\n"
+    });
+  });
+
+  it("throws a clear error for an unclosed script block at EOF", () => {
+    const markdown = ["Intro", "", "```js", "const actual = true;"].join("\n");
+
+    expect(() => extractBlock(markdown)).toThrowError("Unclosed js fenced block opened at line 3.");
+  });
+
+  it("preserves mixed CRLF and LF line endings inside a block", () => {
+    const markdown = "Intro\r\n\r\n```js\r\nconst first = true;\nconst second = true;\r\n```";
+
+    expect(extractBlock(markdown)).toMatchObject({
+      lineOffset: 3,
+      source: "const first = true;\nconst second = true;\r\n"
+    });
+  });
+
+  it("reports the offset needed to map the first code line back to markdown", () => {
+    const markdown = ["# Heading", "", "Intro", "", "```js", "const actual = true;", "```"].join(
+      "\n"
+    );
+
+    const result = extractBlock(markdown);
+
+    expect(result).toMatchObject({
+      lineOffset: 5,
+      source: "const actual = true;\n"
+    });
+    expect(result.lineOffset + 1).toBe(6);
+  });
+
   it("tracks line offsets correctly when frontmatter precedes the fence", () => {
     const markdown = [
       "---",

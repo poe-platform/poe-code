@@ -163,7 +163,11 @@ function copyToSandbox(
     state.seen.set(value, copy);
 
     for (const entry of getEnumerableArrayEntries(value, path)) {
-      copy[entry.index] = copyToSandbox(entry.value, state, `${path}[${entry.index}]`);
+      defineOwnDataProperty(
+        copy,
+        entry.key,
+        copyToSandbox(entry.value, state, joinArrayPath(path, entry.key))
+      );
     }
 
     return copy;
@@ -237,7 +241,11 @@ function copyFromSandbox(
     state.seen.set(value, copy);
 
     for (const entry of getEnumerableArrayEntries(value, path)) {
-      copy[entry.index] = copyFromSandbox(entry.value, state, `${path}[${entry.index}]`, options);
+      defineOwnDataProperty(
+        copy,
+        entry.key,
+        copyFromSandbox(entry.value, state, joinArrayPath(path, entry.key), options)
+      );
     }
 
     return copy;
@@ -337,27 +345,23 @@ function getEnumerableObjectEntries<TValue>(
 function getEnumerableArrayEntries<TValue>(
   value: TValue[],
   path: string
-): Array<{ index: number; value: TValue }> {
+): Array<{ key: string; value: TValue }> {
   const descriptors = Object.getOwnPropertyDescriptors(value);
-  const entries: Array<{ index: number; value: TValue }> = [];
+  const entries: Array<{ key: string; value: TValue }> = [];
 
   for (const [key, descriptor] of Object.entries(descriptors)) {
     if (key === "length" || !descriptor.enumerable) {
       continue;
     }
 
-    if (!isArrayIndexKey(key)) {
+    if ("get" in descriptor || "set" in descriptor) {
       throw new TypeError(
-        `Unsupported sandbox value at ${path}: non-index array property '${key}'`
+        `Unsupported sandbox value at ${joinArrayPath(path, key)}: accessor property`
       );
     }
 
-    if ("get" in descriptor || "set" in descriptor) {
-      throw new TypeError(`Unsupported sandbox value at ${path}[${key}]: accessor property`);
-    }
-
     entries.push({
-      index: Number(key),
+      key,
       value: descriptor.value as TValue
     });
   }
@@ -392,4 +396,8 @@ function describeValue(value: unknown): string {
 
 function joinPath(path: string, key: string): string {
   return path === "<root>" ? `<root>.${key}` : `${path}.${key}`;
+}
+
+function joinArrayPath(path: string, key: string): string {
+  return isArrayIndexKey(key) ? `${path}[${key}]` : joinPath(path, key);
 }

@@ -135,6 +135,54 @@ describe("sandbox values", () => {
     expect(copy.self).toBe(copy);
   });
 
+  it("preserves circular object references when copying to sandbox", () => {
+    const source = {} as {
+      self?: unknown;
+    };
+    source.self = source;
+
+    const copy = deepCopyToSandbox(source);
+
+    expect(copy).not.toBe(source);
+    expect(copy.self).toBe(copy);
+  });
+
+  it("preserves sibling-shared references when copying to sandbox", () => {
+    const shared = {};
+    const source = {
+      l: shared,
+      r: shared
+    };
+
+    const copy = deepCopyToSandbox(source);
+
+    expect(copy.l).toBe(copy.r);
+    expect(copy.l).not.toBe(shared);
+  });
+
+  it("preserves self-referencing arrays when copying to sandbox", () => {
+    const source: unknown[] = [];
+    source.push(source);
+
+    const copy = deepCopyToSandbox(source);
+
+    expect(copy).not.toBe(source);
+    expect(copy[0]).toBe(copy);
+  });
+
+  it("copies very deep plain objects without overflowing the stack", () => {
+    const source: Record<string, unknown> = {};
+    let current = source;
+
+    for (let index = 0; index < 1_000; index += 1) {
+      const next: Record<string, unknown> = {};
+      current.child = next;
+      current = next;
+    }
+
+    expect(() => deepCopyToSandbox(source)).not.toThrow();
+  });
+
   it("preserves shared references and cycles when copying back to host", () => {
     const shared = deepCopyToSandbox({
       answer: 42
@@ -179,6 +227,49 @@ describe("sandbox values", () => {
     expect(0 in hostCopy).toBe(false);
     expect(hostCopy).toHaveLength(2);
     expect(hostCopy[1]).toBe("value");
+  });
+
+  it("skips non-enumerable properties when copying to sandbox", () => {
+    const source = {
+      visible: 1
+    } as {
+      visible: number;
+      hidden?: number;
+    };
+
+    Object.defineProperty(source, "hidden", {
+      enumerable: false,
+      value: 2
+    });
+
+    expect(deepCopyToSandbox(source)).toEqual({
+      visible: 1
+    });
+  });
+
+  it("skips symbol-keyed properties when copying to sandbox", () => {
+    const symbolKey = Symbol("hidden");
+    const source = {
+      visible: 1,
+      [symbolKey]: 2
+    };
+
+    expect(deepCopyToSandbox(source)).toEqual({
+      visible: 1
+    });
+  });
+
+  it("copies arrays with enumerable string keys", () => {
+    const source = [] as Array<unknown> & {
+      foo?: number;
+    };
+    source.foo = 1;
+
+    const copy = deepCopyToSandbox(source);
+
+    expect(Array.isArray(copy)).toBe(true);
+    expect(copy).toHaveLength(0);
+    expect(copy.foo).toBe(1);
   });
 
   it("wraps host promises as sandbox promises and unwraps them back to host promises", async () => {
@@ -253,6 +344,19 @@ describe("sandbox values", () => {
     );
   });
 
+  it("rejects unsupported scalar and built-in host values with clear errors", () => {
+    expect(() => deepCopyToSandbox(1n)).toThrowError("Unsupported sandbox value at <root>: bigint");
+    expect(() => deepCopyToSandbox(/agent-script/giu)).toThrowError(
+      "Unsupported sandbox value at <root>: RegExp"
+    );
+    expect(() => deepCopyToSandbox(new Uint8Array([1, 2, 3]))).toThrowError(
+      "Unsupported sandbox value at <root>: Uint8Array"
+    );
+    expect(() => deepCopyToSandbox(new Set())).toThrowError(
+      "Unsupported sandbox value at <root>: Set"
+    );
+  });
+
   it("rejects non-plain objects and arrays", () => {
     class Example {
       readonly answer = 42;
@@ -271,7 +375,7 @@ describe("sandbox values", () => {
     );
   });
 
-  it("rejects enumerable accessors instead of invoking host getters", () => {
+  it("rejects throwing enumerable accessors instead of invoking host getters", () => {
     let reads = 0;
     const source = {};
 
@@ -279,7 +383,7 @@ describe("sandbox values", () => {
       enumerable: true,
       get() {
         reads += 1;
-        return 42;
+        throw new Error("getter failed");
       }
     });
 
@@ -287,16 +391,5 @@ describe("sandbox values", () => {
       "Unsupported sandbox value at <root>.answer: accessor property"
     );
     expect(reads).toBe(0);
-  });
-
-  it("rejects arrays with extra enumerable keys", () => {
-    const source = ["value"] as Array<string> & {
-      extra?: string;
-    };
-    source.extra = "skip";
-
-    expect(() => deepCopyToSandbox(source)).toThrowError(
-      "Unsupported sandbox value at <root>: non-index array property 'extra'"
-    );
   });
 });

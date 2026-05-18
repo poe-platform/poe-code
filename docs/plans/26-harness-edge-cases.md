@@ -221,7 +221,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: parser-expression-precedence
     title: Parser — expression precedence and associativity
@@ -248,8 +248,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): parser precedence edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: parse-error-format-edges

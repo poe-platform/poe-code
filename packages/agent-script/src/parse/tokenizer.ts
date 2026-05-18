@@ -58,6 +58,8 @@ const KEYWORDS = new Set([
   "null",
   "undefined",
   "typeof",
+  "void",
+  "delete",
   "in",
   "of"
 ]);

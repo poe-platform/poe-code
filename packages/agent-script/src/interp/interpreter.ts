@@ -32,6 +32,7 @@ import type {
   Property,
   BreakStatement,
   ReturnStatement,
+  SequenceExpression,
   SourceSpan,
   SpreadElement,
   StringLiteral,
@@ -41,6 +42,7 @@ import type {
   TryStatement,
   UnaryExpression,
   UndefinedLiteral,
+  UpdateExpression,
   ExpressionStatement,
   VariableDeclaration,
   VariableDeclarationKind,
@@ -182,12 +184,14 @@ const dispatchTable: DispatchTable = {
   ObjectExpression: evaluateObjectExpression,
   BreakStatement: evaluateBreakStatement,
   ReturnStatement: evaluateReturnStatement,
+  SequenceExpression: evaluateSequenceExpression,
   StringLiteral: evaluatePrimitiveLiteral,
   TaggedTemplateExpression: evaluateTaggedTemplateExpression,
   TemplateLiteral: evaluateTemplateLiteral,
   ThrowStatement: evaluateThrowStatement,
   TryStatement: evaluateTryStatement,
   UnaryExpression: evaluateUnaryExpression,
+  UpdateExpression: evaluateUpdateExpression,
   VariableDeclaration: evaluateVariableDeclaration,
   WhileStatement: evaluateWhileStatement,
   UndefinedLiteral: evaluatePrimitiveLiteral
@@ -649,6 +653,26 @@ async function evaluateLogicalExpression(
   }
 
   return evaluateNode(node.right, context);
+}
+
+async function evaluateSequenceExpression(
+  node: SequenceExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  let result: EvaluationResult = {
+    kind: "normal",
+    hasValue: true,
+    value: undefined
+  };
+
+  for (const expression of node.expressions) {
+    result = await evaluateNode(expression, context);
+    if (result.kind !== "normal") {
+      return result;
+    }
+  }
+
+  return result;
 }
 
 async function evaluateConditionalExpression(
@@ -1267,9 +1291,21 @@ async function evaluateUnaryExpression(
   node: UnaryExpression,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  if (node.operator === "delete") {
+    return evaluateDeleteExpression(node, context);
+  }
+
   const argument = await evaluateNode(node.argument, context);
   if (argument.kind !== "normal") {
     return argument;
+  }
+
+  if (node.operator === "void") {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: undefined
+    };
   }
 
   if (node.operator !== "!" && node.operator !== "typeof" && typeof argument.value !== "number") {
@@ -1280,6 +1316,130 @@ async function evaluateUnaryExpression(
     kind: "normal",
     hasValue: true,
     value: applyUnaryOperator(node.operator, argument.value)
+  };
+}
+
+async function evaluateDeleteExpression(
+  node: UnaryExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  if (node.argument.type !== "MemberExpression") {
+    throw createError(
+      "UNSUPPORTED_NODE",
+      node,
+      "Unary operator 'delete' requires a member target."
+    );
+  }
+
+  const member = await evaluateMemberAccess(node.argument, context);
+  if (member.kind === "error") {
+    return member;
+  }
+  if (member.kind === "completion") {
+    return member.result;
+  }
+
+  if (member.kind === "nullish") {
+    if (node.argument.optional) {
+      return {
+        kind: "normal",
+        hasValue: true,
+        value: true
+      };
+    }
+
+    throw new TypeError("Cannot delete properties of null or undefined.");
+  }
+
+  if (!isIndexableSandboxValue(member.object)) {
+    throw new TypeError("Unary operator 'delete' requires a sandbox object property.");
+  }
+
+  deleteSandboxProperty(member.object, member.property);
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: true
+  };
+}
+
+async function evaluateUpdateExpression(
+  node: UpdateExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  if (node.argument.type === "Identifier") {
+    return evaluateIdentifierUpdateExpression(node, context);
+  }
+
+  return evaluateMemberUpdateExpression(node, context);
+}
+
+async function evaluateIdentifierUpdateExpression(
+  node: UpdateExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  if (node.argument.type !== "Identifier") {
+    throw new TypeError("Expected identifier update target.");
+  }
+
+  const binding = context.scope.lookup(node.argument.name);
+  if (!binding.found) {
+    return {
+      kind: "error",
+      error: createError(
+        "UNBOUND_IDENTIFIER",
+        node.argument,
+        `Identifier '${node.argument.name}' is not defined.`
+      )
+    };
+  }
+
+  if (binding.kind === "const") {
+    throw new Error(`Cannot assign to const '${node.argument.name}'`);
+  }
+
+  const current = Number(binding.value);
+  const next = node.operator === "++" ? current + 1 : current - 1;
+  context.scope.assign(node.argument.name, next);
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: node.prefix ? next : current
+  };
+}
+
+async function evaluateMemberUpdateExpression(
+  node: UpdateExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  if (node.argument.type !== "MemberExpression") {
+    throw new TypeError("Expected member update target.");
+  }
+
+  const member = await evaluateMemberAccess(node.argument, context);
+  if (member.kind === "error") {
+    return member;
+  }
+  if (member.kind === "completion") {
+    return member.result;
+  }
+  if (member.kind === "nullish") {
+    throw new TypeError("Cannot update properties of null or undefined.");
+  }
+  if (!isIndexableSandboxValue(member.object)) {
+    throw new TypeError("Update expressions require a sandbox object property.");
+  }
+
+  const current = Number(getMemberValue(member.object, member.property));
+  const next = node.operator === "++" ? current + 1 : current - 1;
+  setSandboxProperty(member.object, member.property, next);
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value: node.prefix ? next : current
   };
 }
 
@@ -1654,8 +1814,12 @@ function applyUnaryOperator(
   switch (operator) {
     case "!":
       return !value;
+    case "delete":
+      return true;
     case "typeof":
       return describeTypeofValue(value);
+    case "void":
+      return undefined;
     case "+":
       return +(value as number);
     case "-":
@@ -1830,6 +1994,26 @@ function getMemberValue(
   }
 
   return target[String(property)];
+}
+
+function setSandboxProperty(
+  target: SandboxArray | SandboxObject,
+  property: string | number,
+  value: SandboxValue
+): void {
+  if (Array.isArray(target)) {
+    (target as unknown as Record<string, SandboxValue>)[String(property)] = value;
+    return;
+  }
+
+  defineSandboxProperty(target, String(property), value);
+}
+
+function deleteSandboxProperty(
+  target: SandboxArray | SandboxObject,
+  property: string | number
+): void {
+  delete (target as unknown as Record<string, SandboxValue>)[String(property)];
 }
 
 function getClosureMemberValue(target: SandboxClosure, property: string | number): SandboxValue {

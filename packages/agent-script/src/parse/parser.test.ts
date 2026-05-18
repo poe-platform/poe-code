@@ -614,6 +614,48 @@ describe("parse", () => {
   });
 
   it("parses operator precedence and associativity like JavaScript", () => {
+    expect(parse("2 + 3 * 4")).toMatchObject({
+      type: "BinaryExpression",
+      operator: "+",
+      left: {
+        type: "NumericLiteral",
+        value: 2
+      },
+      right: {
+        type: "BinaryExpression",
+        operator: "*",
+        left: {
+          type: "NumericLiteral",
+          value: 3
+        },
+        right: {
+          type: "NumericLiteral",
+          value: 4
+        }
+      }
+    });
+
+    expect(parse("2 ** 3 ** 2")).toMatchObject({
+      type: "BinaryExpression",
+      operator: "**",
+      left: {
+        type: "NumericLiteral",
+        value: 2
+      },
+      right: {
+        type: "BinaryExpression",
+        operator: "**",
+        left: {
+          type: "NumericLiteral",
+          value: 3
+        },
+        right: {
+          type: "NumericLiteral",
+          value: 2
+        }
+      }
+    });
+
     expect(parse("a + b * c ** d")).toMatchObject({
       type: "BinaryExpression",
       operator: "+",
@@ -670,6 +712,27 @@ describe("parse", () => {
       }
     });
 
+    expect(parse("a || b && c")).toMatchObject({
+      type: "LogicalExpression",
+      operator: "||",
+      left: {
+        type: "Identifier",
+        name: "a"
+      },
+      right: {
+        type: "LogicalExpression",
+        operator: "&&",
+        left: {
+          type: "Identifier",
+          name: "b"
+        },
+        right: {
+          type: "Identifier",
+          name: "c"
+        }
+      }
+    });
+
     expect(parse("!flag || left && right")).toMatchObject({
       type: "LogicalExpression",
       operator: "||",
@@ -693,6 +756,58 @@ describe("parse", () => {
           type: "Identifier",
           name: "right"
         }
+      }
+    });
+
+    expect(parse("a = b = c")).toMatchObject({
+      type: "AssignmentExpression",
+      operator: "=",
+      left: {
+        type: "Identifier",
+        name: "a"
+      },
+      right: {
+        type: "AssignmentExpression",
+        operator: "=",
+        left: {
+          type: "Identifier",
+          name: "b"
+        },
+        right: {
+          type: "Identifier",
+          name: "c"
+        }
+      }
+    });
+
+    expect(parse("!a++")).toMatchObject({
+      type: "UnaryExpression",
+      operator: "!",
+      argument: {
+        type: "UpdateExpression",
+        operator: "++",
+        prefix: false,
+        argument: {
+          type: "Identifier",
+          name: "a"
+        }
+      }
+    });
+
+    expect(parse("typeof a + b")).toMatchObject({
+      type: "BinaryExpression",
+      operator: "+",
+      left: {
+        type: "UnaryExpression",
+        operator: "typeof",
+        argument: {
+          type: "Identifier",
+          name: "a"
+        }
+      },
+      right: {
+        type: "Identifier",
+        name: "b"
       }
     });
 
@@ -746,6 +861,79 @@ describe("parse", () => {
         type: "Identifier",
         name: "source"
       }
+    });
+  });
+
+  it("parses comma sequence expressions only where expression grammar permits them", () => {
+    expect(parseModule("a, b, c")).toMatchObject({
+      type: "Module",
+      body: [
+        {
+          type: "ExpressionStatement",
+          expression: {
+            type: "SequenceExpression",
+            expressions: [
+              { type: "Identifier", name: "a" },
+              { type: "Identifier", name: "b" },
+              { type: "Identifier", name: "c" }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("for (let i = 0, j = 0; i < n; i++, j++) {}")).toMatchObject({
+      type: "ForStatement",
+      init: {
+        type: "VariableDeclaration",
+        declarations: [
+          { id: { type: "Identifier", name: "i" } },
+          { id: { type: "Identifier", name: "j" } }
+        ]
+      },
+      update: {
+        type: "SequenceExpression",
+        expressions: [
+          {
+            type: "UpdateExpression",
+            operator: "++",
+            prefix: false,
+            argument: { type: "Identifier", name: "i" }
+          },
+          {
+            type: "UpdateExpression",
+            operator: "++",
+            prefix: false,
+            argument: { type: "Identifier", name: "j" }
+          }
+        ]
+      }
+    });
+  });
+
+  it("rejects ambiguous or invalid precedence edge cases", () => {
+    expect(() => parse("-2 ** 2")).toThrowError(
+      "Unary expressions cannot be used as the left-hand side of '**' without parentheses"
+    );
+
+    expect(() => parse("a ?? b || c")).toThrowError(
+      "Cannot mix '??' with '&&' or '||' without parentheses"
+    );
+
+    expect(() => parse("++a++")).toThrowError("Invalid update target");
+  });
+
+  it("parses left-associative nullish coalescing chains", () => {
+    expect(parse("a ?? b ?? c")).toMatchObject({
+      type: "LogicalExpression",
+      operator: "??",
+      left: {
+        type: "LogicalExpression",
+        operator: "??",
+        left: { type: "Identifier", name: "a" },
+        right: { type: "Identifier", name: "b" }
+      },
+      right: { type: "Identifier", name: "c" }
     });
   });
 
@@ -1532,11 +1720,7 @@ describe("parse", () => {
 
   it("parses statement-level edge cases explicitly", () => {
     expect(parseModule(";;;")).toMatchObject({
-      body: [
-        { type: "EmptyStatement" },
-        { type: "EmptyStatement" },
-        { type: "EmptyStatement" }
-      ]
+      body: [{ type: "EmptyStatement" }, { type: "EmptyStatement" }, { type: "EmptyStatement" }]
     });
 
     expect(parseModule("for (;;) {}")).toMatchObject({

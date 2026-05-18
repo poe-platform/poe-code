@@ -105,6 +105,7 @@ export type Property = BaseNode & {
 
 export type PatternTarget = ArrayPattern | Identifier | MemberExpression | ObjectPattern;
 export type AssignmentTarget = MetaProperty | PatternTarget;
+export type UpdateTarget = Identifier | MemberExpression;
 
 export type AssignmentPattern = BaseNode & {
   type: "AssignmentPattern";
@@ -153,13 +154,22 @@ export type ObjectExpression = BaseNode & {
   properties: Array<Property | SpreadElement>;
 };
 
-export type UnaryOperator = "!" | "+" | "-" | "~" | "typeof";
+export type UnaryOperator = "!" | "+" | "-" | "~" | "delete" | "typeof" | "void";
 
 export type UnaryExpression = BaseNode & {
   type: "UnaryExpression";
   operator: UnaryOperator;
   prefix: true;
   argument: Expression;
+};
+
+export type UpdateOperator = "++" | "--";
+
+export type UpdateExpression = BaseNode & {
+  type: "UpdateExpression";
+  operator: UpdateOperator;
+  prefix: boolean;
+  argument: UpdateTarget;
 };
 
 export type AwaitExpression = BaseNode & {
@@ -211,6 +221,11 @@ export type ConditionalExpression = BaseNode & {
   test: Expression;
   consequent: Expression;
   alternate: Expression;
+};
+
+export type SequenceExpression = BaseNode & {
+  type: "SequenceExpression";
+  expressions: Expression[];
 };
 
 export type MemberExpression = BaseNode & {
@@ -433,10 +448,12 @@ export type Expression =
   | NumericLiteral
   | ObjectExpression
   | RegexLiteral
+  | SequenceExpression
   | StringLiteral
   | TaggedTemplateExpression
   | TemplateLiteral
   | UnaryExpression
+  | UpdateExpression
   | UndefinedLiteral;
 
 export type ParseResult = Expression | Statement;
@@ -444,6 +461,10 @@ export type ParseResult = Expression | Statement;
 type ParsedExpression = {
   node: Expression;
   parenthesized: boolean;
+};
+
+type ExpressionParseOptions = {
+  allowSequence?: boolean;
 };
 
 const EQUALITY_OPERATORS = new Set<BinaryOperator>(["==", "!=", "===", "!=="]);
@@ -534,7 +555,7 @@ class Parser {
 
     const node = this.shouldParseTopLevelStatement()
       ? this.parseStatement()
-      : this.parseExpression().node;
+      : this.parseExpression({ allowSequence: true }).node;
     while (this.consumePunctuator(";") !== undefined) {
       continue;
     }
@@ -562,7 +583,7 @@ class Parser {
   }
 
   parseExpressionOnly(): Expression {
-    const expression = this.parseExpression().node;
+    const expression = this.parseExpression({ allowSequence: true }).node;
     while (this.consumePunctuator(";") !== undefined) {
       continue;
     }
@@ -598,7 +619,7 @@ class Parser {
       return this.parseStatement();
     }
 
-    const expression = this.parseExpression().node;
+    const expression = this.parseExpression({ allowSequence: true }).node;
     return {
       type: "ExpressionStatement",
       expression,
@@ -606,7 +627,28 @@ class Parser {
     };
   }
 
-  private parseExpression(): ParsedExpression {
+  private parseExpression(options: ExpressionParseOptions = {}): ParsedExpression {
+    const first = this.parseNonSequenceExpression();
+    if (options.allowSequence !== true || this.consumePunctuator(",") === undefined) {
+      return first;
+    }
+
+    const expressions = [first.node];
+    do {
+      expressions.push(this.parseNonSequenceExpression().node);
+    } while (this.consumePunctuator(",") !== undefined);
+
+    return {
+      node: {
+        type: "SequenceExpression",
+        expressions,
+        span: createSpan(expressions[0]!.span.start, expressions[expressions.length - 1]!.span.end)
+      },
+      parenthesized: false
+    };
+  }
+
+  private parseNonSequenceExpression(): ParsedExpression {
     const arrowFunction = this.tryParseArrowFunctionExpression();
     if (arrowFunction !== undefined) {
       return {
@@ -800,7 +842,7 @@ class Parser {
     if (token.type === "keyword" && token.value === "return") {
       this.index += 1;
       const hasArgument = this.hasReturnArgument(token, this.currentToken());
-      const argument = hasArgument ? this.parseExpression().node : undefined;
+      const argument = hasArgument ? this.parseExpression({ allowSequence: true }).node : undefined;
       const end = argument?.span.end ?? token.end;
       return {
         type: "ReturnStatement",
@@ -825,7 +867,7 @@ class Parser {
       if (this.currentToken().type === "eof") {
         throw unexpectedTokenError(this.currentToken());
       }
-      const argument = this.parseExpression().node;
+      const argument = this.parseExpression({ allowSequence: true }).node;
       return {
         type: "ThrowStatement",
         argument,
@@ -867,7 +909,7 @@ class Parser {
       };
     }
 
-    const expression = this.parseExpression().node;
+    const expression = this.parseExpression({ allowSequence: true }).node;
     return {
       type: "ExpressionStatement",
       expression,
@@ -917,7 +959,7 @@ class Parser {
   private parseIfStatement(): IfStatement {
     const ifToken = this.expectKeyword("if");
     this.expectPunctuator("(");
-    const test = this.parseExpression().node;
+    const test = this.parseExpression({ allowSequence: true }).node;
     this.expectPunctuator(")");
     const consequent = this.parseStatement();
     if (consequent.type !== "BlockStatement") {
@@ -976,20 +1018,20 @@ class Parser {
           this.currentToken().type === "keyword" &&
           (this.currentToken().value === "const" || this.currentToken().value === "let")
             ? this.parseVariableDeclaration()
-            : this.parseExpression().node;
+            : this.parseExpression({ allowSequence: true }).node;
         this.expectPunctuator(";");
       }
 
       let test: Expression | undefined;
       if (this.consumePunctuator(";") === undefined) {
-        test = this.parseExpression().node;
+        test = this.parseExpression({ allowSequence: true }).node;
         this.expectPunctuator(";");
       }
 
       const update =
         this.currentToken().type === "punctuator" && this.currentToken().value === ")"
           ? undefined
-          : this.parseExpression().node;
+          : this.parseExpression({ allowSequence: true }).node;
 
       this.expectPunctuator(")");
       const body = this.withLoopContext(() => this.parseStatement());
@@ -1056,7 +1098,7 @@ class Parser {
   private parseWhileStatement(labels?: string[]): WhileStatement {
     const whileToken = this.expectKeyword("while");
     this.expectPunctuator("(");
-    const test = this.parseExpression().node;
+    const test = this.parseExpression({ allowSequence: true }).node;
     this.expectPunctuator(")");
     const body = this.withLoopContext(() => this.parseStatement());
     return {
@@ -1073,7 +1115,7 @@ class Parser {
     const body = this.withLoopContext(() => this.parseStatement());
     this.expectKeyword("while");
     this.expectPunctuator("(");
-    const test = this.parseExpression().node;
+    const test = this.parseExpression({ allowSequence: true }).node;
     const closeParen = this.expectPunctuator(")");
     return {
       type: "DoWhileStatement",
@@ -1885,7 +1927,7 @@ class Parser {
   }
 
   private parsePatternComputedKey(): Expression {
-    const key = this.parseExpression().node;
+    const key = this.parseExpression({ allowSequence: true }).node;
     this.expectPunctuator("]");
 
     return key;
@@ -1991,6 +2033,22 @@ class Parser {
 
   private parseUnaryExpression(): ParsedExpression {
     const token = this.currentToken();
+    if (token.type === "punctuator" && (token.value === "++" || token.value === "--")) {
+      this.index += 1;
+      const argument = this.parseUnaryExpression();
+      const target = this.toUpdateTarget(argument.node);
+      return {
+        node: {
+          type: "UpdateExpression",
+          operator: token.value,
+          prefix: true,
+          argument: target,
+          span: createSpan(token.start, argument.node.span.end)
+        },
+        parenthesized: false
+      };
+    }
+
     if (token.type === "keyword" && token.value === "await") {
       this.index += 1;
       const argument = this.parseUnaryExpression();
@@ -2004,7 +2062,10 @@ class Parser {
       };
     }
 
-    if (token.type === "keyword" && token.value === "typeof") {
+    if (
+      token.type === "keyword" &&
+      (token.value === "delete" || token.value === "typeof" || token.value === "void")
+    ) {
       this.index += 1;
       const argument = this.parseUnaryExpression();
       return {
@@ -2055,7 +2116,7 @@ class Parser {
         }
 
         if (this.consumePunctuator("[") !== undefined) {
-          const property = this.parseExpression();
+          const property = this.parseExpression({ allowSequence: true });
           const end = this.expectPunctuator("]");
           expression = {
             node: {
@@ -2103,7 +2164,7 @@ class Parser {
       }
 
       if (this.consumePunctuator("[") !== undefined) {
-        const property = this.parseExpression();
+        const property = this.parseExpression({ allowSequence: true });
         const end = this.expectPunctuator("]");
         expression = {
           node: {
@@ -2143,6 +2204,26 @@ class Parser {
       }
 
       break;
+    }
+
+    const token = this.currentToken();
+    if (
+      token.type === "punctuator" &&
+      (token.value === "++" || token.value === "--") &&
+      token.start.line === expression.node.span.end.line
+    ) {
+      this.index += 1;
+      const target = this.toUpdateTarget(expression.node);
+      return {
+        node: {
+          type: "UpdateExpression",
+          operator: token.value,
+          prefix: false,
+          argument: target,
+          span: createSpan(expression.node.span.start, token.end)
+        },
+        parenthesized: false
+      };
     }
 
     return expression;
@@ -2209,7 +2290,7 @@ class Parser {
 
     if (token.type === "punctuator" && token.value === "(") {
       const start = this.expectPunctuator("(");
-      const expression = this.parseExpression();
+      const expression = this.parseExpression({ allowSequence: true });
       const end = this.expectPunctuator(")");
       expression.node.span = createSpan(start.start, end.end);
       return {
@@ -2528,6 +2609,20 @@ class Parser {
     }
 
     throw invalidAssignmentTargetError(node.span.start);
+  }
+
+  private toUpdateTarget(node: Expression): UpdateTarget {
+    if (node.type === "Identifier") {
+      return node;
+    }
+
+    if (node.type === "MemberExpression" && !node.optional) {
+      return node;
+    }
+
+    throw new Error(
+      `Invalid update target at line ${node.span.start.line}, column ${node.span.start.column}.`
+    );
   }
 
   private arrayExpressionToPattern(node: ArrayExpression): ArrayPattern {
@@ -3183,7 +3278,10 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
       }
       return undefined;
     case "UnaryExpression":
+    case "UpdateExpression":
       return findImportMetaAssignmentInNode(node.argument);
+    case "SequenceExpression":
+      return findImportMetaAssignmentInList(node.expressions);
     case "BinaryExpression":
     case "LogicalExpression":
       return (

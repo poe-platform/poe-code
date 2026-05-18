@@ -551,7 +551,10 @@ function expressionContainsAwait(node: Expression): boolean {
     case "ObjectExpression":
       return objectExpressionContainsAwait(node);
     case "UnaryExpression":
+    case "UpdateExpression":
       return expressionContainsAwait(node.argument);
+    case "SequenceExpression":
+      return node.expressions.some(expressionContainsAwait);
     case "BinaryExpression":
     case "LogicalExpression":
       return expressionContainsAwait(node.left) || expressionContainsAwait(node.right);

@@ -113,6 +113,23 @@ describe("interpret", () => {
     });
   });
 
+  it("evaluates precedence-sensitive expression edges", async () => {
+    await expect(interpret(parse("2 + 3 * 4"))).resolves.toMatchObject({
+      ok: true,
+      returnValue: 14
+    });
+
+    await expect(interpret(parse("2 ** 3 ** 2"))).resolves.toMatchObject({
+      ok: true,
+      returnValue: 512
+    });
+
+    await expect(interpret(parse("void 0"))).resolves.toMatchObject({
+      ok: true,
+      returnValue: undefined
+    });
+  });
+
   it("evaluates undefined plus a number as NaN", async () => {
     const result = await interpret(parse("undefined + 1"));
 
@@ -1872,6 +1889,36 @@ describe("interpret", () => {
     ).resolves.toMatchObject({
       ok: true,
       returnValue: 3
+    });
+  });
+
+  it("evaluates comma expressions in for loop updates", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let total = 0"),
+          parse("for (let i = 0, j = 0; i < 3; i++, j++) { total = total + i + j; }"),
+          parse("return total")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 6
+    });
+  });
+
+  it("deletes properties from sandbox objects", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const item = { value: 1 }"),
+          parse("const result = delete item.value"),
+          parse("return [result, item.value]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [true, undefined]
     });
   });
 

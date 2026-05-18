@@ -104,7 +104,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: tokenizer-comments-line-endings
     title: Tokenizer — comments and mixed line endings
@@ -125,9 +125,9 @@ tasks:
 
       Conventional commit: `fix(agent-script): tokenizer comment & line ending edges`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: parser-destructuring-edges
     title: Parser — destructuring pattern edges

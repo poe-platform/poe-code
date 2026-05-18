@@ -6,6 +6,7 @@ type DumpController = {
   fail(error: unknown): void;
   finalize(snapshot: RunSnapshot): void;
   onYield(createSnapshot: () => RunSnapshot): void;
+  requestCurrentSnapshot(): Promise<string>;
   requestSnapshot(): Promise<string>;
 };
 
@@ -35,6 +36,7 @@ export function createDumpController(): DumpController {
       }
     | undefined;
   let finalSnapshot: RunSnapshot | undefined;
+  let latestSnapshot: RunSnapshot | undefined;
   let pendingRequest:
     | {
         promise: Promise<string>;
@@ -60,17 +62,36 @@ export function createDumpController(): DumpController {
     finalize(snapshot) {
       finished = true;
       finalSnapshot = snapshot;
+      latestSnapshot = snapshot;
 
       if (pendingRequest !== undefined) {
         settlePendingSnapshot(snapshot);
       }
     },
     onYield(createSnapshot) {
+      const snapshot = createSnapshot();
+      latestSnapshot = snapshot;
+
       if (pendingRequest === undefined) {
         return;
       }
 
-      settlePendingSnapshot(createSnapshot());
+      settlePendingSnapshot(snapshot);
+    },
+    requestCurrentSnapshot() {
+      if (failed !== undefined) {
+        return Promise.reject(failed.error);
+      }
+
+      if (latestSnapshot !== undefined) {
+        try {
+          return Promise.resolve(serializeRunSnapshot(latestSnapshot));
+        } catch (error) {
+          return Promise.reject(error);
+        }
+      }
+
+      return this.requestSnapshot();
     },
     requestSnapshot() {
       if (failed !== undefined) {
@@ -142,6 +163,18 @@ export function dump(result: Pick<RunResult, "snapshot"> | PromiseLike<RunResult
   }
 
   return Promise.resolve(result).then(({ snapshot }) => serializeRunSnapshot(snapshot));
+}
+
+export function dumpCurrent(
+  result: Pick<RunResult, "snapshot"> | PromiseLike<RunResult>
+): Promise<string> {
+  const controller = readDumpController(result);
+
+  if (controller !== undefined) {
+    return controller.requestCurrentSnapshot();
+  }
+
+  return dump(result);
 }
 
 export function serializeRunSnapshot(snapshot: RunSnapshot): string {

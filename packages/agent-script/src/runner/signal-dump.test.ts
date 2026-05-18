@@ -1,85 +1,311 @@
 import { EventEmitter } from "node:events";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { vol } from "memfs";
 
-import { attachSignalDumpHandler } from "./signal-dump.js";
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return fs.promises;
+});
+
+const { createSandboxClosure, createSandboxPromise } = await import("../interp/values.js");
+const { hashSource } = await import("../parse/hash.js");
+const { run } = await import("../run.js");
+const { attachSignalDumpHandler } = await import("./signal-dump.js");
 
 describe("runner signal dump handling", () => {
-  it("waits for dump() to resolve before exiting on SIGINT", async () => {
-    const snapshot = JSON.stringify({ sourceHash: "abc" }, null, 2);
-    const dumpResult = createDeferred<string>();
-    const process = createProcessDouble();
-    const onSnapshot = vi.fn();
-
-    attachSignalDumpHandler(Promise.resolve({} as never), {
-      dumpResult: vi.fn(() => dumpResult.promise),
-      onSnapshot,
-      process
-    });
-
-    process.emit("SIGINT");
-    await flushMicrotasks();
-
-    expect(onSnapshot).not.toHaveBeenCalled();
-    expect(process.exit).not.toHaveBeenCalled();
-    expect(process.listenerCount("SIGINT")).toBe(0);
-    expect(process.listenerCount("SIGTERM")).toBe(0);
-
-    dumpResult.resolve(snapshot);
-    await flushMicrotasks();
-
-    expect(onSnapshot).toHaveBeenCalledWith(snapshot, "SIGINT");
-    expect(process.exit).toHaveBeenCalledWith(0);
+  beforeEach(() => {
+    vol.reset();
   });
 
-  it("exits with code 1 when dump() rejects", async () => {
-    const failure = new Error("dump failed");
-    const process = createProcessDouble();
-    const onError = vi.fn();
-
-    attachSignalDumpHandler(Promise.resolve({} as never), {
-      dumpResult: vi.fn(() => Promise.reject(failure)),
-      onError,
-      process
-    });
-
-    process.emit("SIGTERM");
-    await flushMicrotasks();
-
-    expect(onError).toHaveBeenCalledWith(failure, "SIGTERM");
-    expect(process.exit).toHaveBeenCalledWith(1);
+  afterEach(() => {
+    vi.restoreAllMocks();
   });
 
-  it("ignores repeated signals after shutdown starts", async () => {
-    const dumpResult = createDeferred<string>();
+  it("writes a dump file at the configured path on SIGUSR1 mid-run", async () => {
+    const wait = createDeferred<string>();
     const process = createProcessDouble();
-    const dumpSpy = vi.fn(() => dumpResult.promise);
+    const result = run("const current = 'paused'; await wait(); return current;", {
+      bindings: {
+        wait: createWaitBinding(wait)
+      }
+    });
 
-    attachSignalDumpHandler(Promise.resolve({} as never), {
-      dumpResult: dumpSpy,
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
       process
     });
 
-    process.emit("SIGINT");
-    process.emit("SIGTERM");
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
     await flushMicrotasks();
 
-    expect(dumpSpy).toHaveBeenCalledTimes(1);
+    expect(vol.existsSync("/dumps/run.json")).toBe(true);
 
-    dumpResult.resolve("{}");
+    wait.resolve("done");
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "paused"
+    });
+  });
+
+  it("writes a dump for each consecutive signal without debouncing", async () => {
+    const wait = createDeferred<string>();
+    const process = createProcessDouble();
+    const writeFile = vi.fn(async () => undefined);
+    const result = run("await wait(); return 'done';", {
+      bindings: {
+        wait: createWaitBinding(wait)
+      }
+    });
+
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
+      process,
+      writeFile
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
+    process.emit("SIGUSR1");
     await flushMicrotasks();
 
-    expect(process.exit).toHaveBeenCalledTimes(1);
+    expect(writeFile).toHaveBeenCalledTimes(2);
+    expect(writeFile).toHaveBeenNthCalledWith(
+      1,
+      "/dumps/run.json",
+      expect.stringContaining('"sourceHash"'),
+      { encoding: "utf8" }
+    );
+    expect(writeFile).toHaveBeenNthCalledWith(
+      2,
+      "/dumps/run.json",
+      expect.stringContaining('"sourceHash"'),
+      { encoding: "utf8" }
+    );
+
+    wait.resolve("done");
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "done"
+    });
+  });
+
+  it("dumps while the runner is paused on an await with current scope and pending awaits", async () => {
+    const wait = createDeferred<string>();
+    const process = createProcessDouble();
+    const result = run("const current = 'paused'; await wait(); return current;", {
+      bindings: {
+        wait: createWaitBinding(wait)
+      }
+    });
+
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
+      process
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
+    await flushMicrotasks();
+
+    const snapshot = JSON.parse(vol.readFileSync("/dumps/run.json", "utf8") as string) as {
+      bindings?: Record<string, unknown>;
+      pendingAwaits?: Array<{ nodeId?: number; span: unknown }>;
+    };
+
+    expect(snapshot.bindings).toMatchObject({
+      current: "paused"
+    });
+    expect(snapshot.pendingAwaits).toEqual([
+      {
+        nodeId: expect.any(Number),
+        span: expect.objectContaining({
+          start: expect.objectContaining({
+            line: 1
+          })
+        })
+      }
+    ]);
+
+    wait.resolve("done");
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "paused"
+    });
+  });
+
+  it("logs write errors to stderr and lets the runner continue", async () => {
+    const wait = createDeferred<string>();
+    const process = createProcessDouble();
+    const stderr = createStreamDouble();
+    const result = run("await wait(); return 'done';", {
+      bindings: {
+        wait: createWaitBinding(wait)
+      }
+    });
+
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
+      process,
+      stderr,
+      writeFile: vi.fn(async () => {
+        throw new Error("EACCES");
+      })
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
+    await flushMicrotasks();
+
+    expect(stderr.write).toHaveBeenCalledWith(
+      expect.stringContaining("Failed to write SIGUSR1 dump to /dumps/run.json: EACCES")
+    );
+
+    wait.resolve("done");
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "done"
+    });
+  });
+
+  it("writes parseable JSON", async () => {
+    const wait = createDeferred<string>();
+    const process = createProcessDouble();
+    const result = run("await wait(); return 'done';", {
+      bindings: {
+        wait: createWaitBinding(wait)
+      }
+    });
+
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
+      process
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
+    await flushMicrotasks();
+
+    expect(() => JSON.parse(vol.readFileSync("/dumps/run.json", "utf8") as string)).not.toThrow();
+
+    wait.resolve("done");
+    await result;
+  });
+
+  it("includes sourceHash so the dump can be diffed against the source later", async () => {
+    const wait = createDeferred<string>();
+    const process = createProcessDouble();
+    const source = "await wait(); return 'done';";
+    const result = run(source, {
+      bindings: {
+        wait: createWaitBinding(wait)
+      }
+    });
+
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
+      process
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
+    await flushMicrotasks();
+
+    const snapshot = JSON.parse(vol.readFileSync("/dumps/run.json", "utf8") as string) as {
+      sourceHash?: string;
+    };
+
+    expect(snapshot.sourceHash).toBe(hashSource(source));
+
+    wait.resolve("done");
+    await result;
+  });
+
+  it("removes the signal handler when the runner finishes so later signals fall through", async () => {
+    const process = createProcessDouble();
+    const result = run("return 'done';");
+
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
+      process
+    });
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "done"
+    });
+    await flushMicrotasks();
+
+    expect(process.listenerCount("SIGUSR1")).toBe(0);
+    expect(process.emit("SIGUSR1")).toBe(false);
+    expect(vol.existsSync("/dumps/run.json")).toBe(false);
+  });
+
+  it("lets multiple runners in one process dump independently", async () => {
+    const firstWait = createDeferred<string>();
+    const secondWait = createDeferred<string>();
+    const process = createProcessDouble();
+    const first = run("const marker = 'first'; await wait(); return marker;", {
+      bindings: {
+        wait: createWaitBinding(firstWait)
+      }
+    });
+    const second = run("const marker = 'second'; await wait(); return marker;", {
+      bindings: {
+        wait: createWaitBinding(secondWait)
+      }
+    });
+
+    attachSignalDumpHandler(first, {
+      dumpPath: "/dumps/first.json",
+      process
+    });
+    attachSignalDumpHandler(second, {
+      dumpPath: "/dumps/second.json",
+      process
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
+    await flushMicrotasks();
+
+    expect(
+      JSON.parse(vol.readFileSync("/dumps/first.json", "utf8") as string)
+    ).toMatchObject({
+      bindings: {
+        marker: "first"
+      }
+    });
+    expect(
+      JSON.parse(vol.readFileSync("/dumps/second.json", "utf8") as string)
+    ).toMatchObject({
+      bindings: {
+        marker: "second"
+      }
+    });
+
+    firstWait.resolve("done");
+    secondWait.resolve("done");
+    await Promise.all([first, second]);
   });
 });
 
 function createProcessDouble() {
-  const process = new EventEmitter() as EventEmitter & {
-    exit: ReturnType<typeof vi.fn>;
+  return new EventEmitter();
+}
+
+function createStreamDouble() {
+  return {
+    write: vi.fn()
   };
+}
 
-  process.exit = vi.fn();
-
-  return process;
+function createWaitBinding(deferred: ReturnType<typeof createDeferred<string>>) {
+  return createSandboxClosure({
+    async: true,
+    call: () => createSandboxPromise(deferred.promise),
+    name: "wait"
+  });
 }
 
 function createDeferred<T>() {

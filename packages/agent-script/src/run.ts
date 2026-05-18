@@ -53,10 +53,16 @@ export type RunOptions = {
 export type RunSnapshot = AgentScriptSnapshot & {
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock?: RunClockSnapshot;
+  pendingAwaits?: RunPendingAwaitSnapshot[];
   random?: {
     seed: number;
     state: number;
   };
+};
+
+export type RunPendingAwaitSnapshot = {
+  nodeId?: number;
+  span: SourceSpan;
 };
 
 export type RunClockSnapshot = {
@@ -149,6 +155,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
             (snapshot ??= createRunSnapshot({
               bindings: yieldPoint.snapshot.bindings,
               clock: options.clock,
+              pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
               random,
               sourceHash
             }));
@@ -177,6 +184,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
                   (snapshot ??= createRunSnapshot({
                     bindings: yieldPoint.snapshot.bindings,
                     clock: options.clock,
+                    pendingAwaits: [createPendingAwaitSnapshot(yieldPoint)],
                     random,
                     sourceHash
                   }));
@@ -335,6 +343,7 @@ function createExecutableNode(module: Module): ParseResult {
 function createRunSnapshot(input: {
   bindings: InterpreterResult["snapshot"]["bindings"];
   clock: RunClock | undefined;
+  pendingAwaits?: RunPendingAwaitSnapshot[];
   random:
     | {
         seed: number;
@@ -347,6 +356,9 @@ function createRunSnapshot(input: {
     sourceHash: input.sourceHash,
     bindings: input.bindings,
     clock: input.clock?.snapshot(),
+    ...(input.pendingAwaits === undefined || input.pendingAwaits.length === 0
+      ? {}
+      : { pendingAwaits: input.pendingAwaits }),
     random:
       input.random === undefined
         ? undefined
@@ -356,3 +368,14 @@ function createRunSnapshot(input: {
           }
   };
 }
+
+function createPendingAwaitSnapshot(yieldPoint: AwaitYieldPoint): RunPendingAwaitSnapshot {
+  return {
+    ...(yieldPoint.nodeId === undefined ? {} : { nodeId: yieldPoint.nodeId }),
+    span: yieldPoint.span
+  };
+}
+
+type AwaitYieldPoint = Parameters<
+  NonNullable<NonNullable<Parameters<typeof interpret>[1]>["onYield"]>
+>[0];

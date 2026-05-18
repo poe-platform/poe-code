@@ -1,57 +1,72 @@
+import { mkdir, writeFile as nodeWriteFile } from "node:fs/promises";
+import { dirname } from "node:path";
+
 import type { RunResult } from "../run.js";
-import { dump } from "../snapshot/dump.js";
+import { dumpCurrent } from "../snapshot/dump.js";
 
-type SignalName = "SIGINT" | "SIGTERM";
+type SignalName = "SIGUSR1";
 
-type SignalProcess = Pick<NodeJS.Process, "exit" | "off" | "once">;
+type SignalProcess = Pick<NodeJS.Process, "off" | "on">;
+
+type CliStream = {
+  write(chunk: string): void;
+};
+
+type WriteDumpFile = (
+  filepath: string,
+  content: string,
+  options: { encoding: "utf8" }
+) => Promise<void>;
 
 export function attachSignalDumpHandler(
   result: PromiseLike<RunResult>,
   options: {
+    dumpPath?: string;
     dumpResult?: (result: PromiseLike<RunResult>) => Promise<string>;
     onError?: (error: unknown, signal: SignalName) => Promise<void> | void;
     onSnapshot?: (snapshot: string, signal: SignalName) => Promise<void> | void;
     process?: SignalProcess;
+    stderr?: CliStream;
+    writeFile?: WriteDumpFile;
   } = {}
 ): () => void {
-  const dumpResult = options.dumpResult ?? dump;
+  const dumpResult = options.dumpResult ?? dumpCurrent;
   const signalProcess = options.process ?? process;
-  let shuttingDown = false;
+  const stderr = options.stderr ?? process.stderr;
+  const writeDumpFile = options.writeFile ?? nodeWriteFile;
 
-  const onSigint = () => {
-    handleSignal("SIGINT");
-  };
-  const onSigterm = () => {
-    handleSignal("SIGTERM");
+  const onSigusr1 = () => {
+    void writeDump("SIGUSR1");
   };
 
-  signalProcess.once("SIGINT", onSigint);
-  signalProcess.once("SIGTERM", onSigterm);
+  signalProcess.on("SIGUSR1", onSigusr1);
+  Promise.resolve(result).then(cleanup, cleanup);
 
   return cleanup;
 
   function cleanup(): void {
-    signalProcess.off("SIGINT", onSigint);
-    signalProcess.off("SIGTERM", onSigterm);
+    signalProcess.off("SIGUSR1", onSigusr1);
   }
 
-  function handleSignal(signal: SignalName): void {
-    if (shuttingDown) {
-      return;
-    }
-
-    shuttingDown = true;
-    cleanup();
-
-    void (async () => {
-      try {
-        const snapshot = await dumpResult(result);
-        await options.onSnapshot?.(snapshot, signal);
-        signalProcess.exit(0);
-      } catch (error) {
-        await options.onError?.(error, signal);
-        signalProcess.exit(1);
+  async function writeDump(signal: SignalName): Promise<void> {
+    try {
+      const snapshot = await dumpResult(result);
+      if (options.dumpPath !== undefined) {
+        await mkdir(dirname(options.dumpPath), { recursive: true });
+        await writeDumpFile(options.dumpPath, snapshot, { encoding: "utf8" });
       }
-    })();
+      await options.onSnapshot?.(snapshot, signal);
+    } catch (error) {
+      await options.onError?.(error, signal);
+      stderr.write(`Failed to write ${signal} dump to ${options.dumpPath ?? "<memory>"}: ${readErrorMessage(error)}\n`);
+    }
   }
+}
+
+function readErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return String(error);
 }

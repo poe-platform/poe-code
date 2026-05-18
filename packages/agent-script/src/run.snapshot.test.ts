@@ -226,7 +226,12 @@ describe("run snapshot checkpointing", () => {
     };
 
     expect(waitCalls).toBe(3);
-    expect(secondSnapshot).toEqual(firstSnapshot);
+    expect(withoutPendingAwaits(secondSnapshot)).toEqual(withoutPendingAwaits(firstSnapshot));
+    expect(secondSnapshot.pendingAwaits).toEqual([
+      expect.objectContaining({
+        nodeId: expect.any(Number)
+      })
+    ]);
 
     third.resolve("gamma");
     await expect(result).resolves.toMatchObject({
@@ -328,4 +333,12 @@ async function flushMicrotasks(iterations = 20) {
   for (let index = 0; index < iterations; index += 1) {
     await Promise.resolve();
   }
+}
+
+function withoutPendingAwaits<TSnapshot extends { pendingAwaits?: unknown }>(
+  snapshot: TSnapshot
+): Omit<TSnapshot, "pendingAwaits"> {
+  const { pendingAwaits: ignoredPendingAwaits, ...rest } = snapshot;
+  void ignoredPendingAwaits;
+  return rest;
 }

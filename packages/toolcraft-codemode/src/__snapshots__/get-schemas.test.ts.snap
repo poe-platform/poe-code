@@ -1,0 +1,39 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`makeGetSchemasCommand > returns a requested command description and params schema > issues list schema 1`] = `
+{
+  "issues.list": {
+    "description": "List matching issues.",
+    "params": {
+      "properties": {
+        "assignee": {
+          "description": "GitHub login to filter by.",
+          "type": "string",
+        },
+        "labels": {
+          "description": "Labels that must be present.",
+          "items": {
+            "description": "Label name.",
+            "type": "string",
+          },
+          "type": "array",
+        },
+        "state": {
+          "default": "open",
+          "description": "Issue state.",
+          "enum": [
+            "open",
+            "closed",
+          ],
+          "type": "string",
+        },
+      },
+      "required": [
+        "labels",
+        "state",
+      ],
+      "type": "object",
+    },
+  },
+}
+`;

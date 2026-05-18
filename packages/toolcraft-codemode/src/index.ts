@@ -1,4 +1,9 @@
 export {
+  makeGetSchemasCommand,
+  type GetSchemasCommandOptions,
+  type GetSchemasResult
+} from "./get-schemas.js";
+export {
   buildHostModules,
   type BuildHostModulesResult,
   type HostLintModules,

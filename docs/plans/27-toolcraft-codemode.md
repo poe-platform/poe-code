@@ -147,7 +147,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: get-schemas-meta-tool
     title: get_schemas meta-tool returning JSON schemas by path
@@ -176,9 +176,9 @@ tasks:
       names. Use the snapshot conventions from
       `docs/SNAPSHOT_TESTING.md`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: execute-meta-tool
     title: execute meta-tool running agent-script with the host modules

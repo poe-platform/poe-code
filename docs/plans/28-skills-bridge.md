@@ -100,8 +100,8 @@ tasks:
       Export `resolveSkillReference`, `SkillSource`, `SkillResolutionFailure`,
       `SkillResolution` from `packages/agent-skill-config/src/index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: git-exclude-block

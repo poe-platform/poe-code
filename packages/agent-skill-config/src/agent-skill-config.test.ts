@@ -104,7 +104,10 @@ describe("supportedAgents", () => {
 });
 
 describe("resolveAgentSupport", () => {
-  const claudeConfig = { globalSkillDir: "/test/global/claude", localSkillDir: "test/local/claude" };
+  const claudeConfig = {
+    globalSkillDir: "/test/global/claude",
+    localSkillDir: "test/local/claude"
+  };
   const gooseConfig = { globalSkillDir: "/test/global/goose", localSkillDir: "test/local/goose" };
   const fixtureRegistry = { "claude-code": claudeConfig, goose: gooseConfig };
 
@@ -186,6 +189,7 @@ describe("@poe-code/agent-skill-config", () => {
     expect(typeof agentSkillConfig.resolveAgentSupport).toBe("function");
     expect(typeof agentSkillConfig.getAgentConfig).toBe("function");
     expect(typeof agentSkillConfig.resolveSkillDir).toBe("function");
+    expect(typeof agentSkillConfig.resolveSkillReference).toBe("function");
     expect(typeof agentSkillConfig.configure).toBe("function");
     expect(typeof agentSkillConfig.unconfigure).toBe("function");
     expect(typeof agentSkillConfig.UnsupportedAgentError).toBe("function");

@@ -61,13 +61,13 @@ export function getAgentConfig(agentId: string): AgentSkillConfig | undefined {
   return support.status === "supported" ? support.config : undefined;
 }
 
-function expandHome(targetPath: string): string {
+function expandHome(targetPath: string, homeDir: string = os.homedir()): string {
   if (!targetPath?.startsWith("~")) {
     return targetPath;
   }
 
   if (targetPath === "~") {
-    return os.homedir();
+    return homeDir;
   }
 
   // Handle ~./ -> ~/.
@@ -85,12 +85,17 @@ function expandHome(targetPath: string): string {
     }
   }
 
-  return remainder.length === 0 ? os.homedir() : path.join(os.homedir(), remainder);
+  return remainder.length === 0 ? homeDir : path.join(homeDir, remainder);
 }
 
-export function resolveSkillDir(config: AgentSkillConfig, scope: SkillScope, cwd: string): string {
+export function resolveSkillDir(
+  config: AgentSkillConfig,
+  scope: SkillScope,
+  cwd: string,
+  homeDir?: string
+): string {
   if (scope === "global") {
-    return path.resolve(expandHome(config.globalSkillDir));
+    return path.resolve(expandHome(config.globalSkillDir, homeDir));
   }
 
   return path.resolve(cwd, config.localSkillDir);

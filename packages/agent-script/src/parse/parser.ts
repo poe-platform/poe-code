@@ -2247,6 +2247,10 @@ class Parser {
   private parsePrimaryExpression(): ParsedExpression {
     const token = this.currentToken();
 
+    if (isNewToken(token)) {
+      return this.parseAllowedNewExpression();
+    }
+
     if (isIdentifierLikeToken(token)) {
       assertAllowedIdentifierReference(token);
       this.index += 1;
@@ -2329,6 +2333,33 @@ class Parser {
     }
 
     throw unexpectedTokenError(token);
+  }
+
+  private parseAllowedNewExpression(): ParsedExpression {
+    const newToken = this.currentToken();
+    this.index += 1;
+
+    const calleeToken = this.currentToken();
+    if (!isAllowedNewCalleeToken(calleeToken)) {
+      throw new DisallowedSyntaxError(newToken.value, newToken.start);
+    }
+
+    this.index += 1;
+    const callee = createIdentifier(calleeToken);
+    this.expectPunctuator("(");
+    const args = this.parseArguments();
+    const end = this.previousToken();
+
+    return {
+      node: {
+        type: "CallExpression",
+        arguments: args,
+        callee,
+        optional: false,
+        span: createSpan(newToken.start, end.end)
+      },
+      parenthesized: false
+    };
   }
 
   private parseArrayExpression(): ArrayExpression {
@@ -4009,6 +4040,14 @@ function isLiteralPropertyKey(token: Token): boolean {
 
 function isIdentifierLikeToken(token: Token): boolean {
   return token.type === "identifier" || (token.type === "keyword" && token.value === "async");
+}
+
+function isNewToken(token: Token): boolean {
+  return token.value === "new";
+}
+
+function isAllowedNewCalleeToken(token: Token): boolean {
+  return token.type === "identifier" && (token.value === "Error" || token.value === "TypeError");
 }
 
 function createTokenSpan(token: Token): SourceSpan {

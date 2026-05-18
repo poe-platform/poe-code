@@ -1,16 +1,259 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Budget, SandboxError } from "./budget.js";
 import { createPromiseGlobals } from "./promise.js";
 import {
+  createSandboxClosure,
   createSandboxPromise,
   isSandboxClosure,
   isSandboxPromise,
   type SandboxClosure,
-  type SandboxObject
+  type SandboxObject,
+  type SandboxValue
 } from "./values.js";
 
 describe("createPromiseGlobals", () => {
+  it("resolves Promise.all empty iterables to an empty array after a microtask", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+    const promise = resolvePromise(resolveClosure(globals.Promise, "all").call([[]]));
+    let settled = false;
+
+    promise.then(() => {
+      settled = true;
+    });
+
+    expect(settled).toBe(false);
+    await expect(promise).resolves.toEqual([]);
+    expect(settled).toBe(true);
+  });
+
+  it("resolves Promise.all values and promises", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+
+    await expect(
+      resolvePromise(
+        resolveClosure(globals.Promise, "all").call([[1, 2, createSandboxPromise(Promise.resolve(3))]])
+      )
+    ).resolves.toEqual([1, 2, 3]);
+  });
+
+  it("rejects Promise.all on one rejection while later inputs still run", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+    const afterReject = vi.fn();
+    const later = createSandboxPromise(
+      Promise.resolve().then(() => {
+        afterReject();
+        return "ignored";
+      })
+    );
+
+    await expect(
+      resolvePromise(
+        resolveClosure(globals.Promise, "all").call([
+          [createSandboxPromise(Promise.reject("first")), later]
+        ])
+      )
+    ).rejects.toBe("first");
+    await later.promise;
+
+    expect(afterReject).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves Promise.all input order", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+    const slow = createSandboxPromise(
+      new Promise((resolve) => {
+        queueMicrotask(() => resolve("slow"));
+      })
+    );
+    const fast = createSandboxPromise(Promise.resolve("fast"));
+
+    await expect(resolvePromise(resolveClosure(globals.Promise, "all").call([[slow, fast]]))).resolves.toEqual([
+      "slow",
+      "fast"
+    ]);
+  });
+
+  it("keeps Promise.race empty iterables pending", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+    const pendingRace = resolvePromise(resolveClosure(globals.Promise, "race").call([[]]));
+
+    await expect(
+      Promise.race([
+        pendingRace.then(
+          () => "settled",
+          () => "settled"
+        ),
+        Promise.resolve("pending")
+      ])
+    ).resolves.toBe("pending");
+  });
+
+  it("matches V8 microtask order for Promise.race reject then resolve", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+
+    await expect(
+      resolvePromise(
+        resolveClosure(globals.Promise, "race").call([
+          [createSandboxPromise(Promise.reject(1)), createSandboxPromise(Promise.resolve(2))]
+        ])
+      )
+    ).rejects.toBe(1);
+  });
+
+  it("rejects Promise.race when the first thenable rejects synchronously", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+
+    await expect(
+      resolvePromise(
+        resolveClosure(globals.Promise, "race").call([
+          [
+            createThenable((_resolve, reject) => reject("sync")),
+            createSandboxPromise(Promise.resolve("ignored"))
+          ]
+        ])
+      )
+    ).rejects.toBe("sync");
+  });
+
+  it("resolves Promise.allSettled empty iterables to an empty array", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+
+    await expect(resolvePromise(resolveClosure(globals.Promise, "allSettled").call([[]]))).resolves.toEqual([]);
+  });
+
+  it("returns Promise.allSettled fulfillment and rejection records per input", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+
+    await expect(
+      resolvePromise(
+        resolveClosure(globals.Promise, "allSettled").call([
+          [createSandboxPromise(Promise.resolve("ok")), createSandboxPromise(Promise.reject("no"))]
+        ])
+      )
+    ).resolves.toEqual([
+      {
+        status: "fulfilled",
+        value: "ok"
+      },
+      {
+        reason: "no",
+        status: "rejected"
+      }
+    ]);
+  });
+
+  it("rejects Promise.any empty iterables with an empty AggregateError shape", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+
+    await expect(resolvePromise(resolveClosure(globals.Promise, "any").call([[]]))).rejects.toEqual({
+      errors: [],
+      message: "All promises were rejected",
+      name: "AggregateError"
+    });
+  });
+
+  it("aggregates all Promise.any rejection reasons", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+
+    await expect(
+      resolvePromise(
+        resolveClosure(globals.Promise, "any").call([
+          [createSandboxPromise(Promise.reject("left")), createSandboxPromise(Promise.reject("right"))]
+        ])
+      )
+    ).rejects.toEqual({
+      errors: ["left", "right"],
+      message: "All promises were rejected",
+      name: "AggregateError"
+    });
+  });
+
+  it("resolves Promise.any with the first fulfilled value", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+
+    await expect(
+      resolvePromise(
+        resolveClosure(globals.Promise, "any").call([
+          [createSandboxPromise(Promise.reject("left")), createSandboxPromise(Promise.resolve("right"))]
+        ])
+      )
+    ).resolves.toBe("right");
+  });
+
+  it.each(["all", "race", "allSettled", "any"])(
+    "rejects Promise.%s with TypeError for non-iterable input",
+    async (name) => {
+      const globals = createPromiseGlobals({
+        budget: new Budget()
+      });
+
+      await expect(resolvePromise(resolveClosure(globals.Promise, name).call([123]))).rejects.toThrow(TypeError);
+    }
+  );
+
+  it.each(["all", "race", "allSettled", "any"])(
+    "propagates iterator next throws for Promise.%s",
+    async (name) => {
+      const globals = createPromiseGlobals({
+        budget: new Budget()
+      });
+      const failure = new Error("next failed");
+
+      await expect(
+        resolvePromise(resolveClosure(globals.Promise, name).call([createThrowingIterable(failure)]))
+      ).rejects.toBe(failure);
+    }
+  );
+
+  it("resolves thenables in Promise.all inputs", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+
+    await expect(
+      resolvePromise(
+        resolveClosure(globals.Promise, "all").call([[createThenable((resolve) => resolve("thenable"))]])
+      )
+    ).resolves.toEqual(["thenable"]);
+  });
+
+  it("uses each occurrence of the same promise instance in Promise.all results", async () => {
+    const globals = createPromiseGlobals({
+      budget: new Budget()
+    });
+    const promise = createSandboxPromise(Promise.resolve("same"));
+
+    await expect(resolvePromise(resolveClosure(globals.Promise, "all").call([[promise, promise]]))).resolves.toEqual([
+      "same",
+      "same"
+    ]);
+  });
+
   it("exposes await-only subset Promise helpers", async () => {
     const globals = createPromiseGlobals({
       budget: new Budget()
@@ -131,10 +374,10 @@ describe("createPromiseGlobals", () => {
     });
 
     await expect(resolvePromise(resolveClosure(globals.Promise, "all").call([123]))).rejects.toThrow(
-      "Promise helpers require an array or string iterable."
+      "Promise helpers require an iterable."
     );
     await expect(resolvePromise(resolveClosure(globals.Promise, "race").call([undefined]))).rejects.toThrow(
-      "Promise helpers require an array or string iterable."
+      "Promise helpers require an iterable."
     );
   });
 
@@ -232,4 +475,39 @@ async function resolvePromise(value: unknown): Promise<unknown> {
   }
 
   return value.promise;
+}
+
+function createThenable(
+  settle: (resolve: (value: SandboxValue) => void, reject: (reason: SandboxValue) => void) => void
+): SandboxObject {
+  return {
+    then: createSandboxClosure({
+      call: ([resolve, reject]) => {
+        if (!isSandboxClosure(resolve) || !isSandboxClosure(reject)) {
+          throw new TypeError("Expected thenable handlers.");
+        }
+
+        settle(
+          (value) => {
+            resolve.call([value]);
+          },
+          (reason) => {
+            reject.call([reason]);
+          }
+        );
+        return undefined;
+      },
+      name: "then"
+    })
+  };
+}
+
+function createThrowingIterable(error: Error): SandboxObject {
+  return {
+    [Symbol.iterator]: () => ({
+      next: () => {
+        throw error;
+      }
+    })
+  } as unknown as SandboxObject;
 }

@@ -135,15 +135,56 @@ function settleIterable(
 }
 
 function toHostPromiseArray(iterable: SandboxValue, budget: Budget): Promise<SandboxValue>[] {
-  if (Array.isArray(iterable)) {
-    return iterable.map((value) => resolveSandboxValue(value, { budget }));
+  const iterator = getPromiseIterator(iterable);
+  if (iterator === undefined) {
+    throw new TypeError("Promise helpers require an iterable.");
   }
 
+  const entries: Promise<SandboxValue>[] = [];
+  while (true) {
+    const next = readIteratorNext(iterator);
+    if (next.done === true) {
+      return entries;
+    }
+
+    entries.push(resolveSandboxValue(next.value as SandboxValue, { budget }));
+  }
+}
+
+function getPromiseIterator(iterable: SandboxValue): Iterator<unknown> | undefined {
   if (typeof iterable === "string") {
-    return Array.from(iterable, (value) => Promise.resolve(value));
+    return iterable[Symbol.iterator]();
   }
 
-  throw new TypeError("Promise helpers require an array or string iterable.");
+  if ((typeof iterable !== "object" && typeof iterable !== "function") || iterable === null) {
+    return undefined;
+  }
+
+  const iteratorMethod = (iterable as { [Symbol.iterator]?: unknown })[Symbol.iterator];
+  if (typeof iteratorMethod !== "function") {
+    return undefined;
+  }
+
+  const iterator = Reflect.apply(iteratorMethod, iterable, []) as unknown;
+  if ((typeof iterator !== "object" && typeof iterator !== "function") || iterator === null) {
+    throw new TypeError("Promise helper iterable returned a non-object iterator.");
+  }
+
+  return iterator as Iterator<unknown>;
+}
+
+function readIteratorNext(iterator: Iterator<unknown>): IteratorResult<unknown> {
+  const nextMethod = (iterator as { next?: unknown }).next;
+  if (typeof nextMethod !== "function") {
+    throw new TypeError("Promise helper iterator requires a next method.");
+  }
+
+  const next = Reflect.apply(nextMethod, iterator, []) as unknown;
+  if (typeof next !== "object" || next === null) {
+    throw new TypeError("Iterator result must be an object.");
+  }
+
+  return next as IteratorResult<unknown>;
 }
 
 function schedulePromise(promise: Promise<SandboxValue>, budget: Budget): Promise<SandboxValue> {

@@ -628,8 +628,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): budget boundary edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-scope-edges

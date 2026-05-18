@@ -862,7 +862,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: methods-array-edges
     title: methods — Array.prototype edges
@@ -901,8 +901,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): Array.prototype edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: methods-string-tests

@@ -1,9 +1,14 @@
 import { Budget } from "../budget.js";
 import { createSandboxClosure, type SandboxValue } from "../values.js";
 
-export type NumberMethodName = "toFixed" | "toPrecision" | "toString";
+export type NumberMethodName = "toExponential" | "toFixed" | "toPrecision" | "toString";
 
-const numberMethodNames = new Set<NumberMethodName>(["toFixed", "toPrecision", "toString"]);
+const numberMethodNames = new Set<NumberMethodName>([
+  "toExponential",
+  "toFixed",
+  "toPrecision",
+  "toString"
+]);
 
 export function getNumberMember(
   value: number,
@@ -41,8 +46,12 @@ function callNativeNumberMethod(
   switch (methodName) {
     case "toString":
       return value.toString(asValidatedRadix(args[0]));
+    case "toExponential":
+      return args[0] === undefined
+        ? value.toExponential()
+        : value.toExponential(asValidatedFractionDigits(args[0], methodName));
     case "toFixed":
-      return value.toFixed(asValidatedFractionDigits(args[0]));
+      return value.toFixed(asValidatedFractionDigits(args[0], methodName));
     case "toPrecision":
       return args[0] === undefined
         ? value.toPrecision()
@@ -63,10 +72,13 @@ function asValidatedRadix(value: SandboxValue | undefined): number | undefined {
   return radix;
 }
 
-function asValidatedFractionDigits(value: SandboxValue | undefined): number {
+function asValidatedFractionDigits(
+  value: SandboxValue | undefined,
+  methodName: "toExponential" | "toFixed"
+): number {
   const digits = toIntegerOrInfinity(value);
   if (digits < 0 || digits > 100) {
-    throw new RangeError("Number#toFixed digits must be between 0 and 100.");
+    throw new RangeError(`Number#${methodName} digits must be between 0 and 100.`);
   }
 
   return digits;

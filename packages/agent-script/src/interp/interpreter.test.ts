@@ -1401,6 +1401,39 @@ describe("interpret", () => {
   });
 
   it.each([
+    ["return (1).toString()", {}, "1"],
+    ["return (255).toString(16)", {}, "ff"],
+    ["return (8).toString(2)", {}, "1000"],
+    ["return (0.1).toString()", {}, "0.1"],
+    ["return (1).toString(36)", {}, "1"],
+    ["return (-0).toString()", {}, "0"],
+    ["return Infinity.toString()", { Infinity }, "Infinity"],
+    ["return (-Infinity).toString()", { Infinity }, "-Infinity"],
+    ["return NaN.toString()", { NaN }, "NaN"],
+    ["return (1.005).toFixed(2)", {}, (1.005).toFixed(2)],
+    ["return (1).toFixed(100)", {}, (1).toFixed(100)],
+    ["return (1).toPrecision()", {}, "1"],
+    ["return (1234.5).toPrecision(3)", {}, "1.23e+3"],
+    ["return (1e21).toString()", {}, "1e+21"],
+    ["return (0.0000001).toString()", {}, "1e-7"],
+    ["return (1).toExponential(2)", {}, "1.00e+0"]
+  ])("evaluates Number edge expression %s", async (source, bindings, expected) => {
+    await expect(interpret(parse(source), { bindings })).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it.each(["return (1).toString(0)", "return (1).toString(1)", "return (1).toString(37)"])(
+    "throws RangeError for Number edge expression %s",
+    async (source) => {
+      await expect(interpret(parse(source))).rejects.toMatchObject({
+        name: "RangeError"
+      });
+    }
+  );
+
+  it.each([
     ["null object", "return obj?.prop", { obj: null }, undefined],
     ["undefined object", "return obj?.prop", { obj: undefined }, undefined],
     ["defined object", "return obj?.prop", { obj: { prop: 1 } }, 1],

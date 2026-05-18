@@ -23,10 +23,38 @@ describe("createMathGlobals", () => {
     expect(getClosure(getProperty(globals.Math, "log")).call([Math.E ** 2])).toBe(2);
     expect(getClosure(getProperty(globals.Math, "log2")).call([8])).toBe(3);
     expect(getClosure(getProperty(globals.Math, "log10")).call([1_000])).toBe(3);
+    expect(getClosure(getProperty(globals.Math, "hypot")).call([3, 4])).toBe(5);
+    expect(getClosure(getProperty(globals.Math, "cbrt")).call([-8])).toBe(-2);
     expect(getClosure(getProperty(globals.Math, "exp")).call([2])).toBe(Math.exp(2));
     expect(getClosure(getProperty(globals.Math, "sin")).call([Math.PI / 2])).toBe(1);
     expect(getClosure(getProperty(globals.Math, "cos")).call([Math.PI])).toBe(-1);
     expect(getClosure(getProperty(globals.Math, "tan")).call([0])).toBe(0);
+  });
+
+  it("matches JavaScript Math edge cases", () => {
+    const globals = createMathGlobals();
+
+    expect(callMath(globals.Math, "min")).toBe(Infinity);
+    expect(callMath(globals.Math, "max")).toBe(-Infinity);
+    expect(callMath(globals.Math, "min", 1, Number.NaN, 2)).toBeNaN();
+    expect(callMath(globals.Math, "max", 1, Number.NaN, 2)).toBeNaN();
+    expect(Object.is(callMath(globals.Math, "abs", -0), 0)).toBe(true);
+    expect(Object.is(callMath(globals.Math, "sign", -0), -0)).toBe(true);
+    expect(Object.is(callMath(globals.Math, "sign", 0), 0)).toBe(true);
+    expect(callMath(globals.Math, "sign", Number.NaN)).toBeNaN();
+    expect(callMath(globals.Math, "floor", -0.5)).toBe(-1);
+    expect(Object.is(callMath(globals.Math, "ceil", -0.5), -0)).toBe(true);
+    expect(callMath(globals.Math, "round", 0.5)).toBe(1);
+    expect(Object.is(callMath(globals.Math, "round", -0.5), -0)).toBe(true);
+    expect(callMath(globals.Math, "round", 2.5)).toBe(3);
+    expect(callMath(globals.Math, "trunc", -1.9)).toBe(-1);
+    expect(callMath(globals.Math, "pow", 0, -1)).toBe(Infinity);
+    expect(callMath(globals.Math, "pow", 0, 0)).toBe(1);
+    expect(callMath(globals.Math, "sqrt", -1)).toBeNaN();
+    expect(callMath(globals.Math, "log", 0)).toBe(-Infinity);
+    expect(callMath(globals.Math, "log", -1)).toBeNaN();
+    expect(callMath(globals.Math, "log2", 8)).toBe(3);
+    expect(callMath(globals.Math, "log10", 1_000)).toBe(3);
   });
 
   it("uses host randomness by default", async () => {
@@ -36,6 +64,17 @@ describe("createMathGlobals", () => {
     expect(typeof value).toBe("number");
     expect(value).toBeGreaterThanOrEqual(0);
     expect(value).toBeLessThan(1);
+  });
+
+  it("keeps Math.random() samples inside the JavaScript range", () => {
+    const globals = createMathGlobals();
+    const random = getClosure(getProperty(globals.Math, "random"));
+
+    for (let index = 0; index < 10_000; index += 1) {
+      const value = random.call([]);
+      expect(value).toBeGreaterThanOrEqual(0);
+      expect(value).toBeLessThan(1);
+    }
   });
 
   it("produces deterministic random sequences for the same seed", async () => {
@@ -77,4 +116,8 @@ function getProperty(value: SandboxObject, name: string) {
 
 function getClosure(value: unknown): SandboxClosure {
   return value as SandboxClosure;
+}
+
+function callMath(mathObject: SandboxObject, name: string, ...args: number[]) {
+  return getClosure(getProperty(mathObject, name)).call(args);
 }

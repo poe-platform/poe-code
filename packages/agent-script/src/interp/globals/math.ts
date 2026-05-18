@@ -3,9 +3,11 @@ import { createSandboxClosure, type SandboxObject } from "../values.js";
 const mathMethods = {
   abs: Math.abs,
   ceil: Math.ceil,
+  cbrt: Math.cbrt,
   cos: Math.cos,
   exp: Math.exp,
   floor: Math.floor,
+  hypot: Math.hypot,
   log: Math.log,
   log10: Math.log10,
   log2: Math.log2,

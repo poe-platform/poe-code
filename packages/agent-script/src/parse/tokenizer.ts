@@ -64,6 +64,9 @@ const KEYWORDS = new Set([
 
 const EXPRESSION_ENDING_KEYWORDS = new Set(["true", "false", "null", "undefined"]);
 const CONTROL_FLOW_PAREN_KEYWORDS = new Set(["if", "while", "for", "catch"]);
+const MAX_UNICODE_CODE_POINT = 0x10ffff;
+const IDENTIFIER_START_PATTERN = /^\p{ID_Start}$/u;
+const IDENTIFIER_PART_PATTERN = /^\p{ID_Continue}$/u;
 
 const PUNCTUATORS = [
   ">>>=",
@@ -165,8 +168,9 @@ class Lexer {
 
       const start = this.position();
       const char = this.currentChar();
+      const codePointChar = this.currentCodePointChar();
 
-      if (isIdentifierStart(char)) {
+      if (isIdentifierStart(codePointChar) || this.startsUnicodeEscape()) {
         this.readIdentifierOrKeyword(start);
         continue;
       }
@@ -230,12 +234,38 @@ class Lexer {
   }
 
   private readIdentifierOrKeyword(start: Position): void {
-    this.advance();
-    while (!this.isAtEnd() && isIdentifierPart(this.currentChar())) {
-      this.advance();
+    let value = "";
+    let isStart = true;
+
+    while (!this.isAtEnd()) {
+      if (this.startsUnicodeEscape()) {
+        const escapeStart = this.position();
+        const escaped = this.readUnicodeEscape();
+        const isValidIdentifierCharacter = isStart
+          ? isIdentifierStart(escaped)
+          : isIdentifierPart(escaped);
+
+        if (!isValidIdentifierCharacter) {
+          this.syntaxError("Invalid identifier escape", escapeStart);
+        }
+
+        value += escaped;
+        isStart = false;
+        continue;
+      }
+
+      const char = this.currentCodePointChar();
+      const isValidIdentifierCharacter = isStart ? isIdentifierStart(char) : isIdentifierPart(char);
+
+      if (!isValidIdentifierCharacter) {
+        break;
+      }
+
+      this.advanceBy(char.length);
+      value += char;
+      isStart = false;
     }
 
-    const value = this.source.slice(start.offset, this.index);
     this.pushToken(KEYWORDS.has(value) ? "keyword" : "identifier", start, value);
   }
 
@@ -251,10 +281,16 @@ class Lexer {
       }
 
       if (char === "\\") {
+        if (this.peekChar(1) === "u") {
+          this.readUnicodeEscape();
+          continue;
+        }
+
         this.advance();
         if (this.isAtEnd()) {
           break;
         }
+
         this.advance();
         continue;
       }
@@ -335,14 +371,41 @@ class Lexer {
         continue;
       }
 
-      if (isIdentifierStart(char)) {
-        const start = this.position();
-        this.advance();
-        while (!this.isAtEnd() && isIdentifierPart(this.currentChar())) {
-          this.advance();
+      if (isIdentifierStart(this.currentCodePointChar()) || this.startsUnicodeEscape()) {
+        let value = "";
+        let isStart = true;
+
+        while (!this.isAtEnd()) {
+          if (this.startsUnicodeEscape()) {
+            const escapeStart = this.position();
+            const escaped = this.readUnicodeEscape();
+            const isValidIdentifierCharacter = isStart
+              ? isIdentifierStart(escaped)
+              : isIdentifierPart(escaped);
+
+            if (!isValidIdentifierCharacter) {
+              this.syntaxError("Invalid identifier escape", escapeStart);
+            }
+
+            value += escaped;
+            isStart = false;
+            continue;
+          }
+
+          const identifierChar = this.currentCodePointChar();
+          const isValidIdentifierCharacter = isStart
+            ? isIdentifierStart(identifierChar)
+            : isIdentifierPart(identifierChar);
+
+          if (!isValidIdentifierCharacter) {
+            break;
+          }
+
+          this.advanceBy(identifierChar.length);
+          value += identifierChar;
+          isStart = false;
         }
 
-        const value = this.source.slice(start.offset, this.index);
         tokens.push({ type: KEYWORDS.has(value) ? "keyword" : "identifier", value });
         lastClosedControlParenthesis = false;
         continue;
@@ -427,9 +490,13 @@ class Lexer {
         return;
       }
       if (char === "\\") {
-        this.advance();
-        if (!this.isAtEnd()) {
+        if (this.peekChar(1) === "u") {
+          this.readUnicodeEscape();
+        } else {
           this.advance();
+          if (!this.isAtEnd()) {
+            this.advance();
+          }
         }
         continue;
       }
@@ -686,7 +753,12 @@ class Lexer {
 
   private rejectInvalidNumericLiteralContinuation(): void {
     const char = this.currentChar();
-    if (char === "_" || isIdentifierStart(char) || isDecimalDigit(char)) {
+    if (
+      char === "_" ||
+      isIdentifierStart(this.currentCodePointChar()) ||
+      isDecimalDigit(char) ||
+      this.startsUnicodeEscape()
+    ) {
       this.syntaxError("Invalid numeric literal", this.position());
     }
   }
@@ -797,6 +869,69 @@ class Lexer {
     return this.source[this.index + distance] ?? "";
   }
 
+  private currentCodePointChar(): string {
+    const codePoint = this.source.codePointAt(this.index);
+    return codePoint === undefined ? "" : String.fromCodePoint(codePoint);
+  }
+
+  private startsUnicodeEscape(): boolean {
+    return this.currentChar() === "\\" && this.peekChar(1) === "u";
+  }
+
+  private readUnicodeEscape(): string {
+    const escapeStart = this.position();
+    this.advance();
+    this.advance();
+
+    if (this.currentChar() === "{") {
+      return this.readExtendedUnicodeEscape(escapeStart);
+    }
+
+    let value = "";
+    for (let index = 0; index < 4; index += 1) {
+      const char = this.currentChar();
+      if (!isHexDigit(char)) {
+        this.syntaxError("Invalid unicode escape", escapeStart);
+      }
+      value += char;
+      this.advance();
+    }
+
+    return String.fromCharCode(Number.parseInt(value, 16));
+  }
+
+  private readExtendedUnicodeEscape(escapeStart: Position): string {
+    this.advance();
+    const codePointStart = this.position();
+    let value = "";
+
+    while (!this.isAtEnd() && this.currentChar() !== "}") {
+      const char = this.currentChar();
+      if (!isHexDigit(char)) {
+        this.syntaxError("Invalid unicode escape", this.position());
+      }
+
+      value += char;
+      this.advance();
+    }
+
+    if (value.length === 0) {
+      this.syntaxError("Invalid unicode escape", escapeStart);
+    }
+
+    if (this.isAtEnd()) {
+      this.syntaxError("Invalid unicode escape", escapeStart);
+    }
+
+    const codePoint = Number.parseInt(value, 16);
+    if (codePoint > MAX_UNICODE_CODE_POINT) {
+      this.syntaxError("Invalid unicode escape", codePointStart);
+    }
+
+    this.advance();
+    return String.fromCodePoint(codePoint);
+  }
+
   private isAtEnd(): boolean {
     return this.index >= this.source.length;
   }
@@ -847,11 +982,17 @@ class Lexer {
 }
 
 function isIdentifierStart(char: string): boolean {
-  return isAsciiLetter(char) || char === "_" || char === "$";
+  return char === "_" || char === "$" || IDENTIFIER_START_PATTERN.test(char);
 }
 
 function isIdentifierPart(char: string): boolean {
-  return isIdentifierStart(char) || isDecimalDigit(char);
+  return (
+    isIdentifierStart(char) ||
+    isDecimalDigit(char) ||
+    char === "\u200c" ||
+    char === "\u200d" ||
+    IDENTIFIER_PART_PATTERN.test(char)
+  );
 }
 
 function isAsciiLetter(char: string): boolean {

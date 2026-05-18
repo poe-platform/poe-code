@@ -1,14 +1,28 @@
 import { describe, expect, it } from "vitest";
 
+import { parse, type StringLiteral, type VariableDeclaration } from "./parser.js";
 import { tokenize, type Token } from "./tokenizer.js";
 
 function simplify(tokens: Token[]): Array<Record<string, unknown>> {
-  return tokens.map(token => ({
+  return tokens.map((token) => ({
     type: token.type,
     value: token.value,
     start: token.start,
     end: token.end
   }));
+}
+
+function firstToken(source: string): Token {
+  const token = tokenize(source)[0];
+  expect(token).toBeDefined();
+  return token;
+}
+
+function parseStringValue(raw: string): string {
+  const statement = parse(`const value = ${raw};`) as VariableDeclaration;
+  const init = statement.declarations[0]?.init;
+  expect(init?.type).toBe("StringLiteral");
+  return (init as StringLiteral).value;
 }
 
 describe("tokenize", () => {
@@ -239,9 +253,7 @@ describe("tokenize", () => {
   });
 
   it("allows division operators inside template expressions", () => {
-    expect(
-      simplify(tokenize("const value = `total: ${count / 2}`;"))
-    ).toEqual([
+    expect(simplify(tokenize("const value = `total: ${count / 2}`;"))).toEqual([
       {
         type: "keyword",
         value: "const",
@@ -332,9 +344,7 @@ describe("tokenize", () => {
   });
 
   it("allows numeric literals with trailing decimal points before property access", () => {
-    expect(
-      simplify(tokenize("const value = 1..toString();"))
-    ).toEqual([
+    expect(simplify(tokenize("const value = 1..toString();"))).toEqual([
       {
         type: "keyword",
         value: "const",
@@ -396,5 +406,51 @@ describe("tokenize", () => {
         end: { line: 1, column: 29, offset: 28 }
       }
     ]);
+  });
+
+  it("decodes unicode escapes in identifiers", () => {
+    expect(firstToken("\\u0041BC")).toMatchObject({
+      type: "identifier",
+      value: "ABC"
+    });
+
+    expect(firstToken("fo\\u006f")).toMatchObject({
+      type: "identifier",
+      value: "foo"
+    });
+
+    expect(firstToken("\\u{61}")).toMatchObject({
+      type: "identifier",
+      value: "a"
+    });
+  });
+
+  it("rejects unicode escapes that are not valid identifier starts", () => {
+    expect(() => tokenize("\\u{1F600}")).toThrowError(
+      "Invalid identifier escape at line 1, column 1."
+    );
+  });
+
+  it("reports malformed unicode escapes in strings at the escape", () => {
+    expect(() => tokenize('"\\u00"')).toThrowError("Invalid unicode escape at line 1, column 2.");
+  });
+
+  it("matches V8 string unicode escape behavior", () => {
+    expect(parseStringValue('"\\0"').codePointAt(0)).toBe(0);
+    expect(parseStringValue('"\\0"')).toHaveLength(1);
+
+    expect([...parseStringValue('"😀"')]).toEqual(["😀"]);
+
+    const loneHighSurrogate = parseStringValue('"\\uD83D"');
+    expect(loneHighSurrogate).toHaveLength(1);
+    expect(loneHighSurrogate.charCodeAt(0)).toBe(0xd83d);
+  });
+
+  it("rejects invalid unicode code point escapes", () => {
+    expect(() => tokenize("\\u{110000}")).toThrowError(
+      "Invalid unicode escape at line 1, column 4."
+    );
+
+    expect(() => tokenize("\\u{}")).toThrowError("Invalid unicode escape at line 1, column 1.");
   });
 });

@@ -3299,6 +3299,10 @@ function isDecimalDigit(value: string): boolean {
   return code >= 48 && code <= 57;
 }
 
+function isHexDigit(value: string): boolean {
+  return isDecimalDigit(value) || (value >= "a" && value <= "f") || (value >= "A" && value <= "F");
+}
+
 function createTemplateElement(
   templateStart: Position,
   rawTemplate: string,
@@ -3476,11 +3480,56 @@ function decodeEscapedText(value: string): string {
       continue;
     }
 
+    if (next === "u") {
+      const unicodeEscape = decodeUnicodeEscape(value, index);
+      if (unicodeEscape !== undefined) {
+        decoded += unicodeEscape.value;
+        index = unicodeEscape.end;
+        continue;
+      }
+    }
+
     decoded += decodeEscapeCharacter(next);
     index += 2;
   }
 
   return decoded;
+}
+
+function decodeUnicodeEscape(
+  value: string,
+  start: number
+): { value: string; end: number } | undefined {
+  let index = start + 2;
+  if (value[index] === "{") {
+    index += 1;
+    const codePointStart = index;
+    while (index < value.length && value[index] !== "}") {
+      if (!isHexDigit(value[index] ?? "")) {
+        return undefined;
+      }
+      index += 1;
+    }
+
+    if (index === codePointStart || value[index] !== "}") {
+      return undefined;
+    }
+
+    return {
+      value: String.fromCodePoint(Number.parseInt(value.slice(codePointStart, index), 16)),
+      end: index + 1
+    };
+  }
+
+  const hex = value.slice(index, index + 4);
+  if (hex.length !== 4 || ![...hex].every(isHexDigit)) {
+    return undefined;
+  }
+
+  return {
+    value: String.fromCharCode(Number.parseInt(hex, 16)),
+    end: index + 4
+  };
 }
 
 function parseEmbeddedExpression(source: string, base: Position): Expression {

@@ -499,7 +499,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-call-edges
     title: Interpreter — function call edges
@@ -524,9 +524,9 @@ tasks:
 
       Conventional commit: `fix(agent-script): call expression edges`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: interp-async-microtask
     title: Interpreter async/await — microtask ordering

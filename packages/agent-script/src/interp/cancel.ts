@@ -1,4 +1,3 @@
-import { SandboxError } from "./budget.js";
 import {
   createSandboxClosure,
   createSandboxPromise,
@@ -38,7 +37,14 @@ function wrapCancelableValue(
     const wrapped = createSandboxClosure({
       ...(value.async === true ? { async: true } : {}),
       call: (args, context) => {
-        throwIfAborted(signal);
+        if (signal.aborted) {
+          if (value.async === true) {
+            return createRejectedSandboxPromise(readAbortReason(signal));
+          }
+
+          throw readAbortReason(signal);
+        }
+
         return wrapCancelableResult(value.call(args, context), signal, seen);
       },
       name: value.name
@@ -92,25 +98,44 @@ function wrapCancelablePromise(
   seen: WeakMap<object, SandboxValue>
 ): Promise<SandboxValue> {
   if (signal.aborted) {
-    return Promise.reject(createAbortSandboxError());
+    return Promise.reject(readAbortReason(signal));
   }
 
   return new Promise((resolve, reject) => {
+    let listenerActive = true;
+    let settled = false;
     const onAbort = () => {
+      cleanup();
+      queueMicrotask(() => {
+        settle(() => reject(readAbortReason(signal)));
+      });
+    };
+    const cleanup = () => {
+      if (!listenerActive) {
+        return;
+      }
+
+      listenerActive = false;
       signal.removeEventListener("abort", onAbort);
-      reject(createAbortSandboxError());
+    };
+    const settle = (complete: () => void) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanup();
+      complete();
     };
 
     signal.addEventListener("abort", onAbort, { once: true });
 
     Promise.resolve(promise).then(
       (value) => {
-        signal.removeEventListener("abort", onAbort);
-        resolve(wrapCancelableValue(value, signal, seen));
+        settle(() => resolve(wrapCancelableValue(value, signal, seen)));
       },
       (reason) => {
-        signal.removeEventListener("abort", onAbort);
-        reject(wrapCancelableUnknown(reason, signal, seen));
+        settle(() => reject(wrapCancelableUnknown(reason, signal, seen)));
       }
     );
   });
@@ -143,16 +168,24 @@ function wrapCancelableUnknown(
   return value;
 }
 
-function throwIfAborted(signal: AbortSignal): void {
-  if (!signal.aborted) {
-    return;
-  }
-
-  throw createAbortSandboxError();
+function readAbortReason(signal: AbortSignal): unknown {
+  return signal.reason ?? createAbortError();
 }
 
-function createAbortSandboxError(): SandboxError {
-  return new SandboxError("aborted");
+function createAbortError(): Error {
+  if (typeof DOMException === "function") {
+    return new DOMException("This operation was aborted", "AbortError");
+  }
+
+  const error = new Error("This operation was aborted");
+  error.name = "AbortError";
+  return error;
+}
+
+function createRejectedSandboxPromise(reason: unknown): ReturnType<typeof createSandboxPromise> {
+  const promise = Promise.reject(reason) as Promise<SandboxValue>;
+  promise.catch(() => undefined);
+  return createSandboxPromise(promise);
 }
 
 function isPromiseLike(value: unknown): value is PromiseLike<SandboxValue> {

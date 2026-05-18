@@ -622,7 +622,7 @@ try {
 
     await expect(result).resolves.toMatchObject({
       ok: true,
-      returnValue: "aborted"
+      returnValue: "This operation was aborted"
     });
     expect(after).not.toHaveBeenCalled();
   });
@@ -766,8 +766,8 @@ try {
     });
 
     await expect(result).rejects.toMatchObject({
-      message: "aborted",
-      name: "SandboxError"
+      message: "This operation was aborted",
+      name: "AbortError"
     });
     expect(request).not.toHaveBeenCalled();
   });
@@ -813,8 +813,8 @@ try {
     controller.abort();
 
     await expect(result).rejects.toMatchObject({
-      message: "aborted",
-      name: "SandboxError"
+      message: "This operation was aborted",
+      name: "AbortError"
     });
     expect(third).not.toHaveBeenCalled();
 

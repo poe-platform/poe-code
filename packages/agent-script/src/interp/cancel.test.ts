@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { SandboxError } from "./budget.js";
+import { run } from "../run.js";
 import { wrapCancelableBindings } from "./cancel.js";
 import {
   createSandboxClosure,
@@ -12,79 +12,61 @@ import {
 } from "./values.js";
 
 describe("wrapCancelableBindings", () => {
-  it("rejects an in-flight await and blocks the next host call after abort", async () => {
+  it("rejects the first await immediately with the abort reason when pre-aborted", async () => {
     const controller = new AbortController();
-    const after = vi.fn(() => "after");
-    const deferred = createDeferred<string>();
+    const reason = new Error("stop before start");
+    controller.abort(reason);
+
     const bindings = wrapCancelableBindings(
       {
         wait: createSandboxClosure({
           async: true,
-          call: () => createSandboxPromise(deferred.promise),
+          call: () => createSandboxPromise(new Promise(() => undefined)),
           name: "wait"
-        }),
-        after: createSandboxClosure({
-          call: () => after(),
-          name: "after"
         })
       },
       controller.signal
     );
 
-    const waitResult = resolveSandboxPromise(resolveClosure(bindings, "wait").call([]));
-    controller.abort();
-
-    await expect(waitResult).rejects.toEqual(
-      expect.objectContaining({
-        code: "aborted",
-        message: "aborted",
-        name: "SandboxError"
-      } satisfies Partial<SandboxError>)
+    await expect(resolveSandboxPromise(resolveClosure(bindings, "wait").call([]))).rejects.toBe(
+      reason
     );
-    expect(() => resolveClosure(bindings, "after").call([])).toThrowError(
-      expect.objectContaining({
-        code: "aborted",
-        message: "aborted",
-        name: "SandboxError"
-      } satisfies Partial<SandboxError>)
-    );
-    expect(after).not.toHaveBeenCalled();
   });
 
-  it("rejects wrapped promises immediately when the signal is already aborted", async () => {
+  it("yields to abort within one tick during a long microtask chain", async () => {
     const controller = new AbortController();
-    controller.abort();
-    const call = vi.fn(() => "value");
+    const reason = new Error("abort during microtasks");
+    let steps = 0;
+    let chain = Promise.resolve("done");
+    for (let index = 0; index < 1000; index += 1) {
+      chain = chain.then((value) => {
+        steps += 1;
+        return value;
+      });
+    }
     const bindings = wrapCancelableBindings(
       {
-        pending: createSandboxPromise(new Promise(() => undefined)),
-        value: createSandboxClosure({
-          call: () => call(),
-          name: "value"
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(chain),
+          name: "wait"
         })
       },
       controller.signal
     );
+    const waitResult = resolveSandboxPromise(resolveClosure(bindings, "wait").call([]));
 
-    await expect(resolveSandboxPromise(bindings.pending)).rejects.toEqual(
-      expect.objectContaining({
-        code: "aborted",
-        message: "aborted",
-        name: "SandboxError"
-      } satisfies Partial<SandboxError>)
-    );
-    expect(() => resolveClosure(bindings, "value").call([])).toThrowError(
-      expect.objectContaining({
-        code: "aborted",
-        message: "aborted",
-        name: "SandboxError"
-      } satisfies Partial<SandboxError>)
-    );
-    expect(call).not.toHaveBeenCalled();
+    queueMicrotask(() => {
+      controller.abort(reason);
+    });
+
+    await expect(waitResult).rejects.toBe(reason);
+    expect(steps).toBeLessThan(1000);
   });
 
-  it("prefers abort over a later promise resolution", async () => {
+  it("rejects an in-flight host call promise with the abort reason", async () => {
     const controller = new AbortController();
+    const reason = new Error("host call aborted");
     const deferred = createDeferred<string>();
     const bindings = wrapCancelableBindings(
       {
@@ -98,16 +80,243 @@ describe("wrapCancelableBindings", () => {
     );
 
     const waitResult = resolveSandboxPromise(resolveClosure(bindings, "wait").call([]));
-    controller.abort();
+    controller.abort(reason);
+    deferred.resolve("late");
+
+    await expect(waitResult).rejects.toBe(reason);
+  });
+
+  it("returns a value when abort fires after the promise has already settled", async () => {
+    const controller = new AbortController();
+    const reason = new Error("too late");
+    const bindings = wrapCancelableBindings(
+      {
+        done: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(Promise.resolve("done")),
+          name: "done"
+        })
+      },
+      controller.signal
+    );
+
+    const result = resolveSandboxPromise(resolveClosure(bindings, "done").call([]));
+    controller.abort(reason);
+
+    await expect(result).resolves.toBe("done");
+  });
+
+  it("treats repeated abort on the same signal as a no-op", async () => {
+    const controller = new AbortController();
+    const reason = new Error("first abort");
+    const deferred = createDeferred<string>();
+    const removals = trackAbortListeners(controller.signal).removals;
+    const bindings = wrapCancelableBindings(
+      {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(deferred.promise),
+          name: "wait"
+        })
+      },
+      controller.signal
+    );
+
+    const waitResult = resolveSandboxPromise(resolveClosure(bindings, "wait").call([]));
+    controller.abort(reason);
+    controller.abort(new Error("second abort"));
     deferred.resolve("done");
 
-    await expect(waitResult).rejects.toEqual(
-      expect.objectContaining({
-        code: "aborted",
-        message: "aborted",
-        name: "SandboxError"
-      } satisfies Partial<SandboxError>)
+    await expect(waitResult).rejects.toBe(reason);
+    expect(removals).toHaveBeenCalledTimes(1);
+  });
+
+  it("cleans up abort listeners after abort before the runner is reused", async () => {
+    const firstController = new AbortController();
+    const firstListeners = trackAbortListeners(firstController.signal);
+    const firstDeferred = createDeferred<string>();
+    const wait = createSandboxClosure({
+      async: true,
+      call: () => createSandboxPromise(firstDeferred.promise),
+      name: "wait"
+    });
+    const firstBindings = wrapCancelableBindings({ wait }, firstController.signal);
+    const firstResult = resolveSandboxPromise(resolveClosure(firstBindings, "wait").call([]));
+
+    firstController.abort(new Error("first abort"));
+
+    await expect(firstResult).rejects.toThrow("first abort");
+    expect(firstListeners.active()).toBe(0);
+
+    const secondController = new AbortController();
+    const secondListeners = trackAbortListeners(secondController.signal);
+    const secondBindings = wrapCancelableBindings(
+      {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(Promise.resolve("second")),
+          name: "wait"
+        })
+      },
+      secondController.signal
     );
+    const secondResult = resolveSandboxPromise(resolveClosure(secondBindings, "wait").call([]));
+    secondController.abort(new Error("second abort"));
+
+    await expect(secondResult).resolves.toBe("second");
+    expect(secondListeners.active()).toBe(0);
+  });
+
+  it("uses an AbortError-shaped default reason", async () => {
+    const controller = new AbortController();
+    const bindings = wrapCancelableBindings(
+      {
+        wait: createSandboxClosure({
+          async: true,
+          call: () => createSandboxPromise(new Promise(() => undefined)),
+          name: "wait"
+        })
+      },
+      controller.signal
+    );
+    const result = resolveSandboxPromise(resolveClosure(bindings, "wait").call([]));
+
+    controller.abort();
+
+    await expect(result).rejects.toEqual(
+      expect.objectContaining({
+        message: expect.stringMatching(/abort/i),
+        name: "AbortError"
+      })
+    );
+  });
+});
+
+describe("run cancellation", () => {
+  it("does not start a second await when abort happens between two awaits", async () => {
+    const controller = new AbortController();
+    const first = createDeferred<string>();
+    const firstStarted = createDeferred<void>();
+    const second = vi.fn(() => createSandboxPromise(Promise.resolve("second")));
+    const result = run(
+      [
+        "const firstValue = await first();",
+        "try {",
+        "  await second();",
+        "  return 'missed';",
+        "} catch ({ message }) {",
+        "  return firstValue + ':' + message;",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          first: createSandboxClosure({
+            async: true,
+            call: () => {
+              firstStarted.resolve();
+              return createSandboxPromise(first.promise);
+            },
+            name: "first"
+          }),
+          second: createSandboxClosure({
+            async: true,
+            call: () => second(),
+            name: "second"
+          })
+        },
+        signal: controller.signal
+      }
+    );
+
+    await firstStarted.promise;
+    first.resolve("first");
+    controller.abort(new Error("between awaits"));
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "first:between awaits"
+    });
+    expect(second).not.toHaveBeenCalled();
+  });
+
+  it("makes abort errors catchable and inspectable at await points", async () => {
+    const controller = new AbortController();
+    const waitStarted = createDeferred<void>();
+    const result = run(
+      [
+        "try {",
+        "  await wait();",
+        "} catch ({ name, message }) {",
+        "  return name + ':' + message;",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => {
+              waitStarted.resolve();
+              return createSandboxPromise(new Promise(() => undefined));
+            },
+            name: "wait"
+          })
+        },
+        signal: controller.signal
+      }
+    );
+
+    await waitStarted.promise;
+    controller.abort();
+
+    const finished = await result;
+    expect(finished.ok).toBe(true);
+    if (!finished.ok) {
+      return;
+    }
+
+    const [name, message] = (finished.returnValue as string).split(":");
+    expect(name).toBe("AbortError");
+    expect(message).toMatch(/abort/i);
+  });
+
+  it("runs finally blocks when abort rejects an await", async () => {
+    const controller = new AbortController();
+    const waitStarted = createDeferred<void>();
+    const result = run(
+      [
+        "let cleaned = false;",
+        "try {",
+        "  try {",
+        "    await wait();",
+        "  } finally {",
+        "    cleaned = true;",
+        "  }",
+        "} catch ({ message }) {",
+        "  return (cleaned ? 'clean' : 'dirty') + ':' + message;",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          wait: createSandboxClosure({
+            async: true,
+            call: () => {
+              waitStarted.resolve();
+              return createSandboxPromise(new Promise(() => undefined));
+            },
+            name: "wait"
+          })
+        },
+        signal: controller.signal
+      }
+    );
+
+    await waitStarted.promise;
+    controller.abort(new Error("stop in finally test"));
+
+    await expect(result).resolves.toMatchObject({
+      ok: true,
+      returnValue: "clean:stop in finally test"
+    });
   });
 });
 
@@ -139,5 +348,33 @@ function createDeferred<TValue>() {
   return {
     promise,
     resolve
+  };
+}
+
+function trackAbortListeners(signal: AbortSignal) {
+  let active = 0;
+  const originalAdd = signal.addEventListener.bind(signal);
+  const originalRemove = signal.removeEventListener.bind(signal);
+  const removals = vi.fn();
+
+  vi.spyOn(signal, "addEventListener").mockImplementation((type, listener, options) => {
+    if (type === "abort") {
+      active += 1;
+    }
+
+    return originalAdd(type, listener, options);
+  });
+  vi.spyOn(signal, "removeEventListener").mockImplementation((type, listener, options) => {
+    if (type === "abort" && active > 0) {
+      active -= 1;
+      removals();
+    }
+
+    return originalRemove(type, listener, options);
+  });
+
+  return {
+    active: () => active,
+    removals
   };
 }

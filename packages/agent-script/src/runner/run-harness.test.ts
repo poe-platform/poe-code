@@ -366,8 +366,8 @@ describe("runHarness", () => {
     });
 
     await expect(result).rejects.toMatchObject({
-      message: "aborted",
-      name: "SandboxError"
+      message: "This operation was aborted",
+      name: "AbortError"
     });
     expect(after).not.toHaveBeenCalled();
   });

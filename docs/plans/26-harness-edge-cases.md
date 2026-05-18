@@ -188,8 +188,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): parser arrow function edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: parser-statement-edges

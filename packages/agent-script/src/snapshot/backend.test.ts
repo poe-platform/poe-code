@@ -21,6 +21,7 @@ describe("FileSnapshotBackend", () => {
     vol.mkdirSync("/snapshots");
     const backend = new FileSnapshotBackend("/snapshots/run.json");
     const snapshot = {
+      version: 1,
       sourceHash: "abc123",
       clock: {
         next: 42

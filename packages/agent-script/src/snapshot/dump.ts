@@ -1,4 +1,5 @@
 import type { RunResult, RunSnapshot } from "../run.js";
+import { serializeAgentScriptSnapshot } from "./dump-format.js";
 
 const RUN_DUMP_CONTROLLER = Symbol("agent-script.run-dump-controller");
 
@@ -178,7 +179,7 @@ export function dumpCurrent(
 }
 
 export function serializeRunSnapshot(snapshot: RunSnapshot): string {
-  return JSON.stringify(snapshot, null, 2);
+  return serializeAgentScriptSnapshot(snapshot);
 }
 
 function hasSnapshot(value: unknown): value is Pick<RunResult, "snapshot"> {

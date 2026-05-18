@@ -71,6 +71,7 @@ describe("snapshot scheduler", () => {
       "/state.json.tmp",
       JSON.stringify(
         {
+          version: 1,
           step: "checkpointed"
         },
         null,
@@ -80,6 +81,7 @@ describe("snapshot scheduler", () => {
     expect(renameSpy).toHaveBeenCalledWith("/state.json.tmp", "/state.json");
     expect(vol.existsSync("/state.json.tmp")).toBe(false);
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
+      version: 1,
       step: "checkpointed"
     });
   });
@@ -122,6 +124,7 @@ describe("snapshot scheduler", () => {
     expect(writeSteps).toEqual(["first", "second"]);
     expect(vol.existsSync("/state.json.tmp")).toBe(false);
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
+      version: 1,
       step: "second"
     });
   });
@@ -139,6 +142,7 @@ describe("snapshot scheduler", () => {
     await scheduler.finish();
 
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
+      version: 1,
       step: "first"
     });
 
@@ -148,6 +152,7 @@ describe("snapshot scheduler", () => {
     await scheduler.finish();
 
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
+      version: 1,
       step: "first"
     });
 
@@ -158,6 +163,7 @@ describe("snapshot scheduler", () => {
     await scheduler.finish();
 
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
+      version: 1,
       step: "first"
     });
 
@@ -168,6 +174,7 @@ describe("snapshot scheduler", () => {
     await scheduler.finish();
 
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
+      version: 1,
       step: "second"
     });
   });
@@ -255,6 +262,7 @@ describe("snapshot scheduler", () => {
 
     await expect(scheduler.finish()).rejects.toThrow("no space left on device");
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
+      version: 1,
       step: "after-recovery"
     });
   });
@@ -320,6 +328,7 @@ describe("snapshot scheduler", () => {
     await scheduler.finish();
 
     expect(JSON.parse(vol.readFileSync("/state.json", "utf8") as string)).toEqual({
+      version: 1,
       step: "resumed"
     });
   });

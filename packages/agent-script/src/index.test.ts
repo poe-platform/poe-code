@@ -161,6 +161,7 @@ describe("@poe-code/agent-script public exports", () => {
     ).resolves.toBe(
       JSON.stringify(
         {
+          version: 1,
           sourceHash: hashSource("1")
         },
         null,
@@ -170,11 +171,13 @@ describe("@poe-code/agent-script public exports", () => {
     expect(
       api.restore(
         {
+          version: 1,
           sourceHash: hashSource("1")
         },
         { source: "1" }
       )
     ).toEqual({
+      version: 1,
       sourceHash: hashSource("1")
     });
   });

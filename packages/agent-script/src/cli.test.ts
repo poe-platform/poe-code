@@ -134,7 +134,7 @@ describe("agent-script CLI", () => {
 
     vol.writeFileSync(
       "/repo/snapshots/bad.json",
-      JSON.stringify({ sourceHash: "not-the-current-source" })
+      JSON.stringify({ version: 1, sourceHash: "not-the-current-source" })
     );
     const badStderr = createSink();
     const badExitCode = await runCli(["--restore", "snapshots/bad.json", "script.md"], {

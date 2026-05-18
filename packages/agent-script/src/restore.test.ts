@@ -6,6 +6,7 @@ import { restore } from "./restore.js";
 describe("restore", () => {
   it("accepts snapshots whose source hash matches the current source", () => {
     const snapshot = {
+      version: 1,
       sourceHash: hashSource("1 + 2"),
       callStack: []
     };
@@ -15,6 +16,7 @@ describe("restore", () => {
 
   it("accepts snapshots when only formatting and raw literal syntax change", () => {
     const snapshot = {
+      version: 1,
       sourceHash: hashSource("({ value = 0x1f }) => `hi ${value}`")
     };
 
@@ -27,6 +29,7 @@ describe("restore", () => {
 
   it("rejects snapshots when the source hash no longer matches", () => {
     const snapshot = {
+      version: 1,
       sourceHash: hashSource("1 + 2")
     };
 
@@ -37,6 +40,7 @@ describe("restore", () => {
 
   it("rejects snapshots when the parsed structure changes despite similar source", () => {
     const snapshot = {
+      version: 1,
       sourceHash: hashSource("user?.profile")
     };
 

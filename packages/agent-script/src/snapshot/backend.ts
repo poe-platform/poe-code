@@ -2,6 +2,7 @@ import { readFile, rename, stat, unlink, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 import type { AgentScriptSnapshot } from "../restore.js";
+import { serializeAgentScriptSnapshot } from "./dump-format.js";
 
 export type Snapshot = AgentScriptSnapshot;
 
@@ -84,7 +85,7 @@ async function writeSnapshotAtomically(
 ): Promise<void> {
   const temporaryPath = `${snapshotPath}.tmp`;
   const parentPath = dirname(snapshotPath);
-  const contents = JSON.stringify(snapshot, null, 2);
+  const contents = serializeAgentScriptSnapshot(snapshot);
 
   await assertParentDirectoryExists(snapshotPath, parentPath);
 

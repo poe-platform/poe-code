@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { parse, type StringLiteral, type VariableDeclaration } from "./parser.js";
+import {
+  parse,
+  type NumericLiteral,
+  type StringLiteral,
+  type VariableDeclaration
+} from "./parser.js";
 import { tokenize, type Token } from "./tokenizer.js";
 
 function simplify(tokens: Token[]): Array<Record<string, unknown>> {
@@ -23,6 +28,13 @@ function parseStringValue(raw: string): string {
   const init = statement.declarations[0]?.init;
   expect(init?.type).toBe("StringLiteral");
   return (init as StringLiteral).value;
+}
+
+function parseNumericValue(raw: string): number {
+  const statement = parse(`const value = ${raw};`) as VariableDeclaration;
+  const init = statement.declarations[0]?.init;
+  expect(init?.type).toBe("NumericLiteral");
+  return (init as NumericLiteral).value;
 }
 
 describe("tokenize", () => {
@@ -246,9 +258,57 @@ describe("tokenize", () => {
     );
   });
 
-  it("rejects bigint literals", () => {
+  it("covers JavaScript numeric literal edges used by agent scripts", () => {
+    expect(firstToken("1_000_000")).toMatchObject({
+      type: "numeric",
+      value: "1_000_000"
+    });
+    expect(parseNumericValue("1_000_000")).toBe(1000000);
+
+    expect(() => tokenize("const bad = 1__000;")).toThrowError(
+      "Invalid decimal numeric literal at line 1, column 14."
+    );
+    expect(() => tokenize("const bad = 1_;")).toThrowError(
+      "Invalid decimal numeric literal at line 1, column 14."
+    );
+
+    expect(firstToken("_1")).toMatchObject({
+      type: "identifier",
+      value: "_1"
+    });
+
+    expect(parseNumericValue("0x1F")).toBe(31);
+    expect(parseNumericValue("0X1F")).toBe(31);
+    expect(parseNumericValue("0o17")).toBe(15);
+    expect(parseNumericValue("0O17")).toBe(15);
+    expect(parseNumericValue("0b1010")).toBe(10);
+    expect(parseNumericValue("0B1010")).toBe(10);
+
+    expect(() => tokenize("const legacy = 017;")).toThrowError(
+      "Legacy octal numeric literals are not supported in strict mode at line 1, column 16."
+    );
+    expect(() => tokenize("const invalid = 0_1;")).toThrowError(
+      "Invalid decimal numeric literal at line 1, column 18."
+    );
+
+    expect(parseNumericValue("1e3")).toBe(1000);
+    expect(parseNumericValue("1E3")).toBe(1000);
+    expect(parseNumericValue("1e+3")).toBe(1000);
+    expect(parseNumericValue("1e-3")).toBe(0.001);
+    expect(() => tokenize("const bad = 1e;")).toThrowError(
+      "Invalid decimal numeric literal at line 1, column 14."
+    );
+
+    expect(parseNumericValue(".5")).toBe(0.5);
+    expect(parseNumericValue("5.")).toBe(5);
+    expect(parseNumericValue("5.5e2")).toBe(550);
+
     expect(() => tokenize("const answer = 1n;")).toThrowError(
-      "BigInt literals are not supported at line 1, column 17."
+      "BigInt not supported at line 1, column 17."
+    );
+    expect(parseNumericValue("0xFFFFFFFFFFFFFFFF")).toBe(Number("0xFFFFFFFFFFFFFFFF"));
+    expect(() => tokenize("const bad = 1abc;")).toThrowError(
+      "Invalid number at line 1, column 14."
     );
   });
 
@@ -330,10 +390,10 @@ describe("tokenize", () => {
 
   it("rejects numeric literals with invalid trailing characters", () => {
     expect(() => tokenize("const bad = 1foo;")).toThrowError(
-      "Invalid numeric literal at line 1, column 14."
+      "Invalid number at line 1, column 14."
     );
     expect(() => tokenize("const octal = 0o78;")).toThrowError(
-      "Invalid numeric literal at line 1, column 18."
+      "Invalid number at line 1, column 18."
     );
   });
 

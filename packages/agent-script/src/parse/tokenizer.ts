@@ -624,6 +624,18 @@ class Lexer {
         this.rejectInvalidNumericLiteralContinuation();
         return this.source.slice(start.offset, this.index);
       }
+
+      if (isDecimalDigit(prefix)) {
+        // Agent Script uses strict-mode JavaScript numeric grammar, so legacy octal
+        // and non-octal leading-zero decimal literals are not accepted.
+        this.advance();
+        this.syntaxError("Legacy octal numeric literals are not supported in strict mode", start);
+      }
+
+      if (prefix === "_") {
+        this.advance();
+        this.syntaxError("Invalid decimal numeric literal", this.position());
+      }
     }
 
     this.consumeDecimalDigits();
@@ -747,7 +759,7 @@ class Lexer {
 
   private rejectBigIntSuffix(): void {
     if (this.currentChar() === "n") {
-      this.syntaxError("BigInt literals are not supported", this.position());
+      this.syntaxError("BigInt not supported", this.position());
     }
   }
 
@@ -759,7 +771,7 @@ class Lexer {
       isDecimalDigit(char) ||
       this.startsUnicodeEscape()
     ) {
-      this.syntaxError("Invalid numeric literal", this.position());
+      this.syntaxError("Invalid number", this.position());
     }
   }
 

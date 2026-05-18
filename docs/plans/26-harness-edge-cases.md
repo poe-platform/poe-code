@@ -942,7 +942,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: methods-number-edges
     title: methods — Number.prototype edges
@@ -968,8 +968,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): Number method edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: error-format-edges

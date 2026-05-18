@@ -139,7 +139,7 @@ function wrapSandboxClosureForHost(
         throw error;
       }
 
-      return await (deepCopyFromSandbox(normalizeClosureResult(result), {
+      return await (deepCopyFromSandbox(normalizeClosureResult(result, budget), {
         wrapClosure
       }) as Promise<unknown>);
     } finally {

@@ -11,6 +11,7 @@ import { getBoundOtelSpan, type OtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
 import type { EvaluationResult } from "./exceptions.js";
 import type { InterpreterSnapshot } from "./interpreter.js";
+import { resolveSandboxValue } from "./promise.js";
 import type { Scope } from "./scope.js";
 import {
   createSandboxClosure,
@@ -65,14 +66,17 @@ export async function evaluateArrowFunctionExpression(
       call: (args, callContext) =>
         node.async
           ? createSandboxPromise(
-              executeArrow(
-                node,
-                args,
-                {
-                  ...context,
-                  callStack: [...(callContext?.stack ?? context.callStack)]
-                },
-                evaluateNode
+              resolveSandboxValue(
+                executeArrow(
+                  node,
+                  args,
+                  {
+                    ...context,
+                    callStack: [...(callContext?.stack ?? context.callStack)]
+                  },
+                  evaluateNode
+                ),
+                { budget: context.budget }
               )
             )
           : executeArrow(
@@ -114,9 +118,7 @@ export async function evaluateAwaitExpression(
     return {
       kind: "normal",
       hasValue: true,
-      value: await (isSandboxPromise(argument.value)
-        ? argument.value.promise
-        : Promise.resolve(argument.value))
+      value: await resolveSandboxValue(argument.value)
     };
   } finally {
     leaveAwait();
@@ -249,36 +251,18 @@ function declareIdentifier(scope: Scope, param: Identifier, value: SandboxValue)
 }
 
 export function normalizeClosureResult(
-  result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>
+  result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
+  budget?: Budget
 ): SandboxValue {
   if (isSandboxPromise(result)) {
     return result;
   }
 
-  if (isPromiseLike(result)) {
-    return createSandboxPromise(Promise.resolve(result));
-  }
-
-  return createSandboxPromise(Promise.resolve(result));
+  return createSandboxPromise(resolveSandboxValue(result, { budget }));
 }
 
 export async function resolveClosureResult(
   result: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>
 ): Promise<SandboxValue> {
-  if (isSandboxPromise(result)) {
-    return result.promise;
-  }
-
-  if (isPromiseLike(result)) {
-    const resolved = await result;
-    return isSandboxPromise(resolved) ? resolved.promise : resolved;
-  }
-
-  return result;
-}
-
-function isPromiseLike(
-  value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>
-): value is PromiseLike<SandboxValue> {
-  return typeof value === "object" && value !== null && "then" in value;
+  return resolveSandboxValue(result);
 }

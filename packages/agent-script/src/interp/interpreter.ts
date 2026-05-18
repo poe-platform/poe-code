@@ -75,6 +75,7 @@ import {
   type ArrayMethodOptions
 } from "./methods/array.js";
 import { callNumberMethod, getNumberMember, isNumberMethodName } from "./methods/number.js";
+import { getPromiseMember } from "./promise.js";
 import {
   callStringMethod,
   getStringMember,
@@ -1568,6 +1569,14 @@ async function evaluateMemberExpression(
     };
   }
 
+  if (isSandboxPromise(member.object)) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getPromiseMember(member.object, member.property, context.budget)
+    };
+  }
+
   if (!isIndexableSandboxValue(member.object)) {
     throw new TypeError("Attempted to read a property from a non-object value.");
   }
@@ -1786,6 +1795,14 @@ async function evaluateMemberCallExpression(
     return evaluateResolvedCallExpression(
       node,
       getClosureMemberValue(member.object, member.property),
+      context
+    );
+  }
+
+  if (isSandboxPromise(member.object)) {
+    return evaluateResolvedCallExpression(
+      node,
+      getPromiseMember(member.object, member.property, context.budget),
       context
     );
   }
@@ -2301,7 +2318,7 @@ async function invokeSandboxClosure(
     });
 
     return callee.async === true
-      ? normalizeClosureResult(wrapHostResult(result, stack))
+      ? normalizeClosureResult(wrapHostResult(result, stack), context.budget)
       : await resolveClosureResult(wrapHostResult(result, stack));
   } catch (error) {
     if (isFatalSandboxError(error)) {

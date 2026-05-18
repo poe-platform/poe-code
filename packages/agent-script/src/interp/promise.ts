@@ -4,7 +4,9 @@ import {
   createSandboxPromise,
   isSandboxClosure,
   isSandboxPromise,
+  type SandboxClosure,
   type SandboxObject,
+  type SandboxPromise,
   type SandboxValue
 } from "./values.js";
 
@@ -17,13 +19,18 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
     Promise: {
       all: createSandboxClosure({
         async: true,
-        call: ([values]) => createSandboxPromise(settleIterable(values, (entries) => Promise.all(entries), options.budget)),
+        call: ([values]) =>
+          createSandboxPromise(
+            settleIterable(values, (entries) => Promise.all(entries), options.budget)
+          ),
         name: "all"
       }),
       race: createSandboxClosure({
         async: true,
         call: ([values]) =>
-          createSandboxPromise(settleIterable(values, (entries) => Promise.race(entries), options.budget)),
+          createSandboxPromise(
+            settleIterable(values, (entries) => Promise.race(entries), options.budget)
+          ),
         name: "race"
       }),
       allSettled: createSandboxClosure({
@@ -81,7 +88,9 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
       resolve: createSandboxClosure({
         async: true,
         call: ([value]) =>
-          isSandboxPromise(value) ? value : createSandboxPromise(schedulePromise(Promise.resolve(value), options.budget)),
+          isSandboxPromise(value)
+            ? value
+            : createSandboxPromise(resolveSandboxValue(value, { budget: options.budget })),
         name: "resolve"
       }),
       reject: createSandboxClosure({
@@ -93,17 +102,41 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
   };
 }
 
+export function getPromiseMember(
+  target: SandboxPromise,
+  property: string | number,
+  budget: Budget
+): SandboxValue {
+  if (property !== "then") {
+    return undefined;
+  }
+
+  return createSandboxClosure({
+    async: true,
+    call: ([onFulfilled, onRejected]) =>
+      createSandboxPromise(
+        target.promise.then(
+          (value) => runPromiseReaction(onFulfilled, value, "fulfilled", budget),
+          (reason: SandboxValue) => runPromiseReaction(onRejected, reason, "rejected", budget)
+        )
+      ),
+    name: "then"
+  });
+}
+
 function settleIterable(
   iterable: SandboxValue,
   settle: (values: Promise<SandboxValue>[]) => Promise<SandboxValue>,
   budget: Budget
 ): Promise<SandboxValue> {
-  return Promise.resolve().then(() => settle(toHostPromiseArray(iterable)).then((value) => budgetSandboxValue(value, budget)));
+  return Promise.resolve().then(() =>
+    settle(toHostPromiseArray(iterable, budget)).then((value) => budgetSandboxValue(value, budget))
+  );
 }
 
-function toHostPromiseArray(iterable: SandboxValue): Promise<SandboxValue>[] {
+function toHostPromiseArray(iterable: SandboxValue, budget: Budget): Promise<SandboxValue>[] {
   if (Array.isArray(iterable)) {
-    return iterable.map((value) => toHostPromise(value));
+    return iterable.map((value) => resolveSandboxValue(value, { budget }));
   }
 
   if (typeof iterable === "string") {
@@ -113,14 +146,10 @@ function toHostPromiseArray(iterable: SandboxValue): Promise<SandboxValue>[] {
   throw new TypeError("Promise helpers require an array or string iterable.");
 }
 
-function toHostPromise(value: SandboxValue): Promise<SandboxValue> {
-  return isSandboxPromise(value) ? value.promise : Promise.resolve(value);
-}
-
 function schedulePromise(promise: Promise<SandboxValue>, budget: Budget): Promise<SandboxValue> {
   return Promise.resolve().then(() =>
     promise.then(
-      (value) => budgetSandboxValue(value, budget),
+      (value) => resolveSandboxValue(value, { budget }),
       (reason: SandboxValue) => Promise.reject(budgetSandboxValue(reason, budget))
     )
   );
@@ -140,6 +169,141 @@ function createRejectedSandboxPromise(
 function budgetSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {
   allocateSandboxValue(value, budget, new WeakSet());
   return value;
+}
+
+export function resolveSandboxValue(
+  value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
+  options: { budget?: Budget } = {}
+): Promise<SandboxValue> {
+  return Promise.resolve().then(() => resolveSandboxValueNow(value, options, new WeakSet()));
+}
+
+function resolveSandboxValueNow(
+  value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>,
+  options: { budget?: Budget },
+  seenThenables: WeakSet<object>
+): Promise<SandboxValue> {
+  if (isPromiseLike(value)) {
+    return Promise.resolve(value).then(
+      (resolved) => resolveSandboxValueNow(resolved, options, seenThenables),
+      (reason: SandboxValue) => Promise.reject(budgetIfNeeded(reason, options.budget))
+    );
+  }
+
+  if (isSandboxPromise(value)) {
+    return value.promise.then(
+      (resolved) => resolveSandboxValueNow(resolved, options, seenThenables),
+      (reason: SandboxValue) => Promise.reject(budgetIfNeeded(reason, options.budget))
+    );
+  }
+
+  const then = getThenable(value);
+  if (then !== undefined) {
+    return resolveThenable(value, then, options, seenThenables);
+  }
+
+  return Promise.resolve(budgetIfNeeded(value, options.budget));
+}
+
+function resolveThenable(
+  value: SandboxValue,
+  then: SandboxClosure,
+  options: { budget?: Budget },
+  seenThenables: WeakSet<object>
+): Promise<SandboxValue> {
+  if (typeof value !== "object" || value === null) {
+    return Promise.resolve(budgetIfNeeded(value, options.budget));
+  }
+
+  if (seenThenables.has(value)) {
+    return Promise.reject({
+      message: "Promise cannot resolve to itself.",
+      name: "TypeError"
+    });
+  }
+  seenThenables.add(value);
+
+  return new Promise<SandboxValue>((resolve, reject) => {
+    let settled = false;
+    const resolveOnce = (resolved: SandboxValue) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      resolve(resolveSandboxValueNow(resolved, options, seenThenables));
+    };
+    const rejectOnce = (reason: SandboxValue) => {
+      if (settled) {
+        return;
+      }
+      settled = true;
+      reject(budgetIfNeeded(reason, options.budget));
+    };
+
+    try {
+      const result = then.call([
+        createSandboxClosure({
+          call: ([resolved]) => {
+            resolveOnce(resolved);
+            return undefined;
+          },
+          name: "resolve"
+        }),
+        createSandboxClosure({
+          call: ([reason]) => {
+            rejectOnce(reason);
+            return undefined;
+          },
+          name: "reject"
+        })
+      ]);
+
+      if (isPromiseLike(result)) {
+        Promise.resolve(result).catch((reason: SandboxValue) => {
+          rejectOnce(reason);
+        });
+      }
+    } catch (error) {
+      rejectOnce(error as SandboxValue);
+    }
+  }).then((resolved) => budgetIfNeeded(resolved, options.budget));
+}
+
+function runPromiseReaction(
+  handler: SandboxValue,
+  value: SandboxValue,
+  state: "fulfilled" | "rejected",
+  budget: Budget
+): Promise<SandboxValue> {
+  if (!isSandboxClosure(handler)) {
+    return state === "fulfilled"
+      ? Promise.resolve(value)
+      : Promise.reject(budgetSandboxValue(value, budget));
+  }
+
+  try {
+    return resolveSandboxValue(handler.call([value]), { budget });
+  } catch (error) {
+    return Promise.reject(error as SandboxValue);
+  }
+}
+
+function getThenable(value: SandboxValue): SandboxClosure | undefined {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    isSandboxClosure(value) ||
+    isSandboxPromise(value)
+  ) {
+    return undefined;
+  }
+
+  const then = (value as Record<string, SandboxValue>).then;
+  return isSandboxClosure(then) ? then : undefined;
+}
+
+function budgetIfNeeded(value: SandboxValue, budget: Budget | undefined): SandboxValue {
+  return budget === undefined ? value : budgetSandboxValue(value, budget);
 }
 
 function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet<object>): void {
@@ -163,7 +327,12 @@ function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet
     return;
   }
 
-  if (typeof value !== "object" || value === null || isSandboxClosure(value) || isSandboxPromise(value)) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    isSandboxClosure(value) ||
+    isSandboxPromise(value)
+  ) {
     return;
   }
 
@@ -175,4 +344,17 @@ function allocateSandboxValue(value: SandboxValue, budget: Budget, seen: WeakSet
   for (const entry of Object.values(value)) {
     allocateSandboxValue(entry, budget, seen);
   }
+}
+
+function isPromiseLike(
+  value: SandboxValue | Promise<SandboxValue> | PromiseLike<SandboxValue>
+): value is PromiseLike<SandboxValue> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "then" in value &&
+    typeof (value as { then: unknown }).then === "function" &&
+    !isSandboxClosure(value) &&
+    !isSandboxPromise(value)
+  );
 }

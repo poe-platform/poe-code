@@ -82,6 +82,70 @@ describe("array methods", () => {
     expect(seen.at(-1)).toEqual([3]);
   });
 
+  it("covers Array.prototype edge cases", async () => {
+    const options = createOptions(new Budget());
+    const sum = createSandboxClosure({
+      call: ([accumulator, value]) => Number(accumulator) + Number(value),
+      name: "sum"
+    });
+    const joinFromRight = createSandboxClosure({
+      call: ([accumulator, value]) => `${String(accumulator)}-${String(value)}`,
+      name: "joinFromRight"
+    });
+    const double = createSandboxClosure({
+      call: ([value]) => Number(value) * 2,
+      name: "double"
+    });
+    const greaterThanOne = createSandboxClosure({
+      call: ([value]) => Number(value) > 1,
+      name: "greaterThanOne"
+    });
+    const equalsTwo = createSandboxClosure({
+      call: ([value]) => value === 2,
+      name: "equalsTwo"
+    });
+    const equalsFive = createSandboxClosure({
+      call: ([value]) => value === 5,
+      name: "equalsFive"
+    });
+    const greaterThanFive = createSandboxClosure({
+      call: ([value]) => Number(value) > 5,
+      name: "greaterThanFive"
+    });
+    const greaterThanZero = createSandboxClosure({
+      call: ([value]) => Number(value) > 0,
+      name: "greaterThanZero"
+    });
+
+    await expect(callArrayMethod([], "reduce", [sum], options)).rejects.toThrow(TypeError);
+    await expect(callArrayMethod([], "reduce", [sum, 0], options)).resolves.toBe(0);
+    await expect(callArrayMethod([1, 2, 3], "reduce", [sum], options)).resolves.toBe(6);
+    await expect(callArrayMethod([1, 2, 3], "reduceRight", [joinFromRight], options)).resolves.toBe(
+      "3-2-1"
+    );
+    await expect(callArrayMethod([1, 2, 3], "map", [double], options)).resolves.toEqual([2, 4, 6]);
+    await expect(callArrayMethod([1, 2, 3], "filter", [greaterThanOne], options)).resolves.toEqual([
+      2, 3
+    ]);
+    await expect(callArrayMethod([1, 2, 3], "find", [equalsTwo], options)).resolves.toBe(2);
+    await expect(
+      callArrayMethod([1, 2, 3], "find", [equalsFive], options)
+    ).resolves.toBeUndefined();
+    await expect(callArrayMethod([1, 2, 3], "findIndex", [equalsTwo], options)).resolves.toBe(1);
+    await expect(callArrayMethod([1, 2, 3], "findIndex", [equalsFive], options)).resolves.toBe(-1);
+    await expect(callArrayMethod([1, 2, 3], "some", [greaterThanFive], options)).resolves.toBe(
+      false
+    );
+    await expect(callArrayMethod([1, 2, 3], "some", [greaterThanOne], options)).resolves.toBe(true);
+    await expect(callArrayMethod([1, 2, 3], "every", [greaterThanZero], options)).resolves.toBe(
+      true
+    );
+    await expect(callArrayMethod([1, 2, 3], "every", [greaterThanOne], options)).resolves.toBe(
+      false
+    );
+    await expect(callArrayMethod([1, 2, 3], "forEach", [double], options)).resolves.toBeUndefined();
+  });
+
   it("matches sparse-array callback semantics", async () => {
     const budget = new Budget();
     const options = createOptions(budget);
@@ -147,7 +211,9 @@ describe("array methods", () => {
       name: "pushDuringIteration"
     });
 
-    await expect(callArrayMethod(values, "map", [pushDuringIteration], options)).resolves.toEqual([1, 2]);
+    await expect(callArrayMethod(values, "map", [pushDuringIteration], options)).resolves.toEqual([
+      1, 2
+    ]);
     expect(seen).toEqual([0, 1]);
     expect(values).toEqual([1, 2, 3]);
   });
@@ -162,20 +228,46 @@ describe("array methods", () => {
       3,
       [4]
     ]);
-    await expect(callArrayMethod([1, [2], [3, [4]]], "flat", [2], options)).resolves.toEqual([1, 2, 3, 4]);
+    await expect(callArrayMethod([1, [2], [3, [4]]], "flat", [2], options)).resolves.toEqual([
+      1, 2, 3, 4
+    ]);
     await expect(callArrayMethod([1, [2, [3]]], "flat", [2], options)).resolves.toEqual([1, 2, 3]);
     await expect(callArrayMethod([1, [2, [3]]], "flat", [Infinity], options)).resolves.toEqual([
-      1,
-      2,
-      3
+      1, 2, 3
     ]);
     await expect(callArrayMethod([], "flat", [], options)).resolves.toEqual([]);
     await expect(callArrayMethod(["a", "b", "a"], "includes", ["b"], options)).resolves.toBe(true);
     await expect(callArrayMethod(["a", "b", "a"], "indexOf", ["a", 1], options)).resolves.toBe(2);
-    await expect(callArrayMethod(["a", "b", "a"], "lastIndexOf", ["a", 1], options)).resolves.toBe(0);
+    await expect(callArrayMethod(["a", "b", "a"], "lastIndexOf", ["a", 1], options)).resolves.toBe(
+      0
+    );
     await expect(callArrayMethod(["a", "b"], "join", ["-"], options)).resolves.toBe("a-b");
     await expect(callArrayMethod([1, 2, 3], "slice", [1], options)).resolves.toEqual([2, 3]);
-    await expect(callArrayMethod([1, 2], "concat", [[3], 4], options)).resolves.toEqual([1, 2, 3, 4]);
+    await expect(callArrayMethod([1, 2], "concat", [[3], 4], options)).resolves.toEqual([
+      1, 2, 3, 4
+    ]);
+
+    await expect(callArrayMethod([1, 2, 3], "includes", [2], options)).resolves.toBe(true);
+    await expect(callArrayMethod([1, 2, 3], "includes", [Number.NaN], options)).resolves.toBe(
+      false
+    );
+    await expect(callArrayMethod([1, Number.NaN], "includes", [Number.NaN], options)).resolves.toBe(
+      true
+    );
+    await expect(callArrayMethod([1, Number.NaN], "indexOf", [Number.NaN], options)).resolves.toBe(
+      -1
+    );
+    await expect(callArrayMethod([1, 2, 3], "slice", [-2], options)).resolves.toEqual([2, 3]);
+    await expect(callArrayMethod([1, 2, 3], "slice", [1, -1], options)).resolves.toEqual([2]);
+    await expect(callArrayMethod([1, 2, 3], "concat", [[4, 5], 6], options)).resolves.toEqual([
+      1, 2, 3, 4, 5, 6
+    ]);
+    await expect(callArrayMethod([1, 2, 3], "join", ["-"], options)).resolves.toBe("1-2-3");
+    await expect(callArrayMethod([null, undefined], "join", [","], options)).resolves.toBe(",");
+
+    const spliced = [1, 2, 3, 4];
+    await expect(callArrayMethod(spliced, "splice", [1, 2], options)).resolves.toEqual([2, 3]);
+    expect(spliced).toEqual([1, 4]);
 
     const descending = createSandboxClosure({
       call: ([left, right]) => Number(right) - Number(left),
@@ -188,6 +280,31 @@ describe("array methods", () => {
     const reversed = [1, 2, 3];
     await expect(callArrayMethod(reversed, "reverse", [], options)).resolves.toBe(reversed);
     expect(reversed).toEqual([3, 2, 1]);
+
+    await expect(callArrayMethod([3, 1, 2], "sort", [], options)).resolves.toEqual([1, 2, 3]);
+    await expect(callArrayMethod([10, 2, 1], "sort", [], options)).resolves.toEqual([1, 10, 2]);
+
+    const ascending = createSandboxClosure({
+      call: ([left, right]) => Number(left) - Number(right),
+      name: "ascending"
+    });
+    await expect(callArrayMethod([3, 1, 2], "sort", [ascending], options)).resolves.toEqual([
+      1, 2, 3
+    ]);
+
+    const failSort = createSandboxClosure({
+      call: () => {
+        throw new Error("sort failed");
+      },
+      name: "failSort"
+    });
+    await expect(callArrayMethod([3, 1, 2], "sort", [failSort], options)).rejects.toThrow(
+      "sort failed"
+    );
+
+    await expect(callArrayMethod([1, 2, 3], "at", [-1], options)).resolves.toBe(3);
+    await expect(callArrayMethod([1, 2, 3], "at", [0], options)).resolves.toBe(1);
+    await expect(callArrayMethod([1, 2, 3], "at", [10], options)).resolves.toBeUndefined();
 
     const pushed = [1];
     await expect(callArrayMethod(pushed, "push", [2, 3], options)).resolves.toBe(3);
@@ -204,6 +321,46 @@ describe("array methods", () => {
     const shifted = [1, 2, 3];
     await expect(callArrayMethod(shifted, "shift", [], options)).resolves.toBe(1);
     expect(shifted).toEqual([2, 3]);
+  });
+
+  it("makes array mutations visible to later forEach callbacks", async () => {
+    const options = createOptions(new Budget());
+    const values = [1, 2, 3];
+    const seenLengths: number[] = [];
+
+    const pushOnFirstVisit = createSandboxClosure({
+      call: ([, index, array]) => {
+        seenLengths.push((array as SandboxValue[]).length);
+        if (index === 0) {
+          (array as SandboxValue[]).push(4);
+        }
+
+        return undefined;
+      },
+      name: "pushOnFirstVisit"
+    });
+
+    await expect(
+      callArrayMethod(values, "forEach", [pushOnFirstVisit], options)
+    ).resolves.toBeUndefined();
+    expect(seenLengths).toEqual([3, 4, 4]);
+    expect(values).toEqual([1, 2, 3, 4]);
+  });
+
+  it("calls callbacks with undefined this", async () => {
+    const options = createOptions(new Budget());
+    let calls = 0;
+    const callback = createSandboxClosure({
+      call: function (this: unknown) {
+        calls += 1;
+        expect(this).toBeUndefined();
+        return undefined;
+      },
+      name: "callback"
+    });
+
+    await expect(callArrayMethod([1], "forEach", [callback], options)).resolves.toBeUndefined();
+    expect(calls).toBe(1);
   });
 
   it("supports flatMap return shapes and callback arguments", async () => {
@@ -229,12 +386,9 @@ describe("array methods", () => {
       name: "fail"
     });
 
-    await expect(callArrayMethod([10, 20], "flatMap", [duplicateWithIndex], options)).resolves.toEqual([
-      10,
-      10,
-      20,
-      21
-    ]);
+    await expect(
+      callArrayMethod([10, 20], "flatMap", [duplicateWithIndex], options)
+    ).resolves.toEqual([10, 10, 20, 21]);
     expect(seen).toEqual([
       [10, 0],
       [20, 1]
@@ -342,7 +496,7 @@ function createOptions(budget: Budget) {
   return {
     budget,
     callClosure: async (closure: SandboxClosure, args: readonly SandboxValue[]) => {
-      const result = await closure.call(args);
+      const result = await Reflect.apply(closure.call, undefined, [args]);
       return isSandboxPromise(result) ? await result.promise : result;
     }
   };

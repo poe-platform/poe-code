@@ -26,6 +26,8 @@ export type ArrayMethodName =
   | "join"
   | "slice"
   | "concat"
+  | "splice"
+  | "at"
   | "sort"
   | "reverse"
   | "push"
@@ -60,6 +62,8 @@ const arrayMethodNames = new Set<ArrayMethodName>([
   "join",
   "slice",
   "concat",
+  "splice",
+  "at",
   "sort",
   "reverse",
   "push",
@@ -115,7 +119,12 @@ export async function callArrayMethod(
         options.budget
       );
     case "findIndex":
-      return await findIndexInArray(value, getRequiredCallback(methodName, args[0]), options, stack);
+      return await findIndexInArray(
+        value,
+        getRequiredCallback(methodName, args[0]),
+        options,
+        stack
+      );
     case "some":
       return await someInArray(value, getRequiredCallback(methodName, args[0]), options, stack);
     case "every":
@@ -166,9 +175,26 @@ export async function callArrayMethod(
     case "join":
       return options.budget.allocateString(Reflect.apply(Array.prototype.join, value, [...args]));
     case "slice":
-      return budgetProducedValue(Reflect.apply(Array.prototype.slice, value, [...args]), options.budget);
+      return budgetProducedValue(
+        Reflect.apply(Array.prototype.slice, value, [...args]),
+        options.budget
+      );
     case "concat":
-      return budgetProducedValue(Reflect.apply(Array.prototype.concat, value, [...args]), options.budget);
+      return budgetProducedValue(
+        Reflect.apply(Array.prototype.concat, value, [...args]),
+        options.budget
+      );
+    case "splice": {
+      const removed = Reflect.apply(Array.prototype.splice, value, [...args]);
+      budgetProducedValue(removed, options.budget);
+      budgetProducedValue(value, options.budget);
+      return removed;
+    }
+    case "at":
+      return budgetProducedValue(
+        Reflect.apply(Array.prototype.at, value, [...args]),
+        options.budget
+      );
     case "sort":
       if (args[0] === undefined) {
         value.sort();
@@ -200,7 +226,10 @@ export async function callArrayMethod(
   }
 }
 
-function getRequiredCallback(methodName: ArrayMethodName, value: SandboxValue | undefined): SandboxClosure {
+function getRequiredCallback(
+  methodName: ArrayMethodName,
+  value: SandboxValue | undefined
+): SandboxClosure {
   if (!isSandboxClosure(value)) {
     throw new TypeError(`Array#${methodName} requires a sandbox closure callback.`);
   }
@@ -567,11 +596,7 @@ function findNextDefinedIndex(
   direction: 1 | -1,
   length: number
 ): number {
-  for (
-    let index = startIndex;
-    direction > 0 ? index < length : index >= 0;
-    index += direction
-  ) {
+  for (let index = startIndex; direction > 0 ? index < length : index >= 0; index += direction) {
     if (index in value) {
       return index;
     }
@@ -606,7 +631,12 @@ function allocateProducedValue(value: SandboxValue, budget: Budget, seen: WeakSe
     return;
   }
 
-  if (typeof value !== "object" || value === null || isSandboxClosure(value) || isSandboxPromise(value)) {
+  if (
+    typeof value !== "object" ||
+    value === null ||
+    isSandboxClosure(value) ||
+    isSandboxPromise(value)
+  ) {
     return;
   }
 

@@ -2482,9 +2482,12 @@ async function invokeSandboxClosure(
   const leaveCall = context.budget.enterCall();
 
   try {
-    const result = callee.call(args, {
-      stack
-    });
+    const result = Reflect.apply(callee.call, undefined, [
+      args,
+      {
+        stack
+      }
+    ]);
 
     return callee.async === true
       ? normalizeClosureResult(wrapHostResult(result, stack), context.budget)

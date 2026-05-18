@@ -78,7 +78,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: tokenizer-strings-templates
     title: Tokenizer — strings, templates, escape edges
@@ -102,8 +102,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): tokenizer string/template edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: tokenizer-comments-line-endings

@@ -101,14 +101,19 @@ function createHostErrorValue(
   budget: Budget
 ): SandboxObject {
   if (reason instanceof Error) {
-    return createSubsetErrorValue(reason.name, reason.message, stackFrames, budget);
+    return createSubsetErrorValue(reason.name, reason.message, stackFrames, budget, {
+      chargeBudget: false
+    });
   }
 
   return createSubsetErrorValue(
     "Error",
     reason === undefined ? "" : String(reason),
     stackFrames,
-    budget
+    budget,
+    {
+      chargeBudget: false
+    }
   );
 }
 

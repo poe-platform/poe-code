@@ -89,6 +89,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
       const restoredSnapshot =
         options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
       const budget = options.budget ?? new Budget();
+      budget.reset();
       const filename = options.filename ?? "<input>";
       const module = parseExecutableModule(source, filename);
       const sourceHash = hashSource(source);

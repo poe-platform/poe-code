@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { Budget, SandboxError } from "./budget.js";
 
@@ -95,6 +95,37 @@ describe("Budget", () => {
     expect(() => budget.allocateArrayLength(2)).not.toThrow();
     expect(() => budget.visitNode()).not.toThrow();
     expect(budget.stepsUsed).toBe(1);
+  });
+
+  it("uses deadline priority when deadline and step limits are crossed together", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-17T00:00:00.001Z"));
+
+    try {
+      const budget = new Budget({
+        deadline: new Date("2026-05-17T00:00:00.000Z"),
+        maxSteps: 0
+      });
+
+      expectSandboxError(() => budget.visitNode(), {
+        budget: "deadline",
+        current: new Date("2026-05-17T00:00:00.001Z").getTime(),
+        limit: new Date("2026-05-17T00:00:00.000Z").getTime()
+      });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("counts string budgets as UTF-16 code units instead of bytes", () => {
+    const value = String.fromCodePoint(0x1f642);
+
+    expect(new Budget({ stringLength: 2 }).allocateString(value)).toBe(value);
+    expectSandboxError(() => new Budget({ stringLength: 1 }).allocateString(value), {
+      budget: "stringLength",
+      current: 2,
+      limit: 1
+    });
   });
 
   it("does not let leaving the same depth scope twice underflow the call depth", () => {

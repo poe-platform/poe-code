@@ -50,6 +50,8 @@ export class Budget {
   peakCallDepth = 0;
 
   currentCallDepth = 0;
+  private allChecksSuspended = 0;
+  private deadlineChecksSuspended = 0;
 
   constructor(options: BudgetOptions = {}) {
     this.deadline = normalizeDeadline(options.deadline);
@@ -65,7 +67,11 @@ export class Budget {
     this.stepsUsed += 1;
     this.checkDeadline();
 
-    if (this.limits.maxSteps !== undefined && this.stepsUsed > this.limits.maxSteps) {
+    if (
+      this.allChecksSuspended === 0 &&
+      this.limits.maxSteps !== undefined &&
+      this.stepsUsed > this.limits.maxSteps
+    ) {
       throw new SandboxError({
         budget: "steps",
         current: this.stepsUsed,
@@ -75,7 +81,11 @@ export class Budget {
   }
 
   allocateString(value: string): string {
-    if (this.limits.stringLength !== undefined && value.length > this.limits.stringLength) {
+    if (
+      this.allChecksSuspended === 0 &&
+      this.limits.stringLength !== undefined &&
+      value.length > this.limits.stringLength
+    ) {
       throw new SandboxError({
         budget: "stringLength",
         current: value.length,
@@ -87,7 +97,11 @@ export class Budget {
   }
 
   allocateArrayLength(length: number): void {
-    if (this.limits.arrayLength !== undefined && length > this.limits.arrayLength) {
+    if (
+      this.allChecksSuspended === 0 &&
+      this.limits.arrayLength !== undefined &&
+      length > this.limits.arrayLength
+    ) {
       throw new SandboxError({
         budget: "arrayLength",
         current: length,
@@ -104,8 +118,48 @@ export class Budget {
     return this.enterDepth();
   }
 
+  reset(): void {
+    this.stepsUsed = 0;
+    this.peakCallDepth = 0;
+    this.currentCallDepth = 0;
+    this.allChecksSuspended = 0;
+    this.deadlineChecksSuspended = 0;
+  }
+
+  suspendChecks(): () => void {
+    this.allChecksSuspended += 1;
+
+    let resumed = false;
+    return () => {
+      if (resumed) {
+        return;
+      }
+
+      resumed = true;
+      this.allChecksSuspended -= 1;
+    };
+  }
+
+  suspendDeadlineChecks(): () => void {
+    this.deadlineChecksSuspended += 1;
+
+    let resumed = false;
+    return () => {
+      if (resumed) {
+        return;
+      }
+
+      resumed = true;
+      this.deadlineChecksSuspended -= 1;
+    };
+  }
+
   private checkDeadline(): void {
-    if (this.deadline === undefined) {
+    if (
+      this.allChecksSuspended > 0 ||
+      this.deadlineChecksSuspended > 0 ||
+      this.deadline === undefined
+    ) {
       return;
     }
 
@@ -124,7 +178,11 @@ export class Budget {
   private enterDepth(): () => void {
     const nextDepth = this.currentCallDepth + 1;
 
-    if (this.limits.maxCallDepth !== undefined && nextDepth > this.limits.maxCallDepth) {
+    if (
+      this.allChecksSuspended === 0 &&
+      this.limits.maxCallDepth !== undefined &&
+      nextDepth > this.limits.maxCallDepth
+    ) {
       throw new SandboxError({
         budget: "callDepth",
         current: nextDepth,

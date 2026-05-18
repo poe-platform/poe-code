@@ -15,7 +15,7 @@ import type {
   ThrowStatement,
   TryStatement
 } from "../parse.js";
-import type { Budget } from "./budget.js";
+import { SandboxError, type Budget } from "./budget.js";
 import type { Scope } from "./scope.js";
 import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
 
@@ -86,9 +86,26 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
-  const tryResult = await evaluateBlockCompletion(node.block, context, evaluateNode);
+  let fatalBudgetError: SandboxError | undefined;
+  let tryResult: EvaluationResult<TError>;
+
+  try {
+    tryResult = await evaluateBlockCompletion(node.block, context, evaluateNode);
+  } catch (error) {
+    if (!isBudgetExceeded(error) || node.finalizer === undefined) {
+      throw error;
+    }
+
+    fatalBudgetError = error;
+    tryResult = {
+      kind: "throw",
+      hasValue: true,
+      value: undefined
+    };
+  }
+
   const tryOrCatchResult =
-    tryResult.kind === "throw" && node.handler !== undefined
+    fatalBudgetError === undefined && tryResult.kind === "throw" && node.handler !== undefined
       ? await evaluateCatchClause(node.handler, tryResult.value, context, evaluateNode)
       : tryResult;
 
@@ -96,7 +113,17 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
     return tryOrCatchResult;
   }
 
-  const finalizerResult = await evaluateBlockCompletion(node.finalizer, context, evaluateNode);
+  const finalizerResult =
+    fatalBudgetError?.budget === "deadline"
+      ? await evaluateWithoutDeadlineChecks(context, () =>
+          evaluateBlockCompletion(node.finalizer as BlockStatement, context, evaluateNode)
+        )
+      : await evaluateBlockCompletion(node.finalizer, context, evaluateNode);
+
+  if (fatalBudgetError !== undefined) {
+    throw fatalBudgetError;
+  }
+
   if (finalizerResult.kind === "normal") {
     return tryOrCatchResult;
   }
@@ -122,7 +149,9 @@ export function coerceThrownValue(
   stackFrames: readonly string[]
 ): SandboxValue {
   if (reason instanceof Error) {
-    return createSubsetErrorValue(reason.name || "Error", reason.message, stackFrames, budget);
+    return createSubsetErrorValue(reason.name || "Error", reason.message, stackFrames, budget, {
+      chargeBudget: false
+    });
   }
 
   return deepCopyToSandbox(reason);
@@ -132,18 +161,42 @@ export function createSubsetErrorValue(
   name: string,
   message: SandboxValue,
   stackFrames: readonly string[],
-  budget: Budget
+  budget: Budget,
+  options: { chargeBudget?: boolean } = {}
 ): SandboxObject {
-  const errorName = budget.allocateString(name === "" ? "Error" : name);
-  const errorMessage = budget.allocateString(message === undefined ? "" : String(message));
-  const header = errorMessage === "" ? errorName : `${errorName}: ${errorMessage}`;
-  const stack = budget.allocateString([header, ...[...stackFrames].reverse()].join("\n"));
+  const resumeChecks = options.chargeBudget === false ? budget.suspendChecks() : undefined;
 
-  return {
-    name: errorName,
-    message: errorMessage,
-    stack
-  };
+  try {
+    const errorName = budget.allocateString(name === "" ? "Error" : name);
+    const errorMessage = budget.allocateString(message === undefined ? "" : String(message));
+    const header = errorMessage === "" ? errorName : `${errorName}: ${errorMessage}`;
+    const stack = budget.allocateString([header, ...[...stackFrames].reverse()].join("\n"));
+
+    return {
+      name: errorName,
+      message: errorMessage,
+      stack
+    };
+  } finally {
+    resumeChecks?.();
+  }
+}
+
+async function evaluateWithoutDeadlineChecks<TValue>(
+  context: ExceptionContext,
+  evaluate: () => Promise<TValue>
+): Promise<TValue> {
+  const resumeDeadlineChecks = context.budget.suspendDeadlineChecks();
+
+  try {
+    return await evaluate();
+  } finally {
+    resumeDeadlineChecks();
+  }
+}
+
+function isBudgetExceeded(error: unknown): error is SandboxError {
+  return error instanceof SandboxError && error.code === "budgetExceeded";
 }
 
 async function evaluateCatchClause<TContext extends ExceptionContext, TError>(

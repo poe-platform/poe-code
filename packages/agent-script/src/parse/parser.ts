@@ -1258,10 +1258,11 @@ class Parser {
   }
 
   private parseExportNamedDeclaration(exportToken: Token): ExportNamedDeclaration {
-    const declaration = this.parseVariableDeclaration({ singleDeclaratorSyntax: "export const" });
-    const declarator = declaration.declarations[0]!;
-    if (declarator.id.type !== "Identifier") {
-      throw new DisallowedSyntaxError("export const", declarator.id.span.start);
+    const declaration = this.parseVariableDeclaration();
+    for (const declarator of declaration.declarations) {
+      if (declarator.id.type !== "Identifier") {
+        throw new DisallowedSyntaxError("export const", declarator.id.span.start);
+      }
     }
 
     return createExportNamedDeclaration(exportToken, declaration);
@@ -1297,9 +1298,7 @@ class Parser {
     };
   }
 
-  private parseVariableDeclaration(
-    options: { singleDeclaratorSyntax?: string } = {}
-  ): VariableDeclaration {
+  private parseVariableDeclaration(): VariableDeclaration {
     const kindToken = this.currentToken();
     if (
       kindToken.type !== "keyword" ||
@@ -1318,9 +1317,6 @@ class Parser {
       const comma = this.consumePunctuator(",");
       if (comma === undefined) {
         break;
-      }
-      if (options.singleDeclaratorSyntax !== undefined) {
-        throw new DisallowedSyntaxError(options.singleDeclaratorSyntax, comma.start);
       }
     }
 

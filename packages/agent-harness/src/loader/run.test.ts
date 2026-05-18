@@ -153,7 +153,7 @@ describe("runHarnessPair", () => {
         "  title: S.String(),",
         "  retries: S.Optional(S.Number({ default: 2 }))",
         "});",
-        "export default async (frontmatter) => check(frontmatter, import.meta);"
+        "export default async (frontmatter) => await check(frontmatter, import.meta);"
       ].join("\n")
     });
 
@@ -835,7 +835,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: fresh\nversion: 1\n---\n",
       "/repo/harness/fresh.ajs": [
         'import { read } from "host";',
-        "export default async () => read();"
+        "export default async () => await read();"
       ].join("\n")
     });
 
@@ -976,7 +976,7 @@ describe("runHarnessPair", () => {
       [mdPath]: "---\nkind: fresh\nversion: 1\n---\n",
       "/repo/harness/no-resume.ajs": [
         'import { read } from "host";',
-        "export default async () => read();"
+        "export default async () => await read();"
       ].join("\n"),
       [snapshotPath]: JSON.stringify({ sourceHash: "stale" }),
       [`${snapshotPath}.host-calls.json`]: JSON.stringify([

@@ -183,6 +183,32 @@ describe("AS013", () => {
     expect(shadowedNames(source, { agent: ["run"], git: ["status"] })).toEqual(["agent", "git"]);
   });
 
+  it("allows registered module names when they are explicitly allowed named exports", () => {
+    const allowedSource = [
+      "export const schema = value;",
+      "export const agent = createAgent();"
+    ].join("\n");
+
+    expect(
+      AS013(allowedSource, {
+        allowedExportNames: ["schema"],
+        modules: {
+          agent: ["run"],
+          schema: ["S"]
+        }
+      }).map((diagnostic) => diagnostic.message)
+    ).toEqual(["Top-level binding 'agent' shadows registered module 'agent'."]);
+
+    expect(
+      AS013("const schema = localValue;", {
+        allowedExportNames: ["schema"],
+        modules: {
+          schema: ["S"]
+        }
+      }).map((diagnostic) => diagnostic.message)
+    ).toEqual(["Top-level binding 'schema' shadows registered module 'schema'."]);
+  });
+
   it("reports shadowing exported const bindings inside multi-declarator declarations", () => {
     const source = "export const safe = value, agent = createAgent(), git = repo;";
 

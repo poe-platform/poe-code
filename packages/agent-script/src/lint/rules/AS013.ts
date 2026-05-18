@@ -21,9 +21,13 @@ export type Diagnostic = {
   span: SourceSpan;
 };
 
-export function AS013(source: string, options: { filename?: string; modules?: Modules } = {}): Diagnostic[] {
+export function AS013(
+  source: string,
+  options: { allowedExportNames?: readonly string[]; filename?: string; modules?: Modules } = {}
+): Diagnostic[] {
   const filename = options.filename ?? "<input>";
   const reservedNames = new Set(normalizeModules(options.modules).keys());
+  const allowedExportNames = new Set(options.allowedExportNames ?? []);
 
   if (reservedNames.size === 0) {
     return [];
@@ -39,7 +43,13 @@ export function AS013(source: string, options: { filename?: string; modules?: Mo
     }
 
     if (statement.type === "ExportNamedDeclaration") {
-      collectShadowedBindings(statement.declaration, reservedNames, diagnostics, filename);
+      collectShadowedBindings(
+        statement.declaration,
+        reservedNames,
+        diagnostics,
+        filename,
+        allowedExportNames
+      );
     }
   }
 
@@ -50,10 +60,11 @@ function collectShadowedBindings(
   declaration: VariableDeclaration,
   reservedNames: ReadonlySet<string>,
   diagnostics: Diagnostic[],
-  filename: string
+  filename: string,
+  allowedNames: ReadonlySet<string> = new Set()
 ): void {
   for (const declarator of declaration.declarations) {
-    collectPatternDiagnostics(declarator.id, reservedNames, diagnostics, filename);
+    collectPatternDiagnostics(declarator.id, reservedNames, diagnostics, filename, allowedNames);
   }
 }
 
@@ -61,11 +72,12 @@ function collectPatternDiagnostics(
   pattern: ArrayPattern | AssignmentPattern | Identifier | MemberExpression | ObjectPattern | RestElement,
   reservedNames: ReadonlySet<string>,
   diagnostics: Diagnostic[],
-  filename: string
+  filename: string,
+  allowedNames: ReadonlySet<string>
 ): void {
   switch (pattern.type) {
     case "Identifier":
-      if (reservedNames.has(pattern.name)) {
+      if (reservedNames.has(pattern.name) && !allowedNames.has(pattern.name)) {
         diagnostics.push({
           code: "AS013",
           severity: "error",
@@ -78,15 +90,15 @@ function collectPatternDiagnostics(
       }
       return;
     case "AssignmentPattern":
-      collectPatternDiagnostics(pattern.left, reservedNames, diagnostics, filename);
+      collectPatternDiagnostics(pattern.left, reservedNames, diagnostics, filename, allowedNames);
       return;
     case "RestElement":
-      collectPatternDiagnostics(pattern.argument, reservedNames, diagnostics, filename);
+      collectPatternDiagnostics(pattern.argument, reservedNames, diagnostics, filename, allowedNames);
       return;
     case "ArrayPattern":
       for (const element of pattern.elements) {
         if (element !== null) {
-          collectPatternDiagnostics(element, reservedNames, diagnostics, filename);
+          collectPatternDiagnostics(element, reservedNames, diagnostics, filename, allowedNames);
         }
       }
       return;
@@ -96,7 +108,8 @@ function collectPatternDiagnostics(
           property.type === "RestElement" ? property : property.value,
           reservedNames,
           diagnostics,
-          filename
+          filename,
+          allowedNames
         );
       }
       return;

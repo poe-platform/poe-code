@@ -1245,8 +1245,8 @@ tasks:
 
       Conventional commit: `test(agent-script): lint rule edge sweep`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: lint-disable-comments-edges

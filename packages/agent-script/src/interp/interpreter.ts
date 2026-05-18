@@ -50,6 +50,7 @@ import type {
   RestElement,
   WhileStatement
 } from "../parse.js";
+import { attachErrorSpan, formatErrorStack, replaceErrorStack } from "../error/shape.js";
 import {
   evaluateArrowFunctionExpression,
   evaluateAwaitExpression,
@@ -109,9 +110,11 @@ export type InterpreterErrorCode = "LABEL_NOT_FOUND" | "UNBOUND_IDENTIFIER" | "U
 export type InterpreterError = {
   code: InterpreterErrorCode;
   message: string;
+  name: string;
   nodeId?: number;
   nodeType: ParseResult["type"];
   span: SourceSpan;
+  stack: string;
 };
 
 export type InterpreterResult =
@@ -290,6 +293,7 @@ async function evaluateNode(
     return await handler(node as never, context);
   } catch (error) {
     if (isFatalSandboxError(error)) {
+      attachFatalSandboxErrorContext(error, node, context.callStack);
       throw error;
     }
 
@@ -301,8 +305,8 @@ async function evaluateNode(
     }
 
     const exception = isCapturedException(error)
-      ? coerceThrownValue(error.reason, context.budget, error.stackFrames)
-      : coerceThrownValue(error, context.budget, context.callStack);
+      ? coerceThrownValue(error.reason, context.budget, error.stackFrames, node.span)
+      : coerceThrownValue(error, context.budget, context.callStack, node.span);
 
     return {
       kind: "throw",
@@ -1782,13 +1786,25 @@ function createError(
   node: ParseResult,
   message: string
 ): InterpreterError {
+  const name = code === "UNBOUND_IDENTIFIER" ? "ReferenceError" : "Error";
   return {
     code,
     message,
+    name,
     nodeId: node.nodeId,
     nodeType: node.type,
-    span: node.span
+    span: node.span,
+    stack: formatErrorStack(name, message, [formatStackFrame(node, undefined)])
   };
+}
+
+function attachFatalSandboxErrorContext(
+  error: SandboxError,
+  node: ParseResult,
+  stackFrames: readonly string[]
+): void {
+  attachErrorSpan(error, node.span);
+  replaceErrorStack(error, stackFrames);
 }
 
 async function evaluateMemberAccess(
@@ -2429,10 +2445,13 @@ async function evaluateResolvedCallExpression(
   return {
     kind: "normal",
     hasValue: true,
-    value: await invokeSandboxClosure(callee, args.value, context, [
-      ...context.callStack,
-      formatStackFrame(node, callee.name)
-    ])
+    value: await invokeSandboxClosure(
+      callee,
+      args.value,
+      context,
+      [...context.callStack, formatStackFrame(node, callee.name)],
+      node.span
+    )
   };
 }
 
@@ -2477,7 +2496,8 @@ async function invokeSandboxClosure(
   callee: Extract<InterpreterValue, { kind: "fn" }>,
   args: readonly SandboxValue[],
   context: EvaluationContext,
-  stack: readonly string[]
+  stack: readonly string[],
+  span?: SourceSpan
 ): Promise<SandboxValue> {
   const leaveCall = context.budget.enterCall();
 
@@ -2485,7 +2505,8 @@ async function invokeSandboxClosure(
     const result = Reflect.apply(callee.call, undefined, [
       args,
       {
-        stack
+        stack,
+        ...(span === undefined ? {} : { span })
       }
     ]);
 

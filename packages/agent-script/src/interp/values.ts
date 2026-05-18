@@ -19,6 +19,18 @@ export type SandboxObject = {
 export type SandboxArray = SandboxValue[];
 
 export type SandboxCallContext = {
+  readonly span?: {
+    readonly end: {
+      readonly column: number;
+      readonly line: number;
+      readonly offset: number;
+    };
+    readonly start: {
+      readonly column: number;
+      readonly line: number;
+      readonly offset: number;
+    };
+  };
   readonly stack: readonly string[];
 };
 
@@ -37,6 +49,7 @@ export type SandboxClosure = {
 export type SandboxPromise = {
   readonly kind: "promise";
   readonly promise: Promise<SandboxValue>;
+  readonly span?: SandboxCallContext["span"];
   readonly [sandboxPromiseBrand]: true;
 };
 
@@ -79,7 +92,10 @@ export function createSandboxClosure(input: {
   return Object.freeze(closure);
 }
 
-export function createSandboxPromise(promise: Promise<SandboxValue>): SandboxPromise {
+export function createSandboxPromise(
+  promise: Promise<SandboxValue>,
+  metadata: { span?: SandboxCallContext["span"] } = {}
+): SandboxPromise {
   const sandboxPromise = {
     kind: "promise" as const,
     promise
@@ -89,6 +105,12 @@ export function createSandboxPromise(promise: Promise<SandboxValue>): SandboxPro
     enumerable: false,
     value: true
   });
+
+  if (metadata.span !== undefined) {
+    Object.defineProperty(sandboxPromise, "span", {
+      value: metadata.span
+    });
+  }
 
   return Object.freeze(sandboxPromise);
 }

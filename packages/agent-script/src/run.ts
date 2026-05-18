@@ -1,4 +1,11 @@
 import { hashSource } from "./parse/hash.js";
+import {
+  attachErrorSpan,
+  describeThrownValue,
+  materializeWrappedErrorCause,
+  replaceErrorStack,
+  type ErrorSourceSpan
+} from "./error/shape.js";
 import type { ParseResult } from "./parse.js";
 import {
   parseExecutableModule,
@@ -19,7 +26,12 @@ import { createObjectArrayGlobals } from "./interp/globals/object-array.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "./interp/host-bridge.js";
 import { interpret, Scope, type InterpreterResult } from "./interp/interpreter.js";
 import { createPromiseGlobals } from "./interp/promise.js";
-import { deepCopyToSandbox, isSandboxClosure, type SandboxValue } from "./interp/values.js";
+import {
+  deepCopyToSandbox,
+  isSandboxClosure,
+  isSandboxPromise,
+  type SandboxValue
+} from "./interp/values.js";
 import { resolveModuleImports, type ModuleRegistry } from "./modules/registry.js";
 import {
   activateOtelSink,
@@ -50,6 +62,18 @@ export type RunOptions = {
   snapshotPath?: string;
   sink?: ConsoleSink;
 };
+
+export class UnhandledRejectionError extends Error {
+  readonly reason: unknown;
+
+  constructor(reason: unknown, span?: ErrorSourceSpan) {
+    super(`Unhandled rejection: ${describeThrownValue(reason)}`);
+    this.name = "UnhandledRejectionError";
+    this.reason = reason;
+    attachErrorSpan(this, span);
+    replaceErrorStack(this);
+  }
+}
 
 export type RunSnapshot = AgentScriptSnapshot & {
   bindings: InterpreterResult["snapshot"]["bindings"];
@@ -204,12 +228,14 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         sourceHash
       });
       dumpController.finalize(snapshot);
+      await throwIfReturnedPromiseRejected(result);
 
       return {
         ...result,
         snapshot
       };
     } catch (error) {
+      materializeWrappedErrorCause(error);
       dumpController.fail(error);
       throw error;
     } finally {
@@ -218,6 +244,29 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
   })();
 
   return attachDumpController(result, dumpController);
+}
+
+async function throwIfReturnedPromiseRejected(result: InterpreterResult): Promise<void> {
+  if (!result.ok || !isSandboxPromise(result.returnValue)) {
+    return;
+  }
+
+  let rejected = false;
+  let rejectionReason: unknown;
+  result.returnValue.promise.then(
+    () => undefined,
+    (reason) => {
+      rejected = true;
+      rejectionReason = reason;
+    }
+  );
+
+  await Promise.resolve();
+  await Promise.resolve();
+
+  if (rejected) {
+    throw new UnhandledRejectionError(rejectionReason, result.returnValue.span);
+  }
 }
 
 async function callEntryPoint(input: {

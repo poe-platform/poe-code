@@ -1,3 +1,5 @@
+import { replaceErrorStack } from "../error/shape.js";
+
 export type BudgetName = "steps" | "deadline" | "callDepth" | "stringLength" | "arrayLength";
 
 export type BudgetOptions = {
@@ -23,6 +25,7 @@ export class SandboxError extends Error {
         : `Sandbox budget exceeded for ${input.budget}: ${input.current} > ${input.limit}.`
     );
     this.name = "SandboxError";
+    replaceErrorStack(this);
 
     if (input === "aborted") {
       this.code = "aborted";

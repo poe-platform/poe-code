@@ -4,6 +4,7 @@ import { inspect } from "node:util";
 import { pathToFileURL } from "node:url";
 
 import { formatInterpreterError } from "./error/format.js";
+import { replaceErrorStack } from "./error/shape.js";
 import { Budget, SandboxError } from "./interp/budget.js";
 import { extractBlock } from "./loader/extract-block.js";
 import { splitFrontmatter } from "./loader/frontmatter.js";
@@ -675,11 +676,14 @@ function toModuleExports(value: unknown): ModuleExports {
 
 function createAbortError(): Error {
   if (typeof DOMException === "function") {
-    return new DOMException("This operation was aborted", "AbortError");
+    const error = new DOMException("This operation was aborted", "AbortError");
+    replaceErrorStack(error);
+    return error;
   }
 
   const error = new Error("This operation was aborted");
   error.name = "AbortError";
+  replaceErrorStack(error);
   return error;
 }
 

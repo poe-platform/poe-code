@@ -1,4 +1,5 @@
 import { Budget } from "../interp/budget.js";
+import { SnapshotMismatchError } from "../restore.js";
 import { Scope } from "../interp/interpreter.js";
 import { wrapCallerInjectedBindings, type CallerInjectedBinding } from "../interp/host-bridge.js";
 import {
@@ -93,9 +94,7 @@ export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): 
   }
 
   if (snapshot.sourceHash !== currentSourceHash) {
-    throw new Error(
-      `source changed since snapshot was taken (hash ${snapshot.sourceHash} expected, got ${currentSourceHash}); pass --reset to discard`
-    );
+    throw new SnapshotMismatchError(snapshot.sourceHash, currentSourceHash);
   }
 
   const ast = parseModule(options.source);

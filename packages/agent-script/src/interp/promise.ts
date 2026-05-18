@@ -95,7 +95,8 @@ export function createPromiseGlobals(options: { budget: Budget }): PromiseGlobal
       }),
       reject: createSandboxClosure({
         async: true,
-        call: ([reason]) => createRejectedSandboxPromise(reason, options.budget),
+        call: ([reason], context) =>
+          createRejectedSandboxPromise(reason, options.budget, context?.span),
         name: "reject"
       })
     }
@@ -198,13 +199,14 @@ function schedulePromise(promise: Promise<SandboxValue>, budget: Budget): Promis
 
 function createRejectedSandboxPromise(
   reason: SandboxValue,
-  budget: Budget
+  budget: Budget,
+  span?: SandboxPromise["span"]
 ): ReturnType<typeof createSandboxPromise> {
   const promise = schedulePromise(Promise.reject(reason), budget);
 
   // Mark the host promise as handled immediately while preserving its rejected state for sandbox await.
   promise.catch(() => undefined);
-  return createSandboxPromise(promise);
+  return createSandboxPromise(promise, { span });
 }
 
 function budgetSandboxValue(value: SandboxValue, budget: Budget): SandboxValue {

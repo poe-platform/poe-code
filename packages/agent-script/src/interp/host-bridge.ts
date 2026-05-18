@@ -1,4 +1,5 @@
 import { normalizeClosureResult } from "./async.js";
+import { attachErrorSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
 import { SandboxError, type Budget } from "./budget.js";
 import { createSubsetErrorValue } from "./exceptions.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
@@ -81,7 +82,7 @@ function wrapCallerInjectedValue(
           throw error;
         }
 
-        throw createHostErrorValue(error, context?.stack ?? [], options.budget);
+        throw createHostErrorValue(error, context?.stack ?? [], options.budget, context?.span);
       }
     },
     name: bindingName,
@@ -108,17 +109,21 @@ function copyHostResultToSandbox(
 function createHostErrorValue(
   reason: unknown,
   stackFrames: readonly string[],
-  budget: Budget
+  budget: Budget,
+  span?: ErrorSourceSpan
 ): SandboxObject {
-  if (reason instanceof Error) {
-    return createSubsetErrorValue(reason.name, reason.message, stackFrames, budget, {
-      chargeBudget: false
-    });
-  }
+  const error =
+    reason instanceof Error
+      ? createSubsetErrorValue(reason.name, reason.message, stackFrames, budget, {
+          cause: reason,
+          chargeBudget: false
+        })
+      : createSubsetErrorValue("Error", describeThrownReason(reason), stackFrames, budget, {
+          chargeBudget: false
+        });
 
-  return createSubsetErrorValue("Error", describeThrownReason(reason), stackFrames, budget, {
-    chargeBudget: false
-  });
+  attachErrorSpan(error, span);
+  return error;
 }
 
 function wrapSandboxClosureForHost(
@@ -296,7 +301,7 @@ function copyHostValueToSandbox(
             throw error;
           }
 
-          throw createHostErrorValue(error, context?.stack ?? [], budget);
+          throw createHostErrorValue(error, context?.stack ?? [], budget, context?.span);
         }
       },
       name: callable.name.length > 0 ? callable.name : readPathName(path),
@@ -408,11 +413,14 @@ function readAbortReason(signal: AbortSignal): unknown {
 
 function createAbortError(): Error {
   if (typeof DOMException === "function") {
-    return new DOMException("This operation was aborted", "AbortError");
+    const error = new DOMException("This operation was aborted", "AbortError");
+    replaceErrorStack(error);
+    return error;
   }
 
   const error = new Error("This operation was aborted");
   error.name = "AbortError";
+  replaceErrorStack(error);
   return error;
 }
 

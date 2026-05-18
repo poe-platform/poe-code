@@ -7,6 +7,7 @@ import {
   type SandboxObject,
   type SandboxValue
 } from "./values.js";
+import { replaceErrorStack } from "../error/shape.js";
 
 export function wrapCancelableBindings(
   bindings: Record<string, SandboxValue>,
@@ -174,11 +175,14 @@ function readAbortReason(signal: AbortSignal): unknown {
 
 function createAbortError(): Error {
   if (typeof DOMException === "function") {
-    return new DOMException("This operation was aborted", "AbortError");
+    const error = new DOMException("This operation was aborted", "AbortError");
+    replaceErrorStack(error);
+    return error;
   }
 
   const error = new Error("This operation was aborted");
   error.name = "AbortError";
+  replaceErrorStack(error);
   return error;
 }
 

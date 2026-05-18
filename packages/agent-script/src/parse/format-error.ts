@@ -1,3 +1,5 @@
+import { createSourceSpan, replaceErrorStack, type ErrorSourceSpan } from "../error/shape.js";
+
 export type ParseDiagnostic = {
   kind: "ParseError";
   filename: string;
@@ -14,6 +16,7 @@ export class ParseError extends Error implements ParseDiagnostic {
   readonly column: number;
   readonly excerpt: string;
   readonly caret: string;
+  readonly span: ErrorSourceSpan;
 
   constructor(
     readonly filename: string,
@@ -21,7 +24,8 @@ export class ParseError extends Error implements ParseDiagnostic {
     line: number,
     column: number,
     excerpt: string,
-    caret: string
+    caret: string,
+    span: ErrorSourceSpan
   ) {
     super(message);
     this.name = "ParseError";
@@ -29,6 +33,8 @@ export class ParseError extends Error implements ParseDiagnostic {
     this.column = column;
     this.excerpt = excerpt;
     this.caret = caret;
+    this.span = span;
+    replaceErrorStack(this);
   }
 }
 
@@ -85,7 +91,8 @@ export function formatParseError(source: string, filename: string, error: Error)
     excerpt
       .map((line) => `${String(line.number).padStart(lineNumberWidth)} | ${line.content}`)
       .join("\n"),
-    caret
+    caret,
+    createSourceSpan(source, location.line, location.column, location.endLine, location.endColumn)
   );
 }
 

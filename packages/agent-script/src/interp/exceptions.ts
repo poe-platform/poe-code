@@ -16,6 +16,13 @@ import type {
   TryStatement,
   VariableDeclaration
 } from "../parse.js";
+import {
+  attachErrorSpan,
+  attachWrappedErrorCause,
+  readErrorCause,
+  readErrorSpan,
+  type ErrorSourceSpan
+} from "../error/shape.js";
 import { SandboxError, type Budget } from "./budget.js";
 import type { Scope } from "./scope.js";
 import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
@@ -170,11 +177,27 @@ export function isCapturedException(value: unknown): value is CapturedException 
 export function coerceThrownValue(
   reason: unknown,
   budget: Budget,
-  stackFrames: readonly string[]
+  stackFrames: readonly string[],
+  span?: ErrorSourceSpan
 ): SandboxValue {
+  if (isSubsetErrorValue(reason)) {
+    attachErrorSpan(reason, readErrorSpan(reason) ?? span);
+    return reason;
+  }
+
   if (reason instanceof Error) {
     return createSubsetErrorValue(reason.name || "Error", reason.message, stackFrames, budget, {
-      chargeBudget: false
+      chargeBudget: false,
+      cause: readErrorCause(reason),
+      span
+    });
+  }
+
+  if (isErrorLikeValue(reason)) {
+    return createSubsetErrorValue(reason.name || "Error", reason.message, stackFrames, budget, {
+      chargeBudget: false,
+      cause: readErrorCause(reason),
+      span
     });
   }
 
@@ -186,7 +209,7 @@ export function createSubsetErrorValue(
   message: SandboxValue,
   stackFrames: readonly string[],
   budget: Budget,
-  options: { chargeBudget?: boolean } = {}
+  options: { cause?: unknown; chargeBudget?: boolean; span?: ErrorSourceSpan } = {}
 ): SandboxObject {
   const resumeChecks = options.chargeBudget === false ? budget.suspendChecks() : undefined;
 
@@ -202,6 +225,8 @@ export function createSubsetErrorValue(
     };
 
     defineSandboxErrorMetadata(error, errorName);
+    attachErrorSpan(error, options.span);
+    attachWrappedErrorCause(error, options.cause);
     return error;
   } finally {
     resumeChecks?.();
@@ -239,13 +264,38 @@ function isSandboxErrorObject(value: SandboxValue): value is SandboxErrorObject 
   return typeof value === "object" && value !== null && sandboxErrorBrand in value;
 }
 
+function isSubsetErrorValue(value: unknown): value is SandboxObject {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+  return (
+    (prototype === Object.prototype || prototype === null) &&
+    typeof (value as { name?: unknown }).name === "string" &&
+    typeof (value as { message?: unknown }).message === "string" &&
+    typeof (value as { stack?: unknown }).stack === "string"
+  );
+}
+
+function isErrorLikeValue(value: unknown): value is { message: string; name: string } {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    typeof (value as { name?: unknown }).name === "string" &&
+    typeof (value as { message?: unknown }).message === "string"
+  );
+}
+
 function coerceErrorMessage(message: SandboxValue): string {
   if (message === undefined) {
     return "";
   }
 
   if (Array.isArray(message)) {
-    return message.map((value) => (value === null || value === undefined ? "" : String(value))).join(",");
+    return message
+      .map((value) => (value === null || value === undefined ? "" : String(value)))
+      .join(",");
   }
 
   if (typeof message === "object" && message !== null) {

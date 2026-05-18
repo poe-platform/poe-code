@@ -26,7 +26,8 @@ describe("AS002", () => {
       {
         code: "AS002",
         severity: "error",
-        message: "Lambda closes over let-bound 'count' from an outer scope. Change it to const or pass it as a parameter.",
+        message:
+          "Lambda closes over let-bound 'count' from an outer scope. Change it to const or pass it as a parameter.",
         filename: "rule.js",
         line: 3,
         column: 16,
@@ -51,7 +52,8 @@ describe("AS002", () => {
       {
         code: "AS002",
         severity: "error",
-        message: "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
+        message:
+          "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
         filename: "<input>",
         line: 3,
         column: 9,
@@ -63,7 +65,8 @@ describe("AS002", () => {
       {
         code: "AS002",
         severity: "error",
-        message: "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
+        message:
+          "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
         filename: "<input>",
         line: 4,
         column: 28,
@@ -100,7 +103,8 @@ describe("AS002", () => {
       {
         code: "AS002",
         severity: "error",
-        message: "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
+        message:
+          "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
         filename: "<input>",
         line: 3,
         column: 18,
@@ -112,7 +116,8 @@ describe("AS002", () => {
       {
         code: "AS002",
         severity: "error",
-        message: "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
+        message:
+          "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
         filename: "<input>",
         line: 4,
         column: 25,
@@ -131,7 +136,8 @@ describe("AS002", () => {
       {
         code: "AS002",
         severity: "error",
-        message: "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
+        message:
+          "Lambda closes over let-bound 'counter' from an outer scope. Change it to const or pass it as a parameter.",
         filename: "<input>",
         line: 3,
         column: 16,
@@ -176,5 +182,31 @@ describe("AS002", () => {
     const source = ["let counter = 0;", "export default () => () => counter;"].join("\n");
 
     expect(reportedNames(source)).toEqual(["counter"]);
+  });
+
+  it("reports top-level let captures at file boundaries", () => {
+    expect(reportedNames("let counter = 0;\n() => counter;")).toEqual(["counter"]);
+    expect(reportedNames("let counter = 0;\nconst ready = true;\n() => ready && counter;")).toEqual(
+      ["counter"]
+    );
+  });
+
+  it("reports captures inside nested expressions in parameter defaults", () => {
+    const source = [
+      "let counter = 0;",
+      "const run = (readers = [() => counter, () => `${counter}`]) => readers;"
+    ].join("\n");
+
+    expect(reportedNames(source)).toEqual(["counter", "counter"]);
+  });
+
+  it("reports captures in computed destructuring keys and rest-adjacent defaults", () => {
+    const source = [
+      "let key = 'value';",
+      "let fallback = 1;",
+      "const read = ({ [key]: value = () => fallback, ...rest } = {}) => value();"
+    ].join("\n");
+
+    expect(reportedNames(source)).toEqual(["key", "fallback"]);
   });
 });

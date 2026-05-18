@@ -301,9 +301,7 @@ describe("AS001", () => {
     expect(messages("const value = { nested: new Example() };")).toEqual([
       "Disallowed syntax: new."
     ]);
-    expect(messages("const value = `${new Example()}`;")).toEqual([
-      "Disallowed syntax: new."
-    ]);
+    expect(messages("const value = `${new Example()}`;")).toEqual(["Disallowed syntax: new."]);
     expect(messages("const read = (value = Function('return 1')) => value;")).toEqual([
       "Disallowed syntax: Function."
     ]);
@@ -313,9 +311,9 @@ describe("AS001", () => {
     expect(messages("const { value = new Example() } = input;")).toEqual([
       "Disallowed syntax: new."
     ]);
-    expect(messages("try { work(); } catch ({ recover = Function('return 1') }) { recover(); }")).toEqual([
-      "Disallowed syntax: Function."
-    ]);
+    expect(
+      messages("try { work(); } catch ({ recover = Function('return 1') }) { recover(); }")
+    ).toEqual(["Disallowed syntax: Function."]);
   });
 
   it("reports disallowed syntax at file boundaries and exported nested arrows", () => {
@@ -325,6 +323,30 @@ describe("AS001", () => {
     ]);
     expect(messages("export default () => () => this.value;")).toEqual([
       "Disallowed syntax: this."
+    ]);
+  });
+
+  it("reports disallowed syntax nested inside conditional and logical expressions", () => {
+    expect(messages("const value = ready ? ok : new Example();")).toEqual([
+      "Disallowed syntax: new."
+    ]);
+    expect(messages("const value = ready && Function('return 1');")).toEqual([
+      "Disallowed syntax: Function."
+    ]);
+  });
+
+  it("reports disallowed syntax inside array binding defaults and computed pattern keys", () => {
+    expect(messages("const [value = /fallback/] = input;")).toEqual([
+      "Disallowed syntax: regex literal."
+    ]);
+    expect(messages("const { [Function('return key')]: value } = input;")).toEqual([
+      "Disallowed syntax: Function."
+    ]);
+  });
+
+  it("reports disallowed syntax inside exported arrow block bodies", () => {
+    expect(messages("export default () => { return class Example {}; };")).toEqual([
+      "Disallowed syntax: class."
     ]);
   });
 });

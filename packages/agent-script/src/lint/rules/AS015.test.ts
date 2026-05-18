@@ -12,13 +12,18 @@ describe("AS015", () => {
       {
         code: "AS015",
         severity: "warning",
-        message: "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
+        message:
+          "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
         filename: "rule.js",
         line: 1,
         column: 16,
         span: {
           start: { line: 1, column: 16, offset: source.indexOf("Promise.race") },
-          end: { line: 1, column: 41, offset: source.indexOf("Promise.race([runTask()])") + "Promise.race([runTask()])".length }
+          end: {
+            line: 1,
+            column: 41,
+            offset: source.indexOf("Promise.race([runTask()])") + "Promise.race([runTask()])".length
+          }
         }
       }
     ]);
@@ -31,7 +36,8 @@ describe("AS015", () => {
       {
         code: "AS015",
         severity: "warning",
-        message: "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
+        message:
+          "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
         filename: "rule.js",
         line: 1,
         column: 16,
@@ -40,7 +46,8 @@ describe("AS015", () => {
           end: {
             line: 1,
             column: 44,
-            offset: source.indexOf('Promise["race"]([runTask()])') + 'Promise["race"]([runTask()])'.length
+            offset:
+              source.indexOf('Promise["race"]([runTask()])') + 'Promise["race"]([runTask()])'.length
           }
         }
       }
@@ -54,7 +61,8 @@ describe("AS015", () => {
       {
         code: "AS015",
         severity: "warning",
-        message: "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
+        message:
+          "Promise.race() with a single-element iterable literal is unnecessary. Use 'await' instead.",
         filename: "rule.js",
         line: 1,
         column: 1,
@@ -63,7 +71,8 @@ describe("AS015", () => {
           end: {
             line: 1,
             column: 27,
-            offset: source.indexOf("Promise.race([runTask(),])") + "Promise.race([runTask(),])".length
+            offset:
+              source.indexOf("Promise.race([runTask(),])") + "Promise.race([runTask(),])".length
           }
         }
       }
@@ -117,5 +126,31 @@ describe("AS015", () => {
     const source = "export default () => () => Promise.race([task()]);";
 
     expect(reportedLines(source)).toEqual([1]);
+  });
+
+  it("reports single-element races nested inside call arguments and array elements", () => {
+    const source = [
+      "consume(Promise.race([task()]));",
+      "const values = [Promise.race([otherTask()])];"
+    ].join("\n");
+
+    expect(reportedLines(source)).toEqual([1, 2]);
+  });
+
+  it("reports single-element races inside computed keys and spread expressions", () => {
+    const source =
+      "const value = { [Promise.race([keyTask()])]: 1, ...Promise.race([objectTask()]) };";
+
+    expect(reportedLines(source)).toEqual([1, 1]);
+  });
+
+  it("reports single-element races at file boundaries", () => {
+    const source = [
+      "Promise.race([first()]);",
+      "const safe = Promise.all([first()]);",
+      "Promise.race([last()]);"
+    ].join("\n");
+
+    expect(reportedLines(source)).toEqual([1, 3]);
   });
 });

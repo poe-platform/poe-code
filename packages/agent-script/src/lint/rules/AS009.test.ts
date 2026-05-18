@@ -4,10 +4,14 @@ import { AS009 } from "./AS009.js";
 
 describe("AS009", () => {
   const reportedCalls = (source: string) =>
-    AS009(source).map((diagnostic) => source.slice(diagnostic.span.start.offset, diagnostic.span.end.offset));
+    AS009(source).map((diagnostic) =>
+      source.slice(diagnostic.span.start.offset, diagnostic.span.end.offset)
+    );
 
   it("reports async arrows that return a direct host call without awaiting it", () => {
-    const source = ['import { request } from "api";', "const run = async () => request();"].join("\n");
+    const source = ['import { request } from "api";', "const run = async () => request();"].join(
+      "\n"
+    );
 
     expect(AS009(source, { filename: "rule.js" })).toEqual([
       {
@@ -27,7 +31,10 @@ describe("AS009", () => {
   });
 
   it("reports async arrows that return a namespace host call without awaiting it", () => {
-    const source = ['import * as agent from "agent";', "const run = async () => agent.spawn();"].join("\n");
+    const source = [
+      'import * as agent from "agent";',
+      "const run = async () => agent.spawn();"
+    ].join("\n");
 
     expect(AS009(source)).toEqual([
       {
@@ -40,7 +47,11 @@ describe("AS009", () => {
         column: 25,
         span: {
           start: { line: 2, column: 25, offset: source.indexOf("agent.spawn()") },
-          end: { line: 2, column: 38, offset: source.indexOf("agent.spawn()") + "agent.spawn()".length }
+          end: {
+            line: 2,
+            column: 38,
+            offset: source.indexOf("agent.spawn()") + "agent.spawn()".length
+          }
         }
       }
     ]);
@@ -112,7 +123,9 @@ describe("AS009", () => {
   });
 
   it("reports host calls returned from default-exported async arrows", () => {
-    const source = ['import { request } from "api";', "export default async () => request();"].join("\n");
+    const source = ['import { request } from "api";', "export default async () => request();"].join(
+      "\n"
+    );
 
     expect(reportedCalls(source)).toEqual(["request()"]);
   });
@@ -127,7 +140,39 @@ describe("AS009", () => {
   });
 
   it("allows host calls nested inside template-literal interpolation because they are not directly returned", () => {
-    const source = ['import { request } from "api";', "const run = async () => `${request()}`;"].join("\n");
+    const source = [
+      'import { request } from "api";',
+      "const run = async () => `${request()}`;"
+    ].join("\n");
+
+    expect(AS009(source)).toEqual([]);
+  });
+
+  it("reports direct host calls returned from async block bodies", () => {
+    const source = [
+      'import { request } from "api";',
+      "const run = async () => {",
+      "  return request();",
+      "};"
+    ].join("\n");
+
+    expect(reportedCalls(source)).toEqual(["request()"]);
+  });
+
+  it("reports computed namespace host calls returned by async arrows", () => {
+    const source = [
+      'import * as agent from "agent";',
+      'const run = async () => agent["spawn"]();'
+    ].join("\n");
+
+    expect(reportedCalls(source)).toEqual(['agent["spawn"]()']);
+  });
+
+  it("ignores host calls inside async arrow parameter defaults", () => {
+    const source = [
+      'import { request } from "api";',
+      "const run = async (value = request()) => value;"
+    ].join("\n");
 
     expect(AS009(source)).toEqual([]);
   });

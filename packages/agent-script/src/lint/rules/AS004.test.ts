@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import { AS004 } from "./AS004.js";
 
 describe("AS004", () => {
-  const unknownModules = (source: string, modules: NonNullable<Parameters<typeof AS004>[1]>["modules"]) =>
-    AS004(source, { modules }).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
+  const unknownModules = (
+    source: string,
+    modules: NonNullable<Parameters<typeof AS004>[1]>["modules"]
+  ) => AS004(source, { modules }).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
 
   it("allows imports from registered modules", () => {
     const source = [
@@ -25,10 +27,7 @@ describe("AS004", () => {
   });
 
   it("reports unknown import modules with the available module names", () => {
-    const source = [
-      'import { readFile } from "fs";',
-      'import { request } from "htp";'
-    ].join("\n");
+    const source = ['import { readFile } from "fs";', 'import { request } from "htp";'].join("\n");
 
     expect(
       AS004(source, {
@@ -106,9 +105,11 @@ describe("AS004", () => {
   });
 
   it("reports unknown modules at the start and end of a file", () => {
-    const source = ['import { early } from "early";', "const value = 1;", 'import { late } from "late";'].join(
-      "\n"
-    );
+    const source = [
+      'import { early } from "early";',
+      "const value = 1;",
+      'import { late } from "late";'
+    ].join("\n");
 
     expect(unknownModules(source, { known: ["early"] })).toEqual(["early", "late"]);
   });
@@ -116,7 +117,7 @@ describe("AS004", () => {
   it("ignores module-like text outside import declarations", () => {
     const source = [
       'const text = "import { request } from \\"missing\\"";',
-      "const template = `import { request } from \"also-missing\"`;"
+      'const template = `import { request } from "also-missing"`;'
     ].join("\n");
 
     expect(AS004(source, { modules: {} })).toEqual([]);
@@ -130,5 +131,45 @@ describe("AS004", () => {
     ].join("\n");
 
     expect(unknownModules(source, { api: ["default"], tools: ["run"] })).toEqual(["missing"]);
+  });
+
+  it("reports unknown default and namespace imports at opposite file boundaries", () => {
+    const source = [
+      'import first from "first";',
+      "const value = 1;",
+      'import * as last from "last";'
+    ].join("\n");
+
+    expect(unknownModules(source, { known: ["default"] })).toEqual(["first", "last"]);
+  });
+
+  it("accepts source-backed and typed module registrations as known modules", () => {
+    const source = ['import { run } from "agent";', 'import { request } from "api";'].join("\n");
+
+    expect(
+      AS004(source, {
+        modules: {
+          agent: {
+            exports: ["run"],
+            filename: "/agents/agent.ajs",
+            source: "export const run = () => 1;"
+          },
+          api: {
+            exports: {
+              request: "(url: string) => Promise<string>"
+            }
+          }
+        }
+      })
+    ).toEqual([]);
+  });
+
+  it("ignores module-looking text inside default parameters and destructuring defaults", () => {
+    const source = [
+      "const run = (value = 'import value from \"missing\"') => value;",
+      'const { value = `import { x } from "also-missing"` } = input;'
+    ].join("\n");
+
+    expect(AS004(source, { modules: {} })).toEqual([]);
   });
 });

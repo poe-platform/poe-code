@@ -1,5 +1,9 @@
 import type { SourceSpan } from "../../parse/parser.js";
-import { collectAgentScriptSourceModules, collectImportDeclarations, type Modules } from "./module-registry.js";
+import {
+  collectAgentScriptSourceModules,
+  collectImportDeclarations,
+  type Modules
+} from "./module-registry.js";
 
 export type Diagnostic = {
   code: "AS014";
@@ -11,13 +15,12 @@ export type Diagnostic = {
   span: SourceSpan;
 };
 
-export function AS014(source: string, options: { filename?: string; modules?: Modules } = {}): Diagnostic[] {
+export function AS014(
+  source: string,
+  options: { filename?: string; modules?: Modules } = {}
+): Diagnostic[] {
   const filename = options.filename ?? "<input>";
   const sourceModules = collectAgentScriptSourceModules(options.modules);
-
-  if (sourceModules.size < 2) {
-    return [];
-  }
 
   const currentModule = [...sourceModules.values()].find((module) => module.filename === filename);
   if (currentModule === undefined) {
@@ -31,10 +34,13 @@ export function AS014(source: string, options: { filename?: string; modules?: Mo
     const moduleSource = sourceModule.filename === filename ? source : sourceModule.source;
     const declarations = collectImportDeclarations(moduleSource, sourceModule.filename);
     importDeclarations.set(sourceModule.moduleName, declarations);
-    dependencyGraph.set(
-      sourceModule.moduleName,
-      [...new Set(declarations.map((declaration) => declaration.source.value).filter((moduleName) => sourceModules.has(moduleName)))]
-    );
+    dependencyGraph.set(sourceModule.moduleName, [
+      ...new Set(
+        declarations
+          .map((declaration) => declaration.source.value)
+          .filter((moduleName) => sourceModules.has(moduleName))
+      )
+    ]);
   }
 
   const currentImports = importDeclarations.get(currentModule.moduleName) ?? [];
@@ -46,18 +52,33 @@ export function AS014(source: string, options: { filename?: string; modules?: Mo
       continue;
     }
 
-    const cyclePath = findPathToModule(importedModuleName, currentModule.moduleName, dependencyGraph, new Set());
+    const cyclePath = findPathToModule(
+      importedModuleName,
+      currentModule.moduleName,
+      dependencyGraph,
+      new Set()
+    );
     if (cyclePath === undefined) {
       continue;
     }
 
-    diagnostics.push(createDiagnostic(filename, declaration.source.span, importedModuleName, [currentModule.moduleName, ...cyclePath]));
+    diagnostics.push(
+      createDiagnostic(filename, declaration.source.span, importedModuleName, [
+        currentModule.moduleName,
+        ...cyclePath
+      ])
+    );
   }
 
   return diagnostics;
 }
 
-function createDiagnostic(filename: string, span: SourceSpan, importedModuleName: string, cyclePath: readonly string[]): Diagnostic {
+function createDiagnostic(
+  filename: string,
+  span: SourceSpan,
+  importedModuleName: string,
+  cyclePath: readonly string[]
+): Diagnostic {
   return {
     code: "AS014",
     severity: "error",

@@ -4,7 +4,9 @@ import { AS014 } from "./AS014.js";
 
 describe("AS014", () => {
   const messages = (source: string, modules: NonNullable<Parameters<typeof AS014>[1]>["modules"]) =>
-    AS014(source, { filename: "/agents/alpha.ajs", modules }).map((diagnostic) => diagnostic.message);
+    AS014(source, { filename: "/agents/alpha.ajs", modules }).map(
+      (diagnostic) => diagnostic.message
+    );
 
   it("is a no-op in single-file mode", () => {
     const source = 'import { run } from "beta";';
@@ -75,8 +77,12 @@ describe("AS014", () => {
 
   it("reports multi-hop cycles across source-backed modules", () => {
     const alphaSource = ['import { run } from "beta";', "const start = () => run();"].join("\n");
-    const betaSource = ['import { finish } from "gamma";', "const run = () => finish();"].join("\n");
-    const gammaSource = ['import { start } from "alpha";', "const finish = () => start();"].join("\n");
+    const betaSource = ['import { finish } from "gamma";', "const run = () => finish();"].join(
+      "\n"
+    );
+    const gammaSource = ['import { start } from "alpha";', "const finish = () => start();"].join(
+      "\n"
+    );
 
     expect(
       AS014(alphaSource, {
@@ -103,7 +109,8 @@ describe("AS014", () => {
       {
         code: "AS014",
         severity: "error",
-        message: "Import from 'beta' participates in a cyclic dependency: alpha -> beta -> gamma -> alpha.",
+        message:
+          "Import from 'beta' participates in a cyclic dependency: alpha -> beta -> gamma -> alpha.",
         filename: "/agents/alpha.ajs",
         line: 1,
         column: 21,
@@ -117,7 +124,9 @@ describe("AS014", () => {
 
   it("ignores cycles that do not include the current module", () => {
     const alphaSource = ['import { run } from "beta";', "const start = () => run();"].join("\n");
-    const betaSource = ['import { finish } from "gamma";', "const run = () => finish();"].join("\n");
+    const betaSource = ['import { finish } from "gamma";', "const run = () => finish();"].join(
+      "\n"
+    );
     const gammaSource = ['import { run } from "beta";', "const finish = () => run();"].join("\n");
 
     expect(
@@ -165,9 +174,10 @@ describe("AS014", () => {
   });
 
   it("ignores import-like text inside source-backed modules", () => {
-    const alphaSource = ["const note = `import { run } from \"beta\"`;", 'import { run } from "safe";'].join(
-      "\n"
-    );
+    const alphaSource = [
+      'const note = `import { run } from "beta"`;',
+      'import { run } from "safe";'
+    ].join("\n");
     const betaSource = 'import { start } from "alpha";';
 
     expect(
@@ -192,7 +202,9 @@ describe("AS014", () => {
   });
 
   it("reports each direct source-backed import that can reach the current module", () => {
-    const alphaSource = ['import { run } from "beta";', 'import { finish } from "gamma";'].join("\n");
+    const alphaSource = ['import { run } from "beta";', 'import { finish } from "gamma";'].join(
+      "\n"
+    );
     const betaSource = 'import { start } from "alpha";';
     const gammaSource = 'import { start } from "alpha";';
 
@@ -218,5 +230,61 @@ describe("AS014", () => {
       "Import from 'beta' participates in a cyclic dependency: alpha -> beta -> alpha.",
       "Import from 'gamma' participates in a cyclic dependency: alpha -> gamma -> alpha."
     ]);
+  });
+
+  it("reports self-import cycles", () => {
+    const alphaSource = 'import { start } from "alpha";';
+
+    expect(
+      messages(alphaSource, {
+        alpha: {
+          exports: ["start"],
+          filename: "/agents/alpha.ajs",
+          source: alphaSource
+        }
+      })
+    ).toEqual(["Import from 'alpha' participates in a cyclic dependency: alpha -> alpha."]);
+  });
+
+  it("ignores non-source-backed modules in an otherwise cyclic graph", () => {
+    const alphaSource = 'import { run } from "beta";';
+
+    expect(
+      messages(alphaSource, {
+        alpha: {
+          exports: ["start"],
+          filename: "/agents/alpha.ajs",
+          source: alphaSource
+        },
+        beta: ["run"]
+      })
+    ).toEqual([]);
+  });
+
+  it("reports cycles through typed source-backed module registrations", () => {
+    const alphaSource = 'import { run } from "beta";';
+    const betaSource = 'import { start } from "alpha";';
+
+    expect(
+      messages(alphaSource, {
+        alpha: {
+          exports: {
+            start: "() => void"
+          },
+          filename: "/agents/alpha.ajs",
+          source: alphaSource
+        },
+        beta: {
+          exports: {
+            run: {
+              async: true,
+              type: "() => Promise<void>"
+            }
+          },
+          filename: "/agents/beta.ajs",
+          source: betaSource
+        }
+      })
+    ).toEqual(["Import from 'beta' participates in a cyclic dependency: alpha -> beta -> alpha."]);
   });
 });

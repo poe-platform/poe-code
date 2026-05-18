@@ -164,4 +164,29 @@ describe("AS006_007", () => {
 
     expect(AS006_007(source)).toEqual([]);
   });
+
+  it("counts reads inside computed object keys and spread expressions", () => {
+    const source = [
+      "const key = 'id';",
+      "const source = { id: 1 };",
+      "const result = { [key]: 1, ...source };",
+      "result;"
+    ].join("\n");
+
+    expect(AS006_007(source)).toEqual([]);
+  });
+
+  it("reports unread bindings declared at the start and end of a file", () => {
+    const source = ["const first = 1;", "const used = 2;", "used;", "const last = 3;"].join("\n");
+
+    expect(warningNames(source)).toEqual(["first", "last"]);
+  });
+
+  it("counts reads inside exported arrow parameter defaults", () => {
+    const source = ["const fallback = 1;", "export default (value = fallback) => value;"].join(
+      "\n"
+    );
+
+    expect(AS006_007(source)).toEqual([]);
+  });
 });

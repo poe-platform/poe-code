@@ -72,7 +72,11 @@ describe("AS008", () => {
         column: 3,
         span: {
           start: { line: 2, column: 3, offset: source.indexOf("await load()") },
-          end: { line: 2, column: 15, offset: source.indexOf("await load()") + "await load()".length }
+          end: {
+            line: 2,
+            column: 15,
+            offset: source.indexOf("await load()") + "await load()".length
+          }
         }
       },
       {
@@ -84,7 +88,11 @@ describe("AS008", () => {
         column: 3,
         span: {
           start: { line: 5, column: 3, offset: source.indexOf("await tick()") },
-          end: { line: 5, column: 15, offset: source.indexOf("await tick()") + "await tick()".length }
+          end: {
+            line: 5,
+            column: 15,
+            offset: source.indexOf("await tick()") + "await tick()".length
+          }
         }
       },
       {
@@ -96,7 +104,11 @@ describe("AS008", () => {
         column: 3,
         span: {
           start: { line: 8, column: 3, offset: source.indexOf("await step()") },
-          end: { line: 8, column: 15, offset: source.indexOf("await step()") + "await step()".length }
+          end: {
+            line: 8,
+            column: 15,
+            offset: source.indexOf("await step()") + "await step()".length
+          }
         }
       }
     ]);
@@ -109,7 +121,13 @@ describe("AS008", () => {
   });
 
   it("reports await inside catch binding pattern defaults", () => {
-    const source = ["try {", "  fail();", "} catch ({ value = await load() }) {", "  value;", "}"].join("\n");
+    const source = [
+      "try {",
+      "  fail();",
+      "} catch ({ value = await load() }) {",
+      "  value;",
+      "}"
+    ].join("\n");
 
     expect(reportedLines(source)).toEqual([3]);
   });
@@ -123,5 +141,31 @@ describe("AS008", () => {
     const source = "export default () => () => await load();";
 
     expect(AS008(source)).toEqual([]);
+  });
+
+  it("reports await inside object and array destructuring defaults in nested blocks", () => {
+    const source = [
+      "if (ready) {",
+      "  const { value = await load() } = input;",
+      "  const [item = await next()] = input;",
+      "}"
+    ].join("\n");
+
+    expect(reportedLines(source)).toEqual([2, 3]);
+  });
+
+  it("allows await inside async arrow parameter defaults and destructuring defaults", () => {
+    const source = [
+      "const readParam = async (value = await load()) => value;",
+      "const readObject = async ({ value = await load() } = {}) => value;"
+    ].join("\n");
+
+    expect(AS008(source)).toEqual([]);
+  });
+
+  it("reports await at the end of a nested block at the end of a file", () => {
+    const source = ["if (ready) {", "  await finish();", "}"].join("\n");
+
+    expect(reportedLines(source)).toEqual([2]);
   });
 });

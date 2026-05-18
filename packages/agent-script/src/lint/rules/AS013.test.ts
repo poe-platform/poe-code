@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import { AS013 } from "./AS013.js";
 
 describe("AS013", () => {
-  const shadowedNames = (source: string, modules: NonNullable<Parameters<typeof AS013>[1]>["modules"]) =>
-    AS013(source, { modules }).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
+  const shadowedNames = (
+    source: string,
+    modules: NonNullable<Parameters<typeof AS013>[1]>["modules"]
+  ) => AS013(source, { modules }).map((diagnostic) => diagnostic.message.match(/'([^']+)'/)?.[1]);
 
   it("reports top-level const and let bindings that shadow registered module names", () => {
     const source = [
@@ -172,9 +174,11 @@ describe("AS013", () => {
   });
 
   it("reports shadowing exported named bindings at file boundaries", () => {
-    const source = ["export const agent = value;", "const safe = value;", "export const git = value;"].join(
-      "\n"
-    );
+    const source = [
+      "export const agent = value;",
+      "const safe = value;",
+      "export const git = value;"
+    ].join("\n");
 
     expect(shadowedNames(source, { agent: ["run"], git: ["status"] })).toEqual(["agent", "git"]);
   });
@@ -187,6 +191,26 @@ describe("AS013", () => {
 
   it("ignores module names referenced only in export initializer expressions", () => {
     const source = "export const safe = agent.run();";
+
+    expect(shadowedNames(source, { agent: ["run"] })).toEqual([]);
+  });
+
+  it("reports shadowing rest bindings in top-level object and array patterns", () => {
+    const source = ["const { safe, ...agent } = config;", "const [first, ...git] = values;"].join(
+      "\n"
+    );
+
+    expect(shadowedNames(source, { agent: ["run"], git: ["status"] })).toEqual(["agent", "git"]);
+  });
+
+  it("reports shadowing assignment-pattern bindings in top-level destructuring", () => {
+    const source = "const { agent = createAgent(), nested: [git = repo] } = config;";
+
+    expect(shadowedNames(source, { agent: ["run"], git: ["status"] })).toEqual(["agent", "git"]);
+  });
+
+  it("ignores module names used only as exported arrow parameters", () => {
+    const source = "export const run = (agent = fallback) => agent;";
 
     expect(shadowedNames(source, { agent: ["run"] })).toEqual([]);
   });

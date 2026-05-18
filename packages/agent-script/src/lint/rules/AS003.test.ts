@@ -271,4 +271,22 @@ describe("AS003", () => {
   it("reports unresolved identifiers inside inner arrows that are exported handlers", () => {
     expect(unknownNames("export default () => () => missing;")).toEqual(["missing"]);
   });
+
+  it("reports unresolved identifiers inside computed object keys", () => {
+    const source = "const value = { [missingKey]: 1 }; value;";
+
+    expect(unknownNames(source)).toEqual(["missingKey"]);
+  });
+
+  it("reports unresolved identifiers inside exported arrow parameter defaults", () => {
+    expect(unknownNames("export default (value = missingDefault) => value;")).toEqual([
+      "missingDefault"
+    ]);
+  });
+
+  it("reports unresolved identifiers at the end of a file after scoped bindings", () => {
+    const source = ["const known = 1;", "known;", "missingAtEnd;"].join("\n");
+
+    expect(unknownNames(source)).toEqual(["missingAtEnd"]);
+  });
 });

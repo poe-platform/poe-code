@@ -3,8 +3,13 @@ import { describe, expect, it } from "vitest";
 import { AS005 } from "./AS005.js";
 
 describe("AS005", () => {
-  const missingExports = (source: string, modules: NonNullable<Parameters<typeof AS005>[1]>["modules"]) =>
-    AS005(source, { modules }).map((diagnostic) => diagnostic.message.match(/export '([^']+)'/)?.[1]);
+  const missingExports = (
+    source: string,
+    modules: NonNullable<Parameters<typeof AS005>[1]>["modules"]
+  ) =>
+    AS005(source, { modules }).map(
+      (diagnostic) => diagnostic.message.match(/export '([^']+)'/)?.[1]
+    );
 
   it("allows imports of exported names from registered modules", () => {
     const source = [
@@ -196,5 +201,32 @@ describe("AS005", () => {
     const source = ['import * as api from "api";', 'import { absent } from "api";'].join("\n");
 
     expect(missingExports(source, { api: ["request"] })).toEqual(["absent"]);
+  });
+
+  it("reports invalid default imports while allowing later valid named imports", () => {
+    const source = ['import api from "api";', 'import { request } from "api";'].join("\n");
+
+    expect(missingExports(source, { api: ["request"] })).toEqual(["default"]);
+  });
+
+  it("accepts typed Map export registrations and reports names outside the map", () => {
+    const source = ['import { request } from "api";', 'import { missing } from "api";'].join("\n");
+
+    expect(
+      missingExports(source, {
+        api: {
+          exports: new Map([["request", "(url: string) => Promise<string>"]])
+        }
+      })
+    ).toEqual(["missing"]);
+  });
+
+  it("ignores export-looking text inside template and default expressions", () => {
+    const source = [
+      'const text = "import { missing } from \\"api\\"";',
+      'const run = (value = `import missing from "api"`) => value;'
+    ].join("\n");
+
+    expect(AS005(source, { modules: { api: [] } })).toEqual([]);
   });
 });

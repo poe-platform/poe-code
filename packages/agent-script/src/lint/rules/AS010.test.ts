@@ -44,10 +44,9 @@ describe("AS010", () => {
   });
 
   it("reports namespace and awaited host calls", () => {
-    const source = [
-      'import * as agent from "agent";',
-      "let task = await agent.spawn();"
-    ].join("\n");
+    const source = ['import * as agent from "agent";', "let task = await agent.spawn();"].join(
+      "\n"
+    );
 
     expect(AS010(source)).toEqual([
       {
@@ -116,7 +115,9 @@ describe("AS010", () => {
   });
 
   it("counts reads inside template-literal interpolations", () => {
-    const source = ['import { spawn } from "agent";', "let handle = spawn();", "`${handle}`;"].join("\n");
+    const source = ['import { spawn } from "agent";', "let handle = spawn();", "`${handle}`;"].join(
+      "\n"
+    );
 
     expect(AS010(source)).toEqual([]);
   });
@@ -148,10 +149,45 @@ describe("AS010", () => {
   });
 
   it("counts reads inside inner arrows that are exported handlers", () => {
-    const source = ['import { spawn } from "agent";', "let handle = spawn();", "export default () => () => handle;"].join(
-      "\n"
-    );
+    const source = [
+      'import { spawn } from "agent";',
+      "let handle = spawn();",
+      "export default () => () => handle;"
+    ].join("\n");
 
     expect(warningNames(source)).toEqual([]);
+  });
+
+  it("reports unread host-call lets declared at file boundaries", () => {
+    const source = [
+      'import { spawn } from "agent";',
+      "let first = spawn();",
+      "const value = 1;",
+      "let last = spawn();"
+    ].join("\n");
+
+    expect(warningNames(source)).toEqual(["first", "last"]);
+  });
+
+  it("counts reads inside computed object keys and spread values", () => {
+    const source = [
+      'import { spawn } from "agent";',
+      "let key = spawn();",
+      "let value = spawn();",
+      "const result = { [key]: 1, ...value };",
+      "result;"
+    ].join("\n");
+
+    expect(AS010(source)).toEqual([]);
+  });
+
+  it("does not count shadowed reads inside exported arrow parameter defaults", () => {
+    const source = [
+      'import { spawn } from "agent";',
+      "let handle = spawn();",
+      "export default (handle = fallback) => handle;"
+    ].join("\n");
+
+    expect(warningNames(source)).toEqual(["handle"]);
   });
 });

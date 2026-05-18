@@ -156,7 +156,9 @@ describe("AS012", () => {
           end: {
             line: 2,
             column: 42,
-            offset: source.indexOf("(left, right) => left > right") + "(left, right) => left > right".length
+            offset:
+              source.indexOf("(left, right) => left > right") +
+              "(left, right) => left > right".length
           }
         }
       },
@@ -221,7 +223,8 @@ describe("AS012", () => {
             line: 5,
             column: 42,
             offset:
-              source.indexOf("(left, right) => left + right") + "(left, right) => left + right".length
+              source.indexOf("(left, right) => left + right") +
+              "(left, right) => left + right".length
           }
         }
       },
@@ -299,5 +302,39 @@ describe("AS012", () => {
     const source = "export default () => () => text.split(/,/);";
 
     expect(messages(source)).toEqual(["String#split does not support regex separator values."]);
+  });
+
+  it("reports unsupported computed method calls", () => {
+    const source = [
+      'text["split"](/,/);',
+      'text["replace"](/a/, "b");',
+      'text["replaceAll"]("a", () => "b");'
+    ].join("\n");
+
+    expect(messages(source)).toEqual([
+      "String#split does not support regex separator values.",
+      "String#replace does not support function replacers or regex search values.",
+      "String#replaceAll does not support function replacers or regex search values."
+    ]);
+  });
+
+  it("reports unsupported calls inside computed keys and spread expressions", () => {
+    const source = "const value = { [text.split(/,/)] : 1, ...items.sort(compare) };";
+
+    expect(messages(source)).toEqual([
+      "String#split does not support regex separator values.",
+      "Array#sort only supports comparators that are arrows returning a number."
+    ]);
+  });
+
+  it("reports unsupported calls at file boundaries", () => {
+    const source = ["text.replace(/a/, 'b');", "const safe = 1;", "items.sort(compare);"].join(
+      "\n"
+    );
+
+    expect(messages(source)).toEqual([
+      "String#replace does not support function replacers or regex search values.",
+      "Array#sort only supports comparators that are arrows returning a number."
+    ]);
   });
 });

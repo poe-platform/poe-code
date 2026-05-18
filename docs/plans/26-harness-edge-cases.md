@@ -554,7 +554,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-promise-combinator-edges
     title: Promise combinators — exhaustive edges
@@ -581,8 +581,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): promise combinator edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-cancel-paths

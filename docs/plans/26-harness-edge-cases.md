@@ -190,7 +190,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: parser-statement-edges
     title: Parser — statement and recovery edges
@@ -219,8 +219,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): parser statement edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: parser-expression-precedence

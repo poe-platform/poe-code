@@ -826,7 +826,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: globals-object-array-edges
     title: globals — Object / Array static edges
@@ -860,8 +860,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): Object/Array static edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: methods-array-edges

@@ -440,8 +440,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): destructuring runtime edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-control-flow

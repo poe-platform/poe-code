@@ -517,6 +517,13 @@ describe("interpret", () => {
     ["array elements", ["const [x, y] = [1, 2]", "return x + y"], 3],
     ["array hole", ["const [, b] = [1, 2]", "return b"], 2],
     ["array rest", ["const [x, ...rest] = [1, 2, 3]", "return rest"], [2, 3]],
+    ["array rest empty", ["const [x, ...rest] = [1]", "return rest"], []],
+    ["array default missing", ["const [a, b = 2] = [1]", "return b"], 2],
+    ["array default undefined", ["const [a, b = 2] = [1, undefined]", "return b"], 2],
+    ["array default null", ["const [a, b = 2] = [1, null]", "return b"], null],
+    ["string iterable array pattern", ['const [a] = "ab"', "return a"], "a"],
+    ["object rest empty", ["const { a, ...rest } = { a: 1 }", "return rest"], {}],
+    ["default referencing prior binding", ["const { a, b = a + 1 } = { a: 1 }", "return b"], 2],
     ["let object pattern", ["let { a } = { a: 1 }", "a = 2", "return a"], 2],
     ["nested object pattern", ["const { a: { b } } = { a: { b: 7 } }", "return b"], 7]
   ])(
@@ -538,10 +545,37 @@ describe("interpret", () => {
     });
   });
 
+  it("throws a TypeError-shaped sandbox error for object destructuring from undefined", async () => {
+    await expect(interpret(parse("const { a } = undefined;"))).rejects.toMatchObject({
+      name: "TypeError",
+      message: "Object destructuring declarations require a non-null object value."
+    });
+  });
+
+  it("throws a TypeError-shaped sandbox error for nested object destructuring from null", async () => {
+    await expect(interpret(parse("const { a: { b } } = { a: null };"))).rejects.toMatchObject({
+      name: "TypeError",
+      message: "Object destructuring declarations require a non-null object value."
+    });
+  });
+
   it("throws a TypeError-shaped sandbox error for array destructuring from null", async () => {
     await expect(interpret(parse("const [x] = null;"))).rejects.toMatchObject({
       name: "TypeError",
-      message: "Array destructuring declarations require an array value."
+      message: "Array destructuring declarations require an array or string iterable."
+    });
+  });
+
+  it("throws a TypeError-shaped sandbox error for array destructuring from unsupported iterables", async () => {
+    await expect(
+      interpret(block(parse("const [a, b] = values"), parse("return a + b")), {
+        bindings: {
+          values: new Set([1, 2]) as never
+        }
+      })
+    ).rejects.toMatchObject({
+      name: "TypeError",
+      message: "Array destructuring declarations support only arrays and strings; received Set."
     });
   });
 
@@ -562,6 +596,33 @@ describe("interpret", () => {
       returnValue: 3
     });
     expect(load).toHaveBeenCalledOnce();
+  });
+
+  it("evaluates destructuring declaration defaults only for undefined values", async () => {
+    const next = vi.fn(() => 2);
+
+    await expect(
+      interpret(
+        block(
+          parse("const { a = next() } = { a: null }"),
+          parse("const { b = next() } = { b: undefined }"),
+          parse("const { c = next() } = {}"),
+          parse("return [a, b, c]")
+        ),
+        {
+          bindings: {
+            next: createSandboxClosure({
+              call: next,
+              name: "next"
+            })
+          }
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [null, 2, 2]
+    });
+    expect(next).toHaveBeenCalledTimes(2);
   });
 
   it.each([

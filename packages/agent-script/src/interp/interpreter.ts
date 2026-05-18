@@ -849,9 +849,7 @@ async function bindDeclarationArrayPattern(
       result: EvaluationResult;
     }
 > {
-  if (!Array.isArray(value)) {
-    throw new TypeError("Array destructuring declarations require an array value.");
-  }
+  const values = getArrayPatternValues(value);
 
   for (let index = 0; index < pattern.elements.length; index += 1) {
     const element = pattern.elements[index];
@@ -860,7 +858,7 @@ async function bindDeclarationArrayPattern(
     }
 
     const elementValue =
-      element.type === "RestElement" ? value.slice(index) : (value[index] as SandboxValue);
+      element.type === "RestElement" ? values.slice(index) : (values[index] as SandboxValue);
     const binding = await bindDeclarationPattern(element, elementValue, kind, context);
     if (!binding.ok) {
       return binding;
@@ -868,6 +866,49 @@ async function bindDeclarationArrayPattern(
   }
 
   return { ok: true };
+}
+
+function getArrayPatternValues(value: unknown): SandboxArray {
+  if (Array.isArray(value)) {
+    return value as SandboxArray;
+  }
+
+  if (typeof value === "string") {
+    return Array.from(value);
+  }
+
+  if (isIterableValue(value)) {
+    throw new TypeError(
+      `Array destructuring declarations support only arrays and strings; received ${describeRuntimeValue(value)}.`
+    );
+  }
+
+  throw new TypeError("Array destructuring declarations require an array or string iterable.");
+}
+
+function isIterableValue(value: unknown): value is Iterable<unknown> {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    Symbol.iterator in value &&
+    typeof value[Symbol.iterator] === "function"
+  );
+}
+
+function describeRuntimeValue(value: unknown): string {
+  if (value === null) {
+    return "null";
+  }
+
+  if (value === undefined) {
+    return "undefined";
+  }
+
+  if (typeof value === "object") {
+    return value.constructor?.name ?? "Object";
+  }
+
+  return typeof value;
 }
 
 async function bindDeclarationObjectPattern(

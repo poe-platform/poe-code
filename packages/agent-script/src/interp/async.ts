@@ -10,7 +10,7 @@ import type {
 import { getBoundOtelSpan, type OtelSpan } from "../observability/otel.js";
 import type { Budget } from "./budget.js";
 import type { EvaluationResult } from "./exceptions.js";
-import type { InterpreterSnapshot } from "./interpreter.js";
+import type { InterpreterError, InterpreterSnapshot } from "./interpreter.js";
 import { resolveSandboxValue } from "./promise.js";
 import type { Scope } from "./scope.js";
 import {
@@ -28,13 +28,7 @@ export type InterpreterYieldPoint = {
   span: SourceSpan;
 };
 
-export type AsyncInterpreterError = {
-  code: "LABEL_NOT_FOUND" | "UNBOUND_IDENTIFIER" | "UNSUPPORTED_NODE";
-  message: string;
-  nodeId?: number;
-  nodeType: ParseResult["type"];
-  span: SourceSpan;
-};
+export type AsyncInterpreterError = InterpreterError;
 
 export type AsyncEvaluationResult = EvaluationResult<AsyncInterpreterError>;
 

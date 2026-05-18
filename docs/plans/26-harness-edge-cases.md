@@ -1325,7 +1325,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: cross-cutting-error-shape-consistency
     title: Cross-cutting — error shape consistency
@@ -1355,8 +1355,8 @@ tasks:
 
       Conventional commit: `test(agent-script): error shape audit`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

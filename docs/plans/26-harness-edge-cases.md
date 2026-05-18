@@ -250,7 +250,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: parse-error-format-edges
     title: parse/format-error — context formatting edges
@@ -274,8 +274,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): parse/format-error excerpt edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: parse-hash-semantic-equivalence

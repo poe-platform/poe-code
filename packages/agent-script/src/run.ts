@@ -1,7 +1,7 @@
 import { hashSource } from "./parse/hash.js";
 import type { ParseResult } from "./parse.js";
 import {
-  parseModule,
+  parseExecutableModule,
   type AwaitExpression,
   type CallExpression,
   type Identifier,
@@ -90,7 +90,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         options.snapshot === undefined ? undefined : restore(options.snapshot, { source });
       const budget = options.budget ?? new Budget();
       const filename = options.filename ?? "<input>";
-      const module = parseModule(source, filename);
+      const module = parseExecutableModule(source, filename);
       const sourceHash = hashSource(source);
       const random = createRandomState(restoredSnapshot, options.randomSeed, options.random);
       const entryPointArgs = options.entryPointArgs?.map((value) => deepCopyToSandbox(value));

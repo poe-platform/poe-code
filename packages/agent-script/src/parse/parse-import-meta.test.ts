@@ -46,6 +46,17 @@ describe("parse import.meta", () => {
     expect(() => parse("import.meta.x = y")).toThrowError(DisallowedSyntaxError);
   });
 
+  it("rejects import.meta writes before running module bodies", async () => {
+    await expect(run("import.meta = x")).rejects.toThrowError(DisallowedSyntaxError);
+    await expect(run("import.meta.x = y")).rejects.toThrowError(DisallowedSyntaxError);
+    await expect(run("import.meta.x += 1")).rejects.toThrowError(DisallowedSyntaxError);
+  });
+
+  it("rejects import.meta property updates as writes", () => {
+    expect(() => parse("import.meta.x++")).toThrowError(DisallowedSyntaxError);
+    expect(() => parse("++import.meta.x")).toThrowError(DisallowedSyntaxError);
+  });
+
   it.each(["import . meta", "import. meta", "import .meta", "import.\nmeta"])(
     "rejects spaced import.meta spelling %s",
     (source) => {

@@ -499,10 +499,7 @@ export function parse(source: string, filename = "<input>"): ParseResult {
         `Regular expression literals are not supported at line ${regexLiteral.span.start.line}, column ${regexLiteral.span.start.column}.`
       );
     }
-    const importMetaAssignment = findImportMetaAssignmentTarget(result);
-    if (importMetaAssignment !== undefined) {
-      throw new DisallowedSyntaxError("import.meta assignment", importMetaAssignment.start);
-    }
+    throwIfImportMetaAssignment(result);
     return result;
   } catch (error) {
     if (error instanceof DisallowedSyntaxError) {
@@ -518,6 +515,22 @@ export function parse(source: string, filename = "<input>"): ParseResult {
 export function parseModule(source: string, filename = "<input>"): Module {
   try {
     return assignIds(parseModuleTokens(tokenize(source, { allowRegexLiterals: true })));
+  } catch (error) {
+    if (error instanceof DisallowedSyntaxError) {
+      throw error;
+    }
+    if (error instanceof Error) {
+      throw formatParseError(source, filename, error);
+    }
+    throw error;
+  }
+}
+
+export function parseExecutableModule(source: string, filename = "<input>"): Module {
+  try {
+    const result = assignIds(parseModuleTokens(tokenize(source, { allowRegexLiterals: true })));
+    throwIfImportMetaAssignment(result);
+    return result;
   } catch (error) {
     if (error instanceof DisallowedSyntaxError) {
       throw error;
@@ -3191,12 +3204,21 @@ function createLoopLabelFields(labels: string[] | undefined): {
   return labels.length === 1 ? { label } : { label, labels };
 }
 
-function findImportMetaAssignmentTarget(node: ParseResult): SourceSpan | undefined {
+function throwIfImportMetaAssignment(node: ParseResult | Module): void {
+  const importMetaAssignment = findImportMetaAssignmentTarget(node);
+  if (importMetaAssignment !== undefined) {
+    throw new DisallowedSyntaxError("import.meta assignment", importMetaAssignment.start);
+  }
+}
+
+function findImportMetaAssignmentTarget(node: ParseResult | Module): SourceSpan | undefined {
   return findImportMetaAssignmentInNode(node);
 }
 
-function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpan | undefined {
+function findImportMetaAssignmentInNode(node: Expression | Statement | Module): SourceSpan | undefined {
   switch (node.type) {
+    case "Module":
+      return findImportMetaAssignmentInList(node.body);
     case "AssignmentExpression":
       if (isImportMetaAssignmentTarget(node.left)) {
         return node.left.span;
@@ -3274,7 +3296,11 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
       }
       return undefined;
     case "UnaryExpression":
+      return findImportMetaAssignmentInNode(node.argument);
     case "UpdateExpression":
+      if (isImportMetaReference(node.argument)) {
+        return node.argument.span;
+      }
       return findImportMetaAssignmentInNode(node.argument);
     case "SequenceExpression":
       return findImportMetaAssignmentInList(node.expressions);

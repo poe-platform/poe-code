@@ -1420,6 +1420,11 @@ class Parser {
       }
 
       if (property.type === "RestElement") {
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === "...") {
+          throw new Error(
+            `Object pattern can contain only one rest element at line ${this.currentToken().start.line}, column ${this.currentToken().start.column}.`
+          );
+        }
         if (this.currentToken().type === "punctuator" && this.currentToken().value === "}") {
           throw unexpectedTokenError(comma);
         }
@@ -1692,6 +1697,11 @@ class Parser {
       }
 
       if (property.type === "RestElement") {
+        if (this.currentToken().type === "punctuator" && this.currentToken().value === "...") {
+          throw new Error(
+            `Object pattern can contain only one rest element at line ${this.currentToken().start.line}, column ${this.currentToken().start.column}.`
+          );
+        }
         if (this.currentToken().type === "punctuator" && this.currentToken().value === "}") {
           throw unexpectedTokenError(comma);
         }
@@ -1809,15 +1819,9 @@ class Parser {
     throw unexpectedTokenError(token);
   }
 
-  private parsePatternComputedKey(): Identifier {
+  private parsePatternComputedKey(): Expression {
     const key = this.parseExpression().node;
     this.expectPunctuator("]");
-
-    if (key.type !== "Identifier") {
-      throw new Error(
-        `Computed property names in patterns must use an identifier at line ${key.span.start.line}, column ${key.span.start.column}.`
-      );
-    }
 
     return key;
   }
@@ -2462,9 +2466,20 @@ class Parser {
   }
 
   private arrayExpressionToPattern(node: ArrayExpression): ArrayPattern {
+    const elements = node.elements.map((element, index) => {
+      const patternElement = this.toArrayPatternElement(element);
+      if (patternElement.type === "RestElement" && index < node.elements.length - 1) {
+        const nextElement = node.elements[index + 1]!;
+        throw new Error(
+          `Rest element must be the last element in an array pattern at line ${nextElement.span.start.line}, column ${nextElement.span.start.column}.`
+        );
+      }
+      return patternElement;
+    });
+
     return {
       type: "ArrayPattern",
-      elements: node.elements.map((element) => this.toArrayPatternElement(element)),
+      elements,
       span: node.span
     };
   }
@@ -2500,9 +2515,29 @@ class Parser {
   }
 
   private objectExpressionToPattern(node: ObjectExpression): ObjectPattern {
+    const properties: ObjectPattern["properties"] = [];
+    let restElement: RestElement | undefined;
+
+    for (const property of node.properties) {
+      const patternProperty = this.toObjectPatternProperty(property);
+      if (patternProperty.type === "RestElement") {
+        if (restElement !== undefined) {
+          throw new Error(
+            `Object pattern can contain only one rest element at line ${patternProperty.span.start.line}, column ${patternProperty.span.start.column}.`
+          );
+        }
+        restElement = patternProperty;
+      } else if (restElement !== undefined) {
+        throw new Error(
+          `Rest element must be the last property in an object pattern at line ${patternProperty.span.start.line}, column ${patternProperty.span.start.column}.`
+        );
+      }
+      properties.push(patternProperty);
+    }
+
     return {
       type: "ObjectPattern",
-      properties: node.properties.map((property) => this.toObjectPatternProperty(property)),
+      properties,
       span: node.span
     };
   }
@@ -2522,12 +2557,6 @@ class Parser {
         argument: property.argument,
         span: property.span
       };
-    }
-
-    if (property.computed && property.key.type !== "Identifier") {
-      throw new Error(
-        `Computed property names in patterns must use an identifier at line ${property.key.span.start.line}, column ${property.key.span.start.column}.`
-      );
     }
 
     const value =

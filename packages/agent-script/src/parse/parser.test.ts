@@ -1839,7 +1839,379 @@ describe("parse", () => {
     });
   });
 
+  it("parses destructuring declaration edge cases", () => {
+    expect(parse("const {} = obj;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ObjectPattern",
+            properties: []
+          },
+          init: {
+            type: "Identifier",
+            name: "obj"
+          }
+        }
+      ]
+    });
+
+    expect(parse("const [] = arr;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ArrayPattern",
+            elements: []
+          },
+          init: {
+            type: "Identifier",
+            name: "arr"
+          }
+        }
+      ]
+    });
+
+    expect(parse("const [a, , c] = arr;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ArrayPattern",
+            elements: [
+              {
+                type: "Identifier",
+                name: "a"
+              },
+              null,
+              {
+                type: "Identifier",
+                name: "c"
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("const [, , c] = arr;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ArrayPattern",
+            elements: [
+              null,
+              null,
+              {
+                type: "Identifier",
+                name: "c"
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("const { a: { b: { c } } } = x;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ObjectPattern",
+            properties: [
+              {
+                type: "AssignmentProperty",
+                key: {
+                  type: "Identifier",
+                  name: "a"
+                },
+                value: {
+                  type: "ObjectPattern",
+                  properties: [
+                    {
+                      type: "AssignmentProperty",
+                      key: {
+                        type: "Identifier",
+                        name: "b"
+                      },
+                      value: {
+                        type: "ObjectPattern",
+                        properties: [
+                          {
+                            type: "AssignmentProperty",
+                            key: {
+                              type: "Identifier",
+                              name: "c"
+                            },
+                            value: {
+                              type: "Identifier",
+                              name: "c"
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("const { [key]: value } = obj;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ObjectPattern",
+            properties: [
+              {
+                type: "AssignmentProperty",
+                computed: true,
+                key: {
+                  type: "Identifier",
+                  name: "key"
+                },
+                value: {
+                  type: "Identifier",
+                  name: "value"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("const { [a + b]: value } = obj;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ObjectPattern",
+            properties: [
+              {
+                type: "AssignmentProperty",
+                computed: true,
+                key: {
+                  type: "BinaryExpression",
+                  operator: "+",
+                  left: {
+                    type: "Identifier",
+                    name: "a"
+                  },
+                  right: {
+                    type: "Identifier",
+                    name: "b"
+                  }
+                },
+                value: {
+                  type: "Identifier",
+                  name: "value"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("const { a = 1, b = a } = obj;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ObjectPattern",
+            properties: [
+              {
+                type: "AssignmentProperty",
+                value: {
+                  type: "AssignmentPattern",
+                  left: {
+                    type: "Identifier",
+                    name: "a"
+                  },
+                  right: {
+                    type: "NumericLiteral",
+                    value: 1
+                  }
+                }
+              },
+              {
+                type: "AssignmentProperty",
+                value: {
+                  type: "AssignmentPattern",
+                  left: {
+                    type: "Identifier",
+                    name: "b"
+                  },
+                  right: {
+                    type: "Identifier",
+                    name: "a"
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("const { a: { b } = {} } = obj;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ObjectPattern",
+            properties: [
+              {
+                type: "AssignmentProperty",
+                key: {
+                  type: "Identifier",
+                  name: "a"
+                },
+                value: {
+                  type: "AssignmentPattern",
+                  left: {
+                    type: "ObjectPattern",
+                    properties: [
+                      {
+                        type: "AssignmentProperty",
+                        key: {
+                          type: "Identifier",
+                          name: "b"
+                        },
+                        value: {
+                          type: "Identifier",
+                          name: "b"
+                        }
+                      }
+                    ]
+                  },
+                  right: {
+                    type: "ObjectExpression",
+                    properties: []
+                  }
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("const [a = 1, b = 2] = arr;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ArrayPattern",
+            elements: [
+              {
+                type: "AssignmentPattern",
+                left: {
+                  type: "Identifier",
+                  name: "a"
+                },
+                right: {
+                  type: "NumericLiteral",
+                  value: 1
+                }
+              },
+              {
+                type: "AssignmentPattern",
+                left: {
+                  type: "Identifier",
+                  name: "b"
+                },
+                right: {
+                  type: "NumericLiteral",
+                  value: 2
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+
+    expect(parse("const { 0: first, 1: second } = arr;")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ObjectPattern",
+            properties: [
+              {
+                type: "AssignmentProperty",
+                key: {
+                  type: "NumericLiteral",
+                  value: 0
+                },
+                value: {
+                  type: "Identifier",
+                  name: "first"
+                }
+              },
+              {
+                type: "AssignmentProperty",
+                key: {
+                  type: "NumericLiteral",
+                  value: 1
+                },
+                value: {
+                  type: "Identifier",
+                  name: "second"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+  });
+
+  it("rejects invalid destructuring rest placement with clear spans", () => {
+    expect(() => parse("const { a, ...rest, b } = obj;")).toThrowError(
+      "Rest element must be the last property in an object pattern at line 1, column 19."
+    );
+    expect(() => parse("const { ...a, ...b } = obj;")).toThrowError(
+      "Object pattern can contain only one rest element at line 1, column 15."
+    );
+    expect(() => parse("const [...rest, last] = arr;")).toThrowError(
+      "Rest element must be the last element in an array pattern at line 1, column 15."
+    );
+  });
+
   it("parses destructuring assignment targets", () => {
+    expect(parse("({ a } = obj);")).toMatchObject({
+      type: "AssignmentExpression",
+      operator: "=",
+      left: {
+        type: "ObjectPattern",
+        properties: [
+          {
+            type: "AssignmentProperty",
+            key: {
+              type: "Identifier",
+              name: "a"
+            },
+            value: {
+              type: "Identifier",
+              name: "a"
+            }
+          }
+        ]
+      },
+      right: {
+        type: "Identifier",
+        name: "obj"
+      }
+    });
+
     expect(
       parse("({ [key]: renamed = 1, nested: { value }, list: [head, ...tail], ...rest } = source)")
     ).toMatchObject({
@@ -1950,9 +2322,24 @@ describe("parse", () => {
     expect(() => parse("({ ...{ value } }) => value")).toThrowError(
       "Object rest element must bind to an identifier at line 1, column 7."
     );
-    expect(() => parse("({ [key + suffix]: value }) => value")).toThrowError(
-      "Computed property names in patterns must use an identifier at line 1, column 5."
-    );
+    expect(parse("({ [key + suffix]: value }) => value")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      params: [
+        {
+          type: "ObjectPattern",
+          properties: [
+            {
+              type: "AssignmentProperty",
+              computed: true,
+              key: {
+                type: "BinaryExpression",
+                operator: "+"
+              }
+            }
+          ]
+        }
+      ]
+    });
     expect(() => parse("x\n=> x")).toThrowError(
       "Unexpected line break before '=>' at line 2, column 1."
     );
@@ -2156,13 +2543,43 @@ describe("parse", () => {
     );
   });
 
-  it("rejects non-identifier computed property sources in declarations and assignments", () => {
-    expect(() => parse("const { [key + suffix]: value } = source")).toThrowError(
-      "Computed property names in patterns must use an identifier at line 1, column 10."
-    );
-    expect(() => parse("({ [key + suffix]: value } = source)")).toThrowError(
-      "Computed property names in patterns must use an identifier at line 1, column 5."
-    );
+  it("parses expression computed property sources in declarations and assignments", () => {
+    expect(parse("const { [key + suffix]: value } = source")).toMatchObject({
+      type: "VariableDeclaration",
+      declarations: [
+        {
+          id: {
+            type: "ObjectPattern",
+            properties: [
+              {
+                type: "AssignmentProperty",
+                computed: true,
+                key: {
+                  type: "BinaryExpression",
+                  operator: "+"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    });
+    expect(parse("({ [key + suffix]: value } = source)")).toMatchObject({
+      type: "AssignmentExpression",
+      left: {
+        type: "ObjectPattern",
+        properties: [
+          {
+            type: "AssignmentProperty",
+            computed: true,
+            key: {
+              type: "BinaryExpression",
+              operator: "+"
+            }
+          }
+        ]
+      }
+    });
   });
 
   it("keeps unsupported function syntaxes rejected", () => {

@@ -19,6 +19,8 @@ import type {
 import {
   attachErrorSpan,
   attachWrappedErrorCause,
+  describeThrownValue,
+  formatErrorStack,
   readErrorCause,
   readErrorSpan,
   type ErrorSourceSpan
@@ -35,7 +37,9 @@ const sandboxErrorNames = [
   "RangeError",
   "ReferenceError",
   "SyntaxError",
-  "AggregateError"
+  "AbortError",
+  "AggregateError",
+  "HarnessFailure"
 ] as const;
 
 export type SandboxErrorName = (typeof sandboxErrorNames)[number];
@@ -54,6 +58,8 @@ export type CompletionKind = "normal" | "return" | "throw" | "break" | "continue
 export type CompletionResult = {
   kind: CompletionKind;
   hasValue: boolean;
+  span?: ErrorSourceSpan;
+  stackFrames?: readonly string[];
   value: SandboxValue;
   label?: string;
   node?: BreakStatement | ContinueStatement;
@@ -105,6 +111,8 @@ export async function evaluateThrowStatement<TContext extends ExceptionContext, 
   return {
     kind: "throw",
     hasValue: true,
+    span: node.span,
+    stackFrames: context.callStack,
     value: argument.value
   };
 }
@@ -204,6 +212,55 @@ export function coerceThrownValue(
   return deepCopyToSandbox(reason);
 }
 
+export function surfaceThrownValue(
+  reason: unknown,
+  budget: Budget,
+  stackFrames: readonly string[] = [],
+  span?: ErrorSourceSpan
+): SandboxObject {
+  if (isSubsetErrorValue(reason)) {
+    normalizeSurfacedSubsetError(reason, budget, stackFrames, span);
+    return reason;
+  }
+
+  if (reason instanceof Error) {
+    const error = createSubsetErrorValue(
+      reason.name || "Error",
+      reason.message,
+      stackFrames,
+      budget,
+      {
+        cause: reason,
+        chargeBudget: false,
+        span
+      }
+    );
+    normalizeSurfacedSubsetError(error, budget, stackFrames, span);
+    return error;
+  }
+
+  if (isErrorLikeValue(reason)) {
+    const error = createSubsetErrorValue(
+      reason.name || "Error",
+      reason.message,
+      stackFrames,
+      budget,
+      {
+        cause: readErrorCause(reason),
+        chargeBudget: false,
+        span
+      }
+    );
+    normalizeSurfacedSubsetError(error, budget, stackFrames, span);
+    return error;
+  }
+
+  return createSubsetErrorValue("Error", describeThrownValue(reason), stackFrames, budget, {
+    chargeBudget: false,
+    span
+  });
+}
+
 export function createSubsetErrorValue(
   name: string,
   message: SandboxValue,
@@ -276,6 +333,56 @@ function isSubsetErrorValue(value: unknown): value is SandboxObject {
     typeof (value as { message?: unknown }).message === "string" &&
     typeof (value as { stack?: unknown }).stack === "string"
   );
+}
+
+function normalizeSurfacedSubsetError(
+  error: SandboxObject,
+  budget: Budget,
+  stackFrames: readonly string[],
+  span: ErrorSourceSpan | undefined
+): void {
+  const resumeChecks = budget.suspendChecks();
+
+  try {
+    const name = budget.allocateString(toSandboxErrorName(readErrorName(error)));
+    const message = budget.allocateString(readSurfacedErrorMessage(error, name));
+    const frames = readSandboxStackFrames(error.stack);
+    error.name = name;
+    error.message = message;
+    error.stack = budget.allocateString(
+      formatErrorStack(name, message, frames.length > 0 ? frames : [...stackFrames].reverse())
+    );
+    attachErrorSpan(error, readErrorSpan(error) ?? span);
+  } finally {
+    resumeChecks();
+  }
+}
+
+function readErrorName(error: SandboxObject): string {
+  return typeof error.name === "string" && error.name.length > 0 ? error.name : "Error";
+}
+
+function readSurfacedErrorMessage(error: SandboxObject, name: string): string {
+  const message = typeof error.message === "string" ? error.message : "";
+
+  if (message === "") {
+    return `${name} thrown`;
+  }
+
+  if (message === "[object Object]") {
+    return `${name} thrown with non-string message`;
+  }
+
+  return message;
+}
+
+function readSandboxStackFrames(stack: unknown): string[] {
+  if (typeof stack !== "string") {
+    return [];
+  }
+
+  const [, ...frames] = stack.split("\n");
+  return frames;
 }
 
 function isErrorLikeValue(value: unknown): value is { message: string; name: string } {

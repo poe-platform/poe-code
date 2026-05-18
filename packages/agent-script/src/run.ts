@@ -189,6 +189,7 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
           dumpController.onYield(createSnapshot);
         },
         scope,
+        surfaceUnhandledThrows: true,
         useScopeDirectly: true
       });
       const result =
@@ -299,6 +300,7 @@ async function callEntryPoint(input: {
     budget: input.budget,
     onYield: input.onYield,
     scope: entryScope,
+    surfaceUnhandledThrows: true,
     useScopeDirectly: true
   });
 }

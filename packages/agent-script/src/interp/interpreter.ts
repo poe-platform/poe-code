@@ -50,7 +50,12 @@ import type {
   RestElement,
   WhileStatement
 } from "../parse.js";
-import { attachErrorSpan, formatErrorStack, replaceErrorStack } from "../error/shape.js";
+import {
+  attachErrorSpan,
+  formatErrorStack,
+  readErrorSpan,
+  replaceErrorStack
+} from "../error/shape.js";
 import {
   evaluateArrowFunctionExpression,
   evaluateAwaitExpression,
@@ -66,7 +71,8 @@ import {
   createCapturedException,
   evaluateThrowStatement as evaluateThrowStatementResult,
   evaluateTryStatement as evaluateTryStatementResult,
-  isCapturedException
+  isCapturedException,
+  surfaceThrownValue
 } from "./exceptions.js";
 import {
   callArrayMethod,
@@ -136,6 +142,7 @@ export type InterpretOptions = {
   budget?: Budget;
   onYield?: (yieldPoint: InterpreterYieldPoint) => void;
   scope?: Scope;
+  surfaceUnhandledThrows?: boolean;
   useScopeDirectly?: boolean;
 };
 
@@ -237,6 +244,10 @@ export async function interpret(
   }
 
   if (evaluation.kind === "throw") {
+    if (options.surfaceUnhandledThrows === true) {
+      throw surfaceThrownValue(evaluation.value, budget, evaluation.stackFrames, evaluation.span);
+    }
+
     throw evaluation.value;
   }
 
@@ -311,6 +322,8 @@ async function evaluateNode(
     return {
       kind: "throw",
       hasValue: true,
+      span: readErrorSpan(exception) ?? node.span,
+      stackFrames: isCapturedException(error) ? error.stackFrames : context.callStack,
       value: exception
     };
   }

@@ -8,11 +8,15 @@ import { run } from "../run.js";
 const knownErrorNames = new Set([
   "AbortError",
   "Error",
+  "HarnessFailure",
   "ParseError",
+  "RangeError",
   "ReferenceError",
   "SandboxError",
   "SnapshotMismatchError",
+  "SyntaxError",
   "TypeError",
+  "AggregateError",
   "UnhandledRejectionError"
 ]);
 
@@ -125,6 +129,39 @@ describe("error shape audit", () => {
 
     auditErrorShape(error, { source, sourceBound: true });
     expect(readError(error).message).toContain("audit rejection");
+  });
+
+  it("passes for an uncaught thrown object", async () => {
+    const source = "throw { code: 7 };";
+    const error = await captureError(run(source, { filename: "audit.ajs" }));
+
+    auditErrorShape(error, { source, sourceBound: true });
+    expect(readError(error).name).toBe("Error");
+    expect(readError(error).message).toContain('"code":7');
+  });
+
+  it("passes for an uncaught sandbox Error with an empty message", async () => {
+    const source = "throw Error();";
+    const error = await captureError(run(source, { filename: "audit.ajs" }));
+
+    auditErrorShape(error, { source, sourceBound: true });
+    expect(readError(error).message).toContain("Error");
+  });
+
+  it("passes for an uncaught sandbox Error with an object message", async () => {
+    const source = "throw Error({ code: 7 });";
+    const error = await captureError(run(source, { filename: "audit.ajs" }));
+
+    auditErrorShape(error, { source, sourceBound: true });
+    expect(readError(error).message).toContain("non-string");
+  });
+
+  it("normalizes custom sandbox error names to a known class when uncaught", async () => {
+    const source = 'const error = Error("boom"); error.name = "CustomError"; throw error;';
+    const error = await captureError(run(source, { filename: "audit.ajs" }));
+
+    auditErrorShape(error, { source, sourceBound: true });
+    expect(readError(error).name).toBe("Error");
   });
 });
 

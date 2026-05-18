@@ -1270,7 +1270,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: harness-recovery-end-to-end
     title: End-to-end — harness recovery from abnormal exits
@@ -1296,9 +1296,9 @@ tasks:
 
       Conventional commit: `test(agent-harness): recovery e2e`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: fuzz-tokenizer-parser
     title: Fuzz tokenizer/parser for crash-resistance

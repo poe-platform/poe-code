@@ -40,6 +40,18 @@ describe("FileSnapshotBackend", () => {
     await expect(backend.read()).resolves.toBeUndefined();
   });
 
+  it("throws a clear parse error when the snapshot file is truncated", async () => {
+    vol.fromJSON({
+      "/snapshots/run.json": '{"sourceHash":'
+    });
+
+    const backend = new FileSnapshotBackend("/snapshots/run.json");
+
+    await expect(backend.read()).rejects.toThrow(
+      "Failed to parse snapshot at /snapshots/run.json:"
+    );
+  });
+
   it("removes snapshots idempotently", async () => {
     const backend = new FileSnapshotBackend("/snapshots/run.json");
 

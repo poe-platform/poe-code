@@ -22,6 +22,21 @@ export type SerializedPromiseValue = {
   id: SnapshotId;
 };
 
+export type SerializedReferenceValue = {
+  kind: "ref";
+  id: number;
+};
+
+export type SerializedHeapValue =
+  | {
+      kind: "array";
+      items: SerializedSnapshotValue[];
+    }
+  | {
+      kind: "object";
+      entries: Record<string, SerializedSnapshotValue>;
+    };
+
 export type SerializedSnapshotValue =
   | boolean
   | null
@@ -30,6 +45,7 @@ export type SerializedSnapshotValue =
   | SerializedClosureValue
   | SerializedNonFiniteNumber
   | SerializedPromiseValue
+  | SerializedReferenceValue
   | SerializedUndefinedValue
   | SerializedSnapshotValue[]
   | {
@@ -109,18 +125,25 @@ export type SerializedSnapshot = {
   callStack: SerializedCallFrame[];
   pendingPromises: SerializedPendingPromise[];
   moduleBindings: Record<string, string>;
+  heap?: Record<string, SerializedHeapValue>;
 };
 
 type SerializationState = {
   ancestors: WeakMap<object, string>;
+  heap: Record<string, SerializedHeapValue>;
+  heapIds: WeakMap<object, number>;
+  serializedHeapIds: Set<number>;
 };
 
 export function serialize(input: SerializeInput): SerializedSnapshot {
   const state: SerializationState = {
-    ancestors: new WeakMap()
+    ancestors: new WeakMap(),
+    heap: {},
+    heapIds: indexHeapContainers(input),
+    serializedHeapIds: new Set()
   };
 
-  return {
+  const snapshot: SerializedSnapshot = {
     sourceHash: hashSource(input.source),
     currentAstNodeId: input.currentAstNodeId,
     scopeChain: input.scopeChain.map((scope, index) =>
@@ -131,6 +154,15 @@ export function serialize(input: SerializeInput): SerializedSnapshot {
       serializePendingPromise(promise, `pendingPromises[${index}]`, state)
     ),
     moduleBindings: { ...input.moduleBindings }
+  };
+
+  if (Object.keys(state.heap).length === 0) {
+    return snapshot;
+  }
+
+  return {
+    ...snapshot,
+    heap: state.heap
   };
 }
 
@@ -205,6 +237,11 @@ function serializeValue(
   }
 
   if (Array.isArray(value)) {
+    const reference = serializeHeapReference(value, path, state);
+    if (reference !== undefined) {
+      return reference;
+    }
+
     return withSerializableContainer(value, path, state, () =>
       value.map((entry, index) => serializeValue(entry, `${path}[${index}]`, state))
     );
@@ -229,6 +266,11 @@ function serializeValue(
     throw new TypeError(`Cannot serialize host reference at ${path}.`);
   }
 
+  const reference = serializeHeapReference(value, path, state);
+  if (reference !== undefined) {
+    return reference;
+  }
+
   const serialized: Record<string, SerializedSnapshotValue> = {};
 
   return withSerializableContainer(value, path, state, () => {
@@ -238,6 +280,43 @@ function serializeValue(
 
     return serialized;
   });
+}
+
+function serializeHeapReference(
+  value: RuntimeSnapshotValue[] | Record<string, RuntimeSnapshotValue>,
+  path: string,
+  state: SerializationState
+): SerializedReferenceValue | undefined {
+  const id = state.heapIds.get(value);
+  if (id === undefined) {
+    return undefined;
+  }
+
+  if (!state.serializedHeapIds.has(id)) {
+    state.serializedHeapIds.add(id);
+
+    if (Array.isArray(value)) {
+      state.heap[String(id)] = {
+        kind: "array",
+        items: value.map((entry, index) => serializeValue(entry, `${path}[${index}]`, state))
+      };
+    } else {
+      const entries: Record<string, SerializedSnapshotValue> = {};
+      state.heap[String(id)] = {
+        kind: "object",
+        entries
+      };
+
+      for (const [key, entry] of Object.entries(value)) {
+        entries[key] = serializeValue(entry, `${path}.${key}`, state);
+      }
+    }
+  }
+
+  return {
+    kind: "ref",
+    id
+  };
 }
 
 function isRuntimeClosureValue(value: unknown): value is RuntimeClosureValue {
@@ -280,4 +359,93 @@ function withSerializableContainer<TValue>(
   } finally {
     state.ancestors.delete(value);
   }
+}
+
+function indexHeapContainers(input: SerializeInput): WeakMap<object, number> {
+  const stats = new Map<
+    object,
+    {
+      count: number;
+      cyclic: boolean;
+      expanded: boolean;
+    }
+  >();
+  const ancestors = new WeakSet<object>();
+
+  for (const scope of input.scopeChain) {
+    for (const value of Object.values(scope.bindings)) {
+      collectContainerStats(value, stats, ancestors);
+    }
+  }
+
+  for (const promise of input.pendingPromises) {
+    for (const [key, value] of Object.entries(promise)) {
+      if (key === "id" || key === "promise") {
+        continue;
+      }
+
+      collectContainerStats(value as RuntimeSnapshotValue, stats, ancestors);
+    }
+  }
+
+  const heapIds = new WeakMap<object, number>();
+  let nextId = 1;
+  for (const [value, stat] of stats.entries()) {
+    if (stat.count > 1 || stat.cyclic) {
+      heapIds.set(value, nextId);
+      nextId += 1;
+    }
+  }
+
+  return heapIds;
+}
+
+function collectContainerStats(
+  value: RuntimeSnapshotValue,
+  stats: Map<object, { count: number; cyclic: boolean; expanded: boolean }>,
+  ancestors: WeakSet<object>
+): void {
+  if (
+    value === null ||
+    typeof value !== "object" ||
+    isRuntimeClosureValue(value) ||
+    isRuntimePromiseValue(value)
+  ) {
+    return;
+  }
+
+  if (!Array.isArray(value) && !isPlainObject(value)) {
+    return;
+  }
+
+  let stat = stats.get(value);
+  if (stat === undefined) {
+    stat = {
+      count: 0,
+      cyclic: false,
+      expanded: false
+    };
+    stats.set(value, stat);
+  }
+
+  stat.count += 1;
+
+  if (ancestors.has(value)) {
+    stat.cyclic = true;
+    return;
+  }
+
+  if (stat.expanded) {
+    return;
+  }
+
+  stat.expanded = true;
+  ancestors.add(value);
+
+  const entries = Array.isArray(value) ? value : Object.values(value);
+  for (const entry of entries) {
+    collectContainerStats(entry, stats, ancestors);
+  }
+
+  ancestors.delete(value);
 }

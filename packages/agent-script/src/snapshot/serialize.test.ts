@@ -339,8 +339,7 @@ describe("serialize", () => {
     const cyclic = { nested: {} as Record<string, unknown> };
     cyclic.nested.self = cyclic;
 
-    expect(() =>
-      serialize({
+    const snapshot = serialize({
         source: "await task()",
         currentAstNodeId: 1,
         scopeChain: [
@@ -354,7 +353,64 @@ describe("serialize", () => {
         callStack: [],
         pendingPromises: [],
         moduleBindings: {}
-      })
-    ).toThrowError("Cannot serialize cyclic value at scopeChain[0].bindings.cyclic.nested.self.");
+      });
+
+    expect(snapshot.scopeChain[0]?.bindings.cyclic).toEqual({
+      kind: "ref",
+      id: 1
+    });
+    expect(snapshot.heap?.["1"]).toEqual({
+      kind: "object",
+      entries: {
+        nested: {
+          self: {
+            kind: "ref",
+            id: 1
+          }
+        }
+      }
+    });
+  });
+
+  it("serializes shared sandbox object references once", () => {
+    const shared = {
+      value: 42
+    };
+
+    const snapshot = serialize({
+      source: "await task()",
+      currentAstNodeId: 1,
+      scopeChain: [
+        {
+          id: 1,
+          bindings: {
+            l: shared,
+            r: shared
+          }
+        }
+      ],
+      callStack: [],
+      pendingPromises: [],
+      moduleBindings: {}
+    });
+
+    expect(snapshot.scopeChain[0]?.bindings).toEqual({
+      l: {
+        kind: "ref",
+        id: 1
+      },
+      r: {
+        kind: "ref",
+        id: 1
+      }
+    });
+    expect(snapshot.heap).toEqual({
+      "1": {
+        kind: "object",
+        entries: {
+          value: 42
+        }
+      }
+    });
   });
 });

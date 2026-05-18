@@ -96,6 +96,9 @@ describe("snapshot restore", () => {
       {
         id: "promise-1",
         moduleId: "time",
+        resumePolicy: {
+          kind: "re-issue"
+        },
         state: "pending",
         result: undefined
       }
@@ -301,6 +304,208 @@ describe("snapshot restore", () => {
 
     expect(task.value).toBe(restored.pendingPromises[0]);
     expect(restored.callStack[0]?.awaitingPromise).toBe(restored.pendingPromises[0]);
+  });
+
+  it("restores circular sandbox objects through heap references", () => {
+    const source = "return value";
+
+    const restored = restore(
+      {
+        sourceHash: hashSource(source),
+        currentAstNodeId: getNodeIdByType(parseModule(source), "Identifier"),
+        scopeChain: [
+          {
+            id: "root",
+            bindings: {
+              value: {
+                kind: "ref",
+                id: 1
+              }
+            }
+          }
+        ],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {},
+        heap: {
+          "1": {
+            kind: "object",
+            entries: {
+              self: {
+                kind: "ref",
+                id: 1
+              }
+            }
+          }
+        }
+      },
+      {
+        source,
+        budget: new Budget()
+      }
+    );
+
+    const value = restored.currentScope.lookup("value");
+    expect(value.found).toBe(true);
+    if (!value.found || value.value === null || typeof value.value !== "object") {
+      return;
+    }
+
+    expect(value.value.self).toBe(value.value);
+  });
+
+  it("restores shared sandbox object identity", () => {
+    const source = "return l === r";
+
+    const restored = restore(
+      {
+        sourceHash: hashSource(source),
+        currentAstNodeId: getNodeIdByType(parseModule(source), "BinaryExpression"),
+        scopeChain: [
+          {
+            id: "root",
+            bindings: {
+              l: {
+                kind: "ref",
+                id: 1
+              },
+              r: {
+                kind: "ref",
+                id: 1
+              }
+            }
+          }
+        ],
+        callStack: [],
+        pendingPromises: [],
+        moduleBindings: {},
+        heap: {
+          "1": {
+            kind: "object",
+            entries: {
+              value: 42
+            }
+          }
+        }
+      },
+      {
+        source,
+        budget: new Budget()
+      }
+    );
+
+    const left = restored.currentScope.lookup("l");
+    const right = restored.currentScope.lookup("r");
+
+    expect(left.found).toBe(true);
+    expect(right.found).toBe(true);
+    if (!left.found || !right.found) {
+      return;
+    }
+
+    expect(left.value).toBe(right.value);
+  });
+
+  it("annotates pending host calls with the resume policy", () => {
+    const source = "await task()";
+    const awaitNodeId = getNodeIdByType(parseModule(source), "AwaitExpression");
+
+    const restored = restore(
+      {
+        sourceHash: hashSource(source),
+        currentAstNodeId: awaitNodeId,
+        scopeChain: [
+          {
+            id: "root",
+            bindings: {}
+          }
+        ],
+        callStack: [],
+        pendingPromises: [
+          {
+            id: "git-commit-1",
+            moduleId: "git",
+            operation: "commit",
+            sideEffectTag: {
+              kind: "host-call-side-effect",
+              callId: "git-commit-1",
+              moduleId: "git",
+              operation: "commit"
+            }
+          },
+          {
+            id: "metric-1",
+            moduleId: "metric",
+            operation: "run"
+          }
+        ],
+        moduleBindings: {}
+      },
+      {
+        source,
+        budget: new Budget()
+      }
+    );
+
+    expect(restored.pendingPromises.map((promise) => promise.resumePolicy)).toEqual([
+      {
+        kind: "read-side-effect",
+        sideEffectTag: {
+          kind: "host-call-side-effect",
+          callId: "git-commit-1",
+          moduleId: "git",
+          operation: "commit"
+        }
+      },
+      {
+        kind: "re-issue"
+      }
+    ]);
+  });
+
+  it("keeps restored pending promises in snapshot order", () => {
+    const source = "await Promise.all([left, right])";
+    const awaitNodeId = getNodeIdByType(parseModule(source), "AwaitExpression");
+
+    const restored = restore(
+      {
+        sourceHash: hashSource(source),
+        currentAstNodeId: awaitNodeId,
+        scopeChain: [
+          {
+            id: "root",
+            bindings: {
+              left: {
+                kind: "promise",
+                id: "left"
+              },
+              right: {
+                kind: "promise",
+                id: "right"
+              }
+            }
+          }
+        ],
+        callStack: [],
+        pendingPromises: [
+          {
+            id: "left",
+            order: 1
+          },
+          {
+            id: "right",
+            order: 2
+          }
+        ],
+        moduleBindings: {}
+      },
+      {
+        source,
+        budget: new Budget()
+      }
+    );
+
+    expect(restored.pendingPromises.map((promise) => promise.id)).toEqual(["left", "right"]);
   });
 });
 

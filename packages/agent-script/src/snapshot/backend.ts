@@ -24,6 +24,10 @@ export class FileSnapshotBackend implements SnapshotBackend {
         return undefined;
       }
 
+      if (error instanceof SyntaxError) {
+        throw new Error(`Failed to parse snapshot at ${this.path}: ${error.message}`);
+      }
+
       throw error;
     }
   }

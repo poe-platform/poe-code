@@ -21,12 +21,15 @@ import {
   type ModuleRegistry
 } from "../modules/registry.js";
 import { interpret } from "../interp/interpreter.js";
+import { resolvePendingHostCallResumePolicy } from "./policy.js";
 import type {
   RuntimeCallFrame,
   RuntimePendingPromise,
   RuntimeScopeFrame,
   SerializedClosureValue,
+  SerializedHeapValue,
   SerializedPromiseValue,
+  SerializedReferenceValue,
   RuntimeSnapshotValue,
   SerializedPendingPromise,
   SerializedScopeFrame,
@@ -69,6 +72,8 @@ export type RestoredSnapshot = {
 
 type RestoreState = {
   budget: Budget;
+  heap: Record<string, SerializedHeapValue>;
+  heapValueById: Map<number, RuntimeSnapshotValue>;
   moduleBindings: Record<string, SandboxValue>;
   nodeById: Map<number, ParseResult>;
   pendingPromiseById: Map<SnapshotId, RuntimePendingPromise>;
@@ -96,6 +101,8 @@ export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): 
 
   const state: RestoreState = {
     budget: options.budget,
+    heap: snapshot.heap ?? {},
+    heapValueById: new Map(),
     moduleBindings: restoreModuleBindings(snapshot.moduleBindings, options.modules, {
       budget: options.budget,
       signal: options.signal
@@ -202,6 +209,8 @@ function restorePendingPromise(
     runtime[key] = deserializeValue(value as SerializedSnapshotValue, state);
   }
 
+  runtime.resumePolicy = resolvePendingHostCallResumePolicy(runtime);
+
   return runtime;
 }
 
@@ -304,6 +313,10 @@ function deserializeValue(
     }
   }
 
+  if (isSerializedReferenceValue(value)) {
+    return restoreHeapValue(value.id, state);
+  }
+
   if (isSerializedPromiseValue(value)) {
     return restorePromiseValue(value.id, state);
   }
@@ -314,6 +327,38 @@ function deserializeValue(
 
   const object = Object.create(null) as Record<string, RuntimeSnapshotValue>;
   for (const [key, entry] of Object.entries(value)) {
+    object[key] = deserializeValue(entry, state);
+  }
+
+  return object;
+}
+
+function restoreHeapValue(id: number, state: RestoreState): RuntimeSnapshotValue {
+  const existing = state.heapValueById.get(id);
+  if (existing !== undefined) {
+    return existing;
+  }
+
+  const serialized = state.heap[String(id)];
+  if (serialized === undefined) {
+    throw new Error(`Snapshot references unknown heap value ${id}.`);
+  }
+
+  if (serialized.kind === "array") {
+    const array: RuntimeSnapshotValue[] = [];
+    state.heapValueById.set(id, array);
+
+    for (const entry of serialized.items) {
+      array.push(deserializeValue(entry, state));
+    }
+
+    return array;
+  }
+
+  const object = Object.create(null) as Record<string, RuntimeSnapshotValue>;
+  state.heapValueById.set(id, object);
+
+  for (const [key, entry] of Object.entries(serialized.entries)) {
     object[key] = deserializeValue(entry, state);
   }
 
@@ -495,6 +540,12 @@ function isSerializedNonFiniteNumberValue(
   value: SerializedSnapshotValue
 ): value is { kind: "number"; value: "-Infinity" | "Infinity" | "NaN" } {
   return typeof value === "object" && value !== null && "kind" in value && value.kind === "number";
+}
+
+function isSerializedReferenceValue(
+  value: SerializedSnapshotValue
+): value is SerializedReferenceValue {
+  return typeof value === "object" && value !== null && "kind" in value && value.kind === "ref";
 }
 
 function isSerializedPromiseValue(value: SerializedSnapshotValue): value is SerializedPromiseValue {

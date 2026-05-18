@@ -2,12 +2,133 @@ import { describe, expect, it } from "vitest";
 
 import {
   createPendingHostCallSideEffectTag,
+  registerPendingHostCallPolicy,
   resolvePendingHostCallIssuePolicy,
   resolvePendingHostCallResumePolicy,
   tagPendingHostCallAtIssue
 } from "./policy.js";
 
 describe("snapshot pending host-call policy", () => {
+  it("returns the read-side-effect decision for a known read-on-resume operation", () => {
+    expect(
+      resolvePendingHostCallIssuePolicy({
+        id: "git-commit-1",
+        moduleId: "git",
+        operation: "commit"
+      })
+    ).toEqual({
+      kind: "read-side-effect",
+      sideEffectTag: {
+        kind: "host-call-side-effect",
+        callId: "git-commit-1",
+        moduleId: "git",
+        operation: "commit"
+      }
+    });
+  });
+
+  it("returns the re-issue decision for a known idempotent operation", () => {
+    expect(
+      resolvePendingHostCallIssuePolicy({
+        id: "git-head-1",
+        moduleId: "git",
+        operation: "head"
+      })
+    ).toEqual({
+      kind: "re-issue"
+    });
+  });
+
+  it("defaults unknown modules to re-issue because retrying is the safe fallback", () => {
+    expect(
+      resolvePendingHostCallIssuePolicy({
+        id: "unknown-1",
+        moduleId: "unknown",
+        operation: "commit"
+      })
+    ).toEqual({
+      kind: "re-issue"
+    });
+  });
+
+  it("defaults unknown operations under known modules to re-issue", () => {
+    expect(
+      resolvePendingHostCallIssuePolicy({
+        id: "git-unknown-1",
+        moduleId: "git",
+        operation: "unknown"
+      })
+    ).toEqual({
+      kind: "re-issue"
+    });
+  });
+
+  it("treats whitespace-only module ids and operations as unknown", () => {
+    expect(
+      resolvePendingHostCallIssuePolicy({
+        id: "blank-module-1",
+        moduleId: "   ",
+        operation: "commit"
+      })
+    ).toEqual({
+      kind: "re-issue"
+    });
+
+    expect(
+      resolvePendingHostCallIssuePolicy({
+        id: "blank-operation-1",
+        moduleId: "git",
+        operation: "   "
+      })
+    ).toEqual({
+      kind: "re-issue"
+    });
+  });
+
+  it("matches module ids and operations case-sensitively", () => {
+    expect(
+      resolvePendingHostCallIssuePolicy({
+        id: "git-capital-commit-1",
+        moduleId: "git",
+        operation: "Commit"
+      })
+    ).toEqual({
+      kind: "re-issue"
+    });
+
+    expect(
+      resolvePendingHostCallIssuePolicy({
+        id: "git-lowercase-commit-1",
+        moduleId: "git",
+        operation: "commit"
+      }).kind
+    ).toBe("read-side-effect");
+  });
+
+  it("uses policies registered at runtime", () => {
+    registerPendingHostCallPolicy({
+      moduleId: "custom",
+      operation: "writeOnce",
+      policy: "read-side-effect"
+    });
+
+    expect(
+      resolvePendingHostCallIssuePolicy({
+        id: "custom-write-once-1",
+        moduleId: "custom",
+        operation: "writeOnce"
+      })
+    ).toEqual({
+      kind: "read-side-effect",
+      sideEffectTag: {
+        kind: "host-call-side-effect",
+        callId: "custom-write-once-1",
+        moduleId: "custom",
+        operation: "writeOnce"
+      }
+    });
+  });
+
   it("defaults to re-issuing operations when a module does not opt out", () => {
     expect(
       resolvePendingHostCallIssuePolicy({

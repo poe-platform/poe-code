@@ -28,6 +28,12 @@ type PendingHostCallPolicyMode = PendingHostCallIssuePolicy["kind"];
 
 type ModulePolicyRegistry = Record<string, Record<string, PendingHostCallPolicyMode>>;
 
+export type PendingHostCallPolicyRegistration = {
+  moduleId: string;
+  operation: string;
+  policy: PendingHostCallPolicyMode;
+};
+
 const DEFAULT_PENDING_HOST_CALL_POLICY: PendingHostCallPolicyMode = "re-issue";
 
 const MODULE_PENDING_HOST_CALL_POLICIES: ModulePolicyRegistry = {
@@ -42,6 +48,17 @@ const MODULE_PENDING_HOST_CALL_POLICIES: ModulePolicyRegistry = {
     worktreeRemove: "read-side-effect"
   }
 };
+
+export function registerPendingHostCallPolicy(
+  registration: PendingHostCallPolicyRegistration
+): void {
+  const moduleId = readRequiredString(registration.moduleId, "moduleId");
+  const operation = readRequiredString(registration.operation, "operation");
+  const policy = readPendingHostCallPolicyModeValue(registration.policy);
+
+  MODULE_PENDING_HOST_CALL_POLICIES[moduleId] ??= {};
+  MODULE_PENDING_HOST_CALL_POLICIES[moduleId][operation] = policy;
+}
 
 export function resolvePendingHostCallIssuePolicy(
   call: PendingHostCallDescriptor
@@ -147,6 +164,14 @@ function readRequiredString(value: string | undefined, label: string): string {
   }
 
   return normalizedValue;
+}
+
+function readPendingHostCallPolicyModeValue(value: string): PendingHostCallPolicyMode {
+  if (value === "re-issue" || value === "read-side-effect") {
+    return value;
+  }
+
+  throw new Error("Pending host call policy must be 're-issue' or 'read-side-effect'.");
 }
 
 function normalizePendingHostCallSideEffectTag(

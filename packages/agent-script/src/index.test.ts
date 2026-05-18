@@ -31,6 +31,7 @@ import { run } from "./run.js";
 import { runHarness, runHarnessPair } from "./runner/run-harness.js";
 import { noopOtelSink } from "./observability/otel.js";
 import { FileSnapshotBackend } from "./snapshot/backend.js";
+import { registerPendingHostCallPolicy } from "./snapshot/policy.js";
 
 describe("@poe-code/agent-script public exports", () => {
   it("re-exports the public entrypoints", () => {
@@ -55,6 +56,7 @@ describe("@poe-code/agent-script public exports", () => {
     expect(api.createSpawnUsageAccumulator).toBe(createSpawnUsageAccumulator);
     expect(api.makeAgentModule).toBe(makeAgentModule);
     expect(api.runWithSpawnUsageAccumulator).toBe(runWithSpawnUsageAccumulator);
+    expect(api.registerPendingHostCallPolicy).toBe(registerPendingHostCallPolicy);
     expect(api.makeEnvModule).toBe(makeEnvModule);
     expect(api.makeFailModule).toBe(makeFailModule);
     expect(api.makeGitModule).toBe(makeGitModule);
@@ -88,6 +90,7 @@ describe("@poe-code/agent-script public exports", () => {
       "noopOtelSink",
       "parse",
       "parseModule",
+      "registerPendingHostCallPolicy",
       "restore",
       "run",
       "runHarness",

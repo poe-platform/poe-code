@@ -654,7 +654,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-values-deepcopy
     title: values/deepCopy — circular and exotic value edges
@@ -679,8 +679,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): deepCopy edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-exceptions-tests

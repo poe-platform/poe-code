@@ -109,7 +109,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: search-meta-tool
     title: Search meta-tool with BM25 over the command tree
@@ -145,8 +145,8 @@ tasks:
       Verify no `RegExp` constructor is reachable (grep the source as
       part of the test if needed, or simpler: just don't import it).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: get-schemas-meta-tool

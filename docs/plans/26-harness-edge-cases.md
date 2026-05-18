@@ -305,7 +305,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: parse-assign-ids-determinism
     title: parse/assign-ids — determinism and stability
@@ -326,8 +326,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): assign-ids determinism`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: parse-export-edges

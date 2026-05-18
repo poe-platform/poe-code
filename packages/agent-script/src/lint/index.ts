@@ -331,14 +331,18 @@ function parseDirective(comment: Comment): ParsedDirective | undefined {
   }
 
   const marker = words[markerIndex]!;
-  const codes = words
-    .slice(markerIndex + 1)
-    .filter((word) => isDirectiveCodeLike(word.value))
-    .map((word) => ({
+  const codes: ParsedDirective["codes"] = [];
+  for (const word of words.slice(markerIndex + 1)) {
+    if (!isDirectiveCodeLike(word.value)) {
+      break;
+    }
+
+    codes.push({
       code: word.value,
       startOffset: word.startOffset,
       endOffset: word.endOffset
-    }));
+    });
+  }
 
   if (marker.value === "@as-disable-file") {
     if (comment.type !== "block") {

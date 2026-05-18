@@ -334,10 +334,10 @@ describe("lint", () => {
       "// @as-disable AS012",
       "missing.replace('a', () => 'b');"
     ].join("\n");
+    const codes = lint(source).map((diagnostic) => diagnostic.code);
 
-    expect(lint(source).map((diagnostic) => diagnostic.code)).not.toEqual(
-      expect.arrayContaining(["AS003", "AS012"])
-    );
+    expect(codes).not.toContain("AS003");
+    expect(codes).not.toContain("AS012");
   });
 
   it("suppresses same-line diagnostics with @as-disable-line", () => {
@@ -393,7 +393,7 @@ describe("lint", () => {
   });
 
   it("parses directive codes before trailing message text", () => {
-    const source = ["// @as-disable AS003 because of X", "missing;"].join("\n");
+    const source = ["// @as-disable AS003 because of AS999", "missing;"].join("\n");
     const codes = lint(source).map((diagnostic) => diagnostic.code);
 
     expect(codes).not.toContain("AS003");

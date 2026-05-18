@@ -1321,7 +1321,7 @@ class Parser {
   private parseBindingTarget(): ArrayPattern | Identifier | ObjectPattern {
     const token = this.currentToken();
 
-    if (token.type === "identifier") {
+    if (isIdentifierLikeToken(token)) {
       return this.parseBindingIdentifier();
     }
 
@@ -1338,7 +1338,7 @@ class Parser {
 
   private parseBindingIdentifier(): Identifier {
     const token = this.currentToken();
-    if (token.type !== "identifier") {
+    if (!isIdentifierLikeToken(token)) {
       throw unexpectedTokenError(token);
     }
 
@@ -2086,7 +2086,7 @@ class Parser {
   private parsePrimaryExpression(): ParsedExpression {
     const token = this.currentToken();
 
-    if (token.type === "identifier") {
+    if (isIdentifierLikeToken(token)) {
       assertAllowedIdentifierReference(token);
       this.index += 1;
       return {
@@ -2629,7 +2629,7 @@ class Parser {
 
   private isSingleParamArrowFunction(): boolean {
     const token = this.currentToken();
-    if (token.type !== "identifier" || this.peekToken(1).value !== "=>") {
+    if (!isIdentifierLikeToken(token) || this.peekToken(1).value !== "=>") {
       return false;
     }
 
@@ -3723,6 +3723,10 @@ function isLiteralPropertyKey(token: Token): boolean {
       token.value === "null" ||
       token.value === "undefined")
   );
+}
+
+function isIdentifierLikeToken(token: Token): boolean {
+  return token.type === "identifier" || (token.type === "keyword" && token.value === "async");
 }
 
 function createTokenSpan(token: Token): SourceSpan {

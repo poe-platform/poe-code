@@ -1048,6 +1048,159 @@ describe("parse", () => {
     });
   });
 
+  it("parses documented arrow function parameter and body edges", () => {
+    expect(parse("() => 1")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: true,
+      params: [],
+      body: {
+        type: "NumericLiteral",
+        value: 1
+      }
+    });
+
+    expect(parse("x => x")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      params: [{ type: "Identifier", name: "x" }],
+      body: { type: "Identifier", name: "x" }
+    });
+
+    expect(parse("(x) => x")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      params: [{ type: "Identifier", name: "x" }],
+      body: { type: "Identifier", name: "x" }
+    });
+
+    expect(parse("(x,) => x")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      params: [{ type: "Identifier", name: "x" }],
+      body: { type: "Identifier", name: "x" }
+    });
+
+    expect(parse("(x = 1) => x")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      params: [
+        {
+          type: "AssignmentPattern",
+          left: { type: "Identifier", name: "x" },
+          right: { type: "NumericLiteral", value: 1 }
+        }
+      ],
+      body: { type: "Identifier", name: "x" }
+    });
+
+    expect(parse("(...rest) => rest")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      params: [{ type: "RestElement", argument: { type: "Identifier", name: "rest" } }],
+      body: { type: "Identifier", name: "rest" }
+    });
+
+    expect(parse("(a, b, ...rest) => rest")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      params: [
+        { type: "Identifier", name: "a" },
+        { type: "Identifier", name: "b" },
+        { type: "RestElement", argument: { type: "Identifier", name: "rest" } }
+      ],
+      body: { type: "Identifier", name: "rest" }
+    });
+
+    expect(parse("({ a, b }) => a + b")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      params: [
+        {
+          type: "ObjectPattern",
+          properties: [
+            { type: "AssignmentProperty", shorthand: true, key: { name: "a" } },
+            { type: "AssignmentProperty", shorthand: true, key: { name: "b" } }
+          ]
+        }
+      ],
+      body: { type: "BinaryExpression", operator: "+" }
+    });
+
+    expect(parse("([a, b]) => a + b")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      params: [
+        {
+          type: "ArrayPattern",
+          elements: [
+            { type: "Identifier", name: "a" },
+            { type: "Identifier", name: "b" }
+          ]
+        }
+      ],
+      body: { type: "BinaryExpression", operator: "+" }
+    });
+
+    expect(parse("async (x) => x")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: true,
+      params: [{ type: "Identifier", name: "x" }],
+      body: { type: "Identifier", name: "x" }
+    });
+
+    expect(parse("async x => x")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: true,
+      params: [{ type: "Identifier", name: "x" }],
+      body: { type: "Identifier", name: "x" }
+    });
+
+    expect(parse("async => x")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      params: [{ type: "Identifier", name: "async" }],
+      body: { type: "Identifier", name: "x" }
+    });
+
+    expect(parse("() => {}")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: false,
+      params: [],
+      body: {
+        type: "BlockStatement",
+        body: []
+      }
+    });
+
+    expect(parse("() => ({ a: 1 })")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: true,
+      body: {
+        type: "ObjectExpression",
+        properties: [
+          {
+            type: "Property",
+            key: { type: "Identifier", name: "a" },
+            value: { type: "NumericLiteral", value: 1 }
+          }
+        ]
+      }
+    });
+
+    expect(parse("() => { return; }")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      async: false,
+      expression: false,
+      body: {
+        type: "BlockStatement",
+        body: [{ type: "ReturnStatement", argument: undefined }]
+      }
+    });
+  });
+
   it("parses async arrow functions and block bodies", () => {
     expect(parse("async ({ value = 1 }, ...rest) => { return value + rest[0]; }")).toMatchObject({
       type: "ArrowFunctionExpression",
@@ -2341,6 +2494,9 @@ describe("parse", () => {
       ]
     });
     expect(() => parse("x\n=> x")).toThrowError(
+      "Unexpected line break before '=>' at line 2, column 1."
+    );
+    expect(() => parse("(x)\n=> x")).toThrowError(
       "Unexpected line break before '=>' at line 2, column 1."
     );
     expect(() => parse("async\n(x) => x")).toThrowError(

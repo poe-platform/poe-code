@@ -157,9 +157,9 @@ tasks:
 
       Conventional commit: `fix(agent-script): parser destructuring edges`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: parser-arrow-function-edges
     title: Parser — arrow function syntactic edges

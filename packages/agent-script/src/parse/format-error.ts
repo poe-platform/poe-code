@@ -32,6 +32,22 @@ export class ParseError extends Error implements ParseDiagnostic {
   }
 }
 
+const MAX_EXCERPT_CONTENT_LENGTH = 120;
+const ELLIPSIS = "...";
+
+type ParseErrorLocation = {
+  line: number;
+  column: number;
+  endLine: number;
+  endColumn: number;
+};
+
+type RenderedLine = {
+  number: number;
+  content: string;
+  sourceColumnStart: number;
+};
+
 export function formatParseError(source: string, filename: string, error: Error): ParseError {
   const location = parseErrorLocation(error.message);
   if (location === undefined) {
@@ -40,20 +56,40 @@ export function formatParseError(source: string, filename: string, error: Error)
 
   const lines = splitLines(source);
   const startLine = Math.max(1, location.line - 2);
-  const endLine = Math.min(lines.length, location.line + 1);
+  const lastSpannedLine = Math.max(location.line, location.endLine);
+  const sourceEndLine = Math.max(lines.length, 1);
+  const endLine = Math.min(sourceEndLine, Math.max(lastSpannedLine, location.line) + 1);
   const lineNumberWidth = String(endLine).length;
-  const excerpt: string[] = [];
+  const excerpt: RenderedLine[] = [];
 
   for (let line = startLine; line <= endLine; line += 1) {
-    excerpt.push(`${String(line).padStart(lineNumberWidth)} | ${lines[line - 1] ?? ""}`);
+    excerpt.push(
+      renderLine(
+        line,
+        lines[line - 1] ?? "",
+        getHighlightStartColumn(location, line),
+        getHighlightEndColumn(location, line)
+      )
+    );
   }
 
-  const caretPadding = createCaretPadding(lines[location.line - 1] ?? "", location.column);
-  const caret = `${" ".repeat(lineNumberWidth)} | ${caretPadding}^`;
-  return new ParseError(filename, error.message, location.line, location.column, excerpt.join("\n"), caret);
+  const caret = excerpt
+    .filter((line) => line.number >= location.line && line.number <= location.endLine)
+    .map((line) => createCaret(line, lineNumberWidth, location))
+    .join("\n");
+  return new ParseError(
+    filename,
+    error.message,
+    location.line,
+    location.column,
+    excerpt
+      .map((line) => `${String(line.number).padStart(lineNumberWidth)} | ${line.content}`)
+      .join("\n"),
+    caret
+  );
 }
 
-function parseErrorLocation(message: string): { line: number; column: number } | undefined {
+function parseErrorLocation(message: string): ParseErrorLocation | undefined {
   const linePrefix = " at line ";
   const columnPrefix = ", column ";
   const lineIndex = message.lastIndexOf(linePrefix);
@@ -68,7 +104,132 @@ function parseErrorLocation(message: string): { line: number; column: number } |
 
   const line = Number(message.slice(lineIndex + linePrefix.length, columnIndex));
   const columnStart = columnIndex + columnPrefix.length;
-  const columnEnd = message.endsWith(".") ? message.length - 1 : message.length;
+  const columnEnd = findNumberEnd(message, columnStart);
+  const column = Number(message.slice(columnStart, columnEnd));
+  if (!Number.isInteger(line) || !Number.isInteger(column)) {
+    return undefined;
+  }
+
+  const endLocation = parseEndLocation(message, columnEnd);
+  return {
+    line,
+    column,
+    endLine: endLocation?.line ?? line,
+    endColumn: endLocation?.column ?? column
+  };
+}
+
+function splitLines(source: string): string[] {
+  return source.split(/\r\n|\n|\r/);
+}
+
+function renderLine(
+  lineNumber: number,
+  line: string,
+  startColumn: number,
+  endColumn: number
+): RenderedLine {
+  const characters = Array.from(line);
+  if (characters.length <= MAX_EXCERPT_CONTENT_LENGTH) {
+    return {
+      number: lineNumber,
+      content: line,
+      sourceColumnStart: 1
+    };
+  }
+
+  const visibleLength = MAX_EXCERPT_CONTENT_LENGTH - ELLIPSIS.length * 2;
+  const highlightStartIndex = Math.max(startColumn - 1, 0);
+  const highlightEndIndex =
+    endColumn === Number.MAX_SAFE_INTEGER
+      ? highlightStartIndex
+      : Math.max(endColumn - 1, highlightStartIndex);
+  const highlightCenter = Math.floor((highlightStartIndex + highlightEndIndex) / 2);
+  let sourceStartIndex = Math.max(0, highlightCenter - Math.floor(visibleLength / 2));
+  sourceStartIndex = Math.min(sourceStartIndex, Math.max(characters.length - visibleLength, 0));
+
+  const sourceEndIndex = Math.min(sourceStartIndex + visibleLength, characters.length);
+  const prefix = sourceStartIndex > 0 ? ELLIPSIS : "";
+  const suffix = sourceEndIndex < characters.length ? ELLIPSIS : "";
+
+  return {
+    number: lineNumber,
+    content: `${prefix}${characters.slice(sourceStartIndex, sourceEndIndex).join("")}${suffix}`,
+    sourceColumnStart: sourceStartIndex + 1 - prefix.length
+  };
+}
+
+function createCaret(
+  line: RenderedLine,
+  lineNumberWidth: number,
+  location: ParseErrorLocation
+): string {
+  const contentColumns = Array.from(line.content).length;
+  const isSpan = location.line !== location.endLine || location.column !== location.endColumn;
+  const startColumn = getHighlightStartColumn(location, line.number);
+  const endColumn = isSpan ? getHighlightEndColumn(location, line.number) : startColumn + 1;
+  const renderedStartColumn = Math.max(startColumn - line.sourceColumnStart + 1, 1);
+  const renderedEndColumn = Math.min(
+    Math.max(endColumn - line.sourceColumnStart + 1, renderedStartColumn + 1),
+    contentColumns + 1
+  );
+  const caretPadding = createCaretPadding(line.content, renderedStartColumn);
+  const caretLength = Math.max(renderedEndColumn - renderedStartColumn, 1);
+  return `${" ".repeat(lineNumberWidth)} | ${caretPadding}${"^".repeat(caretLength)}`;
+}
+
+function createCaretPadding(line: string, column: number): string {
+  let padding = "";
+  const characters = Array.from(line);
+  const maxColumn = Math.max(column - 1, 0);
+
+  // Parser columns are character indexes. Terminals may render full-width glyphs wider.
+  for (const character of characters.slice(0, maxColumn)) {
+    padding += character === "\t" ? "\t" : " ";
+  }
+
+  if (maxColumn > characters.length) {
+    padding += " ".repeat(maxColumn - characters.length);
+  }
+
+  return padding;
+}
+
+function getHighlightStartColumn(location: ParseErrorLocation, line: number): number {
+  if (line === location.line) {
+    return location.column;
+  }
+
+  return 1;
+}
+
+function getHighlightEndColumn(location: ParseErrorLocation, line: number): number {
+  if (line === location.endLine) {
+    return location.endColumn;
+  }
+
+  return Number.MAX_SAFE_INTEGER;
+}
+
+function parseEndLocation(
+  message: string,
+  startIndex: number
+): { line: number; column: number } | undefined {
+  const linePrefix = " to line ";
+  const columnPrefix = ", column ";
+  const lineIndex = message.indexOf(linePrefix, startIndex);
+  if (lineIndex === -1) {
+    return undefined;
+  }
+
+  const columnIndex = message.indexOf(columnPrefix, lineIndex + linePrefix.length);
+  if (columnIndex === -1) {
+    return undefined;
+  }
+
+  const line = Number(message.slice(lineIndex + linePrefix.length, columnIndex));
+  const columnStart = columnIndex + columnPrefix.length;
+  const columnEnd = findNumberEnd(message, columnStart);
   const column = Number(message.slice(columnStart, columnEnd));
   if (!Number.isInteger(line) || !Number.isInteger(column)) {
     return undefined;
@@ -77,16 +238,15 @@ function parseErrorLocation(message: string): { line: number; column: number } |
   return { line, column };
 }
 
-function splitLines(source: string): string[] {
-  return source.split(/\r\n|\n|\r/);
-}
-
-function createCaretPadding(line: string, column: number): string {
-  let padding = "";
-
-  for (const character of line.slice(0, Math.max(column - 1, 0))) {
-    padding += character === "\t" ? "\t" : " ";
+function findNumberEnd(value: string, startIndex: number): number {
+  let index = startIndex;
+  while (index < value.length) {
+    const code = value.charCodeAt(index);
+    if (code < 48 || code > 57) {
+      break;
+    }
+    index += 1;
   }
 
-  return padding;
+  return index;
 }

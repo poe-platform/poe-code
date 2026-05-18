@@ -227,7 +227,7 @@ describe("interpret", () => {
     ["{ ...{ a: 1 } }", { a: 1 }],
     ["{ ...{ a: 1 }, b: 2 }", { a: 1, b: 2 }],
     ["{ a: 1, ...{ a: 2 } }", { a: 2 }],
-    ["{ ...{ a: 1 }, a: 9 }", { a: 9 }],
+    ["{ ...{ a: 2 }, a: 1 }", { a: 1 }],
     ["{ ...{ a: 1 }, ...{ a: 2 } }", { a: 2 }]
   ])("evaluates object spread literal %s", async (source, expected) => {
     await expect(interpret(parse(`return (${source})`))).resolves.toMatchObject({
@@ -236,24 +236,47 @@ describe("interpret", () => {
     });
   });
 
-  it("rejects array spread in object literals", async () => {
-    await expect(interpret(parse("return ({ ...[1] })"))).rejects.toThrow(
-      "Cannot spread array into object literal."
-    );
+  it("spreads array own enumerable indexes in object literals", async () => {
+    await expect(interpret(parse("return ({ ...[1] })"))).resolves.toMatchObject({
+      ok: true,
+      returnValue: {
+        0: 1
+      }
+    });
   });
 
-  it.each(["string", "number", "boolean"] as const)(
-    "rejects %s spread in object literals",
-    async (type) => {
-      const source = {
-        string: '"value"',
-        number: "1",
-        boolean: "true"
-      }[type];
+  it("spreads only an object's own enumerable keys", async () => {
+    const prototype = Object.create(null) as Record<string, number>;
+    prototype.inherited = 1;
+    const source = Object.create(prototype) as Record<string, number>;
+    source.own = 2;
 
-      await expect(interpret(parse(`return ({ ...${source} })`))).rejects.toThrow(
-        `Cannot spread ${type} into object literal.`
-      );
+    await expect(
+      interpret(parse("return ({ ...source })"), {
+        bindings: {
+          source
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: {
+        own: 2
+      }
+    });
+  });
+
+  it.each([
+    ["null", "null", {}],
+    ["undefined", "undefined", {}],
+    ["number", "1", {}],
+    ["string", '"ab"', { 0: "a", 1: "b" }]
+  ])(
+    "evaluates %s object spread literal using Object.assign semantics",
+    async (_label, source, expected) => {
+      await expect(interpret(parse(`return ({ ...${source} })`))).resolves.toMatchObject({
+        ok: true,
+        returnValue: expected
+      });
     }
   );
 
@@ -303,6 +326,100 @@ describe("interpret", () => {
     expect(fn).toHaveBeenCalledWith([1, 2, 3], expect.any(Object));
   });
 
+  it("spreads array literals from iterable values", async () => {
+    await expect(interpret(parse("return ([1, ...[2, 3], 4])"))).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2, 3, 4]
+    });
+
+    await expect(interpret(parse('return ([..."ab"])'))).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["a", "b"]
+    });
+  });
+
+  it("clones array spread results without aliasing the source array", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const arr = [1, 2]"),
+          parse("const clone = [...arr]"),
+          parse("clone.push(3)"),
+          parse("return [arr, clone]")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [
+        [1, 2],
+        [1, 2, 3]
+      ]
+    });
+  });
+
+  it("rejects null array spread", async () => {
+    await expect(interpret(parse("return ([...null])"))).rejects.toThrow(
+      "Spread arguments must evaluate to an iterable."
+    );
+  });
+
+  it("charges arrayLength budget while spreading array literals from iterables", async () => {
+    function* values(): Generator<number> {
+      yield 1;
+      yield 2;
+      yield 3;
+    }
+
+    await expect(
+      interpret(parse("return ([...values])"), {
+        bindings: {
+          values: values() as never
+        },
+        budget: new Budget({
+          arrayLength: 2
+        })
+      })
+    ).rejects.toEqual(
+      expect.objectContaining({
+        name: "SandboxError",
+        code: "budgetExceeded",
+        budget: "arrayLength",
+        current: 3,
+        limit: 2
+      } satisfies Partial<SandboxError>)
+    );
+  });
+
+  it("spreads call arguments by iteration without reading non-index getters", async () => {
+    let getterCalls = 0;
+    const values = [1, 2];
+    Object.defineProperty(values, "extra", {
+      enumerable: true,
+      get() {
+        getterCalls += 1;
+        return 3;
+      }
+    });
+    const fn = vi.fn((args: readonly unknown[]) => [...args]);
+
+    await expect(
+      interpret(parse("return fn(...values)"), {
+        bindings: {
+          fn: createSandboxClosure({
+            call: fn,
+            name: "fn"
+          }),
+          values
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2]
+    });
+    expect(fn).toHaveBeenCalledWith([1, 2], expect.any(Object));
+    expect(getterCalls).toBe(0);
+  });
+
   it("preserves call argument order when positional and spread arguments are mixed", async () => {
     await expect(
       interpret(
@@ -339,7 +456,6 @@ describe("interpret", () => {
   });
 
   it.each([
-    ["string", '"value"'],
     ["object", "{}"],
     ["number", "1"],
     ["boolean", "true"],
@@ -355,7 +471,7 @@ describe("interpret", () => {
           })
         }
       })
-    ).rejects.toThrow("Spread arguments must evaluate to an array.");
+    ).rejects.toThrow("Spread arguments must evaluate to an iterable.");
   });
 
   it("aggregates spread call arguments into receiving arrow rest parameters", async () => {
@@ -364,6 +480,16 @@ describe("interpret", () => {
     ).resolves.toMatchObject({
       ok: true,
       returnValue: [1, [2, 3, 4]]
+    });
+  });
+
+  it.each([
+    ["remaining arguments", "return ((a, ...rest) => rest)(1, 2, 3)", [2, 3]],
+    ["zero remaining arguments", "return ((a, ...rest) => rest)(1)", []]
+  ])("collects %s in arrow rest parameters", async (_label, source, expected) => {
+    await expect(interpret(parse(source))).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
     });
   });
 

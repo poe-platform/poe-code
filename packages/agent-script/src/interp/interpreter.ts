@@ -348,6 +348,7 @@ async function evaluateArrayExpression(
       }
 
       values.push(...spreadValues.value);
+      context.budget.allocateArrayLength(values.length);
       continue;
     }
 
@@ -357,6 +358,7 @@ async function evaluateArrayExpression(
     }
 
     values.push(result.value);
+    context.budget.allocateArrayLength(values.length);
   }
 
   return {
@@ -2352,13 +2354,29 @@ async function evaluateSpreadElement(
     };
   }
 
-  if (!Array.isArray(value.value)) {
-    throw new TypeError("Spread arguments must evaluate to an array.");
+  const iterator = getSpreadIterator(value.value);
+  if (iterator === undefined) {
+    throw new TypeError("Spread arguments must evaluate to an iterable.");
+  }
+
+  const spreadValues: SandboxValue[] = [];
+  while (true) {
+    const next = iterator.next();
+    if (typeof next !== "object" || next === null) {
+      throw new TypeError("Iterator result must be an object.");
+    }
+
+    if (next.done === true) {
+      break;
+    }
+
+    spreadValues.push(next.value as SandboxValue);
+    context.budget.allocateArrayLength(spreadValues.length);
   }
 
   return {
     ok: true,
-    value: value.value
+    value: spreadValues
   };
 }
 
@@ -2374,17 +2392,20 @@ async function evaluateObjectSpread(
     };
   }
 
-  if (Array.isArray(value.value)) {
-    throw new TypeError("Cannot spread array into object literal.");
+  if (value.value === null || value.value === undefined) {
+    return {
+      ok: true,
+      value: []
+    };
   }
 
-  if (!isPlainSandboxObject(value.value)) {
+  if (isSandboxClosure(value.value) || isSandboxPromise(value.value)) {
     throw new TypeError(
       `Cannot spread ${describeObjectSpreadValue(value.value)} into object literal.`
     );
   }
 
-  const spreadValue = value.value;
+  const spreadValue = Object(value.value) as Record<string, SandboxValue>;
   const keys = Object.keys(spreadValue);
   context.budget.allocateArrayLength(keys.length);
 
@@ -2412,6 +2433,23 @@ function describeObjectSpreadValue(value: SandboxValue): string {
   }
 
   return typeof value;
+}
+
+function getSpreadIterator(value: SandboxValue): Iterator<unknown> | undefined {
+  if (typeof value === "string") {
+    return value[Symbol.iterator]();
+  }
+
+  if ((typeof value !== "object" && typeof value !== "function") || value === null) {
+    return undefined;
+  }
+
+  const iteratorMethod = (value as { [Symbol.iterator]?: unknown })[Symbol.iterator];
+  if (typeof iteratorMethod !== "function") {
+    return undefined;
+  }
+
+  return Reflect.apply(iteratorMethod, value, []) as Iterator<unknown>;
 }
 
 function defineSandboxProperty(target: SandboxObject, key: string, value: SandboxValue): void {

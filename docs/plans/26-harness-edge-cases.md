@@ -1133,7 +1133,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: snapshot-policy-edges
     title: snapshot/policy — host-call replay decisions
@@ -1151,8 +1151,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): snapshot policy edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: snapshot-scheduler-edges

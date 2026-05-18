@@ -12,7 +12,9 @@ export function isImportMetaTokenSequence(
     dotToken.type === "punctuator" &&
     dotToken.value === "." &&
     metaToken.type === "identifier" &&
-    metaToken.value === "meta"
+    metaToken.value === "meta" &&
+    importToken.end.offset === dotToken.start.offset &&
+    dotToken.end.offset === metaToken.start.offset
   );
 }
 

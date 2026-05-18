@@ -2684,7 +2684,7 @@ describe("createPipelineSimulation", () => {
     expect((await readPlan()).tasks[0]?.status).toBe("failed");
   });
 
-  it("archives a flat plan file after all tasks complete and repacks remaining active files", async () => {
+  it("archives a flat plan file after all tasks complete without renaming remaining active files", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": [
         "---",
@@ -2722,10 +2722,10 @@ describe("createPipelineSimulation", () => {
     expect(archiveEntries).toEqual(["plan.md"]);
 
     const originalEntries = await fs.readdir("/repo/docs/plans");
-    expect(originalEntries.sort()).toEqual(["01-next.md", "archive"]);
+    expect(originalEntries.sort()).toEqual(["archive", "next.md"]);
   });
 
-  it("archives a prefixed plan file by id and keeps the active list gap-free", async () => {
+  it("archives a prefixed plan file by id without renumbering remaining active files", async () => {
     const fs = createFs({
       "/repo/docs/plans/01-plan.md": [
         "---",
@@ -2764,7 +2764,7 @@ describe("createPipelineSimulation", () => {
     expect(archiveEntries.sort()).toEqual(["plan.md"]);
 
     const originalEntries = await fs.readdir("/repo/docs/plans");
-    expect(originalEntries.sort()).toEqual(["01-next.md", "02-later.md", "archive"]);
+    expect(originalEntries.sort()).toEqual(["02-next.md", "03-later.md", "archive"]);
   });
 
   it("does not archive when plan was already complete (nothing_to_run)", async () => {

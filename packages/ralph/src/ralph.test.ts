@@ -746,7 +746,7 @@ describe("createRalphSimulation", () => {
 
     expect((await fs.readdir("/repo/.poe-code/ralph/plans")).sort()).toEqual([
       "01-first.md",
-      "02-third.md",
+      "03-third.md",
       "archive"
     ]);
     expect((await fs.readdir("/repo/.poe-code/ralph/plans/archive")).sort()).toEqual([

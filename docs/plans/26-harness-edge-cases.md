@@ -328,7 +328,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: parse-export-edges
     title: parse/parse-export — top-level export edges
@@ -352,8 +352,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): parse-export edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: parse-import-meta-tests

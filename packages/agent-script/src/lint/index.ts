@@ -270,6 +270,16 @@ function buildSuppressionState(source: string, options: LintOptions): Suppressio
     }
 
     if (directive.kind === "line") {
+      const span = findContainingStatementSpan(comment, statementSpans);
+      if (span !== undefined) {
+        for (const { code } of codes) {
+          for (let line = span.start.line; line <= span.end.line; line += 1) {
+            lineCodes.add(createSuppressionKey(line, code));
+          }
+        }
+        continue;
+      }
+
       for (const { code } of codes) {
         lineCodes.add(createSuppressionKey(comment.start.line, code));
       }
@@ -447,6 +457,21 @@ function findNextStatementSpan(
   statementSpans: readonly SourceSpan[]
 ): SourceSpan | undefined {
   return statementSpans.find((span) => span.start.offset >= comment.end.offset);
+}
+
+function findContainingStatementSpan(
+  comment: Comment,
+  statementSpans: readonly SourceSpan[]
+): SourceSpan | undefined {
+  return statementSpans
+    .filter(
+      (span) => span.start.offset <= comment.start.offset && comment.start.offset <= span.end.offset
+    )
+    .sort((left, right) => spanLength(left) - spanLength(right))[0];
+}
+
+function spanLength(span: SourceSpan): number {
+  return span.end.offset - span.start.offset;
 }
 
 function findNextTokenSpan(source: string, comment: Comment): SourceSpan | undefined {

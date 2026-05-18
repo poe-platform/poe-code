@@ -281,17 +281,7 @@ class Lexer {
       }
 
       if (char === "\\") {
-        if (this.peekChar(1) === "u") {
-          this.readUnicodeEscape();
-          continue;
-        }
-
-        this.advance();
-        if (this.isAtEnd()) {
-          break;
-        }
-
-        this.advance();
+        this.readEscapedLiteralCharacter();
         continue;
       }
 
@@ -318,17 +308,15 @@ class Lexer {
       }
 
       if (char === "\\") {
-        this.advance();
-        if (!this.isAtEnd()) {
-          this.advance();
-        }
+        this.readEscapedLiteralCharacter();
         continue;
       }
 
       if (char === "$" && this.peekChar(1) === "{") {
+        const expressionStart = this.position();
         this.advance();
         this.advance();
-        this.skipTemplateExpression();
+        this.skipTemplateExpression(expressionStart);
         continue;
       }
 
@@ -338,7 +326,7 @@ class Lexer {
     this.syntaxError("Unterminated template literal", start);
   }
 
-  private skipTemplateExpression(): void {
+  private skipTemplateExpression(start: Position): void {
     let depth = 1;
     const tokens: Array<Pick<Token, "type" | "value">> = [];
     const groupingStack: GroupingContext[] = [];
@@ -475,7 +463,7 @@ class Lexer {
     }
 
     if (depth !== 0) {
-      this.syntaxError("Unterminated template expression", this.position());
+      this.syntaxError("Unterminated template expression", start);
     }
   }
 
@@ -490,14 +478,7 @@ class Lexer {
         return;
       }
       if (char === "\\") {
-        if (this.peekChar(1) === "u") {
-          this.readUnicodeEscape();
-        } else {
-          this.advance();
-          if (!this.isAtEnd()) {
-            this.advance();
-          }
-        }
+        this.readEscapedLiteralCharacter();
         continue;
       }
       if (isLineBreak(char)) {
@@ -520,16 +501,14 @@ class Lexer {
         return;
       }
       if (char === "\\") {
-        this.advance();
-        if (!this.isAtEnd()) {
-          this.advance();
-        }
+        this.readEscapedLiteralCharacter();
         continue;
       }
       if (char === "$" && this.peekChar(1) === "{") {
+        const expressionStart = this.position();
         this.advance();
         this.advance();
-        this.skipTemplateExpression();
+        this.skipTemplateExpression(expressionStart);
         continue;
       }
       this.advance();
@@ -893,6 +872,10 @@ class Lexer {
   private readUnicodeEscape(): string {
     const escapeStart = this.position();
     this.advance();
+    return this.readUnicodeEscapeAfterBackslash(escapeStart);
+  }
+
+  private readUnicodeEscapeAfterBackslash(escapeStart: Position): string {
     this.advance();
 
     if (this.currentChar() === "{") {
@@ -910,6 +893,46 @@ class Lexer {
     }
 
     return String.fromCharCode(Number.parseInt(value, 16));
+  }
+
+  private readEscapedLiteralCharacter(): void {
+    const escapeStart = this.position();
+    this.advance();
+
+    if (this.isAtEnd()) {
+      return;
+    }
+
+    const escaped = this.currentChar();
+    if (escaped === "u") {
+      this.readUnicodeEscapeAfterBackslash(escapeStart);
+      return;
+    }
+
+    if (escaped === "x") {
+      this.advance();
+      for (let index = 0; index < 2; index += 1) {
+        if (!isHexDigit(this.currentChar())) {
+          this.syntaxError("Invalid hex escape", escapeStart);
+        }
+        this.advance();
+      }
+      return;
+    }
+
+    if (escaped === "0") {
+      this.advance();
+      if (isDecimalDigit(this.currentChar())) {
+        this.syntaxError("Legacy octal escape sequences are not supported", escapeStart);
+      }
+      return;
+    }
+
+    if (isOctalDigit(escaped)) {
+      this.syntaxError("Legacy octal escape sequences are not supported", escapeStart);
+    }
+
+    this.advance();
   }
 
   private readExtendedUnicodeEscape(escapeStart: Position): string {

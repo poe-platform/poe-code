@@ -3316,7 +3316,7 @@ function createTemplateElement(
     tail,
     value: {
       raw: rawValue,
-      cooked: decodeEscapedText(rawValue)
+      cooked: decodeEscapedText(normalizeTemplateLineTerminators(rawValue))
     },
     span: createSpan(
       positionWithinRaw(templateStart, rawTemplate, rawStart),
@@ -3489,11 +3489,39 @@ function decodeEscapedText(value: string): string {
       }
     }
 
+    if (next === "x") {
+      const hexEscape = decodeHexEscape(value, index);
+      if (hexEscape !== undefined) {
+        decoded += hexEscape.value;
+        index = hexEscape.end;
+        continue;
+      }
+    }
+
     decoded += decodeEscapeCharacter(next);
     index += 2;
   }
 
   return decoded;
+}
+
+function normalizeTemplateLineTerminators(value: string): string {
+  let normalized = "";
+  let index = 0;
+
+  while (index < value.length) {
+    const char = value[index];
+    if (char === "\r") {
+      normalized += "\n";
+      index += value[index + 1] === "\n" ? 2 : 1;
+      continue;
+    }
+
+    normalized += char;
+    index += 1;
+  }
+
+  return normalized;
 }
 
 function decodeUnicodeEscape(
@@ -3529,6 +3557,19 @@ function decodeUnicodeEscape(
   return {
     value: String.fromCharCode(Number.parseInt(hex, 16)),
     end: index + 4
+  };
+}
+
+function decodeHexEscape(value: string, start: number): { value: string; end: number } | undefined {
+  const index = start + 2;
+  const hex = value.slice(index, index + 2);
+  if (hex.length !== 2 || ![...hex].every(isHexDigit)) {
+    return undefined;
+  }
+
+  return {
+    value: String.fromCharCode(Number.parseInt(hex, 16)),
+    end: index + 2
   };
 }
 

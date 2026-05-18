@@ -4,6 +4,7 @@ import {
   parse,
   type NumericLiteral,
   type StringLiteral,
+  type TemplateLiteral,
   type VariableDeclaration
 } from "./parser.js";
 import { tokenize, type Token } from "./tokenizer.js";
@@ -35,6 +36,12 @@ function parseNumericValue(raw: string): number {
   const init = statement.declarations[0]?.init;
   expect(init?.type).toBe("NumericLiteral");
   return (init as NumericLiteral).value;
+}
+
+function parseTemplateValue(raw: string): TemplateLiteral {
+  const expression = parse(raw);
+  expect(expression.type).toBe("TemplateLiteral");
+  return expression as TemplateLiteral;
 }
 
 describe("tokenize", () => {
@@ -512,5 +519,67 @@ describe("tokenize", () => {
     );
 
     expect(() => tokenize("\\u{}")).toThrowError("Invalid unicode escape at line 1, column 1.");
+  });
+
+  it("handles string and template literal escape edges", () => {
+    expect(parseStringValue("'\\n'")).toBe("\n");
+    expect(parseStringValue('"\\n"')).toBe("\n");
+
+    const newlineTemplate = parseTemplateValue("`\\n`");
+    expect(newlineTemplate.quasis[0]?.value).toEqual({
+      raw: "\\n",
+      cooked: "\n"
+    });
+
+    expect(parseStringValue("'\\x4A'")).toBe("J");
+    expect(() => tokenize("'\\x'")).toThrowError("Invalid hex escape at line 1, column 2.");
+    expect(() => tokenize("'\\x4'")).toThrowError("Invalid hex escape at line 1, column 2.");
+
+    expect(parseStringValue("'\\0'")).toBe("\0");
+    expect(parseStringValue("'\\0a'")).toBe("\0a");
+    expect(() => tokenize("'\\01'")).toThrowError(
+      "Legacy octal escape sequences are not supported at line 1, column 2."
+    );
+
+    expect(parseStringValue('"a\\\n"')).toBe("a");
+
+    expect(() => tokenize("'unterminated")).toThrowError(
+      "Unterminated string literal at line 1, column 1."
+    );
+
+    const nestedTemplate = parseTemplateValue("`${1 + `nested`}`");
+    expect(nestedTemplate.expressions[0]).toMatchObject({
+      type: "BinaryExpression",
+      right: {
+        type: "TemplateLiteral",
+        quasis: [
+          {
+            value: {
+              raw: "nested",
+              cooked: "nested"
+            }
+          }
+        ]
+      }
+    });
+
+    expect(() => tokenize("`${")).toThrowError(
+      "Unterminated template expression at line 1, column 2."
+    );
+
+    const escapedTemplate = parseTemplateValue("`\\$\\``");
+    expect(escapedTemplate.quasis[0]?.value).toEqual({
+      raw: "\\$\\`",
+      cooked: "$`"
+    });
+
+    const crlfTemplate = parseTemplateValue("`a\r\nb`");
+    expect(crlfTemplate.quasis[0]?.value).toEqual({
+      raw: "a\r\nb",
+      cooked: "a\nb"
+    });
+
+    expect(parseStringValue(`"a\u2028b"`)).toBe("a\u2028b");
+    expect(parseStringValue(`"a\u2029b"`)).toBe("a\u2029b");
   });
 });

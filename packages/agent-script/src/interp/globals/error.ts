@@ -1,5 +1,8 @@
 import type { Budget } from "../budget.js";
-import { createSubsetErrorValue } from "../exceptions.js";
+import {
+  createSubsetErrorValue,
+  isSandboxErrorConstructorInstance as isNamedSandboxErrorConstructorInstance
+} from "../exceptions.js";
 import {
   createSandboxClosure,
   isSandboxClosure,
@@ -9,7 +12,6 @@ import {
   type SandboxValue
 } from "../values.js";
 
-const sandboxErrorBrand = Symbol("SandboxError");
 const errorConstructorNames = new WeakMap<SandboxClosure, ErrorName>();
 
 const errorNames = [
@@ -24,15 +26,6 @@ const errorNames = [
 export type ErrorName = (typeof errorNames)[number];
 
 export type ErrorGlobals = Record<ErrorName, ReturnType<typeof createSandboxClosure>>;
-
-type SandboxErrorMetadata = {
-  readonly chain: readonly ErrorName[];
-  readonly name: ErrorName;
-};
-
-type SandboxErrorObject = SandboxObject & {
-  readonly [sandboxErrorBrand]: SandboxErrorMetadata;
-};
 
 export function createErrorGlobals(options: { budget: Budget }): ErrorGlobals {
   return Object.fromEntries(
@@ -53,7 +46,7 @@ export function isSandboxErrorConstructorInstance(
     return false;
   }
 
-  return isSandboxErrorObject(value) && value[sandboxErrorBrand].chain.includes(name);
+  return isNamedSandboxErrorConstructorInstance(value, name);
 }
 
 function createErrorConstructor(name: ErrorName, budget: Budget): SandboxClosure {
@@ -74,7 +67,7 @@ function createSubsetError(
 ): SandboxObject {
   const message = name === "AggregateError" ? args[1] : args[0];
   const options = name === "AggregateError" ? args[2] : args[1];
-  const error = createSubsetErrorValue(name, message, stackFrames, budget) as SandboxErrorObject;
+  const error = createSubsetErrorValue(name, message, stackFrames, budget);
 
   if (name === "AggregateError") {
     const errors = Array.isArray(args[0]) ? ([...args[0]] as SandboxArray) : [];
@@ -86,19 +79,7 @@ function createSubsetError(
     error.cause = (options as SandboxObject).cause;
   }
 
-  Object.defineProperty(error, sandboxErrorBrand, {
-    enumerable: false,
-    value: {
-      chain: name === "Error" ? ["Error"] : [name, "Error"],
-      name
-    } satisfies SandboxErrorMetadata
-  });
-
   return error;
-}
-
-function isSandboxErrorObject(value: SandboxValue): value is SandboxErrorObject {
-  return typeof value === "object" && value !== null && sandboxErrorBrand in value;
 }
 
 function isObjectLike(value: SandboxValue): value is SandboxArray | SandboxObject {

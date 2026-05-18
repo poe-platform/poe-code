@@ -8,6 +8,7 @@ import {
   type SandboxClosure,
   type SandboxValue
 } from "../values.js";
+import { run } from "../../run.js";
 import { callArrayMethod, getArrayMember } from "./array.js";
 
 describe("array methods", () => {
@@ -489,6 +490,30 @@ describe("array methods", () => {
     await expect(callArrayMethod([], "reduceRight", [sum], options)).rejects.toThrow(
       "Reduce of empty array with no initial value."
     );
+  });
+
+  it("exposes caught empty reduce errors as sandbox TypeErrors", async () => {
+    await expect(
+      run(`
+        const results = [];
+        try {
+          [].reduce((accumulator, value) => accumulator + value);
+        } catch (error) {
+          results.push(error.name, error instanceof TypeError, error instanceof Error);
+        }
+
+        try {
+          [].reduceRight((accumulator, value) => accumulator + value);
+        } catch (error) {
+          results.push(error.name, error instanceof TypeError, error instanceof Error);
+        }
+
+        return results;
+      `)
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: ["TypeError", true, true, "TypeError", true, true]
+    });
   });
 });
 

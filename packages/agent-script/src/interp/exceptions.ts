@@ -21,6 +21,26 @@ import type { Scope } from "./scope.js";
 import { deepCopyToSandbox, type SandboxObject, type SandboxValue } from "./values.js";
 
 const capturedExceptionBrand = Symbol("CapturedException");
+const sandboxErrorBrand = Symbol("SandboxError");
+const sandboxErrorNames = [
+  "Error",
+  "TypeError",
+  "RangeError",
+  "ReferenceError",
+  "SyntaxError",
+  "AggregateError"
+] as const;
+
+export type SandboxErrorName = (typeof sandboxErrorNames)[number];
+
+type SandboxErrorMetadata = {
+  readonly chain: readonly SandboxErrorName[];
+  readonly name: SandboxErrorName;
+};
+
+type SandboxErrorObject = SandboxObject & {
+  readonly [sandboxErrorBrand]: SandboxErrorMetadata;
+};
 
 export type CompletionKind = "normal" | "return" | "throw" | "break" | "continue";
 
@@ -175,15 +195,48 @@ export function createSubsetErrorValue(
     const errorMessage = budget.allocateString(coerceErrorMessage(message));
     const header = errorMessage === "" ? errorName : `${errorName}: ${errorMessage}`;
     const stack = budget.allocateString([header, ...[...stackFrames].reverse()].join("\n"));
-
-    return {
+    const error = {
       name: errorName,
       message: errorMessage,
       stack
     };
+
+    defineSandboxErrorMetadata(error, errorName);
+    return error;
   } finally {
     resumeChecks?.();
   }
+}
+
+export function isSandboxErrorConstructorInstance(
+  value: SandboxValue,
+  name: SandboxErrorName
+): boolean {
+  return isSandboxErrorObject(value) && value[sandboxErrorBrand].chain.includes(name);
+}
+
+function defineSandboxErrorMetadata(error: SandboxObject, name: string): void {
+  const metadataName = toSandboxErrorName(name);
+
+  Object.defineProperty(error, sandboxErrorBrand, {
+    enumerable: false,
+    value: {
+      chain: metadataName === "Error" ? ["Error"] : [metadataName, "Error"],
+      name: metadataName
+    } satisfies SandboxErrorMetadata
+  });
+}
+
+function toSandboxErrorName(name: string): SandboxErrorName {
+  return isSandboxErrorName(name) ? name : "Error";
+}
+
+function isSandboxErrorName(name: string): name is SandboxErrorName {
+  return sandboxErrorNames.includes(name as SandboxErrorName);
+}
+
+function isSandboxErrorObject(value: SandboxValue): value is SandboxErrorObject {
+  return typeof value === "object" && value !== null && sandboxErrorBrand in value;
 }
 
 function coerceErrorMessage(message: SandboxValue): string {

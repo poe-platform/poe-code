@@ -378,7 +378,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: interp-coercion-comparison
     title: Interpreter — coercion, equality, comparison edges
@@ -408,9 +408,9 @@ tasks:
 
       Conventional commit: `fix(agent-script): interpreter coercion edges`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: interp-destructuring-runtime
     title: Interpreter — destructuring runtime edges

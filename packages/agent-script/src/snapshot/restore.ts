@@ -9,7 +9,12 @@ import {
   type SandboxValue
 } from "../interp/values.js";
 import { hashSource } from "../parse/hash.js";
-import { parseModule, type ArrowFunctionExpression, type Module, type ParseResult } from "../parse/parser.js";
+import {
+  parseModule,
+  type ArrowFunctionExpression,
+  type Module,
+  type ParseResult
+} from "../parse/parser.js";
 import {
   createUnknownModuleMessage,
   type ModuleExports,
@@ -91,7 +96,10 @@ export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): 
 
   const state: RestoreState = {
     budget: options.budget,
-    moduleBindings: restoreModuleBindings(snapshot.moduleBindings, options.modules, options.budget),
+    moduleBindings: restoreModuleBindings(snapshot.moduleBindings, options.modules, {
+      budget: options.budget,
+      signal: options.signal
+    }),
     nodeById,
     pendingPromiseById: new Map(),
     serializedScopeById: new Map(snapshot.scopeChain.map((frame) => [frame.id, frame])),
@@ -99,7 +107,9 @@ export function restore(snapshot: SerializedSnapshot, options: RestoreOptions): 
     scopeFrameById: new Map()
   };
 
-  const pendingPromises = snapshot.pendingPromises.map((entry) => restorePendingPromise(entry, state));
+  const pendingPromises = snapshot.pendingPromises.map((entry) =>
+    restorePendingPromise(entry, state)
+  );
   const scopeChain = snapshot.scopeChain.map((frame) => restoreScopeFrame(frame, state));
   const currentScopeId = snapshot.callStack.at(-1)?.scopeId ?? scopeChain.at(-1)?.id;
 
@@ -147,7 +157,9 @@ function restoreCallFrame(frame: RuntimeCallFrame, state: RestoreState): Restore
       : state.pendingPromiseById.get(frame.awaitingPromiseId);
 
   if (frame.awaitingPromiseId !== undefined && awaitingPromise === undefined) {
-    throw new Error(`Snapshot references unknown pending promise ${String(frame.awaitingPromiseId)}.`);
+    throw new Error(
+      `Snapshot references unknown pending promise ${String(frame.awaitingPromiseId)}.`
+    );
   }
 
   return awaitingPromise === undefined
@@ -193,10 +205,7 @@ function restorePendingPromise(
   return runtime;
 }
 
-function restoreScopeFrame(
-  frame: SerializedScopeFrame,
-  state: RestoreState
-): RuntimeScopeFrame {
+function restoreScopeFrame(frame: SerializedScopeFrame, state: RestoreState): RuntimeScopeFrame {
   const existing = state.scopeFrameById.get(frame.id);
   if (existing !== undefined) {
     return existing;
@@ -235,7 +244,7 @@ function restoreScopeFrame(
   const parentScope =
     frame.parentId === undefined
       ? undefined
-      : state.scopeById.get(frame.parentId) ?? restoreParentScope(frame.parentId, state);
+      : (state.scopeById.get(frame.parentId) ?? restoreParentScope(frame.parentId, state));
   const scope =
     parentScope === undefined
       ? new Scope(bindings as Record<string, SandboxValue>)
@@ -326,8 +335,7 @@ function restoreClosureValue(
 
   const baseClosure = createSandboxClosure({
     async: true,
-    call: (args) =>
-      createSandboxPromise(executeRestoredClosure(node, capturedScopeId, args, state))
+    call: (args) => createSandboxPromise(executeRestoredClosure(node, capturedScopeId, args, state))
   });
 
   return Object.defineProperties(Object.create(baseClosure), {
@@ -355,7 +363,8 @@ async function executeRestoredClosure(
   args: readonly SandboxValue[],
   state: RestoreState
 ): Promise<SandboxValue> {
-  const capturedScope = state.scopeById.get(capturedScopeId) ?? restoreParentScope(capturedScopeId, state);
+  const capturedScope =
+    state.scopeById.get(capturedScopeId) ?? restoreParentScope(capturedScopeId, state);
   const scope = capturedScope.child();
 
   for (let index = 0; index < node.params.length; index += 1) {
@@ -390,7 +399,7 @@ function restorePromiseValue(
 function restoreModuleBindings(
   moduleBindings: SerializedSnapshot["moduleBindings"],
   modules: ModuleRegistry | undefined,
-  budget: Budget
+  options: { budget: Budget; signal?: AbortSignal }
 ): Record<string, SandboxValue> {
   const bindings = Object.create(null) as Record<string, SandboxValue>;
   const registry = normalizeModuleRegistry(modules);
@@ -402,7 +411,7 @@ function restoreModuleBindings(
     }
 
     bindings[localName] = createModuleNamespace(
-      wrapCallerInjectedBindings(Object.fromEntries(moduleExports), { budget })
+      wrapCallerInjectedBindings(Object.fromEntries(moduleExports), options)
     );
   }
 
@@ -423,20 +432,20 @@ function normalizeModuleRegistry(
   const entries = modules instanceof Map ? [...modules.entries()] : Object.entries(modules);
   return new Map(
     entries
-      .map(([moduleName, moduleExports]) => [moduleName, normalizeModuleExports(moduleExports)] as const)
+      .map(
+        ([moduleName, moduleExports]) =>
+          [moduleName, normalizeModuleExports(moduleExports)] as const
+      )
       .sort(([left], [right]) => left.localeCompare(right))
   );
 }
 
-function normalizeModuleExports(
-  moduleExports: ModuleExports
-): Map<string, CallerInjectedBinding> {
-  const entries = moduleExports instanceof Map ? [...moduleExports.entries()] : Object.entries(moduleExports);
+function normalizeModuleExports(moduleExports: ModuleExports): Map<string, CallerInjectedBinding> {
+  const entries =
+    moduleExports instanceof Map ? [...moduleExports.entries()] : Object.entries(moduleExports);
 
   return new Map(
-    entries
-      .filter(([name]) => name.length > 0)
-      .sort(([left], [right]) => left.localeCompare(right))
+    entries.filter(([name]) => name.length > 0).sort(([left], [right]) => left.localeCompare(right))
   );
 }
 
@@ -477,7 +486,9 @@ function indexAstNodes(root: Module): Map<number, ParseResult> {
 function isSerializedUndefinedValue(
   value: SerializedSnapshotValue
 ): value is { kind: "undefined" } {
-  return typeof value === "object" && value !== null && "kind" in value && value.kind === "undefined";
+  return (
+    typeof value === "object" && value !== null && "kind" in value && value.kind === "undefined"
+  );
 }
 
 function isSerializedNonFiniteNumberValue(
@@ -486,14 +497,10 @@ function isSerializedNonFiniteNumberValue(
   return typeof value === "object" && value !== null && "kind" in value && value.kind === "number";
 }
 
-function isSerializedPromiseValue(
-  value: SerializedSnapshotValue
-): value is SerializedPromiseValue {
+function isSerializedPromiseValue(value: SerializedSnapshotValue): value is SerializedPromiseValue {
   return typeof value === "object" && value !== null && "kind" in value && value.kind === "promise";
 }
 
-function isSerializedClosureValue(
-  value: SerializedSnapshotValue
-): value is SerializedClosureValue {
+function isSerializedClosureValue(value: SerializedSnapshotValue): value is SerializedClosureValue {
   return typeof value === "object" && value !== null && "kind" in value && value.kind === "fn";
 }

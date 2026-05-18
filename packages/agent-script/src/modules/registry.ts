@@ -10,13 +10,18 @@ import type {
   Module
 } from "../parse/parser.js";
 
-export type ModuleExports = ReadonlyMap<string, CallerInjectedBinding> | Record<string, CallerInjectedBinding>;
+export type ModuleExports =
+  | ReadonlyMap<string, CallerInjectedBinding>
+  | Record<string, CallerInjectedBinding>;
 
 export type ModuleRegistry = ReadonlyMap<string, ModuleExports> | Record<string, ModuleExports>;
 
 type NormalizedModuleRegistry = Map<string, Map<string, CallerInjectedBinding>>;
 
-export function createUnknownModuleMessage(moduleName: string, moduleNames: readonly string[]): string {
+export function createUnknownModuleMessage(
+  moduleName: string,
+  moduleNames: readonly string[]
+): string {
   if (moduleNames.length === 0) {
     return `Unknown module '${moduleName}'. No modules are registered.`;
   }
@@ -74,7 +79,8 @@ function bindImportDeclaration(
     wrappedModules.get(moduleName) ??
     wrapCancelableBindings(
       wrapCallerInjectedBindings(Object.fromEntries(moduleExports), {
-        budget: options.budget
+        budget: options.budget,
+        signal: options.signal
       }),
       options.signal
     );
@@ -101,14 +107,17 @@ function resolveImportSpecifier(
     return createBindingRecord(wrappedExports);
   }
 
-  const exportName = specifier.type === "ImportDefaultSpecifier" ? "default" : specifier.imported.name;
+  const exportName =
+    specifier.type === "ImportDefaultSpecifier" ? "default" : specifier.imported.name;
   const exportedValue = wrappedExports[exportName];
 
   if (exportedValue !== undefined || Object.hasOwn(wrappedExports, exportName)) {
     return exportedValue;
   }
 
-  throw new Error(createUnknownExportMessage(moduleName, exportName, Object.keys(wrappedExports).sort()));
+  throw new Error(
+    createUnknownExportMessage(moduleName, exportName, Object.keys(wrappedExports).sort())
+  );
 }
 
 function normalizeModuleRegistry(modules: ModuleRegistry | undefined): NormalizedModuleRegistry {
@@ -119,13 +128,17 @@ function normalizeModuleRegistry(modules: ModuleRegistry | undefined): Normalize
   const entries = modules instanceof Map ? [...modules.entries()] : Object.entries(modules);
   return new Map(
     entries
-      .map(([moduleName, moduleExports]) => [moduleName, normalizeModuleExports(moduleExports)] as const)
+      .map(
+        ([moduleName, moduleExports]) =>
+          [moduleName, normalizeModuleExports(moduleExports)] as const
+      )
       .sort(([left], [right]) => left.localeCompare(right))
   );
 }
 
 function normalizeModuleExports(moduleExports: ModuleExports): Map<string, CallerInjectedBinding> {
-  const entries = moduleExports instanceof Map ? [...moduleExports.entries()] : Object.entries(moduleExports);
+  const entries =
+    moduleExports instanceof Map ? [...moduleExports.entries()] : Object.entries(moduleExports);
 
   return new Map(
     entries

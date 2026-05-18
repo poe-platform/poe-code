@@ -1,5 +1,5 @@
 import { normalizeClosureResult } from "./async.js";
-import type { Budget } from "./budget.js";
+import { SandboxError, type Budget } from "./budget.js";
 import { createSubsetErrorValue } from "./exceptions.js";
 import { bindOtelSpan, getBoundOtelSpan } from "../observability/otel.js";
 import {
@@ -20,6 +20,11 @@ type CallerInjectedFunction = {
   bivarianceHack(...args: readonly unknown[]): unknown;
 }["bivarianceHack"];
 
+type HostBridgeOptions = {
+  budget: Budget;
+  signal?: AbortSignal;
+};
+
 export type CallerInjectedBinding =
   | SandboxValue
   | CallerInjectedFunction
@@ -30,12 +35,12 @@ export type CallerInjectedBinding =
 
 export function wrapCallerInjectedBindings(
   bindings: Record<string, CallerInjectedBinding>,
-  options: { budget: Budget }
+  options: HostBridgeOptions
 ): Record<string, SandboxValue> {
   return Object.fromEntries(
     Object.entries(bindings).map(([name, value]) => [
       name,
-      wrapCallerInjectedValue(name, value, options.budget)
+      wrapCallerInjectedValue(name, value, options)
     ])
   );
 }
@@ -43,16 +48,16 @@ export function wrapCallerInjectedBindings(
 function wrapCallerInjectedValue(
   name: string,
   value: CallerInjectedBinding,
-  budget: Budget
+  options: HostBridgeOptions
 ): SandboxValue {
   if (typeof value !== "function") {
-    return copyHostResultToSandbox(value, [], budget);
+    return copyHostResultToSandbox(value, [], options);
   }
 
   const bindingName = name === "default" && value.name.length > 0 ? value.name : name;
   const callable = value as (...args: readonly unknown[]) => unknown;
   const state = { seen: new WeakMap<object, SandboxValue>() };
-  const properties = copyFunctionProperties(callable, [], budget, state, bindingName);
+  const properties = copyFunctionProperties(callable, [], options, state, bindingName);
 
   return createSandboxClosure({
     ...(isAsyncFunction(callable) ? { async: true as const } : {}),
@@ -61,17 +66,22 @@ function wrapCallerInjectedValue(
         const stackFrames = context?.stack ?? [];
         const hostArgs = args.map((arg) =>
           deepCopyFromSandbox(arg, {
-            wrapClosure: (closure) => wrapSandboxClosureForHost(closure, stackFrames, budget)
+            wrapClosure: (closure) =>
+              wrapSandboxClosureForHost(closure, stackFrames, options.budget)
           })
         );
 
         return copyHostResultToSandbox(
           Reflect.apply(callable, undefined, hostArgs),
           stackFrames,
-          budget
+          options
         );
       } catch (error) {
-        throw createHostErrorValue(error, context?.stack ?? [], budget);
+        if (isFatalBridgeError(error)) {
+          throw error;
+        }
+
+        throw createHostErrorValue(error, context?.stack ?? [], options.budget);
       }
     },
     name: bindingName,
@@ -82,12 +92,12 @@ function wrapCallerInjectedValue(
 function copyHostResultToSandbox(
   result: unknown,
   stackFrames: readonly string[],
-  budget: Budget
+  options: HostBridgeOptions
 ): SandboxValue {
   return copyHostValueToSandbox(
     result,
     stackFrames,
-    budget,
+    options,
     {
       seen: new WeakMap()
     },
@@ -106,15 +116,9 @@ function createHostErrorValue(
     });
   }
 
-  return createSubsetErrorValue(
-    "Error",
-    reason === undefined ? "" : String(reason),
-    stackFrames,
-    budget,
-    {
-      chargeBudget: false
-    }
-  );
+  return createSubsetErrorValue("Error", describeThrownReason(reason), stackFrames, budget, {
+    chargeBudget: false
+  });
 }
 
 function wrapSandboxClosureForHost(
@@ -188,24 +192,77 @@ function isPromiseLike(value: unknown): value is PromiseLike<unknown> {
   return typeof value === "object" && value !== null && "then" in value;
 }
 
+function isFatalBridgeError(error: unknown): error is SandboxError {
+  return error instanceof SandboxError && error.code === "budgetExceeded";
+}
+
+function wrapHostPromiseWithSignal<TValue>(
+  promise: Promise<TValue>,
+  signal: AbortSignal | undefined
+): Promise<TValue> {
+  if (signal === undefined) {
+    return promise;
+  }
+
+  if (signal.aborted) {
+    return Promise.reject(readAbortReason(signal));
+  }
+
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    const cleanup = () => {
+      signal.removeEventListener("abort", onAbort);
+    };
+    const settle = (complete: () => void) => {
+      if (settled) {
+        return;
+      }
+
+      settled = true;
+      cleanup();
+      complete();
+    };
+    const onAbort = () => {
+      settle(() => reject(readAbortReason(signal)));
+    };
+
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (value) => {
+        settle(() => resolve(value));
+      },
+      (reason) => {
+        settle(() => reject(reason));
+      }
+    );
+  });
+}
+
 function copyHostValueToSandbox(
   value: unknown,
   stackFrames: readonly string[],
-  budget: Budget,
+  options: HostBridgeOptions,
   state: {
     seen: WeakMap<object, SandboxValue>;
   },
   path: string
 ): SandboxValue {
+  const { budget } = options;
+
   if (
     value === null ||
     value === undefined ||
-    typeof value === "string" ||
     typeof value === "number" ||
-    typeof value === "boolean" ||
-    isSandboxClosure(value) ||
-    isSandboxPromise(value)
+    typeof value === "boolean"
   ) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return options.budget.allocateString(value);
+  }
+
+  if (isSandboxClosure(value) || isSandboxPromise(value)) {
     return deepCopyToSandbox(value);
   }
 
@@ -216,7 +273,7 @@ function copyHostValueToSandbox(
       return existing;
     }
 
-    const properties = copyFunctionProperties(callable, stackFrames, budget, state, path);
+    const properties = copyFunctionProperties(callable, stackFrames, options, state, path);
     const wrapped = createSandboxClosure({
       ...(isAsyncFunction(callable) ? { async: true as const } : {}),
       call: (args, context) => {
@@ -232,9 +289,13 @@ function copyHostValueToSandbox(
           return copyHostResultToSandbox(
             Reflect.apply(callable, undefined, hostArgs),
             nestedStackFrames,
-            budget
+            options
           );
         } catch (error) {
+          if (isFatalBridgeError(error)) {
+            throw error;
+          }
+
           throw createHostErrorValue(error, context?.stack ?? [], budget);
         }
       },
@@ -247,23 +308,33 @@ function copyHostValueToSandbox(
   }
 
   if (isPromiseLike(value)) {
-    const promise = Promise.resolve(value).then(
+    const promise = wrapHostPromiseWithSignal(Promise.resolve(value), options.signal).then(
       (resolved) => {
         try {
           return copyHostValueToSandbox(
             resolved,
             stackFrames,
-            budget,
+            options,
             {
               seen: new WeakMap()
             },
             "<root>"
           );
         } catch (error) {
+          if (isFatalBridgeError(error)) {
+            return Promise.reject(error);
+          }
+
           return Promise.reject(createHostErrorValue(error, stackFrames, budget));
         }
       },
-      (reason) => Promise.reject(createHostErrorValue(reason, stackFrames, budget))
+      (reason) => {
+        if (isFatalBridgeError(reason)) {
+          return Promise.reject(reason);
+        }
+
+        return Promise.reject(createHostErrorValue(reason, stackFrames, budget));
+      }
     );
     const sandboxPromise = createSandboxPromise(promise);
     const span = getBoundOtelSpan(value);
@@ -282,9 +353,10 @@ function copyHostValueToSandbox(
 
     const copy = new Array(value.length) as SandboxValue[];
     state.seen.set(value, copy);
+    budget.allocateArrayLength(value.length);
 
     value.forEach((entry, index) => {
-      copy[index] = copyHostValueToSandbox(entry, stackFrames, budget, state, `${path}[${index}]`);
+      copy[index] = copyHostValueToSandbox(entry, stackFrames, options, state, `${path}[${index}]`);
     });
 
     return copy;
@@ -317,7 +389,7 @@ function copyHostValueToSandbox(
         value: copyHostValueToSandbox(
           descriptor.value,
           stackFrames,
-          budget,
+          options,
           state,
           joinPath(path, key)
         )
@@ -330,10 +402,71 @@ function copyHostValueToSandbox(
   throw new TypeError(`Unsupported sandbox value at ${path}: ${describeValue(value)}`);
 }
 
+function readAbortReason(signal: AbortSignal): unknown {
+  return signal.reason ?? createAbortError();
+}
+
+function createAbortError(): Error {
+  if (typeof DOMException === "function") {
+    return new DOMException("This operation was aborted", "AbortError");
+  }
+
+  const error = new Error("This operation was aborted");
+  error.name = "AbortError";
+  return error;
+}
+
+function describeThrownReason(reason: unknown): string {
+  if (reason === undefined) {
+    return "";
+  }
+
+  if (typeof reason === "string") {
+    return reason;
+  }
+
+  if (
+    reason === null ||
+    typeof reason === "number" ||
+    typeof reason === "boolean" ||
+    typeof reason === "bigint" ||
+    typeof reason === "symbol"
+  ) {
+    return String(reason);
+  }
+
+  if (typeof reason === "object") {
+    const message = readStringProperty(reason, "message");
+    if (message !== undefined && message.length > 0) {
+      return message;
+    }
+
+    const name = readStringProperty(reason, "name");
+    if (name !== undefined && name.length > 0) {
+      return name;
+    }
+  }
+
+  try {
+    return String(reason);
+  } catch {
+    return Object.prototype.toString.call(reason);
+  }
+}
+
+function readStringProperty(value: object, key: string): string | undefined {
+  if (!Object.hasOwn(value, key)) {
+    return undefined;
+  }
+
+  const entry = (value as Record<string, unknown>)[key];
+  return typeof entry === "string" ? entry : undefined;
+}
+
 function copyFunctionProperties(
   callable: (...args: readonly unknown[]) => unknown,
   stackFrames: readonly string[],
-  budget: Budget,
+  options: HostBridgeOptions,
   state: {
     seen: WeakMap<object, SandboxValue>;
   },
@@ -357,7 +490,7 @@ function copyFunctionProperties(
     properties[key] = copyHostValueToSandbox(
       descriptor.value,
       stackFrames,
-      budget,
+      options,
       state,
       joinPath(path, key)
     );

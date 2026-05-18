@@ -99,7 +99,8 @@ export function run(source: string, options: RunOptions = {}): Promise<RunResult
         options.bindings === undefined
           ? {}
           : wrapCallerInjectedBindings(options.bindings, {
-              budget
+              budget,
+              signal: options.signal
             });
       const bindings = wrapCancelableBindings(
         {

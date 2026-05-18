@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { run } from "../run.js";
 import { Budget } from "./budget.js";
 import { wrapCallerInjectedBindings } from "./host-bridge.js";
 import {
@@ -66,6 +67,307 @@ describe("host bridge", () => {
       },
       items: [1, 2, 3]
     });
+  });
+
+  it("passes sandbox objects to host functions as deep copies", () => {
+    let observedInput: { nested: { value: number } } | undefined;
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        host(input: { nested: { value: number } }) {
+          observedInput = input;
+          return input.nested.value;
+        }
+      },
+      {
+        budget: new Budget()
+      }
+    ).host as SandboxClosure;
+    const sandboxInput = deepCopyToSandbox({
+      nested: {
+        value: 1
+      }
+    }) as SandboxObject;
+
+    const result = wrapped.call([sandboxInput]);
+
+    expect(result).toBe(1);
+    expect(observedInput).toEqual({
+      nested: {
+        value: 1
+      }
+    });
+    expect(observedInput).not.toBe(sandboxInput);
+    expect(observedInput?.nested).not.toBe(sandboxInput.nested);
+  });
+
+  it("keeps sandbox values unchanged when host mutates its deep copy", () => {
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        host(input: { nested: { value: number } }) {
+          input.nested.value = 2;
+          return input;
+        }
+      },
+      {
+        budget: new Budget()
+      }
+    ).host as SandboxClosure;
+    const sandboxInput = deepCopyToSandbox({
+      nested: {
+        value: 1
+      }
+    }) as SandboxObject;
+
+    const result = wrapped.call([sandboxInput]);
+
+    expect(sandboxInput).toEqual({
+      nested: {
+        value: 1
+      }
+    });
+    expect(result).toEqual({
+      nested: {
+        value: 2
+      }
+    });
+  });
+
+  it("copies host-returned objects into fresh sandbox objects", () => {
+    const hostObject = {
+      nested: {
+        value: 1
+      }
+    };
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        host() {
+          return hostObject;
+        }
+      },
+      {
+        budget: new Budget()
+      }
+    ).host as SandboxClosure;
+
+    const result = wrapped.call([]);
+
+    expect(result).toEqual(hostObject);
+    expect(result).not.toBe(hostObject);
+    expect((result as SandboxObject).nested).not.toBe(hostObject.nested);
+  });
+
+  it("copies both sides when host returns the same input object and does not preserve identity", () => {
+    let observedInput: { value: number } | undefined;
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        host(input: { value: number }) {
+          observedInput = input;
+          return input;
+        }
+      },
+      {
+        budget: new Budget()
+      }
+    ).host as SandboxClosure;
+    const sandboxInput = deepCopyToSandbox({
+      value: 1
+    }) as SandboxObject;
+
+    const result = wrapped.call([sandboxInput]);
+
+    expect(observedInput).toEqual({
+      value: 1
+    });
+    expect(observedInput).not.toBe(sandboxInput);
+    expect(result).toEqual({
+      value: 1
+    });
+    expect(result).not.toBe(sandboxInput);
+    expect(result).not.toBe(observedInput);
+  });
+
+  it.each([
+    ["undefined", undefined],
+    ["null", null]
+  ] as const)("copies host-returned %s into the sandbox", (_name, value) => {
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        host() {
+          return value;
+        }
+      },
+      {
+        budget: new Budget()
+      }
+    ).host as SandboxClosure;
+
+    expect(wrapped.call([])).toBe(value);
+  });
+
+  it("documents returned host functions as sandbox closures", () => {
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        host() {
+          return (value: number) => value + 1;
+        }
+      },
+      {
+        budget: new Budget()
+      }
+    ).host as SandboxClosure;
+
+    const returned = wrapped.call([]);
+
+    expect(typeof returned).toBe("object");
+    expect((returned as SandboxClosure).kind).toBe("fn");
+    expect((returned as SandboxClosure).call([1])).toBe(2);
+  });
+
+  it("lets sandbox code catch synchronous host throws at the call site", async () => {
+    const result = await run(
+      [
+        "try {",
+        "  explode();",
+        "} catch ({ name, message }) {",
+        "  return name + ':' + message;",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          explode() {
+            throw new TypeError("boom");
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "TypeError:boom"
+    });
+  });
+
+  it("lets sandbox code catch rejected host promises at the await site", async () => {
+    const result = await run(
+      [
+        "try {",
+        "  await explode();",
+        "} catch ({ name, message }) {",
+        "  return name + ':' + message;",
+        "}"
+      ].join("\n"),
+      {
+        bindings: {
+          async explode() {
+            throw new RangeError("async boom");
+          }
+        }
+      }
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: "RangeError:async boom"
+    });
+  });
+
+  it("rejects in-flight host promises when the host bridge signal aborts", async () => {
+    const controller = new AbortController();
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        wait() {
+          return new Promise(() => undefined);
+        }
+      },
+      {
+        budget: new Budget(),
+        signal: controller.signal
+      }
+    ).wait as SandboxClosure;
+
+    const result = wrapped.call([], {
+      stack: ["    at wait (line 1, column 7)"]
+    });
+    controller.abort(new Error("stop waiting"));
+
+    expect(isSandboxPromise(result)).toBe(true);
+    await expect(result.promise).rejects.toEqual({
+      name: "Error",
+      message: "stop waiting",
+      stack: "Error: stop waiting\n    at wait (line 1, column 7)"
+    });
+  });
+
+  it.each([
+    [
+      "stringLength",
+      new Budget({
+        stringLength: 4
+      }),
+      "12345",
+      {
+        budget: "stringLength",
+        current: 5,
+        limit: 4
+      }
+    ],
+    [
+      "arrayLength",
+      new Budget({
+        arrayLength: 1
+      }),
+      [1, 2],
+      {
+        budget: "arrayLength",
+        current: 2,
+        limit: 1
+      }
+    ]
+  ] as const)("applies %s budget to host-returned values", (_name, budget, value, expected) => {
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        host() {
+          return value;
+        }
+      },
+      {
+        budget
+      }
+    ).host as SandboxClosure;
+
+    expect(() => wrapped.call([])).toThrow(
+      expect.objectContaining({
+        code: "budgetExceeded",
+        ...expected
+      })
+    );
+  });
+
+  it("wraps host errors with no message field into readable sandbox errors", () => {
+    const thrown = Object.create(null) as { name: string };
+    thrown.name = "HostFailure";
+    const wrapped = wrapCallerInjectedBindings(
+      {
+        explode() {
+          throw thrown;
+        }
+      },
+      {
+        budget: new Budget()
+      }
+    ).explode as SandboxClosure;
+
+    expect(() =>
+      wrapped.call([], {
+        stack: ["    at explode (line 1, column 7)"]
+      })
+    ).toThrow(
+      expect.objectContaining({
+        name: "Error",
+        message: "HostFailure",
+        stack: "Error: HostFailure\n    at explode (line 1, column 7)"
+      })
+    );
   });
 
   it("converts host throws into subset errors with sandbox-only stacks", () => {

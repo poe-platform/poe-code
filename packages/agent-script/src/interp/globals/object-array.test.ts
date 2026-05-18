@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 
+import { run } from "../../run.js";
 import { Budget, SandboxError } from "../budget.js";
-import { isSandboxClosure, type SandboxClosure, type SandboxObject } from "../values.js";
+import {
+  createSandboxClosure,
+  isSandboxClosure,
+  type SandboxClosure,
+  type SandboxObject
+} from "../values.js";
 import { createObjectArrayGlobals } from "./object-array.js";
 
 describe("createObjectArrayGlobals", () => {
@@ -72,6 +78,103 @@ describe("createObjectArrayGlobals", () => {
     expect(await globals.String.call([123])).toBe("123");
     expect(await globals.Number.call(["42.5"])).toBe(42.5);
     expect(await globals.Boolean.call([0])).toBe(false);
+  });
+
+  it("matches Object static edge behavior", async () => {
+    const globals = createObjectArrayGlobals({
+      budget: new Budget()
+    });
+    const keys = getClosure(getProperty(globals.Object, "keys"));
+    const values = getClosure(getProperty(globals.Object, "values"));
+    const entries = getClosure(getProperty(globals.Object, "entries"));
+    const fromEntries = getClosure(getProperty(globals.Object, "fromEntries"));
+    const freeze = getClosure(getProperty(globals.Object, "freeze"));
+    const isFrozen = getClosure(getProperty(globals.Object, "isFrozen"));
+    const assign = getClosure(getProperty(globals.Object, "assign"));
+
+    expect(() => keys.call([null])).toThrow(TypeError);
+    expect(() => keys.call([undefined])).toThrow(TypeError);
+    expect(await keys.call(["ab"])).toEqual(["0", "1"]);
+    expect(await values.call([{}])).toEqual([]);
+    expect(await entries.call([{ a: 1 }])).toEqual([["a", 1]]);
+    expect(await fromEntries.call([[["a", 1]]])).toEqual({ a: 1 });
+    expect(await fromEntries.call([[]])).toEqual({});
+    expect(() => fromEntries.call([null])).toThrow(TypeError);
+
+    const protoEntryObject = await fromEntries.call([[["__proto__", 1]]]);
+    expect(Object.hasOwn(protoEntryObject as object, "__proto__")).toBe(true);
+    expect((protoEntryObject as Record<string, unknown>).__proto__).toBe(1);
+    expect(Object.getPrototypeOf(protoEntryObject)).toBe(Object.prototype);
+
+    const frozen = await freeze.call([{ a: 1 }]);
+    expect(await freeze.call([frozen])).toBe(frozen);
+    expect(await isFrozen.call([frozen])).toBe(true);
+    expect(await isFrozen.call([{}])).toBe(false);
+
+    expect(await assign.call([{}, { a: 1 }, { a: 2 }])).toEqual({ a: 2 });
+    expect(await assign.call([{ a: 1 }, undefined, null, { b: 2 }])).toEqual({
+      a: 1,
+      b: 2
+    });
+
+    let getterCalls = 0;
+    const getterSource = {
+      get value() {
+        getterCalls += 1;
+        return "copied";
+      }
+    };
+    expect(await assign.call([{}, getterSource])).toEqual({
+      value: "copied"
+    });
+    expect(getterCalls).toBe(1);
+  });
+
+  it("matches Array and coercion static edge behavior", async () => {
+    const globals = createObjectArrayGlobals({
+      budget: new Budget()
+    });
+    const isArray = getClosure(getProperty(globals.Array, "isArray"));
+    const from = getClosure(getProperty(globals.Array, "from"));
+    const of = getClosure(getProperty(globals.Array, "of"));
+
+    expect(await isArray.call([[]])).toBe(true);
+    expect(await isArray.call(["a"])).toBe(false);
+    expect(await isArray.call([{ length: 1 }])).toBe(false);
+    expect(await from.call(["ab"])).toEqual(["a", "b"]);
+    expect(await from.call([{ length: 3 }])).toEqual([undefined, undefined, undefined]);
+    expect(await from.call([{ length: 3 }, createIndexMapper()])).toEqual([0, 1, 2]);
+    expect(await of.call([7])).toEqual([7]);
+    expect(await of.call([])).toEqual([]);
+
+    expect(await globals.Number.call(["0x10"])).toBe(16);
+    expect(await globals.Number.call([" "])).toBe(0);
+    expect(await globals.Number.call([""])).toBe(0);
+    expect(await globals.Number.call(["abc"])).toBeNaN();
+
+    expect(await globals.Boolean.call([""])).toBe(false);
+    expect(await globals.Boolean.call(["false"])).toBe(true);
+    expect(await globals.Boolean.call([0])).toBe(false);
+    expect(await globals.Boolean.call([NaN])).toBe(false);
+  });
+
+  it("documents frozen member writes as TypeError in the interpreter", async () => {
+    const result = await run(
+      [
+        "const value = Object.freeze({ a: 1 });",
+        "try {",
+        "  value.a = 2;",
+        "  return JSON.stringify(['mutated', value.a]);",
+        "} catch (error) {",
+        "  return JSON.stringify([error.name, value.a]);",
+        "}"
+      ].join("\n")
+    );
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: JSON.stringify(["TypeError", 1])
+    });
   });
 
   it("exposes String.raw as a static method", async () => {
@@ -195,4 +298,11 @@ function getClosureProperty(value: SandboxClosure, name: string) {
 
 function getClosure(value: unknown): SandboxClosure {
   return value as SandboxClosure;
+}
+
+function createIndexMapper(): SandboxClosure {
+  return createSandboxClosure({
+    call: ([_value, index]) => index,
+    name: "indexMapper"
+  });
 }

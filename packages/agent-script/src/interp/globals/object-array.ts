@@ -48,6 +48,10 @@ export function createObjectArrayGlobals(options: { budget: Budget }): ObjectArr
         },
         name: "freeze"
       }),
+      isFrozen: createSandboxClosure({
+        call: ([value]) => Object.isFrozen(value),
+        name: "isFrozen"
+      }),
       assign: createSandboxClosure({
         call: ([target, ...sources]) => assignSandboxValues(target, sources),
         name: "assign"

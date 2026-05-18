@@ -19,7 +19,7 @@ export function splitFrontmatter(markdown: string): SplitFrontmatterResult {
   const closingFence = findClosingFence(content, frontmatterStart);
   const yamlBlock = content.slice(frontmatterStart, closingFence.index);
   const frontmatter = parseFrontmatter(yamlBlock);
-  const bodyStart = closingFence.index + 3 + closingFence.lineBreakLength;
+  const bodyStart = closingFence.endIndex + closingFence.lineBreakLength;
 
   return {
     frontmatter,
@@ -47,14 +47,15 @@ function readOpeningLineBreak(markdown: string): "\n" | "\r\n" | undefined {
 function findClosingFence(
   markdown: string,
   searchStart: number
-): { index: number; lineBreakLength: 0 | 1 | 2 } {
+): { index: number; endIndex: number; lineBreakLength: 0 | 1 | 2 } {
   let lineStart = searchStart;
 
   while (lineStart <= markdown.length) {
     const lineEnd = findLineEnd(markdown, lineStart);
-    if (markdown.slice(lineStart, lineEnd.index) === "---") {
+    if (isClosingFenceLine(markdown.slice(lineStart, lineEnd.index))) {
       return {
         index: lineStart,
+        endIndex: lineEnd.index,
         lineBreakLength: lineEnd.lineBreakLength
       };
     }
@@ -69,6 +70,21 @@ function findClosingFence(
   throw new Error(
     `Invalid frontmatter at line ${countLines(markdown)}: missing closing delimiter (---).`
   );
+}
+
+function isClosingFenceLine(line: string): boolean {
+  if (!line.startsWith("---")) {
+    return false;
+  }
+
+  for (let index = 3; index < line.length; index += 1) {
+    const character = line[index];
+    if (character !== " " && character !== "\t") {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 function findLineEnd(markdown: string, start: number): { index: number; lineBreakLength: 0 | 1 | 2 } {

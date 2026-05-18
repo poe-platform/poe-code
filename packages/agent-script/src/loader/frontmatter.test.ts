@@ -74,6 +74,15 @@ describe("splitFrontmatter", () => {
     });
   });
 
+  it("returns an empty object for frontmatter that contains only blank lines", () => {
+    const markdown = ["---", "", "  ", "\t", "---", "# Heading"].join("\n");
+
+    expect(splitFrontmatter(markdown)).toEqual({
+      frontmatter: {},
+      body: "# Heading"
+    });
+  });
+
   it("allows the document to end immediately after the closing delimiter", () => {
     const markdown = ["---", "title: Example", "---"].join("\n");
 
@@ -95,6 +104,111 @@ describe("splitFrontmatter", () => {
       },
       body: "Body"
     });
+  });
+
+  it("parses frontmatter values containing colons and dashes", () => {
+    const markdown = [
+      "---",
+      "command: \"npm run dev -- --agent claude\"",
+      "description: \"Fix loader: preserve alpha-beta values\"",
+      "path: packages/agent-script/src/loader/frontmatter.ts",
+      "---",
+      "Body"
+    ].join("\n");
+
+    expect(splitFrontmatter(markdown)).toEqual({
+      frontmatter: {
+        command: "npm run dev -- --agent claude",
+        description: "Fix loader: preserve alpha-beta values",
+        path: "packages/agent-script/src/loader/frontmatter.ts"
+      },
+      body: "Body"
+    });
+  });
+
+  it("handles CRLF-only line endings without reporting a missing closing fence", () => {
+    const markdown = "---\r\ntitle: Example\r\n---\r\nBody";
+
+    expect(splitFrontmatter(markdown)).toEqual({
+      frontmatter: {
+        title: "Example"
+      },
+      body: "Body"
+    });
+  });
+
+  it("surfaces js-yaml errors for mixed tab and space indentation with the original line", () => {
+    const markdown = ["---", "tasks:", "\t- name: tabbed", "  - name: spaced", "---"].join("\n");
+
+    expect(() => splitFrontmatter(markdown)).toThrow(
+      "Invalid YAML frontmatter at line 3:"
+    );
+  });
+
+  it("does not impose a frontmatter size limit", () => {
+    const markdown = ["---", `value: ${"a".repeat(1024 * 1024 + 1)}`, "---", "Body"].join("\n");
+
+    expect(splitFrontmatter(markdown)).toEqual({
+      frontmatter: {
+        value: "a".repeat(1024 * 1024 + 1)
+      },
+      body: "Body"
+    });
+  });
+
+  it("preserves nested arrays of objects structurally", () => {
+    const markdown = [
+      "---",
+      "tasks:",
+      "  - name: plan",
+      "    steps:",
+      "      - title: inspect",
+      "        done: true",
+      "      - title: implement",
+      "        done: false",
+      "---",
+      "Body"
+    ].join("\n");
+
+    expect(splitFrontmatter(markdown)).toEqual({
+      frontmatter: {
+        tasks: [
+          {
+            name: "plan",
+            steps: [
+              {
+                title: "inspect",
+                done: true
+              },
+              {
+                title: "implement",
+                done: false
+              }
+            ]
+          }
+        ]
+      },
+      body: "Body"
+    });
+  });
+
+  it("accepts a closing fence with trailing whitespace", () => {
+    const markdown = ["---", "title: Example", "--- ", "Body"].join("\n");
+
+    expect(splitFrontmatter(markdown)).toEqual({
+      frontmatter: {
+        title: "Example"
+      },
+      body: "Body"
+    });
+  });
+
+  it("does not accept a closing fence with leading whitespace", () => {
+    const markdown = ["---", "title: Example", " ---"].join("\n");
+
+    expect(() => splitFrontmatter(markdown)).toThrow(
+      "Invalid frontmatter at line 3: missing closing delimiter (---)."
+    );
   });
 
   it("reports malformed yaml with the document line number", () => {

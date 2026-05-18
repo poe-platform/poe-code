@@ -991,7 +991,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: loader-frontmatter-edges
     title: loader/frontmatter — YAML edges
@@ -1014,8 +1014,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): frontmatter edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: loader-extract-block-edges

@@ -10,6 +10,7 @@ const REPLACE_ALL_MESSAGE =
   "String#replaceAll does not support function replacers or regex search values.";
 
 type StringMethodName =
+  | "at"
   | "charAt"
   | "charCodeAt"
   | "codePointAt"
@@ -36,6 +37,7 @@ type StringMethodName =
   | "trimStart";
 
 const stringMethodNames = new Set<StringMethodName>([
+  "at",
   "charAt",
   "charCodeAt",
   "codePointAt",
@@ -120,6 +122,10 @@ export function callStringMethod(
   }
 
   switch (methodName) {
+    case "at": {
+      const result = value.at(asNumber(args[0]));
+      return result === undefined ? undefined : budget.allocateString(result);
+    }
     case "charAt":
       return budget.allocateString(value.charAt(asNumber(args[0])));
     case "charCodeAt":
@@ -223,7 +229,11 @@ function isRegexValue(value: unknown): value is RegExp {
   return value instanceof RegExp;
 }
 
-function splitString(value: string, separator: string | undefined, limit: number | undefined): string[] {
+function splitString(
+  value: string,
+  separator: string | undefined,
+  limit: number | undefined
+): string[] {
   const split = String.prototype.split as (
     this: string,
     separator: string | undefined,

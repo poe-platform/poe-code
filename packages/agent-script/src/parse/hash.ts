@@ -20,7 +20,7 @@ export function hashParsedAst(ast: Module | ParseResult): string {
 
   return hash.toString(16).padStart(8, "0");
 
-  function visit(value: unknown): void {
+  function visit(value: unknown, includeTemplateRaw = false): void {
     if (value === null) {
       write("null");
       return;
@@ -34,7 +34,7 @@ export function hashParsedAst(ast: Module | ParseResult): string {
     if (Array.isArray(value)) {
       write("[");
       for (const entry of value) {
-        visit(entry);
+        visit(entry, includeTemplateRaw);
         write(",");
       }
       write("]");
@@ -52,15 +52,16 @@ export function hashParsedAst(ast: Module | ParseResult): string {
         write(JSON.stringify(value));
         return;
       case "object": {
+        const record = value as Record<string, unknown>;
         const keys = Object.keys(value)
-          .filter((key) => !IGNORED_KEYS.has(key))
+          .filter((key) => shouldHashKey(record, key, includeTemplateRaw))
           .sort();
 
         write("{");
         for (const key of keys) {
           write(JSON.stringify(key));
           write(":");
-          visit((value as Record<string, unknown>)[key]);
+          visit(record[key], shouldIncludeTemplateRaw(record, key, includeTemplateRaw));
           write(",");
         }
         write("}");
@@ -77,4 +78,36 @@ export function hashParsedAst(ast: Module | ParseResult): string {
       hash = Math.imul(hash, FNV_PRIME) >>> 0;
     }
   }
+}
+
+function shouldHashKey(
+  record: Record<string, unknown>,
+  key: string,
+  includeTemplateRaw: boolean
+): boolean {
+  if (key !== "raw") {
+    return !IGNORED_KEYS.has(key);
+  }
+
+  return includeTemplateRaw || record.type === "RegexLiteral";
+}
+
+function shouldIncludeTemplateRaw(
+  record: Record<string, unknown>,
+  key: string,
+  includeTemplateRaw: boolean
+): boolean {
+  if (record.type === "TaggedTemplateExpression" && key === "quasi") {
+    return true;
+  }
+
+  if (includeTemplateRaw && record.type === "TemplateLiteral" && key === "quasis") {
+    return true;
+  }
+
+  if (includeTemplateRaw && record.type === "TemplateElement" && key === "value") {
+    return true;
+  }
+
+  return false;
 }

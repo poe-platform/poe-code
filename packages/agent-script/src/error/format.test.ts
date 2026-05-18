@@ -81,6 +81,19 @@ describe("formatInterpreterError", () => {
     ).toBe('Thrown value: {"code":"failed","nested":{"value":1}}');
   });
 
+  it("does not crash when thrown non-error value cannot be stringified", () => {
+    expect(
+      formatInterpreterError({
+        toJSON() {
+          throw new Error("toJSON failed");
+        },
+        toString() {
+          throw new Error("toString failed");
+        }
+      })
+    ).toBe("Thrown value: [Unserializable thrown value]");
+  });
+
   it("renders every error in a three-deep cause chain", () => {
     const error = new Error("top", {
       cause: new TypeError("middle", {

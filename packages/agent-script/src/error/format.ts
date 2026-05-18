@@ -262,7 +262,7 @@ function describeThrownValue(value: unknown): string {
   }
 
   if (typeof value === "symbol" || typeof value === "function") {
-    return String(value);
+    return safeString(value, "[Unserializable thrown value]");
   }
 
   return stringifyJsonish(value);
@@ -289,7 +289,15 @@ function stringifyJsonish(value: object): string {
       return nested;
     });
   } catch {
+    return safeString(value, "[Unserializable thrown value]");
+  }
+}
+
+function safeString(value: unknown, fallback: string): string {
+  try {
     return String(value);
+  } catch {
+    return fallback;
   }
 }
 

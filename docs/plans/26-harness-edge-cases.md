@@ -1247,7 +1247,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: lint-disable-comments-edges
     title: lint — disable-comment edges (depends on plan 26's
@@ -1268,8 +1268,8 @@ tasks:
 
       Conventional commit: `test(agent-script): @as-disable directive edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: harness-recovery-end-to-end

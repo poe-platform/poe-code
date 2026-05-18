@@ -284,7 +284,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: package-readme
     title: Write the toolcraft-codemode README
@@ -321,7 +321,7 @@ tasks:
 
       No tests for the README.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

@@ -60,6 +60,7 @@ const KEYWORDS = new Set([
   "typeof",
   "void",
   "delete",
+  "instanceof",
   "in",
   "of"
 ]);

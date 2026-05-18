@@ -1,4 +1,5 @@
 export const KNOWN_RUNTIME_GLOBALS = [
+  "AggregateError",
   "Array",
   "Boolean",
   "Error",
@@ -7,7 +8,10 @@ export const KNOWN_RUNTIME_GLOBALS = [
   "Number",
   "Object",
   "Promise",
+  "RangeError",
+  "ReferenceError",
   "String",
+  "SyntaxError",
   "TypeError",
   "console"
 ] as const;

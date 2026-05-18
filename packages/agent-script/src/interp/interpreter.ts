@@ -82,6 +82,7 @@ import {
   isStringMethodName,
   validateStringMethodArguments
 } from "./methods/string.js";
+import { isSandboxErrorConstructorInstance } from "./globals/error.js";
 import {
   isSandboxClosure,
   isSandboxPromise,
@@ -554,7 +555,7 @@ async function evaluateAssignmentExpression(
   context: EvaluationContext
 ): Promise<EvaluationResult> {
   if (node.left.type === "MemberExpression") {
-    throw new Error("member-target assignment is not supported");
+    return evaluateMemberAssignmentExpression(node, context);
   }
 
   if (node.left.type !== "Identifier") {
@@ -615,6 +616,79 @@ async function evaluateAssignmentExpression(
       : applyCompoundAssignmentOperator(node.operator, binding.value, right.value, context);
 
   context.scope.assign(node.left.name, value);
+
+  return {
+    kind: "normal",
+    hasValue: true,
+    value
+  };
+}
+
+async function evaluateMemberAssignmentExpression(
+  node: AssignmentExpression,
+  context: EvaluationContext
+): Promise<EvaluationResult> {
+  if (node.left.type !== "MemberExpression") {
+    throw new TypeError("Expected member assignment target.");
+  }
+
+  const member = await evaluateMemberAccess(node.left, context);
+  if (member.kind === "error") {
+    return member;
+  }
+  if (member.kind === "completion") {
+    return member.result;
+  }
+  if (member.kind === "nullish") {
+    throw new TypeError("Cannot assign properties of null or undefined.");
+  }
+  if (!isIndexableSandboxValue(member.object)) {
+    throw new TypeError("Assignment expressions require a sandbox object property.");
+  }
+
+  if (node.operator === "&&=" && !isTruthy(getMemberValue(member.object, member.property))) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getMemberValue(member.object, member.property)
+    };
+  }
+
+  if (node.operator === "||=" && isTruthy(getMemberValue(member.object, member.property))) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getMemberValue(member.object, member.property)
+    };
+  }
+
+  if (
+    node.operator === "??=" &&
+    getMemberValue(member.object, member.property) !== null &&
+    getMemberValue(member.object, member.property) !== undefined
+  ) {
+    return {
+      kind: "normal",
+      hasValue: true,
+      value: getMemberValue(member.object, member.property)
+    };
+  }
+
+  const right = await evaluateNode(node.right, context);
+  if (right.kind !== "normal") {
+    return right;
+  }
+
+  const current = getMemberValue(member.object, member.property);
+  const value =
+    node.operator === "=" ||
+    node.operator === "&&=" ||
+    node.operator === "||=" ||
+    node.operator === "??="
+      ? right.value
+      : applyCompoundAssignmentOperator(node.operator, current, right.value, context);
+
+  setSandboxProperty(member.object, member.property, value);
 
   return {
     kind: "normal",
@@ -2064,6 +2138,8 @@ function applyBinaryOperator(
       return toNumber(left) >> toNumber(right);
     case ">>>":
       return toNumber(left) >>> toNumber(right);
+    case "instanceof":
+      return isSandboxErrorConstructorInstance(left, right);
     case "in":
       throw createError("UNSUPPORTED_NODE", node, "Binary operator 'in' is not supported.");
   }

@@ -172,7 +172,7 @@ export function createSubsetErrorValue(
 
   try {
     const errorName = budget.allocateString(name === "" ? "Error" : name);
-    const errorMessage = budget.allocateString(message === undefined ? "" : String(message));
+    const errorMessage = budget.allocateString(coerceErrorMessage(message));
     const header = errorMessage === "" ? errorName : `${errorName}: ${errorMessage}`;
     const stack = budget.allocateString([header, ...[...stackFrames].reverse()].join("\n"));
 
@@ -184,6 +184,22 @@ export function createSubsetErrorValue(
   } finally {
     resumeChecks?.();
   }
+}
+
+function coerceErrorMessage(message: SandboxValue): string {
+  if (message === undefined) {
+    return "";
+  }
+
+  if (Array.isArray(message)) {
+    return message.map((value) => (value === null || value === undefined ? "" : String(value))).join(",");
+  }
+
+  if (typeof message === "object" && message !== null) {
+    return "[object Object]";
+  }
+
+  return String(message);
 }
 
 async function evaluateWithoutDeadlineChecks<TValue>(

@@ -196,6 +196,7 @@ export type BinaryOperator =
   | ">="
   | ">>"
   | ">>>"
+  | "instanceof"
   | "in"
   | "^"
   | "|";
@@ -468,7 +469,7 @@ type ExpressionParseOptions = {
 };
 
 const EQUALITY_OPERATORS = new Set<BinaryOperator>(["==", "!=", "===", "!=="]);
-const RELATIONAL_OPERATORS = new Set<BinaryOperator>(["<", "<=", ">", ">=", "in"]);
+const RELATIONAL_OPERATORS = new Set<BinaryOperator>(["<", "<=", ">", ">=", "in", "instanceof"]);
 const SHIFT_OPERATORS = new Set<BinaryOperator>(["<<", ">>", ">>>"]);
 const ADDITIVE_OPERATORS = new Set<BinaryOperator>(["+", "-"]);
 const MULTIPLICATIVE_OPERATORS = new Set<BinaryOperator>(["*", "/", "%"]);
@@ -4047,7 +4048,15 @@ function isNewToken(token: Token): boolean {
 }
 
 function isAllowedNewCalleeToken(token: Token): boolean {
-  return token.type === "identifier" && (token.value === "Error" || token.value === "TypeError");
+  return (
+    token.type === "identifier" &&
+    (token.value === "Error" ||
+      token.value === "TypeError" ||
+      token.value === "RangeError" ||
+      token.value === "ReferenceError" ||
+      token.value === "SyntaxError" ||
+      token.value === "AggregateError")
+  );
 }
 
 function createTokenSpan(token: Token): SourceSpan {

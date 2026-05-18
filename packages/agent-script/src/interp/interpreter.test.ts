@@ -617,11 +617,17 @@ describe("interpret", () => {
     });
   });
 
-  it.each(["obj.x = 1", "arr[0] = 1"])("rejects member-target assignment %s", async (source) => {
-    await expect(interpret(parse(source))).rejects.toMatchObject({
-      message: "member-target assignment is not supported"
-    });
-  });
+  it.each(["obj.x = 1", "arr[0] = 1"])(
+    "reports member assignment to an undeclared base as unbound for %s",
+    async (source) => {
+      await expect(interpret(parse(source))).resolves.toMatchObject({
+        error: {
+          code: "UNBOUND_IDENTIFIER"
+        },
+        ok: false
+      });
+    }
+  );
 
   it("reports compound assignment to an undeclared identifier as unbound", async () => {
     await expect(interpret(parse("missing += 1"))).rejects.toMatchObject({

@@ -15,13 +15,12 @@ type OrderedNode = {
 export function assignIds<T extends Module | ParseResult>(root: T): T {
   const visited = new Set<AstNode>();
   let nextId = 0;
+  const stack: AstNode[] = [root];
 
-  visit(root);
-  return root;
-
-  function visit(node: AstNode): void {
+  while (stack.length > 0) {
+    const node = stack.pop()!;
     if (visited.has(node)) {
-      return;
+      continue;
     }
 
     visited.add(node);
@@ -33,10 +32,13 @@ export function assignIds<T extends Module | ParseResult>(root: T): T {
     });
     nextId += 1;
 
-    for (const child of getChildren(node)) {
-      visit(child);
+    const children = getChildren(node);
+    for (let index = children.length - 1; index >= 0; index -= 1) {
+      stack.push(children[index]!);
     }
   }
+
+  return root;
 }
 
 function getChildren(node: AstNode): AstNode[] {

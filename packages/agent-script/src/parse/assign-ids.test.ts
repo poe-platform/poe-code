@@ -189,6 +189,45 @@ function createLargeModule(totalNodeCount: number): Module {
   };
 }
 
+function createDeepModule(totalNodeCount: number): Module {
+  let expression: AstNode = {
+    type: "Identifier",
+    name: "value",
+    span: {
+      start: { line: 1, column: 1, offset: totalNodeCount },
+      end: { line: 1, column: 6, offset: totalNodeCount + 5 }
+    }
+  };
+
+  for (let index = totalNodeCount - 4; index >= 0; index -= 1) {
+    expression = {
+      type: "UnaryExpression",
+      argument: expression,
+      operator: "!",
+      prefix: true,
+      span: {
+        start: { line: 1, column: 1, offset: index },
+        end: { line: 1, column: 6, offset: totalNodeCount + 5 }
+      }
+    };
+  }
+
+  return {
+    type: "Module",
+    body: [
+      {
+        type: "ExpressionStatement",
+        expression,
+        span: expression.span
+      }
+    ],
+    span: {
+      start: { line: 1, column: 1, offset: 0 },
+      end: { line: 1, column: 6, offset: totalNodeCount + 5 }
+    }
+  } as Module;
+}
+
 describe("assignIds", () => {
   it.each([
     "const { user = fallback, profile: { name }, ...rest } = config",
@@ -247,6 +286,17 @@ describe("assignIds", () => {
     const elapsedMs = performance.now() - start;
 
     expect(collectNodesInIdOrder(module)).toHaveLength(10_001);
+    expect(elapsedMs).toBeLessThan(100);
+  });
+
+  it("assigns ids to more than 100k deeply nested AST nodes in under 100ms", () => {
+    const module = createDeepModule(100_001);
+
+    const start = performance.now();
+    assignIds(module);
+    const elapsedMs = performance.now() - start;
+
+    expect(collectNodesInIdOrder(module)).toHaveLength(100_001);
     expect(elapsedMs).toBeLessThan(100);
   });
 

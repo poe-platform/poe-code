@@ -1323,8 +1323,8 @@ tasks:
 
       Conventional commit: `test(agent-script): parse fuzz harness`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: cross-cutting-error-shape-consistency

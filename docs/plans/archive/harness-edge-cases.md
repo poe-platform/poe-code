@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: tokenizer-unicode-escapes
     title: Tokenizer — unicode escapes in identifiers and strings
@@ -50,13 +49,15 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: tokenizer-numeric-literals
     title: Tokenizer — numeric literal edges
-    prompt: |
+    prompt: >
       Numeric literal coverage in
+
       `packages/agent-script/src/parse/tokenizer.ts`. Tests in
+
       `parse/tokenizer.test.ts`; fix any divergence from JS spec.
+
 
       Tests:
         1. `1_000_000` — numeric separators, value 1000000.
@@ -79,13 +80,15 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: tokenizer-strings-templates
     title: Tokenizer — strings, templates, escape edges
-    prompt: |
+    prompt: >
       String and template literal edges in
+
       `packages/agent-script/src/parse/tokenizer.ts` and
+
       `parse/tokenizer.test.ts`.
+
 
       Tests:
         1. `'\n'` → newline; `"\n"` → newline; `` `\n` `` → newline (cooked).
@@ -105,12 +108,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: tokenizer-comments-line-endings
     title: Tokenizer — comments and mixed line endings
-    prompt: |
+    prompt: >
       Comment and line-ending handling in
+
       `packages/agent-script/src/parse/tokenizer.ts`.
+
 
       Tests:
         1. `// comment\nx` — line comment ends at LF; next token is `x` on line 2.
@@ -123,20 +127,25 @@ tasks:
         8. Comment containing `*/` inside a string literal inside a comment — no, comments don't tokenize strings; the next `*/` ends the comment.
         9. Comment span line/column reported correctly in error formatting.
 
-      Conventional commit: `fix(agent-script): tokenizer comment & line ending edges`.
+      Conventional commit: `fix(agent-script): tokenizer comment & line ending
+      edges`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: parser-destructuring-edges
     title: Parser — destructuring pattern edges
-    prompt: |
+    prompt: >
       Destructuring edge cases in
+
       `packages/agent-script/src/parse/parser.ts` and matching tests in
+
       `parse/parser.test.ts`. Some patterns are invalid; the parser
+
       must emit a clear error with the offending span — not silently
+
       accept.
+
 
       Tests:
         1. `const {} = obj;` — valid (empty object pattern).
@@ -160,12 +169,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: parser-arrow-function-edges
     title: Parser — arrow function syntactic edges
-    prompt: |
+    prompt: >
       Arrow function parsing in
+
       `packages/agent-script/src/parse/parser.ts`.
+
 
       Tests:
         1. `() => 1` — zero-arg, concise body.
@@ -191,12 +201,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: parser-statement-edges
     title: Parser — statement and recovery edges
-    prompt: |
+    prompt: >
       Statement-level parsing edges in
+
       `packages/agent-script/src/parse/parser.ts`.
+
 
       Tests:
         1. `;;;` — three empty statements.
@@ -222,12 +233,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: parser-expression-precedence
     title: Parser — expression precedence and associativity
-    prompt: |
+    prompt: >
       Precedence and associativity in
+
       `packages/agent-script/src/parse/parser.ts`.
+
 
       Tests:
         1. `2 + 3 * 4` parses as `2 + (3 * 4)`.
@@ -251,14 +263,17 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: parse-error-format-edges
     title: parse/format-error — context formatting edges
-    prompt: |
+    prompt: >
       Error formatting in
+
       `packages/agent-script/src/parse/format-error.ts` and tests in
+
       `parse/format-error.test.ts`. Goal: the rendered excerpt is
+
       readable for every source shape.
+
 
       Tests:
         1. Error at line 1 column 1 — context window starts at the file.
@@ -272,19 +287,23 @@ tasks:
         9. Error span covers multiple lines — render shows all spanned lines with a contiguous caret rule.
        10. CRLF source — caret column matches LF-normalized column.
 
-      Conventional commit: `fix(agent-script): parse/format-error excerpt edges`.
+      Conventional commit: `fix(agent-script): parse/format-error excerpt
+      edges`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: parse-hash-semantic-equivalence
     title: parse/hash — semantic-equivalence edges
-    prompt: |
+    prompt: >
       The hash in `packages/agent-script/src/parse/hash.ts` is used to
+
       detect whether a snapshot's source is compatible. It must hash
+
       semantic equivalence, ignoring formatting. Tests in
+
       `parse/hash.test.ts`.
+
 
       Tests:
         1. Whitespace difference → same hash.
@@ -306,13 +325,15 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: parse-assign-ids-determinism
     title: parse/assign-ids — determinism and stability
-    prompt: |
+    prompt: >
       Node IDs from
+
       `packages/agent-script/src/parse/assign-ids.ts` are persisted in
+
       snapshots; they must be deterministic and stable.
+
 
       Tests:
         1. Two parses of the same source produce identical ID sequences.
@@ -329,13 +350,15 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: parse-export-edges
     title: parse/parse-export — top-level export edges
-    prompt: |
+    prompt: >
       Top-level export extraction in
+
       `packages/agent-script/src/parse/parse-export.ts` and
+
       `parse-export.test.ts`.
+
 
       Tests:
         1. `export const handler = () => {}` — handler is found.
@@ -355,13 +378,15 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: parse-import-meta-tests
     title: parse/parse-import-meta — add test coverage
-    prompt: |
+    prompt: >
       `packages/agent-script/src/parse/parse-import-meta.ts` exists
+
       with NO test file. Add `parse-import-meta.test.ts` with full
+
       coverage; fix anything that doesn't behave.
+
 
       Tests:
         1. `import.meta` evaluates to the configured meta object.
@@ -379,13 +404,15 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-coercion-comparison
     title: Interpreter — coercion, equality, comparison edges
-    prompt: |
+    prompt: >
       Coercion and comparison edges in
+
       `packages/agent-script/src/interp/interpreter.ts` with tests in
+
       `interp/interpreter.test.ts`.
+
 
       Tests:
         1. `1 == "1"` → true; `1 === "1"` → false.
@@ -411,12 +438,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-destructuring-runtime
     title: Interpreter — destructuring runtime edges
-    prompt: |
+    prompt: >
       Runtime destructuring in
+
       `packages/agent-script/src/interp/interpreter.ts`.
+
 
       Tests:
         1. `const { a } = null;` — TypeError.
@@ -443,14 +471,17 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-control-flow
     title: Interpreter — control flow edges
-    prompt: |
+    prompt: >
       Control flow in
+
       `packages/agent-script/src/interp/interpreter.ts`. Builds on the
+
       existing `try/finally` and `do/while` and `labeled break/continue`
+
       work in plan 26; this task closes runtime gaps not covered there.
+
 
       Tests:
         1. `for (const x of [1,2,3]) { if (x === 2) break; }` — loop exits at 2.
@@ -472,12 +503,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-spread-rest-runtime
     title: Interpreter — spread/rest runtime edges
-    prompt: |
+    prompt: >
       Spread and rest in
+
       `packages/agent-script/src/interp/interpreter.ts`.
+
 
       Tests:
         1. `[...arr]` clones an array; mutating the clone doesn't mutate the source.
@@ -500,12 +532,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-call-edges
     title: Interpreter — function call edges
-    prompt: |
+    prompt: >
       Call expression edges in
+
       `packages/agent-script/src/interp/interpreter.ts`.
+
 
       Tests:
         1. Recursive arrow: `const fact = n => n <= 1 ? 1 : n * fact(n - 1)` — fact(5) === 120.
@@ -527,14 +560,17 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-async-microtask
     title: Interpreter async/await — microtask ordering
-    prompt: |
+    prompt: >
       Async/await microtask ordering in
+
       `packages/agent-script/src/interp/async.ts` and `interp/promise.ts`.
+
       Currently `async.ts` has minimal test coverage; add a dedicated
+
       `interp/async.test.ts`.
+
 
       Tests:
         1. `await 1` returns 1 (non-promise awaited).
@@ -555,11 +591,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-promise-combinator-edges
     title: Promise combinators — exhaustive edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/promise.ts` and its test file.
+
 
       Tests:
         1. `Promise.all([])` resolves to `[]` synchronously (post-microtask).
@@ -584,11 +620,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-cancel-paths
     title: Cancellation — abort signal propagation
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/cancel.ts` and its tests.
+
 
       Tests:
         1. Pre-aborted signal — first await rejects immediately with the abort reason.
@@ -607,11 +643,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-budget-boundaries
     title: Budget — exact-boundary exhaustion
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/budget.ts` boundary conditions.
+
 
       Tests:
         1. `maxSteps` set to N; a script that visits exactly N nodes succeeds; N+1 throws `budgetExceeded`.
@@ -631,11 +667,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-scope-edges
     title: Scope — chain edges and binding semantics
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/scope.ts` and `scope.test.ts`.
+
 
       Tests:
         1. Assign to undeclared identifier — ReferenceError (strict mode).
@@ -655,11 +691,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-values-deepcopy
     title: values/deepCopy — circular and exotic value edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/values.ts` and `values.test.ts`.
+
 
       Tests:
         1. Circular reference: `const a = {}; a.self = a;` — deepCopy returns a structure where the copy's self points to the copy (cycle preserved).
@@ -682,13 +718,15 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-exceptions-tests
     title: interp/exceptions — add test coverage
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/exceptions.ts` exists with no
+
       dedicated test file. Create `interp/exceptions.test.ts` and
+
       cover throw/catch internals end-to-end.
+
 
       Tests:
         1. `throw "string"` — caught value === "string" (no auto-wrap to Error).
@@ -710,11 +748,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: interp-host-bridge-edges
     title: host-bridge — argument and result edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/host-bridge.ts` and its tests.
+
 
       Tests:
         1. Host function called with sandbox object — host sees a deep copy.
@@ -736,11 +774,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: globals-json-edges
     title: globals — JSON.parse / JSON.stringify edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/globals/console-json.ts`.
+
 
       Tests:
         1. `JSON.parse('null')` → null.
@@ -769,11 +807,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: globals-error-edges
     title: globals — Error constructor edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/globals/error.ts`.
+
 
       Tests:
         1. `new Error()` — message is "".
@@ -795,11 +833,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: globals-math-edges
     title: globals — Math edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/globals/math.ts`.
+
 
       Tests:
         1. `Math.min()` → Infinity; `Math.max()` → -Infinity.
@@ -827,11 +865,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: globals-object-array-edges
     title: globals — Object / Array static edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/globals/object-array.ts`.
+
 
       Tests:
         1. `Object.keys(null)` → TypeError.
@@ -863,12 +901,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: methods-array-edges
     title: methods — Array.prototype edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/methods/array.ts` and its
+
       tests.
+
 
       Tests:
         1. `[].reduce(fn)` — TypeError (empty without initial value).
@@ -904,13 +943,15 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: methods-string-tests
     title: methods/string — add full test coverage
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/methods/string.ts` has NO test
+
       file. Create `methods/string.test.ts` covering all implemented
+
       methods.
+
 
       Tests:
         1. `"abc".charAt(0)` → "a"; `.charAt(10)` → "".
@@ -943,11 +984,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: methods-number-edges
     title: methods — Number.prototype edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/interp/methods/number.ts`.
+
 
       Tests:
         1. `(1).toString()` → "1".
@@ -971,11 +1012,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: error-format-edges
     title: error/format — top-level error rendering
-    prompt: |
+    prompt: >
       `packages/agent-script/src/error/format.ts` and `format.test.ts`.
+
 
       Tests:
         1. Render a syntax error from the parser with source excerpt — caret aligns.
@@ -992,11 +1033,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: loader-frontmatter-edges
     title: loader/frontmatter — YAML edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/loader/frontmatter.ts` and its tests.
+
 
       Tests:
         1. Frontmatter with no closing fence → error.
@@ -1017,11 +1058,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: loader-extract-block-edges
     title: loader/extract-block — fenced-block edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/loader/extract-block.ts`.
+
 
       Tests:
         1. First `js` or `ajs` block extracted; subsequent blocks ignored.
@@ -1041,11 +1082,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: loader-find-exported-edges
     title: loader/find-exported — edge cases
-    prompt: |
+    prompt: >
       `packages/agent-script/src/loader/find-exported.ts`.
+
 
       Tests:
         1. `export const handler = () => {}` → returns the arrow.
@@ -1064,11 +1105,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: runner-run-harness-edges
     title: runner/run-harness — top-level run failures
-    prompt: |
+    prompt: >
       `packages/agent-script/src/runner/run-harness.ts`.
+
 
       Tests:
         1. Path that doesn't exist → ENOENT surfaces with the path in the message.
@@ -1088,11 +1129,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: runner-signal-dump-edges
     title: runner/signal-dump — handler edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/runner/signal-dump.ts` and its tests.
+
 
       Tests:
         1. SIGUSR1 mid-run produces a dump file at the configured path.
@@ -1109,12 +1150,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: snapshot-serialize-restore-roundtrip
     title: snapshot — serialize/restore round-trip
-    prompt: |
+    prompt: >
       `packages/agent-script/src/snapshot/serialize.ts` and
+
       `restore.ts`.
+
 
       Tests:
         1. Serialize then restore a snapshot taken before any await → run produces the original return.
@@ -1134,7 +1176,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: snapshot-policy-edges
     title: snapshot/policy — host-call replay decisions
     prompt: |
@@ -1154,11 +1195,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: snapshot-scheduler-edges
     title: snapshot/scheduler — write semantics
-    prompt: |
+    prompt: >
       `packages/agent-script/src/snapshot/scheduler.ts`.
+
 
       Tests:
         1. Interval triggers an atomic rename-based write (temp + rename), not a partial overwrite.
@@ -1174,11 +1215,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: cli-edges
     title: agent-script CLI — argument and IO edges
-    prompt: |
+    prompt: >
       `packages/agent-script/src/cli.ts` and `cli.test.ts`.
+
 
       Tests:
         1. `--help` prints help and exits 0.
@@ -1198,11 +1239,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: dump-edges
     title: dump.ts — snapshot dump format
-    prompt: |
+    prompt: >
       `packages/agent-script/src/dump.ts`.
+
 
       Tests:
         1. Dump file is valid JSON.
@@ -1219,42 +1260,55 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: lint-rules-edge-pass
     title: lint — sweep AS001-AS015 for edge gaps
-    prompt: |
+    prompt: >
       Walk each rule under
+
       `packages/agent-script/src/lint/rules/AS001.ts` … `AS015.ts` and
+
       its `.test.ts`. For each, add 3-5 edge-case tests that the
+
       current tests don't cover. Patterns to look for per rule:
 
+
       - Nested expression inside the rule's target shape.
+
       - Boundary at start/end of file.
+
       - Inside template-literal interpolation.
+
       - Inside default param expression.
+
       - Inside catch binding pattern.
+
       - Inside object/array destructuring pattern.
+
       - Inside an inner arrow function that's the value of an export.
+
 
       For `AS-export-import-meta.ts`, add tests for:
         - `import.meta` used inside a nested arrow that's the exported handler.
         - `import.meta` referenced via a binding (`const m = import.meta; m.url`) — rule's static reach.
         - Aliased `import.meta` in a destructured const.
 
-      Add the edge tests; do not change the rules unless a test reveals a real false positive or false negative.
+      Add the edge tests; do not change the rules unless a test reveals a real
+      false positive or false negative.
+
 
       Conventional commit: `test(agent-script): lint rule edge sweep`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: lint-disable-comments-edges
     title: lint — disable-comment edges (depends on plan 26's
       lint-disabled-rule-comment)
-    prompt: |
+    prompt: >
       After plan 26's `// @as-disable` work lands, add coverage for
+
       the corner cases that a naive implementation misses.
+
 
       Tests:
         1. `// @as-disable AS003` followed by a blank line then the statement — does the directive still cover the next statement, or is the blank line a separator? Document and test.
@@ -1271,18 +1325,24 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: harness-recovery-end-to-end
     title: End-to-end — harness recovery from abnormal exits
-    prompt: |
+    prompt: >
       End-to-end coverage for the recovery path through
+
       `runner/run-harness.ts`, `snapshot/scheduler.ts`, and
+
       `snapshot/restore.ts`. New test file under
+
       `packages/agent-harness/src/testing/recovery-e2e.test.ts` (or
+
       colocate with existing harness tests if the layout differs).
 
+
       Each test runs a small harness pair, takes a snapshot mid-flight,
+
       kills the run abruptly, then restores and continues.
+
 
       Tests:
         1. Crash after first await; restore continues; full result matches a single-run baseline.
@@ -1299,18 +1359,24 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: fuzz-tokenizer-parser
     title: Fuzz tokenizer/parser for crash-resistance
-    prompt: |
+    prompt: >
       Add a small fuzz harness (vitest-driven; no external fuzzer) at
+
       `packages/agent-script/src/parse/fuzz.test.ts`. Generate 1000
+
       random byte sequences (seeded for determinism) and feed each
+
       through tokenize + parse. The assertion is only that neither
+
       step crashes — every input must either return a clean AST or a
+
       well-formed error.
 
+
       Seed strategy: seed from a constant so the run is reproducible.
+
 
       Tests:
         1. 1000 random ASCII byte sequences — no uncaught throws.
@@ -1319,29 +1385,40 @@ tasks:
         4. 100 sources truncated at random offsets — parse fails cleanly with a span pointing into the file.
         5. Run completes in under 5 seconds total on the CI machine.
 
-      Skip rule: this is a single test file gated by an env var so CI can run it but local `npm run test` is unaffected. Document the env var in the test file header.
+      Skip rule: this is a single test file gated by an env var so CI can run it
+      but local `npm run test` is unaffected. Document the env var in the test
+      file header.
+
 
       Conventional commit: `test(agent-script): parse fuzz harness`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: cross-cutting-error-shape-consistency
     title: Cross-cutting — error shape consistency
-    prompt: |
+    prompt: >
       Audit error shapes thrown by the harness. Every error surfaced
+
       to a user (parse, runtime, budget, snapshot, host) must have:
+
       - `.name` matching a known class.
+
       - `.message` non-empty and not [object Object].
+
       - `.stack` containing only sandbox frames (no /node_modules/, no
         /packages/agent-script/internal paths).
       - `.span` (when source-bound) pointing to a valid source range.
+
       - `.cause` if wrapping a host error.
 
+
       New test file
+
       `packages/agent-script/src/error/shape-audit.test.ts` exercises
+
       one representative case per error class:
+
 
       Tests:
         1. Parse error (unterminated string) — shape audit passes.
@@ -1357,7 +1434,9 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
+name: harness-edge-cases
+state: archived
 ---
 
 # Harness edge cases — exhaustive coverage of agent-script corners

@@ -431,7 +431,7 @@ describe("toolcraft error UX contract", () => {
     );
 
     expect(stderr).toMatchInlineSnapshot(`
-      "Preset file "/presets/invalid-json.json" is not valid JSON: Expected property name or '}' in JSON at position 2 (line 2 column 1) at line 2 column 1.
+      "Preset file "/presets/invalid-json.json" is not valid JSON: Expected property name or '}' in JSON at position 2 at line 2 column 1.
       --> /presets/invalid-json.json:2:1
         |
       1 | {

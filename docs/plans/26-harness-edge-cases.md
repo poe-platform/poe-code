@@ -1153,7 +1153,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: snapshot-scheduler-edges
     title: snapshot/scheduler — write semantics
@@ -1171,8 +1171,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): snapshot scheduler edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: cli-edges

@@ -22,6 +22,25 @@ describe("run", () => {
     });
   });
 
+  it("keeps caught circular JSON.stringify failures from failing final snapshotting", async () => {
+    await expect(
+      run(
+        [
+          "const circular = {};",
+          "Object.assign(circular, { self: circular });",
+          "try {",
+          "  JSON.stringify(circular);",
+          "} catch (error) {",
+          "  return error.name;",
+          "}"
+        ].join("\n")
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "TypeError"
+    });
+  });
+
   it("lets scripts read only allow-listed environment variables through the env module", async () => {
     vi.stubEnv("ALLOWED_TOKEN", "secret");
     vi.stubEnv("BLOCKED_TOKEN", "hidden");

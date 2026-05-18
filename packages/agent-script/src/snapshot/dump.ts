@@ -34,7 +34,7 @@ export function createDumpController(): DumpController {
         error: unknown;
       }
     | undefined;
-  let latestSerializedSnapshot: string | undefined;
+  let finalSnapshot: RunSnapshot | undefined;
   let pendingRequest:
     | {
         promise: Promise<string>;
@@ -59,14 +59,18 @@ export function createDumpController(): DumpController {
     },
     finalize(snapshot) {
       finished = true;
-      settlePendingRequest(serializeRunSnapshot(snapshot));
+      finalSnapshot = snapshot;
+
+      if (pendingRequest !== undefined) {
+        settlePendingSnapshot(snapshot);
+      }
     },
     onYield(createSnapshot) {
       if (pendingRequest === undefined) {
         return;
       }
 
-      settlePendingRequest(serializeRunSnapshot(createSnapshot()));
+      settlePendingSnapshot(createSnapshot());
     },
     requestSnapshot() {
       if (failed !== undefined) {
@@ -74,11 +78,16 @@ export function createDumpController(): DumpController {
       }
 
       if (finished) {
-        if (latestSerializedSnapshot === undefined) {
+        if (finalSnapshot === undefined) {
           throw new Error("Run completed without producing a snapshot.");
         }
 
-        return Promise.resolve(latestSerializedSnapshot);
+        try {
+          const serializedSnapshot = serializeRunSnapshot(finalSnapshot);
+          return Promise.resolve(serializedSnapshot);
+        } catch (error) {
+          return Promise.reject(error);
+        }
       }
 
       if (pendingRequest !== undefined) {
@@ -102,9 +111,16 @@ export function createDumpController(): DumpController {
     }
   };
 
-  function settlePendingRequest(snapshot: string): void {
-    latestSerializedSnapshot = snapshot;
+  function settlePendingSnapshot(snapshot: RunSnapshot): void {
+    try {
+      settlePendingRequest(serializeRunSnapshot(snapshot));
+    } catch (error) {
+      pendingRequest?.reject(error);
+      pendingRequest = undefined;
+    }
+  }
 
+  function settlePendingRequest(snapshot: string): void {
     if (pendingRequest === undefined) {
       return;
     }

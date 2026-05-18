@@ -1216,9 +1216,9 @@ tasks:
 
       Conventional commit: `fix(agent-script): dump format edges`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: lint-rules-edge-pass
     title: lint — sweep AS001-AS015 for edge gaps

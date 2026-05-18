@@ -14,6 +14,16 @@ It is the engine behind Poe Code's pipelines, experiment loops, and superintende
 - **File-based plans.** A `.ajs` file or a markdown file with YAML frontmatter and a `js` fenced block is the unit of work. Frontmatter holds the plan; the script walks it.
 - **MCP code mode.** Connect to an MCP server once, then call tools imperatively from the script — no LLM in the loop for the orchestration layer.
 
+## Sandbox by design
+
+Agent-script runs untrusted-by-default code. The interpreter ships **no** `fs`, `exec`, `process`, or network primitives, and there is no escape hatch: no `eval`, no `Function`, no dynamic `import()`, no `globalThis`. A script can only touch the host through modules the caller registers in `run({ modules })`.
+
+When you need filesystem, subprocess, or HTTP capability, build a host module with the *exact* surface you want to expose (the specific paths, commands, or URLs) and register it explicitly. Don't ship a generic `fs` module — narrow the capability to what this harness actually needs. The bundled modules (`agent`, `git`, `harness`, `log`, `metric`, `mcp`, `env`, `time`, `fail`) follow that rule; treat them as the model for anything you add.
+
+## Scripts are JavaScript
+
+A `.ajs` body reads like a small JS program. No DSL, no decorators, no directive comments, no custom syntax — capabilities are imports, options are object literals, control flow is plain `if`/`for`/`try`. The subset is restrictive (no `function` keyword, no `class`, no regex literals), but everything in it is plain ECMAScript. Anything that would need a non-JS shape — version pins, runtime config, metadata, schedules — belongs in the markdown frontmatter or the caller's options, not in the script body.
+
 ## At a glance
 
 ```js

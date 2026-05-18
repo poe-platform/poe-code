@@ -23,9 +23,9 @@
   },
   "scripts": {
     "build": "tsc",
-    "example:experiment": "node --experimental-strip-types src/cli.ts examples/experiment.md",
-    "example:pipeline": "node --experimental-strip-types src/cli.ts examples/pipeline.md",
-    "example:superintendent": "node --experimental-strip-types src/cli.ts examples/superintendent.md",
+    "example:experiment": "tsx src/cli.ts examples/experiment.md",
+    "example:pipeline": "tsx src/cli.ts examples/pipeline.md",
+    "example:superintendent": "tsx src/cli.ts examples/superintendent.md",
     "test": "cd ../.. && vitest run packages/agent-script/src packages/agent-script/test",
     "test:unit": "cd ../.. && vitest run packages/agent-script/src packages/agent-script/test"
   },

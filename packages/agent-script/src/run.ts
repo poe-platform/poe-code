@@ -29,6 +29,7 @@ import {
 } from "./observability/otel.js";
 import type { SnapshotBackend } from "./snapshot/backend.js";
 import { attachDumpController, createDumpController } from "./snapshot/dump.js";
+import { DUMP_FORMAT_VERSION } from "./snapshot/dump-format.js";
 import { createSnapshotScheduler } from "./snapshot/scheduler.js";
 
 export type RunOptions = {
@@ -353,6 +354,7 @@ function createRunSnapshot(input: {
   sourceHash: string;
 }): RunSnapshot {
   return {
+    version: DUMP_FORMAT_VERSION,
     sourceHash: input.sourceHash,
     bindings: input.bindings,
     clock: input.clock?.snapshot(),

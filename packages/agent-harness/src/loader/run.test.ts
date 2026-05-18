@@ -953,6 +953,7 @@ describe("runHarnessPair", () => {
   it("reports source hash mismatches from a custom snapshot backend clearly", async () => {
     const mdPath = "/repo/harness/backend-mismatch.md";
     const snapshotBackend = new MemorySnapshotBackend({
+      version: 1,
       sourceHash: "stale"
     });
     vol.fromJSON({

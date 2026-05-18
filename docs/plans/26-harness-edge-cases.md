@@ -354,7 +354,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: parse-import-meta-tests
     title: parse/parse-import-meta — add test coverage
@@ -376,8 +376,8 @@ tasks:
 
       Conventional commit: `test(agent-script): parse-import-meta coverage`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: interp-coercion-comparison

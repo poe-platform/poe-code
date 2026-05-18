@@ -7,13 +7,9 @@ type AstNode = {
   [key: string]: unknown;
 };
 
-type OrderedNode = {
-  node: AstNode;
-  order: number;
-};
-
 export function assignIds<T extends Module | ParseResult>(root: T): T {
   const visited = new Set<AstNode>();
+  const children: AstNode[] = [];
   let nextId = 0;
   const stack: AstNode[] = [root];
 
@@ -32,43 +28,47 @@ export function assignIds<T extends Module | ParseResult>(root: T): T {
     });
     nextId += 1;
 
-    const children = getChildren(node);
+    collectChildren(node, children);
     for (let index = children.length - 1; index >= 0; index -= 1) {
       stack.push(children[index]!);
     }
+    children.length = 0;
   }
 
   return root;
 }
 
-function getChildren(node: AstNode): AstNode[] {
-  const discovered: OrderedNode[] = [];
-
-  for (const [key, value] of Object.entries(node)) {
+function collectChildren(node: AstNode, children: AstNode[]): void {
+  for (const key in node) {
     if (key === "nodeId" || key === "span" || key === "type") {
       continue;
     }
 
-    collectChild(value, discovered);
+    collectChild(node[key], children);
   }
 
-  const seen = new Set<AstNode>();
-  return discovered
-    .sort(compareBySourceOrder)
-    .filter(({ node: child }) => {
-      if (seen.has(child)) {
-        return false;
-      }
+  if (children.length <= 1) {
+    return;
+  }
 
-      seen.add(child);
-      return true;
-    })
-    .map(({ node: child }) => child);
+  children.sort(compareBySourceOrder);
+  const seen = new Set<AstNode>();
+  let writeIndex = 0;
+  for (const child of children) {
+    if (seen.has(child)) {
+      continue;
+    }
+
+    seen.add(child);
+    children[writeIndex] = child;
+    writeIndex += 1;
+  }
+  children.length = writeIndex;
 }
 
-function collectChild(value: unknown, discovered: OrderedNode[]): void {
+function collectChild(value: unknown, discovered: AstNode[]): void {
   if (isAstNode(value)) {
-    discovered.push({ node: value, order: discovered.length });
+    discovered.push(value);
     return;
   }
 
@@ -78,23 +78,18 @@ function collectChild(value: unknown, discovered: OrderedNode[]): void {
 
   for (const entry of value) {
     if (isAstNode(entry)) {
-      discovered.push({ node: entry, order: discovered.length });
+      discovered.push(entry);
     }
   }
 }
 
-function compareBySourceOrder(left: OrderedNode, right: OrderedNode): number {
-  const startOffset = left.node.span.start.offset - right.node.span.start.offset;
+function compareBySourceOrder(left: AstNode, right: AstNode): number {
+  const startOffset = left.span.start.offset - right.span.start.offset;
   if (startOffset !== 0) {
     return startOffset;
   }
 
-  const endOffset = left.node.span.end.offset - right.node.span.end.offset;
-  if (endOffset !== 0) {
-    return endOffset;
-  }
-
-  return left.order - right.order;
+  return left.span.end.offset - right.span.end.offset;
 }
 
 function isAstNode(value: unknown): value is AstNode {

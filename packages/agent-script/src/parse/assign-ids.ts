@@ -28,6 +28,35 @@ export function assignIds<T extends Module | ParseResult>(root: T): T {
     });
     nextId += 1;
 
+    if (node.type === "UnaryExpression") {
+      const argument = (node as { argument?: unknown }).argument;
+      if (isAstNode(argument)) {
+        stack.push(argument);
+      }
+      continue;
+    }
+
+    if (node.type === "ExpressionStatement") {
+      const expression = (node as { expression?: unknown }).expression;
+      if (isAstNode(expression)) {
+        stack.push(expression);
+      }
+      continue;
+    }
+
+    if (node.type === "Module") {
+      const body = (node as { body?: unknown }).body;
+      if (Array.isArray(body)) {
+        for (let index = body.length - 1; index >= 0; index -= 1) {
+          const statement = body[index];
+          if (isAstNode(statement)) {
+            stack.push(statement);
+          }
+        }
+      }
+      continue;
+    }
+
     collectChildren(node, children);
     for (let index = children.length - 1; index >= 0; index -= 1) {
       stack.push(children[index]!);

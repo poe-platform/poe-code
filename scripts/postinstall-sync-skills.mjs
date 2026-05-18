@@ -14,9 +14,22 @@ if (!existsSync(join(root, "scripts/sync-skills.ts"))) {
   process.exit(0);
 }
 
+const tsxCli = join(root, "node_modules", "tsx", "dist", "cli.mjs");
+const useDirectSync =
+  process.env.POE_CODE_POSTINSTALL_FORCE_NPM !== "1" && existsSync(tsxCli);
 const npmExecPath = process.env.npm_execpath;
-const command = npmExecPath ? process.execPath : process.platform === "win32" ? "npm.cmd" : "npm";
-const args = npmExecPath ? [npmExecPath, "run", "sync-skills"] : ["run", "sync-skills"];
+const command = useDirectSync
+  ? process.execPath
+  : npmExecPath
+    ? process.execPath
+    : process.platform === "win32"
+      ? "npm.cmd"
+      : "npm";
+const args = useDirectSync
+  ? [tsxCli, join(root, "scripts/sync-skills.ts")]
+  : npmExecPath
+    ? [npmExecPath, "run", "sync-skills"]
+    : ["run", "sync-skills"];
 
 const result = spawnSync(command, args, {
   cwd: root,

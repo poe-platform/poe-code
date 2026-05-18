@@ -35,7 +35,7 @@ tasks:
 
       Do not add any logic yet. Do not write tests for this scaffolding.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: walk-toolcraft-tree

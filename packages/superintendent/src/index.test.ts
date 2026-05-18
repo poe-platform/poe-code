@@ -1,31 +1,17 @@
 import { describe, expect, it } from "vitest";
+import * as commands from "./commands/index.js";
+import * as documentParse from "./document/parse.js";
+import * as documentTasks from "./document/tasks.js";
+import * as documentWrite from "./document/write.js";
+import * as pkg from "./index.js";
+import * as runtimeBuilder from "./runtime/run-builder.js";
+import * as runtimeInspector from "./runtime/run-inspector.js";
+import * as runtimeLoop from "./runtime/loop.js";
+import * as runtimeTemplates from "./runtime/templates.js";
+import * as stateMachine from "./state/machine.js";
 
 describe("@poe-code/superintendent package exports", () => {
-  it("re-exports the public SDK surface", async () => {
-    const [
-      pkg,
-      documentParse,
-      documentWrite,
-      documentTasks,
-      runtimeLoop,
-      runtimeBuilder,
-      runtimeInspector,
-      runtimeTemplates,
-      stateMachine,
-      commands
-    ] = await Promise.all([
-      import("./index.js"),
-      import("./document/parse.js"),
-      import("./document/write.js"),
-      import("./document/tasks.js"),
-      import("./runtime/loop.js"),
-      import("./runtime/run-builder.js"),
-      import("./runtime/run-inspector.js"),
-      import("./runtime/templates.js"),
-      import("./state/machine.js"),
-      import("./commands/index.js")
-    ]);
-
+  it("re-exports the public SDK surface", () => {
     expect(pkg.parseSuperintendentDoc).toBe(documentParse.parseSuperintendentDoc);
     expect(pkg.superintendentDocumentSchema).toBe(documentParse.superintendentDocumentSchema);
     expect(pkg.superintendentDocumentSchemaId).toBe(documentParse.superintendentDocumentSchemaId);
@@ -51,9 +37,7 @@ describe("@poe-code/superintendent package exports", () => {
     expect(pkg.superintendentGroup).toBe(commands.superintendentGroup);
   });
 
-  it("exports superintendent document schemas", async () => {
-    const pkg = await import("./index.js");
-
+  it("exports superintendent document schemas", () => {
     expect(pkg.superintendentDocumentSchemaId).toBe(
       "https://poe-platform.github.io/poe-code/schemas/plans/superintendent.schema.json"
     );
@@ -76,9 +60,7 @@ describe("@poe-code/superintendent package exports", () => {
     });
   });
 
-  it("does not expose legacy top-level command groups", async () => {
-    const pkg = await import("./index.js");
-
+  it("does not expose legacy top-level command groups", () => {
     expect("builderGroup" in pkg).toBe(false);
     expect("inspectorGroup" in pkg).toBe(false);
     expect("superintendentMcpGroup" in pkg).toBe(false);

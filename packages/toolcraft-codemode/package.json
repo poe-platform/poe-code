@@ -1,0 +1,30 @@
+{
+  "name": "toolcraft-codemode",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "test": "cd ../.. && vitest run --passWithNoTests packages/toolcraft-codemode/src",
+    "test:unit": "cd ../.. && vitest run --passWithNoTests packages/toolcraft-codemode/src",
+    "lint": "cd ../.. && eslint packages/toolcraft-codemode/src --ext ts && tsc -p packages/toolcraft-codemode/tsconfig.json --noEmit"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "toolcraft": "*",
+    "toolcraft-schema": "*",
+    "@poe-code/agent-script": "*"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

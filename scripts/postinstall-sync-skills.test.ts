@@ -181,14 +181,18 @@ describe("postinstall skill sync", () => {
   it("is idempotent when skill files already exist", async () => {
     const home = await createTempHome();
     const env = { ...process.env, HOME: home, CI: "", SKIP_SYNC_SKILLS: "" };
-
-    await execFileAsync(process.execPath, [postinstallScript], { cwd: repoRoot, env });
-    await execFileAsync(process.execPath, [postinstallScript], { cwd: repoRoot, env });
-
-    const content = await readFile(
-      path.join(home, ".claude/skills/poe-code-plan/SKILL.md"),
+    const skillDir = path.join(home, ".claude/skills/poe-code-plan");
+    const skillFile = path.join(skillDir, "SKILL.md");
+    const template = await readFile(
+      path.join(repoRoot, "src/templates/plan/SKILL_plan.md"),
       "utf8"
     );
+
+    await mkdir(skillDir, { recursive: true });
+    await writeFile(skillFile, template, "utf8");
+    await execFileAsync(process.execPath, [postinstallScript], { cwd: repoRoot, env });
+
+    const content = await readFile(skillFile, "utf8");
     expect(content).toContain("name: poe-code-plan");
   });
 
@@ -196,7 +200,10 @@ describe("postinstall skill sync", () => {
     const failingNpm = path.join(await createTempHome(), "failing-npm.js");
     await writeFile(failingNpm, "process.exit(42);\n", "utf8");
 
-    const result = await runPostinstall({ npm_execpath: failingNpm });
+    const result = await runPostinstall({
+      npm_execpath: failingNpm,
+      POE_CODE_POSTINSTALL_FORCE_NPM: "1"
+    });
 
     expect(result.stderr).toContain("Warning: skill sync failed during postinstall");
   });

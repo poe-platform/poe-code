@@ -5,6 +5,7 @@ import { makeTimeModule } from "./time.js";
 
 describe("makeTimeModule", () => {
   afterEach(() => {
+    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -181,31 +182,15 @@ describe("makeTimeModule", () => {
   });
 
   it("rejects promptly when sleep is aborted during the wait", async () => {
+    vi.useFakeTimers();
     const controller = new AbortController();
     const time = makeTimeModule({ signal: controller.signal });
-    let abortAt = 0;
+    const sleep = time.sleep(1_000);
 
-    const sleep = time.sleep(1_000).then(
-      () => {
-        throw new Error("Expected sleep to reject after abort.");
-      },
-      (error) => ({
-        elapsedAfterAbort: performance.now() - abortAt,
-        error
-      })
-    );
+    await vi.advanceTimersByTimeAsync(20);
+    controller.abort();
 
-    setTimeout(() => {
-      abortAt = performance.now();
-      controller.abort();
-    }, 20);
-
-    await expect(sleep).resolves.toMatchObject({
-      elapsedAfterAbort: expect.any(Number),
-      error: new Error("time.sleep aborted.")
-    });
-    const result = await sleep;
-    expect(result.elapsedAfterAbort).toBeLessThan(30);
+    await expect(sleep).rejects.toThrow(new Error("time.sleep aborted."));
   });
 
   it("resolves concurrent sleeps independently", async () => {

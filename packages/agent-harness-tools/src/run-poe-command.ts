@@ -65,11 +65,10 @@ export async function runPoeCommand(opts: {
           stdout: execution?.stdout ?? "pipe",
           stderr: execution?.stderr ?? "pipe",
           signal: opts.signal
-        });
+    });
 
     if (execution?.input !== undefined) {
-      handle.stdin?.setDefaultEncoding("utf8");
-      handle.stdin?.end(execution.input);
+      writeExecutionInput(handle, execution.input);
     }
 
     const runningJob = opts.state.jobs.update(jobId, {
@@ -195,8 +194,7 @@ export function createPoeCommandSession(opts: {
           });
 
       if (openSpec.execution?.input !== undefined) {
-        handle.stdin?.setDefaultEncoding("utf8");
-        handle.stdin?.end(openSpec.execution.input);
+        writeExecutionInput(handle, openSpec.execution.input);
       }
 
       await opts.state.jobs.update(jobId, {
@@ -584,6 +582,21 @@ function setDetachedJobContext(
     setDetachedJobContext?: (value: { id: string; tool: string; argv: string[] }) => void;
   };
   candidate.setDetachedJobContext?.(context);
+}
+
+function writeExecutionInput(handle: RunHandle, input: string | Buffer): void {
+  const stdin = handle.stdin;
+  if (stdin === null) {
+    return;
+  }
+
+  stdin.on("error", (error: NodeJS.ErrnoException) => {
+    if (error.code !== "EPIPE") {
+      throw error;
+    }
+  });
+  stdin.setDefaultEncoding("utf8");
+  stdin.end(input);
 }
 
 function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {

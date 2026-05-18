@@ -678,6 +678,38 @@ describe("runPoeCommand", () => {
     expect(job).toMatchObject({ status: "exited", exit_code: 42 });
   });
 
+  it("does not fail when command stdin closes before execution input is written", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      const stdin = new PassThrough();
+      queueMicrotask(() => {
+        stdin.emit("error", Object.assign(new Error("write EPIPE"), { code: "EPIPE" }));
+      });
+      return {
+        pid: 123,
+        stdout: null,
+        stderr: null,
+        stdin,
+        result: Promise.resolve({ exitCode: 0 }),
+        kill() {}
+      };
+    };
+
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec({
+          execution: { input: "hello", stdin: "pipe", wrapForLogTee: false }
+        }),
+        detach: false,
+        state
+      })
+    ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+  });
+
   it("kills, downloads, and closes when the abort signal fires during sync", async () => {
     const { state } = createRecordingState();
     const controller = new AbortController();

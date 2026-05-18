@@ -95,7 +95,7 @@ Priority is top-to-bottom: the first unchecked item is the highest priority. Use
 
 ## Available Prompt Variables
 
-Use Mustache syntax in agent prompts:
+Use template syntax in agent prompts:
 
 | Variable | Description |
 |---|---|

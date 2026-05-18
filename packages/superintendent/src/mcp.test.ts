@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import type { superintendentMcpGroup } from "./commands/index.js";
 import type { SuperintendentDoc } from "./document/parse.js";
 import type { parseSuperintendentDoc } from "./document/parse.js";
@@ -7,6 +7,7 @@ import { createBuilderTool, createInspectorTool } from "./runtime/agentic-tools.
 import type { runBuilder } from "./runtime/run-builder.js";
 import type { runInspector } from "./runtime/run-inspector.js";
 import type { McpRunners, SuperintendentToolsPayload } from "./mcp.js";
+import type * as mcpEntry from "./mcp.js";
 
 const {
   createMCPServerMock,
@@ -61,6 +62,7 @@ const runners: McpRunners = {
 };
 
 const originalArgv = [...process.argv];
+let mcpModule: typeof mcpEntry;
 
 vi.mock("./direct-execution.js", () => ({
   isDirectExecution: isDirectExecutionMock
@@ -89,6 +91,11 @@ function encodePayload(payload: SuperintendentToolsPayload): string {
 }
 
 describe("superintendent MCP entry point", () => {
+  beforeAll(async () => {
+    isDirectExecutionMock.mockResolvedValue(false);
+    mcpModule = await import("./mcp.js");
+  });
+
   beforeEach(() => {
     process.argv = [...originalArgv];
     createMCPServerMock.mockReset();
@@ -105,13 +112,10 @@ describe("superintendent MCP entry point", () => {
     runInspectorMock.mockReset();
     parseSuperintendentDocMock.mockReset();
     readFileMock.mockReset();
-    vi.resetModules();
   });
 
   it("starts toolcraft MCP with the superintendent MCP command group", async () => {
-    const { main } = await import("./mcp.js");
-
-    await main(undefined, { runners });
+    await mcpModule.main(undefined, { runners });
 
     expect(createMCPServerMock).toHaveBeenCalledTimes(1);
     expect(createMCPServerMock).toHaveBeenCalledWith([superintendentMcpGroupSentinel], {
@@ -123,9 +127,7 @@ describe("superintendent MCP entry point", () => {
   });
 
   it("registers workflow_transition, builder_run, and inspector_run on the superintendent-tools server", async () => {
-    const { main } = await import("./mcp.js");
-
-    await main([
+    await mcpModule.main([
       "node",
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
@@ -169,9 +171,7 @@ describe("superintendent MCP entry point", () => {
   });
 
   it("workflow_transition handler records allowed actions and rejects others", async () => {
-    const { main } = await import("./mcp.js");
-
-    await main([
+    await mcpModule.main([
       "node",
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
@@ -200,9 +200,7 @@ describe("superintendent MCP entry point", () => {
       log_path: "/tmp/builder.jsonl"
     });
 
-    const { main } = await import("./mcp.js");
-
-    await main([
+    await mcpModule.main([
       "node",
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
@@ -243,9 +241,7 @@ describe("superintendent MCP entry point", () => {
       summary: "Looks good"
     });
 
-    const { main } = await import("./mcp.js");
-
-    await main([
+    await mcpModule.main([
       "node",
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
@@ -275,9 +271,7 @@ describe("superintendent MCP entry point", () => {
   });
 
   it("inspector_run handler rejects unknown inspector names", async () => {
-    const { main } = await import("./mcp.js");
-
-    await main([
+    await mcpModule.main([
       "node",
       "/repo/packages/superintendent/dist/mcp.js",
       "superintendent-tools",
@@ -294,10 +288,8 @@ describe("superintendent MCP entry point", () => {
   });
 
   it("fails when the superintendent-tools payload is invalid", async () => {
-    const { main } = await import("./mcp.js");
-
     await expect(
-      main([
+      mcpModule.main([
         "node",
         "/repo/packages/superintendent/dist/mcp.js",
         "superintendent-tools",
@@ -313,9 +305,7 @@ describe("superintendent MCP entry point", () => {
     const ownerTool = createWorkflowTool("owner", "review");
     const encodedTool = Buffer.from(JSON.stringify(ownerTool), "utf8").toString("base64");
 
-    const { main } = await import("./mcp.js");
-
-    await main([
+    await mcpModule.main([
       "node",
       "/repo/packages/superintendent/dist/mcp.js",
       "workflow-transition",
@@ -342,9 +332,7 @@ describe("superintendent MCP entry point", () => {
     const ownerTool = createWorkflowTool("owner", "review");
     const encodedTool = Buffer.from(JSON.stringify(ownerTool), "utf8").toString("base64");
 
-    const { main } = await import("./mcp.js");
-
-    await main([
+    await mcpModule.main([
       "node",
       "/repo/packages/superintendent/dist/mcp.js",
       "workflow-transition",
@@ -367,10 +355,8 @@ describe("superintendent MCP entry point", () => {
   });
 
   it("fails when the workflow-transition payload is invalid", async () => {
-    const { main } = await import("./mcp.js");
-
     await expect(
-      main([
+      mcpModule.main([
         "node",
         "/repo/packages/superintendent/dist/mcp.js",
         "workflow-transition",
@@ -382,6 +368,7 @@ describe("superintendent MCP entry point", () => {
   });
 
   it("does not start the MCP server as a side effect of importing the module", async () => {
+    vi.resetModules();
     await import("./mcp.js");
 
     expect(createMCPServerMock).not.toHaveBeenCalled();
@@ -390,6 +377,7 @@ describe("superintendent MCP entry point", () => {
   });
 
   it("executes when isDirectExecution returns true", async () => {
+    vi.resetModules();
     isDirectExecutionMock.mockResolvedValue(true);
 
     await import("./mcp.js");

@@ -1,7 +1,9 @@
-import { vol } from "memfs";
+import { fs, vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { SpawnResult } from "@poe-code/agent-spawn";
 import type { StateMachineDef, TaskList, TaskListFs } from "@poe-code/task-list";
+import { openTaskList } from "@poe-code/task-list";
+import { maestroTaskStateMachine, runMaestro, type MaestroEvent } from "./index.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -42,20 +44,17 @@ describe("runMaestro", () => {
         "  prompt: Teardown {{ prompt }}"
       ].join("\n")
     });
-    const { fs } = await import("memfs");
     const taskList = await createYamlTaskList("/repo/tasks.yaml", fs.promises as unknown as TaskListFs);
     const tasks = taskList.list("tasks");
     await tasks.create({ id: "one", name: "One", description: "Do the work" });
     await tasks.fire("one", "plan");
-    const events: Array<import("./index.js").MaestroEvent> = [];
+    const events: MaestroEvent[] = [];
     const spawn = vi.fn(async (): Promise<SpawnResult> => ({
       stdout: "",
       stderr: "",
       exitCode: 0,
       threadId: `session-${spawn.mock.calls.length}`
     }));
-    const { runMaestro } = await import("./index.js");
-
     const stop = await runMaestro({
       workflowPath: "/repo/WORKFLOW.md",
       taskList,
@@ -117,8 +116,6 @@ describe("runMaestro", () => {
         "  prompt: Teardown {{ prompt }}"
       ].join("\n")
     });
-    const { fs } = await import("memfs");
-    const { maestroTaskStateMachine, runMaestro } = await import("./index.js");
     const taskList = await createYamlTaskList(
       "/repo/recommended.yaml",
       fs.promises as unknown as TaskListFs,
@@ -126,7 +123,7 @@ describe("runMaestro", () => {
     );
     const tasks = taskList.list("maestro");
     await tasks.create({ id: "handoff", name: "Handoff" });
-    const events: Array<import("./index.js").MaestroEvent> = [];
+    const events: MaestroEvent[] = [];
     const spawn = vi.fn(async (): Promise<SpawnResult> => {
       await tasks.fire("handoff", "handoff");
       return { stdout: "", stderr: "", exitCode: 0, threadId: "handoff-session" };
@@ -171,7 +168,6 @@ describe("runMaestro", () => {
         "    prompt: Implement {{ prompt }}"
       ].join("\n")
     });
-    const { fs } = await import("memfs");
     const taskList = await createYamlTaskList("/repo/tasks.yaml", fs.promises as unknown as TaskListFs);
     const tasks = taskList.list("tasks");
     await tasks.create({ id: "one", name: "One", description: "Do the work" });
@@ -182,8 +178,6 @@ describe("runMaestro", () => {
       exitCode: 0
     }));
     const logger = { info: vi.fn(), error: vi.fn() };
-    const { runMaestro } = await import("./index.js");
-
     const stop = await runMaestro({
       workflowPath: "/repo/WORKFLOW.md",
       dryRun: true,
@@ -256,7 +250,6 @@ describe("runMaestro", () => {
       exitCode: 0
     }));
     const logger = { info: vi.fn(), error: vi.fn() };
-    const { runMaestro } = await import("./index.js");
 
     await runMaestro({
       workflowPath: "/repo/WORKFLOW.md",
@@ -280,8 +273,6 @@ async function createYamlTaskList(
   fs: TaskListFs,
   stateMachine?: StateMachineDef
 ): Promise<TaskList> {
-  const { openTaskList } = await import("@poe-code/task-list");
-
   return openTaskList({
     type: "yaml-file",
     path: filePath,

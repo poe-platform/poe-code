@@ -96,7 +96,7 @@ describe("interpret", () => {
     ["1 !== 2", true],
     ["1 !== 1", false],
     ["1 == 1", true],
-    ['1 == "1"', false],
+    ['1 == "1"', true],
     ["1 != 2", true],
     ["1 != 1", false],
     ["5 & 3", 1],
@@ -110,6 +110,88 @@ describe("interpret", () => {
     await expect(interpret(parse(source))).resolves.toMatchObject({
       ok: true,
       returnValue: expected
+    });
+  });
+
+  it.each([
+    ['1 === "1"', false],
+    ["null == undefined", true],
+    ["null === undefined", false],
+    ["0 == -0", true],
+    ["0 === -0", true],
+    ["[] == false", true],
+    ["[] === false", false],
+    ["return ({} == {})", false],
+    ['"10" < "9"', true],
+    ["10 < 9", false],
+    ["null > 0", false],
+    ["null >= 0", true],
+    ["undefined < 0", false],
+    ["undefined > 0", false],
+    ["undefined == 0", false],
+    ['+""', 0],
+    ['+"  "', 0],
+    ["+null", 0],
+    ["+true", 1],
+    ["+false", 0],
+    ["+[]", 0],
+    ["+[1]", 1],
+    ["[] + []", ""],
+    ["return ([] + {})", "[object Object]"],
+    ['"5" - 2', 3],
+    ['"5" + 2', "52"],
+    ["1 / 0", Infinity],
+    ["-1 / 0", -Infinity],
+    ["0xFFFFFFFF | 0", -1]
+  ])("evaluates coercion edge %s", async (source, expected) => {
+    await expect(interpret(parse(source))).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it.each([
+    ['+"abc"', {}],
+    ['-"abc"', {}],
+    ["+undefined", {}],
+    ["+[1, 2]", {}],
+    ["0 / 0", {}],
+    ["Infinity - Infinity", { Infinity }]
+  ])("evaluates %s as NaN", async (source, bindings) => {
+    const result = await interpret(parse(source), { bindings });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) {
+      return;
+    }
+    expect(result.returnValue).toBeNaN();
+  });
+
+  it.each([
+    ["NaN == NaN", false],
+    ["NaN === NaN", false]
+  ])("evaluates %s with global NaN", async (source, expected) => {
+    await expect(interpret(parse(source), { bindings: { NaN } })).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
+    });
+  });
+
+  it("preserves signed zero when calling Object.is-compatible sandbox closures", async () => {
+    const result = await interpret(parse("Object.is(0, -0)"), {
+      bindings: {
+        Object: {
+          is: createSandboxClosure({
+            call: ([left, right]) => Object.is(left, right),
+            name: "is"
+          })
+        }
+      }
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: false
     });
   });
 

@@ -87,6 +87,7 @@ import {
   type SandboxArray,
   type SandboxClosure,
   type SandboxObject,
+  type SandboxPrimitive,
   type SandboxValue
 } from "./values.js";
 import { Scope } from "./scope.js";
@@ -1308,10 +1309,6 @@ async function evaluateUnaryExpression(
     };
   }
 
-  if (node.operator !== "!" && node.operator !== "typeof" && typeof argument.value !== "number") {
-    throw new TypeError(`Unary operator '${node.operator}' requires a numeric operand.`);
-  }
-
   return {
     kind: "normal",
     hasValue: true,
@@ -1821,11 +1818,11 @@ function applyUnaryOperator(
     case "void":
       return undefined;
     case "+":
-      return +(value as number);
+      return toNumber(value);
     case "-":
-      return -(value as number);
+      return -toNumber(value);
     case "~":
-      return ~(value as number);
+      return ~toNumber(value);
   }
 }
 
@@ -1855,41 +1852,43 @@ function applyBinaryOperator(
     case "+":
       return applyAdditionOperator(left, right, context);
     case "-":
-      return Number(left) - Number(right);
+      return toNumber(left) - toNumber(right);
     case "*":
-      return Number(left) * Number(right);
+      return toNumber(left) * toNumber(right);
     case "/":
-      return Number(left) / Number(right);
+      return toNumber(left) / toNumber(right);
     case "%":
-      return Number(left) % Number(right);
+      return toNumber(left) % toNumber(right);
     case "**":
-      return Number(left) ** Number(right);
+      return toNumber(left) ** toNumber(right);
     case "<":
-      return compareLessThan(left, right);
+      return compareRelational(left, right, "<");
     case "<=":
-      return compareLessThanOrEqual(left, right);
+      return compareRelational(left, right, "<=");
     case ">":
-      return compareGreaterThan(left, right);
+      return compareRelational(left, right, ">");
     case ">=":
-      return compareGreaterThanOrEqual(left, right);
+      return compareRelational(left, right, ">=");
     case "===":
-    case "==":
       return left === right;
     case "!==":
-    case "!=":
       return left !== right;
+    case "==":
+      return isLooselyEqual(left, right);
+    case "!=":
+      return !isLooselyEqual(left, right);
     case "&":
-      return Number(left) & Number(right);
+      return toNumber(left) & toNumber(right);
     case "|":
-      return Number(left) | Number(right);
+      return toNumber(left) | toNumber(right);
     case "^":
-      return Number(left) ^ Number(right);
+      return toNumber(left) ^ toNumber(right);
     case "<<":
-      return Number(left) << Number(right);
+      return toNumber(left) << toNumber(right);
     case ">>":
-      return Number(left) >> Number(right);
+      return toNumber(left) >> toNumber(right);
     case ">>>":
-      return Number(left) >>> Number(right);
+      return toNumber(left) >>> toNumber(right);
     case "in":
       throw createError("UNSUPPORTED_NODE", node, "Binary operator 'in' is not supported.");
   }
@@ -1905,27 +1904,27 @@ function applyCompoundAssignmentOperator(
     case "+=":
       return applyAdditionOperator(left, right, context);
     case "-=":
-      return Number(left) - Number(right);
+      return toNumber(left) - toNumber(right);
     case "*=":
-      return Number(left) * Number(right);
+      return toNumber(left) * toNumber(right);
     case "/=":
-      return Number(left) / Number(right);
+      return toNumber(left) / toNumber(right);
     case "%=":
-      return Number(left) % Number(right);
+      return toNumber(left) % toNumber(right);
     case "**=":
-      return Number(left) ** Number(right);
+      return toNumber(left) ** toNumber(right);
     case "&=":
-      return Number(left) & Number(right);
+      return toNumber(left) & toNumber(right);
     case "|=":
-      return Number(left) | Number(right);
+      return toNumber(left) | toNumber(right);
     case "^=":
-      return Number(left) ^ Number(right);
+      return toNumber(left) ^ toNumber(right);
     case "<<=":
-      return Number(left) << Number(right);
+      return toNumber(left) << toNumber(right);
     case ">>=":
-      return Number(left) >> Number(right);
+      return toNumber(left) >> toNumber(right);
     case ">>>=":
-      return Number(left) >>> Number(right);
+      return toNumber(left) >>> toNumber(right);
   }
 }
 
@@ -1934,35 +1933,165 @@ function applyAdditionOperator(
   right: InterpreterValue,
   context: EvaluationContext
 ): InterpreterValue {
-  if (typeof left === "string" || typeof right === "string") {
-    return context.budget.allocateString(String(left) + String(right));
+  const leftPrimitive = toPrimitive(left);
+  const rightPrimitive = toPrimitive(right);
+
+  if (typeof leftPrimitive === "string" || typeof rightPrimitive === "string") {
+    return context.budget.allocateString(toString(leftPrimitive) + toString(rightPrimitive));
   }
 
-  return Number(left) + Number(right);
+  return toNumber(leftPrimitive) + toNumber(rightPrimitive);
 }
 
-function compareLessThan(left: InterpreterValue, right: InterpreterValue): boolean {
-  return typeof left === "string" && typeof right === "string"
-    ? left < right
-    : Number(left) < Number(right);
+function compareRelational(
+  left: InterpreterValue,
+  right: InterpreterValue,
+  operator: "<" | "<=" | ">" | ">="
+): boolean {
+  const leftPrimitive = toPrimitive(left);
+  const rightPrimitive = toPrimitive(right);
+
+  if (typeof leftPrimitive === "string" && typeof rightPrimitive === "string") {
+    switch (operator) {
+      case "<":
+        return leftPrimitive < rightPrimitive;
+      case "<=":
+        return leftPrimitive <= rightPrimitive;
+      case ">":
+        return leftPrimitive > rightPrimitive;
+      case ">=":
+        return leftPrimitive >= rightPrimitive;
+    }
+  }
+
+  const leftNumber = toNumber(leftPrimitive);
+  const rightNumber = toNumber(rightPrimitive);
+
+  switch (operator) {
+    case "<":
+      return leftNumber < rightNumber;
+    case "<=":
+      return leftNumber <= rightNumber;
+    case ">":
+      return leftNumber > rightNumber;
+    case ">=":
+      return leftNumber >= rightNumber;
+  }
 }
 
-function compareLessThanOrEqual(left: InterpreterValue, right: InterpreterValue): boolean {
-  return typeof left === "string" && typeof right === "string"
-    ? left <= right
-    : Number(left) <= Number(right);
+function isLooselyEqual(left: InterpreterValue, right: InterpreterValue): boolean {
+  const leftType = getCoercionType(left);
+  const rightType = getCoercionType(right);
+
+  if (leftType === rightType) {
+    return left === right;
+  }
+
+  if ((left === null && right === undefined) || (left === undefined && right === null)) {
+    return true;
+  }
+
+  if (leftType === "number" && rightType === "string") {
+    return isLooselyEqual(left, toNumber(right));
+  }
+
+  if (leftType === "string" && rightType === "number") {
+    return isLooselyEqual(toNumber(left), right);
+  }
+
+  if (leftType === "boolean") {
+    return isLooselyEqual(toNumber(left), right);
+  }
+
+  if (rightType === "boolean") {
+    return isLooselyEqual(left, toNumber(right));
+  }
+
+  if (isPrimitiveCoercionType(leftType) && rightType === "object") {
+    return isLooselyEqual(left, toPrimitive(right));
+  }
+
+  if (leftType === "object" && isPrimitiveCoercionType(rightType)) {
+    return isLooselyEqual(toPrimitive(left), right);
+  }
+
+  return false;
 }
 
-function compareGreaterThan(left: InterpreterValue, right: InterpreterValue): boolean {
-  return typeof left === "string" && typeof right === "string"
-    ? left > right
-    : Number(left) > Number(right);
+function isPrimitiveCoercionType(type: CoercionType): boolean {
+  return type !== "object";
 }
 
-function compareGreaterThanOrEqual(left: InterpreterValue, right: InterpreterValue): boolean {
-  return typeof left === "string" && typeof right === "string"
-    ? left >= right
-    : Number(left) >= Number(right);
+type CoercionType = "boolean" | "null" | "number" | "object" | "string" | "undefined";
+
+function getCoercionType(value: InterpreterValue): CoercionType {
+  if (value === null) {
+    return "null";
+  }
+
+  if (value === undefined) {
+    return "undefined";
+  }
+
+  if (typeof value === "string") {
+    return "string";
+  }
+
+  if (typeof value === "number") {
+    return "number";
+  }
+
+  if (typeof value === "boolean") {
+    return "boolean";
+  }
+
+  return "object";
+}
+
+function toPrimitive(value: InterpreterValue): SandboxPrimitive {
+  if (isPrimitiveCoercionType(getCoercionType(value))) {
+    return value as SandboxPrimitive;
+  }
+
+  return toString(value);
+}
+
+function toNumber(value: InterpreterValue): number {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    return Number(value);
+  }
+
+  if (typeof value === "boolean") {
+    return value ? 1 : 0;
+  }
+
+  if (value === null) {
+    return 0;
+  }
+
+  if (value === undefined) {
+    return NaN;
+  }
+
+  return toNumber(toPrimitive(value));
+}
+
+function toString(value: InterpreterValue): string {
+  if (Array.isArray(value)) {
+    return value
+      .map((entry) => (entry === null || entry === undefined ? "" : toString(entry)))
+      .join(",");
+  }
+
+  if (typeof value === "object" && value !== null) {
+    return "[object Object]";
+  }
+
+  return String(value);
 }
 
 function isIndexableSandboxValue(value: SandboxValue): value is SandboxArray | SandboxObject {

@@ -1040,7 +1040,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: loader-find-exported-edges
     title: loader/find-exported — edge cases
@@ -1061,8 +1061,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): find-exported edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: runner-run-harness-edges

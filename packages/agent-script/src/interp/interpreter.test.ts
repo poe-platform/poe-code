@@ -624,13 +624,9 @@ describe("interpret", () => {
   });
 
   it("reports compound assignment to an undeclared identifier as unbound", async () => {
-    await expect(interpret(parse("missing += 1"))).resolves.toMatchObject({
-      ok: false,
-      error: {
-        code: "UNBOUND_IDENTIFIER",
-        message: "Identifier 'missing' is not defined.",
-        nodeType: "Identifier"
-      }
+    await expect(interpret(parse("missing += 1"))).rejects.toMatchObject({
+      message: "Cannot assign to undeclared binding 'missing'.",
+      name: "ReferenceError"
     });
   });
 

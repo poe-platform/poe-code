@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { parse, type ParseResult, type Statement } from "../parse.js";
+import { interpret } from "./interpreter.js";
 import { Scope } from "./scope.js";
 
 describe("Scope", () => {
@@ -124,7 +126,9 @@ describe("Scope", () => {
     const child = parent.child();
     child.declare("agentName", "const", "reviewer");
 
-    expect(() => child.assign("agentName", "qa")).toThrowError("Cannot assign to const binding 'agentName'.");
+    expect(() => child.assign("agentName", "qa")).toThrowError(
+      "Cannot assign to const binding 'agentName'."
+    );
     expect(parent.lookup("agentName")).toEqual({
       found: true,
       kind: "let",
@@ -135,7 +139,10 @@ describe("Scope", () => {
   it("rejects assigning to undeclared bindings", () => {
     const scope = new Scope();
 
-    expect(() => scope.assign("missing", 42)).toThrowError("Cannot assign to undeclared binding 'missing'.");
+    expect(() => scope.assign("missing", 42)).toThrowError(
+      "Cannot assign to undeclared binding 'missing'."
+    );
+    expect(() => scope.assign("missing", 42)).toThrow(ReferenceError);
   });
 
   it("rejects redeclaring a binding in the same scope", () => {
@@ -178,4 +185,166 @@ describe("Scope", () => {
       }
     });
   });
+
+  it("throws a strict ReferenceError when assigning to an undeclared identifier", async () => {
+    await expect(interpret(parse("missing = 1"))).rejects.toMatchObject({
+      message: "Cannot assign to undeclared binding 'missing'.",
+      name: "ReferenceError"
+    });
+  });
+
+  it("rejects redeclaring const in the same scope at parse time", () => {
+    expect(() => parse("if (true) { const x = 1; const x = 2; }")).toThrowError(
+      "Cannot redeclare binding 'x'"
+    );
+  });
+
+  it("rejects redeclaring let in the same scope at parse time", () => {
+    expect(() => parse("if (true) { let x = 1; let x = 2; }")).toThrowError(
+      "Cannot redeclare binding 'x'"
+    );
+  });
+
+  it("keeps child let shadows independent from outer let bindings", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let x = 'outer'"),
+          parse("if (true) { let x = 'child'; x = 'changed'; }"),
+          parse("return x")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "outer"
+    });
+  });
+
+  it("throws a ReferenceError for let TDZ reads in the same scope", async () => {
+    await expect(interpret(block(parse("x"), parse("let x = 1")))).rejects.toMatchObject({
+      message: "Cannot access 'x' before initialization.",
+      name: "ReferenceError"
+    });
+  });
+
+  it("throws a ReferenceError for const TDZ reads in the same scope", async () => {
+    await expect(interpret(block(parse("x"), parse("const x = 1")))).rejects.toMatchObject({
+      message: "Cannot access 'x' before initialization.",
+      name: "ReferenceError"
+    });
+  });
+
+  it("captures for-loop let bindings by per-iteration reference", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const fns = []"),
+          parse("for (let i = 0; i < 3; i = i + 1) { fns.push(() => i); }"),
+          parse("return fns[0]() * 10 + fns[1]()")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+  });
+
+  it("resolves a 200-deep scope chain lookup in under 10ms", () => {
+    let scope = new Scope();
+    scope.declare("target", "let", 42);
+
+    for (let index = 0; index < 200; index += 1) {
+      scope = scope.child();
+    }
+
+    const start = performance.now();
+    const result = scope.lookup("target");
+    const elapsed = performance.now() - start;
+
+    expect(result).toEqual({
+      found: true,
+      kind: "let",
+      value: 42
+    });
+    expect(elapsed).toBeLessThan(10);
+  });
+
+  it("does not leak __proto__ bindings to Object.prototype", () => {
+    const scope = new Scope();
+    scope.declare("__proto__", "let", "local");
+
+    expect(scope.lookup("__proto__")).toEqual({
+      found: true,
+      kind: "let",
+      value: "local"
+    });
+    expect(Object.prototype).not.toHaveProperty("local");
+    expect({}).not.toHaveProperty("local");
+    expect(scope.snapshot().bindings.__proto__).toBe("local");
+  });
+
+  it("treats constructor as a normal binding name", () => {
+    const scope = new Scope();
+    scope.declare("constructor", "let", "local");
+    scope.assign("constructor", "updated");
+
+    expect(scope.lookup("constructor")).toEqual({
+      found: true,
+      kind: "let",
+      value: "updated"
+    });
+    expect(scope.snapshot().bindings.constructor).toBe("updated");
+  });
+
+  it("scopes catch bindings to the catch block", async () => {
+    await expect(
+      interpret(block(parse("try { throw 'boom'; } catch (error) {}"), parse("return error")))
+    ).resolves.toMatchObject({
+      ok: false,
+      error: {
+        code: "UNBOUND_IDENTIFIER",
+        message: "Identifier 'error' is not defined.",
+        nodeType: "Identifier"
+      }
+    });
+  });
+
+  it("does not leak lexical bindings from try blocks", async () => {
+    await expect(
+      interpret(block(parse("try { let hidden = 1; } catch (error) {}"), parse("return hidden")))
+    ).resolves.toMatchObject({
+      ok: false,
+      error: {
+        code: "UNBOUND_IDENTIFIER",
+        message: "Identifier 'hidden' is not defined.",
+        nodeType: "Identifier"
+      }
+    });
+  });
 });
+
+function block(...statements: Statement[]): ParseResult {
+  return {
+    type: "BlockStatement",
+    body: statements,
+    span: {
+      start: statements[0]?.span.start ?? span(1, 1, 0).start,
+      end: statements.at(-1)?.span.end ?? span(1, 1, 0).end
+    }
+  };
+}
+
+function span(line: number, column: number, offset: number) {
+  return {
+    start: {
+      line,
+      column,
+      offset
+    },
+    end: {
+      line,
+      column,
+      offset
+    }
+  };
+}

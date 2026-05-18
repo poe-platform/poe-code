@@ -13,7 +13,8 @@ import type {
   ParseResult,
   RestElement,
   ThrowStatement,
-  TryStatement
+  TryStatement,
+  VariableDeclaration
 } from "../parse.js";
 import { SandboxError, type Budget } from "./budget.js";
 import type { Scope } from "./scope.js";
@@ -131,7 +132,10 @@ export async function evaluateTryStatement<TContext extends ExceptionContext, TE
   return finalizerResult;
 }
 
-export function createCapturedException(reason: unknown, stackFrames: readonly string[]): CapturedException {
+export function createCapturedException(
+  reason: unknown,
+  stackFrames: readonly string[]
+): CapturedException {
   return {
     reason,
     stackFrames,
@@ -226,6 +230,11 @@ async function evaluateBlockCompletion<TContext extends ExceptionContext, TError
   context: TContext,
   evaluateNode: EvaluateExceptionNode<TContext, TError>
 ): Promise<EvaluationResult<TError>> {
+  const blockContext = {
+    ...context,
+    scope: context.scope.child()
+  };
+  predeclareBlockBindings(node, blockContext.scope);
   let result: EvaluationResult<TError> = {
     kind: "normal",
     hasValue: false,
@@ -233,13 +242,67 @@ async function evaluateBlockCompletion<TContext extends ExceptionContext, TError
   };
 
   for (const statement of node.body) {
-    result = await evaluateNode(statement, context);
+    result = await evaluateNode(statement, blockContext);
     if (result.kind !== "normal") {
       return result;
     }
   }
 
   return result;
+}
+
+function predeclareBlockBindings(node: BlockStatement, scope: Scope): void {
+  const names = new Set<string>();
+
+  for (const statement of node.body) {
+    if (statement.type !== "VariableDeclaration") {
+      continue;
+    }
+
+    for (const name of getDeclarationBindingNames(statement)) {
+      if (names.has(name) || scope.hasOwnBinding(name)) {
+        throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
+      }
+
+      names.add(name);
+      scope.predeclare(name, statement.kind);
+    }
+  }
+}
+
+function getDeclarationBindingNames(node: VariableDeclaration): string[] {
+  return node.declarations.flatMap((declarator) => getPatternBindingNames(declarator.id));
+}
+
+function getPatternBindingNames(
+  pattern:
+    | ArrayPattern
+    | AssignmentPattern
+    | Identifier
+    | MemberExpression
+    | ObjectPattern
+    | RestElement
+): string[] {
+  switch (pattern.type) {
+    case "Identifier":
+      return [pattern.name];
+    case "MemberExpression":
+      return [];
+    case "AssignmentPattern":
+      return getPatternBindingNames(pattern.left);
+    case "ArrayPattern":
+      return pattern.elements.flatMap((element) =>
+        element === null ? [] : getPatternBindingNames(element)
+      );
+    case "ObjectPattern":
+      return pattern.properties.flatMap((property) =>
+        property.type === "RestElement"
+          ? getPatternBindingNames(property)
+          : getPatternBindingNames(property.value)
+      );
+    case "RestElement":
+      return getPatternBindingNames(pattern.argument);
+  }
 }
 
 async function bindPattern<TContext extends ExceptionContext, TError>(
@@ -415,7 +478,10 @@ function getStaticPropertyKey(property: AssignmentProperty["key"]): string | num
   }
 }
 
-function getObjectPatternValue(value: Exclude<SandboxValue, null | undefined>, key: string | number): SandboxValue {
+function getObjectPatternValue(
+  value: Exclude<SandboxValue, null | undefined>,
+  key: string | number
+): SandboxValue {
   return (value as Record<string | number, SandboxValue>)[key];
 }
 

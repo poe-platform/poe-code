@@ -3,7 +3,7 @@ import type { InterpreterSnapshot, InterpreterValue } from "./interpreter.js";
 
 type ScopeBinding = {
   kind: VariableDeclarationKind;
-  value: InterpreterValue;
+  value: InterpreterValue | typeof uninitialized;
 };
 
 type ScopeLookupResult =
@@ -15,6 +15,8 @@ type ScopeLookupResult =
   | {
       found: false;
     };
+
+const uninitialized = Symbol("uninitialized");
 
 export class Scope {
   readonly #bindings = new Map<string, ScopeBinding>();
@@ -36,6 +38,21 @@ export class Scope {
     return new Scope(bindings, this);
   }
 
+  hasOwnBinding(name: string): boolean {
+    return this.#bindings.has(name);
+  }
+
+  iterationChild(names: readonly string[]): Scope {
+    const scope = new Scope({}, this.parent);
+
+    for (const name of names) {
+      const binding = this.requireInitializedBinding(name);
+      scope.declare(name, binding.kind, binding.value);
+    }
+
+    return scope;
+  }
+
   lookupImportMeta(): InterpreterValue {
     if (this.importMeta !== undefined) {
       return this.importMeta;
@@ -49,7 +66,11 @@ export class Scope {
   }
 
   declare(name: string, kind: VariableDeclarationKind, value: InterpreterValue): void {
-    if (this.#bindings.has(name)) {
+    const existing = this.#bindings.get(name);
+    if (existing !== undefined && existing.value !== uninitialized) {
+      throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
+    }
+    if (existing !== undefined && existing.kind !== kind) {
       throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
     }
 
@@ -59,10 +80,21 @@ export class Scope {
     });
   }
 
+  predeclare(name: string, kind: VariableDeclarationKind): void {
+    if (this.#bindings.has(name)) {
+      throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
+    }
+
+    this.#bindings.set(name, {
+      kind,
+      value: uninitialized
+    });
+  }
+
   assign(name: string, value: InterpreterValue): void {
     const scope = this.resolveScope(name);
     if (scope === undefined) {
-      throw new Error(`Cannot assign to undeclared binding '${name}'.`);
+      throw new ReferenceError(`Cannot assign to undeclared binding '${name}'.`);
     }
 
     const binding = scope.#bindings.get(name);
@@ -71,7 +103,11 @@ export class Scope {
     }
 
     if (binding === undefined) {
-      throw new Error(`Cannot assign to undeclared binding '${name}'.`);
+      throw new ReferenceError(`Cannot assign to undeclared binding '${name}'.`);
+    }
+
+    if (binding.value === uninitialized) {
+      throw new ReferenceError(`Cannot access '${name}' before initialization.`);
     }
 
     scope.#bindings.set(name, {
@@ -83,6 +119,10 @@ export class Scope {
   lookup(name: string): ScopeLookupResult {
     const binding = this.#bindings.get(name);
     if (binding !== undefined) {
+      if (binding.value === uninitialized) {
+        throw new ReferenceError(`Cannot access '${name}' before initialization.`);
+      }
+
       return {
         found: true,
         kind: binding.kind,
@@ -99,15 +139,39 @@ export class Scope {
 
   snapshot(): InterpreterSnapshot {
     const inheritedBindings = this.parent?.snapshot().bindings ?? {};
+    const bindings: Record<string, InterpreterValue> = {};
+
+    for (const [name, value] of Object.entries(inheritedBindings)) {
+      defineSnapshotBinding(bindings, name, value);
+    }
+
+    for (const [name, binding] of this.#bindings.entries()) {
+      if (binding.value === uninitialized) {
+        continue;
+      }
+
+      defineSnapshotBinding(bindings, name, binding.value);
+    }
 
     return {
-      bindings: {
-        ...inheritedBindings,
-        ...Object.fromEntries(
-          [...this.#bindings.entries()].map(([name, binding]) => [name, binding.value])
-        )
-      }
+      bindings
     };
+  }
+
+  copyInitializedBindingsFrom(source: Scope, names: readonly string[]): void {
+    for (const name of names) {
+      const sourceBinding = source.requireInitializedBinding(name);
+      const targetScope = this.resolveScope(name);
+      if (targetScope === undefined) {
+        this.declare(name, sourceBinding.kind, sourceBinding.value);
+        continue;
+      }
+
+      targetScope.#bindings.set(name, {
+        kind: sourceBinding.kind,
+        value: sourceBinding.value
+      });
+    }
   }
 
   private resolveScope(name: string): Scope | undefined {
@@ -117,4 +181,38 @@ export class Scope {
 
     return this.parent?.resolveScope(name);
   }
+
+  private requireInitializedBinding(name: string): {
+    kind: VariableDeclarationKind;
+    value: InterpreterValue;
+  } {
+    const scope = this.resolveScope(name);
+    const binding = scope === undefined ? undefined : scope.#bindings.get(name);
+
+    if (binding === undefined) {
+      throw new ReferenceError(`Identifier '${name}' is not defined.`);
+    }
+
+    if (binding.value === uninitialized) {
+      throw new ReferenceError(`Cannot access '${name}' before initialization.`);
+    }
+
+    return {
+      kind: binding.kind,
+      value: binding.value
+    };
+  }
+}
+
+function defineSnapshotBinding(
+  target: Record<string, InterpreterValue>,
+  name: string,
+  value: InterpreterValue
+): void {
+  Object.defineProperty(target, name, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }

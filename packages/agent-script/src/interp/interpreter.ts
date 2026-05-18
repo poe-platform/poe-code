@@ -217,6 +217,7 @@ export async function interpret(
     budget,
     callStack: [],
     onYield: options.onYield,
+    rootNode: node,
     scope,
     stats
   });
@@ -569,14 +570,7 @@ async function evaluateAssignmentExpression(
 
   const binding = context.scope.lookup(node.left.name);
   if (!binding.found) {
-    return {
-      kind: "error",
-      error: createError(
-        "UNBOUND_IDENTIFIER",
-        node.left,
-        `Identifier '${node.left.name}' is not defined.`
-      )
-    };
+    throw new ReferenceError(`Cannot assign to undeclared binding '${node.left.name}'.`);
   }
 
   if (binding.kind === "const") {
@@ -759,6 +753,8 @@ async function evaluateVariableDeclaration(
   node: VariableDeclaration,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  predeclareDeclarationBindings(node, context.scope);
+
   for (const declarator of node.declarations) {
     const value =
       declarator.init === undefined
@@ -814,6 +810,53 @@ async function bindDeclarationPattern(
       return bindDeclarationObjectPattern(pattern, value, kind, context);
     case "RestElement":
       return bindDeclarationPattern(pattern.argument, value, kind, context);
+  }
+}
+
+function predeclareDeclarationBindings(node: VariableDeclaration, scope: Scope): void {
+  for (const name of getDeclarationBindingNames(node)) {
+    if (!scope.hasOwnBinding(name)) {
+      scope.predeclare(name, node.kind);
+    }
+  }
+}
+
+function getForStatementBindingNames(node: ForStatement): string[] {
+  return node.init?.type === "VariableDeclaration" ? getDeclarationBindingNames(node.init) : [];
+}
+
+function getDeclarationBindingNames(node: VariableDeclaration): string[] {
+  return node.declarations.flatMap((declarator) => getPatternBindingNames(declarator.id));
+}
+
+function getPatternBindingNames(
+  pattern:
+    | ArrayPattern
+    | AssignmentPattern
+    | Identifier
+    | MemberExpression
+    | ObjectPattern
+    | RestElement
+): string[] {
+  switch (pattern.type) {
+    case "Identifier":
+      return [pattern.name];
+    case "MemberExpression":
+      return [];
+    case "AssignmentPattern":
+      return getPatternBindingNames(pattern.left);
+    case "ArrayPattern":
+      return pattern.elements.flatMap((element) =>
+        element === null ? [] : getPatternBindingNames(element)
+      );
+    case "ObjectPattern":
+      return pattern.properties.flatMap((property) =>
+        property.type === "RestElement"
+          ? getPatternBindingNames(property)
+          : getPatternBindingNames(property.value)
+      );
+    case "RestElement":
+      return getPatternBindingNames(pattern.argument);
   }
 }
 
@@ -1012,8 +1055,10 @@ async function evaluateBlockStatement(
   node: BlockStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const blockContext = createBlockContext(node, context);
+
   for (const statement of node.body) {
-    const result = await evaluateNode(statement, context);
+    const result = await evaluateNode(statement, blockContext);
     if (result.kind !== "normal") {
       return result;
     }
@@ -1024,6 +1069,35 @@ async function evaluateBlockStatement(
     hasValue: false,
     value: undefined
   };
+}
+
+function createBlockContext(node: BlockStatement, context: EvaluationContext): EvaluationContext {
+  const scope = node === context.rootNode ? context.scope : context.scope.child();
+  predeclareBlockBindings(node, scope);
+
+  return {
+    ...context,
+    scope
+  };
+}
+
+function predeclareBlockBindings(node: BlockStatement, scope: Scope): void {
+  const names = new Set<string>();
+
+  for (const statement of node.body) {
+    if (statement.type !== "VariableDeclaration") {
+      continue;
+    }
+
+    for (const name of getDeclarationBindingNames(statement)) {
+      if (names.has(name) || scope.hasOwnBinding(name)) {
+        throw new Error(`Cannot redeclare binding '${name}' in the same scope.`);
+      }
+
+      names.add(name);
+      scope.predeclare(name, statement.kind);
+    }
+  }
 }
 
 async function evaluateIfStatement(
@@ -1111,9 +1185,11 @@ async function evaluateForStatement(
   node: ForStatement,
   context: EvaluationContext
 ): Promise<EvaluationResult> {
+  const loopScope = context.scope.child();
+  const loopBindingNames = getForStatementBindingNames(node);
   const loopContext = {
     ...context,
-    scope: context.scope.child()
+    scope: loopScope
   };
 
   if (node.init !== undefined) {
@@ -1142,7 +1218,13 @@ async function evaluateForStatement(
       }
     }
 
-    const result = await evaluateNode(node.body, loopContext);
+    const iterationScope =
+      loopBindingNames.length === 0 ? loopScope : loopScope.iterationChild(loopBindingNames);
+    const iterationContext = {
+      ...loopContext,
+      scope: iterationScope
+    };
+    const result = await evaluateNode(node.body, iterationContext);
 
     if (isMatchingBreak(result, loopLabels(node))) {
       return {
@@ -1156,12 +1238,23 @@ async function evaluateForStatement(
       return result;
     }
 
+    const updateScope =
+      loopBindingNames.length === 0
+        ? iterationScope
+        : iterationScope.iterationChild(loopBindingNames);
+    const updateContext = {
+      ...loopContext,
+      scope: updateScope
+    };
+
     if (node.update !== undefined) {
-      const update = await evaluateNode(node.update, loopContext);
+      const update = await evaluateNode(node.update, updateContext);
       if (update.kind !== "normal") {
         return update;
       }
     }
+
+    loopScope.copyInitializedBindingsFrom(updateScope, loopBindingNames);
   }
 }
 

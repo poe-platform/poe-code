@@ -42,6 +42,7 @@ export type AsyncEvaluationContext = {
   budget: Budget;
   callStack: string[];
   onYield?: (yieldPoint: InterpreterYieldPoint) => void;
+  rootNode?: ParseResult;
   scope: Scope;
   stats: {
     nodeVisits: number;

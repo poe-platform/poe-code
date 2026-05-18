@@ -792,8 +792,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): Error edges`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: globals-math-edges

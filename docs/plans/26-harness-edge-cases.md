@@ -970,7 +970,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: error-format-edges
     title: error/format — top-level error rendering
@@ -989,8 +989,8 @@ tasks:
 
       Conventional commit: `fix(agent-script): top-level error rendering`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: loader-frontmatter-edges

@@ -1530,6 +1530,110 @@ describe("parse", () => {
     });
   });
 
+  it("parses statement-level edge cases explicitly", () => {
+    expect(parseModule(";;;")).toMatchObject({
+      body: [
+        { type: "EmptyStatement" },
+        { type: "EmptyStatement" },
+        { type: "EmptyStatement" }
+      ]
+    });
+
+    expect(parseModule("for (;;) {}")).toMatchObject({
+      body: [
+        {
+          type: "ForStatement",
+          init: undefined,
+          test: undefined,
+          update: undefined,
+          body: { type: "BlockStatement", body: [] }
+        }
+      ]
+    });
+
+    expect(parseModule("for (const x of arr) {}")).toMatchObject({
+      body: [
+        {
+          type: "ForOfStatement",
+          left: {
+            type: "VariableDeclaration",
+            kind: "const",
+            declarations: [{ id: { type: "Identifier", name: "x" } }]
+          },
+          right: { type: "Identifier", name: "arr" },
+          body: { type: "BlockStatement", body: [] }
+        }
+      ]
+    });
+
+    expect(parseModule("if (a) b; else c;")).toMatchObject({
+      body: [
+        {
+          type: "IfStatement",
+          consequent: { type: "ExpressionStatement", expression: { name: "b" } },
+          alternate: { type: "ExpressionStatement", expression: { name: "c" } }
+        }
+      ]
+    });
+
+    expect(parseModule("if (a) if (b) c; else d;")).toMatchObject({
+      body: [
+        {
+          type: "IfStatement",
+          alternate: undefined,
+          consequent: {
+            type: "IfStatement",
+            consequent: { type: "ExpressionStatement", expression: { name: "c" } },
+            alternate: { type: "ExpressionStatement", expression: { name: "d" } }
+          }
+        }
+      ]
+    });
+
+    expect(parseModule("try { a; } catch { b; }")).toMatchObject({
+      body: [
+        {
+          type: "TryStatement",
+          handler: {
+            type: "CatchClause",
+            param: undefined,
+            body: { type: "BlockStatement", body: [{ type: "ExpressionStatement" }] }
+          }
+        }
+      ]
+    });
+
+    expect(parseModule("try { a; } catch (e) { b; }")).toMatchObject({
+      body: [
+        {
+          type: "TryStatement",
+          handler: {
+            type: "CatchClause",
+            param: { type: "Identifier", name: "e" }
+          }
+        }
+      ]
+    });
+
+    expect(parseModule("try { a; } finally { b; }")).toMatchObject({
+      body: [
+        {
+          type: "TryStatement",
+          handler: undefined,
+          finalizer: { type: "BlockStatement", body: [{ type: "ExpressionStatement" }] }
+        }
+      ]
+    });
+
+    expect(parse("() => { return 1; }")).toMatchObject({
+      type: "ArrowFunctionExpression",
+      body: {
+        type: "BlockStatement",
+        body: [{ type: "ReturnStatement", argument: { type: "NumericLiteral", value: 1 } }]
+      }
+    });
+  });
+
   it("parses try/catch, try/finally, and throw statements", () => {
     expect(parse("try { work(); } catch { throw error; }")).toMatchObject({
       type: "TryStatement",
@@ -2961,6 +3065,30 @@ describe("parse", () => {
     expect(() => parse("() => { for (var item of items) work(item); }")).toThrowError(
       "Disallowed syntax 'var' at line 1, column 14."
     );
+
+    expect(() => parseModule("for (const x in obj) {}")).toThrowError(DisallowedSyntaxError);
+    expect(() => parseModule("for (const x in obj) {}")).toThrowError(
+      "Disallowed syntax 'for...in' at line 1, column 14."
+    );
+
+    expect(() => parseModule("break;")).toThrowError(
+      "Illegal break statement outside a loop at line 1, column 1."
+    );
+    expect(() => parseModule("continue;")).toThrowError(
+      "Illegal continue statement outside a loop at line 1, column 1."
+    );
+
+    expect(() => parseModule("return;")).toThrowError(
+      "Top-level return statements must return a value at line 1, column 1."
+    );
+
+    expect(() => parseModule("}")).toThrowError("Unexpected token '}' at line 1, column 1.");
+
+    expect(() => parseModule("const a = 1; const a = 2;")).toThrowError(
+      "Cannot redeclare binding 'a' at line 1, column 20."
+    );
+
+    expect(() => parseModule("{ a;")).toThrowError("Unterminated block at line 1, column 1.");
   });
 
   it("rejects invalid try/catch/finally forms and invalid throw statements", () => {

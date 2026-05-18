@@ -119,6 +119,7 @@ class ASUnreachableScanner {
         this.visitExpression(node.declaration);
         return false;
       case "ImportDeclaration":
+      case "EmptyStatement":
         return false;
     }
   }

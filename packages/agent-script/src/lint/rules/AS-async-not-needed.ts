@@ -544,6 +544,7 @@ function statementContainsAwait(node: Statement): boolean {
     case "ImportDeclaration":
     case "BreakStatement":
     case "ContinueStatement":
+    case "EmptyStatement":
       return false;
   }
 }

@@ -13,6 +13,7 @@ import type {
   ConditionalExpression,
   ContinueStatement,
   DoWhileStatement,
+  EmptyStatement,
   Expression,
   Identifier,
   ExportDefaultDeclaration,
@@ -165,6 +166,7 @@ const dispatchTable: DispatchTable = {
   ConditionalExpression: evaluateConditionalExpression,
   ContinueStatement: evaluateContinueStatement,
   DoWhileStatement: evaluateDoWhileStatement,
+  EmptyStatement: evaluateEmptyStatement,
   ExportDefaultDeclaration: evaluateExportDefaultDeclaration,
   ExportNamedDeclaration: evaluateExportNamedDeclaration,
   ExpressionStatement: evaluateExpressionStatement,
@@ -313,6 +315,17 @@ async function evaluatePrimitiveLiteral(
     kind: "normal",
     hasValue: true,
     value
+  };
+}
+
+async function evaluateEmptyStatement(
+  _node: EmptyStatement,
+  _context: EvaluationContext
+): Promise<EvaluationResult> {
+  return {
+    kind: "normal",
+    hasValue: false,
+    value: undefined
   };
 }
 

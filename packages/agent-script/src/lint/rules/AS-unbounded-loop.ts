@@ -436,6 +436,7 @@ function bodyHasExit(
     case "ExpressionStatement":
     case "ImportDeclaration":
     case "ContinueStatement":
+    case "EmptyStatement":
     case "VariableDeclaration":
       return false;
   }

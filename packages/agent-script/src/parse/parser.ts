@@ -293,6 +293,10 @@ export type ExpressionStatement = BaseNode & {
   expression: Expression;
 };
 
+export type EmptyStatement = BaseNode & {
+  type: "EmptyStatement";
+};
+
 export type BlockStatement = BaseNode & {
   type: "BlockStatement";
   body: Statement[];
@@ -394,6 +398,7 @@ export type Statement =
   | ImportDeclaration
   | TryStatement
   | ContinueStatement
+  | EmptyStatement
   | ExpressionStatement
   | ForOfStatement
   | ForStatement
@@ -517,6 +522,8 @@ function parseExpressionTokens(tokens: Token[]): Expression {
 
 class Parser {
   private index = 0;
+  private loopDepth = 0;
+  private readonly scopes: Array<Map<string, Position>> = [new Map()];
 
   constructor(private readonly tokens: Token[]) {}
 
@@ -539,8 +546,9 @@ class Parser {
     const body: Statement[] = [];
 
     while (this.currentToken().type !== "eof") {
-      body.push(this.parseTopLevelItem());
-      while (this.consumePunctuator(";") !== undefined) {
+      const statement = this.parseTopLevelItem();
+      body.push(statement);
+      while (statement.type !== "EmptyStatement" && this.consumePunctuator(";") !== undefined) {
         continue;
       }
     }
@@ -563,11 +571,30 @@ class Parser {
   }
 
   private parseTopLevelItem(): Statement {
+    const emptyStatement = this.parseEmptyStatement();
+    if (emptyStatement !== undefined) {
+      return emptyStatement;
+    }
+
     if (this.isExportToken(this.currentToken())) {
       return this.parseExportDeclaration();
     }
 
-    if (this.shouldParseTopLevelStatement()) {
+    const token = this.currentToken();
+    if (
+      token.type === "keyword" &&
+      token.value === "return" &&
+      !this.hasReturnArgument(token, this.peekToken(1))
+    ) {
+      throw new Error(
+        `Top-level return statements must return a value at line ${token.start.line}, column ${token.start.column}.`
+      );
+    }
+
+    if (
+      this.shouldParseTopLevelStatement() ||
+      (this.currentToken().type === "punctuator" && this.currentToken().value === "{")
+    ) {
       return this.parseStatement();
     }
 
@@ -688,7 +715,7 @@ class Parser {
 
   private parseArrowFunctionBody(): BlockStatement | Expression {
     if (this.currentToken().type === "punctuator" && this.currentToken().value === "{") {
-      return this.parseBlockStatement();
+      return this.withFunctionContext(() => this.parseBlockStatement());
     }
 
     return this.parseExpression().node;
@@ -696,11 +723,22 @@ class Parser {
 
   private parseBlockStatement(): BlockStatement {
     const start = this.expectPunctuator("{");
+    return this.withScope(() => this.parseBlockStatementBody(start));
+  }
+
+  private parseBlockStatementBody(start: Token): BlockStatement {
     const body: Statement[] = [];
 
     while (this.consumePunctuator("}") === undefined) {
-      body.push(this.parseStatement());
-      while (this.consumePunctuator(";") !== undefined) {
+      if (this.currentToken().type === "eof") {
+        throw new Error(
+          `Unterminated block at line ${start.start.line}, column ${start.start.column}.`
+        );
+      }
+
+      const statement = this.parseStatement();
+      body.push(statement);
+      while (statement.type !== "EmptyStatement" && this.consumePunctuator(";") !== undefined) {
         continue;
       }
     }
@@ -713,6 +751,11 @@ class Parser {
   }
 
   private parseStatement(): Statement {
+    const emptyStatement = this.parseEmptyStatement();
+    if (emptyStatement !== undefined) {
+      return emptyStatement;
+    }
+
     const token = this.currentToken();
 
     if (
@@ -756,12 +799,7 @@ class Parser {
 
     if (token.type === "keyword" && token.value === "return") {
       this.index += 1;
-      const hasArgument = !(
-        hasLineBreakBetween(token, this.currentToken()) ||
-        (this.currentToken().type === "punctuator" &&
-          (this.currentToken().value === ";" || this.currentToken().value === "}")) ||
-        this.currentToken().type === "eof"
-      );
+      const hasArgument = this.hasReturnArgument(token, this.currentToken());
       const argument = hasArgument ? this.parseExpression().node : undefined;
       const end = argument?.span.end ?? token.end;
       return {
@@ -800,6 +838,11 @@ class Parser {
     }
 
     if (token.type === "keyword" && token.value === "break") {
+      if (this.loopDepth === 0) {
+        throw new Error(
+          `Illegal break statement outside a loop at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
       this.index += 1;
       const label = this.consumeControlLabel(token);
       return {
@@ -810,6 +853,11 @@ class Parser {
     }
 
     if (token.type === "keyword" && token.value === "continue") {
+      if (this.loopDepth === 0) {
+        throw new Error(
+          `Illegal continue statement outside a loop at line ${token.start.line}, column ${token.start.column}.`
+        );
+      }
       this.index += 1;
       const label = this.consumeControlLabel(token);
       return {
@@ -824,6 +872,18 @@ class Parser {
       type: "ExpressionStatement",
       expression,
       span: createSpan(expression.span.start, expression.span.end)
+    };
+  }
+
+  private parseEmptyStatement(): EmptyStatement | undefined {
+    const token = this.consumePunctuator(";");
+    if (token === undefined) {
+      return undefined;
+    }
+
+    return {
+      type: "EmptyStatement",
+      span: createTokenSpan(token)
     };
   }
 
@@ -883,64 +943,66 @@ class Parser {
 
   private parseForStatement(labels?: string[]): ForOfStatement | ForStatement {
     const forToken = this.expectKeyword("for");
-    this.expectPunctuator("(");
-    if (this.currentToken().type === "identifier" && this.currentToken().value === "var") {
-      throw new DisallowedSyntaxError("var", this.currentToken().start);
-    }
-    const iterationOperator = this.findTopLevelForIterationOperator(this.index);
+    return this.withScope(() => {
+      this.expectPunctuator("(");
+      if (this.currentToken().type === "identifier" && this.currentToken().value === "var") {
+        throw new DisallowedSyntaxError("var", this.currentToken().start);
+      }
+      const iterationOperator = this.findTopLevelForIterationOperator(this.index);
 
-    if (iterationOperator?.value === "in") {
-      throw new DisallowedSyntaxError("for...in", iterationOperator.start);
-    }
+      if (iterationOperator?.value === "in") {
+        throw new DisallowedSyntaxError("for...in", iterationOperator.start);
+      }
 
-    if (iterationOperator?.value === "of") {
-      const left = this.parseForOfLeft();
-      this.expectKeyword("of");
-      const right = this.parseExpression().node;
+      if (iterationOperator?.value === "of") {
+        const left = this.parseForOfLeft();
+        this.expectKeyword("of");
+        const right = this.parseExpression().node;
+        this.expectPunctuator(")");
+        const body = this.withLoopContext(() => this.parseStatement());
+        return {
+          type: "ForOfStatement",
+          left,
+          right,
+          body,
+          ...createLoopLabelFields(labels),
+          span: createSpan(forToken.start, body.span.end)
+        };
+      }
+
+      let init: Expression | VariableDeclaration | undefined;
+      if (this.consumePunctuator(";") === undefined) {
+        init =
+          this.currentToken().type === "keyword" &&
+          (this.currentToken().value === "const" || this.currentToken().value === "let")
+            ? this.parseVariableDeclaration()
+            : this.parseExpression().node;
+        this.expectPunctuator(";");
+      }
+
+      let test: Expression | undefined;
+      if (this.consumePunctuator(";") === undefined) {
+        test = this.parseExpression().node;
+        this.expectPunctuator(";");
+      }
+
+      const update =
+        this.currentToken().type === "punctuator" && this.currentToken().value === ")"
+          ? undefined
+          : this.parseExpression().node;
+
       this.expectPunctuator(")");
-      const body = this.parseStatement();
+      const body = this.withLoopContext(() => this.parseStatement());
       return {
-        type: "ForOfStatement",
-        left,
-        right,
+        type: "ForStatement",
+        init,
+        test,
+        update,
         body,
         ...createLoopLabelFields(labels),
         span: createSpan(forToken.start, body.span.end)
       };
-    }
-
-    let init: Expression | VariableDeclaration | undefined;
-    if (this.consumePunctuator(";") === undefined) {
-      init =
-        this.currentToken().type === "keyword" &&
-        (this.currentToken().value === "const" || this.currentToken().value === "let")
-          ? this.parseVariableDeclaration()
-          : this.parseExpression().node;
-      this.expectPunctuator(";");
-    }
-
-    let test: Expression | undefined;
-    if (this.consumePunctuator(";") === undefined) {
-      test = this.parseExpression().node;
-      this.expectPunctuator(";");
-    }
-
-    const update =
-      this.currentToken().type === "punctuator" && this.currentToken().value === ")"
-        ? undefined
-        : this.parseExpression().node;
-
-    this.expectPunctuator(")");
-    const body = this.parseStatement();
-    return {
-      type: "ForStatement",
-      init,
-      test,
-      update,
-      body,
-      ...createLoopLabelFields(labels),
-      span: createSpan(forToken.start, body.span.end)
-    };
+    });
   }
 
   private parseForOfLeft(): PatternTarget | VariableDeclaration {
@@ -981,6 +1043,7 @@ class Parser {
       id,
       span: id.span
     };
+    this.declarePatternBindings(id);
 
     return {
       type: "VariableDeclaration",
@@ -995,7 +1058,7 @@ class Parser {
     this.expectPunctuator("(");
     const test = this.parseExpression().node;
     this.expectPunctuator(")");
-    const body = this.parseStatement();
+    const body = this.withLoopContext(() => this.parseStatement());
     return {
       type: "WhileStatement",
       test,
@@ -1007,7 +1070,7 @@ class Parser {
 
   private parseDoWhileStatement(labels?: string[]): DoWhileStatement {
     const doToken = this.expectKeyword("do");
-    const body = this.parseStatement();
+    const body = this.withLoopContext(() => this.parseStatement());
     this.expectKeyword("while");
     this.expectPunctuator("(");
     const test = this.parseExpression().node;
@@ -1207,7 +1270,9 @@ class Parser {
     const declarations: VariableDeclaration["declarations"] = [];
 
     while (true) {
-      declarations.push(this.parseVariableDeclarator(kindToken.value));
+      const declarator = this.parseVariableDeclarator(kindToken.value);
+      this.declarePatternBindings(declarator.id);
+      declarations.push(declarator);
       const comma = this.consumePunctuator(",");
       if (comma === undefined) {
         break;
@@ -2823,6 +2888,63 @@ class Parser {
     return undefined;
   }
 
+  private hasReturnArgument(returnToken: Token, nextToken: Token): boolean {
+    return !(
+      hasLineBreakBetween(returnToken, nextToken) ||
+      (nextToken.type === "punctuator" && (nextToken.value === ";" || nextToken.value === "}")) ||
+      nextToken.type === "eof"
+    );
+  }
+
+  private withFunctionContext<T>(callback: () => T): T {
+    const previousLoopDepth = this.loopDepth;
+    this.loopDepth = 0;
+    try {
+      return callback();
+    } finally {
+      this.loopDepth = previousLoopDepth;
+    }
+  }
+
+  private withLoopContext<T>(callback: () => T): T {
+    this.loopDepth += 1;
+    try {
+      return callback();
+    } finally {
+      this.loopDepth -= 1;
+    }
+  }
+
+  private withScope<T>(callback: () => T): T {
+    this.scopes.push(new Map());
+    try {
+      return callback();
+    } finally {
+      this.scopes.pop();
+    }
+  }
+
+  private declarePatternBindings(pattern: ArrayPattern | Identifier | ObjectPattern): void {
+    for (const identifier of collectBindingIdentifiers(pattern)) {
+      this.declareBinding(identifier);
+    }
+  }
+
+  private declareBinding(identifier: Identifier): void {
+    const scope = this.scopes[this.scopes.length - 1];
+    if (scope === undefined) {
+      return;
+    }
+
+    if (scope.has(identifier.name)) {
+      throw new Error(
+        `Cannot redeclare binding '${identifier.name}' at line ${identifier.span.start.line}, column ${identifier.span.start.column}.`
+      );
+    }
+
+    scope.set(identifier.name, identifier.span.start);
+  }
+
   private consumePunctuator(value: string): Token | undefined {
     const token = this.currentToken();
     if (token.type !== "punctuator" || token.value !== value) {
@@ -2933,6 +3055,37 @@ function createIdentifierName(token: Token): Identifier {
     name: token.value,
     span: createTokenSpan(token)
   };
+}
+
+function collectBindingIdentifiers(
+  pattern:
+    | AssignmentPattern
+    | ArrayPattern
+    | Identifier
+    | MemberExpression
+    | ObjectPattern
+    | RestElement
+): Identifier[] {
+  switch (pattern.type) {
+    case "Identifier":
+      return [pattern];
+    case "MemberExpression":
+      return [];
+    case "AssignmentPattern":
+      return collectBindingIdentifiers(pattern.left);
+    case "RestElement":
+      return collectBindingIdentifiers(pattern.argument);
+    case "ArrayPattern":
+      return pattern.elements.flatMap((element) =>
+        element === null ? [] : collectBindingIdentifiers(element)
+      );
+    case "ObjectPattern":
+      return pattern.properties.flatMap((property) =>
+        property.type === "RestElement"
+          ? collectBindingIdentifiers(property)
+          : collectBindingIdentifiers(property.value)
+      );
+  }
 }
 
 function createLoopLabelFields(labels: string[] | undefined): {
@@ -3058,6 +3211,7 @@ function findImportMetaAssignmentInNode(node: Expression | Statement): SourceSpa
       return findImportMetaAssignmentInList(node.expressions);
     case "BreakStatement":
     case "ContinueStatement":
+    case "EmptyStatement":
     case "ExportDefaultDeclaration":
     case "ExportNamedDeclaration":
     case "Identifier":

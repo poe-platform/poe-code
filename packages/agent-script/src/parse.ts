@@ -16,6 +16,7 @@ export type {
   ConditionalExpression,
   ContinueStatement,
   DoWhileStatement,
+  EmptyStatement,
   Expression,
   ExpressionStatement,
   ExportDefaultDeclaration,

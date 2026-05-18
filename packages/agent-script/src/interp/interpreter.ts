@@ -1045,13 +1045,23 @@ async function evaluateForOfStatement(
     return iterable;
   }
 
-  if (!Array.isArray(iterable.value)) {
+  if (!isForOfIterableValue(iterable.value)) {
     throw new TypeError(`${String(iterable.value)} is not a supported iterable`);
   }
 
-  for (const entry of iterable.value) {
+  const iterator = iterable.value[Symbol.iterator]();
+  while (true) {
+    const iteration = iterator.next();
+    if (typeof iteration !== "object" || iteration === null) {
+      throw new TypeError("Iterator result must be an object.");
+    }
+
+    if (iteration.done) {
+      break;
+    }
+
     const scope = context.scope.child();
-    bindForOfLoopVariable(node.left, entry, scope);
+    bindForOfLoopVariable(node.left, iteration.value as SandboxValue, scope);
 
     const result = await evaluateNode(node.body, {
       ...context,
@@ -1080,6 +1090,10 @@ async function evaluateForOfStatement(
     hasValue: false,
     value: undefined
   };
+}
+
+function isForOfIterableValue(value: unknown): value is Iterable<unknown> {
+  return Array.isArray(value) || isIterableValue(value);
 }
 
 async function evaluateForStatement(

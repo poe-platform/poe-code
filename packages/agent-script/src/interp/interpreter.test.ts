@@ -1849,6 +1849,36 @@ describe("interpret", () => {
     expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
+  it("runs finally before a return exits an enclosing while loop", async () => {
+    const cleanup = vi.fn();
+
+    await expect(
+      interpret(
+        block(
+          parse("while (cond) { try { return 1; } finally { cleanup(); } }"),
+          parse("return 2;")
+        ),
+        {
+          bindings: {
+            cleanup: createSandboxClosure({
+              call: () => {
+                cleanup();
+                return undefined;
+              },
+              name: "cleanup"
+            }),
+            cond: true
+          }
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
+
   it("lets a return from finally override a return from try", async () => {
     await expect(
       interpret(parse("try { return 'try'; } finally { return 'finally'; }"))
@@ -1862,6 +1892,19 @@ describe("interpret", () => {
     await expect(
       interpret(parse("try { throw 'try'; } finally { throw 'finally'; }"))
     ).rejects.toBe("finally");
+  });
+
+  it("lets catch rethrow to an outer try", async () => {
+    await expect(
+      interpret(
+        parse(
+          "try { try { throw 'inner'; } catch (error) { throw error; } } catch (outer) { return outer; }"
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "inner"
+    });
   });
 
   it("runs finally before propagating break from try inside for...of", async () => {
@@ -1900,6 +1943,18 @@ describe("interpret", () => {
 
   it("rejects try without catch or finally while parsing", () => {
     expect(() => parse("try { work(); }")).toThrowError("Expected 'catch' or 'finally'");
+  });
+
+  it("rejects try statements with more than one catch clause while parsing", () => {
+    expect(() => parse("try { } catch { } catch { }")).toThrowError(
+      "Try statements support only one catch clause"
+    );
+  });
+
+  it("documents switch as unsupported syntax", () => {
+    expect(() => parse("switch (value) { case 1: break; }")).toThrowError(
+      "Disallowed syntax 'switch'"
+    );
   });
 
   it("evaluates for...of over sandbox arrays", async () => {
@@ -1951,6 +2006,21 @@ describe("interpret", () => {
     });
   });
 
+  it("exits for...of loops at the matching break", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("let last = 0"),
+          parse("for (const x of [1, 2, 3]) { last = x; if (x === 2) { break; } }"),
+          parse("return last")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 2
+    });
+  });
+
   it("consumes continue completions inside for...of", async () => {
     await expect(
       interpret(
@@ -1966,8 +2036,87 @@ describe("interpret", () => {
     });
   });
 
+  it("continues for...of loops without running the rest of the body", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const result = []"),
+          parse("for (const x of [1, 2, 3]) { if (x === 2) { continue; } result.push(x); }"),
+          parse("return result")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 3]
+    });
+  });
+
   it("propagates throws from inside for...of bodies", async () => {
     await expect(interpret(parse('for (const x of [1]) { throw "boom"; }'))).rejects.toBe("boom");
+  });
+
+  it("lets catch handle throws from inside for...of bodies", async () => {
+    const budget = new Budget();
+
+    await expect(
+      interpret(
+        parse(
+          "try { for (const x of arr) { if (x) { throw Error('loop'); } } } catch (e) { return e.message; }"
+        ),
+        {
+          bindings: {
+            arr: [0, 1],
+            ...createErrorGlobals({
+              budget
+            })
+          },
+          budget
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "loop"
+    });
+  });
+
+  it("propagates iterator next throws after yielding earlier for...of values", async () => {
+    const iterable = {
+      [Symbol.iterator]: () => {
+        let index = 0;
+        return {
+          next: () => {
+            index += 1;
+            if (index === 1) {
+              return {
+                done: false,
+                value: 1
+              };
+            }
+
+            throw new Error("next failed");
+          }
+        };
+      }
+    };
+
+    await expect(
+      interpret(
+        block(
+          parse("const seen = []"),
+          parse(
+            "try { for (const value of iterable) { seen.push(value); } } catch (error) { return [seen, error.message]; }"
+          )
+        ),
+        {
+          bindings: {
+            iterable: iterable as never
+          }
+        }
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [[1], "next failed"]
+    });
   });
 
   it("returns from the enclosing arrow inside for...of bodies", async () => {
@@ -1976,6 +2125,52 @@ describe("interpret", () => {
     ).resolves.toMatchObject({
       ok: true,
       returnValue: 1
+    });
+  });
+
+  it("does not call iterator return when return exits a for...of loop", async () => {
+    const iteratorReturn = vi.fn(() => ({
+      done: true,
+      value: undefined
+    }));
+    const iterable = {
+      [Symbol.iterator]: () => ({
+        next: () => ({
+          done: false,
+          value: 1
+        }),
+        return: iteratorReturn
+      })
+    };
+
+    await expect(
+      interpret(parse("for (const value of iterable) { return value; }"), {
+        bindings: {
+          iterable: iterable as never
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: 1
+    });
+    expect(iteratorReturn).not.toHaveBeenCalled();
+  });
+
+  it("visits array elements pushed before a for...of iterator advances", async () => {
+    await expect(
+      interpret(
+        block(
+          parse("const values = [1, 2]"),
+          parse("const seen = []"),
+          parse(
+            "for (const value of values) { seen.push(value); if (value === 1) { values.push(3); } }"
+          ),
+          parse("return seen")
+        )
+      )
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: [1, 2, 3]
     });
   });
 
@@ -2602,6 +2797,22 @@ describe("interpret", () => {
     ).resolves.toMatchObject({
       ok: true,
       returnValue: 2
+    });
+  });
+
+  it.each([
+    [true, 1],
+    [false, 2]
+  ])("keeps return statements after if reachable when cond is %s", async (cond, expected) => {
+    await expect(
+      interpret(block(parse("if (cond) { return 1; }"), parse("return 2;")), {
+        bindings: {
+          cond
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: expected
     });
   });
 

@@ -1153,6 +1153,12 @@ class Parser {
       finalizer = this.parseBlockStatement();
     }
 
+    if (this.currentToken().type === "keyword" && this.currentToken().value === "catch") {
+      throw new Error(
+        `Try statements support only one catch clause at line ${this.currentToken().start.line}, column ${this.currentToken().start.column}.`
+      );
+    }
+
     if (handler === undefined && finalizer === undefined) {
       throw new Error(
         `Expected 'catch' or 'finally' at line ${this.currentToken().start.line}, column ${this.currentToken().start.column}.`

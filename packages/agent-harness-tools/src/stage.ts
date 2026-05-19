@@ -9,6 +9,7 @@ export interface WorkflowStage {
   participant: string;
   prompt?: string;
   mode?: WorkflowMode;
+  skills?: string[];
   onFailure?: "stop" | "continue";
 }
 
@@ -69,6 +70,7 @@ export async function runWorkflowStage(
       mode,
       cwd: context.cwd,
       ...(participant.model ? { model: participant.model } : {}),
+      ...(stage.skills ? { skills: stage.skills } : {}),
       ...(context.signal ? { signal: context.signal } : {})
     });
 

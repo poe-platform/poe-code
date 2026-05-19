@@ -70,7 +70,12 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
       readConfig: async (content) => {
         const fresh = await resolveDocumentConfigFromContent(options, fs, absoluteDocPath, content);
         return {
-          frontmatter: createWorkflowFrontmatter(fresh.agents, fresh.maxIterations, fresh.prompt),
+          frontmatter: createWorkflowFrontmatter(
+            fresh.agents,
+            fresh.maxIterations,
+            fresh.prompt,
+            fresh.skills
+          ),
           body: fresh.prompt
         };
       },
@@ -95,6 +100,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
             ...(options.mountPoeCode ? { mountPoeCode: options.mountPoeCode } : {}),
             ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
             ...((specifier.model ?? input.model) ? { model: specifier.model ?? input.model } : {}),
+            ...(input.skills ? { skills: input.skills } : {}),
             ...(input.signal ? { signal: input.signal } : {})
           });
 
@@ -239,6 +245,7 @@ async function resolveDocumentConfigFromContent(
 ): Promise<{
   agents: AgentSpecifier[];
   maxIterations: number;
+  skills?: string[];
   prompt: string;
 }> {
   const resolved = await resolve(
@@ -276,6 +283,7 @@ async function resolveDocumentConfigFromContent(
   return {
     agents: normalizeAgents(frontmatter.agent),
     maxIterations: normalizeMaxIterations(frontmatter.iterations),
+    ...(frontmatter.skills !== undefined ? { skills: frontmatter.skills } : {}),
     prompt: interpolateVariables(normalizeResolvedPrompt(resolved.data.prompt), {
       current_file: absoluteDocPath
     })
@@ -289,6 +297,7 @@ async function resolveDocumentConfig(
 ): Promise<{
   agents: AgentSpecifier[];
   maxIterations: number;
+  skills?: string[];
   prompt: string;
 }> {
   const rawContent = await fs.readFile(absoluteDocPath, "utf8");
@@ -298,7 +307,8 @@ async function resolveDocumentConfig(
 function createWorkflowFrontmatter(
   agents: AgentSpecifier[],
   maxIterations: number,
-  prompt: string
+  prompt: string,
+  skills: string[] | undefined
 ): {
   participants: {
     default: {
@@ -311,6 +321,7 @@ function createWorkflowFrontmatter(
       id: "ralph";
       participant: "default";
       prompt: string;
+      skills?: string[];
       onFailure: "stop";
     }
   ];
@@ -330,6 +341,7 @@ function createWorkflowFrontmatter(
         id: "ralph",
         participant: "default",
         prompt,
+        ...(skills !== undefined ? { skills } : {}),
         onFailure: "stop"
       }
     ],
@@ -449,6 +461,7 @@ async function updateFrontmatter(
       ...(currentFrontmatter.iterations !== undefined
         ? { iterations: currentFrontmatter.iterations }
         : {}),
+      ...(currentFrontmatter.skills !== undefined ? { skills: currentFrontmatter.skills } : {}),
       status: {
         state,
         iteration

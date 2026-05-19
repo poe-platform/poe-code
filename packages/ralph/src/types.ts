@@ -19,6 +19,7 @@ export interface AgentRunInput {
   prompt: string;
   cwd: string;
   model?: string;
+  skills?: string[];
   runtime?: "host" | "docker" | "e2b";
   runtimeImage?: string;
   runtimeTemplate?: string;

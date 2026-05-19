@@ -17,6 +17,7 @@ export interface RunAgentInput {
   mode: WorkflowMode;
   cwd: string;
   model?: string;
+  skills?: string[];
   signal?: AbortSignal;
 }
 

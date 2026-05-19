@@ -118,6 +118,28 @@ describe("runWorkflowStage", () => {
     });
   });
 
+  it("forwards stage skills to runAgent", async () => {
+    const context = createContext();
+
+    await runWorkflowStage(
+      {
+        id: "build",
+        participant: "builder",
+        prompt: "Build the feature",
+        skills: ["foo", "claude/bar"]
+      },
+      context
+    );
+
+    expect(getRunAgentInput(context)).toEqual({
+      agent: "claude-code",
+      prompt: "Build the feature",
+      mode: "edit",
+      cwd: "/workspace",
+      skills: ["foo", "claude/bar"]
+    });
+  });
+
   it("throws for an unknown participant", async () => {
     const context = createContext();
 

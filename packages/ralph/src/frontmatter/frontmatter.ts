@@ -27,6 +27,7 @@ export interface RalphFrontmatter {
   agent?: string | string[];
   extends?: boolean;
   iterations?: number;
+  skills?: string[];
   status: {
     state: RalphPlanStatus;
     iteration: number;
@@ -76,6 +77,13 @@ export const ralphDocumentSchema: JsonSchema = {
     iterations: {
       type: "integer",
       minimum: 1
+    },
+    skills: {
+      type: "array",
+      items: {
+        type: "string",
+        minLength: 1
+      }
     },
     status: {
       type: "object",
@@ -141,6 +149,7 @@ export function writeFrontmatter(data: RalphFrontmatter, body: string): string {
     ...(data.agent !== undefined ? { agent: data.agent } : {}),
     ...(data.extends !== undefined ? { extends: data.extends } : {}),
     ...(data.iterations !== undefined ? { iterations: data.iterations } : {}),
+    ...(data.skills !== undefined ? { skills: data.skills } : {}),
     status: {
       state: data.status.state,
       iteration: data.status.iteration
@@ -174,11 +183,13 @@ export function parseFrontmatterData(value: unknown): RalphFrontmatter {
   const agent = parseAgent(parsed?.agent);
   const extendsValue = parseBoolean(parsed?.extends);
   const iterations = parsePositiveInteger(parsed?.iterations);
+  const skills = parseSkills(parsed?.skills);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
     ...(extendsValue !== undefined ? { extends: extendsValue } : {}),
     ...(iterations !== undefined ? { iterations } : {}),
+    ...(skills !== undefined ? { skills } : {}),
     status: {
       state,
       iteration
@@ -215,6 +226,34 @@ function parseAgent(value: unknown): RalphFrontmatter["agent"] | undefined {
   }
 
   return agents;
+}
+
+function isSkillReference(value: string): boolean {
+  const slashIndex = value.indexOf("/");
+  return (
+    value.length > 0 &&
+    value === value.trim() &&
+    (slashIndex === -1 ||
+      (slashIndex > 0 &&
+        slashIndex < value.length - 1 &&
+        value.indexOf("/", slashIndex + 1) === -1))
+  );
+}
+
+function parseSkills(value: unknown): string[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Array.isArray(value) || !value.every((skill) => typeof skill === "string")) {
+    throw new Error('Invalid Ralph frontmatter: "skills" must be an array of strings.');
+  }
+
+  if (!value.every(isSkillReference)) {
+    throw new Error('Invalid Ralph frontmatter: "skills" must contain skill references.');
+  }
+
+  return value;
 }
 
 function parsePlanStatus(value: unknown): RalphPlanStatus | undefined {

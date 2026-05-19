@@ -127,6 +127,7 @@ describe("@poe-code/ralph public exports", () => {
       properties: {
         kind: { const: "ralph" },
         version: { type: "integer" },
+        skills: { type: "array" },
         status: { type: "object" }
       },
       required: ["kind", "version", "status"]
@@ -325,6 +326,73 @@ describe("parseFrontmatter", () => {
     });
   });
 
+  it("parses skill references", () => {
+    const doc = [
+      "---",
+      "skills: [foo, claude/bar]",
+      "status:",
+      "  state: open",
+      "  iteration: 0",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(result.data).toEqual({
+      skills: ["foo", "claude/bar"],
+      status: {
+        state: "open",
+        iteration: 0
+      }
+    });
+  });
+
+  it("leaves plans without skills unchanged", () => {
+    const doc = ["---", "agent: codex", "---", "Body"].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(Object.hasOwn(result.data, "skills")).toBe(false);
+    expect(result.data).toEqual({
+      agent: "codex",
+      status: {
+        state: "open",
+        iteration: 0
+      }
+    });
+  });
+
+  it("rejects malformed skill references", () => {
+    expect(() =>
+      parseFrontmatter(
+        [
+          "---",
+          "skills: [foo/bar/baz]",
+          "status:",
+          "  state: open",
+          "  iteration: 0",
+          "---",
+          "Body"
+        ].join("\n")
+      )
+    ).toThrow(/must contain skill references/i);
+
+    expect(() =>
+      parseFrontmatter(
+        [
+          "---",
+          "skills: foo",
+          "status:",
+          "  state: open",
+          "  iteration: 0",
+          "---",
+          "Body"
+        ].join("\n")
+      )
+    ).toThrow(/must be an array of strings/i);
+  });
+
   it("migrates legacy flat frontmatter to the nested status shape", () => {
     const doc = ["---", "status: pending", "iteration: 2", "---", "Body"].join("\n");
 
@@ -459,6 +527,7 @@ describe("writeFrontmatter", () => {
     const frontmatter: RalphFrontmatter = {
       agent: ["claude-code", "codex"],
       iterations: 5,
+      skills: ["foo", "claude/bar"],
       status: {
         state: "completed",
         iteration: 5
@@ -556,6 +625,38 @@ describe("createRalphSimulation", () => {
     const { runs } = await sim.run();
 
     expect(runs.map((run) => run.agent)).toEqual(["claude-code", "codex", "kimi"]);
+  });
+
+  it("passes skills to the agent runner", async () => {
+    const sim = createRalphSimulation({
+      docContent: [
+        "---",
+        "skills: [foo, claude/bar]",
+        "---",
+        "Use focused skills"
+      ].join("\n"),
+      maxIterations: 2,
+      turns: [successTurn(), successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs.map((run) => run.skills)).toEqual([
+      ["foo", "claude/bar"],
+      ["foo", "claude/bar"]
+    ]);
+  });
+
+  it("omits skills from agent runner input when the plan has no skills field", async () => {
+    const sim = createRalphSimulation({
+      docContent: "No skills",
+      maxIterations: 1,
+      turns: [successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(Object.hasOwn(runs[0]!, "skills")).toBe(false);
   });
 
   it("rejects an empty agent array", async () => {

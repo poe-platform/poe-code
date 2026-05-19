@@ -429,8 +429,8 @@ tasks:
 
       Use `memfs` for any disk-based plan-parsing tests.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: document-skills-references

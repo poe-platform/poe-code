@@ -435,4 +435,100 @@ describe("runDocumentWorkflow", () => {
       "end:0:completed"
     ]);
   });
+
+  it("parses stage skills from workflow frontmatter and leaves stages without skills unchanged", async () => {
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+    const options = createOptions({
+      frontmatter: {
+        participants: {
+          default: {
+            agent: "claude",
+            mode: "edit"
+          }
+        },
+        stages: [
+          {
+            id: "implement",
+            participant: "default",
+            prompt: "Implement",
+            skills: ["foo", "claude/bar"]
+          },
+          {
+            id: "review",
+            participant: "default",
+            prompt: "Review"
+          }
+        ],
+        max_iterations: 1
+      },
+      runAgent
+    });
+
+    await runDocumentWorkflow(options);
+
+    expect(runAgent.mock.calls.map(([input]) => input)).toEqual([
+      {
+        agent: "claude-code",
+        prompt: "Implement",
+        mode: "edit",
+        cwd: "/repo",
+        skills: ["foo", "claude/bar"]
+      },
+      {
+        agent: "claude-code",
+        prompt: "Review",
+        mode: "edit",
+        cwd: "/repo"
+      }
+    ]);
+    expect(Object.hasOwn(runAgent.mock.calls[1]![0], "skills")).toBe(false);
+  });
+
+  it("rejects malformed stage skills", async () => {
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            stages: [
+              {
+                id: "implement",
+                participant: "default",
+                prompt: "Implement",
+                skills: ["foo/bar/baz"]
+              }
+            ]
+          }
+        })
+      )
+    ).rejects.toThrow(/skills must contain skill references/i);
+
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            stages: [
+              {
+                id: "implement",
+                participant: "default",
+                prompt: "Implement",
+                skills: "foo"
+              }
+            ]
+          }
+        })
+      )
+    ).rejects.toThrow(/skills must be an array of strings/i);
+  });
 });

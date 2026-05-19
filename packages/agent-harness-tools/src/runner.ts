@@ -164,13 +164,44 @@ function parseWorkflowStage(value: unknown, index: number): WorkflowStage {
     );
   }
 
+  const skills = parseSkills(value.skills, `Workflow stage "${value.id}"`);
+
   return {
     id: value.id,
     participant: value.participant,
     ...(value.prompt !== undefined ? { prompt: value.prompt } : {}),
     ...(value.mode !== undefined ? { mode: value.mode } : {}),
+    ...(skills !== undefined ? { skills } : {}),
     ...(value.onFailure !== undefined ? { onFailure: value.onFailure } : {})
   };
+}
+
+function isSkillReference(value: string): boolean {
+  const slashIndex = value.indexOf("/");
+  return (
+    value.length > 0 &&
+    value === value.trim() &&
+    (slashIndex === -1 ||
+      (slashIndex > 0 &&
+        slashIndex < value.length - 1 &&
+        value.indexOf("/", slashIndex + 1) === -1))
+  );
+}
+
+function parseSkills(value: unknown, label: string): string[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!Array.isArray(value) || !value.every((skill) => typeof skill === "string")) {
+    throw new Error(`${label} skills must be an array of strings.`);
+  }
+
+  if (!value.every(isSkillReference)) {
+    throw new Error(`${label} skills must contain skill references.`);
+  }
+
+  return value;
 }
 
 function parseParticipants(value: unknown): Record<string, WorkflowParticipant> {

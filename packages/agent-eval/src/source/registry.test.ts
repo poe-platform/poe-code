@@ -1,0 +1,132 @@
+import { isAbsolute, resolve } from "node:path";
+import { createFsFromVolume, Volume } from "memfs";
+import { describe, expect, it } from "vitest";
+
+import { listEvals, loadEval } from "./registry.js";
+import type { EvalFs, EvalSource } from "../types.js";
+
+const evalYaml = [
+  "id: smoke",
+  "title: Smoke eval",
+  "target:",
+  "  repo: https://example.com/repo.git",
+  "  ref: main",
+  "scorer:",
+  "  command: npm test",
+  "  result_path: score.json",
+  "  timeout_ms: 1000",
+  "oracle: {}",
+  "budget:",
+  "  max_iterations: 10",
+  "  max_tokens: 1000",
+  "  wall_clock_ms: 60000",
+  "judge:",
+  "  agent: codex",
+  "  model: gpt-5",
+  "  rubric:",
+  "    - completeness",
+  "weights:",
+  "  tests: 0.7",
+  "  judge: 0.3"
+].join("\n");
+
+function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs {
+  const volume = Volume.fromJSON(files, "/");
+  const fs = createFsFromVolume(volume).promises;
+
+  return {
+    readdir(path, options) {
+      return fs.readdir(isAbsolute(path) ? path : resolve(cwd, path), options);
+    },
+    readFile(path, encoding) {
+      return fs.readFile(isAbsolute(path) ? path : resolve(cwd, path), encoding);
+    },
+    stat(path) {
+      return fs.stat(isAbsolute(path) ? path : resolve(cwd, path));
+    }
+  } as EvalFs;
+}
+
+describe("eval source registry", () => {
+  const source: EvalSource = { rootDir: "/repo/evals" };
+
+  it("shallow-scans directory names containing eval.yaml", async () => {
+    const fs = memfs({
+      "/repo/evals/zebra/eval.yaml": evalYaml.replace("id: smoke", "id: zebra"),
+      "/repo/evals/alpha/eval.yaml": evalYaml.replace("id: smoke", "id: alpha"),
+      "/repo/evals/README.md": "# Evals",
+      "/repo/evals/notes": null
+    });
+
+    await expect(listEvals(source, fs)).resolves.toEqual(["alpha", "zebra"]);
+  });
+
+  it("does not discover nested eval directories", async () => {
+    const fs = memfs({
+      "/repo/evals/group/smoke/eval.yaml": evalYaml
+    });
+
+    await expect(listEvals(source, fs)).resolves.toEqual([]);
+  });
+
+  it("loads eval.yaml and plan.md frontmatter", async () => {
+    const fs = memfs({
+      "/repo/evals/smoke/eval.yaml": evalYaml,
+      "/repo/evals/smoke/plan.md": ["---", "kind: pipeline", "---", "Run the task."].join("\n")
+    });
+
+    await expect(loadEval(source, "smoke", fs)).resolves.toMatchObject({
+      id: "smoke",
+      title: "Smoke eval",
+      target: {
+        planDest: "docs/plans/eval-task.md"
+      },
+      scorer: {
+        cwd: "",
+        resultPath: "score.json",
+        timeoutMs: 1000
+      },
+      oracle: {
+        path: "oracle"
+      },
+      plan: {
+        path: "/repo/evals/smoke/plan.md",
+        kind: "pipeline",
+        body: "Run the task."
+      }
+    });
+  });
+
+  it("rejects unsupported plan kind in plan.md", async () => {
+    const fs = memfs({
+      "/repo/evals/smoke/eval.yaml": evalYaml,
+      "/repo/evals/smoke/plan.md": ["---", "kind: unknown", "---", "Run the task."].join("\n")
+    });
+
+    await expect(loadEval(source, "smoke", fs)).rejects.toThrow(
+      'Unsupported plan kind "unknown" in /repo/evals/smoke/plan.md. Expected one of: plan, pipeline, superintendent, experiment.'
+    );
+  });
+
+  it("rejects invalid plan frontmatter with the plan path", async () => {
+    const fs = memfs({
+      "/repo/evals/smoke/eval.yaml": evalYaml,
+      "/repo/evals/smoke/plan.md": ["---", "kind: [", "---", "Run the task."].join("\n")
+    });
+
+    await expect(loadEval(source, "smoke", fs)).rejects.toThrow(
+      "Failed to parse /repo/evals/smoke/plan.md frontmatter:"
+    );
+  });
+
+  it("rejects eval ids outside the first-level source directory", async () => {
+    const fs = memfs({
+      "/repo/evals/smoke/eval.yaml": evalYaml,
+      "/repo/evals/smoke/plan.md": ["---", "kind: plan", "---", "Run the task."].join("\n")
+    });
+
+    await expect(loadEval(source, "../smoke", fs)).rejects.toThrow(
+      'Invalid eval id "../smoke". Eval ids must be first-level directory names.'
+    );
+  });
+});

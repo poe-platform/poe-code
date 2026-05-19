@@ -1,0 +1,52 @@
+import nodeFs from "node:fs/promises";
+import { isAbsolute } from "node:path";
+
+import { listEvals } from "./registry.js";
+import type { EvalFs } from "../types.js";
+
+export interface EvalSource {
+  rootDir: string;
+}
+
+export async function openSource(dir: string): Promise<EvalSource>;
+export async function openSource(dir: string, fs: EvalFs): Promise<EvalSource>;
+export async function openSource(
+  dir: string,
+  fs: EvalFs = nodeFs as unknown as EvalFs
+): Promise<EvalSource> {
+  if (!isAbsolute(dir)) {
+    throw new Error(`Eval source path must be absolute, received "${dir}".`);
+  }
+
+  let stat: Awaited<ReturnType<EvalFs["stat"]>>;
+  try {
+    stat = await fs.stat(dir);
+  } catch (error) {
+    if (isMissingPath(error)) {
+      throw new Error(`Eval source "${dir}" does not exist or is not a directory.`);
+    }
+    throw error;
+  }
+
+  if (!stat.isDirectory()) {
+    throw new Error(`Eval source "${dir}" is not a directory.`);
+  }
+
+  const source = { rootDir: dir };
+  const evalIds = await listEvals(source, fs);
+
+  if (evalIds.length === 0) {
+    throw new Error(`Eval source "${dir}" does not contain any first-level <id>/eval.yaml files.`);
+  }
+
+  return source;
+}
+
+function isMissingPath(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error.code === "ENOENT" || error.code === "ENOTDIR")
+  );
+}

@@ -36,7 +36,7 @@ tasks:
       Do not add the package to the root README.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: schema-and-source
     title: Eval schema, source resolver, registry, source-level config
@@ -89,8 +89,8 @@ tasks:
 
       Update src/index.ts to re-export these.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: aggregate

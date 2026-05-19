@@ -12,6 +12,7 @@ export { BudgetEnforcer } from "./run/budget.js";
 export { CheatFilter } from "./run/cheat.js";
 export { cloneTarget, type CloneTargetInput } from "./run/clone.js";
 export { resolveDispatch, type DispatchSpec } from "./run/dispatch.js";
+export { judgeRun } from "./run/judge.js";
 export { verifyOracle } from "./run/oracle.js";
 export { runScorer, ScorerError, ScorerTimeoutError } from "./run/scorer.js";
 export type {

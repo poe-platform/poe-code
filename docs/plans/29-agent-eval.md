@@ -364,8 +364,8 @@ tasks:
 
       Update src/index.ts to re-export judgeRun.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: run-eval

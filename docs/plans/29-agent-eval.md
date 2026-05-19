@@ -450,7 +450,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: run-matrix
     title: runMatrix — async-iterable + per-cell aggregation
@@ -486,9 +486,9 @@ tasks:
 
       Update src/index.ts to re-export runMatrix.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: report
     title: Report loaders + terminal table + markdown rendering

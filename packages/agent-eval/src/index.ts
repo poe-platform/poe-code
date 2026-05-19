@@ -13,6 +13,7 @@ export { CheatFilter } from "./run/cheat.js";
 export { cloneTarget, type CloneTargetInput } from "./run/clone.js";
 export { resolveDispatch, type DispatchSpec } from "./run/dispatch.js";
 export { judgeRun } from "./run/judge.js";
+export { runMatrix } from "./run/matrix.js";
 export { verifyOracle } from "./run/oracle.js";
 export { runEval, EvalFrameworkError } from "./run/run.js";
 export { runScorer, ScorerError, ScorerTimeoutError } from "./run/scorer.js";

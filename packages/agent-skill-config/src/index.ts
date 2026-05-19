@@ -11,6 +11,12 @@ export type {
   SkillResolutionFailure,
   SkillSource
 } from "./resolve-skill-reference.js";
+export type {
+  BridgeEntry,
+  BridgeManifest,
+  BridgeWarning,
+  BridgeWarningKind
+} from "./bridge-active-skills.js";
 
 export {
   supportedAgents,
@@ -24,3 +30,4 @@ export type { InstallSkillOptions, InstallSkillResult } from "./apply.js";
 
 export { resolveSkillReference } from "./resolve-skill-reference.js";
 export { appendExcludeBlock, removeExcludeBlock } from "./git-exclude.js";
+export { bridgeActiveSkills, cleanupBridgedSkills } from "./bridge-active-skills.js";

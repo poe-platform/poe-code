@@ -141,7 +141,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: bridge-active-skills
     title: Copy-based bridge with warn-on-collision and cleanup manifest
@@ -296,8 +296,8 @@ tasks:
       `BridgeEntry`, `BridgeWarning`, `BridgeWarningKind` from
       `packages/agent-skill-config/src/index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: spawn-runner-bridge

@@ -195,6 +195,8 @@ describe("@poe-code/agent-skill-config", () => {
     expect(typeof agentSkillConfig.UnsupportedAgentError).toBe("function");
     expect(typeof agentSkillConfig.appendExcludeBlock).toBe("function");
     expect(typeof agentSkillConfig.removeExcludeBlock).toBe("function");
+    expect(typeof agentSkillConfig.bridgeActiveSkills).toBe("function");
+    expect(typeof agentSkillConfig.cleanupBridgedSkills).toBe("function");
   });
 });
 

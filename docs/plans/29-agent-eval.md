@@ -657,7 +657,7 @@ tasks:
       Do NOT add anything to the root README without explicit user
       permission (per CLAUDE.md).
     status:
-      implement: open
+      implement: done
       commit: open
 
 teardown:

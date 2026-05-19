@@ -288,6 +288,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         logDir: runLogDir,
         logFileName: makeRunLogFileName(phase),
         ...((phaseDef.model ?? options.model) ? { model: phaseDef.model ?? options.model } : {}),
+        ...(phaseDef.skills ? { skills: phaseDef.skills } : {}),
         ...(mcp ? { mcpServers: mcp } : {}),
         ...(options.signal ? { signal: options.signal } : {})
       });
@@ -501,6 +502,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
           logDir: runLogDir,
           logFileName: makeRunLogFileName(role),
           ...(model ? { model } : {}),
+          ...(stepDef?.skills ? { skills: stepDef.skills } : {}),
           ...(plan.mcp ? { mcpServers: plan.mcp } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });

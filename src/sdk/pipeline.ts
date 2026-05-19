@@ -115,6 +115,7 @@ export async function runPipeline(
       logDir: input.logDir,
       model: input.model,
       mode: input.mode,
+      ...(input.skills ? { skills: input.skills } : {}),
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
       ...(input.signal ? { signal: input.signal } : {})
     });

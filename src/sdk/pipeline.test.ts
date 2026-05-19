@@ -3,6 +3,7 @@ import { fs, vol } from "memfs";
 import type { PipelineRunResult } from "@poe-code/pipeline";
 
 const workspaceRunPipelineMock = vi.hoisted(() => vi.fn());
+const sdkSpawnAutonomousMock = vi.hoisted(() => vi.fn());
 const pipelineSkillPlanPath = new URL("../templates/pipeline/SKILL_plan.md", import.meta.url).pathname;
 
 vi.mock("node:fs/promises", async () => {
@@ -11,7 +12,9 @@ vi.mock("node:fs/promises", async () => {
 });
 
 vi.mock("./spawn.js", () => ({
-  spawn: vi.fn()
+  spawn: {
+    autonomous: sdkSpawnAutonomousMock
+  }
 }));
 
 vi.mock("@poe-code/pipeline", async (importOriginal) => {
@@ -78,6 +81,7 @@ function createActivityTimeoutError(): Error {
 describe("SDK pipeline", () => {
   beforeEach(() => {
     workspaceRunPipelineMock.mockReset();
+    sdkSpawnAutonomousMock.mockReset();
   });
 
   afterEach(() => {
@@ -254,6 +258,47 @@ describe("SDK pipeline", () => {
 
     expect(result).toEqual(workspaceResult);
     expect(runAgent).toHaveBeenCalledTimes(2);
+  });
+
+  it("passes pipeline step skills through the default SDK spawn runner", async () => {
+    seedFs({
+      "/repo/feature.md": initializedPlan()
+    });
+
+    sdkSpawnAutonomousMock.mockResolvedValueOnce({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+    workspaceRunPipelineMock.mockImplementationOnce(async (options) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Ship it.",
+        mode: "yolo",
+        cwd,
+        skills: ["foo", "claude/bar"]
+      });
+
+      return workspaceResult;
+    });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd,
+      homeDir,
+      plan: "feature.md"
+    });
+
+    expect(result).toEqual(workspaceResult);
+    expect(sdkSpawnAutonomousMock).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({
+        prompt: "Ship it.",
+        cwd,
+        mode: "yolo",
+        skills: ["foo", "claude/bar"]
+      })
+    );
   });
 
   it("does not retry non-timeout errors", async () => {

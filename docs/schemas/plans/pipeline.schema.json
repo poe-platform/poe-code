@@ -70,6 +70,13 @@
             "prompt": {
               "type": "string",
               "minLength": 1
+            },
+            "skills": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           },
           "required": [
@@ -109,6 +116,13 @@
           "prompt": {
             "type": "string",
             "minLength": 1
+          },
+          "skills": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
           }
         },
         "additionalProperties": false
@@ -189,6 +203,13 @@
             "prompt": {
               "type": "string",
               "minLength": 1
+            },
+            "skills": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
             }
           },
           "required": [

@@ -377,7 +377,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: pipeline-step-skills
     title: skills field on pipeline StepDefinition flows to spawn
@@ -403,9 +403,9 @@ tasks:
 
       Use `memfs` if any test reads YAML from disk.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: ralph-step-skills
     title: skills field on ralph plan/step flows to spawn

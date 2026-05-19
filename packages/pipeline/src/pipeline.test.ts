@@ -531,6 +531,70 @@ describe("loadResolvedSteps", () => {
     });
   });
 
+  it("parses per-step skills and leaves steps without skills unchanged", async () => {
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
+          "steps:",
+          "  implement:",
+          "    prompt: Implement",
+          "    skills: [foo, claude/bar]",
+          "  review:",
+          "    prompt: Review",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(config.steps).toEqual({
+      implement: {
+        mode: "yolo",
+        prompt: "Implement",
+        skills: ["foo", "claude/bar"]
+      },
+      review: {
+        mode: "yolo",
+        prompt: "Review"
+      }
+    });
+  });
+
+  it("rejects malformed per-step skills", async () => {
+    await expect(
+      loadResolvedSteps({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/.poe-code/pipeline/steps/default.yaml": [
+            "steps:",
+            "  implement:",
+            "    prompt: Implement",
+            "    skills: [foo/bar/baz]",
+            ""
+          ].join("\n")
+        })
+      })
+    ).rejects.toThrow(/expected skill references/i);
+
+    await expect(
+      loadResolvedSteps({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/.poe-code/pipeline/steps/default.yaml": [
+            "steps:",
+            "  implement:",
+            "    prompt: Implement",
+            "    skills: foo",
+            ""
+          ].join("\n")
+        })
+      })
+    ).rejects.toThrow(/expected an array of strings/i);
+  });
+
   it("parses setup and teardown from the default step config", async () => {
     const config = await loadResolvedSteps({
       cwd: "/repo",
@@ -1089,6 +1153,59 @@ describe("parsePlan", () => {
       test: "open",
       commit: "open"
     });
+  });
+
+  it("parses inline step skills and leaves inline steps without skills unchanged", () => {
+    const plan = parsePlan(
+      [
+        "steps:",
+        "  implement:",
+        "    prompt: Implement",
+        "    skills: [foo, claude/bar]",
+        "  review:",
+        "    prompt: Review",
+        "tasks: []",
+        ""
+      ].join("\n")
+    );
+
+    expect(plan.stepOverrides).toEqual({
+      implement: {
+        prompt: "Implement",
+        skills: ["foo", "claude/bar"]
+      },
+      review: {
+        prompt: "Review"
+      }
+    });
+  });
+
+  it("rejects malformed inline step skills", () => {
+    expect(() =>
+      parsePlan(
+        [
+          "steps:",
+          "  implement:",
+          "    prompt: Implement",
+          "    skills: [foo/bar/baz]",
+          "tasks: []",
+          ""
+        ].join("\n")
+      )
+    ).toThrow(/must contain skill references/i);
+
+    expect(() =>
+      parsePlan(
+        [
+          "steps:",
+          "  implement:",
+          "    prompt: Implement",
+          "    skills: foo",
+          "tasks: []",
+          ""
+        ].join("\n")
+      )
+    ).toThrow(/must be an array of strings/i);
   });
 
   it("allows mixed scalar and stepped tasks", () => {
@@ -2827,6 +2944,101 @@ describe("createPipelineSimulation", () => {
     expect(runs[0]?.model).toBe("o3");
     expect(runs[1]?.agent).toBe("claude-code");
     expect(runs[1]?.model).toBeUndefined();
+  });
+
+  it("passes per-step skills to the agent runner", async () => {
+    const sim = createPipelineSimulation({
+      projectSteps: {
+        implement: {
+          mode: "yolo",
+          prompt: "Implement {{id}}",
+          skills: ["foo", "claude/bar"]
+        }
+      },
+      plan: {
+        tasks: [
+          {
+            id: "feat",
+            title: "Feature",
+            prompt: "Add feature",
+            status: {
+              implement: "open"
+            }
+          }
+        ]
+      },
+      turns: [successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs[0]?.skills).toEqual(["foo", "claude/bar"]);
+  });
+
+  it("omits skills from agent runner input when a step has no skills field", async () => {
+    const sim = createPipelineSimulation({
+      projectSteps: {
+        implement: {
+          mode: "yolo",
+          prompt: "Implement {{id}}"
+        }
+      },
+      plan: {
+        tasks: [
+          {
+            id: "feat",
+            title: "Feature",
+            prompt: "Add feature",
+            status: {
+              implement: "open"
+            }
+          }
+        ]
+      },
+      turns: [successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(Object.hasOwn(runs[0]!, "skills")).toBe(false);
+  });
+
+  it("passes setup and teardown skills to the agent runner", async () => {
+    const sim = createPipelineSimulation({
+      projectStepsSetup: {
+        mode: "yolo",
+        prompt: "Setup",
+        skills: ["foo"]
+      },
+      projectSteps: {
+        implement: {
+          mode: "yolo",
+          prompt: "Implement"
+        }
+      },
+      projectStepsTeardown: {
+        mode: "yolo",
+        prompt: "Teardown",
+        skills: ["claude/bar"]
+      },
+      plan: {
+        tasks: [
+          {
+            id: "feat",
+            title: "Feature",
+            prompt: "Add feature",
+            status: {
+              implement: "open"
+            }
+          }
+        ]
+      },
+      turns: [successTurn(), successTurn(), successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs.map((run) => run.skills)).toEqual([["foo"], undefined, ["claude/bar"]]);
   });
 
   it("honors maxRuns and leaves remaining tasks open", async () => {

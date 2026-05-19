@@ -14,6 +14,7 @@ export interface StepDefinition {
   prompt: string;
   agent?: string;
   model?: string;
+  skills?: string[];
 }
 
 export interface StepDefinitionOverride {
@@ -21,6 +22,7 @@ export interface StepDefinitionOverride {
   prompt?: string;
   agent?: string;
   model?: string;
+  skills?: string[];
 }
 
 export type ResolvedStepDefinitions = Record<string, StepDefinition>;
@@ -78,6 +80,7 @@ export interface AgentRunInput {
   logDir?: string;
   logFileName?: string;
   model?: string;
+  skills?: string[];
   mcpServers?: McpSpawnConfig;
   signal?: AbortSignal;
 }

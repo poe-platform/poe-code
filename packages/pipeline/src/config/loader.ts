@@ -23,6 +23,31 @@ function asStepMode(value: unknown): StepMode {
   throw new Error(`Invalid step mode "${String(value)}". Expected "yolo", "edit", or "read".`);
 }
 
+function isSkillReference(value: string): boolean {
+  const slashIndex = value.indexOf("/");
+  return (
+    value.length > 0 &&
+    value === value.trim() &&
+    (slashIndex === -1 ||
+      (slashIndex > 0 &&
+        slashIndex < value.length - 1 &&
+        value.indexOf("/", slashIndex + 1) === -1))
+  );
+}
+
+function parseSkills(value: unknown, context: string, filePath: string): string[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!Array.isArray(value) || !value.every((skill) => typeof skill === "string")) {
+    throw new Error(`Invalid skills for ${context} in "${filePath}": expected an array of strings.`);
+  }
+  if (!value.every(isSkillReference)) {
+    throw new Error(`Invalid skills for ${context} in "${filePath}": expected skill references.`);
+  }
+  return value;
+}
+
 function parseYamlDocument(filePath: string, content: string): unknown {
   try {
     return parse(content);
@@ -52,7 +77,8 @@ function parseStepConfigData(filePath: string, document: unknown): ResolvedSteps
       mode: asStepMode(value.mode),
       prompt,
       ...(typeof value.agent === "string" && value.agent.length > 0 ? { agent: value.agent } : {}),
-      ...(typeof value.model === "string" && value.model.length > 0 ? { model: value.model } : {})
+      ...(typeof value.model === "string" && value.model.length > 0 ? { model: value.model } : {}),
+      ...(value.skills !== undefined ? { skills: parseSkills(value.skills, context, filePath) } : {})
     };
   }
 
@@ -90,12 +116,14 @@ function mergeStepDefinition(
 
   const agent = override.agent ?? base?.agent;
   const model = override.model ?? base?.model;
+  const skills = override.skills ?? base?.skills;
 
   return {
     mode: override.mode ?? base?.mode ?? "yolo",
     prompt,
     ...(agent ? { agent } : {}),
-    ...(model ? { model } : {})
+    ...(model ? { model } : {}),
+    ...(skills ? { skills } : {})
   };
 }
 

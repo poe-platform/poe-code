@@ -61,6 +61,13 @@ const stepDefinitionSchema: JsonSchema = {
     model: {
       type: "string",
       minLength: 1
+    },
+    skills: {
+      type: "array",
+      items: {
+        type: "string",
+        minLength: 1
+      }
     }
   },
   required: ["prompt"],
@@ -85,6 +92,13 @@ const stepDefinitionOverrideSchema: JsonSchema = {
     model: {
       type: "string",
       minLength: 1
+    },
+    skills: {
+      type: "array",
+      items: {
+        type: "string",
+        minLength: 1
+      }
     }
   },
   additionalProperties: false
@@ -280,11 +294,36 @@ function parseStepMode(value: unknown, label: string): StepMode | undefined {
   throw new Error(`Invalid plan YAML: "${label}.mode" must be "yolo", "edit", or "read".`);
 }
 
+function isSkillReference(value: string): boolean {
+  const slashIndex = value.indexOf("/");
+  return (
+    value.length > 0 &&
+    value === value.trim() &&
+    (slashIndex === -1 ||
+      (slashIndex > 0 &&
+        slashIndex < value.length - 1 &&
+        value.indexOf("/", slashIndex + 1) === -1))
+  );
+}
+
+function parseSkills(value: unknown, label: string): string[] | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!Array.isArray(value) || !value.every((skill) => typeof skill === "string")) {
+    throw new Error(`Invalid plan YAML: "${label}.skills" must be an array of strings.`);
+  }
+  if (!value.every(isSkillReference)) {
+    throw new Error(`Invalid plan YAML: "${label}.skills" must contain skill references.`);
+  }
+  return value;
+}
+
 function parseOptionalAgentFields(
   value: Record<string, unknown>,
   label: string
-): Pick<StepDefinitionOverride, "agent" | "model"> {
-  const result: Pick<StepDefinitionOverride, "agent" | "model"> = {};
+): Pick<StepDefinitionOverride, "agent" | "model" | "skills"> {
+  const result: Pick<StepDefinitionOverride, "agent" | "model" | "skills"> = {};
 
   if (value.agent !== undefined) {
     if (typeof value.agent !== "string" || value.agent.length === 0) {
@@ -298,6 +337,11 @@ function parseOptionalAgentFields(
       throw new Error(`Invalid plan YAML: "${label}.model" must be a non-empty string.`);
     }
     result.model = value.model;
+  }
+
+  const skills = parseSkills(value.skills, label);
+  if (skills !== undefined) {
+    result.skills = skills;
   }
 
   return result;
@@ -337,7 +381,8 @@ function parseStepDef(value: unknown, label: string): StepDefinition {
     mode: override.mode ?? "yolo",
     prompt: override.prompt,
     ...(override.agent ? { agent: override.agent } : {}),
-    ...(override.model ? { model: override.model } : {})
+    ...(override.model ? { model: override.model } : {}),
+    ...(override.skills ? { skills: override.skills } : {})
   };
 }
 

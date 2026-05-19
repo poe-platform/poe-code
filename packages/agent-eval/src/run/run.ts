@@ -21,6 +21,7 @@ import type {
   EvalRunOptions,
   EvalRunResult,
   JudgeSpec,
+  JudgeOverrideSpec,
   SpawnEvent,
   Verdict
 } from "../types.js";
@@ -245,9 +246,11 @@ async function runDispatch(
 function createAgentStreamSpawn(
   onEvent: (event: SpawnEvent) => void
 ): StreamingSpawnFn<SpawnOptions, DispatchResult> {
-  const autonomous = (spawn as typeof spawn & {
-    autonomous?: (service: string, options: SpawnOptions) => Promise<AutonomousResult>;
-  }).autonomous;
+  const autonomous = (
+    spawn as typeof spawn & {
+      autonomous?: (service: string, options: SpawnOptions) => Promise<AutonomousResult>;
+    }
+  ).autonomous;
 
   if (autonomous !== undefined) {
     return (service, options) => ({
@@ -266,11 +269,13 @@ function createAgentStreamSpawn(
 }
 
 function createNodeStreamSpawn(
-  onEvent: (event: SpawnEvent) => void
+  _onEvent: (event: SpawnEvent) => void
 ): StreamingSpawnFn<SpawnOptions, DispatchResult> {
-  const autonomous = (spawn as typeof spawn & {
-    autonomous?: (service: string, options: SpawnOptions) => Promise<AutonomousResult>;
-  }).autonomous;
+  const autonomous = (
+    spawn as typeof spawn & {
+      autonomous?: (service: string, options: SpawnOptions) => Promise<AutonomousResult>;
+    }
+  ).autonomous;
 
   if (autonomous !== undefined) {
     return (service, options) => ({
@@ -456,8 +461,7 @@ function calculateCorrectness(input: {
   const testScore =
     input.testsResult.total === 0 ? 0 : input.testsResult.passed / input.testsResult.total;
   return (
-    testScore * input.weights.tests +
-    ((input.judgeResult?.mean ?? 0) / 5) * input.weights.judge
+    testScore * input.weights.tests + ((input.judgeResult?.mean ?? 0) / 5) * input.weights.judge
   );
 }
 
@@ -471,7 +475,15 @@ function resolveJudgeSpec(
   if (option === undefined || option === "on") {
     return evalDef.judge;
   }
-  return option;
+  return mergeJudgeSpec(evalDef.judge, option);
+}
+
+function mergeJudgeSpec(base: JudgeSpec, override: JudgeSpec | JudgeOverrideSpec): JudgeSpec {
+  return {
+    agent: override.agent ?? base.agent,
+    model: override.model ?? base.model,
+    rubric: override.rubric ?? base.rubric
+  };
 }
 
 function isSpawnResult(result: DispatchResult): result is SpawnResult {

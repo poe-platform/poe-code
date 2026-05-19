@@ -18,6 +18,7 @@ export { runMatrix } from "./run/matrix.js";
 export { verifyOracle } from "./run/oracle.js";
 export { runEval, EvalFrameworkError } from "./run/run.js";
 export { runScorer, ScorerError, ScorerTimeoutError } from "./run/scorer.js";
+export { evalGroup, evalReportCommand, evalRunCommand } from "./cli/commands.js";
 export type {
   AggregatedCell,
   Budget,

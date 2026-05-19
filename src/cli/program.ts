@@ -1,8 +1,9 @@
 import { basename, join } from "node:path";
 import { Command, Help, InvalidArgumentError, Option } from "commander";
-import type { Group } from "toolcraft";
+import type { CommandNode, Group } from "toolcraft";
 import { S, type Static } from "toolcraft-schema";
 import { runCLI } from "toolcraft/cli";
+import { evalGroup } from "@poe-code/agent-eval";
 import { ghGroup } from "@poe-code/github-workflows";
 import { superintendentGroup } from "@poe-code/superintendent";
 import { runMaestro, type Logger as MaestroLogger } from "@poe-code/agent-maestro";
@@ -88,6 +89,8 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["pipeline", "install"] },
   { path: ["pipeline", "run"] },
   { path: ["pipeline", "validate"] },
+  { path: ["eval", "run"] },
+  { path: ["eval", "report"], args: "[run-id]" },
   { path: ["maestro"], args: "[path]" },
   { path: ["plan"], args: "[question]" },
   { path: ["plan", "install"] },
@@ -537,7 +540,20 @@ function registerForwardedToolcraftCommand(
   heading: string,
   usageCommand: string
 ): void {
-  program
+  const action = async () => {
+    const originalArgv = [...process.argv];
+    process.argv = buildToolcraftArgv(originalArgv, [options.name, ...(options.aliases ?? [])]);
+    try {
+      await runCLI(forwardedRoots, {
+        rootDisplayName: heading,
+        rootUsageName: usageCommand,
+        humanInLoop: createToolcraftHumanInLoopOptions(container)
+      });
+    } finally {
+      process.argv = originalArgv;
+    }
+  };
+  const command = program
     .command(options.name)
     .description(options.description)
     .aliases([...(options.aliases ?? [])])
@@ -545,19 +561,34 @@ function registerForwardedToolcraftCommand(
     .allowUnknownOption()
     .allowExcessArguments()
     .helpOption(false)
-    .action(async () => {
-      const originalArgv = [...process.argv];
-      process.argv = buildToolcraftArgv(originalArgv, [options.name, ...(options.aliases ?? [])]);
-      try {
-        await runCLI(forwardedRoots, {
-          rootDisplayName: heading,
-          rootUsageName: usageCommand,
-          humanInLoop: createToolcraftHumanInLoopOptions(container)
-        });
-      } finally {
-        process.argv = originalArgv;
-      }
-    });
+    .action(action);
+
+  const root = forwardedRoots.find((candidate) => candidate.name === options.name);
+  if (root !== undefined) {
+    registerForwardedToolcraftChildren(command, root.children, action);
+  }
+}
+
+function registerForwardedToolcraftChildren(
+  parent: Command,
+  children: readonly CommandNode<object>[],
+  action: () => Promise<void>
+): void {
+  for (const child of children) {
+    const command = parent
+      .command(child.name)
+      .description(child.description ?? "")
+      .aliases([...child.aliases])
+      .argument("[args...]")
+      .allowUnknownOption()
+      .allowExcessArguments()
+      .helpOption(false)
+      .action(action);
+
+    if (child.kind === "group") {
+      registerForwardedToolcraftChildren(command, child.children, action);
+    }
+  }
 }
 
 export function createProgram(dependencies: CliDependencies): Command {
@@ -585,7 +616,11 @@ function bootstrapProgram(container: CliContainer): Command {
   const heading = resolveRootHelpHeading(process.argv);
   const usageCommand = formatCliUsageCommand(executionContext);
   const helpCommand = formatCliHelpCommand(executionContext, ["<command>", "--help"]);
-  const toolcraftRoots = [ghGroup as Group<object>, superintendentGroup as Group<object>];
+  const toolcraftRoots = [
+    evalGroup as Group<object>,
+    ghGroup as Group<object>,
+    superintendentGroup as Group<object>
+  ];
 
   program
     .name("poe-code")
@@ -635,6 +670,18 @@ function bootstrapProgram(container: CliContainer): Command {
   registerHarnessCommand(program, container);
   registerBraintrustCommand(program, container);
   registerTasksCommand(program, container);
+  registerForwardedToolcraftCommand(
+    program,
+    container,
+    {
+      name: evalGroup.name,
+      description: evalGroup.description ?? "",
+      aliases: evalGroup.aliases
+    },
+    toolcraftRoots,
+    heading,
+    usageCommand
+  );
   registerForwardedToolcraftCommand(
     program,
     container,

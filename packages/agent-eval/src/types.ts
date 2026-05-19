@@ -37,6 +37,12 @@ export interface JudgeSpec {
   rubric: readonly RubricKey[];
 }
 
+export interface JudgeOverrideSpec {
+  agent?: string;
+  model?: string;
+  rubric?: readonly RubricKey[];
+}
+
 export interface ScorerSpec {
   command: string;
   cwd: string;
@@ -84,7 +90,7 @@ export interface EvalRunOptions {
   cloneCacheDir?: string | null;
   repeatIndex?: number;
   verifyOracle?: boolean;
-  judge?: "on" | "off" | JudgeSpec;
+  judge?: "on" | "off" | JudgeSpec | JudgeOverrideSpec;
 }
 
 export interface CheatReport {
@@ -131,7 +137,7 @@ export interface EvalMatrixOptions {
   outDir?: string;
   cloneCacheDir?: string | null;
   verifyOracle?: boolean;
-  judge?: "on" | "off" | JudgeSpec;
+  judge?: "on" | "off" | JudgeSpec | JudgeOverrideSpec;
 }
 
 export interface AggregatedCell {

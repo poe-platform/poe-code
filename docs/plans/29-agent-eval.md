@@ -538,7 +538,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-registration
     title: Register `poe-code eval` command group
@@ -586,8 +586,8 @@ tasks:
       and save the screenshots under packages/agent-eval/scripts/screenshots/.
       Confirm the output uses the design-system style (no raw chalk).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: e2e-smoke

@@ -322,9 +322,9 @@ tasks:
 
       Update src/index.ts to re-export runScorer + error classes.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: judge
     title: judgeRun — agent-as-judge with same-agent fallback

@@ -7,6 +7,7 @@ import { stampReceiveTime } from "./meta.js";
 import { sessionUpdateToEvents, createToolRenderState } from "./session-update-converter.js";
 import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "./middleware.js";
 import { observeAgentSpawn } from "../observability/otel.js";
+import { bridgeSkillsForRun, cleanupSkillsForRun } from "../skill-bridge.js";
 
 export interface SpawnAcpOptions {
   agentId: string;
@@ -15,6 +16,7 @@ export interface SpawnAcpOptions {
   model?: string;
   mode?: SpawnMode;
   mcpServers?: McpSpawnConfig;
+  skills?: string[];
   resumeThreadId?: string;
   runtime?: "host" | "docker" | "e2b";
   runtimeImage?: string;
@@ -103,15 +105,23 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   const envOverrides = { ...(acpConfig.env ?? {}), ...mcpEnvVars };
   const env =
     Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
+  const cwd = options.cwd ?? process.cwd();
+  const manifest = bridgeSkillsForRun(options.agentId, cwd, options.skills);
 
-  const client = new AcpClient({
-    command: binaryName,
-    args: acpConfig.acpArgs,
-    cwd: options.cwd ?? process.cwd(),
-    env,
-    skipAuth: acpConfig.skipAuth ?? false,
-    autoApprove: (options.mode ?? "yolo") === "yolo"
-  });
+  let client: AcpClient;
+  try {
+    client = new AcpClient({
+      command: binaryName,
+      args: acpConfig.acpArgs,
+      cwd,
+      env,
+      skipAuth: acpConfig.skipAuth ?? false,
+      autoApprove: (options.mode ?? "yolo") === "yolo"
+    });
+  } catch (error) {
+    cleanupSkillsForRun(manifest);
+    throw error;
+  }
 
   let aborted = false;
   const onAbort = () => {
@@ -191,119 +201,122 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   };
 
   const done = (async (): Promise<SpawnResult> => {
-    let finalResult: SpawnResult | undefined;
-    await applyMiddlewares(
-      [
-        ...(options.middlewares ?? []),
-        async (_ctx, next) => {
-          try {
-            const initResult = await client.initialize();
+    try {
+      let finalResult: SpawnResult | undefined;
+      await applyMiddlewares(
+        [
+          ...(options.middlewares ?? []),
+          async (_ctx, next) => {
+            try {
+              const initResult = await client.initialize();
 
-            if (
-              initResult.authMethods &&
-              initResult.authMethods.length > 0 &&
-              client.state !== "ready"
-            ) {
-              await client.authenticate(initResult.authMethods[0].id);
-            }
-
-            const cwd = options.cwd ?? process.cwd();
-            const mcpServers = toAcpMcpServers(options.mcpServers);
-            if (options.resumeThreadId) {
-              await client.loadSession(options.resumeThreadId, cwd, mcpServers);
-              sessionId = options.resumeThreadId;
-            } else {
-              const session = await client.newSession(cwd, mcpServers);
-              sessionId = session.sessionId;
-            }
-
-            pushEvent({ event: "session_start", threadId: sessionId });
-
-            const turn = client.prompt(sessionId, [{ type: "text", text: options.prompt }]);
-
-            for await (const notification of turn) {
-              if (aborted) break;
-
-              const update = notification.params.update;
               if (
-                update.sessionUpdate === "agent_message_chunk" &&
-                update.content.type === "text"
+                initResult.authMethods &&
+                initResult.authMethods.length > 0 &&
+                client.state !== "ready"
               ) {
-                assistantText += update.content.text;
+                await client.authenticate(initResult.authMethods[0].id);
               }
 
-              const events = sessionUpdateToEvents(update, toolState);
-              if (events.length > 0) {
-                events[0]._meta = { ...(events[0]._meta ?? {}), raw: update };
+              const mcpServers = toAcpMcpServers(options.mcpServers);
+              if (options.resumeThreadId) {
+                await client.loadSession(options.resumeThreadId, cwd, mcpServers);
+                sessionId = options.resumeThreadId;
+              } else {
+                const session = await client.newSession(cwd, mcpServers);
+                sessionId = session.sessionId;
               }
 
-              for (const event of events) {
-                if (event.event === "tool_complete") {
-                  const output = (event as { path?: string }).path;
-                  if (output) {
-                    lastToolOutput = output;
-                  }
+              pushEvent({ event: "session_start", threadId: sessionId });
+
+              const turn = client.prompt(sessionId, [{ type: "text", text: options.prompt }]);
+
+              for await (const notification of turn) {
+                if (aborted) break;
+
+                const update = notification.params.update;
+                if (
+                  update.sessionUpdate === "agent_message_chunk" &&
+                  update.content.type === "text"
+                ) {
+                  assistantText += update.content.text;
                 }
-                pushEvent(event);
-              }
-            }
 
-            const promptResponse = await turn.response;
-            const stopReason = promptResponse.stopReason as string;
-            const meta = (promptResponse._meta ?? {}) as Record<string, unknown>;
-            const metaUsage = meta.usage as
-              | { inputTokens?: number; outputTokens?: number }
-              | undefined;
+                const events = sessionUpdateToEvents(update, toolState);
+                if (events.length > 0) {
+                  events[0]._meta = { ...(events[0]._meta ?? {}), raw: update };
+                }
 
-            const responseText = assistantText || lastToolOutput;
-            finalResult = {
-              stdout: responseText.length > 0 ? `${responseText}\n` : "",
-              stderr: "",
-              exitCode: stopReason === "completed" || stopReason === "end_turn" ? 0 : 1,
-              threadId: sessionId,
-              ...(metaUsage
-                ? {
-                    usage: {
-                      inputTokens: metaUsage.inputTokens ?? 0,
-                      outputTokens: metaUsage.outputTokens ?? 0
+                for (const event of events) {
+                  if (event.event === "tool_complete") {
+                    const output = (event as { path?: string }).path;
+                    if (output) {
+                      lastToolOutput = output;
                     }
                   }
-                : {})
-            };
-          } catch (error) {
-            if (aborted) {
-              throw createAbortError();
+                  pushEvent(event);
+                }
+              }
+
+              const promptResponse = await turn.response;
+              const stopReason = promptResponse.stopReason as string;
+              const meta = (promptResponse._meta ?? {}) as Record<string, unknown>;
+              const metaUsage = meta.usage as
+                | { inputTokens?: number; outputTokens?: number }
+                | undefined;
+
+              const responseText = assistantText || lastToolOutput;
+              finalResult = {
+                stdout: responseText.length > 0 ? `${responseText}\n` : "",
+                stderr: "",
+                exitCode: stopReason === "completed" || stopReason === "end_turn" ? 0 : 1,
+                threadId: sessionId,
+                ...(metaUsage
+                  ? {
+                      usage: {
+                        inputTokens: metaUsage.inputTokens ?? 0,
+                        outputTokens: metaUsage.outputTokens ?? 0
+                      }
+                    }
+                  : {})
+              };
+            } catch (error) {
+              if (aborted) {
+                throw createAbortError();
+              }
+
+              const message = error instanceof Error ? error.message : String(error);
+              pushEvent({
+                event: "error",
+                message,
+                ...(error instanceof Error && error.stack ? { stack: error.stack } : {})
+              });
+
+              finalResult = {
+                stdout: assistantText.length > 0 ? `${assistantText}\n` : "",
+                stderr: message,
+                exitCode: 1,
+                ...(sessionId ? { threadId: sessionId } : {})
+              };
+            } finally {
+              options.signal?.removeEventListener("abort", onAbort);
+              completeEventStream();
+              await client.dispose();
             }
-
-            const message = error instanceof Error ? error.message : String(error);
-            pushEvent({
-              event: "error",
-              message,
-              ...(error instanceof Error && error.stack ? { stack: error.stack } : {})
-            });
-
-            finalResult = {
-              stdout: assistantText.length > 0 ? `${assistantText}\n` : "",
-              stderr: message,
-              exitCode: 1,
-              ...(sessionId ? { threadId: sessionId } : {})
-            };
-          } finally {
-            options.signal?.removeEventListener("abort", onAbort);
-            completeEventStream();
-            await client.dispose();
+            await next();
           }
-          await next();
-        }
-      ],
-      ctx
-    );
+        ],
+        ctx
+      );
 
-    return {
-      ...(finalResult ?? { stdout: "", stderr: "", exitCode: 1 }),
-      ...(ctx.threadId && !finalResult?.threadId ? { threadId: ctx.threadId } : {}),
-      ...(ctx.logFile && !finalResult?.logFile ? { logFile: ctx.logFile } : {})
-    };
+      return {
+        ...(finalResult ?? { stdout: "", stderr: "", exitCode: 1 }),
+        ...(ctx.threadId && !finalResult?.threadId ? { threadId: ctx.threadId } : {}),
+        ...(ctx.logFile && !finalResult?.logFile ? { logFile: ctx.logFile } : {})
+      };
+    } finally {
+      cleanupSkillsForRun(manifest);
+    }
   })();
 
   return {

@@ -298,7 +298,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: spawn-runner-bridge
     title: Wire bridge into the spawn runner (SDK level)
@@ -345,8 +345,8 @@ tasks:
       called. Stub the agent-process launcher, the warning channel, and use `memfs` for
       the FS; no real child processes.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: spawn-cli-skills-flag

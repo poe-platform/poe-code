@@ -25,6 +25,8 @@ export interface SpawnOptions {
   mcpServers?: McpSpawnConfig;
   /** @deprecated Use mcpServers instead. */
   mcpConfig?: McpSpawnConfig;
+  /** Skill references to bridge into the spawned agent for this run. */
+  skills?: string[];
   /** Resume a prior provider thread/session before sending the prompt. */
   resumeThreadId?: string;
   /** Directory override for ACP JSONL spawn logs */

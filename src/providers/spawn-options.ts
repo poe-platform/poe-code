@@ -7,6 +7,7 @@ export interface SpawnCommandOptions {
   model?: string;
   mode?: SpawnMode;
   mcpServers?: McpSpawnConfig;
+  skills?: string[];
   resumeThreadId?: string;
   logDir?: string;
   activityTimeoutMs?: number;
@@ -23,9 +24,8 @@ export interface SpawnCommandOptions {
   runnerSync?: RuntimeOverrideOptions["runnerSync"];
 }
 
-export type ProviderSpawnOptions<
-  Extra extends Record<string, unknown> = Record<string, never>
-> = SpawnCommandOptions & Extra;
+export type ProviderSpawnOptions<Extra extends Record<string, unknown> = Record<string, never>> =
+  SpawnCommandOptions & Extra;
 
 export interface ModelConfigureOptions {
   model: string;

@@ -47,8 +47,7 @@ const spawnPoeAgentWithAcpMock = vi.hoisted(() =>
 );
 
 vi.mock("../../providers/poe-agent.js", async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import("../../providers/poe-agent.js")>();
+  const actual = await importOriginal<typeof import("../../providers/poe-agent.js")>();
   return {
     ...actual,
     spawnPoeAgentWithAcp: spawnPoeAgentWithAcpMock
@@ -566,13 +565,7 @@ describe("spawn command", () => {
       logger: (message) => logs.push(message)
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "spawn",
-      "codex",
-      "hello"
-    ]);
+    await program.parseAsync(["node", "cli", "spawn", "codex", "hello"]);
 
     expect(sdkSpawn).toHaveBeenCalledTimes(2);
     expect(logs.some((line) => line.includes("retry-success"))).toBe(true);
@@ -694,13 +687,7 @@ describe("spawn command", () => {
       logger: () => {}
     });
 
-    await program.parseAsync([
-      "node",
-      "cli",
-      "spawn",
-      "poe-agent",
-      "Explain the change"
-    ]);
+    await program.parseAsync(["node", "cli", "spawn", "poe-agent", "Explain the change"]);
 
     expect(sdkSpawn).not.toHaveBeenCalled();
     expect(spawnPoeAgentWithAcpMock).toHaveBeenCalledOnce();
@@ -788,6 +775,40 @@ describe("spawn command", () => {
       model: "some-model",
       mode: undefined,
       cwd: undefined,
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
+  it("passes active skills from repeated --skill flags to SDK spawn", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--skill",
+      "foo",
+      "--skill",
+      "claude/bar",
+      "codex",
+      "List files"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      skills: ["foo", "claude/bar"],
       activityTimeoutMs: 600_000,
       runtimeConfigCwd: cwd
     });
@@ -1164,15 +1185,7 @@ describe("spawn command", () => {
     await fs.writeFile(filePath, "{nope", { encoding: "utf8" });
 
     await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "spawn",
-        "--mcp-servers",
-        "@mcp.json",
-        "codex",
-        "hello"
-      ])
+      program.parseAsync(["node", "cli", "spawn", "--mcp-servers", "@mcp.json", "codex", "hello"])
     ).rejects.toThrow("--mcp-servers");
 
     expect(sdkSpawn).not.toHaveBeenCalled();
@@ -1275,9 +1288,9 @@ describe("spawn command", () => {
       logger: () => {}
     });
 
-    await expect(
-      program.parseAsync(["node", "cli", "spawn", "codex", "@"])
-    ).rejects.toThrow("prompt @<path> requires a file path after '@'");
+    await expect(program.parseAsync(["node", "cli", "spawn", "codex", "@"])).rejects.toThrow(
+      "prompt @<path> requires a file path after '@'"
+    );
 
     expect(sdkSpawn).not.toHaveBeenCalled();
   });

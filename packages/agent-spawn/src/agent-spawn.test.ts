@@ -17,8 +17,26 @@ import { spawn } from "./spawn.js";
 import { stripModelNamespace } from "./model-utils.js";
 import type { CliSpawnConfig, OtelSink } from "./types.js";
 
+const skillBridgeMock = vi.hoisted(() => ({
+  bridgeActiveSkills: vi.fn(),
+  cleanupBridgedSkills: vi.fn()
+}));
+
+const designLoggerMock = vi.hoisted(() => ({
+  warn: vi.fn()
+}));
+
 vi.mock("node:child_process", () => ({
   spawn: vi.fn()
+}));
+
+vi.mock("@poe-code/agent-skill-config", () => ({
+  bridgeActiveSkills: skillBridgeMock.bridgeActiveSkills,
+  cleanupBridgedSkills: skillBridgeMock.cleanupBridgedSkills
+}));
+
+vi.mock("@poe-code/design-system", () => ({
+  logger: designLoggerMock
 }));
 
 // === spawn.test.ts helpers ===
@@ -578,6 +596,13 @@ describe("buildSpawnArgs", () => {
 describe("spawn", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    skillBridgeMock.bridgeActiveSkills.mockReturnValue({
+      runId: "run-id",
+      spawnAgentId: "codex",
+      targetDir: "/repo/.codex/skills",
+      entries: [],
+      warnings: []
+    });
   });
 
   it("throws error if agent ID cannot be resolved", async () => {
@@ -879,6 +904,147 @@ describe("spawn", () => {
     expect(result.stderr).toBe("");
     expect(dryRunMessages).toHaveLength(1);
     expect(dryRunMessages[0]).toContain("claude");
+  });
+
+  it("does not bridge skills when skills are omitted or empty", async () => {
+    vi.mocked(spawnChildProcess).mockImplementation(() => createMockChildProcess({ exitCode: 0 }));
+
+    await spawn("codex", { prompt: "hello" });
+    await spawn("codex", { prompt: "hello", skills: [] });
+
+    expect(skillBridgeMock.bridgeActiveSkills).not.toHaveBeenCalled();
+    expect(skillBridgeMock.cleanupBridgedSkills).not.toHaveBeenCalled();
+    expect(spawnChildProcess).toHaveBeenCalledTimes(2);
+  });
+
+  it("bridges provided skills before launching the agent process", async () => {
+    const order: string[] = [];
+    const manifest = {
+      runId: "run-id",
+      spawnAgentId: "codex",
+      targetDir: "/repo/.codex/skills",
+      entries: [],
+      warnings: []
+    };
+    skillBridgeMock.bridgeActiveSkills.mockImplementation(() => {
+      order.push("bridge");
+      return manifest;
+    });
+    vi.mocked(spawnChildProcess).mockImplementation(() => {
+      order.push("spawn");
+      return createMockChildProcess({ exitCode: 0 });
+    });
+
+    await spawn("codex", { prompt: "hello", cwd: "/repo", skills: ["foo", "claude/bar"] });
+
+    expect(skillBridgeMock.bridgeActiveSkills).toHaveBeenCalledWith(
+      "codex",
+      "/repo",
+      ["foo", "claude/bar"],
+      expect.any(String),
+      expect.any(String)
+    );
+    expect(order).toEqual(["bridge", "spawn"]);
+  });
+
+  it("does not launch the agent process when skill bridging throws", async () => {
+    skillBridgeMock.bridgeActiveSkills.mockImplementation(() => {
+      throw new Error("Unresolved skill reference: missing");
+    });
+
+    await expect(
+      spawn("codex", { prompt: "hello", cwd: "/repo", skills: ["missing"] })
+    ).rejects.toThrow("Unresolved skill reference: missing");
+
+    expect(spawnChildProcess).not.toHaveBeenCalled();
+    expect(skillBridgeMock.cleanupBridgedSkills).not.toHaveBeenCalled();
+  });
+
+  it("surfaces bridge warnings and still launches the agent process", async () => {
+    skillBridgeMock.bridgeActiveSkills.mockReturnValue({
+      runId: "run-id",
+      spawnAgentId: "codex",
+      targetDir: "/repo/.codex/skills",
+      entries: [],
+      warnings: [
+        {
+          kind: "local-collision",
+          ref: "foo",
+          sourcePath: "/repo/.poe-code/skills/foo",
+          conflictingPath: "/repo/.codex/skills/foo",
+          message: "Skipping foo: target already exists."
+        }
+      ]
+    });
+    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+
+    await spawn("codex", { prompt: "hello", cwd: "/repo", skills: ["foo"] });
+
+    expect(designLoggerMock.warn).toHaveBeenCalledWith("Skipping foo: target already exists.");
+    expect(spawnChildProcess).toHaveBeenCalledTimes(1);
+  });
+
+  it("cleans up bridged skills once after a clean agent exit", async () => {
+    const manifest = {
+      runId: "run-id",
+      spawnAgentId: "codex",
+      targetDir: "/repo/.codex/skills",
+      entries: [],
+      warnings: []
+    };
+    skillBridgeMock.bridgeActiveSkills.mockReturnValue(manifest);
+    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+
+    await spawn("codex", { prompt: "hello", cwd: "/repo", skills: ["foo"] });
+
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledTimes(1);
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledWith(manifest);
+  });
+
+  it("cleans up bridged skills when the agent launcher throws", async () => {
+    const manifest = {
+      runId: "run-id",
+      spawnAgentId: "codex",
+      targetDir: "/repo/.codex/skills",
+      entries: [],
+      warnings: []
+    };
+    skillBridgeMock.bridgeActiveSkills.mockReturnValue(manifest);
+    vi.mocked(spawnChildProcess).mockImplementation(() => {
+      throw new Error("spawn failed");
+    });
+
+    await expect(
+      spawn("codex", { prompt: "hello", cwd: "/repo", skills: ["foo"] })
+    ).rejects.toThrow("spawn failed");
+
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledTimes(1);
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledWith(manifest);
+  });
+
+  it("cleans up bridged skills when the agent run is aborted", async () => {
+    const manifest = {
+      runId: "run-id",
+      spawnAgentId: "codex",
+      targetDir: "/repo/.codex/skills",
+      entries: [],
+      warnings: []
+    };
+    skillBridgeMock.bridgeActiveSkills.mockReturnValue(manifest);
+    const controller = new AbortController();
+    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ autoClose: false }));
+
+    const resultPromise = spawn("codex", {
+      prompt: "hello",
+      cwd: "/repo",
+      skills: ["foo"],
+      signal: controller.signal
+    });
+    controller.abort();
+
+    await expect(resultPromise).rejects.toMatchObject({ name: "AbortError" });
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledTimes(1);
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledWith(manifest);
   });
 
   it("records the expected otel span lifecycle for a CLI spawn", async () => {

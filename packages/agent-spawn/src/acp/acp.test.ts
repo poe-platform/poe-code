@@ -22,8 +22,18 @@ import { openCodeSpawnConfig } from "../configs/opencode.js";
 import { getMcpArgs } from "../mcp-args.js";
 import type { CliSpawnConfig } from "../types.js";
 
+const skillBridgeMock = vi.hoisted(() => ({
+  bridgeActiveSkills: vi.fn(),
+  cleanupBridgedSkills: vi.fn()
+}));
+
+const acpLaunchOrder = vi.hoisted(() => [] as string[]);
+
 vi.mock("@poe-code/design-system", () => {
   return {
+    logger: {
+      warn: vi.fn()
+    },
     acp: {
       renderAgentMessage: vi.fn(),
       renderToolStart: vi.fn(),
@@ -43,9 +53,15 @@ vi.mock("@poe-code/design-system", () => {
   };
 });
 
+vi.mock("@poe-code/agent-skill-config", () => ({
+  bridgeActiveSkills: skillBridgeMock.bridgeActiveSkills,
+  cleanupBridgedSkills: skillBridgeMock.cleanupBridgedSkills
+}));
+
 let lastMockAcpClient: any;
 let lastMockAcpClientOptions: any;
 let mockPromptNotifications: any[] | null = null;
+let mockAcpClientConstructorError: Error | null = null;
 
 vi.mock("@poe-code/poe-acp-client", () => {
   const initResponse = { protocolVersion: 1 };
@@ -88,6 +104,10 @@ vi.mock("@poe-code/poe-acp-client", () => {
     });
     dispose = vi.fn().mockResolvedValue(undefined);
     constructor(options: unknown) {
+      acpLaunchOrder.push("client");
+      if (mockAcpClientConstructorError) {
+        throw mockAcpClientConstructorError;
+      }
       lastMockAcpClientOptions = options;
       lastMockAcpClient = this; // eslint-disable-line @typescript-eslint/no-this-alias
     }
@@ -628,8 +648,18 @@ describe("acp/renderer", () => {
 describe("spawnAcp", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    acpLaunchOrder.length = 0;
+    lastMockAcpClient = undefined;
     lastMockAcpClientOptions = undefined;
     mockPromptNotifications = null;
+    mockAcpClientConstructorError = null;
+    skillBridgeMock.bridgeActiveSkills.mockReturnValue({
+      runId: "run-id",
+      spawnAgentId: "opencode",
+      targetDir: "/tmp/test/.opencode/skill",
+      entries: [],
+      warnings: []
+    });
   });
 
   it("streams agent message events and resolves with exit code 0", async () => {
@@ -736,6 +766,86 @@ describe("spawnAcp", () => {
     expect(lastMockAcpClientOptions.env).toMatchObject({
       GOOSE_DISABLE_KEYRING: "1"
     });
+  });
+
+  it("bridges active skills before constructing the ACP client", async () => {
+    skillBridgeMock.bridgeActiveSkills.mockImplementation(() => {
+      acpLaunchOrder.push("bridge");
+      return {
+        runId: "run-id",
+        spawnAgentId: "opencode",
+        targetDir: "/tmp/test/.opencode/skill",
+        entries: [],
+        warnings: []
+      };
+    });
+
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "test",
+      cwd: "/tmp/test",
+      skills: ["foo", "claude/bar"]
+    });
+
+    await collect(events);
+    await done;
+
+    expect(skillBridgeMock.bridgeActiveSkills).toHaveBeenCalledWith(
+      "opencode",
+      "/tmp/test",
+      ["foo", "claude/bar"],
+      expect.any(String),
+      expect.any(String)
+    );
+    expect(acpLaunchOrder).toEqual(["bridge", "client"]);
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not construct the ACP client when active skill bridging throws", () => {
+    skillBridgeMock.bridgeActiveSkills.mockImplementation(() => {
+      throw new Error("Unresolved skill reference: missing");
+    });
+
+    expect(() =>
+      spawnAcp({
+        agentId: "opencode",
+        prompt: "test",
+        cwd: "/tmp/test",
+        skills: ["missing"]
+      })
+    ).toThrow("Unresolved skill reference: missing");
+
+    expect(lastMockAcpClient).toBeUndefined();
+    expect(acpLaunchOrder).toEqual([]);
+    expect(skillBridgeMock.cleanupBridgedSkills).not.toHaveBeenCalled();
+  });
+
+  it("cleans up bridged skills when ACP client construction throws", () => {
+    const manifest = {
+      runId: "run-id",
+      spawnAgentId: "opencode",
+      targetDir: "/tmp/test/.opencode/skill",
+      entries: [],
+      warnings: []
+    };
+    skillBridgeMock.bridgeActiveSkills.mockImplementation(() => {
+      acpLaunchOrder.push("bridge");
+      return manifest;
+    });
+    mockAcpClientConstructorError = new Error("ACP launch failed");
+
+    expect(() =>
+      spawnAcp({
+        agentId: "opencode",
+        prompt: "test",
+        cwd: "/tmp/test",
+        skills: ["foo"]
+      })
+    ).toThrow("ACP launch failed");
+
+    expect(acpLaunchOrder).toEqual(["bridge", "client"]);
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledTimes(1);
+    expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledWith(manifest);
   });
 
   it("uses last tool output as stdout when no agent message is sent", async () => {

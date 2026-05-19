@@ -51,6 +51,8 @@ export interface SpawnOptions {
   mode?: SpawnMode;
   args?: string[];
   mcpServers?: McpSpawnConfig;
+  /** Skill references to bridge into the spawned agent for this run. */
+  skills?: string[];
   /** Resume a prior provider thread/session before sending the prompt. */
   resumeThreadId?: string;
   useStdin?: boolean;

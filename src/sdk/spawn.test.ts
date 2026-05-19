@@ -272,6 +272,30 @@ describe("SDK spawn()", () => {
     );
   });
 
+  it("passes active skills through to streaming agent spawns", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt", {
+      skills: ["foo", "claude/bar"]
+    });
+
+    await result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        skills: ["foo", "claude/bar"]
+      })
+    );
+  });
+
   it("passes resumeThreadId through to ACP agent spawns", async () => {
     vi.mocked(getAcpSpawnConfig).mockReturnValue({
       kind: "acp",
@@ -521,6 +545,29 @@ describe("SDK spawn()", () => {
     });
     expect(spawnCore).not.toHaveBeenCalled();
     expect(createSdkContainer).toHaveBeenCalledTimes(1);
+  });
+
+  it("passes active skills through to non-streaming agent spawns", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "aider",
+      promptFlag: "-p",
+      defaultArgs: []
+    } as any);
+    vi.mocked(agentSpawn).mockResolvedValue({ stdout: "", stderr: "", exitCode: 0 });
+
+    const { result } = spawn("aider", "test prompt", {
+      skills: ["foo"]
+    });
+
+    await result;
+
+    expect(agentSpawn).toHaveBeenCalledWith(
+      "aider",
+      expect.objectContaining({
+        skills: ["foo"]
+      })
+    );
   });
 
   it("forwards signal to spawnStreaming when supported", async () => {

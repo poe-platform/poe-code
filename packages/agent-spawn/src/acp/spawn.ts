@@ -9,6 +9,7 @@ import { stripModelNamespace } from "../model-utils.js";
 import { observeAgentSpawn } from "../observability/otel.js";
 import { shouldSendPromptViaStdin } from "../prompt-transport.js";
 import { resolveSpawnExecution } from "../runtime.js";
+import { bridgeSkillsForRun, cleanupSkillsForRun } from "../skill-bridge.js";
 import {
   resolveModeConfig,
   type CliSpawnConfig,
@@ -249,10 +250,11 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   const envOverrides = { ...mcpEnvVars, ...modeResolved.env };
   const processEnv =
     Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
+  const cwd = options.cwd ?? process.cwd();
   const queue = createLineQueue();
   const argv = [binaryName, ...args];
   const execution = resolveSpawnExecution({
-    cwd: options.cwd ?? process.cwd(),
+    cwd,
     runtimeConfigCwd: options.runtimeConfigCwd,
     env: (processEnv ?? process.env) as Record<string, string>,
     argv,
@@ -375,6 +377,8 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     }
   };
 
+  const manifest = bridgeSkillsForRun(options.agentId, cwd, options.skills);
+
   void (async () => {
     try {
       for await (const output of adapter(queue.lines())) {
@@ -390,42 +394,46 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
   })();
 
   const done = (async (): Promise<SpawnResult> => {
-    await applyMiddlewares(
-      [
-        ...(options.middlewares ?? []),
-        async (_ctx, next) => {
-          try {
-            const runResult = await runPoeCommand({
-              factory: execution.factory,
-              openSpec: execution.openSpec,
-              detach: execution.detach,
-              state: execution.state,
-              signal: options.signal
-            });
+    try {
+      await applyMiddlewares(
+        [
+          ...(options.middlewares ?? []),
+          async (_ctx, next) => {
+            try {
+              const runResult = await runPoeCommand({
+                factory: execution.factory,
+                openSpec: execution.openSpec,
+                detach: execution.detach,
+                state: execution.state,
+                signal: options.signal
+              });
 
-            if (runResult.kind === "detached") {
-              result.stdout = "";
-              result.stderr = "";
-              result.exitCode = 0;
-              result.detached = { jobId: runResult.jobId, envId: runResult.envId };
-            } else {
-              result.stderr = runResult.stderr ?? "";
-              result.exitCode = runResult.exitCode;
+              if (runResult.kind === "detached") {
+                result.stdout = "";
+                result.stderr = "";
+                result.exitCode = 0;
+                result.detached = { jobId: runResult.jobId, envId: runResult.envId };
+              } else {
+                result.stderr = runResult.stderr ?? "";
+                result.exitCode = runResult.exitCode;
+              }
+            } finally {
+              queue.close();
             }
-          } finally {
-            queue.close();
+            await eventStreamDone;
+            await next();
           }
-          await eventStreamDone;
-          await next();
-        }
-      ],
-      ctx
-    );
+        ],
+        ctx
+      );
 
-    return {
-      ...result,
-      ...(ctx.logFile && !result.logFile ? { logFile: ctx.logFile } : {})
-    };
+      return {
+        ...result,
+        ...(ctx.logFile && !result.logFile ? { logFile: ctx.logFile } : {})
+      };
+    } finally {
+      cleanupSkillsForRun(manifest);
+    }
   })();
 
   return {

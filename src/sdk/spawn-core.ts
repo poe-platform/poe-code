@@ -3,10 +3,7 @@ import { resolveAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
 import { resolveConfigModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../cli/container.js";
 import type { SpawnResult } from "./types.js";
-import {
-  buildProviderContext,
-  createExecutionResources
-} from "../cli/commands/shared.js";
+import { buildProviderContext, createExecutionResources } from "../cli/commands/shared.js";
 import type { SpawnCommandOptions } from "../providers/spawn-options.js";
 import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 import type { CommandRunnerResult } from "../utils/command-checks.js";
@@ -25,6 +22,8 @@ export interface SpawnCoreOptions {
   args?: string[];
   /** MCP servers passed at spawn time */
   mcpServers?: McpSpawnConfig;
+  /** Skill references to bridge into the spawned agent for this run. */
+  skills?: string[];
   /** Resume a prior provider thread/session before sending the prompt. */
   resumeThreadId?: string;
   /** Whether prompt was read from stdin */
@@ -69,17 +68,14 @@ export async function spawnCore(
       model,
       mode: options.mode,
       mcpServers: options.mcpServers,
+      skills: options.skills,
       resumeThreadId: options.resumeThreadId,
       cwd: cwdOverride,
       useStdin: options.useStdin ?? false
     };
 
     const commandFlags = { dryRun: flags.dryRun, assumeYes: true, verbose: flags.verbose };
-    const resources = createExecutionResources(
-      container,
-      commandFlags,
-      `spawn:${service}`
-    );
+    const resources = createExecutionResources(container, commandFlags, `spawn:${service}`);
 
     if (flags.dryRun) {
       const summary = formatSpawnDryRunMessage(adapter.label, spawnOptions);
@@ -103,17 +99,13 @@ export async function spawnCore(
 
     const providerContext = buildProviderContext(container, adapter, resources);
 
-    const result = (await container.registry.invoke(
-      adapter.name,
-      "spawn",
-      async (entry) => {
-        if (!entry.spawn) {
-          throw new Error(`${adapter.label} does not support spawn.`);
-        }
-        const output = await entry.spawn(providerContext, spawnOptions);
-        return output as CommandRunnerResult | void;
+    const result = (await container.registry.invoke(adapter.name, "spawn", async (entry) => {
+      if (!entry.spawn) {
+        throw new Error(`${adapter.label} does not support spawn.`);
       }
-    )) as CommandRunnerResult | void;
+      const output = await entry.spawn(providerContext, spawnOptions);
+      return output as CommandRunnerResult | void;
+    })) as CommandRunnerResult | void;
 
     if (!result) {
       return {
@@ -160,10 +152,7 @@ export async function resolveConfiguredModel(
   return adapter?.configurePrompts?.model?.defaultValue;
 }
 
-function formatSpawnDryRunMessage(
-  label: string,
-  options: SpawnCommandOptions
-): string {
+function formatSpawnDryRunMessage(label: string, options: SpawnCommandOptions): string {
   const lines: string[] = [`Dry run: would spawn ${label}.`];
   const details: string[] = [];
   const promptDetail = options.useStdin
@@ -192,7 +181,7 @@ function formatSpawnArg(arg: string): string {
   if (!needsQuotes) {
     return arg;
   }
-  return `"${arg.split("\"").join("\\\"")}"`;
+  return `"${arg.split('"').join('\\"')}"`;
 }
 
 function formatQuoted(value: string): string {

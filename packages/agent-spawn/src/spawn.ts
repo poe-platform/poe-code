@@ -10,6 +10,7 @@ import { createSpawnParallel } from "./parallel.js";
 import { shouldSendPromptViaStdin } from "./prompt-transport.js";
 import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
+import { bridgeSkillsForRun, cleanupSkillsForRun } from "./skill-bridge.js";
 import { spawnStreaming } from "./acp/spawn.js";
 import {
   resolveModeConfig,
@@ -221,49 +222,53 @@ async function runSpawn(
     return { stdout: "", stderr: "", exitCode: 0 };
   }
 
-  const logFilePath = resolveSpawnLogPath(options);
-  const logFd = logFilePath ? openSpawnLog(logFilePath) : undefined;
-
-  const processEnv = modeEnv ? { ...process.env, ...modeEnv } : undefined;
-  const argv = [binaryName, ...spawnArgs];
-  const execution = resolveSpawnExecution({
-    cwd: options.cwd ?? process.cwd(),
-    runtimeConfigCwd: options.runtimeConfigCwd,
-    env: (processEnv ?? process.env) as Record<string, string>,
-    argv,
-    tool: resolvedId,
-    runtime: {
-      runtime: options.runtime,
-      runtimeImage: options.runtimeImage,
-      runtimeTemplate: options.runtimeTemplate,
-      detach: options.detach,
-      mountPoeCode: options.mountPoeCode,
-      runnerSync: options.runnerSync
-    },
-    context,
-    openSpec: {
-      execution: {
-        wrapForLogTee: false,
-        stdin: stdinMode ? "pipe" : "inherit",
-        stdout: "pipe",
-        stderr: "pipe",
-        env: processEnv as Record<string, string> | undefined,
-        input: stdinMode ? options.prompt : undefined,
-        captureOutput: true,
-        activityTimeoutMs: options.activityTimeoutMs,
-        onStdout(chunk: string) {
-          options.tee?.stdout?.write(chunk);
-          appendSpawnLog(logFd, chunk);
-        },
-        onStderr(chunk: string) {
-          options.tee?.stderr?.write(chunk);
-          appendSpawnLog(logFd, chunk);
-        }
-      }
-    }
-  });
+  const cwd = options.cwd ?? process.cwd();
+  const manifest = bridgeSkillsForRun(agentId, cwd, options.skills);
+  let logFd: number | undefined;
 
   try {
+    const logFilePath = resolveSpawnLogPath(options);
+    logFd = logFilePath ? openSpawnLog(logFilePath) : undefined;
+
+    const processEnv = modeEnv ? { ...process.env, ...modeEnv } : undefined;
+    const argv = [binaryName, ...spawnArgs];
+    const execution = resolveSpawnExecution({
+      cwd,
+      runtimeConfigCwd: options.runtimeConfigCwd,
+      env: (processEnv ?? process.env) as Record<string, string>,
+      argv,
+      tool: resolvedId,
+      runtime: {
+        runtime: options.runtime,
+        runtimeImage: options.runtimeImage,
+        runtimeTemplate: options.runtimeTemplate,
+        detach: options.detach,
+        mountPoeCode: options.mountPoeCode,
+        runnerSync: options.runnerSync
+      },
+      context,
+      openSpec: {
+        execution: {
+          wrapForLogTee: false,
+          stdin: stdinMode ? "pipe" : "inherit",
+          stdout: "pipe",
+          stderr: "pipe",
+          env: processEnv as Record<string, string> | undefined,
+          input: stdinMode ? options.prompt : undefined,
+          captureOutput: true,
+          activityTimeoutMs: options.activityTimeoutMs,
+          onStdout(chunk: string) {
+            options.tee?.stdout?.write(chunk);
+            appendSpawnLog(logFd, chunk);
+          },
+          onStderr(chunk: string) {
+            options.tee?.stderr?.write(chunk);
+            appendSpawnLog(logFd, chunk);
+          }
+        }
+      }
+    });
+
     const result = await runPoeCommand({
       factory: execution.factory,
       openSpec: execution.openSpec,
@@ -291,6 +296,7 @@ async function runSpawn(
     };
   } finally {
     closeSpawnLog(logFd);
+    cleanupSkillsForRun(manifest);
   }
 }
 

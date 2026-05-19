@@ -38,7 +38,11 @@ import { spawnAutonomous } from "../../sdk/autonomous.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 import { resolveSpawnWorkspace } from "../../workspace/resolve-spawn-workspace.js";
-import { addRuntimeOptions, pickRuntimeOptions, type RuntimeCliOptions } from "./runtime-options.js";
+import {
+  addRuntimeOptions,
+  pickRuntimeOptions,
+  type RuntimeCliOptions
+} from "./runtime-options.js";
 
 export interface CustomSpawnHandlerContext {
   container: CliContainer;
@@ -80,6 +84,7 @@ export function registerSpawnCommand(
       "--mcp-servers <json|@file>",
       "MCP server config JSON (or @path/to/file.json): {name: {command, args?, env?}}"
     )
+    .option("--skill <ref>", "Active skill reference to bridge for this run", collectOption)
     .addOption(
       new Option("--mcp-config <json|@file>", "[deprecated: use --mcp-servers]").hideHelp()
     )
@@ -92,7 +97,10 @@ export function registerSpawnCommand(
 
   addRuntimeOptions(spawnCommand)
     .argument("<agent>", serviceDescription)
-    .argument("[prompt]", "Prompt text to send, '@path/to/file' to load from a file, or '-' / stdin")
+    .argument(
+      "[prompt]",
+      "Prompt text to send, '@path/to/file' to load from a file, or '-' / stdin"
+    )
     .argument("[agentArgs...]", "Additional arguments forwarded to the agent CLI")
     .action(async function (
       this: Command,
@@ -101,17 +109,20 @@ export function registerSpawnCommand(
       agentArgs: string[] = []
     ) {
       const flags = resolveCommandFlags(program);
-      const commandOptions = this.opts<{
-        model?: string;
-        cwd?: string;
-        stdin?: boolean;
-        interactive?: boolean;
-        mode?: string;
-        mcpServers?: string;
-        mcpConfig?: string;
-        logDir?: string;
-        activityTimeoutMs?: number;
-      } & RuntimeCliOptions>();
+      const commandOptions = this.opts<
+        {
+          model?: string;
+          cwd?: string;
+          stdin?: boolean;
+          interactive?: boolean;
+          mode?: string;
+          mcpServers?: string;
+          mcpConfig?: string;
+          skill?: string[];
+          logDir?: string;
+          activityTimeoutMs?: number;
+        } & RuntimeCliOptions
+      >();
       const runtimeOptions = pickRuntimeOptions(commandOptions);
       let integrations: Integrations | null = null;
       const shouldEmitUiOutput = resolveOutputFormat() !== "json";
@@ -187,6 +198,9 @@ export function registerSpawnCommand(
             args: forwardedArgs,
             model,
             mode: commandOptions.mode as SpawnMode | undefined,
+            ...(commandOptions.skill && commandOptions.skill.length > 0
+              ? { skills: commandOptions.skill }
+              : {}),
             runtimeConfigCwd: container.env.cwd,
             ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
@@ -202,12 +216,13 @@ export function registerSpawnCommand(
           model: commandOptions.model,
           mode: commandOptions.mode as SpawnMode | undefined,
           mcpServers,
+          ...(commandOptions.skill && commandOptions.skill.length > 0
+            ? { skills: commandOptions.skill }
+            : {}),
           cwd: cwdOverride,
           logDir: commandOptions.logDir,
           activityTimeoutMs: commandOptions.activityTimeoutMs,
-          ...(integrations?.spawnMiddleware
-            ? { middlewares: [integrations.spawnMiddleware] }
-            : {}),
+          ...(integrations?.spawnMiddleware ? { middlewares: [integrations.spawnMiddleware] } : {}),
           runtimeConfigCwd: container.env.cwd,
           ...runtimeOptions,
           useStdin: shouldReadFromStdin
@@ -303,6 +318,7 @@ export function registerSpawnCommand(
               mode: spawnOptions.mode,
               cwd: spawnOptions.cwd,
               ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {}),
+              ...(spawnOptions.skills ? { skills: spawnOptions.skills } : {}),
               ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
               ...(spawnOptions.activityTimeoutMs !== undefined
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
@@ -446,11 +462,7 @@ async function confirmUnconfiguredService(
   return shouldProceed === true;
 }
 
-async function resolvePromptInput(
-  input: string,
-  fs: FileSystem,
-  baseDir: string
-): Promise<string> {
+async function resolvePromptInput(input: string, fs: FileSystem, baseDir: string): Promise<string> {
   if (!input.startsWith("@")) {
     return input;
   }
@@ -621,6 +633,10 @@ function parsePositiveInt(value: string, fieldName: string): number {
     throw new ValidationError(`Invalid ${fieldName} "${value}". Expected a positive integer.`);
   }
   return parsed;
+}
+
+function collectOption(value: string, previous: string[] | undefined): string[] {
+  return [...(previous ?? []), value];
 }
 
 function assertSpawnSupport(label: string, service: string, providerSupportsSpawn: boolean): void {

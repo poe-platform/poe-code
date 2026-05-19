@@ -4,6 +4,7 @@ import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { resolveSpawnExecution } from "./runtime.js";
+import { bridgeSkillsForRun, cleanupSkillsForRun } from "./skill-bridge.js";
 import { resolveModeConfig, type SpawnOptions, type SpawnResult } from "./types.js";
 
 export async function spawnInteractive(
@@ -87,9 +88,10 @@ export async function spawnInteractive(
 
   const processEnv = modeResolved.env ? { ...process.env, ...modeResolved.env } : undefined;
   const executionEnv = processEnv as Record<string, string> | undefined;
+  const cwd = options.cwd ?? process.cwd();
   const argv = [resolved.binaryName, ...args];
   const execution = resolveSpawnExecution({
-    cwd: options.cwd ?? process.cwd(),
+    cwd,
     runtimeConfigCwd: options.runtimeConfigCwd,
     env: (processEnv ?? process.env) as Record<string, string>,
     argv,
@@ -125,20 +127,25 @@ export async function spawnInteractive(
     }
   });
 
-  const result = await runPoeCommand({
-    factory: execution.factory,
-    openSpec: execution.openSpec,
-    detach: execution.detach,
-    state: execution.state,
-    signal: options.signal
-  });
+  const manifest = bridgeSkillsForRun(agentId, cwd, options.skills);
+  try {
+    const result = await runPoeCommand({
+      factory: execution.factory,
+      openSpec: execution.openSpec,
+      detach: execution.detach,
+      state: execution.state,
+      signal: options.signal
+    });
 
-  return {
-    stdout: "",
-    stderr: "",
-    exitCode: result.kind === "sync" ? result.exitCode : 0,
-    ...(result.kind === "detached"
-      ? { detached: { jobId: result.jobId, envId: result.envId } }
-      : {})
-  };
+    return {
+      stdout: "",
+      stderr: "",
+      exitCode: result.kind === "sync" ? result.exitCode : 0,
+      ...(result.kind === "detached"
+        ? { detached: { jobId: result.jobId, envId: result.envId } }
+        : {})
+    };
+  } finally {
+    cleanupSkillsForRun(manifest);
+  }
 }

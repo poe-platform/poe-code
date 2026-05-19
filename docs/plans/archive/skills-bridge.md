@@ -2,12 +2,13 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: resolver-skill-reference
     title: Skill reference resolver in agent-skill-config
-    prompt: |
-      In `packages/agent-skill-config/src/`, add a new file `resolve-skill-reference.ts`
+    prompt: >
+      In `packages/agent-skill-config/src/`, add a new file
+      `resolve-skill-reference.ts`
+
       that exports:
 
         interface SkillSource {
@@ -34,12 +35,15 @@ tasks:
 
       A reference is one of two forms:
 
-      1. **Bare** — `"foo"`. Source is a poe-code-native skill folder. Tiers (first hit
+
+      1. **Bare** — `"foo"`. Source is a poe-code-native skill folder. Tiers
+      (first hit
          wins):
            project: `<cwd>/.poe-code/skills/foo`
            user:    `<homeDir>/.poe-code/skills/foo`
 
-      2. **Agent-prefixed** — `"<agentInput>/<name>"`, e.g. `"claude/foo"`. The agent
+      2. **Agent-prefixed** — `"<agentInput>/<name>"`, e.g. `"claude/foo"`. The
+      agent
          token may be a canonical id (`claude-code`), an alias (`claude`), or any
          supported casing — pass it through `resolveAgentSupport` from `configs.ts`,
          which delegates to `resolveAgentId` in `@poe-code/agent-defs` and already
@@ -52,61 +56,92 @@ tasks:
 
       Return values:
 
-      - Successful lookup → `{ kind: "resolved", ... }` with `sourceAgentId` set to the
+
+      - Successful lookup → `{ kind: "resolved", ... }` with `sourceAgentId` set
+      to the
         canonical id returned by `resolveAgentSupport` (NOT the raw input token).
-      - Empty string, empty agent token, empty name, two-or-more slashes → `{ kind:
+      - Empty string, empty agent token, empty name, two-or-more slashes → `{
+      kind:
         "malformed", ref }`.
       - Prefixed ref whose agent token doesn't resolve (e.g. `"nonsense/foo"`) →
         `{ kind: "unknown-agent", ref, agentInput }`. Never fall back to a bare lookup
         when the agent token is present — silent fallback would hide typos.
-      - Ref parses and (for prefixed refs) the agent is known, but no tier has the
+      - Ref parses and (for prefixed refs) the agent is known, but no tier has
+      the
         skill folder → `{ kind: "not-found", ref, searchedPaths }`. `searchedPaths`
         lists every path actually checked in lookup order so the caller can show the
         user exactly where it looked.
 
       Other rules:
-      - Reference splits on the FIRST `/` only. The name segment must not contain `/`
+
+      - Reference splits on the FIRST `/` only. The name segment must not
+      contain `/`
         either — `"a/b/c"` is malformed.
-      - The skill `name` segment is case-sensitive. The agent token's case-handling is
+      - The skill `name` segment is case-sensitive. The agent token's
+      case-handling is
         delegated to `resolveAgentSupport` (which is case-insensitive).
-      - Take `cwd` and `homeDir` as explicit parameters — no `os.homedir()` reads inside
+      - Take `cwd` and `homeDir` as explicit parameters — no `os.homedir()`
+      reads inside
         this module. Use `node:fs` to test directory existence.
 
       Reuse `resolveAgentSupport`, `getAgentConfig`, and `resolveSkillDir` from
+
       `configs.ts`. No provider branching. Plain TS guards, no zod.
 
-      Add `resolve-skill-reference.test.ts` next to the source using `memfs`. Cover:
+
+      Add `resolve-skill-reference.test.ts` next to the source using `memfs`.
+      Cover:
+
       - bare ref project-tier hit → resolved
+
       - bare ref user-tier hit → resolved
+
       - bare ref project beats user → resolved with `scope: "project"`
+
       - bare ref no match → `{ kind: "not-found", searchedPaths: [...] }`
-      - prefixed canonical id (`claude-code/foo`) resolves to claude-code's skill dir
-      - prefixed alias (`claude/foo`) resolves to the SAME canonical id (`claude-code`)
+
+      - prefixed canonical id (`claude-code/foo`) resolves to claude-code's
+      skill dir
+
+      - prefixed alias (`claude/foo`) resolves to the SAME canonical id
+      (`claude-code`)
         and the SAME paths as the canonical form
-      - prefixed mixed case (`Claude/foo`, `CLAUDE/foo`) resolves identically (alias
+      - prefixed mixed case (`Claude/foo`, `CLAUDE/foo`) resolves identically
+      (alias
         case-insensitivity)
       - prefixed ref project-tier hit (`.claude/skills/foo`)
+
       - prefixed ref user-tier hit (`~/.claude/skills/foo`)
+
       - prefixed ref project beats user
-      - prefixed unknown agent token (`nonsense/foo`) → `{ kind: "unknown-agent",
+
+      - prefixed unknown agent token (`nonsense/foo`) → `{ kind:
+      "unknown-agent",
         agentInput: "nonsense" }`. No fallback to bare lookup.
-      - malformed refs (`""`, `"foo/"`, `"/foo"`, `"a/b/c"`, `" /foo"`) → `{ kind:
+      - malformed refs (`""`, `"foo/"`, `"/foo"`, `"a/b/c"`, `" /foo"`) → `{
+      kind:
         "malformed" }`
       - returned `name` equals basename (post-prefix) for both forms
-      - returned `sourceAgentId` is the canonical id, NOT the raw alias the user typed
+
+      - returned `sourceAgentId` is the canonical id, NOT the raw alias the user
+      typed
+
       - `searchedPaths` for not-found bare refs lists both tiers in lookup order
-      - `searchedPaths` for not-found prefixed refs lists both tiers in lookup order
+
+      - `searchedPaths` for not-found prefixed refs lists both tiers in lookup
+      order
+
 
       Export `resolveSkillReference`, `SkillSource`, `SkillResolutionFailure`,
+
       `SkillResolution` from `packages/agent-skill-config/src/index.ts`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: git-exclude-block
     title: Marked-block helpers for .git/info/exclude
-    prompt: |
+    prompt: >
       Add `packages/agent-skill-config/src/git-exclude.ts` exporting:
 
         function appendExcludeBlock(cwd: string, runId: string, entries: string[]): void
@@ -118,34 +153,57 @@ tasks:
         <entries one per line>
         # poe-code-spawn-skills:<runId> end
 
-      Resolve the exclude file by invoking `git rev-parse --git-dir` in `cwd` so worktrees
-      and submodules work. If `cwd` is not inside a git repo, both functions are silent
+      Resolve the exclude file by invoking `git rev-parse --git-dir` in `cwd` so
+      worktrees
+
+      and submodules work. If `cwd` is not inside a git repo, both functions are
+      silent
+
       no-ops.
 
-      `removeExcludeBlock` removes only the lines between this run's markers — never
-      touches other runs' blocks or pre-existing user content. Idempotent: a second call
+
+      `removeExcludeBlock` removes only the lines between this run's markers —
+      never
+
+      touches other runs' blocks or pre-existing user content. Idempotent: a
+      second call
+
       on an already-removed block is a no-op.
 
-      `appendExcludeBlock` is safe when the file does not exist (creates it) and when
+
+      `appendExcludeBlock` is safe when the file does not exist (creates it) and
+      when
+
       other runs' blocks are already present (coexists).
 
-      Abstract the `git rev-parse` call behind a small injectable runner so tests can
-      stub it without spawning real git. Default implementation uses `child_process`.
 
-      Add `git-exclude.test.ts` using `memfs`. Cover: append in fresh exclude file
-      preserves pre-existing content; append when another run's block is present (both
-      coexist); remove leaves other runs' blocks intact; remove is idempotent; non-git
+      Abstract the `git rev-parse` call behind a small injectable runner so
+      tests can
+
+      stub it without spawning real git. Default implementation uses
+      `child_process`.
+
+
+      Add `git-exclude.test.ts` using `memfs`. Cover: append in fresh exclude
+      file
+
+      preserves pre-existing content; append when another run's block is present
+      (both
+
+      coexist); remove leaves other runs' blocks intact; remove is idempotent;
+      non-git
+
       cwd → both are silent no-ops.
+
 
       Export both functions from `packages/agent-skill-config/src/index.ts`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: bridge-active-skills
     title: Copy-based bridge with warn-on-collision and cleanup manifest
-    prompt: |
+    prompt: >
       Add `packages/agent-skill-config/src/bridge-active-skills.ts` exporting:
 
         interface BridgeEntry {
@@ -189,6 +247,7 @@ tasks:
 
       `bridgeActiveSkills` runs through refs in input order. Pre-flight rules:
 
+
       1. **Resolution failures abort.** For every `ref`, call
          `resolveSkillReference(ref, cwd, homeDir)`. If any ref returns a non-resolved
          result, throw a single error that groups failures by kind and reports each
@@ -208,7 +267,8 @@ tasks:
          The target uses the SPAWNING agent's local skill dir; the source's own
          agentId prefix is irrelevant to the target path.
 
-      3. **Collisions warn and skip; they never abort.** For each resolved ref, in
+      3. **Collisions warn and skip; they never abort.** For each resolved ref,
+      in
          input order, detect collisions and, on hit, record a `BridgeWarning`, skip
          this ref, and continue with the rest of the batch:
 
@@ -231,7 +291,8 @@ tasks:
          plus global-collision); emit only the most specific one and skip — never
          duplicate.
 
-      4. **Mutate only after the per-ref decision is made.** For refs that survive the
+      4. **Mutate only after the per-ref decision is made.** For refs that
+      survive the
          collision pass: record which parent directories did not exist before this
          call (e.g. `<cwd>/.claude/skills/` if absent), create them, then recursively
          copy `sourcePath` → `targetPath`. The first-in-batch winner of an intra-batch
@@ -245,29 +306,41 @@ tasks:
          [...targetPathsRelativeToCwd])` with only the entries that were actually
          bridged (not the skipped ones). Helper handles non-repo cwd gracefully.
 
-      6. Return the manifest. `entries` lists what was bridged; `warnings` lists what
+      6. Return the manifest. `entries` lists what was bridged; `warnings` lists
+      what
          was skipped and why. The caller (spawn runner) is responsible for surfacing
          warnings to the user.
 
       `cleanupBridgedSkills` is idempotent and conservative:
+
       - Remove each `entry.targetPath` recursively.
-      - For each path in `entry.createdParents`, remove the directory only if it is
+
+      - For each path in `entry.createdParents`, remove the directory only if it
+      is
          now empty (a user-dropped sibling means the directory stays).
       - Call `removeExcludeBlock(manifest.cwd, manifest.runId)`.
-      - Skipped refs (those that produced warnings) leave no state behind, so cleanup
+
+      - Skipped refs (those that produced warnings) leave no state behind, so
+      cleanup
          simply has nothing to do for them.
       - A second invocation on the same manifest is a no-op.
 
+
       No provider branching. Reuse `getAgentConfig`, `resolveSkillDir`,
+
       `resolveSkillReference`, `appendExcludeBlock`, `removeExcludeBlock`.
 
+
       Add `bridge-active-skills.test.ts` using `memfs`. Cover:
-      - happy path: bare ref and agent-prefixed ref bridged together when spawning a
+
+      - happy path: bare ref and agent-prefixed ref bridged together when
+      spawning a
          third agent (e.g. spawn opencode, refs `["foo", "claude/bar"]` → copies into
          `.opencode/skills/foo` and `.opencode/skills/bar`; `warnings` is empty)
       - alias prefix works identically to canonical: ref `claude/bar` and
          `claude-code/bar` produce the same bridged target when the source exists
-      - resolution failure: unknown-agent ref (e.g. `nonsense/foo`) aborts before any
+      - resolution failure: unknown-agent ref (e.g. `nonsense/foo`) aborts
+      before any
          FS mutation; error message names the agent token and lists supported agents
       - resolution failure: malformed ref (e.g. `"a/b/c"`) aborts with a precise
          malformed-ref error
@@ -275,48 +348,81 @@ tasks:
          `searchedPaths` from the resolver
       - multi-failure batch: malformed + unknown-agent + not-found in one call →
          single error that groups all three categories
-      - resolution failure leaves nothing on disk and nothing in the exclude file
-      - local target collision warns and skips; the rest of the batch still bridges;
+      - resolution failure leaves nothing on disk and nothing in the exclude
+      file
+
+      - local target collision warns and skips; the rest of the batch still
+      bridges;
          the pre-existing folder is left untouched
       - global target collision warns and skips
-      - intra-batch basename collision (`claude/foo` + `codex/foo` for opencode spawn):
+
+      - intra-batch basename collision (`claude/foo` + `codex/foo` for opencode
+      spawn):
          first ref bridges, second warns with `intra-batch-collision` and skips
-      - self-reference (spawn claude with `claude/foo` where `~/.claude/skills/foo`
+      - self-reference (spawn claude with `claude/foo` where
+      `~/.claude/skills/foo`
          exists) warns with `self-reference` and skips
-      - mixed batch: some refs succeed, some warn — `entries` and `warnings` together
+      - mixed batch: some refs succeed, some warn — `entries` and `warnings`
+      together
          account for every input ref exactly once
       - exclude file lists only successfully bridged entries
+
       - `createdParents` records only newly-created directories
+
       - nested subdirs and binary file contents copy correctly
+
       - cleanup removes targets and only empty parents
-      - cleanup leaves a parent untouched if the user added a sibling file inside it
+
+      - cleanup leaves a parent untouched if the user added a sibling file
+      inside it
+
       - cleanup is idempotent
 
+
       Export `bridgeActiveSkills`, `cleanupBridgedSkills`, `BridgeManifest`,
+
       `BridgeEntry`, `BridgeWarning`, `BridgeWarningKind` from
+
       `packages/agent-skill-config/src/index.ts`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: spawn-runner-bridge
     title: Wire bridge into the spawn runner (SDK level)
-    prompt: |
-      Wire `bridgeActiveSkills` + `cleanupBridgedSkills` into the spawn runner so that
-      `poe-code spawn` and the programmatic SDK can pass an active skill reference set
+    prompt: >
+      Wire `bridgeActiveSkills` + `cleanupBridgedSkills` into the spawn runner
+      so that
+
+      `poe-code spawn` and the programmatic SDK can pass an active skill
+      reference set
+
       per run.
 
-      Locate the spawn runner — most likely in `packages/agent-spawn/src/` (search for
-      the function that launches the external coding-agent process given an agent id,
-      cwd, and prompt; if the package is named differently, find it via the existing
+
+      Locate the spawn runner — most likely in `packages/agent-spawn/src/`
+      (search for
+
+      the function that launches the external coding-agent process given an
+      agent id,
+
+      cwd, and prompt; if the package is named differently, find it via the
+      existing
+
       CLI `spawn` command wiring).
 
-      Extend the runner's public entry point with an optional `skills?: string[]`
-      argument. The strings are skill references in the same syntax accepted by
-      `resolveSkillReference` (bare `"foo"` or prefixed `"claude/foo"`). Behavior:
 
-      - `skills` omitted or empty → runner behaves exactly as before. No bridge call, no
+      Extend the runner's public entry point with an optional `skills?:
+      string[]`
+
+      argument. The strings are skill references in the same syntax accepted by
+
+      `resolveSkillReference` (bare `"foo"` or prefixed `"claude/foo"`).
+      Behavior:
+
+
+      - `skills` omitted or empty → runner behaves exactly as before. No bridge
+      call, no
         manifest, no exclude-file edits.
       - `skills` non-empty:
         1. Generate `runId = crypto.randomUUID()`.
@@ -332,114 +438,189 @@ tasks:
            cancellation), call `cleanupBridgedSkills(manifest)`.
 
       Do not branch by provider. Pass `agentId` straight through as the bridge's
+
       `spawnAgentId`.
 
-      Update the SDK type surface so consumers can pass `skills` (per CLAUDE.md: CLI and
+
+      Update the SDK type surface so consumers can pass `skills` (per CLAUDE.md:
+      CLI and
+
       SDK in parity — SDK is canonical, CLI calls into it).
 
-      Add tests covering: skills omitted → bridge never called; skills provided → bridge
-      called with correct args and agent launched only after bridge resolves; bridge
-      throws (unresolved ref) → agent process never spawned; bridge returns warnings →
-      warnings surfaced via the design-system warning channel AND agent still launches;
-      agent exits cleanly → cleanup called once; agent throws/aborts → cleanup still
-      called. Stub the agent-process launcher, the warning channel, and use `memfs` for
+
+      Add tests covering: skills omitted → bridge never called; skills provided
+      → bridge
+
+      called with correct args and agent launched only after bridge resolves;
+      bridge
+
+      throws (unresolved ref) → agent process never spawned; bridge returns
+      warnings →
+
+      warnings surfaced via the design-system warning channel AND agent still
+      launches;
+
+      agent exits cleanly → cleanup called once; agent throws/aborts → cleanup
+      still
+
+      called. Stub the agent-process launcher, the warning channel, and use
+      `memfs` for
+
       the FS; no real child processes.
     status:
       implement: done
       test: done
       commit: done
-
   - id: spawn-cli-skills-flag
     title: Add --skills CLI flag to poe-code spawn
-    prompt: |
-      Add a `--skills` flag to the `poe-code spawn` CLI command that maps to the SDK
+    prompt: >
+      Add a `--skills` flag to the `poe-code spawn` CLI command that maps to the
+      SDK
+
       `skills` option wired in the previous task.
 
-      Accepts a comma-separated list of skill references: `--skills foo,claude/bar`.
+
+      Accepts a comma-separated list of skill references: `--skills
+      foo,claude/bar`.
+
       Repeated flags concatenate: `--skills foo --skills claude/bar` → `["foo",
-      "claude/bar"]`. An empty value (`--skills ''` or `--skills`) is treated as no
+
+      "claude/bar"]`. An empty value (`--skills ''` or `--skills`) is treated as
+      no
+
       skills.
 
-      Trim whitespace per entry and drop empty entries. Do not validate reference
-      syntax in the CLI — the resolver will report invalid refs at bridge time with a
+
+      Trim whitespace per entry and drop empty entries. Do not validate
+      reference
+
+      syntax in the CLI — the resolver will report invalid refs at bridge time
+      with a
+
       precise error.
 
-      The CLI must use the existing argument framework already in place for `poe-code
+
+      The CLI must use the existing argument framework already in place for
+      `poe-code
+
       spawn`. Do not introduce a new parser.
 
-      Add tests covering: `--skills foo,claude/bar` → `["foo","claude/bar"]`; repeated
+
+      Add tests covering: `--skills foo,claude/bar` → `["foo","claude/bar"]`;
+      repeated
+
       flag concatenation; empty value → `undefined`; whitespace-only value →
+
       `undefined`; no `--skills` → `undefined`.
 
-      Take a `npm run screenshot-poe-code -- spawn --help` screenshot to confirm the
-      flag appears in the help text and the rendering is coherent with the existing CLI
+
+      Take a `npm run screenshot-poe-code -- spawn --help` screenshot to confirm
+      the
+
+      flag appears in the help text and the rendering is coherent with the
+      existing CLI
+
       design language. Do not write a screenshot test.
     status:
       implement: done
       test: done
       commit: done
-
   - id: pipeline-step-skills
     title: skills field on pipeline StepDefinition flows to spawn
-    prompt: |
-      Extend the pipeline `StepDefinition` type with an optional `skills?: string[]`
-      field — an array of skill references in the same syntax used by the CLI and SDK
+    prompt: >
+      Extend the pipeline `StepDefinition` type with an optional `skills?:
+      string[]`
+
+      field — an array of skill references in the same syntax used by the CLI
+      and SDK
+
       (bare `"foo"` or prefixed `"claude/foo"`).
 
+
       Files to touch:
-      - `packages/pipeline/src/types.ts` — add `skills?: string[]` to `StepDefinition`.
-      - The pipeline executor module in `packages/pipeline/src/` that calls into the
+
+      - `packages/pipeline/src/types.ts` — add `skills?: string[]` to
+      `StepDefinition`.
+
+      - The pipeline executor module in `packages/pipeline/src/` that calls into
+      the
         spawn runner — when executing a step, forward `step.skills` as the runner's
         `skills` argument.
-      - Wherever YAML step definitions are parsed/validated, accept the new field. Use
+      - Wherever YAML step definitions are parsed/validated, accept the new
+      field. Use
         plain TS type guards, no zod.
 
-      Backwards compatible: a step without `skills` keeps current behavior end to end.
+      Backwards compatible: a step without `skills` keeps current behavior end
+      to end.
 
-      Add tests covering: YAML step with `skills: [foo, claude/bar]` parses to the right
-      shape; YAML step without `skills` parses unchanged; executor passes `step.skills`
-      through to the spawn runner (stub the runner); executor omits the option when
+
+      Add tests covering: YAML step with `skills: [foo, claude/bar]` parses to
+      the right
+
+      shape; YAML step without `skills` parses unchanged; executor passes
+      `step.skills`
+
+      through to the spawn runner (stub the runner); executor omits the option
+      when
+
       step has no skills field.
+
 
       Use `memfs` if any test reads YAML from disk.
     status:
       implement: done
       test: done
       commit: done
-
   - id: ralph-step-skills
     title: skills field on ralph plan/step flows to spawn
-    prompt: |
-      Mirror the pipeline change in ralph: extend the ralph plan/step schema with an
-      optional `skills?: string[]` field of skill references and forward it to the
+    prompt: >
+      Mirror the pipeline change in ralph: extend the ralph plan/step schema
+      with an
+
+      optional `skills?: string[]` field of skill references and forward it to
+      the
+
       spawn runner.
 
-      Files:
-      - The ralph step/plan type in `packages/ralph/src/` (search for the schema/type
-        used by `discovery.ts` and the runner).
-      - The ralph runner module that launches spawns — pass `step.skills` to the spawn
-        runner's `skills` option.
-      - The plan parser/validator — accept the new field. Plain TS guards, no zod.
 
-      Backwards compatible: a ralph plan without `skills` is unchanged in behavior.
+      Files:
+
+      - The ralph step/plan type in `packages/ralph/src/` (search for the
+      schema/type
+        used by `discovery.ts` and the runner).
+      - The ralph runner module that launches spawns — pass `step.skills` to the
+      spawn
+        runner's `skills` option.
+      - The plan parser/validator — accept the new field. Plain TS guards, no
+      zod.
+
+
+      Backwards compatible: a ralph plan without `skills` is unchanged in
+      behavior.
+
 
       Add tests covering: a ralph plan with `skills: [foo, claude/bar]` parses
+
       correctly; a plan without `skills` behaves as before; the runner forwards
+
       `skills` to spawn; the runner omits the option when the step has none.
+
 
       Use `memfs` for any disk-based plan-parsing tests.
     status:
       implement: done
       test: done
       commit: done
-
   - id: document-skills-references
     title: Document the skill reference syntax and bridge contract
-    prompt: |
+    prompt: >
       Update `packages/agent-skill-config/README.md` to document the new public
+
       surface. Do not modify the project root README.
 
+
       Content:
+
 
       1. The skill reference syntax used by CLI/SDK/pipeline/ralph configs:
 
@@ -496,13 +677,16 @@ tasks:
          - `.git/info/exclude` is updated with a per-run marked block listing only the
            successfully bridged entries; cleanup removes only that block.
 
-      4. Env vars and config options: list any exposed by the package (per CLAUDE.md
+      4. Env vars and config options: list any exposed by the package (per
+      CLAUDE.md
          README rules). If none, say so explicitly.
 
       Keep the prose dense — no restating, no hedging.
     status:
       implement: done
-      commit: open
+      commit: done
+name: skills-bridge
+state: archived
 ---
 
 # Skills Bridge

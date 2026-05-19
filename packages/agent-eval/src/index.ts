@@ -7,9 +7,9 @@ export {
 export { defaultSourceConfig, loadSourceConfig } from "./source/config.js";
 export { openSource } from "./source/open.js";
 export { listEvals, loadEval } from "./source/registry.js";
+export { aggregateRuns, type AggregateStats } from "./aggregate.js";
 export type {
   AggregatedCell,
-  AggregateStats,
   Budget,
   CheatReport,
   EvalDef,

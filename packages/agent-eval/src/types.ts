@@ -1,5 +1,8 @@
 import type { Dirent } from "node:fs";
 import type { Stats } from "node:fs";
+import type { AggregateStats } from "./aggregate.js";
+
+export type { AggregateStats } from "./aggregate.js";
 
 export type PlanKind = "plan" | "pipeline" | "superintendent" | "experiment";
 export type RubricKey = "completeness" | "spec_adherence" | "code_quality" | string;
@@ -127,12 +130,6 @@ export interface EvalMatrixOptions {
   judge?: "on" | "off" | JudgeSpec;
 }
 
-export interface AggregateStats {
-  mean: number;
-  min: number;
-  max: number;
-}
-
 export interface AggregatedCell {
   cell: {
     eval: string;
@@ -152,7 +149,9 @@ export interface AggregatedCell {
     costUsd: AggregateStats;
   };
   tests: {
-    passRate: AggregateStats;
+    passRateMean: number;
+    passRateMin: number;
+    passRateMax: number;
   };
   correctness: AggregateStats;
   judge?: {

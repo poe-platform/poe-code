@@ -91,7 +91,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: aggregate
     title: aggregateRuns — average metrics across repeats
@@ -122,8 +122,8 @@ tasks:
 
       Update src/index.ts to re-export aggregateRuns and AggregateStats.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: cheat-and-budget

@@ -11,6 +11,7 @@ export { aggregateRuns, type AggregateStats } from "./aggregate.js";
 export { BudgetEnforcer } from "./run/budget.js";
 export { CheatFilter } from "./run/cheat.js";
 export { cloneTarget, type CloneTargetInput } from "./run/clone.js";
+export { resolveDispatch, type DispatchSpec } from "./run/dispatch.js";
 export type {
   AggregatedCell,
   Budget,

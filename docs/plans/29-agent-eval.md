@@ -169,7 +169,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: clone
     title: Target-repo cloning with optional cache
@@ -201,9 +201,9 @@ tasks:
 
       Update src/index.ts to re-export cloneTarget.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: dispatch
     title: Plan-kind dispatch resolver

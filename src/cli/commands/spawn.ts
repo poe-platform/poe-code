@@ -85,6 +85,11 @@ export function registerSpawnCommand(
       "MCP server config JSON (or @path/to/file.json): {name: {command, args?, env?}}"
     )
     .option("--skill <ref>", "Active skill reference to bridge for this run", collectOption)
+    .option(
+      "--skills [refs]",
+      "Comma-separated active skill references to bridge for this run",
+      collectSkillsOption
+    )
     .addOption(
       new Option("--mcp-config <json|@file>", "[deprecated: use --mcp-servers]").hideHelp()
     )
@@ -119,11 +124,13 @@ export function registerSpawnCommand(
           mcpServers?: string;
           mcpConfig?: string;
           skill?: string[];
+          skills?: string[] | boolean;
           logDir?: string;
           activityTimeoutMs?: number;
         } & RuntimeCliOptions
       >();
       const runtimeOptions = pickRuntimeOptions(commandOptions);
+      const skills = resolveSkillOptions(commandOptions.skill, commandOptions.skills);
       let integrations: Integrations | null = null;
       const shouldEmitUiOutput = resolveOutputFormat() !== "json";
       const rawMcpInput = commandOptions.mcpServers ?? commandOptions.mcpConfig;
@@ -198,9 +205,7 @@ export function registerSpawnCommand(
             args: forwardedArgs,
             model,
             mode: commandOptions.mode as SpawnMode | undefined,
-            ...(commandOptions.skill && commandOptions.skill.length > 0
-              ? { skills: commandOptions.skill }
-              : {}),
+            ...(skills ? { skills } : {}),
             runtimeConfigCwd: container.env.cwd,
             ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
@@ -216,9 +221,7 @@ export function registerSpawnCommand(
           model: commandOptions.model,
           mode: commandOptions.mode as SpawnMode | undefined,
           mcpServers,
-          ...(commandOptions.skill && commandOptions.skill.length > 0
-            ? { skills: commandOptions.skill }
-            : {}),
+          ...(skills ? { skills } : {}),
           cwd: cwdOverride,
           logDir: commandOptions.logDir,
           activityTimeoutMs: commandOptions.activityTimeoutMs,
@@ -637,6 +640,26 @@ function parsePositiveInt(value: string, fieldName: string): number {
 
 function collectOption(value: string, previous: string[] | undefined): string[] {
   return [...(previous ?? []), value];
+}
+
+function collectSkillsOption(value: string | boolean, previous: string[] | undefined): string[] {
+  if (typeof value !== "string") {
+    return previous ?? [];
+  }
+
+  const entries = value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+  return [...(previous ?? []), ...entries];
+}
+
+function resolveSkillOptions(
+  skill: string[] | undefined,
+  skills: string[] | boolean | undefined
+): string[] | undefined {
+  const resolved = [...(skill ?? []), ...(Array.isArray(skills) ? skills : [])];
+  return resolved.length > 0 ? resolved : undefined;
 }
 
 function assertSpawnSupport(label: string, service: string, providerSupportsSpawn: boolean): void {

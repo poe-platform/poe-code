@@ -814,6 +814,140 @@ describe("spawn command", () => {
     });
   });
 
+  it("passes comma-separated --skills entries to SDK spawn", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--skills",
+      "foo,claude/bar",
+      "codex",
+      "List files"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      skills: ["foo", "claude/bar"],
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
+  it("trims --skills entries and drops empty comma entries", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--skills",
+      " foo, , claude/bar ,, ",
+      "codex",
+      "List files"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      skills: ["foo", "claude/bar"],
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
+  it("concatenates repeated --skills flags for SDK spawn", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--skills",
+      "foo",
+      "--skills",
+      "claude/bar",
+      "codex",
+      "List files"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      skills: ["foo", "claude/bar"],
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
+  it.each([
+    ["empty --skills value", ["--skills", ""], "codex", "List files"],
+    ["bare --skills flag", [], "codex", "List files", "--skills"],
+    ["whitespace-only --skills value", ["--skills", "  \t  "], "codex", "List files"],
+    ["no --skills flag", [], "codex", "List files"]
+  ])("omits skills for %s", async (_name, leadingArgs, agent, prompt, trailingArg) => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      ...leadingArgs,
+      agent,
+      prompt,
+      ...(trailingArg ? [trailingArg] : [])
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: DEFAULT_CODEX_MODEL,
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
   it("uses the configured model for SDK spawn when --model is omitted", async () => {
     await fs.writeFile(
       resolveConfigPath(homeDir),

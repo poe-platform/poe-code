@@ -347,7 +347,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: spawn-cli-skills-flag
     title: Add --skills CLI flag to poe-code spawn
@@ -375,8 +375,8 @@ tasks:
       flag appears in the help text and the rendering is coherent with the existing CLI
       design language. Do not write a screenshot test.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: pipeline-step-skills

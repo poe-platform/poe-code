@@ -2,15 +2,17 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: scaffold-package
     title: Scaffold @poe-code/agent-eval package
-    prompt: |
+    prompt: >
       Create a new private package at packages/agent-eval/ inside the
+
       poe-code monorepo.
 
+
       Files to create:
+
       - packages/agent-eval/package.json
           name: "@poe-code/agent-eval"
           private: true
@@ -22,29 +24,38 @@ tasks:
               @poe-code/process-runner, @poe-code/design-system,
               toolcraft-schema, simple-git
       - packages/agent-eval/tsconfig.json (extend the repo's base)
+
       - packages/agent-eval/README.md — one paragraph summary; env vars: none;
         config: lives at <source>/.poe-code-eval.json; mention that the CLI
         is registered in packages/poe-code (no logic in core).
       - packages/agent-eval/src/index.ts — empty placeholder
 
+
       Update packages/poe-code/package.json to declare @poe-code/agent-eval
+
       as a workspace dependency. Do NOT wire the CLI yet — that comes later.
 
-      Confirm the package builds (`tsc`) and `npm test --workspace=@poe-code/agent-eval`
+
+      Confirm the package builds (`tsc`) and `npm test
+      --workspace=@poe-code/agent-eval`
+
       passes (with zero tests).
+
 
       Do not add the package to the root README.
     status:
       implement: done
       commit: done
-
   - id: schema-and-source
     title: Eval schema, source resolver, registry, source-level config
-    prompt: |
+    prompt: >
       In packages/agent-eval/, add the eval source schema and the resolvers
+
       that discover evals within a directory.
 
+
       Files to create:
+
       - src/types.ts — export EvalSource, EvalDef, EvalRunOptions,
         EvalRunResult, EvalMatrixOptions, AggregatedCell, AggregateStats,
         Budget, JudgeSpec, ScorerSpec, CheatReport, Verdict, PlanKind,
@@ -77,6 +88,7 @@ tasks:
         clone_cache_dir null) for missing keys.
 
       Tests (TDD, fast, use memfs):
+
       - src/schema.test.ts: valid eval.yaml passes; each missing required
         field rejected with clear error; defaults applied.
       - src/source/open.test.ts: directory without eval.yaml rejected;
@@ -92,30 +104,39 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: aggregate
     title: aggregateRuns — average metrics across repeats
-    prompt: |
+    prompt: >
       In packages/agent-eval/, create src/aggregate.ts exporting:
 
         export interface AggregateStats { mean: number; min: number; max: number }
         export function aggregateRuns(runs: readonly EvalRunResult[]): AggregatedCell;
 
       Aggregate per-metric mean/min/max for: iterations, durationMs,
+
       usage.inputTokens, usage.outputTokens, usage.cachedTokens,
+
       usage.costUsd, correctness, and judge.mean (when present on every
+
       run). For tests, compute passRateMean/passRateMin/passRateMax.
 
+
       Produce on the aggregate:
+
       - cell: { eval, agent, model, planKind } — must be identical across
         input runs; throw if they disagree.
       - repeats: input length.
+
       - cheated_any: true if any run has cheated === true.
+
       - runIds: array of input runIds in input order.
+
 
       Pure function. No file I/O. No spawn. Handles n=1..n=large.
 
+
       Tests:
+
       - aggregate.test.ts: n=3 mixed inputs produce correct mean/min/max;
         n=1 collapses to mean=min=max; mismatched cell throws;
         cheated_any truth table; judge absent on one run → judge omitted.
@@ -125,11 +146,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: cheat-and-budget
     title: CheatFilter (outside-clone) and BudgetEnforcer
-    prompt: |
+    prompt: >
       In packages/agent-eval/, add two ACP-event consumers.
+
 
       src/run/cheat.ts:
 
@@ -140,11 +161,17 @@ tasks:
         }
 
       Flag any read/exec/glob event whose resolved absolute path is NOT
+
       under cloneDir AND NOT under any path in allowedPaths. Default
+
       allowedPaths includes os.tmpdir(), os.homedir() + "/.cache",
+
       and common system bins ("/usr/bin", "/usr/local/bin", "/bin",
+
       and on macOS also "/opt/homebrew/bin"). Each flagged event:
+
       { path, toolCall, reason: "outside-clone" }.
+
 
       src/run/budget.ts:
 
@@ -155,10 +182,14 @@ tasks:
         }
 
       Count tool_call events as iterations, sum usage events, track wall
+
       clock from construction. When any cap is hit call controller.abort().
+
       snapshot() returns latest tallies; tripped is set after abort fires.
 
+
       Tests (TDD, no spawn):
+
       - cheat.test.ts: paths inside clone pass; allowlisted paths pass;
         unrelated paths flagged; relative paths resolved against cloneDir.
       - budget.test.ts: each cap individually triggers abort exactly once;
@@ -170,7 +201,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: clone
     title: Target-repo cloning with optional cache
     prompt: |
@@ -204,11 +234,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: dispatch
     title: Plan-kind dispatch resolver
-    prompt: |
+    prompt: >
       In packages/agent-eval/, create src/run/dispatch.ts. This module is
+
       a PURE RESOLVER — it does not spawn anything itself.
 
         export type PlanKind = "plan" | "pipeline" | "superintendent" | "experiment";
@@ -236,7 +266,9 @@ tasks:
         }): DispatchSpec;
 
       Mapping:
+
       - "plan" → { kind: "agent", agent: <agent>, prompt: <planBody>, args: [] }
+
       - "pipeline" → { kind: "node", script: poeCodeCliPath,
             args: ["pipeline", "run", "--plan", planPath, "--agent", agent, "--model", model] }
       - "superintendent" → { kind: "node", script: poeCodeCliPath,
@@ -245,7 +277,9 @@ tasks:
             args: ["experiment", "run", "--doc", planPath, "--agent", agent, "--model", model] }
       - Anything else: throw `UnsupportedPlanKindError`.
 
+
       Tests (no spawn):
+
       - dispatch.test.ts: each kind produces the exact expected
         DispatchSpec; unsupported kind throws.
 
@@ -254,7 +288,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: verify-oracle
     title: verifyOracle — runs eval-defined verify command
     prompt: |
@@ -287,7 +320,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: scorer
     title: runScorer — invoke scorer.command, parse JSON result
     prompt: |
@@ -325,7 +357,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: judge
     title: judgeRun — agent-as-judge with same-agent fallback
     prompt: |
@@ -367,12 +398,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: run-eval
     title: runEval — single-cell orchestrator
-    prompt: |
+    prompt: >
       In packages/agent-eval/, create src/run/run.ts and
+
       src/run/result-writer.ts.
+
 
       src/run/result-writer.ts:
 
@@ -386,25 +418,34 @@ tasks:
         }): Promise<void>;
 
       Atomic writes (temp file + rename) for:
+
       - result.json
+
       - events.jsonl
+
       - cheat-report.json (always, even when empty)
+
       - judge.json (only if judge ran)
+
       - plan.md (copy of <source>/<id>/plan.md)
+
       - eval.yaml (copy of <source>/<id>/eval.yaml)
+
 
       src/run/run.ts:
 
         export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult>;
 
       Flow:
+
       1. openSource(opts.sourceDir) → source. loadEval(source, opts.evalId)
          → evalDef.
       2. Resolve absolute poeCodeCliPath by reading the workspace path to
          packages/poe-code/dist/cli.js (relative to this module's file URL).
       3. If opts.verifyOracle !== false: await verifyOracle(source, opts.evalId)
          → if !passed, throw a framework error.
-      4. runId = `${isoUtcSafe(now())}-${evalId}-${agent}-${model.replace(/[/]/g,"-")}`
+      4. runId =
+      `${isoUtcSafe(now())}-${evalId}-${agent}-${model.replace(/[/]/g,"-")}`
          + (repeatIndex !== undefined ? `-r${repeatIndex}` : "").
       5. runDir = path.join(opts.outDir ?? "runs", runId). Acquire lock at
          runDir + ".lock" via @poe-code/file-lock.
@@ -437,12 +478,16 @@ tasks:
           (judgeResult?.mean ?? 0) / 5 * weights.judge.
       16. await writeRunArtifacts(runDir, ...). Release lock.
 
+
       Integration tests (run-<kind>.integration.test.ts × 4 — plan,
+
       pipeline, superintendent, experiment):
+
       - Use createSpawnMock + a fixture eval source at
         packages/agent-eval/src/__fixtures__/source/example-<kind>/ with
         a tiny oracle/score.mjs that writes { passed: 1, total: 1 }.
       - Mock cloneTarget to copy a fixture clone tree instead of running git.
+
       - Assert result.json shape, verdict, correctness, cheat empty,
         cloneDir exists with starter + plan copied in.
 
@@ -451,16 +496,17 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: run-matrix
     title: runMatrix — async-iterable + per-cell aggregation
-    prompt: |
+    prompt: >
       In packages/agent-eval/, create src/run/matrix.ts:
 
         export function runMatrix(opts: EvalMatrixOptions): AsyncIterable<EvalRunResult>;
 
       Defaults: repeats = 3, evalIds = await listEvals(source) when
+
       omitted. Agents and models required, non-empty arrays.
+
 
       Expand to ordered queue:
         for evalId in opts.evalIds:
@@ -470,15 +516,23 @@ tasks:
                 yield runEval({ sourceDir, evalId, agent, model, repeatIndex: r, … })
 
       Failure semantics: when a single runEval throws, yield a synthetic
+
       EvalRunResult with verdict: "error" and the captured error message,
+
       then continue.
 
+
       After all repeats for a (evalId, agent, model) cell finish, call
+
       aggregateRuns over those repeats and write
+
       <outDir>/<matrixId>/aggregate-<evalId>-<agent>-<modelSafe>.json.
+
       matrixId = ISO timestamp captured at the start of runMatrix.
 
+
       Integration test:
+
       - matrix.integration.test.ts: vi.mock the run module to make
         runEval return canned results for some cells and throw for one;
         assert iterator yields all cells in order, error cell becomes
@@ -489,11 +543,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: report
     title: Report loaders + terminal table + markdown rendering
-    prompt: |
+    prompt: >
       In packages/agent-eval/, implement report utilities.
+
 
       src/report/load.ts:
 
@@ -505,8 +559,11 @@ tasks:
         }>;
 
       outDir defaults to "runs". loadLatestMatrix picks the newest matrix
+
       subdir (timestamp-prefixed, contains aggregate-*.json) and reads
+
       every aggregate file inside.
+
 
       src/report/render-table.ts:
 
@@ -514,10 +571,15 @@ tasks:
         export function renderRunsTable(runs: readonly EvalRunResult[]): string;
 
       Columns for matrix: Eval, Plan, Agent, Model, Iters, Time, Tokens,
+
       $, Tests, Judge, Correct, Verdict. Numeric cells render as
+
       "mean ±(max−min)/2" (1 decimal place, k/M suffix for tokens, m/s
+
       for time). Use @poe-code/design-system components. Do NOT import
+
       chalk or @clack directly.
+
 
       src/report/render-md.ts:
 
@@ -526,7 +588,9 @@ tasks:
 
       Same columns as the terminal version, GitHub-flavored pipe table.
 
+
       Tests:
+
       - load.test.ts: memfs fixture of runs/ directory with multiple
         matrices and a per-run JSON; latest-matrix detection; missing dir
         clear error.
@@ -534,12 +598,12 @@ tasks:
         AggregatedCell fixture.
       - render-md.test.ts: snapshot of markdown for the same fixture.
 
+
       Update src/index.ts to re-export the load functions.
     status:
       implement: done
       test: done
       commit: done
-
   - id: cli-registration
     title: Register `poe-code eval` command group
     prompt: |
@@ -589,7 +653,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: e2e-smoke
     title: E2E smoke test gated by EVAL_E2E=1
     prompt: |
@@ -620,15 +683,18 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: docs-and-qa
     title: README pass + manual QA plan
-    prompt: |
+    prompt: >
       Final polish.
 
+
       packages/agent-eval/README.md:
+
       - One-paragraph summary of the harness.
+
       - Environment variables: none.
+
       - Configuration: lives at <source>/.poe-code-eval.json. List keys:
         judge (agent, model), out, weights (tests, judge), clone_cache_dir.
       - CLI quickstart:
@@ -642,7 +708,9 @@ tasks:
         each dispatches to.
 
       packages/agent-eval/qa/run-one.md — manual QA plan in markdown
+
       (not a script):
+
       1. Create a tiny throwaway eval source dir with one `kind: plan`
          eval that asks the agent to create a file. Step-by-step
          commands.
@@ -650,22 +718,32 @@ tasks:
          --model anthropic/claude-opus-4.7 --repeats 1 --no-judge
          --no-verify`. Expected: a result row prints.
       3. Inspect runs/<run-id>/result.json. Expected fields listed.
+
       4. Run `poe-code eval report`. Expected: latest matrix renders.
+
       5. Re-run with --repeats 3 and inspect aggregate-*.json.
+
       Each step includes triage notes for the common failure modes.
 
+
       Do NOT add anything to the root README without explicit user
+
       permission (per CLAUDE.md).
     status:
       implement: done
-      commit: open
-
+      commit: done
 teardown:
-  prompt: |
-    Run the package's full test suite (`npm test --workspace=@poe-code/agent-eval`)
+  prompt: >
+    Run the package's full test suite (`npm test
+    --workspace=@poe-code/agent-eval`)
+
     and the e2e smoke (with EVAL_E2E=1 if credentials are configured),
+
     then commit any remaining changes. Confirm `poe-code eval --help`
+
     renders without error.
+name: agent-eval
+state: archived
 ---
 
 # Context

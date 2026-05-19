@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
+    "e2e": "node scripts/e2e-smoke.mjs",
     "test": "cd ../.. && vitest run packages/agent-eval/src --passWithNoTests"
   },
   "dependencies": {

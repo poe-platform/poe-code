@@ -588,7 +588,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: e2e-smoke
     title: E2E smoke test gated by EVAL_E2E=1
@@ -618,8 +618,8 @@ tasks:
       This is a script, not a vitest file. No new unit tests for this
       step — the script IS the test.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: docs-and-qa
     title: README pass + manual QA plan

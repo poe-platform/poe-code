@@ -8,6 +8,7 @@ export { defaultSourceConfig, loadSourceConfig } from "./source/config.js";
 export { openSource } from "./source/open.js";
 export { listEvals, loadEval } from "./source/registry.js";
 export { aggregateRuns, type AggregateStats } from "./aggregate.js";
+export { listRuns, loadLatestMatrix, loadRunResult } from "./report/load.js";
 export { BudgetEnforcer } from "./run/budget.js";
 export { CheatFilter } from "./run/cheat.js";
 export { cloneTarget, type CloneTargetInput } from "./run/clone.js";

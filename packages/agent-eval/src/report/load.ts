@@ -1,0 +1,202 @@
+import { readdir, readFile } from "node:fs/promises";
+import path from "node:path";
+import type { Dirent } from "node:fs";
+import type { AggregatedCell, EvalRunResult } from "../types.js";
+
+const defaultOutDir = "runs";
+const resultFileName = "result.json";
+const aggregatePrefix = "aggregate-";
+const jsonSuffix = ".json";
+
+interface RunResultLocation {
+  runId: string;
+  resultPath: string;
+}
+
+export async function loadRunResult(
+  runId: string,
+  outDir = defaultOutDir
+): Promise<EvalRunResult> {
+  assertValidRunId(runId);
+  const directPath = path.join(outDir, runId, resultFileName);
+
+  try {
+    return parseJson<EvalRunResult>(await readFile(directPath, "utf8"), directPath);
+  } catch (error) {
+    if (!isMissingPath(error)) {
+      throw error;
+    }
+  }
+
+  const matches = (await findRunResults(outDir)).filter((location) => location.runId === runId);
+  if (matches.length === 0) {
+    throw new Error(`Run result not found for "${runId}" under ${outDir}`);
+  }
+  if (matches.length > 1) {
+    throw new Error(`Run id "${runId}" is ambiguous under ${outDir}`);
+  }
+
+  const match = matches[0] as RunResultLocation;
+  return parseJson<EvalRunResult>(await readFile(match.resultPath, "utf8"), match.resultPath);
+}
+
+export async function listRuns(outDir = defaultOutDir): Promise<readonly string[]> {
+  const locations = await findRunResults(outDir);
+  return locations.map((location) => location.runId).sort((a, b) => a.localeCompare(b));
+}
+
+export async function loadLatestMatrix(outDir = defaultOutDir): Promise<{
+  matrixId: string;
+  cells: readonly AggregatedCell[];
+}> {
+  const entries = await readRunsDir(outDir);
+  const matrices: { matrixId: string; aggregateFiles: readonly string[] }[] = [];
+
+  for (const entry of entries) {
+    if (!entry.isDirectory() || !hasTimestampPrefix(entry.name)) {
+      continue;
+    }
+
+    const matrixDir = path.join(outDir, entry.name);
+    const aggregateFiles = await listAggregateFiles(matrixDir);
+    if (aggregateFiles.length > 0) {
+      matrices.push({
+        matrixId: entry.name,
+        aggregateFiles
+      });
+    }
+  }
+
+  const latest = matrices.sort((a, b) => b.matrixId.localeCompare(a.matrixId))[0];
+  if (!latest) {
+    throw new Error(`No matrix aggregate files found under ${outDir}`);
+  }
+
+  const cells = await Promise.all(
+    latest.aggregateFiles.map(async (fileName) => {
+      const filePath = path.join(outDir, latest.matrixId, fileName);
+      return parseJson<AggregatedCell>(await readFile(filePath, "utf8"), filePath);
+    })
+  );
+
+  return {
+    matrixId: latest.matrixId,
+    cells
+  };
+}
+
+async function findRunResults(outDir: string): Promise<RunResultLocation[]> {
+  const results: RunResultLocation[] = [];
+  const entries = await readRunsDir(outDir);
+
+  await collectRunResults(outDir, entries, results);
+  return results;
+}
+
+async function collectRunResults(
+  dir: string,
+  entries: readonly Dirent[],
+  results: RunResultLocation[]
+): Promise<void> {
+  const hasResult = entries.some((entry) => entry.isFile() && entry.name === resultFileName);
+  if (hasResult) {
+    results.push({
+      runId: path.basename(dir),
+      resultPath: path.join(dir, resultFileName)
+    });
+    return;
+  }
+
+  for (const entry of entries) {
+    if (!entry.isDirectory()) {
+      continue;
+    }
+
+    const childDir = path.join(dir, entry.name);
+    const childEntries = await readDir(childDir);
+    await collectRunResults(childDir, childEntries, results);
+  }
+}
+
+async function listAggregateFiles(dir: string): Promise<readonly string[]> {
+  const entries = await readDir(dir);
+  return entries
+    .filter(
+      (entry) =>
+        entry.isFile() && entry.name.startsWith(aggregatePrefix) && entry.name.endsWith(jsonSuffix)
+    )
+    .map((entry) => entry.name)
+    .sort((a, b) => a.localeCompare(b));
+}
+
+async function readRunsDir(outDir: string): Promise<readonly Dirent[]> {
+  try {
+    return await readDir(outDir);
+  } catch (error) {
+    if (isMissingPath(error)) {
+      throw new Error(`Runs directory not found: ${outDir}`);
+    }
+    throw error;
+  }
+}
+
+async function readDir(dir: string): Promise<readonly Dirent[]> {
+  return readdir(dir, { withFileTypes: true }) as Promise<Dirent[]>;
+}
+
+function parseJson<T>(content: string, filePath: string): T {
+  try {
+    return JSON.parse(content) as T;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`Invalid JSON in ${filePath}: ${message}`);
+  }
+}
+
+function assertValidRunId(runId: string): void {
+  if (
+    runId.length === 0 ||
+    runId === "." ||
+    runId === ".." ||
+    path.isAbsolute(runId) ||
+    path.win32.isAbsolute(runId) ||
+    runId.includes("/") ||
+    runId.includes("\\")
+  ) {
+    throw new Error(`Invalid run id "${runId}"`);
+  }
+}
+
+function hasTimestampPrefix(value: string): boolean {
+  return (
+    hasDigits(value, 0, 4) &&
+    value[4] === "-" &&
+    hasDigits(value, 5, 2) &&
+    value[7] === "-" &&
+    hasDigits(value, 8, 2)
+  );
+}
+
+function hasDigits(value: string, start: number, length: number): boolean {
+  if (value.length < start + length) {
+    return false;
+  }
+
+  for (let index = start; index < start + length; index += 1) {
+    const code = value.charCodeAt(index);
+    if (code < 48 || code > 57) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isMissingPath(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "ENOENT"
+  );
+}

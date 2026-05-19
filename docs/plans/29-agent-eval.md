@@ -536,8 +536,8 @@ tasks:
 
       Update src/index.ts to re-export the load functions.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: cli-registration

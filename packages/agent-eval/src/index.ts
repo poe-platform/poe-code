@@ -8,6 +8,8 @@ export { defaultSourceConfig, loadSourceConfig } from "./source/config.js";
 export { openSource } from "./source/open.js";
 export { listEvals, loadEval } from "./source/registry.js";
 export { aggregateRuns, type AggregateStats } from "./aggregate.js";
+export { BudgetEnforcer } from "./run/budget.js";
+export { CheatFilter } from "./run/cheat.js";
 export type {
   AggregatedCell,
   Budget,
@@ -22,6 +24,8 @@ export type {
   PlanKind,
   RubricKey,
   ScorerSpec,
+  SpawnEvent,
+  SpawnUsage,
   SourceConfig,
   Verdict
 } from "./types.js";

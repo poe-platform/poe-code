@@ -124,7 +124,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: cheat-and-budget
     title: CheatFilter (outside-clone) and BudgetEnforcer
@@ -167,8 +167,8 @@ tasks:
 
       Pure consumers — no I/O. Update src/index.ts to re-export.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: clone

@@ -1,8 +1,10 @@
 import type { Dirent } from "node:fs";
 import type { Stats } from "node:fs";
+import type { AcpEvent } from "@poe-code/agent-spawn";
 import type { AggregateStats } from "./aggregate.js";
 
 export type { AggregateStats } from "./aggregate.js";
+export type { SpawnUsage } from "@poe-code/agent-spawn";
 
 export type PlanKind = "plan" | "pipeline" | "superintendent" | "experiment";
 export type RubricKey = "completeness" | "spec_adherence" | "code_quality" | string;
@@ -26,6 +28,8 @@ export interface Budget {
   maxTokens: number;
   wallClockMs: number;
 }
+
+export type SpawnEvent = AcpEvent | ({ sessionUpdate: string } & Record<string, unknown>);
 
 export interface JudgeSpec {
   agent: string;

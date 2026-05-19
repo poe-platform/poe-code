@@ -1,0 +1,19 @@
+{
+  "name": "@poe-code/agent-eval",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/agent-eval/src --passWithNoTests"
+  },
+  "dependencies": {
+    "@poe-code/agent-spawn": "*",
+    "@poe-code/file-lock": "*",
+    "@poe-code/process-runner": "*",
+    "@poe-code/design-system": "*",
+    "toolcraft-schema": "*",
+    "simple-git": "^3.36.0"
+  }
+}

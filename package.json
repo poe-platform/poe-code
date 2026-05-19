@@ -132,6 +132,7 @@
     "@poe-code/acp-telemetry": "*",
     "@poe-code/agent-child-process": "*",
     "@poe-code/agent-defs": "*",
+    "@poe-code/agent-eval": "*",
     "@poe-code/agent-harness": "*",
     "@poe-code/agent-harness-tools": "*",
     "@poe-code/agent-human-in-loop": "*",

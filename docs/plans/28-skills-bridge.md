@@ -102,7 +102,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: git-exclude-block
     title: Marked-block helpers for .git/info/exclude
@@ -139,8 +139,8 @@ tasks:
 
       Export both functions from `packages/agent-skill-config/src/index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: bridge-active-skills

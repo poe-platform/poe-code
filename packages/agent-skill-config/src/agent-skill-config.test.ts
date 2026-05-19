@@ -193,6 +193,8 @@ describe("@poe-code/agent-skill-config", () => {
     expect(typeof agentSkillConfig.configure).toBe("function");
     expect(typeof agentSkillConfig.unconfigure).toBe("function");
     expect(typeof agentSkillConfig.UnsupportedAgentError).toBe("function");
+    expect(typeof agentSkillConfig.appendExcludeBlock).toBe("function");
+    expect(typeof agentSkillConfig.removeExcludeBlock).toBe("function");
   });
 });
 

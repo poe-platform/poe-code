@@ -136,7 +136,7 @@ export default defineConfig({
       "**/node_modules/**",
       "**/*.e2e.test.ts"               // E2E tests run separately
     ],
-    maxWorkers: 4,
+    maxWorkers: 1,
     setupFiles: ["tests/setup.ts"]
   }
 });

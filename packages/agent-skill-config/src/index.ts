@@ -23,3 +23,4 @@ export { configure, unconfigure, installSkill, UnsupportedAgentError } from "./a
 export type { InstallSkillOptions, InstallSkillResult } from "./apply.js";
 
 export { resolveSkillReference } from "./resolve-skill-reference.js";
+export { appendExcludeBlock, removeExcludeBlock } from "./git-exclude.js";

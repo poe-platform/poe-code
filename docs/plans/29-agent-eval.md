@@ -253,7 +253,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: verify-oracle
     title: verifyOracle — runs eval-defined verify command
@@ -284,9 +284,9 @@ tasks:
 
       Update src/index.ts to re-export verifyOracle.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: scorer
     title: runScorer — invoke scorer.command, parse JSON result

@@ -431,7 +431,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: document-skills-references
     title: Document the skill reference syntax and bridge contract
@@ -501,7 +501,7 @@ tasks:
 
       Keep the prose dense — no restating, no hedging.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

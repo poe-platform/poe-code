@@ -209,17 +209,15 @@ describe("judgeRun", () => {
       })
     });
 
-    const evalDef = createEval({
-      judge: createJudgeSpec({ rubric: ["completeness", "spec_adherence"] })
-    });
+    const spec = createJudgeSpec({ rubric: ["completeness", "spec_adherence"] });
 
     await expect(
       judgeRun({
-        evalDef,
+        evalDef: createEval(),
         cloneDir: "/repo",
         eventsJsonlPath: "/runs/events.jsonl",
         testsResult: { passed: 1, total: 2 },
-        spec: createJudgeSpec(),
+        spec,
         agentUnderTest: "claude-code"
       })
     ).resolves.toEqual({
@@ -227,6 +225,33 @@ describe("judgeRun", () => {
       spec_adherence: 4,
       mean: 4.5
     });
+  });
+
+  it("uses the resolved judge spec rubric", async () => {
+    vol.fromJSON({ "/repo/file.ts": "abc" });
+    mockedAgentSpawn.spawnMock!.autonomous.mockResolvedValueOnce({
+      text: JSON.stringify({
+        custom_quality: 5
+      })
+    });
+
+    await expect(
+      judgeRun({
+        evalDef: createEval(),
+        cloneDir: "/repo",
+        eventsJsonlPath: "/runs/events.jsonl",
+        testsResult: { passed: 1, total: 1 },
+        spec: createJudgeSpec({ rubric: ["custom_quality"] }),
+        agentUnderTest: "claude-code"
+      })
+    ).resolves.toEqual({
+      custom_quality: 5,
+      mean: 5
+    });
+
+    const prompt = mockedAgentSpawn.spawnMock!.autonomous.mock.calls[0]?.[1]?.prompt as string;
+    expect(prompt).toContain("custom_quality");
+    expect(prompt).not.toContain("spec_adherence");
   });
 });
 

@@ -30,7 +30,7 @@ export async function judgeRun(input: {
   agentUnderTest: string;
 }): Promise<JudgeScores> {
   const judgeAgent = input.spec.agent === input.agentUnderTest ? "codex" : input.spec.agent;
-  const rubric = [...input.evalDef.judge.rubric];
+  const rubric = [...input.spec.rubric];
   const prompt = await buildJudgePrompt(input, rubric);
   const result = await spawnAutonomous(createJudgeStreamingSpawn(), {
     service: judgeAgent,

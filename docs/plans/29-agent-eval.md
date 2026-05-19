@@ -366,7 +366,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: run-eval
     title: runEval — single-cell orchestrator
@@ -448,8 +448,8 @@ tasks:
 
       Update src/index.ts to re-export runEval.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: run-matrix

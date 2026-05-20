@@ -17,6 +17,7 @@
     "toolcraft": "*",
     "toolcraft-schema": "*",
     "simple-git": "^3.36.0",
+    "vitest": "^4.0.18",
     "yaml": "^2.8.2"
   }
 }

@@ -3,7 +3,12 @@ import { describe, expect, it } from "vitest";
 import { aggregateRuns } from "./aggregate.js";
 import type { EvalRunResult } from "./types.js";
 
-function run(overrides: Partial<EvalRunResult>): EvalRunResult {
+function run(
+  overrides: Partial<Omit<EvalRunResult, "tests">> & {
+    tests?: Partial<EvalRunResult["tests"]>;
+  }
+): EvalRunResult {
+  const { tests, ...rest } = overrides;
   return {
     runId: "run-1",
     eval: "eval-1",
@@ -22,14 +27,17 @@ function run(overrides: Partial<EvalRunResult>): EvalRunResult {
     },
     tests: {
       passed: 1,
-      total: 1
+      total: 1,
+      pass_rate: 1,
+      cases: [],
+      ...tests
     },
     cheated: false,
     cheatReport: {
       cheated: false,
       violations: []
     },
-    ...overrides
+    ...rest
   };
 }
 

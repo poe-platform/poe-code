@@ -76,7 +76,9 @@ function createResult(overrides: Partial<EvalRunResult> = {}): EvalRunResult {
     },
     tests: {
       passed: 1,
-      total: 1
+      total: 1,
+      pass_rate: 1,
+      cases: []
     },
     cheated: false,
     cheatReport: {

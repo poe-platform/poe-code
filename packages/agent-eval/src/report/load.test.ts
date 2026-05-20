@@ -65,12 +65,10 @@ describe("report loaders", () => {
       "/runs/run-direct/result.json": JSON.stringify(runResult({ runId: "run-direct" })),
       "/runs/2026-05-17T10-00-00Z/aggregate-old-task-codex-gpt-5.json": JSON.stringify(oldCell),
       "/runs/2026-05-18T10-00-00Z/not-aggregate.json": "{}",
-      "/runs/2026-05-19T10-00-00Z/aggregate-new-task-b-codex-gpt-5.json": JSON.stringify(
-        newestSecond
-      ),
-      "/runs/2026-05-19T10-00-00Z/aggregate-new-task-a-codex-gpt-5.json": JSON.stringify(
-        newestFirst
-      )
+      "/runs/2026-05-19T10-00-00Z/aggregate-new-task-b-codex-gpt-5.json":
+        JSON.stringify(newestSecond),
+      "/runs/2026-05-19T10-00-00Z/aggregate-new-task-a-codex-gpt-5.json":
+        JSON.stringify(newestFirst)
     });
 
     await expect(loadLatestMatrix("/runs")).resolves.toEqual({
@@ -85,9 +83,8 @@ describe("report loaders", () => {
       "/runs/manual/aggregate-manual-task-codex-gpt-5.json": JSON.stringify(
         aggregateCell({ eval: "manual-task" })
       ),
-      "/runs/2026-05-18T10-00-00Z/aggregate-timestamped-task-codex-gpt-5.json": JSON.stringify(
-        timestampedCell
-      )
+      "/runs/2026-05-18T10-00-00Z/aggregate-timestamped-task-codex-gpt-5.json":
+        JSON.stringify(timestampedCell)
     });
 
     await expect(loadLatestMatrix("/runs")).resolves.toEqual({
@@ -125,7 +122,12 @@ describe("report loaders", () => {
   });
 });
 
-function runResult(overrides: Partial<EvalRunResult> = {}): EvalRunResult {
+function runResult(
+  overrides: Partial<Omit<EvalRunResult, "tests">> & {
+    tests?: Partial<EvalRunResult["tests"]>;
+  } = {}
+): EvalRunResult {
+  const { tests, ...rest } = overrides;
   return {
     runId: "run-1",
     eval: "task",
@@ -144,14 +146,17 @@ function runResult(overrides: Partial<EvalRunResult> = {}): EvalRunResult {
     },
     tests: {
       passed: 2,
-      total: 2
+      total: 2,
+      pass_rate: 1,
+      cases: [],
+      ...tests
     },
     cheated: false,
     cheatReport: {
       cheated: false,
       violations: []
     },
-    ...overrides
+    ...rest
   };
 }
 

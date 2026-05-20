@@ -282,7 +282,13 @@ function cellKey(opts: EvalRunOptions): string {
   return `${opts.evalId}:${opts.agent}:${opts.model}:${opts.repeatIndex}`;
 }
 
-function runResult(opts: EvalRunOptions, overrides: Partial<EvalRunResult> = {}): EvalRunResult {
+function runResult(
+  opts: EvalRunOptions,
+  overrides: Partial<Omit<EvalRunResult, "tests">> & {
+    tests?: Partial<EvalRunResult["tests"]>;
+  } = {}
+): EvalRunResult {
+  const { tests, ...rest } = overrides;
   return {
     runId: `run-${cellKey(opts)}`,
     eval: opts.evalId,
@@ -301,13 +307,16 @@ function runResult(opts: EvalRunOptions, overrides: Partial<EvalRunResult> = {})
     },
     tests: {
       passed: 1,
-      total: 1
+      total: 1,
+      pass_rate: 1,
+      cases: [],
+      ...tests
     },
     cheated: false,
     cheatReport: {
       cheated: false,
       violations: []
     },
-    ...overrides
+    ...rest
   };
 }

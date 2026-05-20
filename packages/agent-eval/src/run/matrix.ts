@@ -106,7 +106,9 @@ function createErrorResult(
     },
     tests: {
       passed: 0,
-      total: 0
+      total: 0,
+      pass_rate: 0,
+      cases: []
     },
     cheated: false,
     cheatReport: {

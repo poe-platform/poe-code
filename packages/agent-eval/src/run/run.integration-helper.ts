@@ -50,7 +50,15 @@ export async function assertSuccessfulRun(input: {
       iterations: 0,
       tests: {
         passed: 1,
-        total: 1
+        total: 1,
+        pass_rate: 1,
+        cases: [
+          {
+            name: "fixture scorer",
+            passed: true,
+            durationMs: 0
+          }
+        ]
       },
       cheated: false,
       cheatReport: {

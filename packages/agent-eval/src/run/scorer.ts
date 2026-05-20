@@ -6,7 +6,10 @@ import {
   type Runner,
   type RunSpec
 } from "@poe-code/process-runner";
-import type { ScorerSpec } from "../types.js";
+import { resolveScorer, type EvalDef, type ScorerSpec } from "../types.js";
+import { runVitest, type CaseResult } from "./vitest-runner.js";
+
+const defaultVitestTimeoutMs = 180_000;
 
 export class ScorerError extends Error {
   constructor(message: string) {
@@ -22,25 +25,54 @@ export class ScorerTimeoutError extends Error {
   }
 }
 
-export async function runScorer(
-  cloneDir: string,
-  oracleDir: string,
-  spec: ScorerSpec
-): Promise<{ passed: number; total: number }> {
-  const absoluteCloneDir = path.resolve(cloneDir);
-  const absoluteOracleDir = path.resolve(oracleDir);
+export async function runScorer(input: {
+  evalDef: EvalDef;
+  evalDir: string;
+  cloneDir: string;
+  signal?: AbortSignal;
+}): Promise<{ passed: number; total: number; cases: CaseResult[] }> {
+  const scorer = resolveScorer(input.evalDef);
+  const absoluteEvalDir = path.resolve(input.evalDir);
+  const absoluteCloneDir = path.resolve(input.cloneDir);
+
+  if (scorer.kind === "vitest") {
+    const oracleDir = path.join(absoluteEvalDir, input.evalDef.oracle.path);
+    return runVitest({
+      testsDir: path.join(oracleDir, "tests"),
+      cloneDir: absoluteCloneDir,
+      oracleDir,
+      timeoutMs: defaultVitestTimeoutMs,
+      signal: input.signal
+    });
+  }
+
+  return runCustomScorer({
+    cloneDir: absoluteCloneDir,
+    oracleDir: path.join(absoluteEvalDir, input.evalDef.oracle.path),
+    spec: scorer.spec,
+    signal: input.signal
+  });
+}
+
+async function runCustomScorer(input: {
+  cloneDir: string;
+  oracleDir: string;
+  spec: ScorerSpec;
+  signal?: AbortSignal;
+}): Promise<{ passed: number; total: number; cases: CaseResult[] }> {
   const result = await runScorerCommand(createHostRunner(), {
-    command: spec.command,
-    cwd: path.join(absoluteCloneDir, spec.cwd),
-    env: createScorerEnv(absoluteCloneDir, absoluteOracleDir),
-    timeoutMs: spec.timeoutMs
+    command: input.spec.command,
+    cwd: path.join(input.cloneDir, input.spec.cwd),
+    env: createScorerEnv(input.cloneDir, input.oracleDir),
+    timeoutMs: input.spec.timeoutMs,
+    signal: input.signal
   });
 
   if (result.timedOut) {
-    throw new ScorerTimeoutError(`Scorer timed out after ${spec.timeoutMs}ms`);
+    throw new ScorerTimeoutError(`Scorer timed out after ${input.spec.timeoutMs}ms`);
   }
 
-  const resultPath = path.join(absoluteCloneDir, spec.resultPath);
+  const resultPath = path.join(input.cloneDir, input.spec.resultPath);
   const rawResult = await readScorerResult(resultPath, result);
   return parseScorerResult(resultPath, rawResult);
 }
@@ -52,6 +84,7 @@ async function runScorerCommand(
     cwd: string;
     env: Record<string, string>;
     timeoutMs: number;
+    signal?: AbortSignal;
   }
 ): Promise<{ exitCode: number; stdout: string; stderr: string; timedOut: boolean }> {
   const handle = runner.exec(createShellRunSpec(input));
@@ -83,6 +116,7 @@ function createShellRunSpec(input: {
   command: string;
   cwd: string;
   env: Record<string, string>;
+  signal?: AbortSignal;
 }): RunSpec {
   if (process.platform === "win32") {
     return {
@@ -91,7 +125,8 @@ function createShellRunSpec(input: {
       cwd: input.cwd,
       env: input.env,
       stdout: "pipe",
-      stderr: "pipe"
+      stderr: "pipe",
+      signal: input.signal
     };
   }
 
@@ -101,7 +136,8 @@ function createShellRunSpec(input: {
     cwd: input.cwd,
     env: input.env,
     stdout: "pipe",
-    stderr: "pipe"
+    stderr: "pipe",
+    signal: input.signal
   };
 }
 
@@ -149,7 +185,7 @@ async function readScorerResult(
 function parseScorerResult(
   resultPath: string,
   rawResult: string
-): { passed: number; total: number } {
+): { passed: number; total: number; cases: CaseResult[] } {
   let parsed: unknown;
 
   try {
@@ -172,10 +208,34 @@ function parseScorerResult(
     );
   }
 
+  const cases = (parsed as { cases?: unknown }).cases;
+  if (cases !== undefined && !isCaseResults(cases)) {
+    throw new ScorerError(
+      `Malformed scorer result ${resultPath}: expected cases to be CaseResult[]`
+    );
+  }
+
   return {
     passed: (parsed as { passed: number }).passed,
-    total: (parsed as { total: number }).total
+    total: (parsed as { total: number }).total,
+    cases: cases ?? []
   };
+}
+
+function isCaseResults(value: unknown): value is CaseResult[] {
+  return (
+    Array.isArray(value) &&
+    value.every(
+      (item) =>
+        typeof item === "object" &&
+        item !== null &&
+        typeof (item as CaseResult).name === "string" &&
+        typeof (item as CaseResult).passed === "boolean" &&
+        typeof (item as CaseResult).durationMs === "number" &&
+        ((item as CaseResult).message === undefined ||
+          typeof (item as CaseResult).message === "string")
+    )
+  );
 }
 
 async function waitForResult(

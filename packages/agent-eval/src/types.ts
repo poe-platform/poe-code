@@ -3,6 +3,7 @@ import type { Stats } from "node:fs";
 import path from "node:path";
 import type { AcpEvent } from "@poe-code/agent-spawn";
 import type { AggregateStats } from "./aggregate.js";
+import type { CaseResult } from "./run/vitest-runner.js";
 
 export type { AggregateStats } from "./aggregate.js";
 export type { SpawnUsage } from "@poe-code/agent-spawn";
@@ -140,6 +141,8 @@ export interface EvalRunResult {
   tests: {
     passed: number;
     total: number;
+    pass_rate: number;
+    cases: CaseResult[];
   };
   judge?: Record<RubricKey, number> & { mean: number };
   cheated: boolean;

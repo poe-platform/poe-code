@@ -33,6 +33,7 @@ import { judgeRun } from "./judge.js";
 import { verifyOracle } from "./oracle.js";
 import { runScorer } from "./scorer.js";
 import { writeRunArtifacts } from "./result-writer.js";
+import type { CaseResult } from "./vitest-runner.js";
 
 type DispatchResult = AutonomousResult | SpawnResult;
 
@@ -117,11 +118,12 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
 
     const budgetSnapshot = enforcer.snapshot();
     const cheatReport = filter.report();
-    const testsResult = await runScorer(
+    const testsResult = await runScorer({
+      evalDef,
+      evalDir: path.join(source.rootDir, opts.evalId),
       cloneDir,
-      path.join(source.rootDir, opts.evalId, evalDef.oracle.path),
-      evalDef.scorer!
-    );
+      signal: controller.signal
+    });
     const judgeSpec = resolveJudgeSpec(opts.judge, evalDef);
     const judgeResult =
       judgeSpec !== undefined && !cheatReport.cheated && budgetSnapshot.tripped === undefined
@@ -380,7 +382,7 @@ function createEvalRunResult(input: {
     tripped?: keyof EvalDef["budget"];
   };
   cheatReport: CheatReport;
-  testsResult: { passed: number; total: number };
+  testsResult: { passed: number; total: number; cases: CaseResult[] };
   judgeResult?: EvalRunResult["judge"];
   spawnError?: string;
 }): EvalRunResult {
@@ -416,7 +418,10 @@ function createEvalRunResult(input: {
         ? {}
         : { costUsd: input.budgetSnapshot.usage.costUsd })
     },
-    tests: input.testsResult,
+    tests: {
+      ...input.testsResult,
+      pass_rate: calculatePassRate(input.testsResult)
+    },
     ...(input.judgeResult === undefined ? {} : { judge: input.judgeResult }),
     cheated: input.cheatReport.cheated,
     cheatReport: input.cheatReport,
@@ -458,11 +463,14 @@ function calculateCorrectness(input: {
     return 0;
   }
 
-  const testScore =
-    input.testsResult.total === 0 ? 0 : input.testsResult.passed / input.testsResult.total;
+  const testScore = calculatePassRate(input.testsResult);
   return (
     testScore * input.weights.tests + ((input.judgeResult?.mean ?? 0) / 5) * input.weights.judge
   );
+}
+
+function calculatePassRate(testsResult: { passed: number; total: number }): number {
+  return testsResult.total === 0 ? 0 : testsResult.passed / testsResult.total;
 }
 
 function resolveJudgeSpec(

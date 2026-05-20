@@ -1,5 +1,7 @@
 import * as fsPromises from "node:fs/promises";
+import path from "node:path";
 import { parseFrontmatter } from "@poe-code/github-workflows";
+import type { OpenTaskListOptions, StateMachineDef } from "@poe-code/task-list";
 
 const DEFAULT_WORKFLOW_PATH = "./WORKFLOW.md";
 const MAESTRO_TASK_STATE_MACHINE_STATES = [
@@ -14,6 +16,7 @@ const MAESTRO_TASK_STATE_MACHINE_STATES = [
 export type TasksOptionsErrorCode =
   | "invalid_project"
   | "missing_required_states"
+  | "missing_tasks_config"
   | "missing_workflow";
 
 export class TasksOptionsError extends Error {
@@ -41,14 +44,20 @@ export interface ResolvedTasksOptions {
   workflowPath: string;
 }
 
+export interface ResolvedWorkflowTasksOptions {
+  taskListOptions: OpenTaskListOptions;
+  stateOrder: string[];
+  stateMachine: StateMachineDef;
+  workflowPath: string;
+}
+
 export async function resolveTasksOptions(
   list: string | undefined,
   options: TasksCliOptions
 ): Promise<ResolvedTasksOptions> {
   const workflowPath = options.workflow ?? DEFAULT_WORKFLOW_PATH;
   const project = parseProject(options.project ?? list);
-  const workflowContent = await readWorkflow(workflowPath);
-  const { frontmatter } = parseFrontmatter(workflowContent);
+  const frontmatter = await readWorkflowFrontmatter(workflowPath);
   const frontmatterRepo = readTasksRepo(frontmatter);
   const requiredStates = resolveRequiredStates(options.states, frontmatter);
   const repo = resolveRepo(options.repo, frontmatterRepo);
@@ -62,6 +71,29 @@ export async function resolveTasksOptions(
   };
 }
 
+export async function resolveWorkflowTasksOptions(
+  options: TasksCliOptions
+): Promise<ResolvedWorkflowTasksOptions> {
+  const workflowPath = options.workflow ?? DEFAULT_WORKFLOW_PATH;
+  const frontmatter = await readWorkflowFrontmatter(workflowPath);
+  const taskListOptions = readTaskListOptions(frontmatter, workflowPath);
+  const stateOrder = resolveRequiredStates(undefined, frontmatter);
+  const stateMachine = createAnyToAnyStateMachine(stateOrder);
+
+  return {
+    taskListOptions,
+    stateOrder,
+    stateMachine,
+    workflowPath
+  };
+}
+
+async function readWorkflowFrontmatter(workflowPath: string): Promise<Record<string, unknown>> {
+  const workflowContent = await readWorkflow(workflowPath);
+  const { frontmatter } = parseFrontmatter(workflowContent);
+  return frontmatter;
+}
+
 async function readWorkflow(workflowPath: string): Promise<string> {
   try {
     return await fsPromises.readFile(workflowPath, "utf8");
@@ -72,6 +104,34 @@ async function readWorkflow(workflowPath: string): Promise<string> {
 
     throw error;
   }
+}
+
+function readTaskListOptions(
+  frontmatter: Record<string, unknown>,
+  workflowPath: string
+): OpenTaskListOptions {
+  const tasks = asRecord(frontmatter.tasks);
+  if (tasks === undefined) {
+    throw new TasksOptionsError(
+      "missing_tasks_config",
+      "WORKFLOW.md does not define a tasks backend."
+    );
+  }
+
+  const resolved = resolveStringValues(tasks);
+  if (typeof resolved.path === "string") {
+    resolved.path = resolveWorkflowRelativePath(resolved.path, workflowPath);
+  }
+
+  return resolved as unknown as OpenTaskListOptions;
+}
+
+function createAnyToAnyStateMachine(states: string[]): StateMachineDef {
+  return {
+    initial: states[0],
+    states,
+    events: Object.fromEntries(states.map((state) => [state, { from: "*", to: state }]))
+  };
 }
 
 function parseProject(value: string | undefined): { owner: string; number: number } {
@@ -115,6 +175,16 @@ function resolveRequiredStates(
     );
   }
 
+  const declaredStates = readDeclaredStates(frontmatter.states);
+  if (declaredStates.length > 0) {
+    return declaredStates;
+  }
+
+  const topLevelStates = readLegacyTopLevelStates(frontmatter);
+  if (topLevelStates.length > 0) {
+    return topLevelStates;
+  }
+
   const maestroStates = readMaestroStates(frontmatter);
   if (maestroStates.length > 0) {
     return maestroStates;
@@ -147,6 +217,18 @@ function readMaestroStates(frontmatter: Record<string, unknown>): string[] {
     ...readStringArray(maestro.active_states),
     ...readStringArray(maestro.terminal_states)
   ]);
+}
+
+function readLegacyTopLevelStates(frontmatter: Record<string, unknown>): string[] {
+  return unique([
+    ...readStringArray(frontmatter.active_states),
+    ...readStringArray(frontmatter.terminal_states)
+  ]);
+}
+
+function readDeclaredStates(value: unknown): string[] {
+  const states = asRecord(value);
+  return states === undefined ? [] : Object.keys(states);
 }
 
 function readTasksRepo(frontmatter: Record<string, unknown>): string | undefined {
@@ -203,10 +285,45 @@ function unique(values: string[]): string[] {
   return result;
 }
 
+function resolveStringValues(value: Record<string, unknown>): Record<string, unknown> {
+  const resolved: Record<string, unknown> = {};
+
+  for (const [key, entry] of Object.entries(value)) {
+    if (typeof entry === "string") {
+      resolved[key] = resolveStringValue(entry);
+    } else if (Array.isArray(entry)) {
+      resolved[key] = entry.map((item) =>
+        typeof item === "string" ? resolveStringValue(item) : item
+      );
+    } else if (isPlainRecord(entry)) {
+      resolved[key] = resolveStringValues(entry);
+    } else {
+      resolved[key] = entry;
+    }
+  }
+
+  return resolved;
+}
+
+function resolveStringValue(value: string): string {
+  const envPrefix = "$";
+  if (!value.startsWith(envPrefix) || value.length === envPrefix.length) {
+    return value;
+  }
+
+  return process.env[value.slice(envPrefix.length)] ?? value;
+}
+
+function resolveWorkflowRelativePath(value: string, workflowPath: string): string {
+  return path.isAbsolute(value) ? value : path.resolve(path.dirname(workflowPath), value);
+}
+
 function asRecord(value: unknown): Record<string, unknown> | undefined {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
-    ? (value as Record<string, unknown>)
-    : undefined;
+  return isPlainRecord(value) ? (value as Record<string, unknown>) : undefined;
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function isFileNotFoundError(error: unknown): boolean {

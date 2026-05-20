@@ -363,8 +363,8 @@ tasks:
       - Auth wiring: existing `verify` / `sync` auth resolution already
         covers gh-issues; reuse it.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: migrate-workflow

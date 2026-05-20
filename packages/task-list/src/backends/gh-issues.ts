@@ -187,6 +187,16 @@ const UPDATE_ISSUE_MUTATION = `mutation UpdateIssue($input: UpdateIssueInput!) {
   }
 }`;
 
+const ADD_COMMENT_MUTATION = `mutation AddComment($input: AddCommentInput!) {
+  addComment(input: $input) {
+    commentEdge {
+      node {
+        id
+      }
+    }
+  }
+}`;
+
 const UPDATE_PROJECT_ITEM_POSITION_MUTATION = `mutation UpdateProjectItemPosition($input: UpdateProjectV2ItemPositionInput!) {
   updateProjectV2ItemPosition(input: $input) {
     clientMutationId
@@ -550,6 +560,14 @@ function createTasksView(
       await updateProjectItemStatus(projectItemId, event, session, context);
       return fetchIssueTask(id, name, session, context);
     },
+    async comment(id: string, body: string): Promise<void> {
+      await context.client.graphql(ADD_COMMENT_MUTATION, {
+        input: {
+          subjectId: await resolveIssueId(id, name, context),
+          body
+        }
+      });
+    },
     async canFire(id: string, event: string): Promise<boolean> {
       return findEvent(session.stateMachine, id, event) !== undefined;
     },
@@ -909,7 +927,7 @@ function mapIssueToTask(options: {
   return {
     list: options.listName,
     id,
-    qualifiedId: `${options.listName}/${id}`,
+    qualifiedId: `${options.listName}#${id}`,
     name: options.issue.title,
     description: options.issue.body ?? "",
     state: options.statusName ?? options.initialState,
@@ -973,7 +991,7 @@ function singleListError(listName: string): Error {
 }
 
 function parseQualifiedId(qualifiedId: string, listName: string): string {
-  const prefix = `${listName}/`;
+  const prefix = `${listName}#`;
 
   if (!qualifiedId.startsWith(prefix) || qualifiedId.length === prefix.length) {
     throw new Error(`Invalid qualified task id "${qualifiedId}".`);

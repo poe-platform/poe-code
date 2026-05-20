@@ -53,6 +53,7 @@ export interface Tasks {
   create(input: TaskCreate): Promise<Task>;
   update(id: string, patch: TaskUpdate): Promise<Task>;
   fire(id: string, event: string, opts?: TaskFireOptions): Promise<Task>;
+  comment?(id: string, body: string): Promise<void>;
   canFire(id: string, event: string): Promise<boolean>;
   events(id: string): Promise<readonly string[]>;
   delete(id: string): Promise<void>;

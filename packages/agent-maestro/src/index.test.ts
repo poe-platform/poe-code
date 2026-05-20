@@ -260,6 +260,48 @@ describe("runMaestro", () => {
       skippedKinds: ["superintendent"]
     });
   });
+
+  it("opens configured file task lists with an any-to-any machine from state order", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": workflowFrontmatter({
+        tasks: ["  type: yaml-file", "  path: /repo/tasks.yaml"],
+        states: [
+          "  queued:",
+          "    prompt: Work on {{ task.name }}.",
+          "  done:",
+          "    terminal: true"
+        ],
+        agent: ["  list: tasks"]
+      }),
+      "/repo/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  tasks:",
+        "    one:",
+        "      name: One",
+        "      state: queued",
+        "      description: Do the work",
+        ""
+      ].join("\n")
+    });
+    const logger = { info: vi.fn(), error: vi.fn() };
+
+    const stop = await runMaestro({
+      workflowPath: "/repo/WORKFLOW.md",
+      dryRun: true,
+      logger
+    });
+
+    expect(logger.info).toHaveBeenCalledWith("maestro task store open OK", {
+      candidates: 1,
+      candidateIds: ["tasks/one"],
+      skipped: 0,
+      skippedKinds: []
+    });
+    await stop();
+  });
 });
 
 async function createYamlTaskList(

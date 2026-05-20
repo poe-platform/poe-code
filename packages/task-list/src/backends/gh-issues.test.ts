@@ -215,9 +215,9 @@ describe("ghIssuesBackend", () => {
     });
 
     await expect(taskList.allTasks({ state: "Todo" }).then(ids)).resolves.toEqual(["482"]);
-    const task = await taskList.get("octo-org/7/482");
+    const task = await taskList.get("octo-org/7#482");
     expect(task).toMatchObject({
-      qualifiedId: "octo-org/7/482",
+      qualifiedId: "octo-org/7#482",
       name: "Ship GitHub issue backend"
     });
     expect(task.sourcePath).toBeUndefined();
@@ -256,7 +256,7 @@ describe("ghIssuesBackend", () => {
       fetch: createFetchMock([projectResponse()])
     });
 
-    await expect(taskList.moveBetweenLists("octo-org/7/123", "octo-org/7")).rejects.toThrow(
+    await expect(taskList.moveBetweenLists("octo-org/7#123", "octo-org/7")).rejects.toThrow(
       "gh-issues backend has a single list octo-org/7"
     );
   });
@@ -287,7 +287,7 @@ describe("ghIssuesBackend", () => {
       {
         list: "octo-org/7",
         id: "482",
-        qualifiedId: "octo-org/7/482",
+        qualifiedId: "octo-org/7#482",
         name: "Write backend",
         description: "Implement GitHub issues.",
         state: "In progress",
@@ -303,7 +303,7 @@ describe("ghIssuesBackend", () => {
       {
         list: "octo-org/7",
         id: "17",
-        qualifiedId: "octo-org/7/17",
+        qualifiedId: "octo-org/7#17",
         name: "Document workflow",
         description: "",
         state: "Todo",
@@ -319,7 +319,7 @@ describe("ghIssuesBackend", () => {
       {
         list: "octo-org/7",
         id: "88",
-        qualifiedId: "octo-org/7/88",
+        qualifiedId: "octo-org/7#88",
         name: "Close loop",
         description: "Finalize.",
         state: "Done",
@@ -442,7 +442,7 @@ describe("ghIssuesBackend", () => {
     await expect(taskList.list("octo-org/7").get("482")).resolves.toEqual({
       list: "octo-org/7",
       id: "482",
-      qualifiedId: "octo-org/7/482",
+      qualifiedId: "octo-org/7#482",
       name: "Write backend",
       description: "Implement GitHub issues.",
       state: "In progress",

@@ -95,7 +95,7 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
   const workers = new Map<string, TrackedWorker>();
 
   try {
-    const taskList = opts.taskList ?? (await openConfiguredTaskList(cfg.tasks));
+    const taskList = opts.taskList ?? (await openConfiguredTaskList(cfg));
     const terminalTasks = await collectTerminalTaskIds(taskList, cfg.terminalStateNames);
     await startupTerminalCleanup(cfg.workspace.root, terminalTasks);
     const state = createState(cfg);
@@ -199,7 +199,7 @@ async function runDryRun(
   opts: RunMaestroOptions,
   logger: Logger
 ): Promise<void> {
-  const taskList = opts.taskList ?? (await openConfiguredTaskList(cfg.tasks));
+  const taskList = opts.taskList ?? (await openConfiguredTaskList(cfg));
   const validation = await validateDispatch(cfg, taskList);
 
   if (!validation.ok) {
@@ -276,12 +276,32 @@ function createLevelLogger(
   };
 }
 
-async function openConfiguredTaskList(options: OpenTaskListOptions | undefined): Promise<TaskList> {
-  if (options === undefined) {
+async function openConfiguredTaskList(
+  cfg: Pick<ResolvedConfig, "tasks" | "stateOrder">
+): Promise<TaskList> {
+  if (cfg.tasks === undefined) {
     throw new Error("Maestro workflow is missing tasks config.");
   }
 
-  return openTaskList(options);
+  return openTaskList(addMaestroStateMachine(cfg.tasks, cfg.stateOrder));
+}
+
+function addMaestroStateMachine(
+  options: OpenTaskListOptions,
+  stateOrder: readonly string[]
+): OpenTaskListOptions {
+  if (!("path" in options)) {
+    return options;
+  }
+
+  return {
+    ...options,
+    stateMachine: {
+      initial: stateOrder[0],
+      states: stateOrder,
+      events: Object.fromEntries(stateOrder.map((state) => [state, { from: "*", to: state }]))
+    }
+  } as OpenTaskListOptions;
 }
 
 async function collectTerminalTaskIds(

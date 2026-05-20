@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  assertEventually,
   createConfig,
   createDriverContext,
   createTask,
@@ -125,5 +126,51 @@ describe("fixtures", () => {
       config: { states: {} },
       promptTemplate: "custom"
     });
+  });
+
+  it("assertEventually advances fake time and ticks until the predicate passes", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(0);
+
+    try {
+      let ticks = 0;
+      const observedTimes: number[] = [];
+
+      const tickCount = await assertEventually(() => ticks === 3, {
+        ticks: 5,
+        advanceMs: 25,
+        tick: () => {
+          ticks += 1;
+          observedTimes.push(Date.now());
+        }
+      });
+
+      expect(tickCount).toBe(3);
+      expect(ticks).toBe(3);
+      expect(observedTimes).toEqual([25, 50, 75]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("assertEventually fails after exhausting the tick budget", async () => {
+    vi.useFakeTimers();
+
+    try {
+      let ticks = 0;
+
+      await expect(
+        assertEventually(() => false, {
+          ticks: 2,
+          tick: () => {
+            ticks += 1;
+          }
+        })
+      ).rejects.toThrow();
+
+      expect(ticks).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });

@@ -1,6 +1,6 @@
 import type { SpawnResult } from "@poe-code/agent-spawn";
 import type { Task } from "@poe-code/task-list";
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 
 import type { AttemptEvent } from "../agent/runner.js";
 import type { WorkflowDefinition } from "../config/load.js";
@@ -144,6 +144,32 @@ export function assertNoLeakedWorkers(
   });
 }
 
+export async function assertEventually(
+  predicate: () => boolean | Promise<boolean>,
+  options: {
+    ticks: number;
+    tick: () => void | Promise<void>;
+    advanceMs?: number;
+  }
+): Promise<number> {
+  for (let tickCount = 0; tickCount <= options.ticks; tickCount += 1) {
+    if (await predicate()) {
+      return tickCount;
+    }
+
+    if (tickCount === options.ticks) {
+      break;
+    }
+
+    await vi.advanceTimersByTimeAsync(options.advanceMs ?? 1);
+    await options.tick();
+    await Promise.resolve();
+  }
+
+  expect(await predicate()).toBe(true);
+  return options.ticks;
+}
+
 function parseQualifiedId(qualifiedId: string | undefined): { list: string; id: string } | null {
   if (qualifiedId === undefined) {
     return null;
@@ -170,11 +196,15 @@ function stateNamesBy(
 }
 
 function withoutAgent(overrides: ConfigOverrides): Partial<Omit<ResolvedConfig, "agent">> {
-  const { agent: _agent, maxConcurrentAgents: _maxConcurrentAgents, ...rest } = overrides;
+  const {
+    agent: ignoredAgent,
+    maxConcurrentAgents: ignoredMaxConcurrentAgents,
+    ...rest
+  } = overrides;
   return rest;
 }
 
 function withoutEvents(overrides: DriverContextOverrides): Partial<WorkflowDriverContext> {
-  const { events: _events, ...rest } = overrides;
+  const { events: ignoredEvents, ...rest } = overrides;
   return rest;
 }

@@ -154,7 +154,7 @@ async function activeCandidates(
     }
   }
 
-  return [...byId.values()].sort(compareTasks);
+  return [...byId.values()];
 }
 
 async function reconcileRetryQueue(
@@ -411,31 +411,4 @@ function outcomePhase(outcome: AttemptOutcome): WorkerExitPhase {
   }
 
   return outcome.failure === "canceled" ? "canceled" : "failed";
-}
-
-function compareTasks(left: Task, right: Task): number {
-  return (
-    comparePriority(left.metadata.priority, right.metadata.priority) ||
-    String(left.metadata.createdAt ?? "").localeCompare(String(right.metadata.createdAt ?? "")) ||
-    left.qualifiedId.localeCompare(right.qualifiedId)
-  );
-}
-
-function comparePriority(left: unknown, right: unknown): number {
-  const leftPriority = typeof left === "number" && Number.isFinite(left) ? left : null;
-  const rightPriority = typeof right === "number" && Number.isFinite(right) ? right : null;
-
-  if (leftPriority === null && rightPriority === null) {
-    return 0;
-  }
-
-  if (leftPriority === null) {
-    return 1;
-  }
-
-  if (rightPriority === null) {
-    return -1;
-  }
-
-  return leftPriority - rightPriority;
 }

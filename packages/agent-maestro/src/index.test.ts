@@ -746,9 +746,9 @@ describe("integration", () => {
     await advanceBy(10_000);
     await waitForEventCount(events.events, 16);
     await advanceBy(10_000);
-    await waitForEventCount(events.events, 25);
+    await waitForEventCount(events.events, 24);
     await advanceBy(10_000);
-    await waitForEventCount(events.events, 32);
+    await waitForEventCount(events.events, 33);
 
     expect(stripUndefined(events.events)).toEqual([
       tickEvent(10_000),
@@ -759,11 +759,12 @@ describe("integration", () => {
       ...failedRetryEvents("retry"),
       tickEvent(30_000),
       { type: "reconcile", task_id: "tasks/retry", action: "update" },
-      dispatchEvent(fixture, "retry"),
-      ...successEvents("retry", 2),
-      tickEvent(40_000),
       dispatchEvent(fixture, "cancel"),
-      ...cancelEvents("cancel")
+      ...cancelEvents("cancel"),
+      tickEvent(40_000),
+      { type: "reconcile", task_id: "tasks/retry", action: "update" },
+      dispatchEvent(fixture, "retry"),
+      ...successEvents("retry", 2)
     ]);
     expect(
       stripUndefined(events.events).filter(

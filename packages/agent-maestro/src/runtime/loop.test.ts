@@ -82,7 +82,7 @@ describe("tick", () => {
     });
   });
 
-  it("sorts active candidates by priority, createdAt, and qualifiedId", async () => {
+  it("preserves the backend allTasks order for active candidates", async () => {
     const dispatched: string[] = [];
     const state = createState(createConfig({ ...loopConfigOverrides, maxConcurrentAgents: 10 }));
     const tasks = [
@@ -126,11 +126,11 @@ describe("tick", () => {
     );
 
     expect(dispatched).toEqual([
-      "tasks/priority-one-a",
+      "tasks/no-priority",
       "tasks/priority-one-b",
       "tasks/priority-one-c",
       "tasks/priority-two",
-      "tasks/no-priority"
+      "tasks/priority-one-a"
     ]);
   });
 

@@ -551,7 +551,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: concurrency-stress
     title: Concurrency stress and determinism
@@ -586,8 +586,8 @@ tasks:
       utils that advances fake time and runs ticks until predicate
       holds or budget exhausted.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: replace-adhoc-mocks-in-existing-tests

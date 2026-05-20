@@ -131,9 +131,9 @@ tasks:
          behavior, and the non-interactive (`assumeYes` / no-TTY)
          fallback. Do not add a new env variable or config option.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: plan-default-opens-explorer
     title: Default `poe-code plan` opens the explorer

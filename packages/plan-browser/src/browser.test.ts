@@ -1,0 +1,252 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import type { ActionContext, Row } from "@poe-code/design-system";
+import { buildPlanExplorerConfig } from "./explorer-config.js";
+import { runPlanBrowser } from "./browser.js";
+import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
+
+const { archivePlanMock, deletePlanMock, editPlanMock } = vi.hoisted(() => ({
+  archivePlanMock: vi.fn(async () => "/repo/docs/plans/archive/feature.md"),
+  deletePlanMock: vi.fn(async () => undefined),
+  editPlanMock: vi.fn()
+}));
+
+vi.mock("./actions.js", () => ({
+  archivePlan: archivePlanMock,
+  deletePlan: deletePlanMock,
+  editPlan: editPlanMock
+}));
+
+const cwd = "/repo";
+const homeDir = "/home/test";
+const stdinTTYDescriptor = Object.getOwnPropertyDescriptor(process.stdin, "isTTY");
+
+function createMemFs(files: Record<string, string> = {}): ActionFs & DiscoveryFs {
+  const volume = Volume.fromJSON(files, "/");
+  volume.mkdirSync(cwd, { recursive: true });
+  volume.mkdirSync(homeDir, { recursive: true });
+  return createFsFromVolume(volume).promises as unknown as ActionFs & DiscoveryFs;
+}
+
+function plan(overrides: Partial<PlanEntry> = {}): PlanEntry {
+  return {
+    path: "docs/plans/feature.md",
+    absolutePath: "/repo/docs/plans/feature.md",
+    kind: "plan",
+    typeLabel: "Plan",
+    detail: "design doc",
+    format: "markdown",
+    title: "Feature",
+    updatedAt: 1,
+    ...overrides
+  };
+}
+
+function actionContext(row: Row): ActionContext<void> {
+  return {
+    row,
+    rows: [row],
+    filter: "",
+    refresh: vi.fn(async () => undefined),
+    suspendAnd: vi.fn(async (fn) => fn()),
+    toast: vi.fn(),
+    confirm: vi.fn(async () => true),
+    exit: vi.fn()
+  };
+}
+
+function setStdinTTY(value: boolean): void {
+  Object.defineProperty(process.stdin, "isTTY", {
+    configurable: true,
+    value
+  });
+}
+
+function restoreStdinTTY(): void {
+  if (stdinTTYDescriptor === undefined) {
+    delete (process.stdin as { isTTY?: boolean }).isTTY;
+    return;
+  }
+
+  Object.defineProperty(process.stdin, "isTTY", stdinTTYDescriptor);
+}
+
+afterEach(() => {
+  restoreStdinTTY();
+  vi.restoreAllMocks();
+  vi.clearAllMocks();
+});
+
+describe("plan browser", () => {
+  it("maps rows and wires explorer action handlers to plan actions", async () => {
+    const pipelinePlan = plan({
+      path: "docs/plans/feature.md",
+      absolutePath: "/repo/docs/plans/feature.md",
+      kind: "pipeline",
+      typeLabel: "Pipeline",
+      detail: "0/1 done"
+    });
+    const experimentPlan = plan({
+      path: "docs/plans/metric.md",
+      absolutePath: "/repo/docs/plans/metric.md",
+      kind: "experiment",
+      typeLabel: "Experiment",
+      detail: "minimize / open"
+    });
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": "# Feature",
+      "/repo/docs/plans/metric.md": "# Metric"
+    });
+    const variables = { EDITOR: "true" };
+    const onCreatePlan = vi.fn(async () => undefined);
+    const config = buildPlanExplorerConfig({
+      plans: [pipelinePlan, experimentPlan],
+      fs,
+      variables,
+      onRefresh: async () => [pipelinePlan, experimentPlan],
+      onCreatePlan
+    });
+
+    const rows = await config.rows();
+    expect(rows).toEqual([
+      {
+        id: "/repo/docs/plans/feature.md",
+        title: "feature.md",
+        subtitle: "0/1 done",
+        badge: { text: "Pipeline" },
+        group: "pipeline"
+      },
+      {
+        id: "/repo/docs/plans/metric.md",
+        title: "metric.md",
+        subtitle: "minimize / open",
+        badge: { text: "Experiment" },
+        group: "experiment"
+      }
+    ]);
+
+    const editCtx = actionContext(rows[0]!);
+    const archiveCtx = actionContext(rows[0]!);
+    const deleteCtx = actionContext(rows[1]!);
+    const createCtx = actionContext(rows[0]!);
+
+    await config.actions.find((action) => action.id === "edit")!.handler(editCtx);
+    await config.actions.find((action) => action.id === "archive")!.handler(archiveCtx);
+    await config.actions.find((action) => action.id === "delete")!.handler(deleteCtx);
+    await config.actions.find((action) => action.id === "new")!.handler(createCtx);
+
+    expect(editPlanMock).toHaveBeenCalledOnce();
+    expect(editPlanMock).toHaveBeenCalledWith(
+      "/repo/docs/plans/feature.md",
+      { env: variables }
+    );
+    expect(archivePlanMock).toHaveBeenCalledOnce();
+    expect(archivePlanMock).toHaveBeenCalledWith(pipelinePlan, fs);
+    expect(deletePlanMock).toHaveBeenCalledOnce();
+    expect(deletePlanMock).toHaveBeenCalledWith(experimentPlan, fs);
+    expect(onCreatePlan).toHaveBeenCalledOnce();
+    expect(editCtx.suspendAnd).toHaveBeenCalledOnce();
+    expect(archiveCtx.refresh).toHaveBeenCalledOnce();
+    expect(deleteCtx.refresh).toHaveBeenCalledOnce();
+    expect(createCtx.suspendAnd).toHaveBeenCalledOnce();
+    expect(createCtx.refresh).toHaveBeenCalledOnce();
+  });
+
+  it("previews the first plan for assumeYes without launching the explorer", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": "# Feature\n\nPreview body"
+    });
+    const runExplorerImpl = vi.fn(async () => null);
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runPlanBrowser({
+      cwd,
+      homeDir,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd),
+      fs,
+      variables: {},
+      assumeYes: true,
+      runExplorerImpl
+    });
+
+    expect(runExplorerImpl).not.toHaveBeenCalled();
+    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Feature");
+  });
+
+  it("previews the first plan when stdin is not a TTY without launching the explorer", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": "# Feature\n\nPreview body"
+    });
+    const runExplorerImpl = vi.fn(async () => null);
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    setStdinTTY(false);
+
+    await runPlanBrowser({
+      cwd,
+      homeDir,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd),
+      fs,
+      variables: {},
+      runExplorerImpl
+    });
+
+    expect(runExplorerImpl).not.toHaveBeenCalled();
+    expect(stdoutWrite.mock.calls.map(([chunk]) => String(chunk)).join("")).toContain("Feature");
+  });
+
+  it("writes no-plans output without launching the explorer", async () => {
+    const fs = createMemFs();
+    const runExplorerImpl = vi.fn(async () => null);
+    const stdoutWrite = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+    await runPlanBrowser({
+      cwd,
+      homeDir,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd),
+      fs,
+      variables: {},
+      runExplorerImpl
+    });
+
+    expect(runExplorerImpl).not.toHaveBeenCalled();
+    expect(stdoutWrite).toHaveBeenCalledWith("No plans found.\n");
+  });
+
+  it("launches the explorer with discovered plans and refreshes through discovery", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/feature.md": "# Feature",
+      "/repo/docs/plans/second.md": "# Second"
+    });
+    const onCreatePlan = vi.fn(async () => undefined);
+    const runExplorerImpl = vi.fn(async (config) => {
+      const rows = await config.rows();
+      expect(rows.map((row) => row.title)).toEqual(["feature.md", "second.md"]);
+
+      await fs.unlink("/repo/docs/plans/second.md");
+      await config.refresh!();
+      await expect(config.rows()).resolves.toEqual([
+        expect.objectContaining({ title: "feature.md" })
+      ]);
+      expect(config.actions.some((action) => action.id === "new")).toBe(true);
+      return null;
+    });
+    setStdinTTY(true);
+
+    await runPlanBrowser({
+      cwd,
+      homeDir,
+      configPath: resolveConfigPath(homeDir),
+      projectConfigPath: resolveProjectConfigPath(cwd),
+      fs,
+      variables: {},
+      onCreatePlan,
+      runExplorerImpl
+    });
+
+    expect(runExplorerImpl).toHaveBeenCalledOnce();
+  });
+});

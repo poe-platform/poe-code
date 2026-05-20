@@ -11,7 +11,7 @@ Unified discovery, formatting, interactive browsing, and file actions for plan d
 - Discovers plans across all supported plan systems
 - Normalizes them into one list
 - Formats per-source detail strings and previews
-- Supports edit, archive, and delete actions
+- Supports edit, archive, delete, and optional create actions
 - Powers `poe-code plan`
 
 ## Configuration
@@ -38,3 +38,14 @@ It also respects the existing environment variables:
 - `archivePlan()`
 - `deletePlan()`
 - `editPlan()`
+
+`runPlanBrowser()` accepts an optional `onCreatePlan?: () => Promise<void>` callback.
+When provided, the interactive explorer exposes a new-plan action and refreshes the
+plan list after the callback completes.
+
+Archive and delete are marked as destructive explorer actions. The explorer owns
+the confirmation prompt before dispatching either file action.
+
+When `assumeYes` is true, or stdin is not a TTY, `runPlanBrowser()` does not start
+the interactive explorer. It renders a preview of the first discovered plan and exits,
+which keeps CI and non-interactive usage deterministic.

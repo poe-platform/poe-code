@@ -1,5 +1,5 @@
 import { vol } from "memfs";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -10,8 +10,14 @@ vi.mock("node:fs/promises", async () => {
 });
 
 describe("loadWorkflow", () => {
+  const originalEnv = { ...process.env };
+
   beforeEach(() => {
     vol.reset();
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
   });
 
   it("splits YAML frontmatter from the prompt body", async () => {
@@ -47,16 +53,27 @@ describe("loadWorkflow", () => {
     });
 
     await expect(loadWorkflow("/repo/WORKFLOW.md")).rejects.toMatchObject({
-      code: "invalid_frontmatter"
+      code: "invalid_yaml"
     });
     await expect(loadWorkflow("/repo/WORKFLOW.md")).rejects.toBeInstanceOf(WorkflowLoadError);
   });
 
-  it("rejects missing workflow files with a typed error", async () => {
+  it("rejects invalid YAML frontmatter with a stable code", async () => {
+    const { loadWorkflow } = await import("./load.js");
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": ["---", "title: demo: broken", "---", "", "Body"].join("\n")
+    });
+
+    await expect(loadWorkflow("/repo/WORKFLOW.md")).rejects.toMatchObject({
+      code: "invalid_yaml"
+    });
+  });
+
+  it("rejects missing workflow files with a typed stable error", async () => {
     const { loadWorkflow, WorkflowLoadError } = await import("./load.js");
 
     await expect(loadWorkflow("/repo/missing.md")).rejects.toMatchObject({
-      code: "missing_workflow"
+      code: "file_not_found"
     });
     await expect(loadWorkflow("/repo/missing.md")).rejects.toBeInstanceOf(WorkflowLoadError);
   });
@@ -72,5 +89,103 @@ describe("loadWorkflow", () => {
       config: {},
       promptTemplate: "Body only\n"
     });
+  });
+
+  it("loads frontmatter with an empty prompt template", async () => {
+    const { loadWorkflow } = await import("./load.js");
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": [
+        "---",
+        "states:",
+        "  planned:",
+        "    prompt: Plan",
+        "  done:",
+        "    terminal: true",
+        "---"
+      ].join("\n")
+    });
+
+    await expect(loadWorkflow("/repo/WORKFLOW.md")).resolves.toMatchObject({
+      config: {
+        states: {
+          planned: { prompt: "Plan" },
+          done: { terminal: true }
+        }
+      },
+      promptTemplate: ""
+    });
+  });
+
+  it("pins env var expansion syntax after loading workflow config", async () => {
+    process.env.MAESTRO_LIST = "backlog";
+    const { loadWorkflow } = await import("./load.js");
+    const { resolveConfig } = await import("./schema.js");
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": [
+        "---",
+        "tasks:",
+        "  type: markdown-dir",
+        "  path: ./tasks",
+        "states:",
+        "  planned:",
+        "    prompt: Plan",
+        "  done:",
+        "    terminal: true",
+        "agent:",
+        "  list: $MAESTRO_LIST",
+        "---",
+        "",
+        "Body"
+      ].join("\n")
+    });
+
+    const workflow = await loadWorkflow("/repo/WORKFLOW.md");
+
+    expect(resolveConfig(workflow.config, "/repo").agent.list).toBe("backlog");
+
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": [
+        "---",
+        "states:",
+        "  planned:",
+        "    prompt: Plan",
+        "  done:",
+        "    terminal: true",
+        "agent:",
+        "  list: ${MAESTRO_LIST}",
+        "---",
+        "",
+        "Body"
+      ].join("\n")
+    });
+
+    const mixedSyntax = await loadWorkflow("/repo/WORKFLOW.md");
+
+    expect(resolveConfig(mixedSyntax.config, "/repo").agent.list).toBe("${MAESTRO_LIST}");
+  });
+
+  it("leaves invalid env var names literal after loading workflow config", async () => {
+    process.env.MAESTRO_LIST = "backlog";
+    const { loadWorkflow } = await import("./load.js");
+    const { resolveConfig } = await import("./schema.js");
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": [
+        "---",
+        "states:",
+        "  planned:",
+        "    prompt: Plan",
+        "  done:",
+        "    terminal: true",
+        "agent:",
+        "  list: $MAESTRO-LIST",
+        "---",
+        "",
+        "Body"
+      ].join("\n")
+    });
+
+    const workflow = await loadWorkflow("/repo/WORKFLOW.md");
+
+    expect(resolveConfig(workflow.config, "/repo").agent.list).toBe("$MAESTRO-LIST");
   });
 });

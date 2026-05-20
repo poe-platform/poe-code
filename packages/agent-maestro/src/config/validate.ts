@@ -5,12 +5,20 @@ type JsonRecord = Record<string, unknown>;
 
 export type DispatchPreflightCode =
   | "missing_tasks_config"
+  | "tasks_unreachable"
+  | "no_active_states"
+  | "no_terminal_states"
+  | "unknown_initial_state"
   | "list_not_found"
   | "board_not_provisioned";
 
 export type DispatchValidationResult =
   | { ok: true }
   | { ok: false; code: "missing_tasks_config" }
+  | { ok: false; code: "tasks_unreachable" }
+  | { ok: false; code: "no_active_states" }
+  | { ok: false; code: "no_terminal_states" }
+  | { ok: false; code: "unknown_initial_state"; state: string }
   | { ok: false; code: "list_not_found"; list: string }
   | {
       ok: false;
@@ -52,13 +60,33 @@ export async function validateDispatch(
     return { ok: false, code: "missing_tasks_config" };
   }
 
+  if (cfg.activeStateNames.length === 0) {
+    return { ok: false, code: "no_active_states" };
+  }
+
+  if (cfg.terminalStateNames.length === 0) {
+    return { ok: false, code: "no_terminal_states" };
+  }
+
+  const initialState = cfg.stateOrder[0];
+
+  if (initialState === undefined || cfg.states[initialState] === undefined) {
+    return { ok: false, code: "unknown_initial_state", state: initialState ?? "" };
+  }
+
   const list = cfg.agent.list;
 
   if (list === undefined) {
     return { ok: false, code: "list_not_found", list: "" };
   }
 
-  if (!(await taskList.lists()).includes(list)) {
+  const lists = await readLists(taskList);
+
+  if (lists === undefined) {
+    return { ok: false, code: "tasks_unreachable" };
+  }
+
+  if (!lists.includes(list)) {
     return { ok: false, code: "list_not_found", list };
   }
 
@@ -79,11 +107,19 @@ export async function validateDispatch(
   return { ok: true };
 }
 
+async function readLists(taskList: Pick<TaskList, "lists">): Promise<string[] | undefined> {
+  try {
+    return await taskList.lists();
+  } catch {
+    return undefined;
+  }
+}
+
 function validateStateDefinition(name: string, definition: JsonRecord): void {
   const hasPrompt = definition.prompt !== undefined;
   const isTerminal = definition.terminal === true;
 
-  if (hasPrompt === isTerminal) {
+  if (hasPrompt && isTerminal) {
     throw new Error(`State "${name}" must define exactly one of prompt or terminal: true.`);
   }
 

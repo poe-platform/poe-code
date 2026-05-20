@@ -57,6 +57,29 @@ describe("resolveConfig", () => {
     });
   });
 
+  it("applies all defaults when optional fields are missing", () => {
+    const cfg = resolveConfig(
+      {
+        tasks: { type: "markdown-dir", path: "./tasks" },
+        states: {
+          planned: { prompt: "Plan" },
+          done: { terminal: true }
+        }
+      },
+      "/repo/workflows"
+    );
+
+    expect(cfg.polling).toEqual({ intervalMs: 30_000 });
+    expect(cfg.workspace).toEqual({ root: path.join(os.tmpdir(), "poe-code-maestro") });
+    expect(cfg.agent).toEqual({
+      service: "codex",
+      list: undefined,
+      maxConcurrentAgents: 1,
+      maxTurns: 20,
+      maxRetryBackoffMs: 300_000
+    });
+  });
+
   it("resolves $VAR values and expands ~ paths", () => {
     process.env.MAESTRO_TASKS = "/repo/tasks";
     process.env.MAESTRO_WORKSPACE = "~/maestro";
@@ -75,6 +98,38 @@ describe("resolveConfig", () => {
     );
 
     expect(cfg.tasks).toMatchObject({ path: "/repo/tasks" });
+    expect(cfg.workspace.root).toBe(path.join(os.homedir(), "maestro"));
+  });
+
+  it("resolves relative workspace roots against the workflow directory", () => {
+    const cfg = resolveConfig(
+      {
+        tasks: { type: "markdown-dir", path: "./tasks" },
+        states: {
+          planned: { prompt: "Plan" },
+          done: { terminal: true }
+        },
+        workspace: { root: "./.poe-code/maestro" }
+      },
+      "/repo/workflows"
+    );
+
+    expect(cfg.workspace.root).toBe(path.resolve("/repo/workflows", ".poe-code/maestro"));
+  });
+
+  it("expands literal home workspace roots", () => {
+    const cfg = resolveConfig(
+      {
+        tasks: { type: "markdown-dir", path: "./tasks" },
+        states: {
+          planned: { prompt: "Plan" },
+          done: { terminal: true }
+        },
+        workspace: { root: "~/maestro" }
+      },
+      "/repo"
+    );
+
     expect(cfg.workspace.root).toBe(path.join(os.homedir(), "maestro"));
   });
 
@@ -150,6 +205,80 @@ describe("resolveConfig", () => {
     expect(cfg.stateOrder).toEqual(["queued", "planning", "reviewing", "done"]);
     expect(cfg.activeStateNames).toEqual(["queued", "planning", "reviewing"]);
     expect(cfg.terminalStateNames).toEqual(["done"]);
+  });
+
+  it("allows terminal-only state maps for dispatch validation to reject", () => {
+    const cfg = resolveConfig(
+      {
+        states: {
+          done: { terminal: true },
+          archived: { terminal: true }
+        }
+      },
+      "/repo"
+    );
+
+    expect(cfg.activeStateNames).toEqual([]);
+    expect(cfg.terminalStateNames).toEqual(["done", "archived"]);
+  });
+
+  it("treats states without prompt as inactive", () => {
+    const cfg = resolveConfig(
+      {
+        states: {
+          planned: {},
+          running: { prompt: "Run" },
+          done: { terminal: true }
+        }
+      },
+      "/repo"
+    );
+
+    expect(cfg.states.planned).toEqual({});
+    expect(cfg.activeStateNames).toEqual(["running"]);
+    expect(cfg.terminalStateNames).toEqual(["done"]);
+  });
+
+  it("leaves missing agent.list for gh-issues available to validation", () => {
+    const cfg = resolveConfig(
+      {
+        tasks: {
+          type: "gh-issues",
+          repo: "octo/repo",
+          project: { owner: "octo", number: 7 }
+        },
+        states: {
+          planned: { prompt: "Plan" },
+          done: { terminal: true }
+        }
+      },
+      "/repo"
+    );
+
+    expect(cfg.agent.list).toBeUndefined();
+  });
+
+  it("rejects duplicate state names in workflow YAML", async () => {
+    const { loadWorkflow } = await import("./load.js");
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": [
+        "---",
+        "states:",
+        "  planned:",
+        "    prompt: Plan",
+        "  planned:",
+        "    prompt: Duplicate",
+        "  done:",
+        "    terminal: true",
+        "---",
+        "",
+        "Body"
+      ].join("\n")
+    });
+
+    await expect(loadWorkflow("/repo/WORKFLOW.md")).rejects.toMatchObject({
+      code: "invalid_yaml"
+    });
   });
 
   it("round-trips state agent and model overrides without filling missing values", () => {

@@ -391,7 +391,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: config-coverage
     title: Config load, schema, and validate edge cases
@@ -432,8 +432,8 @@ tasks:
       - `ok: true` returned when config is well-formed and the
         backend responds.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: integration-coverage

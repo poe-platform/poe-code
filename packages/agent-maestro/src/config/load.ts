@@ -8,7 +8,7 @@ export interface WorkflowDefinition {
   promptTemplate: string;
 }
 
-export type WorkflowLoadErrorCode = "missing_workflow" | "invalid_frontmatter";
+export type WorkflowLoadErrorCode = "file_not_found" | "invalid_yaml";
 
 export class WorkflowLoadError extends Error {
   readonly code: WorkflowLoadErrorCode;
@@ -36,7 +36,7 @@ async function readWorkflowFile(sourcePath: string): Promise<string> {
   try {
     return await readFile(sourcePath, "utf8");
   } catch (error) {
-    throw new WorkflowLoadError("missing_workflow", `Missing workflow file at ${sourcePath}.`, {
+    throw new WorkflowLoadError("file_not_found", `Missing workflow file at ${sourcePath}.`, {
       cause: error
     });
   }
@@ -47,7 +47,7 @@ async function readWorkflowConfig(sourcePath: string): Promise<unknown> {
     return (await readMarkdown({ file: sourcePath })).frontmatter;
   } catch (error) {
     throw new WorkflowLoadError(
-      "invalid_frontmatter",
+      "invalid_yaml",
       `Invalid workflow frontmatter in ${sourcePath}.`,
       { cause: error }
     );

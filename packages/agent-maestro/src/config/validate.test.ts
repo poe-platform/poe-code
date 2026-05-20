@@ -1,7 +1,8 @@
+import { vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ResolvedConfig } from "./schema.js";
 import { resolveConfig } from "./schema.js";
-import { validateDispatch } from "./validate.js";
+import { validateDispatch, type DispatchPreflightCode } from "./validate.js";
 
 const { verifyGhProject } = vi.hoisted(() => ({
   verifyGhProject: vi.fn()
@@ -11,6 +12,14 @@ vi.mock("@poe-code/task-list", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@poe-code/task-list")>()),
   verifyGhProject
 }));
+
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return {
+    ...fs.promises,
+    default: fs.promises
+  };
+});
 
 function cfg(overrides: Partial<ResolvedConfig> = {}): ResolvedConfig {
   return {
@@ -43,12 +52,25 @@ function taskList(lists: readonly string[] = ["backlog"]) {
   };
 }
 
+const coveredPreflightCodes: Record<DispatchPreflightCode, true> = {
+  missing_tasks_config: true,
+  tasks_unreachable: true,
+  no_active_states: true,
+  no_terminal_states: true,
+  unknown_initial_state: true,
+  list_not_found: true,
+  board_not_provisioned: true
+};
+
 describe("validateDispatch", () => {
   beforeEach(() => {
+    vol.reset();
     verifyGhProject.mockReset();
   });
 
   it("fails when tasks config is missing", async () => {
+    expect(coveredPreflightCodes.missing_tasks_config).toBe(true);
+
     await expect(validateDispatch(cfg({ tasks: undefined }), taskList())).resolves.toEqual({
       ok: false,
       code: "missing_tasks_config"
@@ -97,6 +119,8 @@ describe("validateDispatch", () => {
   });
 
   it("fails when the configured task list does not exist", async () => {
+    expect(coveredPreflightCodes.list_not_found).toBe(true);
+
     await expect(validateDispatch(cfg(), taskList(["triage"]))).resolves.toEqual({
       ok: false,
       code: "list_not_found",
@@ -104,7 +128,123 @@ describe("validateDispatch", () => {
     });
   });
 
+  it("fails when the task backend cannot be reached", async () => {
+    expect(coveredPreflightCodes.tasks_unreachable).toBe(true);
+
+    await expect(
+      validateDispatch(cfg(), { lists: vi.fn().mockRejectedValue(new Error("offline")) })
+    ).resolves.toEqual({
+      ok: false,
+      code: "tasks_unreachable"
+    });
+  });
+
+  it("fails when no states are active", async () => {
+    expect(coveredPreflightCodes.no_active_states).toBe(true);
+
+    await expect(
+      validateDispatch(
+        cfg({
+          states: {
+            done: { terminal: true }
+          },
+          activeStateNames: [],
+          terminalStateNames: ["done"],
+          stateOrder: ["done"]
+        }),
+        taskList()
+      )
+    ).resolves.toEqual({
+      ok: false,
+      code: "no_active_states"
+    });
+  });
+
+  it("rejects terminal-only state maps after config resolution", async () => {
+    const resolved = resolveConfig(
+      {
+        tasks: { type: "markdown-dir", path: "./tasks" },
+        states: {
+          done: { terminal: true },
+          archived: { terminal: true }
+        },
+        agent: { list: "backlog" }
+      },
+      "/repo"
+    );
+
+    await expect(validateDispatch(resolved, taskList())).resolves.toEqual({
+      ok: false,
+      code: "no_active_states"
+    });
+  });
+
+  it("fails when no states are terminal", async () => {
+    expect(coveredPreflightCodes.no_terminal_states).toBe(true);
+
+    await expect(
+      validateDispatch(
+        cfg({
+          states: {
+            planned: { prompt: "Plan" }
+          },
+          activeStateNames: ["planned"],
+          terminalStateNames: [],
+          stateOrder: ["planned"]
+        }),
+        taskList()
+      )
+    ).resolves.toEqual({
+      ok: false,
+      code: "no_terminal_states"
+    });
+  });
+
+  it("fails when the initial state is not declared", async () => {
+    expect(coveredPreflightCodes.unknown_initial_state).toBe(true);
+
+    await expect(
+      validateDispatch(
+        cfg({
+          stateOrder: ["missing", "planned", "done"]
+        }),
+        taskList()
+      )
+    ).resolves.toEqual({
+      ok: false,
+      code: "unknown_initial_state",
+      state: "missing"
+    });
+  });
+
+  it("requires agent.list for gh-issues tasks", async () => {
+    const base = cfg();
+
+    await expect(
+      validateDispatch(
+        cfg({
+          tasks: {
+            type: "gh-issues",
+            repo: "octo/repo",
+            project: { owner: "octo", number: 7 }
+          },
+          agent: {
+            ...base.agent,
+            list: undefined
+          }
+        }),
+        taskList()
+      )
+    ).resolves.toEqual({
+      ok: false,
+      code: "list_not_found",
+      list: ""
+    });
+  });
+
   it("fails when a gh-issues project board is not provisioned", async () => {
+    expect(coveredPreflightCodes.board_not_provisioned).toBe(true);
+
     verifyGhProject.mockResolvedValue({
       ok: false,
       project: null,
@@ -161,6 +301,33 @@ describe("validateDispatch", () => {
       )
     ).resolves.toEqual({ ok: true });
   });
+
+  it("returns ok when a loaded workflow is well-formed and the backend responds", async () => {
+    const { loadWorkflow } = await import("./load.js");
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": [
+        "---",
+        "tasks:",
+        "  type: markdown-dir",
+        "  path: ./tasks",
+        "states:",
+        "  planned:",
+        "    prompt: Plan",
+        "  done:",
+        "    terminal: true",
+        "agent:",
+        "  list: backlog",
+        "---",
+        "",
+        "Body"
+      ].join("\n")
+    });
+
+    const workflow = await loadWorkflow("/repo/WORKFLOW.md");
+    const resolved = resolveConfig(workflow.config, "/repo");
+
+    await expect(validateDispatch(resolved, taskList())).resolves.toEqual({ ok: true });
+  });
 });
 
 describe("workflow state validation", () => {
@@ -177,17 +344,21 @@ describe("workflow state validation", () => {
     ).toThrow("exactly one");
   });
 
-  it("fails when a state has neither prompt nor terminal true", () => {
-    expect(() =>
-      resolveConfig(
-        {
-          states: {
-            planned: { terminal: false }
-          }
-        },
-        "/repo"
-      )
-    ).toThrow("exactly one");
+  it("treats a state with neither prompt nor terminal true as inactive", () => {
+    const cfg = resolveConfig(
+      {
+        states: {
+          planned: { terminal: false },
+          running: { prompt: "Run" },
+          done: { terminal: true }
+        }
+      },
+      "/repo"
+    );
+
+    expect(cfg.states.planned).toEqual({ terminal: false });
+    expect(cfg.activeStateNames).toEqual(["running"]);
+    expect(cfg.terminalStateNames).toEqual(["done"]);
   });
 
   it("fails when states is empty", () => {

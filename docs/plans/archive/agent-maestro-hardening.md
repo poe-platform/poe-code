@@ -2,21 +2,28 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: mock-agent-spawn
     title: Build invisible mock agent spawn test double
-    prompt: |
+    prompt: >
       In packages/agent-maestro create `src/__test_utils__/mock-spawn.ts`.
+
       It must implement the same callable shape as
+
       `spawn` from `@poe-code/agent-spawn` so callers cannot tell it
+
       apart (same args, same `SpawnResult`-compatible return, same
+
       thrown error types including `ActivityTimeoutError` and AbortError).
 
+
       The mock is deterministic: no LLM, no network, no child process,
+
       no real fs. Build behavior from a declarative script:
 
+
       ```ts
+
       type MockSpawnStep =
         | { kind: "emit"; event: AcpEvent }
         | { kind: "exit"; exitCode: number }
@@ -25,8 +32,11 @@ tasks:
         | { kind: "assert"; fn: (call: SpawnCall) => void }; // assertion on the call
       ```
 
+
       Behavior requirements:
-      - `createMockSpawn(scripts: Record<string, MockSpawnStep[]> | ((call) => MockSpawnStep[]))` returns
+
+      - `createMockSpawn(scripts: Record<string, MockSpawnStep[]> | ((call) =>
+      MockSpawnStep[]))` returns
         a `spawn`-shaped function plus a `calls` array (all invocations
         with `{ agent, prompt, model, mode, cwd, signal }` captured).
       - Default (no script) succeeds with exitCode 0 and one synthetic
@@ -39,20 +49,27 @@ tasks:
         types — production code paths must not see the mock.
 
       Re-export under `src/__test_utils__/index.ts`. Do NOT export
+
       from the package root `src/index.ts`. Add a unit test
+
       `mock-spawn.test.ts` covering: scripted exit, scripted throw
+
       mapped to each error type, abort honoring, call capture, default
+
       no-script behavior, multiple-call scripts (one per kind).
 
+
       Treat the mock as part of the public test contract: every later
+
       task uses it. If a real production seam is missing for any
+
       injection point, add the seam — do not add branches in production
+
       code that "know" the mock is active.
     status:
       implement: done
       test: done
       commit: done
-
   - id: mock-task-list
     title: Build invisible in-memory TaskList test double
     prompt: |
@@ -107,7 +124,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: shared-test-fixtures
     title: Extract shared maestro test fixtures and event collector
     prompt: |
@@ -155,7 +171,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: pipeline-driver-coverage
     title: Pipeline driver exhaustive failure-mode coverage
     prompt: |
@@ -204,7 +219,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: ralph-driver-coverage
     title: Ralph driver exhaustive failure-mode coverage
     prompt: |
@@ -246,7 +260,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: loop-tick-coverage
     title: Loop tick concurrency, claim, and dispatch coverage
     prompt: |
@@ -291,7 +304,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: reconcile-coverage
     title: Reconcile state-mutation-mid-attempt coverage
     prompt: |
@@ -321,7 +333,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: workspace-manager-coverage
     title: Workspace manager security and cleanup edge cases
     prompt: |
@@ -356,7 +367,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: retry-and-phase-coverage
     title: Retry, backoff, and phase-machine edge cases
     prompt: |
@@ -392,7 +402,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: config-coverage
     title: Config load, schema, and validate edge cases
     prompt: |
@@ -435,7 +444,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: integration-coverage
     title: End-to-end maestro loop integration coverage
     prompt: |
@@ -481,7 +489,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: shutdown-and-abort-coverage
     title: Shutdown, abort, and lifecycle edge cases
     prompt: |
@@ -518,7 +525,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: driver-registry-and-prompt-render-coverage
     title: Driver registry and prompt render edge cases
     prompt: |
@@ -552,7 +558,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: concurrency-stress
     title: Concurrency stress and determinism
     prompt: |
@@ -589,7 +594,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: replace-adhoc-mocks-in-existing-tests
     title: Remove duplicated ad-hoc mocks from production-adjacent tests
     prompt: |
@@ -615,7 +619,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: harden-runtime-bugs
     title: Fix every production bug surfaced by the hardening tests
     prompt: |
@@ -655,14 +658,15 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
-
+      commit: done
 teardown:
   prompt: |
     Run `npm run lint` and `cd packages/agent-maestro && npm run test`
     in the package, confirm both are green, then run the full repo
     test suite from the root to confirm no cross-package regressions.
     Commit any remaining changes.
+name: agent-maestro-hardening
+state: archived
 ---
 
 # Context

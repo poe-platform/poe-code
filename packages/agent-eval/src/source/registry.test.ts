@@ -87,7 +87,8 @@ describe("eval source registry", () => {
         timeoutMs: 1000
       },
       oracle: {
-        path: "oracle"
+        path: "oracle",
+        solutionDest: "."
       },
       plan: {
         path: "/repo/evals/smoke/plan.md",

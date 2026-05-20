@@ -149,7 +149,8 @@ function createEval(overrides: Partial<EvalDef> = {}): EvalDef {
       timeoutMs: 1_000
     },
     oracle: {
-      path: "oracle"
+      path: "oracle",
+      solutionDest: "."
     },
     budget: {
       maxIterations: 10,

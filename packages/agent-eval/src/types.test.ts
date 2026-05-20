@@ -28,7 +28,8 @@ describe("resolveScorer", () => {
       rootDir: "evals/smoke",
       scorer: undefined,
       oracle: {
-        path: "custom-oracle"
+        path: "custom-oracle",
+        solutionDest: "."
       }
     });
     const result = resolveScorer(evalDef);
@@ -42,7 +43,8 @@ describe("resolveScorer", () => {
     const evalDef = createEval({
       scorer: undefined,
       oracle: {
-        path: "/custom-oracle"
+        path: "/custom-oracle",
+        solutionDest: "."
       }
     });
 
@@ -70,7 +72,8 @@ function createEval(overrides: Partial<EvalDef> = {}): EvalDef {
       timeoutMs: 1000
     },
     oracle: {
-      path: "oracle"
+      path: "oracle",
+      solutionDest: "."
     },
     budget: {
       maxIterations: 10,

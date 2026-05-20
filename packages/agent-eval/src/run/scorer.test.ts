@@ -271,7 +271,8 @@ function createEvalDef(overrides: Partial<EvalDef> = {}): EvalDef {
     },
     scorer: createScorerSpec(),
     oracle: {
-      path: "oracle"
+      path: "oracle",
+      solutionDest: "."
     },
     budget: {
       maxIterations: 10,

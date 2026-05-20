@@ -12,6 +12,9 @@ import type { Static, ValidationIssue } from "toolcraft-schema";
  *
  * Keep oracle.path at its default value of "oracle" unless an eval has a
  * strong reason to use a different folder.
+ *
+ * eval check copies oracle/solution/* into the clone root by default. Use
+ * oracle.solution_dest to copy it under a clone-root-relative subdirectory.
  */
 export const evalYamlSchema = S.Object({
   id: S.String(),
@@ -30,7 +33,8 @@ export const evalYamlSchema = S.Object({
     })
   ),
   oracle: S.Object({
-    path: S.Optional(S.String({ default: "oracle" }))
+    path: S.Optional(S.String({ default: "oracle" })),
+    solution_dest: S.Optional(S.String({ default: "." }))
   }),
   budget: S.Object({
     max_iterations: S.Number(),

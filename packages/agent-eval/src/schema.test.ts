@@ -59,7 +59,8 @@ describe("eval yaml schema", () => {
         timeout_ms: 1000
       },
       oracle: {
-        path: "oracle"
+        path: "oracle",
+        solution_dest: "."
       },
       budget: {
         max_iterations: 10,

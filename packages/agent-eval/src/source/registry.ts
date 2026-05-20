@@ -74,7 +74,8 @@ export async function loadEval(
             timeoutMs: evalYaml.scorer.timeout_ms
           },
     oracle: {
-      path: evalYaml.oracle.path ?? "oracle"
+      path: evalYaml.oracle.path ?? "oracle",
+      solutionDest: evalYaml.oracle.solution_dest ?? "."
     },
     budget: {
       maxIterations: evalYaml.budget.max_iterations,

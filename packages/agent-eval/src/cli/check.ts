@@ -1,0 +1,90 @@
+import path from "node:path";
+import {
+  color,
+  getTheme,
+  renderTable,
+  withOutputFormat,
+  type RenderTableOptions,
+  type TableColumn
+} from "@poe-code/design-system";
+import { evalCheck, type CheckResult } from "../check/check.js";
+import { openSource } from "../source/open.js";
+import { listEvals } from "../source/registry.js";
+
+export interface CheckCliInput {
+  evalId?: string;
+  sourceDir?: string;
+}
+
+const columns: TableColumn[] = [
+  { name: "status", title: "Status", alignment: "left", maxLen: 8 },
+  { name: "case", title: "Case", alignment: "left", maxLen: 40 },
+  { name: "time", title: "Time", alignment: "right", maxLen: 8 },
+  { name: "message", title: "Message", alignment: "left", maxLen: 60 }
+];
+
+export async function runCheckCli(input: CheckCliInput): Promise<number> {
+  try {
+    const sourceDir = path.resolve(input.sourceDir ?? process.cwd());
+    const source = await openSource(sourceDir);
+    const evalId = input.evalId ?? (await resolveDefaultEvalId(source.rootDir));
+    const result = await evalCheck({ sourceDir: source.rootDir, evalId });
+
+    process.stdout.write(`${renderCheckResultTable(result)}\n`);
+    return result.tests.passed === result.tests.total ? 0 : 1;
+  } catch (error) {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    return 1;
+  }
+}
+
+export function renderCheckResultTable(result: CheckResult): string {
+  const rows = result.tests.cases.map((testCase) => ({
+    status: testCase.passed ? color.green("✓") : color.red("X"),
+    case: testCase.name,
+    time: formatDuration(testCase.durationMs),
+    message: testCase.message ?? ""
+  }));
+  const table = withOutputFormat("terminal", () =>
+    renderTable({
+      theme: getTheme(),
+      columns,
+      rows
+    } satisfies RenderTableOptions)
+  );
+  const summary =
+    result.tests.passed === result.tests.total
+      ? color.green(summaryText(result))
+      : color.red(summaryText(result));
+
+  return `${table}\n${summary}`;
+}
+
+async function resolveDefaultEvalId(sourceDir: string): Promise<string> {
+  const source = { rootDir: sourceDir };
+  const evalIds = await listEvals(source);
+  if (evalIds.length === 1) {
+    return evalIds[0] as string;
+  }
+
+  throw new Error(
+    [
+      "Multiple evals found. Pass an eval id to check.",
+      `Available eval ids: ${evalIds.length === 0 ? "(none)" : evalIds.join(", ")}`
+    ].join("\n")
+  );
+}
+
+function summaryText(result: CheckResult): string {
+  return `${result.tests.passed}/${result.tests.total} cases passed in ${formatDuration(
+    result.durationMs
+  )}`;
+}
+
+function formatDuration(durationMs: number): string {
+  if (Math.abs(durationMs) >= 1000) {
+    return `${(durationMs / 1000).toFixed(1)}s`;
+  }
+
+  return `${Math.round(durationMs)}ms`;
+}

@@ -201,8 +201,8 @@ tasks:
 
       Update src/index.ts re-exports.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: eval-init

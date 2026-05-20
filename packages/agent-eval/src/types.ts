@@ -68,6 +68,7 @@ export interface EvalDef {
   scorer: ScorerSpec | undefined;
   oracle: {
     path: string;
+    solutionDest: string;
   };
   budget: Budget;
   judge: JudgeSpec;

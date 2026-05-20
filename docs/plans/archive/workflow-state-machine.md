@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: states-schema
     title: Add states map to WORKFLOW.md schema (additive, build stays green)
@@ -85,7 +84,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: template-vars
     title: Add task.url and task.metadata to the prompt renderer
     prompt: |
@@ -164,7 +162,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: state-driven-driver
     title: Dispatch one prompt per tick keyed by task state; drop old config fields
     prompt: |
@@ -249,23 +246,30 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: tasks-cli
     title: Add backend-agnostic poe-code tasks CLI (get/set/set-state/next/comment)
-    prompt: |
+    prompt: >
       Goal: expose the task-list package's existing read/write API as
+
       `poe-code tasks` subcommands so the agent in any state can mutate
+
       the artifact and advance the workflow through one interface
+
       regardless of backend. The agent never invokes `gh issue edit` or
+
       hand-edits markdown files directly — it shells out to these
+
       commands.
 
+
       Files:
+
       - src/cli/commands/tasks.ts (existing `verify` / `sync`
         subcommands are at lines 22 and 35; add the new ones alongside)
       - src/cli/commands/tasks-options.ts (extend options types as
         needed)
       - src/cli/commands/tasks-command.test.ts
+
       - packages/task-list/src/index.ts (only if a needed method is not
         already exported)
       - packages/task-list/src/backends/gh-issues.ts (if `comment` is
@@ -274,17 +278,27 @@ tasks:
         interface)
 
       Maestro must construct an any-to-any state machine from
+
       `cfg.stateOrder` (one event per declared state, `from: "*"`,
+
       `to: <state-name>`) and pass it to `openTaskList({ stateMachine })`.
+
       For gh-issues, the backend already builds an equivalent dynamic
+
       machine from Project Status options — no override needed there.
+
       For markdown-dir / yaml-file, the maestro-supplied machine
+
       overrides the default strict machine. This shared machine is what
+
       backs every CLI subcommand below; the CLI never bypasses it.
+
 
       New subcommands:
 
+
       `poe-code tasks get <id> [--field <name>] [--json]`
+
       - `<id>` is a qualified task id (e.g. `plans/foo` for markdown-dir,
         `owner/number#42` for gh-issues).
       - With no `--field`, prints the full task as JSON when `--json`,
@@ -293,13 +307,17 @@ tasks:
         stdout with a trailing newline; useful for shell substitution
         (`$(poe-code tasks get <id> --field description)`).
 
-      `poe-code tasks set <id> [--description-file <path>] [--description <string>] [--name <string>] [--metadata-json <json>]`
+      `poe-code tasks set <id> [--description-file <path>] [--description
+      <string>] [--name <string>] [--metadata-json <json>]`
+
       - Exactly one description source MUST be provided when updating
         description (`--description-file` or `--description`); reject
         both.
       - Wraps `Tasks.update(id, { description, name, metadata })`.
 
+
       `poe-code tasks set-state <id> <state>`
+
       - Direct state assignment. Wraps `Tasks.fire(id, state)` using the
         maestro-supplied any-to-any state machine, where event name
         equals target state name.
@@ -309,6 +327,7 @@ tasks:
         - task already in `<state>` → success no-op (idempotent).
 
       `poe-code tasks next <id>`
+
       - Reads the current state from `Tasks.get(id)`, looks up the
         next entry in `cfg.stateOrder`, and fires it via
         `set-state`-equivalent path.
@@ -321,7 +340,9 @@ tasks:
           a clear message.
 
       `poe-code tasks comment <id> [--file <path>] [--message <string>]`
+
       - Exactly one of `--file` / `--message`.
+
       - On gh-issues, posts an issue comment via the backend's new
         `comment` method.
       - On markdown-dir / yaml-file, the CLI prints
@@ -329,6 +350,7 @@ tasks:
         exits with code 2 (configuration problem), not 1.
 
       All subcommands MUST:
+
       - Resolve the list from `./WORKFLOW.md` by default, matching the
         existing `verify` / `sync` pattern. Allow `--workflow <path>`
         override.
@@ -338,10 +360,12 @@ tasks:
         these subcommands; `--yes` is wired for parity).
 
       Tests (TDD, fast unit tests with memfs and a fake gh client):
+
       - tasks-command.test.ts: each subcommand exercised against a
         markdown-dir backend (memfs-backed) — happy path and one
         error path each.
       - `next` happy path: task at state[0] advances to state[1].
+
       - `next` at the last state: exit code 2 with the documented
         message.
       - `set-state` to an undeclared state: exit code 2 with the
@@ -354,9 +378,11 @@ tasks:
         together.
 
       Out of scope:
+
       - Role/actor enforcement (`--as agent` / `--as human`). Any state
         can move to any state by any caller; no guards.
       - Graph / visualization subcommand.
+
       - SDK parity: the task-list package's existing API already serves
         SDK callers — each CLI subcommand is a thin wrapper over an
         existing SDK method.
@@ -366,7 +392,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: migrate-workflow
     title: Rewrite root WORKFLOW.md as a state-machine workflow
     prompt: |
@@ -470,7 +495,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: docs-state-machine
     title: Update agent-maestro README for state-machine workflows
     prompt: |
@@ -527,7 +551,9 @@ tasks:
         file.
     status:
       implement: done
-      commit: open
+      commit: done
+name: workflow-state-machine
+state: archived
 ---
 
 # Workflow state machine

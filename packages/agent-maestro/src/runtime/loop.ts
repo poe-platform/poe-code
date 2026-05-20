@@ -67,6 +67,10 @@ export interface TickDeps {
   trackWorker?: (worker: TrackedWorker) => void;
   now?: () => number;
   onEvent?: (event: TickEvent) => void;
+  logger?: {
+    error?(message: string, meta?: Record<string, unknown>): void;
+    warn?(message: string, meta?: Record<string, unknown>): void;
+  };
 }
 
 export async function tick(state: MaestroState, deps: TickDeps): Promise<void> {
@@ -128,10 +132,7 @@ export async function tick(state: MaestroState, deps: TickDeps): Promise<void> {
   }
 }
 
-async function startTaskIfSupported(
-  tasks: Pick<TaskList, "list">,
-  task: Task
-): Promise<Task> {
+async function startTaskIfSupported(tasks: Pick<TaskList, "list">, task: Task): Promise<Task> {
   const list = tasks.list(task.list);
 
   if (!(await list.canFire(task.id, "start"))) {
@@ -172,7 +173,10 @@ async function reconcileRetryQueue(
     }
 
     if (state.cfg.terminalStateNames.includes(task.state)) {
-      await (deps.removeWorkspace ?? defaultRemoveWorkspace)(state.cfg.workspace.root, task.qualifiedId);
+      await (deps.removeWorkspace ?? defaultRemoveWorkspace)(
+        state.cfg.workspace.root,
+        task.qualifiedId
+      );
       markCompleted(state, retry.taskId);
       results.push({ taskId: retry.taskId, action: "stop_clean" });
       continue;
@@ -214,65 +218,112 @@ function acquireDispatchSlot(state: MaestroState, task: Task, now: number): numb
   return 1;
 }
 
-function startWorker(
-  state: MaestroState,
-  deps: TickDeps,
-  task: Task,
-  attempt: number
-): void {
+function startWorker(state: MaestroState, deps: TickDeps, task: Task, attempt: number): void {
   const controller = new AbortController();
   const promise = (async () => {
-    let outcome: AttemptOutcome;
+    let outcome: AttemptOutcome | undefined;
     let workspace: EnsureWorkspaceResult | undefined;
     let activeTask = task;
+    let workerRejected = false;
 
     try {
       workspace = await (deps.ensureWorkspace ?? defaultEnsureWorkspace)(
         state.cfg.workspace.root,
         task.qualifiedId
       );
-      deps.onEvent?.({
-        type: "dispatch",
-        task_id: task.qualifiedId,
-        attempt,
-        workspace: workspace.path
-      });
-      activeTask = await startTaskIfSupported(deps.tasks, task);
-      outcome = await (deps.runAttempt ?? defaultRunAttempt)({
-        task: activeTask,
-        attempt,
-        cfg: state.cfg,
-        workspaceDir: workspace.path,
-        deps: {
-          spawn: deps.spawn,
-          taskPromptTemplate: deps.taskPromptTemplate,
-          refreshTask: (qualifiedId) => deps.tasks.get(qualifiedId),
-          onEvent: deps.onEvent,
-          reconcile: async ({ task: runningTask }) => {
-            const refreshed = await deps.tasks.get(runningTask.qualifiedId);
-
-            if (
-              state.cfg.terminalStateNames.includes(refreshed.state) ||
-              !state.cfg.activeStateNames.includes(refreshed.state)
-            ) {
-              return "canceled";
-            }
-
-            return "continue";
-          }
-        },
-        abort: controller.signal
-      });
     } catch (error) {
       outcome = {
         reason: "abnormal",
         failure: "workspace_error",
-        error: error instanceof Error ? error.message : String(error)
+        error: errorMessage(error)
+      };
+    }
+
+    if (workspace !== undefined) {
+      try {
+        deps.onEvent?.({
+          type: "dispatch",
+          task_id: task.qualifiedId,
+          attempt,
+          workspace: workspace.path
+        });
+        activeTask = await startTaskIfSupported(deps.tasks, task);
+        outcome = await (deps.runAttempt ?? defaultRunAttempt)({
+          task: activeTask,
+          attempt,
+          cfg: state.cfg,
+          workspaceDir: workspace.path,
+          deps: {
+            spawn: deps.spawn,
+            taskPromptTemplate: deps.taskPromptTemplate,
+            refreshTask: (qualifiedId) => deps.tasks.get(qualifiedId),
+            onEvent: deps.onEvent,
+            reconcile: async ({ task: runningTask }) => {
+              const refreshed = await deps.tasks.get(runningTask.qualifiedId);
+
+              if (
+                state.cfg.terminalStateNames.includes(refreshed.state) ||
+                !state.cfg.activeStateNames.includes(refreshed.state)
+              ) {
+                return "canceled";
+              }
+
+              return "continue";
+            },
+            logger:
+              deps.logger?.warn === undefined
+                ? undefined
+                : {
+                    warn: deps.logger.warn.bind(deps.logger)
+                  }
+          },
+          abort: controller.signal
+        });
+      } catch (error) {
+        workerRejected = true;
+        const message = errorMessage(error);
+        deps.logger?.error?.("maestro worker rejected", {
+          taskId: activeTask.qualifiedId,
+          attempt,
+          error: message
+        });
+        outcome = {
+          reason: "abnormal",
+          failure: "agent_crashed",
+          error: message
+        };
+      }
+    }
+
+    if (outcome === undefined) {
+      outcome = {
+        reason: "abnormal",
+        failure: "workspace_error",
+        error: "workspace was not created"
       };
     }
 
     const phase = outcomePhase(outcome);
-    deps.onEvent?.({ type: "worker_exit", task_id: activeTask.qualifiedId, attempt, phase, outcome });
+    deps.onEvent?.({
+      type: "worker_exit",
+      task_id: activeTask.qualifiedId,
+      attempt,
+      phase,
+      outcome
+    });
+    if (workerRejected) {
+      release(state, activeTask.qualifiedId);
+      return;
+    }
+
+    if (
+      workspace !== undefined &&
+      (outcome.reason === "normal" || outcome.failure === "canceled") &&
+      (await cleanupTerminalWorkspace(state, deps, activeTask.qualifiedId))
+    ) {
+      return;
+    }
+
     const retryScheduled = scheduleWorkerRetry(
       state,
       deps,
@@ -325,27 +376,33 @@ async function cleanupTerminalWorkspace(
   state: MaestroState,
   deps: TickDeps,
   taskId: string
-): Promise<void> {
+): Promise<boolean> {
   let task: Task;
 
   try {
     task = await deps.tasks.get(taskId);
   } catch {
-    return;
+    return false;
   }
 
   if (!state.cfg.terminalStateNames.includes(task.state)) {
-    return;
+    return false;
   }
 
-  await (deps.removeWorkspace ?? defaultRemoveWorkspace)(state.cfg.workspace.root, task.qualifiedId);
+  await (deps.removeWorkspace ?? defaultRemoveWorkspace)(
+    state.cfg.workspace.root,
+    task.qualifiedId
+  );
   markCompleted(state, taskId);
   deps.onEvent?.({ type: "reconcile", task_id: taskId, action: "stop_clean" });
+  return true;
 }
 
-function outcomePhase(
-  outcome: AttemptOutcome
-): WorkerExitPhase {
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function outcomePhase(outcome: AttemptOutcome): WorkerExitPhase {
   if (outcome.reason === "normal") {
     return "succeeded";
   }

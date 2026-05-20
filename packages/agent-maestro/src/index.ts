@@ -114,6 +114,7 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
             tasks: taskList,
             spawn: opts.agentSpawn,
             taskPromptTemplate: workflow.promptTemplate,
+            logger,
             trackWorker: (worker) => {
               workers.set(worker.taskId, worker);
               void worker.promise.finally(() => {
@@ -486,11 +487,7 @@ export {
 } from "./agent/runner.js";
 export { getDriver, listDrivers, registerDriver } from "./drivers/registry.js";
 export { type WorkflowDriver, type WorkflowDriverContext } from "./drivers/types.js";
-export {
-  experimentDriver,
-  harnessDriver,
-  superintendentDriver
-} from "./drivers/index.js";
+export { experimentDriver, harnessDriver, superintendentDriver } from "./drivers/index.js";
 export {
   ensureWorkspace,
   removeWorkspace,

@@ -245,7 +245,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: loop-tick-coverage
     title: Loop tick concurrency, claim, and dispatch coverage
@@ -288,8 +288,8 @@ tasks:
       Use the event collector for ordered assertions on the
       `MaestroEvent` stream.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: reconcile-coverage

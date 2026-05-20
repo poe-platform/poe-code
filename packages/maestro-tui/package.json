@@ -1,0 +1,27 @@
+{
+  "name": "@poe-code/maestro-tui",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/maestro-tui/src",
+    "test:unit": "cd ../.. && vitest run packages/maestro-tui/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-maestro": "*",
+    "@poe-code/design-system": "*",
+    "@poe-code/task-list": "*"
+  }
+}

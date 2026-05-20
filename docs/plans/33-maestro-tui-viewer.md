@@ -34,7 +34,7 @@ tasks:
       API surface, and any env vars or config options (per CLAUDE.md
       package rules).
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: build-maestro-explorer-config
@@ -54,14 +54,25 @@ tasks:
       Row mapping (one row per task):
       - `id`: `task.qualifiedId`
       - `title`: `task.name`
-      - `subtitle`: `task.qualifiedId`
+      - `subtitle`: `\`${task.list} · ${task.qualifiedId}\`` so the list
+        affiliation stays visible after state-grouping moves it out of
+        the group header.
       - `badge`: `{ text: task.state, tone: toneForState(task.state) }`
         where `toneForState` maps:
           `"draft"` → `"muted"`, `"planned"` → `"info"`,
           `"in-progress"` → `"warning"`, `"done"` → `"success"`,
           `"archived"` → `"muted"`, anything else → `"info"`.
         Do not hardcode state names anywhere else.
-      - `group`: `task.list`
+      - `group`: `task.state` — rows are grouped by state, not by list.
+
+      Group ordering: emit rows in this state order so active work
+      surfaces first and terminal work sinks to the bottom:
+      `in-progress`, `planned`, `draft`, `done`, `archived`, then any
+      other state names in alphabetical order. The explorer renders
+      groups in row-emission order, so sort `tasks` accordingly before
+      mapping to rows. Within a group, preserve the order returned by
+      `taskList.allTasks()` (the backends already apply their own
+      priority/created ordering).
 
       Detail items (right pane) for the selected row, in order:
       1. Heading line: `# {task.name}` plus `**State:** {task.state}`.
@@ -93,18 +104,19 @@ tasks:
       commit: open
 
   - id: action-fire-event
-    title: Add "fire event" action to advance task state
+    title: Add "Move to state…" action (cross-state task movement)
     prompt: |
       In `packages/maestro-tui/src/actions.ts`, add an action that lets
-      the user advance a task by firing one of its available workflow
-      events. Wire it into the `actions` array returned by
-      `buildMaestroExplorerConfig` (in
+      the user move a task to a different state by firing the workflow
+      event that targets that state. Because rows are grouped by state
+      in the list, this is the cross-group move. Wire it into the
+      `actions` array returned by `buildMaestroExplorerConfig` (in
       `packages/maestro-tui/src/explorer-config.ts`).
 
       Action definition (`Action<void>` from `@poe-code/design-system`):
-      - `id: "fire"`
+      - `id: "move-state"`
       - `key: "f"`
-      - `label: "Fire event…"`
+      - `label: "Move to state…"`
       - `primary: true`
       - `predicate`: hide when the task's `events()` list is empty.
         Compute predicate state from the cached events map that the
@@ -113,21 +125,72 @@ tasks:
       - `handler`:
         1. Resolve the `Tasks` (`taskList.list(task.list)`) and the
            current `Task` from the cached row map.
-        2. Read `await tasks.events(task.id)`. If empty, `ctx.toast` an
-           info message and return.
-        3. Show a selection prompt for the event name. Use the existing
-           design-system prompt primitive (search
-           `packages/design-system/src` for the select/picker that
-           `ctx.suspendAnd` exposes — do not introduce a new prompt lib).
-        4. If the user cancels, return silently.
-        5. Call `await tasks.fire(taskId, event)`. On
+        2. Read `await tasks.events(task.id)`. For each event, look up
+           its target state from `tasks.stateMachine` (the
+           `StateMachineDef` exposed on `Tasks`). Build a picker entry
+           per event with the label `\`${event}    → ${targetState}\``.
+        3. If the list is empty, `ctx.toast` an info message and return.
+        4. Show the selection prompt. Use the existing design-system
+           prompt primitive (search `packages/design-system/src` for
+           the select/picker that `ctx.suspendAnd` exposes — do not
+           introduce a new prompt lib).
+        5. If the user cancels, return silently.
+        6. Call `await tasks.fire(taskId, event)`. On
            `InvalidTransitionError` (imported from `@poe-code/task-list`),
            `ctx.toast(err.reason, "error")` and return.
-        6. `await ctx.refresh()` and `ctx.toast(\`Fired ${event}\`,
-           "info")`.
+        7. `await ctx.refresh()` and `ctx.toast(\`Moved to ${targetState}\`,
+           "info")`. The list re-groups automatically because the row's
+           `group` is derived from `task.state`.
 
       Do not call `setState` directly — only `fire`. Do not branch on
       backend type; all backends implement `Tasks.fire`.
+    status:
+      implement: open
+      test: open
+      commit: open
+
+  - id: reorder-within-state-group
+    title: Reorder rows within a state group via Shift+↑/↓
+    prompt: |
+      Wire the explorer's `reorder` hook so users can reprioritise
+      tasks inside a state group. The reducer in
+      `packages/design-system/src/explorer/reducer.ts` already moves
+      rows on `Shift+Up` / `Shift+Down` and emits the new id order
+      through `ExplorerConfig.reorder.onReorder(ids)` — confirm this
+      keybind is exposed by reading the keymap and footer text.
+
+      Implementation in
+      `packages/maestro-tui/src/explorer-config.ts`:
+
+      1. In `buildMaestroExplorerConfig`, populate
+         `config.reorder = { onReorder }`.
+      2. `onReorder(allIds)` receives the new flat order across all
+         groups. Re-derive per-list order:
+         - Walk `allIds`; for each id, look up the cached `Task`.
+         - Group ids by `task.list`, preserving the new sequence.
+         - For each list whose intra-list order changed, call
+           `taskList.list(listName).reorder(idsForThatList.map(qid =>
+             stripListPrefix(qid))`. Use a helper to convert
+           `qualifiedId` → backend-local `id` based on the `Task` cache
+           (do not re-parse).
+      3. If `Tasks.reorder` throws `OrderMismatchError`, surface a
+         `ctx.toast` with the error message and refresh from
+         `taskList.allTasks()` to recover (do not retry; the user
+         picked an invalid order — show why and let them try again).
+      4. Cross-state reordering (dragging a row from `planned` into
+         `draft`) must not change the task's state. The state group is
+         purely visual; only `move-state` changes state. If the
+         reordered position lands the row in a different group, the
+         explorer will visually re-sort it back to its true state group
+         on the next `refresh()` — that's the correct behaviour.
+         Document this in a one-line comment next to `onReorder`.
+
+      Footer hint: ensure the footer text includes
+      `"⇧↑↓ reorder (within state)"` so the affordance is discoverable.
+      The footer is rendered from action labels plus a keymap hint
+      block — check `packages/design-system/src/explorer/render` for
+      how plan-browser surfaces the equivalent hint, and reuse the same
+      mechanism.
     status:
       implement: open
       test: open
@@ -292,11 +355,17 @@ tasks:
          with tasks in `draft`, `planned`, `in-progress`, and `done`
          states (so all badge tones render).
       2. Capture screenshots for:
-         - initial list view (state badges visible across all 4 states)
+         - initial list view grouped by state, all five state groups
+           visible (in-progress, planned, draft, done, archived) with
+           correct group ordering
          - detail pane with description + metadata + Next events
          - detail pane on a terminal-state task (Next section shows the
            terminal hint)
-         - footer with the four registered actions
+         - "Move to state…" modal showing `event → state` rows
+         - mid-reorder state (a row visibly held with Shift+↑ inside
+           its group)
+         - footer showing both the action keys and the
+           `⇧↑↓ reorder (within state)` hint
       3. Inspect each screenshot for: badge tone correctness, header
          alignment, action key hints in the footer, no overflow in the
          metadata yaml block.

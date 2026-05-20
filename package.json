@@ -150,6 +150,7 @@
     "@poe-code/experiment-loop": "*",
     "@poe-code/file-lock": "*",
     "@poe-code/github-workflows": "*",
+    "@poe-code/maestro-tui": "*",
     "@poe-code/markdown-reader": "*",
     "@poe-code/memory": "*",
     "@poe-code/pipeline": "*",

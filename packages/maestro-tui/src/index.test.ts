@@ -51,7 +51,14 @@ describe("maestro-tui public API", () => {
 
     await expect(config.rows()).resolves.toEqual([]);
     expect(config.title).toBe("Maestro tasks");
-    expect(config.actions).toEqual([]);
+    expect(config.actions).toEqual([
+      expect.objectContaining({
+        id: "move-state",
+        key: "f",
+        label: "Move to state…",
+        primary: true
+      })
+    ]);
     expect(config.emptyHint).toBe("No tasks found");
   });
 
@@ -70,7 +77,14 @@ describe("maestro-tui public API", () => {
     expect(runExplorerImpl).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Maestro tasks",
-        actions: []
+        actions: [
+          expect.objectContaining({
+            id: "move-state",
+            key: "f",
+            label: "Move to state…",
+            primary: true
+          })
+        ]
       })
     );
   });

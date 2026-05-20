@@ -7,6 +7,7 @@ import type {
 } from "@poe-code/design-system";
 import type { Task, TaskList } from "@poe-code/task-list";
 import { stringify } from "yaml";
+import { buildMoveStateAction } from "./actions.js";
 
 export interface BuildMaestroExplorerConfigOptions {
   tasks: readonly Task[];
@@ -35,18 +36,41 @@ export function buildMaestroExplorerConfig(
   let tasks = [...options.tasks];
   let rows = toRows(tasks);
   let taskByRowId = toTaskMap(tasks);
+  let eventsByRowId = new Map<string, readonly string[]>();
+  let eventsCached = false;
 
   async function refresh(): Promise<void> {
     tasks = await options.onRefresh();
     rows = toRows(tasks);
     taskByRowId = toTaskMap(tasks);
+    eventsByRowId = new Map();
+    eventsCached = false;
+    await loadCachedEvents();
   }
 
-  const actions: Action<void>[] = [];
+  async function loadCachedEvents(): Promise<void> {
+    if (eventsCached) {
+      return;
+    }
+
+    eventsByRowId = await toEventsMap(tasks, options.taskList);
+    eventsCached = true;
+  }
+
+  const actions: Action<void>[] = [
+    buildMoveStateAction({
+      taskList: options.taskList,
+      taskByRowId: () => taskByRowId,
+      eventsByRowId: () => eventsByRowId
+    })
+  ];
 
   return {
     title: "Maestro tasks",
-    rows: async () => rows,
+    rows: async () => {
+      await loadCachedEvents();
+      return rows;
+    },
     refresh,
     detail: {
       items: async (row, ctx) => {
@@ -149,6 +173,23 @@ async function renderEventsMarkdown(task: Task, taskList: TaskList): Promise<str
 
 function toTaskMap(tasks: readonly Task[]): Map<string, Task> {
   return new Map(tasks.map((task) => [task.qualifiedId, task]));
+}
+
+async function toEventsMap(
+  tasks: readonly Task[],
+  taskList: TaskList
+): Promise<Map<string, readonly string[]>> {
+  const entries = await Promise.all(
+    tasks.map(async (task) => {
+      try {
+        return [task.qualifiedId, await taskList.list(task.list).events(task.id)] as const;
+      } catch {
+        return [task.qualifiedId, []] as const;
+      }
+    })
+  );
+
+  return new Map(entries);
 }
 
 function getTask(taskByRowId: ReadonlyMap<string, Task>, rowId: string): Task {

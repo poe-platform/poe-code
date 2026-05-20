@@ -145,8 +145,8 @@ tasks:
       Do not call `setState` directly — only `fire`. Do not branch on
       backend type; all backends implement `Tasks.fire`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: reorder-within-state-group

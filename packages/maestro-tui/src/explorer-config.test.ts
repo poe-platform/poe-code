@@ -1,6 +1,39 @@
-import { describe, expect, it, vi } from "vitest";
-import type { Task, TaskList, Tasks } from "@poe-code/task-list";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  InvalidTransitionError,
+  type StateMachineDef,
+  type Task,
+  type TaskList,
+  type Tasks
+} from "@poe-code/task-list";
+import {
+  select,
+  type Action,
+  type ActionContext,
+  type Row
+} from "@poe-code/design-system";
 import { buildMaestroExplorerConfig } from "./explorer-config.js";
+
+const { cancelSelection } = vi.hoisted(() => ({ cancelSelection: Symbol("cancel") }));
+
+vi.mock("@poe-code/design-system", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/design-system")>();
+  return {
+    ...actual,
+    select: vi.fn(),
+    isCancel: vi.fn((value: unknown) => value === cancelSelection)
+  };
+});
+
+const workflowMachine = {
+  initial: "planned",
+  states: ["planned", "in-progress", "done", "archived"],
+  events: {
+    start: { from: ["planned"], to: "in-progress" },
+    complete: { from: ["in-progress"], to: "done" },
+    archive: { from: "*", to: "archived" }
+  }
+} as const satisfies StateMachineDef;
 
 function task(overrides: Partial<Task> = {}): Task {
   const list = overrides.list ?? "tasks";
@@ -22,9 +55,20 @@ function task(overrides: Partial<Task> = {}): Task {
 function taskList(options: {
   events?: Record<string, Promise<readonly string[]> | readonly string[]>;
   eventErrors?: Record<string, Error>;
+  fireErrors?: Record<string, Error>;
+  stateMachine?: StateMachineDef;
 } = {}): TaskList {
+  const lists = new Map<string, Tasks>();
+
   return {
-    list: (name) => tasks(name, options),
+    list: (name) => {
+      let existing = lists.get(name);
+      if (existing === undefined) {
+        existing = tasks(name, options);
+        lists.set(name, existing);
+      }
+      return existing;
+    },
     lists: vi.fn(async () => ["tasks"]),
     allTasks: vi.fn(async () => []),
     get: vi.fn(async (qualifiedId) => task({ qualifiedId })),
@@ -39,16 +83,26 @@ function tasks(
   options: {
     events?: Record<string, Promise<readonly string[]> | readonly string[]>;
     eventErrors?: Record<string, Error>;
+    fireErrors?: Record<string, Error>;
+    stateMachine?: StateMachineDef;
   }
 ): Tasks {
+  const stateMachine = options.stateMachine ?? workflowMachine;
+
   return {
     name,
-    stateMachine: { states: ["draft"], initial: "draft", events: {} },
+    stateMachine,
     all: vi.fn(async () => []),
     get: vi.fn(async (id) => task({ list: name, id })),
     create: vi.fn(async (input) => task({ list: name, name: input.name })),
     update: vi.fn(async (id, patch) => task({ list: name, id, ...patch })),
-    fire: vi.fn(async (id) => task({ list: name, id })),
+    fire: vi.fn(async (id, event) => {
+      const error = options.fireErrors?.[`${name}/${id}:${event}`];
+      if (error !== undefined) {
+        throw error;
+      }
+      return task({ list: name, id, state: stateMachine.events[event]?.to ?? "planned" });
+    }),
     canFire: vi.fn(async () => true),
     events: vi.fn(async (id) => {
       const error = options.eventErrors?.[`${name}/${id}`];
@@ -61,6 +115,28 @@ function tasks(
     move: vi.fn(async (id) => task({ list: name, id })),
     reorder: vi.fn(async () => [])
   };
+}
+
+function actionCtx(row: Row, overrides: Partial<ActionContext<void>> = {}): ActionContext<void> {
+  return {
+    row,
+    rows: [row],
+    filter: "",
+    refresh: vi.fn(async () => undefined),
+    suspendAnd: vi.fn(async (fn) => fn()),
+    toast: vi.fn(),
+    confirm: vi.fn(async () => true),
+    exit: vi.fn(),
+    ...overrides
+  };
+}
+
+function moveStateAction(config: ReturnType<typeof buildMaestroExplorerConfig>): Action<void> {
+  const action = config.actions.find((candidate) => candidate.id === "move-state");
+  if (action === undefined) {
+    throw new Error("Move state action was not registered.");
+  }
+  return action;
 }
 
 async function renderDetail(config: ReturnType<typeof buildMaestroExplorerConfig>, rowIndex = 0) {
@@ -82,6 +158,10 @@ async function renderDetail(config: ReturnType<typeof buildMaestroExplorerConfig
 }
 
 describe("buildMaestroExplorerConfig", () => {
+  beforeEach(() => {
+    vi.mocked(select).mockReset();
+  });
+
   it("maps and orders task rows by state while preserving order within state", async () => {
     const tasks = [
       task({ id: "archived", qualifiedId: "tasks/archived", state: "archived" }),
@@ -160,7 +240,14 @@ describe("buildMaestroExplorerConfig", () => {
     expect(config.title).toBe("Maestro tasks");
     expect(config.emptyHint).toBe("No tasks found");
     expect(config.multiSelect).toBe(false);
-    expect(config.actions).toEqual([]);
+    expect(config.actions).toEqual([
+      expect.objectContaining({
+        id: "move-state",
+        key: "f",
+        label: "Move to state…",
+        primary: true
+      })
+    ]);
   });
 
   it("refreshes rows from onRefresh", async () => {
@@ -274,18 +361,153 @@ describe("buildMaestroExplorerConfig", () => {
       taskList: taskList({ events: { "tasks/ship": pendingEvents } }),
       onRefresh: async () => []
     });
-    const [row] = await config.rows();
+    const row = {
+      id: "tasks/ship",
+      title: "ship",
+      subtitle: "tasks · tasks/ship",
+      badge: { text: "planned", tone: "info" },
+      group: "planned"
+    } as const satisfies Row;
     const controller = new AbortController();
 
-    const pendingItems = config.detail.items(row!, {
+    const pendingItems = config.detail.items(row, {
       width: 80,
       height: 20,
       signal: controller.signal,
-      row: row!
+      row
     });
     controller.abort();
 
     await expect(pendingItems).resolves.toEqual([]);
     resolveEvents(["start"]);
+  });
+
+  it("shows the move-state action only when cached row events are available", async () => {
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({ id: "ship", qualifiedId: "tasks/ship" }),
+        task({ id: "done", qualifiedId: "tasks/done", state: "done" })
+      ],
+      taskList: taskList({ events: { "tasks/ship": ["start"] } }),
+      onRefresh: async () => []
+    });
+    const [shipRow, doneRow] = await config.rows();
+    const action = moveStateAction(config);
+
+    expect(action.predicate?.(actionCtx(shipRow!))).toBe(true);
+    expect(action.predicate?.(actionCtx(doneRow!))).toBe(false);
+  });
+
+  it("updates the move-state predicate event cache after refresh", async () => {
+    const refreshed = task({ id: "done", qualifiedId: "tasks/done", state: "done" });
+    const config = buildMaestroExplorerConfig({
+      tasks: [task({ id: "ship", qualifiedId: "tasks/ship" })],
+      taskList: taskList({ events: { "tasks/ship": ["start"] } }),
+      onRefresh: async () => [refreshed]
+    });
+    const [initialRow] = await config.rows();
+    const action = moveStateAction(config);
+
+    expect(action.predicate?.(actionCtx(initialRow!))).toBe(true);
+
+    await config.refresh!();
+    const [refreshedRow] = await config.rows();
+
+    expect(action.predicate?.(actionCtx(refreshedRow!))).toBe(false);
+  });
+
+  it("moves a task by prompting for an event and firing it", async () => {
+    vi.mocked(select).mockResolvedValue({ event: "archive", targetState: "archived" });
+    const list = taskList({
+      events: { "work/ship": ["start", "archive"] },
+      stateMachine: workflowMachine
+    });
+    const config = buildMaestroExplorerConfig({
+      tasks: [task({ id: "ship", qualifiedId: "work/ship", list: "work" })],
+      taskList: list,
+      onRefresh: async () => []
+    });
+    const [row] = await config.rows();
+    const ctx = actionCtx(row!);
+
+    await moveStateAction(config).handler(ctx);
+
+    expect(select).toHaveBeenCalledWith({
+      message: "Move task to state",
+      options: [
+        {
+          value: { event: "start", targetState: "in-progress" },
+          label: "start    → in-progress"
+        },
+        {
+          value: { event: "archive", targetState: "archived" },
+          label: "archive    → archived"
+        }
+      ]
+    });
+    expect(list.list("work").fire).toHaveBeenCalledWith("ship", "archive");
+    expect(ctx.refresh).toHaveBeenCalledOnce();
+    expect(ctx.toast).toHaveBeenCalledWith("Moved to archived", "info");
+  });
+
+  it("returns silently when move-state selection is cancelled", async () => {
+    vi.mocked(select).mockResolvedValue(cancelSelection);
+    const list = taskList({
+      events: { "work/ship": ["archive"] },
+      stateMachine: workflowMachine
+    });
+    const config = buildMaestroExplorerConfig({
+      tasks: [task({ id: "ship", qualifiedId: "work/ship", list: "work" })],
+      taskList: list,
+      onRefresh: async () => []
+    });
+    const [row] = await config.rows();
+    const ctx = actionCtx(row!);
+
+    await moveStateAction(config).handler(ctx);
+
+    expect(list.list("work").fire).not.toHaveBeenCalled();
+    expect(ctx.refresh).not.toHaveBeenCalled();
+    expect(ctx.toast).not.toHaveBeenCalled();
+  });
+
+  it("shows an info toast when move-state has no current events", async () => {
+    const list = taskList({ stateMachine: workflowMachine });
+    const config = buildMaestroExplorerConfig({
+      tasks: [task({ id: "ship", qualifiedId: "work/ship", list: "work" })],
+      taskList: list,
+      onRefresh: async () => []
+    });
+    const [row] = await config.rows();
+    const ctx = actionCtx(row!);
+
+    await moveStateAction(config).handler(ctx);
+
+    expect(select).not.toHaveBeenCalled();
+    expect(list.list("work").fire).not.toHaveBeenCalled();
+    expect(ctx.toast).toHaveBeenCalledWith("No state moves available.", "info");
+  });
+
+  it("shows invalid transition reasons without refreshing", async () => {
+    vi.mocked(select).mockResolvedValue({ event: "archive", targetState: "archived" });
+    const list = taskList({
+      events: { "work/ship": ["archive"] },
+      fireErrors: {
+        "work/ship:archive": new InvalidTransitionError({ reason: "Cannot archive yet." })
+      },
+      stateMachine: workflowMachine
+    });
+    const config = buildMaestroExplorerConfig({
+      tasks: [task({ id: "ship", qualifiedId: "work/ship", list: "work" })],
+      taskList: list,
+      onRefresh: async () => []
+    });
+    const [row] = await config.rows();
+    const ctx = actionCtx(row!);
+
+    await moveStateAction(config).handler(ctx);
+
+    expect(ctx.toast).toHaveBeenCalledWith("Cannot archive yet.", "error");
+    expect(ctx.refresh).not.toHaveBeenCalled();
   });
 });

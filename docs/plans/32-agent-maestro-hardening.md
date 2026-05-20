@@ -517,7 +517,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: driver-registry-and-prompt-render-coverage
     title: Driver registry and prompt render edge cases
@@ -549,8 +549,8 @@ tasks:
         raw passthrough or error? Test the documented choice.
       - HTML/markdown content in task description is not escaped.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: concurrency-stress

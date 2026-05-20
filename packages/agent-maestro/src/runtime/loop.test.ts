@@ -454,6 +454,7 @@ describe("tick", () => {
   it("skips tasks whose workflow kind has no registered driver", async () => {
     const task = createTask({
       qualifiedId: "tasks/ralph",
+      sourcePath: "/repo/tasks/ralph.md",
       metadata: { kind: "ralph", createdAt: "2026-01-01T00:00:00.000Z" }
     });
     const state = createState(createConfig(loopConfigOverrides));
@@ -714,6 +715,7 @@ describe("tick", () => {
             tasks: [
               createTask({
                 qualifiedId: "tasks/unsupported",
+                sourcePath: "/repo/tasks/unsupported.md",
                 metadata: { kind: "unknown", createdAt: "2026-01-01T00:00:00.000Z" }
               })
             ]

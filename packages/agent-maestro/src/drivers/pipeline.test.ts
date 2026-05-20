@@ -381,15 +381,16 @@ describe("pipelineDriver", () => {
     expect(events).toEqual(successEvents("planned", "thread-1"));
   });
 
-  it("fails with prompt_render_error when the prompt template is invalid", async () => {
+  it("fails with prompt_render_error when prompt rendering throws", async () => {
     const mockSpawn = createMockSpawn(successScript());
     const events: AttemptEvent[] = [];
     const ctx = createDriverContext({
       events,
+      task: createTask({ metadata: { count: 1n } }),
       spawn: mockSpawn.spawn,
       cfg: createConfig({
         states: {
-          planned: { prompt: "Plan {{ task.missing }}" },
+          planned: { prompt: "Plan {{ task.metadata }}" },
           done: { terminal: true }
         }
       })
@@ -401,7 +402,7 @@ describe("pipelineDriver", () => {
       reason: "abnormal",
       failure: "prompt_render_error",
       failedStep: "planned",
-      error: 'Missing pipeline variable "task.missing" in template.'
+      error: "Do not know how to serialize a BigInt"
     });
     expect(mockSpawn.calls).toEqual([]);
     expect(events).toEqual([
@@ -517,7 +518,7 @@ describe("pipelineDriver", () => {
         "description=Repair OAuth callback",
         "name=Fix login",
         "state=planned",
-        'metadata={"url":"https://tracker.local/bugs/7","priority":1}',
+        'metadata={"priority":1,"url":"https://tracker.local/bugs/7"}',
         "list=bugs"
       ].join("\n")
     ]);
@@ -626,11 +627,7 @@ function successScript() {
     ] as const;
 }
 
-function successEvents(
-  step: string,
-  sessionId: string,
-  taskId = "tasks/task-1"
-): AttemptEvent[] {
+function successEvents(step: string, sessionId: string, taskId = "tasks/task-1"): AttemptEvent[] {
   return [
     phase(null, "preparing-workspace", undefined, undefined, taskId),
     phase("preparing-workspace", "running-step", step, undefined, taskId),
@@ -671,7 +668,12 @@ function phase(
   return event;
 }
 
-function agentExit(step: string, sessionId: string, exitCode: number, taskId?: string): AttemptEvent {
+function agentExit(
+  step: string,
+  sessionId: string,
+  exitCode: number,
+  taskId?: string
+): AttemptEvent {
   return {
     type: "agent_event",
     task_id: taskId ?? "tasks/task-1",

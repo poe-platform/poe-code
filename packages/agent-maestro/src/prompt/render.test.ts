@@ -14,12 +14,55 @@ const task: Task = {
 };
 
 describe("prompt renderers", () => {
+  it("expands every documented template variable", () => {
+    expect(
+      renderTaskPrompt(
+        [
+          "id={{ task.id }}",
+          "qualifiedId={{ task.qualifiedId }}",
+          "url={{ task.url }}",
+          "description={{ task.description }}",
+          "name={{ task.name }}",
+          "state={{ task.state }}",
+          "metadata={{ task.metadata }}",
+          "list={{ task.list }}"
+        ].join("\n"),
+        {
+          task: {
+            list: "bugs",
+            id: "bug-7",
+            qualifiedId: "bugs/bug-7",
+            name: "Fix login",
+            state: "planned",
+            description: "Repair OAuth callback",
+            metadata: { url: "https://tracker.local/bugs/7", priority: 1 }
+          },
+          attempt: 1
+        }
+      )
+    ).toBe(
+      [
+        "id=bug-7",
+        "qualifiedId=bugs/bug-7",
+        "url=https://tracker.local/bugs/7",
+        "description=Repair OAuth callback",
+        "name=Fix login",
+        "state=planned",
+        'metadata={"priority":1,"url":"https://tracker.local/bugs/7"}',
+        "list=bugs"
+      ].join("\n")
+    );
+  });
+
   it("renders task fields and attempt values", () => {
     expect(
-      renderTaskPrompt("Work on {{ task.qualifiedId }} named {{ task.name }} attempt {{ attempt }}.", {
-        task,
-        attempt: 2
-      })
+      renderTaskPrompt(
+        "Work on {{ task.qualifiedId }} named {{ task.name }} attempt {{ attempt }}.",
+        {
+          task,
+          attempt: 2
+        }
+      )
     ).toBe("Work on backlog/ship-render named Ship prompt renderer attempt 2.");
   });
 
@@ -72,8 +115,36 @@ describe("prompt renderers", () => {
         attempt: 1
       })
     ).toBe(
-      'Metadata: {"url":"https://github.com/org/repo/issues/123","nested":{"owner":"org","number":123}}'
+      'Metadata: {"nested":{"number":123,"owner":"org"},"url":"https://github.com/org/repo/issues/123"}'
     );
+  });
+
+  it("renders missing variables as empty strings", () => {
+    expect(renderTaskPrompt("Unknown: {{ missing }}.", { task, attempt: 1 })).toBe("Unknown: .");
+  });
+
+  it("passes templates with no variables through unchanged", () => {
+    expect(renderTaskPrompt("Ship the prompt renderer.", { task, attempt: 1 })).toBe(
+      "Ship the prompt renderer."
+    );
+  });
+
+  it("passes malformed placeholders through unchanged", () => {
+    expect(renderTaskPrompt("Malformed {{ task.id", { task, attempt: 1 })).toBe(
+      "Malformed {{ task.id"
+    );
+  });
+
+  it("does not escape HTML or Markdown in task descriptions", () => {
+    expect(
+      renderTaskPrompt("Body: {{ task.description }}", {
+        task: {
+          ...task,
+          description: "**Fix** <em>now</em>"
+        },
+        attempt: 1
+      })
+    ).toBe("Body: **Fix** <em>now</em>");
   });
 
   it("falls back to the documented task prompt when the template is empty", () => {
@@ -106,9 +177,9 @@ describe("prompt renderers", () => {
     ).toBe("State sees Rendered task body");
   });
 
-  it("throws on unknown variables", () => {
-    expect(() => renderTaskPrompt("{{ missing }}", { task, attempt: 1 })).toThrow(
-      'Missing pipeline variable "missing"'
+  it("renders missing state prompt variables as empty strings", () => {
+    expect(renderPromptTemplate("State sees {{ missing }}", { prompt: "", task, attempt: 1 })).toBe(
+      "State sees "
     );
   });
 });

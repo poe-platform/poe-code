@@ -20,6 +20,6 @@ export function getDriver(kind: string): WorkflowDriver | undefined {
   return drivers.get(kind);
 }
 
-export function listDrivers(): readonly WorkflowDriver[] {
-  return [...drivers.values()];
+export function listDrivers(): readonly string[] {
+  return [...drivers.keys()].sort();
 }

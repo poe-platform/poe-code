@@ -17,10 +17,17 @@ describe("workflow driver registry", () => {
     expect(getDriver("pipeline")).toBe(pipeline);
     expect(getDriver("gh-issue")).toBe(issue);
     expect(getDriver("missing")).toBeUndefined();
-    expect(listDrivers()).toEqual([pipeline, issue]);
+    expect(listDrivers()).toEqual(["gh-issue", "pipeline"]);
   });
 
-  it("throws when a different driver uses an existing kind", async () => {
+  it("returns undefined for unknown kinds without throwing", async () => {
+    const { getDriver } = await import("./registry.js");
+
+    expect(() => getDriver("missing")).not.toThrow();
+    expect(getDriver("missing")).toBeUndefined();
+  });
+
+  it("rejects duplicate kinds with a stable error message", async () => {
     const { registerDriver } = await import("./registry.js");
 
     registerDriver(createDriver("pipeline"));
@@ -38,19 +45,33 @@ describe("workflow driver registry", () => {
     registerDriver(pipeline);
 
     expect(getDriver("pipeline")).toBe(pipeline);
-    expect(listDrivers()).toEqual([pipeline]);
+    expect(listDrivers()).toEqual(["pipeline"]);
   });
 
-  it("returns a copy when listing drivers", async () => {
+  it("lists sorted kind names from a copy of the registry", async () => {
     const { getDriver, listDrivers, registerDriver } = await import("./registry.js");
     const pipeline = createDriver("pipeline");
+    const ralph = createDriver("ralph");
 
     registerDriver(pipeline);
-    const listed = listDrivers() as WorkflowDriver[];
+    registerDriver(ralph);
+    const listed = listDrivers() as string[];
     listed.pop();
 
     expect(getDriver("pipeline")).toBe(pipeline);
-    expect(listDrivers()).toEqual([pipeline]);
+    expect(listDrivers()).toEqual(["pipeline", "ralph"]);
+  });
+
+  it("observes registrations on the next getDriver call", async () => {
+    const { getDriver, registerDriver } = await import("./registry.js");
+    const late = createDriver("late");
+    const readDriver = getDriver;
+
+    expect(readDriver("late")).toBeUndefined();
+
+    registerDriver(late);
+
+    expect(readDriver("late")).toBe(late);
   });
 });
 

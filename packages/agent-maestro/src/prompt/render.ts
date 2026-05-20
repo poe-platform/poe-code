@@ -36,11 +36,7 @@ function resolveTaskTemplate(template: string): string {
   return template.length === 0 ? DEFAULT_TASK_PROMPT : template;
 }
 
-function interpolateVars(
-  template: string,
-  values: Record<string, string>,
-  context = "template"
-): string {
+function interpolateVars(template: string, values: Record<string, string>): string {
   return template.replace(
     PLACEHOLDER_PATTERN,
     (_match, escaped: string | undefined, key: string | undefined) => {
@@ -50,7 +46,7 @@ function interpolateVars(
 
       const name = key as string;
       if (!Object.prototype.hasOwnProperty.call(values, name)) {
-        throw new Error(`Missing pipeline variable "${name}" in ${context}.`);
+        return "";
       }
 
       return values[name] as string;
@@ -58,7 +54,11 @@ function interpolateVars(
   );
 }
 
-function renderVars(vars: { prompt?: string; task: Task; attempt: number | null }): Record<string, string> {
+function renderVars(vars: {
+  prompt?: string;
+  task: Task;
+  attempt: number | null;
+}): Record<string, string> {
   return {
     ...(vars.prompt === undefined ? {} : { prompt: vars.prompt }),
     attempt: vars.attempt === null ? "" : String(vars.attempt),
@@ -69,6 +69,35 @@ function renderVars(vars: { prompt?: string; task: Task; attempt: number | null 
     "task.state": vars.task.state,
     "task.description": vars.task.description,
     "task.url": typeof vars.task.metadata?.url === "string" ? vars.task.metadata.url : "",
-    "task.metadata": JSON.stringify(vars.task.metadata)
+    "task.metadata": stableJsonStringify(vars.task.metadata)
   };
+}
+
+function stableJsonStringify(value: unknown): string {
+  return JSON.stringify(sortJsonValue(value));
+}
+
+function sortJsonValue(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(sortJsonValue);
+  }
+
+  if (isPlainRecord(value)) {
+    return Object.fromEntries(
+      Object.entries(value)
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([key, item]) => [key, sortJsonValue(item)])
+    );
+  }
+
+  return value;
+}
+
+function isPlainRecord(value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const prototype = Object.getPrototypeOf(value);
+  return prototype === Object.prototype || prototype === null;
 }

@@ -246,6 +246,7 @@ describe("runMaestro", () => {
         name: "Two",
         state: "planned",
         description: "Coordinate the work",
+        sourcePath: "/repo/tasks/two.md",
         metadata: { kind: "superintendent" }
       })
     ];

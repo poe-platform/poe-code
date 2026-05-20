@@ -32,6 +32,7 @@
     "@poe-code/poe-code-config": "*",
     "@poe-code/ralph": "*",
     "@poe-code/superintendent": "*",
-    "@poe-code/task-list": "*"
+    "@poe-code/task-list": "*",
+    "yaml": "^2.8.2"
   }
 }

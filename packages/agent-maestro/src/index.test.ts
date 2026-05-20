@@ -24,6 +24,16 @@ describe("runMaestro", () => {
     vol.fromJSON({
       "/repo/WORKFLOW.md": workflowFrontmatter({
         tasks: ["  type: yaml-file", "  path: /repo/tasks.yaml"],
+        states: [
+          "  planned:",
+          "    prompt: Work on {{ task.name }}.",
+          "  in-progress:",
+          "    prompt: Continue {{ task.name }}.",
+          "  done:",
+          "    terminal: true",
+          "  archived:",
+          "    terminal: true"
+        ],
         agent: ["  list: tasks"],
         workspace: ["  root: /repo/workspaces"],
         polling: ["  interval_ms: 25"]
@@ -94,6 +104,20 @@ describe("runMaestro", () => {
     vol.fromJSON({
       "/repo/WORKFLOW.md": workflowFrontmatter({
         tasks: ["  type: yaml-file", "  path: /repo/recommended.yaml"],
+        states: [
+          "  queued:",
+          "    prompt: Work on {{ task.name }}.",
+          "  agent-running:",
+          "    prompt: Continue {{ task.name }}.",
+          "  human-review:",
+          "    terminal: true",
+          "  failed:",
+          "    terminal: true",
+          "  archived:",
+          "    terminal: true",
+          "  done:",
+          "    terminal: true"
+        ],
         active_states: ["  - queued", "  - agent-running"],
         terminal_states: ["  - human-review", "  - failed", "  - archived", "  - done"],
         agent: ["  list: maestro"],
@@ -156,6 +180,16 @@ describe("runMaestro", () => {
     vol.fromJSON({
       "/repo/WORKFLOW.md": workflowFrontmatter({
         tasks: ["  type: yaml-file", "  path: /repo/tasks.yaml"],
+        states: [
+          "  planned:",
+          "    prompt: Work on {{ task.name }}.",
+          "  in-progress:",
+          "    prompt: Continue {{ task.name }}.",
+          "  done:",
+          "    terminal: true",
+          "  archived:",
+          "    terminal: true"
+        ],
         agent: ["  list: tasks"],
         workspace: ["  root: /repo/workspaces"],
         polling: ["  interval_ms: 25"]
@@ -207,6 +241,16 @@ describe("runMaestro", () => {
     vol.fromJSON({
       "/repo/WORKFLOW.md": workflowFrontmatter({
         tasks: ["  type: yaml-file", "  path: /repo/tasks.yaml"],
+        states: [
+          "  planned:",
+          "    prompt: Work on {{ task.name }}.",
+          "  in-progress:",
+          "    prompt: Continue {{ task.name }}.",
+          "  done:",
+          "    terminal: true",
+          "  archived:",
+          "    terminal: true"
+        ],
         agent: ["  list: tasks"],
         workspace: ["  root: /repo/workspaces"],
         polling: ["  interval_ms: 25"]

@@ -1,10 +1,23 @@
 import os from "node:os";
 import path from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { vol } from "memfs";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { resolveConfig } from "./schema.js";
+
+vi.mock("node:fs/promises", async () => {
+  const { fs } = await import("memfs");
+  return {
+    ...fs.promises,
+    default: fs.promises
+  };
+});
 
 describe("resolveConfig", () => {
   const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    vol.reset();
+  });
 
   afterEach(() => {
     process.env = { ...originalEnv };
@@ -14,6 +27,10 @@ describe("resolveConfig", () => {
     const cfg = resolveConfig(
       {
         tasks: { type: "markdown-dir", path: "./tasks" },
+        states: {
+          planned: { prompt: "Plan" },
+          done: { terminal: true }
+        },
         agent: { list: "backlog" }
       },
       "/repo"
@@ -21,6 +38,13 @@ describe("resolveConfig", () => {
 
     expect(cfg).toEqual({
       tasks: { type: "markdown-dir", path: path.resolve("/repo", "tasks") },
+      states: {
+        planned: { prompt: "Plan" },
+        done: { terminal: true }
+      },
+      activeStateNames: ["planned"],
+      terminalStateNames: ["done"],
+      stateOrder: ["planned", "done"],
       active_states: ["planned", "in-progress"],
       terminal_states: ["done", "archived"],
       polling: { intervalMs: 30_000 },
@@ -43,6 +67,10 @@ describe("resolveConfig", () => {
     const cfg = resolveConfig(
       {
         tasks: { type: "markdown-dir", path: "$MAESTRO_TASKS" },
+        states: {
+          planned: { prompt: "Plan" },
+          done: { terminal: true }
+        },
         workspace: { root: "$MAESTRO_WORKSPACE" },
         agent: { list: "backlog" }
       },
@@ -54,7 +82,15 @@ describe("resolveConfig", () => {
   });
 
   it("keeps missing required fields for preflight validation", () => {
-    const cfg = resolveConfig({}, "/repo");
+    const cfg = resolveConfig(
+      {
+        states: {
+          planned: { prompt: "Plan" },
+          done: { terminal: true }
+        }
+      },
+      "/repo"
+    );
 
     expect(cfg.tasks).toBeUndefined();
     expect(cfg.agent.list).toBeUndefined();
@@ -64,6 +100,10 @@ describe("resolveConfig", () => {
     const cfg = resolveConfig(
       {
         tasks: { type: "markdown-dir", path: "./tasks" },
+        states: {
+          planned: { prompt: "Plan" },
+          done: { terminal: true }
+        },
         agent: { list: "backlog" },
         step_overrides: {
           test: { model: "claude-sonnet-4.6" }
@@ -75,5 +115,106 @@ describe("resolveConfig", () => {
     expect(cfg.stepOverrides).toEqual({
       test: { model: "claude-sonnet-4.6" }
     });
+  });
+
+  it("parses new states alongside old state fields from WORKFLOW.md frontmatter", async () => {
+    const { loadWorkflow } = await import("./load.js");
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": [
+        "---",
+        "tasks:",
+        "  type: markdown-dir",
+        "  path: ./tasks",
+        "states:",
+        "  planned:",
+        "    prompt: Plan it",
+        "  done:",
+        "    terminal: true",
+        "active_states:",
+        "  - planned",
+        "terminal_states:",
+        "  - done",
+        "---",
+        "",
+        "Implement {{ task.name }}."
+      ].join("\n")
+    });
+
+    const workflow = await loadWorkflow("/repo/WORKFLOW.md");
+    const cfg = resolveConfig(workflow.config, path.dirname(workflow.sourcePath));
+
+    expect(cfg.states).toEqual({
+      planned: { prompt: "Plan it" },
+      done: { terminal: true }
+    });
+    expect(cfg.activeStateNames).toEqual(["planned"]);
+    expect(cfg.terminalStateNames).toEqual(["done"]);
+    expect(cfg.stateOrder).toEqual(["planned", "done"]);
+    expect(cfg.active_states).toEqual(["planned"]);
+    expect(cfg.terminal_states).toEqual(["done"]);
+  });
+
+  it("preserves state declaration order from YAML", async () => {
+    const { loadWorkflow } = await import("./load.js");
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": [
+        "---",
+        "states:",
+        "  queued:",
+        "    prompt: Queue prompt",
+        "  planning:",
+        "    prompt: Planning prompt",
+        "  reviewing:",
+        "    prompt: Review prompt",
+        "  done:",
+        "    terminal: true",
+        "---",
+        "",
+        "Body"
+      ].join("\n")
+    });
+
+    const workflow = await loadWorkflow("/repo/WORKFLOW.md");
+    const cfg = resolveConfig(workflow.config, "/repo");
+
+    expect(cfg.stateOrder).toEqual(["queued", "planning", "reviewing", "done"]);
+    expect(cfg.activeStateNames).toEqual(["queued", "planning", "reviewing"]);
+    expect(cfg.terminalStateNames).toEqual(["done"]);
+  });
+
+  it("round-trips state agent and model overrides without filling missing values", () => {
+    const cfg = resolveConfig(
+      {
+        states: {
+          implementation: {
+            prompt: "Implement",
+            agent: "claude",
+            model: "claude-sonnet-4-6"
+          },
+          review: { prompt: "Review" },
+          handoff: {
+            prompt: "Handoff",
+            agent: undefined,
+            model: undefined,
+            mode: undefined
+          },
+          done: { terminal: true }
+        }
+      },
+      "/repo"
+    );
+
+    expect(cfg.states.implementation).toMatchObject({
+      agent: "claude",
+      model: "claude-sonnet-4-6"
+    });
+    expect(cfg.states.review?.agent).toBeUndefined();
+    expect(cfg.states.review?.model).toBeUndefined();
+    expect(cfg.states.handoff?.agent).toBeUndefined();
+    expect(cfg.states.handoff?.model).toBeUndefined();
+    expect(cfg.states.handoff?.mode).toBeUndefined();
+    expect(Object.prototype.hasOwnProperty.call(cfg.states.handoff, "agent")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(cfg.states.handoff, "model")).toBe(true);
+    expect(Object.prototype.hasOwnProperty.call(cfg.states.handoff, "mode")).toBe(true);
   });
 });

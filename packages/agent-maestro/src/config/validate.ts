@@ -1,6 +1,6 @@
 import { verifyGhProject, type TaskList } from "@poe-code/task-list";
 import type { ResolvedStepsConfig } from "@poe-code/pipeline";
-import type { ResolvedConfig } from "./schema.js";
+import type { ResolvedConfig, StateMode } from "./schema.js";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -22,6 +22,28 @@ export type DispatchValidationResult =
       code: "board_not_provisioned";
       report: Awaited<ReturnType<typeof verifyGhProject>>;
     };
+
+export function validateStateDefinitions(value: unknown): asserts value is
+  | Record<string, JsonRecord>
+  | Map<string, JsonRecord> {
+  if (!isStateMap(value)) {
+    throw new Error("Workflow config requires a states map.");
+  }
+
+  const entries = Array.from(value instanceof Map ? value.entries() : Object.entries(value));
+
+  if (entries.length === 0) {
+    throw new Error("Workflow config requires at least one state.");
+  }
+
+  for (const [name, definition] of entries) {
+    if (!isRecord(definition)) {
+      throw new Error(`State "${String(name)}" must be an object.`);
+    }
+
+    validateStateDefinition(String(name), definition);
+  }
+}
 
 export async function validateDispatch(
   cfg: ResolvedConfig,
@@ -69,6 +91,43 @@ export async function validateDispatch(
   }
 
   return { ok: true };
+}
+
+function validateStateDefinition(name: string, definition: JsonRecord): void {
+  const hasPrompt = definition.prompt !== undefined;
+  const isTerminal = definition.terminal === true;
+
+  if (hasPrompt === isTerminal) {
+    throw new Error(`State "${name}" must define exactly one of prompt or terminal: true.`);
+  }
+
+  if (definition.prompt !== undefined && typeof definition.prompt !== "string") {
+    throw new Error(`State "${name}" prompt must be a string.`);
+  }
+
+  if (definition.terminal !== undefined && typeof definition.terminal !== "boolean") {
+    throw new Error(`State "${name}" terminal must be a boolean.`);
+  }
+
+  if (definition.agent !== undefined && typeof definition.agent !== "string") {
+    throw new Error(`State "${name}" agent must be a string.`);
+  }
+
+  if (definition.model !== undefined && typeof definition.model !== "string") {
+    throw new Error(`State "${name}" model must be a string.`);
+  }
+
+  if (definition.mode !== undefined && !isStateMode(definition.mode)) {
+    throw new Error(`State "${name}" mode must be "yolo", "edit", or "read".`);
+  }
+}
+
+function isStateMap(value: unknown): value is Record<string, JsonRecord> | Map<string, JsonRecord> {
+  return isRecord(value) || value instanceof Map;
+}
+
+function isStateMode(value: unknown): value is StateMode {
+  return value === "yolo" || value === "edit" || value === "read";
 }
 
 const taskFieldValidators: Record<string, (value: JsonRecord) => boolean> = {

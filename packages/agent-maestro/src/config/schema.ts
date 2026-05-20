@@ -3,11 +3,26 @@ import path from "node:path";
 import { resolveScope } from "@poe-code/poe-code-config";
 import type { StepDefinitionOverrides } from "@poe-code/pipeline";
 import type { OpenTaskListOptions } from "@poe-code/task-list";
+import { validateStateDefinitions } from "./validate.js";
 
 type JsonRecord = Record<string, unknown>;
 
-export interface ResolvedConfig {
+export type StateMode = "yolo" | "edit" | "read";
+
+export interface StateDefinition {
+  prompt?: string;
+  agent?: string;
+  model?: string;
+  mode?: StateMode;
+  terminal?: boolean;
+}
+
+export interface WorkflowConfig {
   tasks?: OpenTaskListOptions;
+  states: Record<string, StateDefinition>;
+  activeStateNames: readonly string[];
+  terminalStateNames: readonly string[];
+  stateOrder: readonly string[];
   active_states: string[];
   terminal_states: string[];
   polling: { intervalMs: number };
@@ -21,6 +36,8 @@ export interface ResolvedConfig {
   };
   stepOverrides: StepDefinitionOverrides;
 }
+
+export type ResolvedConfig = WorkflowConfig;
 
 const maestroConfigScope = {
   active_states: {
@@ -69,12 +86,17 @@ const maestroConfigScope = {
 export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
   const rawConfig = isRecord(raw) ? raw : {};
   const scoped = resolveScope(maestroConfigScope, rawConfig, process.env);
+  const { states, stateOrder } = parseStates(rawConfig.states);
   const polling = scoped.polling;
   const workspace = scoped.workspace;
   const agent = scoped.agent as JsonRecord;
 
   return {
     tasks: resolveTasks(rawConfig.tasks, cwd),
+    states,
+    activeStateNames: stateOrder.filter((name) => states[name]?.prompt !== undefined),
+    terminalStateNames: stateOrder.filter((name) => states[name]?.terminal === true),
+    stateOrder,
     active_states: [...scoped.active_states],
     terminal_states: [...scoped.terminal_states],
     polling: {
@@ -95,6 +117,52 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
     },
     stepOverrides: scoped.step_overrides
   };
+}
+
+function parseStates(value: unknown): {
+  states: Record<string, StateDefinition>;
+  stateOrder: readonly string[];
+} {
+  validateStateDefinitions(value);
+
+  const states: Record<string, StateDefinition> = {};
+  const stateOrder: string[] = [];
+  const entries = value instanceof Map ? value.entries() : Object.entries(value);
+
+  for (const [name, rawDefinition] of entries) {
+    const stateName = String(name);
+    const definition = rawDefinition as JsonRecord;
+    states[stateName] = parseStateDefinition(definition);
+    stateOrder.push(stateName);
+  }
+
+  return { states, stateOrder };
+}
+
+function parseStateDefinition(definition: JsonRecord): StateDefinition {
+  const state: StateDefinition = {};
+
+  if (hasOwn(definition, "prompt")) {
+    state.prompt = readOptionalString(definition.prompt, "prompt");
+  }
+
+  if (hasOwn(definition, "agent")) {
+    state.agent = readOptionalString(definition.agent, "agent");
+  }
+
+  if (hasOwn(definition, "model")) {
+    state.model = readOptionalString(definition.model, "model");
+  }
+
+  if (hasOwn(definition, "mode")) {
+    state.mode = readMode(definition.mode);
+  }
+
+  if (hasOwn(definition, "terminal")) {
+    state.terminal = readOptionalBoolean(definition.terminal, "terminal");
+  }
+
+  return state;
 }
 
 function resolveTasks(value: unknown, cwd: string): OpenTaskListOptions | undefined {
@@ -210,8 +278,48 @@ function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
+function readOptionalString(value: unknown, field: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "string") {
+    throw new Error(`Expected state "${field}" to be a string.`);
+  }
+
+  return value;
+}
+
+function readOptionalBoolean(value: unknown, field: string): boolean | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (typeof value !== "boolean") {
+    throw new Error(`Expected state "${field}" to be a boolean.`);
+  }
+
+  return value;
+}
+
+function readMode(value: unknown): StateMode | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (value === "yolo" || value === "edit" || value === "read") {
+    return value;
+  }
+
+  throw new Error('Expected state "mode" to be one of "yolo", "edit", or "read".');
+}
+
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function hasOwn(value: JsonRecord, key: string): boolean {
+  return Object.prototype.hasOwnProperty.call(value, key);
 }
 
 function isEnvName(value: string): boolean {

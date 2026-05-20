@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ResolvedConfig } from "./schema.js";
+import { resolveConfig } from "./schema.js";
 import { validateDispatch } from "./validate.js";
 
 const { verifyGhProject } = vi.hoisted(() => ({
@@ -14,6 +15,15 @@ vi.mock("@poe-code/task-list", async (importOriginal) => ({
 function cfg(overrides: Partial<ResolvedConfig> = {}): ResolvedConfig {
   return {
     tasks: { type: "markdown-dir", path: "/repo/tasks" },
+    states: {
+      planned: { prompt: "Plan" },
+      "in-progress": { prompt: "Implement" },
+      done: { terminal: true },
+      archived: { terminal: true }
+    },
+    activeStateNames: ["planned", "in-progress"],
+    terminalStateNames: ["done", "archived"],
+    stateOrder: ["planned", "in-progress", "done", "archived"],
     active_states: ["planned", "in-progress"],
     terminal_states: ["done", "archived"],
     polling: { intervalMs: 30_000 },
@@ -175,6 +185,55 @@ describe("validateDispatch", () => {
         { steps: { implement: step() } }
       )
     ).resolves.toEqual({ ok: true });
+  });
+});
+
+describe("workflow state validation", () => {
+  it("fails when a state has both prompt and terminal true", () => {
+    expect(() =>
+      resolveConfig(
+        {
+          states: {
+            planned: { prompt: "Plan", terminal: true }
+          }
+        },
+        "/repo"
+      )
+    ).toThrow("exactly one");
+  });
+
+  it("fails when a state has neither prompt nor terminal true", () => {
+    expect(() =>
+      resolveConfig(
+        {
+          states: {
+            planned: { terminal: false }
+          }
+        },
+        "/repo"
+      )
+    ).toThrow("exactly one");
+  });
+
+  it("fails when states is empty", () => {
+    expect(() => resolveConfig({ states: {} }, "/repo")).toThrow("at least one state");
+  });
+
+  it("fails when a state mode is not supported", () => {
+    expect(() =>
+      resolveConfig(
+        {
+          states: {
+            planned: { prompt: "Plan", mode: "inspect" }
+          }
+        },
+        "/repo"
+      )
+    ).toThrow('mode must be "yolo", "edit", or "read"');
+  });
+
+  it("fails when states is missing", () => {
+    expect(() => resolveConfig({}, "/repo")).toThrow("requires a states map");
   });
 });
 

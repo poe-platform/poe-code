@@ -1,18 +1,58 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Task, TaskList } from "@poe-code/task-list";
 import {
   buildMaestroExplorerConfig,
   runMaestroTui,
   type RunMaestroTuiOptions
 } from "./index.js";
 
+function task(): Task {
+  return {
+    list: "tasks",
+    id: "ship",
+    qualifiedId: "tasks/ship",
+    name: "Ship feature",
+    state: "planned",
+    description: "Build the thing.",
+    metadata: {}
+  };
+}
+
+function taskList(): TaskList {
+  return {
+    list: () => ({
+      name: "tasks",
+      stateMachine: { states: ["draft"], initial: "draft", events: {} },
+      all: vi.fn(async () => []),
+      get: vi.fn(async () => task()),
+      create: vi.fn(async () => task()),
+      update: vi.fn(async () => task()),
+      fire: vi.fn(async () => task()),
+      canFire: vi.fn(async () => true),
+      events: vi.fn(async () => []),
+      delete: vi.fn(async () => undefined),
+      move: vi.fn(async () => task()),
+      reorder: vi.fn(async () => [])
+    }),
+    lists: vi.fn(async () => ["tasks"]),
+    allTasks: vi.fn(async () => []),
+    get: vi.fn(async () => task()),
+    moveBetweenLists: vi.fn(async () => task())
+  };
+}
+
 describe("maestro-tui public API", () => {
-  it("builds a read-only explorer config placeholder", async () => {
-    const config = buildMaestroExplorerConfig();
+  it("exports the maestro explorer config builder", async () => {
+    const config = buildMaestroExplorerConfig({
+      tasks: [],
+      taskList: taskList(),
+      onRefresh: async () => []
+    });
 
     await expect(config.rows()).resolves.toEqual([]);
-    expect(config.title).toBe("Maestro Tasks");
+    expect(config.title).toBe("Maestro tasks");
     expect(config.actions).toEqual([]);
-    expect(config.emptyHint).toBe("No maestro tasks found");
+    expect(config.emptyHint).toBe("No tasks found");
   });
 
   it("runs the generated config through the injected explorer", async () => {
@@ -20,11 +60,16 @@ describe("maestro-tui public API", () => {
       .fn()
       .mockResolvedValue(null);
 
-    await runMaestroTui({ runExplorerImpl });
+    await runMaestroTui({
+      tasks: [],
+      taskList: taskList(),
+      onRefresh: async () => [],
+      runExplorerImpl
+    });
 
     expect(runExplorerImpl).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: "Maestro Tasks",
+        title: "Maestro tasks",
         actions: []
       })
     );

@@ -22,6 +22,7 @@
   "dependencies": {
     "@poe-code/agent-maestro": "*",
     "@poe-code/design-system": "*",
-    "@poe-code/task-list": "*"
+    "@poe-code/task-list": "*",
+    "yaml": "^2.8.2"
   }
 }

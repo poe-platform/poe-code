@@ -35,7 +35,7 @@ tasks:
       package rules).
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: build-maestro-explorer-config
     title: Build maestro explorer config from a TaskList
@@ -99,9 +99,9 @@ tasks:
       them. Leave the `actions: []` slot in place so later tasks can
       append without restructuring.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: action-fire-event
     title: Add "Move to state…" action (cross-state task movement)

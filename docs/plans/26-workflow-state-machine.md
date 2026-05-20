@@ -469,7 +469,7 @@ tasks:
         `./docs/plans` stays the default for the project.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: docs-state-machine
     title: Update agent-maestro README for state-machine workflows
@@ -526,7 +526,7 @@ tasks:
       - Tables stay in the same Markdown table style as the rest of the
         file.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

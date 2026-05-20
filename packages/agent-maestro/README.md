@@ -15,12 +15,10 @@
 | Field | Type | Default | Behavior |
 | --- | --- | --- | --- |
 | `tasks` | object | required | Task-list backend config passed to `@poe-code/task-list`. |
-| `active_states` | string array | `["planned", "in-progress"]` | Task states eligible for dispatch. |
-| `terminal_states` | string array | `["done", "archived"]` | Task states that stop work and clean up workspaces. |
+| `states` | object | required | State map. States with `prompt` are active and dispatched; states with `terminal: true` stop work and clean up workspaces. |
 | `polling` | object | `{ interval_ms: 30000 }` | Polling behavior. |
 | `workspace` | object | `{ root: "<os tmp>/poe-code-maestro" }` | Workspace allocation behavior. |
 | `agent` | object | `{ service: "codex", max_concurrent_agents: 1, max_turns: 20, max_retry_backoff_ms: 300000 }` | Agent dispatch behavior. |
-| `step_overrides` | object | `{}` | Per-step overrides merged into `@poe-code/pipeline` step config. |
 
 `tasks` fields:
 
@@ -46,12 +44,35 @@
 
 | Field | Type | Default | Behavior |
 | --- | --- | --- | --- |
-| `service` | string | `"codex"` | Default agent service for steps that do not set `agent` in `steps.yaml` or `step_overrides`. |
+| `service` | string | `"codex"` | Default agent service for states that do not set `agent`. |
 | `service` for `ralph` tasks | string | ignored | Ignored by the `ralph` workflow driver; ralph reads its agent from the plan doc frontmatter. |
 | `list` | string | required | Task list to poll. For `gh-issues`, this is `<project.owner>/<project.number>`. |
 | `max_concurrent_agents` | number | `1` | Maximum number of task workers running at once. |
 | `max_turns` | number | `20` | Maximum turns passed to each spawned agent execution. |
 | `max_retry_backoff_ms` | number | `300000` | Maximum retry backoff after retryable failures. |
+
+State definition fields:
+
+| Field | Type | Default | Behavior |
+| --- | --- | --- | --- |
+| `prompt` | string | unset | Prompt template for this state. Presence makes the state active and eligible for dispatch. |
+| `agent` | string | workflow `agent.service` | Agent service for this state. Falls back to the workflow-level `agent.service` when omitted. |
+| `model` | string | agent runner default | Model for this state. Falls back to the agent runner's default when omitted. |
+| `mode` | `"yolo" \| "edit" \| "read"` | `"yolo"` | Spawn mode for this state. |
+| `terminal` | boolean | `false` | Marks this state as terminal. Terminal states are not dispatched and their workspaces are removed. |
+
+### Template variables
+
+| Variable | Behavior |
+| --- | --- |
+| `task.id` | Backend task id. |
+| `task.qualifiedId` | List-qualified task id. |
+| `task.url` | Task URL. Renders empty on file backends. |
+| `task.description` | Task artifact body. |
+| `task.name` | Task title. |
+| `task.state` | Current task state. |
+| `task.metadata` | Task metadata, JSON-stringified. |
+| `task.list` | Task list name. |
 
 `polling` fields:
 
@@ -65,34 +86,21 @@
 | --- | --- | --- | --- |
 | `root` | string | `"<os tmp>/poe-code-maestro"` | Parent directory for per-task workspaces. Relative paths resolve from the `WORKFLOW.md` directory; `~` expands to the user home directory. |
 
-`active_states` fields:
+## Artifact and transitions
 
-| Field | Type | Default | Behavior |
-| --- | --- | --- | --- |
-| `active_states` | string array | `["planned", "in-progress"]` | States the daemon treats as runnable or still active. |
+On each poll, maestro dispatches tasks whose current state has a `prompt`.
 
-`terminal_states` fields:
+The artifact is `task.description`.
 
-| Field | Type | Default | Behavior |
-| --- | --- | --- | --- |
-| `terminal_states` | string array | `["done", "archived"]` | States the daemon treats as complete, canceled, or otherwise no longer runnable. |
+Agents read the current artifact with `poe-code tasks get` and write it with `poe-code tasks set`. Use `poe-code tasks next` for the happy path. Use `poe-code tasks set-state` for explicit jumps. Use `poe-code tasks comment` for comments; comments are supported only by `gh-issues`.
 
-`step_overrides` fields:
-
-| Field | Type | Default | Behavior |
-| --- | --- | --- | --- |
-| `step_overrides.<step>.mode` | `"yolo" \| "edit" \| "read"` | step config value | Overrides the step execution mode. |
-| `step_overrides.<step>.prompt` | string | step config value | Overrides the step prompt template. |
-| `step_overrides.<step>.agent` | string | step config value | Overrides the agent service for that step. |
-| `step_overrides.<step>.model` | string | step config value | Overrides the model for that step. |
-
-Step definitions are loaded from `.poe-code/pipeline/steps.yaml` or `~/.poe-code/pipeline/steps.yaml`; see the `@poe-code/pipeline` README for the `steps.yaml` schema.
+Declaration order in `states:` is the happy path used by `poe-code tasks next`. Any state can transition to any other declared state.
 
 ## Workflow drivers
 
 Agent maestro includes two built-in workflow drivers:
 
-- `pipeline`: runs tasks through `@poe-code/pipeline`.
+- `pipeline`: runs the prompt for the task's current state.
 - `ralph`: runs plan-doc tasks through the ralph workflow driver.
 
 The driver is selected from the task plan doc frontmatter `kind:` field. Tasks without `kind:` use the `pipeline` driver.
@@ -121,13 +129,16 @@ polling:
   interval_ms: 30000
 workspace:
   root: ./.poe-code/maestro/workspaces
-active_states:
-  - planned
-  - in-progress
-terminal_states:
-  - done
-  - archived
-step_overrides: {}
+states:
+  planned:
+    prompt: |
+      Work this task.
+
+      {{ prompt }}
+  done:
+    terminal: true
+  archived:
+    terminal: true
 ---
 {{ task.qualifiedId }}: {{ task.name }}
 
@@ -152,15 +163,21 @@ polling:
   interval_ms: 30000
 workspace:
   root: ./.poe-code/maestro/workspaces
-active_states:
-  - planned
-  - in-progress
-terminal_states:
-  - done
-  - archived
-step_overrides:
-  implement:
-    mode: yolo
+states:
+  planned:
+    prompt: |
+      Implement the task.
+
+      {{ prompt }}
+    agent: claude-code
+  review:
+    prompt: |
+      Review the task.
+
+      {{ prompt }}
+    mode: read
+  done:
+    terminal: true
 ---
 {{ task.qualifiedId }}: {{ task.name }}
 
@@ -189,18 +206,25 @@ polling:
   interval_ms: 30000
 workspace:
   root: ./.poe-code/maestro/workspaces
-active_states:
-  - queued
-  - agent-running
-terminal_states:
-  - human-review
-  - failed
-  - archived
-  - done
-step_overrides:
-  review:
-    mode: read
-    agent: codex
+states:
+  queued:
+    prompt: |
+      Work this issue.
+
+      {{ prompt }}
+  agent-running:
+    prompt: |
+      Continue this issue.
+
+      {{ prompt }}
+  human-review:
+    terminal: true
+  failed:
+    terminal: true
+  archived:
+    terminal: true
+  done:
+    terminal: true
 ---
 {{ task.qualifiedId }}: {{ task.name }}
 

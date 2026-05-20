@@ -1,4 +1,3 @@
-import path from "node:path";
 import {
   color,
   getTheme,
@@ -10,6 +9,7 @@ import {
 import { evalCheck, type CheckResult } from "../check/check.js";
 import { openSource } from "../source/open.js";
 import { listEvals } from "../source/registry.js";
+import { resolveEvalCliTarget } from "./target.js";
 
 export interface CheckCliInput {
   evalId?: string;
@@ -25,9 +25,9 @@ const columns: TableColumn[] = [
 
 export async function runCheckCli(input: CheckCliInput): Promise<number> {
   try {
-    const sourceDir = path.resolve(input.sourceDir ?? process.cwd());
-    const source = await openSource(sourceDir);
-    const evalId = input.evalId ?? (await resolveDefaultEvalId(source.rootDir));
+    const target = resolveEvalCliTarget(input);
+    const source = await openSource(target.sourceDir);
+    const evalId = target.evalId ?? (await resolveDefaultEvalId(source.rootDir));
     const result = await evalCheck({ sourceDir: source.rootDir, evalId });
 
     process.stdout.write(`${renderCheckResultTable(result)}\n`);

@@ -358,7 +358,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: cli-and-docs
     title: Register init/check/lint in poe-code CLI + README + QA update
@@ -421,8 +421,8 @@ tasks:
 
       Do not modify the root README without explicit user permission.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
 teardown:

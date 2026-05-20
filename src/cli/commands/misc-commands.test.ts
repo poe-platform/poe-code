@@ -728,6 +728,29 @@ describe("root command", () => {
     expect(command).toBeDefined();
   });
 
+  it("registers eval authoring subcommands", () => {
+    const fs = createMemFs();
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs,
+      prompts,
+      env: {
+        cwd: "/repo",
+        homeDir: "/home/test"
+      },
+      logger: () => {}
+    });
+
+    const command = program.commands.find((entry) => entry.name() === "eval");
+    expect(command?.commands.map((entry) => entry.name())).toEqual([
+      "run",
+      "report",
+      "init",
+      "check",
+      "lint"
+    ]);
+  });
+
   it("shows github-workflows help when invoked without an automation name", async () => {
     process.argv = ["node", "/usr/local/bin/poe-code", "github-workflows"];
 

@@ -64,6 +64,18 @@ describe("runCheckCli", () => {
     });
   });
 
+  it("checks the current eval folder when evalId is .", async () => {
+    vi.mocked(process.cwd).mockReturnValue("/repo/evals/smoke");
+
+    const exitCode = await runCheckCli({ evalId: "." });
+
+    expect(exitCode).toBe(0);
+    expect(mocks.evalCheck).toHaveBeenCalledWith({
+      sourceDir: "/repo/evals",
+      evalId: "smoke"
+    });
+  });
+
   it("errors with a hint when multiple evals exist and evalId is omitted", async () => {
     mocks.fs = createFsFromVolume(
       Volume.fromJSON(createSourceFiles(["alpha", "beta"]), "/")

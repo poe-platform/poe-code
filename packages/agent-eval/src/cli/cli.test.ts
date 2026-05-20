@@ -151,17 +151,33 @@ describe("agent-eval cli", () => {
     });
   });
 
-  it("lets runInitCli apply the default init kind when --kind is absent", async () => {
+  it("uses the default init kind when --kind is absent", async () => {
     await runEvalCli(["init", "smoke-task"]);
 
     expect(process.exitCode).toBeUndefined();
     expect(mockedRun.runInitCli).toHaveBeenCalledWith({
       name: "smoke-task",
       sourceDir: undefined,
-      kind: undefined,
+      kind: "plan",
       targetRepo: undefined,
       targetRef: undefined
     });
+  });
+
+  it("rejects unsupported init kinds before calling runInitCli", async () => {
+    await runEvalCli(["init", "smoke-task", "--kind", "unknown"]);
+
+    expect(process.exitCode).toBe(1);
+    expect(output()).toContain('Invalid value for "kind"');
+    expect(mockedRun.runInitCli).not.toHaveBeenCalled();
+  });
+
+  it("requires a name for eval init", async () => {
+    await runEvalCli(["init"]);
+
+    expect(process.exitCode).toBe(1);
+    expect(output()).toContain("missing required argument 'name'");
+    expect(mockedRun.runInitCli).not.toHaveBeenCalled();
   });
 
   it("parses eval check arguments before calling runCheckCli", async () => {
@@ -174,12 +190,32 @@ describe("agent-eval cli", () => {
     });
   });
 
+  it("allows eval check without an eval id", async () => {
+    await runEvalCli(["check", "-C", "/repo/evals"]);
+
+    expect(process.exitCode).toBeUndefined();
+    expect(mockedRun.runCheckCli).toHaveBeenCalledWith({
+      evalId: undefined,
+      sourceDir: "/repo/evals"
+    });
+  });
+
   it("parses eval lint arguments before calling runLintCli", async () => {
     await runEvalCli(["lint", "smoke-task", "-C", "/repo/evals"]);
 
     expect(process.exitCode).toBeUndefined();
     expect(mockedRun.runLintCli).toHaveBeenCalledWith({
       evalId: "smoke-task",
+      sourceDir: "/repo/evals"
+    });
+  });
+
+  it("allows eval lint without an eval id", async () => {
+    await runEvalCli(["lint", "-C", "/repo/evals"]);
+
+    expect(process.exitCode).toBeUndefined();
+    expect(mockedRun.runLintCli).toHaveBeenCalledWith({
+      evalId: undefined,
       sourceDir: "/repo/evals"
     });
   });

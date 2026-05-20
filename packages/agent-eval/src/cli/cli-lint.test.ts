@@ -54,6 +54,18 @@ describe("runLintCli", () => {
     });
   });
 
+  it("lints the current eval folder when evalId is .", async () => {
+    vi.mocked(process.cwd).mockReturnValue("/repo/evals/smoke");
+
+    const exitCode = await runLintCli({ evalId: "." });
+
+    expect(exitCode).toBe(0);
+    expect(mocks.evalLint).toHaveBeenCalledWith({
+      sourceDir: "/repo/evals",
+      evalId: "smoke"
+    });
+  });
+
   it("uses an explicit evalId without requiring eval discovery", async () => {
     mocks.fs = createFsFromVolume(Volume.fromJSON({ "/repo/evals/.keep": "" }, "/")).promises;
     mocks.evalLint.mockResolvedValue({

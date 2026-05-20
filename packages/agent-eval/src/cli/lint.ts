@@ -4,6 +4,7 @@ import { color, getTheme, renderTable, withOutputFormat } from "@poe-code/design
 
 import { evalLint, type LintIssue, type LintResult } from "../lint/lint.js";
 import { listEvals } from "../source/registry.js";
+import { resolveEvalCliTarget } from "./target.js";
 import type { EvalFs } from "../types.js";
 import type { RenderTableOptions, TableColumn } from "@poe-code/design-system";
 
@@ -20,12 +21,13 @@ const columns: TableColumn[] = [
 
 export async function runLintCli(input: LintCliInput): Promise<number> {
   try {
-    const sourceDir = path.resolve(input.sourceDir ?? process.cwd());
+    const target = resolveEvalCliTarget(input);
+    const sourceDir = target.sourceDir;
     const fs = nodeFs as unknown as EvalFs;
     await assertSourceDirectory(sourceDir, fs);
 
     const evalIds =
-      input.evalId === undefined ? await resolveDefaultEvalIds(sourceDir, fs) : [input.evalId];
+      target.evalId === undefined ? await resolveDefaultEvalIds(sourceDir, fs) : [target.evalId];
     const results = await Promise.all(
       evalIds.map((evalId) =>
         evalLint({

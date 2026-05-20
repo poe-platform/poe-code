@@ -28,11 +28,10 @@ const initParams = S.Object({
       short: "C"
     })
   ),
-  kind: S.Optional(
-    S.Enum(["plan", "pipeline", "superintendent", "experiment"] as const, {
-      description: "Plan kind"
-    })
-  ),
+  kind: S.Enum(["plan", "pipeline", "superintendent", "experiment"] as const, {
+    description: "Plan kind",
+    default: "plan"
+  }),
   targetRepo: S.Optional(S.String({ description: "Target git repository" })),
   targetRef: S.Optional(S.String({ description: "Target git ref" }))
 });

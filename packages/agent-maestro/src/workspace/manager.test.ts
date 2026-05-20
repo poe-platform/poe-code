@@ -1,4 +1,5 @@
 import { vol } from "memfs";
+import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("node:fs/promises", async () => {
@@ -17,11 +18,13 @@ describe("workspace manager", () => {
   it("creates a new workspace under the root", async () => {
     const { ensureWorkspace } = await import("./manager.js");
 
-    await expect(ensureWorkspace("/repo/workspaces", "octo-org/7/412")).resolves.toEqual({
-      path: "/repo/workspaces/octo-org_7_412",
+    const workspace = await ensureWorkspace("/repo/workspaces", "octo-org/7/412");
+
+    expect(workspace).toEqual({
+      path: expect.stringMatching(/^\/repo\/workspaces\/octo-org_7_412-[a-f0-9]{16}$/),
       createdNow: true
     });
-    expect(vol.existsSync("/repo/workspaces/octo-org_7_412")).toBe(true);
+    expect(vol.existsSync(workspace.path)).toBe(true);
   });
 
   it("returns createdNow false for an existing workspace", async () => {
@@ -32,6 +35,119 @@ describe("workspace manager", () => {
       path: "/repo/workspaces/ENG-412",
       createdNow: false
     });
+  });
+
+  it("sanitizeWorkspaceKey rejects path escapes and path separator input", async () => {
+    const { sanitizeWorkspaceKey } = await import("../runtime/sanitize.js");
+
+    expect(() => sanitizeWorkspaceKey("..")).toThrow(
+      "workspace id must not contain parent path segments"
+    );
+    expect(() => sanitizeWorkspaceKey("../etc")).toThrow(
+      "workspace id must not be an absolute path or contain path separators"
+    );
+    expect(() => sanitizeWorkspaceKey("/tmp/outside")).toThrow(
+      "workspace id must not be an absolute path"
+    );
+    expect(() => sanitizeWorkspaceKey("C:\\tmp\\outside")).toThrow(
+      "workspace id must not be an absolute path"
+    );
+    expect(() => sanitizeWorkspaceKey("foo\0bar")).toThrow(
+      "workspace id must not contain NUL bytes"
+    );
+    expect(() => sanitizeWorkspaceKey("foo\nbar")).toThrow(
+      "workspace id must not contain control characters"
+    );
+    expect(() => sanitizeWorkspaceKey("foo/bar")).toThrow(
+      "workspace id must not be an absolute path or contain path separators"
+    );
+    expect(() => sanitizeWorkspaceKey("foo\\bar")).toThrow(
+      "workspace id must not be an absolute path or contain path separators"
+    );
+  });
+
+  it("hashes and truncates long workspace ids deterministically", async () => {
+    const { sanitizeWorkspaceKey } = await import("../runtime/sanitize.js");
+    const id = "task-" + "a".repeat(300);
+
+    const first = sanitizeWorkspaceKey(id);
+    const second = sanitizeWorkspaceKey(id);
+
+    expect(first).toBe(second);
+    expect(first).toHaveLength(255);
+    expect(first).toMatch(/^task-a+-[a-f0-9]{16}$/);
+  });
+
+  it("keeps unicode workspace ids deterministic and collision-safe", async () => {
+    const { ensureWorkspace } = await import("./manager.js");
+
+    const emoji = await ensureWorkspace("/repo/workspaces", "emoji-🚀");
+    const cjk = await ensureWorkspace("/repo/workspaces", "任务");
+    const rtl = await ensureWorkspace("/repo/workspaces", "مرحبا");
+
+    await expect(ensureWorkspace("/repo/workspaces", "emoji-🚀")).resolves.toEqual({
+      path: emoji.path,
+      createdNow: false
+    });
+    await expect(ensureWorkspace("/repo/workspaces", "任务")).resolves.toEqual({
+      path: cjk.path,
+      createdNow: false
+    });
+    await expect(ensureWorkspace("/repo/workspaces", "مرحبا")).resolves.toEqual({
+      path: rtl.path,
+      createdNow: false
+    });
+    expect(new Set([emoji.path, cjk.path, rtl.path]).size).toBe(3);
+    expect(vol.existsSync(emoji.path)).toBe(true);
+    expect(vol.existsSync(cjk.path)).toBe(true);
+    expect(vol.existsSync(rtl.path)).toBe(true);
+  });
+
+  it("keeps distinct workspaces for ids that sanitize to the same base key", async () => {
+    const { ensureWorkspace } = await import("./manager.js");
+
+    const colon = await ensureWorkspace("/repo/workspaces", "a:b");
+    const question = await ensureWorkspace("/repo/workspaces", "a?b");
+
+    expect(path.basename(colon.path)).toMatch(/^a_b-[a-f0-9]{16}$/);
+    expect(path.basename(question.path)).toMatch(/^a_b-[a-f0-9]{16}$/);
+    expect(colon.path).not.toBe(question.path);
+    expect(vol.existsSync(colon.path)).toBe(true);
+    expect(vol.existsSync(question.path)).toBe(true);
+  });
+
+  it("creates the workspace root when it is missing", async () => {
+    const { ensureWorkspace } = await import("./manager.js");
+
+    await expect(ensureWorkspace("/repo/workspaces", "ENG-412")).resolves.toEqual({
+      path: "/repo/workspaces/ENG-412",
+      createdNow: true
+    });
+    expect(vol.existsSync("/repo/workspaces")).toBe(true);
+    expect(vol.existsSync("/repo/workspaces/ENG-412")).toBe(true);
+  });
+
+  it("throws when the workspace root exists as a file", async () => {
+    const { ensureWorkspace } = await import("./manager.js");
+    vol.mkdirSync("/repo", { recursive: true });
+    vol.writeFileSync("/repo/workspaces", "not a directory");
+
+    await expect(ensureWorkspace("/repo/workspaces", "ENG-412")).rejects.toThrow(
+      "workspace root exists and is not a directory"
+    );
+  });
+
+  it("returns an existing workspace directory without rewriting its contents", async () => {
+    const { ensureWorkspace } = await import("./manager.js");
+    vol.mkdirSync("/repo/workspaces/ENG-412/nested", { recursive: true });
+    vol.writeFileSync("/repo/workspaces/ENG-412/nested/notes.txt", "keep me");
+
+    await expect(ensureWorkspace("/repo/workspaces", "ENG-412")).resolves.toEqual({
+      path: "/repo/workspaces/ENG-412",
+      createdNow: false
+    });
+
+    expect(vol.readFileSync("/repo/workspaces/ENG-412/nested/notes.txt", "utf8")).toBe("keep me");
   });
 
   it("rejects path traversal ids", async () => {
@@ -89,12 +205,34 @@ describe("workspace manager", () => {
   });
 
   it("removes a workspace by sanitized qualified id", async () => {
-    const { removeWorkspace } = await import("./manager.js");
-    vol.mkdirSync("/repo/workspaces/octo-org_7_412", { recursive: true });
+    const { ensureWorkspace, removeWorkspace } = await import("./manager.js");
+    const workspace = await ensureWorkspace("/repo/workspaces", "octo-org/7/412");
 
     await removeWorkspace("/repo/workspaces", "octo-org/7/412");
 
-    expect(vol.existsSync("/repo/workspaces/octo-org_7_412")).toBe(false);
+    expect(vol.existsSync(workspace.path)).toBe(false);
+  });
+
+  it("removes a workspace recursively", async () => {
+    const { removeWorkspace } = await import("./manager.js");
+    vol.mkdirSync("/repo/workspaces/ENG-412/nested/deeper", { recursive: true });
+    vol.writeFileSync("/repo/workspaces/ENG-412/nested/deeper/file.txt", "delete me");
+
+    await removeWorkspace("/repo/workspaces", "ENG-412");
+
+    expect(vol.existsSync("/repo/workspaces/ENG-412")).toBe(false);
+    expect(vol.existsSync("/repo/workspaces/ENG-412/nested/deeper/file.txt")).toBe(false);
+  });
+
+  it("surfaces removeWorkspace filesystem errors to the caller", async () => {
+    const fs = (await import("node:fs/promises")).default;
+    const { removeWorkspace } = await import("./manager.js");
+    const error = Object.assign(new Error("permission denied"), { code: "EACCES" });
+    vi.spyOn(fs, "rm").mockRejectedValueOnce(error);
+
+    await expect(removeWorkspace("/repo/workspaces", "ENG-412")).rejects.toThrow(
+      "permission denied"
+    );
   });
 
   it("does not fail when removing a missing workspace", async () => {
@@ -104,8 +242,8 @@ describe("workspace manager", () => {
   });
 
   it("startup cleanup removes only directories whose key matches a terminal task", async () => {
-    const { startupTerminalCleanup } = await import("./manager.js");
-    vol.mkdirSync("/repo/workspaces/octo-org_7_412", { recursive: true });
+    const { ensureWorkspace, startupTerminalCleanup } = await import("./manager.js");
+    const terminal = await ensureWorkspace("/repo/workspaces", "octo-org/7/412");
     vol.mkdirSync("/repo/workspaces/ENG-412", { recursive: true });
     vol.mkdirSync("/repo/workspaces/ENG-412-extra", { recursive: true });
     vol.mkdirSync("/repo/workspaces/active", { recursive: true });
@@ -115,11 +253,22 @@ describe("workspace manager", () => {
       startupTerminalCleanup("/repo/workspaces", ["octo-org/7/412", "ENG-412", "not-a-dir"])
     ).resolves.toEqual({ removed: 2 });
 
-    expect(vol.existsSync("/repo/workspaces/octo-org_7_412")).toBe(false);
+    expect(vol.existsSync(terminal.path)).toBe(false);
     expect(vol.existsSync("/repo/workspaces/ENG-412")).toBe(false);
     expect(vol.existsSync("/repo/workspaces/ENG-412-extra")).toBe(true);
     expect(vol.existsSync("/repo/workspaces/active")).toBe(true);
     expect(vol.existsSync("/repo/workspaces/not-a-dir")).toBe(true);
+  });
+
+  it("startup cleanup survives a terminal workspace key that is a file", async () => {
+    const { startupTerminalCleanup } = await import("./manager.js");
+    vol.mkdirSync("/repo/workspaces", { recursive: true });
+    vol.writeFileSync("/repo/workspaces/ENG-412", "corrupt state");
+
+    await expect(startupTerminalCleanup("/repo/workspaces", ["ENG-412"])).resolves.toEqual({
+      removed: 0
+    });
+    expect(vol.readFileSync("/repo/workspaces/ENG-412", "utf8")).toBe("corrupt state");
   });
 
   it("startup cleanup is a no-op when the root does not exist", async () => {
@@ -147,5 +296,18 @@ describe("workspace manager", () => {
     await expect(startupTerminalCleanup("/repo/workspaces", ["../foo"])).rejects.toThrow(
       "workspace id must not contain parent path segments"
     );
+  });
+
+  it("does not allow crafted task ids to resolve outside the workspace root", async () => {
+    const { ensureWorkspace } = await import("./manager.js");
+    const root = "/repo/workspaces";
+
+    await expect(ensureWorkspace(root, "../etc")).rejects.toThrow(
+      "workspace id must not contain parent path segments"
+    );
+    const workspace = await ensureWorkspace(root, "etc");
+
+    expect(path.resolve(workspace.path).startsWith(path.resolve(root) + path.sep)).toBe(true);
+    expect(vol.existsSync("/repo/etc")).toBe(false);
   });
 });

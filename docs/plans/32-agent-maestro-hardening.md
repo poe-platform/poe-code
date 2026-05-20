@@ -320,7 +320,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: workspace-manager-coverage
     title: Workspace manager security and cleanup edge cases
@@ -353,8 +353,8 @@ tasks:
         escape the configured root — assert the resolved path
         startsWith the root after `path.resolve`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: retry-and-phase-coverage

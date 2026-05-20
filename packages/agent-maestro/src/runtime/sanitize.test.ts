@@ -11,31 +11,51 @@ describe("sanitizeWorkspaceKey", () => {
     expect(sanitizeWorkspaceKey("AZaz09._-")).toBe("AZaz09._-");
   });
 
-  it("replaces path separators with underscores", () => {
-    expect(sanitizeWorkspaceKey("octo-org/7/412")).toBe("octo-org_7_412");
+  it("rejects path separators", () => {
+    expect(() => sanitizeWorkspaceKey("octo-org/7/412")).toThrow(
+      "workspace id must not be an absolute path or contain path separators"
+    );
+    expect(() => sanitizeWorkspaceKey("octo-org\\7\\412")).toThrow(
+      "workspace id must not be an absolute path or contain path separators"
+    );
   });
 
-  it("replaces spaces and other unsafe characters with underscores", () => {
-    expect(sanitizeWorkspaceKey("foo/bar baz")).toBe("foo_bar_baz");
+  it("adds a stable hash when printable unsafe characters are replaced", () => {
+    expect(sanitizeWorkspaceKey("foo bar baz")).toMatch(/^foo_bar_baz-[a-f0-9]{16}$/);
   });
 
-  it("replaces unsafe characters one-for-one", () => {
-    expect(sanitizeWorkspaceKey("a:b?c#d@e")).toBe("a_b_c_d_e");
+  it("keeps distinct outputs for ids with the same sanitized base", () => {
+    expect(sanitizeWorkspaceKey("a:b")).toMatch(/^a_b-[a-f0-9]{16}$/);
+    expect(sanitizeWorkspaceKey("a:b")).not.toBe(sanitizeWorkspaceKey("a?b"));
   });
 
-  it("replaces control characters with underscores", () => {
-    expect(sanitizeWorkspaceKey("foo\nbar\tbaz")).toBe("foo_bar_baz");
+  it("rejects control characters", () => {
+    expect(() => sanitizeWorkspaceKey("foo\nbar\tbaz")).toThrow(
+      "workspace id must not contain control characters"
+    );
   });
 
-  it("replaces unicode letters and emoji with underscores", () => {
-    expect(sanitizeWorkspaceKey("mañana/💥")).toBe("ma_ana__");
+  it("replaces unicode letters and emoji with hashed safe keys", () => {
+    expect(sanitizeWorkspaceKey("mañana💥")).toMatch(/^ma_ana_-[a-f0-9]{16}$/);
   });
 
-  it("keeps nonempty all-unsafe input as underscores", () => {
-    expect(sanitizeWorkspaceKey(" / ")).toBe("___");
+  it("keeps nonempty all-unsafe printable input as hashed underscores", () => {
+    expect(sanitizeWorkspaceKey(" : ")).toMatch(/^___-[a-f0-9]{16}$/);
   });
 
   it("throws on empty input", () => {
     expect(() => sanitizeWorkspaceKey("")).toThrow("qualifiedId must not be empty");
+  });
+
+  it("throws on path escapes", () => {
+    expect(() => sanitizeWorkspaceKey("..")).toThrow(
+      "workspace id must not contain parent path segments"
+    );
+    expect(() => sanitizeWorkspaceKey("/tmp/outside")).toThrow(
+      "workspace id must not be an absolute path"
+    );
+    expect(() => sanitizeWorkspaceKey("C:\\tmp\\outside")).toThrow(
+      "workspace id must not be an absolute path"
+    );
   });
 });

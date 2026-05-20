@@ -2,7 +2,7 @@ import fs from "node:fs/promises";
 import type { Stats } from "node:fs";
 import path from "node:path";
 
-import { sanitizeWorkspaceKey } from "../runtime/sanitize.js";
+import { appendWorkspaceKeyHash, sanitizeWorkspaceKey } from "../runtime/sanitize.js";
 
 export interface EnsureWorkspaceResult {
   path: string;
@@ -14,6 +14,8 @@ export async function ensureWorkspace(
   qualifiedId: string
 ): Promise<EnsureWorkspaceResult> {
   const workspacePath = resolveWorkspacePath(root, qualifiedId);
+  await ensureWorkspaceRoot(root);
+
   const existing = await statIfExists(workspacePath);
 
   if (existing !== undefined && !existing.isDirectory()) {
@@ -71,7 +73,15 @@ function resolveWorkspacePath(root: string, qualifiedId: string): string {
 
 function resolveWorkspaceKey(root: string, qualifiedId: string): string {
   assertQualifiedIdIsNotAPathEscape(qualifiedId);
-  const key = sanitizeWorkspaceKey(qualifiedId);
+  const key = qualifiedId.includes("/")
+    ? appendWorkspaceKeyHash(
+        qualifiedId
+          .split("/")
+          .map((segment) => sanitizeWorkspaceKey(segment))
+          .join("_"),
+        qualifiedId
+      )
+    : sanitizeWorkspaceKey(qualifiedId);
 
   if (!isSafeWorkspaceKey(key)) {
     throw new Error(`workspace key contains unsupported characters: ${key}`);
@@ -79,6 +89,18 @@ function resolveWorkspaceKey(root: string, qualifiedId: string): string {
 
   assertContained(root, path.join(root, key));
   return key;
+}
+
+async function ensureWorkspaceRoot(root: string): Promise<void> {
+  const existing = await statIfExists(root);
+
+  if (existing !== undefined && !existing.isDirectory()) {
+    throw new Error(`workspace root exists and is not a directory: ${root}`);
+  }
+
+  if (existing === undefined) {
+    await fs.mkdir(root, { recursive: true });
+  }
 }
 
 function assertQualifiedIdIsNotAPathEscape(qualifiedId: string): void {

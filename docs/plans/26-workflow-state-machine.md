@@ -365,7 +365,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: migrate-workflow
     title: Rewrite root WORKFLOW.md as a state-machine workflow
@@ -468,7 +468,7 @@ tasks:
       - Changing where the project's tasks live — `markdown-dir` at
         `./docs/plans` stays the default for the project.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: docs-state-machine

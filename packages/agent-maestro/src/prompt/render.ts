@@ -1,24 +1,61 @@
-import { interpolatePipelineVars, type StepDefinition } from "@poe-code/pipeline";
 import type { Task } from "@poe-code/task-list";
 
 const DEFAULT_TASK_PROMPT = "{{ task.qualifiedId }}: {{ task.name }}\n\n{{ task.description }}";
+const TEMPLATE_VAR_NAME_PATTERN = "[a-zA-Z_][a-zA-Z0-9_]*(?:\\.[a-zA-Z_][a-zA-Z0-9_]*)*";
+const PLACEHOLDER_PATTERN = new RegExp(
+  `\\\\(\\{\\{\\s*${TEMPLATE_VAR_NAME_PATTERN}\\s*\\}\\})|\\{\\{\\s*(${TEMPLATE_VAR_NAME_PATTERN})\\s*\\}\\}`,
+  "g"
+);
+
+export interface PromptTemplate {
+  prompt: string;
+}
 
 export function renderTaskPrompt(
   template: string,
   vars: { task: Task; attempt: number | null }
 ): string {
-  return interpolatePipelineVars(resolveTaskTemplate(template), renderVars(vars));
+  return interpolateVars(resolveTaskTemplate(template), renderVars(vars));
 }
 
 export function renderStepPrompt(
-  step: StepDefinition,
+  step: PromptTemplate,
   vars: { prompt: string; task: Task; attempt: number | null }
 ): string {
-  return interpolatePipelineVars(step.prompt, renderVars(vars));
+  return interpolateVars(step.prompt, renderVars(vars));
+}
+
+export function renderPromptTemplate(
+  template: string,
+  vars: { prompt: string; task: Task; attempt: number | null }
+): string {
+  return interpolateVars(template, renderVars(vars));
 }
 
 function resolveTaskTemplate(template: string): string {
   return template.length === 0 ? DEFAULT_TASK_PROMPT : template;
+}
+
+function interpolateVars(
+  template: string,
+  values: Record<string, string>,
+  context = "template"
+): string {
+  return template.replace(
+    PLACEHOLDER_PATTERN,
+    (_match, escaped: string | undefined, key: string | undefined) => {
+      if (escaped !== undefined) {
+        return escaped;
+      }
+
+      const name = key as string;
+      if (!Object.prototype.hasOwnProperty.call(values, name)) {
+        throw new Error(`Missing pipeline variable "${name}" in ${context}.`);
+      }
+
+      return values[name] as string;
+    }
+  );
 }
 
 function renderVars(vars: { prompt?: string; task: Task; attempt: number | null }): Record<string, string> {

@@ -163,7 +163,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: state-driven-driver
     title: Dispatch one prompt per tick keyed by task state; drop old config fields
@@ -245,10 +245,10 @@ tasks:
         concurrency) is no longer applicable, delete the test, do not
         leave it `xfail` / skipped.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: tasks-cli
     title: Add backend-agnostic poe-code tasks CLI (get/set/set-state/next/comment)

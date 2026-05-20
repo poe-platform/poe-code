@@ -102,9 +102,9 @@ async function stopKeep(
 }
 
 function isTerminal(state: MaestroState, task: Task): boolean {
-  return state.cfg.terminal_states.includes(task.state);
+  return state.cfg.terminalStateNames.includes(task.state);
 }
 
 function isActive(state: MaestroState, task: Task): boolean {
-  return state.cfg.active_states.includes(task.state);
+  return state.cfg.activeStateNames.includes(task.state);
 }

@@ -1,7 +1,6 @@
 import os from "node:os";
 import path from "node:path";
 import { resolveScope } from "@poe-code/poe-code-config";
-import type { StepDefinitionOverrides } from "@poe-code/pipeline";
 import type { OpenTaskListOptions } from "@poe-code/task-list";
 import { validateStateDefinitions } from "./validate.js";
 
@@ -23,8 +22,6 @@ export interface WorkflowConfig {
   activeStateNames: readonly string[];
   terminalStateNames: readonly string[];
   stateOrder: readonly string[];
-  active_states: string[];
-  terminal_states: string[];
   polling: { intervalMs: number };
   workspace: { root: string };
   agent: {
@@ -34,24 +31,11 @@ export interface WorkflowConfig {
     maxTurns: number;
     maxRetryBackoffMs: number;
   };
-  stepOverrides: StepDefinitionOverrides;
 }
 
 export type ResolvedConfig = WorkflowConfig;
 
 const maestroConfigScope = {
-  active_states: {
-    type: "json",
-    default: ["planned", "in-progress"],
-    parse: parseStringArray,
-    doc: "Task states eligible for dispatch."
-  },
-  terminal_states: {
-    type: "json",
-    default: ["done", "archived"],
-    parse: parseStringArray,
-    doc: "Task states considered terminal by the maestro."
-  },
   polling: {
     type: "json",
     default: { interval_ms: 30_000 },
@@ -74,12 +58,6 @@ const maestroConfigScope = {
     },
     parse: parseRecord,
     doc: "Agent dispatch options."
-  },
-  step_overrides: {
-    type: "json",
-    default: {},
-    parse: parseStepOverrides,
-    doc: "Pipeline step overrides."
   }
 } as const;
 
@@ -97,8 +75,6 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
     activeStateNames: stateOrder.filter((name) => states[name]?.prompt !== undefined),
     terminalStateNames: stateOrder.filter((name) => states[name]?.terminal === true),
     stateOrder,
-    active_states: [...scoped.active_states],
-    terminal_states: [...scoped.terminal_states],
     polling: {
       intervalMs: readNumber(polling.interval_ms, 30_000)
     },
@@ -114,8 +90,7 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
       maxConcurrentAgents: readNumber(agent.max_concurrent_agents, 1),
       maxTurns: readNumber(agent.max_turns, 20),
       maxRetryBackoffMs: readNumber(agent.max_retry_backoff_ms, 300_000)
-    },
-    stepOverrides: scoped.step_overrides
+    }
   };
 }
 
@@ -179,28 +154,12 @@ function resolveTasks(value: unknown, cwd: string): OpenTaskListOptions | undefi
   return resolved as unknown as OpenTaskListOptions;
 }
 
-function parseStringArray(value: unknown): string[] {
-  if (!Array.isArray(value) || !value.every((entry) => typeof entry === "string")) {
-    throw new Error("Expected a string array.");
-  }
-
-  return [...value];
-}
-
 function parseRecord(value: unknown): JsonRecord {
   if (!isRecord(value)) {
     throw new Error("Expected an object.");
   }
 
   return { ...value };
-}
-
-function parseStepOverrides(value: unknown): StepDefinitionOverrides {
-  if (!isRecord(value)) {
-    throw new Error("Expected an object.");
-  }
-
-  return value as StepDefinitionOverrides;
 }
 
 function resolveStringValues(value: JsonRecord): JsonRecord {

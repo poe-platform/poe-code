@@ -1,8 +1,8 @@
 import { isActivityTimeoutError, type SpawnMode } from "@poe-code/agent-spawn";
-import type { StepDefinition } from "@poe-code/pipeline";
 import type { Task } from "@poe-code/task-list";
 
-import { renderStepPrompt, renderTaskPrompt } from "../prompt/render.js";
+import type { StateDefinition } from "../config/schema.js";
+import { renderPromptTemplate, renderTaskPrompt } from "../prompt/render.js";
 import {
   transitionPhase,
   type AttemptPhase,
@@ -35,114 +35,73 @@ class PipelineDriverRun {
       return this.cancel();
     }
 
-    const hasSetup = this.ctx.steps.setup !== undefined;
-    const setupFailure = await this.runSetup();
-    if (setupFailure) {
-      if (setupFailure.failure === "canceled") {
-        return this.cancel();
-      }
+    let task: Task;
 
-      await this.runTeardownBestEffort();
-      return this.fail(setupFailure);
+    try {
+      task = await this.refreshTask();
+    } catch (error) {
+      return this.fail(this.failure("prompt_render_error", this.task.state, error));
     }
 
-    if (hasSetup) {
-      const setupBoundary = await this.checkBoundary();
-      if (setupBoundary) {
-        return setupBoundary;
-      }
+    const stateName = task.state;
+    const state = this.ctx.cfg.states[stateName];
+    if (state === undefined) {
+      this.warnUnconfiguredState(task, stateName);
+      return { reason: "normal" };
     }
 
-    for (const [name, step] of Object.entries(this.ctx.steps.steps)) {
-      const stepFailure = await this.runNamedStep(name, step);
-      if (stepFailure) {
-        if (stepFailure.failure === "canceled") {
-          return this.cancel();
-        }
-
-        await this.runTeardownBestEffort();
-        return this.fail(stepFailure);
-      }
-
-      const boundary = await this.checkBoundary();
-      if (boundary) {
-        return boundary;
-      }
+    if (state.terminal === true) {
+      return { reason: "normal" };
     }
 
-    await this.runTeardownBestEffort();
+    const outcome = await this.runStatePrompt(stateName, state, task);
+    if (outcome) {
+      return outcome.failure === "canceled" ? outcome : this.fail(outcome);
+    }
+
     this.transition("succeeded", {});
     return { reason: "normal" };
   }
 
-  private async runSetup(): Promise<AttemptOutcome | undefined> {
-    const step = this.ctx.steps.setup;
-    if (!step) {
+  private async runStatePrompt(
+    stateName: string,
+    state: StateDefinition,
+    task: Task
+  ): Promise<AttemptOutcome | undefined> {
+    if (state.prompt === undefined) {
+      this.warnUnconfiguredState(task, stateName);
       return undefined;
     }
 
-    this.transition("running-setup", { step: "setup" });
-    return this.runStep("setup", step);
-  }
-
-  private async runNamedStep(
-    name: string,
-    step: StepDefinition
-  ): Promise<AttemptOutcome | undefined> {
-    this.transition("running-step", { step: name });
-    return this.runStep(name, step);
-  }
-
-  private async runTeardownBestEffort(): Promise<void> {
-    const step = this.ctx.steps.teardown;
-    if (!step || this.state.phase === "canceled") {
-      return;
-    }
-
-    this.transition("running-teardown", { step: "teardown" });
-    const outcome = await this.runStep("teardown", step);
-    if (outcome) {
-      this.ctx.logger.warn("teardown failed", {
-        reason: outcome.reason,
-        failure: outcome.failure,
-        failedStep: outcome.failedStep,
-        error: outcome.error
-      });
-    }
-  }
-
-  private async runStep(
-    name: string,
-    step: StepDefinition
-  ): Promise<AttemptOutcome | undefined> {
     let prompt: string;
 
     try {
-      const task = await this.refreshTask();
       const taskPrompt = renderTaskPrompt(this.ctx.taskPromptTemplate ?? "", {
         task,
         attempt: this.ctx.attempt
       });
-      prompt = renderStepPrompt(step, {
+      prompt = renderPromptTemplate(state.prompt, {
         prompt: taskPrompt,
         task,
         attempt: this.ctx.attempt
       });
     } catch (error) {
-      return this.failure("prompt_render_error", name, error);
+      return this.failure("prompt_render_error", stateName, error);
     }
 
+    this.transition("running-step", { step: stateName });
+
     try {
-      const result = await this.ctx.spawn(step.agent ?? this.ctx.cfg.agent.service, {
+      const result = await this.ctx.spawn(state.agent ?? this.ctx.cfg.agent.service, {
         prompt,
-        model: step.model,
-        mode: step.mode as SpawnMode,
+        model: state.model,
+        mode: (state.mode ?? "yolo") as SpawnMode,
         signal: this.ctx.abort
       });
       this.ctx.emit({
         type: "agent_event",
         task_id: this.task.qualifiedId,
-        step: name,
+        step: stateName,
         session_id: result.threadId ?? "",
         event: "exit",
         payload: { exitCode: result.exitCode }
@@ -152,7 +111,7 @@ class PipelineDriverRun {
         return {
           reason: "abnormal",
           failure: "step_failed",
-          failedStep: name,
+          failedStep: stateName,
           error: `exitCode=${result.exitCode}`
         };
       }
@@ -162,16 +121,12 @@ class PipelineDriverRun {
       }
 
       if (isActivityTimeoutError(error)) {
-        return this.failure("step_timeout", name, error);
+        return this.failure("step_timeout", stateName, error);
       }
 
-      return this.failure("agent_crashed", name, error);
+      return this.failure("agent_crashed", stateName, error);
     }
 
-    return undefined;
-  }
-
-  private async checkBoundary(): Promise<AttemptOutcome | undefined> {
     if (this.ctx.abort.aborted) {
       return this.cancel();
     }
@@ -187,6 +142,13 @@ class PipelineDriverRun {
     }
 
     return undefined;
+  }
+
+  private warnUnconfiguredState(task: Task, stateName: string): void {
+    this.ctx.logger.warn("unconfigured state", {
+      task_id: task.qualifiedId,
+      state: stateName
+    });
   }
 
   private cancel(): AttemptOutcome {
@@ -252,7 +214,7 @@ class PipelineDriverRun {
 }
 
 function isRunningPhase(phase: AttemptPhase): boolean {
-  return phase === "running-setup" || phase === "running-step" || phase === "running-teardown";
+  return phase === "running-step";
 }
 
 function isAbortError(error: unknown): boolean {

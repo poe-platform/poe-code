@@ -1,8 +1,6 @@
 export type AttemptPhase =
   | "preparing-workspace"
-  | "running-setup"
   | "running-step"
-  | "running-teardown"
   | "succeeded"
   | "failed"
   | "canceled";
@@ -25,10 +23,8 @@ export interface AttemptState {
 }
 
 export const ATTEMPT_TRANSITIONS: Readonly<Record<AttemptPhase, readonly AttemptPhase[]>> = {
-  "preparing-workspace": ["running-setup", "running-step", "failed", "canceled"],
-  "running-setup": ["running-step", "running-teardown", "failed", "canceled"],
-  "running-step": ["running-step", "running-teardown", "succeeded", "failed", "canceled"],
-  "running-teardown": ["succeeded", "failed", "canceled"],
+  "preparing-workspace": ["running-step", "failed", "canceled"],
+  "running-step": ["running-step", "succeeded", "failed", "canceled"],
   succeeded: [],
   failed: [],
   canceled: [],

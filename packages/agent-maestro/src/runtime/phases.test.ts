@@ -9,9 +9,7 @@ import {
 
 const ATTEMPT_PHASES: readonly AttemptPhase[] = [
   "preparing-workspace",
-  "running-setup",
   "running-step",
-  "running-teardown",
   "succeeded",
   "failed",
   "canceled",
@@ -61,17 +59,17 @@ describe("transitionPhase", () => {
         {
           phase: "running-step",
           step: "build",
-          failedStep: "setup",
+          failedStep: "plan",
           failure: "agent_startup_error",
           error: "previous error",
         },
-        "running-teardown",
-        { step: "teardown" },
+        "running-step",
+        { step: "review" },
       ),
     ).toEqual({
-      phase: "running-teardown",
-      step: "teardown",
-      failedStep: "setup",
+      phase: "running-step",
+      step: "review",
+      failedStep: "plan",
       failure: "agent_startup_error",
       error: "previous error",
     });
@@ -83,11 +81,11 @@ describe("transitionPhase", () => {
         {
           phase: "running-step",
           step: "build",
-          failedStep: "setup",
+          failedStep: "plan",
           failure: "agent_startup_error",
           error: "previous error",
         },
-        "running-teardown",
+        "running-step",
         {
           step: undefined,
           failedStep: undefined,
@@ -96,9 +94,9 @@ describe("transitionPhase", () => {
         },
       ),
     ).toEqual({
-      phase: "running-teardown",
+      phase: "running-step",
       step: "build",
-      failedStep: "setup",
+      failedStep: "plan",
       failure: "agent_startup_error",
       error: "previous error",
     });
@@ -112,11 +110,11 @@ describe("transitionPhase", () => {
       failedStep: "build",
     } satisfies Parameters<typeof transitionPhase>[0];
 
-    const next = transitionPhase(current, "running-teardown", { step: "teardown" });
+    const next = transitionPhase(current, "running-step", { step: "review" });
 
     expect(next).toEqual({
-      phase: "running-teardown",
-      step: "teardown",
+      phase: "running-step",
+      step: "review",
       failure: "step_failed",
       failedStep: "build",
     });

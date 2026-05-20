@@ -1,5 +1,4 @@
 import { spawn as defaultSpawn } from "@poe-code/agent-spawn";
-import type { ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { Task } from "@poe-code/task-list";
 
 import type { ResolvedConfig } from "../config/schema.js";
@@ -54,7 +53,6 @@ export async function runAttempt(args: {
   task: Task;
   attempt: number | null;
   cfg: ResolvedConfig;
-  steps: ResolvedStepsConfig;
   workspaceDir?: string;
   planPath?: string | null;
   deps: AttemptDeps;
@@ -87,7 +85,6 @@ class AttemptRunner {
       workspaceDir: this.args.workspaceDir ?? "",
       planPath: this.args.task.sourcePath ?? null,
       cfg: this.args.cfg,
-      steps: this.args.steps,
       abort: this.args.abort,
       emit: (event) => this.args.deps.onEvent?.(event),
       spawn: this.args.deps.spawn ?? defaultSpawn,

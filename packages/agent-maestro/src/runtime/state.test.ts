@@ -90,8 +90,13 @@ describe("runtime state", () => {
 
 function createConfig(): ResolvedConfig {
   return {
-    active_states: ["queued"],
-    terminal_states: ["done"],
+    states: {
+      queued: { prompt: "Queue {{ prompt }}" },
+      done: { terminal: true },
+    },
+    activeStateNames: ["queued"],
+    terminalStateNames: ["done"],
+    stateOrder: ["queued", "done"],
     polling: { intervalMs: 30_000 },
     workspace: { root: "/tmp/maestro" },
     agent: {
@@ -100,6 +105,5 @@ function createConfig(): ResolvedConfig {
       maxTurns: 20,
       maxRetryBackoffMs: 300_000,
     },
-    stepOverrides: {},
   };
 }

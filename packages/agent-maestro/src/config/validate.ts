@@ -1,21 +1,16 @@
 import { verifyGhProject, type TaskList } from "@poe-code/task-list";
-import type { ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { ResolvedConfig, StateMode } from "./schema.js";
 
 type JsonRecord = Record<string, unknown>;
 
 export type DispatchPreflightCode =
   | "missing_tasks_config"
-  | "missing_steps_config"
-  | "no_steps_defined"
   | "list_not_found"
   | "board_not_provisioned";
 
 export type DispatchValidationResult =
   | { ok: true }
   | { ok: false; code: "missing_tasks_config" }
-  | { ok: false; code: "missing_steps_config" }
-  | { ok: false; code: "no_steps_defined" }
   | { ok: false; code: "list_not_found"; list: string }
   | {
       ok: false;
@@ -47,8 +42,7 @@ export function validateStateDefinitions(value: unknown): asserts value is
 
 export async function validateDispatch(
   cfg: ResolvedConfig,
-  taskList: Pick<TaskList, "lists">,
-  steps: ResolvedStepsConfig | undefined
+  taskList: Pick<TaskList, "lists">
 ): Promise<DispatchValidationResult> {
   if (
     cfg.tasks === undefined ||
@@ -56,14 +50,6 @@ export async function validateDispatch(
     hasMissingTaskField(cfg.tasks)
   ) {
     return { ok: false, code: "missing_tasks_config" };
-  }
-
-  if (steps === undefined) {
-    return { ok: false, code: "missing_steps_config" };
-  }
-
-  if (Object.keys(steps.steps).length === 0) {
-    return { ok: false, code: "no_steps_defined" };
   }
 
   const list = cfg.agent.list;
@@ -80,7 +66,7 @@ export async function validateDispatch(
     const report = await verifyGhProject({
       owner: cfg.tasks.project.owner,
       number: cfg.tasks.project.number,
-      requiredStates: unique([...cfg.active_states, ...cfg.terminal_states]),
+      requiredStates: unique([...cfg.activeStateNames, ...cfg.terminalStateNames]),
       ...("auth" in cfg.tasks && cfg.tasks.auth ? { auth: cfg.tasks.auth } : {}),
       ...("fetch" in cfg.tasks && cfg.tasks.fetch ? { fetch: cfg.tasks.fetch } : {})
     });

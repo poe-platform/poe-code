@@ -1,8 +1,7 @@
-import type { StepDefinition } from "@poe-code/pipeline";
 import type { Task } from "@poe-code/task-list";
 import { describe, expect, it } from "vitest";
 
-import { renderStepPrompt, renderTaskPrompt } from "./render.js";
+import { renderPromptTemplate, renderStepPrompt, renderTaskPrompt } from "./render.js";
 
 const task: Task = {
   list: "backlog",
@@ -84,8 +83,7 @@ describe("prompt renderers", () => {
   });
 
   it("renders step prompts with the rendered task prompt", () => {
-    const step: StepDefinition = {
-      mode: "yolo",
+    const step = {
       prompt: "Task:\n{{ prompt }}\n\nAttempt {{ attempt }} for {{ task.id }}."
     };
 
@@ -96,6 +94,16 @@ describe("prompt renderers", () => {
         attempt: 3
       })
     ).toBe("Task:\nRendered task body\n\nAttempt 3 for ship-render.");
+  });
+
+  it("renders state prompt templates with the rendered task prompt", () => {
+    expect(
+      renderPromptTemplate("State sees {{ prompt }}", {
+        prompt: "Rendered task body",
+        task,
+        attempt: 3
+      })
+    ).toBe("State sees Rendered task body");
   });
 
   it("throws on unknown variables", () => {

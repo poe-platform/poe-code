@@ -1,4 +1,3 @@
-import type { ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { Task, TaskList } from "@poe-code/task-list";
 import { spawn as defaultSpawn } from "@poe-code/agent-spawn";
 
@@ -53,11 +52,9 @@ export interface TrackedWorker {
 
 export interface TickDeps {
   tasks: Pick<TaskList, "allTasks" | "get" | "list" | "lists">;
-  steps?: ResolvedStepsConfig;
   validateDispatch?: (
     cfg: MaestroState["cfg"],
-    taskList: Pick<TaskList, "lists">,
-    steps: ResolvedStepsConfig | undefined
+    taskList: Pick<TaskList, "lists">
   ) => Promise<DispatchValidationResult>;
   reconcileRunning?: (state: MaestroState) => Promise<ReconcileResult[]>;
   ensureWorkspace?: (root: string, qualifiedId: string) => Promise<EnsureWorkspaceResult>;
@@ -88,18 +85,10 @@ export async function tick(state: MaestroState, deps: TickDeps): Promise<void> {
   }
 
   const validateDispatch = deps.validateDispatch ?? defaultValidateDispatch;
-  const validation = await validateDispatch(state.cfg, deps.tasks, deps.steps);
+  const validation = await validateDispatch(state.cfg, deps.tasks);
 
   if (!validation.ok) {
     deps.onEvent?.({ type: "validation_failed", result: validation });
-    return;
-  }
-
-  if (deps.steps === undefined) {
-    deps.onEvent?.({
-      type: "validation_failed",
-      result: { ok: false, code: "missing_steps_config" }
-    });
     return;
   }
 
@@ -133,7 +122,7 @@ export async function tick(state: MaestroState, deps: TickDeps): Promise<void> {
     }
 
     dispatched += 1;
-    startWorker(state, deps, deps.steps, task, attempt);
+    startWorker(state, deps, task, attempt);
   }
 }
 
@@ -156,7 +145,7 @@ async function activeCandidates(
 ): Promise<Task[]> {
   const byId = new Map<string, Task>();
 
-  for (const activeState of state.cfg.active_states) {
+  for (const activeState of state.cfg.activeStateNames) {
     for (const task of await tasks.allTasks({ state: activeState })) {
       byId.set(task.qualifiedId, task);
     }
@@ -180,14 +169,14 @@ async function reconcileRetryQueue(
       continue;
     }
 
-    if (state.cfg.terminal_states.includes(task.state)) {
+    if (state.cfg.terminalStateNames.includes(task.state)) {
       await (deps.removeWorkspace ?? defaultRemoveWorkspace)(state.cfg.workspace.root, task.qualifiedId);
       markCompleted(state, retry.taskId);
       results.push({ taskId: retry.taskId, action: "stop_clean" });
       continue;
     }
 
-    if (!state.cfg.active_states.includes(task.state)) {
+    if (!state.cfg.activeStateNames.includes(task.state)) {
       release(state, retry.taskId);
       results.push({ taskId: retry.taskId, action: "stop_keep" });
       continue;
@@ -226,7 +215,6 @@ function acquireDispatchSlot(state: MaestroState, task: Task, now: number): numb
 function startWorker(
   state: MaestroState,
   deps: TickDeps,
-  steps: ResolvedStepsConfig,
   task: Task,
   attempt: number
 ): void {
@@ -252,7 +240,6 @@ function startWorker(
         task: activeTask,
         attempt,
         cfg: state.cfg,
-        steps,
         workspaceDir: workspace.path,
         deps: {
           spawn: deps.spawn,
@@ -263,8 +250,8 @@ function startWorker(
             const refreshed = await deps.tasks.get(runningTask.qualifiedId);
 
             if (
-              state.cfg.terminal_states.includes(refreshed.state) ||
-              !state.cfg.active_states.includes(refreshed.state)
+              state.cfg.terminalStateNames.includes(refreshed.state) ||
+              !state.cfg.activeStateNames.includes(refreshed.state)
             ) {
               return "canceled";
             }
@@ -340,7 +327,7 @@ async function cleanupTerminalWorkspace(
     return;
   }
 
-  if (!state.cfg.terminal_states.includes(task.state)) {
+  if (!state.cfg.terminalStateNames.includes(task.state)) {
     return;
   }
 

@@ -24,8 +24,6 @@ function cfg(overrides: Partial<ResolvedConfig> = {}): ResolvedConfig {
     activeStateNames: ["planned", "in-progress"],
     terminalStateNames: ["done", "archived"],
     stateOrder: ["planned", "in-progress", "done", "archived"],
-    active_states: ["planned", "in-progress"],
-    terminal_states: ["done", "archived"],
     polling: { intervalMs: 30_000 },
     workspace: { root: "/tmp/poe-code-maestro" },
     agent: {
@@ -35,7 +33,6 @@ function cfg(overrides: Partial<ResolvedConfig> = {}): ResolvedConfig {
       maxTurns: 20,
       maxRetryBackoffMs: 300_000
     },
-    stepOverrides: {},
     ...overrides
   };
 }
@@ -52,16 +49,15 @@ describe("validateDispatch", () => {
   });
 
   it("fails when tasks config is missing", async () => {
-    await expect(
-      validateDispatch(cfg({ tasks: undefined }), taskList(), { steps: { implement: step() } })
-    ).resolves.toEqual({ ok: false, code: "missing_tasks_config" });
+    await expect(validateDispatch(cfg({ tasks: undefined }), taskList())).resolves.toEqual({
+      ok: false,
+      code: "missing_tasks_config"
+    });
   });
 
   it("fails when tasks config contains an empty resolved value", async () => {
     await expect(
-      validateDispatch(cfg({ tasks: { type: "markdown-dir", path: "" } }), taskList(), {
-        steps: { implement: step() }
-      })
+      validateDispatch(cfg({ tasks: { type: "markdown-dir", path: "" } }), taskList())
     ).resolves.toEqual({ ok: false, code: "missing_tasks_config" });
   });
 
@@ -69,10 +65,7 @@ describe("validateDispatch", () => {
     await expect(
       validateDispatch(
         cfg({ tasks: { type: "markdown-dir" } as ResolvedConfig["tasks"] }),
-        taskList(),
-        {
-          steps: { implement: step() }
-        }
+        taskList()
       )
     ).resolves.toEqual({ ok: false, code: "missing_tasks_config" });
   });
@@ -81,10 +74,7 @@ describe("validateDispatch", () => {
     await expect(
       validateDispatch(
         cfg({ tasks: { type: "yaml-file" } as ResolvedConfig["tasks"] }),
-        taskList(),
-        {
-          steps: { implement: step() }
-        }
+        taskList()
       )
     ).resolves.toEqual({ ok: false, code: "missing_tasks_config" });
   });
@@ -99,32 +89,19 @@ describe("validateDispatch", () => {
             project: { owner: "octo" }
           } as ResolvedConfig["tasks"]
         }),
-        taskList(),
-        { steps: { implement: step() } }
+        taskList()
       )
     ).resolves.toEqual({ ok: false, code: "missing_tasks_config" });
 
     expect(verifyGhProject).not.toHaveBeenCalled();
   });
 
-  it("fails when steps config is missing", async () => {
-    await expect(validateDispatch(cfg(), taskList(), undefined)).resolves.toEqual({
-      ok: false,
-      code: "missing_steps_config"
-    });
-  });
-
-  it("fails when no steps are defined", async () => {
-    await expect(validateDispatch(cfg(), taskList(), { steps: {} })).resolves.toEqual({
-      ok: false,
-      code: "no_steps_defined"
-    });
-  });
-
   it("fails when the configured task list does not exist", async () => {
-    await expect(
-      validateDispatch(cfg(), taskList(["triage"]), { steps: { implement: step() } })
-    ).resolves.toEqual({ ok: false, code: "list_not_found", list: "backlog" });
+    await expect(validateDispatch(cfg(), taskList(["triage"]))).resolves.toEqual({
+      ok: false,
+      code: "list_not_found",
+      list: "backlog"
+    });
   });
 
   it("fails when a gh-issues project board is not provisioned", async () => {
@@ -146,8 +123,7 @@ describe("validateDispatch", () => {
             project: { owner: "octo", number: 7 }
           }
         }),
-        taskList(),
-        { steps: { implement: step() } }
+        taskList()
       )
     ).resolves.toEqual({
       ok: false,
@@ -162,7 +138,7 @@ describe("validateDispatch", () => {
     });
   });
 
-  it("returns ok when config, list, steps, and board are valid", async () => {
+  it("returns ok when config, list, and board are valid", async () => {
     verifyGhProject.mockResolvedValue({
       ok: true,
       project: { id: "PVT", number: 7, owner: "octo" },
@@ -181,8 +157,7 @@ describe("validateDispatch", () => {
             project: { owner: "octo", number: 7 }
           }
         }),
-        taskList(),
-        { steps: { implement: step() } }
+        taskList()
       )
     ).resolves.toEqual({ ok: true });
   });
@@ -236,7 +211,3 @@ describe("workflow state validation", () => {
     expect(() => resolveConfig({}, "/repo")).toThrow("requires a states map");
   });
 });
-
-function step() {
-  return { mode: "yolo" as const, prompt: "Do it" };
-}

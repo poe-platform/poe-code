@@ -1,4 +1,3 @@
-import type { ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { Task } from "@poe-code/task-list";
 
 import type { ResolvedConfig } from "../config/schema.js";
@@ -14,7 +13,6 @@ export interface WorkflowDriverContext {
   workspaceDir: string;
   planPath: string | null;
   cfg: ResolvedConfig;
-  steps: ResolvedStepsConfig;
   abort: AbortSignal;
   emit: (event: AttemptEvent) => void;
   spawn: typeof import("@poe-code/agent-spawn").spawn;

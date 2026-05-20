@@ -45,14 +45,8 @@ describe("shouldRetry", () => {
     expect(() => shouldRetry("preparing-workspace")).toThrow(
       "Cannot decide retry for non-terminal phase: preparing-workspace",
     );
-    expect(() => shouldRetry("running-setup")).toThrow(
-      "Cannot decide retry for non-terminal phase: running-setup",
-    );
     expect(() => shouldRetry("running-step")).toThrow(
       "Cannot decide retry for non-terminal phase: running-step",
-    );
-    expect(() => shouldRetry("running-teardown")).toThrow(
-      "Cannot decide retry for non-terminal phase: running-teardown",
     );
   });
 });

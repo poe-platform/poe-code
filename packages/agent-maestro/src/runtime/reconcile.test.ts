@@ -233,8 +233,15 @@ async function openTasks(): Promise<TaskList> {
 
 function createConfig(): ResolvedConfig {
   return {
-    active_states: ["planned", "in-progress"],
-    terminal_states: ["done", "archived"],
+    states: {
+      planned: { prompt: "Plan {{ prompt }}" },
+      "in-progress": { prompt: "Implement {{ prompt }}" },
+      done: { terminal: true },
+      archived: { terminal: true }
+    },
+    activeStateNames: ["planned", "in-progress"],
+    terminalStateNames: ["done", "archived"],
+    stateOrder: ["planned", "in-progress", "done", "archived"],
     polling: { intervalMs: 30_000 },
     workspace: { root: "/repo/workspaces" },
     agent: {
@@ -242,7 +249,6 @@ function createConfig(): ResolvedConfig {
       maxConcurrentAgents: 1,
       maxTurns: 20,
       maxRetryBackoffMs: 300_000
-    },
-    stepOverrides: {}
+    }
   };
 }

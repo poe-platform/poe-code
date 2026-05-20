@@ -45,8 +45,6 @@ describe("resolveConfig", () => {
       activeStateNames: ["planned"],
       terminalStateNames: ["done"],
       stateOrder: ["planned", "done"],
-      active_states: ["planned", "in-progress"],
-      terminal_states: ["done", "archived"],
       polling: { intervalMs: 30_000 },
       workspace: { root: path.join(os.tmpdir(), "poe-code-maestro") },
       agent: {
@@ -55,8 +53,7 @@ describe("resolveConfig", () => {
         maxConcurrentAgents: 1,
         maxTurns: 20,
         maxRetryBackoffMs: 300_000
-      },
-      stepOverrides: {}
+      }
     });
   });
 
@@ -96,28 +93,7 @@ describe("resolveConfig", () => {
     expect(cfg.agent.list).toBeUndefined();
   });
 
-  it("picks up step_overrides", () => {
-    const cfg = resolveConfig(
-      {
-        tasks: { type: "markdown-dir", path: "./tasks" },
-        states: {
-          planned: { prompt: "Plan" },
-          done: { terminal: true }
-        },
-        agent: { list: "backlog" },
-        step_overrides: {
-          test: { model: "claude-sonnet-4.6" }
-        }
-      },
-      "/repo"
-    );
-
-    expect(cfg.stepOverrides).toEqual({
-      test: { model: "claude-sonnet-4.6" }
-    });
-  });
-
-  it("parses new states alongside old state fields from WORKFLOW.md frontmatter", async () => {
+  it("parses states from WORKFLOW.md frontmatter", async () => {
     const { loadWorkflow } = await import("./load.js");
     vol.fromJSON({
       "/repo/WORKFLOW.md": [
@@ -130,10 +106,6 @@ describe("resolveConfig", () => {
         "    prompt: Plan it",
         "  done:",
         "    terminal: true",
-        "active_states:",
-        "  - planned",
-        "terminal_states:",
-        "  - done",
         "---",
         "",
         "Implement {{ task.name }}."
@@ -150,8 +122,6 @@ describe("resolveConfig", () => {
     expect(cfg.activeStateNames).toEqual(["planned"]);
     expect(cfg.terminalStateNames).toEqual(["done"]);
     expect(cfg.stateOrder).toEqual(["planned", "done"]);
-    expect(cfg.active_states).toEqual(["planned"]);
-    expect(cfg.terminal_states).toEqual(["done"]);
   });
 
   it("preserves state declaration order from YAML", async () => {

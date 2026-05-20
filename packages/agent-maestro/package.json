@@ -25,7 +25,6 @@
     "@poe-code/experiment-loop": "*",
     "@poe-code/file-lock": "*",
     "@poe-code/markdown-reader": "*",
-    "@poe-code/pipeline": "*",
     "@poe-code/poe-code-config": "*",
     "@poe-code/ralph": "*",
     "@poe-code/superintendent": "*",

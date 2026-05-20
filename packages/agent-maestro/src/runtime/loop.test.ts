@@ -1,4 +1,3 @@
-import type { ResolvedStepsConfig } from "@poe-code/pipeline";
 import type { Task, TaskList } from "@poe-code/task-list";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -122,7 +121,7 @@ describe("tick", () => {
       state,
       createDeps({
         tasks: createTaskList([], { allTasks }),
-        validateDispatch: async () => ({ ok: false, code: "missing_steps_config" }),
+        validateDispatch: async () => ({ ok: false, code: "list_not_found", list: "tasks" }),
         reconcileRunning: async () => [{ taskId: "tasks/running", action: "update" }],
         ensureWorkspace,
         onEvent: (event) => events.push(event.type)
@@ -277,7 +276,7 @@ describe("tick", () => {
     );
     await workerPromises.at(-1);
 
-    expect(prompts).toEqual(["first body", "second body"]);
+    expect(prompts).toEqual(["Plan first body", "Plan second body"]);
   });
 
   it("schedules a backoff retry when workspace creation fails", async () => {
@@ -390,25 +389,6 @@ describe("tick", () => {
     expect(dispatched).toEqual(["tasks/duplicate"]);
   });
 
-  it("fails validation without fetching candidates when steps are missing after preflight passes", async () => {
-    const state = createState(createConfig());
-    const allTasks = vi.fn();
-    const events: string[] = [];
-
-    await tick(
-      state,
-      createDeps({
-        tasks: createTaskList([], { allTasks }),
-        steps: undefined,
-        validateDispatch: async () => ({ ok: true }),
-        onEvent: (event) => events.push(event.type)
-      })
-    );
-
-    expect(allTasks).not.toHaveBeenCalled();
-    expect(events).toEqual(["tick_started", "validation_failed"]);
-  });
-
   it("dispatches pipeline tasks when the pipeline driver is registered", async () => {
     const task = createTask("tasks/pipeline", {
       metadata: { kind: "pipeline", createdAt: "2026-01-01T00:00:00.000Z" }
@@ -486,7 +466,6 @@ describe("tick", () => {
 function createDeps(overrides: Partial<TickDeps> = {}): TickDeps {
   return {
     tasks: createTaskList([]),
-    steps: createSteps(),
     validateDispatch: async () => ({ ok: true }),
     reconcileRunning: async () => [],
     ensureWorkspace: async (_root, qualifiedId) => ({
@@ -565,8 +544,15 @@ function createTask(
 function createConfig(overrides: { maxConcurrentAgents?: number } = {}): ResolvedConfig {
   return {
     tasks: { type: "markdown-dir", path: "/repo/tasks" },
-    active_states: ["planned", "in-progress"],
-    terminal_states: ["done", "archived"],
+    states: {
+      planned: { prompt: "Plan {{ prompt }}" },
+      "in-progress": { prompt: "Implement {{ prompt }}" },
+      done: { terminal: true },
+      archived: { terminal: true }
+    },
+    activeStateNames: ["planned", "in-progress"],
+    terminalStateNames: ["done", "archived"],
+    stateOrder: ["planned", "in-progress", "done", "archived"],
     polling: { intervalMs: 30_000 },
     workspace: { root: "/repo/workspaces" },
     agent: {
@@ -575,15 +561,6 @@ function createConfig(overrides: { maxConcurrentAgents?: number } = {}): Resolve
       maxConcurrentAgents: overrides.maxConcurrentAgents ?? 1,
       maxTurns: 20,
       maxRetryBackoffMs: 300_000
-    },
-    stepOverrides: {}
-  };
-}
-
-function createSteps(): ResolvedStepsConfig {
-  return {
-    steps: {
-      implement: { mode: "edit", prompt: "{{ prompt }}" }
     }
   };
 }

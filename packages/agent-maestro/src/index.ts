@@ -1,9 +1,6 @@
-import fsPromises from "node:fs/promises";
-import os from "node:os";
 import path from "node:path";
 import { spawn as defaultSpawn } from "@poe-code/agent-spawn";
 import { acquireFileLock } from "@poe-code/file-lock";
-import { loadResolvedSteps } from "@poe-code/pipeline";
 import {
   openTaskList,
   type OpenTaskListOptions,
@@ -87,7 +84,7 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
   const logger = createLevelLogger(opts.logger ?? {}, opts.logLevel ?? "info");
 
   if (opts.dryRun === true) {
-    await runDryRun(cfg, workflow.sourcePath, opts, logger);
+    await runDryRun(cfg, opts, logger);
     return async () => undefined;
   }
 
@@ -99,13 +96,7 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
 
   try {
     const taskList = opts.taskList ?? (await openConfiguredTaskList(cfg.tasks));
-    const steps = await loadResolvedSteps({
-      cwd: path.dirname(workflow.sourcePath),
-      homeDir: os.homedir(),
-      fs: fsPromises,
-      stepOverrides: cfg.stepOverrides
-    });
-    const terminalTasks = await collectTerminalTaskIds(taskList, cfg.terminal_states);
+    const terminalTasks = await collectTerminalTaskIds(taskList, cfg.terminalStateNames);
     await startupTerminalCleanup(cfg.workspace.root, terminalTasks);
     const state = createState(cfg);
 
@@ -119,7 +110,6 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
         .then(() =>
           tick(state, {
             tasks: taskList,
-            steps,
             spawn: opts.agentSpawn,
             taskPromptTemplate: workflow.promptTemplate,
             trackWorker: (worker) => {
@@ -206,18 +196,11 @@ function applyOptionOverrides(cfg: ResolvedConfig, opts: RunMaestroOptions): Res
 
 async function runDryRun(
   cfg: ResolvedConfig,
-  workflowSourcePath: string,
   opts: RunMaestroOptions,
   logger: Logger
 ): Promise<void> {
   const taskList = opts.taskList ?? (await openConfiguredTaskList(cfg.tasks));
-  const steps = await loadResolvedSteps({
-    cwd: path.dirname(workflowSourcePath),
-    homeDir: os.homedir(),
-    fs: fsPromises,
-    stepOverrides: cfg.stepOverrides
-  });
-  const validation = await validateDispatch(cfg, taskList, steps);
+  const validation = await validateDispatch(cfg, taskList);
 
   if (!validation.ok) {
     opts.onEvent?.({ type: "validation_failed", reason: validation.code });
@@ -245,7 +228,7 @@ async function collectActiveCandidates(
 ): Promise<Task[]> {
   const byId = new Map<string, Task>();
 
-  for (const activeState of cfg.active_states) {
+  for (const activeState of cfg.activeStateNames) {
     for (const task of await taskList.allTasks({ state: activeState })) {
       byId.set(task.qualifiedId, task);
     }
@@ -303,7 +286,7 @@ async function openConfiguredTaskList(options: OpenTaskListOptions | undefined):
 
 async function collectTerminalTaskIds(
   taskList: Pick<TaskList, "allTasks">,
-  terminalStates: string[]
+  terminalStates: readonly string[]
 ): Promise<string[]> {
   const ids = new Set<string>();
 

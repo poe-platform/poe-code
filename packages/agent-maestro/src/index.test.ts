@@ -37,22 +37,7 @@ describe("runMaestro", () => {
         agent: ["  list: tasks"],
         workspace: ["  root: /repo/workspaces"],
         polling: ["  interval_ms: 25"]
-      }),
-      "/repo/.poe-code/pipeline/steps.yaml": [
-        "steps:",
-        "  implement:",
-        "    agent: codex",
-        "    mode: edit",
-        "    prompt: Implement {{ prompt }}",
-        "  verify:",
-        "    agent: codex",
-        "    mode: read",
-        "    prompt: Verify {{ prompt }}",
-        "teardown:",
-        "  agent: codex",
-        "  mode: read",
-        "  prompt: Teardown {{ prompt }}"
-      ].join("\n")
+      })
     });
     const taskList = await createYamlTaskList("/repo/tasks.yaml", fs.promises as unknown as TaskListFs);
     const tasks = taskList.list("tasks");
@@ -83,14 +68,10 @@ describe("runMaestro", () => {
     expect(events.filter((event) => event.type === "attempt_phase").map((event) => event.to)).toEqual([
       "preparing-workspace",
       "running-step",
-      "running-step",
-      "running-teardown",
       "succeeded"
     ]);
     expect(events.filter((event) => event.type === "agent_event").map((event) => event.step)).toEqual([
-      "implement",
-      "verify",
-      "teardown"
+      "in-progress"
     ]);
     await expect(tasks.get("one")).resolves.toMatchObject({ state: "done" });
     expect(vol.existsSync("/repo/workspaces/tasks_one")).toBe(false);
@@ -118,27 +99,10 @@ describe("runMaestro", () => {
           "  done:",
           "    terminal: true"
         ],
-        active_states: ["  - queued", "  - agent-running"],
-        terminal_states: ["  - human-review", "  - failed", "  - archived", "  - done"],
         agent: ["  list: maestro"],
         workspace: ["  root: /repo/workspaces"],
         polling: ["  interval_ms: 25"]
-      }),
-      "/repo/.poe-code/pipeline/steps.yaml": [
-        "steps:",
-        "  implement:",
-        "    agent: codex",
-        "    mode: edit",
-        "    prompt: Implement {{ prompt }}",
-        "  verify:",
-        "    agent: codex",
-        "    mode: read",
-        "    prompt: Verify {{ prompt }}",
-        "teardown:",
-        "  agent: codex",
-        "  mode: read",
-        "  prompt: Teardown {{ prompt }}"
-      ].join("\n")
+      })
     });
     const taskList = await createYamlTaskList(
       "/repo/recommended.yaml",
@@ -193,14 +157,7 @@ describe("runMaestro", () => {
         agent: ["  list: tasks"],
         workspace: ["  root: /repo/workspaces"],
         polling: ["  interval_ms: 25"]
-      }),
-      "/repo/.poe-code/pipeline/steps.yaml": [
-        "steps:",
-        "  implement:",
-        "    agent: codex",
-        "    mode: edit",
-        "    prompt: Implement {{ prompt }}"
-      ].join("\n")
+      })
     });
     const taskList = await createYamlTaskList("/repo/tasks.yaml", fs.promises as unknown as TaskListFs);
     const tasks = taskList.list("tasks");
@@ -254,14 +211,7 @@ describe("runMaestro", () => {
         agent: ["  list: tasks"],
         workspace: ["  root: /repo/workspaces"],
         polling: ["  interval_ms: 25"]
-      }),
-      "/repo/.poe-code/pipeline/steps.yaml": [
-        "steps:",
-        "  implement:",
-        "    agent: codex",
-        "    mode: edit",
-        "    prompt: Implement {{ prompt }}"
-      ].join("\n")
+      })
     });
     const activeTasks = [
       {

@@ -104,8 +104,8 @@ tasks:
       Same isolation rule as the mock spawn task: never reachable from
       production code paths.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: shared-test-fixtures

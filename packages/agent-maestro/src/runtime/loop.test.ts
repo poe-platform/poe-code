@@ -367,7 +367,7 @@ describe("tick", () => {
     expect(state.running.has(task.qualifiedId)).toBe(false);
     expect(state.retry_attempts.get(task.qualifiedId)).toEqual({
       taskId: task.qualifiedId,
-      attempt: 2,
+      attempt: 1,
       dueAt: 6_000
     });
   });

@@ -354,13 +354,13 @@ function scheduleWorkerRetry(
     return false;
   }
 
-  const decision = shouldRetry(phase, outcome.failure);
+  const decision = shouldRetry(phase, outcome.failure, { attempt });
   if (!decision.retry) {
     release(state, taskId);
     return false;
   }
 
-  const nextAttempt = attempt + 1;
+  const nextAttempt = decision.attempt ?? attempt + 1;
   const delayMs =
     decision.kind === "continuation"
       ? decision.delayMs

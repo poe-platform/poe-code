@@ -33,17 +33,39 @@ export const ATTEMPT_TRANSITIONS: Readonly<Record<AttemptPhase, readonly Attempt
 type TransitionContext = Partial<Omit<AttemptState, "phase">>;
 
 export function transitionPhase(
-  current: AttemptState,
+  current: AttemptState | null,
   next: AttemptPhase,
   ctx: TransitionContext,
 ): AttemptState {
+  if (current === null) {
+    if (next !== "preparing-workspace") {
+      throw new Error(`Illegal attempt phase transition: null -> ${next}`);
+    }
+
+    return validatedState({ phase: next }, next, ctx);
+  }
+
   if (!ATTEMPT_TRANSITIONS[current.phase].includes(next)) {
     throw new Error(`Illegal attempt phase transition: ${current.phase} -> ${next}`);
   }
 
+  return validatedState(
+    {
+      ...current,
+      phase: next,
+    },
+    next,
+    ctx,
+  );
+}
+
+function validatedState(
+  baseState: AttemptState,
+  next: AttemptPhase,
+  ctx: TransitionContext,
+): AttemptState {
   const nextState: AttemptState = {
-    ...current,
-    phase: next,
+    ...baseState,
   };
 
   if (ctx.step !== undefined) {
@@ -57,6 +79,14 @@ export function transitionPhase(
   }
   if (ctx.error !== undefined) {
     nextState.error = ctx.error;
+  }
+
+  if (next === "failed" && nextState.failure === undefined) {
+    throw new Error("Failure category is required for failed phase");
+  }
+
+  if ((next === "succeeded" || next === "canceled") && nextState.failure !== undefined) {
+    throw new Error(`Failure category must be absent for ${next} phase`);
   }
 
   return nextState;

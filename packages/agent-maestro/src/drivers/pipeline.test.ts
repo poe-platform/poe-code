@@ -108,7 +108,7 @@ describe("pipelineDriver", () => {
     expect(mockSpawn.calls).toEqual([]);
     expect(events).toEqual([
       phase(null, "preparing-workspace"),
-      phase("preparing-workspace", "canceled", undefined, "canceled")
+      phase("preparing-workspace", "canceled")
     ]);
   });
 
@@ -238,7 +238,7 @@ describe("pipelineDriver", () => {
     expect(events).toEqual([
       phase(null, "preparing-workspace"),
       phase("preparing-workspace", "running-step", "planned"),
-      phase("running-step", "canceled", undefined, "canceled")
+      phase("running-step", "canceled")
     ]);
   });
 
@@ -264,7 +264,7 @@ describe("pipelineDriver", () => {
       phase(null, "preparing-workspace"),
       phase("preparing-workspace", "running-step", "planned"),
       agentExit("planned", "thread-1", 0),
-      phase("running-step", "canceled", undefined, "canceled")
+      phase("running-step", "canceled")
     ]);
   });
 
@@ -285,7 +285,7 @@ describe("pipelineDriver", () => {
       phase(null, "preparing-workspace"),
       phase("preparing-workspace", "running-step", "planned"),
       agentExit("planned", "thread-1", 0),
-      phase("running-step", "canceled", undefined, "canceled")
+      phase("running-step", "canceled")
     ]);
   });
 
@@ -335,7 +335,7 @@ describe("pipelineDriver", () => {
       },
       phase(null, "preparing-workspace"),
       phase("preparing-workspace", "running-step", "planned"),
-      phase("running-step", "canceled", undefined, "canceled"),
+      phase("running-step", "canceled"),
       {
         type: "worker_exit",
         task_id: "tasks/task-1",

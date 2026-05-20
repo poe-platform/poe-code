@@ -355,7 +355,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: retry-and-phase-coverage
     title: Retry, backoff, and phase-machine edge cases
@@ -389,8 +389,8 @@ tasks:
       - Failure category must be absent on `succeeded`/`canceled`;
         present → throw.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: config-coverage

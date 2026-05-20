@@ -32,9 +32,20 @@ describe("transitionPhase", () => {
       readonly AttemptPhase[],
     ][]) {
       for (const next of nextPhases) {
-        expect(transitionPhase({ phase: current }, next, {})).toEqual({ phase: next });
+        const ctx = next === "failed" ? { failure: "step_failed" as const } : {};
+
+        expect(transitionPhase({ phase: current }, next, ctx)).toEqual({
+          phase: next,
+          ...ctx,
+        });
       }
     }
+  });
+
+  it("accepts null to preparing-workspace as the initial transition", () => {
+    expect(transitionPhase(null, "preparing-workspace", {})).toEqual({
+      phase: "preparing-workspace",
+    });
   });
 
   it("rejects every illegal transition", () => {
@@ -52,6 +63,48 @@ describe("transitionPhase", () => {
       }
     }
   });
+
+  it("rejects null to any phase except preparing-workspace", () => {
+    for (const next of ATTEMPT_PHASES) {
+      if (next === "preparing-workspace") {
+        continue;
+      }
+
+      expect(() => transitionPhase(null, next, {})).toThrow(
+        `Illegal attempt phase transition: null -> ${next}`,
+      );
+    }
+  });
+
+  it.each(["succeeded", "failed", "canceled"] satisfies AttemptPhase[])(
+    "rejects any further transition from terminal phase %s",
+    (current) => {
+      for (const next of ATTEMPT_PHASES) {
+        expect(() =>
+          transitionPhase(
+            { phase: current, ...(current === "failed" ? { failure: "step_failed" as const } : {}) },
+            next,
+            next === "failed" ? { failure: "step_failed" } : {},
+          ),
+        ).toThrow(`Illegal attempt phase transition: ${current} -> ${next}`);
+      }
+    },
+  );
+
+  it("requires a failure category on failed transitions", () => {
+    expect(() => transitionPhase({ phase: "running-step" }, "failed", {})).toThrow(
+      "Failure category is required for failed phase",
+    );
+  });
+
+  it.each(["succeeded", "canceled"] satisfies AttemptPhase[])(
+    "rejects failure category on %s transitions",
+    (next) => {
+      expect(() =>
+        transitionPhase({ phase: "running-step" }, next, { failure: "step_failed" }),
+      ).toThrow(`Failure category must be absent for ${next} phase`);
+    },
+  );
 
   it("preserves step, failedStep, failure, and error fields unless ctx overrides them", () => {
     expect(
@@ -72,6 +125,26 @@ describe("transitionPhase", () => {
       failedStep: "plan",
       failure: "agent_startup_error",
       error: "previous error",
+    });
+
+    expect(
+      transitionPhase(
+        {
+          phase: "running-step",
+          step: "build",
+          failedStep: "plan",
+          failure: "agent_startup_error",
+          error: "previous error",
+        },
+        "running-step",
+        { error: "next error" },
+      ),
+    ).toEqual({
+      phase: "running-step",
+      step: "build",
+      failedStep: "plan",
+      failure: "agent_startup_error",
+      error: "next error",
     });
   });
 

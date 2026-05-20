@@ -447,6 +447,7 @@ export {
   backoffMs,
   CONTINUATION_DELAY_MS,
   shouldRetry,
+  type RetryContext,
   type RetryDecision
 } from "./runtime/retry.js";
 export { sanitizeWorkspaceKey } from "./runtime/sanitize.js";

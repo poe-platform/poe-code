@@ -170,7 +170,7 @@ class PipelineDriverRun {
   }
 
   private cancel(): AttemptOutcome {
-    this.transition("canceled", { failure: "canceled" });
+    this.transition("canceled", {});
     return { reason: "abnormal", failure: "canceled" };
   }
 

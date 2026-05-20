@@ -221,6 +221,12 @@ describe("plan browser", () => {
       "/repo/docs/plans/feature.md": "# Feature",
       "/repo/docs/plans/second.md": "# Second"
     });
+    const timedFs = fs as ActionFs &
+      DiscoveryFs & {
+        utimes(path: string, atime: Date, mtime: Date): Promise<void>;
+      };
+    await timedFs.utimes("/repo/docs/plans/feature.md", new Date(2), new Date(2));
+    await timedFs.utimes("/repo/docs/plans/second.md", new Date(1), new Date(1));
     const onCreatePlan = vi.fn(async () => undefined);
     const runExplorerImpl = vi.fn(async (config) => {
       const rows = await config.rows();

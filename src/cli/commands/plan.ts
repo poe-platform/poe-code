@@ -480,13 +480,16 @@ async function executePlanAction(options: {
 export function registerPlanCommand(program: Command, container: CliContainer): void {
   const plan = program
     .command("plan")
-    .description("Plan a feature with an interactive agent session, or manage existing plans.")
+    .description(
+      "Browse plans in an interactive explorer, or draft a new plan when given a question."
+    )
     .argument("[question]", "What you want to plan")
     .option("--agent <name>", "Agent to run the plan session with")
     .option(
       "--kind <kind>",
       "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
+    .addHelpText("after", "\nExplorer keymap: e edit, a archive, d delete, n new")
     .action(async function (this: Command, questionArg?: string) {
       const opts = this.opts<PlanCommandOptions>();
       const flags = resolveCommandFlags(program);
@@ -521,7 +524,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
 
   plan
     .command("browse")
-    .description("Browse, view, and manage plans across all plan systems.")
+    .description("Browse plans in the interactive explorer.")
     .option(
       "--kind <kind>",
       "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"

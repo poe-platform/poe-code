@@ -14,6 +14,29 @@ Unified discovery, formatting, interactive browsing, and file actions for plan d
 - Supports edit, archive, delete, and optional create actions
 - Powers `poe-code plan`
 
+## Usage
+
+`poe-code plan` opens the interactive explorer by default. From there, use `e` to
+edit, `a` to archive, `d` to delete, or `n` to draft a new plan.
+
+```sh
+poe-code plan
+poe-code plan browse
+```
+
+Passing a question drafts a new plan instead of opening the explorer:
+
+```sh
+poe-code plan "Design the onboarding flow"
+```
+
+For non-interactive usage, pass `--yes`. The browser renders a deterministic
+preview of the first discovered plan and exits:
+
+```sh
+poe-code --yes plan browse
+```
+
 ## Configuration
 
 This package does not introduce any new config keys.

@@ -84,6 +84,35 @@ describe("plan root and browse commands", () => {
     expect(runPlanBrowserMock).not.toHaveBeenCalled();
   });
 
+  it("documents the default explorer flow in help", () => {
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    const planCommand = program.commands.find((command) => command.name() === "plan");
+    const browseCommand = planCommand?.commands.find((command) => command.name() === "browse");
+
+    expect(planCommand?.description()).toBe(
+      "Browse plans in an interactive explorer, or draft a new plan when given a question."
+    );
+    expect(browseCommand?.description()).toBe("Browse plans in the interactive explorer.");
+
+    const helpChunks: string[] = [];
+    planCommand?.configureOutput({
+      writeOut: (chunk) => {
+        helpChunks.push(chunk);
+      }
+    });
+    planCommand?.outputHelp();
+
+    expect(helpChunks.join("")).toContain("Explorer keymap: e edit, a archive, d delete, n new");
+  });
+
   it("throws when --yes is passed without a question", async () => {
     const container = createCliContainer({
       fs: createMemFs(),

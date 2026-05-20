@@ -191,7 +191,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: plan-cli-help-docs
     title: Document the new default in plan help text
@@ -212,8 +212,8 @@ tasks:
          Do not edit the repo-root README (per CLAUDE.md, that needs
          explicit permission).
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 ---
 
 # Context

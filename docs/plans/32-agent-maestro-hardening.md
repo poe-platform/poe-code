@@ -614,7 +614,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: harden-runtime-bugs
     title: Fix every production bug surfaced by the hardening tests
@@ -653,8 +653,8 @@ tasks:
       No new feature work in this task. Only bugfixes and
       documentation that the test suite required.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
 teardown:

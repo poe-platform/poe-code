@@ -94,6 +94,7 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
   let stopped = false;
   let timer: ReturnType<typeof setInterval> | undefined;
   let activeTick: Promise<void> = Promise.resolve();
+  let activeTickController: AbortController | undefined;
   const workers = new Map<string, TrackedWorker>();
 
   try {
@@ -109,44 +110,58 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
 
       activeTick = activeTick
         .catch(() => undefined)
-        .then(() =>
-          tick(state, {
-            tasks: taskList,
-            spawn: opts.agentSpawn,
-            taskPromptTemplate: workflow.promptTemplate,
-            logger,
-            trackWorker: (worker) => {
-              workers.set(worker.taskId, worker);
-              void worker.promise.finally(() => {
-                workers.delete(worker.taskId);
-              });
-            },
-            reconcileRunning: (currentState) =>
-              defaultReconcileRunning(currentState, {
-                tasks: taskList,
-                stopWorker: async (entry, action) => {
-                  if (action === "stop_clean") {
-                    workers.get(entry.taskId)?.controller.abort();
-                  }
-                },
-                removeWorkspace,
-                logger,
-                onEvent: (event) => {
-                  const mapped = mapReconcileEvent(event);
-                  if (mapped !== undefined) {
-                    opts.onEvent?.(mapped);
-                  }
-                }
-              }),
-            removeWorkspace,
-            onEvent: (event) => {
-              const mapped = mapTickEvent(event);
-              if (mapped !== undefined) {
-                opts.onEvent?.(mapped);
-              }
+        .then(async () => {
+          const tickController = new AbortController();
+          activeTickController = tickController;
+
+          try {
+            if (stopped || tickController.signal.aborted) {
+              return;
             }
-          })
-        )
+
+            await tick(state, {
+              tasks: taskList,
+              spawn: opts.agentSpawn,
+              taskPromptTemplate: workflow.promptTemplate,
+              logger,
+              abort: tickController.signal,
+              trackWorker: (worker) => {
+                workers.set(worker.taskId, worker);
+                void worker.promise.finally(() => {
+                  workers.delete(worker.taskId);
+                });
+              },
+              reconcileRunning: (currentState) =>
+                defaultReconcileRunning(currentState, {
+                  tasks: taskList,
+                  stopWorker: async (entry, action) => {
+                    if (action === "stop_clean") {
+                      workers.get(entry.taskId)?.controller.abort();
+                    }
+                  },
+                  removeWorkspace,
+                  logger,
+                  onEvent: (event) => {
+                    const mapped = mapReconcileEvent(event);
+                    if (mapped !== undefined) {
+                      opts.onEvent?.(mapped);
+                    }
+                  }
+                }),
+              removeWorkspace,
+              onEvent: (event) => {
+                const mapped = mapTickEvent(event);
+                if (mapped !== undefined) {
+                  opts.onEvent?.(mapped);
+                }
+              }
+            });
+          } finally {
+            if (activeTickController === tickController) {
+              activeTickController = undefined;
+            }
+          }
+        })
         .catch((error) => {
           logger.error?.("maestro tick failed", { error: errorMessage(error) });
         });
@@ -167,6 +182,7 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
       if (timer !== undefined) {
         clearInterval(timer);
       }
+      activeTickController?.abort();
 
       try {
         await activeTick.catch(() => undefined);
@@ -342,15 +358,18 @@ async function cleanupRunningWorkspaces(
   await withBudget(
     Promise.allSettled(
       [...running.values()].map(async (entry) => {
-        await removeWorkspace(cfg.workspace.root, entry.task?.qualifiedId ?? entry.taskId);
-      })
-    ).then((results) => {
-      for (const result of results) {
-        if (result.status === "rejected") {
-          logger.warn?.("maestro workspace cleanup failed", { error: errorMessage(result.reason) });
+        const taskId = entry.task?.qualifiedId ?? entry.taskId;
+
+        try {
+          await removeWorkspace(cfg.workspace.root, taskId);
+        } catch (error) {
+          logger.warn?.("maestro workspace cleanup failed", {
+            taskId: entry.taskId,
+            error: errorMessage(error)
+          });
         }
-      }
-    }),
+      })
+    ),
     STOP_BUDGET_MS
   );
 }

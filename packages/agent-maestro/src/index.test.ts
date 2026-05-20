@@ -500,6 +500,7 @@ describe("shutdown", () => {
     await expect(stopPromise).resolves.toBeUndefined();
 
     expect(logger.warn).toHaveBeenCalledWith("maestro workspace cleanup failed", {
+      taskId: "tasks/cleanup-fails",
       error: "rm failed"
     });
     expect(rmSpy).toHaveBeenCalled();

@@ -66,6 +66,7 @@ export interface TickDeps {
   taskPromptTemplate?: string;
   trackWorker?: (worker: TrackedWorker) => void;
   now?: () => number;
+  abort?: AbortSignal;
   onEvent?: (event: TickEvent) => void;
   logger?: {
     error?(message: string, meta?: Record<string, unknown>): void;
@@ -80,18 +81,28 @@ export async function tick(state: MaestroState, deps: TickDeps): Promise<void> {
   const reconcileResults = await (deps.reconcileRunning ?? defaultReconcileRunning)(state, {
     tasks: deps.tasks
   });
+  if (isTickAborted(deps)) {
+    return;
+  }
 
   for (const result of reconcileResults) {
     deps.onEvent?.({ type: "reconcile", task_id: result.taskId, action: result.action });
   }
 
   const retryReconcileResults = await reconcileRetryQueue(state, deps);
+  if (isTickAborted(deps)) {
+    return;
+  }
+
   for (const result of retryReconcileResults) {
     deps.onEvent?.({ type: "reconcile", task_id: result.taskId, action: result.action });
   }
 
   const validateDispatch = deps.validateDispatch ?? defaultValidateDispatch;
   const validation = await validateDispatch(state.cfg, deps.tasks);
+  if (isTickAborted(deps)) {
+    return;
+  }
 
   if (!validation.ok) {
     deps.onEvent?.({ type: "validation_failed", result: validation });
@@ -104,9 +115,17 @@ export async function tick(state: MaestroState, deps: TickDeps): Promise<void> {
   }
 
   const candidates = await activeCandidates(state, deps.tasks);
+  if (isTickAborted(deps)) {
+    return;
+  }
+
   let dispatched = 0;
 
   for (const task of candidates) {
+    if (isTickAborted(deps)) {
+      return;
+    }
+
     if (dispatched >= capacity) {
       return;
     }
@@ -173,10 +192,7 @@ async function reconcileRetryQueue(
     }
 
     if (state.cfg.terminalStateNames.includes(task.state)) {
-      await (deps.removeWorkspace ?? defaultRemoveWorkspace)(
-        state.cfg.workspace.root,
-        task.qualifiedId
-      );
+      await removeWorkspaceSafely(state, deps, retry.taskId, task.qualifiedId);
       markCompleted(state, retry.taskId);
       results.push({ taskId: retry.taskId, action: "stop_clean" });
       continue;
@@ -388,17 +404,34 @@ async function cleanupTerminalWorkspace(
     return false;
   }
 
-  await (deps.removeWorkspace ?? defaultRemoveWorkspace)(
-    state.cfg.workspace.root,
-    task.qualifiedId
-  );
+  await removeWorkspaceSafely(state, deps, taskId, task.qualifiedId);
   markCompleted(state, taskId);
   deps.onEvent?.({ type: "reconcile", task_id: taskId, action: "stop_clean" });
   return true;
 }
 
+async function removeWorkspaceSafely(
+  state: MaestroState,
+  deps: Pick<TickDeps, "removeWorkspace" | "logger">,
+  taskId: string,
+  qualifiedId: string
+): Promise<void> {
+  try {
+    await (deps.removeWorkspace ?? defaultRemoveWorkspace)(state.cfg.workspace.root, qualifiedId);
+  } catch (error) {
+    deps.logger?.warn?.("maestro workspace cleanup failed", {
+      taskId,
+      error: errorMessage(error)
+    });
+  }
+}
+
 function errorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
+}
+
+function isTickAborted(deps: Pick<TickDeps, "abort">): boolean {
+  return deps.abort?.aborted ?? false;
 }
 
 function outcomePhase(outcome: AttemptOutcome): WorkerExitPhase {

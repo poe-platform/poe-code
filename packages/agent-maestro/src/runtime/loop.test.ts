@@ -196,6 +196,48 @@ describe("tick", () => {
     expect(state.running.has("tasks/three")).toBe(false);
   });
 
+  it("stops dispatching between candidates when the tick abort signal fires", async () => {
+    const state = createState(createConfig({ ...loopConfigOverrides, maxConcurrentAgents: 3 }));
+    const abort = new AbortController();
+    const dispatched: string[] = [];
+
+    await tick(
+      state,
+      createTickDeps({
+        tasks: createMockTaskList({
+          tasks: [
+            createTask({
+              qualifiedId: "tasks/one",
+              metadata: { createdAt: "2026-01-01T00:00:00.000Z" }
+            }),
+            createTask({
+              qualifiedId: "tasks/two",
+              metadata: { createdAt: "2026-01-02T00:00:00.000Z" }
+            }),
+            createTask({
+              qualifiedId: "tasks/three",
+              metadata: { createdAt: "2026-01-03T00:00:00.000Z" }
+            })
+          ]
+        }),
+        abort: abort.signal,
+        ensureWorkspace: async (_root, qualifiedId) => {
+          dispatched.push(qualifiedId);
+          abort.abort();
+          return { path: `/repo/workspaces/${qualifiedId}`, createdNow: true };
+        },
+        runAttempt: pendingAttempt
+      })
+    );
+
+    expect(dispatched).toEqual(["tasks/one"]);
+    expect(state.running.has("tasks/one")).toBe(true);
+    expect(state.running.has("tasks/two")).toBe(false);
+    expect(state.running.has("tasks/three")).toBe(false);
+    expect(state.claimed.has("tasks/two")).toBe(false);
+    expect(state.claimed.has("tasks/three")).toBe(false);
+  });
+
   it("does not dispatch a retry before it is due", async () => {
     const state = createState(createConfig(loopConfigOverrides));
     const task = createTask({
@@ -895,6 +937,96 @@ describe("tick", () => {
       expect(state.running.has(task.qualifiedId)).toBe(false);
       expect(state.claimed.has(task.qualifiedId)).toBe(false);
       expect(removed).toEqual([task.qualifiedId]);
+    });
+
+    it("logs and completes terminal cleanup when a successful worker cleanup fails", async () => {
+      const state = createState(createConfig(loopConfigOverrides));
+      const events = createLoopEventCollector();
+      const logger = { warn: vi.fn() };
+      const task = createTask({
+        qualifiedId: "tasks/cleanup-fails",
+        metadata: { createdAt: "2026-01-01T00:00:00.000Z" }
+      });
+      const tasks = createMockTaskList({ tasks: [task] });
+      const workers: Promise<void>[] = [];
+
+      await tick(
+        state,
+        createTickDeps({
+          tasks,
+          runAttempt: async () => {
+            tasks.mutate((store) => {
+              store.set({ ...store.get(task.qualifiedId), state: "done" });
+            });
+            return { reason: "normal" };
+          },
+          removeWorkspace: async () => {
+            throw new Error("rm failed");
+          },
+          logger,
+          trackWorker: (worker) => workers.push(worker.promise),
+          onEvent: events.onEvent
+        })
+      );
+
+      await expect(workers[0]).resolves.toBeUndefined();
+
+      expect(logger.warn).toHaveBeenCalledWith("maestro workspace cleanup failed", {
+        taskId: task.qualifiedId,
+        error: "rm failed"
+      });
+      expect(events.collector.snapshot()).toEqual([
+        { type: "tick_started", at: "1970-01-01T00:00:00.000Z" },
+        {
+          type: "dispatch",
+          task_id: task.qualifiedId,
+          qualified_id: task.qualifiedId,
+          workspace: "/__memfs__/workspaces/tasks_cleanup-fails"
+        },
+        { type: "worker_exit", task_id: task.qualifiedId, reason: "normal" },
+        { type: "reconcile", task_id: task.qualifiedId, action: "stop_clean" }
+      ]);
+      expect(state.running.has(task.qualifiedId)).toBe(false);
+      expect(state.claimed.has(task.qualifiedId)).toBe(false);
+      expect(state.completed.has(task.qualifiedId)).toBe(true);
+    });
+
+    it("logs and completes terminal cleanup when retry-queue cleanup fails", async () => {
+      const state = createState(createConfig(loopConfigOverrides));
+      const events = createLoopEventCollector();
+      const logger = { warn: vi.fn() };
+      const task = createTask({
+        qualifiedId: "tasks/retry-done",
+        state: "done",
+        metadata: { createdAt: "2026-01-01T00:00:00.000Z" }
+      });
+      scheduleRetry(state, { taskId: task.qualifiedId, attempt: 2, dueAt: 10_000 });
+
+      await expect(
+        tick(
+          state,
+          createTickDeps({
+            tasks: createMockTaskList({ tasks: [task] }),
+            removeWorkspace: async () => {
+              throw new Error("rm failed");
+            },
+            logger,
+            onEvent: events.onEvent,
+            now: () => 5_000
+          })
+        )
+      ).resolves.toBeUndefined();
+
+      expect(logger.warn).toHaveBeenCalledWith("maestro workspace cleanup failed", {
+        taskId: task.qualifiedId,
+        error: "rm failed"
+      });
+      expect(events.collector.snapshot()).toEqual([
+        { type: "tick_started", at: "1970-01-01T00:00:00.000Z" },
+        { type: "reconcile", task_id: task.qualifiedId, action: "stop_clean" }
+      ]);
+      expect(state.retry_attempts.has(task.qualifiedId)).toBe(false);
+      expect(state.completed.has(task.qualifiedId)).toBe(true);
     });
 
     it("schedules retryable worker failures with monotonically growing due_in_ms", async () => {

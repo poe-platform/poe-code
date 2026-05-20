@@ -198,6 +198,16 @@ describe("createMockSpawn", () => {
       if (call.agent === "assert") {
         return [{ kind: "assert", fn: (captured) => expect(captured.prompt).toBe("check") }];
       }
+      if (call.agent === "run") {
+        return [
+          {
+            kind: "run",
+            fn: async (captured) => {
+              expect(captured.prompt).toBe("side-effect");
+            }
+          }
+        ];
+      }
       return [{ kind: "throw", error: "agent_crashed" }];
     });
 
@@ -216,6 +226,9 @@ describe("createMockSpawn", () => {
     await expect(mock.spawn("assert", { prompt: "check" })).resolves.toMatchObject({
       exitCode: 0
     });
+    await expect(mock.spawn("run", { prompt: "side-effect" })).resolves.toMatchObject({
+      exitCode: 0
+    });
     await expect(mock.spawn("throw", { prompt: "boom" })).rejects.toThrow("Agent crashed");
 
     expect(mock.calls.map((call) => call.agent)).toEqual([
@@ -223,7 +236,20 @@ describe("createMockSpawn", () => {
       "exit",
       "wait",
       "assert",
+      "run",
       "throw"
     ]);
+  });
+
+  it("supports a scripted step that intentionally never resolves", async () => {
+    const mock = createMockSpawn({
+      blocked: [{ kind: "block" }]
+    });
+
+    const result = mock.spawn("blocked", { prompt: "wait" });
+    await Promise.resolve();
+
+    await expect(Promise.race([result, Promise.resolve("pending")])).resolves.toBe("pending");
+    expect(mock.calls).toHaveLength(1);
   });
 });

@@ -28,6 +28,8 @@ export type MockSpawnStep =
       error: "abort" | "activity_timeout" | "agent_startup_error" | "agent_crashed" | Error;
     }
   | { kind: "wait"; ms: number }
+  | { kind: "block" }
+  | { kind: "run"; fn: (call: SpawnCall) => void | Promise<void> }
   | { kind: "assert"; fn: (call: SpawnCall) => void };
 
 export type MockSpawnScripts =
@@ -233,6 +235,16 @@ async function runScript(input: {
       await Promise.resolve();
       throwIfAborted(input.call.signal);
       input.advanceClockMs(step.ms);
+      continue;
+    }
+
+    if (step.kind === "block") {
+      await new Promise(() => undefined);
+      continue;
+    }
+
+    if (step.kind === "run") {
+      await step.fn(input.call);
       continue;
     }
 

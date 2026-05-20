@@ -154,7 +154,6 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
       return activeTick;
     };
 
-    await runTick();
     timer = setInterval(() => {
       void runTick();
     }, cfg.polling.intervalMs);

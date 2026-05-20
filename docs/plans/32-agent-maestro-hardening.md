@@ -434,7 +434,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: integration-coverage
     title: End-to-end maestro loop integration coverage
@@ -478,9 +478,9 @@ tasks:
       `MaestroEvent` sequence per scenario. Sequence equality, not
       subset matching.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: shutdown-and-abort-coverage
     title: Shutdown, abort, and lifecycle edge cases

@@ -261,10 +261,11 @@ function startWorker(state: MaestroState, deps: TickDeps, task: Task, attempt: n
             reconcile: async ({ task: runningTask }) => {
               const refreshed = await deps.tasks.get(runningTask.qualifiedId);
 
-              if (
-                state.cfg.terminalStateNames.includes(refreshed.state) ||
-                !state.cfg.activeStateNames.includes(refreshed.state)
-              ) {
+              if (state.cfg.terminalStateNames.includes(refreshed.state)) {
+                return refreshed.state === "done" ? "continue" : "canceled";
+              }
+
+              if (!state.cfg.activeStateNames.includes(refreshed.state)) {
                 return "canceled";
               }
 

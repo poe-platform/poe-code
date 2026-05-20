@@ -36,13 +36,15 @@ export type TickEvent =
       type: "worker_exit";
       task_id: string;
       attempt: number;
-      phase: Extract<AttemptPhase, "succeeded" | "failed" | "canceled">;
+      phase: WorkerExitPhase;
       outcome: AttemptOutcome;
     }
   | { type: "retry_scheduled"; task_id: string; attempt: number; due_at: number }
   | { type: "reconcile"; task_id: string; action: ReconcileResult["action"] }
   | { type: "validation_failed"; result: Exclude<DispatchValidationResult, { ok: true }> }
   | AttemptEvent;
+
+type WorkerExitPhase = Extract<AttemptPhase, "succeeded" | "failed" | "canceled"> | "skipped";
 
 export interface TrackedWorker {
   taskId: string;
@@ -293,9 +295,14 @@ function scheduleWorkerRetry(
   deps: TickDeps,
   taskId: string,
   attempt: number,
-  phase: Extract<AttemptPhase, "succeeded" | "failed" | "canceled">,
+  phase: WorkerExitPhase,
   outcome: AttemptOutcome
 ): boolean {
+  if (phase === "skipped") {
+    release(state, taskId);
+    return false;
+  }
+
   const decision = shouldRetry(phase, outcome.failure);
   if (!decision.retry) {
     release(state, taskId);
@@ -338,9 +345,13 @@ async function cleanupTerminalWorkspace(
 
 function outcomePhase(
   outcome: AttemptOutcome
-): Extract<AttemptPhase, "succeeded" | "failed" | "canceled"> {
+): WorkerExitPhase {
   if (outcome.reason === "normal") {
     return "succeeded";
+  }
+
+  if (outcome.reason === "skip") {
+    return "skipped";
   }
 
   return outcome.failure === "canceled" ? "canceled" : "failed";

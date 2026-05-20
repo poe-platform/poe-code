@@ -8,7 +8,8 @@ import type { WorkflowDriverContext } from "../drivers/types.js";
 import type { AttemptPhase, FailureCategory } from "../runtime/phases.js";
 
 export interface AttemptOutcome {
-  reason: "normal" | "abnormal";
+  reason: "normal" | "abnormal" | "skip";
+  skipReason?: "terminal_state" | "unconfigured_state";
   failure?: FailureCategory;
   failedStep?: string;
   error?: string;
@@ -32,6 +33,11 @@ export type AttemptEvent =
       session_id: string;
       event: string;
       payload?: unknown;
+    }
+  | {
+      type: "unconfigured_state";
+      task_id: string;
+      state: string;
     };
 
 export interface AttemptDeps {

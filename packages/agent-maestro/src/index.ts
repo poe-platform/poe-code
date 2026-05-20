@@ -63,11 +63,13 @@ export type MaestroEvent =
   | {
       type: "worker_exit";
       task_id: string;
-      reason: "normal" | "abnormal";
+      reason: "normal" | "abnormal" | "skip";
+      skipReason?: "terminal_state" | "unconfigured_state";
       failure?: FailureCategory;
       failedStep?: string;
       error?: string;
     }
+  | { type: "unconfigured_state"; task_id: string; state: string }
   | { type: "reconcile"; task_id: string; action: "stop_clean" | "stop_keep" | "update" }
   | { type: "retry_scheduled"; task_id: string; attempt: number; due_in_ms: number }
   | { type: "validation_failed"; reason: string };
@@ -374,11 +376,14 @@ function mapTickEvent(event: TickEvent): MaestroEvent | undefined {
       return event;
     case "agent_event":
       return event;
+    case "unconfigured_state":
+      return event;
     case "worker_exit":
       return {
         type: "worker_exit",
         task_id: event.task_id,
         reason: event.outcome.reason,
+        skipReason: event.outcome.skipReason,
         failure: event.outcome.failure,
         failedStep: event.outcome.failedStep,
         error: event.outcome.error

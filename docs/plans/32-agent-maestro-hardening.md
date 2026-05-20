@@ -154,7 +154,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: pipeline-driver-coverage
     title: Pipeline driver exhaustive failure-mode coverage
@@ -201,8 +201,8 @@ tasks:
       Where the test surfaces a bug in `pipeline.ts`, fix the bug at
       the correct layer rather than encoding the buggy behavior.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: ralph-driver-coverage

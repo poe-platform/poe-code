@@ -40,23 +40,32 @@ class PipelineDriverRun {
     try {
       task = await this.refreshTask();
     } catch (error) {
-      return this.fail(this.failure("prompt_render_error", this.task.state, error));
+      return this.fail(this.failure("step_failed", this.task.state, error));
     }
 
     const stateName = task.state;
     const state = this.ctx.cfg.states[stateName];
     if (state === undefined) {
       this.warnUnconfiguredState(task, stateName);
-      return { reason: "normal" };
+      this.ctx.emit({
+        type: "unconfigured_state",
+        task_id: task.qualifiedId,
+        state: stateName
+      });
+      return { reason: "skip", skipReason: "unconfigured_state" };
     }
 
     if (state.terminal === true) {
-      return { reason: "normal" };
+      return { reason: "skip", skipReason: "terminal_state" };
     }
 
     const outcome = await this.runStatePrompt(stateName, state, task);
     if (outcome) {
-      return outcome.failure === "canceled" ? outcome : this.fail(outcome);
+      if (outcome.reason === "skip" || outcome.failure === "canceled") {
+        return outcome;
+      }
+
+      return this.fail(outcome);
     }
 
     this.transition("succeeded", {});
@@ -70,7 +79,12 @@ class PipelineDriverRun {
   ): Promise<AttemptOutcome | undefined> {
     if (state.prompt === undefined) {
       this.warnUnconfiguredState(task, stateName);
-      return undefined;
+      this.ctx.emit({
+        type: "unconfigured_state",
+        task_id: task.qualifiedId,
+        state: stateName
+      });
+      return { reason: "skip", skipReason: "unconfigured_state" };
     }
 
     let prompt: string;
@@ -117,11 +131,15 @@ class PipelineDriverRun {
       }
     } catch (error) {
       if (this.ctx.abort.aborted || isAbortError(error)) {
-        return { reason: "abnormal", failure: "canceled" };
+        return this.cancel();
       }
 
       if (isActivityTimeoutError(error)) {
         return this.failure("step_timeout", stateName, error);
+      }
+
+      if (isAgentStartupError(error)) {
+        return this.failure("agent_startup_error", stateName, error);
       }
 
       return this.failure("agent_crashed", stateName, error);
@@ -219,6 +237,14 @@ function isRunningPhase(phase: AttemptPhase): boolean {
 
 function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
+}
+
+function isAgentStartupError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.name === "AgentStartupError" ||
+      (error as Error & { failure?: unknown }).failure === "agent_startup_error")
+  );
 }
 
 function errorMessage(error: unknown): string {

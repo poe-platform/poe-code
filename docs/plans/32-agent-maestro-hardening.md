@@ -49,9 +49,9 @@ tasks:
       injection point, add the seam — do not add branches in production
       code that "know" the mock is active.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: mock-task-list
     title: Build invisible in-memory TaskList test double

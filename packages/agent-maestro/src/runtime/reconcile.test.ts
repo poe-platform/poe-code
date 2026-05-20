@@ -3,9 +3,19 @@ import { describe, expect, it, vi } from "vitest";
 import { openTaskList, TaskNotFoundError } from "@poe-code/task-list";
 import type { TaskList, TaskListFs } from "@poe-code/task-list";
 
+import { createConfig } from "../__test_utils__/fixtures.js";
 import { createState, markRunning } from "./state.js";
 import { reconcileRunning } from "./reconcile.js";
-import type { ResolvedConfig } from "../config/schema.js";
+
+const reconcileConfig = createConfig({
+  states: {
+    planned: { prompt: "Plan {{ prompt }}" },
+    "in-progress": { prompt: "Implement {{ prompt }}" },
+    done: { terminal: true },
+    archived: { terminal: true }
+  },
+  workspace: { root: "/repo/workspaces" }
+});
 
 describe("reconcileRunning", () => {
   it("kills the worker, removes the workspace, and releases the claim for terminal tasks", async () => {
@@ -15,7 +25,7 @@ describe("reconcileRunning", () => {
     await tasks.fire("done", "plan");
     await tasks.fire("done", "start");
     await tasks.fire("done", "complete");
-    const state = createState(createConfig());
+    const state = createState(reconcileConfig);
     markRunning(state, { taskId: task.qualifiedId, attempt: 1, task });
     const stopWorker = vi.fn();
     const removeWorkspace = vi.fn();
@@ -38,7 +48,7 @@ describe("reconcileRunning", () => {
     const task = await tasks.create({ id: "active", name: "Before" });
     await tasks.fire("active", "plan");
     const updated = await tasks.update("active", { name: "After" });
-    const state = createState(createConfig());
+    const state = createState(reconcileConfig);
     markRunning(state, { taskId: task.qualifiedId, attempt: 2, task });
     const stopWorker = vi.fn();
     const removeWorkspace = vi.fn();
@@ -60,7 +70,7 @@ describe("reconcileRunning", () => {
     const taskList = await openTasks();
     const tasks = taskList.list("tasks");
     const task = await tasks.create({ id: "draft", name: "Draft" });
-    const state = createState(createConfig());
+    const state = createState(reconcileConfig);
     markRunning(state, { taskId: task.qualifiedId, attempt: 1, task });
     const stopWorker = vi.fn();
     const removeWorkspace = vi.fn();
@@ -79,7 +89,7 @@ describe("reconcileRunning", () => {
 
   it("treats TaskNotFoundError as terminal", async () => {
     const taskList = await openTasks();
-    const state = createState(createConfig());
+    const state = createState(reconcileConfig);
     markRunning(state, { taskId: "tasks/missing", attempt: 1 });
     const stopWorker = vi.fn();
     const removeWorkspace = vi.fn();
@@ -101,7 +111,7 @@ describe("reconcileRunning", () => {
     const tasks = taskList.list("tasks");
     const task = await tasks.create({ id: "active", name: "Active" });
     await tasks.fire("active", "plan");
-    const state = createState(createConfig());
+    const state = createState(reconcileConfig);
     markRunning(state, { taskId: task.qualifiedId, attempt: 1, task });
     const stopWorker = vi.fn();
     const removeWorkspace = vi.fn();
@@ -137,7 +147,7 @@ describe("reconcileRunning", () => {
     const intermediate = await tasks.create({ id: "intermediate", name: "Intermediate" });
     const failed = await tasks.create({ id: "failed-refresh", name: "Failed refresh" });
     await tasks.fire("failed-refresh", "plan");
-    const state = createState(createConfig());
+    const state = createState(reconcileConfig);
     markRunning(state, { taskId: terminal.qualifiedId, attempt: 1, task: terminal });
     markRunning(state, { taskId: active.qualifiedId, attempt: 1, task: active });
     markRunning(state, { taskId: intermediate.qualifiedId, attempt: 1, task: intermediate });
@@ -198,7 +208,7 @@ describe("reconcileRunning", () => {
   });
 
   it("recognizes TaskNotFoundError thrown by an injected task reader", async () => {
-    const state = createState(createConfig());
+    const state = createState(reconcileConfig);
     markRunning(state, { taskId: "tasks/missing", attempt: 1 });
     const stopWorker = vi.fn();
     const removeWorkspace = vi.fn();
@@ -229,26 +239,4 @@ async function openTasks(): Promise<TaskList> {
     create: true,
     fs: rawFs as unknown as TaskListFs
   });
-}
-
-function createConfig(): ResolvedConfig {
-  return {
-    states: {
-      planned: { prompt: "Plan {{ prompt }}" },
-      "in-progress": { prompt: "Implement {{ prompt }}" },
-      done: { terminal: true },
-      archived: { terminal: true }
-    },
-    activeStateNames: ["planned", "in-progress"],
-    terminalStateNames: ["done", "archived"],
-    stateOrder: ["planned", "in-progress", "done", "archived"],
-    polling: { intervalMs: 30_000 },
-    workspace: { root: "/repo/workspaces" },
-    agent: {
-      service: "codex",
-      maxConcurrentAgents: 1,
-      maxTurns: 20,
-      maxRetryBackoffMs: 300_000
-    }
-  };
 }

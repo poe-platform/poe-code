@@ -1,16 +1,17 @@
-import type { SpawnResult } from "@poe-code/agent-spawn";
-import type { Task } from "@poe-code/task-list";
 import { describe, expect, it, vi } from "vitest";
 
-import type { AttemptEvent } from "../agent/runner.js";
-import type { ResolvedConfig } from "../config/schema.js";
+import {
+  createConfig,
+  createDriverContext,
+  createTask,
+  successSpawn
+} from "../__test_utils__/fixtures.js";
 import { pipelineDriver } from "./pipeline.js";
-import type { WorkflowDriverContext } from "./types.js";
 
 describe("pipelineDriver", () => {
   it("dispatches a planned task with the planned prompt and workflow default agent/model", async () => {
     const spawn = vi.fn(async () => successSpawn());
-    const ctx = createContext({ spawn });
+    const ctx = createDriverContext({ spawn });
 
     await expect(pipelineDriver.run(ctx)).resolves.toEqual({ reason: "normal" });
 
@@ -24,7 +25,7 @@ describe("pipelineDriver", () => {
 
   it("dispatches with state agent and model overrides over the workflow default", async () => {
     const spawn = vi.fn(async () => successSpawn());
-    const ctx = createContext({
+    const ctx = createDriverContext({
       task: createTask({ state: "implementation" }),
       spawn,
       cfg: createConfig({
@@ -52,7 +53,7 @@ describe("pipelineDriver", () => {
 
   it("dispatches with the state mode override", async () => {
     const spawn = vi.fn(async () => successSpawn());
-    const ctx = createContext({
+    const ctx = createDriverContext({
       task: createTask({ state: "review" }),
       spawn,
       cfg: createConfig({
@@ -78,7 +79,7 @@ describe("pipelineDriver", () => {
 
   it("does not dispatch terminal states", async () => {
     const spawn = vi.fn(async () => successSpawn());
-    const ctx = createContext({
+    const ctx = createDriverContext({
       task: createTask({ state: "done" }),
       spawn
     });
@@ -91,7 +92,7 @@ describe("pipelineDriver", () => {
   it("warns and does not dispatch an unconfigured state", async () => {
     const spawn = vi.fn(async () => successSpawn());
     const logger = { warn: vi.fn() };
-    const ctx = createContext({
+    const ctx = createDriverContext({
       task: createTask({ state: "reviewing" }),
       spawn,
       logger
@@ -106,77 +107,3 @@ describe("pipelineDriver", () => {
     });
   });
 });
-
-function createContext(
-  overrides: Partial<WorkflowDriverContext> & {
-    events?: AttemptEvent[];
-    spawn?: ReturnType<typeof vi.fn>;
-  } = {}
-): WorkflowDriverContext {
-  const events = overrides.events ?? [];
-
-  return {
-    task: createTask(),
-    attempt: 1,
-    workspaceDir: "/repo/workspaces/task-1",
-    planPath: "/repo/tasks/task-1.md",
-    cfg: createConfig(),
-    abort: new AbortController().signal,
-    emit: (event) => events.push(event),
-    spawn: vi.fn(async () => successSpawn()),
-    logger: { warn: vi.fn() },
-    ...overrides
-  };
-}
-
-function createTask(overrides: Partial<Task> = {}): Task {
-  return {
-    list: "tasks",
-    id: "task-1",
-    qualifiedId: "tasks/task-1",
-    name: "Build runner",
-    state: "planned",
-    description: "Render this task body",
-    metadata: {},
-    ...overrides
-  };
-}
-
-function createConfig(
-  overrides: {
-    agent?: Partial<ResolvedConfig["agent"]>;
-    states?: ResolvedConfig["states"];
-  } = {}
-): ResolvedConfig {
-  const states = overrides.states ?? {
-    planned: { prompt: "Plan {{ prompt }}" },
-    implementation: { prompt: "Implement {{ prompt }}" },
-    done: { terminal: true }
-  };
-
-  return {
-    tasks: { type: "markdown-dir", path: "/repo/tasks" },
-    states,
-    activeStateNames: Object.entries(states)
-      .filter(([, state]) => state.prompt !== undefined)
-      .map(([name]) => name),
-    terminalStateNames: Object.entries(states)
-      .filter(([, state]) => state.terminal === true)
-      .map(([name]) => name),
-    stateOrder: Object.keys(states),
-    polling: { intervalMs: 30_000 },
-    workspace: { root: "/tmp/poe-code-maestro" },
-    agent: {
-      service: "codex",
-      list: "tasks",
-      maxConcurrentAgents: 1,
-      maxTurns: 20,
-      maxRetryBackoffMs: 300_000,
-      ...overrides.agent
-    }
-  };
-}
-
-function successSpawn(): SpawnResult {
-  return { stdout: "", stderr: "", exitCode: 0 };
-}

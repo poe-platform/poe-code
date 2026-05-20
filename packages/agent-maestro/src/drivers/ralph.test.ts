@@ -1,12 +1,15 @@
 import { vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { SpawnResult } from "@poe-code/agent-spawn";
-import type { Task } from "@poe-code/task-list";
 
+import {
+  createConfig,
+  createDriverContext,
+  createTask,
+  successSpawn
+} from "../__test_utils__/fixtures.js";
 import type { ResolvedConfig } from "../config/schema.js";
 import type { AttemptEvent } from "../agent/runner.js";
 import { ralphDriver } from "./ralph.js";
-import type { WorkflowDriverContext } from "./types.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -26,7 +29,8 @@ describe("ralphDriver", () => {
       "/repo/docs/plans/ralph-plan.md": planDoc("Implement the thing")
     });
     const events: AttemptEvent[] = [];
-    const ctx = createContext({
+    const ctx = createDriverContext({
+      ...ralphContextDefaults,
       events,
       spawn: vi.fn(async () => successSpawn())
     });
@@ -47,7 +51,7 @@ describe("ralphDriver", () => {
   });
 
   it("fails when planPath is null", async () => {
-    const ctx = createContext({ planPath: null });
+    const ctx = createDriverContext({ ...ralphContextDefaults, planPath: null });
 
     await expect(ralphDriver.run(ctx)).resolves.toEqual({
       reason: "abnormal",
@@ -64,7 +68,8 @@ describe("ralphDriver", () => {
     const controller = new AbortController();
     const abortError = new Error("stop");
     abortError.name = "AbortError";
-    const ctx = createContext({
+    const ctx = createDriverContext({
+      ...ralphContextDefaults,
       abort: controller.signal,
       spawn: vi.fn(async () => {
         controller.abort();
@@ -84,7 +89,8 @@ describe("ralphDriver", () => {
     });
     const timeoutError = new Error("no activity for 1500ms");
     timeoutError.name = "ActivityTimeoutError";
-    const ctx = createContext({
+    const ctx = createDriverContext({
+      ...ralphContextDefaults,
       spawn: vi.fn(async () => {
         throw timeoutError;
       })
@@ -107,7 +113,8 @@ describe("ralphDriver", () => {
     });
     const controller = new AbortController();
     const spawn = vi.fn(async () => successSpawn());
-    const ctx = createContext({
+    const ctx = createDriverContext({
+      ...ralphContextDefaults,
       abort: controller.signal,
       spawn
     });
@@ -131,42 +138,16 @@ function planDoc(body: string, options: { agent?: string; model?: string } = {})
   return ["---", `agent: ${agent}`, "iterations: 1", "---", body].join("\n");
 }
 
-function createContext(
-  overrides: Partial<WorkflowDriverContext> & {
-    events?: AttemptEvent[];
-    spawn?: ReturnType<typeof vi.fn>;
-  } = {}
-): WorkflowDriverContext {
-  const events = overrides.events ?? [];
-
-  return {
-    task: createTask(),
-    attempt: 1,
-    workspaceDir: "/repo/workspaces/task-1",
-    planPath: "/repo/docs/plans/ralph-plan.md",
-    cfg: createConfig(),
-    abort: new AbortController().signal,
-    emit: (event) => events.push(event),
-    spawn: vi.fn(async () => successSpawn()),
-    logger: { warn: vi.fn() },
-    ...overrides
-  };
-}
-
-function createTask(): Task {
-  return {
-    list: "tasks",
-    id: "task-1",
-    qualifiedId: "tasks/task-1",
+const ralphContextDefaults = {
+  task: createTask({
     name: "Ralph task",
     state: "in-progress",
     description: "Run ralph",
     metadata: { kind: "ralph" }
-  };
-}
-
-function createConfig(): ResolvedConfig {
-  return {
+  }),
+  workspaceDir: "/repo/workspaces/task-1",
+  planPath: "/repo/docs/plans/ralph-plan.md",
+  cfg: createConfig({
     tasks: { type: "markdown-dir", path: "/repo/docs/plans" },
     states: {
       planned: { prompt: "Plan {{ prompt }}" },
@@ -174,21 +155,11 @@ function createConfig(): ResolvedConfig {
       done: { terminal: true },
       archived: { terminal: true }
     },
-    activeStateNames: ["planned", "in-progress"],
-    terminalStateNames: ["done", "archived"],
-    stateOrder: ["planned", "in-progress", "done", "archived"],
-    polling: { intervalMs: 30_000 },
-    workspace: { root: "/repo/workspaces" },
-    agent: {
-      service: "codex",
-      list: "tasks",
-      maxConcurrentAgents: 1,
-      maxTurns: 20,
-      maxRetryBackoffMs: 300_000
-    }
-  };
-}
-
-function successSpawn(): SpawnResult {
-  return { stdout: "", stderr: "", exitCode: 0 };
-}
+    workspace: { root: "/repo/workspaces" }
+  })
+} satisfies {
+  task: ReturnType<typeof createTask>;
+  workspaceDir: string;
+  planPath: string;
+  cfg: ResolvedConfig;
+};

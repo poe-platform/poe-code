@@ -1,8 +1,8 @@
 import { fs, vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { SpawnResult } from "@poe-code/agent-spawn";
 import type { StateMachineDef, TaskList, TaskListFs } from "@poe-code/task-list";
 import { openTaskList } from "@poe-code/task-list";
+import { createTask, successSpawn } from "./__test_utils__/fixtures.js";
 import { maestroTaskStateMachine, runMaestro, type MaestroEvent } from "./index.js";
 
 vi.mock("node:fs/promises", async () => {
@@ -39,15 +39,16 @@ describe("runMaestro", () => {
         polling: ["  interval_ms: 25"]
       })
     });
-    const taskList = await createYamlTaskList("/repo/tasks.yaml", fs.promises as unknown as TaskListFs);
+    const taskList = await createYamlTaskList(
+      "/repo/tasks.yaml",
+      fs.promises as unknown as TaskListFs
+    );
     const tasks = taskList.list("tasks");
     await tasks.create({ id: "one", name: "One", description: "Do the work" });
     await tasks.fire("one", "plan");
     const events: MaestroEvent[] = [];
-    const spawn = vi.fn(async (): Promise<SpawnResult> => ({
-      stdout: "",
-      stderr: "",
-      exitCode: 0,
+    const spawn = vi.fn(async () => ({
+      ...successSpawn(),
       threadId: `session-${spawn.mock.calls.length}`
     }));
     const stop = await runMaestro({
@@ -65,14 +66,12 @@ describe("runMaestro", () => {
       events.some((event) => event.type === "reconcile" && event.action === "stop_clean")
     );
 
-    expect(events.filter((event) => event.type === "attempt_phase").map((event) => event.to)).toEqual([
-      "preparing-workspace",
-      "running-step",
-      "succeeded"
-    ]);
-    expect(events.filter((event) => event.type === "agent_event").map((event) => event.step)).toEqual([
-      "in-progress"
-    ]);
+    expect(
+      events.filter((event) => event.type === "attempt_phase").map((event) => event.to)
+    ).toEqual(["preparing-workspace", "running-step", "succeeded"]);
+    expect(
+      events.filter((event) => event.type === "agent_event").map((event) => event.step)
+    ).toEqual(["in-progress"]);
     await expect(tasks.get("one")).resolves.toMatchObject({ state: "done" });
     expect(vol.existsSync("/repo/workspaces/tasks_one")).toBe(false);
 
@@ -112,9 +111,9 @@ describe("runMaestro", () => {
     const tasks = taskList.list("maestro");
     await tasks.create({ id: "handoff", name: "Handoff" });
     const events: MaestroEvent[] = [];
-    const spawn = vi.fn(async (): Promise<SpawnResult> => {
+    const spawn = vi.fn(async () => {
       await tasks.fire("handoff", "handoff");
-      return { stdout: "", stderr: "", exitCode: 0, threadId: "handoff-session" };
+      return successSpawn({ threadId: "handoff-session" });
     });
 
     const stop = await runMaestro({
@@ -128,11 +127,9 @@ describe("runMaestro", () => {
     );
 
     expect(spawn).toHaveBeenCalledTimes(1);
-    expect(events.filter((event) => event.type === "attempt_phase").map((event) => event.to)).toEqual([
-      "preparing-workspace",
-      "running-step",
-      "canceled"
-    ]);
+    expect(
+      events.filter((event) => event.type === "attempt_phase").map((event) => event.to)
+    ).toEqual(["preparing-workspace", "running-step", "canceled"]);
     expect(events.some((event) => event.type === "retry_scheduled")).toBe(false);
     await expect(tasks.get("handoff")).resolves.toMatchObject({ state: "human-review" });
     expect(vol.existsSync("/repo/workspaces/maestro_handoff")).toBe(false);
@@ -159,15 +156,14 @@ describe("runMaestro", () => {
         polling: ["  interval_ms: 25"]
       })
     });
-    const taskList = await createYamlTaskList("/repo/tasks.yaml", fs.promises as unknown as TaskListFs);
+    const taskList = await createYamlTaskList(
+      "/repo/tasks.yaml",
+      fs.promises as unknown as TaskListFs
+    );
     const tasks = taskList.list("tasks");
     await tasks.create({ id: "one", name: "One", description: "Do the work" });
     await tasks.fire("one", "plan");
-    const spawn = vi.fn(async (): Promise<SpawnResult> => ({
-      stdout: "",
-      stderr: "",
-      exitCode: 0
-    }));
+    const spawn = vi.fn(async () => successSpawn());
     const logger = { info: vi.fn(), error: vi.fn() };
     const stop = await runMaestro({
       workflowPath: "/repo/WORKFLOW.md",
@@ -214,35 +210,27 @@ describe("runMaestro", () => {
       })
     });
     const activeTasks = [
-      {
-        list: "tasks",
-        id: "one",
+      createTask({
         qualifiedId: "tasks/one",
         name: "One",
         state: "planned",
         description: "Do the work",
         metadata: { kind: "pipeline" }
-      },
-      {
-        list: "tasks",
-        id: "two",
+      }),
+      createTask({
         qualifiedId: "tasks/two",
         name: "Two",
         state: "planned",
         description: "Coordinate the work",
         metadata: { kind: "superintendent" }
-      }
+      })
     ];
     const taskList = {
       allTasks: async ({ state }: { state?: string } = {}) =>
         activeTasks.filter((task) => state === undefined || task.state === state),
       lists: async () => ["tasks"]
     } as TaskList;
-    const spawn = vi.fn(async (): Promise<SpawnResult> => ({
-      stdout: "",
-      stderr: "",
-      exitCode: 0
-    }));
+    const spawn = vi.fn(async () => successSpawn());
     const logger = { info: vi.fn(), error: vi.fn() };
 
     await runMaestro({

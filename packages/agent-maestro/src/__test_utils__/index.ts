@@ -17,3 +17,12 @@ export {
   type MockTaskListMutationStore,
   type MockTasks
 } from "./mock-task-list.js";
+export { createEventCollector, type EventCollector } from "./event-collector.js";
+export {
+  createConfig,
+  createDriverContext,
+  createTask,
+  createTickDeps,
+  createWorkflowDefinition,
+  successSpawn
+} from "./fixtures.js";

@@ -1,11 +1,9 @@
-import type { SpawnResult } from "@poe-code/agent-spawn";
-import type { Task } from "@poe-code/task-list";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { runAttempt, type AttemptDeps } from "./runner.js";
-import type { ResolvedConfig } from "../config/schema.js";
+import { createConfig, createMockSpawn, createTask } from "../__test_utils__/index.js";
 import { pipelineDriver } from "../drivers/pipeline.js";
 import { registerDriver } from "../drivers/registry.js";
+import { runAttempt } from "./runner.js";
 
 describe("runAttempt", () => {
   beforeEach(() => {
@@ -23,14 +21,14 @@ describe("runAttempt", () => {
       task: createTask({ metadata: { kind: "pipeline" } }),
       attempt: 1,
       cfg: createConfig(),
-      deps: createDeps(),
+      deps: { spawn: createMockSpawn().spawn },
       abort: new AbortController().signal
     });
     await runAttempt({
       task: createTask(),
       attempt: 1,
       cfg: createConfig(),
-      deps: createDeps(),
+      deps: { spawn: createMockSpawn().spawn },
       abort: new AbortController().signal
     });
 
@@ -49,7 +47,7 @@ describe("runAttempt", () => {
       attempt: 1,
       cfg: createConfig(),
       planPath: "/repo/docs/plans/legacy.md",
-      deps: createDeps(),
+      deps: { spawn: createMockSpawn().spawn },
       abort: new AbortController().signal
     });
 
@@ -60,48 +58,3 @@ describe("runAttempt", () => {
     );
   });
 });
-
-function createTask(overrides: Partial<Task> = {}): Task {
-  return {
-    list: "tasks",
-    id: "task-1",
-    qualifiedId: "tasks/task-1",
-    name: "Build runner",
-    state: "in-progress",
-    description: "Render this task body",
-    metadata: {},
-    ...overrides
-  };
-}
-
-function createConfig(): ResolvedConfig {
-  return {
-    tasks: { type: "markdown-dir", path: "/repo/tasks" },
-    states: {
-      "in-progress": { prompt: "Implement {{ prompt }}" },
-      done: { terminal: true }
-    },
-    activeStateNames: ["in-progress"],
-    terminalStateNames: ["done"],
-    stateOrder: ["in-progress", "done"],
-    polling: { intervalMs: 30_000 },
-    workspace: { root: "/tmp/poe-code-maestro" },
-    agent: {
-      service: "codex",
-      list: "tasks",
-      maxConcurrentAgents: 1,
-      maxTurns: 20,
-      maxRetryBackoffMs: 300_000
-    }
-  };
-}
-
-function createDeps(): AttemptDeps & { spawn: ReturnType<typeof vi.fn> } {
-  return {
-    spawn: vi.fn(async () => successSpawn())
-  };
-}
-
-function successSpawn(): SpawnResult {
-  return { stdout: "", stderr: "", exitCode: 0 };
-}

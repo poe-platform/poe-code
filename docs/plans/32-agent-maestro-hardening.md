@@ -106,7 +106,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: shared-test-fixtures
     title: Extract shared maestro test fixtures and event collector
@@ -152,8 +152,8 @@ tasks:
       should remove lines, not add. Do not change observable test
       behavior; the migration is mechanical.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: pipeline-driver-coverage

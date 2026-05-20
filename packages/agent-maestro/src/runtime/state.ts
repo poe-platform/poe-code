@@ -33,7 +33,11 @@ export function createState(cfg: ResolvedConfig): MaestroState {
 }
 
 export function claim(state: MaestroState, taskId: string): boolean {
-  if (state.claimed.has(taskId) || state.completed.has(taskId)) {
+  if (
+    state.claimed.has(taskId) ||
+    state.retry_attempts.has(taskId) ||
+    state.completed.has(taskId)
+  ) {
     return false;
   }
 
@@ -67,7 +71,7 @@ export function scheduleRetry(state: MaestroState, entry: RetryEntry): void {
     return;
   }
 
-  state.claimed.add(entry.taskId);
+  state.claimed.delete(entry.taskId);
   state.running.delete(entry.taskId);
   state.retry_attempts.set(entry.taskId, entry);
 }

@@ -1,9 +1,11 @@
 import type { SpawnResult } from "@poe-code/agent-spawn";
 import type { Task } from "@poe-code/task-list";
+import { expect } from "vitest";
 
 import type { AttemptEvent } from "../agent/runner.js";
 import type { WorkflowDefinition } from "../config/load.js";
 import type { ResolvedConfig } from "../config/schema.js";
+import type { MaestroState } from "../runtime/state.js";
 import type { WorkflowDriverContext } from "../drivers/types.js";
 import type { TickDeps } from "../runtime/loop.js";
 import { createMockSpawn } from "./mock-spawn.js";
@@ -125,6 +127,21 @@ export function createWorkflowDefinition(
 
 export function successSpawn(overrides: Partial<SpawnResult> = {}): SpawnResult {
   return { stdout: "", stderr: "", exitCode: 0, ...overrides };
+}
+
+export function assertNoLeakedWorkers(
+  state: Pick<MaestroState, "running" | "claimed">,
+  workers: Pick<Map<string, unknown>, "keys" | "size">
+): void {
+  expect({
+    workers: [...workers.keys()],
+    running: [...state.running.keys()],
+    claimed: [...state.claimed.values()]
+  }).toEqual({
+    workers: [],
+    running: [],
+    claimed: []
+  });
 }
 
 function parseQualifiedId(qualifiedId: string | undefined): { list: string; id: string } | null {

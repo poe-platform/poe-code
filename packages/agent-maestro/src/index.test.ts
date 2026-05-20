@@ -9,13 +9,23 @@ import type { StateMachineDef, Task, TaskList, TaskListFs } from "@poe-code/task
 import { openTaskList } from "@poe-code/task-list";
 import {
   createEventCollector,
+  assertNoLeakedWorkers,
+  createConfig,
   createMockSpawn,
   createMockTaskList,
   createTask,
+  createTickDeps,
   type MockSpawnStep,
   successSpawn
 } from "./__test_utils__/index.js";
-import { maestroTaskStateMachine, runMaestro, type MaestroEvent } from "./index.js";
+import {
+  createState,
+  maestroTaskStateMachine,
+  runMaestro,
+  tick,
+  type MaestroEvent
+} from "./index.js";
+import type { TickDeps, TrackedWorker } from "./runtime/loop.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -303,6 +313,289 @@ describe("runMaestro", () => {
       skippedKinds: []
     });
     await stop();
+  });
+});
+
+describe("shutdown", () => {
+  beforeEach(() => {
+    vol.reset();
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T00:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
+
+  it("returns within 50ms of virtual time when no workers are active", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": shutdownWorkflow()
+    });
+    const taskList = createMockTaskList({ lists: ["tasks"] });
+    const stop = await runMaestro({
+      workflowPath: "/repo/WORKFLOW.md",
+      taskList,
+      agentSpawn: createMockSpawn().spawn
+    });
+
+    const startedAt = Date.now();
+    await stop();
+
+    expect(Date.now() - startedAt).toBeLessThan(50);
+    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
+  });
+
+  it("aborts all active workers and waits for their promises to settle within the stop budget", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": shutdownWorkflow({ maxConcurrentAgents: 5 })
+    });
+    const taskList = createMockTaskList({
+      lists: ["tasks"],
+      tasks: Array.from({ length: 5 }, (_, index) =>
+        createTask({
+          qualifiedId: `tasks/worker-${index + 1}`,
+          metadata: { createdAt: `2026-01-01T00:00:0${index}.000Z` }
+        })
+      )
+    });
+    const events = createEventCollector();
+    const spawn = createMockSpawn({
+      codex: [
+        {
+          kind: "run",
+          fn: async (call) => {
+            await onceAborted(call.signal);
+          }
+        }
+      ]
+    });
+    const stop = await runMaestro({
+      workflowPath: "/repo/WORKFLOW.md",
+      taskList,
+      maxConcurrent: 5,
+      agentSpawn: spawn.spawn,
+      onEvent: events.onEvent
+    });
+    await advancePoll();
+    await waitForCondition(() => spawn.calls.length === 5);
+
+    const stoppedAt = Date.now();
+    const stopPromise = stop();
+    await flushMicrotasks();
+
+    expect(spawn.calls).toHaveLength(5);
+    expect(spawn.calls.every((call) => call.signal?.aborted === true)).toBe(true);
+    await stopPromise;
+    expect(Date.now() - stoppedAt).toBeLessThan(STOP_BUDGET_MS);
+    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
+  });
+
+  it("returns after the stop budget when a worker ignores abort and still attempts workspace cleanup", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": shutdownWorkflow()
+    });
+    const taskList = createMockTaskList({
+      lists: ["tasks"],
+      tasks: [createTask({ qualifiedId: "tasks/blocked" })]
+    });
+    const events = createEventCollector();
+    const spawn = createMockSpawn({
+      codex: [{ kind: "wait", ms: STOP_BUDGET_MS + 1, ignoreAbort: true }]
+    });
+    const stop = await runMaestro({
+      workflowPath: "/repo/WORKFLOW.md",
+      taskList,
+      agentSpawn: spawn.spawn,
+      onEvent: events.onEvent
+    });
+    await advancePoll();
+    await waitForEventCount(events.events, 2);
+
+    const stopPromise = stop();
+    await flushMicrotasks();
+    expect(await promiseSettled(stopPromise)).toBe(false);
+    await vi.advanceTimersByTimeAsync(STOP_BUDGET_MS - 1);
+    expect(await promiseSettled(stopPromise)).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    await stopPromise;
+
+    expect(vol.existsSync(shutdownWorkspacePath("blocked"))).toBe(false);
+    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
+  });
+
+  it("waits for an active tick to finish before stop returns", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": shutdownWorkflow()
+    });
+    const plannedTasks = deferred<Task[]>();
+    const baseTaskList = createMockTaskList({
+      lists: ["tasks"],
+      tasks: [createTask({ qualifiedId: "tasks/delayed" })]
+    });
+    const taskList: TaskList = {
+      ...baseTaskList,
+      allTasks: (filter?: Parameters<TaskList["allTasks"]>[0]) => {
+        if (filter?.state === "planned") {
+          return plannedTasks.promise;
+        }
+
+        return baseTaskList.allTasks(filter);
+      }
+    };
+    const events = createEventCollector();
+    const stop = await runMaestro({
+      workflowPath: "/repo/WORKFLOW.md",
+      taskList,
+      agentSpawn: createMockSpawn().spawn,
+      onEvent: events.onEvent
+    });
+    await advancePoll();
+    await waitForEventCount(events.events, 1);
+
+    const stopPromise = stop();
+    await flushMicrotasks();
+    expect(await promiseSettled(stopPromise)).toBe(false);
+
+    plannedTasks.resolve([]);
+    await stopPromise;
+
+    expect(stripUndefined(events.events)).toEqual([tickEvent(25)]);
+    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
+  });
+
+  it("logs workspace cleanup failures during stop and still resolves", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": shutdownWorkflow()
+    });
+    const taskList = createMockTaskList({
+      lists: ["tasks"],
+      tasks: [createTask({ qualifiedId: "tasks/cleanup-fails" })]
+    });
+    const logger = { warn: vi.fn(), error: vi.fn() };
+    const rmSpy = vi.spyOn(fs.promises, "rm").mockRejectedValueOnce(new Error("rm failed"));
+    const events = createEventCollector();
+    const stop = await runMaestro({
+      workflowPath: "/repo/WORKFLOW.md",
+      taskList,
+      agentSpawn: createMockSpawn({
+        codex: [{ kind: "wait", ms: STOP_BUDGET_MS + 1, ignoreAbort: true }]
+      }).spawn,
+      logger,
+      onEvent: events.onEvent
+    });
+    await advancePoll();
+    await waitForEventCount(events.events, 2);
+
+    const stopPromise = stop();
+    await vi.advanceTimersByTimeAsync(STOP_BUDGET_MS);
+    await expect(stopPromise).resolves.toBeUndefined();
+
+    expect(logger.warn).toHaveBeenCalledWith("maestro workspace cleanup failed", {
+      error: "rm failed"
+    });
+    expect(rmSpy).toHaveBeenCalled();
+  });
+
+  it("releases the file lock even when stop encounters cleanup errors", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": shutdownWorkflow()
+    });
+    const taskList = createMockTaskList({
+      lists: ["tasks"],
+      tasks: [createTask({ qualifiedId: "tasks/cleanup-fails" })]
+    });
+    const events = createEventCollector();
+    const stop = await runMaestro({
+      workflowPath: "/repo/WORKFLOW.md",
+      taskList,
+      agentSpawn: createMockSpawn({
+        codex: [{ kind: "wait", ms: STOP_BUDGET_MS + 1, ignoreAbort: true }]
+      }).spawn,
+      logger: { warn: vi.fn(), error: vi.fn() },
+      onEvent: events.onEvent
+    });
+    vi.spyOn(fs.promises, "rm").mockRejectedValueOnce(new Error("rm failed"));
+    await advancePoll();
+    await waitForEventCount(events.events, 2);
+
+    const stopPromise = stop();
+    await vi.advanceTimersByTimeAsync(STOP_BUDGET_MS);
+    await stopPromise;
+
+    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
+  });
+
+  it("can be invoked from a SIGTERM-style signal handler without awaiting in the handler", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": shutdownWorkflow()
+    });
+    const taskList = createMockTaskList({ lists: ["tasks"] });
+    const stop = await runMaestro({
+      workflowPath: "/repo/WORKFLOW.md",
+      taskList,
+      agentSpawn: createMockSpawn().spawn
+    });
+    process.once("SIGTERM", stop);
+
+    try {
+      expect(process.emit("SIGTERM", "SIGTERM")).toBe(true);
+      await waitForCondition(() => !vol.existsSync("/repo/WORKFLOW.md.lock"));
+    } finally {
+      process.removeListener("SIGTERM", stop);
+    }
+  });
+
+  it("releases state, applies retry, and does not leak workers when runAttempt throws synchronously", async () => {
+    const state = createState(
+      createConfig({
+        states: {
+          planned: { prompt: "Plan {{ prompt }}" },
+          done: { terminal: true }
+        },
+        activeStateNames: ["planned"],
+        terminalStateNames: ["done"],
+        stateOrder: ["planned", "done"],
+        workspace: { root: "/repo/workspaces" }
+      })
+    );
+    const task = createTask({ qualifiedId: "tasks/sync-throw" });
+    const workers = new Map<string, TrackedWorker>();
+    const workerPromises: Promise<void>[] = [];
+    const logger = { error: vi.fn() };
+
+    await tick(
+      state,
+      createTickDeps({
+        tasks: createMockTaskList({ lists: ["tasks"], tasks: [task] }),
+        runAttempt: (() => {
+          throw new Error("sync boom");
+        }) as NonNullable<TickDeps["runAttempt"]>,
+        trackWorker: (worker) => {
+          workers.set(worker.taskId, worker);
+          workerPromises.push(worker.promise);
+          void worker.promise.finally(() => {
+            workers.delete(worker.taskId);
+          });
+        },
+        logger,
+        now: () => 5_000
+      })
+    );
+    await Promise.allSettled(workerPromises);
+
+    expect(logger.error).toHaveBeenCalledWith("maestro worker rejected", {
+      taskId: "tasks/sync-throw",
+      attempt: 1,
+      error: "sync boom"
+    });
+    expect(state.retry_attempts.get("tasks/sync-throw")).toEqual({
+      taskId: "tasks/sync-throw",
+      attempt: 2,
+      dueAt: 15_000
+    });
+    expect(state.running.has("tasks/sync-throw")).toBe(false);
+    assertNoLeakedWorkers(state, workers);
   });
 });
 
@@ -692,12 +985,15 @@ describe("integration", () => {
     await advancePoll();
     await waitForEventCount(events.events, 13);
 
-    expect(stripUndefined(events.events)).toEqual([
-      tickEvent(25),
+    const eventSnapshot = stripUndefined(events.events);
+    expect(eventSnapshot[0]).toEqual(tickEvent(25));
+    expect(eventsForTask(eventSnapshot, "pipeline")).toEqual([
       dispatchEvent(fixture, "pipeline"),
       ...successEvents("pipeline", 1, { reconcile: false }),
+      { type: "reconcile", task_id: "tasks/pipeline", action: "stop_clean" }
+    ]);
+    expect(eventsForTask(eventSnapshot, "ralph")).toEqual([
       dispatchEvent(fixture, "ralph"),
-      { type: "reconcile", task_id: "tasks/pipeline", action: "stop_clean" },
       {
         type: "attempt_phase",
         task_id: "tasks/ralph",
@@ -721,10 +1017,7 @@ describe("integration", () => {
       },
       { type: "worker_exit", task_id: "tasks/ralph", reason: "normal" }
     ]);
-    expect(spawn.calls.map((call) => taskIdFromPrompt(call.prompt))).toEqual([
-      "pipeline",
-      "ralph"
-    ]);
+    expect(spawn.calls.map((call) => taskIdFromPrompt(call.prompt))).toEqual(["pipeline", "ralph"]);
 
     await stop();
   });
@@ -742,6 +1035,8 @@ type TaskScriptAction =
   | { kind: "exit"; exitCode: number }
   | { kind: "block" };
 
+const STOP_BUDGET_MS = 10_000;
+
 const integrationStateMachine: StateMachineDef = {
   initial: "planned",
   states: ["planned", "in-progress", "done", "failed", "archived"],
@@ -757,29 +1052,36 @@ async function importRealMaestro(): Promise<typeof import("./index.js")> {
   vi.resetModules();
   vi.doUnmock("node:fs/promises");
   vi.doMock("@poe-code/ralph", () => ({
-    runRalph: vi.fn(async (options: {
-      cwd: string;
-      runAgent(input: { agent: string; cwd: string; prompt: string; signal?: AbortSignal }): Promise<{
-        stdout: string;
-        stderr: string;
-        exitCode: number;
-      }>;
-      onIterationComplete(iteration: number, durationMs: number, success: boolean): void;
-      signal?: AbortSignal;
-    }) => {
-      if (options.signal?.aborted) {
-        return { stopReason: "cancelled" };
-      }
+    runRalph: vi.fn(
+      async (options: {
+        cwd: string;
+        runAgent(input: {
+          agent: string;
+          cwd: string;
+          prompt: string;
+          signal?: AbortSignal;
+        }): Promise<{
+          stdout: string;
+          stderr: string;
+          exitCode: number;
+        }>;
+        onIterationComplete(iteration: number, durationMs: number, success: boolean): void;
+        signal?: AbortSignal;
+      }) => {
+        if (options.signal?.aborted) {
+          return { stopReason: "cancelled" };
+        }
 
-      await options.runAgent({
-        agent: "codex",
-        cwd: options.cwd,
-        prompt: "task:ralph driver:ralph",
-        signal: options.signal
-      });
-      options.onIterationComplete(1, 0, true);
-      return { stopReason: "completed" };
-    })
+        await options.runAgent({
+          agent: "codex",
+          cwd: options.cwd,
+          prompt: "task:ralph driver:ralph",
+          signal: options.signal
+        });
+        options.onIterationComplete(1, 0, true);
+        return { stopReason: "completed" };
+      }
+    )
   }));
 
   return import("./index.js");
@@ -942,7 +1244,13 @@ async function expectLockRejection(promise: Promise<unknown>): Promise<void> {
 
 async function promiseSettled(promise: Promise<unknown>): Promise<boolean> {
   const pending = Symbol("pending");
-  const result = await Promise.race([promise.then(() => true, () => true), Promise.resolve(pending)]);
+  const result = await Promise.race([
+    promise.then(
+      () => true,
+      () => true
+    ),
+    Promise.resolve(pending)
+  ]);
   return result !== pending;
 }
 
@@ -1010,7 +1318,13 @@ function failedRetryEvents(id: string): MaestroEvent[] {
       event: "exit",
       payload: { exitCode: 1 }
     },
-    { type: "attempt_phase", task_id: `tasks/${id}`, from: "running-step", to: "failed", failure: "step_failed" },
+    {
+      type: "attempt_phase",
+      task_id: `tasks/${id}`,
+      from: "running-step",
+      to: "failed",
+      failure: "step_failed"
+    },
     {
       type: "worker_exit",
       task_id: `tasks/${id}`,
@@ -1049,14 +1363,21 @@ function workspacePath(fixture: IntegrationFixture, id: string): string {
   return path.join(fixture.workspaceRoot, `tasks_${id}-${workspaceHash(qualifiedId)}`);
 }
 
+function shutdownWorkspacePath(id: string): string {
+  const qualifiedId = `tasks/${id}`;
+  return `/repo/workspaces/tasks_${id}-${workspaceHash(qualifiedId)}`;
+}
+
 function workspaceHash(qualifiedId: string): string {
   return crypto.createHash("sha256").update(qualifiedId).digest("hex").slice(0, 16);
 }
 
 function stripUndefined(events: readonly MaestroEvent[]): MaestroEvent[] {
-  return events.map((event) =>
-    JSON.parse(JSON.stringify(event)) as MaestroEvent
-  );
+  return events.map((event) => JSON.parse(JSON.stringify(event)) as MaestroEvent);
+}
+
+function eventsForTask(events: readonly MaestroEvent[], id: string): MaestroEvent[] {
+  return events.filter((event) => "task_id" in event && event.task_id === `tasks/${id}`);
 }
 
 async function createYamlTaskList(
@@ -1084,10 +1405,55 @@ function workflowFrontmatter(parts: Record<string, string[]>): string {
   return lines.join("\n");
 }
 
+function shutdownWorkflow(options: { maxConcurrentAgents?: number } = {}): string {
+  return workflowFrontmatter({
+    tasks: ["  type: markdown-dir", "  path: /repo/tasks"],
+    states: [
+      "  planned:",
+      '    prompt: "task:{{ task.id }} state:{{ task.state }}"',
+      "  done:",
+      "    terminal: true"
+    ],
+    agent: [
+      "  service: codex",
+      "  list: tasks",
+      `  max_concurrent_agents: ${options.maxConcurrentAgents ?? 1}`
+    ],
+    workspace: ["  root: /repo/workspaces"],
+    polling: ["  interval_ms: 25"]
+  });
+}
+
 async function flushMicrotasks(): Promise<void> {
   for (let attempt = 0; attempt < 20; attempt += 1) {
     await Promise.resolve();
   }
+}
+
+async function onceAborted(signal: AbortSignal | undefined): Promise<void> {
+  if (signal === undefined) {
+    return;
+  }
+
+  if (signal?.aborted === true) {
+    return;
+  }
+
+  await new Promise<void>((resolve) => {
+    signal.addEventListener("abort", () => resolve(), { once: true });
+  });
+}
+
+function deferred<T>(): {
+  promise: Promise<T>;
+  resolve(value: T): void;
+} {
+  let resolve: (value: T) => void = () => undefined;
+  const promise = new Promise<T>((next) => {
+    resolve = next;
+  });
+
+  return { promise, resolve };
 }
 
 async function waitForCondition(condition: () => boolean): Promise<void> {

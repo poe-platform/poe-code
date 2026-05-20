@@ -515,8 +515,8 @@ tasks:
       runtime's worker map or the maestro state's `running`/
       `claimed` maps still hold entries after stop resolves.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: driver-registry-and-prompt-render-coverage

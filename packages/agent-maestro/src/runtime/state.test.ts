@@ -7,7 +7,7 @@ import {
   markCompleted,
   markRunning,
   release,
-  scheduleRetry,
+  scheduleRetry
 } from "./state.js";
 import type { ResolvedConfig } from "../config/schema.js";
 
@@ -43,7 +43,7 @@ describe("runtime state", () => {
     expect(state.retry_attempts.get("task-1")).toEqual({
       taskId: "task-1",
       attempt: 2,
-      dueAt: 123,
+      dueAt: 123
     });
 
     markRunning(state, { taskId: "task-1", attempt: 2 });
@@ -52,14 +52,17 @@ describe("runtime state", () => {
     expect(state.retry_attempts.has("task-1")).toBe(false);
   });
 
-  it("can cancel retry without releasing the claim", () => {
+  it("keeps retry queue ownership separate from active claims", () => {
     const state = createState(createConfig());
 
     expect(claim(state, "task-1")).toBe(true);
     scheduleRetry(state, { taskId: "task-1", attempt: 1, dueAt: 456 });
+    expect(state.claimed.has("task-1")).toBe(false);
+    expect(claim(state, "task-1")).toBe(false);
+
     cancelRetry(state, "task-1");
 
-    expect(state.claimed.has("task-1")).toBe(true);
+    expect(claim(state, "task-1")).toBe(true);
     expect(state.retry_attempts.has("task-1")).toBe(false);
   });
 
@@ -92,7 +95,7 @@ function createConfig(): ResolvedConfig {
   return {
     states: {
       queued: { prompt: "Queue {{ prompt }}" },
-      done: { terminal: true },
+      done: { terminal: true }
     },
     activeStateNames: ["queued"],
     terminalStateNames: ["done"],
@@ -103,7 +106,7 @@ function createConfig(): ResolvedConfig {
       service: "codex",
       maxConcurrentAgents: 1,
       maxTurns: 20,
-      maxRetryBackoffMs: 300_000,
-    },
+      maxRetryBackoffMs: 300_000
+    }
   };
 }

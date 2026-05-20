@@ -1017,9 +1017,16 @@ describe("tick", () => {
       ]);
       expect(
         events.collector.snapshot().filter((event) => event.type === "retry_scheduled")
-      ).toEqual([]);
+      ).toEqual([
+        { type: "retry_scheduled", task_id: task.qualifiedId, attempt: 2, due_in_ms: 10_000 }
+      ]);
       expect(state.running.has(task.qualifiedId)).toBe(false);
       expect(state.claimed.has(task.qualifiedId)).toBe(false);
+      expect(state.retry_attempts.get(task.qualifiedId)).toEqual({
+        taskId: task.qualifiedId,
+        attempt: 2,
+        dueAt: 10_000
+      });
     });
 
     it("invokes injected reconcileRunning once per tick and forwards its events", async () => {

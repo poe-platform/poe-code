@@ -27,7 +27,7 @@ export type MockSpawnStep =
       kind: "throw";
       error: "abort" | "activity_timeout" | "agent_startup_error" | "agent_crashed" | Error;
     }
-  | { kind: "wait"; ms: number }
+  | { kind: "wait"; ms: number; ignoreAbort?: boolean }
   | { kind: "block" }
   | { kind: "run"; fn: (call: SpawnCall) => void | Promise<void> }
   | { kind: "assert"; fn: (call: SpawnCall) => void };
@@ -232,6 +232,12 @@ async function runScript(input: {
 
     if (step.kind === "wait") {
       assertValidWait(step.ms);
+      if (step.ignoreAbort === true) {
+        await new Promise<void>((resolve) => setTimeout(resolve, step.ms));
+        input.advanceClockMs(step.ms);
+        continue;
+      }
+
       await Promise.resolve();
       throwIfAborted(input.call.signal);
       input.advanceClockMs(step.ms);

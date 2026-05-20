@@ -224,7 +224,6 @@ function startWorker(state: MaestroState, deps: TickDeps, task: Task, attempt: n
     let outcome: AttemptOutcome | undefined;
     let workspace: EnsureWorkspaceResult | undefined;
     let activeTask = task;
-    let workerRejected = false;
 
     try {
       workspace = await (deps.ensureWorkspace ?? defaultEnsureWorkspace)(
@@ -281,7 +280,6 @@ function startWorker(state: MaestroState, deps: TickDeps, task: Task, attempt: n
           abort: controller.signal
         });
       } catch (error) {
-        workerRejected = true;
         const message = errorMessage(error);
         deps.logger?.error?.("maestro worker rejected", {
           taskId: activeTask.qualifiedId,
@@ -304,6 +302,10 @@ function startWorker(state: MaestroState, deps: TickDeps, task: Task, attempt: n
       };
     }
 
+    if (controller.signal.aborted && outcome.reason !== "skip") {
+      outcome = { reason: "abnormal", failure: "canceled" };
+    }
+
     const phase = outcomePhase(outcome);
     deps.onEvent?.({
       type: "worker_exit",
@@ -312,10 +314,6 @@ function startWorker(state: MaestroState, deps: TickDeps, task: Task, attempt: n
       phase,
       outcome
     });
-    if (workerRejected) {
-      release(state, activeTask.qualifiedId);
-      return;
-    }
 
     if (
       workspace !== undefined &&

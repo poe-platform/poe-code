@@ -15,7 +15,7 @@ import { resolveWorkflowKind } from "./drivers/kind.js";
 import { getDriver } from "./drivers/registry.js";
 import { reconcileRunning as defaultReconcileRunning } from "./runtime/reconcile.js";
 import type { AttemptPhase, FailureCategory } from "./runtime/phases.js";
-import { createState, type RunningEntry } from "./runtime/state.js";
+import { createState, release, type RunningEntry } from "./runtime/state.js";
 import { tick, type TickEvent, type TrackedWorker } from "./runtime/loop.js";
 import { removeWorkspace, startupTerminalCleanup } from "./workspace/manager.js";
 import "./drivers/index.js";
@@ -168,18 +168,25 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
         clearInterval(timer);
       }
 
-      await activeTick.catch(() => undefined);
+      try {
+        await activeTick.catch(() => undefined);
 
-      for (const worker of workers.values()) {
-        worker.controller.abort();
+        for (const worker of workers.values()) {
+          worker.controller.abort();
+        }
+
+        await withBudget(
+          Promise.allSettled([...workers.values()].map((worker) => worker.promise)),
+          STOP_BUDGET_MS
+        );
+        await cleanupRunningWorkspaces(state.running, cfg, logger);
+      } finally {
+        for (const taskId of [...state.running.keys()]) {
+          release(state, taskId);
+        }
+        workers.clear();
+        await releaseLock();
       }
-
-      await withBudget(
-        Promise.allSettled([...workers.values()].map((worker) => worker.promise)),
-        STOP_BUDGET_MS
-      );
-      await cleanupRunningWorkspaces(state.running, cfg, logger);
-      await releaseLock();
     };
   } catch (error) {
     await releaseLock();

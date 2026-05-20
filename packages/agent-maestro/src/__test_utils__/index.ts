@@ -19,6 +19,7 @@ export {
 } from "./mock-task-list.js";
 export { createEventCollector, type EventCollector } from "./event-collector.js";
 export {
+  assertNoLeakedWorkers,
   createConfig,
   createDriverContext,
   createTask,

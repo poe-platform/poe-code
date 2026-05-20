@@ -1,6 +1,18 @@
 import { S, validate } from "toolcraft-schema";
 import type { Static, ValidationIssue } from "toolcraft-schema";
 
+/**
+ * Schema for an eval.yaml file.
+ *
+ * Canonical oracle layout:
+ *
+ * oracle/
+ * ├── solution/    # reference implementation; used by `eval check`
+ * └── tests/       # vitest *.test.ts files; the default scorer
+ *
+ * Keep oracle.path at its default value of "oracle" unless an eval has a
+ * strong reason to use a different folder.
+ */
 export const evalYamlSchema = S.Object({
   id: S.String(),
   title: S.String(),
@@ -9,12 +21,14 @@ export const evalYamlSchema = S.Object({
     ref: S.String(),
     plan_dest: S.Optional(S.String({ default: "docs/plans/eval-task.md" }))
   }),
-  scorer: S.Object({
-    command: S.String(),
-    cwd: S.Optional(S.String({ default: "" })),
-    result_path: S.String(),
-    timeout_ms: S.Number()
-  }),
+  scorer: S.Optional(
+    S.Object({
+      command: S.String(),
+      cwd: S.Optional(S.String({ default: "" })),
+      result_path: S.String(),
+      timeout_ms: S.Number()
+    })
+  ),
   oracle: S.Object({
     path: S.Optional(S.String({ default: "oracle" }))
   }),

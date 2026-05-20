@@ -44,8 +44,8 @@ tasks:
       No CLI changes in this task. No runtime behavior changes — only
       the type surface + schema. Update src/index.ts re-exports.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: vitest-runner

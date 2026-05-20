@@ -32,9 +32,11 @@ export type {
   JudgeSpec,
   PlanKind,
   RubricKey,
+  ResolvedScorer,
   ScorerSpec,
   SpawnEvent,
   SpawnUsage,
   SourceConfig,
   Verdict
 } from "./types.js";
+export { resolveScorer } from "./types.js";

@@ -6,7 +6,7 @@ import {
   type Runner,
   type RunSpec
 } from "@poe-code/process-runner";
-import type { EvalDef } from "../types.js";
+import type { ScorerSpec } from "../types.js";
 
 export class ScorerError extends Error {
   constructor(message: string) {
@@ -25,7 +25,7 @@ export class ScorerTimeoutError extends Error {
 export async function runScorer(
   cloneDir: string,
   oracleDir: string,
-  spec: EvalDef["scorer"]
+  spec: ScorerSpec
 ): Promise<{ passed: number; total: number }> {
   const absoluteCloneDir = path.resolve(cloneDir);
   const absoluteOracleDir = path.resolve(oracleDir);

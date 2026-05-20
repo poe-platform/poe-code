@@ -1,5 +1,6 @@
 import type { Dirent } from "node:fs";
 import type { Stats } from "node:fs";
+import path from "node:path";
 import type { AcpEvent } from "@poe-code/agent-spawn";
 import type { AggregateStats } from "./aggregate.js";
 
@@ -50,6 +51,10 @@ export interface ScorerSpec {
   timeoutMs: number;
 }
 
+export type ResolvedScorer =
+  | { kind: "custom"; spec: ScorerSpec }
+  | { kind: "vitest"; testsDir: string };
+
 export interface EvalDef {
   id: string;
   title: string;
@@ -59,7 +64,7 @@ export interface EvalDef {
     ref: string;
     planDest: string;
   };
-  scorer: ScorerSpec;
+  scorer: ScorerSpec | undefined;
   oracle: {
     path: string;
   };
@@ -78,6 +83,20 @@ export interface EvalDef {
     kind: PlanKind;
     body: string;
     frontmatter: Record<string, unknown>;
+  };
+}
+
+export function resolveScorer(evalDef: EvalDef): ResolvedScorer {
+  if (evalDef.scorer !== undefined) {
+    return {
+      kind: "custom",
+      spec: evalDef.scorer
+    };
+  }
+
+  return {
+    kind: "vitest",
+    testsDir: path.resolve(path.join(evalDef.rootDir, evalDef.oracle.path, "tests"))
   };
 }
 

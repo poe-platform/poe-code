@@ -120,7 +120,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
     const testsResult = await runScorer(
       cloneDir,
       path.join(source.rootDir, opts.evalId, evalDef.oracle.path),
-      evalDef.scorer
+      evalDef.scorer!
     );
     const judgeSpec = resolveJudgeSpec(opts.judge, evalDef);
     const judgeResult =

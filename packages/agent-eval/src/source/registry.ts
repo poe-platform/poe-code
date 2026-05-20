@@ -64,12 +64,15 @@ export async function loadEval(
       ref: evalYaml.target.ref,
       planDest: evalYaml.target.plan_dest ?? "docs/plans/eval-task.md"
     },
-    scorer: {
-      command: evalYaml.scorer.command,
-      cwd: evalYaml.scorer.cwd ?? "",
-      resultPath: evalYaml.scorer.result_path,
-      timeoutMs: evalYaml.scorer.timeout_ms
-    },
+    scorer:
+      evalYaml.scorer === undefined
+        ? undefined
+        : {
+            command: evalYaml.scorer.command,
+            cwd: evalYaml.scorer.cwd ?? "",
+            resultPath: evalYaml.scorer.result_path,
+            timeoutMs: evalYaml.scorer.timeout_ms
+          },
     oracle: {
       path: evalYaml.oracle.path ?? "oracle"
     },

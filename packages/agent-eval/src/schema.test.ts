@@ -78,16 +78,45 @@ describe("eval yaml schema", () => {
     });
   });
 
+  it("accepts eval.yaml without scorer", () => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    delete parsed.scorer;
+
+    const result = validateEvalYaml(parsed, "smoke/eval.yaml");
+
+    expect(result.scorer).toBeUndefined();
+  });
+
+  it("accepts eval.yaml with scorer", () => {
+    const result = validateEvalYaml(parseEvalYaml(validEvalYaml), "smoke/eval.yaml");
+
+    expect(result.scorer).toEqual({
+      command: "npm test",
+      cwd: "",
+      result_path: "score.json",
+      timeout_ms: 1000
+    });
+  });
+
+  it.each([
+    ["scorer", "command"],
+    ["scorer", "result_path"],
+    ["scorer", "timeout_ms"]
+  ])("rejects partial scorer missing required field %s", (...fieldPath) => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    deletePath(parsed, fieldPath);
+
+    expect(() => validateEvalYaml(parsed, "smoke/eval.yaml")).toThrow(
+      `smoke/eval.yaml (${fieldPath.join(".")}):`
+    );
+  });
+
   it.each([
     ["id"],
     ["title"],
     ["target"],
     ["target", "repo"],
     ["target", "ref"],
-    ["scorer"],
-    ["scorer", "command"],
-    ["scorer", "result_path"],
-    ["scorer", "timeout_ms"],
     ["oracle"],
     ["budget"],
     ["budget", "max_iterations"],

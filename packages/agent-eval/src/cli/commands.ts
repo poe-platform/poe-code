@@ -1,5 +1,7 @@
 import path from "node:path";
 import { defineCommand, defineGroup, S, UserError } from "toolcraft";
+import { runInitCli } from "./init.js";
+import { runCheckCli } from "./check.js";
 import { loadSourceConfig } from "../source/config.js";
 import { openSource } from "../source/open.js";
 import { listEvals } from "../source/registry.js";
@@ -16,6 +18,33 @@ import type {
 } from "../types.js";
 
 type ReportFormat = "json" | "md" | "table";
+
+const initParams = S.Object({
+  name: S.String({ description: "Eval folder name" }),
+  cwd: S.Optional(
+    S.String({
+      description: "Eval source directory",
+      short: "C"
+    })
+  ),
+  kind: S.Optional(
+    S.Enum(["plan", "pipeline", "superintendent", "experiment"] as const, {
+      description: "Plan kind"
+    })
+  ),
+  targetRepo: S.Optional(S.String({ description: "Target git repository" })),
+  targetRef: S.Optional(S.String({ description: "Target git ref" }))
+});
+
+const checkParams = S.Object({
+  evalId: S.Optional(S.String({ description: "Eval id to check" })),
+  cwd: S.Optional(
+    S.String({
+      description: "Eval source directory",
+      short: "C"
+    })
+  )
+});
 
 const runParams = S.Object({
   agent: S.Array(S.String(), {
@@ -146,7 +175,56 @@ export const evalReportCommand = defineCommand({
   }
 });
 
-const children = [evalRunCommand, evalReportCommand] as const;
+export const evalInitCommand = defineCommand({
+  name: "init",
+  description: "Create a minimal eval folder.",
+  positional: ["name"],
+  params: initParams,
+  scope: ["cli", "sdk"],
+  handler: async ({ params }) => {
+    const exitCode = await runInitCli({
+      name: params.name,
+      sourceDir: params.cwd,
+      kind: params.kind,
+      targetRepo: params.targetRepo,
+      targetRef: params.targetRef
+    });
+    if (exitCode !== 0) {
+      process.exitCode = exitCode;
+    }
+    return null;
+  },
+  render: {
+    rich: () => {},
+    markdown: () => "",
+    json: () => undefined
+  }
+});
+
+export const evalCheckCommand = defineCommand({
+  name: "check",
+  description: "Verify an eval oracle against its solution.",
+  positional: ["evalId"],
+  params: checkParams,
+  scope: ["cli", "sdk"],
+  handler: async ({ params }) => {
+    const exitCode = await runCheckCli({
+      evalId: params.evalId,
+      sourceDir: params.cwd
+    });
+    if (exitCode !== 0) {
+      process.exitCode = exitCode;
+    }
+    return null;
+  },
+  render: {
+    rich: () => {},
+    markdown: () => "",
+    json: () => undefined
+  }
+});
+
+const children = [evalRunCommand, evalReportCommand, evalInitCommand, evalCheckCommand] as const;
 
 export const evalGroup = defineGroup({
   name: "eval",

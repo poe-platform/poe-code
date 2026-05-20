@@ -9,6 +9,7 @@ export { openSource } from "./source/open.js";
 export { listEvals, loadEval } from "./source/registry.js";
 export { aggregateRuns, type AggregateStats } from "./aggregate.js";
 export { evalCheck, type CheckOptions, type CheckResult } from "./check/check.js";
+export { evalInit, type InitOptions, type InitResult } from "./init/init.js";
 export { listRuns, loadLatestMatrix, loadRunResult } from "./report/load.js";
 export { BudgetEnforcer } from "./run/budget.js";
 export { CheatFilter } from "./run/cheat.js";
@@ -25,8 +26,15 @@ export {
   VitestTimeoutError,
   type CaseResult
 } from "./run/vitest-runner.js";
-export { evalGroup, evalReportCommand, evalRunCommand } from "./cli/commands.js";
+export {
+  evalCheckCommand,
+  evalGroup,
+  evalInitCommand,
+  evalReportCommand,
+  evalRunCommand
+} from "./cli/commands.js";
 export { renderCheckResultTable, runCheckCli, type CheckCliInput } from "./cli/check.js";
+export { runInitCli, type InitCliInput } from "./cli/init.js";
 export type {
   AggregatedCell,
   Budget,

@@ -5,11 +5,21 @@ import { runCLI } from "toolcraft/cli";
 import type { EvalMatrixOptions, EvalRunResult } from "../types.js";
 
 const mockedRun = vi.hoisted(() => ({
-  runMatrix: vi.fn<(opts: EvalMatrixOptions) => AsyncIterable<EvalRunResult>>()
+  runMatrix: vi.fn<(opts: EvalMatrixOptions) => AsyncIterable<EvalRunResult>>(),
+  runInitCli: vi.fn(),
+  runCheckCli: vi.fn()
 }));
 
 vi.mock("../run/matrix.js", () => ({
   runMatrix: mockedRun.runMatrix
+}));
+
+vi.mock("./init.js", () => ({
+  runInitCli: mockedRun.runInitCli
+}));
+
+vi.mock("./check.js", () => ({
+  runCheckCli: mockedRun.runCheckCli
 }));
 
 const { evalGroup } = await import("./commands.js");
@@ -24,6 +34,8 @@ beforeEach(() => {
   vi.spyOn(process.stdout, "write").mockImplementation(() => true);
   vi.spyOn(process.stderr, "write").mockImplementation(() => true);
   mockedRun.runMatrix.mockImplementation(async function* () {});
+  mockedRun.runInitCli.mockResolvedValue(0);
+  mockedRun.runCheckCli.mockResolvedValue(0);
 });
 
 afterEach(() => {
@@ -31,6 +43,8 @@ afterEach(() => {
   process.exitCode = originalExitCode;
   vi.restoreAllMocks();
   mockedRun.runMatrix.mockReset();
+  mockedRun.runInitCli.mockReset();
+  mockedRun.runCheckCli.mockReset();
 });
 
 describe("agent-eval cli", () => {
@@ -76,15 +90,7 @@ describe("agent-eval cli", () => {
   });
 
   it("uses -C as the eval source directory", async () => {
-    await runEvalCli([
-      "run",
-      "-C",
-      fixtureRoot,
-      "--agent",
-      "codex",
-      "--model",
-      "openai/gpt-5"
-    ]);
+    await runEvalCli(["run", "-C", fixtureRoot, "--agent", "codex", "--model", "openai/gpt-5"]);
 
     expect(mockedRun.runMatrix).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -112,6 +118,53 @@ describe("agent-eval cli", () => {
         }
       })
     );
+  });
+
+  it("parses eval init defaults and flags before calling runInitCli", async () => {
+    await runEvalCli([
+      "init",
+      "smoke-task",
+      "-C",
+      "/repo/evals",
+      "--kind",
+      "experiment",
+      "--target-repo",
+      "https://example.com/repo.git",
+      "--target-ref",
+      "main"
+    ]);
+
+    expect(process.exitCode).toBeUndefined();
+    expect(mockedRun.runInitCli).toHaveBeenCalledWith({
+      name: "smoke-task",
+      sourceDir: "/repo/evals",
+      kind: "experiment",
+      targetRepo: "https://example.com/repo.git",
+      targetRef: "main"
+    });
+  });
+
+  it("lets runInitCli apply the default init kind when --kind is absent", async () => {
+    await runEvalCli(["init", "smoke-task"]);
+
+    expect(process.exitCode).toBeUndefined();
+    expect(mockedRun.runInitCli).toHaveBeenCalledWith({
+      name: "smoke-task",
+      sourceDir: undefined,
+      kind: undefined,
+      targetRepo: undefined,
+      targetRef: undefined
+    });
+  });
+
+  it("parses eval check arguments before calling runCheckCli", async () => {
+    await runEvalCli(["check", "smoke-task", "-C", "/repo/evals"]);
+
+    expect(process.exitCode).toBeUndefined();
+    expect(mockedRun.runCheckCli).toHaveBeenCalledWith({
+      evalId: "smoke-task",
+      sourceDir: "/repo/evals"
+    });
   });
 });
 

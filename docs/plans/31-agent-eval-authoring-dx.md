@@ -203,7 +203,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: eval-init
     title: "`poe-code eval init <name>` — scaffold a lint-clean eval folder"
@@ -291,9 +291,9 @@ tasks:
 
       Update src/index.ts re-exports.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: eval-lint
     title: "`poe-code eval lint <path>` — static validation"

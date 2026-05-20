@@ -189,8 +189,8 @@ tasks:
          Tests must not spawn a real agent; mock `sdkSpawn` and inject
          a fake browser entry point.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: plan-cli-help-docs

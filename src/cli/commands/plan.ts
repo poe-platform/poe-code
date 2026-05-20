@@ -30,11 +30,7 @@ import {
   supportedAgents,
   type SkillScope
 } from "@poe-code/agent-skill-config";
-import {
-  readMarkdown,
-  readSection,
-  runMarkdownReaderMcp
-} from "@poe-code/markdown-reader";
+import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
 import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
@@ -77,6 +73,7 @@ type MarkdownReadResult = Awaited<ReturnType<typeof readMarkdown>>;
 type MarkdownReadSectionResult = Awaited<ReturnType<typeof readSection>>;
 
 type PlanCommandOptions = {
+  agent?: string;
   kind?: PlanKind;
   output?: string;
 };
@@ -128,9 +125,28 @@ function resolveKind(value: string | undefined): PlanKind | undefined {
   if ((VALID_KINDS as string[]).includes(value)) {
     return value as PlanKind;
   }
-  throw new ValidationError(
-    `Invalid --kind value "${value}". Expected ${VALID_KINDS.join(", ")}.`
-  );
+  throw new ValidationError(`Invalid --kind value "${value}". Expected ${VALID_KINDS.join(", ")}.`);
+}
+
+function createPlanBrowserOptions(
+  container: CliContainer,
+  options: {
+    kind: PlanKind | undefined;
+    assumeYes: boolean;
+    onCreatePlan?: () => Promise<void>;
+  }
+): Parameters<typeof runPlanBrowser>[0] {
+  return {
+    cwd: container.env.cwd,
+    homeDir: container.env.homeDir,
+    configPath: container.env.configPath,
+    projectConfigPath: container.env.projectConfigPath,
+    fs: container.fs as Parameters<typeof runPlanBrowser>[0]["fs"],
+    kind: options.kind,
+    variables: container.env.variables,
+    assumeYes: options.assumeYes,
+    ...(options.onCreatePlan ? { onCreatePlan: options.onCreatePlan } : {})
+  };
 }
 
 function formatDate(timestamp: number): string {
@@ -203,7 +219,9 @@ function formatMarkdownReadTerminalOutput(result: MarkdownReadResult): string {
 function formatMarkdownReadMarkdownOutput(result: MarkdownReadResult): string {
   const sections = getDisplayedSections(result);
   const frontmatterBlock =
-    Object.keys(result.frontmatter).length === 0 ? "(none)" : stringifyYaml(result.frontmatter).trimEnd();
+    Object.keys(result.frontmatter).length === 0
+      ? "(none)"
+      : stringifyYaml(result.frontmatter).trimEnd();
   const sectionLines =
     sections.length === 0
       ? ["- (none)"]
@@ -465,20 +483,40 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
     .description("Plan a feature with an interactive agent session, or manage existing plans.")
     .argument("[question]", "What you want to plan")
     .option("--agent <name>", "Agent to run the plan session with")
+    .option(
+      "--kind <kind>",
+      "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
+    )
     .action(async function (this: Command, questionArg?: string) {
-      const opts = this.opts<{ agent?: string }>();
+      const opts = this.opts<PlanCommandOptions>();
       const flags = resolveCommandFlags(program);
-      const question = await resolvePlanQuestion(questionArg, flags.assumeYes);
-      if (question === null) {
+      const kind = resolveKind(opts.kind);
+      const question = questionArg?.trim() ?? "";
+      const agent = resolvePlanSessionAgent(opts.agent);
+
+      if (question.length > 0) {
+        await runPlanSession({
+          container,
+          agent,
+          question
+        });
         return;
       }
 
-      const agent = resolvePlanSessionAgent(opts.agent);
-      await runPlanSession({
-        container,
-        agent,
-        question
-      });
+      if (flags.assumeYes) {
+        throw new ValidationError(
+          "A question is required for `poe-code plan`. Pass it as the first argument."
+        );
+      }
+
+      intro("plan");
+      await runPlanBrowser(
+        createPlanBrowserOptions(container, {
+          kind,
+          assumeYes: false,
+          onCreatePlan: () => runPlanSessionWithPrompt(container, agent, false)
+        })
+      );
     });
 
   plan
@@ -489,19 +527,15 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       "Filter by plan kind: plan, pipeline, experiment, ralph, superintendent, or superintendent-base"
     )
     .action(async function (this: Command) {
-      const opts = this.opts<PlanCommandOptions>();
+      const opts = resolvePlanCommandOptions(this);
       const flags = resolveCommandFlags(program);
       intro("plan browser");
-      await runPlanBrowser({
-        cwd: container.env.cwd,
-        homeDir: container.env.homeDir,
-        configPath: container.env.configPath,
-        projectConfigPath: container.env.projectConfigPath,
-        fs: container.fs as Parameters<typeof runPlanBrowser>[0]["fs"],
-        kind: resolveKind(opts.kind),
-        variables: container.env.variables,
-        assumeYes: flags.assumeYes
-      });
+      await runPlanBrowser(
+        createPlanBrowserOptions(container, {
+          kind: resolveKind(opts.kind),
+          assumeYes: flags.assumeYes
+        })
+      );
     });
 
   plan
@@ -778,6 +812,23 @@ async function resolvePlanQuestion(
 function resolvePlanSessionAgent(value: string | undefined): string {
   const trimmed = value?.trim() ?? "";
   return trimmed.length > 0 ? trimmed : DEFAULT_PLAN_AGENT;
+}
+
+async function runPlanSessionWithPrompt(
+  container: CliContainer,
+  agent: string,
+  assumeYes: boolean
+): Promise<void> {
+  const question = await resolvePlanQuestion(undefined, assumeYes);
+  if (question === null) {
+    return;
+  }
+
+  await runPlanSession({
+    container,
+    agent,
+    question
+  });
 }
 
 export async function resolvePlanDirectory(container: CliContainer): Promise<string> {

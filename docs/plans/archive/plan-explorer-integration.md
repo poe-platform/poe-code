@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: plan-explorer-config-builder
     title: Build ExplorerConfig from PlanEntry list (plan-browser)
@@ -80,7 +79,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: plan-browser-uses-explorer
     title: Run plan browse through the explorer
     prompt: |
@@ -134,7 +132,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: plan-default-opens-explorer
     title: Default `poe-code plan` opens the explorer
     prompt: |
@@ -192,7 +189,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: plan-cli-help-docs
     title: Document the new default in plan help text
     prompt: |
@@ -214,6 +210,8 @@ tasks:
     status:
       implement: done
       commit: done
+name: plan-explorer-integration
+state: archived
 ---
 
 # Context

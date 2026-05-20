@@ -1,0 +1,271 @@
+import { describe, expect, it, vi } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import type { ActionContext, Row } from "@poe-code/design-system";
+import { buildPlanExplorerConfig } from "./explorer-config.js";
+import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
+
+function createMemFs(files: Record<string, string> = {}): ActionFs & DiscoveryFs {
+  const volume = Volume.fromJSON(files, "/");
+  return createFsFromVolume(volume).promises as unknown as ActionFs & DiscoveryFs;
+}
+
+function plan(overrides: Partial<PlanEntry> = {}): PlanEntry {
+  return {
+    path: "docs/plans/feature.md",
+    absolutePath: "/repo/docs/plans/feature.md",
+    kind: "plan",
+    typeLabel: "Plan",
+    detail: "design doc",
+    format: "markdown",
+    title: "Feature",
+    updatedAt: 1,
+    ...overrides
+  };
+}
+
+function actionContext(
+  row: Row,
+  overrides: Partial<ActionContext<void>> = {}
+): ActionContext<void> {
+  return {
+    row,
+    rows: [row],
+    filter: "",
+    refresh: vi.fn(async () => undefined),
+    suspendAnd: vi.fn(async (fn) => fn()),
+    toast: vi.fn(),
+    confirm: vi.fn(async () => true),
+    exit: vi.fn(),
+    ...overrides
+  };
+}
+
+describe("buildPlanExplorerConfig", () => {
+  it("maps plan entries to explorer rows and refreshes from onRefresh through the builder callback", async () => {
+    const initial = plan({
+      path: "docs/plans/feature.md",
+      absolutePath: "/repo/docs/plans/feature.md",
+      kind: "pipeline",
+      typeLabel: "Pipeline",
+      detail: "0/1 done"
+    });
+    const refreshed = plan({
+      path: "docs/plans/fresh.md",
+      absolutePath: "/repo/docs/plans/fresh.md",
+      kind: "experiment",
+      typeLabel: "Experiment",
+      detail: "minimize / open"
+    });
+    const onRefresh = vi.fn(async () => [refreshed]);
+
+    const config = buildPlanExplorerConfig({
+      plans: [initial],
+      fs: createMemFs(),
+      variables: {},
+      onRefresh
+    });
+
+    expect(config.title).toBe("Plans");
+    expect(config.multiSelect).toBe(false);
+    expect(config.emptyHint).toBe("No plans found");
+    expect(config.reorder).toBeUndefined();
+    expect(config.refresh).toEqual(expect.any(Function));
+    await expect(config.rows()).resolves.toEqual([
+      {
+        id: "/repo/docs/plans/feature.md",
+        title: "feature.md",
+        subtitle: "0/1 done",
+        badge: { text: "Pipeline" },
+        group: "pipeline"
+      }
+    ]);
+    expect(onRefresh).not.toHaveBeenCalled();
+
+    await config.refresh!();
+    await expect(config.rows()).resolves.toEqual([
+      {
+        id: "/repo/docs/plans/fresh.md",
+        title: "fresh.md",
+        subtitle: "minimize / open",
+        badge: { text: "Experiment" },
+        group: "experiment"
+      }
+    ]);
+    expect(onRefresh).toHaveBeenCalledOnce();
+  });
+
+  it("loads detail markdown for the matching entry", async () => {
+    const entry = plan();
+    const fs = createMemFs();
+    const loadDetailMarkdown = vi.fn(async () => "# Feature\n\nPreview");
+    const config = buildPlanExplorerConfig({
+      plans: [entry],
+      fs,
+      variables: {},
+      onRefresh: async () => [entry],
+      loadDetailMarkdown
+    });
+    const [row] = await config.rows();
+
+    const items = await config.detail.items(row!, {
+      width: 80,
+      height: 20,
+      signal: new AbortController().signal,
+      row: row!
+    });
+
+    expect(loadDetailMarkdown).toHaveBeenCalledWith(entry, fs);
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ id: entry.absolutePath });
+    expect(
+      await items[0]!.render({
+        width: 80,
+        height: 20,
+        signal: new AbortController().signal,
+        row: row!
+      })
+    ).toBe("# Feature\n\nPreview");
+  });
+
+  it("returns no detail items when the detail load is aborted", async () => {
+    const entry = plan();
+    let resolveLoad: (value: string) => void = () => undefined;
+    const loadDetailMarkdown = vi.fn(
+      () => new Promise<string>((resolve) => {
+        resolveLoad = resolve;
+      })
+    );
+    const config = buildPlanExplorerConfig({
+      plans: [entry],
+      fs: createMemFs(),
+      variables: {},
+      onRefresh: async () => [entry],
+      loadDetailMarkdown
+    });
+    const [row] = await config.rows();
+    const controller = new AbortController();
+
+    const pending = config.detail.items(row!, {
+      width: 80,
+      height: 20,
+      signal: controller.signal,
+      row: row!
+    });
+    controller.abort();
+
+    await expect(pending).resolves.toEqual([]);
+    resolveLoad("# Late");
+  });
+
+  it("edits a plan through suspendAnd, refreshes, and shows an info toast", async () => {
+    const entry = plan({
+      path: "docs/plans/edit-me.md",
+      absolutePath: "/repo/docs/plans/edit-me.md"
+    });
+    const config = buildPlanExplorerConfig({
+      plans: [entry],
+      fs: createMemFs({ "/repo/docs/plans/edit-me.md": "# Edit me" }),
+      variables: { EDITOR: "true" },
+      onRefresh: async () => [entry]
+    });
+    const [row] = await config.rows();
+    const ctx = actionContext(row!);
+
+    await config.actions.find((action) => action.id === "edit")!.handler(ctx);
+
+    expect(ctx.suspendAnd).toHaveBeenCalledOnce();
+    expect(ctx.refresh).toHaveBeenCalledOnce();
+    expect(ctx.toast).toHaveBeenCalledWith("Edited edit-me.md", "info");
+  });
+
+  it("archives and deletes plans with destructive actions", async () => {
+    const archiveEntry = plan({
+      path: "docs/plans/archive-me.md",
+      absolutePath: "/repo/docs/plans/archive-me.md"
+    });
+    const deleteEntry = plan({
+      path: "docs/plans/delete-me.md",
+      absolutePath: "/repo/docs/plans/delete-me.md"
+    });
+    const fs = createMemFs({
+      "/repo/docs/plans/archive-me.md": "# Archive",
+      "/repo/docs/plans/delete-me.md": "# Delete"
+    });
+    const config = buildPlanExplorerConfig({
+      plans: [archiveEntry, deleteEntry],
+      fs,
+      variables: {},
+      onRefresh: async () => []
+    });
+    const rows = await config.rows();
+    const archiveCtx = actionContext(rows[0]!);
+    const deleteCtx = actionContext(rows[1]!);
+
+    await config.actions.find((action) => action.id === "archive")!.handler(archiveCtx);
+    await config.actions.find((action) => action.id === "delete")!.handler(deleteCtx);
+
+    await expect(fs.readFile("/repo/docs/plans/archive/archive-me.md", "utf8"))
+      .resolves.toBe("# Archive");
+    await expect(fs.readFile("/repo/docs/plans/delete-me.md", "utf8")).rejects.toThrow();
+    expect(config.actions.find((action) => action.id === "archive")?.destructive).toBe(true);
+    expect(config.actions.find((action) => action.id === "delete")?.destructive).toBe(true);
+    expect(archiveCtx.toast).toHaveBeenCalledWith("Archived archive-me.md", "warning");
+    expect(deleteCtx.toast).toHaveBeenCalledWith("Deleted delete-me.md", "error");
+  });
+
+  it("rebuilds entry lookups when rows refresh", async () => {
+    const initial = plan({
+      path: "docs/plans/old.md",
+      absolutePath: "/repo/docs/plans/old.md"
+    });
+    const refreshed = plan({
+      path: "docs/plans/new.md",
+      absolutePath: "/repo/docs/plans/new.md"
+    });
+    const fs = createMemFs({ "/repo/docs/plans/new.md": "# New" });
+    const config = buildPlanExplorerConfig({
+      plans: [initial],
+      fs,
+      variables: {},
+      onRefresh: async () => [refreshed]
+    });
+
+    await config.rows();
+    await config.refresh!();
+    const rows = await config.rows();
+    await config.actions.find((action) => action.id === "archive")!.handler(actionContext(rows[0]!));
+
+    await expect(fs.readFile("/repo/docs/plans/archive/new.md", "utf8")).resolves.toBe("# New");
+  });
+
+  it("omits the new-plan action unless a creator is provided", async () => {
+    const entry = plan();
+    const withoutCreator = buildPlanExplorerConfig({
+      plans: [entry],
+      fs: createMemFs(),
+      variables: {},
+      onRefresh: async () => [entry]
+    });
+    expect(withoutCreator.actions.some((action) => action.id === "new")).toBe(false);
+
+    const onCreatePlan = vi.fn(async () => undefined);
+    const withCreator = buildPlanExplorerConfig({
+      plans: [entry],
+      fs: createMemFs(),
+      variables: {},
+      onRefresh: async () => [entry],
+      onCreatePlan
+    });
+    const [row] = await withCreator.rows();
+    const createAction = withCreator.actions.find((action) => action.id === "new")!;
+    const ctx = actionContext(row!);
+
+    expect(createAction.primary).toBe(true);
+    expect(createAction.predicate?.(ctx)).toBe(true);
+    await createAction.handler(ctx);
+
+    expect(onCreatePlan).toHaveBeenCalledOnce();
+    expect(ctx.suspendAnd).toHaveBeenCalledOnce();
+    expect(ctx.refresh).toHaveBeenCalledOnce();
+  });
+});

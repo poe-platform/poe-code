@@ -77,9 +77,9 @@ tasks:
         - Do not introduce a constants module just to hold action ids;
           inline the strings at the action definition site.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: plan-browser-uses-explorer
     title: Run plan browse through the explorer

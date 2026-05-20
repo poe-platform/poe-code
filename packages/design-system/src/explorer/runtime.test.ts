@@ -197,6 +197,36 @@ describe("runExplorer", () => {
     expect(driver.enterAltScreenCount).toBeGreaterThanOrEqual(2);
   });
 
+  it("calls config refresh before reloading rows from an action refresh", async () => {
+    const driver = currentDriver();
+    let currentRows = rows;
+    const loadRows = vi.fn(async () => currentRows);
+    const refresh = vi.fn(async () => {
+      currentRows = [{ id: "fresh", title: "Fresh" }];
+    });
+    const result = runExplorer(config({
+      rows: loadRows,
+      refresh,
+      actions: [{
+        id: "refresh",
+        label: "Refresh",
+        primary: true,
+        handler: async (ctx) => {
+          await ctx.refresh();
+          ctx.exit();
+        }
+      }]
+    }));
+
+    await waitFor(() => strippedOutput(driver).includes("One"));
+    expect(refresh).not.toHaveBeenCalled();
+    driver.press(namedKey("return"));
+
+    await expect(result).resolves.toBeNull();
+    expect(refresh).toHaveBeenCalledOnce();
+    expect(loadRows).toHaveBeenCalledTimes(2);
+  });
+
   it("rejects when stdout is not a TTY", async () => {
     Object.defineProperty(process.stdout, "isTTY", {
       configurable: true,

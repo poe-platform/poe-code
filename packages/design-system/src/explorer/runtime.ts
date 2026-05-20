@@ -54,7 +54,7 @@ class ExplorerRuntime<R> {
     });
     this.runtimeHandles = {
       refresh: async () => {
-        await this.refreshRows();
+        await this.refreshRowsFromSource();
       },
       suspendAnd: async (fn) => this.suspendAnd(fn),
       toast: (msg, tone) => {
@@ -74,7 +74,7 @@ class ExplorerRuntime<R> {
       try {
         this.startTerminal();
         this.render();
-        this.refreshRows().catch((error) => {
+        this.loadRows().catch((error) => {
           this.fail(error);
         });
       } catch (error) {
@@ -98,9 +98,14 @@ class ExplorerRuntime<R> {
     });
   }
 
-  private async refreshRows(): Promise<void> {
+  private async loadRows(): Promise<void> {
     const rows = await this.config.rows();
     this.dispatch({ type: "rowsLoaded", rows });
+  }
+
+  private async refreshRowsFromSource(): Promise<void> {
+    await this.config.refresh?.();
+    await this.loadRows();
   }
 
   private dispatch(event: ExplorerEvent): void {

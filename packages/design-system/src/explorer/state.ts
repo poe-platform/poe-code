@@ -52,6 +52,7 @@ export interface ActionContext<R> {
 export interface ExplorerConfig<R> {
   title: string;
   rows: () => Promise<Row[]>;
+  refresh?: () => Promise<void>;
   detail: Detail<R>;
   actions: Action<R>[];
   reorder?: { onReorder: (orderedIds: string[]) => void | Promise<void> };

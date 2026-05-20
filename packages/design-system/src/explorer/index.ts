@@ -21,6 +21,7 @@ export type {
   ExplorerLayoutMode,
   ExplorerSize,
   ExplorerState,
+  ReorderContext,
   Row,
   Tone
 } from "./state.js";

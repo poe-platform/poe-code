@@ -165,7 +165,10 @@ class ExplorerRuntime<R> {
 
   private async persistOrder(orderedIds: string[], previousRows: Row[]): Promise<void> {
     try {
-      await this.config.reorder?.onReorder(orderedIds);
+      await this.config.reorder?.onReorder(orderedIds, {
+        refresh: this.runtimeHandles.refresh,
+        toast: this.runtimeHandles.toast
+      });
     } catch (error) {
       this.showToast(error instanceof Error ? error.message : "Could not persist order", "error");
       this.dispatch({ type: "rowsLoaded", rows: previousRows });

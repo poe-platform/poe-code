@@ -2,10 +2,11 @@ import type {
   Action,
   DetailItem,
   ExplorerConfig,
+  ReorderContext,
   Row,
   Tone
 } from "@poe-code/design-system";
-import type { Task, TaskList } from "@poe-code/task-list";
+import { OrderMismatchError, type Task, type TaskList } from "@poe-code/task-list";
 import { stringify } from "yaml";
 import { buildMoveStateAction } from "./actions.js";
 
@@ -38,9 +39,14 @@ export function buildMaestroExplorerConfig(
   let taskByRowId = toTaskMap(tasks);
   let eventsByRowId = new Map<string, readonly string[]>();
   let eventsCached = false;
+  let refreshFromTaskList = false;
 
   async function refresh(): Promise<void> {
-    tasks = await options.onRefresh();
+    const useTaskList = refreshFromTaskList;
+    refreshFromTaskList = false;
+    tasks = useTaskList
+      ? await options.taskList.allTasks()
+      : await options.onRefresh();
     rows = toRows(tasks);
     taskByRowId = toTaskMap(tasks);
     eventsByRowId = new Map();
@@ -64,6 +70,36 @@ export function buildMaestroExplorerConfig(
       eventsByRowId: () => eventsByRowId
     })
   ];
+
+  async function onReorder(allIds: string[], ctx?: ReorderContext): Promise<void> {
+    // State groups are visual only; move-state is the only path that changes task state.
+    const previousByList = groupIdsByList(rows.map((row) => row.id), taskByRowId);
+    const nextByList = groupIdsByList(allIds, taskByRowId);
+
+    try {
+      for (const [listName, idsForList] of nextByList) {
+        const previousIds = previousByList.get(listName) ?? [];
+        if (sameOrder(previousIds, idsForList)) {
+          continue;
+        }
+
+        await options.taskList
+          .list(listName)
+          .reorder(idsForList.map((qualifiedId) => toBackendLocalId(taskByRowId, qualifiedId)));
+      }
+    } catch (error) {
+      if (!(error instanceof OrderMismatchError) || ctx === undefined) {
+        throw error;
+      }
+
+      ctx.toast(error.message, "error");
+      refreshFromTaskList = true;
+      await ctx.refresh();
+      return;
+    }
+
+    rows = orderRowsByIds(rows, allIds);
+  }
 
   return {
     title: "Maestro tasks",
@@ -92,6 +128,7 @@ export function buildMaestroExplorerConfig(
       }
     },
     actions,
+    reorder: { onReorder },
     multiSelect: false,
     emptyHint: "No tasks found"
   };
@@ -173,6 +210,48 @@ async function renderEventsMarkdown(task: Task, taskList: TaskList): Promise<str
 
 function toTaskMap(tasks: readonly Task[]): Map<string, Task> {
   return new Map(tasks.map((task) => [task.qualifiedId, task]));
+}
+
+function groupIdsByList(
+  qualifiedIds: readonly string[],
+  taskByRowId: ReadonlyMap<string, Task>
+): Map<string, string[]> {
+  const grouped = new Map<string, string[]>();
+
+  for (const qualifiedId of qualifiedIds) {
+    const task = getTask(taskByRowId, qualifiedId);
+    const ids = grouped.get(task.list) ?? [];
+    ids.push(qualifiedId);
+    grouped.set(task.list, ids);
+  }
+
+  return grouped;
+}
+
+function toBackendLocalId(
+  taskByRowId: ReadonlyMap<string, Task>,
+  qualifiedId: string
+): string {
+  return getTask(taskByRowId, qualifiedId).id;
+}
+
+function sameOrder(left: readonly string[], right: readonly string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((id, index) => id === right[index]);
+}
+
+function orderRowsByIds(rows: readonly Row[], orderedIds: readonly string[]): Row[] {
+  const rowById = new Map(rows.map((row) => [row.id, row]));
+  return orderedIds.map((id) => {
+    const row = rowById.get(id);
+    if (row === undefined) {
+      throw new Error(`Task row is no longer available: ${id}`);
+    }
+    return row;
+  });
 }
 
 async function toEventsMap(

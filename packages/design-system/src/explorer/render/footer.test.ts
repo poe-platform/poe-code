@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { ScreenBuffer } from "../../dashboard/buffer.js";
+import { stripAnsi } from "../../internal/strip-ansi.js";
+import { computeExplorerLayout } from "../layout.js";
+import { resolveBindings } from "../keymap.js";
 import { REGION_FOOTER } from "../state.js";
-import { fixtureState, listDetailItems, renderStateSnapshot } from "./test-fixtures.js";
+import { renderFooter } from "./footer.js";
+import { dumpScreen, fixtureState, listDetailItems, renderStateSnapshot } from "./test-fixtures.js";
 
 describe("explorer footer renderer", () => {
   it("snapshots footer states", () => {
@@ -14,5 +19,24 @@ describe("explorer footer renderer", () => {
     const locked = fixtureState({ dirty: REGION_FOOTER });
     locked.actionState.get("delete")!.running = true;
     expect(renderStateSnapshot(locked)).toMatchSnapshot("running action footer");
+  });
+
+  it("surfaces the reorder keymap hint when reorder is configured", () => {
+    const state = fixtureState({
+      size: { cols: 160, rows: 14 },
+      selected: new Set()
+    });
+    state.bindings = resolveBindings({
+      title: "Tasks",
+      rows: async () => [],
+      detail: { items: async () => [] },
+      actions: [],
+      reorder: { onReorder: () => undefined }
+    });
+    const screen = new ScreenBuffer(160, 14);
+
+    renderFooter(state, screen, computeExplorerLayout(state.size));
+
+    expect(stripAnsi(dumpScreen(screen))).toContain("⇧↑↓ reorder (within state)");
   });
 });

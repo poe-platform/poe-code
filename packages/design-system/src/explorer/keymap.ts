@@ -69,8 +69,8 @@ const builtinBindings: Record<ExplorerBuiltinCommand, string[]> = {
   detailScrollUp: ["Ctrl+b"],
   extendSelectionUp: ["Shift+up"],
   extendSelectionDown: ["Shift+down"],
-  reorderUp: ["Ctrl+up", "K"],
-  reorderDown: ["Ctrl+down", "J"]
+  reorderUp: ["Shift+up", "K"],
+  reorderDown: ["Shift+down", "J"]
 };
 
 const baseBuiltinCommands: ExplorerBuiltinCommand[] = [
@@ -105,7 +105,12 @@ export function resolveBindings<R>(
 ): ResolvedBindings {
   const commands = config.reorder === undefined
     ? baseBuiltinCommands
-    : [...baseBuiltinCommands, ...reorderCommands];
+    : [
+        ...baseBuiltinCommands.filter((command) =>
+          command !== "extendSelectionUp" && command !== "extendSelectionDown"
+        ),
+        ...reorderCommands
+      ];
   const commandBindings = new Map<string, string[]>();
   const flatBindings = new Map<string, BindingTarget>();
   const targetKeys = new Map<string, string[]>();

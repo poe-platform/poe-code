@@ -160,10 +160,13 @@ describe("runExplorer", () => {
     }));
 
     await waitFor(() => strippedOutput(driver).includes("One"));
-    driver.press({ name: "down", ctrl: true, meta: false, shift: false });
+    driver.press({ name: "down", ctrl: false, meta: false, shift: true });
 
     await waitFor(() => strippedOutput(driver).includes("save failed"));
-    expect(onReorder).toHaveBeenCalledWith(["two", "one", "three"]);
+    expect(onReorder).toHaveBeenCalledWith(["two", "one", "three"], {
+      refresh: expect.any(Function),
+      toast: expect.any(Function)
+    });
     driver.press(namedKey("return"));
 
     await expect(result).resolves.toBeNull();

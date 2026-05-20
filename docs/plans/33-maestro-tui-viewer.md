@@ -147,7 +147,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: reorder-within-state-group
     title: Reorder rows within a state group via Shift+↑/↓
@@ -192,8 +192,8 @@ tasks:
       how plan-browser surfaces the equivalent hint, and reuse the same
       mechanism.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: action-open-source

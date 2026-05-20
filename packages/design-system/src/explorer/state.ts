@@ -49,13 +49,18 @@ export interface ActionContext<R> {
   exit: (after?: () => void | Promise<void>) => void;
 }
 
+export interface ReorderContext {
+  refresh: () => Promise<void>;
+  toast: (msg: string, tone?: Tone) => void;
+}
+
 export interface ExplorerConfig<R> {
   title: string;
   rows: () => Promise<Row[]>;
   refresh?: () => Promise<void>;
   detail: Detail<R>;
   actions: Action<R>[];
-  reorder?: { onReorder: (orderedIds: string[]) => void | Promise<void> };
+  reorder?: { onReorder: (orderedIds: string[], ctx?: ReorderContext) => void | Promise<void> };
   multiSelect?: boolean;
   keybindOverrides?: Record<string, string | string[]>;
   emptyHint?: string;

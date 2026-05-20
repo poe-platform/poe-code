@@ -162,11 +162,11 @@ describe("resolveBindings", () => {
     }));
 
     expect(withoutReorder.resolve(key("K"))).toBeUndefined();
-    expect(withoutReorder.resolve(key("\u001b[1;5A"))).toBeUndefined();
+    expect(withoutReorder.resolve(key("\u001b[1;2A"))).toEqual({ type: "builtin", id: "extendSelectionUp" });
 
     expect(withReorder.resolve(key("K"))).toEqual({ type: "builtin", id: "reorderUp" });
     expect(withReorder.resolve(key("J"))).toEqual({ type: "builtin", id: "reorderDown" });
-    expect(withReorder.resolve(key("\u001b[1;5A"))).toEqual({ type: "builtin", id: "reorderUp" });
-    expect(withReorder.resolve(key("\u001b[1;5B"))).toEqual({ type: "builtin", id: "reorderDown" });
+    expect(withReorder.resolve(key("\u001b[1;2A"))).toEqual({ type: "builtin", id: "reorderUp" });
+    expect(withReorder.resolve(key("\u001b[1;2B"))).toEqual({ type: "builtin", id: "reorderDown" });
   });
 });

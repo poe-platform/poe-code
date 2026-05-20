@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   InvalidTransitionError,
+  OrderMismatchError,
   type StateMachineDef,
   type Task,
   type TaskList,
@@ -56,6 +57,8 @@ function taskList(options: {
   events?: Record<string, Promise<readonly string[]> | readonly string[]>;
   eventErrors?: Record<string, Error>;
   fireErrors?: Record<string, Error>;
+  reorderErrors?: Record<string, Error>;
+  allTasks?: readonly Task[];
   stateMachine?: StateMachineDef;
 } = {}): TaskList {
   const lists = new Map<string, Tasks>();
@@ -70,7 +73,7 @@ function taskList(options: {
       return existing;
     },
     lists: vi.fn(async () => ["tasks"]),
-    allTasks: vi.fn(async () => []),
+    allTasks: vi.fn(async () => [...(options.allTasks ?? [])]),
     get: vi.fn(async (qualifiedId) => task({ qualifiedId })),
     moveBetweenLists: vi.fn(async (qualifiedId, targetList) =>
       task({ qualifiedId, list: targetList })
@@ -84,6 +87,7 @@ function tasks(
     events?: Record<string, Promise<readonly string[]> | readonly string[]>;
     eventErrors?: Record<string, Error>;
     fireErrors?: Record<string, Error>;
+    reorderErrors?: Record<string, Error>;
     stateMachine?: StateMachineDef;
   }
 ): Tasks {
@@ -113,7 +117,13 @@ function tasks(
     }),
     delete: vi.fn(async () => undefined),
     move: vi.fn(async (id) => task({ list: name, id })),
-    reorder: vi.fn(async () => [])
+    reorder: vi.fn(async (ids) => {
+      const error = options.reorderErrors?.[name];
+      if (error !== undefined) {
+        throw error;
+      }
+      return ids.map((id) => task({ list: name, id }));
+    })
   };
 }
 
@@ -265,6 +275,83 @@ describe("buildMaestroExplorerConfig", () => {
       expect.objectContaining({ id: "tasks/fresh", group: "done" })
     ]);
     expect(onRefresh).toHaveBeenCalledOnce();
+  });
+
+  it("registers reorder and persists changed intra-list order with backend-local ids", async () => {
+    const list = taskList();
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({ id: "a", qualifiedId: "work/a", list: "work", state: "planned" }),
+        task({ id: "b", qualifiedId: "work/b", list: "work", state: "planned" }),
+        task({ id: "c", qualifiedId: "bugs/c", list: "bugs", state: "planned" }),
+        task({ id: "d", qualifiedId: "bugs/d", list: "bugs", state: "done" })
+      ],
+      taskList: list,
+      onRefresh: async () => []
+    });
+
+    await config.reorder?.onReorder(["bugs/c", "work/b", "work/a", "bugs/d"], {
+      refresh: vi.fn(async () => undefined),
+      toast: vi.fn()
+    });
+
+    expect(list.list("work").reorder).toHaveBeenCalledWith(["b", "a"]);
+    expect(list.list("bugs").reorder).not.toHaveBeenCalled();
+  });
+
+  it("reorders lists without changing task state when rows cross visual state groups", async () => {
+    const list = taskList();
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({ id: "planned", qualifiedId: "work/planned", list: "work", state: "planned" }),
+        task({ id: "draft", qualifiedId: "work/draft", list: "work", state: "draft" })
+      ],
+      taskList: list,
+      onRefresh: async () => []
+    });
+
+    await config.reorder?.onReorder(["work/draft", "work/planned"], {
+      refresh: vi.fn(async () => undefined),
+      toast: vi.fn()
+    });
+
+    expect(list.list("work").reorder).toHaveBeenCalledWith(["draft", "planned"]);
+    expect(list.list("work").fire).not.toHaveBeenCalled();
+    expect(list.list("work").update).not.toHaveBeenCalled();
+  });
+
+  it("toasts and refreshes from taskList.allTasks when reorder rejects an order mismatch", async () => {
+    const recovered = task({ id: "fresh", qualifiedId: "work/fresh", list: "work", state: "done" });
+    const list = taskList({
+      allTasks: [recovered],
+      reorderErrors: {
+        work: new OrderMismatchError({ missing: ["fresh"], extra: ["stale"] })
+      }
+    });
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({ id: "stale", qualifiedId: "work/stale", list: "work", state: "planned" }),
+        task({ id: "other", qualifiedId: "work/other", list: "work", state: "planned" })
+      ],
+      taskList: list,
+      onRefresh: async () => []
+    });
+    const refresh = vi.fn(async () => {
+      await config.refresh?.();
+    });
+    const toast = vi.fn();
+
+    await config.reorder?.onReorder(["work/other", "work/stale"], { refresh, toast });
+
+    expect(toast).toHaveBeenCalledWith(
+      'reorder requires the exact set of active task ids: missing "fresh"; extra "stale".',
+      "error"
+    );
+    expect(list.allTasks).toHaveBeenCalledOnce();
+    expect(refresh).toHaveBeenCalledOnce();
+    await expect(config.rows()).resolves.toEqual([
+      expect.objectContaining({ id: "work/fresh", group: "done" })
+    ]);
   });
 
   it("renders task details, metadata, and available next events", async () => {

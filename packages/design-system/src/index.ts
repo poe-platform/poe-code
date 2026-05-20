@@ -35,7 +35,7 @@ export type { Dashboard, DashboardOptions } from "./dashboard/index.js";
 export * as explorer from "./explorer/index.js";
 export { runExplorer, singleDetail } from "./explorer/index.js";
 export type {
-  Row, DetailItem, Detail, DetailCtx, Action, ActionContext, ExplorerConfig, Tone,
+  Row, DetailItem, Detail, DetailCtx, Action, ActionContext, ExplorerConfig, ReorderContext, Tone,
 } from "./explorer/index.js";
 
 // Prompts

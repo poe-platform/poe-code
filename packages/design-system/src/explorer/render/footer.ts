@@ -3,6 +3,13 @@ import type { ExplorerLayout } from "../layout.js";
 import type { ActionStateEntry, ExplorerState } from "../state.js";
 import { getExplorerStyles } from "../theme.js";
 
+type FooterHint = {
+  key: string;
+  label: string;
+  running: boolean;
+  bracketed?: boolean;
+};
+
 export function renderFooter(
   state: ExplorerState,
   screen: ScreenBuffer,
@@ -24,6 +31,13 @@ export function renderFooter(
     if (x >= rect.x + rect.width) {
       break;
     }
+    if (hint.bracketed === false) {
+      const text = `${hint.key} ${hint.label}`;
+      screen.put(x, y, text, hint.running ? styles.muted : {});
+      x += text.length + 2;
+      continue;
+    }
+
     screen.put(x, y, `[${hint.key}]`, hint.running ? styles.muted : styles.accent);
     x += hint.key.length + 2;
     screen.put(x, y, ` ${hint.label}`, hint.running ? styles.muted : {});
@@ -31,8 +45,8 @@ export function renderFooter(
   }
 }
 
-function footerHints(state: ExplorerState): Array<{ key: string; label: string; running: boolean }> {
-  const hints: Array<{ key: string; label: string; running: boolean }> = [];
+function footerHints(state: ExplorerState): FooterHint[] {
+  const hints: FooterHint[] = [];
 
   if (state.focused === "detail") {
     hints.push({ key: "Tab", label: "focus", running: false });
@@ -52,9 +66,18 @@ function footerHints(state: ExplorerState): Array<{ key: string; label: string; 
 
   hints.push({ key: "?", label: "help", running: false });
   hints.push({ key: "Ctrl+P", label: "palette", running: false });
+  if (hasShiftReorderBindings(state)) {
+    hints.push({ key: "⇧↑↓", label: "reorder (within state)", running: false, bracketed: false });
+  }
   hints.push({ key: "q", label: "quit", running: false });
 
   return hints;
+}
+
+function hasShiftReorderBindings(state: ExplorerState): boolean {
+  const up = state.bindings.keysByTarget.get("builtin:reorderUp") ?? [];
+  const down = state.bindings.keysByTarget.get("builtin:reorderDown") ?? [];
+  return up.includes("Shift+up") && down.includes("Shift+down");
 }
 
 function actionKey(entry: ActionStateEntry, fallback: string): string {

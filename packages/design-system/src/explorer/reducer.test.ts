@@ -320,19 +320,19 @@ describe("step", () => {
     const state = loadedState({ reorder: { onReorder: () => undefined } });
     const moved = step(state, {
       type: "key",
-      key: { name: "down", ctrl: true, meta: false, shift: false }
+      key: { name: "down", ctrl: false, meta: false, shift: true }
     });
     const filtered = step({ ...state, filter: "one" }, {
       type: "key",
-      key: { name: "down", ctrl: true, meta: false, shift: false }
+      key: { name: "down", ctrl: false, meta: false, shift: true }
     });
     const detailFocused = step({ ...state, focused: "detail" }, {
       type: "key",
-      key: { name: "down", ctrl: true, meta: false, shift: false }
+      key: { name: "down", ctrl: false, meta: false, shift: true }
     });
     const modalOpen = step({ ...state, modal: { kind: "help" } }, {
       type: "key",
-      key: { name: "down", ctrl: true, meta: false, shift: false }
+      key: { name: "down", ctrl: false, meta: false, shift: true }
     });
 
     expect(moved.state.rows.map((row) => row.id)).toEqual(["two", "one", "three"]);

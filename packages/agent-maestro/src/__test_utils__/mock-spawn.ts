@@ -10,6 +10,7 @@ import type {
   SpawnMode,
   spawn as agentSpawn
 } from "@poe-code/agent-spawn";
+import type { TaskList } from "@poe-code/task-list";
 
 export interface SpawnCall {
   agent: string;
@@ -38,6 +39,7 @@ export type MockSpawnScripts =
 
 export interface MockSpawnOptions {
   cwdExists?: (cwd: string) => boolean;
+  afterResult?: (result: MockSpawnResult, call: SpawnCall) => void | Promise<void>;
 }
 
 export type MockSpawnResult = SpawnResult & {
@@ -50,6 +52,16 @@ export interface MockSpawn {
   clock: {
     now(): number;
   };
+}
+
+export type MockTaskScriptAction =
+  | { kind: "complete" }
+  | { kind: "fail" }
+  | { kind: "exit"; exitCode: number }
+  | { kind: "block" };
+
+export interface MockTaskScriptSpawnOptions {
+  list?: string;
 }
 
 const defaultMessage = "Mock agent response";
@@ -83,6 +95,9 @@ export function createMockSpawn(
           clockMs += ms;
         },
         emit
+      }).then(async (result) => {
+        await options.afterResult?.(result, call);
+        return result;
       });
     });
   };
@@ -116,6 +131,66 @@ export function createMockSpawn(
       now: () => clockMs
     }
   };
+}
+
+export function createTaskScriptSpawn(
+  taskList: TaskList,
+  scripts: Record<string, MockTaskScriptAction[]>,
+  options: MockTaskScriptSpawnOptions = {}
+): MockSpawn {
+  const attempts = new Map<string, number>();
+  const list = options.list ?? "tasks";
+
+  return createMockSpawn((call) => {
+    const taskId = taskIdFromPrompt(call.prompt);
+    const attempt = (attempts.get(taskId) ?? 0) + 1;
+    attempts.set(taskId, attempt);
+    const action = scripts[taskId]?.[attempt - 1] ?? { kind: "complete" };
+    const steps: MockSpawnStep[] = [
+      { kind: "emit", event: { event: "session_start", threadId: `thread-${taskId}-${attempt}` } }
+    ];
+
+    if (action.kind === "complete") {
+      steps.push({
+        kind: "run",
+        fn: async () => {
+          await taskList.list(list).fire(taskId, "complete");
+        }
+      });
+      return steps;
+    }
+
+    if (action.kind === "fail") {
+      steps.push({
+        kind: "run",
+        fn: async () => {
+          await taskList.list(list).fire(taskId, "fail");
+        }
+      });
+      steps.push({ kind: "throw", error: "abort" });
+      return steps;
+    }
+
+    if (action.kind === "block") {
+      steps.push({ kind: "block" });
+      return steps;
+    }
+
+    steps.push({ kind: "exit", exitCode: action.exitCode });
+    return steps;
+  });
+}
+
+function taskIdFromPrompt(prompt: string): string {
+  const prefix = "task:";
+  const start = prompt.indexOf(prefix);
+  if (start < 0) {
+    throw new Error(`Missing task id in prompt: ${prompt}`);
+  }
+
+  const rest = prompt.slice(start + prefix.length);
+  const end = rest.indexOf(" ");
+  return end < 0 ? rest : rest.slice(0, end);
 }
 
 function captureCall(agent: string, options: SpawnOptions): SpawnCall {

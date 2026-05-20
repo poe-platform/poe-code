@@ -1,10 +1,13 @@
 export {
   createMockSpawn,
+  createTaskScriptSpawn,
   type MockSpawn,
   type MockSpawnOptions,
   type MockSpawnResult,
   type MockSpawnScripts,
   type MockSpawnStep,
+  type MockTaskScriptAction,
+  type MockTaskScriptSpawnOptions,
   type SpawnCall
 } from "./mock-spawn.js";
 export {
@@ -15,6 +18,8 @@ export {
   type MockTaskListEvent,
   type MockTaskListFailures,
   type MockTaskListMutationStore,
+  type MockTaskListReaders,
+  type MockTaskListReadStore,
   type MockTasks
 } from "./mock-task-list.js";
 export { createEventCollector, type EventCollector } from "./event-collector.js";

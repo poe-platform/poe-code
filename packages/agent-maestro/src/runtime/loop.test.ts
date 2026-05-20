@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createConfig,
   createEventCollector,
+  createMockSpawn,
   createMockTaskList,
   createTask,
   createTickDeps
@@ -137,14 +138,14 @@ describe("tick", () => {
   it("keeps reconciling but skips candidate fetch and dispatch when preflight fails", async () => {
     const state = createState(createConfig(loopConfigOverrides));
     markRunning(state, { taskId: "tasks/running", attempt: 1 });
-    const allTasks = vi.fn();
+    const tasks = createMockTaskList();
     const ensureWorkspace = vi.fn();
     const events: string[] = [];
 
     await tick(
       state,
       createTickDeps({
-        tasks: { ...createMockTaskList(), allTasks },
+        tasks,
         validateDispatch: async () => ({ ok: false, code: "list_not_found", list: "tasks" }),
         reconcileRunning: async () => [{ taskId: "tasks/running", action: "update" }],
         ensureWorkspace,
@@ -152,7 +153,7 @@ describe("tick", () => {
       })
     );
 
-    expect(allTasks).not.toHaveBeenCalled();
+    expect(tasks.events.filter((event) => event.method === "allTasks")).toEqual([]);
     expect(ensureWorkspace).not.toHaveBeenCalled();
     expect(events).toEqual(["tick_started", "reconcile", "validation_failed"]);
   });
@@ -255,20 +256,22 @@ describe("tick", () => {
       metadata: { createdAt: "2026-01-01T00:00:00.000Z" }
     });
     const currentTask = { ...staleCandidate, description: "first body" };
-    const prompts: string[] = [];
     const workerPromises: Promise<void>[] = [];
 
-    const tasks = {
-      ...createMockTaskList({ tasks: [staleCandidate] }),
-      allTasks: async (filter) => (staleCandidate.state === filter?.state ? [staleCandidate] : []),
-      get: async (qualifiedId) => {
-        if (qualifiedId !== currentTask.qualifiedId) {
-          throw new Error(`not found: ${qualifiedId}`);
-        }
+    const tasks = createMockTaskList({
+      tasks: [staleCandidate],
+      readers: {
+        allTasks: (filter) => (staleCandidate.state === filter?.state ? [staleCandidate] : []),
+        get: (qualifiedId) => {
+          if (qualifiedId !== currentTask.qualifiedId) {
+            throw new Error(`not found: ${qualifiedId}`);
+          }
 
-        return { ...currentTask };
+          return { ...currentTask };
+        }
       }
-    };
+    });
+    const spawn = createMockSpawn({ codex: [{ kind: "exit", exitCode: 0 }] });
 
     await tick(
       state,
@@ -276,10 +279,7 @@ describe("tick", () => {
         tasks,
         taskPromptTemplate: "{{ task.description }}",
         runAttempt: undefined,
-        spawn: async (_agent, options) => {
-          prompts.push(options.prompt);
-          return { stdout: "", stderr: "", exitCode: 0 };
-        },
+        spawn: spawn.spawn,
         trackWorker: (worker) => {
           workerPromises.push(worker.promise);
         },
@@ -297,10 +297,7 @@ describe("tick", () => {
         tasks,
         taskPromptTemplate: "{{ task.description }}",
         runAttempt: undefined,
-        spawn: async (_agent, options) => {
-          prompts.push(options.prompt);
-          return { stdout: "", stderr: "", exitCode: 0 };
-        },
+        spawn: spawn.spawn,
         trackWorker: (worker) => {
           workerPromises.push(worker.promise);
         },
@@ -309,7 +306,7 @@ describe("tick", () => {
     );
     await workerPromises.at(-1);
 
-    expect(prompts).toEqual(["Plan first body", "Plan second body"]);
+    expect(spawn.calls.map((call) => call.prompt)).toEqual(["Plan first body", "Plan second body"]);
   });
 
   it("schedules a backoff retry when workspace creation fails", async () => {
@@ -412,10 +409,12 @@ describe("tick", () => {
     await tick(
       state,
       createTickDeps({
-        tasks: {
-          ...createMockTaskList(),
-          allTasks: async () => [duplicate]
-        },
+        tasks: createMockTaskList({
+          tasks: [duplicate],
+          readers: {
+            allTasks: () => [duplicate]
+          }
+        }),
         ensureWorkspace: async (_root, qualifiedId) => {
           dispatched.push(qualifiedId);
           return { path: `/repo/workspaces/${qualifiedId}`, createdNow: true };

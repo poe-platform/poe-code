@@ -1,5 +1,6 @@
 import { vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { createMockTaskList } from "../__test_utils__/index.js";
 import type { ResolvedConfig } from "./schema.js";
 import { resolveConfig } from "./schema.js";
 import { validateDispatch, type DispatchPreflightCode } from "./validate.js";
@@ -47,9 +48,7 @@ function cfg(overrides: Partial<ResolvedConfig> = {}): ResolvedConfig {
 }
 
 function taskList(lists: readonly string[] = ["backlog"]) {
-  return {
-    lists: vi.fn().mockResolvedValue(lists)
-  };
+  return createMockTaskList({ lists });
 }
 
 const coveredPreflightCodes: Record<DispatchPreflightCode, true> = {
@@ -94,10 +93,7 @@ describe("validateDispatch", () => {
 
   it("fails when yaml-file tasks config is missing its path", async () => {
     await expect(
-      validateDispatch(
-        cfg({ tasks: { type: "yaml-file" } as ResolvedConfig["tasks"] }),
-        taskList()
-      )
+      validateDispatch(cfg({ tasks: { type: "yaml-file" } as ResolvedConfig["tasks"] }), taskList())
     ).resolves.toEqual({ ok: false, code: "missing_tasks_config" });
   });
 
@@ -131,9 +127,7 @@ describe("validateDispatch", () => {
   it("fails when the task backend cannot be reached", async () => {
     expect(coveredPreflightCodes.tasks_unreachable).toBe(true);
 
-    await expect(
-      validateDispatch(cfg(), { lists: vi.fn().mockRejectedValue(new Error("offline")) })
-    ).resolves.toEqual({
+    await expect(validateDispatch(cfg(), unreachableTaskList())).resolves.toEqual({
       ok: false,
       code: "tasks_unreachable"
     });
@@ -329,6 +323,13 @@ describe("validateDispatch", () => {
     await expect(validateDispatch(resolved, taskList())).resolves.toEqual({ ok: true });
   });
 });
+
+function unreachableTaskList() {
+  return createMockTaskList({
+    lists: ["backlog"],
+    failures: { transient: { lists: new Error("offline") } }
+  });
+}
 
 describe("workflow state validation", () => {
   it("fails when a state has both prompt and terminal true", () => {

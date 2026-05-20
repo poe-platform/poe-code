@@ -5,6 +5,7 @@ import path from "node:path";
 import { setImmediate as realSetImmediate } from "node:timers";
 import { fs, vol } from "memfs";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { RalphRunOptions } from "@poe-code/ralph";
 import type { StateMachineDef, Task, TaskList, TaskListFs } from "@poe-code/task-list";
 import { openTaskList } from "@poe-code/task-list";
 import {
@@ -14,9 +15,8 @@ import {
   createMockSpawn,
   createMockTaskList,
   createTask,
-  createTickDeps,
-  type MockSpawnStep,
-  successSpawn
+  createTaskScriptSpawn,
+  createTickDeps
 } from "./__test_utils__/index.js";
 import {
   createState,
@@ -68,32 +68,36 @@ describe("runMaestro", () => {
     const tasks = taskList.list("tasks");
     await tasks.create({ id: "one", name: "One", description: "Do the work" });
     await tasks.fire("one", "plan");
-    const events: MaestroEvent[] = [];
-    const spawn = vi.fn(async () => ({
-      ...successSpawn(),
-      threadId: `session-${spawn.mock.calls.length}`
-    }));
+    const events = createEventCollector();
+    let spawnCount = 0;
+    const spawn = createMockSpawn(() => {
+      spawnCount += 1;
+      return [
+        { kind: "emit", event: { event: "session_start", threadId: `session-${spawnCount}` } },
+        { kind: "exit", exitCode: 0 }
+      ];
+    });
     const stop = await runMaestro({
       workflowPath: "/repo/WORKFLOW.md",
       taskList,
-      agentSpawn: spawn,
-      onEvent: (event) => events.push(event)
+      agentSpawn: spawn.spawn,
+      onEvent: events.onEvent
     });
     await vi.advanceTimersByTimeAsync(25);
     await flushMicrotasks();
-    await waitForCondition(() => events.some((event) => event.type === "worker_exit"));
+    await waitForCondition(() => events.events.some((event) => event.type === "worker_exit"));
 
     await tasks.fire("one", "complete");
     await vi.advanceTimersByTimeAsync(25);
     await waitForCondition(() =>
-      events.some((event) => event.type === "reconcile" && event.action === "stop_clean")
+      events.events.some((event) => event.type === "reconcile" && event.action === "stop_clean")
     );
 
     expect(
-      events.filter((event) => event.type === "attempt_phase").map((event) => event.to)
+      events.events.filter((event) => event.type === "attempt_phase").map((event) => event.to)
     ).toEqual(["preparing-workspace", "running-step", "succeeded"]);
     expect(
-      events.filter((event) => event.type === "agent_event").map((event) => event.step)
+      events.events.filter((event) => event.type === "agent_event").map((event) => event.step)
     ).toEqual(["in-progress"]);
     await expect(tasks.get("one")).resolves.toMatchObject({ state: "done" });
     expect(vol.existsSync("/repo/workspaces/tasks_one")).toBe(false);
@@ -133,28 +137,36 @@ describe("runMaestro", () => {
     );
     const tasks = taskList.list("maestro");
     await tasks.create({ id: "handoff", name: "Handoff" });
-    const events: MaestroEvent[] = [];
-    const spawn = vi.fn(async () => {
-      await tasks.fire("handoff", "handoff");
-      return successSpawn({ threadId: "handoff-session" });
+    const events = createEventCollector();
+    const spawn = createMockSpawn({
+      codex: [
+        {
+          kind: "run",
+          fn: async () => {
+            await tasks.fire("handoff", "handoff");
+          }
+        },
+        { kind: "emit", event: { event: "session_start", threadId: "handoff-session" } },
+        { kind: "exit", exitCode: 0 }
+      ]
     });
 
     const stop = await runMaestro({
       workflowPath: "/repo/WORKFLOW.md",
       taskList,
-      agentSpawn: spawn,
-      onEvent: (event) => events.push(event)
+      agentSpawn: spawn.spawn,
+      onEvent: events.onEvent
     });
     await vi.advanceTimersByTimeAsync(25);
     await waitForCondition(() =>
-      events.some((event) => event.type === "reconcile" && event.action === "stop_clean")
+      events.events.some((event) => event.type === "reconcile" && event.action === "stop_clean")
     );
 
-    expect(spawn).toHaveBeenCalledTimes(1);
+    expect(spawn.calls).toHaveLength(1);
     expect(
-      events.filter((event) => event.type === "attempt_phase").map((event) => event.to)
+      events.events.filter((event) => event.type === "attempt_phase").map((event) => event.to)
     ).toEqual(["preparing-workspace", "running-step", "canceled"]);
-    expect(events.some((event) => event.type === "retry_scheduled")).toBe(false);
+    expect(events.events.some((event) => event.type === "retry_scheduled")).toBe(false);
     await expect(tasks.get("handoff")).resolves.toMatchObject({ state: "human-review" });
     expect(vol.existsSync("/repo/workspaces/maestro_handoff")).toBe(false);
 
@@ -187,17 +199,17 @@ describe("runMaestro", () => {
     const tasks = taskList.list("tasks");
     await tasks.create({ id: "one", name: "One", description: "Do the work" });
     await tasks.fire("one", "plan");
-    const spawn = vi.fn(async () => successSpawn());
+    const spawn = createMockSpawn();
     const logger = { info: vi.fn(), error: vi.fn() };
     const stop = await runMaestro({
       workflowPath: "/repo/WORKFLOW.md",
       dryRun: true,
       taskList,
-      agentSpawn: spawn,
+      agentSpawn: spawn.spawn,
       logger
     });
 
-    expect(spawn).not.toHaveBeenCalled();
+    expect(spawn.calls).toEqual([]);
     expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
     expect(logger.info).toHaveBeenCalledWith("maestro config OK", {
       tasks: "yaml-file",
@@ -250,19 +262,15 @@ describe("runMaestro", () => {
         metadata: { kind: "superintendent" }
       })
     ];
-    const taskList = {
-      allTasks: async ({ state }: { state?: string } = {}) =>
-        activeTasks.filter((task) => state === undefined || task.state === state),
-      lists: async () => ["tasks"]
-    } as TaskList;
-    const spawn = vi.fn(async () => successSpawn());
+    const taskList = createMockTaskList({ lists: ["tasks"], tasks: activeTasks });
+    const spawn = createMockSpawn();
     const logger = { info: vi.fn(), error: vi.fn() };
 
     await runMaestro({
       workflowPath: "/repo/WORKFLOW.md",
       dryRun: true,
       taskList,
-      agentSpawn: spawn,
+      agentSpawn: spawn.spawn,
       logger
     });
 
@@ -430,20 +438,19 @@ describe("shutdown", () => {
       "/repo/WORKFLOW.md": shutdownWorkflow()
     });
     const plannedTasks = deferred<Task[]>();
-    const baseTaskList = createMockTaskList({
+    const taskList = createMockTaskList({
       lists: ["tasks"],
-      tasks: [createTask({ qualifiedId: "tasks/delayed" })]
-    });
-    const taskList: TaskList = {
-      ...baseTaskList,
-      allTasks: (filter?: Parameters<TaskList["allTasks"]>[0]) => {
-        if (filter?.state === "planned") {
-          return plannedTasks.promise;
-        }
+      tasks: [createTask({ qualifiedId: "tasks/delayed" })],
+      readers: {
+        allTasks: (filter) => {
+          if (filter?.state === "planned") {
+            return plannedTasks.promise;
+          }
 
-        return baseTaskList.allTasks(filter);
+          return [];
+        }
       }
-    };
+    });
     const events = createEventCollector();
     const stop = await runMaestro({
       workflowPath: "/repo/WORKFLOW.md",
@@ -1031,12 +1038,6 @@ type IntegrationFixture = {
   workspaceRoot: string;
 };
 
-type TaskScriptAction =
-  | { kind: "complete" }
-  | { kind: "fail" }
-  | { kind: "exit"; exitCode: number }
-  | { kind: "block" };
-
 const STOP_BUDGET_MS = 10_000;
 
 const integrationStateMachine: StateMachineDef = {
@@ -1054,36 +1055,20 @@ async function importRealMaestro(): Promise<typeof import("./index.js")> {
   vi.resetModules();
   vi.doUnmock("node:fs/promises");
   vi.doMock("@poe-code/ralph", () => ({
-    runRalph: vi.fn(
-      async (options: {
-        cwd: string;
-        runAgent(input: {
-          agent: string;
-          cwd: string;
-          prompt: string;
-          signal?: AbortSignal;
-        }): Promise<{
-          stdout: string;
-          stderr: string;
-          exitCode: number;
-        }>;
-        onIterationComplete(iteration: number, durationMs: number, success: boolean): void;
-        signal?: AbortSignal;
-      }) => {
-        if (options.signal?.aborted) {
-          return { stopReason: "cancelled" };
-        }
-
-        await options.runAgent({
-          agent: "codex",
-          cwd: options.cwd,
-          prompt: "task:ralph driver:ralph",
-          signal: options.signal
-        });
-        options.onIterationComplete(1, 0, true);
-        return { stopReason: "completed" };
+    runRalph: vi.fn(async (options: RalphRunOptions) => {
+      if (options.signal?.aborted) {
+        return { stopReason: "cancelled" };
       }
-    )
+
+      await options.runAgent({
+        agent: "codex",
+        cwd: options.cwd,
+        prompt: "task:ralph driver:ralph",
+        signal: options.signal
+      });
+      options.onIterationComplete(1, 0, true);
+      return { stopReason: "completed" };
+    })
   }));
 
   return import("./index.js");
@@ -1142,52 +1127,6 @@ function integrationTask(id: string, overrides: Partial<Task> = {}): Task {
     description: `Task ${id}`,
     metadata: { createdAt: "2026-01-01T00:00:00.000Z", ...overrides.metadata },
     ...overrides
-  });
-}
-
-function createTaskScriptSpawn(
-  taskList: TaskList,
-  scripts: Record<string, TaskScriptAction[]>
-): ReturnType<typeof createMockSpawn> {
-  const attempts = new Map<string, number>();
-
-  return createMockSpawn((call) => {
-    const taskId = taskIdFromPrompt(call.prompt);
-    const attempt = (attempts.get(taskId) ?? 0) + 1;
-    attempts.set(taskId, attempt);
-    const action = scripts[taskId]?.[attempt - 1] ?? { kind: "complete" };
-    const steps: MockSpawnStep[] = [
-      { kind: "emit", event: { event: "session_start", threadId: `thread-${taskId}-${attempt}` } }
-    ];
-
-    if (action.kind === "complete") {
-      steps.push({
-        kind: "run",
-        fn: async () => {
-          await taskList.list("tasks").fire(taskId, "complete");
-        }
-      });
-      return steps;
-    }
-
-    if (action.kind === "fail") {
-      steps.push({
-        kind: "run",
-        fn: async () => {
-          await taskList.list("tasks").fire(taskId, "fail");
-        }
-      });
-      steps.push({ kind: "throw", error: "abort" });
-      return steps;
-    }
-
-    if (action.kind === "block") {
-      steps.push({ kind: "block" });
-      return steps;
-    }
-
-    steps.push({ kind: "exit", exitCode: action.exitCode });
-    return steps;
   });
 }
 

@@ -244,16 +244,14 @@ describe("pipelineDriver", () => {
 
   it("maps an abort observed after successful spawn return to canceled", async () => {
     const controller = new AbortController();
-    const mockSpawn = createMockSpawn(successScript());
+    const mockSpawn = createMockSpawn(successScript(), {
+      afterResult: () => controller.abort()
+    });
     const events: AttemptEvent[] = [];
     const ctx = createDriverContext({
       events,
       abort: controller.signal,
-      spawn: async (agent, options, context) => {
-        const result = await mockSpawn.spawn(agent, options, context);
-        controller.abort();
-        return result;
-      }
+      spawn: mockSpawn.spawn
     });
 
     const outcome = await pipelineDriver.run(ctx);

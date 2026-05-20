@@ -76,6 +76,20 @@ export interface CreateMockTaskListOptions {
   stateMachine?: StateMachineDef;
   failures?: MockTaskListFailures;
   clock?: MockTaskListClock;
+  readers?: MockTaskListReaders;
+}
+
+export interface MockTaskListReaders {
+  allTasks?: (
+    filter: ListFilter | undefined,
+    store: MockTaskListReadStore
+  ) => readonly Task[] | Promise<readonly Task[]>;
+  get?: (qualifiedId: string, store: MockTaskListReadStore) => Task | Promise<Task>;
+}
+
+export interface MockTaskListReadStore {
+  get(qualifiedId: string): Task;
+  listNames(): string[];
 }
 
 export interface MockTaskListMutationStore {
@@ -187,6 +201,11 @@ export function createMockTaskList(options: CreateMockTaskListOptions = {}): Moc
     }
   };
 
+  const createReadStore = (): MockTaskListReadStore => ({
+    get: (qualifiedId) => cloneTask(getStored(qualifiedId)),
+    listNames: () => sortStrings([...store.listNames])
+  });
+
   const taskList: TaskList = {
     list(name: string): Tasks {
       return recordSync("list", [name], () => createTasksView(name));
@@ -195,10 +214,14 @@ export function createMockTaskList(options: CreateMockTaskListOptions = {}): Moc
       return record("lists", [], () => sortStrings([...store.listNames]));
     },
     allTasks(filter?: ListFilter): Promise<Task[]> {
-      return record("allTasks", [filter], () => {
+      return record("allTasks", [filter], async () => {
         const injected = options.failures?.allTasksError?.(filter?.state);
         if (injected !== undefined) {
           throw injected;
+        }
+
+        if (options.readers?.allTasks !== undefined) {
+          return cloneTasks(await options.readers.allTasks(filter, createReadStore()));
         }
 
         const result: Task[] = [];
@@ -209,10 +232,14 @@ export function createMockTaskList(options: CreateMockTaskListOptions = {}): Moc
       });
     },
     get(qualifiedId: string): Promise<Task> {
-      return record("get", [qualifiedId], () => {
+      return record("get", [qualifiedId], async () => {
         const injected = options.failures?.getError?.(qualifiedId);
         if (injected !== undefined) {
           throw injected;
+        }
+
+        if (options.readers?.get !== undefined) {
+          return cloneTask(await options.readers.get(qualifiedId, createReadStore()));
         }
 
         return cloneTask(getStored(qualifiedId));
@@ -253,11 +280,15 @@ export function createMockTaskList(options: CreateMockTaskListOptions = {}): Moc
         return record("all", [listName, filter], () => allForList(listName, filter));
       },
       get(id: string): Promise<Task> {
-        return record("get", [qualify(listName, id)], () => {
+        return record("get", [qualify(listName, id)], async () => {
           const qualifiedId = qualify(listName, id);
           const injected = options.failures?.getError?.(qualifiedId);
           if (injected !== undefined) {
             throw injected;
+          }
+
+          if (options.readers?.get !== undefined) {
+            return cloneTask(await options.readers.get(qualifiedId, createReadStore()));
           }
 
           return cloneTask(getStored(qualifiedId));
@@ -732,6 +763,10 @@ function cloneTask(task: Task): Task {
     ...task,
     metadata: { ...task.metadata }
   };
+}
+
+function cloneTasks(tasks: readonly Task[]): Task[] {
+  return tasks.map(cloneTask);
 }
 
 function cloneResult(result: unknown): unknown {

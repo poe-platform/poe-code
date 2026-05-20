@@ -222,13 +222,12 @@ function createStressHarness(options: StressHarnessOptions) {
   const taskList = createMockTaskList({
     tasks: options.tasks,
     lists: ["tasks"],
-    stateMachine: maestroTaskStateMachine
+    stateMachine: maestroTaskStateMachine,
+    readers: {
+      get: (qualifiedId, store) =>
+        options.taskListGet?.(taskList, qualifiedId) ?? store.get(qualifiedId)
+    }
   });
-  const tasks = {
-    ...taskList,
-    get: (qualifiedId: string) =>
-      options.taskListGet?.(taskList, qualifiedId) ?? taskList.get(qualifiedId)
-  };
   const cfg = createConfig({
     states: {
       queued: { prompt: "Run {{ prompt }}" },
@@ -293,7 +292,7 @@ function createStressHarness(options: StressHarnessOptions) {
 
   const tickOnce = async (tickOptions: TickOnceOptions = {}): Promise<void> => {
     await tick(state, {
-      tasks,
+      tasks: taskList,
       validateDispatch: async () => ({ ok: true }),
       ensureWorkspace:
         options.ensureWorkspace ??
@@ -308,7 +307,7 @@ function createStressHarness(options: StressHarnessOptions) {
       trackWorker,
       reconcileRunning: (currentState) =>
         reconcileRunning(currentState, {
-          tasks,
+          tasks: taskList,
           stopWorker: (entry) => workers.get(entry.taskId)?.controller.abort(),
           removeWorkspace: async () => undefined
         })

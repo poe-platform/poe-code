@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
+import type { StateMachineDef, Task } from "@poe-code/task-list";
 
-import { createMockSpawn, type MockSpawnStep } from "./mock-spawn.js";
+import { createMockSpawn, createTaskScriptSpawn, type MockSpawnStep } from "./mock-spawn.js";
+import { createMockTaskList } from "./mock-task-list.js";
+
+const taskScriptMachine = {
+  initial: "in-progress",
+  states: ["in-progress", "done", "failed"],
+  events: {
+    complete: { from: ["in-progress"], to: "done" },
+    fail: { from: ["in-progress"], to: "failed" }
+  }
+} as const satisfies StateMachineDef;
 
 describe("createMockSpawn", () => {
   it("returns scripted exit results", async () => {
@@ -172,6 +183,30 @@ describe("createMockSpawn", () => {
     );
   });
 
+  it("runs afterResult after a successful result is built", async () => {
+    const controller = new AbortController();
+    const mock = createMockSpawn(
+      {
+        codex: [
+          { kind: "emit", event: { event: "session_start", threadId: "thread-after" } },
+          { kind: "exit", exitCode: 0 }
+        ]
+      },
+      {
+        afterResult: (result, call) => {
+          expect(result.threadId).toBe("thread-after");
+          expect(call.prompt).toBe("finish then abort");
+          controller.abort();
+        }
+      }
+    );
+
+    await expect(
+      mock.spawn("codex", { prompt: "finish then abort", signal: controller.signal })
+    ).resolves.toMatchObject({ exitCode: 0, threadId: "thread-after" });
+    expect(controller.signal.aborted).toBe(true);
+  });
+
   it("defaults to a successful result with one synthetic agent message event", async () => {
     const mock = createMockSpawn();
 
@@ -253,3 +288,82 @@ describe("createMockSpawn", () => {
     expect(mock.calls).toHaveLength(1);
   });
 });
+
+describe("createTaskScriptSpawn", () => {
+  it("runs task scripts by parsed prompt task id and attempt number", async () => {
+    const taskList = createMockTaskList({
+      tasks: [task("one"), task("retry")],
+      stateMachine: taskScriptMachine
+    });
+    const mock = createTaskScriptSpawn(taskList, {
+      one: [{ kind: "complete" }],
+      retry: [{ kind: "exit", exitCode: 1 }, { kind: "complete" }]
+    });
+
+    await expect(mock.spawn("codex", { prompt: "task:one state:in-progress" })).resolves.toEqual({
+      stdout: "",
+      stderr: "",
+      exitCode: 0,
+      durationMs: 0,
+      threadId: "thread-one-1",
+      events: [{ event: "session_start", threadId: "thread-one-1" }]
+    });
+    await expect(taskList.get("tasks/one")).resolves.toMatchObject({ state: "done" });
+
+    await expect(mock.spawn("codex", { prompt: "task:retry first" })).resolves.toMatchObject({
+      exitCode: 1,
+      threadId: "thread-retry-1"
+    });
+    await expect(taskList.get("tasks/retry")).resolves.toMatchObject({ state: "in-progress" });
+
+    await expect(mock.spawn("codex", { prompt: "task:retry second" })).resolves.toMatchObject({
+      exitCode: 0,
+      threadId: "thread-retry-2"
+    });
+    await expect(taskList.get("tasks/retry")).resolves.toMatchObject({ state: "done" });
+    expect(mock.calls.map((call) => call.prompt)).toEqual([
+      "task:one state:in-progress",
+      "task:retry first",
+      "task:retry second"
+    ]);
+  });
+
+  it("can fail a task with an abort-shaped spawn error", async () => {
+    const taskList = createMockTaskList({
+      tasks: [task("cancel")],
+      stateMachine: taskScriptMachine
+    });
+    const mock = createTaskScriptSpawn(taskList, {
+      cancel: [{ kind: "fail" }]
+    });
+
+    await expect(mock.spawn("codex", { prompt: "task:cancel" })).rejects.toMatchObject({
+      name: "AbortError"
+    });
+    await expect(taskList.get("tasks/cancel")).resolves.toMatchObject({ state: "failed" });
+  });
+
+  it("throws a clear error when the prompt does not include a task id", async () => {
+    const taskList = createMockTaskList({
+      tasks: [task("missing")],
+      stateMachine: taskScriptMachine
+    });
+    const mock = createTaskScriptSpawn(taskList, {});
+
+    await expect(mock.spawn("codex", { prompt: "no task marker" })).rejects.toThrow(
+      "Missing task id in prompt: no task marker"
+    );
+  });
+});
+
+function task(id: string): Task {
+  return {
+    list: "tasks",
+    id,
+    qualifiedId: `tasks/${id}`,
+    name: id,
+    state: "in-progress",
+    description: "",
+    metadata: {}
+  };
+}

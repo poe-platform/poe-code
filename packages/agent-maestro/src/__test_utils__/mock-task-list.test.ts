@@ -145,6 +145,35 @@ describe("createMockTaskList", () => {
     });
   });
 
+  it("supports read-model overrides for stale candidate and refreshed task snapshots", async () => {
+    const stale = task("refresh", "queued");
+    let current = { ...stale, description: "current body" };
+    const mock = createMockTaskList({
+      tasks: [stale],
+      stateMachine: workflowMachine,
+      readers: {
+        allTasks: (filter) => (filter?.state === stale.state ? [stale] : []),
+        get: (qualifiedId, store) => {
+          expect(store.listNames()).toEqual(["tasks"]);
+          if (qualifiedId !== current.qualifiedId) {
+            throw new Error(`not found: ${qualifiedId}`);
+          }
+          return current;
+        }
+      }
+    });
+
+    await expect(mock.allTasks({ state: "queued" })).resolves.toEqual([stale]);
+    await expect(mock.get("tasks/refresh")).resolves.toMatchObject({
+      description: "current body"
+    });
+
+    current = { ...current, description: "next body" };
+    await expect(mock.list("tasks").get("refresh")).resolves.toMatchObject({
+      description: "next body"
+    });
+  });
+
   it("matches TaskNotFoundError and TaskAlreadyExistsError parity", async () => {
     const mock = createMockTaskList({
       tasks: [task("existing")],

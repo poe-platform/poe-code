@@ -588,7 +588,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: replace-adhoc-mocks-in-existing-tests
     title: Remove duplicated ad-hoc mocks from production-adjacent tests
@@ -612,8 +612,8 @@ tasks:
       yet model, extend the shared mock (in `mock-spawn.ts` or
       `mock-task-list.ts`) rather than re-inlining a one-off.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: harden-runtime-bugs

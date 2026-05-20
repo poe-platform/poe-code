@@ -84,7 +84,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: template-vars
     title: Add task.url and task.metadata to the prompt renderer
@@ -161,8 +161,8 @@ tasks:
       - Changing the placeholder syntax. The existing pipeline
         interpolator is reused as-is.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: state-driven-driver

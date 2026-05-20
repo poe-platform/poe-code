@@ -38,6 +38,7 @@ export type AttemptEvent =
 export interface AttemptDeps {
   spawn?: typeof defaultSpawn;
   taskPromptTemplate?: string;
+  refreshTask?: (qualifiedId: string) => Promise<Task>;
   reconcile?: (ctx: {
     task: Task;
     attempt: number | null;
@@ -91,6 +92,7 @@ class AttemptRunner {
       emit: (event) => this.args.deps.onEvent?.(event),
       spawn: this.args.deps.spawn ?? defaultSpawn,
       taskPromptTemplate: this.args.deps.taskPromptTemplate,
+      refreshTask: this.args.deps.refreshTask,
       reconcile: this.args.deps.reconcile,
       logger: this.args.deps.logger ?? noopLogger
     };

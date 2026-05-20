@@ -19,6 +19,7 @@ export interface WorkflowDriverContext {
   emit: (event: AttemptEvent) => void;
   spawn: typeof import("@poe-code/agent-spawn").spawn;
   taskPromptTemplate?: string;
+  refreshTask?: (qualifiedId: string) => Promise<Task>;
   reconcile?: (ctx: {
     task: Task;
     attempt: number | null;

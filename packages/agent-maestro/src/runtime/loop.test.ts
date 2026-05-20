@@ -217,6 +217,69 @@ describe("tick", () => {
     expect(state.retry_attempts.has(task.qualifiedId)).toBe(false);
   });
 
+  it("refreshes the task immediately before rendering each dispatch prompt", async () => {
+    let now = 0;
+    const state = createState(createConfig());
+    const staleCandidate = createTask("tasks/refresh", {
+      metadata: { createdAt: "2026-01-01T00:00:00.000Z" }
+    });
+    const currentTask = { ...staleCandidate, description: "first body" };
+    const prompts: string[] = [];
+    const workerPromises: Promise<void>[] = [];
+
+    const tasks = createTaskList([], {
+      allTasks: async (filter) => (staleCandidate.state === filter?.state ? [staleCandidate] : []),
+      get: async (qualifiedId) => {
+        if (qualifiedId !== currentTask.qualifiedId) {
+          throw new Error(`not found: ${qualifiedId}`);
+        }
+
+        return { ...currentTask };
+      }
+    });
+
+    await tick(
+      state,
+      createDeps({
+        tasks,
+        taskPromptTemplate: "{{ task.description }}",
+        runAttempt: undefined,
+        spawn: async (_agent, options) => {
+          prompts.push(options.prompt);
+          return { stdout: "", stderr: "", exitCode: 0 };
+        },
+        trackWorker: (worker) => {
+          workerPromises.push(worker.promise);
+        },
+        now: () => now
+      })
+    );
+    await workerPromises.at(-1);
+
+    currentTask.description = "second body";
+    now = 1_000;
+
+    await tick(
+      state,
+      createDeps({
+        tasks,
+        taskPromptTemplate: "{{ task.description }}",
+        runAttempt: undefined,
+        spawn: async (_agent, options) => {
+          prompts.push(options.prompt);
+          return { stdout: "", stderr: "", exitCode: 0 };
+        },
+        trackWorker: (worker) => {
+          workerPromises.push(worker.promise);
+        },
+        now: () => now
+      })
+    );
+    await workerPromises.at(-1);
+
+    expect(prompts).toEqual(["first body", "second body"]);
+  });
+
   it("schedules a backoff retry when workspace creation fails", async () => {
     const state = createState(createConfig());
     const task = createTask("tasks/workspace-fails", {

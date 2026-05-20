@@ -24,6 +24,59 @@ describe("prompt renderers", () => {
     ).toBe("Work on backlog/ship-render named Ship prompt renderer attempt 2.");
   });
 
+  it("renders task.url from metadata.url", () => {
+    expect(
+      renderTaskPrompt("Issue: {{ task.url }}", {
+        task: {
+          ...task,
+          metadata: { url: "https://github.com/org/repo/issues/123" }
+        },
+        attempt: 1
+      })
+    ).toBe("Issue: https://github.com/org/repo/issues/123");
+  });
+
+  it("renders task.url as empty when metadata.url is missing", () => {
+    expect(
+      renderTaskPrompt("Issue: {{ task.url }}", {
+        task: {
+          ...task,
+          metadata: { source: "markdown-dir" }
+        },
+        attempt: 1
+      })
+    ).toBe("Issue: ");
+  });
+
+  it("renders task.url as empty when metadata.url is not a string", () => {
+    expect(
+      renderTaskPrompt("Issue: {{ task.url }}", {
+        task: {
+          ...task,
+          metadata: { url: 123 }
+        },
+        attempt: 1
+      })
+    ).toBe("Issue: ");
+  });
+
+  it("renders task.metadata as JSON", () => {
+    expect(
+      renderTaskPrompt("Metadata: {{ task.metadata }}", {
+        task: {
+          ...task,
+          metadata: {
+            url: "https://github.com/org/repo/issues/123",
+            nested: { owner: "org", number: 123 }
+          }
+        },
+        attempt: 1
+      })
+    ).toBe(
+      'Metadata: {"url":"https://github.com/org/repo/issues/123","nested":{"owner":"org","number":123}}'
+    );
+  });
+
   it("falls back to the documented task prompt when the template is empty", () => {
     expect(renderTaskPrompt("", { task, attempt: 1 })).toBe(
       "backlog/ship-render: Ship prompt renderer\n\nRender task and step prompts."

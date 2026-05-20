@@ -257,6 +257,7 @@ function startWorker(
         deps: {
           spawn: deps.spawn,
           taskPromptTemplate: deps.taskPromptTemplate,
+          refreshTask: (qualifiedId) => deps.tasks.get(qualifiedId),
           onEvent: deps.onEvent,
           reconcile: async ({ task: runningTask }) => {
             const refreshed = await deps.tasks.get(runningTask.qualifiedId);

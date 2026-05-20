@@ -30,6 +30,8 @@ function renderVars(vars: { prompt?: string; task: Task; attempt: number | null 
     "task.qualifiedId": vars.task.qualifiedId,
     "task.name": vars.task.name,
     "task.state": vars.task.state,
-    "task.description": vars.task.description
+    "task.description": vars.task.description,
+    "task.url": typeof vars.task.metadata?.url === "string" ? vars.task.metadata.url : "",
+    "task.metadata": JSON.stringify(vars.task.metadata)
   };
 }

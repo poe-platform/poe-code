@@ -1,5 +1,6 @@
 import { isActivityTimeoutError, type SpawnMode } from "@poe-code/agent-spawn";
 import type { StepDefinition } from "@poe-code/pipeline";
+import type { Task } from "@poe-code/task-list";
 
 import { renderStepPrompt, renderTaskPrompt } from "../prompt/render.js";
 import {
@@ -21,8 +22,11 @@ export const pipelineDriver: WorkflowDriver = {
 
 class PipelineDriverRun {
   private state: AttemptState = { phase: "preparing-workspace" };
+  private task: Task;
 
-  constructor(private readonly ctx: WorkflowDriverContext) {}
+  constructor(private readonly ctx: WorkflowDriverContext) {
+    this.task = ctx.task;
+  }
 
   async run(): Promise<AttemptOutcome> {
     this.emitInitialPhase();
@@ -114,13 +118,14 @@ class PipelineDriverRun {
     let prompt: string;
 
     try {
+      const task = await this.refreshTask();
       const taskPrompt = renderTaskPrompt(this.ctx.taskPromptTemplate ?? "", {
-        task: this.ctx.task,
+        task,
         attempt: this.ctx.attempt
       });
       prompt = renderStepPrompt(step, {
         prompt: taskPrompt,
-        task: this.ctx.task,
+        task,
         attempt: this.ctx.attempt
       });
     } catch (error) {
@@ -136,7 +141,7 @@ class PipelineDriverRun {
       });
       this.ctx.emit({
         type: "agent_event",
-        task_id: this.ctx.task.qualifiedId,
+        task_id: this.task.qualifiedId,
         step: name,
         session_id: result.threadId ?? "",
         event: "exit",
@@ -172,7 +177,7 @@ class PipelineDriverRun {
     }
 
     const result = await this.ctx.reconcile?.({
-      task: this.ctx.task,
+      task: this.task,
       attempt: this.ctx.attempt,
       cfg: this.ctx.cfg
     });
@@ -214,7 +219,7 @@ class PipelineDriverRun {
   private emitInitialPhase(): void {
     this.ctx.emit({
       type: "attempt_phase",
-      task_id: this.ctx.task.qualifiedId,
+      task_id: this.task.qualifiedId,
       from: null,
       to: "preparing-workspace"
     });
@@ -228,12 +233,21 @@ class PipelineDriverRun {
     this.state = transitionPhase(previous, next, ctx);
     this.ctx.emit({
       type: "attempt_phase",
-      task_id: this.ctx.task.qualifiedId,
+      task_id: this.task.qualifiedId,
       from: previous.phase,
       to: this.state.phase,
       step: isRunningPhase(this.state.phase) ? this.state.step : undefined,
       failure: this.state.failure
     });
+  }
+
+  private async refreshTask(): Promise<Task> {
+    if (this.ctx.refreshTask === undefined) {
+      return this.task;
+    }
+
+    this.task = await this.ctx.refreshTask(this.task.qualifiedId);
+    return this.task;
   }
 }
 

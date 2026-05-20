@@ -290,7 +290,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: reconcile-coverage
     title: Reconcile state-mutation-mid-attempt coverage
@@ -318,8 +318,8 @@ tasks:
       - Reconcile is idempotent across two consecutive ticks with
         no change.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: workspace-manager-coverage

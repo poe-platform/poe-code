@@ -130,7 +130,13 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
                   }
                 },
                 removeWorkspace,
-                onEvent: (event) => opts.onEvent?.(mapReconcileEvent(event))
+                logger,
+                onEvent: (event) => {
+                  const mapped = mapReconcileEvent(event);
+                  if (mapped !== undefined) {
+                    opts.onEvent?.(mapped);
+                  }
+                }
               }),
             removeWorkspace,
             onEvent: (event) => {
@@ -413,8 +419,12 @@ function mapTickEvent(event: TickEvent): MaestroEvent | undefined {
 function mapReconcileEvent(event: {
   type: "reconcile";
   task_id: string;
-  action: "stop_clean" | "stop_keep" | "update";
-}): MaestroEvent {
+  action: "stop_clean" | "stop_keep" | "update" | "refresh_failed";
+}): MaestroEvent | undefined {
+  if (event.action === "refresh_failed") {
+    return undefined;
+  }
+
   return {
     type: "reconcile",
     task_id: event.task_id,

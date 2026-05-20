@@ -18,10 +18,13 @@ export interface ReconcileDeps {
     action: Extract<ReconcileAction, "stop_clean" | "stop_keep">
   ) => void | Promise<void>;
   removeWorkspace?: (root: string, qualifiedId: string) => Promise<void>;
+  logger?: {
+    warn?(message: string, meta?: Record<string, unknown>): void;
+  };
   onEvent?: (event: {
     type: "reconcile";
     task_id: string;
-    action: Exclude<ReconcileAction, "refresh_failed">;
+    action: ReconcileAction;
   }) => void;
 }
 
@@ -35,6 +38,7 @@ export async function reconcileRunning(
     const refreshed = await refreshTask(deps.tasks, entry.taskId);
 
     if (refreshed.kind === "failed") {
+      deps.onEvent?.({ type: "reconcile", task_id: entry.taskId, action: "refresh_failed" });
       results.push({ taskId: entry.taskId, action: "refresh_failed" });
       continue;
     }
@@ -83,10 +87,17 @@ async function stopClean(
   refreshedTask?: Task
 ): Promise<void> {
   await deps.stopWorker?.(entry, "stop_clean");
-  await (deps.removeWorkspace ?? removeWorkspaceDir)(
-    state.cfg.workspace.root,
-    refreshedTask?.qualifiedId ?? entry.task?.qualifiedId ?? entry.taskId
-  );
+  const workspaceTaskId = refreshedTask?.qualifiedId ?? entry.task?.qualifiedId ?? entry.taskId;
+
+  try {
+    await (deps.removeWorkspace ?? removeWorkspaceDir)(state.cfg.workspace.root, workspaceTaskId);
+  } catch (error) {
+    deps.logger?.warn?.("maestro workspace cleanup failed", {
+      taskId: entry.taskId,
+      error: errorMessage(error)
+    });
+  }
+
   markCompleted(state, entry.taskId);
   deps.onEvent?.({ type: "reconcile", task_id: entry.taskId, action: "stop_clean" });
 }
@@ -107,4 +118,8 @@ function isTerminal(state: MaestroState, task: Task): boolean {
 
 function isActive(state: MaestroState, task: Task): boolean {
   return state.cfg.activeStateNames.includes(task.state);
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

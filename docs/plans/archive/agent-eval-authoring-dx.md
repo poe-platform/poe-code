@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: schema-update
     title: Make scorer optional; codify oracle/{tests,solution}/ layout
@@ -47,16 +46,20 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: vitest-runner
     title: Bundled vitest scorer + per-case results in result.json
-    prompt: |
+    prompt: >
       Add a default scorer that runs vitest against <evalDir>/oracle/tests/
+
       and expose per-case results all the way through to result.json.
 
+
       Add vitest as a dependency of packages/agent-eval/package.json
+
       (use the version already in the monorepo's root devDependencies —
+
       check ../../package.json).
+
 
       Create packages/agent-eval/src/run/vitest-runner.ts:
 
@@ -75,6 +78,7 @@ tasks:
         }): Promise<{ passed: number; total: number; cases: CaseResult[] }>;
 
       Implementation:
+
       - Spawn `node` against vitest's binary (resolve via
         require.resolve("vitest/package.json") then the .bin/vitest in
         that package's parent node_modules), arguments:
@@ -89,7 +93,9 @@ tasks:
         AbortSignal.
       - Always delete <tmp>.json before returning.
 
+
       Update packages/agent-eval/src/run/scorer.ts:
+
       - Replace the existing `runScorer(cloneDir, oracleDir, spec)` with
         a dispatcher that takes the EvalDef directly:
 
@@ -113,10 +119,14 @@ tasks:
         tests: { passed: number; total: number; pass_rate: number; cases: CaseResult[] };
 
       Update src/run/result-writer.ts and src/run/run.ts to propagate
+
       `cases` end-to-end. aggregate.ts is unaffected — it aggregates the
+
       summary (pass_rate/passed/total), not per-case.
 
+
       Tests (TDD, fast):
+
       - vitest-runner.test.ts: spawn vitest via a fake Runner from
         @poe-code/process-runner; feed canned JSON reporter output;
         assert CaseResult mapping; timeout handling; tmp file deleted.
@@ -137,11 +147,11 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: eval-check
     title: "`poe-code eval check` — run scorer against oracle solution, no agent"
-    prompt: |
+    prompt: >
       Add the `check` command. This is the inner-loop tool for eval authors.
+
 
       Create packages/agent-eval/src/check/check.ts:
 
@@ -159,12 +169,16 @@ tasks:
         export async function evalCheck(opts: CheckOptions): Promise<CheckResult>;
 
       Flow:
+
       1. openSource(sourceDir) + loadEval(source, evalId).
+
       2. cloneDir = path.join(<outDir>, ".check", evalId, "<iso-ts>", "clone").
          outDir respects .poe-code-eval.json; default "runs". Inside .check/
          so it's clearly separate from real run artifacts.
       3. cloneTarget({ repo, ref, dest: cloneDir, signal }).
+
       4. If <source>/<evalId>/starter/ exists, copy into clone.
+
       5. Copy <source>/<evalId>/oracle/solution/* into clone. The
          destination root within the clone is the clone root by default;
          eval.yaml MAY add `oracle.solution_dest` (string, relative to
@@ -172,16 +186,21 @@ tasks:
          comments — implement it here even if added retroactively to
          the schema.
       6. Run scorer via runScorer({ evalDef, evalDir, cloneDir, signal }).
+
       7. Return CheckResult.
 
+
       Add a CLI wrapper at packages/agent-eval/src/cli/check.ts that the
+
       CLI registration task will hook into:
 
         export interface CheckCliInput { evalId?: string; sourceDir?: string }
         export async function runCheckCli(input: CheckCliInput): Promise<number>;
 
       Behavior:
+
       - sourceDir defaults to process.cwd().
+
       - evalId default: if exactly one eval exists in source, use it;
         else error with a hint listing available ids.
       - On exit: render a per-case table via @poe-code/design-system —
@@ -189,6 +208,7 @@ tasks:
         bottom, exit code 0 if all cases pass, 1 otherwise.
 
       Tests:
+
       - check.test.ts: mock cloneTarget + runScorer; verify solution is
         copied into clone, runScorer called with correct args, errors
         propagate.
@@ -196,6 +216,7 @@ tasks:
         when multiple evals + no --eval; exit code reflects test result.
 
       Snapshot:
+
       - One snapshot of the rendered per-case table for a fixed
         CheckResult fixture.
 
@@ -204,12 +225,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: eval-init
     title: "`poe-code eval init <name>` — scaffold a lint-clean eval folder"
-    prompt: |
+    prompt: >
       Add the `init` command. Generates a minimal working eval folder
+
       that passes `lint` immediately.
+
 
       Create packages/agent-eval/src/init/init.ts:
 
@@ -227,6 +249,7 @@ tasks:
         export async function evalInit(opts: InitOptions): Promise<InitResult>;
 
       Files created at <sourceDir>/<name>/:
+
       - eval.yaml:
           id: <name>
           title: "<Name>"
@@ -262,7 +285,9 @@ tasks:
         `eval check` passes immediately on the freshly scaffolded folder.
       - starter/.gitkeep (empty file so the directory is committable).
 
+
       Refuse to overwrite an existing folder; throw a clear error.
+
 
       Add a CLI wrapper at packages/agent-eval/src/cli/init.ts:
 
@@ -276,30 +301,36 @@ tasks:
         export async function runInitCli(input: InitCliInput): Promise<number>;
 
       Behavior:
+
       - sourceDir defaults to process.cwd().
+
       - kind defaults to "plan".
+
       - Validate name is kebab-case (lowercase letters/digits/dashes,
         starts with a letter). Reject otherwise.
       - After scaffolding, print the relative path to the new folder and
         a one-line "next: poe-code eval check <name>" hint.
 
       Tests:
+
       - init.test.ts: scaffolds the expected file set; eval.yaml passes
         schema validation; plan.md frontmatter has correct kind; refuses
         to overwrite; name validation works.
       - cli-init.test.ts: cwd default; kind default; refuses bad names.
+
 
       Update src/index.ts re-exports.
     status:
       implement: done
       test: done
       commit: done
-
   - id: eval-lint
     title: "`poe-code eval lint <path>` — static validation"
-    prompt: |
+    prompt: >
       Add the `lint` command. Runs in milliseconds; catches typos before
+
       `eval check` clones anything.
+
 
       Create packages/agent-eval/src/lint/lint.ts:
 
@@ -319,20 +350,30 @@ tasks:
         }): Promise<LintResult>;
 
       Checks (all run; return all issues):
+
       - error E001: eval.yaml missing or fails schema validation.
+
       - error E002: plan.md missing or fails frontmatter parse.
-      - error E003: plan.md frontmatter `kind` not in {"plan","pipeline","superintendent","experiment"}.
+
+      - error E003: plan.md frontmatter `kind` not in
+      {"plan","pipeline","superintendent","experiment"}.
+
       - error E004: oracle/ directory missing.
+
       - error E005: no scorer.command AND no oracle/tests/*.test.ts files
         (default scorer would have nothing to run).
       - warning W001: oracle/solution/ empty or missing (eval check will fail).
+
       - warning W002: starter/ directory present but empty.
+
       - warning W003: budget.wall_clock_ms < 60_000 (likely too short).
+
       - warning W004: eval.yaml `target.ref` is a branch name like "main"
         (not pinned to a SHA; results may not be reproducible). Suggest
         pinning.
 
       No filesystem mutation. No spawn. Use memfs-friendly fs calls.
+
 
       Add a CLI wrapper at packages/agent-eval/src/cli/lint.ts:
 
@@ -340,7 +381,9 @@ tasks:
         export async function runLintCli(input: LintCliInput): Promise<number>;
 
       Behavior:
+
       - sourceDir defaults to process.cwd().
+
       - evalId default: if exactly one eval in source, lint it; else
         lint all evals in source.
       - Render via @poe-code/design-system: one section per eval, group
@@ -349,6 +392,7 @@ tasks:
         present.
 
       Tests:
+
       - lint.test.ts: feed memfs fixtures covering each E### and W###
         code; assert exactly the expected issues are returned.
       - cli-lint.test.ts: single-eval default; all-evals fallback; exit
@@ -359,13 +403,14 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: cli-and-docs
     title: Register init/check/lint in poe-code CLI + README + QA update
-    prompt: |
+    prompt: >
       Wire the three new commands into the main CLI and document them.
 
+
       In packages/agent-eval/src/cli/commands.ts, add three toolcraft
+
       command definitions:
 
         poe-code eval init <name>
@@ -378,16 +423,25 @@ tasks:
         poe-code eval lint [<eval-id>] [-C <dir>]
 
       Each command delegates to runInitCli / runCheckCli / runLintCli
+
       from the previous tasks. NO business logic in commands.ts; it just
+
       maps CLI flags to the CLI-wrapper functions.
 
+
       In packages/poe-code/src/cli/ (locate the existing `eval` command
+
       group from the prior pipeline), add the three sub-commands. The
+
       group already exists from the harness; this task adds three
+
       children. Confirm `poe-code eval --help` shows all five commands
+
       (run, report, init, check, lint).
 
+
       Update packages/agent-eval/README.md:
+
       - Replace the "Authoring an eval" section with the new flow:
           poe-code eval init my-task
           cd my-task
@@ -400,12 +454,18 @@ tasks:
       - Document the escape hatch: set scorer.command in eval.yaml when
         you need a non-vitest scorer (Python target, cargo test, etc.).
       - Add a small example test (same shape as the init template).
+
       - Document per-case output in result.json under `tests.cases`.
 
+
       Update packages/agent-eval/qa/run-one.md to use the new flow:
+
       step 1 becomes `poe-code eval init`, step 2 becomes
+
       `poe-code eval check`, etc. Existing run/report steps stay at the
+
       end.
+
 
       Visual check:
           npm run screenshot-poe-code -- eval --help
@@ -413,9 +473,12 @@ tasks:
           npm run screenshot-poe-code -- eval check --help
           npm run screenshot-poe-code -- eval lint --help
       Save under packages/agent-eval/scripts/screenshots/. Confirm
+
       design-system style.
 
+
       Tests:
+
       - cli.test.ts additions: flag parsing for init/check/lint;
         required vs optional flags; defaults.
 
@@ -423,14 +486,15 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
-
+      commit: done
 teardown:
   prompt: |
     Run the package's full test suite
     (`npm test --workspace=@poe-code/agent-eval`), then commit any
     remaining changes. Confirm `poe-code eval --help` lists all five
     commands.
+name: agent-eval-authoring-dx
+state: archived
 ---
 
 # Context

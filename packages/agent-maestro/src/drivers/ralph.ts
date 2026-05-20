@@ -2,21 +2,45 @@ import * as fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { isActivityTimeoutError } from "@poe-code/agent-spawn";
-import { runRalph, type AgentRunInput, type RalphRunResult } from "@poe-code/ralph";
+import {
+  runRalph,
+  type AgentRunInput,
+  type RalphRunOptions,
+  type RalphRunResult
+} from "@poe-code/ralph";
 
 import type { AttemptOutcome } from "../agent/runner.js";
 import type { AttemptPhase, FailureCategory } from "../runtime/phases.js";
 import type { WorkflowDriver, WorkflowDriverContext } from "./types.js";
 
-export const ralphDriver: WorkflowDriver = {
-  kind: "ralph",
-  async run(ctx) {
-    return runRalphDriver(ctx);
-  }
+type RalphRunner = (options: RalphRunOptions) => Promise<RalphRunResult>;
+type RalphResultWithFailure = Omit<RalphRunResult, "stopReason"> & {
+  stopReason: RalphRunResult["stopReason"] | "timeout";
+  failure?: FailureCategory;
+  failureCategory?: FailureCategory;
+};
+type RalphAgentRunInput = AgentRunInput & {
+  mode?: import("@poe-code/agent-spawn").SpawnMode;
 };
 
-async function runRalphDriver(ctx: WorkflowDriverContext): Promise<AttemptOutcome> {
-  if (ctx.planPath === null) {
+export function createRalphDriver(options: { runRalph?: RalphRunner } = {}): WorkflowDriver {
+  const runner = options.runRalph ?? runRalph;
+
+  return {
+    kind: "ralph",
+    async run(ctx) {
+      return runRalphDriver(ctx, runner);
+    }
+  };
+}
+
+export const ralphDriver: WorkflowDriver = createRalphDriver();
+
+async function runRalphDriver(
+  ctx: WorkflowDriverContext,
+  runner: RalphRunner
+): Promise<AttemptOutcome> {
+  if (ctx.planPath == null) {
     return fail("step_failed", "ralph driver requires a file-backed task");
   }
 
@@ -32,7 +56,7 @@ async function runRalphDriver(ctx: WorkflowDriverContext): Promise<AttemptOutcom
   emitPhase(ctx, null, "running-step", "ralph");
 
   try {
-    const result = await runRalph({
+    const result = await runner({
       cwd: ctx.workspaceDir,
       homeDir: os.homedir(),
       docPath: workspaceDocPath,
@@ -55,8 +79,15 @@ async function runRalphDriver(ctx: WorkflowDriverContext): Promise<AttemptOutcom
       return { reason: "abnormal", failure: "canceled" };
     }
 
+    if (isTimeout(result)) {
+      const outcome = fail("step_timeout", "ralph reported timeout");
+      emitPhase(ctx, "running-step", "failed", "ralph", outcome.failure);
+      return outcome;
+    }
+
     if (result.stopReason === "failed") {
-      const outcome = fail("step_failed", "ralph reported failure");
+      const failure = readReportedFailure(result) ?? "step_failed";
+      const outcome = fail(failure, `ralph reported ${failure}`);
       emitPhase(ctx, "running-step", "failed", "ralph", outcome.failure);
       return outcome;
     }
@@ -79,12 +110,13 @@ async function runRalphDriver(ctx: WorkflowDriverContext): Promise<AttemptOutcom
 
 async function runAgent(
   ctx: WorkflowDriverContext,
-  input: AgentRunInput
+  input: RalphAgentRunInput
 ): Promise<{ stdout: string; stderr: string; exitCode: number }> {
   const result = await ctx.spawn(input.agent, {
     cwd: input.cwd,
     prompt: input.prompt,
     model: input.model,
+    mode: input.mode,
     signal: input.signal
   });
 
@@ -168,6 +200,30 @@ function emitPhase(
 
 function isCancelled(result: RalphRunResult): boolean {
   return result.stopReason === "cancelled";
+}
+
+function isTimeout(result: RalphRunResult): boolean {
+  return (result as RalphResultWithFailure).stopReason === "timeout";
+}
+
+function readReportedFailure(result: RalphRunResult): FailureCategory | undefined {
+  const resultWithFailure = result as RalphResultWithFailure;
+  return readFailureCategory(resultWithFailure.failure ?? resultWithFailure.failureCategory);
+}
+
+function readFailureCategory(value: unknown): FailureCategory | undefined {
+  if (
+    value === "workspace_error" ||
+    value === "prompt_render_error" ||
+    value === "agent_startup_error" ||
+    value === "step_failed" ||
+    value === "step_timeout" ||
+    value === "agent_crashed"
+  ) {
+    return value;
+  }
+
+  return undefined;
 }
 
 function isAbortError(error: unknown): boolean {

@@ -203,7 +203,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: ralph-driver-coverage
     title: Ralph driver exhaustive failure-mode coverage
@@ -243,8 +243,8 @@ tasks:
       in production code (driver-level injection of the ralph
       runner) rather than reaching into globals.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: loop-tick-coverage

@@ -1,15 +1,15 @@
+import * as fs from "node:fs/promises";
+import type { SpawnMode } from "@poe-code/agent-spawn";
+import type { AgentRunInput, RalphRunOptions, RalphRunResult } from "@poe-code/ralph";
 import { vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import {
-  createConfig,
-  createDriverContext,
-  createTask,
-  successSpawn
-} from "../__test_utils__/fixtures.js";
+import { createConfig, createDriverContext, createTask } from "../__test_utils__/fixtures.js";
+import { createMockSpawn } from "../__test_utils__/mock-spawn.js";
 import type { ResolvedConfig } from "../config/schema.js";
 import type { AttemptEvent } from "../agent/runner.js";
-import { ralphDriver } from "./ralph.js";
+import type { FailureCategory } from "../runtime/phases.js";
+import { createRalphDriver, ralphDriver } from "./ralph.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -21,21 +21,75 @@ vi.mock("node:fs/promises", async () => {
 
 describe("ralphDriver", () => {
   beforeEach(() => {
+    vi.restoreAllMocks();
     vol.reset();
+  });
+
+  it("copies the plan file into the task workspace before running ralph", async () => {
+    const source = planDoc("Implement the thing");
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": source
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await expect(fs.readFile(options.docPath, "utf8")).resolves.toBe(source);
+        expect(options.docPath).toBe("/repo/workspaces/task-1/ralph-plan.md");
+        return result(options.docPath, "completed");
+      }
+    });
+
+    const outcome = await driver.run(createDriverContext(ralphContextDefaults));
+
+    expect(outcome).toEqual({ reason: "normal" });
+  });
+
+  it("fails before running ralph when the plan cannot be copied into the workspace", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Copy failure")
+    });
+    vi.spyOn(fs, "copyFile").mockRejectedValue("copy denied");
+    const runRalph = vi.fn(async (options: RalphRunOptions) =>
+      result(options.docPath, "completed")
+    );
+    const driver = createRalphDriver({ runRalph });
+
+    await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toEqual({
+      reason: "abnormal",
+      failure: "step_failed",
+      failedStep: "ralph",
+      error: "copy denied"
+    });
+    expect(runRalph).not.toHaveBeenCalled();
   });
 
   it("drives a 1-iteration plan to completion and persists ralph frontmatter updates", async () => {
     vol.fromJSON({
       "/repo/docs/plans/ralph-plan.md": planDoc("Implement the thing")
     });
+    const driver = createRalphDriver({
+      runRalph: scriptedRalph({
+        iterations: [
+          {
+            afterRun: async (options) => {
+              await fs.writeFile(
+                options.docPath,
+                planDoc("Implement the thing", { status: "completed", iteration: 1 }),
+                "utf8"
+              );
+            }
+          }
+        ]
+      })
+    });
     const events: AttemptEvent[] = [];
+    const mockSpawn = createMockSpawn();
     const ctx = createDriverContext({
       ...ralphContextDefaults,
       events,
-      spawn: vi.fn(async () => successSpawn())
+      spawn: mockSpawn.spawn
     });
 
-    const outcome = await ralphDriver.run(ctx);
+    const outcome = await driver.run(ctx);
 
     expect(outcome).toEqual({ reason: "normal" });
     expect(vol.readFileSync("/repo/workspaces/task-1/ralph-plan.md", "utf8")).toContain(
@@ -50,8 +104,40 @@ describe("ralphDriver", () => {
     ).toEqual(["ralph"]);
   });
 
-  it("fails when planPath is null", async () => {
-    const ctx = createDriverContext({ ...ralphContextDefaults, planPath: null });
+  it("overwrites the original plan with ralph's updated plan and advances mtime", async () => {
+    const original = planDoc("Persist me");
+    const updated = planDoc("Persist me\n\nDone", { status: "completed", iteration: 1 });
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": original
+    });
+    vol.utimesSync(
+      "/repo/docs/plans/ralph-plan.md",
+      new Date("2026-01-01T00:00:00.000Z"),
+      new Date("2026-01-01T00:00:00.000Z")
+    );
+    const beforeMtime = (await fs.stat("/repo/docs/plans/ralph-plan.md")).mtimeMs;
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await fs.writeFile(options.docPath, updated, "utf8");
+        return result(options.docPath, "completed");
+      }
+    });
+
+    const outcome = await driver.run(createDriverContext(ralphContextDefaults));
+
+    expect(outcome).toEqual({ reason: "normal" });
+    await expect(fs.readFile("/repo/docs/plans/ralph-plan.md", "utf8")).resolves.toBe(updated);
+    expect((await fs.stat("/repo/docs/plans/ralph-plan.md")).mtimeMs).toBeGreaterThan(beforeMtime);
+  });
+
+  it.each([
+    { name: "null", planPath: null },
+    { name: "undefined", planPath: undefined }
+  ])("fails when planPath is $name", async ({ planPath }) => {
+    const ctx = createDriverContext({
+      ...ralphContextDefaults,
+      planPath
+    } as Parameters<typeof createDriverContext>[0]);
 
     await expect(ralphDriver.run(ctx)).resolves.toEqual({
       reason: "abnormal",
@@ -61,23 +147,151 @@ describe("ralphDriver", () => {
     });
   });
 
-  it("maps an abort mid-iteration to canceled", async () => {
+  it("maps Ralph stopReason completed to a succeeded outcome", async () => {
     vol.fromJSON({
-      "/repo/docs/plans/ralph-plan.md": planDoc("Stop cleanly")
+      "/repo/docs/plans/ralph-plan.md": planDoc("Complete")
     });
-    const controller = new AbortController();
-    const abortError = new Error("stop");
-    abortError.name = "AbortError";
-    const ctx = createDriverContext({
-      ...ralphContextDefaults,
-      abort: controller.signal,
-      spawn: vi.fn(async () => {
-        controller.abort();
-        throw abortError;
-      })
+    const events: AttemptEvent[] = [];
+    const driver = createRalphDriver({
+      runRalph: async (options) => result(options.docPath, "completed")
     });
 
-    await expect(ralphDriver.run(ctx)).resolves.toEqual({
+    const outcome = await driver.run(createDriverContext({ ...ralphContextDefaults, events }));
+
+    expect(outcome).toEqual({ reason: "normal" });
+    expect(events.filter((event) => event.type === "attempt_phase").at(-1)).toMatchObject({
+      to: "succeeded"
+    });
+  });
+
+  it("maps Ralph stopReason cancelled to a canceled outcome", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Cancel")
+    });
+    const events: AttemptEvent[] = [];
+    const driver = createRalphDriver({
+      runRalph: async (options) => result(options.docPath, "cancelled")
+    });
+
+    const outcome = await driver.run(createDriverContext({ ...ralphContextDefaults, events }));
+
+    expect(outcome).toEqual({ reason: "abnormal", failure: "canceled" });
+    expect(events.filter((event) => event.type === "attempt_phase").at(-1)).toMatchObject({
+      to: "canceled",
+      failure: "canceled"
+    });
+  });
+
+  it.each([
+    "workspace_error",
+    "prompt_render_error",
+    "agent_startup_error",
+    "step_failed",
+    "step_timeout",
+    "agent_crashed"
+  ] satisfies FailureCategory[])(
+    "maps Ralph stopReason failed with reported %s to that failure category",
+    async (failure) => {
+      vol.fromJSON({
+        "/repo/docs/plans/ralph-plan.md": planDoc("Fail")
+      });
+      const events: AttemptEvent[] = [];
+      const driver = createRalphDriver({
+        runRalph: async (options) => ({
+          ...result(options.docPath, "failed"),
+          failure
+        })
+      });
+
+      const outcome = await driver.run(createDriverContext({ ...ralphContextDefaults, events }));
+
+      expect(outcome).toEqual({
+        reason: "abnormal",
+        failure,
+        failedStep: "ralph",
+        error: `ralph reported ${failure}`
+      });
+      expect(events.filter((event) => event.type === "attempt_phase").at(-1)).toMatchObject({
+        to: "failed",
+        failure
+      });
+    }
+  );
+
+  it("maps Ralph stopReason failed without a reported reason to step_failed", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Fail")
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => result(options.docPath, "failed")
+    });
+
+    await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toEqual({
+      reason: "abnormal",
+      failure: "step_failed",
+      failedStep: "ralph",
+      error: "ralph reported step_failed"
+    });
+  });
+
+  it("maps Ralph stopReason timeout to step_timeout", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Timeout")
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) =>
+        ({
+          ...result(options.docPath, "failed"),
+          stopReason: "timeout"
+        }) as RalphRunResult
+    });
+
+    await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toEqual({
+      reason: "abnormal",
+      failure: "step_timeout",
+      failedStep: "ralph",
+      error: "ralph reported timeout"
+    });
+  });
+
+  it("maps an abort mid-iteration to canceled without persisting partial plan changes", async () => {
+    const original = planDoc("Stop cleanly");
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": original
+    });
+    const controller = new AbortController();
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await fs.writeFile(options.docPath, planDoc("Partial work", { iteration: 1 }), "utf8");
+        controller.abort();
+        return result(options.docPath, "cancelled");
+      }
+    });
+    const ctx = createDriverContext({
+      ...ralphContextDefaults,
+      abort: controller.signal
+    });
+
+    await expect(driver.run(ctx)).resolves.toEqual({
+      reason: "abnormal",
+      failure: "canceled"
+    });
+    await expect(fs.readFile("/repo/docs/plans/ralph-plan.md", "utf8")).resolves.toBe(original);
+  });
+
+  it("maps an AbortError thrown by ralph to canceled", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Throw abort")
+    });
+    const abortError = new Error("stop");
+    abortError.name = "AbortError";
+    const driver = createRalphDriver({
+      runRalph: async () => {
+        throw abortError;
+      }
+    });
+
+    await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toEqual({
       reason: "abnormal",
       failure: "canceled"
     });
@@ -89,14 +303,13 @@ describe("ralphDriver", () => {
     });
     const timeoutError = new Error("no activity for 1500ms");
     timeoutError.name = "ActivityTimeoutError";
-    const ctx = createDriverContext({
-      ...ralphContextDefaults,
-      spawn: vi.fn(async () => {
+    const driver = createRalphDriver({
+      runRalph: async () => {
         throw timeoutError;
-      })
+      }
     });
 
-    await expect(ralphDriver.run(ctx)).resolves.toEqual({
+    await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toEqual({
       reason: "abnormal",
       failure: "step_timeout",
       failedStep: "ralph",
@@ -104,7 +317,102 @@ describe("ralphDriver", () => {
     });
   });
 
-  it("forwards ralph runAgent input to spawn unchanged", async () => {
+  it("returns step_failed without corrupting the original plan when persistence fails", async () => {
+    const original = planDoc("Keep original");
+    const updated = planDoc("Updated", { status: "completed", iteration: 1 });
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": original
+    });
+    const realWriteFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, content, options) => {
+      if (filePath === `/repo/docs/plans/.ralph-plan.md.${process.pid}.tmp`) {
+        throw new Error("disk full");
+      }
+
+      return realWriteFile(filePath, content, options);
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await realWriteFile(options.docPath, updated, "utf8");
+        return result(options.docPath, "completed");
+      }
+    });
+
+    await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toEqual({
+      reason: "abnormal",
+      failure: "step_failed",
+      failedStep: "ralph",
+      error: "disk full"
+    });
+    await expect(fs.readFile("/repo/docs/plans/ralph-plan.md", "utf8")).resolves.toBe(original);
+  });
+
+  it("returns step_failed when archive fallback probing hits an unexpected fs error", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Stat failure")
+    });
+    const realStat = fs.stat.bind(fs);
+    vi.spyOn(fs, "stat").mockImplementation(async (filePath) => {
+      if (filePath === "/repo/workspaces/task-1/ralph-plan.md") {
+        throw Object.assign(new Error("stat denied"), { code: "EACCES" });
+      }
+
+      return realStat(filePath);
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => result(options.docPath, "completed")
+    });
+
+    await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toEqual({
+      reason: "abnormal",
+      failure: "step_failed",
+      failedStep: "ralph",
+      error: "stat denied"
+    });
+  });
+
+  it("persists ralph output from the archive fallback when the workspace plan was moved", async () => {
+    const updated = planDoc("Archived update", { status: "completed", iteration: 1 });
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Archive me")
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await fs.mkdir("/repo/workspaces/task-1/archive", { recursive: true });
+        await fs.writeFile("/repo/workspaces/task-1/archive/ralph-plan.md", updated, "utf8");
+        await fs.rm(options.docPath);
+        return result(options.docPath, "completed");
+      }
+    });
+
+    const outcome = await driver.run(createDriverContext(ralphContextDefaults));
+
+    expect(outcome).toEqual({ reason: "normal" });
+    await expect(fs.readFile("/repo/docs/plans/ralph-plan.md", "utf8")).resolves.toBe(updated);
+    await expect(fs.readFile("/repo/workspaces/task-1/ralph-plan.md", "utf8")).resolves.toBe(
+      updated
+    );
+  });
+
+  it("fails cleanly when ralph removes the workspace plan and the archive fallback is missing", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Missing archive")
+    });
+    const driver = createRalphDriver({
+      runRalph: async (options) => {
+        await fs.rm(options.docPath);
+        return result(options.docPath, "completed");
+      }
+    });
+
+    await expect(driver.run(createDriverContext(ralphContextDefaults))).resolves.toMatchObject({
+      reason: "abnormal",
+      failure: "step_failed",
+      failedStep: "ralph"
+    });
+  });
+
+  it("forwards ralph runAgent input to spawn with the per-task workspace cwd", async () => {
     vol.fromJSON({
       "/repo/docs/plans/ralph-plan.md": planDoc("Forward this prompt", {
         agent: "codex",
@@ -112,30 +420,182 @@ describe("ralphDriver", () => {
       })
     });
     const controller = new AbortController();
-    const spawn = vi.fn(async () => successSpawn());
+    const mockSpawn = createMockSpawn({
+      codex: [
+        {
+          kind: "assert",
+          fn: (call) => {
+            expect(call).toEqual({
+              agent: "codex",
+              prompt: "Forward this prompt",
+              model: "openai/gpt-5.4",
+              mode: "yolo",
+              cwd: "/repo/workspaces/task-1",
+              signal: controller.signal
+            });
+          }
+        }
+      ]
+    });
+    const driver = createRalphDriver({
+      runRalph: scriptedRalph({
+        iterations: [
+          {
+            agent: "codex",
+            model: "openai/gpt-5.4",
+            mode: "yolo",
+            prompt: "Forward this prompt"
+          }
+        ]
+      })
+    });
     const ctx = createDriverContext({
       ...ralphContextDefaults,
       abort: controller.signal,
-      spawn
+      spawn: mockSpawn.spawn
     });
 
-    await ralphDriver.run(ctx);
+    await driver.run(ctx);
 
-    expect(spawn).toHaveBeenCalledWith("codex", {
-      cwd: "/repo/workspaces/task-1",
-      prompt: "Forward this prompt",
-      model: "openai/gpt-5.4",
-      signal: controller.signal
+    expect(mockSpawn.calls).toHaveLength(1);
+  });
+
+  it("runs three Ralph iterations, emits three agent events, and succeeds once", async () => {
+    vol.fromJSON({
+      "/repo/docs/plans/ralph-plan.md": planDoc("Iterate", { iterations: 3 })
     });
+    const events: AttemptEvent[] = [];
+    const mockSpawn = createMockSpawn();
+    const driver = createRalphDriver({
+      runRalph: scriptedRalph({
+        iterations: [
+          { prompt: "Iteration 1" },
+          { prompt: "Iteration 2" },
+          {
+            prompt: "Iteration 3",
+            afterRun: async (options) => {
+              await fs.writeFile(
+                options.docPath,
+                planDoc("Iterate", { status: "completed", iteration: 3, iterations: 3 }),
+                "utf8"
+              );
+            }
+          }
+        ]
+      })
+    });
+
+    const outcome = await driver.run(
+      createDriverContext({ ...ralphContextDefaults, events, spawn: mockSpawn.spawn })
+    );
+
+    expect(outcome).toEqual({ reason: "normal" });
+    expect(events.filter((event) => event.type === "agent_event")).toEqual([
+      agentEvent(1, true),
+      agentEvent(2, true),
+      agentEvent(3, true)
+    ]);
+    expect(
+      events.filter((event) => event.type === "attempt_phase" && event.to === "succeeded")
+    ).toHaveLength(1);
+    expect(mockSpawn.calls.map((call) => call.prompt)).toEqual([
+      "Iteration 1",
+      "Iteration 2",
+      "Iteration 3"
+    ]);
   });
 });
 
-function planDoc(body: string, options: { agent?: string; model?: string } = {}): string {
+type ScriptedIteration = {
+  agent?: string;
+  model?: string;
+  mode?: SpawnMode;
+  prompt?: string;
+  success?: boolean;
+  afterRun?: (options: RalphRunOptions) => Promise<void>;
+};
+
+type DriverRalphRunResult = Omit<RalphRunResult, "stopReason"> & {
+  stopReason: RalphRunResult["stopReason"] | "timeout";
+  failure?: FailureCategory;
+};
+
+function scriptedRalph(options: {
+  iterations: ScriptedIteration[];
+  stopReason?: DriverRalphRunResult["stopReason"];
+}): (runOptions: RalphRunOptions) => Promise<RalphRunResult> {
+  return async (runOptions) => {
+    for (const [index, iteration] of options.iterations.entries()) {
+      const runResult = await runOptions.runAgent?.({
+        agent: iteration.agent ?? "codex",
+        prompt: iteration.prompt ?? `Iteration ${index + 1}`,
+        cwd: runOptions.cwd,
+        model: iteration.model,
+        mode: iteration.mode,
+        signal: runOptions.signal
+      } as AgentRunInput & { mode?: SpawnMode });
+
+      await iteration.afterRun?.(runOptions);
+      runOptions.onIterationComplete?.(
+        index + 1,
+        index + 10,
+        iteration.success ?? runResult?.exitCode === 0
+      );
+    }
+
+    return result(runOptions.docPath, options.stopReason ?? "completed", options.iterations.length);
+  };
+}
+
+function result(
+  docPath: string,
+  stopReason: DriverRalphRunResult["stopReason"],
+  iterationsCompleted = 1
+): RalphRunResult {
+  return {
+    stopReason,
+    docPath,
+    iterationsCompleted,
+    totalDurationMs: 1
+  } as RalphRunResult;
+}
+
+function agentEvent(iteration: number, success: boolean): AttemptEvent {
+  return {
+    type: "agent_event",
+    task_id: "tasks/task-1",
+    step: "ralph",
+    session_id: "",
+    event: "iteration_complete",
+    payload: { iteration, durationMs: iteration + 9, success }
+  };
+}
+
+function planDoc(
+  body: string,
+  options: {
+    agent?: string;
+    model?: string;
+    iterations?: number;
+    status?: "open" | "in_progress" | "completed" | "failed";
+    iteration?: number;
+  } = {}
+): string {
   const agent = options.model
     ? `${options.agent ?? "codex"}:${options.model}`
     : (options.agent ?? "codex");
+  const status = options.status
+    ? [`status:`, `  state: ${options.status}`, `  iteration: ${options.iteration ?? 0}`]
+    : [];
 
-  return ["---", `agent: ${agent}`, "iterations: 1", "---", body].join("\n");
+  return [
+    "---",
+    `agent: ${agent}`,
+    `iterations: ${options.iterations ?? 1}`,
+    ...status,
+    "---",
+    body
+  ].join("\n");
 }
 
 const ralphContextDefaults = {

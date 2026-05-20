@@ -7,7 +7,8 @@ import type { EvalMatrixOptions, EvalRunResult } from "../types.js";
 const mockedRun = vi.hoisted(() => ({
   runMatrix: vi.fn<(opts: EvalMatrixOptions) => AsyncIterable<EvalRunResult>>(),
   runInitCli: vi.fn(),
-  runCheckCli: vi.fn()
+  runCheckCli: vi.fn(),
+  runLintCli: vi.fn()
 }));
 
 vi.mock("../run/matrix.js", () => ({
@@ -20,6 +21,10 @@ vi.mock("./init.js", () => ({
 
 vi.mock("./check.js", () => ({
   runCheckCli: mockedRun.runCheckCli
+}));
+
+vi.mock("./lint.js", () => ({
+  runLintCli: mockedRun.runLintCli
 }));
 
 const { evalGroup } = await import("./commands.js");
@@ -36,6 +41,7 @@ beforeEach(() => {
   mockedRun.runMatrix.mockImplementation(async function* () {});
   mockedRun.runInitCli.mockResolvedValue(0);
   mockedRun.runCheckCli.mockResolvedValue(0);
+  mockedRun.runLintCli.mockResolvedValue(0);
 });
 
 afterEach(() => {
@@ -45,6 +51,7 @@ afterEach(() => {
   mockedRun.runMatrix.mockReset();
   mockedRun.runInitCli.mockReset();
   mockedRun.runCheckCli.mockReset();
+  mockedRun.runLintCli.mockReset();
 });
 
 describe("agent-eval cli", () => {
@@ -162,6 +169,16 @@ describe("agent-eval cli", () => {
 
     expect(process.exitCode).toBeUndefined();
     expect(mockedRun.runCheckCli).toHaveBeenCalledWith({
+      evalId: "smoke-task",
+      sourceDir: "/repo/evals"
+    });
+  });
+
+  it("parses eval lint arguments before calling runLintCli", async () => {
+    await runEvalCli(["lint", "smoke-task", "-C", "/repo/evals"]);
+
+    expect(process.exitCode).toBeUndefined();
+    expect(mockedRun.runLintCli).toHaveBeenCalledWith({
       evalId: "smoke-task",
       sourceDir: "/repo/evals"
     });

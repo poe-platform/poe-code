@@ -2,6 +2,7 @@ import path from "node:path";
 import { defineCommand, defineGroup, S, UserError } from "toolcraft";
 import { runInitCli } from "./init.js";
 import { runCheckCli } from "./check.js";
+import { runLintCli } from "./lint.js";
 import { loadSourceConfig } from "../source/config.js";
 import { openSource } from "../source/open.js";
 import { listEvals } from "../source/registry.js";
@@ -38,6 +39,16 @@ const initParams = S.Object({
 
 const checkParams = S.Object({
   evalId: S.Optional(S.String({ description: "Eval id to check" })),
+  cwd: S.Optional(
+    S.String({
+      description: "Eval source directory",
+      short: "C"
+    })
+  )
+});
+
+const lintParams = S.Object({
+  evalId: S.Optional(S.String({ description: "Eval id to lint" })),
   cwd: S.Optional(
     S.String({
       description: "Eval source directory",
@@ -224,7 +235,36 @@ export const evalCheckCommand = defineCommand({
   }
 });
 
-const children = [evalRunCommand, evalReportCommand, evalInitCommand, evalCheckCommand] as const;
+export const evalLintCommand = defineCommand({
+  name: "lint",
+  description: "Lint eval metadata without cloning targets.",
+  positional: ["evalId"],
+  params: lintParams,
+  scope: ["cli", "sdk"],
+  handler: async ({ params }) => {
+    const exitCode = await runLintCli({
+      evalId: params.evalId,
+      sourceDir: params.cwd
+    });
+    if (exitCode !== 0) {
+      process.exitCode = exitCode;
+    }
+    return null;
+  },
+  render: {
+    rich: () => {},
+    markdown: () => "",
+    json: () => undefined
+  }
+});
+
+const children = [
+  evalRunCommand,
+  evalReportCommand,
+  evalInitCommand,
+  evalCheckCommand,
+  evalLintCommand
+] as const;
 
 export const evalGroup = defineGroup({
   name: "eval",

@@ -19,6 +19,26 @@ export { getPoeApiKey } from "./sdk/credentials.js";
 export { planDocumentSchema, planDocumentSchemaId } from "./plan/document-schema.js";
 export { ghGroup } from "@poe-code/github-workflows";
 export {
+  evalCheck,
+  evalInit,
+  evalLint,
+  evalGroup,
+  runCheckCli,
+  runInitCli,
+  runLintCli
+} from "@poe-code/agent-eval";
+export type {
+  CheckCliInput,
+  CheckOptions,
+  CheckResult,
+  InitCliInput,
+  InitOptions,
+  InitResult,
+  LintCliInput,
+  LintIssue,
+  LintResult
+} from "@poe-code/agent-eval";
+export {
   followLaunchLogs,
   listLaunches,
   readLaunchLogs,

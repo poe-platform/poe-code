@@ -6,7 +6,12 @@ import { runCLI } from "toolcraft/cli";
 import { evalGroup } from "@poe-code/agent-eval";
 import { ghGroup } from "@poe-code/github-workflows";
 import { superintendentGroup } from "@poe-code/superintendent";
-import { runMaestro, type Logger as MaestroLogger } from "@poe-code/agent-maestro";
+import {
+  runMaestro,
+  runMaestroTick,
+  type Logger as MaestroLogger,
+  type MaestroEvent
+} from "@poe-code/agent-maestro";
 import { runMaestroTui } from "@poe-code/maestro-tui";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
 import { text } from "@poe-code/design-system";
@@ -97,6 +102,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["eval", "check"], args: "[eval-id]" },
   { path: ["eval", "lint"], args: "[eval-id]" },
   { path: ["maestro"], args: "[path]" },
+  { path: ["maestro", "tick"] },
   { path: ["maestro", "tui"] },
   { path: ["plan"], args: "[question]" },
   { path: ["plan", "install"] },
@@ -410,6 +416,13 @@ const maestroCommandSchema = S.Object({
 
 type MaestroCommandArgs = Static<typeof maestroCommandSchema>;
 
+interface MaestroTickCommandArgs {
+  task: string;
+  transition: string;
+  list?: string;
+  config?: string;
+}
+
 function parseOptionalPositiveInteger(value: string, optionName: string): number {
   const parsed = Number.parseInt(value, 10);
   if (!Number.isFinite(parsed) || parsed < 1 || String(parsed) !== value.trim()) {
@@ -455,6 +468,18 @@ function hasCliOptionSource(command: Command, optionName: string): boolean {
   return false;
 }
 
+function readCommandTreeOption<T>(command: Command, optionName: string): T | undefined {
+  let current: Command | null = command;
+  while (current) {
+    const value = current.getOptionValue(optionName);
+    if (value !== undefined) {
+      return value as T;
+    }
+    current = current.parent ?? null;
+  }
+  return undefined;
+}
+
 function assertNoUnsupportedOptionsForMaestroTui(command: Command): void {
   const unsupportedOptionNames = [
     "maxConcurrent",
@@ -468,6 +493,10 @@ function assertNoUnsupportedOptionsForMaestroTui(command: Command): void {
   if (unsupportedOptionNames.some((name) => hasCliOptionSource(command, name))) {
     throw new ValidationError("`poe-code maestro tui` only accepts --workflow.");
   }
+}
+
+function writeMaestroEventNdjson(event: MaestroEvent): void {
+  process.stdout.write(`${JSON.stringify(event)}\n`);
 }
 
 function registerMaestroCommand(program: Command, container: CliContainer): void {
@@ -536,6 +565,26 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
       assertNoUnsupportedOptionsForMaestroTui(command);
     }
   });
+
+  maestro
+    .command("tick")
+    .description("Emit one Maestro tick event for an external trigger.")
+    .requiredOption("--task <qualifiedId>", "Qualified task id")
+    .requiredOption("--transition <fromState:toState>", "Transition edge")
+    .option(
+      "--list <name>",
+      maestroCommandSchema.shape.list.inner.description ?? "Override agent.list"
+    )
+    .option("--config <path>", "Path to WORKFLOW.md")
+    .action(async (options: MaestroTickCommandArgs, command: Command) => {
+      await runMaestroTick({
+        task: options.task,
+        transition: options.transition,
+        list: options.list ?? readCommandTreeOption<string>(command, "list"),
+        configPath: options.config,
+        onEvent: writeMaestroEventNdjson
+      });
+    });
 
   maestro
     .command("tui")

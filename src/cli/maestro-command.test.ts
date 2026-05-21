@@ -4,10 +4,12 @@ import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../utils/file-system.js";
 
 const runMaestroMock = vi.hoisted(() => vi.fn());
+const runMaestroTickMock = vi.hoisted(() => vi.fn());
 const runMaestroTuiMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/agent-maestro", () => ({
-  runMaestro: runMaestroMock
+  runMaestro: runMaestroMock,
+  runMaestroTick: runMaestroTickMock
 }));
 
 vi.mock("@poe-code/maestro-tui", () => ({
@@ -27,11 +29,13 @@ describe("maestro command", () => {
 
   afterEach(() => {
     runMaestroMock.mockReset();
+    runMaestroTickMock.mockReset();
     runMaestroTuiMock.mockReset();
   });
 
   function createTestProgram() {
     runMaestroMock.mockResolvedValue(async () => undefined);
+    runMaestroTickMock.mockResolvedValue(undefined);
     runMaestroTuiMock.mockResolvedValue(undefined);
     return createProgram({
       fs: createMemFs(homeDir),
@@ -138,6 +142,94 @@ describe("maestro command", () => {
     const tuiCommand = maestroCommand?.commands.find((command) => command.name() === "tui");
 
     expect(tuiCommand?.description()).toBe("Open the Maestro interactive task explorer.");
+  });
+
+  it("registers tick as a maestro subcommand", () => {
+    const program = createTestProgram();
+
+    const maestroCommand = program.commands.find((command) => command.name() === "maestro");
+    const tickCommand = maestroCommand?.commands.find((command) => command.name() === "tick");
+
+    expect(tickCommand?.description()).toBe("Emit one Maestro tick event for an external trigger.");
+  });
+
+  it("runs maestro tick and writes emitted events as NDJSON", async () => {
+    const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const program = createTestProgram();
+    runMaestroTickMock.mockImplementation(async (options) => {
+      options.onEvent({ type: "tick_started", at: "2026-01-01T00:00:00.000Z" });
+    });
+
+    try {
+      await program.parseAsync([
+        "node",
+        "cli",
+        "maestro",
+        "tick",
+        "--task",
+        "maestro/one",
+        "--transition",
+        "queued:agent-running",
+        "--list",
+        "maestro",
+        "--config",
+        "custom/WORKFLOW.md"
+      ]);
+
+      expect(runMaestroTickMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          task: "maestro/one",
+          transition: "queued:agent-running",
+          list: "maestro",
+          configPath: "custom/WORKFLOW.md"
+        })
+      );
+      expect(stdout).toHaveBeenCalledWith(
+        `${JSON.stringify({ type: "tick_started", at: "2026-01-01T00:00:00.000Z" })}\n`
+      );
+    } finally {
+      stdout.mockRestore();
+    }
+
+    expect(runMaestroMock).not.toHaveBeenCalled();
+    expect(runMaestroTuiMock).not.toHaveBeenCalled();
+  });
+
+  it("forwards parent --list to maestro tick when tick --list is omitted", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "maestro",
+      "--list",
+      "backlog",
+      "tick",
+      "--task",
+      "maestro/one",
+      "--transition",
+      "queued:agent-running"
+    ]);
+
+    expect(runMaestroTickMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        task: "maestro/one",
+        transition: "queued:agent-running",
+        list: "backlog"
+      })
+    );
+    expect(runMaestroMock).not.toHaveBeenCalled();
+    expect(runMaestroTuiMock).not.toHaveBeenCalled();
+  });
+
+  it("requires task and transition for maestro tick", async () => {
+    const program = createTestProgram();
+
+    await expect(program.parseAsync(["node", "cli", "maestro", "tick"])).rejects.toMatchObject({
+      exitCode: 1,
+      code: "commander.missingMandatoryOptionValue"
+    });
+    expect(runMaestroTickMock).not.toHaveBeenCalled();
   });
 
   it("opens the Maestro TUI with --workflow forwarded as workflowPath", async () => {

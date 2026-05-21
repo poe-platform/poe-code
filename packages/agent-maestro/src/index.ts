@@ -489,6 +489,7 @@ export {
   type DispatchValidationResult
 } from "./config/validate.js";
 export { renderStepPrompt, renderTaskPrompt } from "./prompt/render.js";
+export { runMaestroTick, type RunMaestroTickOptions } from "./tick-command.js";
 export {
   runAttempt,
   type AttemptDeps,

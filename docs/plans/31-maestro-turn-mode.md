@@ -41,8 +41,8 @@ tasks:
       backend. Cover: unknown task id, invalid transition, valid
       transition produces expected event, exits cleanly.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: dispatch-on-queued-transition

@@ -1,4 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { executeConfigure } from "./configure.js";
 import { createCliContainer } from "../container.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
@@ -13,6 +15,7 @@ import { PROVIDER_NAME } from "../constants.js";
 const cwd = "/repo";
 const homeDir = "/home/test";
 const configPath = resolveConfigPath(homeDir);
+const fixtureDir = path.join(import.meta.dirname, "__fixtures__");
 
 function createContainer(fs: FileSystem, envVars: Record<string, string | undefined> = {}) {
   return createCliContainer({
@@ -35,14 +38,38 @@ function createFakeProvider(id: string, label: string): AuthProvider {
       storageKey: `provider:${id}`,
       prompt: { title: `${label} API key` }
     },
-    supportsAgents: ["claude-code", "codex"]
+    supportsAgents: ["claude-code", "codex"],
+    apiShapes: [
+      {
+        id: "anthropic-messages",
+        defaultBaseUrl: `https://api.${id}.example.com/anthropic`
+      },
+      {
+        id: "openai-responses",
+        defaultBaseUrl: `https://api.${id}.example.com/responses`
+      }
+    ]
   };
+}
+
+function includeFakeProvider(
+  container: ReturnType<typeof createContainer>,
+  fakeProvider: AuthProvider
+): void {
+  const originalGet = container.providerRegistry.get.bind(container.providerRegistry);
+  vi.spyOn(container.providerRegistry, "get").mockImplementation((id) =>
+    id === fakeProvider.id ? fakeProvider : originalGet(id)
+  );
 }
 
 function mockOptions(container: ReturnType<typeof createContainer>) {
   vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-  vi.spyOn(container.options, "resolveModel").mockImplementation(async ({ defaultValue }) => defaultValue);
-  vi.spyOn(container.options, "resolveReasoning").mockImplementation(async ({ defaultValue }) => defaultValue);
+  vi.spyOn(container.options, "resolveModel").mockImplementation(
+    async ({ defaultValue }) => defaultValue
+  );
+  vi.spyOn(container.options, "resolveReasoning").mockImplementation(
+    async ({ defaultValue }) => defaultValue
+  );
 }
 
 function stubInvoke(container: ReturnType<typeof createContainer>) {
@@ -78,12 +105,7 @@ describe("configure provider resolution", () => {
     mockOptions(container);
     stubInvoke(container);
 
-    await executeConfigure(
-      createTestProgram(["node", "cli", "--yes"]),
-      container,
-      "codex",
-      {}
-    );
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {});
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services.codex?.provider).toBe(PROVIDER_NAME);
@@ -98,6 +120,7 @@ describe("configure provider resolution", () => {
       env: { cwd, homeDir, variables: {} },
       logger: () => {}
     });
+    includeFakeProvider(container, fakeAnthropicProvider);
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
       ...container.providerRegistry.forAgent(claudeCodeAgent),
@@ -110,29 +133,21 @@ describe("configure provider resolution", () => {
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]?.provider).toBe("anthropic");
-    expect(promptsMock).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "serviceSelection" })
-    );
+    expect(promptsMock).toHaveBeenCalledWith(expect.objectContaining({ name: "serviceSelection" }));
   });
 
   it("triggers login when the only candidate is not logged in", async () => {
     const container = createContainer(fs);
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
-    const loginSpy = vi
-      .spyOn(container.providerRegistry, "login")
-      .mockResolvedValue();
+    const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
     stubInvoke(container);
 
     await executeConfigure(createTestProgram(), container, "claude-code", {
       apiKey: "sk-fresh"
     });
 
-    expect(loginSpy).toHaveBeenCalledWith(
-      "poe",
-      { apiKey: "sk-fresh" },
-      expect.any(Object)
-    );
+    expect(loginSpy).toHaveBeenCalledWith("poe", { apiKey: "sk-fresh" }, expect.any(Object));
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
   });
@@ -142,7 +157,9 @@ describe("configure provider resolution", () => {
     const resolveApiKeySpy = vi
       .spyOn(container.options, "resolveApiKey")
       .mockResolvedValue("sk-oauth");
-    vi.spyOn(container.options, "resolveModel").mockImplementation(async ({ defaultValue }) => defaultValue);
+    vi.spyOn(container.options, "resolveModel").mockImplementation(
+      async ({ defaultValue }) => defaultValue
+    );
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
     stubInvoke(container);
 
@@ -165,27 +182,20 @@ describe("configure provider resolution", () => {
       env: { cwd, homeDir, variables: {} },
       logger: () => {}
     });
+    includeFakeProvider(container, fakeAnthropicProvider);
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
       ...container.providerRegistry.forAgent(claudeCodeAgent),
       fakeAnthropicProvider
     ]);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
-    const loginSpy = vi
-      .spyOn(container.providerRegistry, "login")
-      .mockResolvedValue();
+    const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
     stubInvoke(container);
 
     await executeConfigure(createTestProgram(), container, "claude-code", {});
 
-    expect(promptsMock).toHaveBeenCalledWith(
-      expect.objectContaining({ name: "serviceSelection" })
-    );
-    expect(loginSpy).toHaveBeenCalledWith(
-      "anthropic",
-      { apiKey: undefined },
-      expect.any(Object)
-    );
+    expect(promptsMock).toHaveBeenCalledWith(expect.objectContaining({ name: "serviceSelection" }));
+    expect(loginSpy).toHaveBeenCalledWith("anthropic", { apiKey: undefined }, expect.any(Object));
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]?.provider).toBe("anthropic");
   });
@@ -197,27 +207,21 @@ describe("configure provider resolution", () => {
     stubInvoke(container);
 
     await expect(
-      executeConfigure(
-        createTestProgram(["node", "cli", "--yes"]),
-        container,
-        "claude-code",
-        {}
-      )
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {})
     ).rejects.toThrow(/No logged-in providers/);
   });
 
   it("triggers login for --provider when it is not logged in", async () => {
     const fakeAnthropicProvider = createFakeProvider("anthropic", "Anthropic");
     const container = createContainer(fs);
+    includeFakeProvider(container, fakeAnthropicProvider);
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
       ...container.providerRegistry.forAgent(claudeCodeAgent),
       fakeAnthropicProvider
     ]);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
-    const loginSpy = vi
-      .spyOn(container.providerRegistry, "login")
-      .mockResolvedValue();
+    const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
     stubInvoke(container);
 
     await executeConfigure(createTestProgram(), container, "claude-code", {
@@ -225,11 +229,7 @@ describe("configure provider resolution", () => {
       apiKey: "sk-fresh"
     });
 
-    expect(loginSpy).toHaveBeenCalledWith(
-      "anthropic",
-      { apiKey: "sk-fresh" },
-      expect.any(Object)
-    );
+    expect(loginSpy).toHaveBeenCalledWith("anthropic", { apiKey: "sk-fresh" }, expect.any(Object));
   });
 
   it("dry-run succeeds without any logged-in provider", async () => {
@@ -249,7 +249,9 @@ describe("configure provider resolution", () => {
   });
 
   it("honors the --provider flag", async () => {
+    const fakeAnthropicProvider = createFakeProvider("anthropic", "Anthropic");
     const container = createContainer(fs);
+    includeFakeProvider(container, fakeAnthropicProvider);
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
     stubInvoke(container);
@@ -263,7 +265,9 @@ describe("configure provider resolution", () => {
   });
 
   it("honors the POE_CODE_PROVIDER env var", async () => {
+    const fakeAnthropicProvider = createFakeProvider("anthropic", "Anthropic");
     const container = createContainer(fs, { POE_CODE_PROVIDER: "anthropic" });
+    includeFakeProvider(container, fakeAnthropicProvider);
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
     stubInvoke(container);
@@ -300,12 +304,7 @@ describe("configure provider resolution", () => {
     stubInvoke(container);
 
     await expect(
-      executeConfigure(
-        createTestProgram(["node", "cli", "--yes"]),
-        container,
-        "claude-code",
-        {}
-      )
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {})
     ).rejects.toThrow(/Use --provider/);
   });
 
@@ -324,30 +323,43 @@ describe("configure provider resolution", () => {
     });
   });
 
-  it("--skip-if-configured exits before writes when configure would only create a backup", async () => {
-    const container = createContainer(fs, { POE_API_KEY: "sk-env" });
+  it("keeps the claude-code Poe configure snapshot byte-identical with only POE_API_KEY", async () => {
+    const container = createContainer(fs, { POE_API_KEY: "sk-test" });
     mockOptions(container);
 
     await executeConfigure(
       createTestProgram(["node", "cli", "--yes"]),
       container,
-      "codex",
-      { provider: "poe" }
+      "claude-code",
+      {}
     );
+
+    const actual = await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8");
+    const expected = await readFile(
+      path.join(fixtureDir, "plan14-pre-phase4-claude-settings.json"),
+      "utf8"
+    );
+    expect(actual).toBe(expected);
+  });
+
+  it("--skip-if-configured exits before writes when configure would only create a backup", async () => {
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" });
+    mockOptions(container);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "poe"
+    });
 
     const configFile = `${homeDir}/.codex/config.toml`;
     const before = await fs.readFile(configFile, "utf8");
     const writeSpy = vi.spyOn(fs, "writeFile");
 
-    await executeConfigure(
-      createTestProgram(["node", "cli", "--yes"]),
-      container,
-      "codex",
-      { provider: "poe", skipIfConfigured: true }
-    );
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "poe",
+      skipIfConfigured: true
+    });
 
     expect(writeSpy).not.toHaveBeenCalled();
     await expect(fs.readFile(configFile, "utf8")).resolves.toBe(before);
   });
-
 });

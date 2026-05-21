@@ -270,7 +270,7 @@ export const gooseService = createProvider<
   async extendConfigurePayload(context) {
     const { provider } = context.payload as GooseConfigureContext;
     const modelContextLimits = await fetchGooseModelContextLimits({
-      apiBaseUrl: (provider?.baseUrl ?? "") + "/v1",
+      apiBaseUrl: provider?.baseUrl ?? "",
       apiKey: provider?.credential ?? "",
       httpClient: context.httpClient
     });
@@ -293,7 +293,7 @@ export const gooseService = createProvider<
         target: CUSTOM_PROVIDER_FILE,
         value: (ctx) => {
           const { provider, modelContextLimits } = (ctx ?? {}) as unknown as GooseConfigureContext;
-          return buildCustomProvider((provider?.baseUrl ?? "") + "/v1", modelContextLimits);
+          return buildCustomProvider(provider?.baseUrl ?? "", modelContextLimits);
         }
       }),
       configMutation.merge({

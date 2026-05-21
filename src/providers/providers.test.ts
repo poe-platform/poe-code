@@ -167,7 +167,13 @@ describe("claude-code service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
+    provider: {
+      id: PROVIDER_NAME,
+      apiShape: "anthropic-messages",
+      baseUrl: "https://api.poe.com",
+      credential: "sk-test",
+      extraEnv: {}
+    },
     model: CLAUDE_MODEL_SONNET,
     ...overrides
   });
@@ -283,7 +289,13 @@ describe("claude-code service", () => {
 
   it("uses provider.baseUrl override for ANTHROPIC_BASE_URL", async () => {
     await configureClaude({
-      provider: { id: PROVIDER_NAME, baseUrl: "https://proxy.example.com", credential: "sk-test", extraEnv: {} }
+      provider: {
+        id: PROVIDER_NAME,
+        apiShape: "anthropic-messages",
+        baseUrl: "https://proxy.example.com",
+        credential: "sk-test",
+        extraEnv: {}
+      }
     });
 
     const content = await mockFsObj.readFile(settingsPath, "utf8");
@@ -466,7 +478,13 @@ describe("codex service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
+    provider: {
+      id: PROVIDER_NAME,
+      apiShape: "openai-responses",
+      baseUrl: "https://api.poe.com/v1",
+      credential: "sk-test",
+      extraEnv: {}
+    },
     model: DEFAULT_CODEX_MODEL,
     reasoningEffort: DEFAULT_REASONING,
     ...overrides
@@ -556,7 +574,13 @@ describe("codex service", () => {
 
   it("uses provider.baseUrl when writing base_url", async () => {
     await configureCodex({
-      provider: { id: PROVIDER_NAME, baseUrl: "https://proxy.example.com", credential: "sk-test", extraEnv: {} }
+      provider: {
+        id: PROVIDER_NAME,
+        apiShape: "openai-responses",
+        baseUrl: "https://proxy.example.com/v1",
+        credential: "sk-test",
+        extraEnv: {}
+      }
     });
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
@@ -895,7 +919,13 @@ describe("kimi service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
+    provider: {
+      id: PROVIDER_NAME,
+      apiShape: "openai-chat-completions",
+      baseUrl: "https://api.poe.com/v1",
+      credential: "sk-test",
+      extraEnv: {}
+    },
     model: DEFAULT_KIMI_MODEL,
     ...overrides
   });
@@ -1232,7 +1262,13 @@ describe("opencode service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-test", extraEnv: {} },
+    provider: {
+      id: PROVIDER_NAME,
+      apiShape: "openai-chat-completions",
+      baseUrl: "https://api.poe.com/v1",
+      credential: "sk-test",
+      extraEnv: {}
+    },
     model: DEFAULT_FRONTIER_MODEL,
     ...overrides
   });
@@ -1585,7 +1621,13 @@ describe("goose service", () => {
 
   const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
     env,
-    provider: { id: PROVIDER_NAME, baseUrl: "https://api.poe.com", credential: "sk-goose", extraEnv: {} },
+    provider: {
+      id: PROVIDER_NAME,
+      apiShape: "openai-chat-completions",
+      baseUrl: "https://api.poe.com/v1",
+      credential: "sk-goose",
+      extraEnv: {}
+    },
     model: DEFAULT_GOOSE_MODEL,
     modelContextLimits: buildGooseModelContextLimitsFixture(),
     ...overrides
@@ -1653,7 +1695,13 @@ describe("goose service", () => {
 
   it("uses provider.baseUrl when building the custom provider config", async () => {
     await configureGoose({
-      provider: { id: PROVIDER_NAME, baseUrl: "https://proxy.example.test/gateway", credential: "sk-goose", extraEnv: {} }
+      provider: {
+        id: PROVIDER_NAME,
+        apiShape: "openai-chat-completions",
+        baseUrl: "https://proxy.example.test/gateway/v1",
+        credential: "sk-goose",
+        extraEnv: {}
+      }
     });
 
     const provider = JSON.parse(await mockFsObj.readFile(providerPath, "utf8")) as Record<
@@ -1780,7 +1828,12 @@ describe("goose service", () => {
     await mockFsObj.mkdir(path.dirname(providerPath), { recursive: true });
     await mockFsObj.writeFile(
       configPath,
-      ["GOOSE_PROVIDER: openai", "GOOSE_MODEL: openai/gpt-5.4", "GOOSE_DISABLE_KEYRING: true", "theme: dark"].join("\n"),
+      [
+        "GOOSE_PROVIDER: openai",
+        "GOOSE_MODEL: openai/gpt-5.4",
+        "GOOSE_DISABLE_KEYRING: true",
+        "theme: dark"
+      ].join("\n"),
       { encoding: "utf8" }
     );
     await mockFsObj.writeFile(
@@ -1833,19 +1886,23 @@ describe("goose service", () => {
       args: ["--session", "resume-1"]
     });
 
-    expect(runCommand).toHaveBeenCalledWith("goose", [
-      "run",
-      "--provider",
-      "custom_poe",
-      "--model",
-      DEFAULT_GOOSE_MODEL,
-      "--output-format",
-      "text",
-      "--text",
-      "List files",
-      "--session",
-      "resume-1"
-    ], { env: { GOOSE_DISABLE_KEYRING: "1" } });
+    expect(runCommand).toHaveBeenCalledWith(
+      "goose",
+      [
+        "run",
+        "--provider",
+        "custom_poe",
+        "--model",
+        DEFAULT_GOOSE_MODEL,
+        "--output-format",
+        "text",
+        "--text",
+        "List files",
+        "--session",
+        "resume-1"
+      ],
+      { env: { GOOSE_DISABLE_KEYRING: "1" } }
+    );
     expect(result).toEqual({
       stdout: "goose-output\n",
       stderr: "",
@@ -1904,19 +1961,23 @@ describe("goose service", () => {
       }
     });
 
-    expect(runCommand).toHaveBeenCalledWith("goose", [
-      "run",
-      "--provider",
-      "custom_poe",
-      "--model",
-      DEFAULT_GOOSE_MODEL,
-      "--output-format",
-      "text",
-      "--with-extension",
-      "my-mcp-server serve",
-      "--text",
-      "Call the tool"
-    ], { env: { GOOSE_DISABLE_KEYRING: "1" } });
+    expect(runCommand).toHaveBeenCalledWith(
+      "goose",
+      [
+        "run",
+        "--provider",
+        "custom_poe",
+        "--model",
+        DEFAULT_GOOSE_MODEL,
+        "--output-format",
+        "text",
+        "--with-extension",
+        "my-mcp-server serve",
+        "--text",
+        "Call the tool"
+      ],
+      { env: { GOOSE_DISABLE_KEYRING: "1" } }
+    );
   });
 
   it("spawns Goose in edit mode with GOOSE_MODE env var", async () => {
@@ -1991,13 +2052,7 @@ describe("goose service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "goose",
-      [
-        "run",
-        "--text",
-        "Reply with exactly: GOOSE_OK",
-        "--output-format",
-        "text"
-      ],
+      ["run", "--text", "Reply with exactly: GOOSE_OK", "--output-format", "text"],
       { env: { GOOSE_DISABLE_KEYRING: "1" } }
     );
   });
@@ -2208,13 +2263,13 @@ describe("poe-agent provider", () => {
               plugins: [
                 { name: "system-prompt" },
                 { name: "memory" },
-                { name: "policy", options: { mode: "read" } },
-              ],
-            },
+                { name: "policy", options: { mode: "read" } }
+              ]
+            }
           },
           null,
           2
-        )}\n`,
+        )}\n`
       },
       homeDir
     );
@@ -2225,7 +2280,7 @@ describe("poe-agent provider", () => {
       homeDir,
       configPath: `${homeDir}/.poe-code/config.json`,
       projectConfigPath: "/workspace/project/.poe-code/config.json",
-      fs,
+      fs
     });
     await done;
 
@@ -2235,8 +2290,8 @@ describe("poe-agent provider", () => {
       pluginsConfig: [
         { name: "system-prompt" },
         { name: "memory" },
-        { name: "policy", options: { mode: "read" } },
-      ],
+        { name: "policy", options: { mode: "read" } }
+      ]
     });
   });
 

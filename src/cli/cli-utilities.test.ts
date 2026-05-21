@@ -18,10 +18,7 @@ import { listIsolatedServiceIds } from "./commands/shared.js";
 import type { FileSystem } from "../utils/file-system.js";
 import { createHomeFs, storeTestApiKey } from "../../tests/test-helpers.js";
 import { createProviderStub } from "../../tests/provider-stub.js";
-import {
-  resolveConfigPath,
-  resolveProjectConfigPath
-} from "@poe-code/poe-code-config";
+import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import { createCliEnvironment, resolveSpawnLogDir } from "./environment.js";
 
 const cwd = "/repo";
@@ -61,12 +58,9 @@ describe("deriveWrapBinaryAliases", () => {
   });
 
   it("rejects duplicate derived names", () => {
-    expect(() =>
-      deriveWrapBinaryAliases([
-        provider("a", "codex"),
-        provider("b", "codex")
-      ])
-    ).toThrow(/Duplicate wrapper binary name/);
+    expect(() => deriveWrapBinaryAliases([provider("a", "codex"), provider("b", "codex")])).toThrow(
+      /Duplicate wrapper binary name/
+    );
   });
 });
 
@@ -85,9 +79,7 @@ describe("parseMcpOutputFormatPreferences", () => {
   });
 
   it("rejects markdown when combined with base64", () => {
-    expect(() =>
-      parseMcpOutputFormatPreferences("base64,markdown")
-    ).toThrowError(
+    expect(() => parseMcpOutputFormatPreferences("base64,markdown")).toThrowError(
       new ValidationError(
         "markdown output format cannot be combined with other formats. Use markdown alone or choose a different format combination."
       )
@@ -101,9 +93,7 @@ describe("parseMcpOutputFormatPreferences", () => {
   });
 
   it("rejects markdown_instructions when combined with other formats", () => {
-    expect(() =>
-      parseMcpOutputFormatPreferences("markdown_instructions,url")
-    ).toThrowError(
+    expect(() => parseMcpOutputFormatPreferences("markdown_instructions,url")).toThrowError(
       new ValidationError(
         "markdown_instructions output format cannot be combined with other formats. Use markdown_instructions alone or choose a different format combination."
       )
@@ -242,9 +232,7 @@ describe("--verbose flag logging behavior", () => {
 
     logger.info("Configured Claude Code.");
 
-    expect(emitter).toHaveBeenCalledWith(
-      "[configure:claude-code] Configured Claude Code."
-    );
+    expect(emitter).toHaveBeenCalledWith("[configure:claude-code] Configured Claude Code.");
   });
 });
 
@@ -350,7 +338,7 @@ describe("poe-code command runner", () => {
     const settingsJson = JSON.parse(callArgs[settingsIdx + 1]);
     expect(settingsJson).toEqual({
       apiKeyHelper: "echo $POE_CODE_API_KEY",
-      env: { ANTHROPIC_BASE_URL: "https://api.poe.com" }
+      env: { ANTHROPIC_BASE_URL: "https://api.poe.com/anthropic" }
     });
 
     expect(result).toEqual({ stdout: "OK\n", stderr: "", exitCode: 0 });
@@ -386,12 +374,7 @@ describe("poe-code command runner", () => {
 
     await storeTestApiKey(fs, homeDir, "sk-test");
 
-    const result = await container.commandRunner("poe-code", [
-      "wrap",
-      "goose",
-      "run",
-      "--help"
-    ]);
+    const result = await container.commandRunner("poe-code", ["wrap", "goose", "run", "--help"]);
 
     expect(baseRunner).toHaveBeenCalledWith(
       "goose",
@@ -403,9 +386,9 @@ describe("poe-code command runner", () => {
         })
       })
     );
-    expect((baseRunner.mock.calls[0]?.[2] as { env: Record<string, string> }).env.POE_CODE_API_KEY).toBe(
-      undefined
-    );
+    expect(
+      (baseRunner.mock.calls[0]?.[2] as { env: Record<string, string> }).env.POE_CODE_API_KEY
+    ).toBe(undefined);
 
     const secrets = parseYaml(
       await fs.readFile("/home/test/.poe-code/goose/.config/goose/secrets.yaml", "utf8")

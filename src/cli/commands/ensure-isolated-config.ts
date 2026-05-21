@@ -5,6 +5,7 @@ import {
   createExecutionResources,
   applyIsolatedConfiguration,
   resolveActiveProviderForService,
+  resolveAgentDefinition,
   type CommandFlags
 } from "./shared.js";
 import {
@@ -116,7 +117,11 @@ async function resolveIsolatedServiceProvider(
   if (metadata?.provider) {
     return metadata.provider;
   }
-  const providers = container.providerRegistry.list();
+  const agent = resolveAgentDefinition(serviceName);
+  if (!agent) {
+    return undefined;
+  }
+  const providers = container.providerRegistry.forAgent(agent);
   if (providers.length === 1) {
     return providers[0]!.id;
   }

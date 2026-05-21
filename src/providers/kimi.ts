@@ -117,7 +117,7 @@ export const kimiService = createProvider<
             providers: {
               [PROVIDER_NAME]: {
                 type: "openai_legacy",
-                base_url: (provider?.baseUrl ?? "") + "/v1",
+                base_url: provider?.baseUrl ?? "",
                 api_key: provider?.credential ?? ""
               }
             }

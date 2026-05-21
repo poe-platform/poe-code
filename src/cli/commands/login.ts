@@ -4,6 +4,7 @@ import {
   buildProviderContext,
   buildActiveProvider,
   createExecutionResources,
+  resolveAgentDefinition,
   resolveCommandFlags,
   applyIsolatedConfiguration
 } from "./shared.js";
@@ -106,9 +107,19 @@ async function reconfigureServices(input: ReconfigureServicesInput): Promise<voi
     );
     const providerContext = buildProviderContext(container, adapter, resources);
 
+    const provider = container.providerRegistry.get(POE_PROVIDER_ID);
+    if (!provider) {
+      continue;
+    }
+
     const payload = {
       env: container.env,
-      provider: buildActiveProvider(POE_PROVIDER_ID, container.providerRegistry.get(POE_PROVIDER_ID)!.baseUrl, apiKey)
+      provider: await buildActiveProvider({
+        container,
+        provider,
+        agent: resolveAgentDefinition(serviceName) ?? { id: serviceName },
+        credential: apiKey
+      })
     };
 
     const mutationLogger = createMutationReporter(resources.logger);

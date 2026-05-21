@@ -1,0 +1,7 @@
+{
+  "apiKeyHelper": "echo sk-test",
+  "env": {
+    "ANTHROPIC_BASE_URL": "https://api.poe.com/anthropic"
+  },
+  "model": "claude-sonnet-4-6"
+}

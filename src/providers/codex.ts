@@ -201,7 +201,7 @@ export const codexService = createProvider<
           const model = options.model ?? DEFAULT_CODEX_MODEL;
           return {
             apiKey: options.provider?.credential,
-            baseUrl: (options.provider?.baseUrl ?? "") + "/v1",
+            baseUrl: options.provider?.baseUrl ?? "",
             model: stripModelNamespace(model),
             reasoningEffort: options.reasoningEffort,
             profileName: deriveCodexProfileName(model)

@@ -7,15 +7,8 @@ import {
   type ConfigDocument
 } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
-import type {
-  ProviderService,
-  ProviderContext,
-  ProviderIsolatedEnv
-} from "../service-registry.js";
-import {
-  createLoggingCommandRunner,
-  type CommandContext
-} from "../context.js";
+import type { ProviderService, ProviderContext, ProviderIsolatedEnv } from "../service-registry.js";
+import { createLoggingCommandRunner, type CommandContext } from "../context.js";
 import type { ScopedLogger } from "../logger.js";
 import type { CommandCheck } from "../../utils/command-checks.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
@@ -30,7 +23,7 @@ import {
   type AgentDefinition
 } from "@poe-code/agent-defs";
 import { knownConfigScopes, loadConfiguredServices } from "../../services/config.js";
-import type { AuthProvider } from "@poe-code/providers";
+import { resolveApiShape, type ApiShapeId, type AuthProvider } from "@poe-code/providers";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 
 export interface CommandFlags {
@@ -41,17 +34,39 @@ export interface CommandFlags {
 
 export interface ActiveProvider {
   id: string;
+  apiShape: ApiShapeId;
   baseUrl: string;
   credential: string;
   extraEnv: Record<string, string>;
 }
 
-export function buildActiveProvider(
-  id: string,
-  baseUrl: string,
-  credential: string
-): ActiveProvider {
-  return { id, baseUrl, credential, extraEnv: {} };
+export async function buildActiveProvider(input: {
+  container: CliContainer;
+  provider: AuthProvider;
+  agent: Pick<AgentDefinition, "id" | "apiShapes">;
+  credential: string;
+}): Promise<ActiveProvider> {
+  const apiShape = resolveApiShape(input.provider, input.agent);
+  if (!apiShape) {
+    throw new Error(`Provider "${input.provider.id}" cannot configure agent "${input.agent.id}".`);
+  }
+
+  const shape = input.provider.apiShapes?.find((candidate) => candidate.id === apiShape);
+  if (!shape) {
+    throw new Error(
+      `Provider "${input.provider.id}" does not declare base URL for API shape "${apiShape}".`
+    );
+  }
+
+  return {
+    id: input.provider.id,
+    apiShape,
+    baseUrl:
+      (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape)) ??
+      shape.defaultBaseUrl,
+    credential: input.credential,
+    extraEnv: {}
+  };
 }
 
 export async function resolveActiveProviderForService(
@@ -63,10 +78,11 @@ export async function resolveActiveProviderForService(
     filePath: container.env.configPath,
     projectFilePath: container.env.projectConfigPath
   });
+  const agent = resolveAgentDefinition(serviceName) ?? { id: serviceName };
   const configuredProviderId = configuredServices[serviceName]?.provider;
   const provider = configuredProviderId
     ? container.providerRegistry.get(configuredProviderId)
-    : resolveSingleProviderCandidate(container, serviceName);
+    : resolveSingleProviderCandidate(container, agent);
   if (!provider || provider.auth.kind !== "api-key") {
     return undefined;
   }
@@ -80,19 +96,53 @@ export async function resolveActiveProviderForService(
     return undefined;
   }
 
-  return buildActiveProvider(provider.id, provider.baseUrl, credential);
+  return buildActiveProvider({
+    container,
+    provider,
+    agent,
+    credential
+  });
 }
 
 function resolveSingleProviderCandidate(
   container: CliContainer,
-  serviceName: string
+  agent: Pick<AgentDefinition, "id" | "apiShapes">
 ): AuthProvider | undefined {
-  const agent = resolveAgentDefinition(serviceName) ?? { id: serviceName };
   const candidates = container.providerRegistry.forAgent(agent);
   if (candidates.length === 1) {
     return candidates[0];
   }
   return undefined;
+}
+
+async function resolveStoredShapeBaseUrl(
+  container: CliContainer,
+  providerId: string,
+  apiShape: ApiShapeId
+): Promise<string | undefined> {
+  const document = await readMergedDocument(
+    container.fs,
+    container.env.configPath,
+    container.env.projectConfigPath
+  );
+  const providers = document.providers;
+  if (!isRecord(providers)) {
+    return undefined;
+  }
+  const providerConfig = providers[providerId];
+  if (!isRecord(providerConfig)) {
+    return undefined;
+  }
+  const shapeBaseUrls = providerConfig.shapeBaseUrls;
+  if (!isRecord(shapeBaseUrls)) {
+    return undefined;
+  }
+  const value = shapeBaseUrls[apiShape];
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 export function resolveAgentDefinition(serviceName: string): AgentDefinition | undefined {
@@ -154,9 +204,7 @@ export function buildProviderContext(
   };
 }
 
-function createCheckRunner(
-  resources: ExecutionResources
-): (check: CommandCheck) => Promise<void> {
+function createCheckRunner(resources: ExecutionResources): (check: CommandCheck) => Promise<void> {
   return async (check) => {
     await check.run({
       isDryRun: resources.logger.context.dryRun,
@@ -168,15 +216,11 @@ function createCheckRunner(
 
 export function listIsolatedServiceIds(container: CliContainer): string[] {
   return listServiceNames(
-    container.registry
-      .list()
-      .filter((provider) => Boolean(provider.isolatedEnv))
+    container.registry.list().filter((provider) => Boolean(provider.isolatedEnv))
   );
 }
 
-export function listServiceNames(
-  services: Array<{ name: string; aliases?: string[] }>
-): string[] {
+export function listServiceNames(services: Array<{ name: string; aliases?: string[] }>): string[] {
   const names: string[] = [];
 
   const add = (value: string | undefined): void => {
@@ -197,10 +241,7 @@ export function listServiceNames(
   return names;
 }
 
-export function resolveServiceAdapter(
-  container: CliContainer,
-  service: string
-): ProviderService {
+export function resolveServiceAdapter(container: CliContainer, service: string): ProviderService {
   const adapter = container.registry.get(service);
   if (!adapter) {
     throw new Error(`Unknown agent "${service}".`);
@@ -254,9 +295,7 @@ export function buildResumeCommand(
   const args = composer(threadId, resumeCwd);
   const agentCommand = [binaryName, ...args.map(shlexQuote)].join(" ");
   const needsCdPrefix = !args.includes(resumeCwd);
-  return needsCdPrefix
-    ? `cd ${shlexQuote(resumeCwd)} && ${agentCommand}`
-    : agentCommand;
+  return needsCdPrefix ? `cd ${shlexQuote(resumeCwd)} && ${agentCommand}` : agentCommand;
 }
 
 export async function applyIsolatedConfiguration(input: {
@@ -287,9 +326,7 @@ export async function applyIsolatedConfiguration(input: {
   );
 }
 
-export async function resolveMergedDocument(
-  container: CliContainer
-): Promise<ConfigDocument> {
+export async function resolveMergedDocument(container: CliContainer): Promise<ConfigDocument> {
   const mergedDocument = await readMergedDocument(
     container.fs,
     container.env.configPath,
@@ -299,9 +336,7 @@ export async function resolveMergedDocument(
   return deepMergeDocuments(mergedDocument, envOverrides.document);
 }
 
-export async function resolveDefaultAgent(
-  container: CliContainer
-): Promise<string | null> {
+export async function resolveDefaultAgent(container: CliContainer): Promise<string | null> {
   const document = await resolveMergedDocument(container);
   const value = typeof document.core?.defaultAgent === "string" ? document.core.defaultAgent : "";
   const trimmed = value.trim();

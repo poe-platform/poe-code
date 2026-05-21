@@ -104,7 +104,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: shape-scoped-baseurl
     title: Resolve baseUrl per shape on ActiveProvider
@@ -118,8 +118,8 @@ tasks:
 
       Backwards-compat invariant: snapshot of `~/.claude/settings.json` from `configure claude-code --yes` with only `POE_API_KEY` set must be byte-identical to the pre-change snapshot. Add a regression snapshot test that asserts this against the fixture from plan 14's `[pre-phase 4]` capture.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: shape-base-url-login-flag

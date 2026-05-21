@@ -18,6 +18,7 @@ const baseIsolated = {
 
 const testProvider: ActiveProvider = {
   id: "test-provider",
+  apiShape: "openai-responses",
   baseUrl: "https://test.example.com",
   credential: "test-credential-secret",
   extraEnv: {}
@@ -47,7 +48,6 @@ describe("resolveIsolatedEnvDetails", () => {
       expect(details.env.BASE_URL).toBe("https://test.example.com");
     });
   });
-
 });
 
 describe("resolveCliSettings", () => {
@@ -78,5 +78,4 @@ describe("resolveCliSettings", () => {
       expect(result.baseUrl).toBe("https://test.example.com");
     });
   });
-
 });

@@ -36,17 +36,17 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
     const resources = createExecutionResources(container, defaultFlags, "test");
     const context = buildProviderContext(container, adapter, resources);
 
-    const payload = await createConfigurePayload({
+    const payload = (await createConfigurePayload({
       container,
       flags: defaultFlags,
       options: {},
       context,
       adapter,
       logger: resources.logger,
-      providerId: "test-provider"
-    }) as Record<string, unknown>;
+      providerId: "poe"
+    })) as Record<string, unknown>;
 
-    expect((payload.provider as Record<string, unknown>).id).toBe("test-provider");
+    expect((payload.provider as Record<string, unknown>).id).toBe("poe");
   });
 
   it("sets provider.credential to the resolved API key", async () => {
@@ -57,7 +57,7 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
     const resources = createExecutionResources(container, defaultFlags, "test");
     const context = buildProviderContext(container, adapter, resources);
 
-    const payload = await createConfigurePayload({
+    const payload = (await createConfigurePayload({
       container,
       flags: defaultFlags,
       options: {},
@@ -65,12 +65,12 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
       adapter,
       logger: resources.logger,
       providerId: "poe"
-    }) as Record<string, unknown>;
+    })) as Record<string, unknown>;
 
     expect((payload.provider as Record<string, unknown>).credential).toBe("sk-resolved-key");
   });
 
-  it("sets provider.baseUrl from the provider registry", async () => {
+  it("sets provider.apiShape and baseUrl from the resolved API shape", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
 
@@ -78,7 +78,7 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
     const resources = createExecutionResources(container, defaultFlags, "test");
     const context = buildProviderContext(container, adapter, resources);
 
-    const payload = await createConfigurePayload({
+    const payload = (await createConfigurePayload({
       container,
       flags: defaultFlags,
       options: {},
@@ -86,9 +86,53 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
       adapter,
       logger: resources.logger,
       providerId: "poe"
-    }) as Record<string, unknown>;
+    })) as Record<string, unknown>;
 
-    expect((payload.provider as Record<string, unknown>).baseUrl).toBe(container.providerRegistry.get("poe")!.baseUrl);
+    expect((payload.provider as Record<string, unknown>).apiShape).toBe("anthropic-messages");
+    expect((payload.provider as Record<string, unknown>).baseUrl).toBe(
+      "https://api.poe.com/anthropic"
+    );
+  });
+
+  it("prefers a stored per-shape baseUrl over the provider default", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.configPath,
+      JSON.stringify(
+        {
+          providers: {
+            poe: {
+              shapeBaseUrls: {
+                "anthropic-messages": "https://proxy.example.test/anthropic"
+              }
+            }
+          }
+        },
+        null,
+        2
+      ) + "\n",
+      "utf8"
+    );
+
+    const adapter = container.registry.require("claude-code");
+    const resources = createExecutionResources(container, defaultFlags, "test");
+    const context = buildProviderContext(container, adapter, resources);
+
+    const payload = (await createConfigurePayload({
+      container,
+      flags: defaultFlags,
+      options: {},
+      context,
+      adapter,
+      logger: resources.logger,
+      providerId: "poe"
+    })) as Record<string, unknown>;
+
+    expect((payload.provider as Record<string, unknown>).baseUrl).toBe(
+      "https://proxy.example.test/anthropic"
+    );
   });
 
   it("omits provider auth resolution for providerless services", async () => {
@@ -103,7 +147,7 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
     const resources = createExecutionResources(container, defaultFlags, "test");
     const context = buildProviderContext(container, adapter, resources);
 
-    const payload = await createConfigurePayload({
+    const payload = (await createConfigurePayload({
       container,
       flags: defaultFlags,
       options: {},
@@ -111,7 +155,7 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
       adapter,
       logger: resources.logger,
       providerId: undefined
-    }) as Record<string, unknown>;
+    })) as Record<string, unknown>;
 
     expect(resolveApiKeySpy).not.toHaveBeenCalled();
     expect(payload.provider).toBeUndefined();

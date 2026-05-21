@@ -2,7 +2,12 @@ import { resolveConfigModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
 import type { ProviderContext, ProviderService } from "../service-registry.js";
-import { buildActiveProvider, type ActiveProvider, type CommandFlags } from "./shared.js";
+import {
+  buildActiveProvider,
+  resolveAgentDefinition,
+  type ActiveProvider,
+  type CommandFlags
+} from "./shared.js";
 import type { ConfigureCommandOptions } from "./configure.js";
 
 interface ConfigurePayloadInit {
@@ -15,9 +20,7 @@ interface ConfigurePayloadInit {
   providerId?: string;
 }
 
-export async function createConfigurePayload(
-  init: ConfigurePayloadInit
-): Promise<unknown> {
+export async function createConfigurePayload(init: ConfigurePayloadInit): Promise<unknown> {
   const { container, flags, options, context, adapter, logger, providerId } = init;
   const payload: Record<string, unknown> = { env: context.env };
 
@@ -29,11 +32,16 @@ export async function createConfigurePayload(
       assumeYes: flags.assumeYes
     });
 
-    const activeProvider: ActiveProvider = buildActiveProvider(
-      providerId,
-      container.providerRegistry.get(providerId)?.baseUrl ?? "",
-      apiKey
-    );
+    const provider = container.providerRegistry.get(providerId);
+    if (!provider) {
+      throw new Error(`Unknown provider "${providerId}".`);
+    }
+    const activeProvider: ActiveProvider = await buildActiveProvider({
+      container,
+      provider,
+      agent: resolveAgentDefinition(adapter.name) ?? { id: adapter.name },
+      credential: apiKey
+    });
     payload.provider = activeProvider;
   }
 

@@ -88,7 +88,7 @@ describe("ensureIsolatedConfigForService — provider resolution", () => {
 
   it("skips config creation when no provider can be resolved", async () => {
     const container = createContainer(fs);
-    vi.spyOn(container.providerRegistry, "list").mockReturnValue([]);
+    vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([]);
 
     const adapter = container.registry.require("codex");
     await ensureIsolatedConfigForService({

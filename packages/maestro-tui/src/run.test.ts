@@ -193,8 +193,8 @@ describe("runMaestroTui", () => {
         initial: "planned",
         states: ["planned", "done"],
         events: {
-          planned: { from: "*", to: "planned" },
-          done: { from: "*", to: "done" }
+          planned: { from: [], to: "planned" },
+          done: { from: ["planned"], to: "done" }
         }
       }
     } satisfies OpenTaskListOptions);

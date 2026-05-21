@@ -304,7 +304,7 @@ function createLevelLogger(
 }
 
 async function openConfiguredTaskList(
-  cfg: Pick<ResolvedConfig, "tasks" | "stateOrder">
+  cfg: Pick<ResolvedConfig, "tasks" | "stateOrder" | "terminalStateNames">
 ): Promise<TaskList> {
   return openTaskList(resolveConfiguredTaskListOptions(cfg));
 }

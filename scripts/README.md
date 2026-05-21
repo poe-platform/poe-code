@@ -31,11 +31,19 @@ npm run screenshot-poe-code -- <command> [args...]
 
 ### Interactive / Full-Screen Commands
 
-The screenshot tool captures **piped stdout/stderr** output. Commands that use alternate screen mode (e.g. full-screen TUI dashboards) won't produce visible output because alt-screen writes aren't captured by pipes.
+By default, the screenshot tool captures **piped stdout/stderr** output. For alternate-screen TUIs, set `POE_SCREENSHOT_PTY=1` to run the command in a PTY and freeze the current visible screen.
 
-To screenshot interactive components, render a **static snapshot** to stdout instead of launching the interactive mode. The dashboard component does this via `renderDashboardSnapshot()` which builds a single ScreenBuffer frame and prints it as ANSI text.
+```bash
+POE_SCREENSHOT_PTY=1 POE_SCREENSHOT_TIMEOUT_MS=3000 npm run screenshot-poe-code -- maestro tui --workflow ./WORKFLOW.md
+```
 
-See `packages/design-system/src/dashboard/snapshot.ts` for the pattern.
+To drive a TUI before capture, pass comma-separated key tokens through `POE_SCREENSHOT_KEYS`:
+
+```bash
+POE_SCREENSHOT_PTY=1 POE_SCREENSHOT_KEYS=down*2,shift-up npm run screenshot-poe-code -- maestro tui --workflow ./WORKFLOW.md
+```
+
+Supported key tokens include `up`, `down`, `left`, `right`, `shift-up`, `shift-down`, `tab`, `enter`, `escape`, `space`, `ctrl-p`, `ctrl-k`, `ctrl-f`, and `ctrl-b`. Single printable characters such as `f` are accepted directly. Use `POE_SCREENSHOT_KEY_DELAY_MS` and `POE_SCREENSHOT_KEY_INTERVAL_MS` when the command needs more time before accepting input.
 
 ### Timeout
 
@@ -44,6 +52,12 @@ The tool kills the spawned process after a timeout and saves whatever output was
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `POE_SCREENSHOT_TIMEOUT_MS` | `60000` (60s) | Maximum time to wait for the command to exit |
+| `POE_SCREENSHOT_PTY` | unset | Set to `1` to capture the visible PTY screen instead of piped transcript output |
+| `POE_SCREENSHOT_COLUMNS` | `120` in PTY mode, `80` for TTY emulation | Terminal width for PTY or forced-TTY captures |
+| `POE_SCREENSHOT_ROWS` | `40` in PTY mode, `24` for TTY emulation | Terminal height for PTY or forced-TTY captures |
+| `POE_SCREENSHOT_KEYS` | unset | Comma-separated key tokens to send before capture |
+| `POE_SCREENSHOT_KEY_DELAY_MS` | `250` | Delay before sending the first key |
+| `POE_SCREENSHOT_KEY_INTERVAL_MS` | `75` | Delay between sent keys |
 
 ```bash
 # Short timeout for fast commands

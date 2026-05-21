@@ -11,9 +11,11 @@ import {
   buildScreenshotName,
   buildColorEnv,
   buildSpawnSpec,
+  decodeScreenshotKeys,
   resolveScreenshotTarget,
   resolveScreenshotTimeoutMs,
-  runScreenshot
+  runScreenshot,
+  usePtyScreenshot
 } from "./screenshot.js";
 
 vi.mock("node:child_process", () => ({
@@ -105,6 +107,34 @@ describe("buildColorEnv", () => {
 
   it("preserves an explicit npm loglevel override", () => {
     expect(buildColorEnv({ NPM_CONFIG_LOGLEVEL: "verbose" }).NPM_CONFIG_LOGLEVEL).toBe("verbose");
+  });
+});
+
+describe("decodeScreenshotKeys", () => {
+  it("decodes named keys, repeated keys, and literal characters", () => {
+    expect(decodeScreenshotKeys("down*2,shift-up,f,tab,enter,space")).toEqual([
+      "\u001b[B",
+      "\u001b[B",
+      "\u001b[1;2A",
+      "f",
+      "\t",
+      "\r",
+      " "
+    ]);
+  });
+
+  it("rejects unknown key names", () => {
+    expect(() => decodeScreenshotKeys("missing-key")).toThrow(
+      'Unknown screenshot key token "missing-key".'
+    );
+  });
+});
+
+describe("usePtyScreenshot", () => {
+  it("uses PTY capture only when explicitly requested", () => {
+    expect(usePtyScreenshot({})).toBe(false);
+    expect(usePtyScreenshot({ POE_SCREENSHOT_PTY: "0" })).toBe(false);
+    expect(usePtyScreenshot({ POE_SCREENSHOT_PTY: "1" })).toBe(true);
   });
 });
 

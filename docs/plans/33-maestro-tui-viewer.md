@@ -337,7 +337,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: screenshot-validate-tui
     title: Visual-validate the maestro TUI via screenshots
@@ -372,7 +372,7 @@ tasks:
       4. Fix any visual regressions found, then re-capture. Do not move
          on until screenshots look correct.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

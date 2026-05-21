@@ -170,11 +170,100 @@ export function resolveScreenshotTimeoutMs(env: NodeJS.ProcessEnv): number {
   return Math.floor(parsed);
 }
 
+function resolvePositiveInteger(value: string | undefined, fallback: number): number {
+  if (typeof value !== "string" || value.trim().length === 0) {
+    return fallback;
+  }
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed < 0) {
+    return fallback;
+  }
+  return Math.floor(parsed);
+}
+
 type SpawnSpec = {
   command: string;
   args: string[];
   env: NodeJS.ProcessEnv;
 };
+
+type PseudoTerminalSession = {
+  exitCode: number | null;
+  send(raw: string): Promise<void>;
+  screen(): Promise<{ rawLines: readonly string[] }>;
+  waitForExit(opts?: { timeout?: number }): Promise<number>;
+  close(): Promise<number>;
+};
+
+type PseudoTerminalPilot = {
+  newSession(opts: {
+    command: string;
+    args: string[];
+    cwd: string;
+    env: Record<string, string | undefined>;
+    cols: number;
+    rows: number;
+  }): Promise<PseudoTerminalSession>;
+  close(): Promise<void>;
+};
+
+const screenshotKeyTokens: Record<string, string> = {
+  up: "\u001b[A",
+  down: "\u001b[B",
+  left: "\u001b[D",
+  right: "\u001b[C",
+  "shift-up": "\u001b[1;2A",
+  "shift-down": "\u001b[1;2B",
+  tab: "\t",
+  enter: "\r",
+  return: "\r",
+  escape: "\u001b",
+  esc: "\u001b",
+  space: " ",
+  "ctrl-p": "\u0010",
+  "ctrl-k": "\u000b",
+  "ctrl-f": "\u0006",
+  "ctrl-b": "\u0002"
+};
+
+export function decodeScreenshotKeys(value: string | undefined): string[] {
+  if (value === undefined || value.trim().length === 0) {
+    return [];
+  }
+
+  const keys: string[] = [];
+  for (const token of value.split(",")) {
+    keys.push(...decodeScreenshotKeyToken(token.trim()));
+  }
+  return keys;
+}
+
+export function usePtyScreenshot(env: NodeJS.ProcessEnv): boolean {
+  return env.POE_SCREENSHOT_PTY === "1";
+}
+
+function decodeScreenshotKeyToken(token: string): string[] {
+  if (token.length === 0) {
+    return [];
+  }
+
+  const repeatSeparator = token.lastIndexOf("*");
+  const keyToken = repeatSeparator === -1 ? token : token.slice(0, repeatSeparator);
+  const repeatRaw = repeatSeparator === -1 ? "1" : token.slice(repeatSeparator + 1);
+  const repeat = Number.parseInt(repeatRaw, 10);
+  if (!Number.isInteger(repeat) || repeat < 1) {
+    throw new Error(`Invalid screenshot key repeat "${token}".`);
+  }
+
+  const key =
+    screenshotKeyTokens[keyToken] ??
+    (Array.from(keyToken).length === 1 ? keyToken : undefined);
+  if (key === undefined) {
+    throw new Error(`Unknown screenshot key token "${keyToken}".`);
+  }
+
+  return Array.from({ length: repeat }, () => key);
+}
 
 export function buildColorEnv(
   baseEnv: NodeJS.ProcessEnv
@@ -280,6 +369,7 @@ export async function runScreenshot(
   options: ScreenshotOptions
 ): Promise<void> {
   const target = resolveScreenshotTarget(commandArgs);
+  const screenshotKeys = decodeScreenshotKeys(process.env.POE_SCREENSHOT_KEYS);
   const forceTtyPath = fileURLToPath(
     new URL("./force-tty.cjs", import.meta.url)
   );
@@ -300,8 +390,19 @@ export async function runScreenshot(
     }
   }
 
+  if (usePtyScreenshot(process.env)) {
+    await runPtyScreenshot({
+      target,
+      spawnSpec,
+      outputPath,
+      options,
+      screenshotKeys
+    });
+    return;
+  }
+
   const commandProcess = spawn(spawnSpec.command, spawnSpec.args, {
-    stdio: ["ignore", "pipe", "pipe"],
+    stdio: [screenshotKeys.length > 0 ? "pipe" : "ignore", "pipe", "pipe"],
     env: spawnSpec.env
   });
   if (!commandProcess.stdout || !commandProcess.stderr) {
@@ -315,6 +416,7 @@ export async function runScreenshot(
   commandProcess.stderr.on("data", (chunk) => {
     capturedChunks.push(sanitizeOutputChunk(String(chunk)));
   });
+  const cancelInput = scheduleScreenshotKeys(commandProcess, screenshotKeys, process.env);
 
   const timeoutMs = resolveScreenshotTimeoutMs(process.env);
   const timeout = createTimeout(timeoutMs, () => {
@@ -334,6 +436,7 @@ export async function runScreenshot(
     timedOut = true;
     commandCode = 1;
   } finally {
+    cancelInput();
     timeout.cancel();
   }
 
@@ -357,6 +460,129 @@ export async function runScreenshot(
     const label = [target.command, ...target.args].join(" ");
     process.stderr.write(`${label} exited with code ${commandCode} — screenshot saved\n`);
   }
+}
+
+async function runPtyScreenshot(opts: {
+  target: ScreenshotTarget;
+  spawnSpec: SpawnSpec;
+  outputPath: string;
+  options: ScreenshotOptions;
+  screenshotKeys: readonly string[];
+}): Promise<void> {
+  const { TerminalPilot } = await import("terminal-pilot");
+  const pilot = await (TerminalPilot as { launch(): Promise<PseudoTerminalPilot> }).launch();
+  const size = resolvePtySize(process.env);
+  const timeoutMs = resolveScreenshotTimeoutMs(process.env);
+  let commandCode = 0;
+  let timedOut = false;
+
+  try {
+    const session = await pilot.newSession({
+      command: opts.spawnSpec.command,
+      args: opts.spawnSpec.args,
+      cwd: process.cwd(),
+      env: opts.spawnSpec.env,
+      cols: size.cols,
+      rows: size.rows
+    });
+
+    const cancelInput = schedulePtyScreenshotKeys(session, opts.screenshotKeys, process.env);
+    try {
+      commandCode = await session.waitForExit({ timeout: timeoutMs });
+    } catch {
+      timedOut = true;
+      commandCode = session.exitCode ?? 1;
+    } finally {
+      cancelInput();
+    }
+
+    const screen = await session.screen();
+    const header =
+      opts.options.header !== false
+        ? buildCommandHeader(opts.target.displayCommand, opts.target.displayArgs)
+        : "";
+    await renderTerminalPng(`${header}${screen.rawLines.join("\n")}`, {
+      padding: 20,
+      window: true,
+      output: opts.outputPath
+    });
+
+    await session.close();
+  } finally {
+    await pilot.close();
+  }
+
+  process.stdout.write(`${opts.outputPath}\n`);
+
+  if (timedOut) {
+    process.stderr.write(`Timed out after ${timeoutMs}ms — screenshot saved with captured output\n`);
+  } else if (commandCode !== 0) {
+    const label = [opts.target.command, ...opts.target.args].join(" ");
+    process.stderr.write(`${label} exited with code ${commandCode} — screenshot saved\n`);
+  }
+}
+
+function resolvePtySize(env: NodeJS.ProcessEnv): { cols: number; rows: number } {
+  return {
+    cols: resolvePositiveInteger(env.POE_SCREENSHOT_COLUMNS, 120),
+    rows: resolvePositiveInteger(env.POE_SCREENSHOT_ROWS, 40)
+  };
+}
+
+function schedulePtyScreenshotKeys(
+  session: Pick<PseudoTerminalSession, "send" | "exitCode">,
+  keys: readonly string[],
+  env: NodeJS.ProcessEnv
+): () => void {
+  if (keys.length === 0) {
+    return () => {};
+  }
+
+  const initialDelayMs = resolvePositiveInteger(env.POE_SCREENSHOT_KEY_DELAY_MS, 250);
+  const intervalMs = resolvePositiveInteger(env.POE_SCREENSHOT_KEY_INTERVAL_MS, 75);
+  const timers: Array<ReturnType<typeof setTimeout>> = [];
+
+  keys.forEach((key, index) => {
+    timers.push(setTimeout(() => {
+      if (session.exitCode === null) {
+        void session.send(key);
+      }
+    }, initialDelayMs + intervalMs * index));
+  });
+
+  return () => {
+    for (const timer of timers) {
+      clearTimeout(timer);
+    }
+  };
+}
+
+function scheduleScreenshotKeys(
+  child: ReturnType<typeof spawn>,
+  keys: readonly string[],
+  env: NodeJS.ProcessEnv
+): () => void {
+  if (keys.length === 0 || child.stdin === null) {
+    return () => {};
+  }
+
+  const initialDelayMs = resolvePositiveInteger(env.POE_SCREENSHOT_KEY_DELAY_MS, 250);
+  const intervalMs = resolvePositiveInteger(env.POE_SCREENSHOT_KEY_INTERVAL_MS, 75);
+  const timers: Array<ReturnType<typeof setTimeout>> = [];
+
+  keys.forEach((key, index) => {
+    timers.push(setTimeout(() => {
+      if (!child.killed) {
+        child.stdin?.write(key);
+      }
+    }, initialDelayMs + intervalMs * index));
+  });
+
+  return () => {
+    for (const timer of timers) {
+      clearTimeout(timer);
+    }
+  };
 }
 
 const entry = process.argv[1];

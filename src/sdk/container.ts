@@ -12,7 +12,12 @@ import { createLoggerFactory } from "../cli/logger.js";
 import { ErrorLogger } from "../cli/error-logger.js";
 import { runCommand } from "@poe-code/agent-spawn";
 import { getDefaultProviders } from "../providers/index.js";
-import { anthropicProvider, ProviderRegistry, poeProvider } from "@poe-code/providers";
+import {
+  anthropicProvider,
+  cloudflareProvider,
+  ProviderRegistry,
+  poeProvider
+} from "@poe-code/providers";
 import { createPoeCodeCommandRunner } from "../cli/poe-code-command-runner.js";
 import * as nodeFsSync from "node:fs";
 import { createSecretStore, MigratingSecretStore, type SecretStore } from "auth-store";
@@ -151,7 +156,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
   const registry = createServiceRegistry();
 
   const providerRegistry = new ProviderRegistry(
-    [poeProvider, anthropicProvider],
+    [poeProvider, anthropicProvider, cloudflareProvider],
     getProviderAuthStore,
     {
       envVars: variables

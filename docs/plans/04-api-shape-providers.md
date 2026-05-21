@@ -171,7 +171,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-cloudflare-provider
     title: Add the Cloudflare gateway provider
@@ -209,8 +209,8 @@ tasks:
       - With `POE_API_KEY` set and `CLOUDFLARE_API_KEY` unset, `configure claude-code --yes` resolves to poe (cloudflare is not env-logged-in). Backwards-compat invariant.
       - With both `POE_API_KEY` and `CLOUDFLARE_API_KEY` set, `configure claude-code --yes` errors and demands `--provider` (two env-logged-in compatible providers).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: drop-supports-agents

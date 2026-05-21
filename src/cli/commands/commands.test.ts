@@ -82,7 +82,9 @@ describe("configure command", () => {
       commandRunner,
       httpClient: overrides.httpClient
     });
-    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockImplementation(
+      async (id) => id === "poe"
+    );
     return { container, prompts, commandRunner };
   }
 

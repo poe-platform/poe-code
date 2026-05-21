@@ -122,8 +122,28 @@ async function resolveIsolatedServiceProvider(
     return undefined;
   }
   const providers = container.providerRegistry.forAgent(agent);
+  const loggedIn: string[] = [];
+  for (const provider of providers) {
+    if (await isProviderAvailable(container, provider.id)) {
+      loggedIn.push(provider.id);
+    }
+  }
+  if (loggedIn.length === 1) {
+    return loggedIn[0];
+  }
   if (providers.length === 1) {
     return providers[0]!.id;
   }
-  return undefined;
+  return providers[0]?.id;
+}
+
+async function isProviderAvailable(
+  container: CliContainer,
+  providerId: string
+): Promise<boolean> {
+  try {
+    return await container.providerRegistry.isLoggedIn(providerId);
+  } catch {
+    return false;
+  }
 }

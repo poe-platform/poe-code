@@ -63,7 +63,7 @@ export class ProviderRegistry {
       if (provider.apiShapes && agent.apiShapes) {
         return resolveApiShape(provider, agent) !== undefined;
       }
-      return provider.supportsAgents.includes(agent.id);
+      return provider.supportsAgents?.includes(agent.id) ?? false;
     });
   }
 

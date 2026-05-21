@@ -1,13 +1,13 @@
-model_provider = "poe"
+model_provider = "{{providerId}}"
 
 [profiles."{{{profileName}}}"]
 model = "{{{model}}}"
-model_provider = "poe"
+model_provider = "{{providerId}}"
 model_reasoning_effort = "{{reasoningEffort}}"
 model_verbosity = "medium"
 
-[model_providers.poe]
-name = "poe"
+[model_providers.{{providerId}}]
+name = "{{providerId}}"
 base_url = "{{{baseUrl}}}"
 wire_api = "responses"
 experimental_bearer_token = "{{apiKey}}"

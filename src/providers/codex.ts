@@ -16,6 +16,7 @@ import {
   CODEX_MODELS,
   DEFAULT_CODEX_MODEL,
   DEFAULT_REASONING,
+  PROVIDER_NAME,
   stripModelNamespace
 } from "../cli/constants.js";
 import { codexAgent } from "@poe-code/agent-defs";
@@ -203,6 +204,7 @@ export const codexService = createProvider<
             apiKey: options.provider?.credential,
             baseUrl: options.provider?.baseUrl ?? "",
             model: stripModelNamespace(model),
+            providerId: options.provider?.id ?? PROVIDER_NAME,
             reasoningEffort: options.reasoningEffort,
             profileName: deriveCodexProfileName(model)
           };

@@ -18,12 +18,12 @@ describe("provider types", () => {
     }>();
   });
 
-  it("allows optional api shape bindings while keeping supportsAgents required", () => {
+  it("allows provider compatibility to be declared through api shape bindings", () => {
     expectTypeOf<AuthProvider["apiShapes"]>().toEqualTypeOf<
       readonly ApiShapeBinding[] | undefined
     >();
     expectTypeOf<AuthProvider>().toMatchTypeOf<{
-      readonly supportsAgents: readonly string[];
+      readonly supportsAgents?: readonly string[];
     }>();
   });
 });

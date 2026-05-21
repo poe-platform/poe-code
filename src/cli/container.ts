@@ -21,7 +21,12 @@ import {
 import type { HttpClient } from "./http.js";
 import type { CommandRunner } from "../utils/command-checks.js";
 import { getDefaultProviders } from "../providers/index.js";
-import { anthropicProvider, ProviderRegistry, poeProvider } from "@poe-code/providers";
+import {
+  anthropicProvider,
+  cloudflareProvider,
+  ProviderRegistry,
+  poeProvider
+} from "@poe-code/providers";
 import { createPoeCodeCommandRunner } from "./poe-code-command-runner.js";
 import { OperationCancelledError } from "./errors.js";
 import { resolveApiKeyViaOAuth } from "./oauth-login.js";
@@ -182,7 +187,7 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
   const registry = createServiceRegistry();
 
   const providerRegistry = new ProviderRegistry(
-    [poeProvider, anthropicProvider],
+    [poeProvider, anthropicProvider, cloudflareProvider],
     getProviderAuthStore,
     {
       envVars: environment.variables

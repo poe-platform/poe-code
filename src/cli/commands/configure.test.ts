@@ -13,6 +13,7 @@ import type { AuthProvider } from "@poe-code/providers";
 import type { FileSystem } from "../../utils/file-system.js";
 import { PROVIDER_NAME } from "../constants.js";
 import { registerProviderCommand } from "./provider.js";
+import { parseToml } from "@poe-code/config-mutations/testing";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -247,6 +248,101 @@ describe("configure provider resolution", () => {
       provider: "anthropic",
       apiShape: "anthropic-messages"
     });
+  });
+
+  it("configures claude-code against Cloudflare after provider login", async () => {
+    const container = createContainer(fs);
+    const providerProgram = createTestProgram(["node", "cli", "--yes"]);
+    registerProviderCommand(providerProgram, container);
+
+    await providerProgram.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "cloudflare",
+      "--api-key",
+      "sk-cloudflare-test"
+    ]);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "cloudflare"
+    });
+
+    const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
+    expect(settings.env.ANTHROPIC_BASE_URL).toBe(
+      "https://poe-ai-gateway.poe-dev.workers.dev/anthropic"
+    );
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services["claude-code"]).toMatchObject({
+      provider: "cloudflare",
+      apiShape: "anthropic-messages"
+    });
+  });
+
+  it("configures codex against Cloudflare after provider login", async () => {
+    const container = createContainer(fs);
+    const providerProgram = createTestProgram(["node", "cli", "--yes"]);
+    registerProviderCommand(providerProgram, container);
+
+    await providerProgram.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "cloudflare",
+      "--api-key",
+      "sk-cloudflare-test"
+    ]);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare"
+    });
+
+    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
+    expect(document.model_provider).toBe("cloudflare");
+    const providers = document.model_providers as Record<string, Record<string, unknown>>;
+    expect(providers.cloudflare?.base_url).toBe(
+      "https://poe-ai-gateway.poe-dev.workers.dev/openai/v1"
+    );
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services.codex).toMatchObject({
+      provider: "cloudflare",
+      apiShape: "openai-responses"
+    });
+  });
+
+  it("keeps claude-code on Poe with --yes when POE_API_KEY is set but CLOUDFLARE_API_KEY is unset", async () => {
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" });
+    mockOptions(container);
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--yes"]),
+      container,
+      "claude-code",
+      {}
+    );
+
+    const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
+    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.poe.com/anthropic");
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
+  });
+
+  it("requires --provider with --yes when Poe and Cloudflare env credentials are both set", async () => {
+    const container = createContainer(fs, {
+      POE_API_KEY: "sk-poe-env",
+      CLOUDFLARE_API_KEY: "sk-cloudflare-env"
+    });
+
+    await expect(
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {})
+    ).rejects.toThrow(/Use --provider/);
   });
 
   it("prompts when >1 eligible providers are logged in", async () => {

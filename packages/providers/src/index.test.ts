@@ -6,6 +6,7 @@ describe("@poe-code/providers public surface", () => {
     expect(typeof providers.ProviderRegistry).toBe("function");
     expect(typeof providers.resolveApiShape).toBe("function");
     expect(providers.anthropicProvider.id).toBe("anthropic");
+    expect(providers.cloudflareProvider.id).toBe("cloudflare");
     expect(providers.apiKeyAuthStrategy).toMatchObject({
       login: expect.any(Function),
       logout: expect.any(Function),

@@ -124,6 +124,23 @@ describe("runMaestroTick", () => {
     expect(events).toEqual([{ type: "tick_started", at: "2026-01-01T00:00:00.000Z" }]);
   });
 
+  it("accepts a bare task id when agent.list is configured", async () => {
+    writeGhIssuesWorkflow();
+    const calls: Array<{ method: string; args: unknown[] }> = [];
+    const taskList = createGhIssuesTickTaskList("octo-org/7", calls);
+
+    await expect(
+      runMaestroTick({
+        configPath: "/repo/WORKFLOW.md",
+        task: "482",
+        transition: "*:queued",
+        openTaskList: async () => taskList
+      })
+    ).resolves.toBeUndefined();
+
+    expect(calls).toEqual([{ method: "fire", args: ["482", "agent-running"] }]);
+  });
+
   it("does not dispatch for a non-queued transition and exits cleanly", async () => {
     writeWorkflow();
     const taskList = createMockTaskList({

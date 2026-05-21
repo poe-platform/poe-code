@@ -73,7 +73,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: gh-actions-workflow-template
     title: Add GitHub Actions workflow template for turn-based maestro
@@ -111,8 +111,8 @@ tasks:
       No unit tests for the workflow per CLAUDE.md. Run `npm run
       lint:workflows` after writing.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: document-turn-mode
     title: Document turn-based maestro mode in agent-maestro README

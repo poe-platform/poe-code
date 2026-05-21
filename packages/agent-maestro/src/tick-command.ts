@@ -99,6 +99,10 @@ function resolveTickTaskRef(
     return { list, id: qualifiedId.slice(slashPrefix.length) };
   }
 
+  if (!qualifiedId.includes("#") && !qualifiedId.includes("/")) {
+    return { list, id: qualifiedId };
+  }
+
   throw new Error(`Invalid qualified task id "${qualifiedId}" for list "${list}".`);
 }
 

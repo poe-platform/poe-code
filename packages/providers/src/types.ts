@@ -1,3 +1,7 @@
+import type { ApiShapeId } from "@poe-code/agent-defs";
+
+export type { ApiShapeId } from "@poe-code/agent-defs";
+
 export type EnvValueSource =
   | { kind: "literal"; value: string }
   | { kind: "providerCredential" }
@@ -23,6 +27,11 @@ export interface OAuthAuth {
 
 export type AuthMethod = ApiKeyAuth | OAuthAuth;
 
+export interface ApiShapeBinding {
+  readonly id: ApiShapeId;
+  readonly defaultBaseUrl: string;
+}
+
 export interface AuthProvider {
   readonly id: string;
   readonly label: string;
@@ -30,5 +39,6 @@ export interface AuthProvider {
   readonly baseUrl: string;
   readonly auth: AuthMethod;
   readonly supportsAgents: readonly string[];
+  readonly apiShapes?: readonly ApiShapeBinding[];
   readonly env?: Readonly<Record<string, EnvValueSource>>;
 }

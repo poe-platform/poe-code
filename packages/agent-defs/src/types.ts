@@ -1,3 +1,9 @@
+export type ApiShapeId =
+  | "openai-chat-completions"
+  | "openai-responses"
+  | "anthropic-messages"
+  | "google-generations";
+
 export interface AgentDefinition {
   id: string;
   name: string;
@@ -6,6 +12,7 @@ export interface AgentDefinition {
   aliases?: string[];
   /** Binary name for CLI agents. Optional for GUI-only apps like Claude Desktop. */
   binaryName?: string;
+  readonly apiShapes?: readonly ApiShapeId[];
   configPath: string;
   branding: {
     colors: {

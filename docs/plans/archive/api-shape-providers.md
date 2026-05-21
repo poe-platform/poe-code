@@ -2,71 +2,107 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: add-shape-types-optional
     title: Add ApiShapeId types and optional apiShapes fields
-    prompt: |
-      Extend types only. No behavioral change. Run `npm test` after; everything stays green.
+    prompt: >
+      Extend types only. No behavioral change. Run `npm test` after; everything
+      stays green.
+
 
       In `packages/providers/src/types.ts`:
-      - Add `export type ApiShapeId = "openai-chat-completions" | "openai-responses" | "anthropic-messages" | "google-generations";`
-      - Add `export interface ApiShapeBinding { readonly id: ApiShapeId; readonly defaultBaseUrl: string; }`
-      - Add `readonly apiShapes?: readonly ApiShapeBinding[]` to `AuthProvider` (optional during transition; `supportsAgents` stays required).
 
-      In `packages/agent-defs/src/types.ts` (or wherever `AgentDefinition` lives — grep if unsure):
-      - Add `readonly apiShapes?: readonly ApiShapeId[]`. Optional during transition.
+      - Add `export type ApiShapeId = "openai-chat-completions" |
+      "openai-responses" | "anthropic-messages" | "google-generations";`
 
-      Colocate `*.test.ts` per CLAUDE.md if the shape ids need a stability test. No code that *reads* these fields lands in this task.
+      - Add `export interface ApiShapeBinding { readonly id: ApiShapeId;
+      readonly defaultBaseUrl: string; }`
+
+      - Add `readonly apiShapes?: readonly ApiShapeBinding[]` to `AuthProvider`
+      (optional during transition; `supportsAgents` stays required).
+
+
+      In `packages/agent-defs/src/types.ts` (or wherever `AgentDefinition` lives
+      — grep if unsure):
+
+      - Add `readonly apiShapes?: readonly ApiShapeId[]`. Optional during
+      transition.
+
+
+      Colocate `*.test.ts` per CLAUDE.md if the shape ids need a stability test.
+      No code that *reads* these fields lands in this task.
     status:
       implement: done
       test: done
       commit: done
-
   - id: declare-shapes-on-poe-provider
     title: Declare apiShapes on the Poe provider
-    prompt: |
-      In `packages/providers/src/providers/poe.ts`, add `apiShapes` alongside the existing `supportsAgents` (do not remove `supportsAgents`):
+    prompt: >
+      In `packages/providers/src/providers/poe.ts`, add `apiShapes` alongside
+      the existing `supportsAgents` (do not remove `supportsAgents`):
+
 
       ```ts
+
       apiShapes: [
         { id: "openai-chat-completions", defaultBaseUrl: "https://api.poe.com/v1" },
         { id: "openai-responses",        defaultBaseUrl: "https://api.poe.com/v1" },
         { id: "anthropic-messages",      defaultBaseUrl: "https://api.poe.com/anthropic" }
       ]
+
       ```
 
-      Update `packages/providers/src/providers/poe.test.ts` to assert the three shapes exist with these defaults. No runtime behavior changes — no caller consumes `apiShapes` yet.
+
+      Update `packages/providers/src/providers/poe.test.ts` to assert the three
+      shapes exist with these defaults. No runtime behavior changes — no caller
+      consumes `apiShapes` yet.
     status:
       implement: done
       test: done
       commit: done
-
   - id: declare-shapes-on-agents
     title: Declare ordered apiShapes on every agent definition
-    prompt: |
-      Each agent in `packages/agent-defs/` declares its ordered required API shapes. Order is preference when a provider supports more than one.
+    prompt: >
+      Each agent in `packages/agent-defs/` declares its ordered required API
+      shapes. Order is preference when a provider supports more than one.
 
-      Determine each agent's shape from its current spawn/configure code in `src/providers/<agent>.ts` (look at which API the agent talks to today through Poe). Expected shapes:
+
+      Determine each agent's shape from its current spawn/configure code in
+      `src/providers/<agent>.ts` (look at which API the agent talks to today
+      through Poe). Expected shapes:
+
       - `claude-code` → `["anthropic-messages"]`
+
       - `codex` → `["openai-responses"]`
+
       - `kimi` → `["openai-chat-completions"]`
-      - `opencode` → derive from its config (likely `["openai-chat-completions"]`; verify)
-      - `goose` → derive from its config (multi-shape candidate; list every shape it can be configured against, ordered by what current code chooses by default)
+
+      - `opencode` → derive from its config (likely
+      `["openai-chat-completions"]`; verify)
+
+      - `goose` → derive from its config (multi-shape candidate; list every
+      shape it can be configured against, ordered by what current code chooses
+      by default)
+
       - `poe-agent` → derive from its current Poe call shape
 
-      Add tests in `packages/agent-defs/` confirming each agent declares at least one shape and that the order matches what existing code routes by default. No consumer yet — type field is optional, current callers ignore it.
+
+      Add tests in `packages/agent-defs/` confirming each agent declares at
+      least one shape and that the order matches what existing code routes by
+      default. No consumer yet — type field is optional, current callers ignore
+      it.
     status:
       implement: done
       test: done
       commit: done
-
   - id: shape-intersection-helper
     title: Add resolveApiShape and switch ProviderRegistry.forAgent to it
-    prompt: |
+    prompt: >
       In `packages/providers/src/compatibility.ts` (new file):
 
+
       ```ts
+
       export function resolveApiShape(
         provider: AuthProvider,
         agent: { apiShapes?: readonly ApiShapeId[] }
@@ -77,108 +113,206 @@ tasks:
         }
         return undefined;
       }
+
       ```
 
-      In `packages/providers/src/registry.ts`, change `forAgent(agentId: string)` to `forAgent(agent: { id: string; apiShapes?: readonly ApiShapeId[] })`. Selection rule:
-      - If both sides declare `apiShapes`, return providers where `resolveApiShape(provider, agent)` is defined.
-      - Else fall back to the current `supportsAgents.includes(agent.id)` filter.
 
-      Update both callers (`src/cli/commands/configure.ts`, `src/cli/commands/provider.ts`) to pass the resolved `AgentDefinition` instead of just the id. Add `compatibility.test.ts` covering: empty intersection, preference order respected, fallback path when one side lacks `apiShapes`.
+      In `packages/providers/src/registry.ts`, change `forAgent(agentId:
+      string)` to `forAgent(agent: { id: string; apiShapes?: readonly
+      ApiShapeId[] })`. Selection rule:
 
-      Backwards-compat invariant: with poe declaring both `supportsAgents` and `apiShapes`, and every agent declaring `apiShapes`, `forAgent(agent)` returns the same `[poeProvider]` set as before.
+      - If both sides declare `apiShapes`, return providers where
+      `resolveApiShape(provider, agent)` is defined.
+
+      - Else fall back to the current `supportsAgents.includes(agent.id)`
+      filter.
+
+
+      Update both callers (`src/cli/commands/configure.ts`,
+      `src/cli/commands/provider.ts`) to pass the resolved `AgentDefinition`
+      instead of just the id. Add `compatibility.test.ts` covering: empty
+      intersection, preference order respected, fallback path when one side
+      lacks `apiShapes`.
+
+
+      Backwards-compat invariant: with poe declaring both `supportsAgents` and
+      `apiShapes`, and every agent declaring `apiShapes`, `forAgent(agent)`
+      returns the same `[poeProvider]` set as before.
     status:
       implement: done
       test: done
       commit: done
-
   - id: persist-apishape-in-services-json
     title: Persist apiShape in services.json with idempotent migration
-    prompt: |
-      In `packages/poe-code-config/`, extend the services.json schema entry from `{ provider, files }` to `{ provider, apiShape, files }`. The `apiShape` is a string matching `ApiShapeId` from `@poe-code/providers`.
+    prompt: >
+      In `packages/poe-code-config/`, extend the services.json schema entry from
+      `{ provider, files }` to `{ provider, apiShape, files }`. The `apiShape`
+      is a string matching `ApiShapeId` from `@poe-code/providers`.
+
 
       Migration on read (idempotent):
-      - If an entry has `apiShape`, leave it.
-      - If `apiShape` is missing, derive it: look up the entry's `provider` in `ProviderRegistry`, look up the entry's agent in `agent-defs`, call `resolveApiShape(provider, agent)`. If a result exists, set it and rewrite the file. If not (legacy entry with a provider that no longer maps), leave `apiShape` undefined and warn.
 
-      Snapshot test: starting from a services.json with `{ "claude-code": { "provider": "poe", "files": [...] } }`, after one load+save, the file becomes `{ "claude-code": { "provider": "poe", "apiShape": "anthropic-messages", "files": [...] } }`. Backwards-compat: no consumer fails when `apiShape` is undefined (defer reading it until task `shape-scoped-baseurl`).
+      - If an entry has `apiShape`, leave it.
+
+      - If `apiShape` is missing, derive it: look up the entry's `provider` in
+      `ProviderRegistry`, look up the entry's agent in `agent-defs`, call
+      `resolveApiShape(provider, agent)`. If a result exists, set it and rewrite
+      the file. If not (legacy entry with a provider that no longer maps), leave
+      `apiShape` undefined and warn.
+
+
+      Snapshot test: starting from a services.json with `{ "claude-code": {
+      "provider": "poe", "files": [...] } }`, after one load+save, the file
+      becomes `{ "claude-code": { "provider": "poe", "apiShape":
+      "anthropic-messages", "files": [...] } }`. Backwards-compat: no consumer
+      fails when `apiShape` is undefined (defer reading it until task
+      `shape-scoped-baseurl`).
     status:
       implement: done
       test: done
       commit: done
-
   - id: shape-scoped-baseurl
     title: Resolve baseUrl per shape on ActiveProvider
-    prompt: |
-      Today `ActiveProvider` (in `src/cli/commands/shared.ts` and used by `src/cli/service-registry.ts`) is `{ id, baseUrl, credential, extraEnv }` with `baseUrl` provider-wide. Make `baseUrl` shape-scoped without changing the env-kind names.
+    prompt: >
+      Today `ActiveProvider` (in `src/cli/commands/shared.ts` and used by
+      `src/cli/service-registry.ts`) is `{ id, baseUrl, credential, extraEnv }`
+      with `baseUrl` provider-wide. Make `baseUrl` shape-scoped without changing
+      the env-kind names.
+
 
       Changes:
-      - Extend `ActiveProvider` to `{ id, apiShape: ApiShapeId, baseUrl, credential, extraEnv }`.
-      - In `src/cli/commands/configure.ts` and any spawn path that builds an `ActiveProvider`, resolve `apiShape` via `resolveApiShape(provider, agent)` then set `baseUrl` to the stored per-shape URL if present, else `provider.apiShapes.find(s => s.id === apiShape).defaultBaseUrl`.
-      - Env-kind resolver in `src/cli/service-registry.ts` keeps reading the `providerBaseUrl` env kind — it just pulls from the new shape-scoped `baseUrl`. No new env kind. No agent-file edits.
 
-      Backwards-compat invariant: snapshot of `~/.claude/settings.json` from `configure claude-code --yes` with only `POE_API_KEY` set must be byte-identical to the pre-change snapshot. Add a regression snapshot test that asserts this against the fixture from plan 14's `[pre-phase 4]` capture.
+      - Extend `ActiveProvider` to `{ id, apiShape: ApiShapeId, baseUrl,
+      credential, extraEnv }`.
+
+      - In `src/cli/commands/configure.ts` and any spawn path that builds an
+      `ActiveProvider`, resolve `apiShape` via `resolveApiShape(provider,
+      agent)` then set `baseUrl` to the stored per-shape URL if present, else
+      `provider.apiShapes.find(s => s.id === apiShape).defaultBaseUrl`.
+
+      - Env-kind resolver in `src/cli/service-registry.ts` keeps reading the
+      `providerBaseUrl` env kind — it just pulls from the new shape-scoped
+      `baseUrl`. No new env kind. No agent-file edits.
+
+
+      Backwards-compat invariant: snapshot of `~/.claude/settings.json` from
+      `configure claude-code --yes` with only `POE_API_KEY` set must be
+      byte-identical to the pre-change snapshot. Add a regression snapshot test
+      that asserts this against the fixture from plan 14's `[pre-phase 4]`
+      capture.
     status:
       implement: done
       test: done
       commit: done
-
   - id: shape-base-url-login-flag
     title: Accept --shape-base-url on provider login
-    prompt: |
-      In `src/cli/commands/provider.ts`, add a repeated flag `--shape-base-url <shape-id>=<url>` to `provider login`. Parse into `Record<ApiShapeId, string>`. Reject unknown shape ids with an error listing the provider's exposed shapes.
+    prompt: >
+      In `src/cli/commands/provider.ts`, add a repeated flag `--shape-base-url
+      <shape-id>=<url>` to `provider login`. Parse into `Record<ApiShapeId,
+      string>`. Reject unknown shape ids with an error listing the provider's
+      exposed shapes.
 
-      Storage: stored login records currently hold only the credential (`@poe-code/auth-store` keyed by `provider:<id>`). Per-shape base URLs do not belong with secrets; store them in `~/.config/poe-code/services.json` under a new `providers: { <id>: { shapeBaseUrls: { <shape-id>: <url> } } }` map managed by `@poe-code/poe-code-config`. Migration: missing `providers` section is the default empty map.
 
-      Resolution order at configure time (already specified in plan body): explicit `--base-url`/`--shape-base-url` > env var (api key only) > stored shape URL > `provider.apiShapes[...].defaultBaseUrl`. Base URLs are never read from env vars.
+      Storage: stored login records currently hold only the credential
+      (`@poe-code/auth-store` keyed by `provider:<id>`). Per-shape base URLs do
+      not belong with secrets; store them in `~/.config/poe-code/services.json`
+      under a new `providers: { <id>: { shapeBaseUrls: { <shape-id>: <url> } }
+      }` map managed by `@poe-code/poe-code-config`. Migration: missing
+      `providers` section is the default empty map.
 
-      Tests: round-trip — `provider login poe --shape-base-url anthropic-messages=https://example/anth` stores under poe's `shapeBaseUrls`; `configure claude-code --provider poe --yes` resolves the `anthropic-messages` base URL to the stored value, not the default.
+
+      Resolution order at configure time (already specified in plan body):
+      explicit `--base-url`/`--shape-base-url` > env var (api key only) > stored
+      shape URL > `provider.apiShapes[...].defaultBaseUrl`. Base URLs are never
+      read from env vars.
+
+
+      Tests: round-trip — `provider login poe --shape-base-url
+      anthropic-messages=https://example/anth` stores under poe's
+      `shapeBaseUrls`; `configure claude-code --provider poe --yes` resolves the
+      `anthropic-messages` base URL to the stored value, not the default.
     status:
       implement: done
       test: done
       commit: done
-
   - id: provider-list-shape-labels
     title: Render shape labels in provider list
-    prompt: |
-      Update `provider list` rendering in `src/cli/commands/provider.ts` to show three columns: Provider, Status, API shapes, Agents. Shape labels use short ids per plan body §2:
+    prompt: >
+      Update `provider list` rendering in `src/cli/commands/provider.ts` to show
+      three columns: Provider, Status, API shapes, Agents. Shape labels use
+      short ids per plan body §2:
+
 
       | CLI label           | Canonical id              |
+
       |---------------------|---------------------------|
+
       | `chat-completions`  | `openai-chat-completions` |
+
       | `responses`         | `openai-responses`        |
+
       | `messages`          | `anthropic-messages`      |
+
       | `generations`       | `google-generations`      |
 
-      The "Agents" column is derived: list every agent in `agent-defs` whose `apiShapes` intersect the provider's `apiShapes` (sorted by agent id). Do not read `supportsAgents`.
 
-      Verify with `npm run dev -- provider list` and `npm run screenshot-poe-code -- provider list`. Snapshot the rendered output. No regression in column alignment.
+      The "Agents" column is derived: list every agent in `agent-defs` whose
+      `apiShapes` intersect the provider's `apiShapes` (sorted by agent id). Do
+      not read `supportsAgents`.
+
+
+      Verify with `npm run dev -- provider list` and `npm run
+      screenshot-poe-code -- provider list`. Snapshot the rendered output. No
+      regression in column alignment.
     status:
       implement: done
       test: done
       commit: done
-
   - id: register-and-shape-anthropic
     title: Register anthropicProvider with apiShapes
-    prompt: |
-      Two issues at once: `anthropicProvider` exists at `packages/providers/src/providers/anthropic.ts` but is not registered in either container (`src/cli/container.ts:167` and `src/sdk/container.ts:136` both pass only `[poeProvider]`). It also lacks `apiShapes`.
+    prompt: >
+      Two issues at once: `anthropicProvider` exists at
+      `packages/providers/src/providers/anthropic.ts` but is not registered in
+      either container (`src/cli/container.ts:167` and
+      `src/sdk/container.ts:136` both pass only `[poeProvider]`). It also lacks
+      `apiShapes`.
+
 
       Changes:
-      - In `packages/providers/src/providers/anthropic.ts`, add `apiShapes: [{ id: "anthropic-messages", defaultBaseUrl: "https://api.anthropic.com" }]`. Keep `supportsAgents: ["claude-code"]` for now.
-      - In both `src/cli/container.ts` and `src/sdk/container.ts`, change the `ProviderRegistry` construction from `[poeProvider]` to `[poeProvider, anthropicProvider]`.
-      - Update `packages/providers/src/index.ts` to re-export `anthropicProvider` if not already.
 
-      End-to-end test (memfs + mocked secret store): `provider login anthropic --api-key sk-ant-...` followed by `configure claude-code --provider anthropic --yes` writes `https://api.anthropic.com` into `~/.claude/settings.json`'s `ANTHROPIC_BASE_URL`. With only `POE_API_KEY` set and `anthropic` not logged in, `configure claude-code --yes` still resolves to poe (single eligible logged-in provider). This is the backwards-compat invariant for this task.
+      - In `packages/providers/src/providers/anthropic.ts`, add `apiShapes: [{
+      id: "anthropic-messages", defaultBaseUrl: "https://api.anthropic.com" }]`.
+      Keep `supportsAgents: ["claude-code"]` for now.
+
+      - In both `src/cli/container.ts` and `src/sdk/container.ts`, change the
+      `ProviderRegistry` construction from `[poeProvider]` to `[poeProvider,
+      anthropicProvider]`.
+
+      - Update `packages/providers/src/index.ts` to re-export
+      `anthropicProvider` if not already.
+
+
+      End-to-end test (memfs + mocked secret store): `provider login anthropic
+      --api-key sk-ant-...` followed by `configure claude-code --provider
+      anthropic --yes` writes `https://api.anthropic.com` into
+      `~/.claude/settings.json`'s `ANTHROPIC_BASE_URL`. With only `POE_API_KEY`
+      set and `anthropic` not logged in, `configure claude-code --yes` still
+      resolves to poe (single eligible logged-in provider). This is the
+      backwards-compat invariant for this task.
     status:
       implement: done
       test: done
       commit: done
-
   - id: add-cloudflare-provider
     title: Add the Cloudflare gateway provider
-    prompt: |
-      Add `packages/providers/src/providers/cloudflare.ts` as a second compatibility provider validating the abstraction. Source-of-truth: `/Users/kjopek/Workspace/poe-cloudflare-internal-gateway/README.md`.
+    prompt: >
+      Add `packages/providers/src/providers/cloudflare.ts` as a second
+      compatibility provider validating the abstraction. Source-of-truth:
+      `/Users/kjopek/Workspace/poe-cloudflare-internal-gateway/README.md`.
+
 
       ```ts
+
       export const cloudflareProvider: AuthProvider = {
         id: "cloudflare",
         label: "Cloudflare AI Gateway",
@@ -197,55 +331,105 @@ tasks:
           { id: "google-generations",      defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/google-ai-studio" }
         ]
       };
+
       ```
 
-      Wire `cloudflareProvider` into both `src/cli/container.ts` and `src/sdk/container.ts` after `anthropicProvider`. Export from `packages/providers/src/index.ts`.
 
-      Auth note: the cloudflare gateway today validates Poe-issued tokens, but the provider declares `CLOUDFLARE_API_KEY` as its env var so it has a distinct identity from poe. This preserves the backwards-compat invariant: with only `POE_API_KEY` set, cloudflare is not env-logged-in and `configure --yes` still resolves uniquely to poe. The credential value flows opaquely from the env var or stored login into the `Authorization: Bearer` header — what the gateway accepts on the wire is a deployment detail of the gateway, not of poe-code.
+      Wire `cloudflareProvider` into both `src/cli/container.ts` and
+      `src/sdk/container.ts` after `anthropicProvider`. Export from
+      `packages/providers/src/index.ts`.
+
+
+      Auth note: the cloudflare gateway today validates Poe-issued tokens, but
+      the provider declares `CLOUDFLARE_API_KEY` as its env var so it has a
+      distinct identity from poe. This preserves the backwards-compat invariant:
+      with only `POE_API_KEY` set, cloudflare is not env-logged-in and
+      `configure --yes` still resolves uniquely to poe. The credential value
+      flows opaquely from the env var or stored login into the `Authorization:
+      Bearer` header — what the gateway accepts on the wire is a deployment
+      detail of the gateway, not of poe-code.
+
 
       Tests:
-      - `provider login cloudflare --api-key X && configure claude-code --provider cloudflare --yes` writes `https://poe-ai-gateway.poe-dev.workers.dev/anthropic` into `ANTHROPIC_BASE_URL`.
-      - `provider login cloudflare --api-key X && configure codex --provider cloudflare --yes` writes the `/openai/v1` base URL into the codex config.
-      - With `POE_API_KEY` set and `CLOUDFLARE_API_KEY` unset, `configure claude-code --yes` resolves to poe (cloudflare is not env-logged-in). Backwards-compat invariant.
-      - With both `POE_API_KEY` and `CLOUDFLARE_API_KEY` set, `configure claude-code --yes` errors and demands `--provider` (two env-logged-in compatible providers).
+
+      - `provider login cloudflare --api-key X && configure claude-code
+      --provider cloudflare --yes` writes
+      `https://poe-ai-gateway.poe-dev.workers.dev/anthropic` into
+      `ANTHROPIC_BASE_URL`.
+
+      - `provider login cloudflare --api-key X && configure codex --provider
+      cloudflare --yes` writes the `/openai/v1` base URL into the codex config.
+
+      - With `POE_API_KEY` set and `CLOUDFLARE_API_KEY` unset, `configure
+      claude-code --yes` resolves to poe (cloudflare is not env-logged-in).
+      Backwards-compat invariant.
+
+      - With both `POE_API_KEY` and `CLOUDFLARE_API_KEY` set, `configure
+      claude-code --yes` errors and demands `--provider` (two env-logged-in
+      compatible providers).
     status:
       implement: done
       test: done
       commit: done
-
   - id: drop-supports-agents
     title: Remove supportsAgents; shape intersection is the only compatibility rule
-    prompt: |
-      Every provider now declares `apiShapes` and every agent declares `apiShapes`. Drop the transitional field.
+    prompt: >
+      Every provider now declares `apiShapes` and every agent declares
+      `apiShapes`. Drop the transitional field.
+
 
       Changes:
-      - Remove `supportsAgents` from `AuthProvider` in `packages/providers/src/types.ts`.
-      - Delete the field from every provider file: `poe.ts`, `anthropic.ts`, `cloudflare.ts`.
-      - In `packages/providers/src/registry.ts`, simplify `forAgent` to use only `resolveApiShape`. Delete the fallback branch.
-      - Remove `supportsAgents`-based tests in `packages/providers/src/providers/*.test.ts`; replace with shape-intersection assertions if not already present.
 
-      Acceptance: `grep -rn supportsAgents packages/ src/` returns zero hits. Snapshot of `~/.claude/settings.json` for `configure claude-code --yes` with only `POE_API_KEY` set remains byte-identical.
+      - Remove `supportsAgents` from `AuthProvider` in
+      `packages/providers/src/types.ts`.
+
+      - Delete the field from every provider file: `poe.ts`, `anthropic.ts`,
+      `cloudflare.ts`.
+
+      - In `packages/providers/src/registry.ts`, simplify `forAgent` to use only
+      `resolveApiShape`. Delete the fallback branch.
+
+      - Remove `supportsAgents`-based tests in
+      `packages/providers/src/providers/*.test.ts`; replace with
+      shape-intersection assertions if not already present.
+
+
+      Acceptance: `grep -rn supportsAgents packages/ src/` returns zero hits.
+      Snapshot of `~/.claude/settings.json` for `configure claude-code --yes`
+      with only `POE_API_KEY` set remains byte-identical.
     status:
       implement: done
       test: done
       commit: done
-
   - id: shape-aware-error-messages
     title: Error messages name the missing shape
-    prompt: |
-      Update error paths in `src/cli/commands/configure.ts` to match plan body §2:
+    prompt: >
+      Update error paths in `src/cli/commands/configure.ts` to match plan body
+      §2:
 
-      `Error: Provider "openai" cannot configure claude-code.\nclaude-code requires one of: anthropic-messages.\nopenai provides: openai-responses, openai-chat-completions.`
+
+      `Error: Provider "openai" cannot configure claude-code.\nclaude-code
+      requires one of: anthropic-messages.\nopenai provides: openai-responses,
+      openai-chat-completions.`
+
 
       And for the ambiguity case:
 
-      `Error: claude-code can be configured with multiple providers.\nPass --provider.\n\nCompatible providers:\n  poe\n  anthropic`
 
-      Use short shape labels (`chat-completions`, `responses`, `messages`, `generations`) when rendering to humans; canonical ids only in machine output. Snapshot tests in `src/cli/commands/configure.test.ts` cover both error formats. No regression in the happy-path snapshot.
+      `Error: claude-code can be configured with multiple providers.\nPass
+      --provider.\n\nCompatible providers:\n  poe\n  anthropic`
+
+
+      Use short shape labels (`chat-completions`, `responses`, `messages`,
+      `generations`) when rendering to humans; canonical ids only in machine
+      output. Snapshot tests in `src/cli/commands/configure.test.ts` cover both
+      error formats. No regression in the happy-path snapshot.
     status:
       implement: done
       test: done
       commit: done
+name: api-shape-providers
+state: archived
 ---
 
 # API shape providers

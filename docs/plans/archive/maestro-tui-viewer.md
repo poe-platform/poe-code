@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: scaffold-maestro-tui-package
     title: Scaffold @poe-code/maestro-tui package
@@ -36,7 +35,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: build-maestro-explorer-config
     title: Build maestro explorer config from a TaskList
     prompt: |
@@ -102,7 +100,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: action-fire-event
     title: Add "Move to state…" action (cross-state task movement)
     prompt: |
@@ -148,7 +145,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: reorder-within-state-group
     title: Reorder rows within a state group via Shift+↑/↓
     prompt: |
@@ -195,7 +191,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: action-open-source
     title: Add "open in $EDITOR" action for file-backed tasks
     prompt: |
@@ -228,7 +223,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: action-open-issue
     title: Add "open issue in browser" action for gh-issues tasks
     prompt: |
@@ -263,7 +257,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: run-maestro-tui-entry
     title: Implement runMaestroTui entrypoint
     prompt: |
@@ -305,7 +298,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: poe-code-cli-maestro-tui-subcommand
     title: Wire `poe-code maestro tui` CLI subcommand
     prompt: |
@@ -338,7 +330,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: screenshot-validate-tui
     title: Visual-validate the maestro TUI via screenshots
     prompt: |
@@ -373,7 +364,9 @@ tasks:
          on until screenshots look correct.
     status:
       implement: done
-      commit: open
+      commit: done
+name: maestro-tui-viewer
+state: archived
 ---
 
 # Context

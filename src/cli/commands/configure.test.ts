@@ -48,7 +48,6 @@ function createFakeProvider(id: string, label: string): AuthProvider {
       storageKey: `provider:${id}`,
       prompt: { title: `${label} API key` }
     },
-    supportsAgents: ["claude-code", "codex"],
     apiShapes: [
       {
         id: "anthropic-messages",

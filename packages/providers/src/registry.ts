@@ -60,10 +60,7 @@ export class ProviderRegistry {
 
   forAgent(agent: ProviderAgent): readonly AuthProvider[] {
     return this.providers.filter((provider) => {
-      if (provider.apiShapes && agent.apiShapes) {
-        return resolveApiShape(provider, agent) !== undefined;
-      }
-      return provider.supportsAgents?.includes(agent.id) ?? false;
+      return resolveApiShape(provider, agent) !== undefined;
     });
   }
 

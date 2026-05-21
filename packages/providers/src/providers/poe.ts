@@ -1,4 +1,3 @@
-import { allAgents } from "@poe-code/agent-defs";
 import type { AuthProvider } from "../types.js";
 
 export const POE_PROVIDER_ID = "poe" as const;
@@ -28,6 +27,5 @@ export const poeProvider: AuthProvider = {
       id: "anthropic-messages",
       defaultBaseUrl: "https://api.poe.com/anthropic"
     }
-  ],
-  supportsAgents: allAgents.map((a) => a.id)
+  ]
 };

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { claudeCodeAgent, codexAgent } from "@poe-code/agent-defs";
+import { resolveApiShape } from "../compatibility.js";
 import { anthropicProvider } from "./anthropic.js";
 
 describe("anthropicProvider", () => {
@@ -6,7 +8,7 @@ describe("anthropicProvider", () => {
     expect(typeof anthropicProvider.id).toBe("string");
     expect(typeof anthropicProvider.label).toBe("string");
     expect(typeof anthropicProvider.baseUrl).toBe("string");
-    expect(Array.isArray(anthropicProvider.supportsAgents)).toBe(true);
+    expect(Array.isArray(anthropicProvider.apiShapes)).toBe(true);
   });
 
   it("uses api-key auth", () => {
@@ -17,8 +19,9 @@ describe("anthropicProvider", () => {
     expect(anthropicProvider.baseUrl).toBe("https://api.anthropic.com");
   });
 
-  it("supports claude-code", () => {
-    expect(anthropicProvider.supportsAgents).toContain("claude-code");
+  it("intersects with claude-code through anthropic messages only", () => {
+    expect(resolveApiShape(anthropicProvider, claudeCodeAgent)).toBe("anthropic-messages");
+    expect(resolveApiShape(anthropicProvider, codexAgent)).toBeUndefined();
   });
 
   it("declares anthropic messages api shape", () => {

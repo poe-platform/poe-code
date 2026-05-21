@@ -22,8 +22,5 @@ describe("provider types", () => {
     expectTypeOf<AuthProvider["apiShapes"]>().toEqualTypeOf<
       readonly ApiShapeBinding[] | undefined
     >();
-    expectTypeOf<AuthProvider>().toMatchTypeOf<{
-      readonly supportsAgents?: readonly string[];
-    }>();
   });
 });

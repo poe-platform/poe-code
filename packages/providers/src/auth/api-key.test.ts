@@ -25,8 +25,7 @@ const anthropicProvider: AuthProvider = {
     envVar: "ANTHROPIC_API_KEY",
     storageKey: "provider:anthropic",
     prompt: { title: "Anthropic API key", placeholder: "sk-ant-..." }
-  },
-  supportsAgents: ["claude-code"]
+  }
 };
 
 describe("apiKeyAuthStrategy.login", () => {

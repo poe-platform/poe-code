@@ -17,7 +17,6 @@ function makeProvider(
       storageKey: `provider:${overrides.id}`,
       prompt: { title: `${overrides.id} API key` }
     },
-    supportsAgents: overrides.supportsAgents ?? [],
     apiShapes: overrides.apiShapes,
     summary: overrides.summary,
     env: overrides.env
@@ -27,15 +26,19 @@ function makeProvider(
 describe("ProviderRegistry", () => {
   const poe = makeProvider({
     id: "poe",
-    supportsAgents: ["claude-code", "codex", "kimi"]
+    apiShapes: makeApiShapeBindings([
+      "anthropic-messages",
+      "openai-chat-completions",
+      "openai-responses"
+    ])
   });
   const anthropic = makeProvider({
     id: "anthropic",
-    supportsAgents: ["claude-code"]
+    apiShapes: makeApiShapeBindings(["anthropic-messages"])
   });
   const openai = makeProvider({
     id: "openai",
-    supportsAgents: ["codex"]
+    apiShapes: makeApiShapeBindings(["openai-responses"])
   });
 
   it("lists providers in construction order", () => {
@@ -53,32 +56,34 @@ describe("ProviderRegistry", () => {
     expect(registry.get("nope")).toBeUndefined();
   });
 
-  it("filters providers that support a given agent", () => {
+  it("filters providers by API shape intersection", () => {
     const registry = new ProviderRegistry([poe, anthropic, openai]);
-    expect(registry.forAgent({ id: "claude-code" }).map((p) => p.id)).toEqual([
-      "poe",
-      "anthropic"
-    ]);
-    expect(registry.forAgent({ id: "codex" }).map((p) => p.id)).toEqual([
-      "poe",
-      "openai"
-    ]);
+    expect(
+      registry
+        .forAgent({ id: "claude-code", apiShapes: ["anthropic-messages"] })
+        .map((p) => p.id)
+    ).toEqual(["poe", "anthropic"]);
+    expect(
+      registry
+        .forAgent({ id: "codex", apiShapes: ["openai-responses"] })
+        .map((p) => p.id)
+    ).toEqual(["poe", "openai"]);
   });
 
-  it("returns an empty list when no providers support the agent", () => {
+  it("returns an empty list when no providers intersect with the agent", () => {
     const registry = new ProviderRegistry([anthropic]);
-    expect(registry.forAgent({ id: "goose" })).toEqual([]);
+    expect(
+      registry.forAgent({ id: "goose", apiShapes: ["openai-chat-completions"] })
+    ).toEqual([]);
   });
 
-  it("uses api shape compatibility when both provider and agent declare shapes", () => {
+  it("uses API shape compatibility for provider selection", () => {
     const matching = makeProvider({
       id: "matching",
-      supportsAgents: ["codex"],
       apiShapes: makeApiShapeBindings(["openai-responses"])
     });
     const nonMatching = makeProvider({
       id: "non-matching",
-      supportsAgents: ["codex"],
       apiShapes: makeApiShapeBindings(["anthropic-messages"])
     });
     const registry = new ProviderRegistry([matching, nonMatching]);
@@ -90,14 +95,12 @@ describe("ProviderRegistry", () => {
     ).toEqual(["matching"]);
   });
 
-  it("falls back to supportsAgents when one side lacks api shapes", () => {
+  it("requires provider and agent API shapes", () => {
     const providerWithoutShapes = makeProvider({
-      id: "provider-without-shapes",
-      supportsAgents: ["codex"]
+      id: "provider-without-shapes"
     });
     const providerWithShapes = makeProvider({
       id: "provider-with-shapes",
-      supportsAgents: ["codex"],
       apiShapes: makeApiShapeBindings(["openai-responses"])
     });
     const registry = new ProviderRegistry([providerWithoutShapes, providerWithShapes]);
@@ -106,22 +109,17 @@ describe("ProviderRegistry", () => {
       registry
         .forAgent({ id: "codex", apiShapes: ["anthropic-messages"] })
         .map((p) => p.id)
-    ).toEqual(["provider-without-shapes"]);
-    expect(registry.forAgent({ id: "codex" }).map((p) => p.id)).toEqual([
-      "provider-without-shapes",
-      "provider-with-shapes"
-    ]);
+    ).toEqual([]);
+    expect(registry.forAgent({ id: "codex" }).map((p) => p.id)).toEqual([]);
   });
 
-  it("does not fall back to supportsAgents when both sides declare api shapes without a match", () => {
+  it("ignores providers whose API shapes do not match", () => {
     const emptyShapes = makeProvider({
       id: "empty-shapes",
-      supportsAgents: ["codex"],
       apiShapes: []
     });
     const mismatchedShapes = makeProvider({
       id: "mismatched-shapes",
-      supportsAgents: ["codex"],
       apiShapes: makeApiShapeBindings(["anthropic-messages"])
     });
     const registry = new ProviderRegistry([emptyShapes, mismatchedShapes]);

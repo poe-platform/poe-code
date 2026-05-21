@@ -58,7 +58,6 @@ function makeProvider(overrides: Partial<AuthProvider> & Pick<AuthProvider, "id"
       storageKey: `provider:${overrides.id}`,
       prompt: { title: "Test API key" }
     },
-    supportsAgents: overrides.supportsAgents ?? [],
     apiShapes: overrides.apiShapes
   };
 }
@@ -127,14 +126,13 @@ describe("provider list", () => {
     expect(output).toMatchSnapshot();
   });
 
-  it("derives agents from provider API shapes without reading supportsAgents", async () => {
+  it("derives agents from provider API shapes", async () => {
     const logs: string[] = [];
     const container = createContainer(fs, logs);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
     vi.spyOn(container.providerRegistry, "list").mockReturnValue([
       makeProvider({
         id: "shape-only",
-        supportsAgents: ["unsupported-agent"],
         apiShapes: [
           {
             id: "openai-responses",
@@ -152,7 +150,6 @@ describe("provider list", () => {
     const output = stripAnsi(logs.join("\n"));
     expect(output).toContain("responses");
     expect(output).toContain("codex, poe-agent");
-    expect(output).not.toContain("unsupported-agent");
   });
 
   it("renders every canonical API shape with its short CLI label", async () => {
@@ -180,14 +177,13 @@ describe("provider list", () => {
     expect(output).toContain("chat-completions, responses, messages, generations");
   });
 
-  it("does not list legacy supportsAgents when provider API shapes are absent", async () => {
+  it("leaves the agent column empty when provider API shapes are absent", async () => {
     const logs: string[] = [];
     const container = createContainer(fs, logs);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
     vi.spyOn(container.providerRegistry, "list").mockReturnValue([
       makeProvider({
-        id: "legacy-only",
-        supportsAgents: ["claude-code", "codex"]
+        id: "shape-missing"
       })
     ]);
 
@@ -197,7 +193,7 @@ describe("provider list", () => {
     await program.parseAsync(["node", "cli", "provider", "list"]);
 
     const output = stripAnsi(logs.join("\n"));
-    expect(output).toContain("legacy-only");
+    expect(output).toContain("shape-missing");
     expect(output).not.toContain("claude-code");
     expect(output).not.toContain("codex");
   });

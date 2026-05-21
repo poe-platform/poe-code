@@ -211,7 +211,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: drop-supports-agents
     title: Remove supportsAgents; shape intersection is the only compatibility rule
@@ -226,8 +226,8 @@ tasks:
 
       Acceptance: `grep -rn supportsAgents packages/ src/` returns zero hits. Snapshot of `~/.claude/settings.json` for `configure claude-code --yes` with only `POE_API_KEY` set remains byte-identical.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: shape-aware-error-messages

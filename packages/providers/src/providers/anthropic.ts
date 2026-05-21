@@ -16,6 +16,5 @@ export const anthropicProvider: AuthProvider = {
       id: "anthropic-messages",
       defaultBaseUrl: "https://api.anthropic.com"
     }
-  ],
-  supportsAgents: ["claude-code"]
+  ]
 };

@@ -13,7 +13,6 @@ function makeProvider(apiShapes?: readonly ApiShapeId[]): AuthProvider {
       storageKey: "provider:provider",
       prompt: { title: "Provider API key" }
     },
-    supportsAgents: [],
     apiShapes: apiShapes?.map((id) => ({
       id,
       defaultBaseUrl: `https://api.provider.test/${id}`

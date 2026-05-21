@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { allAgents } from "@poe-code/agent-defs";
+import { resolveApiShape } from "../compatibility.js";
 import { poeProvider } from "./poe.js";
 
 describe("poeProvider", () => {
@@ -7,19 +8,19 @@ describe("poeProvider", () => {
     expect(typeof poeProvider.id).toBe("string");
     expect(typeof poeProvider.label).toBe("string");
     expect(typeof poeProvider.baseUrl).toBe("string");
-    expect(Array.isArray(poeProvider.supportsAgents)).toBe(true);
+    expect(Array.isArray(poeProvider.apiShapes)).toBe(true);
   });
 
   it("uses api-key auth", () => {
     expect(poeProvider.auth.kind).toBe("api-key");
   });
 
-  it("supports every agent in @poe-code/agent-defs", () => {
-    const agentIds = allAgents.map((a) => a.id);
-    for (const id of agentIds) {
-      expect(poeProvider.supportsAgents).toContain(id);
+  it("intersects with every provider-backed agent in @poe-code/agent-defs", () => {
+    const providerBackedAgents = allAgents.filter((agent) => agent.apiShapes);
+    expect(providerBackedAgents.length).toBeGreaterThan(0);
+    for (const agent of providerBackedAgents) {
+      expect(resolveApiShape(poeProvider, agent)).toBeDefined();
     }
-    expect(poeProvider.supportsAgents).toHaveLength(agentIds.length);
   });
 
   it("declares Poe API shape defaults", () => {

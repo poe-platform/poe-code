@@ -7,6 +7,7 @@ export const claudeCodeAgent: AgentDefinition = {
   summary: "Configure Claude Code to route through Poe.",
   aliases: ["claude"],
   binaryName: "claude",
+  apiShapes: ["anthropic-messages"],
   configPath: "~/.claude/settings.json",
   branding: {
     colors: {

@@ -24,6 +24,18 @@ const expectedAgents: AgentDefinition[] = [
   poeAgentAgent
 ];
 
+const expectedProviderAgentApiShapes = new Map<
+  string,
+  NonNullable<AgentDefinition["apiShapes"]>
+>([
+  ["claude-code", ["anthropic-messages"]],
+  ["codex", ["openai-responses"]],
+  ["kimi", ["openai-chat-completions"]],
+  ["opencode", ["openai-chat-completions"]],
+  ["goose", ["openai-chat-completions"]],
+  ["poe-agent", ["openai-responses", "openai-chat-completions"]]
+]);
+
 const normalizeKey = (value: string): string => value.toLowerCase();
 
 describe("agent-defs package", () => {
@@ -62,6 +74,15 @@ describe("agent-defs package", () => {
 
   it.each(allAgents)("$id configPath starts with ~/", (agent) => {
     expect(agent.configPath.startsWith("~/")).toBe(true);
+  });
+
+  it("declares api shapes for every provider-backed agent", () => {
+    const agentsById = new Map(allAgents.map((agent) => [agent.id, agent]));
+
+    for (const [agentId, apiShapes] of expectedProviderAgentApiShapes.entries()) {
+      expect(agentsById.get(agentId)?.apiShapes).toEqual(apiShapes);
+      expect(agentsById.get(agentId)?.apiShapes?.length).toBeGreaterThan(0);
+    }
   });
 
   it("has no duplicate case-insensitive lookup keys across agents", () => {

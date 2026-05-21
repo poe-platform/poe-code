@@ -6,6 +6,7 @@ export const codexAgent: AgentDefinition = {
   label: "Codex",
   summary: "Configure Codex to use Poe as the model provider.",
   binaryName: "codex",
+  apiShapes: ["openai-responses"],
   configPath: "~/.codex/config.toml",
   branding: {
     colors: {

@@ -7,6 +7,7 @@ export const kimiAgent: AgentDefinition = {
   summary: "Configure Kimi CLI to use Poe API",
   aliases: ["kimi-cli"],
   binaryName: "kimi",
+  apiShapes: ["openai-chat-completions"],
   configPath: "~/.kimi/config.toml",
   branding: {
     colors: {

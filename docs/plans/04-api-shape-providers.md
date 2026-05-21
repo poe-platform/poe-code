@@ -40,7 +40,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: declare-shapes-on-agents
     title: Declare ordered apiShapes on every agent definition
@@ -57,9 +57,9 @@ tasks:
 
       Add tests in `packages/agent-defs/` confirming each agent declares at least one shape and that the order matches what existing code routes by default. No consumer yet — type field is optional, current callers ignore it.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: shape-intersection-helper
     title: Add resolveApiShape and switch ProviderRegistry.forAgent to it

@@ -6,6 +6,7 @@ export const openCodeAgent: AgentDefinition = {
   label: "OpenCode CLI",
   summary: "Configure OpenCode CLI to use the Poe API.",
   binaryName: "opencode",
+  apiShapes: ["openai-chat-completions"],
   configPath: "~/.config/opencode/config.json",
   branding: {
     colors: {

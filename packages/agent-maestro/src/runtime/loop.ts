@@ -16,6 +16,7 @@ import {
   type EnsureWorkspaceResult
 } from "../workspace/manager.js";
 import type { AttemptPhase } from "./phases.js";
+import { advanceTaskToRunning } from "./advance.js";
 import { reconcileRunning as defaultReconcileRunning, type ReconcileResult } from "./reconcile.js";
 import { backoffMs, shouldRetry } from "./retry.js";
 import {
@@ -151,16 +152,6 @@ export async function tick(state: MaestroState, deps: TickDeps): Promise<void> {
   }
 }
 
-async function startTaskIfSupported(tasks: Pick<TaskList, "list">, task: Task): Promise<Task> {
-  const list = tasks.list(task.list);
-
-  if (!(await list.canFire(task.id, "start"))) {
-    return task;
-  }
-
-  return list.fire(task.id, "start");
-}
-
 async function activeCandidates(
   state: MaestroState,
   tasks: Pick<TaskList, "allTasks">
@@ -262,7 +253,10 @@ function startWorker(state: MaestroState, deps: TickDeps, task: Task, attempt: n
           attempt,
           workspace: workspace.path
         });
-        activeTask = await startTaskIfSupported(deps.tasks, task);
+        activeTask = await advanceTaskToRunning(deps.tasks, task, {
+          events: ["start"],
+          requireSupported: true
+        });
         outcome = await (deps.runAttempt ?? defaultRunAttempt)({
           task: activeTask,
           attempt,

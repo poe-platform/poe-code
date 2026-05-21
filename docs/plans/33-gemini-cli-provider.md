@@ -159,6 +159,63 @@ tasks:
       test: open
       commit: open
 
+  - id: manual-gemini-cli-terminal-pilot-direct
+    title: Manually smoke test raw gemini-cli through the Poe gateway
+    prompt: |
+      Use terminal-pilot to run a direct gemini-cli smoke test against the Poe gateway.
+
+      Preconditions:
+      - `POE_API_KEY` is set in the environment.
+      - Gateway base URL is `https://poe-ai-gateway.poe-dev.workers.dev`.
+      - Gemini CLI is installed and `gemini --version` succeeds.
+
+      Run gemini-cli with:
+      - `GEMINI_API_KEY=$POE_API_KEY`
+      - `GOOGLE_GEMINI_BASE_URL` derived from the gateway base URL for the Google generations endpoint.
+      - `--sandbox=false`
+      - `--model gemini-2.5-pro`
+      - `--output-format text`
+      - prompt: `Reply with exactly: GEMINI_TERMINAL_PILOT_OK`
+
+      Use terminal-pilot to inspect the terminal until the command exits. Pass only if stdout contains `GEMINI_TERMINAL_PILOT_OK` and the gateway URL is the only non-Google base URL used by the process. Record the exact command and result in the task notes. Do not print or persist the `POE_API_KEY` value.
+    status:
+      manual: open
+      commit: open
+
+  - id: manual-gemini-cli-terminal-pilot-configure
+    title: Manually validate poe-code configure gemini-cli against the Poe gateway
+    prompt: |
+      Use terminal-pilot to validate the poe-code configure flow for gemini-cli with real credentials.
+
+      Preconditions:
+      - `POE_API_KEY` is set in the environment.
+      - Gateway base URL is `https://poe-ai-gateway.poe-dev.workers.dev`.
+      - The cloudflare/provider entry exposes `google-generations` for gemini-cli.
+
+      Run the configure command through `npm run dev -- configure gemini-cli` using the gateway base URL and `POE_API_KEY` credential. Exercise the interactive path first so the dynamic Gemini model list is visible, then repeat the non-interactive `--yes` path.
+
+      Use terminal-pilot to capture what prompts appeared and which model choices were offered. Pass only if configure succeeds, the selected model is written to `~/.gemini/settings.json`, `selectedAuthType` is `gemini-api-key`, and existing unrelated settings are preserved. Do not print or persist the `POE_API_KEY` value.
+    status:
+      manual: open
+      commit: open
+
+  - id: manual-gemini-cli-terminal-pilot-spawn-mcp
+    title: Manually validate gemini-cli spawn and MCP through terminal-pilot
+    prompt: |
+      Use terminal-pilot to validate poe-code spawn with gemini-cli against the Poe gateway and with an MCP server.
+
+      Preconditions:
+      - `POE_API_KEY` is set in the environment.
+      - Gateway base URL is `https://poe-ai-gateway.poe-dev.workers.dev`.
+      - gemini-cli has already been configured by poe-code.
+
+      Run a spawn command through `npm run dev -- spawn --mcp-servers <json> gemini-cli <prompt>` where `<json>` defines a tiny stdio MCP server available in this repo, such as `tiny-stdio-mcp-test-server`. The prompt must require the MCP tool result and must also ask Gemini to include `GEMINI_MCP_OK` in the final response.
+
+      Use terminal-pilot to inspect the terminal session until completion. Pass only if spawn exits successfully, `--sandbox=false` is present in the Gemini invocation path, the MCP tool result is used, and the final output contains `GEMINI_MCP_OK`. Record the exact command and result in the task notes. Do not print or persist the `POE_API_KEY` value.
+    status:
+      manual: open
+      commit: open
+
   - id: gemini-cli-screenshot-validation
     title: Visual validation via screenshots
     prompt: |

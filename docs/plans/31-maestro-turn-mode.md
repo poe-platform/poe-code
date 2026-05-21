@@ -43,7 +43,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: dispatch-on-queued-transition
     title: Dispatch via label/state change on `*:queued` transition
@@ -71,8 +71,8 @@ tasks:
       is a no-op for dispatch (still emits the tick_started event,
       still exits 0).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: gh-actions-workflow-template

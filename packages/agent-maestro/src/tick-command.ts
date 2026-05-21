@@ -5,6 +5,7 @@ import { loadWorkflow } from "./config/load.js";
 import { resolveConfig, type ResolvedConfig } from "./config/schema.js";
 import { resolveConfiguredTaskListOptions } from "./config/task-list.js";
 import type { MaestroEvent } from "./index.js";
+import { advanceTaskToRunning } from "./runtime/advance.js";
 import { maestroTaskStateMachine } from "./state-machine.js";
 
 export interface RunMaestroTickOptions {
@@ -23,16 +24,20 @@ export async function runMaestroTick(options: RunMaestroTickOptions): Promise<vo
     resolveConfig(workflow.config, path.dirname(workflow.sourcePath)),
     options
   );
-  const openTaskListFn = options.openTaskList ?? openTaskList;
-  const taskList = await openTaskListFn(resolveConfiguredTaskListOptions(cfg));
 
-  await taskList.get(options.task);
-  assertValidTransition(options.transition);
+  const transition = parseTransition(options.transition);
+  assertValidTransition(options.transition, transition);
 
   options.onEvent?.({
     type: "tick_started",
     at: (options.now?.() ?? new Date()).toISOString()
   });
+
+  if (isQueuedTriggerTransition(transition)) {
+    const openTaskListFn = options.openTaskList ?? openTaskList;
+    const taskList = await openTaskListFn(resolveConfiguredTaskListOptions(cfg));
+    await advanceTaskToRunning(taskList, resolveTickTaskRef(cfg, options.task));
+  }
 }
 
 function applyTickOptionOverrides(
@@ -52,8 +57,10 @@ function applyTickOptionOverrides(
   };
 }
 
-function assertValidTransition(transition: string): void {
-  const parsed = parseTransition(transition);
+function assertValidTransition(transition: string, parsed: { from: string; to: string }): void {
+  if (isQueuedTriggerTransition(parsed)) {
+    return;
+  }
 
   for (const event of Object.values(maestroTaskStateMachine.events)) {
     if (event.to !== parsed.to) {
@@ -66,6 +73,33 @@ function assertValidTransition(transition: string): void {
   }
 
   throw new Error(`Invalid maestro transition "${transition}".`);
+}
+
+function isQueuedTriggerTransition(transition: { from: string; to: string }): boolean {
+  return transition.from === "*" && transition.to === "queued";
+}
+
+function resolveTickTaskRef(
+  cfg: Pick<ResolvedConfig, "agent">,
+  qualifiedId: string
+): { list: string; id: string } {
+  const list = cfg.agent.list;
+
+  if (list === undefined || list.length === 0) {
+    throw new Error("Maestro tick requires agent.list to resolve task ids.");
+  }
+
+  const hashPrefix = `${list}#`;
+  if (qualifiedId.startsWith(hashPrefix) && qualifiedId.length > hashPrefix.length) {
+    return { list, id: qualifiedId.slice(hashPrefix.length) };
+  }
+
+  const slashPrefix = `${list}/`;
+  if (qualifiedId.startsWith(slashPrefix) && qualifiedId.length > slashPrefix.length) {
+    return { list, id: qualifiedId.slice(slashPrefix.length) };
+  }
+
+  throw new Error(`Invalid qualified task id "${qualifiedId}" for list "${list}".`);
 }
 
 function parseTransition(transition: string): { from: string; to: string } {

@@ -78,6 +78,14 @@ export {
   writeScope
 } from "./store.js";
 export {
+  loadConfiguredServices,
+  saveConfiguredService,
+  unconfigureService,
+  type ConfiguredServiceMetadata,
+  type SaveConfiguredServiceOptions,
+  type UnconfigureServiceOptions
+} from "./configured-services.js";
+export {
   createStateManager,
   loadStateManager,
   type JobEntry,

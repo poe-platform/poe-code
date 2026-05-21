@@ -145,11 +145,12 @@ describe("config store", () => {
 
     expect(services).toEqual({
       opencode: {
+        provider: "poe",
+        apiShape: "openai-chat-completions",
         files: [
           "/home/user/.config/opencode/config.json",
           "/home/user/.local/share/opencode/auth.json"
-        ],
-        provider: "poe"
+        ]
       }
     });
   });
@@ -195,7 +196,11 @@ describe("config store", () => {
     });
 
     expect(services).toEqual({
-      codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" }
+      codex: {
+        provider: "poe",
+        apiShape: "openai-responses",
+        files: ["/home/user/.codex/config.toml"]
+      }
     });
 
     await expect(fs.readFile(configPath, "utf8")).resolves.toBeDefined();
@@ -259,15 +264,25 @@ describe("config store", () => {
     const services = await loadConfiguredServices({ fs, filePath: configPath });
 
     expect(services).toEqual({
-      "claude-code": { files: ["/home/user/.claude/settings.json"], provider: "poe" },
-      codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" }
+      "claude-code": {
+        provider: "poe",
+        apiShape: "anthropic-messages",
+        files: ["/home/user/.claude/settings.json"]
+      },
+      codex: {
+        provider: "poe",
+        apiShape: "openai-responses",
+        files: ["/home/user/.codex/config.toml"]
+      }
     });
     const saved = JSON.parse(await fs.readFile(configPath, "utf8"));
     expect(saved.configured_services["claude-code"].provider).toBe("poe");
+    expect(saved.configured_services["claude-code"].apiShape).toBe("anthropic-messages");
     expect(saved.configured_services.codex.provider).toBe("poe");
+    expect(saved.configured_services.codex.apiShape).toBe("openai-responses");
   });
 
-  it("leaves provider fields unchanged when already set", async () => {
+  it("leaves provider fields unchanged when already set and migrates missing apiShape", async () => {
     const initial = {
       configured_services: {
         "claude-code": { files: ["/home/user/.claude/settings.json"], provider: "anthropic" },
@@ -275,15 +290,24 @@ describe("config store", () => {
       }
     };
     await fs.writeFile(configPath, JSON.stringify(initial, null, 2), { encoding: "utf8" });
-    const contentBefore = await fs.readFile(configPath, "utf8");
-
     const services = await loadConfiguredServices({ fs, filePath: configPath });
 
     expect(services).toEqual({
-      "claude-code": { files: ["/home/user/.claude/settings.json"], provider: "anthropic" },
-      codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" }
+      "claude-code": {
+        provider: "anthropic",
+        apiShape: "anthropic-messages",
+        files: ["/home/user/.claude/settings.json"]
+      },
+      codex: {
+        provider: "poe",
+        apiShape: "openai-responses",
+        files: ["/home/user/.codex/config.toml"]
+      }
     });
-    expect(await fs.readFile(configPath, "utf8")).toBe(contentBefore);
+    const saved = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(saved.configured_services["claude-code"].provider).toBe("anthropic");
+    expect(saved.configured_services["claude-code"].apiShape).toBe("anthropic-messages");
+    expect(saved.configured_services.codex.apiShape).toBe("openai-responses");
   });
 
   it("merges configured services from global and project config", async () => {
@@ -322,8 +346,16 @@ describe("config store", () => {
         projectFilePath: projectConfigPath
       })
     ).resolves.toEqual({
-      codex: { files: ["/home/user/.codex/config.toml"], provider: "poe" },
-      claude: { files: ["/home/user/.claude/settings.json"], provider: "poe" }
+      codex: {
+        provider: "poe",
+        apiShape: "openai-responses",
+        files: ["/home/user/.codex/config.toml"]
+      },
+      claude: {
+        provider: "poe",
+        apiShape: "anthropic-messages",
+        files: ["/home/user/.claude/settings.json"]
+      }
     });
   });
 
@@ -357,6 +389,7 @@ describe("config store", () => {
     expect(JSON.parse(await fs.readFile(configPath, "utf8"))).toEqual({
       configured_services: {
         "claude-code": {
+          apiShape: "anthropic-messages",
           files: ["/home/user/.claude/settings.json"],
           provider: "poe"
         }

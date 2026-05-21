@@ -20,4 +20,13 @@ describe("anthropicProvider", () => {
   it("supports claude-code", () => {
     expect(anthropicProvider.supportsAgents).toContain("claude-code");
   });
+
+  it("declares anthropic messages api shape", () => {
+    expect(anthropicProvider.apiShapes).toEqual([
+      {
+        id: "anthropic-messages",
+        defaultBaseUrl: "https://api.anthropic.com"
+      }
+    ]);
+  });
 });

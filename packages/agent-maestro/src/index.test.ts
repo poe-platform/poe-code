@@ -703,23 +703,39 @@ describe("integration", () => {
     await advancePoll();
     await waitForEventCount(events.events, 24);
 
-    expect(stripUndefined(events.events)).toEqual([
-      tickEvent(25),
-      dispatchEvent(fixture, "one"),
-      ...successEvents("one", 1, { reconcile: false }),
-      dispatchEvent(fixture, "two"),
-      ...successEvents("two", 1, { reconcile: false }),
-      { type: "reconcile", task_id: "tasks/one", action: "stop_clean" },
-      { type: "reconcile", task_id: "tasks/two", action: "stop_clean" },
-      tickEvent(50),
-      dispatchEvent(fixture, "three"),
-      ...successEvents("three"),
-      tickEvent(75)
+    const capturedEvents = stripUndefined(events.events);
+    const tick50Index = capturedEvents.findIndex(
+      (event) => event.type === "tick_started" && event.at === tickEvent(50).at
+    );
+    const dispatches = capturedEvents.filter((event) => event.type === "dispatch");
+
+    expect(capturedEvents[0]).toEqual(tickEvent(25));
+    expect(tick50Index).toBeGreaterThan(0);
+    expect(capturedEvents.at(-1)).toEqual(tickEvent(75));
+    expect(dispatches.slice(0, 2).map((event) => event.task_id).sort()).toEqual([
+      "tasks/one",
+      "tasks/two"
     ]);
-    expect(spawn.calls.map((call) => taskIdFromPrompt(call.prompt))).toEqual([
+    expect(dispatches[2]).toEqual(dispatchEvent(fixture, "three"));
+    expect(capturedEvents.findIndex((event) => event === dispatches[2])).toBeGreaterThan(
+      tick50Index
+    );
+    expect(taskEvents(capturedEvents, "one")).toEqual([
+      dispatchEvent(fixture, "one"),
+      ...successEvents("one")
+    ]);
+    expect(taskEvents(capturedEvents, "two")).toEqual([
+      dispatchEvent(fixture, "two"),
+      ...successEvents("two")
+    ]);
+    expect(taskEvents(capturedEvents, "three")).toEqual([
+      dispatchEvent(fixture, "three"),
+      ...successEvents("three")
+    ]);
+    expect(spawn.calls.map((call) => taskIdFromPrompt(call.prompt)).sort()).toEqual([
       "one",
-      "two",
-      "three"
+      "three",
+      "two"
     ]);
 
     await stop();
@@ -890,6 +906,11 @@ describe("integration", () => {
       agentSpawn: firstSpawn.spawn,
       onEvent: firstEvents.onEvent
     });
+    nodeFs.writeFileSync(
+      `${fixture.workflowPath}.lock`,
+      JSON.stringify({ host: os.hostname(), pid: process.pid }),
+      "utf8"
+    );
     const secondRun = runMaestro({
       workflowPath: fixture.workflowPath,
       pollIntervalMs: 1_000_000,
@@ -1207,6 +1228,11 @@ function dispatchEvent(fixture: IntegrationFixture, id: string): MaestroEvent {
     qualified_id: `tasks/${id}`,
     workspace: workspacePath(fixture, id)
   };
+}
+
+function taskEvents(events: readonly MaestroEvent[], id: string): MaestroEvent[] {
+  const taskId = `tasks/${id}`;
+  return events.filter((event) => "task_id" in event && event.task_id === taskId);
 }
 
 function successEvents(

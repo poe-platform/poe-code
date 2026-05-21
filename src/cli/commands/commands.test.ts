@@ -122,7 +122,8 @@ describe("configure command", () => {
         homeDir + "/.config/opencode/config.json",
         homeDir + "/.local/share/opencode/auth.json"
       ],
-      provider: "poe"
+      provider: "poe",
+      apiShape: "openai-chat-completions"
     });
   });
 
@@ -302,7 +303,8 @@ describe("configure command", () => {
         `${homeDir}/.config/goose/custom_providers/custom_poe.json`,
         `${homeDir}/.config/goose/secrets.yaml`
       ],
-      provider: "poe"
+      provider: "poe",
+      apiShape: "openai-chat-completions"
     });
     expect(httpClient).toHaveBeenCalledWith(
       "https://api.poe.com/v1/models",

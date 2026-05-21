@@ -2,10 +2,18 @@ import path from "node:path";
 import { createTimestamp, isNotFound, readFileIfExists } from "@poe-code/config-mutations";
 import {
   defineScope,
+  loadConfiguredServices,
   planConfigScope as sharedPlanConfigScope,
   readDocument,
   readMergedDocument,
+  saveConfiguredService,
+  unconfigureService,
   writeScope
+} from "@poe-code/poe-code-config";
+import type {
+  ConfiguredServiceMetadata,
+  SaveConfiguredServiceOptions,
+  UnconfigureServiceOptions
 } from "@poe-code/poe-code-config";
 import { parseNullablePluginConfigEntries, type PluginConfigEntry } from "@poe-code/poe-agent";
 import { superintendentConfigScope } from "@poe-code/superintendent";
@@ -21,24 +29,13 @@ export interface SaveConfigOptions extends ConfigStoreOptions {
   apiKey: string;
 }
 
-export interface ConfiguredServiceMetadata {
-  files: string[];
-  provider: string;
-}
-
 interface LegacyConfigDocument {
   apiKey?: string;
   configured_services?: Record<string, ConfiguredServiceMetadata>;
 }
 
-export interface SaveConfiguredServiceOptions extends ConfigStoreOptions {
-  service: string;
-  metadata: ConfiguredServiceMetadata;
-}
-
-export interface UnconfigureServiceOptions extends ConfigStoreOptions {
-  service: string;
-}
+export { loadConfiguredServices, saveConfiguredService, unconfigureService };
+export type { ConfiguredServiceMetadata, SaveConfiguredServiceOptions, UnconfigureServiceOptions };
 
 export const coreConfigScope = defineScope("core", {
   apiKey: {
@@ -158,44 +155,6 @@ export async function deleteConfig(options: ConfigStoreOptions): Promise<boolean
   }
 }
 
-export async function loadConfiguredServices(
-  options: ConfigStoreOptions
-): Promise<Record<string, ConfiguredServiceMetadata>> {
-  const { fs, filePath, projectFilePath } = options;
-  await migrateLegacyCredentialsIfNeeded(fs, filePath);
-  await migrateServicesProviderIfNeeded(fs, filePath);
-
-  const document = await readMergedDocument(fs, filePath, projectFilePath);
-  return normalizeConfiguredServices(document[configuredServicesScope]);
-}
-
-export async function saveConfiguredService(options: SaveConfiguredServiceOptions): Promise<void> {
-  const { fs, filePath, service, metadata } = options;
-  await migrateLegacyConfigIfNeeded(fs, filePath);
-
-  const document = await readDocument(fs, filePath);
-  const services = normalizeConfiguredServices(document[configuredServicesScope]);
-  services[service] = normalizeConfiguredServiceMetadata(metadata);
-
-  await writeScope(fs, filePath, configuredServicesScope, services);
-}
-
-export async function unconfigureService(options: UnconfigureServiceOptions): Promise<boolean> {
-  const { fs, filePath, service } = options;
-  await migrateLegacyConfigIfNeeded(fs, filePath);
-
-  const document = await readDocument(fs, filePath);
-  const services = normalizeConfiguredServices(document[configuredServicesScope]);
-
-  if (!(service in services)) {
-    return false;
-  }
-
-  delete services[service];
-  await writeScope(fs, filePath, configuredServicesScope, services);
-  return true;
-}
-
 function normalizeConfiguredServiceMetadata(
   metadata: ConfiguredServiceMetadata
 ): ConfiguredServiceMetadata {
@@ -212,32 +171,11 @@ function normalizeConfiguredServiceMetadata(
     }
   }
 
-  return { files, provider: metadata.provider };
-}
-
-async function migrateServicesProviderIfNeeded(fs: FileSystem, filePath: string): Promise<void> {
-  const document = await readDocument(fs, filePath);
-  const rawServices = document[configuredServicesScope];
-  if (!isRecord(rawServices)) {
-    return;
-  }
-
-  let needsMigration = false;
-  const migrated: Record<string, unknown> = {};
-
-  for (const [k, entry] of Object.entries(rawServices)) {
-    if (!isRecord(entry)) continue;
-    if (typeof entry.provider !== "string") {
-      needsMigration = true;
-      migrated[k] = { ...entry, provider: "poe" };
-    } else {
-      migrated[k] = entry;
-    }
-  }
-
-  if (needsMigration) {
-    await writeScope(fs, filePath, configuredServicesScope, migrated);
-  }
+  return {
+    provider: metadata.provider,
+    ...(metadata.apiShape ? { apiShape: metadata.apiShape } : {}),
+    files
+  };
 }
 
 async function migrateLegacyConfigIfNeeded(fs: FileSystem, filePath: string): Promise<void> {
@@ -344,8 +282,12 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
     }
 
     entries[key] = normalizeConfiguredServiceMetadata({
-      files: Array.isArray(entry.files) ? entry.files : [],
-      provider: typeof entry.provider === "string" ? entry.provider : "poe"
+      provider: typeof entry.provider === "string" ? entry.provider : "poe",
+      apiShape:
+        typeof entry.apiShape === "string"
+          ? (entry.apiShape as ConfiguredServiceMetadata["apiShape"])
+          : undefined,
+      files: Array.isArray(entry.files) ? entry.files : []
     });
   }
 

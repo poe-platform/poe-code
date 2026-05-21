@@ -89,7 +89,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: persist-apishape-in-services-json
     title: Persist apiShape in services.json with idempotent migration
@@ -102,8 +102,8 @@ tasks:
 
       Snapshot test: starting from a services.json with `{ "claude-code": { "provider": "poe", "files": [...] } }`, after one load+save, the file becomes `{ "claude-code": { "provider": "poe", "apiShape": "anthropic-messages", "files": [...] } }`. Backwards-compat: no consumer fails when `apiShape` is undefined (defer reading it until task `shape-scoped-baseurl`).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: shape-scoped-baseurl

@@ -61,8 +61,9 @@ describe("config.ts — loadConfiguredServices / saveConfiguredService", () => {
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["codex"]).toEqual({
-      files: ["/home/user/.codex/config.toml"],
-      provider: "poe"
+      provider: "poe",
+      apiShape: "openai-responses",
+      files: ["/home/user/.codex/config.toml"]
     });
   });
 
@@ -76,6 +77,7 @@ describe("config.ts — loadConfiguredServices / saveConfiguredService", () => {
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]!.provider).toBe("anthropic");
+    expect(services["claude-code"]!.apiShape).toBe("anthropic-messages");
   });
 
   it("unconfigureService removes the service entry", async () => {
@@ -110,8 +112,12 @@ describe("config.ts — loadConfiguredServices / saveConfiguredService", () => {
       }
     };
     await fs.writeFile(configPath, JSON.stringify(raw, null, 2), { encoding: "utf8" });
+    const warn = vi.fn();
 
-    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    const services = await loadConfiguredServices({ fs, filePath: configPath, warn });
     expect(services["codex"]!.provider).toBe("anthropic");
+    expect(warn).toHaveBeenCalledWith(
+      'Unable to derive apiShape for configured service "codex" with provider "anthropic".'
+    );
   });
 });

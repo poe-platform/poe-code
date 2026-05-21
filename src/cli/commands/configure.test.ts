@@ -317,8 +317,11 @@ describe("configure provider resolution", () => {
 
     await executeConfigure(createTestProgram(), container, "claude-code", {});
 
-    const services = await loadConfiguredServices({ fs, filePath: configPath });
-    expect(services["claude-code"]).toMatchObject({ provider: "poe" });
+    const saved = JSON.parse(await fs.readFile(configPath, "utf8"));
+    expect(saved.configured_services["claude-code"]).toMatchObject({
+      provider: "poe",
+      apiShape: "anthropic-messages"
+    });
   });
 
   it("--skip-if-configured exits before writes when configure would only create a backup", async () => {

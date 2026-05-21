@@ -11,5 +11,11 @@ export const anthropicProvider: AuthProvider = {
     storageKey: "provider:anthropic",
     prompt: { title: "Anthropic API key" }
   },
+  apiShapes: [
+    {
+      id: "anthropic-messages",
+      defaultBaseUrl: "https://api.anthropic.com"
+    }
+  ],
   supportsAgents: ["claude-code"]
 };

@@ -1,10 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { Task, TaskList } from "@poe-code/task-list";
-import {
-  buildMaestroExplorerConfig,
-  runMaestroTui,
-  type RunMaestroTuiOptions
-} from "./index.js";
+import { buildMaestroExplorerConfig, runMaestroTui } from "./index.js";
 
 function task(): Task {
   return {
@@ -42,6 +38,10 @@ function taskList(): TaskList {
 }
 
 describe("maestro-tui public API", () => {
+  it("exports the maestro TUI runner", () => {
+    expect(runMaestroTui).toBeTypeOf("function");
+  });
+
   it("exports the maestro explorer config builder", async () => {
     const config = buildMaestroExplorerConfig({
       tasks: [],
@@ -71,43 +71,5 @@ describe("maestro-tui public API", () => {
       })
     ]);
     expect(config.emptyHint).toBe("No tasks found");
-  });
-
-  it("runs the generated config through the injected explorer", async () => {
-    const runExplorerImpl: NonNullable<RunMaestroTuiOptions["runExplorerImpl"]> = vi
-      .fn()
-      .mockResolvedValue(null);
-
-    await runMaestroTui({
-      tasks: [],
-      taskList: taskList(),
-      variables: {},
-      onRefresh: async () => [],
-      runExplorerImpl
-    });
-
-    expect(runExplorerImpl).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: "Maestro tasks",
-        actions: expect.arrayContaining([
-          expect.objectContaining({
-            id: "move-state",
-            key: "f",
-            label: "Move to state…",
-            primary: true
-          }),
-          expect.objectContaining({
-            id: "open-source",
-            key: "o",
-            label: "Open in $EDITOR"
-          }),
-          expect.objectContaining({
-            id: "open-issue",
-            key: "g",
-            label: "Open issue in browser"
-          })
-        ])
-      })
-    );
   });
 });

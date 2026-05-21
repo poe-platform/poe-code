@@ -1,15 +1,11 @@
 import path from "node:path";
 import { spawn as defaultSpawn } from "@poe-code/agent-spawn";
 import { acquireFileLock } from "@poe-code/file-lock";
-import {
-  openTaskList,
-  type OpenTaskListOptions,
-  type Task,
-  type TaskList
-} from "@poe-code/task-list";
+import { openTaskList, type Task, type TaskList } from "@poe-code/task-list";
 
 import { loadWorkflow } from "./config/load.js";
 import { resolveConfig, type ResolvedConfig } from "./config/schema.js";
+import { resolveConfiguredTaskListOptions } from "./config/task-list.js";
 import { validateDispatch } from "./config/validate.js";
 import { resolveWorkflowKind } from "./drivers/kind.js";
 import { getDriver } from "./drivers/registry.js";
@@ -310,29 +306,7 @@ function createLevelLogger(
 async function openConfiguredTaskList(
   cfg: Pick<ResolvedConfig, "tasks" | "stateOrder">
 ): Promise<TaskList> {
-  if (cfg.tasks === undefined) {
-    throw new Error("Maestro workflow is missing tasks config.");
-  }
-
-  return openTaskList(addMaestroStateMachine(cfg.tasks, cfg.stateOrder));
-}
-
-function addMaestroStateMachine(
-  options: OpenTaskListOptions,
-  stateOrder: readonly string[]
-): OpenTaskListOptions {
-  if (!("path" in options)) {
-    return options;
-  }
-
-  return {
-    ...options,
-    stateMachine: {
-      initial: stateOrder[0],
-      states: stateOrder,
-      events: Object.fromEntries(stateOrder.map((state) => [state, { from: "*", to: state }]))
-    }
-  } as OpenTaskListOptions;
+  return openTaskList(resolveConfiguredTaskListOptions(cfg));
 }
 
 async function collectTerminalTaskIds(
@@ -508,6 +482,7 @@ export {
   type WorkflowLoadErrorCode
 } from "./config/load.js";
 export { resolveConfig, type ResolvedConfig } from "./config/schema.js";
+export { resolveConfiguredTaskListOptions } from "./config/task-list.js";
 export {
   validateDispatch,
   type DispatchPreflightCode,

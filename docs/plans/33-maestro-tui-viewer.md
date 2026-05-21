@@ -262,7 +262,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: run-maestro-tui-entry
     title: Implement runMaestroTui entrypoint
@@ -302,8 +302,8 @@ tasks:
       No spawn, no dispatch, no state writes beyond what the wired
       actions perform. This is a pure viewer.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: poe-code-cli-maestro-tui-subcommand

@@ -8,6 +8,7 @@ import {
   render,
   renderMarkdown,
   runExplorer,
+  openExternal,
   renderTemplate,
   singleDetail,
   text,
@@ -81,6 +82,10 @@ describe("design-system root exports", () => {
     expectTypeOf(explorer.singleDetail).toEqualTypeOf(singleDetail);
     expect(runExplorer).toBeTypeOf("function");
     expect(singleDetail).toBeTypeOf("function");
+  });
+
+  it("re-exports browser helpers from the root barrel", () => {
+    expect(openExternal).toBeTypeOf("function");
   });
 
   it("re-exports explorer types from the root barrel", () => {

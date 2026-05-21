@@ -1,5 +1,6 @@
 import {
   isCancel,
+  openExternal,
   select,
   type Action
 } from "@poe-code/design-system";
@@ -19,6 +20,10 @@ export interface BuildMoveStateActionOptions {
 export interface BuildOpenSourceActionOptions {
   taskByRowId: () => ReadonlyMap<string, Task>;
   variables: Record<string, string | undefined>;
+}
+
+export interface BuildOpenIssueActionOptions {
+  taskByRowId: () => ReadonlyMap<string, Task>;
 }
 
 interface MoveStateChoice {
@@ -101,6 +106,33 @@ export function buildOpenSourceAction(options: BuildOpenSourceActionOptions): Ac
       ctx.toast(`Edited ${task.qualifiedId}`, "info");
     }
   };
+}
+
+export function buildOpenIssueAction(options: BuildOpenIssueActionOptions): Action<void> {
+  return {
+    id: "open-issue",
+    key: "g",
+    label: "Open issue in browser",
+    predicate: (ctx) => getIssueUrl(getTask(options.taskByRowId(), ctx.row.id)) !== null,
+    handler: async (ctx) => {
+      const task = getTask(options.taskByRowId(), ctx.row.id);
+      const url = getIssueUrl(task);
+      if (url === null) {
+        ctx.toast("No issue URL available.", "info");
+        return;
+      }
+
+      await ctx.suspendAnd(async () => {
+        await openExternal(url);
+      });
+      ctx.toast(`Opened ${task.qualifiedId}`, "info");
+    }
+  };
+}
+
+function getIssueUrl(task: Task): string | null {
+  const url = task.metadata.url;
+  return typeof url === "string" && url.startsWith("http") ? url : null;
 }
 
 function getTask(taskByRowId: ReadonlyMap<string, Task>, rowId: string): Task {

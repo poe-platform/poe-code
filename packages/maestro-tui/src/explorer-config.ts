@@ -8,7 +8,7 @@ import type {
 } from "@poe-code/design-system";
 import { OrderMismatchError, type Task, type TaskList } from "@poe-code/task-list";
 import { stringify } from "yaml";
-import { buildMoveStateAction, buildOpenSourceAction } from "./actions.js";
+import { buildMoveStateAction, buildOpenIssueAction, buildOpenSourceAction } from "./actions.js";
 
 export interface BuildMaestroExplorerConfigOptions {
   tasks: readonly Task[];
@@ -73,6 +73,9 @@ export function buildMaestroExplorerConfig(
     buildOpenSourceAction({
       taskByRowId: () => taskByRowId,
       variables: options.variables
+    }),
+    buildOpenIssueAction({
+      taskByRowId: () => taskByRowId
     })
   ];
 

@@ -63,6 +63,11 @@ describe("maestro-tui public API", () => {
         id: "open-source",
         key: "o",
         label: "Open in $EDITOR"
+      }),
+      expect.objectContaining({
+        id: "open-issue",
+        key: "g",
+        label: "Open issue in browser"
       })
     ]);
     expect(config.emptyHint).toBe("No tasks found");
@@ -95,6 +100,11 @@ describe("maestro-tui public API", () => {
             id: "open-source",
             key: "o",
             label: "Open in $EDITOR"
+          }),
+          expect.objectContaining({
+            id: "open-issue",
+            key: "g",
+            label: "Open issue in browser"
           })
         ])
       })

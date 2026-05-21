@@ -227,7 +227,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: action-open-issue
     title: Add "open issue in browser" action for gh-issues tasks
@@ -260,8 +260,8 @@ tasks:
       switch (see memory: explicit-over-implicit; the value itself is
       the signal, not the backend name).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: run-maestro-tui-entry

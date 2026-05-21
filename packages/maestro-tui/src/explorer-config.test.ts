@@ -18,15 +18,17 @@ import {
   type BuildMaestroExplorerConfigOptions
 } from "./explorer-config.js";
 
-const { cancelSelection, editFileMock } = vi.hoisted(() => ({
+const { cancelSelection, editFileMock, openExternalMock } = vi.hoisted(() => ({
   cancelSelection: Symbol("cancel"),
-  editFileMock: vi.fn()
+  editFileMock: vi.fn(),
+  openExternalMock: vi.fn()
 }));
 
 vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
   return {
     ...actual,
+    openExternal: openExternalMock,
     select: vi.fn(),
     isCancel: vi.fn((value: unknown) => value === cancelSelection)
   };
@@ -174,6 +176,14 @@ function openSourceAction(config: ReturnType<typeof buildMaestroExplorerConfig>)
   return action;
 }
 
+function openIssueAction(config: ReturnType<typeof buildMaestroExplorerConfig>): Action<void> {
+  const action = config.actions.find((candidate) => candidate.id === "open-issue");
+  if (action === undefined) {
+    throw new Error("Open issue action was not registered.");
+  }
+  return action;
+}
+
 async function renderDetail(config: ReturnType<typeof buildMaestroExplorerConfig>, rowIndex = 0) {
   const rows = await config.rows();
   const row = rows[rowIndex]!;
@@ -196,6 +206,8 @@ describe("buildMaestroExplorerConfig", () => {
   beforeEach(() => {
     vi.mocked(select).mockReset();
     editFileMock.mockReset();
+    openExternalMock.mockReset();
+    openExternalMock.mockResolvedValue(undefined);
   });
 
   it("maps and orders task rows by state while preserving order within state", async () => {
@@ -287,6 +299,11 @@ describe("buildMaestroExplorerConfig", () => {
         id: "open-source",
         key: "o",
         label: "Open in $EDITOR"
+      }),
+      expect.objectContaining({
+        id: "open-issue",
+        key: "g",
+        label: "Open issue in browser"
       })
     ]);
   });
@@ -614,6 +631,71 @@ describe("buildMaestroExplorerConfig", () => {
     expect(editFileMock).toHaveBeenCalledWith("/repo/tasks/file.md", { env: variables });
     expect(ctx.refresh).toHaveBeenCalledOnce();
     expect(ctx.toast).toHaveBeenCalledWith("Edited tasks/file", "info");
+  });
+
+  it("shows the open-issue action only when a cached task has an http metadata url", async () => {
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({
+          id: "issue",
+          qualifiedId: "tasks/issue",
+          metadata: { url: "https://github.example.test/octo/repo/issues/1" }
+        }),
+        task({
+          id: "file",
+          qualifiedId: "tasks/file",
+          metadata: { url: "file:///repo/tasks/file.md" }
+        }),
+        task({
+          id: "empty",
+          qualifiedId: "tasks/empty",
+          metadata: { url: "" }
+        }),
+        task({
+          id: "object",
+          qualifiedId: "tasks/object",
+          metadata: { url: { href: "https://github.example.test/octo/repo/issues/2" } }
+        }),
+        task({
+          id: "missing",
+          qualifiedId: "tasks/missing",
+          metadata: {}
+        })
+      ],
+      taskList: taskList(),
+      onRefresh: async () => []
+    });
+    const [issueRow, fileRow, emptyRow, objectRow, missingRow] = await config.rows();
+    const action = openIssueAction(config);
+
+    expect(action.predicate?.(actionCtx(issueRow!))).toBe(true);
+    expect(action.predicate?.(actionCtx(fileRow!))).toBe(false);
+    expect(action.predicate?.(actionCtx(emptyRow!))).toBe(false);
+    expect(action.predicate?.(actionCtx(objectRow!))).toBe(false);
+    expect(action.predicate?.(actionCtx(missingRow!))).toBe(false);
+  });
+
+  it("opens the issue url through suspendAnd and shows an info toast", async () => {
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({
+          id: "issue",
+          qualifiedId: "tasks/issue",
+          metadata: { url: "https://github.example.test/octo/repo/issues/1" }
+        })
+      ],
+      taskList: taskList(),
+      onRefresh: async () => []
+    });
+    const [row] = await config.rows();
+    const ctx = actionCtx(row!);
+
+    await openIssueAction(config).handler(ctx);
+
+    expect(ctx.suspendAnd).toHaveBeenCalledOnce();
+    expect(openExternalMock).toHaveBeenCalledWith("https://github.example.test/octo/repo/issues/1");
+    expect(ctx.refresh).not.toHaveBeenCalled();
+    expect(ctx.toast).toHaveBeenCalledWith("Opened tasks/issue", "info");
   });
 
   it("moves a task by prompting for an event and firing it", async () => {

@@ -2,9 +2,10 @@
 
 ## Env Vars
 
-| Env var   | Used by                 | Behavior                                                                                                                                                                                           |
-| --------- | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GH_HOST` | `tasks.type: gh-issues` | Overrides the GitHub GraphQL host used by the `gh-issues` task backend. Empty, unset, and `github.com` use `https://api.github.com/graphql`; any other value uses `https://<GH_HOST>/api/graphql`. |
+| Env var            | Used by                              | Behavior                                                                                                                                                                                           |
+| ------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GH_HOST`          | `tasks.type: gh-issues`              | Overrides the GitHub GraphQL host used by the `gh-issues` task backend. Empty, unset, and `github.com` use `https://api.github.com/graphql`; any other value uses `https://<GH_HOST>/api/graphql`. |
+| `MAESTRO_GH_TOKEN` | turn-based GitHub Actions `gh-issues` | PAT or GitHub App token for the turn-based workflow template and `gh-issues` backend when configured as `tasks.auth.token: $MAESTRO_GH_TOKEN`. Use this instead of `GITHUB_TOKEN` when issue changes must trigger later workflow runs. |
 
 `WORKFLOW.md` string config values can also reference environment variables with `$NAME`. The referenced name must contain only uppercase letters, digits, and `_`.
 
@@ -106,6 +107,35 @@ Agent maestro includes two built-in workflow drivers:
 The driver is selected from the task plan doc frontmatter `kind:` field. Tasks without `kind:` use the `pipeline` driver.
 
 The `ralph` driver requires a file-backed task backend, such as `markdown-dir` or `yaml-file`. `gh-issues` tasks always use the `pipeline` driver.
+
+## Turn-based mode
+
+Turn-based mode runs one short-lived process per external event. Each invocation handles one transition and exits; no in-memory state is shared across invocations. Daemon mode is the existing long-running `poe-code maestro` process; see [Artifact and transitions](#artifact-and-transitions) and [Failure semantics](#failure-semantics) for daemon behavior.
+
+Use turn-based mode for GitHub Actions, git hooks, and environments where a long-running process is unavailable or unwanted.
+
+CLI:
+
+```sh
+poe-code maestro tick --task <id> --transition <from>:<to>
+```
+
+Flags:
+
+| Flag                          | Required | Behavior                                                                 |
+| ----------------------------- | -------- | ------------------------------------------------------------------------ |
+| `--task <qualifiedId>`        | yes      | Task id. Unqualified ids use `agent.list`; qualified ids must match it.  |
+| `--transition <fromState:toState>` | yes | External transition edge.                                                |
+| `--list <name>`               | no       | Overrides `agent.list`; also inherited from parent `poe-code maestro --list`. |
+| `--config <path>`             | no       | Path to `WORKFLOW.md`. Defaults to `./WORKFLOW.md`.                      |
+
+For GitHub Issues storage, use `tasks.type: gh-issues`; the backend is implemented in [packages/task-list/src/backends/gh-issues.ts](../task-list/src/backends/gh-issues.ts) and documented in [@poe-code/task-list](../task-list/README.md#gh-issues). Configure `tasks.repo`, `tasks.project.owner`, `tasks.project.number`, and usually `tasks.auth.token: $MAESTRO_GH_TOKEN` in GitHub Actions; see [Examples](#examples).
+
+There are no time-based retries in turn-based mode. If you need retry backoff, run the daemon. Retries are in-memory only and are intentionally lost on restart in both modes.
+
+GitHub Actions workflows triggered by `GITHUB_TOKEN` do not chain. Use a PAT or GitHub App token as `MAESTRO_GH_TOKEN` to keep issue-label transitions firing follow-up runs.
+
+Workflow template: [packages/github-workflows/src/workflow-templates/maestro-turn.yml](../github-workflows/src/workflow-templates/maestro-turn.yml).
 
 ## Failure semantics
 

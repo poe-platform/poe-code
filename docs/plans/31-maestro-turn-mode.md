@@ -146,7 +146,7 @@ tasks:
       options exposed. The `--config` flag and any `MAESTRO_GH_TOKEN`
       env requirement count.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

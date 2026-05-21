@@ -155,7 +155,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: register-and-shape-anthropic
     title: Register anthropicProvider with apiShapes
@@ -169,8 +169,8 @@ tasks:
 
       End-to-end test (memfs + mocked secret store): `provider login anthropic --api-key sk-ant-...` followed by `configure claude-code --provider anthropic --yes` writes `https://api.anthropic.com` into `~/.claude/settings.json`'s `ANTHROPIC_BASE_URL`. With only `POE_API_KEY` set and `anthropic` not logged in, `configure claude-code --yes` still resolves to poe (single eligible logged-in provider). This is the backwards-compat invariant for this task.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: add-cloudflare-provider

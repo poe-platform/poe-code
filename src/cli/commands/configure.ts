@@ -426,7 +426,7 @@ async function resolveProvider(
   }
 
   if (explicit) {
-    if (!(await container.providerRegistry.isLoggedIn(explicit))) {
+    if (options.apiKey !== undefined || !(await container.providerRegistry.isLoggedIn(explicit))) {
       await triggerProviderLogin(container, explicit, options.apiKey, flags);
     }
     return explicit;

@@ -24,10 +24,12 @@ export class MigratingSecretStore implements SecretStore {
   }
 
   async set(value: string): Promise<void> {
-    return this.store.set(value);
+    await this.store.set(value);
+    await this.legacyStore?.set(value);
   }
 
   async delete(): Promise<void> {
-    return this.store.delete();
+    await this.store.delete();
+    await this.legacyStore?.delete();
   }
 }

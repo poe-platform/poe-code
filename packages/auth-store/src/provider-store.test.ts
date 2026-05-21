@@ -38,12 +38,34 @@ describe("MigratingSecretStore", () => {
       expect(await store.get()).toBe("new-value");
     });
 
+    it("mirrors set to the legacy store when one is present", async () => {
+      const primary = createMockStore();
+      const legacy = createMockStore();
+      const store = new MigratingSecretStore(primary, legacy);
+
+      await store.set("new-value");
+
+      expect(primary.set).toHaveBeenCalledWith("new-value");
+      expect(legacy.set).toHaveBeenCalledWith("new-value");
+    });
+
     it("delegates delete to primary store", async () => {
       const primary = createMockStore("something");
       const store = new MigratingSecretStore(primary, null);
 
       await store.delete();
       expect(primary.delete).toHaveBeenCalled();
+    });
+
+    it("mirrors delete to the legacy store when one is present", async () => {
+      const primary = createMockStore("primary");
+      const legacy = createMockStore("legacy");
+      const store = new MigratingSecretStore(primary, legacy);
+
+      await store.delete();
+
+      expect(primary.delete).toHaveBeenCalled();
+      expect(legacy.delete).toHaveBeenCalled();
     });
   });
 

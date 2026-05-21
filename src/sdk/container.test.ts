@@ -27,6 +27,14 @@ describe("createSdkContainer", () => {
     expect(container.registry.list().length).toBeGreaterThan(0);
   });
 
+  it("registers Poe and Anthropic auth providers", () => {
+    const container = createSdkContainer({ cwd: "/repo", homeDir: "/home/test" });
+    expect(container.providerRegistry.list().map((provider) => provider.id)).toEqual([
+      "poe",
+      "anthropic"
+    ]);
+  });
+
   it("prompts throw in SDK mode (non-interactive)", async () => {
     const container = createSdkContainer({ cwd: "/repo", homeDir: "/home/test" });
     await expect(container.prompts({ name: "x", type: "text" })).rejects.toThrow(

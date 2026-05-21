@@ -127,17 +127,17 @@ export async function resolveActiveProviderForService(
   const configuredProviderId = configuredServices[serviceName]?.provider;
   const provider = configuredProviderId
     ? container.providerRegistry.get(configuredProviderId)
-    : resolveSingleProviderCandidate(container, agent);
+    : await resolveSingleProviderCandidate(container, agent);
   if (!provider || provider.auth.kind !== "api-key") {
     return undefined;
   }
 
-  const envCredential = container.env.getVariable(provider.auth.envVar);
-  const credential =
-    typeof envCredential === "string" && envCredential.trim().length > 0
-      ? envCredential
-      : await container.readApiKey();
-  if (!credential || credential.trim().length === 0) {
+  let credential: string;
+  try {
+    credential = await container.providerRegistry.resolveCredential(provider.id, undefined, {
+      envVars: container.env.variables
+    });
+  } catch {
     return undefined;
   }
 
@@ -149,13 +149,22 @@ export async function resolveActiveProviderForService(
   });
 }
 
-function resolveSingleProviderCandidate(
+async function resolveSingleProviderCandidate(
   container: CliContainer,
   agent: Pick<AgentDefinition, "id" | "apiShapes">
-): AuthProvider | undefined {
+): Promise<AuthProvider | undefined> {
   const candidates = container.providerRegistry.forAgent(agent);
   if (candidates.length === 1) {
     return candidates[0];
+  }
+  const loggedIn: AuthProvider[] = [];
+  for (const candidate of candidates) {
+    if (await container.providerRegistry.isLoggedIn(candidate.id)) {
+      loggedIn.push(candidate);
+    }
+  }
+  if (loggedIn.length === 1) {
+    return loggedIn[0];
   }
   return undefined;
 }

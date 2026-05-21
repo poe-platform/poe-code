@@ -6,5 +6,6 @@ exports[`provider list > snapshots provider shape and agent columns 1`] = `
 │ Provider             │ Status         │ API shapes                                           │ Agents                                                       │
 ├──────────────────────┼────────────────┼──────────────────────────────────────────────────────┼──────────────────────────────────────────────────────────────┤
 │ poe                  │ [-]            │ chat-completions, responses, messages                │ claude-code, codex, goose, kimi, opencode, poe-agent         │
+│ anthropic            │ [-]            │ messages                                             │ claude-code                                                  │
 └──────────────────────┴────────────────┴──────────────────────────────────────────────────────┴──────────────────────────────────────────────────────────────┘"
 `;

@@ -12,10 +12,10 @@ import { createLoggerFactory } from "../cli/logger.js";
 import { ErrorLogger } from "../cli/error-logger.js";
 import { runCommand } from "@poe-code/agent-spawn";
 import { getDefaultProviders } from "../providers/index.js";
-import { ProviderRegistry, poeProvider } from "@poe-code/providers";
+import { anthropicProvider, ProviderRegistry, poeProvider } from "@poe-code/providers";
 import { createPoeCodeCommandRunner } from "../cli/poe-code-command-runner.js";
 import * as nodeFsSync from "node:fs";
-import { createSecretStore } from "auth-store";
+import { createSecretStore, MigratingSecretStore, type SecretStore } from "auth-store";
 
 export interface SdkContainerOptions {
   /** Working directory (defaults to process.cwd()) */
@@ -96,22 +96,39 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     chmod: (filePath: string, mode: number) => fs.chmod(filePath, mode)
   };
 
-  const { store: authStore } = createSecretStore({
-    backendEnvVar: "POE_AUTH_BACKEND",
-    env: variables,
-    platform: process.platform,
-    fileStore: {
-      fs: authFs,
-      salt: "poe-code:encrypted-file-auth-store:v1",
-      defaultDirectory: ".poe-code",
-      defaultFileName: "credentials.enc",
-      getHomeDirectory: () => homeDir
-    }
-  });
+  const createAuthStore = (defaultFileName: string): SecretStore =>
+    createSecretStore({
+      backendEnvVar: "POE_AUTH_BACKEND",
+      env: variables,
+      platform: process.platform,
+      fileStore: {
+        fs: authFs,
+        salt: "poe-code:encrypted-file-auth-store:v1",
+        defaultDirectory: ".poe-code",
+        defaultFileName,
+        getHomeDirectory: () => homeDir
+      }
+    }).store;
 
-  const readApiKey = authStore.get.bind(authStore);
-  const writeApiKey = authStore.set.bind(authStore);
-  const deleteApiKey = authStore.delete.bind(authStore);
+  const legacyAuthStore = createAuthStore("credentials.enc");
+  const providerAuthStores = new Map<string, SecretStore>();
+  const getProviderAuthStore = (providerId: string): SecretStore => {
+    const cached = providerAuthStores.get(providerId);
+    if (cached) {
+      return cached;
+    }
+    const store = createAuthStore(`credentials.${providerId}.enc`);
+    const providerStore =
+      providerId === "poe" ? new MigratingSecretStore(store, legacyAuthStore) : store;
+    providerAuthStores.set(providerId, providerStore);
+    return providerStore;
+  };
+
+  const poeAuthStore = getProviderAuthStore("poe");
+
+  const readApiKey = poeAuthStore.get.bind(poeAuthStore);
+  const writeApiKey = poeAuthStore.set.bind(poeAuthStore);
+  const deleteApiKey = poeAuthStore.delete.bind(poeAuthStore);
 
   // No-op prompts for SDK (non-interactive)
   const noopPrompts = async () => {
@@ -133,9 +150,13 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
 
   const registry = createServiceRegistry();
 
-  const providerRegistry = new ProviderRegistry([poeProvider], (_id) => authStore, {
-    envVars: variables
-  });
+  const providerRegistry = new ProviderRegistry(
+    [poeProvider, anthropicProvider],
+    getProviderAuthStore,
+    {
+      envVars: variables
+    }
+  );
 
   const providers = getDefaultProviders().filter((adapter) => !adapter.disabled);
   for (const adapter of providers) {

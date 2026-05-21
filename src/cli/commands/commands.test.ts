@@ -374,7 +374,7 @@ describe("configure command", () => {
     );
 
     const program = createTestProgram();
-    await executeConfigure(program, container, "claude", {});
+    await executeConfigure(program, container, "claude", { provider: "poe" });
 
     const content = JSON.parse(await fs.readFile(configPath, "utf8"));
     expect(content.configured_services["claude-code"]).toBeDefined();
@@ -393,7 +393,7 @@ describe("configure command", () => {
     );
 
     const program = createTestProgram();
-    await executeConfigure(program, container, "claude-code", {});
+    await executeConfigure(program, container, "claude-code", { provider: "poe" });
 
     expect(logs).toEqual([
       "configure claude-code",

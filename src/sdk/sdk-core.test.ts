@@ -44,9 +44,13 @@ const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
 const runExperimentLoopMock = vi.hoisted(() => vi.fn());
 const spawnAutonomousMock = vi.hoisted(() => vi.fn());
 
-vi.mock("auth-store", () => ({
-  createSecretStore: createSecretStoreMock
-}));
+vi.mock("auth-store", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("auth-store")>();
+  return {
+    ...actual,
+    createSecretStore: createSecretStoreMock
+  };
+});
 
 vi.mock("../cli/options.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../cli/options.js")>();

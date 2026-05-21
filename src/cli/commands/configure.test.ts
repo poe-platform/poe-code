@@ -71,7 +71,18 @@ function includeFakeProvider(
   );
 }
 
+function useOnlyPoeCandidate(container: ReturnType<typeof createContainer>): void {
+  const poe = container.providerRegistry.get("poe");
+  if (!poe) {
+    throw new Error("Expected Poe provider to be registered.");
+  }
+  vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([poe]);
+}
+
 function mockOptions(container: ReturnType<typeof createContainer>) {
+  vi.spyOn(container.providerRegistry, "resolveCredential").mockImplementation(
+    async (_id, options) => options?.apiKey ?? "sk-test"
+  );
   vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
   vi.spyOn(container.options, "resolveModel").mockImplementation(
     async ({ defaultValue }) => defaultValue
@@ -116,7 +127,9 @@ describe("configure provider resolution", () => {
     const container = createContainer(fs);
     mockOptions(container);
     const forAgentSpy = vi.spyOn(container.providerRegistry, "forAgent");
-    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockImplementation(
+      async (id) => id === "poe"
+    );
     stubInvoke(container);
 
     await executeConfigure(createTestProgram(), container, "claude-code", {});
@@ -135,6 +148,105 @@ describe("configure provider resolution", () => {
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services.codex?.provider).toBe(PROVIDER_NAME);
+  });
+
+  it("keeps claude-code on Poe with --yes when only POE_API_KEY is set", async () => {
+    const container = createContainer(fs, { POE_API_KEY: "sk-env" });
+    mockOptions(container);
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--yes"]),
+      container,
+      "claude-code",
+      {}
+    );
+
+    const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
+    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.poe.com/anthropic");
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
+  });
+
+  it("configures claude-code against Anthropic after provider login", async () => {
+    const container = createContainer(fs);
+    const providerProgram = createTestProgram(["node", "cli", "--yes"]);
+    registerProviderCommand(providerProgram, container);
+
+    await providerProgram.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "anthropic",
+      "--api-key",
+      "sk-ant-test"
+    ]);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "anthropic"
+    });
+
+    const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
+    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.anthropic.com");
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services["claude-code"]).toMatchObject({
+      provider: "anthropic",
+      apiShape: "anthropic-messages"
+    });
+  });
+
+  it("auto-selects Anthropic when Anthropic is the only logged-in compatible provider", async () => {
+    const container = createContainer(fs);
+    const providerProgram = createTestProgram(["node", "cli", "--yes"]);
+    registerProviderCommand(providerProgram, container);
+
+    await providerProgram.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "anthropic",
+      "--api-key",
+      "sk-ant-test"
+    ]);
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--yes"]),
+      container,
+      "claude-code",
+      {}
+    );
+
+    const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
+    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.anthropic.com");
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services["claude-code"]).toMatchObject({
+      provider: "anthropic",
+      apiShape: "anthropic-messages"
+    });
+  });
+
+  it("configures Anthropic with an explicit API key without using Poe key validation", async () => {
+    const container = createContainer(fs);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "anthropic",
+      apiKey: "sk-ant-test"
+    });
+
+    const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
+    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.anthropic.com");
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services["claude-code"]).toMatchObject({
+      provider: "anthropic",
+      apiShape: "anthropic-messages"
+    });
   });
 
   it("prompts when >1 eligible providers are logged in", async () => {
@@ -165,6 +277,7 @@ describe("configure provider resolution", () => {
   it("triggers login when the only candidate is not logged in", async () => {
     const container = createContainer(fs);
     mockOptions(container);
+    useOnlyPoeCandidate(container);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
     const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
     stubInvoke(container);
@@ -186,6 +299,7 @@ describe("configure provider resolution", () => {
     vi.spyOn(container.options, "resolveModel").mockImplementation(
       async ({ defaultValue }) => defaultValue
     );
+    useOnlyPoeCandidate(container);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
     stubInvoke(container);
 
@@ -337,7 +451,9 @@ describe("configure provider resolution", () => {
   it("persists the resolved provider in services.json", async () => {
     const container = createContainer(fs);
     mockOptions(container);
-    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockImplementation(
+      async (id) => id === "poe"
+    );
     stubInvoke(container);
 
     await executeConfigure(createTestProgram(), container, "claude-code", {});

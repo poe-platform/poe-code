@@ -10,6 +10,7 @@ import {
   type CommandFlags
 } from "./shared.js";
 import type { ConfigureCommandOptions } from "./configure.js";
+import { POE_PROVIDER_ID } from "@poe-code/providers";
 
 interface ConfigurePayloadInit {
   container: CliContainer;
@@ -31,15 +32,22 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
       throw new Error(`Unknown provider "${providerId}".`);
     }
     const explicitShapeBaseUrls = parseProviderShapeBaseUrls(provider, options.shapeBaseUrl ?? []);
-    const apiKey = await container.options.resolveApiKey({
-      value: options.apiKey,
-      envValue:
-        provider.auth.kind === "api-key"
-          ? container.env.getVariable(provider.auth.envVar)
-          : undefined,
-      dryRun: flags.dryRun,
-      assumeYes: flags.assumeYes
-    });
+    const apiKey =
+      providerId === POE_PROVIDER_ID
+        ? await container.options.resolveApiKey({
+            value: options.apiKey,
+            envValue:
+              provider.auth.kind === "api-key"
+                ? container.env.getVariable(provider.auth.envVar)
+                : undefined,
+            dryRun: flags.dryRun,
+            assumeYes: flags.assumeYes
+          })
+        : await container.providerRegistry.resolveCredential(
+            providerId,
+            { apiKey: options.apiKey },
+            { envVars: container.env.variables }
+          );
     const activeProvider: ActiveProvider = await buildActiveProvider({
       container,
       provider,

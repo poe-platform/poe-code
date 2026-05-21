@@ -5,6 +5,7 @@ describe("@poe-code/providers public surface", () => {
   it("exposes ProviderRegistry and the api-key auth strategy", () => {
     expect(typeof providers.ProviderRegistry).toBe("function");
     expect(typeof providers.resolveApiShape).toBe("function");
+    expect(providers.anthropicProvider.id).toBe("anthropic");
     expect(providers.apiKeyAuthStrategy).toMatchObject({
       login: expect.any(Function),
       logout: expect.any(Function),

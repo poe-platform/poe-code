@@ -1,6 +1,6 @@
 import * as nodeFsSync from "node:fs";
 import type { FileSystem } from "../utils/file-system.js";
-import { createSecretStore } from "auth-store";
+import { createSecretStore, MigratingSecretStore, type SecretStore } from "auth-store";
 import { createCliEnvironment } from "./environment.js";
 import { createServiceRegistry, type ProviderService } from "./service-registry.js";
 import { createCommandContextFactory, type CommandContextFactory } from "./context.js";
@@ -21,7 +21,7 @@ import {
 import type { HttpClient } from "./http.js";
 import type { CommandRunner } from "../utils/command-checks.js";
 import { getDefaultProviders } from "../providers/index.js";
-import { ProviderRegistry, poeProvider } from "@poe-code/providers";
+import { anthropicProvider, ProviderRegistry, poeProvider } from "@poe-code/providers";
 import { createPoeCodeCommandRunner } from "./poe-code-command-runner.js";
 import { OperationCancelledError } from "./errors.js";
 import { resolveApiKeyViaOAuth } from "./oauth-login.js";
@@ -124,22 +124,39 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
       dependencies.fs.chmod ? dependencies.fs.chmod(filePath, mode) : Promise.resolve()
   };
 
-  const { store: authStore } = createSecretStore({
-    backendEnvVar: "POE_AUTH_BACKEND",
-    env: dependencies.env.variables,
-    platform: dependencies.env.platform,
-    fileStore: {
-      fs: authFs,
-      salt: "poe-code:encrypted-file-auth-store:v1",
-      defaultDirectory: ".poe-code",
-      defaultFileName: "credentials.enc",
-      getHomeDirectory: () => dependencies.env.homeDir
-    }
-  });
+  const createAuthStore = (defaultFileName: string): SecretStore =>
+    createSecretStore({
+      backendEnvVar: "POE_AUTH_BACKEND",
+      env: dependencies.env.variables,
+      platform: dependencies.env.platform,
+      fileStore: {
+        fs: authFs,
+        salt: "poe-code:encrypted-file-auth-store:v1",
+        defaultDirectory: ".poe-code",
+        defaultFileName,
+        getHomeDirectory: () => dependencies.env.homeDir
+      }
+    }).store;
 
-  const readApiKey = authStore.get.bind(authStore);
-  const writeApiKey = authStore.set.bind(authStore);
-  const deleteApiKey = authStore.delete.bind(authStore);
+  const legacyAuthStore = createAuthStore("credentials.enc");
+  const providerAuthStores = new Map<string, SecretStore>();
+  const getProviderAuthStore = (providerId: string): SecretStore => {
+    const cached = providerAuthStores.get(providerId);
+    if (cached) {
+      return cached;
+    }
+    const store = createAuthStore(`credentials.${providerId}.enc`);
+    const providerStore =
+      providerId === "poe" ? new MigratingSecretStore(store, legacyAuthStore) : store;
+    providerAuthStores.set(providerId, providerStore);
+    return providerStore;
+  };
+
+  const poeAuthStore = getProviderAuthStore("poe");
+
+  const readApiKey = poeAuthStore.get.bind(poeAuthStore);
+  const writeApiKey = poeAuthStore.set.bind(poeAuthStore);
+  const deleteApiKey = poeAuthStore.delete.bind(poeAuthStore);
 
   const oauthEnabled = (dependencies.env.variables ?? process.env).POE_CODE_OAUTH_LOGIN !== "0";
 
@@ -164,9 +181,13 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
 
   const registry = createServiceRegistry();
 
-  const providerRegistry = new ProviderRegistry([poeProvider], (_id) => authStore, {
-    envVars: environment.variables
-  });
+  const providerRegistry = new ProviderRegistry(
+    [poeProvider, anthropicProvider],
+    getProviderAuthStore,
+    {
+      envVars: environment.variables
+    }
+  );
 
   const providers = getDefaultProviders().filter((adapter) => !adapter.disabled);
   for (const adapter of providers) {

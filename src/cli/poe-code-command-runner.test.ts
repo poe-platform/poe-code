@@ -62,7 +62,7 @@ describe("poe-code-command-runner credential resolution", () => {
       env: { cwd, homeDir, variables: {} },
       logger: () => {}
     });
-    vi.spyOn(container, "readApiKey").mockResolvedValue("sk-stored-key");
+    await container.writeApiKey("sk-stored-key");
     const runner = createPoeCodeCommandRunner({ getContainer: () => container, baseRunner });
     await runner("poe-code", ["wrap", "claude-code"], {});
 

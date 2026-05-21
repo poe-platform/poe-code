@@ -107,6 +107,30 @@ export class ProviderRegistry {
     );
   }
 
+  async resolveCredential(
+    id: string,
+    options: ApiKeyLoginOptions = {},
+    context?: Pick<LoginContext, "envVars">
+  ): Promise<string> {
+    const provider = this.requireProvider(id);
+    if (provider.auth.kind !== "api-key") {
+      throw new Error(`Provider "${id}" does not use api-key auth.`);
+    }
+
+    if (options.apiKey !== undefined) {
+      return normalizeRequiredCredential(provider.id, options.apiKey);
+    }
+
+    const envVars = context?.envVars ?? this.envVars;
+    const envApiKey = envVars[provider.auth.envVar];
+    if (typeof envApiKey === "string" && envApiKey.trim().length > 0) {
+      return envApiKey.trim();
+    }
+
+    const store = this.requireStore(id);
+    return apiKeyAuthStrategy.resolveCredential(provider, { secretStore: store });
+  }
+
   async logout(id: string): Promise<void> {
     this.requireProvider(id);
     const store = this.requireStore(id);
@@ -127,4 +151,12 @@ export class ProviderRegistry {
     }
     return this.storeFactory(id);
   }
+}
+
+function normalizeRequiredCredential(providerId: string, value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.length === 0) {
+    throw new Error(`No API key available for provider "${providerId}".`);
+  }
+  return trimmed;
 }

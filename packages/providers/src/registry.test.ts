@@ -225,6 +225,38 @@ describe("ProviderRegistry", () => {
 
     expect(stored).toBe("sk-from-oauth");
   });
+
+  it("resolves credentials from explicit input, env, then provider store", async () => {
+    const store = {
+      get: async () => "stored-key",
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    const registry = new ProviderRegistry([poe], () => store, {
+      envVars: { POE_API_KEY: "env-key" }
+    });
+
+    await expect(
+      registry.resolveCredential("poe", { apiKey: " explicit-key " })
+    ).resolves.toBe("explicit-key");
+    await expect(registry.resolveCredential("poe")).resolves.toBe("env-key");
+    await expect(
+      new ProviderRegistry([poe], () => store).resolveCredential("poe")
+    ).resolves.toBe("stored-key");
+  });
+
+  it("rejects blank explicit credentials", async () => {
+    const store = {
+      get: async () => "stored-key",
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    const registry = new ProviderRegistry([poe], () => store);
+
+    await expect(registry.resolveCredential("poe", { apiKey: " " })).rejects.toThrow(
+      /No API key available/
+    );
+  });
 });
 
 function makeApiShapeBindings(apiShapes: readonly ApiShapeId[]): AuthProvider["apiShapes"] {

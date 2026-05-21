@@ -22,4 +22,17 @@ describe("createCliContainer", () => {
     });
     expect(container.providerRegistry).toBeInstanceOf(ProviderRegistry);
   });
+
+  it("registers Poe and Anthropic auth providers", () => {
+    const container = createCliContainer({
+      fs: createMemfs(),
+      prompts: vi.fn(),
+      env: { cwd, homeDir }
+    });
+
+    expect(container.providerRegistry.list().map((provider) => provider.id)).toEqual([
+      "poe",
+      "anthropic"
+    ]);
+  });
 });

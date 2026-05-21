@@ -1,5 +1,6 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
+import { allAgents, type ApiShapeId } from "@poe-code/agent-defs";
 import { saveProviderShapeBaseUrls } from "@poe-code/poe-code-config";
 import {
   createExecutionResources,
@@ -8,6 +9,13 @@ import {
   resolveCommandFlags
 } from "./shared.js";
 import { getTheme, renderTable } from "@poe-code/design-system";
+
+const apiShapeLabels: Record<ApiShapeId, string> = {
+  "openai-chat-completions": "chat-completions",
+  "openai-responses": "responses",
+  "anthropic-messages": "messages",
+  "google-generations": "generations"
+};
 
 export interface ProviderLoginOptions {
   apiKey?: string;
@@ -61,10 +69,12 @@ async function executeProviderList(program: Command, container: CliContainer): P
   const rows = await Promise.all(
     providers.map(async (provider) => {
       const loggedIn = await container.providerRegistry.isLoggedIn(provider.id);
+      const apiShapes = provider.apiShapes?.map((shape) => shape.id) ?? [];
       return {
         Provider: theme.accent(provider.id),
         Status: loggedIn ? theme.success("[logged in]") : theme.muted("[-]"),
-        Agents: provider.supportsAgents.join(", ")
+        "API shapes": formatProviderApiShapes(apiShapes),
+        Agents: listShapeCompatibleAgents(apiShapes).join(", ")
       };
     })
   );
@@ -72,6 +82,7 @@ async function executeProviderList(program: Command, container: CliContainer): P
   const columns = [
     { name: "Provider", title: "Provider", alignment: "left" as const, maxLen: 20 },
     { name: "Status", title: "Status", alignment: "left" as const, maxLen: 14 },
+    { name: "API shapes", title: "API shapes", alignment: "left" as const, maxLen: 52 },
     { name: "Agents", title: "Agents", alignment: "left" as const, maxLen: 60 }
   ];
 
@@ -134,6 +145,18 @@ async function executeProviderLogin(
 
 function collectRepeatedOption(value: string, previous: string[] | undefined): string[] {
   return [...(previous ?? []), value];
+}
+
+function formatProviderApiShapes(apiShapes: readonly ApiShapeId[]): string {
+  return apiShapes.map((shapeId) => apiShapeLabels[shapeId]).join(", ");
+}
+
+function listShapeCompatibleAgents(providerApiShapes: readonly ApiShapeId[]): string[] {
+  const shapeIds = new Set(providerApiShapes);
+  return allAgents
+    .filter((agent) => agent.apiShapes?.some((shapeId) => shapeIds.has(shapeId)))
+    .map((agent) => agent.id)
+    .sort();
 }
 
 async function executeProviderLogout(

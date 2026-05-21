@@ -135,7 +135,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: provider-list-shape-labels
     title: Render shape labels in provider list
@@ -153,8 +153,8 @@ tasks:
 
       Verify with `npm run dev -- provider list` and `npm run screenshot-poe-code -- provider list`. Snapshot the rendered output. No regression in column alignment.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: register-and-shape-anthropic

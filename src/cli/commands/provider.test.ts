@@ -5,6 +5,7 @@ import { createHomeFs } from "../../../tests/test-helpers.js";
 import { registerProviderCommand } from "./provider.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
+import type { AuthProvider } from "@poe-code/providers";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -23,6 +24,43 @@ function createContainer(fs: FileSystem, logs: string[] = []) {
     env: { cwd, homeDir },
     logger: (msg) => logs.push(msg)
   });
+}
+
+function stripAnsi(input: string): string {
+  let result = "";
+  let index = 0;
+
+  while (index < input.length) {
+    const char = input[index];
+    if (char === "\u001b" && input[index + 1] === "[") {
+      index += 2;
+      while (index < input.length && input[index] !== "m") {
+        index += 1;
+      }
+      index += 1;
+      continue;
+    }
+    result += char;
+    index += 1;
+  }
+
+  return result;
+}
+
+function makeProvider(overrides: Partial<AuthProvider> & Pick<AuthProvider, "id">): AuthProvider {
+  return {
+    id: overrides.id,
+    label: overrides.label ?? overrides.id,
+    baseUrl: overrides.baseUrl ?? "https://api.test",
+    auth: overrides.auth ?? {
+      kind: "api-key",
+      envVar: "TEST_API_KEY",
+      storageKey: `provider:${overrides.id}`,
+      prompt: { title: "Test API key" }
+    },
+    supportsAgents: overrides.supportsAgents ?? [],
+    apiShapes: overrides.apiShapes
+  };
 }
 
 // ─── provider list ────────────────────────────────────────────────────────────
@@ -64,7 +102,7 @@ describe("provider list", () => {
     expect(output).toContain("[-]");
   });
 
-  it("renders supported agents in the agents column", async () => {
+  it("snapshots provider shape and agent columns", async () => {
     const logs: string[] = [];
     const container = createContainer(fs, logs);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
@@ -74,8 +112,94 @@ describe("provider list", () => {
 
     await program.parseAsync(["node", "cli", "provider", "list"]);
 
-    const output = logs.join("\n");
-    expect(output).toContain("claude-code");
+    const output = stripAnsi(logs.join("\n"));
+    const tableLines = output
+      .split("\n")
+      .filter(
+        (line) =>
+          line.startsWith("┌") ||
+          line.startsWith("│") ||
+          line.startsWith("├") ||
+          line.startsWith("└")
+      );
+
+    expect(new Set(tableLines.map((line) => line.length))).toHaveLength(1);
+    expect(output).toMatchSnapshot();
+  });
+
+  it("derives agents from provider API shapes without reading supportsAgents", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+    vi.spyOn(container.providerRegistry, "list").mockReturnValue([
+      makeProvider({
+        id: "shape-only",
+        supportsAgents: ["unsupported-agent"],
+        apiShapes: [
+          {
+            id: "openai-responses",
+            defaultBaseUrl: "https://api.test/v1"
+          }
+        ]
+      })
+    ]);
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "list"]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("responses");
+    expect(output).toContain("codex, poe-agent");
+    expect(output).not.toContain("unsupported-agent");
+  });
+
+  it("renders every canonical API shape with its short CLI label", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+    vi.spyOn(container.providerRegistry, "list").mockReturnValue([
+      makeProvider({
+        id: "all-shapes",
+        apiShapes: [
+          { id: "openai-chat-completions", defaultBaseUrl: "https://api.test/chat" },
+          { id: "openai-responses", defaultBaseUrl: "https://api.test/responses" },
+          { id: "anthropic-messages", defaultBaseUrl: "https://api.test/messages" },
+          { id: "google-generations", defaultBaseUrl: "https://api.test/generations" }
+        ]
+      })
+    ]);
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "list"]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("chat-completions, responses, messages, generations");
+  });
+
+  it("does not list legacy supportsAgents when provider API shapes are absent", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
+    vi.spyOn(container.providerRegistry, "list").mockReturnValue([
+      makeProvider({
+        id: "legacy-only",
+        supportsAgents: ["claude-code", "codex"]
+      })
+    ]);
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "list"]);
+
+    const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("legacy-only");
+    expect(output).not.toContain("claude-code");
+    expect(output).not.toContain("codex");
   });
 });
 

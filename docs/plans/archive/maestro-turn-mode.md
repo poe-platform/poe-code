@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: add-stateless-tick-subcommand
     title: Add stateless `maestro tick` CLI subcommand
@@ -44,7 +43,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: dispatch-on-queued-transition
     title: Dispatch via label/state change on `*:queued` transition
     prompt: |
@@ -74,7 +72,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: gh-actions-workflow-template
     title: Add GitHub Actions workflow template for turn-based maestro
     prompt: |
@@ -113,7 +110,6 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: document-turn-mode
     title: Document turn-based maestro mode in agent-maestro README
     prompt: |
@@ -147,7 +143,9 @@ tasks:
       env requirement count.
     status:
       implement: done
-      commit: open
+      commit: done
+name: maestro-turn-mode
+state: archived
 ---
 
 # Context

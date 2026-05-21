@@ -5,6 +5,7 @@ import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js"
 import { createExecutionResources, buildProviderContext, type CommandFlags } from "./shared.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { createProviderStub } from "../../../tests/provider-stub.js";
+import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -97,9 +98,10 @@ describe("createConfigurePayload — ActiveProvider fields", () => {
   it("prefers a stored per-shape baseUrl over the provider default", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
-    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    const servicesConfigPath = resolveServicesConfigPath(homeDir);
+    await fs.mkdir(`${homeDir}/.config/poe-code`, { recursive: true });
     await fs.writeFile(
-      container.env.configPath,
+      servicesConfigPath,
       JSON.stringify(
         {
           providers: {

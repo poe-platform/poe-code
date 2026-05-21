@@ -182,6 +182,10 @@ export function resolveConfigPath(homeDir: string): string {
   return path.join(homeDir, ".poe-code", "config.json");
 }
 
+export function resolveServicesConfigPath(homeDir: string): string {
+  return path.join(homeDir, ".config", "poe-code", "services.json");
+}
+
 export function resolveProjectConfigPath(cwd: string): string {
   return path.join(cwd, ".poe-code", "config.json");
 }

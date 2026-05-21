@@ -74,9 +74,17 @@ export {
   readDocument,
   readMergedDocument,
   resolveConfigPath,
+  resolveServicesConfigPath,
   resolveProjectConfigPath,
   writeScope
 } from "./store.js";
+export {
+  loadProviderShapeBaseUrls,
+  saveProviderShapeBaseUrls,
+  type LoadProviderShapeBaseUrlsOptions,
+  type ProviderConfigStoreOptions,
+  type SaveProviderShapeBaseUrlsOptions
+} from "./provider-config.js";
 export {
   loadConfiguredServices,
   saveConfiguredService,

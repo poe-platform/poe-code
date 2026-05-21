@@ -1,14 +1,17 @@
 import type { Command } from "commander";
 import type { CliContainer } from "../container.js";
+import { saveProviderShapeBaseUrls } from "@poe-code/poe-code-config";
 import {
   createExecutionResources,
   createSecretPrompter,
+  parseProviderShapeBaseUrls,
   resolveCommandFlags
 } from "./shared.js";
 import { getTheme, renderTable } from "@poe-code/design-system";
 
 export interface ProviderLoginOptions {
   apiKey?: string;
+  shapeBaseUrl?: string[];
 }
 
 export function registerProviderCommand(program: Command, container: CliContainer): void {
@@ -28,6 +31,11 @@ export function registerProviderCommand(program: Command, container: CliContaine
     .description("Log in to a provider.")
     .argument("<id>", "Provider id (e.g. poe, anthropic)")
     .option("--api-key <key>", "API key for the provider")
+    .option(
+      "--shape-base-url <shape-id>=<url>",
+      "Base URL for one provider API shape",
+      collectRepeatedOption
+    )
     .action(async (id: string, options: ProviderLoginOptions) => {
       await executeProviderLogin(program, container, id, options);
     });
@@ -83,21 +91,36 @@ async function executeProviderLogin(
 
   const provider = container.providerRegistry.get(id);
   if (!provider) {
-    throw new Error(`Unknown provider "${id}". Run \`poe-code provider list\` to see available providers.`);
+    throw new Error(
+      `Unknown provider "${id}". Run \`poe-code provider list\` to see available providers.`
+    );
   }
 
+  const shapeBaseUrls = parseProviderShapeBaseUrls(provider, options.shapeBaseUrl ?? []);
+
   if (!flags.dryRun) {
-    await container.providerRegistry.login(id, { apiKey: options.apiKey }, {
-      envVars: container.env.variables,
-      promptForSecret: createSecretPrompter(container),
-      resolvePreferredLogin: async (input) =>
-        container.options.resolveApiKey({
-          value: input.apiKey,
-          envValue: input.envValue,
-          dryRun: flags.dryRun,
-          assumeYes: flags.assumeYes,
-          allowStored: false
-        })
+    await container.providerRegistry.login(
+      id,
+      { apiKey: options.apiKey },
+      {
+        envVars: container.env.variables,
+        promptForSecret: createSecretPrompter(container),
+        resolvePreferredLogin: async (input) =>
+          container.options.resolveApiKey({
+            value: input.apiKey,
+            envValue: input.envValue,
+            dryRun: flags.dryRun,
+            assumeYes: flags.assumeYes,
+            allowStored: false
+          })
+      }
+    );
+
+    await saveProviderShapeBaseUrls({
+      fs: container.fs,
+      filePath: container.env.servicesConfigPath,
+      providerId: id,
+      shapeBaseUrls
     });
   }
 
@@ -107,6 +130,10 @@ async function executeProviderLogin(
   });
 
   resources.context.finalize();
+}
+
+function collectRepeatedOption(value: string, previous: string[] | undefined): string[] {
+  return [...(previous ?? []), value];
 }
 
 async function executeProviderLogout(
@@ -121,7 +148,9 @@ async function executeProviderLogout(
 
   const provider = container.providerRegistry.get(id);
   if (!provider) {
-    throw new Error(`Unknown provider "${id}". Run \`poe-code provider list\` to see available providers.`);
+    throw new Error(
+      `Unknown provider "${id}". Run \`poe-code provider list\` to see available providers.`
+    );
   }
 
   if (!flags.dryRun) {

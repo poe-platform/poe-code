@@ -120,7 +120,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: shape-base-url-login-flag
     title: Accept --shape-base-url on provider login
@@ -133,8 +133,8 @@ tasks:
 
       Tests: round-trip — `provider login poe --shape-base-url anthropic-messages=https://example/anth` stores under poe's `shapeBaseUrls`; `configure claude-code --provider poe --yes` resolves the `anthropic-messages` base URL to the stored value, not the default.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: provider-list-shape-labels

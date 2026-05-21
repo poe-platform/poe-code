@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { executeConfigure } from "./configure.js";
+import { Command } from "commander";
+import { executeConfigure, registerConfigureCommand } from "./configure.js";
 import { createCliContainer } from "../container.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import { loadConfiguredServices } from "../../services/config.js";
@@ -11,6 +12,7 @@ import { createProviderStub } from "../../../tests/provider-stub.js";
 import type { AuthProvider } from "@poe-code/providers";
 import type { FileSystem } from "../../utils/file-system.js";
 import { PROVIDER_NAME } from "../constants.js";
+import { registerProviderCommand } from "./provider.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -24,6 +26,13 @@ function createContainer(fs: FileSystem, envVars: Record<string, string | undefi
     env: { cwd, homeDir, variables: envVars },
     logger: () => {}
   });
+}
+
+function createBaseProgram(): Command {
+  const program = new Command();
+  program.exitOverride();
+  program.name("poe-code").option("-y, --yes").option("--dry-run");
+  return program;
 }
 
 function createFakeProvider(id: string, label: string): AuthProvider {
@@ -77,6 +86,23 @@ function stubInvoke(container: ReturnType<typeof createContainer>) {
   vi.spyOn(container.registry, "invoke").mockImplementation(async (_n, _op, runner) => {
     return runner(fakeEntry);
   });
+}
+
+function stubInvokeAndCaptureProvider(container: ReturnType<typeof createContainer>) {
+  let provider: Record<string, unknown> | undefined;
+  const fakeEntry = createProviderStub({
+    name: "claude-code",
+    label: "Claude Code",
+    configure: async ({ options }) => {
+      provider = (options as Record<string, unknown>).provider as Record<string, unknown>;
+    }
+  });
+  vi.spyOn(container.registry, "invoke").mockImplementation(async (_n, _op, runner) => {
+    return runner(fakeEntry);
+  });
+  return {
+    provider: () => provider
+  };
 }
 
 describe("configure provider resolution", () => {
@@ -321,6 +347,132 @@ describe("configure provider resolution", () => {
       provider: "poe",
       apiShape: "anthropic-messages"
     });
+  });
+
+  it("uses the stored login shape base URL when configuring an agent", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    const capture = stubInvokeAndCaptureProvider(container);
+    const providerProgram = createTestProgram(["node", "cli", "--yes"]);
+    registerProviderCommand(providerProgram, container);
+
+    await providerProgram.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "poe",
+      "--shape-base-url",
+      "anthropic-messages=https://example/anth"
+    ]);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "poe"
+    });
+
+    expect(capture.provider()?.baseUrl).toBe("https://example/anth");
+  });
+
+  it("uses explicit --base-url before a stored shape base URL", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    const capture = stubInvokeAndCaptureProvider(container);
+    const providerProgram = createTestProgram(["node", "cli", "--yes"]);
+    registerProviderCommand(providerProgram, container);
+
+    await providerProgram.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "poe",
+      "--shape-base-url",
+      "anthropic-messages=https://stored.example/anth"
+    ]);
+
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "configure",
+      "claude-code",
+      "--provider",
+      "poe",
+      "--base-url",
+      "https://explicit.example/anth"
+    ]);
+
+    expect(capture.provider()?.baseUrl).toBe("https://explicit.example/anth");
+  });
+
+  it("uses explicit --shape-base-url before --base-url for the resolved shape", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "configure",
+      "claude-code",
+      "--provider",
+      "poe",
+      "--base-url",
+      "https://generic.example/anth",
+      "--shape-base-url",
+      "anthropic-messages=https://shape.example/anth"
+    ]);
+
+    expect(capture.provider()?.baseUrl).toBe("https://shape.example/anth");
+  });
+
+  it("does not read base URLs from environment variables", async () => {
+    const container = createContainer(fs, {
+      POE_API_KEY: "sk-env",
+      POE_BASE_URL: "https://env.example"
+    });
+    mockOptions(container);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "poe"
+    });
+
+    expect(capture.provider()?.baseUrl).toBe("https://api.poe.com/anthropic");
+  });
+
+  it("rejects unknown configure --shape-base-url shape ids before writing", async () => {
+    const container = createContainer(fs);
+    mockOptions(container);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
+    const invokeSpy = vi.spyOn(container.registry, "invoke");
+
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "configure",
+        "claude-code",
+        "--provider",
+        "poe",
+        "--shape-base-url",
+        "missing-shape=https://example/missing"
+      ])
+    ).rejects.toThrow(/Unknown API shape "missing-shape" for provider "poe"/);
+    expect(invokeSpy).not.toHaveBeenCalled();
   });
 
   it("keeps the claude-code Poe configure snapshot byte-identical with only POE_API_KEY", async () => {

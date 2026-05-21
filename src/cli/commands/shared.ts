@@ -3,6 +3,7 @@ import type { Command } from "commander";
 import {
   collectEnvOverrides,
   deepMergeDocuments,
+  loadProviderShapeBaseUrls,
   readMergedDocument,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
@@ -45,6 +46,8 @@ export async function buildActiveProvider(input: {
   provider: AuthProvider;
   agent: Pick<AgentDefinition, "id" | "apiShapes">;
   credential: string;
+  explicitBaseUrl?: string;
+  explicitShapeBaseUrls?: Partial<Record<ApiShapeId, string>>;
 }): Promise<ActiveProvider> {
   const apiShape = resolveApiShape(input.provider, input.agent);
   if (!apiShape) {
@@ -62,11 +65,53 @@ export async function buildActiveProvider(input: {
     id: input.provider.id,
     apiShape,
     baseUrl:
+      resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
+      resolveNonEmpty(input.explicitBaseUrl) ??
       (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape)) ??
       shape.defaultBaseUrl,
     credential: input.credential,
     extraEnv: {}
   };
+}
+
+export function parseProviderShapeBaseUrls(
+  provider: AuthProvider,
+  values: readonly string[]
+): Partial<Record<ApiShapeId, string>> {
+  const exposedShapes = provider.apiShapes?.map((shape) => shape.id) ?? [];
+  const exposed = new Set<ApiShapeId>(exposedShapes);
+  const shapeBaseUrls: Partial<Record<ApiShapeId, string>> = {};
+
+  for (const value of values) {
+    const separatorIndex = value.indexOf("=");
+    if (separatorIndex <= 0 || separatorIndex === value.length - 1) {
+      throw new Error(`Invalid --shape-base-url value "${value}". Use <shape-id>=<url>.`);
+    }
+
+    const shapeId = value.slice(0, separatorIndex).trim() as ApiShapeId;
+    const baseUrl = value.slice(separatorIndex + 1).trim();
+    if (!exposed.has(shapeId)) {
+      throw new Error(
+        `Unknown API shape "${shapeId}" for provider "${provider.id}". Exposed shapes: ${formatApiShapeList(exposedShapes)}.`
+      );
+    }
+    if (baseUrl.length === 0) {
+      throw new Error(`Invalid --shape-base-url value "${value}". Use <shape-id>=<url>.`);
+    }
+
+    shapeBaseUrls[shapeId] = baseUrl;
+  }
+
+  return shapeBaseUrls;
+}
+
+function formatApiShapeList(shapeIds: readonly ApiShapeId[]): string {
+  return shapeIds.length > 0 ? shapeIds.join(", ") : "none";
+}
+
+function resolveNonEmpty(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  return trimmed && trimmed.length > 0 ? trimmed : undefined;
 }
 
 export async function resolveActiveProviderForService(
@@ -120,29 +165,13 @@ async function resolveStoredShapeBaseUrl(
   providerId: string,
   apiShape: ApiShapeId
 ): Promise<string | undefined> {
-  const document = await readMergedDocument(
-    container.fs,
-    container.env.configPath,
-    container.env.projectConfigPath
-  );
-  const providers = document.providers;
-  if (!isRecord(providers)) {
-    return undefined;
-  }
-  const providerConfig = providers[providerId];
-  if (!isRecord(providerConfig)) {
-    return undefined;
-  }
-  const shapeBaseUrls = providerConfig.shapeBaseUrls;
-  if (!isRecord(shapeBaseUrls)) {
-    return undefined;
-  }
+  const shapeBaseUrls = await loadProviderShapeBaseUrls({
+    fs: container.fs,
+    filePath: container.env.servicesConfigPath,
+    providerId
+  });
   const value = shapeBaseUrls[apiShape];
   return typeof value === "string" && value.trim().length > 0 ? value : undefined;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 export function resolveAgentDefinition(serviceName: string): AgentDefinition | undefined {

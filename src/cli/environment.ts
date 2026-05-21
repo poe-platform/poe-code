@@ -1,5 +1,9 @@
 import path from "node:path";
-import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
+import {
+  resolveConfigPath,
+  resolveProjectConfigPath,
+  resolveServicesConfigPath
+} from "@poe-code/poe-code-config";
 
 export interface CliEnvironmentInit {
   cwd: string;
@@ -13,6 +17,7 @@ export interface CliEnvironment {
   readonly homeDir: string;
   readonly platform: NodeJS.Platform;
   readonly configPath: string;
+  readonly servicesConfigPath: string;
   readonly projectConfigPath: string;
   readonly logDir: string;
   readonly poeApiBaseUrl: string;
@@ -26,6 +31,7 @@ export function createCliEnvironment(init: CliEnvironmentInit): CliEnvironment {
   const platform = init.platform ?? process.platform;
   const variables = init.variables ?? process.env;
   const configPath = resolveConfigPath(init.homeDir);
+  const servicesConfigPath = resolveServicesConfigPath(init.homeDir);
   const projectConfigPath = resolveProjectConfigPath(init.cwd);
   const logDir = resolveLogDir(init.homeDir);
   const { poeApiBaseUrl, poeBaseUrl } = resolvePoeBaseUrls(variables);
@@ -39,6 +45,7 @@ export function createCliEnvironment(init: CliEnvironmentInit): CliEnvironment {
     homeDir: init.homeDir,
     platform,
     configPath,
+    servicesConfigPath,
     projectConfigPath,
     logDir,
     poeApiBaseUrl,

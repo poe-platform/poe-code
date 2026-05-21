@@ -4,6 +4,7 @@ import { createCliContainer } from "../container.js";
 import { createHomeFs } from "../../../tests/test-helpers.js";
 import { registerProviderCommand } from "./provider.js";
 import type { FileSystem } from "../../utils/file-system.js";
+import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -106,8 +107,137 @@ describe("provider login", () => {
     const program = createBaseProgram();
     registerProviderCommand(program, container);
 
-    await program.parseAsync(["node", "cli", "--dry-run", "provider", "login", "poe", "--api-key", "sk-test"]);
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "provider",
+      "login",
+      "poe",
+      "--api-key",
+      "sk-test"
+    ]);
 
+    expect(loginSpy).not.toHaveBeenCalled();
+  });
+
+  it("stores per-shape base URLs outside the credential store", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "provider",
+      "login",
+      "poe",
+      "--shape-base-url",
+      "anthropic-messages=https://example/anth"
+    ]);
+
+    const saved = JSON.parse(await fs.readFile(resolveServicesConfigPath(homeDir), "utf8"));
+    expect(saved.providers.poe.shapeBaseUrls).toEqual({
+      "anthropic-messages": "https://example/anth"
+    });
+  });
+
+  it("stores repeated per-shape base URLs", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "provider",
+      "login",
+      "poe",
+      "--shape-base-url",
+      "anthropic-messages=https://example/anth",
+      "--shape-base-url",
+      "openai-responses=https://example/responses"
+    ]);
+
+    const saved = JSON.parse(await fs.readFile(resolveServicesConfigPath(homeDir), "utf8"));
+    expect(saved.providers.poe.shapeBaseUrls).toEqual({
+      "anthropic-messages": "https://example/anth",
+      "openai-responses": "https://example/responses"
+    });
+  });
+
+  it("trims shape ids and base URLs before storing", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "provider",
+      "login",
+      "poe",
+      "--shape-base-url",
+      " anthropic-messages = https://example/anth "
+    ]);
+
+    const saved = JSON.parse(await fs.readFile(resolveServicesConfigPath(homeDir), "utf8"));
+    expect(saved.providers.poe.shapeBaseUrls).toEqual({
+      "anthropic-messages": "https://example/anth"
+    });
+  });
+
+  it("rejects unknown shape ids and lists the provider shapes", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    let message = "";
+    try {
+      await program.parseAsync([
+        "node",
+        "cli",
+        "provider",
+        "login",
+        "poe",
+        "--shape-base-url",
+        "missing-shape=https://example/missing"
+      ]);
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+
+    expect(message).toContain('Unknown API shape "missing-shape" for provider "poe".');
+    expect(message).toContain("Exposed shapes:");
+    expect(message).toContain("anthropic-messages");
+  });
+
+  it("rejects malformed shape base URL values before login", async () => {
+    const container = createContainer(fs);
+    const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "provider",
+        "login",
+        "poe",
+        "--shape-base-url",
+        "anthropic-messages"
+      ])
+    ).rejects.toThrow('Invalid --shape-base-url value "anthropic-messages"');
     expect(loginSpy).not.toHaveBeenCalled();
   });
 });
@@ -151,8 +281,8 @@ describe("provider logout", () => {
     const program = createBaseProgram();
     registerProviderCommand(program, container);
 
-    await expect(
-      program.parseAsync(["node", "cli", "provider", "logout", "nope"])
-    ).rejects.toThrow(/unknown provider/i);
+    await expect(program.parseAsync(["node", "cli", "provider", "logout", "nope"])).rejects.toThrow(
+      /unknown provider/i
+    );
   });
 });

@@ -33,9 +33,11 @@ const DEFAULT_SERVICE_AGENT = "claude-code";
 
 export interface ConfigureCommandOptions {
   apiKey?: string;
+  baseUrl?: string;
   model?: string;
   reasoningEffort?: string;
   provider?: string;
+  shapeBaseUrl?: string[];
   skipIfConfigured?: boolean;
 }
 
@@ -49,9 +51,15 @@ export function registerConfigureCommand(program: Command, container: CliContain
     .argument("[agent]", serviceDescription)
     .option("-y, --yes", "Accept defaults, skip prompts")
     .option("--api-key <key>", "Poe API key")
+    .option("--base-url <url>", "Base URL for the resolved provider API shape")
     .option("--model <model>", "Model identifier")
     .option("--reasoning-effort <level>", "Reasoning effort level")
     .option("--provider <id>", "Provider to use for this agent")
+    .option(
+      "--shape-base-url <shape-id>=<url>",
+      "Base URL for one provider API shape",
+      collectRepeatedOption
+    )
     .option("--skip-if-configured", "Exit without writes when current config already matches")
     .action(async (service: string | undefined, options: ConfigureCommandOptions) => {
       const resolved = await resolveServiceArgument(program, container, service, {
@@ -61,6 +69,10 @@ export function registerConfigureCommand(program: Command, container: CliContain
     });
 
   return configureCommand;
+}
+
+function collectRepeatedOption(value: string, previous: string[] | undefined): string[] {
+  return [...(previous ?? []), value];
 }
 
 export async function executeConfigure(

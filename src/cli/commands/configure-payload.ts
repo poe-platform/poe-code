@@ -4,6 +4,7 @@ import type { ScopedLogger } from "../logger.js";
 import type { ProviderContext, ProviderService } from "../service-registry.js";
 import {
   buildActiveProvider,
+  parseProviderShapeBaseUrls,
   resolveAgentDefinition,
   type ActiveProvider,
   type CommandFlags
@@ -25,22 +26,27 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
   const payload: Record<string, unknown> = { env: context.env };
 
   if (providerId) {
-    const apiKey = await container.options.resolveApiKey({
-      value: options.apiKey,
-      envValue: container.env.getVariable("POE_API_KEY"),
-      dryRun: flags.dryRun,
-      assumeYes: flags.assumeYes
-    });
-
     const provider = container.providerRegistry.get(providerId);
     if (!provider) {
       throw new Error(`Unknown provider "${providerId}".`);
     }
+    const explicitShapeBaseUrls = parseProviderShapeBaseUrls(provider, options.shapeBaseUrl ?? []);
+    const apiKey = await container.options.resolveApiKey({
+      value: options.apiKey,
+      envValue:
+        provider.auth.kind === "api-key"
+          ? container.env.getVariable(provider.auth.envVar)
+          : undefined,
+      dryRun: flags.dryRun,
+      assumeYes: flags.assumeYes
+    });
     const activeProvider: ActiveProvider = await buildActiveProvider({
       container,
       provider,
       agent: resolveAgentDefinition(adapter.name) ?? { id: adapter.name },
-      credential: apiKey
+      credential: apiKey,
+      explicitBaseUrl: options.baseUrl,
+      explicitShapeBaseUrls
     });
     payload.provider = activeProvider;
   }

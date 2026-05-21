@@ -15,5 +15,19 @@ export const poeProvider: AuthProvider = {
     prompt: { title: "Poe API key" },
     preferredLogin: "oauth"
   },
+  apiShapes: [
+    {
+      id: "openai-chat-completions",
+      defaultBaseUrl: "https://api.poe.com/v1"
+    },
+    {
+      id: "openai-responses",
+      defaultBaseUrl: "https://api.poe.com/v1"
+    },
+    {
+      id: "anthropic-messages",
+      defaultBaseUrl: "https://api.poe.com/anthropic"
+    }
+  ],
   supportsAgents: allAgents.map((a) => a.id)
 };

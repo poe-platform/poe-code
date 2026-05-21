@@ -21,4 +21,21 @@ describe("poeProvider", () => {
     }
     expect(poeProvider.supportsAgents).toHaveLength(agentIds.length);
   });
+
+  it("declares Poe API shape defaults", () => {
+    expect(poeProvider.apiShapes).toEqual([
+      {
+        id: "openai-chat-completions",
+        defaultBaseUrl: "https://api.poe.com/v1"
+      },
+      {
+        id: "openai-responses",
+        defaultBaseUrl: "https://api.poe.com/v1"
+      },
+      {
+        id: "anthropic-messages",
+        defaultBaseUrl: "https://api.poe.com/anthropic"
+      }
+    ]);
+  });
 });

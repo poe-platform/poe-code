@@ -21,7 +21,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: declare-shapes-on-poe-provider
     title: Declare apiShapes on the Poe provider
@@ -38,8 +38,8 @@ tasks:
 
       Update `packages/providers/src/providers/poe.test.ts` to assert the three shapes exist with these defaults. No runtime behavior changes — no caller consumes `apiShapes` yet.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: declare-shapes-on-agents

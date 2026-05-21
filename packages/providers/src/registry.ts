@@ -1,8 +1,9 @@
-import type { AuthProvider } from "./types.js";
+import type { ApiShapeId, AuthProvider } from "./types.js";
 import type { SecretStore } from "auth-store";
 import { apiKeyAuthStrategy } from "./auth/api-key.js";
 import type { ApiKeyLoginOptions } from "./auth/api-key.js";
 import type { PromptForSecret } from "./auth/types.js";
+import { resolveApiShape } from "./compatibility.js";
 
 export interface LoginContext {
   promptForSecret?: PromptForSecret;
@@ -18,6 +19,11 @@ export type ProviderStoreFactory = (providerId: string) => SecretStore;
 
 export interface ProviderRegistryOptions {
   envVars?: Record<string, string | undefined>;
+}
+
+export interface ProviderAgent {
+  id: string;
+  apiShapes?: readonly ApiShapeId[];
 }
 
 export class ProviderRegistry {
@@ -52,10 +58,13 @@ export class ProviderRegistry {
     return this.byId.get(id);
   }
 
-  forAgent(agentId: string): readonly AuthProvider[] {
-    return this.providers.filter((provider) =>
-      provider.supportsAgents.includes(agentId)
-    );
+  forAgent(agent: ProviderAgent): readonly AuthProvider[] {
+    return this.providers.filter((provider) => {
+      if (provider.apiShapes && agent.apiShapes) {
+        return resolveApiShape(provider, agent) !== undefined;
+      }
+      return provider.supportsAgents.includes(agent.id);
+    });
   }
 
   async isLoggedIn(id: string): Promise<boolean> {

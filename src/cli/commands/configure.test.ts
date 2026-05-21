@@ -4,6 +4,7 @@ import { createCliContainer } from "../container.js";
 import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import { loadConfiguredServices } from "../../services/config.js";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { claudeCodeAgent } from "@poe-code/agent-defs";
 import { createProviderStub } from "../../../tests/provider-stub.js";
 import type { AuthProvider } from "@poe-code/providers";
 import type { FileSystem } from "../../utils/file-system.js";
@@ -61,11 +62,13 @@ describe("configure provider resolution", () => {
   it("auto-selects the single logged-in provider", async () => {
     const container = createContainer(fs);
     mockOptions(container);
+    const forAgentSpy = vi.spyOn(container.providerRegistry, "forAgent");
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
     stubInvoke(container);
 
     await executeConfigure(createTestProgram(), container, "claude-code", {});
 
+    expect(forAgentSpy).toHaveBeenCalledWith(claudeCodeAgent);
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
   });
@@ -97,7 +100,7 @@ describe("configure provider resolution", () => {
     });
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
-      ...container.providerRegistry.forAgent("claude-code"),
+      ...container.providerRegistry.forAgent(claudeCodeAgent),
       fakeAnthropicProvider
     ]);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);
@@ -164,7 +167,7 @@ describe("configure provider resolution", () => {
     });
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
-      ...container.providerRegistry.forAgent("claude-code"),
+      ...container.providerRegistry.forAgent(claudeCodeAgent),
       fakeAnthropicProvider
     ]);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
@@ -208,7 +211,7 @@ describe("configure provider resolution", () => {
     const container = createContainer(fs);
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
-      ...container.providerRegistry.forAgent("claude-code"),
+      ...container.providerRegistry.forAgent(claudeCodeAgent),
       fakeAnthropicProvider
     ]);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(false);
@@ -290,7 +293,7 @@ describe("configure provider resolution", () => {
     const container = createContainer(fs);
     mockOptions(container);
     vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
-      ...container.providerRegistry.forAgent("claude-code"),
+      ...container.providerRegistry.forAgent(claudeCodeAgent),
       fakeAnthropicProvider
     ]);
     vi.spyOn(container.providerRegistry, "isLoggedIn").mockResolvedValue(true);

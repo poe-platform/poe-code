@@ -26,7 +26,8 @@ import {
   allAgents,
   formatAgentSpecifier,
   parseAgentSpecifier,
-  resolveAgentId
+  resolveAgentId,
+  type AgentDefinition
 } from "@poe-code/agent-defs";
 import { knownConfigScopes, loadConfiguredServices } from "../../services/config.js";
 import type { AuthProvider } from "@poe-code/providers";
@@ -86,11 +87,18 @@ function resolveSingleProviderCandidate(
   container: CliContainer,
   serviceName: string
 ): AuthProvider | undefined {
-  const candidates = container.providerRegistry.forAgent(serviceName);
+  const agent = resolveAgentDefinition(serviceName) ?? { id: serviceName };
+  const candidates = container.providerRegistry.forAgent(agent);
   if (candidates.length === 1) {
     return candidates[0];
   }
   return undefined;
+}
+
+export function resolveAgentDefinition(serviceName: string): AgentDefinition | undefined {
+  const { agent } = parseAgentSpecifier(serviceName);
+  const resolvedId = resolveAgentId(agent) ?? agent;
+  return allAgents.find((candidate) => candidate.id === resolvedId);
 }
 
 export interface ExecutionResources {

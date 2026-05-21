@@ -1,6 +1,6 @@
 import type { Command } from "commander";
 import type { Stats } from "node:fs";
-import { parseAgentSpecifier } from "@poe-code/agent-defs";
+import { parseAgentSpecifier, type AgentDefinition } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
 import type { AuthProvider } from "@poe-code/providers";
 import {
@@ -11,6 +11,7 @@ import {
   listServiceNames,
   resolveCommandFlags,
   resolveDefaultAgent,
+  resolveAgentDefinition,
   resolveServiceAdapter,
   applyIsolatedConfiguration,
   type CommandFlags
@@ -78,7 +79,12 @@ export async function executeConfigure(
   const providerId =
     adapter.requiresProvider === false
       ? undefined
-      : await resolveProvider(canonicalService, options, container, flags);
+      : await resolveProvider(
+          resolveAgentDefinition(canonicalService) ?? { id: canonicalService },
+          options,
+          container,
+          flags
+        );
 
   const providerContext = buildProviderContext(container, adapter, resources);
 
@@ -390,7 +396,7 @@ function isNotFoundError(error: unknown): boolean {
 }
 
 async function resolveProvider(
-  agentId: string,
+  agent: Pick<AgentDefinition, "id" | "apiShapes">,
   options: Pick<ConfigureCommandOptions, "provider" | "apiKey">,
   container: CliContainer,
   flags: CommandFlags
@@ -398,9 +404,9 @@ async function resolveProvider(
   const explicit =
     options.provider ?? container.env.getVariable("POE_CODE_PROVIDER") ?? undefined;
 
-  const candidates = container.providerRegistry.forAgent(agentId);
+  const candidates = container.providerRegistry.forAgent(agent);
   if (candidates.length === 0) {
-    throw new Error(`No providers support agent "${agentId}".`);
+    throw new Error(`No providers support agent "${agent.id}".`);
   }
 
   if (flags.dryRun) {
@@ -431,22 +437,22 @@ async function resolveProvider(
   if (loggedIn.length > 1) {
     if (flags.assumeYes) {
       throw new Error(
-        `Multiple providers support "${agentId}". Use --provider <id> to select one.`
+        `Multiple providers support "${agent.id}". Use --provider <id> to select one.`
       );
     }
-    return await promptForProviderChoice(agentId, loggedIn, container);
+    return await promptForProviderChoice(agent.id, loggedIn, container);
   }
 
   if (flags.assumeYes) {
     throw new Error(
-      `No logged-in providers support agent "${agentId}". Use --provider and --api-key to authenticate non-interactively.`
+      `No logged-in providers support agent "${agent.id}". Use --provider and --api-key to authenticate non-interactively.`
     );
   }
 
   const chosen =
     candidates.length === 1
       ? candidates[0]!.id
-      : await promptForProviderChoice(agentId, candidates, container);
+      : await promptForProviderChoice(agent.id, candidates, container);
 
   await triggerProviderLogin(container, chosen, options.apiKey, flags);
   return chosen;

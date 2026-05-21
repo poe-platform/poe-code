@@ -87,8 +87,8 @@ tasks:
 
       Backwards-compat invariant: with poe declaring both `supportsAgents` and `apiShapes`, and every agent declaring `apiShapes`, `forAgent(agent)` returns the same `[poeProvider]` set as before.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: persist-apishape-in-services-json

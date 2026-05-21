@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { allAgents } from "@poe-code/agent-defs";
 import { ProviderRegistry } from "./registry.js";
-import type { AuthProvider } from "./types.js";
+import { poeProvider } from "./providers/poe.js";
+import type { ApiShapeId, AuthProvider } from "./types.js";
 
 function makeProvider(
   overrides: Partial<AuthProvider> & Pick<AuthProvider, "id">
@@ -16,6 +18,7 @@ function makeProvider(
       prompt: { title: `${overrides.id} API key` }
     },
     supportsAgents: overrides.supportsAgents ?? [],
+    apiShapes: overrides.apiShapes,
     summary: overrides.summary,
     env: overrides.env
   };
@@ -52,16 +55,92 @@ describe("ProviderRegistry", () => {
 
   it("filters providers that support a given agent", () => {
     const registry = new ProviderRegistry([poe, anthropic, openai]);
-    expect(registry.forAgent("claude-code").map((p) => p.id)).toEqual([
+    expect(registry.forAgent({ id: "claude-code" }).map((p) => p.id)).toEqual([
       "poe",
       "anthropic"
     ]);
-    expect(registry.forAgent("codex").map((p) => p.id)).toEqual(["poe", "openai"]);
+    expect(registry.forAgent({ id: "codex" }).map((p) => p.id)).toEqual([
+      "poe",
+      "openai"
+    ]);
   });
 
   it("returns an empty list when no providers support the agent", () => {
     const registry = new ProviderRegistry([anthropic]);
-    expect(registry.forAgent("goose")).toEqual([]);
+    expect(registry.forAgent({ id: "goose" })).toEqual([]);
+  });
+
+  it("uses api shape compatibility when both provider and agent declare shapes", () => {
+    const matching = makeProvider({
+      id: "matching",
+      supportsAgents: ["codex"],
+      apiShapes: makeApiShapeBindings(["openai-responses"])
+    });
+    const nonMatching = makeProvider({
+      id: "non-matching",
+      supportsAgents: ["codex"],
+      apiShapes: makeApiShapeBindings(["anthropic-messages"])
+    });
+    const registry = new ProviderRegistry([matching, nonMatching]);
+
+    expect(
+      registry
+        .forAgent({ id: "codex", apiShapes: ["openai-responses"] })
+        .map((p) => p.id)
+    ).toEqual(["matching"]);
+  });
+
+  it("falls back to supportsAgents when one side lacks api shapes", () => {
+    const providerWithoutShapes = makeProvider({
+      id: "provider-without-shapes",
+      supportsAgents: ["codex"]
+    });
+    const providerWithShapes = makeProvider({
+      id: "provider-with-shapes",
+      supportsAgents: ["codex"],
+      apiShapes: makeApiShapeBindings(["openai-responses"])
+    });
+    const registry = new ProviderRegistry([providerWithoutShapes, providerWithShapes]);
+
+    expect(
+      registry
+        .forAgent({ id: "codex", apiShapes: ["anthropic-messages"] })
+        .map((p) => p.id)
+    ).toEqual(["provider-without-shapes"]);
+    expect(registry.forAgent({ id: "codex" }).map((p) => p.id)).toEqual([
+      "provider-without-shapes",
+      "provider-with-shapes"
+    ]);
+  });
+
+  it("does not fall back to supportsAgents when both sides declare api shapes without a match", () => {
+    const emptyShapes = makeProvider({
+      id: "empty-shapes",
+      supportsAgents: ["codex"],
+      apiShapes: []
+    });
+    const mismatchedShapes = makeProvider({
+      id: "mismatched-shapes",
+      supportsAgents: ["codex"],
+      apiShapes: makeApiShapeBindings(["anthropic-messages"])
+    });
+    const registry = new ProviderRegistry([emptyShapes, mismatchedShapes]);
+
+    expect(
+      registry
+        .forAgent({ id: "codex", apiShapes: ["openai-responses"] })
+        .map((p) => p.id)
+    ).toEqual([]);
+  });
+
+  it("keeps poe provider selection compatible for agents with declared api shapes", () => {
+    const registry = new ProviderRegistry([poeProvider]);
+    const providerBackedAgents = allAgents.filter((agent) => agent.apiShapes);
+
+    expect(providerBackedAgents.length).toBeGreaterThan(0);
+    for (const agent of providerBackedAgents) {
+      expect(registry.forAgent(agent)).toEqual([poeProvider]);
+    }
   });
 
   it("rejects duplicate ids to keep lookups unambiguous", () => {
@@ -147,3 +226,10 @@ describe("ProviderRegistry", () => {
     expect(stored).toBe("sk-from-oauth");
   });
 });
+
+function makeApiShapeBindings(apiShapes: readonly ApiShapeId[]): AuthProvider["apiShapes"] {
+  return apiShapes.map((id) => ({
+    id,
+    defaultBaseUrl: `https://api.example.test/${id}`
+  }));
+}

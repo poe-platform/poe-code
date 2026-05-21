@@ -4,9 +4,14 @@ import { Volume, createFsFromVolume } from "memfs";
 import type { FileSystem } from "../utils/file-system.js";
 
 const runMaestroMock = vi.hoisted(() => vi.fn());
+const runMaestroTuiMock = vi.hoisted(() => vi.fn());
 
 vi.mock("@poe-code/agent-maestro", () => ({
   runMaestro: runMaestroMock
+}));
+
+vi.mock("@poe-code/maestro-tui", () => ({
+  runMaestroTui: runMaestroTuiMock
 }));
 
 import { createProgram } from "./program.js";
@@ -22,10 +27,12 @@ describe("maestro command", () => {
 
   afterEach(() => {
     runMaestroMock.mockReset();
+    runMaestroTuiMock.mockReset();
   });
 
   function createTestProgram() {
     runMaestroMock.mockResolvedValue(async () => undefined);
+    runMaestroTuiMock.mockResolvedValue(undefined);
     return createProgram({
       fs: createMemFs(homeDir),
       prompts: async () => ({}),
@@ -56,15 +63,17 @@ describe("maestro command", () => {
       "debug"
     ]);
 
-    expect(runMaestroMock).toHaveBeenCalledWith(expect.objectContaining({
-      workflowPath: "custom/WORKFLOW.md",
-      maxConcurrent: 3,
-      pollIntervalMs: 1500,
-      list: "backlog",
-      dryRun: true,
-      yes: true,
-      logLevel: "debug"
-    }));
+    expect(runMaestroMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowPath: "custom/WORKFLOW.md",
+        maxConcurrent: 3,
+        pollIntervalMs: 1500,
+        list: "backlog",
+        dryRun: true,
+        yes: true,
+        logLevel: "debug"
+      })
+    );
   });
 
   it("uses command defaults when optional args are omitted", async () => {
@@ -72,15 +81,17 @@ describe("maestro command", () => {
 
     await program.parseAsync(["node", "cli", "maestro"]);
 
-    expect(runMaestroMock).toHaveBeenCalledWith(expect.objectContaining({
-      workflowPath: "./WORKFLOW.md",
-      maxConcurrent: undefined,
-      pollIntervalMs: undefined,
-      list: undefined,
-      dryRun: undefined,
-      yes: undefined,
-      logLevel: "info"
-    }));
+    expect(runMaestroMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowPath: "./WORKFLOW.md",
+        maxConcurrent: undefined,
+        pollIntervalMs: undefined,
+        list: undefined,
+        dryRun: undefined,
+        yes: undefined,
+        logLevel: "info"
+      })
+    );
   });
 
   it("honors global yes and dry-run flags before the command", async () => {
@@ -88,15 +99,17 @@ describe("maestro command", () => {
 
     await program.parseAsync(["node", "cli", "--yes", "--dry-run", "maestro"]);
 
-    expect(runMaestroMock).toHaveBeenCalledWith(expect.objectContaining({
-      workflowPath: "./WORKFLOW.md",
-      maxConcurrent: undefined,
-      pollIntervalMs: undefined,
-      list: undefined,
-      dryRun: true,
-      yes: true,
-      logLevel: "info"
-    }));
+    expect(runMaestroMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        workflowPath: "./WORKFLOW.md",
+        maxConcurrent: undefined,
+        pollIntervalMs: undefined,
+        list: undefined,
+        dryRun: true,
+        yes: true,
+        logLevel: "info"
+      })
+    );
   });
 
   it.each([
@@ -117,6 +130,77 @@ describe("maestro command", () => {
     );
     expect(runMaestroMock).not.toHaveBeenCalled();
   });
+
+  it("registers tui as a maestro subcommand", () => {
+    const program = createTestProgram();
+
+    const maestroCommand = program.commands.find((command) => command.name() === "maestro");
+    const tuiCommand = maestroCommand?.commands.find((command) => command.name() === "tui");
+
+    expect(tuiCommand?.description()).toBe("Open the Maestro interactive task explorer.");
+  });
+
+  it("opens the Maestro TUI with --workflow forwarded as workflowPath", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync(["node", "cli", "maestro", "tui", "--workflow", "custom/WORKFLOW.md"]);
+
+    expect(runMaestroTuiMock).toHaveBeenCalledWith({
+      workflowPath: "custom/WORKFLOW.md"
+    });
+    expect(runMaestroMock).not.toHaveBeenCalled();
+  });
+
+  it("opens the Maestro TUI without prompting when --workflow is omitted", async () => {
+    const prompts = vi.fn().mockResolvedValue({});
+    const program = createProgram({
+      fs: createMemFs(homeDir),
+      prompts,
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "maestro", "tui"]);
+
+    expect(runMaestroTuiMock).toHaveBeenCalledWith({});
+    expect(prompts).not.toHaveBeenCalled();
+    expect(runMaestroMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects unsupported Maestro TUI flags", async () => {
+    const program = createTestProgram();
+
+    await expect(
+      program.parseAsync(["node", "cli", "maestro", "tui", "--list", "backlog"])
+    ).rejects.toThrow("`poe-code maestro tui` only accepts --workflow.");
+    expect(runMaestroTuiMock).not.toHaveBeenCalled();
+  });
+
+  it.each(["--dry-run", "--yes", "--verbose"])(
+    "rejects global %s when passed before the Maestro TUI command",
+    async (flag) => {
+      const program = createTestProgram();
+
+      await expect(program.parseAsync(["node", "cli", flag, "maestro", "tui"])).rejects.toThrow(
+        "`poe-code maestro tui` only accepts --workflow."
+      );
+      expect(runMaestroTuiMock).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(["--dry-run", "--yes", "--verbose"])(
+    "rejects global %s when passed after the Maestro TUI command",
+    async (flag) => {
+      const program = createTestProgram();
+
+      await expect(program.parseAsync(["node", "cli", "maestro", "tui", flag])).rejects.toThrow(
+        "`poe-code maestro tui` only accepts --workflow."
+      );
+      expect(runMaestroTuiMock).not.toHaveBeenCalled();
+    }
+  );
 
   it("rejects an unsupported log level", async () => {
     const program = createTestProgram();

@@ -304,7 +304,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: poe-code-cli-maestro-tui-subcommand
     title: Wire `poe-code maestro tui` CLI subcommand
@@ -335,8 +335,8 @@ tasks:
          (defaults come from the workflow config, not from a prompt;
          see CLAUDE.md "--yes option" + memory: explicit-over-implicit).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: screenshot-validate-tui

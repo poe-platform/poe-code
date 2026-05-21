@@ -7,6 +7,7 @@ import { evalGroup } from "@poe-code/agent-eval";
 import { ghGroup } from "@poe-code/github-workflows";
 import { superintendentGroup } from "@poe-code/superintendent";
 import { runMaestro, type Logger as MaestroLogger } from "@poe-code/agent-maestro";
+import { runMaestroTui } from "@poe-code/maestro-tui";
 import { createCliContainer, type CliContainer, type CliDependencies } from "./container.js";
 import { text } from "@poe-code/design-system";
 import { registerConfigureCommand } from "./commands/configure.js";
@@ -40,6 +41,7 @@ import { registerBraintrustCommand } from "./commands/braintrust.js";
 import { registerTasksCommand } from "./commands/tasks.js";
 import packageJson from "../../package.json" with { type: "json" };
 import { throwCommandNotFound } from "./command-not-found.js";
+import { ValidationError } from "./errors.js";
 import {
   detectExecutionContext,
   formatCliHelpCommand,
@@ -95,6 +97,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["eval", "check"], args: "[eval-id]" },
   { path: ["eval", "lint"], args: "[eval-id]" },
   { path: ["maestro"], args: "[path]" },
+  { path: ["maestro", "tui"] },
   { path: ["plan"], args: "[question]" },
   { path: ["plan", "install"] },
   { path: ["plan", "browse"] },
@@ -441,8 +444,34 @@ function createMaestroLogger(
   };
 }
 
+function hasCliOptionSource(command: Command, optionName: string): boolean {
+  let current: Command | null = command;
+  while (current) {
+    if (current.getOptionValueSource(optionName) === "cli") {
+      return true;
+    }
+    current = current.parent ?? null;
+  }
+  return false;
+}
+
+function assertNoUnsupportedOptionsForMaestroTui(command: Command): void {
+  const unsupportedOptionNames = [
+    "maxConcurrent",
+    "pollIntervalMs",
+    "list",
+    "dryRun",
+    "yes",
+    "verbose",
+    "logLevel"
+  ];
+  if (unsupportedOptionNames.some((name) => hasCliOptionSource(command, name))) {
+    throw new ValidationError("`poe-code maestro tui` only accepts --workflow.");
+  }
+}
+
 function registerMaestroCommand(program: Command, container: CliContainer): void {
-  program
+  const maestro = program
     .command("maestro")
     .description("Run the Maestro task-driven agent daemon.")
     .argument(
@@ -483,6 +512,9 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
         .default(maestroCommandSchema.shape.logLevel.default)
     )
     .action(async (path: string, options: Omit<MaestroCommandArgs, "path">, command: Command) => {
+      if (path === "tui") {
+        throw new ValidationError("`poe-code maestro tui` only accepts --workflow.");
+      }
       const mergedOptions = {
         ...options,
         ...command.optsWithGlobals()
@@ -497,6 +529,27 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
         logLevel: mergedOptions.logLevel,
         logger: createMaestroLogger(container, mergedOptions)
       });
+    });
+
+  maestro.hook("preSubcommand", (command, subCommand) => {
+    if (subCommand.name() === "tui") {
+      assertNoUnsupportedOptionsForMaestroTui(command);
+    }
+  });
+
+  maestro
+    .command("tui")
+    .description("Open the Maestro interactive task explorer.")
+    .option("--workflow <path>", "Path to WORKFLOW.md")
+    .action(async (options: { workflow?: string }, command: Command) => {
+      assertNoUnsupportedOptionsForMaestroTui(command);
+      await runMaestroTui(
+        options.workflow === undefined
+          ? {}
+          : {
+              workflowPath: options.workflow
+            }
+      );
     });
 }
 

@@ -5,7 +5,7 @@ import type {
   ExplorerConfig,
   Row
 } from "@poe-code/design-system";
-import { archivePlan, deletePlan, editPlan } from "./actions.js";
+import { archivePlan, deletePlan, editFile } from "./actions.js";
 import { loadPlanPreviewMarkdown } from "./format.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
 
@@ -40,7 +40,7 @@ export function buildPlanExplorerConfig(
       handler: async (ctx) => {
         const entry = getEntry(entryByRowId, ctx.row.id);
         await ctx.suspendAnd(async () => {
-          editPlan(entry.absolutePath, { env: options.variables });
+          editFile(entry.absolutePath, { env: options.variables });
         });
         await ctx.refresh();
         ctx.toast(`Edited ${path.basename(entry.path)}`, "info");

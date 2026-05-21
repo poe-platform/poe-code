@@ -6,16 +6,16 @@ import { buildPlanExplorerConfig } from "./explorer-config.js";
 import { runPlanBrowser } from "./browser.js";
 import type { ActionFs, DiscoveryFs, PlanEntry } from "./types.js";
 
-const { archivePlanMock, deletePlanMock, editPlanMock } = vi.hoisted(() => ({
+const { archivePlanMock, deletePlanMock, editFileMock } = vi.hoisted(() => ({
   archivePlanMock: vi.fn(async () => "/repo/docs/plans/archive/feature.md"),
   deletePlanMock: vi.fn(async () => undefined),
-  editPlanMock: vi.fn()
+  editFileMock: vi.fn()
 }));
 
 vi.mock("./actions.js", () => ({
   archivePlan: archivePlanMock,
   deletePlan: deletePlanMock,
-  editPlan: editPlanMock
+  editFile: editFileMock
 }));
 
 const cwd = "/repo";
@@ -136,8 +136,8 @@ describe("plan browser", () => {
     await config.actions.find((action) => action.id === "delete")!.handler(deleteCtx);
     await config.actions.find((action) => action.id === "new")!.handler(createCtx);
 
-    expect(editPlanMock).toHaveBeenCalledOnce();
-    expect(editPlanMock).toHaveBeenCalledWith(
+    expect(editFileMock).toHaveBeenCalledOnce();
+    expect(editFileMock).toHaveBeenCalledWith(
       "/repo/docs/plans/feature.md",
       { env: variables }
     );

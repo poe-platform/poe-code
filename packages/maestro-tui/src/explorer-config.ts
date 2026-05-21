@@ -8,11 +8,12 @@ import type {
 } from "@poe-code/design-system";
 import { OrderMismatchError, type Task, type TaskList } from "@poe-code/task-list";
 import { stringify } from "yaml";
-import { buildMoveStateAction } from "./actions.js";
+import { buildMoveStateAction, buildOpenSourceAction } from "./actions.js";
 
 export interface BuildMaestroExplorerConfigOptions {
   tasks: readonly Task[];
   taskList: TaskList;
+  variables: Record<string, string | undefined>;
   onRefresh: () => Promise<Task[]>;
 }
 
@@ -68,6 +69,10 @@ export function buildMaestroExplorerConfig(
       taskList: options.taskList,
       taskByRowId: () => taskByRowId,
       eventsByRowId: () => eventsByRowId
+    }),
+    buildOpenSourceAction({
+      taskByRowId: () => taskByRowId,
+      variables: options.variables
     })
   ];
 

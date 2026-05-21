@@ -3,6 +3,7 @@ import {
   select,
   type Action
 } from "@poe-code/design-system";
+import { editFile } from "@poe-code/plan-browser";
 import {
   InvalidTransitionError,
   type Task,
@@ -13,6 +14,11 @@ export interface BuildMoveStateActionOptions {
   taskList: TaskList;
   taskByRowId: () => ReadonlyMap<string, Task>;
   eventsByRowId: () => ReadonlyMap<string, readonly string[]>;
+}
+
+export interface BuildOpenSourceActionOptions {
+  taskByRowId: () => ReadonlyMap<string, Task>;
+  variables: Record<string, string | undefined>;
 }
 
 interface MoveStateChoice {
@@ -76,6 +82,23 @@ export function buildMoveStateAction(options: BuildMoveStateActionOptions): Acti
 
       await ctx.refresh();
       ctx.toast(`Moved to ${selected.targetState}`, "info");
+    }
+  };
+}
+
+export function buildOpenSourceAction(options: BuildOpenSourceActionOptions): Action<void> {
+  return {
+    id: "open-source",
+    key: "o",
+    label: "Open in $EDITOR",
+    predicate: (ctx) => getTask(options.taskByRowId(), ctx.row.id).sourcePath != null,
+    handler: async (ctx) => {
+      const task = getTask(options.taskByRowId(), ctx.row.id);
+      await ctx.suspendAnd(async () => {
+        editFile(task.sourcePath!, { env: options.variables });
+      });
+      await ctx.refresh();
+      ctx.toast(`Edited ${task.qualifiedId}`, "info");
     }
   };
 }

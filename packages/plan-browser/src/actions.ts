@@ -9,7 +9,7 @@ export function resolveEditor(
   return editor.length > 0 ? editor : "vi";
 }
 
-export function editPlan(
+export function editFile(
   absolutePath: string,
   options: {
     env?: Record<string, string | undefined>;
@@ -19,6 +19,16 @@ export function editPlan(
   const editor = resolveEditor(options.env);
   const spawnSync = options.spawnSync ?? nodeSpawnSync;
   spawnSync(editor, [absolutePath], { stdio: "inherit" });
+}
+
+export function editPlan(
+  absolutePath: string,
+  options: {
+    env?: Record<string, string | undefined>;
+    spawnSync?: typeof nodeSpawnSync;
+  } = {}
+): void {
+  editFile(absolutePath, options);
 }
 
 async function archiveSelectedPlan(

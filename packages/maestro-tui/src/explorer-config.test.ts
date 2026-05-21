@@ -13,9 +13,15 @@ import {
   type ActionContext,
   type Row
 } from "@poe-code/design-system";
-import { buildMaestroExplorerConfig } from "./explorer-config.js";
+import {
+  buildMaestroExplorerConfig as buildMaestroExplorerConfigBase,
+  type BuildMaestroExplorerConfigOptions
+} from "./explorer-config.js";
 
-const { cancelSelection } = vi.hoisted(() => ({ cancelSelection: Symbol("cancel") }));
+const { cancelSelection, editFileMock } = vi.hoisted(() => ({
+  cancelSelection: Symbol("cancel"),
+  editFileMock: vi.fn()
+}));
 
 vi.mock("@poe-code/design-system", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/design-system")>();
@@ -25,6 +31,17 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
     isCancel: vi.fn((value: unknown) => value === cancelSelection)
   };
 });
+
+vi.mock("@poe-code/plan-browser", () => ({
+  editFile: editFileMock
+}));
+
+function buildMaestroExplorerConfig(
+  options: Omit<BuildMaestroExplorerConfigOptions, "variables"> &
+    Partial<Pick<BuildMaestroExplorerConfigOptions, "variables">>
+): ReturnType<typeof buildMaestroExplorerConfigBase> {
+  return buildMaestroExplorerConfigBase({ variables: {}, ...options });
+}
 
 const workflowMachine = {
   initial: "planned",
@@ -149,6 +166,14 @@ function moveStateAction(config: ReturnType<typeof buildMaestroExplorerConfig>):
   return action;
 }
 
+function openSourceAction(config: ReturnType<typeof buildMaestroExplorerConfig>): Action<void> {
+  const action = config.actions.find((candidate) => candidate.id === "open-source");
+  if (action === undefined) {
+    throw new Error("Open source action was not registered.");
+  }
+  return action;
+}
+
 async function renderDetail(config: ReturnType<typeof buildMaestroExplorerConfig>, rowIndex = 0) {
   const rows = await config.rows();
   const row = rows[rowIndex]!;
@@ -170,6 +195,7 @@ async function renderDetail(config: ReturnType<typeof buildMaestroExplorerConfig
 describe("buildMaestroExplorerConfig", () => {
   beforeEach(() => {
     vi.mocked(select).mockReset();
+    editFileMock.mockReset();
   });
 
   it("maps and orders task rows by state while preserving order within state", async () => {
@@ -256,6 +282,11 @@ describe("buildMaestroExplorerConfig", () => {
         key: "f",
         label: "Move to state…",
         primary: true
+      }),
+      expect.objectContaining({
+        id: "open-source",
+        key: "o",
+        label: "Open in $EDITOR"
       })
     ]);
   });
@@ -501,6 +532,88 @@ describe("buildMaestroExplorerConfig", () => {
     const [refreshedRow] = await config.rows();
 
     expect(action.predicate?.(actionCtx(refreshedRow!))).toBe(false);
+  });
+
+  it("shows the open-source action only when a cached task has sourcePath", async () => {
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({
+          id: "file",
+          qualifiedId: "tasks/file",
+          sourcePath: "/repo/tasks/file.md"
+        }),
+        task({ id: "remote", qualifiedId: "tasks/remote" }),
+        task({
+          id: "null",
+          qualifiedId: "tasks/null",
+          sourcePath: null
+        } as unknown as Partial<Task>)
+      ],
+      taskList: taskList(),
+      variables: {},
+      onRefresh: async () => []
+    });
+    const [fileRow, remoteRow, nullRow] = await config.rows();
+    const action = openSourceAction(config);
+
+    expect(action.predicate?.(actionCtx(fileRow!))).toBe(true);
+    expect(action.predicate?.(actionCtx(nullRow!))).toBe(false);
+    expect(action.predicate?.(actionCtx(remoteRow!))).toBe(false);
+  });
+
+  it("opens the refreshed sourcePath from the cached row map", async () => {
+    const variables = { EDITOR: "code" };
+    const refreshed = task({
+      id: "file",
+      qualifiedId: "tasks/file",
+      sourcePath: "/repo/tasks/refreshed.md"
+    });
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({
+          id: "file",
+          qualifiedId: "tasks/file",
+          sourcePath: "/repo/tasks/original.md"
+        })
+      ],
+      taskList: taskList(),
+      variables,
+      onRefresh: async () => [refreshed]
+    });
+
+    await config.refresh!();
+    const [row] = await config.rows();
+    const ctx = actionCtx(row!);
+
+    await openSourceAction(config).handler(ctx);
+
+    expect(editFileMock).toHaveBeenCalledWith("/repo/tasks/refreshed.md", { env: variables });
+    expect(ctx.toast).toHaveBeenCalledWith("Edited tasks/file", "info");
+  });
+
+  it("opens a task source file through suspendAnd, refreshes, and shows an info toast", async () => {
+    const variables = { EDITOR: "code" };
+    const config = buildMaestroExplorerConfig({
+      tasks: [
+        task({
+          id: "file",
+          qualifiedId: "tasks/file",
+          sourcePath: "/repo/tasks/file.md"
+        })
+      ],
+      taskList: taskList(),
+      variables,
+      onRefresh: async () => []
+    });
+    const [row] = await config.rows();
+    const ctx = actionCtx(row!);
+
+    await openSourceAction(config).handler(ctx);
+
+    expect(ctx.suspendAnd).toHaveBeenCalledOnce();
+    expect(editFileMock).toHaveBeenCalledWith("/repo/tasks/file.md", { env: variables });
+    expect(ctx.refresh).toHaveBeenCalledOnce();
+    expect(ctx.toast).toHaveBeenCalledWith("Edited tasks/file", "info");
   });
 
   it("moves a task by prompting for an event and firing it", async () => {

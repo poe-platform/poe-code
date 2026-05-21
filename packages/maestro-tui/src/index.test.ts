@@ -46,6 +46,7 @@ describe("maestro-tui public API", () => {
     const config = buildMaestroExplorerConfig({
       tasks: [],
       taskList: taskList(),
+      variables: {},
       onRefresh: async () => []
     });
 
@@ -57,6 +58,11 @@ describe("maestro-tui public API", () => {
         key: "f",
         label: "Move to state…",
         primary: true
+      }),
+      expect.objectContaining({
+        id: "open-source",
+        key: "o",
+        label: "Open in $EDITOR"
       })
     ]);
     expect(config.emptyHint).toBe("No tasks found");
@@ -70,6 +76,7 @@ describe("maestro-tui public API", () => {
     await runMaestroTui({
       tasks: [],
       taskList: taskList(),
+      variables: {},
       onRefresh: async () => [],
       runExplorerImpl
     });
@@ -77,14 +84,19 @@ describe("maestro-tui public API", () => {
     expect(runExplorerImpl).toHaveBeenCalledWith(
       expect.objectContaining({
         title: "Maestro tasks",
-        actions: [
+        actions: expect.arrayContaining([
           expect.objectContaining({
             id: "move-state",
             key: "f",
             label: "Move to state…",
             primary: true
+          }),
+          expect.objectContaining({
+            id: "open-source",
+            key: "o",
+            label: "Open in $EDITOR"
           })
-        ]
+        ])
       })
     );
   });

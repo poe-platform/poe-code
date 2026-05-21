@@ -194,7 +194,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: action-open-source
     title: Add "open in $EDITOR" action for file-backed tasks
@@ -225,8 +225,8 @@ tasks:
       `BuildMaestroExplorerConfigOptions` and thread it through (same
       shape plan-browser uses).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: action-open-issue

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { archivePlan, deletePlan, editPlan, resolveEditor } from "./actions.js";
+import { archivePlan, deletePlan, editFile, editPlan, resolveEditor } from "./actions.js";
 import type { ActionFs } from "./types.js";
 
 function createMemFs(files: Record<string, string> = {}): ActionFs {
@@ -51,7 +51,20 @@ describe("plan actions", () => {
     ).rejects.toThrow();
   });
 
-  it("opens a plan in the resolved editor", () => {
+  it("opens a file in the resolved editor", () => {
+    const spawnSync = vi.fn();
+
+    editFile("/repo/.poe-code/pipeline/plans/plan.yaml", {
+      env: { EDITOR: "code" },
+      spawnSync
+    });
+
+    expect(spawnSync).toHaveBeenCalledWith("code", ["/repo/.poe-code/pipeline/plans/plan.yaml"], {
+      stdio: "inherit"
+    });
+  });
+
+  it("keeps editPlan as a compatibility wrapper", () => {
     const spawnSync = vi.fn();
 
     editPlan("/repo/.poe-code/pipeline/plans/plan.yaml", {

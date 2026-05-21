@@ -1,5 +1,5 @@
 export { discoverAllPlans } from "./discovery.js";
-export { archivePlan, deletePlan, editPlan, resolveEditor } from "./actions.js";
+export { archivePlan, deletePlan, editFile, editPlan, resolveEditor } from "./actions.js";
 export { buildPlanExplorerConfig } from "./explorer-config.js";
 export {
   deriveMarkdownTitle,

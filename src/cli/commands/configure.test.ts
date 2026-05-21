@@ -61,6 +61,40 @@ function createFakeProvider(id: string, label: string): AuthProvider {
   };
 }
 
+function createOpenAiProvider(): AuthProvider {
+  return {
+    id: "openai",
+    label: "OpenAI",
+    summary: undefined,
+    baseUrl: "https://api.openai.com",
+    auth: {
+      kind: "api-key",
+      envVar: "OPENAI_API_KEY",
+      storageKey: "provider:openai",
+      prompt: { title: "OpenAI API key" }
+    },
+    apiShapes: [
+      {
+        id: "openai-responses",
+        defaultBaseUrl: "https://api.openai.com/v1"
+      },
+      {
+        id: "openai-chat-completions",
+        defaultBaseUrl: "https://api.openai.com/v1"
+      }
+    ]
+  };
+}
+
+async function captureError(run: () => Promise<unknown>): Promise<string> {
+  try {
+    await run();
+  } catch (error) {
+    return String(error);
+  }
+  throw new Error("Expected command to fail.");
+}
+
 function includeFakeProvider(
   container: ReturnType<typeof createContainer>,
   fakeProvider: AuthProvider
@@ -341,7 +375,7 @@ describe("configure provider resolution", () => {
 
     await expect(
       executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {})
-    ).rejects.toThrow(/Use --provider/);
+    ).rejects.toThrow(/--provider/);
   });
 
   it("prompts when >1 eligible providers are logged in", async () => {
@@ -540,7 +574,57 @@ describe("configure provider resolution", () => {
 
     await expect(
       executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {})
-    ).rejects.toThrow(/Use --provider/);
+    ).rejects.toThrow(/--provider/);
+  });
+
+  it("snapshots the explicit incompatible provider error", async () => {
+    const openaiProvider = createOpenAiProvider();
+    const container = createContainer(fs);
+    includeFakeProvider(container, openaiProvider);
+    mockOptions(container);
+
+    const message = await captureError(() =>
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+        provider: "openai",
+        apiKey: "sk-openai-test"
+      })
+    );
+
+    expect(message).toMatchInlineSnapshot(`
+      "Error: Provider "openai" cannot configure claude-code.
+      claude-code requires one of: messages.
+      openai provides: responses, chat-completions."
+    `);
+  });
+
+  it("snapshots the non-interactive provider ambiguity error", async () => {
+    const container = createContainer(fs);
+    const poeProvider = container.providerRegistry.get("poe");
+    const anthropicProvider = container.providerRegistry.get("anthropic");
+    if (!poeProvider || !anthropicProvider) {
+      throw new Error("Expected Poe and Anthropic providers to be registered.");
+    }
+    vi.spyOn(container.providerRegistry, "forAgent").mockReturnValue([
+      poeProvider,
+      anthropicProvider
+    ]);
+    vi.spyOn(container.providerRegistry, "isLoggedIn").mockImplementation(
+      async (id) => id === "poe" || id === "anthropic"
+    );
+    stubInvoke(container);
+
+    const message = await captureError(() =>
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {})
+    );
+
+    expect(message).toMatchInlineSnapshot(`
+      "Error: claude-code can be configured with multiple providers.
+      Pass --provider.
+
+      Compatible providers:
+        poe
+        anthropic"
+    `);
   });
 
   it("persists the resolved provider in services.json", async () => {

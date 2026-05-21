@@ -2,7 +2,7 @@ import type { Command } from "commander";
 import type { Stats } from "node:fs";
 import { parseAgentSpecifier, type AgentDefinition } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
-import type { AuthProvider } from "@poe-code/providers";
+import { resolveApiShape, type ApiShapeId, type AuthProvider } from "@poe-code/providers";
 import {
   buildProviderContext,
   createExecutionResources,
@@ -30,6 +30,12 @@ import type { FileSystem } from "../../utils/file-system.js";
 
 const serviceSelectionPrompt = (action: string) => `Pick a tool to ${action}:`;
 const DEFAULT_SERVICE_AGENT = "claude-code";
+const apiShapeLabels: Record<ApiShapeId, string> = {
+  "openai-chat-completions": "chat-completions",
+  "openai-responses": "responses",
+  "anthropic-messages": "messages",
+  "google-generations": "generations"
+};
 
 export interface ConfigureCommandOptions {
   apiKey?: string;
@@ -233,10 +239,7 @@ async function hasMaterialConfigureChange(input: {
   return overlay.hasMaterialChange();
 }
 
-function createSilentDryRunCommand(
-  base: CommandContext,
-  fs: CommandContext["fs"]
-): CommandContext {
+function createSilentDryRunCommand(base: CommandContext, fs: CommandContext["fs"]): CommandContext {
   return {
     fs,
     runCommand: base.runCommand,
@@ -394,16 +397,16 @@ function isBackupPath(filePath: string): boolean {
 }
 
 function createNotFoundError(filePath: string): NodeJS.ErrnoException {
-  const error = new Error(`ENOENT: no such file or directory, open '${filePath}'`) as NodeJS.ErrnoException;
+  const error = new Error(
+    `ENOENT: no such file or directory, open '${filePath}'`
+  ) as NodeJS.ErrnoException;
   error.code = "ENOENT";
   return error;
 }
 
 function isNotFoundError(error: unknown): boolean {
   return Boolean(
-    error &&
-      typeof error === "object" &&
-      (error as { code?: unknown }).code === "ENOENT"
+    error && typeof error === "object" && (error as { code?: unknown }).code === "ENOENT"
   );
 }
 
@@ -413,10 +416,19 @@ async function resolveProvider(
   container: CliContainer,
   flags: CommandFlags
 ): Promise<string> {
-  const explicit =
-    options.provider ?? container.env.getVariable("POE_CODE_PROVIDER") ?? undefined;
+  const explicit = options.provider ?? container.env.getVariable("POE_CODE_PROVIDER") ?? undefined;
 
   const candidates = container.providerRegistry.forAgent(agent);
+  if (explicit) {
+    const provider = container.providerRegistry.get(explicit);
+    if (!provider) {
+      throw new Error(`Unknown provider "${explicit}".`);
+    }
+    if (!resolveApiShape(provider, agent)) {
+      throw new Error(formatIncompatibleProviderError(agent, provider));
+    }
+  }
+
   if (candidates.length === 0) {
     throw new Error(`No providers support agent "${agent.id}".`);
   }
@@ -435,7 +447,7 @@ async function resolveProvider(
   const loggedIn: AuthProvider[] = [];
   for (const candidate of candidates) {
     if (
-      await container.providerRegistry.isLoggedIn(candidate.id) ||
+      (await container.providerRegistry.isLoggedIn(candidate.id)) ||
       hasProviderEnvCredential(candidate, container)
     ) {
       loggedIn.push(candidate);
@@ -448,9 +460,7 @@ async function resolveProvider(
 
   if (loggedIn.length > 1) {
     if (flags.assumeYes) {
-      throw new Error(
-        `Multiple providers support "${agent.id}". Use --provider <id> to select one.`
-      );
+      throw new Error(formatAmbiguousProvidersError(agent.id, loggedIn));
     }
     return await promptForProviderChoice(agent.id, loggedIn, container);
   }
@@ -470,10 +480,37 @@ async function resolveProvider(
   return chosen;
 }
 
-function hasProviderEnvCredential(
-  provider: AuthProvider,
-  container: CliContainer
-): boolean {
+function formatIncompatibleProviderError(
+  agent: Pick<AgentDefinition, "id" | "apiShapes">,
+  provider: AuthProvider
+): string {
+  return [
+    `Provider "${provider.id}" cannot configure ${agent.id}.`,
+    `${agent.id} requires one of: ${formatApiShapeLabels(agent.apiShapes ?? [])}.`,
+    `${provider.id} provides: ${formatApiShapeLabels(provider.apiShapes?.map((shape) => shape.id) ?? [])}.`
+  ].join("\n");
+}
+
+function formatAmbiguousProvidersError(
+  agentId: string,
+  providers: readonly AuthProvider[]
+): string {
+  return [
+    `${agentId} can be configured with multiple providers.`,
+    "Pass --provider.",
+    "",
+    "Compatible providers:",
+    ...providers.map((provider) => `  ${provider.id}`)
+  ].join("\n");
+}
+
+function formatApiShapeLabels(shapeIds: readonly ApiShapeId[]): string {
+  return shapeIds.length > 0
+    ? shapeIds.map((shapeId) => apiShapeLabels[shapeId]).join(", ")
+    : "none";
+}
+
+function hasProviderEnvCredential(provider: AuthProvider, container: CliContainer): boolean {
   if (provider.auth.kind !== "api-key") {
     return false;
   }

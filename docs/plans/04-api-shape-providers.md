@@ -228,7 +228,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: shape-aware-error-messages
     title: Error messages name the missing shape
@@ -243,9 +243,9 @@ tasks:
 
       Use short shape labels (`chat-completions`, `responses`, `messages`, `generations`) when rendering to humans; canonical ids only in machine output. Snapshot tests in `src/cli/commands/configure.test.ts` cover both error formats. No regression in the happy-path snapshot.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 ---
 
 # API shape providers

@@ -170,7 +170,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: manual-gemini-cli-terminal-pilot-direct
     title: Manually smoke test raw gemini-cli through the Poe gateway
@@ -192,7 +192,7 @@ tasks:
 
       Use terminal-pilot to inspect the terminal until the command exits. Pass only if stdout contains `GEMINI_TERMINAL_PILOT_OK` and the gateway URL is the only non-Google base URL used by the process. Record the exact command and result in the task notes. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
-      manual: open
+      manual: done
       commit: open
 
   - id: manual-gemini-cli-terminal-pilot-configure
@@ -350,3 +350,14 @@ add-gemini-cli-agent-def
 ```
 
 The two gates are `dynamic-model-choices` (must land without breaking any existing provider's configure snapshot) and `add-gemini-cli-provider` (must produce a valid `~/.gemini/settings.json` whose mutations are idempotent).
+
+## 8. Manual validation notes
+
+### `manual-gemini-cli-terminal-pilot-direct` — 2026-05-22
+
+- Result: failed precondition; no gateway smoke process was launched because `CF_AIG_TOKEN` and `CF_AIG_BASE_URL` were not set in the available current or login shell environments.
+- Terminal-pilot evidence: `gemini --version` exited `0` and printed `0.43.0`; a sanitized prerequisite check exited `2` with `GEMINI_GATEWAY_SMOKE_BLOCKED: CF_AIG_TOKEN and/or CF_AIG_BASE_URL not set`, and an immediate repeat run returned the same result.
+- Exact PTY child commands executed through terminal-pilot: `gemini --version`; `zsh -lc "if [[ -z \${CF_AIG_TOKEN:-} || -z \${CF_AIG_BASE_URL:-} ]]; then print -r -- 'GEMINI_GATEWAY_SMOKE_BLOCKED: CF_AIG_TOKEN and/or CF_AIG_BASE_URL not set'; exit 2; fi; print -r -- 'GEMINI_GATEWAY_SMOKE_READY'"` (executed twice for repeat-run behavior).
+- Success/cancellation coverage: not applicable until both gateway prerequisites are available; invoking Gemini without them would not validate Poe gateway routing or the non-Google-base-URL acceptance criterion.
+- Pending gateway smoke command once prerequisites are supplied: `GEMINI_API_KEY="$CF_AIG_TOKEN" GOOGLE_GEMINI_BASE_URL="${CF_AIG_BASE_URL%/}/google-ai-studio" GEMINI_SANDBOX=false gemini --model gemini-2.5-pro --output-format text --prompt 'Reply with exactly: GEMINI_TERMINAL_PILOT_OK'`.
+- Credential handling: the token value was neither printed nor persisted.

@@ -4,6 +4,7 @@ export interface PromptDescriptor<TName extends string = string> {
   readonly type?: string;
   readonly initial?: string | number;
   readonly choices?: Array<{ title: string; value: string }>;
+  readonly validate?: (value: string | undefined) => string | undefined;
 }
 
 export interface ModelPromptInput {

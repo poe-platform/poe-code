@@ -61,6 +61,7 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
     const explicitBaseUrl = await resolveConfigureBaseUrl({
       container,
       flags,
+      logger,
       provider,
       agent,
       options,
@@ -138,6 +139,7 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
 async function resolveConfigureBaseUrl(input: {
   container: CliContainer;
   flags: CommandFlags;
+  logger: ScopedLogger;
   provider: AuthProvider;
   agent: { id: string; apiShapes?: readonly ApiShapeId[] };
   options: ConfigureCommandOptions;
@@ -165,9 +167,14 @@ async function resolveConfigureBaseUrl(input: {
     return undefined;
   }
 
-  return await input.container.options.ensure({
-    descriptor: input.container.promptLibrary.providerBaseUrl(input.provider.label)
-  });
+  const descriptor = input.container.promptLibrary.providerBaseUrl(input.provider.label);
+  while (true) {
+    const baseUrl = await input.container.options.ensure({ descriptor });
+    if (isHttpBaseUrl(baseUrl)) {
+      return baseUrl;
+    }
+    input.logger.warn("Base URL must start with http:// or https://. Paste the Cloudflare gateway URL, not the API token.");
+  }
 }
 
 async function resolveFreeformProviderModel(input: {
@@ -236,4 +243,13 @@ function nonEmpty(value: string | undefined): string | undefined {
   }
   const trimmed = value.trim();
   return trimmed.length > 0 ? trimmed : undefined;
+}
+
+function isHttpBaseUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
 }

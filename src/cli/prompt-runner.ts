@@ -53,7 +53,8 @@ export function createPromptRunner(
 
     if (type === "password") {
       result = await adapter.password({
-        message: descriptor.message
+        message: descriptor.message,
+        validate: descriptor.validate
       });
     } else if (type === "select") {
       const choices = descriptor.choices ?? [];
@@ -71,7 +72,8 @@ export function createPromptRunner(
     } else {
       result = await adapter.text({
         message: descriptor.message,
-        initialValue: toInitialValue(descriptor.initial)
+        initialValue: toInitialValue(descriptor.initial),
+        validate: descriptor.validate
       });
     }
 

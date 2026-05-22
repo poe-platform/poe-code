@@ -1692,7 +1692,8 @@ describe("createPromptRunner", () => {
 
     expect(adapter.text).toHaveBeenCalledWith({
       message: "Say hello",
-      initialValue: "hi"
+      initialValue: "hi",
+      validate: undefined
     });
     expect(result).toEqual({ value: "hello" });
   });
@@ -1710,7 +1711,8 @@ describe("createPromptRunner", () => {
     });
 
     expect(adapter.password).toHaveBeenCalledWith({
-      message: "Enter key"
+      message: "Enter key",
+      validate: undefined
     });
     expect(result).toEqual({ apiKey: "secret" });
   });

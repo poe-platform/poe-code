@@ -182,6 +182,14 @@ describe("prompt library", () => {
     });
   });
 
+  it("builds a provider base URL descriptor", () => {
+    const library = createPromptLibrary();
+    const descriptor = library.providerBaseUrl("Cloudflare AI Gateway");
+    expect(descriptor.name).toBe("baseUrl");
+    expect(descriptor.message).toBe("Cloudflare AI Gateway base URL");
+    expect(descriptor.type).toBe("text");
+  });
+
   it("builds a reasoning descriptor with a provider-defined label", () => {
     const library = createPromptLibrary();
     const descriptor = library.reasoningEffort({

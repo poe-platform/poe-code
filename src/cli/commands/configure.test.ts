@@ -343,11 +343,11 @@ describe("configure provider resolution", () => {
       message: "Cloudflare AI Gateway token",
       type: "password"
     });
-    expect(prompts).toHaveBeenCalledWith({
+    expect(prompts).toHaveBeenCalledWith(expect.objectContaining({
       name: "baseUrl",
       message: "Cloudflare AI Gateway base URL",
       type: "text"
-    });
+    }));
     expect(prompts).toHaveBeenCalledWith({
       name: "model",
       message: "Codex model",
@@ -356,6 +356,44 @@ describe("configure provider resolution", () => {
     const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
     const profiles = document.profiles as Record<string, Record<string, unknown>>;
     expect(Object.values(profiles).some((profile) => profile.model === model)).toBe(true);
+    const providers = document.model_providers as Record<string, Record<string, unknown>>;
+    expect(providers.cloudflare?.base_url).toBe(`${gatewayRoot}openai`);
+  });
+
+  it("re-prompts when the interactive Cloudflare base URL is invalid", async () => {
+    const gatewayRoot =
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/";
+    const model = "@cf/meta/llama-3.1-8b-instruct";
+    const baseUrlAnswers = [
+      `"${gatewayRoot}compat",`,
+      gatewayRoot
+    ];
+    const prompts = vi.fn(async (descriptor) => {
+      if (descriptor.name === "apiKey") {
+        return { apiKey: "sk-cloudflare-test" };
+      }
+      if (descriptor.name === "baseUrl") {
+        return { baseUrl: baseUrlAnswers.shift() };
+      }
+      if (descriptor.name === "model") {
+        return { model };
+      }
+      if (descriptor.name === "reasoningEffort") {
+        return { reasoningEffort: String(descriptor.initial ?? "medium") };
+      }
+      return {};
+    });
+    const container = createContainer(fs, {}, prompts);
+
+    await executeConfigure(createTestProgram(), container, "codex", {
+      provider: "cloudflare"
+    });
+
+    const baseUrlPrompts = prompts.mock.calls.filter(
+      ([descriptor]) => descriptor.name === "baseUrl"
+    );
+    expect(baseUrlPrompts).toHaveLength(2);
+    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
     const providers = document.model_providers as Record<string, Record<string, unknown>>;
     expect(providers.cloudflare?.base_url).toBe(`${gatewayRoot}openai`);
   });

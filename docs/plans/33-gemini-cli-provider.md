@@ -193,7 +193,7 @@ tasks:
       Use terminal-pilot to inspect the terminal until the command exits. Pass only if stdout contains `GEMINI_TERMINAL_PILOT_OK` and the gateway URL is the only non-Google base URL used by the process. Record the exact command and result in the task notes. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
       manual: done
-      commit: open
+      commit: done
 
   - id: manual-gemini-cli-terminal-pilot-configure
     title: Manually validate poe-code configure gemini-cli against the Poe gateway
@@ -209,7 +209,7 @@ tasks:
 
       Use terminal-pilot to capture what prompts appeared and which model choices were offered. Pass only if configure succeeds, the selected model is written to `~/.gemini/settings.json` as `model.name`, `security.auth.selectedType` is `gemini-api-key`, no top-level `selectedAuthType` or scalar `model` is emitted, and existing unrelated settings are preserved. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
-      manual: open
+      manual: done
       commit: open
 
   - id: manual-gemini-cli-terminal-pilot-spawn-mcp
@@ -361,3 +361,12 @@ The two gates are `dynamic-model-choices` (must land without breaking any existi
 - Success/cancellation coverage: not applicable until both gateway prerequisites are available; invoking Gemini without them would not validate Poe gateway routing or the non-Google-base-URL acceptance criterion.
 - Pending gateway smoke command once prerequisites are supplied: `GEMINI_API_KEY="$CF_AIG_TOKEN" GOOGLE_GEMINI_BASE_URL="${CF_AIG_BASE_URL%/}/google-ai-studio" GEMINI_SANDBOX=false gemini --model gemini-2.5-pro --output-format text --prompt 'Reply with exactly: GEMINI_TERMINAL_PILOT_OK'`.
 - Credential handling: the token value was neither printed nor persisted.
+
+### `manual-gemini-cli-terminal-pilot-configure` — 2026-05-22
+
+- Result: passed using the configured `cloudflare` provider's existing encrypted real credential and configured `google-generations` endpoint; `CF_AIG_TOKEN` was not exposed in the invoking shell or output.
+- Interactive terminal-pilot run: `npm run dev -- configure gemini --provider cloudflare` displayed the `Gemini model` prompt with live choices including `gemini-2.5-flash`, `gemini-2.5-pro`, `gemini-2.0-flash`, `gemini-3.1-pro-preview`, and `gemini-3.5-flash`; selecting the default `gemini-2.5-pro` exited `0` and reported `Configured Gemini CLI.`
+- Settings assertions after interactive success: `~/.gemini/settings.json` contained `model.name: "gemini-2.5-pro"` and `security.auth.selectedType: "gemini-api-key"`; it contained neither top-level `selectedAuthType` nor a scalar `model`; pre-existing `hooks` content was preserved.
+- Repeat-run evidence: `npm run dev -- configure gemini --provider cloudflare --yes` exited `0`; `npm run dev -- configure gemini-cli --provider cloudflare --yes` also exited `0`, rendered the canonical `configure gemini-cli` service, and wrote the same model/auth shape to the same settings file.
+- Cancellation and failure evidence: cancelling the interactive model prompt exited cleanly without altering existing settings; `npm run dev -- configure gemini --provider missing-validation-provider --yes` exited `1` with an unknown-provider error and left settings unchanged. An unreachable explicit base URL displayed the static fallback model list and was cancelled without a write.
+- Cleanup: the original `~/.gemini/settings.json` contents were restored after validation; no credential value was printed or persisted by the validation record.

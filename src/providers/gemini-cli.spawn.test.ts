@@ -148,7 +148,7 @@ describe("geminiCliService ACP spawn", () => {
 
     expect(spawnChildProcess).toHaveBeenCalledWith(
       "gemini",
-      ["--acp", "--sandbox=false", "--model", "gemini-2.5-pro", "--yolo"],
+      ["--acp", "--model", "gemini-2.5-pro", "--yolo"],
       {
         cwd: process.cwd(),
         stdio: ["pipe", "pipe", "pipe"],
@@ -156,6 +156,7 @@ describe("geminiCliService ACP spawn", () => {
           PATH: "/bin",
           GEMINI_API_KEY: "gemini-key",
           GOOGLE_GEMINI_BASE_URL: "https://gateway.example/google-ai-studio",
+          GEMINI_SANDBOX: "false",
           HOME: path.join("/tmp/gemini-provider-home", ".poe-code", "gemini-cli"),
           ISOLATED_EXTRA: "yes"
         }
@@ -220,12 +221,12 @@ describe("geminiCliService ACP spawn", () => {
     respond(mock, newSession, { sessionId: "gemini-session" });
     const prompt = await waitForMethod(mock, "session/prompt");
 
-    const updated = spawned.unstable_setSessionModel?.("gemini-3-pro");
+    const updated = spawned.unstable_setSessionModel?.("gemini-3-pro-preview");
     const setConfigOption = await waitForMethod(mock, "session/set_config_option");
     expect(setConfigOption.params).toEqual({
       sessionId: "gemini-session",
       configId: "model",
-      value: "gemini-3-pro"
+      value: "gemini-3-pro-preview"
     });
     respond(mock, setConfigOption, { configOptions: [] });
     await updated;
@@ -286,11 +287,14 @@ describe("geminiCliService ACP spawn", () => {
     const spawned = spawnAcp({
       agentId: "gemini-cli",
       prompt: "route safely",
-      model: "gemini-3-pro"
+      model: "gemini-3-pro-preview"
     });
     await completeHappyPath(mock);
     await spawned.done;
 
-    expect(vi.mocked(spawnChildProcess).mock.calls[0]?.[1]).toContain("--sandbox=false");
+    expect(vi.mocked(spawnChildProcess).mock.calls[0]?.[1]).not.toContain("--sandbox=false");
+    expect(vi.mocked(spawnChildProcess).mock.calls[0]?.[2]?.env).toMatchObject({
+      GEMINI_SANDBOX: "false"
+    });
   });
 });

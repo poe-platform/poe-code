@@ -1620,6 +1620,7 @@ describe("gemini-cli service", () => {
       env: {
         GEMINI_API_KEY: { kind: "providerCredential" },
         GOOGLE_GEMINI_BASE_URL: { kind: "providerBaseUrl" },
+        GEMINI_SANDBOX: "false",
         HOME: { kind: "isolatedDir" }
       }
     });
@@ -1679,7 +1680,7 @@ describe("gemini-cli service", () => {
     });
     return {
       env,
-      model: "gemini-3-pro",
+      model: "gemini-3-pro-preview",
       command: { runCommand, fs: mockFsObj },
       logger,
       async runCheck(check) {
@@ -1694,20 +1695,27 @@ describe("gemini-cli service", () => {
     expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toMatchInlineSnapshot(`
       {
         "mcpServers": {},
-        "model": "gemini-3.1-pro",
-        "selectedAuthType": "gemini-api-key",
+        "model": {
+          "name": "gemini-3.1-pro",
+        },
+        "security": {
+          "auth": {
+            "selectedType": "gemini-api-key",
+          },
+        },
       }
     `);
   });
 
-  it("merges Gemini settings and preserves user keys", async () => {
+  it("merges Gemini settings, migrates prior managed keys, and preserves user keys", async () => {
     await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
     await mockFsObj.writeFile(
       settingsPath,
       JSON.stringify(
         {
           theme: "dark",
-          selectedAuthType: "oauth-personal",
+          selectedAuthType: "gemini-api-key",
+          model: "gemini-2.5-pro",
           mcpServers: {
             local: {
               command: "node",
@@ -1725,8 +1733,8 @@ describe("gemini-cli service", () => {
     const settings = JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"));
     expect(settings).toEqual({
       theme: "dark",
-      selectedAuthType: "gemini-api-key",
-      model: "gemini-2.5-flash",
+      security: { auth: { selectedType: "gemini-api-key" } },
+      model: { name: "gemini-2.5-flash" },
       mcpServers: {
         local: {
           command: "node",
@@ -1749,7 +1757,7 @@ describe("gemini-cli service", () => {
         models: [
           { name: "models/gemini-2.5-pro" },
           { name: "models/gemini-2.5-flash" },
-          { name: "models/gemini-3-pro" }
+          { name: "models/gemini-3-pro-preview" }
         ]
       })
     })) satisfies HttpClient;
@@ -1774,7 +1782,7 @@ describe("gemini-cli service", () => {
     expect(resolvedChoices).toEqual([
       { title: "gemini-2.5-pro", value: "gemini-2.5-pro" },
       { title: "gemini-2.5-flash", value: "gemini-2.5-flash" },
-      { title: "gemini-3-pro", value: "gemini-3-pro" }
+      { title: "gemini-3-pro-preview", value: "gemini-3-pro-preview" }
     ]);
     expect(httpClient).toHaveBeenCalledWith(
       "https://gateway.example.com/google-ai-studio/v1beta/models",
@@ -1788,8 +1796,14 @@ describe("gemini-cli service", () => {
     expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toMatchInlineSnapshot(`
       {
         "mcpServers": {},
-        "model": "gemini-3-pro",
-        "selectedAuthType": "gemini-api-key",
+        "model": {
+          "name": "gemini-3-pro-preview",
+        },
+        "security": {
+          "auth": {
+            "selectedType": "gemini-api-key",
+          },
+        },
       }
     `);
   });
@@ -1807,8 +1821,8 @@ describe("gemini-cli service", () => {
     ).resolves.toEqual([
       { title: "gemini-2.5-pro", value: "gemini-2.5-pro" },
       { title: "gemini-2.5-flash", value: "gemini-2.5-flash" },
-      { title: "gemini-3-pro", value: "gemini-3-pro" },
-      { title: "gemini-3-flash", value: "gemini-3-flash" }
+      { title: "gemini-3-pro-preview", value: "gemini-3-pro-preview" },
+      { title: "gemini-3-flash-preview", value: "gemini-3-flash-preview" }
     ]);
     await expect(configureGemini({ model: DEFAULT_GEMINI_MODEL })).resolves.toBeUndefined();
   });
@@ -1828,12 +1842,12 @@ describe("gemini-cli service", () => {
     ).resolves.toEqual([
       { title: "gemini-2.5-pro", value: "gemini-2.5-pro" },
       { title: "gemini-2.5-flash", value: "gemini-2.5-flash" },
-      { title: "gemini-3-pro", value: "gemini-3-pro" },
-      { title: "gemini-3-flash", value: "gemini-3-flash" }
+      { title: "gemini-3-pro-preview", value: "gemini-3-pro-preview" },
+      { title: "gemini-3-flash-preview", value: "gemini-3-flash-preview" }
     ]);
   });
 
-  it("tests Gemini availability and health with sandbox disabled", async () => {
+  it("tests Gemini availability and health with sandbox disabled through environment", async () => {
     const runCommand = vi
       .fn()
       .mockResolvedValueOnce({ stdout: "/usr/local/bin/gemini\n", stderr: "", exitCode: 0 })
@@ -1842,12 +1856,11 @@ describe("gemini-cli service", () => {
     expect(runCommand).toHaveBeenNthCalledWith(2, "gemini", [
       "-p",
       "say GEMINI_OK",
-      "--sandbox=false",
       "--output-format",
       "text",
       "--model",
-      "gemini-3-pro"
-    ]);
+      "gemini-3-pro-preview"
+    ], { env: { GEMINI_SANDBOX: "false" } });
   });
 
   it("unconfigures only Gemini-managed settings", async () => {
@@ -1857,8 +1870,8 @@ describe("gemini-cli service", () => {
       JSON.stringify(
         {
           theme: "dark",
-          selectedAuthType: "gemini-api-key",
-          model: "gemini-3.1-pro",
+          security: { auth: { selectedType: "gemini-api-key", useExternal: false } },
+          model: { name: "gemini-3.1-pro", maxSessionTurns: 10 },
           mcpServers: {
             local: {
               command: "node",
@@ -1877,6 +1890,8 @@ describe("gemini-cli service", () => {
     expect(removed).toBe(true);
     expect(settings).toEqual({
       theme: "dark",
+      security: { auth: { useExternal: false } },
+      model: { maxSessionTurns: 10 },
       mcpServers: {
         local: {
           command: "node",
@@ -1890,8 +1905,8 @@ describe("gemini-cli service", () => {
   it("leaves unrelated Gemini user settings untouched when unconfiguring", async () => {
     const userSettings = {
       theme: "dark",
-      selectedAuthType: "oauth-personal",
-      model: "user-selected-model",
+      security: { auth: { selectedType: "oauth-personal" } },
+      model: { name: "user-selected-model" },
       mcpServers: {}
     };
     await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
@@ -1901,6 +1916,27 @@ describe("gemini-cli service", () => {
     await expect(mockFsObj.readFile(settingsPath, "utf8")).resolves.toBe(
       JSON.stringify(userSettings, null, 2)
     );
+  });
+
+  it("unconfigures legacy Gemini-managed settings from older poe-code versions", async () => {
+    await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
+    await mockFsObj.writeFile(
+      settingsPath,
+      JSON.stringify(
+        {
+          theme: "dark",
+          selectedAuthType: "gemini-api-key",
+          model: "gemini-2.5-pro",
+          mcpServers: {}
+        },
+        null,
+        2
+      )
+    );
+
+    await expect(unconfigureGemini()).resolves.toBe(true);
+    await expect(mockFsObj.readFile(settingsPath, "utf8")).resolves.toContain('"theme": "dark"');
+    expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toEqual({ theme: "dark" });
   });
 
   it("removes the generated settings document when no user keys remain", async () => {

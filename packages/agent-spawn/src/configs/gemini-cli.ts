@@ -5,9 +5,11 @@ export const geminiCliAcpSpawnConfig: AcpSpawnConfig = {
   agentId: "gemini-cli",
   acpArgs: ({ model }) => [
     "--acp",
-    "--sandbox=false",
     ...(model ? ["--model", model] : []),
     "--yolo"
   ],
+  env: {
+    GEMINI_SANDBOX: "false"
+  },
   skipAuth: true
 };

@@ -115,7 +115,7 @@ describe("bridgeActiveSkills", () => {
     expect(() =>
       bridgeActiveSkills("opencode", cwd, ["foo", "nonsense/foo"], homeDir, runId)
     ).toThrow(
-      /nonsense\/foo[\s\S]*agent token: nonsense[\s\S]*claude-code, codex, opencode, goose/
+      /nonsense\/foo[\s\S]*agent token: nonsense[\s\S]*claude-code, codex, gemini-cli, opencode, goose/
     );
     expect(vol.existsSync(path.join(cwd, ".opencode"))).toBe(false);
     expectNoExcludeFile();

@@ -1,7 +1,7 @@
 #!/usr/bin/env tsx
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import fg from "fast-glob";
 import matter from "gray-matter";
 import {
@@ -12,21 +12,39 @@ import {
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 
+export const agentTemplateSets: Record<string, readonly string[]> = {
+  "claude-code": [],
+  "claude-desktop": [],
+  codex: [],
+  "gemini-cli": [
+    "src/templates/gemini-cli/SKILL_poe-code-plan.md",
+    "src/templates/gemini-cli/SKILL_poe-code-pipeline-plan.md",
+    "src/templates/gemini-cli/SKILL_stop-slop.md"
+  ],
+  opencode: [],
+  kimi: [],
+  goose: [],
+  "poe-agent": []
+};
+
+function loadSkills(templatePaths: readonly string[]) {
+  return templatePaths.flatMap((templatePath) => {
+    const content = readFileSync(join(ROOT, templatePath), "utf8");
+    const { data } = matter(content);
+    return data.name ? [{ name: data.name as string, content }] : [];
+  });
+}
+
 async function main() {
   const templateFiles = await fg("**/SKILL_*.md", {
     cwd: ROOT,
-    absolute: true,
+    absolute: false,
     ignore: ["**/dist/**", "**/node_modules/**"]
   });
-
-  const skills: Array<{ name: string; content: string }> = [];
-
-  for (const templatePath of templateFiles) {
-    const content = readFileSync(templatePath, "utf8");
-    const { data } = matter(content);
-    if (!data.name) continue;
-    skills.push({ name: data.name as string, content });
-  }
+  const agentTemplates = new Set(Object.values(agentTemplateSets).flat());
+  const skills = loadSkills(
+    templateFiles.filter((templatePath) => !agentTemplates.has(templatePath))
+  );
 
   const changed: string[] = [];
   let unchanged = 0;
@@ -39,6 +57,7 @@ async function main() {
   for (const agent of supportedAgents) {
     const config = getAgentConfig(agent);
     if (!config) continue;
+    const agentSkills = [...skills, ...loadSkills(agentTemplateSets[agent] ?? [])];
 
     for (const scope of scopes) {
       const skillDir = resolveSkillDir(config, scope, process.cwd());
@@ -48,7 +67,7 @@ async function main() {
         continue;
       }
 
-      for (const skill of skills) {
+      for (const skill of agentSkills) {
         const skillFilePath = join(skillDir, skill.name, "SKILL.md");
         if (!existsSync(skillFilePath)) {
           if (!shouldInstallMissing) continue;
@@ -83,7 +102,9 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

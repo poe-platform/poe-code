@@ -176,6 +176,12 @@ describe("postinstall skill sync", () => {
     await expect(
       pathExists(path.join(home, ".agents/skills/poe-code-plan/SKILL.md"))
     ).resolves.toBe(true);
+    await expect(
+      pathExists(path.join(home, ".gemini/skills/stop-slop/SKILL.md"))
+    ).resolves.toBe(true);
+    await expect(
+      pathExists(path.join(repoRoot, ".claude/skills/gemini-cli/stop-slop/SKILL.md"))
+    ).resolves.toBe(false);
   });
 
   it("is idempotent when skill files already exist", async () => {

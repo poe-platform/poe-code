@@ -149,7 +149,7 @@ export function createSpawnHealthCheck(
   options: {
     model?: string;
     expectedOutput: string;
-    invocation?: { command: string; args: string[] };
+    invocation?: { command: string; args: string[]; env?: Record<string, string> };
   }
 ): CommandCheck {
   const {
@@ -157,7 +157,11 @@ export function createSpawnHealthCheck(
     args,
     env: modeEnv
   } = options.invocation
-    ? { binaryName: options.invocation.command, args: options.invocation.args, env: undefined }
+    ? {
+        binaryName: options.invocation.command,
+        args: options.invocation.args,
+        env: options.invocation.env
+      }
     : buildSpawnArgs(agentId, {
         prompt: `Output exactly: ${options.expectedOutput}`,
         model: options.model,

@@ -21,8 +21,8 @@ const GOOGLE_MODELS_PATH = "v1beta/models";
 const FALLBACK_GEMINI_MODELS = [
   "gemini-2.5-pro",
   "gemini-2.5-flash",
-  "gemini-3-pro",
-  "gemini-3-flash"
+  "gemini-3-pro-preview",
+  "gemini-3-flash-preview"
 ] as const;
 
 type GeminiConfigureContext = ModelConfigureOptions & {
@@ -87,6 +87,7 @@ export const geminiCliService = createProvider<
     env: {
       GEMINI_API_KEY: { kind: "providerCredential" },
       GOOGLE_GEMINI_BASE_URL: { kind: "providerBaseUrl" },
+      GEMINI_SANDBOX: "false",
       HOME: { kind: "isolatedDir" }
     }
   },
@@ -102,12 +103,12 @@ export const geminiCliService = createProvider<
           args: [
             "-p",
             "say GEMINI_OK",
-            "--sandbox=false",
             "--output-format",
             "text",
             "--model",
             context.model ?? DEFAULT_GEMINI_MODEL
-          ]
+          ],
+          env: { GEMINI_SANDBOX: "false" }
         }
       })
     );
@@ -141,13 +142,34 @@ export const geminiCliService = createProvider<
     configure: [
       fileMutation.ensureDirectory({ path: "~/.gemini" }),
       fileMutation.backup({ target: "~/.gemini/settings.json" }),
+      configMutation.transform({
+        target: "~/.gemini/settings.json",
+        transform: (document) => {
+          if (!isConfigObject(document)) {
+            return { changed: false, content: document };
+          }
+
+          const content = document as ConfigObject;
+          let changed = false;
+          if ("selectedAuthType" in content) {
+            delete content.selectedAuthType;
+            changed = true;
+          }
+          if (typeof content.model === "string") {
+            delete content.model;
+            changed = true;
+          }
+
+          return { changed, content };
+        }
+      }),
       configMutation.merge({
         target: "~/.gemini/settings.json",
         value: (ctx) => {
           const options = ctx as unknown as ModelConfigureOptions;
           return {
-            selectedAuthType: "gemini-api-key",
-            model: options.model ?? DEFAULT_GEMINI_MODEL,
+            security: { auth: { selectedType: "gemini-api-key" } },
+            model: { name: options.model ?? DEFAULT_GEMINI_MODEL },
             mcpServers: {}
           };
         }
@@ -162,12 +184,35 @@ export const geminiCliService = createProvider<
           }
 
           const content = document as ConfigObject;
-          if (content.selectedAuthType !== "gemini-api-key") {
+          const security = isConfigObject(content.security) ? content.security : undefined;
+          const auth = security && isConfigObject(security.auth) ? security.auth : undefined;
+          const hasManagedAuth = auth?.selectedType === "gemini-api-key";
+          const hasLegacyManagedAuth = content.selectedAuthType === "gemini-api-key";
+          if (!hasManagedAuth && !hasLegacyManagedAuth) {
             return { changed: false, content };
           }
 
-          delete content.selectedAuthType;
-          delete content.model;
+          if (hasLegacyManagedAuth) {
+            delete content.selectedAuthType;
+          }
+          if (hasManagedAuth) {
+            delete auth!.selectedType;
+            if (Object.keys(auth!).length === 0) {
+              delete security!.auth;
+            }
+            if (Object.keys(security!).length === 0) {
+              delete content.security;
+            }
+          }
+          if (hasLegacyManagedAuth && typeof content.model === "string") {
+            delete content.model;
+          }
+          if (hasManagedAuth && isConfigObject(content.model)) {
+            delete content.model.name;
+            if (Object.keys(content.model).length === 0) {
+              delete content.model;
+            }
+          }
           if (isConfigObject(content.mcpServers) && Object.keys(content.mcpServers).length === 0) {
             delete content.mcpServers;
           }

@@ -99,7 +99,7 @@ function extractBodyAfterFrontmatter(markdown: string): string {
 
 describe("supportedAgents", () => {
   it("includes supported agent ids", () => {
-    expect(supportedAgents).toEqual(["claude-code", "codex", "opencode", "goose"]);
+    expect(supportedAgents).toEqual(["claude-code", "codex", "gemini-cli", "opencode", "goose"]);
   });
 });
 
@@ -148,6 +148,13 @@ describe("getAgentConfig", () => {
 
   it("returns undefined for unknown input", () => {
     expect(getAgentConfig("unknown")).toBeUndefined();
+  });
+
+  it("returns Gemini CLI skill directories", () => {
+    expect(getAgentConfig("gemini-cli")).toEqual({
+      globalSkillDir: "~/.gemini/skills",
+      localSkillDir: ".gemini/skills"
+    });
   });
 });
 

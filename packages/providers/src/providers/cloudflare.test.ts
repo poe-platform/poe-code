@@ -8,6 +8,7 @@ describe("cloudflareProvider", () => {
       label: "Cloudflare AI Gateway",
       summary: "Route coding agents through Cloudflare AI Gateway.",
       baseUrlEnvVar: "CF_AIG_BASE_URL",
+      modelInput: { kind: "freeform" },
       auth: {
         kind: "api-key",
         envVar: "CF_AIG_TOKEN",

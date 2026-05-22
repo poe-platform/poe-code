@@ -6,6 +6,7 @@ export const cloudflareProvider: AuthProvider = {
   summary: "Route coding agents through Cloudflare AI Gateway.",
   baseUrlEnvVar: "CF_AIG_BASE_URL",
   requiresBaseUrl: true,
+  modelInput: { kind: "freeform" },
   auth: {
     kind: "api-key",
     envVar: "CF_AIG_TOKEN",

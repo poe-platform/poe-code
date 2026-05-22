@@ -168,6 +168,20 @@ describe("prompt library", () => {
     expect(descriptor.initial).toBe(1);
   });
 
+  it("builds a text model descriptor when no choices are provided", () => {
+    const library = createPromptLibrary();
+    const descriptor = library.model({
+      label: "Codex model",
+      defaultValue: "gpt-5.5"
+    });
+    expect(descriptor).toEqual({
+      name: "model",
+      message: "Codex model",
+      type: "text",
+      initial: "gpt-5.5"
+    });
+  });
+
   it("builds a reasoning descriptor with a provider-defined label", () => {
     const library = createPromptLibrary();
     const descriptor = library.reasoningEffort({

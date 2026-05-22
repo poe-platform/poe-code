@@ -31,19 +31,7 @@ export function stripModelNamespace(model: string): string {
   return id.toLowerCase();
 }
 
-export const CODEX_MODELS = [
-  "openai/gpt-5.5",
-  "openai/gpt-5.4",
-  "openai/gpt-5.3-codex",
-  "openai/gpt-5.2-codex",
-  "openai/gpt-5.2",
-  "openai/gpt-5.2-chat",
-  "openai/gpt-5.2-pro",
-  "openai/gpt-5.1",
-  "openai/gpt-5.1-codex-mini",
-  "anthropic/claude-opus-4.7"
-] as const;
-export const DEFAULT_CODEX_MODEL = CODEX_MODELS[0];
+export const DEFAULT_CODEX_MODEL = "openai/gpt-5.5";
 
 export const KIMI_MODELS = [
   "novitaai/kimi-k2.5",

@@ -41,7 +41,7 @@ export interface ResolveModelInput {
   value?: string;
   assumeDefault?: boolean;
   defaultValue: string;
-  choices: Array<{ title: string; value: string }>;
+  choices?: Array<{ title: string; value: string }>;
   label: string;
   onResolve?: (label: string, value: string) => void;
 }
@@ -195,7 +195,7 @@ export function createOptionResolvers(
     value,
     assumeDefault,
     defaultValue,
-    choices,
+    choices = [],
     label,
     onResolve
   }: ResolveModelInput): Promise<string> => {
@@ -210,6 +210,15 @@ export function createOptionResolvers(
     if (assumeDefault) {
       onResolve?.(label, defaultValue);
       return defaultValue;
+    }
+    if (!choices || choices.length === 0) {
+      return await ensure({
+        value,
+        descriptor: init.promptLibrary.model({
+          label,
+          defaultValue
+        })
+      });
     }
     const descriptor = init.promptLibrary.model({
       label,

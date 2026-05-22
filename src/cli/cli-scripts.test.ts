@@ -1627,6 +1627,39 @@ describe("option resolvers", () => {
     expect(result).toBe("Unique-Model");
     expect(prompts).not.toHaveBeenCalled();
   });
+
+  it("prompts for a text model when no choices are provided", async () => {
+    const promptLibrary = createPromptLibrary();
+    const prompts = vi.fn().mockResolvedValue({ model: "typed-model" });
+    const apiKeyStore = {
+      read: vi.fn().mockResolvedValue(null),
+      write: vi.fn().mockResolvedValue(undefined)
+    };
+    const confirmFn = vi.fn().mockResolvedValue(true);
+    const checkAuthFn = vi.fn().mockResolvedValue(true);
+    const resolvers = createOptionResolvers({
+      prompts,
+      promptLibrary,
+      apiKeyStore,
+      confirm: confirmFn,
+      checkAuth: checkAuthFn
+    });
+
+    const result = await resolvers.resolveModel({
+      value: undefined,
+      assumeDefault: false,
+      defaultValue: "Default-Model",
+      label: "Test Model"
+    });
+
+    expect(result).toBe("typed-model");
+    expect(prompts).toHaveBeenCalledWith({
+      name: "model",
+      message: "Test Model",
+      type: "text",
+      initial: "Default-Model"
+    });
+  });
 });
 
 // ---------------------------------------------------------------------------

@@ -24,7 +24,12 @@ import {
   type AgentDefinition
 } from "@poe-code/agent-defs";
 import { knownConfigScopes, loadConfiguredServices } from "../../services/config.js";
-import { resolveApiShape, type ApiShapeId, type AuthProvider } from "@poe-code/providers";
+import {
+  resolveApiShape,
+  type ApiShapeId,
+  type AuthProvider,
+  type ProviderModelInput
+} from "@poe-code/providers";
 import { OperationCancelledError, ValidationError } from "../errors.js";
 
 export interface CommandFlags {
@@ -38,6 +43,7 @@ export interface ActiveProvider {
   apiShape: ApiShapeId;
   baseUrl: string;
   credential: string;
+  modelInput?: ProviderModelInput;
   extraEnv: Record<string, string>;
 }
 
@@ -88,14 +94,28 @@ export async function buildActiveProvider(input: {
       `Provider "${input.provider.id}" does not declare a default base URL for API shape "${apiShape}". Pass --base-url or --shape-base-url ${apiShape}=<url>.`
     );
   }
+  assertHttpBaseUrl(input.provider.id, baseUrl);
 
   return {
     id: input.provider.id,
     apiShape,
     baseUrl,
     credential: input.credential,
+    modelInput: input.provider.modelInput,
     extraEnv: {}
   };
+}
+
+function assertHttpBaseUrl(providerId: string, baseUrl: string): void {
+  let parsed: URL;
+  try {
+    parsed = new URL(baseUrl);
+  } catch {
+    throw new Error(`Provider "${providerId}" base URL must be an http(s) URL.`);
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error(`Provider "${providerId}" base URL must be an http(s) URL.`);
+  }
 }
 
 export function parseProviderShapeBaseUrls(

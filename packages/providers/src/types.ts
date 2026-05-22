@@ -33,6 +33,10 @@ export interface ApiShapeBinding {
   readonly defaultBaseUrl?: string;
 }
 
+export interface ProviderModelInput {
+  readonly kind: "freeform";
+}
+
 export interface AuthProvider {
   readonly id: string;
   readonly label: string;
@@ -40,6 +44,7 @@ export interface AuthProvider {
   readonly baseUrl?: string;
   readonly baseUrlEnvVar?: string;
   readonly requiresBaseUrl?: boolean;
+  readonly modelInput?: ProviderModelInput;
   readonly auth: AuthMethod;
   readonly apiShapes?: readonly ApiShapeBinding[];
   readonly env?: Readonly<Record<string, EnvValueSource>>;

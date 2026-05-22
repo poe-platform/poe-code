@@ -9,7 +9,7 @@ export interface PromptDescriptor<TName extends string = string> {
 export interface ModelPromptInput {
   label: string;
   defaultValue: string;
-  choices: Array<{ title: string; value: string }>;
+  choices?: Array<{ title: string; value: string }>;
 }
 
 export interface ReasoningPromptInput {
@@ -24,6 +24,7 @@ export interface ServiceSelectionInput {
 
 export interface PromptLibrary {
   loginApiKey(): PromptDescriptor<"apiKey">;
+  providerBaseUrl(label: string): PromptDescriptor<"baseUrl">;
   model(input: ModelPromptInput): PromptDescriptor<"model">;
   reasoningEffort(
     input: ReasoningPromptInput
@@ -46,7 +47,21 @@ export function createPromptLibrary(): PromptLibrary {
         message: "Enter your Poe API key - get one at https://poe.com/api/keys",
         type: "password"
       }),
+    providerBaseUrl: (label: string) =>
+      describe({
+        name: "baseUrl",
+        message: `${label} base URL`,
+        type: "text"
+      }),
     model: ({ label, defaultValue, choices }) => {
+      if (!choices || choices.length === 0) {
+        return describe({
+          name: "model",
+          message: label,
+          type: "text",
+          initial: defaultValue
+        });
+      }
       const initial = Math.max(
         choices.findIndex((choice) => choice.value === defaultValue),
         0

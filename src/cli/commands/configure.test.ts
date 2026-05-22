@@ -11,6 +11,7 @@ import { claudeCodeAgent } from "@poe-code/agent-defs";
 import { createProviderStub } from "../../../tests/provider-stub.js";
 import type { AuthProvider } from "@poe-code/providers";
 import type { FileSystem } from "../../utils/file-system.js";
+import type { PromptFn } from "../types.js";
 import { PROVIDER_NAME } from "../constants.js";
 import { registerProviderCommand } from "./provider.js";
 import { parseToml } from "@poe-code/config-mutations/testing";
@@ -20,10 +21,14 @@ const homeDir = "/home/test";
 const configPath = resolveConfigPath(homeDir);
 const fixtureDir = path.join(import.meta.dirname, "__fixtures__");
 
-function createContainer(fs: FileSystem, envVars: Record<string, string | undefined> = {}) {
+function createContainer(
+  fs: FileSystem,
+  envVars: Record<string, string | undefined> = {},
+  prompts: PromptFn = vi.fn().mockResolvedValue({})
+) {
   return createCliContainer({
     fs,
-    prompts: vi.fn().mockResolvedValue({}),
+    prompts,
     env: { cwd, homeDir, variables: envVars },
     logger: () => {}
   });
@@ -308,12 +313,86 @@ describe("configure provider resolution", () => {
     );
   });
 
+  it("prompts for Cloudflare base URL when configuring interactively", async () => {
+    const gatewayRoot =
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/";
+    const model = "@cf/meta/llama-3.1-8b-instruct";
+    const prompts = vi.fn(async (descriptor) => {
+      if (descriptor.name === "apiKey") {
+        return { apiKey: "sk-cloudflare-test" };
+      }
+      if (descriptor.name === "baseUrl") {
+        return { baseUrl: gatewayRoot };
+      }
+      if (descriptor.name === "model") {
+        return { model };
+      }
+      if (descriptor.name === "reasoningEffort") {
+        return { reasoningEffort: String(descriptor.initial ?? "medium") };
+      }
+      return {};
+    });
+    const container = createContainer(fs, {}, prompts);
+
+    await executeConfigure(createTestProgram(), container, "codex", {
+      provider: "cloudflare"
+    });
+
+    expect(prompts).toHaveBeenCalledWith({
+      name: "apiKey",
+      message: "Cloudflare AI Gateway token",
+      type: "password"
+    });
+    expect(prompts).toHaveBeenCalledWith({
+      name: "baseUrl",
+      message: "Cloudflare AI Gateway base URL",
+      type: "text"
+    });
+    expect(prompts).toHaveBeenCalledWith({
+      name: "model",
+      message: "Codex model",
+      type: "text"
+    });
+    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
+    const profiles = document.profiles as Record<string, Record<string, unknown>>;
+    expect(Object.values(profiles).some((profile) => profile.model === model)).toBe(true);
+    const providers = document.model_providers as Record<string, Record<string, unknown>>;
+    expect(providers.cloudflare?.base_url).toBe(`${gatewayRoot}openai`);
+  });
+
+  it("rejects Cloudflare configure when the provided base URL is not a URL", async () => {
+    const container = createContainer(fs);
+
+    await expect(
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+        provider: "cloudflare",
+        apiKey: "sk-cloudflare-test",
+        model: "@cf/meta/llama-3.1-8b-instruct",
+        baseUrl: "not-a-url"
+      })
+    ).rejects.toThrow('Provider "cloudflare" base URL must be an http(s) URL.');
+  });
+
+  it("requires a model for Cloudflare configure with --yes", async () => {
+    const container = createContainer(fs);
+
+    await expect(
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+        provider: "cloudflare",
+        apiKey: "sk-cloudflare-test",
+        baseUrl:
+          "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
+      })
+    ).rejects.toThrow('Provider "cloudflare" requires a model for "Codex model". Pass --model.');
+  });
+
   it("configures claude-code against Cloudflare with an explicit matching base URL", async () => {
     const container = createContainer(fs);
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
+      model: "@cf/meta/llama-3.1-8b-instruct",
       baseUrl:
         "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
     });
@@ -336,6 +415,7 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
+      model: "@cf/meta/llama-3.1-8b-instruct",
       baseUrl:
         "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
     });
@@ -360,6 +440,7 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "kimi", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
+      model: "workers-ai/@cf/meta/llama-3.1-8b-instruct",
       baseUrl:
         "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
     });
@@ -383,6 +464,7 @@ describe("configure provider resolution", () => {
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
       provider: "cloudflare",
       apiKey: "sk-cloudflare-test",
+      model: "@cf/meta/llama-3.1-8b-instruct",
       baseUrl:
         "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/compat"
     });
@@ -402,7 +484,8 @@ describe("configure provider resolution", () => {
     });
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
-      provider: "cloudflare"
+      provider: "cloudflare",
+      model: "@cf/meta/llama-3.1-8b-instruct"
     });
 
     const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));

@@ -34,6 +34,10 @@ provider-level default. When a provider declares `baseUrlEnvVar`, consumers may 
 provider base URL from that environment variable before falling back to stored provider config
 or declared defaults.
 
+`requiresBaseUrl: true` marks providers, such as Cloudflare AI Gateway, that cannot be
+configured without an explicit gateway URL. `modelInput: { kind: "freeform" }` marks providers
+whose model names must be typed by the user rather than selected from an agent-owned list.
+
 ## Registry
 
 ```ts
@@ -88,4 +92,5 @@ Declared environment variables:
 ## Configuration options
 
 No runtime configuration; everything is declared per-provider via the `AuthProvider`
-manifest.
+manifest. Supported provider config fields include `baseUrl`, `baseUrlEnvVar`,
+`requiresBaseUrl`, `modelInput`, `auth`, `apiShapes`, and `env`.

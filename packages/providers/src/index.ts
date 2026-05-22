@@ -6,7 +6,8 @@ export type {
   AuthMethod,
   AuthProvider,
   EnvValueSource,
-  OAuthAuth
+  OAuthAuth,
+  ProviderModelInput
 } from "./types.js";
 export { ProviderRegistry } from "./registry.js";
 export type {

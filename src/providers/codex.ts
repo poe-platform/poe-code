@@ -13,7 +13,6 @@ import {
 } from "@poe-code/config-mutations";
 import { createProvider } from "./create-provider.js";
 import {
-  CODEX_MODELS,
   DEFAULT_CODEX_MODEL,
   DEFAULT_REASONING,
   PROVIDER_NAME,
@@ -44,6 +43,11 @@ export function deriveCodexProfileName(model: string): string {
     if (parts.includes(keyword)) return keyword;
   }
   return stripped;
+}
+
+function resolveCodexConfigModel(options: CodexConfigureContext): string {
+  const model = options.model ?? DEFAULT_CODEX_MODEL;
+  return options.provider?.modelInput?.kind === "freeform" ? model : stripModelNamespace(model);
 }
 
 export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
@@ -155,11 +159,7 @@ export const codexService = createProvider<
   configurePrompts: {
     model: {
       label: "Codex model",
-      defaultValue: DEFAULT_CODEX_MODEL,
-      choices: CODEX_MODELS.map((id) => ({
-        title: id,
-        value: id
-      }))
+      defaultValue: DEFAULT_CODEX_MODEL
     },
     reasoningEffort: {
       label: "Codex reasoning effort",
@@ -199,11 +199,11 @@ export const codexService = createProvider<
         templateId: "codex/config.toml.mustache",
         context: (ctx) => {
           const options = ctx as unknown as CodexConfigureContext;
-          const model = options.model ?? DEFAULT_CODEX_MODEL;
+          const model = resolveCodexConfigModel(options);
           return {
             apiKey: options.provider?.credential,
             baseUrl: options.provider?.baseUrl ?? "",
-            model: stripModelNamespace(model),
+            model,
             providerId: options.provider?.id ?? PROVIDER_NAME,
             reasoningEffort: options.reasoningEffort,
             profileName: deriveCodexProfileName(model)

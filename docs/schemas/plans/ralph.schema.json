@@ -35,6 +35,13 @@
       "type": "string",
       "const": "ralph"
     },
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
     "status": {
       "type": "object",
       "properties": {

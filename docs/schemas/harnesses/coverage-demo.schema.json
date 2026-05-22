@@ -5,11 +5,16 @@
   "properties": {
     "kind": {
       "type": "string",
-      "enum": ["coverage-demo"]
+      "enum": [
+        "coverage-demo"
+      ]
     },
     "version": {
       "type": "number"
     }
   },
-  "required": ["kind", "version"]
+  "required": [
+    "kind",
+    "version"
+  ]
 }

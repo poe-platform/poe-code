@@ -31,6 +31,7 @@ import {
   DEFAULT_CODEX_MODEL,
   DEFAULT_KIMI_MODEL,
   DEFAULT_GOOSE_MODEL,
+  DEFAULT_GEMINI_MODEL,
   DEFAULT_REASONING,
   KIMI_MODELS,
   DEFAULT_FRONTIER_MODEL,
@@ -1610,6 +1611,20 @@ describe("gemini-cli service", () => {
     env = createCliEnvironment({ cwd: homeDir, homeDir });
   });
 
+  it("declares Gemini wrapper capabilities and isolated environment", () => {
+    expect(geminiCliService.provider.supportsStdinPrompt).toBe(true);
+    expect(geminiCliService.provider.supportsMcpSpawn).toBe(true);
+    expect(geminiCliService.provider.isolatedEnv).toEqual({
+      agentBinary: "gemini",
+      configProbe: { kind: "isolatedFile", relativePath: "settings.json" },
+      env: {
+        GEMINI_API_KEY: { kind: "providerCredential" },
+        GOOGLE_GEMINI_BASE_URL: { kind: "providerBaseUrl" },
+        HOME: { kind: "isolatedDir" }
+      }
+    });
+  });
+
   type ConfigureOptions = Parameters<
     typeof geminiCliService.geminiCliService.configure
   >[0]["options"];
@@ -1656,15 +1671,33 @@ describe("gemini-cli service", () => {
     });
   }
 
+  function createGeminiTestContext(runCommand: ReturnType<typeof vi.fn>): ProviderContext {
+    const logger = createLoggerFactory(() => {}).create({
+      dryRun: false,
+      verbose: true,
+      scope: "test:gemini"
+    });
+    return {
+      env,
+      model: "gemini-3-pro",
+      command: { runCommand, fs: mockFsObj },
+      logger,
+      async runCheck(check) {
+        await check.run({ isDryRun: false, runCommand });
+      }
+    };
+  }
+
   it("creates Gemini settings for API key auth", async () => {
     await configureGemini();
 
-    const settings = JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"));
-    expect(settings).toEqual({
-      selectedAuthType: "gemini-api-key",
-      model: "gemini-3.1-pro",
-      mcpServers: {}
-    });
+    expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toMatchInlineSnapshot(`
+      {
+        "mcpServers": {},
+        "model": "gemini-3.1-pro",
+        "selectedAuthType": "gemini-api-key",
+      }
+    `);
   });
 
   it("merges Gemini settings and preserves user keys", async () => {
@@ -1701,6 +1734,11 @@ describe("gemini-cli service", () => {
         }
       }
     });
+    const backupPath = Object.keys(mockFsObj.files).find((filePath) =>
+      filePath.startsWith(`${settingsPath}.backup-`)
+    );
+    expect(backupPath).toBeDefined();
+    await expect(mockFsObj.readFile(backupPath!, "utf8")).resolves.toContain('"theme": "dark"');
   });
 
   it("resolves Gemini model choices from the active provider models endpoint", async () => {
@@ -1709,16 +1747,9 @@ describe("gemini-cli service", () => {
       status: 200,
       json: async () => ({
         models: [
-          {
-            name: "models/gemini-3.1-pro",
-            displayName: "Gemini 3.1 Pro",
-            supportedGenerationMethods: ["generateContent"]
-          },
-          {
-            name: "models/embedding-001",
-            displayName: "Embedding 001",
-            supportedGenerationMethods: ["embedContent"]
-          }
+          { name: "models/gemini-2.5-pro" },
+          { name: "models/gemini-2.5-flash" },
+          { name: "models/gemini-3-pro" }
         ]
       })
     })) satisfies HttpClient;
@@ -1729,28 +1760,94 @@ describe("gemini-cli service", () => {
       throw new Error("Expected Gemini model choices resolver.");
     }
 
-    await expect(
-      choices({
-        httpClient,
-        provider: {
-          id: "cloudflare",
-          apiShape: "google-generations",
-          baseUrl: "https://gateway.example.com/google-ai-studio",
-          credential: "cf-token",
-          extraEnv: {}
-        },
-        env
-      })
-    ).resolves.toEqual([{ title: "Gemini 3.1 Pro", value: "gemini-3.1-pro" }]);
+    const resolvedChoices = await choices({
+      httpClient,
+      provider: {
+        id: "cloudflare",
+        apiShape: "google-generations",
+        baseUrl: "https://gateway.example.com/google-ai-studio",
+        credential: "cf-token",
+        extraEnv: {}
+      },
+      env
+    });
+    expect(resolvedChoices).toEqual([
+      { title: "gemini-2.5-pro", value: "gemini-2.5-pro" },
+      { title: "gemini-2.5-flash", value: "gemini-2.5-flash" },
+      { title: "gemini-3-pro", value: "gemini-3-pro" }
+    ]);
     expect(httpClient).toHaveBeenCalledWith(
       "https://gateway.example.com/google-ai-studio/v1beta/models",
       expect.objectContaining({
         headers: expect.objectContaining({
-          Authorization: "Bearer cf-token",
-          "x-goog-api-key": "cf-token"
+          Authorization: "Bearer cf-token"
         })
       })
     );
+    await configureGemini({ model: resolvedChoices[2]!.value });
+    expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toMatchInlineSnapshot(`
+      {
+        "mcpServers": {},
+        "model": "gemini-3-pro",
+        "selectedAuthType": "gemini-api-key",
+      }
+    `);
+  });
+
+  it("uses fallback Gemini model choices when model discovery fails", async () => {
+    const httpClient = vi
+      .fn()
+      .mockRejectedValue(new Error("gateway unavailable")) satisfies HttpClient;
+    const choices = geminiCliService.geminiCliService.configurePrompts?.model?.choices;
+    expect(typeof choices).toBe("function");
+    if (typeof choices !== "function") throw new Error("Expected Gemini model choices resolver.");
+
+    await expect(
+      choices({ httpClient, provider: buildConfigureOptions().provider, env })
+    ).resolves.toEqual([
+      { title: "gemini-2.5-pro", value: "gemini-2.5-pro" },
+      { title: "gemini-2.5-flash", value: "gemini-2.5-flash" },
+      { title: "gemini-3-pro", value: "gemini-3-pro" },
+      { title: "gemini-3-flash", value: "gemini-3-flash" }
+    ]);
+    await expect(configureGemini({ model: DEFAULT_GEMINI_MODEL })).resolves.toBeUndefined();
+  });
+
+  it("uses fallback Gemini model choices when discovery returns no usable models", async () => {
+    const httpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ models: [{ displayName: "Missing name" }] })
+    })) satisfies HttpClient;
+    const choices = geminiCliService.geminiCliService.configurePrompts?.model?.choices;
+    expect(typeof choices).toBe("function");
+    if (typeof choices !== "function") throw new Error("Expected Gemini model choices resolver.");
+
+    await expect(
+      choices({ httpClient, provider: buildConfigureOptions().provider, env })
+    ).resolves.toEqual([
+      { title: "gemini-2.5-pro", value: "gemini-2.5-pro" },
+      { title: "gemini-2.5-flash", value: "gemini-2.5-flash" },
+      { title: "gemini-3-pro", value: "gemini-3-pro" },
+      { title: "gemini-3-flash", value: "gemini-3-flash" }
+    ]);
+  });
+
+  it("tests Gemini availability and health with sandbox disabled", async () => {
+    const runCommand = vi
+      .fn()
+      .mockResolvedValueOnce({ stdout: "/usr/local/bin/gemini\n", stderr: "", exitCode: 0 })
+      .mockResolvedValueOnce({ stdout: "GEMINI_OK\n", stderr: "", exitCode: 0 });
+    await geminiCliService.geminiCliService.test?.(createGeminiTestContext(runCommand));
+    expect(runCommand).toHaveBeenNthCalledWith(2, "gemini", [
+      "-p",
+      "say GEMINI_OK",
+      "--sandbox=false",
+      "--output-format",
+      "text",
+      "--model",
+      "gemini-3-pro"
+    ]);
   });
 
   it("unconfigures only Gemini-managed settings", async () => {
@@ -1787,6 +1884,31 @@ describe("gemini-cli service", () => {
         }
       }
     });
+    await expect(unconfigureGemini()).resolves.toBe(false);
+  });
+
+  it("leaves unrelated Gemini user settings untouched when unconfiguring", async () => {
+    const userSettings = {
+      theme: "dark",
+      selectedAuthType: "oauth-personal",
+      model: "user-selected-model",
+      mcpServers: {}
+    };
+    await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
+    await mockFsObj.writeFile(settingsPath, JSON.stringify(userSettings, null, 2));
+
+    await expect(unconfigureGemini()).resolves.toBe(false);
+    await expect(mockFsObj.readFile(settingsPath, "utf8")).resolves.toBe(
+      JSON.stringify(userSettings, null, 2)
+    );
+  });
+
+  it("removes the generated settings document when no user keys remain", async () => {
+    await configureGemini();
+
+    await expect(unconfigureGemini()).resolves.toBe(true);
+    await expect(mockFsObj.readFile(settingsPath, "utf8")).rejects.toThrow(/ENOENT/);
+    await expect(unconfigureGemini()).resolves.toBe(false);
   });
 });
 

@@ -12,13 +12,9 @@ export type {
   CommandRunnerResult
 } from "@poe-code/agent-spawn";
 
-export function formatCommandRunnerResult(
-  result: CommandRunnerResult
-): string {
-  const stdout =
-    result.stdout.length > 0 ? result.stdout : "<empty>";
-  const stderr =
-    result.stderr.length > 0 ? result.stderr : "<empty>";
+export function formatCommandRunnerResult(result: CommandRunnerResult): string {
+  const stdout = result.stdout.length > 0 ? result.stdout : "<empty>";
+  const stderr = result.stderr.length > 0 ? result.stderr : "<empty>";
   return `stdout:\n${stdout}\nstderr:\n${stderr}`;
 }
 
@@ -38,8 +34,7 @@ export function describeCommandExpectation(
   return `${renderCommandLine(command, args)} (expecting "${expectedOutput}")`;
 }
 
-export interface CommandExpectationCheckOptions
-  extends RunAndMatchOutputOptions {
+export interface CommandExpectationCheckOptions extends RunAndMatchOutputOptions {
   id: string;
 }
 
@@ -48,11 +43,7 @@ export function createCommandExpectationCheck(
 ): CommandCheck {
   return {
     id: options.id,
-    description: describeCommandExpectation(
-      options.command,
-      options.args,
-      options.expectedOutput
-    ),
+    description: describeCommandExpectation(options.command, options.args, options.expectedOutput),
     async run(context) {
       await runAndMatchOutput(context, options);
     }
@@ -66,9 +57,7 @@ export async function runAndMatchOutput(
   const rendered = renderCommandLine(options.command, options.args);
   if (options.skipOnDryRun !== false && context.isDryRun) {
     if (context.logDryRun) {
-      context.logDryRun(
-        `Dry run: ${rendered} (expecting "${options.expectedOutput}")`
-      );
+      context.logDryRun(`Dry run: ${rendered} (expecting "${options.expectedOutput}")`);
     }
     return;
   }
@@ -140,11 +129,7 @@ function quoteIfNeeded(value: string): string {
 }
 
 function needsQuoting(value: string): boolean {
-  return (
-    value.includes(" ") ||
-    value.includes("\t") ||
-    value.includes("\n")
-  );
+  return value.includes(" ") || value.includes("\t") || value.includes("\n");
 }
 
 export interface CommandCheckContext {
@@ -161,14 +146,23 @@ export interface CommandCheck {
 
 export function createSpawnHealthCheck(
   agentId: string,
-  options: { model?: string; expectedOutput: string }
+  options: {
+    model?: string;
+    expectedOutput: string;
+    invocation?: { command: string; args: string[] };
+  }
 ): CommandCheck {
-  const prompt = `Output exactly: ${options.expectedOutput}`;
-  const { binaryName, args, env: modeEnv } = buildSpawnArgs(agentId, {
-    prompt,
-    model: options.model,
-    mode: "yolo"
-  });
+  const {
+    binaryName,
+    args,
+    env: modeEnv
+  } = options.invocation
+    ? { binaryName: options.invocation.command, args: options.invocation.args, env: undefined }
+    : buildSpawnArgs(agentId, {
+        prompt: `Output exactly: ${options.expectedOutput}`,
+        model: options.model,
+        mode: "yolo"
+      });
   return {
     id: `${agentId}-cli-health`,
     description: `spawn ${agentId} (expecting "${options.expectedOutput}")`,

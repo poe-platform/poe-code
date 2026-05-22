@@ -222,12 +222,7 @@ describe("cli-settings-merge", () => {
       const required = { apiKeyHelper: "echo $KEY" };
       const result = buildArgsWithMergedSettings(args, required);
 
-      expect(result).toEqual([
-        "-p",
-        "query",
-        "--settings",
-        '{"apiKeyHelper":"echo $KEY"}'
-      ]);
+      expect(result).toEqual(["-p", "query", "--settings", '{"apiKeyHelper":"echo $KEY"}']);
     });
 
     it("merges with existing --settings JSON", () => {
@@ -250,12 +245,7 @@ describe("cli-settings-merge", () => {
 
       // File path is removed, only our settings applied
       // (file reading would need to be handled separately)
-      expect(result).toEqual([
-        "-p",
-        "query",
-        "--settings",
-        '{"apiKeyHelper":"echo $KEY"}'
-      ]);
+      expect(result).toEqual(["-p", "query", "--settings", '{"apiKeyHelper":"echo $KEY"}']);
     });
 
     it("preserves other args order", () => {
@@ -275,12 +265,7 @@ describe("cli-settings-merge", () => {
     });
 
     it("handles complex merge with env", () => {
-      const args = [
-        "--settings",
-        '{"model":"opus","env":{"MY_VAR":"foo"}}',
-        "-p",
-        "query"
-      ];
+      const args = ["--settings", '{"model":"opus","env":{"MY_VAR":"foo"}}', "-p", "query"];
       const required = {
         apiKeyHelper: "echo $POE_API_KEY",
         env: { ANTHROPIC_BASE_URL: "https://api.poe.com" }
@@ -302,7 +287,9 @@ describe("cli-settings-merge", () => {
 
 // ── command-checks ────────────────────────────────────────────────────────────
 
-function createRunner(responses: Record<string, { stdout?: string; stderr?: string; exitCode: number }>) {
+function createRunner(
+  responses: Record<string, { stdout?: string; stderr?: string; exitCode: number }>
+) {
   return vi.fn(async (command: string, args: string[]) => {
     const key = [command, ...args].join(" ");
     const response = responses[key];
@@ -346,10 +333,11 @@ describe("createBinaryExistsCheck", () => {
     const runCommand = createRunner({
       "which demo": { stdout: "", exitCode: 1 },
       "where demo": { stdout: "", exitCode: 0 },
-      'sh -c test -f "/usr/local/bin/demo" || test -f "/usr/bin/demo" || test -f "$HOME/.local/bin/demo" || test -f "$HOME/.claude/local/bin/demo"': {
-        stdout: "",
-        exitCode: 1
-      }
+      'sh -c test -f "/usr/local/bin/demo" || test -f "/usr/bin/demo" || test -f "$HOME/.local/bin/demo" || test -f "$HOME/.claude/local/bin/demo"':
+        {
+          stdout: "",
+          exitCode: 1
+        }
     });
 
     const check = createBinaryExistsCheck("demo", "demo-id", "demo desc");
@@ -361,6 +349,22 @@ describe("createBinaryExistsCheck", () => {
 });
 
 describe("createSpawnHealthCheck", () => {
+  it("runs an explicit CLI health invocation when provided", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: "GEMINI_OK\n",
+      stderr: "",
+      exitCode: 0
+    });
+
+    const check = createSpawnHealthCheck("gemini-cli", {
+      expectedOutput: "GEMINI_OK",
+      invocation: { command: "gemini", args: ["-p", "say GEMINI_OK", "--sandbox=false"] }
+    });
+    await check.run({ isDryRun: false, runCommand });
+
+    expect(runCommand).toHaveBeenCalledWith("gemini", ["-p", "say GEMINI_OK", "--sandbox=false"]);
+  });
+
   it("runs the agent via runCommand with built spawn args", async () => {
     const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"DEMO_OK"}\n',
@@ -376,10 +380,7 @@ describe("createSpawnHealthCheck", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "claude",
-      expect.arrayContaining([
-        "-p", "Output exactly: DEMO_OK",
-        "--model", "test-model"
-      ])
+      expect.arrayContaining(["-p", "Output exactly: DEMO_OK", "--model", "test-model"])
     );
   });
 
@@ -393,9 +394,7 @@ describe("createSpawnHealthCheck", () => {
     const check = createSpawnHealthCheck("claude-code", {
       expectedOutput: "DEMO_OK"
     });
-    await expect(
-      check.run({ isDryRun: false, runCommand })
-    ).resolves.toBeUndefined();
+    await expect(check.run({ isDryRun: false, runCommand })).resolves.toBeUndefined();
   });
 
   it("throws when exit code is non-zero", async () => {
@@ -408,9 +407,7 @@ describe("createSpawnHealthCheck", () => {
     const check = createSpawnHealthCheck("claude-code", {
       expectedOutput: "DEMO_OK"
     });
-    await expect(
-      check.run({ isDryRun: false, runCommand })
-    ).rejects.toThrow(/exit code 1/);
+    await expect(check.run({ isDryRun: false, runCommand })).rejects.toThrow(/exit code 1/);
   });
 
   it("throws when expected output not found in stdout", async () => {
@@ -423,9 +420,7 @@ describe("createSpawnHealthCheck", () => {
     const check = createSpawnHealthCheck("claude-code", {
       expectedOutput: "DEMO_OK"
     });
-    await expect(
-      check.run({ isDryRun: false, runCommand })
-    ).rejects.toThrow(/DEMO_OK/);
+    await expect(check.run({ isDryRun: false, runCommand })).rejects.toThrow(/DEMO_OK/);
   });
 
   it("skips runCommand and logs dry run message when isDryRun is true", async () => {
@@ -438,9 +433,7 @@ describe("createSpawnHealthCheck", () => {
     await check.run({ isDryRun: true, runCommand, logDryRun });
 
     expect(runCommand).not.toHaveBeenCalled();
-    expect(logDryRun).toHaveBeenCalledWith(
-      expect.stringContaining("DEMO_OK")
-    );
+    expect(logDryRun).toHaveBeenCalledWith(expect.stringContaining("DEMO_OK"));
   });
 });
 
@@ -518,7 +511,7 @@ describe("dry run diff redaction", () => {
     const diff = renderUnifiedDiff(
       resolveConfigPath("/home/test"),
       null,
-      "{\n  \"apiKey\": \"sk-test\"\n}\n"
+      '{\n  "apiKey": "sk-test"\n}\n'
     );
     const output = diff.join("\n");
     expect(output).not.toContain("sk-test");
@@ -529,7 +522,7 @@ describe("dry run diff redaction", () => {
     const diff = renderUnifiedDiff(
       "/home/test/.claude/settings.json",
       null,
-      "{\n  \"apiKeyHelper\": \"echo sk-test\"\n}\n"
+      '{\n  "apiKeyHelper": "echo sk-test"\n}\n'
     );
     const output = diff.join("\n");
     expect(output).not.toContain("sk-test");
@@ -540,7 +533,7 @@ describe("dry run diff redaction", () => {
     const diff = renderUnifiedDiff(
       "/home/test/.claude/settings.json",
       null,
-      "{\n  \"env\": {\n    \"ANTHROPIC_API_KEY\": \"sk-test\"\n  }\n}\n"
+      '{\n  "env": {\n    "ANTHROPIC_API_KEY": "sk-test"\n  }\n}\n'
     );
     const output = diff.join("\n");
     expect(output).not.toContain("sk-test");
@@ -551,7 +544,7 @@ describe("dry run diff redaction", () => {
     const diff = renderUnifiedDiff(
       "/home/test/.claude/settings.json",
       null,
-      "{\n  \"env\": {\n    \"ANTHROPIC_CUSTOM_HEADERS\": \"Authorization: Bearer sk-test\"\n  }\n}\n"
+      '{\n  "env": {\n    "ANTHROPIC_CUSTOM_HEADERS": "Authorization: Bearer sk-test"\n  }\n}\n'
     );
     const output = diff.join("\n");
     expect(output).not.toContain("sk-test");
@@ -562,16 +555,16 @@ describe("dry run diff redaction", () => {
     const authDiff = renderUnifiedDiff(
       "/home/test/.config/opencode/auth.json",
       null,
-      "{\n  \"type\": \"api\",\n  \"key\": \"sk-test\"\n}\n"
+      '{\n  "type": "api",\n  "key": "sk-test"\n}\n'
     );
     const authOutput = authDiff.join("\n");
     expect(authOutput).not.toContain("sk-test");
-    expect(authOutput).toContain("\"key\": \"<redacted>\"");
+    expect(authOutput).toContain('"key": "<redacted>"');
 
     const tomlDiff = renderUnifiedDiff(
       "/home/test/.codex/config.toml",
       null,
-      "experimental_bearer_token = \"sk-test\"\n"
+      'experimental_bearer_token = "sk-test"\n'
     );
     const tomlOutput = tomlDiff.join("\n");
     expect(tomlOutput).not.toContain("sk-test");
@@ -588,9 +581,7 @@ describe("formatDryRunOperations symlink and rename", () => {
   });
 
   it("formats rename as mv", () => {
-    const lines = formatDryRunOperations([
-      { type: "rename", from: "CLAUDE.md", to: "AGENTS.md" }
-    ]);
+    const lines = formatDryRunOperations([{ type: "rename", from: "CLAUDE.md", to: "AGENTS.md" }]);
     expect(lines.join("\n")).toContain("mv CLAUDE.md AGENTS.md");
   });
 });
@@ -675,7 +666,14 @@ describe("detectExecutionContext", () => {
 
       expect(result.mode).toBe("development");
       expect(result.command.command).toBe("npm");
-      expect(result.command.args).toEqual(["--silent", "--prefix", "/workspace/poe-code", "run", "dev", "--"]);
+      expect(result.command.args).toEqual([
+        "--silent",
+        "--prefix",
+        "/workspace/poe-code",
+        "run",
+        "dev",
+        "--"
+      ]);
     });
 
     it("detects npm run dev via lifecycle event", () => {
@@ -775,10 +773,7 @@ describe("detectExecutionContext", () => {
 
 describe("toMcpServerCommand", () => {
   it("appends subcommand to args", () => {
-    const result = toMcpServerCommand(
-      { command: "npx", args: ["--yes", "poe-code"] },
-      "mcp"
-    );
+    const result = toMcpServerCommand({ command: "npx", args: ["--yes", "poe-code"] }, "mcp");
 
     expect(result).toEqual({
       command: "npx",
@@ -787,10 +782,7 @@ describe("toMcpServerCommand", () => {
   });
 
   it("works with global command", () => {
-    const result = toMcpServerCommand(
-      { command: "poe", args: [] },
-      "mcp"
-    );
+    const result = toMcpServerCommand({ command: "poe", args: [] }, "mcp");
 
     expect(result).toEqual({
       command: "poe",
@@ -801,10 +793,7 @@ describe("toMcpServerCommand", () => {
 
 describe("toOpenCodeMcpCommand", () => {
   it("returns command as array for opencode format", () => {
-    const result = toOpenCodeMcpCommand(
-      { command: "npx", args: ["-y", "poe-code"] },
-      "mcp"
-    );
+    const result = toOpenCodeMcpCommand({ command: "npx", args: ["-y", "poe-code"] }, "mcp");
 
     expect(result).toEqual(["npx", "-y", "poe-code", "mcp"]);
   });
@@ -815,16 +804,24 @@ describe("toOpenCodeMcpCommand", () => {
       "mcp"
     );
 
-    expect(result).toEqual(["npm", "--silent", "--prefix", "/workspace/poe-code", "run", "dev", "--", "mcp"]);
+    expect(result).toEqual([
+      "npm",
+      "--silent",
+      "--prefix",
+      "/workspace/poe-code",
+      "run",
+      "dev",
+      "--",
+      "mcp"
+    ]);
   });
 });
 
 describe("formatCliHelpCommand", () => {
   it("formats global help command as poe invocation", () => {
-    const help = formatCliHelpCommand(
-      { mode: "global", command: { command: "poe", args: [] } },
-      ["--help"]
-    );
+    const help = formatCliHelpCommand({ mode: "global", command: { command: "poe", args: [] } }, [
+      "--help"
+    ]);
     expect(help).toBe("poe --help");
   });
 
@@ -847,9 +844,9 @@ describe("formatCliHelpCommand", () => {
 
 describe("formatCliUsageCommand", () => {
   it("formats global usage as poe", () => {
-    expect(
-      formatCliUsageCommand({ mode: "global", command: { command: "poe", args: [] } })
-    ).toBe("poe");
+    expect(formatCliUsageCommand({ mode: "global", command: { command: "poe", args: [] } })).toBe(
+      "poe"
+    );
   });
 
   it("formats global usage as poe-code when invoked as poe-code", () => {

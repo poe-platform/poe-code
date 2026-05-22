@@ -109,9 +109,9 @@ tasks:
       - unconfigure removes only this provider's keys; pre-existing user keys preserved.
       - All file I/O via memfs (CLAUDE.md mandate).
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: gemini-cli-acp-spawn
     title: Wire ACP spawn for gemini-cli

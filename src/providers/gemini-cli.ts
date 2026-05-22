@@ -1,4 +1,4 @@
-import { createBinaryExistsCheck, createCommandExpectationCheck } from "../utils/command-checks.js";
+import { createBinaryExistsCheck, createSpawnHealthCheck } from "../utils/command-checks.js";
 import {
   configMutation,
   fileMutation,
@@ -6,6 +6,7 @@ import {
   type ConfigObject
 } from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
+import { DEFAULT_GEMINI_MODEL } from "../cli/constants.js";
 import { createProvider } from "./create-provider.js";
 import type { ModelConfigureOptions } from "./spawn-options.js";
 import { geminiCliAgent } from "@poe-code/agent-defs";
@@ -13,8 +14,13 @@ import type { CliEnvironment } from "../cli/environment.js";
 import type { ActiveProvider } from "../cli/commands/shared.js";
 import type { ModelChoice } from "../cli/prompts.js";
 
-const DEFAULT_GEMINI_MODEL = "gemini-2.5-pro";
 const GOOGLE_MODELS_PATH = "v1beta/models";
+const FALLBACK_GEMINI_MODELS = [
+  "gemini-2.5-pro",
+  "gemini-2.5-flash",
+  "gemini-3-pro",
+  "gemini-3-flash"
+] as const;
 
 type GeminiConfigureContext = ModelConfigureOptions & {
   env: CliEnvironment;
@@ -42,22 +48,39 @@ export const GEMINI_CLI_INSTALL_DEFINITION: ServiceInstallDefinition = {
 export const geminiCliService = createProvider<GeminiConfigureContext, GeminiUnconfigureContext>({
   ...geminiCliAgent,
   supportsStdinPrompt: true,
+  supportsMcpSpawn: true,
   configurePrompts: {
     model: {
       label: "Gemini model",
       defaultValue: DEFAULT_GEMINI_MODEL,
       choices: async ({ httpClient, provider }) => {
-        const response = await httpClient(buildGoogleModelsUrl(provider.baseUrl), {
-          headers: {
-            Authorization: `Bearer ${provider.credential}`,
-            "x-goog-api-key": provider.credential
+        try {
+          const response = await httpClient(buildGoogleModelsUrl(provider.baseUrl), {
+            headers: {
+              Authorization: `Bearer ${provider.credential}`
+            }
+          });
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
           }
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}`);
+          const choices = parseGoogleModelChoices(await response.json());
+          if (choices.length === 0) {
+            throw new Error("model list response did not include usable models");
+          }
+          return choices;
+        } catch {
+          return FALLBACK_GEMINI_MODELS.map((value) => ({ title: value, value }));
         }
-        return parseGoogleModelChoices(await response.json());
       }
+    }
+  },
+  isolatedEnv: {
+    agentBinary: "gemini",
+    configProbe: { kind: "isolatedFile", relativePath: "settings.json" },
+    env: {
+      GEMINI_API_KEY: { kind: "providerCredential" },
+      GOOGLE_GEMINI_BASE_URL: { kind: "providerBaseUrl" },
+      HOME: { kind: "isolatedDir" }
     }
   },
   test: async (context) => {
@@ -65,19 +88,20 @@ export const geminiCliService = createProvider<GeminiConfigureContext, GeminiUnc
       createBinaryExistsCheck("gemini", "gemini-cli-binary", "Gemini CLI binary must exist")
     );
     await context.runCheck(
-      createCommandExpectationCheck({
-        id: "gemini-cli-health",
-        command: "gemini",
-        args: [
-          "-p",
-          "say GEMINI_OK",
-          "--sandbox=false",
-          "--output-format",
-          "text",
-          "--model",
-          context.model ?? DEFAULT_GEMINI_MODEL
-        ],
-        expectedOutput: "GEMINI_OK"
+      createSpawnHealthCheck("gemini-cli", {
+        expectedOutput: "GEMINI_OK",
+        invocation: {
+          command: "gemini",
+          args: [
+            "-p",
+            "say GEMINI_OK",
+            "--sandbox=false",
+            "--output-format",
+            "text",
+            "--model",
+            context.model ?? DEFAULT_GEMINI_MODEL
+          ]
+        }
       })
     );
   },
@@ -105,23 +129,19 @@ export const geminiCliService = createProvider<GeminiConfigureContext, GeminiUnc
             return { changed: false, content: document };
           }
 
-          let changed = false;
           const content = document as ConfigObject;
-          if ("selectedAuthType" in content) {
-            delete content["selectedAuthType"];
-            changed = true;
+          if (content.selectedAuthType !== "gemini-api-key") {
+            return { changed: false, content };
           }
-          if ("model" in content) {
-            delete content["model"];
-            changed = true;
-          }
+
+          delete content.selectedAuthType;
+          delete content.model;
           if (isConfigObject(content.mcpServers) && Object.keys(content.mcpServers).length === 0) {
             delete content.mcpServers;
-            changed = true;
           }
 
           return {
-            changed,
+            changed: true,
             content: Object.keys(content).length === 0 ? null : content
           };
         }
@@ -151,23 +171,13 @@ function parseGoogleModelChoices(payload: unknown): ReadonlyArray<ModelChoice> {
     if (!isRecord(model) || typeof model.name !== "string") {
       continue;
     }
-    if (!supportsGenerateContent(model.supportedGenerationMethods)) {
-      continue;
-    }
     const value = stripModelsPrefix(model.name);
     choices.push({
-      title:
-        typeof model.displayName === "string" && model.displayName.length > 0
-          ? model.displayName
-          : value,
+      title: value,
       value
     });
   }
   return choices;
-}
-
-function supportsGenerateContent(value: unknown): boolean {
-  return Array.isArray(value) && value.includes("generateContent");
 }
 
 function stripModelsPrefix(value: string): string {

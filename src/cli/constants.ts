@@ -36,12 +36,14 @@ export const DEFAULT_CODEX_MODEL = "openai/gpt-5.5";
 export const KIMI_MODELS = [
   "novitaai/kimi-k2.5",
   "novitaai/kimi-k2-thinking",
-  "novitaai/kimi-k2.5-fw",
+  "novitaai/kimi-k2.5-fw"
 ] as const;
 export const DEFAULT_KIMI_MODEL = KIMI_MODELS[0];
 
 export const GOOSE_MODELS = FRONTIER_MODELS;
 export const DEFAULT_GOOSE_MODEL = DEFAULT_FRONTIER_MODEL;
+
+export const DEFAULT_GEMINI_MODEL = "gemini-2.5-pro";
 
 export const DEFAULT_REASONING = "medium";
 export const PROVIDER_NAME = "poe";

@@ -41,6 +41,16 @@ describe("resolveLoopAgent", () => {
     expect(selectCalls).toBe(0);
   });
 
+  it("resolves the gemini alias for loop execution", async () => {
+    const result = await resolveLoopAgent(
+      createInput({
+        providedAgent: "GeMiNi"
+      })
+    );
+
+    expect(result).toEqual({ agent: "gemini-cli" });
+  });
+
   it("uses a string frontmatter agent when CLI agent is absent", async () => {
     let selectCalls = 0;
     const select: Parameters<typeof resolveLoopAgent>[0]["select"] = async () => {
@@ -156,7 +166,7 @@ describe("resolveLoopAgent", () => {
         })
       )
     ).rejects.toThrow(
-      'Unsupported agent "claude-desktop". Supported agents: claude-code, codex, opencode, kimi, goose, poe-agent'
+      'Unsupported agent "claude-desktop". Supported agents: claude-code, codex, gemini-cli, opencode, kimi, goose, poe-agent'
     );
   });
 
@@ -184,7 +194,7 @@ describe("resolveLoopAgent", () => {
         })
       )
     ).rejects.toThrow(
-      'Unsupported agent "not-an-agent". Supported agents: claude-code, codex, opencode, kimi, goose, poe-agent'
+      'Unsupported agent "not-an-agent". Supported agents: claude-code, codex, gemini-cli, opencode, kimi, goose, poe-agent'
     );
   });
 });

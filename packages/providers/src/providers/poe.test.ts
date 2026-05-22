@@ -15,10 +15,15 @@ describe("poeProvider", () => {
     expect(poeProvider.auth.kind).toBe("api-key");
   });
 
-  it("intersects with every provider-backed agent in @poe-code/agent-defs", () => {
-    const providerBackedAgents = allAgents.filter((agent) => agent.apiShapes);
-    expect(providerBackedAgents.length).toBeGreaterThan(0);
-    for (const agent of providerBackedAgents) {
+  it("intersects with every Poe-compatible provider-backed agent in @poe-code/agent-defs", () => {
+    const poeCompatibleAgents = allAgents.filter(
+      (agent) =>
+        agent.apiShapes?.some((shapeId) =>
+          poeProvider.apiShapes?.some((providerShape) => providerShape.id === shapeId)
+        ) ?? false
+    );
+    expect(poeCompatibleAgents.length).toBeGreaterThan(0);
+    for (const agent of poeCompatibleAgents) {
       expect(resolveApiShape(poeProvider, agent)).toBeDefined();
     }
   });

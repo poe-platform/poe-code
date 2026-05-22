@@ -4,6 +4,7 @@ export {
   claudeCodeAgent,
   claudeDesktopAgent,
   codexAgent,
+  geminiCliAgent,
   openCodeAgent,
   kimiAgent,
   gooseAgent,

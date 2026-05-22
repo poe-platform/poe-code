@@ -20,6 +20,7 @@ import * as claudeService from "./claude-code.js";
 import * as codexService from "./codex.js";
 import * as kimiService from "./kimi.js";
 import * as opencodeService from "./opencode.js";
+import * as geminiCliService from "./gemini-cli.js";
 import * as gooseService from "./goose.js";
 import { provider as poeAgentProvider, spawnPoeAgentWithAcp } from "./poe-agent.js";
 import { AcpClient } from "@poe-code/poe-acp-client";
@@ -1592,6 +1593,147 @@ describe("opencode service", () => {
     const { context } = createProviderTestContext(runCommand);
 
     await expect(opencodeService.openCodeService.test?.(context)).rejects.toThrow(/OPEN_CODE_OK/);
+  });
+});
+
+describe("gemini-cli service", () => {
+  let mockFsObj: FileSystem;
+  const homeDir = "/home/user";
+  const settingsPath = path.join(homeDir, ".gemini", "settings.json");
+  let env = createCliEnvironment({ cwd: homeDir, homeDir });
+
+  beforeEach(() => {
+    mockFsObj = createMockFs({}, homeDir);
+    env = createCliEnvironment({ cwd: homeDir, homeDir });
+  });
+
+  type ConfigureOptions = Parameters<
+    typeof geminiCliService.geminiCliService.configure
+  >[0]["options"];
+
+  type UnconfigureOptions = Parameters<
+    typeof geminiCliService.geminiCliService.unconfigure
+  >[0]["options"];
+
+  const buildConfigureOptions = (overrides: Partial<ConfigureOptions> = {}): ConfigureOptions => ({
+    env,
+    provider: {
+      id: "cloudflare",
+      apiShape: "google-generations",
+      baseUrl: "https://gateway.example.com/google-ai-studio",
+      credential: "sk-test",
+      extraEnv: {}
+    },
+    model: "gemini-3.1-pro",
+    ...overrides
+  });
+
+  const buildUnconfigureOptions = (
+    overrides: Partial<UnconfigureOptions> = {}
+  ): UnconfigureOptions => ({
+    env,
+    ...overrides
+  });
+
+  async function configureGemini(overrides: Partial<ConfigureOptions> = {}): Promise<void> {
+    await geminiCliService.geminiCliService.configure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: buildConfigureOptions(overrides)
+    });
+  }
+
+  async function unconfigureGemini(overrides: Partial<UnconfigureOptions> = {}): Promise<boolean> {
+    return geminiCliService.geminiCliService.unconfigure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: buildUnconfigureOptions(overrides)
+    });
+  }
+
+  it("creates Gemini settings for API key auth", async () => {
+    await configureGemini();
+
+    const settings = JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"));
+    expect(settings).toEqual({
+      selectedAuthType: "gemini-api-key",
+      model: "gemini-3.1-pro",
+      mcpServers: {}
+    });
+  });
+
+  it("merges Gemini settings and preserves user keys", async () => {
+    await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
+    await mockFsObj.writeFile(
+      settingsPath,
+      JSON.stringify(
+        {
+          theme: "dark",
+          selectedAuthType: "oauth-personal",
+          mcpServers: {
+            local: {
+              command: "node",
+              args: ["server.js"]
+            }
+          }
+        },
+        null,
+        2
+      )
+    );
+
+    await configureGemini({ model: "gemini-2.5-flash" });
+
+    const settings = JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"));
+    expect(settings).toEqual({
+      theme: "dark",
+      selectedAuthType: "gemini-api-key",
+      model: "gemini-2.5-flash",
+      mcpServers: {
+        local: {
+          command: "node",
+          args: ["server.js"]
+        }
+      }
+    });
+  });
+
+  it("unconfigures only Gemini-managed settings", async () => {
+    await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
+    await mockFsObj.writeFile(
+      settingsPath,
+      JSON.stringify(
+        {
+          theme: "dark",
+          selectedAuthType: "gemini-api-key",
+          model: "gemini-3.1-pro",
+          mcpServers: {
+            local: {
+              command: "node",
+              args: ["server.js"]
+            }
+          }
+        },
+        null,
+        2
+      )
+    );
+
+    const removed = await unconfigureGemini();
+
+    const settings = JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"));
+    expect(removed).toBe(true);
+    expect(settings).toEqual({
+      theme: "dark",
+      mcpServers: {
+        local: {
+          command: "node",
+          args: ["server.js"]
+        }
+      }
+    });
   });
 });
 

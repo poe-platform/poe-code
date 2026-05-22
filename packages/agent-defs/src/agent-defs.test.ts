@@ -3,6 +3,7 @@ import {
   claudeCodeAgent,
   claudeDesktopAgent,
   codexAgent,
+  geminiCliAgent,
   openCodeAgent,
   kimiAgent,
   gooseAgent,
@@ -18,18 +19,17 @@ const expectedAgents: AgentDefinition[] = [
   claudeCodeAgent,
   claudeDesktopAgent,
   codexAgent,
+  geminiCliAgent,
   openCodeAgent,
   kimiAgent,
   gooseAgent,
   poeAgentAgent
 ];
 
-const expectedProviderAgentApiShapes = new Map<
-  string,
-  NonNullable<AgentDefinition["apiShapes"]>
->([
+const expectedProviderAgentApiShapes = new Map<string, NonNullable<AgentDefinition["apiShapes"]>>([
   ["claude-code", ["anthropic-messages"]],
   ["codex", ["openai-responses"]],
+  ["gemini-cli", ["google-generations"]],
   ["kimi", ["openai-chat-completions"]],
   ["opencode", ["openai-chat-completions"]],
   ["goose", ["openai-chat-completions"]],
@@ -43,6 +43,7 @@ describe("agent-defs package", () => {
     expect(claudeCodeAgent).toBeDefined();
     expect(claudeDesktopAgent).toBeDefined();
     expect(codexAgent).toBeDefined();
+    expect(geminiCliAgent).toBeDefined();
     expect(openCodeAgent).toBeDefined();
     expect(kimiAgent).toBeDefined();
     expect(gooseAgent).toBeDefined();
@@ -94,9 +95,7 @@ describe("agent-defs package", () => {
         const key = normalizeKey(value);
         const existing = keys.get(key);
         if (existing && existing !== agent.id) {
-          throw new Error(
-            `Duplicate lookup key: ${value} conflicts with ${existing}`
-          );
+          throw new Error(`Duplicate lookup key: ${value} conflicts with ${existing}`);
         }
         keys.set(key, agent.id);
       }
@@ -107,6 +106,7 @@ describe("agent-defs package", () => {
 
   it("resolves aliases case-insensitively", () => {
     expect(resolveAgentId("CLAUDE")).toBe("claude-code");
+    expect(resolveAgentId("GeMiNi")).toBe("gemini-cli");
     expect(resolveAgentId("kimi-cli")).toBe("kimi");
     expect(resolveAgentId("GOOSE")).toBe("goose");
   });
@@ -119,48 +119,48 @@ describe("agent-defs package", () => {
 describe("parseAgentSpecifier", () => {
   it("parses agent-only specifier", () => {
     expect(parseAgentSpecifier("claude-code")).toEqual({
-      agent: "claude-code",
+      agent: "claude-code"
     });
   });
 
   it("parses agent with provider/model", () => {
     expect(parseAgentSpecifier("claude-code:anthropic/claude-opus-4.6")).toEqual({
       agent: "claude-code",
-      model: "anthropic/claude-opus-4.6",
+      model: "anthropic/claude-opus-4.6"
     });
   });
 
   it("parses codex with openai model", () => {
     expect(parseAgentSpecifier("codex:openai/gpt-5.4")).toEqual({
       agent: "codex",
-      model: "openai/gpt-5.4",
+      model: "openai/gpt-5.4"
     });
   });
 
   it("parses kimi with model", () => {
     expect(parseAgentSpecifier("kimi:novitaai/kimi-k2.5")).toEqual({
       agent: "kimi",
-      model: "novitaai/kimi-k2.5",
+      model: "novitaai/kimi-k2.5"
     });
   });
 
   it("returns undefined model when colon is present but model is empty", () => {
     expect(parseAgentSpecifier("claude-code:")).toEqual({
-      agent: "claude-code",
+      agent: "claude-code"
     });
   });
 
   it("trims whitespace from agent and model", () => {
     expect(parseAgentSpecifier("  claude-code : anthropic/claude-opus-4.6  ")).toEqual({
       agent: "claude-code",
-      model: "anthropic/claude-opus-4.6",
+      model: "anthropic/claude-opus-4.6"
     });
   });
 
   it("handles model without provider prefix", () => {
     expect(parseAgentSpecifier("claude-code:claude-opus-4.6")).toEqual({
       agent: "claude-code",
-      model: "claude-opus-4.6",
+      model: "claude-opus-4.6"
     });
   });
 });
@@ -187,9 +187,9 @@ describe("formatAgentSpecifier", () => {
   });
 
   it("formats agent with model", () => {
-    expect(
-      formatAgentSpecifier({ agent: "claude-code", model: "anthropic/claude-opus-4.6" })
-    ).toBe("claude-code:anthropic/claude-opus-4.6");
+    expect(formatAgentSpecifier({ agent: "claude-code", model: "anthropic/claude-opus-4.6" })).toBe(
+      "claude-code:anthropic/claude-opus-4.6"
+    );
   });
 
   it("formats agent when model is undefined", () => {

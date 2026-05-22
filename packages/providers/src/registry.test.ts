@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { allAgents } from "@poe-code/agent-defs";
 import { ProviderRegistry } from "./registry.js";
+import { cloudflareProvider } from "./providers/cloudflare.js";
 import { poeProvider } from "./providers/poe.js";
 import type { ApiShapeId, AuthProvider } from "./types.js";
 
@@ -131,13 +132,28 @@ describe("ProviderRegistry", () => {
     ).toEqual([]);
   });
 
-  it("keeps poe provider selection compatible for agents with declared api shapes", () => {
+  it("keeps poe provider selection compatible for supported agents with declared api shapes", () => {
     const registry = new ProviderRegistry([poeProvider]);
+    const supportedAgents = allAgents.filter(
+      (agent) =>
+        agent.apiShapes?.some((shapeId) =>
+          poeProvider.apiShapes?.some((providerShape) => providerShape.id === shapeId)
+        ) ?? false
+    );
+
+    expect(supportedAgents.length).toBeGreaterThan(0);
+    for (const agent of supportedAgents) {
+      expect(registry.forAgent(agent)).toEqual([poeProvider]);
+    }
+  });
+
+  it("keeps cloudflare provider selection compatible for agents with declared api shapes", () => {
+    const registry = new ProviderRegistry([cloudflareProvider]);
     const providerBackedAgents = allAgents.filter((agent) => agent.apiShapes);
 
     expect(providerBackedAgents.length).toBeGreaterThan(0);
     for (const agent of providerBackedAgents) {
-      expect(registry.forAgent(agent)).toEqual([poeProvider]);
+      expect(registry.forAgent(agent)).toEqual([cloudflareProvider]);
     }
   });
 

@@ -3,6 +3,16 @@ $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.j
 kind: pipeline
 version: 1
 
+steps:
+  manual:
+    prompt: |
+      Perform this manual validation with terminal-pilot. Exercise success,
+      failure, cancellation, and repeat-run behavior where applicable. Fix
+      any bugs exposed by validation, then record the result without exposing
+      credentials.
+
+      {{prompt}}
+
 tasks:
   - id: add-gemini-cli-agent-def
     title: Add gemini-cli agent definition
@@ -13,6 +23,7 @@ tasks:
       export const geminiCliAgent: AgentDefinition = {
         id: "gemini-cli",
         name: "gemini-cli",
+        aliases: ["gemini"],
         label: "Gemini CLI",
         summary: "Configure Google's Gemini CLI to use a compatible Google generations API.",
         binaryName: "gemini",
@@ -24,12 +35,12 @@ tasks:
       };
       ```
 
-      Export from `packages/agent-defs/src/index.ts`. Add `packages/agent-defs/src/agents/gemini-cli.test.ts` asserting the declared `apiShapes` is exactly `["google-generations"]`.
+      Export from `packages/agent-defs/src/index.ts`. Add `packages/agent-defs/src/agents/gemini-cli.test.ts` asserting the declared `apiShapes` is exactly `["google-generations"]` and update registry tests to assert `resolveAgentId("gemini") === "gemini-cli"` case-insensitively.
 
       Backwards-compat invariant: adding this agent must not affect any existing `configure <agent> --yes` snapshots.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: dynamic-model-choices
@@ -192,7 +203,7 @@ tasks:
       - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
       - The cloudflare/provider entry exposes `google-generations` for gemini-cli.
 
-      Run the configure command through `npm run dev -- configure gemini-cli` using the gateway base URL and `CF_AIG_TOKEN` credential. Exercise the interactive path first so the dynamic Gemini model list is visible, then repeat the non-interactive `--yes` path.
+      Run the configure command through `npm run dev -- configure gemini --provider cloudflare` using the gateway base URL and `CF_AIG_TOKEN` credential. Exercise the interactive path first so the dynamic Gemini model list is visible, then repeat the non-interactive `--yes` path. Repeat one configure invocation with the canonical `gemini-cli` name and verify it targets the same service and output file as the `gemini` alias.
 
       Use terminal-pilot to capture what prompts appeared and which model choices were offered. Pass only if configure succeeds, the selected model is written to `~/.gemini/settings.json`, `selectedAuthType` is `gemini-api-key`, and existing unrelated settings are preserved. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
@@ -240,9 +251,9 @@ Add Gemini CLI as a coding agent provider in poe-code, routed through the existi
 
 ## 1. What we're building
 
-A new declarative provider file at `src/providers/gemini-cli.ts` plus its companion agent definition at `packages/agent-defs/src/agents/gemini-cli.ts`. Configure, install, test, and spawn lifecycles all derive from those two declarations — no provider-specific branches elsewhere.
+A new declarative provider file at `src/providers/gemini-cli.ts` plus its companion agent definition at `packages/agent-defs/src/agents/gemini-cli.ts`. The canonical id is `gemini-cli`, with `gemini` as the user-facing alias for configure and spawn commands. Configure, install, test, and spawn lifecycles all derive from those two declarations — no provider-specific branches elsewhere.
 
-The agent declares `apiShapes: ["google-generations"]` and is therefore compatible with any provider that exposes that shape. Plan 04's `add-cloudflare-provider` task establishes `cloudflareProvider` with the `google-generations` shape; Cloudflare requires a gateway base URL via `CF_AIG_BASE_URL` or `--base-url`, such as `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`, and the provider appends the matching shape path. Once both plans land, `poe-code configure gemini-cli --provider cloudflare --base-url <url> --yes` routes Gemini CLI through the Cloudflare gateway without touching gemini-cli code or hardcoding URLs anywhere.
+The agent declares `apiShapes: ["google-generations"]` and is therefore compatible with any provider that exposes that shape. Plan 04's `add-cloudflare-provider` task establishes `cloudflareProvider` with the `google-generations` shape; Cloudflare requires a gateway base URL via `CF_AIG_BASE_URL` or `--base-url`, such as `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`, and the provider appends the matching shape path. Once both plans land, `poe-code configure gemini --provider cloudflare --base-url <url> --yes` routes Gemini CLI through the Cloudflare gateway without touching gemini-cli code or hardcoding URLs anywhere; `gemini-cli` remains an equivalent canonical spelling.
 
 Two new pieces of infrastructure are introduced:
 
@@ -252,7 +263,7 @@ Two new pieces of infrastructure are introduced:
 Explicit non-goals:
 
 - A first-party `googleProvider` (direct `generativelanguage.googleapis.com`) is out of scope here. The Cloudflare gateway is the only target this plan integrates.
-- No CLI flag changes on `poe-code configure` itself — gemini-cli is selected by name like every other agent.
+- No CLI flag changes on `poe-code configure` itself — Gemini CLI is selected as `gemini` (alias) or `gemini-cli` (canonical id) like existing aliased agents.
 - No new permission system; Gemini CLI's `--yolo` flag is passed unconditionally during spawn (matches how other providers run inside poe-code today).
 - No support for Gemini's interactive `gemini` REPL — spawn is non-interactive ACP only.
 
@@ -280,8 +291,8 @@ The user-facing flow:
 
 ```sh
 poe-code provider login cloudflare --api-key "$POE_API_KEY"
-poe-code configure gemini-cli --provider cloudflare --yes
-poe-code spawn gemini-cli "Refactor src/foo.ts to use async iterators"
+poe-code configure gemini --provider cloudflare --yes
+poe-code spawn gemini "Refactor src/foo.ts to use async iterators"
 ```
 
 With only `POE_API_KEY` set in the environment and no `cloudflare` login, the configure resolves nothing (cloudflare declares no env var) and prompts. This preserves plan 04's backwards-compat invariant.

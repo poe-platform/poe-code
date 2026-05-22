@@ -245,7 +245,11 @@ function parseGoogleModelChoices(payload: unknown): ReadonlyArray<ModelChoice> {
 
   const choices: ModelChoice[] = [];
   for (const model of payload.models) {
-    if (!isRecord(model) || typeof model.name !== "string") {
+    if (
+      !isRecord(model) ||
+      typeof model.name !== "string" ||
+      !supportsGenerateContent(model.supportedGenerationMethods)
+    ) {
       continue;
     }
     const value = stripModelsPrefix(model.name);
@@ -255,6 +259,10 @@ function parseGoogleModelChoices(payload: unknown): ReadonlyArray<ModelChoice> {
     });
   }
   return choices;
+}
+
+function supportsGenerateContent(value: unknown): boolean {
+  return Array.isArray(value) && value.includes("generateContent");
 }
 
 function stripModelsPrefix(value: string): string {

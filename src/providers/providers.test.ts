@@ -1755,9 +1755,10 @@ describe("gemini-cli service", () => {
       status: 200,
       json: async () => ({
         models: [
-          { name: "models/gemini-2.5-pro" },
-          { name: "models/gemini-2.5-flash" },
-          { name: "models/gemini-3-pro-preview" }
+          { name: "models/gemini-2.5-pro", supportedGenerationMethods: ["generateContent"] },
+          { name: "models/gemini-2.5-flash", supportedGenerationMethods: ["generateContent"] },
+          { name: "models/gemini-3-pro-preview", supportedGenerationMethods: ["generateContent"] },
+          { name: "models/text-embedding-004", supportedGenerationMethods: ["embedContent"] }
         ]
       })
     })) satisfies HttpClient;

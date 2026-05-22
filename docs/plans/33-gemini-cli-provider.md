@@ -227,7 +227,7 @@ tasks:
       Use terminal-pilot to inspect the terminal session until completion. Pass only if spawn exits successfully, `GEMINI_SANDBOX=false` is present in the Gemini process environment, the MCP tool result is used, and the final output contains `GEMINI_MCP_OK`. Record the exact command and result in the task notes. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
       manual: done
-      commit: open
+      commit: done
 
   - id: gemini-cli-screenshot-validation
     title: Visual validation via screenshots
@@ -242,8 +242,8 @@ tasks:
 
       If the design diverges from peer agents, fix the provider declaration (branding/colors/labels) — do not patch the design system per-agent.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 ---
 

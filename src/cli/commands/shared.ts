@@ -61,14 +61,34 @@ export async function buildActiveProvider(input: {
     );
   }
 
+  const configuredBaseUrl =
+    resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
+    resolveShapeBaseUrl(resolveNonEmpty(input.explicitBaseUrl), shape.baseUrlPath) ??
+    (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape));
+
+  if (input.provider.requiresBaseUrl === true && configuredBaseUrl === undefined) {
+    throw new Error(
+      `Provider "${input.provider.id}" requires a base URL for API shape "${apiShape}". Pass --base-url or --shape-base-url ${apiShape}=<url>.`
+    );
+  }
+
+  if (configuredBaseUrl === undefined && shape.defaultBaseUrl === undefined) {
+    throw new Error(
+      `Provider "${input.provider.id}" does not declare a default base URL for API shape "${apiShape}". Pass --base-url or --shape-base-url ${apiShape}=<url>.`
+    );
+  }
+
+  const baseUrl = configuredBaseUrl ?? shape.defaultBaseUrl;
+  if (baseUrl === undefined) {
+    throw new Error(
+      `Provider "${input.provider.id}" does not declare a default base URL for API shape "${apiShape}". Pass --base-url or --shape-base-url ${apiShape}=<url>.`
+    );
+  }
+
   return {
     id: input.provider.id,
     apiShape,
-    baseUrl:
-      resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
-      resolveNonEmpty(input.explicitBaseUrl) ??
-      (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape)) ??
-      shape.defaultBaseUrl,
+    baseUrl,
     credential: input.credential,
     extraEnv: {}
   };
@@ -112,6 +132,31 @@ function formatApiShapeList(shapeIds: readonly ApiShapeId[]): string {
 function resolveNonEmpty(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : undefined;
+}
+
+function resolveShapeBaseUrl(baseUrl: string | undefined, pathSuffix: string | undefined): string | undefined {
+  if (baseUrl === undefined) {
+    return undefined;
+  }
+  const suffix = resolveNonEmpty(pathSuffix);
+  if (suffix === undefined) {
+    return baseUrl;
+  }
+  const normalizedBaseUrl = stripTrailingPathSegment(trimTrailingSlash(baseUrl), "compat");
+  return `${normalizedBaseUrl}/${trimLeadingSlash(suffix)}`;
+}
+
+function trimTrailingSlash(value: string): string {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
+}
+
+function trimLeadingSlash(value: string): string {
+  return value.startsWith("/") ? value.slice(1) : value;
+}
+
+function stripTrailingPathSegment(value: string, segment: string): string {
+  const suffix = `/${segment}`;
+  return value.endsWith(suffix) ? value.slice(0, -suffix.length) : value;
 }
 
 export async function resolveActiveProviderForService(

@@ -316,19 +316,20 @@ tasks:
       export const cloudflareProvider: AuthProvider = {
         id: "cloudflare",
         label: "Cloudflare AI Gateway",
-        summary: "Route through the Poe Cloudflare gateway with BYOK keys.",
-        baseUrl: "https://poe-ai-gateway.poe-dev.workers.dev",
+        summary: "Route coding agents through Cloudflare AI Gateway.",
+        baseUrl: "https://gateway.ai.cloudflare.com",
+        requiresBaseUrl: true,
         auth: {
           kind: "api-key",
-          envVar: "CLOUDFLARE_API_KEY",
+          envVar: "CF_AIG_TOKEN",
           storageKey: "provider:cloudflare",
-          prompt: { title: "Cloudflare API key" }
+          prompt: { title: "Cloudflare AI Gateway token" }
         },
         apiShapes: [
-          { id: "openai-chat-completions", defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/openai/v1" },
-          { id: "openai-responses",        defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/openai/v1" },
-          { id: "anthropic-messages",      defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/anthropic" },
-          { id: "google-generations",      defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/google-ai-studio" }
+          { id: "openai-chat-completions", baseUrlPath: "compat" },
+          { id: "openai-responses",        baseUrlPath: "openai" },
+          { id: "anthropic-messages",      baseUrlPath: "anthropic" },
+          { id: "google-generations",      baseUrlPath: "google-ai-studio" }
         ]
       };
 
@@ -340,31 +341,30 @@ tasks:
       `packages/providers/src/index.ts`.
 
 
-      Auth note: the cloudflare gateway today validates Poe-issued tokens, but
-      the provider declares `CLOUDFLARE_API_KEY` as its env var so it has a
+      Auth note: the cloudflare gateway uses a Cloudflare AI Gateway token, and
+      the provider declares `CF_AIG_TOKEN` as its env var so it has a
       distinct identity from poe. This preserves the backwards-compat invariant:
       with only `POE_API_KEY` set, cloudflare is not env-logged-in and
       `configure --yes` still resolves uniquely to poe. The credential value
       flows opaquely from the env var or stored login into the `Authorization:
-      Bearer` header — what the gateway accepts on the wire is a deployment
-      detail of the gateway, not of poe-code.
+      Bearer` header.
 
 
       Tests:
 
       - `provider login cloudflare --api-key X && configure claude-code
-      --provider cloudflare --yes` writes
-      `https://poe-ai-gateway.poe-dev.workers.dev/anthropic` into
-      `ANTHROPIC_BASE_URL`.
+      --provider cloudflare --base-url https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/ --yes`
+      writes the base URL plus `/anthropic` into `ANTHROPIC_BASE_URL`.
 
       - `provider login cloudflare --api-key X && configure codex --provider
-      cloudflare --yes` writes the `/openai/v1` base URL into the codex config.
+      cloudflare --base-url https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/ --yes`
+      writes the base URL plus `/openai` into the codex config.
 
-      - With `POE_API_KEY` set and `CLOUDFLARE_API_KEY` unset, `configure
+      - With `POE_API_KEY` set and `CF_AIG_TOKEN` unset, `configure
       claude-code --yes` resolves to poe (cloudflare is not env-logged-in).
       Backwards-compat invariant.
 
-      - With both `POE_API_KEY` and `CLOUDFLARE_API_KEY` set, `configure
+      - With both `POE_API_KEY` and `CF_AIG_TOKEN` set, `configure
       claude-code --yes` errors and demands `--provider` (two env-logged-in
       compatible providers).
     status:
@@ -520,7 +520,7 @@ Every provider declares the API key env var it can read without an explicit `pro
 
 This keeps CI and local shell workflows equivalent to today's `POE_API_KEY` behavior: setting the provider's API key env var is enough for configure, test, spawn, and SDK calls when default base URLs are acceptable.
 
-Cloudflare gateway declares `CLOUDFLARE_API_KEY` as its env var so it has a distinct env-var identity from poe. With only `POE_API_KEY` set, cloudflare is not env-logged-in and `configure --yes` resolves uniquely to poe — backwards compat preserved. With both env vars set, the user has opted into ambiguity and must pass `--provider`.
+Cloudflare gateway declares `CF_AIG_TOKEN` as its env var so it has a distinct env-var identity from poe. With only `POE_API_KEY` set, cloudflare is not env-logged-in and `configure --yes` resolves uniquely to poe — backwards compat preserved. With both env vars set, the user has opted into ambiguity and must pass `--provider`.
 
 `configure` resolves only a provider from the user's perspective. The API shape is derived by intersecting the provider's declared shapes with the agent's declared required shapes.
 

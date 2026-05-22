@@ -283,7 +283,7 @@ describe("configure provider resolution", () => {
     });
   });
 
-  it("configures claude-code against Cloudflare after provider login", async () => {
+  it("rejects Cloudflare configure when no base URL is provided", async () => {
     const container = createContainer(fs);
     const providerProgram = createTestProgram(["node", "cli", "--yes"]);
     registerProviderCommand(providerProgram, container);
@@ -299,13 +299,28 @@ describe("configure provider resolution", () => {
       "sk-cloudflare-test"
     ]);
 
+    await expect(
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+        provider: "cloudflare"
+      })
+    ).rejects.toThrow(
+      'Provider "cloudflare" requires a base URL for API shape "anthropic-messages".'
+    );
+  });
+
+  it("configures claude-code against Cloudflare with an explicit matching base URL", async () => {
+    const container = createContainer(fs);
+
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
-      provider: "cloudflare"
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      baseUrl:
+        "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
     });
 
     const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
     expect(settings.env.ANTHROPIC_BASE_URL).toBe(
-      "https://poe-ai-gateway.poe-dev.workers.dev/anthropic"
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/anthropic"
     );
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
@@ -315,31 +330,21 @@ describe("configure provider resolution", () => {
     });
   });
 
-  it("configures codex against Cloudflare after provider login", async () => {
+  it("configures codex against Cloudflare with an explicit matching base URL", async () => {
     const container = createContainer(fs);
-    const providerProgram = createTestProgram(["node", "cli", "--yes"]);
-    registerProviderCommand(providerProgram, container);
-
-    await providerProgram.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "provider",
-      "login",
-      "cloudflare",
-      "--api-key",
-      "sk-cloudflare-test"
-    ]);
 
     await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
-      provider: "cloudflare"
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      baseUrl:
+        "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
     });
 
     const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
     expect(document.model_provider).toBe("cloudflare");
     const providers = document.model_providers as Record<string, Record<string, unknown>>;
     expect(providers.cloudflare?.base_url).toBe(
-      "https://poe-ai-gateway.poe-dev.workers.dev/openai/v1"
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/openai"
     );
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
@@ -349,7 +354,47 @@ describe("configure provider resolution", () => {
     });
   });
 
-  it("keeps claude-code on Poe with --yes when POE_API_KEY is set but CLOUDFLARE_API_KEY is unset", async () => {
+  it("configures chat-completions agents against Cloudflare with a /compat base URL", async () => {
+    const container = createContainer(fs);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "kimi", {
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      baseUrl:
+        "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/"
+    });
+
+    const document = parseToml(await fs.readFile(`${homeDir}/.kimi/config.toml`, "utf8"));
+    const providers = document.providers as Record<string, Record<string, unknown>>;
+    expect(providers[PROVIDER_NAME]?.base_url).toBe(
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/compat"
+    );
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+    expect(services.kimi).toMatchObject({
+      provider: "cloudflare",
+      apiShape: "openai-chat-completions"
+    });
+  });
+
+  it("strips a trailing /compat from Cloudflare base URLs before appending the shape path", async () => {
+    const container = createContainer(fs);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      baseUrl:
+        "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/compat"
+    });
+
+    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
+    const providers = document.model_providers as Record<string, Record<string, unknown>>;
+    expect(providers.cloudflare?.base_url).toBe(
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/openai"
+    );
+  });
+
+  it("keeps claude-code on Poe with --yes when POE_API_KEY is set but CF_AIG_TOKEN is unset", async () => {
     const container = createContainer(fs, { POE_API_KEY: "sk-env" });
     mockOptions(container);
 
@@ -370,7 +415,7 @@ describe("configure provider resolution", () => {
   it("requires --provider with --yes when Poe and Cloudflare env credentials are both set", async () => {
     const container = createContainer(fs, {
       POE_API_KEY: "sk-poe-env",
-      CLOUDFLARE_API_KEY: "sk-cloudflare-env"
+      CF_AIG_TOKEN: "sk-cloudflare-env"
     });
 
     await expect(

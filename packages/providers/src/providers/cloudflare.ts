@@ -3,30 +3,31 @@ import type { AuthProvider } from "../types.js";
 export const cloudflareProvider: AuthProvider = {
   id: "cloudflare",
   label: "Cloudflare AI Gateway",
-  summary: "Route through the Poe Cloudflare gateway with BYOK keys.",
-  baseUrl: "https://poe-ai-gateway.poe-dev.workers.dev",
+  summary: "Route coding agents through Cloudflare AI Gateway.",
+  baseUrl: "https://gateway.ai.cloudflare.com",
+  requiresBaseUrl: true,
   auth: {
     kind: "api-key",
-    envVar: "CLOUDFLARE_API_KEY",
+    envVar: "CF_AIG_TOKEN",
     storageKey: "provider:cloudflare",
-    prompt: { title: "Cloudflare API key" }
+    prompt: { title: "Cloudflare AI Gateway token" }
   },
   apiShapes: [
     {
       id: "openai-chat-completions",
-      defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/openai/v1"
+      baseUrlPath: "compat"
     },
     {
       id: "openai-responses",
-      defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/openai/v1"
+      baseUrlPath: "openai"
     },
     {
       id: "anthropic-messages",
-      defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/anthropic"
+      baseUrlPath: "anthropic"
     },
     {
       id: "google-generations",
-      defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/google-ai-studio"
+      baseUrlPath: "google-ai-studio"
     }
   ]
 };

@@ -29,7 +29,8 @@ export type AuthMethod = ApiKeyAuth | OAuthAuth;
 
 export interface ApiShapeBinding {
   readonly id: ApiShapeId;
-  readonly defaultBaseUrl: string;
+  readonly baseUrlPath?: string;
+  readonly defaultBaseUrl?: string;
 }
 
 export interface AuthProvider {
@@ -37,6 +38,7 @@ export interface AuthProvider {
   readonly label: string;
   readonly summary?: string;
   readonly baseUrl: string;
+  readonly requiresBaseUrl?: boolean;
   readonly auth: AuthMethod;
   readonly apiShapes?: readonly ApiShapeBinding[];
   readonly env?: Readonly<Record<string, EnvValueSource>>;

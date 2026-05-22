@@ -165,19 +165,19 @@ tasks:
       Use terminal-pilot to run a direct gemini-cli smoke test against the Poe gateway.
 
       Preconditions:
-      - `POE_API_KEY` is set in the environment.
-      - Gateway base URL is `https://poe-ai-gateway.poe-dev.workers.dev`.
+      - `CF_AIG_TOKEN` is set in the environment.
+      - Gateway base URL is provided explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
       - Gemini CLI is installed and `gemini --version` succeeds.
 
       Run gemini-cli with:
-      - `GEMINI_API_KEY=$POE_API_KEY`
+      - `GEMINI_API_KEY=$CF_AIG_TOKEN`
       - `GOOGLE_GEMINI_BASE_URL` derived from the gateway base URL for the Google generations endpoint.
       - `--sandbox=false`
       - `--model gemini-2.5-pro`
       - `--output-format text`
       - prompt: `Reply with exactly: GEMINI_TERMINAL_PILOT_OK`
 
-      Use terminal-pilot to inspect the terminal until the command exits. Pass only if stdout contains `GEMINI_TERMINAL_PILOT_OK` and the gateway URL is the only non-Google base URL used by the process. Record the exact command and result in the task notes. Do not print or persist the `POE_API_KEY` value.
+      Use terminal-pilot to inspect the terminal until the command exits. Pass only if stdout contains `GEMINI_TERMINAL_PILOT_OK` and the gateway URL is the only non-Google base URL used by the process. Record the exact command and result in the task notes. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
       manual: open
       commit: open
@@ -188,13 +188,13 @@ tasks:
       Use terminal-pilot to validate the poe-code configure flow for gemini-cli with real credentials.
 
       Preconditions:
-      - `POE_API_KEY` is set in the environment.
-      - Gateway base URL is `https://poe-ai-gateway.poe-dev.workers.dev`.
+      - `CF_AIG_TOKEN` is set in the environment.
+      - Gateway base URL is provided explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
       - The cloudflare/provider entry exposes `google-generations` for gemini-cli.
 
-      Run the configure command through `npm run dev -- configure gemini-cli` using the gateway base URL and `POE_API_KEY` credential. Exercise the interactive path first so the dynamic Gemini model list is visible, then repeat the non-interactive `--yes` path.
+      Run the configure command through `npm run dev -- configure gemini-cli` using the gateway base URL and `CF_AIG_TOKEN` credential. Exercise the interactive path first so the dynamic Gemini model list is visible, then repeat the non-interactive `--yes` path.
 
-      Use terminal-pilot to capture what prompts appeared and which model choices were offered. Pass only if configure succeeds, the selected model is written to `~/.gemini/settings.json`, `selectedAuthType` is `gemini-api-key`, and existing unrelated settings are preserved. Do not print or persist the `POE_API_KEY` value.
+      Use terminal-pilot to capture what prompts appeared and which model choices were offered. Pass only if configure succeeds, the selected model is written to `~/.gemini/settings.json`, `selectedAuthType` is `gemini-api-key`, and existing unrelated settings are preserved. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
       manual: open
       commit: open
@@ -205,13 +205,13 @@ tasks:
       Use terminal-pilot to validate poe-code spawn with gemini-cli against the Poe gateway and with an MCP server.
 
       Preconditions:
-      - `POE_API_KEY` is set in the environment.
-      - Gateway base URL is `https://poe-ai-gateway.poe-dev.workers.dev`.
+      - `CF_AIG_TOKEN` is set in the environment.
+      - Gateway base URL is provided explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
       - gemini-cli has already been configured by poe-code.
 
       Run a spawn command through `npm run dev -- spawn --mcp-servers <json> gemini-cli <prompt>` where `<json>` defines a tiny stdio MCP server available in this repo, such as `tiny-stdio-mcp-test-server`. The prompt must require the MCP tool result and must also ask Gemini to include `GEMINI_MCP_OK` in the final response.
 
-      Use terminal-pilot to inspect the terminal session until completion. Pass only if spawn exits successfully, `--sandbox=false` is present in the Gemini invocation path, the MCP tool result is used, and the final output contains `GEMINI_MCP_OK`. Record the exact command and result in the task notes. Do not print or persist the `POE_API_KEY` value.
+      Use terminal-pilot to inspect the terminal session until completion. Pass only if spawn exits successfully, `--sandbox=false` is present in the Gemini invocation path, the MCP tool result is used, and the final output contains `GEMINI_MCP_OK`. Record the exact command and result in the task notes. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
       manual: open
       commit: open
@@ -242,7 +242,7 @@ Add Gemini CLI as a coding agent provider in poe-code, routed through the existi
 
 A new declarative provider file at `src/providers/gemini-cli.ts` plus its companion agent definition at `packages/agent-defs/src/agents/gemini-cli.ts`. Configure, install, test, and spawn lifecycles all derive from those two declarations — no provider-specific branches elsewhere.
 
-The agent declares `apiShapes: ["google-generations"]` and is therefore compatible with any provider that exposes that shape. Plan 04's `add-cloudflare-provider` task already establishes `cloudflareProvider` with a `google-generations` default base URL of `https://poe-ai-gateway.poe-dev.workers.dev/google-ai-studio`. Once both plans land, `poe-code configure gemini-cli --provider cloudflare --yes` routes Gemini CLI through the Cloudflare gateway without touching gemini-cli code or hardcoding URLs anywhere.
+The agent declares `apiShapes: ["google-generations"]` and is therefore compatible with any provider that exposes that shape. Plan 04's `add-cloudflare-provider` task establishes `cloudflareProvider` with the `google-generations` shape; Cloudflare requires an explicit gateway base URL such as `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`, and the provider appends the matching shape path. Once both plans land, `poe-code configure gemini-cli --provider cloudflare --base-url <url> --yes` routes Gemini CLI through the Cloudflare gateway without touching gemini-cli code or hardcoding URLs anywhere.
 
 Two new pieces of infrastructure are introduced:
 
@@ -262,7 +262,7 @@ This plan depends on plan 04 (`docs/plans/04-api-shape-providers.md`) being comp
 
 - `ApiShapeId` includes `"google-generations"`.
 - `AgentDefinition.apiShapes` is wired through.
-- `cloudflareProvider` is registered and exposes `google-generations` with `defaultBaseUrl: "https://poe-ai-gateway.poe-dev.workers.dev/google-ai-studio"`.
+- `cloudflareProvider` is registered and exposes `google-generations`; callers provide the matching Cloudflare base URL explicitly.
 - `ActiveProvider.baseUrl` resolves shape-scoped per `shape-scoped-baseurl`.
 
 If plan 04 is not complete by the time this plan starts, the `add-gemini-cli-provider` task must block on it — the declared agent shape `["google-generations"]` will not match any registered provider without plan 04's cloudflare provider.

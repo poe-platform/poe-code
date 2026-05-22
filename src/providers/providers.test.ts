@@ -1853,14 +1853,12 @@ describe("gemini-cli service", () => {
       .mockResolvedValueOnce({ stdout: "/usr/local/bin/gemini\n", stderr: "", exitCode: 0 })
       .mockResolvedValueOnce({ stdout: "GEMINI_OK\n", stderr: "", exitCode: 0 });
     await geminiCliService.geminiCliService.test?.(createGeminiTestContext(runCommand));
-    expect(runCommand).toHaveBeenNthCalledWith(2, "gemini", [
-      "-p",
-      "say GEMINI_OK",
-      "--output-format",
-      "text",
-      "--model",
-      "gemini-3-pro-preview"
-    ], { env: { GEMINI_SANDBOX: "false" } });
+    expect(runCommand).toHaveBeenNthCalledWith(
+      2,
+      "gemini",
+      ["-p", "say GEMINI_OK", "--output-format", "text", "--model", "gemini-3-pro-preview"],
+      { env: { GEMINI_SANDBOX: "false" } }
+    );
   });
 
   it("unconfigures only Gemini-managed settings", async () => {
@@ -2307,17 +2305,7 @@ describe("goose service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "goose",
-      [
-        "run",
-        "--provider",
-        "custom_poe",
-        "--model",
-        DEFAULT_GOOSE_MODEL,
-        "--output-format",
-        "text",
-        "--instructions",
-        "-"
-      ],
+      ["run", "--provider", "custom_poe", "--output-format", "text", "--instructions", "-"],
       {
         env: { GOOSE_DISABLE_KEYRING: "1" },
         stdin: "Read from stdin"
@@ -2349,8 +2337,6 @@ describe("goose service", () => {
         "run",
         "--provider",
         "custom_poe",
-        "--model",
-        DEFAULT_GOOSE_MODEL,
         "--output-format",
         "text",
         "--with-extension",
@@ -2377,17 +2363,7 @@ describe("goose service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "goose",
-      [
-        "run",
-        "--provider",
-        "custom_poe",
-        "--model",
-        DEFAULT_GOOSE_MODEL,
-        "--output-format",
-        "text",
-        "--text",
-        "Edit the file"
-      ],
+      ["run", "--provider", "custom_poe", "--output-format", "text", "--text", "Edit the file"],
       { env: { GOOSE_DISABLE_KEYRING: "1", GOOSE_MODE: "smart_approve" } }
     );
   });
@@ -2407,17 +2383,7 @@ describe("goose service", () => {
 
     expect(runCommand).toHaveBeenCalledWith(
       "goose",
-      [
-        "run",
-        "--provider",
-        "custom_poe",
-        "--model",
-        DEFAULT_GOOSE_MODEL,
-        "--output-format",
-        "text",
-        "--text",
-        "Explain the code"
-      ],
+      ["run", "--provider", "custom_poe", "--output-format", "text", "--text", "Explain the code"],
       { env: { GOOSE_DISABLE_KEYRING: "1", GOOSE_MODE: "chat" } }
     );
   });

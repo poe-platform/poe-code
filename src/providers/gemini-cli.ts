@@ -129,7 +129,7 @@ export const geminiCliService = createProvider<
       agentId: geminiCliService.name,
       prompt: options.prompt,
       cwd: options.cwd,
-      model: options.model ?? DEFAULT_GEMINI_MODEL,
+      model: options.model,
       mode: options.mode,
       mcpServers: options.mcpServers,
       resumeThreadId: options.resumeThreadId,

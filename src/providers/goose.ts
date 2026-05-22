@@ -4,18 +4,10 @@ import {
   createCommandExpectationCheck,
   type CommandRunnerOptions
 } from "../utils/command-checks.js";
-import {
-  configMutation,
-  fileMutation,
-  type ConfigObject
-} from "@poe-code/config-mutations";
+import { configMutation, fileMutation, type ConfigObject } from "@poe-code/config-mutations";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import { createProvider } from "./create-provider.js";
-import {
-  DEFAULT_GOOSE_MODEL,
-  GOOSE_MODELS,
-  stripModelNamespace
-} from "../cli/constants.js";
+import { DEFAULT_GOOSE_MODEL, GOOSE_MODELS, stripModelNamespace } from "../cli/constants.js";
 import type { ProviderSpawnOptions } from "./spawn-options.js";
 import { gooseAgent } from "@poe-code/agent-defs";
 import { serializeGooseMcpArgs } from "@poe-code/agent-spawn";
@@ -46,11 +38,7 @@ type GooseModelsResponse = {
 export const GOOSE_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "goose",
   summary: "Goose CLI",
-  check: createBinaryExistsCheck(
-    "goose",
-    "goose-cli-binary",
-    "Goose CLI binary must exist"
-  ),
+  check: createBinaryExistsCheck("goose", "goose-cli-binary", "Goose CLI binary must exist"),
   steps: [
     {
       id: "install-goose-cli-homebrew-or-script",
@@ -172,7 +160,10 @@ function extractGooseModelContextLimits(response: GooseModelsResponse): Record<s
 async function fetchGooseModelContextLimits(input: {
   apiBaseUrl: string;
   apiKey: string;
-  httpClient: (url: string, init?: { method?: string; headers?: Record<string, string> }) => Promise<{
+  httpClient: (
+    url: string,
+    init?: { method?: string; headers?: Record<string, string> }
+  ) => Promise<{
     ok: boolean;
     status: number;
     json(): Promise<unknown>;
@@ -199,9 +190,7 @@ async function fetchGooseModelContextLimits(input: {
   }
   const missing = GOOSE_MODELS.filter((model) => modelContextLimits[model] == null);
   if (missing.length > 0) {
-    throw new Error(
-      `Missing Goose model context limit for ${missing[0]}.`
-    );
+    throw new Error(`Missing Goose model context limit for ${missing[0]}.`);
   }
   return modelContextLimits;
 }
@@ -212,24 +201,24 @@ const GOOSE_MODE_ENV: Record<string, string> = {
   read: "chat"
 };
 
-function buildRunOptions(
-  options: ProviderSpawnOptions,
-  model: string
-): { args: string[]; commandOptions?: CommandRunnerOptions } {
+function buildRunOptions(options: ProviderSpawnOptions): {
+  args: string[];
+  commandOptions?: CommandRunnerOptions;
+} {
   const baseArgs = [
     "run",
     "--provider",
     CUSTOM_PROVIDER_ID,
-    "--model",
-    model,
+    ...(options.model ? ["--model", options.model] : []),
     "--output-format",
     "text"
   ];
 
   const mcpArgs = options.mcpServers ? serializeGooseMcpArgs(options.mcpServers) : [];
-  const modeEnv = options.mode && GOOSE_MODE_ENV[options.mode]
-    ? { GOOSE_MODE: GOOSE_MODE_ENV[options.mode] }
-    : undefined;
+  const modeEnv =
+    options.mode && GOOSE_MODE_ENV[options.mode]
+      ? { GOOSE_MODE: GOOSE_MODE_ENV[options.mode] }
+      : undefined;
   const commandEnv = { ...GOOSE_FILE_SECRETS_ENV, ...(modeEnv ?? {}) };
 
   if (options.useStdin) {
@@ -353,8 +342,7 @@ export const gooseService = createProvider<
     );
   },
   spawn(context, options) {
-    const model = options.model ?? DEFAULT_GOOSE_MODEL;
-    const { args, commandOptions } = buildRunOptions(options, model);
+    const { args, commandOptions } = buildRunOptions(options);
     return commandOptions
       ? context.command.runCommand("goose", args, commandOptions)
       : context.command.runCommand("goose", args);

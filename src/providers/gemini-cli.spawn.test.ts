@@ -135,6 +135,23 @@ afterEach(() => {
 });
 
 describe("geminiCliService ACP spawn", () => {
+  it("leaves Gemini model selection to the agent when no model is supplied", async () => {
+    const mock = createMockChildProcess();
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const result = geminiCliService.spawn!(createProviderContext(), {
+      prompt: "answer this"
+    });
+    await completeHappyPath(mock);
+    await expect(result).resolves.toMatchObject({ stdout: "hello\n", exitCode: 0 });
+
+    expect(spawnChildProcess).toHaveBeenCalledWith(
+      "gemini",
+      ["--acp", "--yolo"],
+      expect.any(Object)
+    );
+  });
+
   it("spawns Gemini ACP with the selected model and resolved provider environment", async () => {
     const mock = createMockChildProcess();
     vi.mocked(spawnChildProcess).mockReturnValue(mock.child);

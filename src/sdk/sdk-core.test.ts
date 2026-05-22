@@ -4,7 +4,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer, type CliDependencies } from "../cli/container.js";
-import { DEFAULT_FRONTIER_MODEL, DEFAULT_TEXT_MODEL } from "../cli/constants.js";
+import { DEFAULT_TEXT_MODEL } from "../cli/constants.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type {
   CommandRunner,
@@ -336,9 +336,7 @@ function createCommandRunnerStub(
   return { runner, calls };
 }
 
-function createContainerWithDependencies(
-  overrides: Partial<CliDependencies> = {}
-): {
+function createContainerWithDependencies(overrides: Partial<CliDependencies> = {}): {
   container: ReturnType<typeof createCliContainer>;
   logs: string[];
   commandCalls: CommandCall[];
@@ -350,9 +348,11 @@ function createContainerWithDependencies(
     prompts: overrides.prompts ?? vi.fn().mockResolvedValue({}),
     env: overrides.env ?? { cwd, homeDir },
     commandRunner: overrides.commandRunner ?? runner,
-    logger: overrides.logger ?? ((message) => {
-      logs.push(message);
-    })
+    logger:
+      overrides.logger ??
+      ((message) => {
+        logs.push(message);
+      })
   });
   return { container, logs, commandCalls: calls };
 }
@@ -398,42 +398,34 @@ describe("spawnCore", () => {
     );
   });
 
-  it("falls back to the provider default when config has no matching model", async () => {
+  it("leaves the model unset when no explicit or configured model exists", async () => {
     const { container } = createContainerWithDependencies({ fs });
 
-    await expect(resolveConfiguredModel(container, "opencode")).resolves.toBe(
-      DEFAULT_FRONTIER_MODEL
-    );
+    await expect(resolveConfiguredModel(container, "opencode")).resolves.toBeUndefined();
   });
 
   async function ensureIsolatedConfig(service: string): Promise<void> {
     if (service === "codex") {
       await fs.mkdir(`${homeDir}/.poe-code/codex`, { recursive: true });
-      await fs.writeFile(
-        `${homeDir}/.poe-code/codex/config.toml`,
-        "",
-        { encoding: "utf8" }
-      );
+      await fs.writeFile(`${homeDir}/.poe-code/codex/config.toml`, "", { encoding: "utf8" });
       return;
     }
     if (service === "opencode") {
       await fs.mkdir(`${homeDir}/.poe-code/opencode/.config/opencode`, {
         recursive: true
       });
-      await fs.writeFile(
-        `${homeDir}/.poe-code/opencode/.config/opencode/config.json`,
-        "{}",
-        { encoding: "utf8" }
-      );
+      await fs.writeFile(`${homeDir}/.poe-code/opencode/.config/opencode/config.json`, "{}", {
+        encoding: "utf8"
+      });
     }
   }
 
   it("throws error for unknown service", async () => {
     const { container } = createContainerWithDependencies({ fs });
 
-    await expect(
-      spawnCore(container, "unknown-service", { prompt: "test" })
-    ).rejects.toThrow('Unknown service "unknown-service".');
+    await expect(spawnCore(container, "unknown-service", { prompt: "test" })).rejects.toThrow(
+      'Unknown service "unknown-service".'
+    );
   });
 
   it("returns SpawnResult with stdout, stderr, exitCode", async () => {

@@ -6,11 +6,6 @@ import { Readable } from "node:stream";
 import { Command } from "commander";
 import { resetOutputFormatCache } from "@poe-code/design-system";
 import type { AcpMiddleware } from "@poe-code/agent-spawn";
-import {
-  DEFAULT_CLAUDE_CODE_MODEL,
-  DEFAULT_CODEX_MODEL,
-  DEFAULT_GOOSE_MODEL
-} from "../constants.js";
 import { createProgram } from "../program.js";
 import { registerSpawnCommand } from "./spawn.js";
 import { createCliContainer, type CliDependencies } from "../container.js";
@@ -236,7 +231,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("claude-code", {
       prompt: "hello",
       args: [],
-      model: DEFAULT_CLAUDE_CODE_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -805,7 +800,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "List files",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       skills: ["foo", "claude/bar"],
@@ -837,7 +832,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "List files",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       skills: ["foo", "claude/bar"],
@@ -869,7 +864,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "List files",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       skills: ["foo", "claude/bar"],
@@ -903,7 +898,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "List files",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       skills: ["foo", "claude/bar"],
@@ -940,7 +935,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "List files",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1007,7 +1002,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Use word_of_the_day",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1058,7 +1053,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Use word_of_the_day",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1109,7 +1104,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Use word_of_the_day",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1162,7 +1157,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Use word_of_the_day",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1213,7 +1208,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Use word_of_the_day",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1253,7 +1248,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "hello",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       logDir: "/tmp/spawn-logs",
@@ -1360,7 +1355,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Review the diff carefully.",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1386,7 +1381,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Summarize the file.",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1454,7 +1449,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "@not-a-file.md",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1517,7 +1512,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("claude-code", {
       prompt: "Explain the change",
       args: [],
-      model: DEFAULT_CLAUDE_CODE_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: customCwd,
       activityTimeoutMs: 600_000,
@@ -1550,7 +1545,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Summarize the diff",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: resolved,
       activityTimeoutMs: 600_000,
@@ -1600,7 +1595,7 @@ describe("spawn command", () => {
     expect(spawnInteractive).toHaveBeenCalledWith("codex", {
       prompt: "Inspect the repo",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       cwd: "/tmp/workspaces/poe-code",
       mode: undefined,
       runtimeConfigCwd: cwd
@@ -1633,7 +1628,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Prompt via stdin",
       args: [],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1666,7 +1661,7 @@ describe("spawn command", () => {
     expect(sdkSpawn).toHaveBeenCalledWith("codex", {
       prompt: "Prompt via stdin",
       args: ["--foo", "bar"],
-      model: DEFAULT_CODEX_MODEL,
+      model: undefined,
       mode: undefined,
       cwd: undefined,
       activityTimeoutMs: 600_000,
@@ -1926,7 +1921,7 @@ describe("spawn command", () => {
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "hello",
         args: [],
-        model: DEFAULT_CLAUDE_CODE_MODEL,
+        model: undefined,
         cwd: undefined,
         mode: undefined,
         runtimeConfigCwd: cwd
@@ -2021,7 +2016,7 @@ describe("spawn command", () => {
       expect(spawnInteractive).toHaveBeenCalledWith("goose", {
         prompt: "hello",
         args: [],
-        model: DEFAULT_GOOSE_MODEL,
+        model: undefined,
         cwd: undefined,
         mode: undefined,
         runtimeConfigCwd: cwd
@@ -2081,7 +2076,7 @@ describe("spawn command", () => {
       expect(spawnInteractive).toHaveBeenCalledWith("claude-code", {
         prompt: "",
         args: [],
-        model: DEFAULT_CLAUDE_CODE_MODEL,
+        model: undefined,
         cwd: undefined,
         mode: undefined,
         runtimeConfigCwd: cwd

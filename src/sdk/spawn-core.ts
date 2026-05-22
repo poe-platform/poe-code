@@ -139,9 +139,8 @@ export async function resolveConfiguredModel(
     return model;
   }
 
-  const adapter = container.registry.get(service);
   const { agent } = parseAgentSpecifier(service);
-  const agentId = adapter?.name ?? resolveAgentId(agent) ?? agent;
+  const agentId = container.registry.get(service)?.name ?? resolveAgentId(agent) ?? agent;
   const configuredModel = await resolveConfigModel(
     {
       fs: container.fs,
@@ -150,11 +149,7 @@ export async function resolveConfiguredModel(
     agentId
   );
 
-  if (configuredModel) {
-    return configuredModel;
-  }
-
-  return adapter?.configurePrompts?.model?.defaultValue;
+  return configuredModel || undefined;
 }
 
 function formatSpawnDryRunMessage(label: string, options: SpawnCommandOptions): string {

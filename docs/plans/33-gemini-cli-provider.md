@@ -149,7 +149,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: gemini-cli-skills
     title: Add SKILL templates for gemini-cli

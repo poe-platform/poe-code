@@ -116,7 +116,11 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
       command: binaryName,
       args:
         typeof acpConfig.acpArgs === "function"
-          ? acpConfig.acpArgs({ model: options.model, mode: options.mode })
+          ? acpConfig.acpArgs({
+              model: options.model,
+              mode: options.mode,
+              mcpServers: options.mcpServers
+            })
           : acpConfig.acpArgs,
       cwd,
       env,

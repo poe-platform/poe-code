@@ -181,6 +181,26 @@ describe("geminiCliService ACP spawn", () => {
     );
   });
 
+  it("allows spawn-time MCP servers in Gemini ACP mode", async () => {
+    const mock = createMockChildProcess();
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const result = geminiCliService.spawn!(createProviderContext(), {
+      prompt: "call the MCP tool",
+      mcpServers: {
+        test: { command: "tiny-stdio-mcp-test-server" }
+      }
+    });
+    await completeHappyPath(mock);
+    await result;
+
+    expect(spawnChildProcess).toHaveBeenCalledWith(
+      "gemini",
+      ["--acp", "--allowed-mcp-server-names", "test", "--skip-trust", "--yolo"],
+      expect.any(Object)
+    );
+  });
+
   it("streams session updates during initialize, new session, and prompt", async () => {
     const mock = createMockChildProcess();
     vi.mocked(spawnChildProcess).mockReturnValue(mock.child);

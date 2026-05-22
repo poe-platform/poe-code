@@ -210,7 +210,7 @@ tasks:
       Use terminal-pilot to capture what prompts appeared and which model choices were offered. Pass only if configure succeeds, the selected model is written to `~/.gemini/settings.json` as `model.name`, `security.auth.selectedType` is `gemini-api-key`, no top-level `selectedAuthType` or scalar `model` is emitted, and existing unrelated settings are preserved. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
       manual: done
-      commit: open
+      commit: done
 
   - id: manual-gemini-cli-terminal-pilot-spawn-mcp
     title: Manually validate gemini-cli spawn and MCP through terminal-pilot
@@ -226,7 +226,7 @@ tasks:
 
       Use terminal-pilot to inspect the terminal session until completion. Pass only if spawn exits successfully, `GEMINI_SANDBOX=false` is present in the Gemini process environment, the MCP tool result is used, and the final output contains `GEMINI_MCP_OK`. Record the exact command and result in the task notes. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
-      manual: open
+      manual: done
       commit: open
 
   - id: gemini-cli-screenshot-validation
@@ -310,9 +310,9 @@ choices: async ({ httpClient, provider }) => {
   });
   const body = await res.json();
   return body.models
-    .filter(m => m.supportedGenerationMethods?.includes("generateContent"))
-    .map(m => ({ title: m.displayName ?? m.name, value: stripModelsPrefix(m.name) }));
-}
+    .filter((m) => m.supportedGenerationMethods?.includes("generateContent"))
+    .map((m) => ({ title: m.displayName ?? m.name, value: stripModelsPrefix(m.name) }));
+};
 ```
 
 Cache the resolved array within a single configure run. On any failure, fall back to a small static array (`gemini-2.5-pro`, `gemini-2.5-flash`, `gemini-3-pro-preview`, `gemini-3-flash-preview`) aligned with the current Gemini CLI schema and emit a verbose warning. Configure must never fail solely because model discovery failed.
@@ -370,3 +370,14 @@ The two gates are `dynamic-model-choices` (must land without breaking any existi
 - Repeat-run evidence: `npm run dev -- configure gemini --provider cloudflare --yes` exited `0`; `npm run dev -- configure gemini-cli --provider cloudflare --yes` also exited `0`, rendered the canonical `configure gemini-cli` service, and wrote the same model/auth shape to the same settings file.
 - Cancellation and failure evidence: cancelling the interactive model prompt exited cleanly without altering existing settings; `npm run dev -- configure gemini --provider missing-validation-provider --yes` exited `1` with an unknown-provider error and left settings unchanged. An unreachable explicit base URL displayed the static fallback model list and was cancelled without a write.
 - Cleanup: the original `~/.gemini/settings.json` contents were restored after validation; no credential value was printed or persisted by the validation record.
+
+### `manual-gemini-cli-terminal-pilot-spawn-mcp` — 2026-05-22
+
+- Result: failed acceptance after fixing two spawn-time MCP launch bugs. Gemini now launches the requested MCP server, invokes `word_of_the_day`, and emits `Bumfuzzle - to confuse or fluster someone` plus `GEMINI_MCP_OK`, but the ACP spawn does not exit after final output and was cancelled by terminal-pilot (`exitCode: 130`), so this task remains open.
+- Exact command exercised through terminal-pilot: `npm run dev -- spawn --mcp-servers '{"test":{"command":"tiny-stdio-mcp-test-server","args":["serve","word-of-the-day"]}}' gemini-cli 'You must call the word_of_the_day tool from the test MCP server exactly once. Return the exact tool result and include GEMINI_MCP_OK. Do not inspect files or use shell commands.'`.
+- Failure reproduction before fixes: Gemini launched with `GEMINI_SANDBOX=false` but had no usable `word_of_the_day` tool; the valid tiny server fixture command also did not start until MCP allowlisting and workspace trust were forwarded to Gemini ACP.
+- Fixes validated: Gemini ACP spawn now forwards `--allowed-mcp-server-names test --skip-trust` only when explicit spawn-time MCP servers are supplied; terminal-pilot then observed the `tiny-stdio-mcp-test-server serve word-of-the-day` child process and the required MCP-backed final output.
+- Repeat-run evidence: the corrected command was repeated, including one run with `--model gemini-2.5-flash`; both repeated the same result—MCP tool success and `GEMINI_MCP_OK`, followed by non-termination until cancelled.
+- Control evidence: `npm run dev -- spawn --model gemini-2.5-flash gemini-cli 'Return exactly GEMINI_CONTROL_OK.'` exited `0` through terminal-pilot in about four seconds, so the remaining non-termination is isolated to Gemini ACP runs with an active MCP server rather than ordinary Gemini gateway spawn.
+- Cancellation/failure evidence: terminal-pilot cancellations returned exit code `130`; the initial missing-MCP launch path failed the MCP-result requirement and the corrected path still fails the successful-exit requirement.
+- Credential handling: existing configured gateway credentials were used through poe-code isolation; no `CF_AIG_TOKEN` value was printed or persisted in these notes.

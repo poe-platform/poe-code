@@ -522,6 +522,9 @@ describe("codex service", () => {
 
     const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     expect(doc["model_provider"]).toBe("poe");
+    expect(doc["model"]).toBe(stripModelNamespace(DEFAULT_CODEX_MODEL));
+    expect(doc["model_reasoning_effort"]).toBe(DEFAULT_REASONING);
+    expect(doc["model_verbosity"]).toBe("medium");
 
     const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
     const defaultProfileName = codexService.deriveCodexProfileName(DEFAULT_CODEX_MODEL);
@@ -541,6 +544,32 @@ describe("codex service", () => {
     await expect(
       mockFsObj.readFile(`${configPath}.backup.20240101T000000`, "utf8")
     ).rejects.toThrow();
+  });
+
+  it("writes freeform provider model as the active codex default", async () => {
+    await configureCodex({
+      provider: {
+        id: "cloudflare",
+        apiShape: "openai-responses",
+        baseUrl: "https://gateway.ai.cloudflare.com/v1/account/gateway/openai",
+        credential: "cfut_test",
+        modelInput: { kind: "freeform" },
+        extraEnv: {}
+      },
+      model: "iris-alpha",
+      reasoningEffort: "medium"
+    });
+
+    const doc = parseToml(await mockFsObj.readFile(configPath, "utf8"));
+    expect(doc["model_provider"]).toBe("cloudflare");
+    expect(doc["model"]).toBe("iris-alpha");
+    expect(doc["model_reasoning_effort"]).toBe("medium");
+    expect(doc["model_verbosity"]).toBe("medium");
+
+    const profiles = doc["profiles"] as Record<string, Record<string, unknown>>;
+    const irisProfile = profiles["iris-alpha"];
+    expect(irisProfile["model"]).toBe("iris-alpha");
+    expect(irisProfile["model_provider"]).toBe("cloudflare");
   });
 
   it("writes opus model as opus profile", async () => {

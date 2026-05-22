@@ -111,7 +111,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: gemini-cli-acp-spawn
     title: Wire ACP spawn for gemini-cli

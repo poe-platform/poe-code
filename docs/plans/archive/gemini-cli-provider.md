@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 steps:
   manual:
     prompt: |
@@ -12,14 +11,15 @@ steps:
       credentials.
 
       {{prompt}}
-
 tasks:
   - id: add-gemini-cli-agent-def
     title: Add gemini-cli agent definition
-    prompt: |
+    prompt: >
       Create `packages/agent-defs/src/agents/gemini-cli.ts` declaring:
 
+
       ```ts
+
       export const geminiCliAgent: AgentDefinition = {
         id: "gemini-cli",
         name: "gemini-cli",
@@ -33,58 +33,95 @@ tasks:
           colors: { dark: "#8AB4F8", light: "#1A73E8" }
         }
       };
+
       ```
 
-      Export from `packages/agent-defs/src/index.ts`. Add `packages/agent-defs/src/agents/gemini-cli.test.ts` asserting the declared `apiShapes` is exactly `["google-generations"]` and update registry tests to assert `resolveAgentId("gemini") === "gemini-cli"` case-insensitively.
 
-      Backwards-compat invariant: adding this agent must not affect any existing `configure <agent> --yes` snapshots.
+      Export from `packages/agent-defs/src/index.ts`. Add
+      `packages/agent-defs/src/agents/gemini-cli.test.ts` asserting the declared
+      `apiShapes` is exactly `["google-generations"]` and update registry tests
+      to assert `resolveAgentId("gemini") === "gemini-cli"` case-insensitively.
+
+
+      Backwards-compat invariant: adding this agent must not affect any existing
+      `configure <agent> --yes` snapshots.
     status:
       implement: done
       test: done
       commit: done
-
   - id: dynamic-model-choices
     title: Allow async resolver for configurePrompts.model.choices
-    prompt: |
-      Today `configurePrompts.model.choices` is a static `{ title, value }[]` (see `src/cli/prompts.ts:9-12` and every provider that defines it, e.g. `src/providers/codex.ts:158-161`). Gemini CLI needs to fetch its model list from the active provider's `google-generations` endpoint at configure time.
+    prompt: >
+      Today `configurePrompts.model.choices` is a static `{ title, value }[]`
+      (see `src/cli/prompts.ts:9-12` and every provider that defines it, e.g.
+      `src/providers/codex.ts:158-161`). Gemini CLI needs to fetch its model
+      list from the active provider's `google-generations` endpoint at configure
+      time.
 
-      Extend the type to accept either the existing static array OR an async resolver:
+
+      Extend the type to accept either the existing static array OR an async
+      resolver:
+
 
       ```ts
+
       type ModelChoice = { title: string; value: string };
+
       type ModelChoices =
         | ReadonlyArray<ModelChoice>
         | ((ctx: { httpClient: HttpClient; provider: ActiveProvider; env: CliEnvironment }) => Promise<ReadonlyArray<ModelChoice>>);
       ```
 
-      In `src/cli/commands/configure-payload.ts` (the path that today calls `resolveModel()` at line ~49), resolve the choices before prompting:
-      - If `choices` is an array → use as-is.
-      - If `choices` is a function → call it with an injected `httpClient` plus the already-resolved `ActiveProvider`. Cache the resolved array for the duration of the configure call.
-      - If the resolver throws (network, auth, etc.) → fall back to the provider's `defaultValue` only, log a verbose warning, and continue. Do NOT crash configure.
 
-      Update existing providers — codex, claude-code, kimi, opencode, goose — to keep their static arrays unchanged. No behavioral change for them.
+      In `src/cli/commands/configure-payload.ts` (the path that today calls
+      `resolveModel()` at line ~49), resolve the choices before prompting:
+
+      - If `choices` is an array → use as-is.
+
+      - If `choices` is a function → call it with an injected `httpClient` plus
+      the already-resolved `ActiveProvider`. Cache the resolved array for the
+      duration of the configure call.
+
+      - If the resolver throws (network, auth, etc.) → fall back to the
+      provider's `defaultValue` only, log a verbose warning, and continue. Do
+      NOT crash configure.
+
+
+      Update existing providers — codex, claude-code, kimi, opencode, goose — to
+      keep their static arrays unchanged. No behavioral change for them.
+
 
       Tests in `src/cli/commands/configure-payload.test.ts`:
+
       - Static array path: unchanged behavior (regression).
+
       - Async resolver success path: choices reflect resolver output.
+
       - Async resolver throw path: configure proceeds with `defaultValue`.
+
       - Resolver only called once per configure run (cache check).
 
-      Backwards-compat invariant: existing configure snapshots are byte-identical.
+
+      Backwards-compat invariant: existing configure snapshots are
+      byte-identical.
     status:
       implement: done
       test: done
       commit: done
-
   - id: add-gemini-cli-provider
     title: Add the gemini-cli provider file
-    prompt: |
-      Create `src/providers/gemini-cli.ts` using `createProvider`. Single declarative file — no if/branches anywhere else.
+    prompt: >
+      Create `src/providers/gemini-cli.ts` using `createProvider`. Single
+      declarative file — no if/branches anywhere else.
+
 
       Required pieces:
 
+
       1. Spread `geminiCliAgent` from `@poe-code/agent-defs`.
+
       2. `supportsStdinPrompt: true`, `supportsMcpSpawn: true`.
+
       3. `configurePrompts.model`:
          - `label: "Gemini model"`
          - `defaultValue: "gemini-2.5-pro"` (constant in `src/cli/constants.ts`)
@@ -96,155 +133,302 @@ tasks:
            - `GEMINI_API_KEY: { kind: "providerCredential" }`
            - `GOOGLE_GEMINI_BASE_URL: { kind: "providerBaseUrl" }` (resolved per-shape after plan 04's `shape-scoped-baseurl` lands; until then provider-wide)
            - `HOME: { kind: "isolatedDir" }` so `~/.gemini/` lands inside the isolated tree
-      5. `manifest.configure`: deep-merge `~/.gemini/settings.json` via `configMutation.merge` from `@poe-code/config-mutations` — NO regex, NO string templates. Follow Gemini CLI's current settings schema and write `{ security: { auth: { selectedType: "gemini-api-key" } }, model: { name: <selected> }, mcpServers: {} }`. Do not emit the invalid top-level `selectedAuthType` property or scalar `model` value. Use `fileMutation.ensureDirectory` for `~/.gemini` and `fileMutation.backup` for the settings file.
-      6. `manifest.unconfigure`: remove only keys this provider wrote: `security.auth.selectedType` when equal to `gemini-api-key`, `model.name`, and any empty `mcpServers` object created by poe-code; prune empty parent objects while preserving unrelated user settings. Idempotent.
-      7. `install: GEMINI_CLI_INSTALL_DEFINITION` — npm global install of `@google/gemini-cli`, binary check for `gemini`.
-      8. `test()`: invoke `gemini --version` via `createBinaryExistsCheck` plus a `createSpawnHealthCheck` that runs `gemini -p "say GEMINI_OK" --output-format text --model <model>` with `GEMINI_SANDBOX=false` in the runtime environment and asserts the output contains `GEMINI_OK`.
+      5. `manifest.configure`: deep-merge `~/.gemini/settings.json` via
+      `configMutation.merge` from `@poe-code/config-mutations` — NO regex, NO
+      string templates. Follow Gemini CLI's current settings schema and write `{
+      security: { auth: { selectedType: "gemini-api-key" } }, model: { name:
+      <selected> }, mcpServers: {} }`. Do not emit the invalid top-level
+      `selectedAuthType` property or scalar `model` value. Use
+      `fileMutation.ensureDirectory` for `~/.gemini` and `fileMutation.backup`
+      for the settings file.
 
-      Export as `provider` per the auto-discovery convention in `src/providers/index.ts:41-59`.
+      6. `manifest.unconfigure`: remove only keys this provider wrote:
+      `security.auth.selectedType` when equal to `gemini-api-key`, `model.name`,
+      and any empty `mcpServers` object created by poe-code; prune empty parent
+      objects while preserving unrelated user settings. Idempotent.
+
+      7. `install: GEMINI_CLI_INSTALL_DEFINITION` — npm global install of
+      `@google/gemini-cli`, binary check for `gemini`.
+
+      8. `test()`: invoke `gemini --version` via `createBinaryExistsCheck` plus
+      a `createSpawnHealthCheck` that runs `gemini -p "say GEMINI_OK"
+      --output-format text --model <model>` with `GEMINI_SANDBOX=false` in the
+      runtime environment and asserts the output contains `GEMINI_OK`.
+
+
+      Export as `provider` per the auto-discovery convention in
+      `src/providers/index.ts:41-59`.
+
 
       Tests in `src/providers/providers.test.ts`:
-      - configure with mocked httpClient (returns 3 models) → `~/.gemini/settings.json` snapshot using `security.auth.selectedType` and `model.name`; assert top-level `selectedAuthType` and scalar `model` are absent.
-      - configure with httpClient that throws → falls back to static models, configure still succeeds.
-      - unconfigure removes only this provider's nested keys, prunes empty `security`/`auth`/`model` objects, and preserves pre-existing user keys.
+
+      - configure with mocked httpClient (returns 3 models) →
+      `~/.gemini/settings.json` snapshot using `security.auth.selectedType` and
+      `model.name`; assert top-level `selectedAuthType` and scalar `model` are
+      absent.
+
+      - configure with httpClient that throws → falls back to static models,
+      configure still succeeds.
+
+      - unconfigure removes only this provider's nested keys, prunes empty
+      `security`/`auth`/`model` objects, and preserves pre-existing user keys.
+
       - All file I/O via memfs (`AGENTS.md` mandate).
     status:
       implement: done
       test: done
       commit: done
-
   - id: gemini-cli-acp-spawn
     title: Wire ACP spawn for gemini-cli
-    prompt: |
-      Add a `spawn()` implementation on `geminiCliService` that drives `gemini --acp` over JSON-RPC stdio. Reuse the existing ACP transport in `@poe-code/agent-spawn` rather than reimplementing it.
+    prompt: >
+      Add a `spawn()` implementation on `geminiCliService` that drives `gemini
+      --acp` over JSON-RPC stdio. Reuse the existing ACP transport in
+      `@poe-code/agent-spawn` rather than reimplementing it.
+
 
       Spawn args, in order:
+
       - `--acp`
+
       - `--model <selected-model>`
-      - `--yolo` (auto-approve tool calls; matches how other providers are spawned by poe-code today)
+
+      - `--yolo` (auto-approve tool calls; matches how other providers are
+      spawned by poe-code today)
+
 
       Env passed to the spawned process:
+
       - `GEMINI_API_KEY=<provider.credential>`
+
       - `GOOGLE_GEMINI_BASE_URL=<provider.baseUrl>`
-      - `GEMINI_SANDBOX=false` (Gemini CLI documentation states YOLO enables sandboxing by default; disable it explicitly for gateway-routed subprocesses)
-      - `GEMINI_SYSTEM_MD=<path-to-rendered-system-prompt>` when poe-code injects one (matches how claude-code's system prompt path is wired today — write the file inside the isolated tree, point the env var at it).
+
+      - `GEMINI_SANDBOX=false` (Gemini CLI documentation states YOLO enables
+      sandboxing by default; disable it explicitly for gateway-routed
+      subprocesses)
+
+      - `GEMINI_SYSTEM_MD=<path-to-rendered-system-prompt>` when poe-code
+      injects one (matches how claude-code's system prompt path is wired today —
+      write the file inside the isolated tree, point the env var at it).
+
       - Inherit anything declared by `isolatedEnv.env`.
 
+
       ACP method mapping (JSON-RPC 2.0):
+
       - `initialize` → on session start.
+
       - `authenticate` → no-op when env-key auth is used.
+
       - `newSession` → returns `sessionId`; remember it.
-      - `prompt` → forward the user/system prompt; stream `session/update` notifications into the existing `AcpEvent` channel.
+
+      - `prompt` → forward the user/system prompt; stream `session/update`
+      notifications into the existing `AcpEvent` channel.
+
       - `cancel` → on abort signal.
 
-      Surface `unstable_setSessionModel` so mid-session model switches work where the orchestrator supports them (no-op when not).
+
+      Surface `unstable_setSessionModel` so mid-session model switches work
+      where the orchestrator supports them (no-op when not).
+
 
       Tests in `src/providers/gemini-cli.spawn.test.ts`:
-      - Mock child process. Assert spawn args + env are exactly the values above for a representative model + provider.
-      - JSON-RPC happy path: initialize → newSession → prompt → result.
-      - Cancel path: abort signal triggers `cancel` then process kill.
-      - Sandbox environment invariant: `GEMINI_SANDBOX=false` is always present when spawning with `--yolo`, regression test.
 
-      No CLI/SDK changes — this hooks into the existing spawn registry via `provider.spawn`.
+      - Mock child process. Assert spawn args + env are exactly the values above
+      for a representative model + provider.
+
+      - JSON-RPC happy path: initialize → newSession → prompt → result.
+
+      - Cancel path: abort signal triggers `cancel` then process kill.
+
+      - Sandbox environment invariant: `GEMINI_SANDBOX=false` is always present
+      when spawning with `--yolo`, regression test.
+
+
+      No CLI/SDK changes — this hooks into the existing spawn registry via
+      `provider.spawn`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: gemini-cli-skills
     title: Add SKILL templates for gemini-cli
-    prompt: |
-      Gemini CLI discovers skills in project `.gemini/skills/` and user `~/.gemini/skills/` locations. Keep source templates as `SKILL_*.md` files under `src/templates/gemini-cli/` and distribute them through `npm run sync-skills`. Create the gemini-cli template set:
+    prompt: >
+      Gemini CLI discovers skills in project `.gemini/skills/` and user
+      `~/.gemini/skills/` locations. Keep source templates as `SKILL_*.md` files
+      under `src/templates/gemini-cli/` and distribute them through `npm run
+      sync-skills`. Create the gemini-cli template set:
+
 
       - `src/templates/gemini-cli/SKILL_poe-code-plan.md`
+
       - `src/templates/gemini-cli/SKILL_poe-code-pipeline-plan.md`
+
       - `src/templates/gemini-cli/SKILL_stop-slop.md`
 
-      Mirror the content of the equivalent templates already in the repo, using Gemini CLI's documented `SKILL.md` skill format.
 
-      Add `gemini-cli` to `packages/agent-skill-config/src/configs.ts` with `globalSkillDir: "~/.gemini/skills"` and `localSkillDir: ".gemini/skills"`. Route Gemini-specific templates through the same sync flow used for supported agents; do not write a Gemini folder under `.claude/skills/`.
+      Mirror the content of the equivalent templates already in the repo, using
+      Gemini CLI's documented `SKILL.md` skill format.
 
-      Verify using isolated-home tests: Gemini-specific files appear under `~/.gemini/skills/`, no `.claude/skills/gemini-cli/` path is created, and shared templates continue to sync for the existing supported agents. Add a unit assertion that every agent with an `agentDefinition` has templates or an explicit empty-templates entry.
 
-      Per `AGENTS.md`, skill bodies stay terse and declarative; do not restate repository instructions inside them.
+      Add `gemini-cli` to `packages/agent-skill-config/src/configs.ts` with
+      `globalSkillDir: "~/.gemini/skills"` and `localSkillDir:
+      ".gemini/skills"`. Route Gemini-specific templates through the same sync
+      flow used for supported agents; do not write a Gemini folder under
+      `.claude/skills/`.
+
+
+      Verify using isolated-home tests: Gemini-specific files appear under
+      `~/.gemini/skills/`, no `.claude/skills/gemini-cli/` path is created, and
+      shared templates continue to sync for the existing supported agents. Add a
+      unit assertion that every agent with an `agentDefinition` has templates or
+      an explicit empty-templates entry.
+
+
+      Per `AGENTS.md`, skill bodies stay terse and declarative; do not restate
+      repository instructions inside them.
     status:
       implement: done
       test: done
       commit: done
-
   - id: manual-gemini-cli-terminal-pilot-direct
     title: Manually smoke test raw gemini-cli through the Poe gateway
-    prompt: |
-      Use terminal-pilot to run a direct gemini-cli smoke test against the Poe gateway.
+    prompt: >
+      Use terminal-pilot to run a direct gemini-cli smoke test against the Poe
+      gateway.
+
 
       Preconditions:
+
       - `CF_AIG_TOKEN` is set in the environment.
-      - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
+
+      - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for
+      example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
+
       - Gemini CLI is installed and `gemini --version` succeeds.
 
+
       Run gemini-cli with:
+
       - `GEMINI_API_KEY=$CF_AIG_TOKEN`
-      - `GOOGLE_GEMINI_BASE_URL` derived from the gateway base URL for the Google generations endpoint.
+
+      - `GOOGLE_GEMINI_BASE_URL` derived from the gateway base URL for the
+      Google generations endpoint.
+
       - `GEMINI_SANDBOX=false`
+
       - `--model gemini-2.5-pro`
+
       - `--output-format text`
+
       - prompt: `Reply with exactly: GEMINI_TERMINAL_PILOT_OK`
 
-      Use terminal-pilot to inspect the terminal until the command exits. Pass only if stdout contains `GEMINI_TERMINAL_PILOT_OK` and the gateway URL is the only non-Google base URL used by the process. Record the exact command and result in the task notes. Do not print or persist the `CF_AIG_TOKEN` value.
+
+      Use terminal-pilot to inspect the terminal until the command exits. Pass
+      only if stdout contains `GEMINI_TERMINAL_PILOT_OK` and the gateway URL is
+      the only non-Google base URL used by the process. Record the exact command
+      and result in the task notes. Do not print or persist the `CF_AIG_TOKEN`
+      value.
     status:
       manual: done
       commit: done
-
   - id: manual-gemini-cli-terminal-pilot-configure
     title: Manually validate poe-code configure gemini-cli against the Poe gateway
-    prompt: |
-      Use terminal-pilot to validate the poe-code configure flow for gemini-cli with real credentials.
+    prompt: >
+      Use terminal-pilot to validate the poe-code configure flow for gemini-cli
+      with real credentials.
+
 
       Preconditions:
+
       - `CF_AIG_TOKEN` is set in the environment.
-      - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
-      - The cloudflare/provider entry exposes `google-generations` for gemini-cli.
 
-      Run the configure command through `npm run dev -- configure gemini --provider cloudflare` using the gateway base URL and `CF_AIG_TOKEN` credential. Exercise the interactive path first so the dynamic Gemini model list is visible, then repeat the non-interactive `--yes` path. Repeat one configure invocation with the canonical `gemini-cli` name and verify it targets the same service and output file as the `gemini` alias.
+      - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for
+      example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
 
-      Use terminal-pilot to capture what prompts appeared and which model choices were offered. Pass only if configure succeeds, the selected model is written to `~/.gemini/settings.json` as `model.name`, `security.auth.selectedType` is `gemini-api-key`, no top-level `selectedAuthType` or scalar `model` is emitted, and existing unrelated settings are preserved. Do not print or persist the `CF_AIG_TOKEN` value.
+      - The cloudflare/provider entry exposes `google-generations` for
+      gemini-cli.
+
+
+      Run the configure command through `npm run dev -- configure gemini
+      --provider cloudflare` using the gateway base URL and `CF_AIG_TOKEN`
+      credential. Exercise the interactive path first so the dynamic Gemini
+      model list is visible, then repeat the non-interactive `--yes` path.
+      Repeat one configure invocation with the canonical `gemini-cli` name and
+      verify it targets the same service and output file as the `gemini` alias.
+
+
+      Use terminal-pilot to capture what prompts appeared and which model
+      choices were offered. Pass only if configure succeeds, the selected model
+      is written to `~/.gemini/settings.json` as `model.name`,
+      `security.auth.selectedType` is `gemini-api-key`, no top-level
+      `selectedAuthType` or scalar `model` is emitted, and existing unrelated
+      settings are preserved. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
       manual: done
       commit: done
-
   - id: manual-gemini-cli-terminal-pilot-spawn-mcp
     title: Manually validate gemini-cli spawn and MCP through terminal-pilot
-    prompt: |
-      Use terminal-pilot to validate poe-code spawn with gemini-cli against the Poe gateway and with an MCP server.
+    prompt: >
+      Use terminal-pilot to validate poe-code spawn with gemini-cli against the
+      Poe gateway and with an MCP server.
+
 
       Preconditions:
+
       - `CF_AIG_TOKEN` is set in the environment.
-      - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
+
+      - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for
+      example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
+
       - gemini-cli has already been configured by poe-code.
 
-      Run a spawn command through `npm run dev -- spawn --mcp-servers <json> gemini-cli <prompt>` where `<json>` defines a tiny stdio MCP server available in this repo, such as `tiny-stdio-mcp-test-server`. The prompt must require the MCP tool result and must also ask Gemini to include `GEMINI_MCP_OK` in the final response.
 
-      Use terminal-pilot to inspect the terminal session until completion. Pass only if spawn exits successfully, `GEMINI_SANDBOX=false` is present in the Gemini process environment, the MCP tool result is used, and the final output contains `GEMINI_MCP_OK`. Record the exact command and result in the task notes. Do not print or persist the `CF_AIG_TOKEN` value.
+      Run a spawn command through `npm run dev -- spawn --mcp-servers <json>
+      gemini-cli <prompt>` where `<json>` defines a tiny stdio MCP server
+      available in this repo, such as `tiny-stdio-mcp-test-server`. The prompt
+      must require the MCP tool result and must also ask Gemini to include
+      `GEMINI_MCP_OK` in the final response.
+
+
+      Use terminal-pilot to inspect the terminal session until completion. Pass
+      only if spawn exits successfully, `GEMINI_SANDBOX=false` is present in the
+      Gemini process environment, the MCP tool result is used, and the final
+      output contains `GEMINI_MCP_OK`. Record the exact command and result in
+      the task notes. Do not print or persist the `CF_AIG_TOKEN` value.
     status:
       manual: done
       commit: done
-
   - id: gemini-cli-screenshot-validation
     title: Visual validation via screenshots
-    prompt: |
-      Per `AGENTS.md`, every visual CLI change is validated via screenshots, not snapshot tests. Capture:
+    prompt: >
+      Per `AGENTS.md`, every visual CLI change is validated via screenshots, not
+      snapshot tests. Capture:
 
-      - `npm run screenshot-poe-code -- configure gemini-cli --yes` — non-interactive configure path against a mocked provider.
-      - `npm run screenshot-poe-code -- configure gemini-cli` — interactive path showing the dynamic model list.
-      - `npm run screenshot-poe-code -- provider list` — confirms gemini-cli appears in the Agents column of any provider exposing `google-generations` (cloudflare per plan 04, plus any others added since).
 
-      Inspect each screenshot for design coherence with the existing design system. No new screenshot snapshot tests are added (`AGENTS.md`: screenshots are for adhoc validation only).
+      - `npm run screenshot-poe-code -- configure gemini-cli --yes` —
+      non-interactive configure path against a mocked provider.
 
-      If the design diverges from peer agents, fix the provider declaration (branding/colors/labels) — do not patch the design system per-agent.
+      - `npm run screenshot-poe-code -- configure gemini-cli` — interactive path
+      showing the dynamic model list.
+
+      - `npm run screenshot-poe-code -- provider list` — confirms gemini-cli
+      appears in the Agents column of any provider exposing `google-generations`
+      (cloudflare per plan 04, plus any others added since).
+
+
+      Inspect each screenshot for design coherence with the existing design
+      system. No new screenshot snapshot tests are added (`AGENTS.md`:
+      screenshots are for adhoc validation only).
+
+
+      If the design diverges from peer agents, fix the provider declaration
+      (branding/colors/labels) — do not patch the design system per-agent.
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
+name: gemini-cli-provider
+state: archived
 ---
 
 # Gemini CLI provider

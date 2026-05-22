@@ -932,6 +932,7 @@ describe("SDK spawn()", () => {
       skipAuth: true
     } as any);
 
+    const unstableSetSessionModel = vi.fn(async () => undefined);
     vi.mocked(spawnAcp).mockImplementation(() => ({
       events: (async function* () {
         yield { event: "agent_message", text: "raw acp event" };
@@ -941,7 +942,8 @@ describe("SDK spawn()", () => {
         stderr: "",
         exitCode: 0,
         threadId: "thread_acp"
-      })
+      }),
+      unstable_setSessionModel: unstableSetSessionModel
     }));
 
     vi.mocked(applyMiddlewares).mockImplementation(async (_middlewares, ctx) => {
@@ -951,7 +953,7 @@ describe("SDK spawn()", () => {
       })();
     });
 
-    const { events, result } = spawn("opencode", "test prompt", {
+    const { events, result, unstable_setSessionModel } = spawn("opencode", "test prompt", {
       mcpServers: {
         test: {
           command: "tiny-stdio-mcp-test-server"
@@ -971,6 +973,8 @@ describe("SDK spawn()", () => {
       exitCode: 0,
       threadId: "thread_via_acp_middleware"
     });
+    await unstable_setSessionModel?.("gemini-3-pro");
+    expect(unstableSetSessionModel).toHaveBeenCalledWith("gemini-3-pro");
 
     expect(spawnAcp).toHaveBeenCalledWith({
       agentId: "opencode",

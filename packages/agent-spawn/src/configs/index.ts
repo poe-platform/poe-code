@@ -5,6 +5,7 @@ import { codexSpawnConfig } from "./codex.js";
 import { openCodeSpawnConfig, openCodeAcpSpawnConfig } from "./opencode.js";
 import { kimiSpawnConfig, kimiAcpSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
+import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
 
 // ACP adapter support (spawn streaming):
 // - Supported (has `adapter`): claude-code, codex, opencode, kimi, goose
@@ -26,6 +27,7 @@ const acpLookup = new Map<string, AcpSpawnConfig>();
 acpLookup.set(openCodeAcpSpawnConfig.agentId, openCodeAcpSpawnConfig);
 acpLookup.set(kimiAcpSpawnConfig.agentId, kimiAcpSpawnConfig);
 acpLookup.set(gooseAcpSpawnConfig.agentId, gooseAcpSpawnConfig);
+acpLookup.set(geminiCliAcpSpawnConfig.agentId, geminiCliAcpSpawnConfig);
 
 export function getSpawnConfig(input: string): SpawnConfig | undefined {
   const resolvedId = resolveAgentId(input);

@@ -22,7 +22,8 @@ import {
   type AcpEvent
 } from "@poe-code/agent-spawn";
 import { loadIntegrations, type Integrations } from "@poe-code/braintrust";
-import { resolveMergedDocument } from "../cli/commands/shared.js";
+import { resolveActiveProviderForService, resolveMergedDocument } from "../cli/commands/shared.js";
+import { resolveIsolatedEnvDetails } from "../cli/isolated-env.js";
 import type { SpawnOptions, SpawnResult, SpawnRetryOptions, SpawnUsage } from "./types.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 
@@ -51,16 +52,13 @@ export function spawn(
   service: string,
   prompt: string,
   options?: Omit<SpawnOptions, "prompt">
-): { events: AsyncIterable<AcpEvent>; result: Promise<SpawnResult> };
-export function spawn(
-  service: string,
-  options: SpawnOptions
-): { events: AsyncIterable<AcpEvent>; result: Promise<SpawnResult> };
+): SpawnHandle;
+export function spawn(service: string, options: SpawnOptions): SpawnHandle;
 export function spawn(
   service: string,
   promptOrOptions: string | SpawnOptions,
   maybeOptions?: Omit<SpawnOptions, "prompt">
-): { events: AsyncIterable<AcpEvent>; result: Promise<SpawnResult> } {
+): SpawnHandle {
   const options =
     typeof promptOrOptions === "string"
       ? { ...maybeOptions, prompt: promptOrOptions }
@@ -101,6 +99,7 @@ export function spawn(
       yield e;
     }
   })();
+  let setSessionModel: ((model: string) => Promise<void>) | undefined;
 
   const result = (async (): Promise<SpawnResult> => {
     let workspace: Awaited<ReturnType<typeof resolveSpawnWorkspace>> | undefined;
@@ -168,7 +167,19 @@ export function spawn(
       const acpSpawnConfig = getAcpSpawnConfig(service);
       if (acpSpawnConfig && !hasRuntimeOverrides) {
         const model = await resolveModel();
-        const { events: rawEvents, done } = spawnAcp({
+        const adapter = container.registry.get(service);
+        const activeProvider = adapter?.isolatedEnv
+          ? await resolveActiveProviderForService(container, adapter.name)
+          : undefined;
+        const resolvedAcpEnv = adapter?.isolatedEnv
+          ? await resolveIsolatedEnvDetails(
+              container.env,
+              adapter.isolatedEnv,
+              adapter.name,
+              activeProvider
+            ).then((details) => ({ ...activeProvider?.extraEnv, ...details.env }))
+          : undefined;
+        const acpSpawn = spawnAcp({
           agentId: service,
           prompt: options.prompt,
           cwd: options.cwd,
@@ -179,8 +190,11 @@ export function spawn(
           resumeThreadId: options.resumeThreadId,
           signal: options.signal,
           otelSink: options.otelSink,
+          ...(resolvedAcpEnv ? { env: resolvedAcpEnv } : {}),
           ...runtimeOverrides
         });
+        const { events: rawEvents, done } = acpSpawn;
+        setSessionModel = acpSpawn.unstable_setSessionModel;
 
         const middlewareContext: AcpSpawnContext = {
           sessionId: "unknown",
@@ -336,8 +350,20 @@ export function spawn(
     }
   })();
 
-  return { events, result };
+  return {
+    events,
+    result,
+    async unstable_setSessionModel(model: string): Promise<void> {
+      await setSessionModel?.(model);
+    }
+  };
 }
+
+type SpawnHandle = {
+  events: AsyncIterable<AcpEvent>;
+  result: Promise<SpawnResult>;
+  unstable_setSessionModel?(model: string): Promise<void>;
+};
 
 function getCapturedUsage(usage: SpawnUsage | undefined): SpawnUsage | undefined {
   if (!usage) {

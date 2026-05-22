@@ -12,6 +12,7 @@ import type {
 import type { MutationObservers } from "@poe-code/config-mutations";
 import { resolveAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { PromptFn } from "./types.js";
+import type { ActiveProvider } from "./commands/shared.js";
 
 export interface ServiceManifestPathMapper {
   mapTargetDirectory: (input: {
@@ -43,6 +44,7 @@ export interface ProviderContext {
   command: CommandContext;
   logger: ScopedLogger;
   model?: string;
+  activeProvider?: ActiveProvider;
   runCheck(check: CommandCheck): Promise<void>;
 }
 

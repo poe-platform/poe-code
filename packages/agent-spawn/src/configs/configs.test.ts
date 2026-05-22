@@ -10,6 +10,7 @@ import { claudeCodeSpawnConfig } from "./claude-code.js";
 import { openCodeSpawnConfig } from "./opencode.js";
 import { kimiSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
+import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
 import { serializeGooseMcpArgs } from "./mcp.js";
 
 describe("configs/getSpawnConfig", () => {
@@ -46,6 +47,10 @@ describe("configs/mcp support", () => {
 describe("configs/getAcpSpawnConfig", () => {
   it("returns the registered ACP config for goose", () => {
     expect(getAcpSpawnConfig("goose")).toEqual(gooseAcpSpawnConfig);
+  });
+
+  it("returns the registered ACP config for Gemini CLI", () => {
+    expect(getAcpSpawnConfig("gemini")).toEqual(geminiCliAcpSpawnConfig);
   });
 });
 

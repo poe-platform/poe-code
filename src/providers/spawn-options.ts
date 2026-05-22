@@ -15,6 +15,7 @@ export interface SpawnCommandOptions {
   cwd?: string;
   useStdin?: boolean;
   interactive?: boolean;
+  signal?: AbortSignal;
   runtime?: RuntimeOverrideOptions["runtime"];
   runtimeImage?: string;
   runtimeTemplate?: string;

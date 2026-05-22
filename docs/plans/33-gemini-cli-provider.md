@@ -147,9 +147,9 @@ tasks:
 
       No CLI/SDK changes — this hooks into the existing spawn registry via `provider.spawn`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: gemini-cli-skills
     title: Add SKILL templates for gemini-cli

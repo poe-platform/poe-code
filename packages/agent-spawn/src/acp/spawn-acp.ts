@@ -27,11 +27,13 @@ export interface SpawnAcpOptions {
   signal?: AbortSignal;
   otelSink?: OtelSink;
   middlewares?: AcpMiddleware[];
+  env?: NodeJS.ProcessEnv;
 }
 
 export interface SpawnAcpResult {
   events: AsyncIterable<AcpEvent>;
   done: Promise<SpawnResult>;
+  unstable_setSessionModel?(model: string): Promise<void>;
 }
 
 function toAcpMcpServers(servers?: McpSpawnConfig): McpServer[] {
@@ -102,7 +104,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   const mcpEnvVars =
     options.mcpServers && acpConfig.mcpEnv ? acpConfig.mcpEnv(options.mcpServers) : {};
 
-  const envOverrides = { ...(acpConfig.env ?? {}), ...mcpEnvVars };
+  const envOverrides = { ...(acpConfig.env ?? {}), ...mcpEnvVars, ...(options.env ?? {}) };
   const env =
     Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
   const cwd = options.cwd ?? process.cwd();
@@ -112,7 +114,10 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   try {
     client = new AcpClient({
       command: binaryName,
-      args: acpConfig.acpArgs,
+      args:
+        typeof acpConfig.acpArgs === "function"
+          ? acpConfig.acpArgs({ model: options.model, mode: options.mode })
+          : acpConfig.acpArgs,
       cwd,
       env,
       skipAuth: acpConfig.skipAuth ?? false,
@@ -126,7 +131,12 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   let aborted = false;
   const onAbort = () => {
     aborted = true;
-    void client.dispose();
+    void (async () => {
+      if (sessionId) {
+        await client.cancelSession(sessionId).catch(() => undefined);
+      }
+      await client.dispose();
+    })();
   };
   options.signal?.addEventListener("abort", onAbort, { once: true });
 
@@ -135,6 +145,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   let sessionId = "";
   let assistantText = "";
   let lastToolOutput = "";
+  let activeTurn: ReturnType<AcpClient["prompt"]> | undefined;
 
   const eventQueue: AcpEvent[] = [];
   const waiters: Array<(result: IteratorResult<AcpEvent>) => void> = [];
@@ -230,6 +241,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
               pushEvent({ event: "session_start", threadId: sessionId });
 
               const turn = client.prompt(sessionId, [{ type: "text", text: options.prompt }]);
+              activeTurn = turn;
 
               for await (const notification of turn) {
                 if (aborted) break;
@@ -301,6 +313,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
             } finally {
               options.signal?.removeEventListener("abort", onAbort);
               completeEventStream();
+              await activeTurn?.response.catch(() => undefined);
               await client.dispose();
             }
             await next();
@@ -330,6 +343,10 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
         prompt: options.prompt
       },
       () => done
-    )
+    ),
+    async unstable_setSessionModel(model: string): Promise<void> {
+      if (!sessionId) return;
+      await client.setConfigOption(sessionId, "model", model).catch(() => undefined);
+    }
   };
 }

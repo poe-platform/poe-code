@@ -13,6 +13,9 @@ import { geminiCliAgent } from "@poe-code/agent-defs";
 import type { CliEnvironment } from "../cli/environment.js";
 import type { ActiveProvider } from "../cli/commands/shared.js";
 import type { ModelChoice } from "../cli/prompts.js";
+import { spawnAcp } from "@poe-code/agent-spawn";
+import { resolveIsolatedEnvDetails } from "../cli/isolated-env.js";
+import type { SpawnCommandOptions } from "./spawn-options.js";
 
 const GOOGLE_MODELS_PATH = "v1beta/models";
 const FALLBACK_GEMINI_MODELS = [
@@ -45,7 +48,11 @@ export const GEMINI_CLI_INSTALL_DEFINITION: ServiceInstallDefinition = {
   successMessage: "Installed Gemini CLI via npm."
 };
 
-export const geminiCliService = createProvider<GeminiConfigureContext, GeminiUnconfigureContext>({
+export const geminiCliService = createProvider<
+  GeminiConfigureContext,
+  GeminiUnconfigureContext,
+  SpawnCommandOptions
+>({
   ...geminiCliAgent,
   supportsStdinPrompt: true,
   supportsMcpSpawn: true,
@@ -104,6 +111,31 @@ export const geminiCliService = createProvider<GeminiConfigureContext, GeminiUnc
         }
       })
     );
+  },
+  async spawn(context, options) {
+    const activeProvider = context.activeProvider;
+    if (!activeProvider) {
+      throw new Error("Gemini CLI spawn requires an active configured provider.");
+    }
+    const isolated = geminiCliService.isolatedEnv!;
+    const details = await resolveIsolatedEnvDetails(
+      context.env,
+      isolated,
+      geminiCliService.name,
+      activeProvider
+    );
+    const { done } = spawnAcp({
+      agentId: geminiCliService.name,
+      prompt: options.prompt,
+      cwd: options.cwd,
+      model: options.model ?? DEFAULT_GEMINI_MODEL,
+      mode: options.mode,
+      mcpServers: options.mcpServers,
+      resumeThreadId: options.resumeThreadId,
+      signal: options.signal,
+      env: { ...activeProvider.extraEnv, ...details.env }
+    });
+    return done;
   },
   manifest: {
     configure: [

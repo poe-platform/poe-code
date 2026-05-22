@@ -351,7 +351,7 @@ export function buildProviderContext(
   container: CliContainer,
   adapter: ProviderService,
   resources: ExecutionResources,
-  options?: { model?: string }
+  options?: { model?: string; activeProvider?: ActiveProvider }
 ): ProviderContext {
   const runCheck = createCheckRunner(resources);
   return {
@@ -359,6 +359,7 @@ export function buildProviderContext(
     command: resources.context,
     logger: resources.logger,
     model: options?.model,
+    activeProvider: options?.activeProvider,
     runCheck
   };
 }

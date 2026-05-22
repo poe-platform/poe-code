@@ -3,7 +3,11 @@ import { resolveAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
 import { resolveConfigModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../cli/container.js";
 import type { SpawnResult } from "./types.js";
-import { buildProviderContext, createExecutionResources } from "../cli/commands/shared.js";
+import {
+  buildProviderContext,
+  createExecutionResources,
+  resolveActiveProviderForService
+} from "../cli/commands/shared.js";
 import type { SpawnCommandOptions } from "../providers/spawn-options.js";
 import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 import type { CommandRunnerResult } from "../utils/command-checks.js";
@@ -97,7 +101,8 @@ export async function spawnCore(
       );
     }
 
-    const providerContext = buildProviderContext(container, adapter, resources);
+    const activeProvider = await resolveActiveProviderForService(container, adapter.name);
+    const providerContext = buildProviderContext(container, adapter, resources, { activeProvider });
 
     const result = (await container.registry.invoke(adapter.name, "spawn", async (entry) => {
       if (!entry.spawn) {

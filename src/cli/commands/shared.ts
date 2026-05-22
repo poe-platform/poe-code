@@ -78,7 +78,7 @@ export async function buildActiveProvider(input: {
 
   if (input.provider.requiresBaseUrl === true && configuredBaseUrl === undefined) {
     throw new Error(
-      `Provider "${input.provider.id}" requires a base URL for API shape "${apiShape}". Pass --base-url or --shape-base-url ${apiShape}=<url>.`
+      `Provider "${input.provider.id}" requires a base URL for API shape "${apiShape}". Run \`poe-code provider login ${input.provider.id} --base-url <url>\`, set ${input.provider.baseUrlEnvVar ?? "the provider base URL env var"}, or pass --base-url.`
     );
   }
 
@@ -153,7 +153,7 @@ function formatApiShapeList(shapeIds: readonly ApiShapeId[]): string {
   return shapeIds.length > 0 ? shapeIds.join(", ") : "none";
 }
 
-function resolveNonEmpty(value: string | undefined): string | undefined {
+export function resolveNonEmpty(value: string | undefined): string | undefined {
   const trimmed = value?.trim();
   return trimmed && trimmed.length > 0 ? trimmed : undefined;
 }
@@ -166,7 +166,7 @@ function resolveProviderBaseUrlEnv(
   return envVar ? resolveNonEmpty(container.env.getVariable(envVar)) : undefined;
 }
 
-function resolveShapeBaseUrl(
+export function resolveShapeBaseUrl(
   baseUrl: string | undefined,
   pathSuffix: string | undefined
 ): string | undefined {

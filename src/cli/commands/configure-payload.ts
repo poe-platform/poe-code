@@ -1,7 +1,4 @@
-import {
-  loadProviderShapeBaseUrls,
-  resolveConfigModel
-} from "@poe-code/poe-code-config";
+import { resolveConfigModel } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
 import type { ProviderContext, ProviderService } from "../service-registry.js";
@@ -9,14 +6,13 @@ import {
   buildActiveProvider,
   parseProviderShapeBaseUrls,
   resolveAgentDefinition,
+  resolveNonEmpty,
   type ActiveProvider,
   type CommandFlags
 } from "./shared.js";
 import type { ConfigureCommandOptions } from "./configure.js";
 import {
   POE_PROVIDER_ID,
-  resolveApiShape,
-  type ApiShapeId,
   type AuthProvider
 } from "@poe-code/providers";
 
@@ -59,13 +55,7 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
             { envVars: container.env.variables }
           );
     const explicitBaseUrl = await resolveConfigureBaseUrl({
-      container,
-      flags,
-      logger,
-      provider,
-      agent,
-      options,
-      explicitShapeBaseUrls
+      options
     });
     const activeProvider: ActiveProvider = await buildActiveProvider({
       container,
@@ -137,44 +127,9 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
 }
 
 async function resolveConfigureBaseUrl(input: {
-  container: CliContainer;
-  flags: CommandFlags;
-  logger: ScopedLogger;
-  provider: AuthProvider;
-  agent: { id: string; apiShapes?: readonly ApiShapeId[] };
   options: ConfigureCommandOptions;
-  explicitShapeBaseUrls: Partial<Record<ApiShapeId, string>>;
 }): Promise<string | undefined> {
-  const explicitBaseUrl = nonEmpty(input.options.baseUrl);
-  if (explicitBaseUrl !== undefined) {
-    return explicitBaseUrl;
-  }
-  if (input.provider.requiresBaseUrl !== true || input.flags.assumeYes) {
-    return undefined;
-  }
-
-  const apiShape = resolveApiShape(input.provider, input.agent);
-  if (!apiShape) {
-    return undefined;
-  }
-  if (nonEmpty(input.explicitShapeBaseUrls[apiShape]) !== undefined) {
-    return undefined;
-  }
-  if (resolveProviderBaseUrlEnv(input.container, input.provider) !== undefined) {
-    return undefined;
-  }
-  if (await hasStoredShapeBaseUrl(input.container, input.provider.id, apiShape)) {
-    return undefined;
-  }
-
-  const descriptor = input.container.promptLibrary.providerBaseUrl(input.provider.label);
-  while (true) {
-    const baseUrl = await input.container.options.ensure({ descriptor });
-    if (isHttpBaseUrl(baseUrl)) {
-      return baseUrl;
-    }
-    input.logger.warn("Base URL must start with http:// or https://. Paste the Cloudflare gateway URL, not the API token.");
-  }
+  return resolveNonEmpty(input.options.baseUrl);
 }
 
 async function resolveFreeformProviderModel(input: {
@@ -186,13 +141,13 @@ async function resolveFreeformProviderModel(input: {
   provider: AuthProvider;
   logger: ScopedLogger;
 }): Promise<string> {
-  const explicitModel = nonEmpty(input.options.model);
+  const explicitModel = resolveNonEmpty(input.options.model);
   if (explicitModel !== undefined) {
     input.logger.resolved(input.label, explicitModel);
     return explicitModel;
   }
 
-  const configuredModel = nonEmpty(input.configModel ?? undefined);
+  const configuredModel = resolveNonEmpty(input.configModel ?? undefined);
   if (configuredModel !== undefined) {
     input.logger.resolved(input.label, configuredModel);
     return configuredModel;
@@ -211,45 +166,4 @@ async function resolveFreeformProviderModel(input: {
       type: "text"
     }
   });
-}
-
-function resolveProviderBaseUrlEnv(
-  container: CliContainer,
-  provider: AuthProvider
-): string | undefined {
-  const envVar = provider.baseUrlEnvVar;
-  if (!envVar) {
-    return undefined;
-  }
-  return nonEmpty(container.env.getVariable(envVar));
-}
-
-async function hasStoredShapeBaseUrl(
-  container: CliContainer,
-  providerId: string,
-  apiShape: ApiShapeId
-): Promise<boolean> {
-  const shapeBaseUrls = await loadProviderShapeBaseUrls({
-    fs: container.fs,
-    filePath: container.env.servicesConfigPath,
-    providerId
-  });
-  return nonEmpty(shapeBaseUrls[apiShape]) !== undefined;
-}
-
-function nonEmpty(value: string | undefined): string | undefined {
-  if (typeof value !== "string") {
-    return undefined;
-  }
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : undefined;
-}
-
-function isHttpBaseUrl(value: string): boolean {
-  try {
-    const parsed = new URL(value);
-    return parsed.protocol === "http:" || parsed.protocol === "https:";
-  } catch {
-    return false;
-  }
 }

@@ -6,9 +6,12 @@ import {
   createExecutionResources,
   createSecretPrompter,
   parseProviderShapeBaseUrls,
-  resolveCommandFlags
+  resolveCommandFlags,
+  resolveNonEmpty,
+  resolveShapeBaseUrl
 } from "./shared.js";
 import { getTheme, renderTable } from "@poe-code/design-system";
+import type { AuthProvider } from "@poe-code/providers";
 
 const apiShapeLabels: Record<ApiShapeId, string> = {
   "openai-chat-completions": "chat-completions",
@@ -19,6 +22,7 @@ const apiShapeLabels: Record<ApiShapeId, string> = {
 
 export interface ProviderLoginOptions {
   apiKey?: string;
+  baseUrl?: string;
   shapeBaseUrl?: string[];
 }
 
@@ -39,6 +43,7 @@ export function registerProviderCommand(program: Command, container: CliContaine
     .description("Log in to a provider.")
     .argument("<id>", "Provider id (e.g. poe, anthropic)")
     .option("--api-key <key>", "API key for the provider")
+    .option("--base-url <url>", "Provider gateway root URL")
     .option(
       "--shape-base-url <shape-id>=<url>",
       "Base URL for one provider API shape",
@@ -109,14 +114,21 @@ async function executeProviderLogin(
     );
   }
 
-  const shapeBaseUrls = parseProviderShapeBaseUrls(provider, options.shapeBaseUrl ?? []);
+  const parsedShapeBaseUrls = parseProviderShapeBaseUrls(provider, options.shapeBaseUrl ?? []);
+  validateProviderLoginBaseUrlOptions({
+    provider,
+    options,
+    container,
+    flags,
+    parsedShapeBaseUrls
+  });
 
   if (!flags.dryRun) {
     await container.providerRegistry.login(
       id,
       { apiKey: options.apiKey },
       {
-        envVars: container.env.variables,
+        envVars: flags.assumeYes ? container.env.variables : {},
         promptForSecret: createSecretPrompter(container),
         resolvePreferredLogin: async (input) =>
           container.options.resolveApiKey({
@@ -128,6 +140,15 @@ async function executeProviderLogin(
           })
       }
     );
+
+    const shapeBaseUrls = await resolveProviderLoginShapeBaseUrls({
+      provider,
+      options,
+      container,
+      flags,
+      logger: resources.logger,
+      parsedShapeBaseUrls
+    });
 
     await saveProviderShapeBaseUrls({
       fs: container.fs,
@@ -143,6 +164,109 @@ async function executeProviderLogin(
   });
 
   resources.context.finalize();
+}
+
+function validateProviderLoginBaseUrlOptions(input: {
+  provider: AuthProvider;
+  options: ProviderLoginOptions;
+  container: CliContainer;
+  flags: ReturnType<typeof resolveCommandFlags>;
+  parsedShapeBaseUrls: Partial<Record<ApiShapeId, string>>;
+}): void {
+  const explicitBaseUrl = resolveNonEmpty(input.options.baseUrl);
+  if (explicitBaseUrl !== undefined) {
+    assertHttpBaseUrl(input.provider.id, explicitBaseUrl);
+    return;
+  }
+
+  if (
+    input.flags.assumeYes &&
+    input.provider.requiresBaseUrl === true &&
+    Object.keys(input.parsedShapeBaseUrls).length === 0 &&
+    resolveProviderBaseUrlEnv(input.container, input.provider) === undefined
+  ) {
+    throw new Error(
+      `Provider "${input.provider.id}" requires a base URL. Pass --base-url or set ${input.provider.baseUrlEnvVar ?? "the provider base URL env var"}.`
+    );
+  }
+}
+
+async function resolveProviderLoginShapeBaseUrls(input: {
+  provider: AuthProvider;
+  options: ProviderLoginOptions;
+  container: CliContainer;
+  flags: ReturnType<typeof resolveCommandFlags>;
+  logger: ReturnType<typeof createExecutionResources>["logger"];
+  parsedShapeBaseUrls: Partial<Record<ApiShapeId, string>>;
+}): Promise<Partial<Record<ApiShapeId, string>>> {
+  const shapeBaseUrls = input.parsedShapeBaseUrls;
+  const explicitBaseUrl = resolveNonEmpty(input.options.baseUrl);
+  if (explicitBaseUrl !== undefined) {
+    assertHttpBaseUrl(input.provider.id, explicitBaseUrl);
+    return {
+      ...shapeBaseUrls,
+      ...deriveShapeBaseUrls(input.provider, explicitBaseUrl)
+    };
+  }
+
+  if (Object.keys(shapeBaseUrls).length > 0 || input.provider.requiresBaseUrl !== true) {
+    return shapeBaseUrls;
+  }
+
+  if (resolveProviderBaseUrlEnv(input.container, input.provider) !== undefined) {
+    return shapeBaseUrls;
+  }
+
+  if (input.flags.assumeYes) {
+    throw new Error(
+      `Provider "${input.provider.id}" requires a base URL. Pass --base-url or set ${input.provider.baseUrlEnvVar ?? "the provider base URL env var"}.`
+    );
+  }
+
+  const descriptor = input.container.promptLibrary.providerBaseUrl(input.provider.label);
+  while (true) {
+    const baseUrl = await input.container.options.ensure({ descriptor });
+    if (isHttpBaseUrl(baseUrl)) {
+      return deriveShapeBaseUrls(input.provider, baseUrl);
+    }
+    input.logger.warn(
+      "Base URL must start with http:// or https://. Paste the Cloudflare gateway URL, not the API token."
+    );
+  }
+}
+
+function deriveShapeBaseUrls(
+  provider: AuthProvider,
+  baseUrl: string
+): Partial<Record<ApiShapeId, string>> {
+  const result: Partial<Record<ApiShapeId, string>> = {};
+  for (const shape of provider.apiShapes ?? []) {
+    result[shape.id] = resolveShapeBaseUrl(baseUrl, shape.baseUrlPath) ?? baseUrl;
+  }
+  return result;
+}
+
+function resolveProviderBaseUrlEnv(
+  container: CliContainer,
+  provider: AuthProvider
+): string | undefined {
+  const envVar = provider.baseUrlEnvVar;
+  return envVar ? resolveNonEmpty(container.env.getVariable(envVar)) : undefined;
+}
+
+function assertHttpBaseUrl(providerId: string, baseUrl: string): void {
+  if (!isHttpBaseUrl(baseUrl)) {
+    throw new Error(`Provider "${providerId}" base URL must be an http(s) URL.`);
+  }
+}
+
+function isHttpBaseUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
 }
 
 function collectRepeatedOption(value: string, previous: string[] | undefined): string[] {

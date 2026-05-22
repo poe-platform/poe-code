@@ -6,6 +6,7 @@ import { registerProviderCommand } from "./provider.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
 import type { AuthProvider } from "@poe-code/providers";
+import type { PromptFn } from "../types.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -17,11 +18,16 @@ function createBaseProgram(): Command {
   return program;
 }
 
-function createContainer(fs: FileSystem, logs: string[] = []) {
+function createContainer(
+  fs: FileSystem,
+  logs: string[] = [],
+  prompts: PromptFn = vi.fn().mockResolvedValue({}),
+  envVars: Record<string, string | undefined> = {}
+) {
   return createCliContainer({
     fs,
-    prompts: vi.fn().mockResolvedValue({}),
-    env: { cwd, homeDir },
+    prompts,
+    env: { cwd, homeDir, variables: envVars },
     logger: (msg) => logs.push(msg)
   });
 }
@@ -265,6 +271,110 @@ describe("provider login", () => {
     expect(saved.providers.poe.shapeBaseUrls).toEqual({
       "anthropic-messages": "https://example/anth"
     });
+  });
+
+  it("prompts for Cloudflare credentials and stores shape URLs from a gateway base URL", async () => {
+    const gatewayRoot =
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/";
+    const prompts = vi.fn(async (descriptor) => {
+      if (descriptor.name === "apiKey") {
+        return { apiKey: "sk-cloudflare-prompt" };
+      }
+      if (descriptor.name === "baseUrl") {
+        return { baseUrl: gatewayRoot };
+      }
+      return {};
+    });
+    const container = createContainer(fs, [], prompts, {
+      CF_AIG_TOKEN: "sk-cloudflare-env"
+    });
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "login", "cloudflare"]);
+
+    expect(prompts).toHaveBeenCalledWith({
+      name: "apiKey",
+      message: "Cloudflare AI Gateway token",
+      type: "password"
+    });
+    expect(prompts).toHaveBeenCalledWith({
+      name: "baseUrl",
+      message: "Cloudflare AI Gateway base URL",
+      type: "text"
+    });
+    const saved = JSON.parse(await fs.readFile(resolveServicesConfigPath(homeDir), "utf8"));
+    expect(saved.providers.cloudflare.shapeBaseUrls).toEqual({
+      "anthropic-messages": `${gatewayRoot}anthropic`,
+      "google-generations": `${gatewayRoot}google-ai-studio`,
+      "openai-chat-completions": `${gatewayRoot}compat`,
+      "openai-responses": `${gatewayRoot}openai`
+    });
+  });
+
+  it("re-prompts when the interactive Cloudflare provider base URL is invalid", async () => {
+    const gatewayRoot =
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/";
+    const baseUrlAnswers = [
+      `"${gatewayRoot}compat",`,
+      gatewayRoot
+    ];
+    const prompts = vi.fn(async (descriptor) => {
+      if (descriptor.name === "apiKey") {
+        return { apiKey: "sk-cloudflare-prompt" };
+      }
+      if (descriptor.name === "baseUrl") {
+        return { baseUrl: baseUrlAnswers.shift() };
+      }
+      return {};
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs, prompts);
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "login", "cloudflare"]);
+
+    const baseUrlPrompts = prompts.mock.calls.filter(
+      ([descriptor]) => descriptor.name === "baseUrl"
+    );
+    expect(baseUrlPrompts).toHaveLength(2);
+    expect(logs.join("\n")).toContain("Base URL must start with http:// or https://");
+    const saved = JSON.parse(await fs.readFile(resolveServicesConfigPath(homeDir), "utf8"));
+    expect(saved.providers.cloudflare.shapeBaseUrls["openai-responses"]).toBe(
+      `${gatewayRoot}openai`
+    );
+  });
+
+  it("stores Cloudflare shape URLs from --base-url", async () => {
+    const gatewayRoot =
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/compat";
+    const container = createContainer(fs);
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "provider",
+      "login",
+      "cloudflare",
+      "--api-key",
+      "sk-cloudflare-test",
+      "--base-url",
+      gatewayRoot
+    ]);
+
+    const saved = JSON.parse(await fs.readFile(resolveServicesConfigPath(homeDir), "utf8"));
+    expect(saved.providers.cloudflare.shapeBaseUrls["openai-chat-completions"]).toBe(
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/compat"
+    );
+    expect(saved.providers.cloudflare.shapeBaseUrls["openai-responses"]).toBe(
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/openai"
+    );
   });
 
   it("stores repeated per-shape base URLs", async () => {

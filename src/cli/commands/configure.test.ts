@@ -289,113 +289,28 @@ describe("configure provider resolution", () => {
   });
 
   it("rejects Cloudflare configure when no base URL is provided", async () => {
-    const container = createContainer(fs);
-    const providerProgram = createTestProgram(["node", "cli", "--yes"]);
-    registerProviderCommand(providerProgram, container);
-
-    await providerProgram.parseAsync([
-      "node",
-      "cli",
-      "--yes",
-      "provider",
-      "login",
-      "cloudflare",
-      "--api-key",
-      "sk-cloudflare-test"
-    ]);
+    const container = createContainer(fs, { CF_AIG_TOKEN: "sk-cloudflare-test" });
 
     await expect(
       executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
         provider: "cloudflare"
       })
-    ).rejects.toThrow(
-      'Provider "cloudflare" requires a base URL for API shape "anthropic-messages".'
-    );
+    ).rejects.toThrow(/Provider "cloudflare" requires a base URL for API shape "anthropic-messages"./);
   });
 
-  it("prompts for Cloudflare base URL when configuring interactively", async () => {
-    const gatewayRoot =
-      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/";
-    const model = "@cf/meta/llama-3.1-8b-instruct";
-    const prompts = vi.fn(async (descriptor) => {
-      if (descriptor.name === "apiKey") {
-        return { apiKey: "sk-cloudflare-test" };
-      }
-      if (descriptor.name === "baseUrl") {
-        return { baseUrl: gatewayRoot };
-      }
-      if (descriptor.name === "model") {
-        return { model };
-      }
-      if (descriptor.name === "reasoningEffort") {
-        return { reasoningEffort: String(descriptor.initial ?? "medium") };
-      }
-      return {};
-    });
-    const container = createContainer(fs, {}, prompts);
+  it("does not prompt for Cloudflare provider setup while configuring an agent", async () => {
+    const prompts = vi.fn().mockResolvedValue({});
+    const container = createContainer(fs, { CF_AIG_TOKEN: "sk-cloudflare-env" }, prompts);
 
-    await executeConfigure(createTestProgram(), container, "codex", {
-      provider: "cloudflare"
-    });
+    await expect(
+      executeConfigure(createTestProgram(), container, "codex", {
+        provider: "cloudflare"
+      })
+    ).rejects.toThrow(/Provider "cloudflare" requires a base URL for API shape "openai-responses"./);
 
-    expect(prompts).toHaveBeenCalledWith({
-      name: "apiKey",
-      message: "Cloudflare AI Gateway token",
-      type: "password"
-    });
-    expect(prompts).toHaveBeenCalledWith(expect.objectContaining({
-      name: "baseUrl",
-      message: "Cloudflare AI Gateway base URL",
-      type: "text"
-    }));
-    expect(prompts).toHaveBeenCalledWith({
-      name: "model",
-      message: "Codex model",
-      type: "text"
-    });
-    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
-    const profiles = document.profiles as Record<string, Record<string, unknown>>;
-    expect(Object.values(profiles).some((profile) => profile.model === model)).toBe(true);
-    const providers = document.model_providers as Record<string, Record<string, unknown>>;
-    expect(providers.cloudflare?.base_url).toBe(`${gatewayRoot}openai`);
-  });
-
-  it("re-prompts when the interactive Cloudflare base URL is invalid", async () => {
-    const gatewayRoot =
-      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/";
-    const model = "@cf/meta/llama-3.1-8b-instruct";
-    const baseUrlAnswers = [
-      `"${gatewayRoot}compat",`,
-      gatewayRoot
-    ];
-    const prompts = vi.fn(async (descriptor) => {
-      if (descriptor.name === "apiKey") {
-        return { apiKey: "sk-cloudflare-test" };
-      }
-      if (descriptor.name === "baseUrl") {
-        return { baseUrl: baseUrlAnswers.shift() };
-      }
-      if (descriptor.name === "model") {
-        return { model };
-      }
-      if (descriptor.name === "reasoningEffort") {
-        return { reasoningEffort: String(descriptor.initial ?? "medium") };
-      }
-      return {};
-    });
-    const container = createContainer(fs, {}, prompts);
-
-    await executeConfigure(createTestProgram(), container, "codex", {
-      provider: "cloudflare"
-    });
-
-    const baseUrlPrompts = prompts.mock.calls.filter(
-      ([descriptor]) => descriptor.name === "baseUrl"
+    expect(prompts).not.toHaveBeenCalledWith(
+      expect.objectContaining({ name: "baseUrl" })
     );
-    expect(baseUrlPrompts).toHaveLength(2);
-    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
-    const providers = document.model_providers as Record<string, Record<string, unknown>>;
-    expect(providers.cloudflare?.base_url).toBe(`${gatewayRoot}openai`);
   });
 
   it("rejects Cloudflare configure when the provided base URL is not a URL", async () => {
@@ -664,7 +579,7 @@ describe("configure provider resolution", () => {
     ).rejects.toThrow(/No logged-in providers/);
   });
 
-  it("triggers login for --provider when it is not logged in", async () => {
+  it("uses an explicit api key for --provider without storing provider login", async () => {
     const fakeAnthropicProvider = createFakeProvider("anthropic", "Anthropic");
     const container = createContainer(fs);
     includeFakeProvider(container, fakeAnthropicProvider);
@@ -682,7 +597,7 @@ describe("configure provider resolution", () => {
       apiKey: "sk-fresh"
     });
 
-    expect(loginSpy).toHaveBeenCalledWith("anthropic", { apiKey: "sk-fresh" }, expect.any(Object));
+    expect(loginSpy).not.toHaveBeenCalled();
   });
 
   it("dry-run succeeds without any logged-in provider", async () => {

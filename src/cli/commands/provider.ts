@@ -73,6 +73,7 @@ async function executeProviderList(program: Command, container: CliContainer): P
       return {
         Provider: theme.accent(provider.id),
         Status: loggedIn ? theme.success("[logged in]") : theme.muted("[-]"),
+        Env: formatProviderEnv(provider),
         "API shapes": formatProviderApiShapes(apiShapes),
         Agents: listShapeCompatibleAgents(apiShapes).join(", ")
       };
@@ -82,6 +83,7 @@ async function executeProviderList(program: Command, container: CliContainer): P
   const columns = [
     { name: "Provider", title: "Provider", alignment: "left" as const, maxLen: 20 },
     { name: "Status", title: "Status", alignment: "left" as const, maxLen: 14 },
+    { name: "Env", title: "Env", alignment: "left" as const, maxLen: 34 },
     { name: "API shapes", title: "API shapes", alignment: "left" as const, maxLen: 52 },
     { name: "Agents", title: "Agents", alignment: "left" as const, maxLen: 60 }
   ];
@@ -149,6 +151,17 @@ function collectRepeatedOption(value: string, previous: string[] | undefined): s
 
 function formatProviderApiShapes(apiShapes: readonly ApiShapeId[]): string {
   return apiShapes.map((shapeId) => apiShapeLabels[shapeId]).join(", ");
+}
+
+function formatProviderEnv(provider: {
+  auth: { kind: string; envVar?: string };
+  baseUrlEnvVar?: string;
+}): string {
+  const envVars = [
+    provider.auth.kind === "api-key" ? provider.auth.envVar : undefined,
+    provider.baseUrlEnvVar
+  ].filter((value): value is string => typeof value === "string" && value.length > 0);
+  return envVars.join(", ");
 }
 
 function listShapeCompatibleAgents(providerApiShapes: readonly ApiShapeId[]): string[] {

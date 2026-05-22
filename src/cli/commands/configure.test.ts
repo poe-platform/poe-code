@@ -394,6 +394,24 @@ describe("configure provider resolution", () => {
     );
   });
 
+  it("uses the Cloudflare base URL environment variable when no base URL flag is provided", async () => {
+    const container = createContainer(fs, {
+      CF_AIG_BASE_URL:
+        "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/",
+      CF_AIG_TOKEN: "sk-cloudflare-test"
+    });
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare"
+    });
+
+    const document = parseToml(await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8"));
+    const providers = document.model_providers as Record<string, Record<string, unknown>>;
+    expect(providers.cloudflare?.base_url).toBe(
+      "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/openai"
+    );
+  });
+
   it("keeps claude-code on Poe with --yes when POE_API_KEY is set but CF_AIG_TOKEN is unset", async () => {
     const container = createContainer(fs, { POE_API_KEY: "sk-env" });
     mockOptions(container);

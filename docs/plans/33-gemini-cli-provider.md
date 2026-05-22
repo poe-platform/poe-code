@@ -166,7 +166,7 @@ tasks:
 
       Preconditions:
       - `CF_AIG_TOKEN` is set in the environment.
-      - Gateway base URL is provided explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
+      - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
       - Gemini CLI is installed and `gemini --version` succeeds.
 
       Run gemini-cli with:
@@ -189,7 +189,7 @@ tasks:
 
       Preconditions:
       - `CF_AIG_TOKEN` is set in the environment.
-      - Gateway base URL is provided explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
+      - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
       - The cloudflare/provider entry exposes `google-generations` for gemini-cli.
 
       Run the configure command through `npm run dev -- configure gemini-cli` using the gateway base URL and `CF_AIG_TOKEN` credential. Exercise the interactive path first so the dynamic Gemini model list is visible, then repeat the non-interactive `--yes` path.
@@ -206,7 +206,7 @@ tasks:
 
       Preconditions:
       - `CF_AIG_TOKEN` is set in the environment.
-      - Gateway base URL is provided explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
+      - Gateway base URL is provided via `CF_AIG_BASE_URL` or explicitly, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
       - gemini-cli has already been configured by poe-code.
 
       Run a spawn command through `npm run dev -- spawn --mcp-servers <json> gemini-cli <prompt>` where `<json>` defines a tiny stdio MCP server available in this repo, such as `tiny-stdio-mcp-test-server`. The prompt must require the MCP tool result and must also ask Gemini to include `GEMINI_MCP_OK` in the final response.
@@ -242,7 +242,7 @@ Add Gemini CLI as a coding agent provider in poe-code, routed through the existi
 
 A new declarative provider file at `src/providers/gemini-cli.ts` plus its companion agent definition at `packages/agent-defs/src/agents/gemini-cli.ts`. Configure, install, test, and spawn lifecycles all derive from those two declarations — no provider-specific branches elsewhere.
 
-The agent declares `apiShapes: ["google-generations"]` and is therefore compatible with any provider that exposes that shape. Plan 04's `add-cloudflare-provider` task establishes `cloudflareProvider` with the `google-generations` shape; Cloudflare requires an explicit gateway base URL such as `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`, and the provider appends the matching shape path. Once both plans land, `poe-code configure gemini-cli --provider cloudflare --base-url <url> --yes` routes Gemini CLI through the Cloudflare gateway without touching gemini-cli code or hardcoding URLs anywhere.
+The agent declares `apiShapes: ["google-generations"]` and is therefore compatible with any provider that exposes that shape. Plan 04's `add-cloudflare-provider` task establishes `cloudflareProvider` with the `google-generations` shape; Cloudflare requires a gateway base URL via `CF_AIG_BASE_URL` or `--base-url`, such as `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`, and the provider appends the matching shape path. Once both plans land, `poe-code configure gemini-cli --provider cloudflare --base-url <url> --yes` routes Gemini CLI through the Cloudflare gateway without touching gemini-cli code or hardcoding URLs anywhere.
 
 Two new pieces of infrastructure are introduced:
 

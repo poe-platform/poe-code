@@ -4,7 +4,7 @@ export const cloudflareProvider: AuthProvider = {
   id: "cloudflare",
   label: "Cloudflare AI Gateway",
   summary: "Route coding agents through Cloudflare AI Gateway.",
-  baseUrl: "https://gateway.ai.cloudflare.com",
+  baseUrlEnvVar: "CF_AIG_BASE_URL",
   requiresBaseUrl: true,
   auth: {
     kind: "api-key",

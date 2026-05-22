@@ -1,6 +1,6 @@
 # @poe-code/providers
 
-Auth-provider abstraction for poe-code: declarative provider manifests plus pluggable auth strategies. Each provider declares its id, label, base URL, API shapes, and the auth method it uses.
+Auth-provider abstraction for poe-code: declarative provider manifests plus pluggable auth strategies. Each provider declares its id, label, API shapes, and the auth method it uses. Providers may declare a default base URL when one exists.
 
 See [docs/plans/provider-abstraction.md](../../docs/plans/provider-abstraction.md) for the full design.
 
@@ -13,6 +13,7 @@ const anthropic: AuthProvider = {
   id: "anthropic",
   label: "Anthropic",
   baseUrl: "https://api.anthropic.com",
+  baseUrlEnvVar: "ANTHROPIC_BASE_URL",
   auth: {
     kind: "api-key",
     envVar: "ANTHROPIC_API_KEY",
@@ -27,6 +28,11 @@ const anthropic: AuthProvider = {
   ]
 };
 ```
+
+`baseUrl` and `baseUrlEnvVar` are optional. `baseUrl` is only for providers that have a real
+provider-level default. When a provider declares `baseUrlEnvVar`, consumers may resolve a
+provider base URL from that environment variable before falling back to stored provider config
+or declared defaults.
 
 ## Registry
 
@@ -69,8 +75,15 @@ matching what `login()` would use in CI.
 ## Environment variables
 
 This package does not read `process.env` directly. Consumers pass environment variables in
-via provider declarations (e.g. `auth.envVar`), `ProviderRegistryOptions.envVars`,
-and `LoginContext.envVars`.
+via provider declarations (e.g. `auth.envVar` and `baseUrlEnvVar`),
+`ProviderRegistryOptions.envVars`, and `LoginContext.envVars`.
+
+Declared environment variables:
+
+- `POE_API_KEY` - Poe API key.
+- `ANTHROPIC_API_KEY` - Anthropic API key.
+- `CF_AIG_TOKEN` - Cloudflare AI Gateway token.
+- `CF_AIG_BASE_URL` - Cloudflare AI Gateway root URL, for example `https://gateway.ai.cloudflare.com/v1/<account_id>/<gateway_id>/`.
 
 ## Configuration options
 

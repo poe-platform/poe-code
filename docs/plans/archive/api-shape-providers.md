@@ -222,9 +222,8 @@ tasks:
 
 
       Resolution order at configure time (already specified in plan body):
-      explicit `--base-url`/`--shape-base-url` > env var (api key only) > stored
-      shape URL > `provider.apiShapes[...].defaultBaseUrl`. Base URLs are never
-      read from env vars.
+      explicit `--base-url`/`--shape-base-url` > provider-declared env vars >
+      stored shape URL > `provider.apiShapes[...].defaultBaseUrl`.
 
 
       Tests: round-trip — `provider login poe --shape-base-url
@@ -317,7 +316,7 @@ tasks:
         id: "cloudflare",
         label: "Cloudflare AI Gateway",
         summary: "Route coding agents through Cloudflare AI Gateway.",
-        baseUrl: "https://gateway.ai.cloudflare.com",
+        baseUrlEnvVar: "CF_AIG_BASE_URL",
         requiresBaseUrl: true,
         auth: {
           kind: "api-key",
@@ -510,10 +509,10 @@ poe-code provider login poe \
   --shape-base-url anthropic-messages=https://api.poe.com/anthropic
 ```
 
-Every provider declares the API key env var it can read without an explicit `provider login` round-trip. Base URLs are not read from env; they come from explicit login/config values or provider-declared defaults. Resolution order is:
+Every provider declares the API key env var it can read without an explicit `provider login` round-trip. Providers may also declare a base URL env var, such as `CF_AIG_BASE_URL`. Resolution order is:
 
 1. Explicit CLI/SDK options, such as `--api-key`, `--base-url`, and `--shape-base-url`.
-2. Provider-declared API key env vars, such as `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, and `POE_API_KEY`.
+2. Provider-declared env vars, such as `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `POE_API_KEY`, `CF_AIG_TOKEN`, and `CF_AIG_BASE_URL`.
 3. Stored provider login values.
 4. Provider-declared defaults for base URLs only.
 5. Interactive prompt when required and allowed.

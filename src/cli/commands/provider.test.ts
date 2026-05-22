@@ -52,6 +52,7 @@ function makeProvider(overrides: Partial<AuthProvider> & Pick<AuthProvider, "id"
     id: overrides.id,
     label: overrides.label ?? overrides.id,
     baseUrl: overrides.baseUrl ?? "https://api.test",
+    baseUrlEnvVar: overrides.baseUrlEnvVar,
     auth: overrides.auth ?? {
       kind: "api-key",
       envVar: "TEST_API_KEY",
@@ -133,6 +134,7 @@ describe("provider list", () => {
     vi.spyOn(container.providerRegistry, "list").mockReturnValue([
       makeProvider({
         id: "shape-only",
+        baseUrlEnvVar: "SHAPE_ONLY_BASE_URL",
         apiShapes: [
           {
             id: "openai-responses",
@@ -148,6 +150,7 @@ describe("provider list", () => {
     await program.parseAsync(["node", "cli", "provider", "list"]);
 
     const output = stripAnsi(logs.join("\n"));
+    expect(output).toContain("TEST_API_KEY, SHAPE_ONLY_BASE_URL");
     expect(output).toContain("responses");
     expect(output).toContain("codex, poe-agent");
   });

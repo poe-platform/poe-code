@@ -37,7 +37,8 @@ export interface AuthProvider {
   readonly id: string;
   readonly label: string;
   readonly summary?: string;
-  readonly baseUrl: string;
+  readonly baseUrl?: string;
+  readonly baseUrlEnvVar?: string;
   readonly requiresBaseUrl?: boolean;
   readonly auth: AuthMethod;
   readonly apiShapes?: readonly ApiShapeBinding[];

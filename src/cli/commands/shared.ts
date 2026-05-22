@@ -64,6 +64,10 @@ export async function buildActiveProvider(input: {
   const configuredBaseUrl =
     resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
     resolveShapeBaseUrl(resolveNonEmpty(input.explicitBaseUrl), shape.baseUrlPath) ??
+    resolveShapeBaseUrl(
+      resolveProviderBaseUrlEnv(input.container, input.provider),
+      shape.baseUrlPath
+    ) ??
     (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape));
 
   if (input.provider.requiresBaseUrl === true && configuredBaseUrl === undefined) {
@@ -134,7 +138,18 @@ function resolveNonEmpty(value: string | undefined): string | undefined {
   return trimmed && trimmed.length > 0 ? trimmed : undefined;
 }
 
-function resolveShapeBaseUrl(baseUrl: string | undefined, pathSuffix: string | undefined): string | undefined {
+function resolveProviderBaseUrlEnv(
+  container: CliContainer,
+  provider: AuthProvider
+): string | undefined {
+  const envVar = provider.baseUrlEnvVar;
+  return envVar ? resolveNonEmpty(container.env.getVariable(envVar)) : undefined;
+}
+
+function resolveShapeBaseUrl(
+  baseUrl: string | undefined,
+  pathSuffix: string | undefined
+): string | undefined {
   if (baseUrl === undefined) {
     return undefined;
   }

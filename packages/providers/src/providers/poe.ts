@@ -7,12 +7,19 @@ export const poeProvider: AuthProvider = {
   label: "Poe",
   summary: "Route AI coding agents through Poe's API.",
   baseUrl: "https://api.poe.com",
+  agentBaseUrl: "https://api.poe.com",
   auth: {
     kind: "api-key",
     envVar: "POE_API_KEY",
     storageKey: "provider:poe",
     prompt: { title: "Poe API key" },
     preferredLogin: "oauth"
+  },
+  env: {
+    ANTHROPIC_CUSTOM_HEADERS: {
+      kind: "providerCredential",
+      prefix: "Authorization: Bearer "
+    }
   },
   apiShapes: [
     {

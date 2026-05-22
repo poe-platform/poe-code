@@ -11,6 +11,9 @@ export const anthropicProvider: AuthProvider = {
     storageKey: "provider:anthropic",
     prompt: { title: "Anthropic API key" }
   },
+  env: {
+    ANTHROPIC_API_KEY: { kind: "providerCredential" }
+  },
   apiShapes: [
     {
       id: "anthropic-messages",

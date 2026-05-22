@@ -28,6 +28,7 @@ import {
   resolveApiShape,
   type ApiShapeId,
   type AuthProvider,
+  type EnvValueSource,
   type ProviderModelInput
 } from "@poe-code/providers";
 import { OperationCancelledError, ValidationError } from "../errors.js";
@@ -42,6 +43,7 @@ export interface ActiveProvider {
   id: string;
   apiShape: ApiShapeId;
   baseUrl: string;
+  agentBaseUrl: string;
   credential: string;
   modelInput?: ProviderModelInput;
   extraEnv: Record<string, string>;
@@ -95,15 +97,54 @@ export async function buildActiveProvider(input: {
     );
   }
   assertHttpBaseUrl(input.provider.id, baseUrl);
+  const agentBaseUrl = input.provider.agentBaseUrl ?? baseUrl;
 
   return {
     id: input.provider.id,
     apiShape,
     baseUrl,
+    agentBaseUrl,
     credential: input.credential,
     modelInput: input.provider.modelInput,
-    extraEnv: {}
+    extraEnv: resolveProviderEnv(input.provider, {
+      baseUrl,
+      credential: input.credential
+    })
   };
+}
+
+function resolveProviderEnv(
+  provider: AuthProvider,
+  input: { baseUrl: string; credential: string }
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(provider.env ?? {}).map(([key, source]) => [
+      key,
+      resolveProviderEnvValue(provider, source, input)
+    ])
+  );
+}
+
+function resolveProviderEnvValue(
+  provider: AuthProvider,
+  source: EnvValueSource,
+  input: { baseUrl: string; credential: string }
+): string {
+  switch (source.kind) {
+    case "literal":
+      return source.value;
+    case "providerCredential":
+      return `${source.prefix ?? ""}${input.credential}`;
+    case "providerBaseUrl":
+      return input.baseUrl;
+    case "providerField": {
+      const value = provider[source.path as keyof AuthProvider];
+      if (typeof value !== "string") {
+        throw new Error(`Provider field "${source.path}" must resolve to a string.`);
+      }
+      return value;
+    }
+  }
 }
 
 function assertHttpBaseUrl(providerId: string, baseUrl: string): void {

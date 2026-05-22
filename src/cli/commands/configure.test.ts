@@ -201,7 +201,7 @@ describe("configure provider resolution", () => {
     );
 
     const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
-    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.poe.com/anthropic");
+    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.poe.com");
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);
@@ -354,6 +354,11 @@ describe("configure provider resolution", () => {
     expect(settings.env.ANTHROPIC_BASE_URL).toBe(
       "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/anthropic"
     );
+    expect(settings.env.ANTHROPIC_CUSTOM_HEADERS).toBe(
+      "Authorization: Bearer sk-cloudflare-test"
+    );
+    expect(settings.env.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(settings.apiKeyHelper).toBeUndefined();
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]).toMatchObject({
@@ -460,7 +465,7 @@ describe("configure provider resolution", () => {
     );
 
     const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
-    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.poe.com/anthropic");
+    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://api.poe.com");
 
     const services = await loadConfiguredServices({ fs, filePath: configPath });
     expect(services["claude-code"]?.provider).toBe(PROVIDER_NAME);

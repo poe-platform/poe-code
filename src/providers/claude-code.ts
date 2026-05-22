@@ -71,18 +71,17 @@ export const claudeCodeService = createProvider<
   postConfigureMessages: [
     "If using VSCode - Open the Disable Login Prompt setting and check the box. vscode://settings/claudeCode.disableLoginPrompt"
   ],
+  runtimeEnv: {
+    ANTHROPIC_BASE_URL: { kind: "agentBaseUrl" }
+  },
   isolatedEnv: {
     agentBinary: claudeCodeAgent.binaryName!,
-    env: {
-      POE_CODE_API_KEY: { kind: "providerCredential" }
-    },
+    env: {},
     requiresConfig: false,
     cliSettings: {
-      values: {
-        apiKeyHelper: "echo $POE_CODE_API_KEY"
-      },
+      values: {},
       env: {
-        ANTHROPIC_BASE_URL: { kind: "providerBaseUrl" }
+        ANTHROPIC_BASE_URL: { kind: "agentBaseUrl" }
       }
     }
   },
@@ -97,14 +96,23 @@ export const claudeCodeService = createProvider<
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.claude" }),
+      configMutation.prune({
+        target: "~/.claude/settings.json",
+        shape: {
+          apiKeyHelper: true,
+          env: {
+            ANTHROPIC_API_KEY: true
+          }
+        }
+      }),
       configMutation.merge({
         target: "~/.claude/settings.json",
         value: (ctx) => {
           const options = ctx as unknown as ClaudeCodeConfigureContext;
           return {
-            apiKeyHelper: `echo ${options.provider?.credential}`,
             env: {
-              ANTHROPIC_BASE_URL: options.provider?.baseUrl
+              ...options.provider?.extraEnv,
+              ANTHROPIC_BASE_URL: options.provider?.agentBaseUrl ?? options.provider?.baseUrl
             },
             model: stripModelNamespace(options.model ?? DEFAULT_CLAUDE_CODE_MODEL).replaceAll(".", "-")
           };
@@ -117,6 +125,8 @@ export const claudeCodeService = createProvider<
         shape: {
           apiKeyHelper: true,
           env: {
+            ANTHROPIC_API_KEY: true,
+            ANTHROPIC_CUSTOM_HEADERS: true,
             ANTHROPIC_BASE_URL: true,
             ANTHROPIC_DEFAULT_HAIKU_MODEL: true,
             ANTHROPIC_DEFAULT_SONNET_MODEL: true,

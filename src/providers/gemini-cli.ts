@@ -11,8 +11,10 @@ import type { ModelConfigureOptions } from "./spawn-options.js";
 import { geminiCliAgent } from "@poe-code/agent-defs";
 import type { CliEnvironment } from "../cli/environment.js";
 import type { ActiveProvider } from "../cli/commands/shared.js";
+import type { ModelChoice } from "../cli/prompts.js";
 
 const DEFAULT_GEMINI_MODEL = "gemini-2.5-pro";
+const GOOGLE_MODELS_PATH = "v1beta/models";
 
 type GeminiConfigureContext = ModelConfigureOptions & {
   env: CliEnvironment;
@@ -43,7 +45,19 @@ export const geminiCliService = createProvider<GeminiConfigureContext, GeminiUnc
   configurePrompts: {
     model: {
       label: "Gemini model",
-      defaultValue: DEFAULT_GEMINI_MODEL
+      defaultValue: DEFAULT_GEMINI_MODEL,
+      choices: async ({ httpClient, provider }) => {
+        const response = await httpClient(buildGoogleModelsUrl(provider.baseUrl), {
+          headers: {
+            Authorization: `Bearer ${provider.credential}`,
+            "x-goog-api-key": provider.credential
+          }
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+        return parseGoogleModelChoices(await response.json());
+      }
     }
   },
   test: async (context) => {
@@ -118,3 +132,49 @@ export const geminiCliService = createProvider<GeminiConfigureContext, GeminiUnc
 });
 
 export const provider = geminiCliService;
+
+function buildGoogleModelsUrl(baseUrl: string): string {
+  return `${trimTrailingSlash(baseUrl)}/${GOOGLE_MODELS_PATH}`;
+}
+
+function trimTrailingSlash(value: string): string {
+  return value.endsWith("/") ? value.slice(0, -1) : value;
+}
+
+function parseGoogleModelChoices(payload: unknown): ReadonlyArray<ModelChoice> {
+  if (!isRecord(payload) || !Array.isArray(payload.models)) {
+    throw new Error("model list response did not include models");
+  }
+
+  const choices: ModelChoice[] = [];
+  for (const model of payload.models) {
+    if (!isRecord(model) || typeof model.name !== "string") {
+      continue;
+    }
+    if (!supportsGenerateContent(model.supportedGenerationMethods)) {
+      continue;
+    }
+    const value = stripModelsPrefix(model.name);
+    choices.push({
+      title:
+        typeof model.displayName === "string" && model.displayName.length > 0
+          ? model.displayName
+          : value,
+      value
+    });
+  }
+  return choices;
+}
+
+function supportsGenerateContent(value: unknown): boolean {
+  return Array.isArray(value) && value.includes("generateContent");
+}
+
+function stripModelsPrefix(value: string): string {
+  const prefix = "models/";
+  return value.startsWith(prefix) ? value.slice(prefix.length) : value;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}

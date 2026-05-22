@@ -1411,10 +1411,6 @@ describe("acp/spawnStreaming", () => {
     expect(mock.getStdin()).toBe(prompt);
   });
 
-  // IMPORTANT: CLI binaries (claude, codex, etc.) only accept bare model IDs
-  // (e.g. "claude-opus-4-6"), not namespaced ones (e.g. "anthropic/claude-opus-4.6").
-  // The namespace MUST be stripped and dots converted to hyphens before invoking the binary.
-  // Do NOT remove this stripping — it will break all spawns that pass a namespaced model.
   it("strips provider namespace and transforms model before passing to CLI", async () => {
     const mock = createMockChildProcess({
       stdoutLines: [JSON.stringify({ type: "system", subtype: "init", session_id: "s1" })],

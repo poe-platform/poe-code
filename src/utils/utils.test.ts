@@ -536,6 +536,28 @@ describe("dry run diff redaction", () => {
     expect(output).toContain("echo <redacted>");
   });
 
+  it("redacts Anthropic API keys in Claude settings diffs", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.claude/settings.json",
+      null,
+      "{\n  \"env\": {\n    \"ANTHROPIC_API_KEY\": \"sk-test\"\n  }\n}\n"
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("sk-test");
+    expect(output).toContain("<redacted>");
+  });
+
+  it("redacts Anthropic custom auth headers in Claude settings diffs", () => {
+    const diff = renderUnifiedDiff(
+      "/home/test/.claude/settings.json",
+      null,
+      "{\n  \"env\": {\n    \"ANTHROPIC_CUSTOM_HEADERS\": \"Authorization: Bearer sk-test\"\n  }\n}\n"
+    );
+    const output = diff.join("\n");
+    expect(output).not.toContain("sk-test");
+    expect(output).toContain("<redacted>");
+  });
+
   it("redacts auth keys and bearer tokens in auth diffs", () => {
     const authDiff = renderUnifiedDiff(
       "/home/test/.config/opencode/auth.json",

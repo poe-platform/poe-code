@@ -1434,7 +1434,39 @@ describe("test command", () => {
       expect.any(Array),
       expect.objectContaining({
         env: expect.objectContaining({
-          POE_CODE_API_KEY: "sk-env"
+          ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-env",
+          ANTHROPIC_BASE_URL: "https://api.poe.com"
+        })
+      })
+    );
+  });
+
+  it("resolves provider-backed runtime env for configured tests", async () => {
+    const commandRunner = vi.fn().mockResolvedValue({
+      stdout: "CLAUDE_CODE_OK\n",
+      stderr: "",
+      exitCode: 0
+    });
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "sk-env" } },
+      commandRunner,
+      logger: () => {}
+    });
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "test", "claude-code"]);
+
+    expect(commandRunner).toHaveBeenCalledWith(
+      "claude",
+      expect.any(Array),
+      expect.objectContaining({
+        env: expect.objectContaining({
+          ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-env",
+          ANTHROPIC_BASE_URL: "https://api.poe.com"
         })
       })
     );

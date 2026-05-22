@@ -11,10 +11,8 @@ import {
   type CommandFlags
 } from "./shared.js";
 import type { ConfigureCommandOptions } from "./configure.js";
-import {
-  POE_PROVIDER_ID,
-  type AuthProvider
-} from "@poe-code/providers";
+import { POE_PROVIDER_ID, type AuthProvider } from "@poe-code/providers";
+import type { ModelChoice, ModelChoices } from "../prompts.js";
 
 interface ConfigurePayloadInit {
   container: CliContainer;
@@ -30,6 +28,9 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
   const { container, flags, options, context, adapter, logger, providerId } = init;
   const payload: Record<string, unknown> = { env: context.env };
   let provider: AuthProvider | undefined;
+  let activeProvider: ActiveProvider | undefined;
+  let resolvedModelChoices: ReadonlyArray<ModelChoice> | undefined;
+  let hasResolvedModelChoices = false;
 
   if (providerId) {
     provider = container.providerRegistry.get(providerId);
@@ -57,7 +58,7 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
     const explicitBaseUrl = await resolveConfigureBaseUrl({
       options
     });
-    const activeProvider: ActiveProvider = await buildActiveProvider({
+    activeProvider = await buildActiveProvider({
       container,
       provider,
       agent,
@@ -77,24 +78,25 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
       },
       adapter.name
     );
-    const model = provider?.modelInput?.kind === "freeform"
-      ? await resolveFreeformProviderModel({
-          container,
-          flags,
-          options,
-          label: modelPrompt.label,
-          configModel,
-          provider,
-          logger
-        })
-      : await container.options.resolveModel({
-          value: options.model,
-          assumeDefault: flags.assumeYes,
-          defaultValue: configModel ?? modelPrompt.defaultValue,
-          choices: modelPrompt.choices,
-          label: modelPrompt.label,
-          onResolve: (label, value) => logger.resolved(label, value)
-        });
+    const model =
+      provider?.modelInput?.kind === "freeform" && typeof modelPrompt.choices !== "function"
+        ? await resolveFreeformProviderModel({
+            container,
+            flags,
+            options,
+            label: modelPrompt.label,
+            configModel,
+            provider,
+            logger
+          })
+        : await container.options.resolveModel({
+            value: options.model,
+            assumeDefault: flags.assumeYes,
+            defaultValue: configModel ?? modelPrompt.defaultValue,
+            choices: await resolveChoices(),
+            label: modelPrompt.label,
+            onResolve: (label, value) => logger.resolved(label, value)
+          });
     payload.model = model;
   }
 
@@ -124,6 +126,63 @@ export async function createConfigurePayload(init: ConfigurePayloadInit): Promis
   }
 
   return payload;
+
+  async function resolveChoices(): Promise<ReadonlyArray<ModelChoice> | undefined> {
+    const choices = modelPrompt?.choices;
+    if (!choices) {
+      return undefined;
+    }
+    if (typeof choices !== "function") {
+      return choices;
+    }
+    if (hasResolvedModelChoices) {
+      return resolvedModelChoices;
+    }
+    hasResolvedModelChoices = true;
+    resolvedModelChoices = await resolveDynamicModelChoices({
+      choices,
+      activeProvider,
+      container,
+      adapter,
+      logger,
+      fallbackModel: modelPrompt.defaultValue
+    });
+    return resolvedModelChoices;
+  }
+}
+
+async function resolveDynamicModelChoices(input: {
+  choices: Exclude<ModelChoices, ReadonlyArray<ModelChoice>>;
+  activeProvider?: ActiveProvider;
+  container: CliContainer;
+  adapter: ProviderService;
+  logger: ScopedLogger;
+  fallbackModel: string;
+}): Promise<ReadonlyArray<ModelChoice>> {
+  try {
+    if (!input.activeProvider) {
+      throw new Error("active provider is unavailable");
+    }
+    return await input.choices({
+      httpClient: input.container.httpClient,
+      provider: input.activeProvider,
+      env: input.container.env
+    });
+  } catch (error) {
+    input.logger.verbose(
+      `Failed to resolve model choices for ${input.adapter.name}: ${formatErrorMessage(
+        error
+      )}. Using ${input.fallbackModel}.`
+    );
+    return [{ title: input.fallbackModel, value: input.fallbackModel }];
+  }
+}
+
+function formatErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message.trim().length > 0) {
+    return error.message;
+  }
+  return "unknown error";
 }
 
 async function resolveConfigureBaseUrl(input: {

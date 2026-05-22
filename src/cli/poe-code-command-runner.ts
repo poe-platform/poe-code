@@ -6,6 +6,7 @@ import type {
 import {
   applyIsolatedEnvRepairs,
   resolveIsolatedEnvDetails,
+  resolveProviderRuntimeEnv,
   resolveCliSettings,
   isolatedConfigExists
 } from "./isolated-env.js";
@@ -49,6 +50,14 @@ export function createPoeCodeCommandRunner(input: {
       adapter.name,
       activeProvider
     );
+    const runtimeEnv = adapter.runtimeEnv
+      ? await resolveProviderRuntimeEnv(
+          container.env,
+          adapter.runtimeEnv,
+          adapter.name,
+          activeProvider
+        )
+      : {};
 
     if (adapter.isolatedEnv.requiresConfig !== false) {
       const hasConfig = await isolatedConfigExists(
@@ -90,7 +99,9 @@ export function createPoeCodeCommandRunner(input: {
 
     const mergedEnv = {
       ...(options?.env ?? {}),
-      ...details.env
+      ...(activeProvider?.extraEnv ?? {}),
+      ...details.env,
+      ...runtimeEnv
     };
 
     const runOptions: CommandRunnerOptions = { env: mergedEnv };

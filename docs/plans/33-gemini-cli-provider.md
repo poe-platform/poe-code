@@ -41,7 +41,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: dynamic-model-choices
     title: Allow async resolver for configurePrompts.model.choices
@@ -72,9 +72,9 @@ tasks:
 
       Backwards-compat invariant: existing configure snapshots are byte-identical.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: add-gemini-cli-provider
     title: Add the gemini-cli provider file

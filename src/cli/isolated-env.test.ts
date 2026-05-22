@@ -20,6 +20,7 @@ const testProvider: ActiveProvider = {
   id: "test-provider",
   apiShape: "openai-responses",
   baseUrl: "https://test.example.com",
+  agentBaseUrl: "https://agent.example.com",
   credential: "test-credential-secret",
   extraEnv: {}
 };
@@ -35,6 +36,24 @@ describe("resolveIsolatedEnvDetails", () => {
       );
       expect(details.env.MY_KEY).toBe("test-credential-secret");
     });
+
+    it("supports a declarative prefix", async () => {
+      const details = await resolveIsolatedEnvDetails(
+        makeEnv(),
+        {
+          ...baseIsolated,
+          env: {
+            AUTH_HEADER: {
+              kind: "providerCredential" as const,
+              prefix: "Authorization: Bearer "
+            }
+          }
+        },
+        "test-service",
+        testProvider
+      );
+      expect(details.env.AUTH_HEADER).toBe("Authorization: Bearer test-credential-secret");
+    });
   });
 
   describe("providerBaseUrl kind", () => {
@@ -46,6 +65,18 @@ describe("resolveIsolatedEnvDetails", () => {
         testProvider
       );
       expect(details.env.BASE_URL).toBe("https://test.example.com");
+    });
+  });
+
+  describe("agentBaseUrl kind", () => {
+    it("resolves to activeProvider.agentBaseUrl", async () => {
+      const details = await resolveIsolatedEnvDetails(
+        makeEnv(),
+        { ...baseIsolated, env: { BASE_URL: { kind: "agentBaseUrl" as const } } },
+        "test-service",
+        testProvider
+      );
+      expect(details.env.BASE_URL).toBe("https://agent.example.com");
     });
   });
 });
@@ -76,6 +107,20 @@ describe("resolveCliSettings", () => {
         testProvider
       );
       expect(result.baseUrl).toBe("https://test.example.com");
+    });
+  });
+
+  describe("agentBaseUrl kind in env", () => {
+    it("resolves to activeProvider.agentBaseUrl", async () => {
+      const result = await resolveCliSettings(
+        {
+          values: {},
+          env: { BASE_URL: { kind: "agentBaseUrl" as const } }
+        },
+        makeEnv(),
+        testProvider
+      );
+      expect(result.env).toEqual({ BASE_URL: "https://agent.example.com" });
     });
   });
 });

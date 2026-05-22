@@ -301,7 +301,9 @@ describe("login command", () => {
 
     const settingsRaw = await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8");
     const settings = JSON.parse(settingsRaw);
-    expect(settings.apiKeyHelper).toBe(`echo ${NEW_KEY}`);
+    expect(settings.apiKeyHelper).toBeUndefined();
+    expect(settings.env.ANTHROPIC_API_KEY).toBeUndefined();
+    expect(settings.env.ANTHROPIC_CUSTOM_HEADERS).toBe(`Authorization: Bearer ${NEW_KEY}`);
     expect(settings.model).toBe(stripModelNamespace(DEFAULT_CLAUDE_CODE_MODEL).replaceAll(".", "-"));
   });
 

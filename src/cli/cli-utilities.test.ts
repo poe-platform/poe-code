@@ -349,7 +349,8 @@ describe("poe-code command runner", () => {
       expect.arrayContaining(["-p", "Say hi", "--settings"]),
       expect.objectContaining({
         env: expect.objectContaining({
-          POE_CODE_API_KEY: "sk-test"
+          ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-test",
+          ANTHROPIC_BASE_URL: "https://api.poe.com"
         })
       })
     );
@@ -359,8 +360,9 @@ describe("poe-code command runner", () => {
     expect(settingsIdx).toBeGreaterThan(-1);
     const settingsJson = JSON.parse(callArgs[settingsIdx + 1]);
     expect(settingsJson).toEqual({
-      apiKeyHelper: "echo $POE_CODE_API_KEY",
-      env: { ANTHROPIC_BASE_URL: "https://api.poe.com/anthropic" }
+      env: {
+        ANTHROPIC_BASE_URL: "https://api.poe.com"
+      }
     });
 
     expect(result).toEqual({ stdout: "OK\n", stderr: "", exitCode: 0 });

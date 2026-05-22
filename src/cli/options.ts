@@ -1,4 +1,4 @@
-import type { PromptDescriptor, PromptLibrary } from "./prompts.js";
+import type { ModelChoice, PromptDescriptor, PromptLibrary } from "./prompts.js";
 import type { PromptFn } from "./types.js";
 
 /**
@@ -41,7 +41,7 @@ export interface ResolveModelInput {
   value?: string;
   assumeDefault?: boolean;
   defaultValue: string;
-  choices?: Array<{ title: string; value: string }>;
+  choices?: ReadonlyArray<ModelChoice>;
   label: string;
   onResolve?: (label: string, value: string) => void;
 }

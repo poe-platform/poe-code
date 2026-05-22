@@ -1,16 +1,35 @@
+import type { ActiveProvider } from "./commands/shared.js";
+import type { CliEnvironment } from "./environment.js";
+import type { HttpClient } from "./http.js";
+
+export type ModelChoice = { title: string; value: string };
+export type ModelChoices =
+  | ReadonlyArray<ModelChoice>
+  | ((ctx: {
+      httpClient: HttpClient;
+      provider: ActiveProvider;
+      env: CliEnvironment;
+    }) => Promise<ReadonlyArray<ModelChoice>>);
+
 export interface PromptDescriptor<TName extends string = string> {
   readonly name: TName;
   readonly message: string;
   readonly type?: string;
   readonly initial?: string | number;
-  readonly choices?: Array<{ title: string; value: string }>;
+  readonly choices?: ReadonlyArray<ModelChoice>;
   readonly validate?: (value: string | undefined) => string | undefined;
 }
 
 export interface ModelPromptInput {
   label: string;
   defaultValue: string;
-  choices?: Array<{ title: string; value: string }>;
+  choices?: ModelChoices;
+}
+
+export interface ResolvedModelPromptInput {
+  label: string;
+  defaultValue: string;
+  choices?: ReadonlyArray<ModelChoice>;
 }
 
 export interface ReasoningPromptInput {
@@ -20,16 +39,14 @@ export interface ReasoningPromptInput {
 
 export interface ServiceSelectionInput {
   message: string;
-  choices: Array<{ title: string; value: string }>;
+  choices: ReadonlyArray<ModelChoice>;
 }
 
 export interface PromptLibrary {
   loginApiKey(): PromptDescriptor<"apiKey">;
   providerBaseUrl(label: string): PromptDescriptor<"baseUrl">;
-  model(input: ModelPromptInput): PromptDescriptor<"model">;
-  reasoningEffort(
-    input: ReasoningPromptInput
-  ): PromptDescriptor<"reasoningEffort">;
+  model(input: ResolvedModelPromptInput): PromptDescriptor<"model">;
+  reasoningEffort(input: ReasoningPromptInput): PromptDescriptor<"reasoningEffort">;
   configName(defaultName: string): PromptDescriptor<"configName">;
   serviceSelection(
     input: ServiceSelectionInput

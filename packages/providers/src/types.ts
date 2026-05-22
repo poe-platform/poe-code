@@ -4,7 +4,7 @@ export type { ApiShapeId } from "@poe-code/agent-defs";
 
 export type EnvValueSource =
   | { kind: "literal"; value: string }
-  | { kind: "providerCredential" }
+  | { kind: "providerCredential"; prefix?: string }
   | { kind: "providerBaseUrl" }
   | { kind: "providerField"; path: string };
 
@@ -42,6 +42,7 @@ export interface AuthProvider {
   readonly label: string;
   readonly summary?: string;
   readonly baseUrl?: string;
+  readonly agentBaseUrl?: string;
   readonly baseUrlEnvVar?: string;
   readonly requiresBaseUrl?: boolean;
   readonly modelInput?: ProviderModelInput;

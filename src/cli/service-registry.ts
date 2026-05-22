@@ -94,6 +94,7 @@ export interface ProviderService<
   extendConfigurePayload?(
     context: ProviderConfigurePayloadContext
   ): Promise<Record<string, unknown> | void> | Record<string, unknown> | void;
+  runtimeEnv?: Record<string, IsolatedEnvValue>;
   isolatedEnv?: ProviderIsolatedEnv;
   install?(context: ProviderContext): Promise<void> | void;
   spawn?(context: ProviderContext, options: TSpawn): Promise<unknown>;
@@ -117,11 +118,13 @@ export interface IsolatedCliSettings {
   resolved?: Record<
     string,
     IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl
+    | IsolatedEnvAgentBaseUrl
   >;
   /** Environment variables to inject into settings.env (resolved at runtime) */
   env?: Record<
     string,
     string | IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl
+    | IsolatedEnvAgentBaseUrl
   >;
 }
 
@@ -147,7 +150,8 @@ export type IsolatedEnvValue =
   | IsolatedEnvPath
   | IsolatedEnvVariable
   | IsolatedEnvProviderCredential
-  | IsolatedEnvProviderBaseUrl;
+  | IsolatedEnvProviderBaseUrl
+  | IsolatedEnvAgentBaseUrl;
 
 export type IsolatedEnvVariable = {
   kind: "envVar";
@@ -156,10 +160,15 @@ export type IsolatedEnvVariable = {
 
 export type IsolatedEnvProviderCredential = {
   kind: "providerCredential";
+  prefix?: string;
 };
 
 export type IsolatedEnvProviderBaseUrl = {
   kind: "providerBaseUrl";
+};
+
+export type IsolatedEnvAgentBaseUrl = {
+  kind: "agentBaseUrl";
 };
 
 export type ProviderOperation =

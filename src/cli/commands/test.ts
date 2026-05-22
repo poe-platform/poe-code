@@ -5,6 +5,7 @@ import {
   createExecutionResources,
   resolveCommandFlags,
   resolveServiceAdapter,
+  resolveActiveProviderForService,
   formatServiceList,
   listServiceNames
 } from "./shared.js";
@@ -13,6 +14,7 @@ import {
   type CommandCheck
 } from "../../utils/command-checks.js";
 import { withSpinner } from "@poe-code/design-system";
+import { resolveProviderRuntimeEnv } from "../isolated-env.js";
 
 export function registerTestCommand(
   program: Command,
@@ -75,6 +77,25 @@ export async function executeTest(
   );
 
   const useIsolated = Boolean(options.isolated && adapter.isolatedEnv);
+  let runtimeEnvPromise: Promise<Record<string, string>> | undefined;
+
+  const resolveRuntimeEnv = adapter.runtimeEnv
+    ? () => {
+        runtimeEnvPromise ??= resolveActiveProviderForService(container, canonicalService).then(
+          (activeProvider) =>
+            resolveProviderRuntimeEnv(
+              container.env,
+              adapter.runtimeEnv!,
+              canonicalService,
+              activeProvider
+            ).then((runtimeEnv) => ({
+              ...(activeProvider?.extraEnv ?? {}),
+              ...runtimeEnv
+            }))
+        );
+        return runtimeEnvPromise;
+      }
+    : undefined;
 
   if (useIsolated) {
     const { ensureIsolatedConfigForService } = await import(
@@ -95,8 +116,7 @@ export async function executeTest(
         if (!entry.test) {
           throw new Error(`Agent "${canonicalService}" does not support test.`);
         }
-        const activeContext =
-          useIsolated
+        const activeContext = useIsolated
             ? {
                 ...providerContext,
                 runCheck: async (check: CommandCheck) => {
@@ -114,7 +134,28 @@ export async function executeTest(
                   });
                 }
               }
-            : providerContext;
+            : resolveRuntimeEnv
+              ? {
+                  ...providerContext,
+                  runCheck: async (check: CommandCheck) => {
+                    await check.run({
+                      isDryRun: providerContext.logger.context.dryRun,
+                      runCommand: async (command, args, runOptions) => {
+                        const runtimeEnv = await resolveRuntimeEnv();
+                        return resources.context.runCommand(command, args, {
+                            ...runOptions,
+                            env: {
+                              ...(runOptions?.env ?? {}),
+                              ...runtimeEnv
+                            }
+                          });
+                      },
+                      logDryRun: (message) =>
+                        providerContext.logger.dryRun(message)
+                    });
+                  }
+                }
+              : providerContext;
 
         await entry.test(activeContext);
       }),

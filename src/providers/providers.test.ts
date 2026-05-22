@@ -4,6 +4,7 @@ import fs from "node:fs";
 import { parse as parseYaml } from "yaml";
 import type { FileSystem } from "../utils/file-system.js";
 import type { ProviderContext } from "../cli/service-registry.js";
+import type { HttpClient } from "../cli/http.js";
 import { createCliEnvironment } from "../cli/environment.js";
 import { createTestCommandContext } from "../../tests/test-command-context.js";
 import { createLoggerFactory } from "../cli/logger.js";
@@ -172,8 +173,9 @@ describe("claude-code service", () => {
       id: PROVIDER_NAME,
       apiShape: "anthropic-messages",
       baseUrl: "https://api.poe.com",
+      agentBaseUrl: "https://api.poe.com",
       credential: "sk-test",
-      extraEnv: {}
+      extraEnv: { ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-test" }
     },
     model: CLAUDE_MODEL_SONNET,
     ...overrides
@@ -280,8 +282,8 @@ describe("claude-code service", () => {
     const content = await mockFsObj.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toEqual({
-      apiKeyHelper: "echo sk-test",
       env: {
+        ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-test",
         ANTHROPIC_BASE_URL: "https://api.poe.com"
       },
       model: stripModelNamespace(CLAUDE_MODEL_SONNET).replaceAll(".", "-")
@@ -294,16 +296,17 @@ describe("claude-code service", () => {
         id: PROVIDER_NAME,
         apiShape: "anthropic-messages",
         baseUrl: "https://proxy.example.com",
+        agentBaseUrl: "https://proxy.example.com",
         credential: "sk-test",
-        extraEnv: {}
+        extraEnv: { ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-test" }
       }
     });
 
     const content = await mockFsObj.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toEqual({
-      apiKeyHelper: "echo sk-test",
       env: {
+        ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-test",
         ANTHROPIC_BASE_URL: "https://proxy.example.com"
       },
       model: stripModelNamespace(CLAUDE_MODEL_SONNET).replaceAll(".", "-")
@@ -334,9 +337,9 @@ describe("claude-code service", () => {
     const content = await mockFsObj.readFile(settingsPath, "utf8");
     const parsed = JSON.parse(content);
     expect(parsed).toEqual({
-      apiKeyHelper: "echo sk-test",
       theme: "dark",
       env: {
+        ANTHROPIC_CUSTOM_HEADERS: "Authorization: Bearer sk-test",
         ANTHROPIC_BASE_URL: "https://api.poe.com",
         CUSTOM: "value"
       },
@@ -1698,6 +1701,56 @@ describe("gemini-cli service", () => {
         }
       }
     });
+  });
+
+  it("resolves Gemini model choices from the active provider models endpoint", async () => {
+    const httpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        models: [
+          {
+            name: "models/gemini-3.1-pro",
+            displayName: "Gemini 3.1 Pro",
+            supportedGenerationMethods: ["generateContent"]
+          },
+          {
+            name: "models/embedding-001",
+            displayName: "Embedding 001",
+            supportedGenerationMethods: ["embedContent"]
+          }
+        ]
+      })
+    })) satisfies HttpClient;
+    const choices = geminiCliService.geminiCliService.configurePrompts?.model?.choices;
+
+    expect(typeof choices).toBe("function");
+    if (typeof choices !== "function") {
+      throw new Error("Expected Gemini model choices resolver.");
+    }
+
+    await expect(
+      choices({
+        httpClient,
+        provider: {
+          id: "cloudflare",
+          apiShape: "google-generations",
+          baseUrl: "https://gateway.example.com/google-ai-studio",
+          credential: "cf-token",
+          extraEnv: {}
+        },
+        env
+      })
+    ).resolves.toEqual([{ title: "Gemini 3.1 Pro", value: "gemini-3.1-pro" }]);
+    expect(httpClient).toHaveBeenCalledWith(
+      "https://gateway.example.com/google-ai-studio/v1beta/models",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Authorization: "Bearer cf-token",
+          "x-goog-api-key": "cf-token"
+        })
+      })
+    );
   });
 
   it("unconfigures only Gemini-managed settings", async () => {

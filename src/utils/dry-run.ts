@@ -6,7 +6,13 @@ import { isNotFound } from "@poe-code/config-mutations";
 import type { FileSystem } from "./file-system.js";
 
 const REDACTED_PLACEHOLDER = "<redacted>";
-const JSON_SENSITIVE_KEYS = ["apiKey", "api_key", "apiKeyHelper"];
+const JSON_SENSITIVE_KEYS = [
+  "apiKey",
+  "api_key",
+  "apiKeyHelper",
+  "ANTHROPIC_API_KEY",
+  "ANTHROPIC_CUSTOM_HEADERS"
+];
 const AUTH_SENSITIVE_KEYS = ["key"];
 const TOML_SENSITIVE_KEYS = ["experimental_bearer_token"];
 

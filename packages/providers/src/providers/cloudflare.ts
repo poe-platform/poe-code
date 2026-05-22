@@ -13,6 +13,12 @@ export const cloudflareProvider: AuthProvider = {
     storageKey: "provider:cloudflare",
     prompt: { title: "Cloudflare AI Gateway token" }
   },
+  env: {
+    ANTHROPIC_CUSTOM_HEADERS: {
+      kind: "providerCredential",
+      prefix: "Authorization: Bearer "
+    }
+  },
   apiShapes: [
     {
       id: "openai-chat-completions",

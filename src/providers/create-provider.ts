@@ -63,6 +63,7 @@ interface CreateProviderOptions<
     UnconfigureOptions,
     SpawnOptions
   >["extendConfigurePayload"];
+  runtimeEnv?: ProviderService["runtimeEnv"];
   isolatedEnv?: ProviderIsolatedEnv;
   manifest: ManifestVersionDefinition;
   install?: ServiceInstallDefinition;
@@ -99,6 +100,7 @@ export function createProvider<
     configurePrompts: opts.configurePrompts,
     postConfigureMessages: opts.postConfigureMessages,
     extendConfigurePayload: opts.extendConfigurePayload,
+    runtimeEnv: opts.runtimeEnv,
     isolatedEnv: opts.isolatedEnv,
     async configure(context, runOptions) {
       await runMutations(opts.manifest.configure, {

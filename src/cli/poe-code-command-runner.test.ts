@@ -9,6 +9,7 @@ vi.mock("./isolated-env.js", () => ({
     env: {},
     configProbePath: "/home/test/.poe-code/test-service/probe.txt"
   })),
+  resolveProviderRuntimeEnv: vi.fn(async () => ({})),
   resolveCliSettings: vi.fn(async () => ({})),
   isolatedConfigExists: vi.fn(async () => true)
 }));

@@ -7,6 +7,7 @@ import type {
   IsolatedEnvPath,
   IsolatedEnvProviderCredential,
   IsolatedEnvProviderBaseUrl,
+  IsolatedEnvAgentBaseUrl,
   IsolatedEnvVariable,
   IsolatedEnvValue,
   ProviderIsolatedEnv
@@ -43,6 +44,20 @@ export async function resolveIsolatedEnvDetails(
       ? resolveIsolatedEnvPath(env, baseDir, isolated.configProbe)
       : undefined
   };
+}
+
+export async function resolveProviderRuntimeEnv(
+  env: CliEnvironment,
+  vars: Record<string, IsolatedEnvValue>,
+  providerName: string,
+  activeProvider?: ActiveProvider
+): Promise<Record<string, string>> {
+  return resolveIsolatedEnvVars(
+    env,
+    resolveIsolatedBaseDir(env, providerName),
+    vars,
+    activeProvider
+  );
 }
 
 export function resolveIsolatedTargetDirectory(input: {
@@ -115,13 +130,19 @@ async function resolveIsolatedEnvValue(
     if (!activeProvider) {
       throw new Error('Cannot resolve "providerCredential": no active provider on context.');
     }
-    return activeProvider.credential;
+    return `${value.prefix ?? ""}${activeProvider.credential}`;
   }
   if (isProviderBaseUrlReference(value)) {
     if (!activeProvider) {
       throw new Error('Cannot resolve "providerBaseUrl": no active provider on context.');
     }
     return activeProvider.baseUrl;
+  }
+  if (isAgentBaseUrlReference(value)) {
+    if (!activeProvider) {
+      throw new Error('Cannot resolve "agentBaseUrl": no active provider on context.');
+    }
+    return activeProvider.agentBaseUrl;
   }
   if (value.kind === "isolatedDir" || value.kind === "isolatedFile") {
     return resolveIsolatedEnvPath(env, baseDir, value);
@@ -158,6 +179,12 @@ function isProviderBaseUrlReference(
   value: IsolatedEnvValue
 ): value is IsolatedEnvProviderBaseUrl {
   return typeof value === "object" && value.kind === "providerBaseUrl";
+}
+
+function isAgentBaseUrlReference(
+  value: IsolatedEnvValue
+): value is IsolatedEnvAgentBaseUrl {
+  return typeof value === "object" && value.kind === "agentBaseUrl";
 }
 
 export async function isolatedConfigExists(
@@ -238,7 +265,7 @@ export async function resolveCliSettings(
 }
 
 async function resolveCliSettingValue(
-  value: IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl,
+  value: IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl | IsolatedEnvAgentBaseUrl,
   env: CliEnvironment,
   activeProvider?: ActiveProvider
 ): Promise<string> {
@@ -246,13 +273,19 @@ async function resolveCliSettingValue(
     if (!activeProvider) {
       throw new Error('Cannot resolve "providerCredential": no active provider on context.');
     }
-    return activeProvider.credential;
+    return `${value.prefix ?? ""}${activeProvider.credential}`;
   }
   if (isProviderBaseUrlReference(value)) {
     if (!activeProvider) {
       throw new Error('Cannot resolve "providerBaseUrl": no active provider on context.');
     }
     return activeProvider.baseUrl;
+  }
+  if (isAgentBaseUrlReference(value)) {
+    if (!activeProvider) {
+      throw new Error('Cannot resolve "agentBaseUrl": no active provider on context.');
+    }
+    return activeProvider.agentBaseUrl;
   }
   throw new Error("Unsupported CLI setting value type.");
 }
@@ -289,4 +322,3 @@ function expandHomeShortcut(env: CliEnvironment, input: string): string {
   }
   return input;
 }
-

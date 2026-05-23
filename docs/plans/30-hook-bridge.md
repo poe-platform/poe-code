@@ -178,8 +178,8 @@ tasks:
 
       Export everything from `packages/agent-hook-config/src/index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: source-reader-claude

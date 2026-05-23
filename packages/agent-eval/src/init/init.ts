@@ -93,9 +93,43 @@ function renderEvalYaml(opts: InitOptions): string {
         rubric: ["completeness", "spec_adherence", "code_quality"]
       },
       weights: {
-        tests: 0.7,
-        judge: 0.3
-      }
+        tests: 1,
+        judge: 0
+      },
+      metrics: [
+        {
+          id: "task_completion",
+          enabled: true,
+          required: true,
+          weight: 1,
+          threshold: 1,
+          evaluator: { kind: "deterministic" }
+        },
+        {
+          id: "plan_adherence",
+          enabled: true,
+          required: false,
+          weight: 1,
+          threshold: 0.8,
+          evaluator: { kind: "judge" }
+        },
+        {
+          id: "tool_correctness",
+          enabled: true,
+          required: false,
+          weight: 1,
+          threshold: 0.8,
+          evaluator: { kind: "deterministic" }
+        },
+        {
+          id: "step_efficiency",
+          enabled: true,
+          required: false,
+          weight: 1,
+          threshold: 0.8,
+          evaluator: { kind: "deterministic", config: { max_steps: 60 } }
+        }
+      ]
     },
     { lineWidth: 0 }
   );

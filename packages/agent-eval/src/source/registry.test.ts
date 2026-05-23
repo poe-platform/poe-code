@@ -27,7 +27,17 @@ const evalYaml = [
   "    - completeness",
   "weights:",
   "  tests: 0.7",
-  "  judge: 0.3"
+  "  judge: 0.3",
+  "metrics:",
+  "  - id: step_efficiency",
+  "    enabled: true",
+  "    required: false",
+  "    weight: 0.2",
+  "    threshold: 0.8",
+  "    evaluator:",
+  "      kind: deterministic",
+  "      config:",
+  "        max_steps: 12"
 ].join("\n");
 
 function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs {
@@ -90,6 +100,16 @@ describe("eval source registry", () => {
         path: "oracle",
         solutionDest: "."
       },
+      metrics: [
+        {
+          id: "step_efficiency",
+          enabled: true,
+          required: false,
+          weight: 0.2,
+          threshold: 0.8,
+          evaluator: { kind: "deterministic", config: { max_steps: 12 } }
+        }
+      ],
       plan: {
         path: "/repo/evals/smoke/plan.md",
         kind: "pipeline",

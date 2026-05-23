@@ -29,6 +29,27 @@ describe("evalLint", () => {
     });
   });
 
+  it("accepts valid named metric configuration", async () => {
+    mocks.fs = createFsFromVolume(
+      Volume.fromJSON(
+        validFiles({
+          evalYaml: [
+            evalYaml(),
+            "metrics:",
+            "  - id: task_completion",
+            "    required: true",
+            "    threshold: 1",
+            "    evaluator:",
+            "      kind: deterministic"
+          ].join("\n")
+        }),
+        "/"
+      )
+    ).promises;
+
+    await expect(lint()).resolves.toEqual({ evalId: "smoke", issues: [] });
+  });
+
   it("reports E001 when eval.yaml is missing", async () => {
     mocks.fs = createFsFromVolume(
       Volume.fromJSON(

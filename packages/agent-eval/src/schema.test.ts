@@ -25,7 +25,26 @@ const validEvalYaml = [
   "    - completeness",
   "weights:",
   "  tests: 0.7",
-  "  judge: 0.3"
+  "  judge: 0.3",
+  "metrics:",
+  "  - id: task_completion",
+  "    enabled: true",
+  "    required: true",
+  "    weight: 1",
+  "    threshold: 1",
+  "    evaluator:",
+  "      kind: deterministic",
+  "      config: {}",
+  "  - id: plan_adherence",
+  "    enabled: false",
+  "    required: false",
+  "    weight: 0.5",
+  "    threshold: 0.8",
+  "    evaluator:",
+  "      kind: judge",
+  "      agent: codex",
+  "      model: gpt-5",
+  "      instructions: Follow the supplied plan."
 ].join("\n");
 
 function parseEvalYaml(input: string): unknown {
@@ -75,8 +94,85 @@ describe("eval yaml schema", () => {
       weights: {
         tests: 0.7,
         judge: 0.3
-      }
+      },
+      metrics: [
+        {
+          id: "task_completion",
+          enabled: true,
+          required: true,
+          weight: 1,
+          threshold: 1,
+          evaluator: { kind: "deterministic", config: {} }
+        },
+        {
+          id: "plan_adherence",
+          enabled: false,
+          required: false,
+          weight: 0.5,
+          threshold: 0.8,
+          evaluator: {
+            kind: "judge",
+            agent: "codex",
+            model: "gpt-5",
+            instructions: "Follow the supplied plan."
+          }
+        }
+      ]
     });
+  });
+
+  it("accepts legacy eval.yaml without named metrics", () => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    delete parsed.metrics;
+
+    expect(validateEvalYaml(parsed, "legacy/eval.yaml").metrics).toBeUndefined();
+  });
+
+  it("applies named metric defaults", () => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    parsed.metrics = [
+      {
+        id: "tool_correctness",
+        evaluator: { kind: "deterministic" }
+      }
+    ];
+
+    expect(validateEvalYaml(parsed, "defaults/eval.yaml").metrics).toEqual([
+      {
+        id: "tool_correctness",
+        enabled: true,
+        required: false,
+        weight: 1,
+        threshold: 0.8,
+        evaluator: { kind: "deterministic" }
+      }
+    ]);
+  });
+
+  it("rejects duplicate named metric identifiers", () => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    parsed.metrics = [
+      { id: "task_completion", evaluator: { kind: "deterministic" } },
+      { id: "task_completion", evaluator: { kind: "deterministic" } }
+    ];
+
+    expect(() => validateEvalYaml(parsed, "duplicates/eval.yaml")).toThrow(
+      "duplicates/eval.yaml (metrics.1.id): Metric identifiers must be unique."
+    );
+  });
+
+  it.each([
+    ["task_completion", "judge", "deterministic"],
+    ["tool_correctness", "judge", "deterministic"],
+    ["step_efficiency", "judge", "deterministic"],
+    ["plan_adherence", "deterministic", "judge"]
+  ])("requires %s to use its supported %s evaluator", (id, kind, expectedKind) => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    parsed.metrics = [{ id, evaluator: { kind } }];
+
+    expect(() => validateEvalYaml(parsed, "evaluators/eval.yaml")).toThrow(
+      `evaluators/eval.yaml (metrics.0.evaluator.kind): Metric ${id} must use a ${expectedKind} evaluator.`
+    );
   });
 
   it("accepts eval.yaml without scorer", () => {

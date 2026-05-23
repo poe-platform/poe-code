@@ -87,9 +87,15 @@ describe("evalInit", () => {
         rubric: ["completeness", "spec_adherence", "code_quality"]
       },
       weights: {
-        tests: 0.7,
-        judge: 0.3
-      }
+        tests: 1,
+        judge: 0
+      },
+      metrics: expect.arrayContaining([
+        expect.objectContaining({ id: "task_completion", threshold: 1 }),
+        expect.objectContaining({ id: "plan_adherence", evaluator: { kind: "judge" } }),
+        expect.objectContaining({ id: "tool_correctness" }),
+        expect.objectContaining({ id: "step_efficiency" })
+      ])
     });
   });
 

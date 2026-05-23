@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import { createSpawnMock } from "@poe-code/agent-spawn/testing";
 import {
@@ -87,5 +89,45 @@ describe("runEval plan integration", () => {
       })
     );
     await assertSuccessfulRun({ outDir, result, kind: "plan" });
+  });
+
+  it("writes oracle results plus named metrics to result.json", async () => {
+    const outDir = await createRunOutDir();
+    mockedAgentSpawn.spawnStreaming.mockReturnValueOnce({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+
+    const result = await runEval({
+      sourceDir: sourceFixture("metrics"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      judge: "off",
+      verifyOracle: false
+    });
+
+    expect(result.metrics).toEqual([
+      expect.objectContaining({
+        id: "task_completion",
+        score: 1,
+        passed: true,
+        status: "executed"
+      }),
+      expect.objectContaining({ id: "plan_adherence", status: "disabled" }),
+      expect.objectContaining({
+        id: "tool_correctness",
+        score: 1,
+        passed: true,
+        status: "executed"
+      }),
+      expect.objectContaining({ id: "step_efficiency", score: 1, passed: true, status: "executed" })
+    ]);
+    const persisted = JSON.parse(
+      await readFile(path.join(outDir, result.runId, "result.json"), "utf8")
+    );
+    expect(persisted.tests.pass_rate).toBe(1);
+    expect(persisted.metrics).toEqual(result.metrics);
   });
 });

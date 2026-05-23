@@ -181,7 +181,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: add-declarative-trace-metrics
     title: Add declarative trace-derived metrics
@@ -221,9 +221,9 @@ tasks:
       existing-eval backward compatibility, and an end-to-end fixture showing
       tests plus named metrics in `result.json`.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: report-metrics-and-regressions

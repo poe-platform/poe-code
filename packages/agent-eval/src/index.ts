@@ -16,7 +16,8 @@ export { BudgetEnforcer } from "./run/budget.js";
 export { CheatFilter } from "./run/cheat.js";
 export { cloneTarget, type CloneTargetInput } from "./run/clone.js";
 export { resolveDispatch, type DispatchSpec } from "./run/dispatch.js";
-export { judgeRun } from "./run/judge.js";
+export { judgeMetric, judgeRun, type JudgeMetricScore } from "./run/judge.js";
+export { executeMetrics, type MetricJudge } from "./run/metrics/metrics.js";
 export { runMatrix } from "./run/matrix.js";
 export { verifyOracle } from "./run/oracle.js";
 export { runEval, EvalFrameworkError } from "./run/run.js";
@@ -50,6 +51,11 @@ export type {
   EvalRunResult,
   EvalSource,
   JudgeSpec,
+  MetricEvaluatorSpec,
+  MetricExecutionStatus,
+  MetricId,
+  MetricResult,
+  MetricSpec,
   PlanKind,
   RubricKey,
   ResolvedScorer,

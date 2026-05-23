@@ -16,11 +16,13 @@ const mockedAgentSpawn = vi.hoisted(() => ({
 }));
 const mockedEvaluation = vi.hoisted(() => ({
   runScorer: vi.fn(),
-  judgeRun: vi.fn()
+  judgeRun: vi.fn(),
+  judgeMetric: vi.fn()
 }));
 const mockedRegistry = vi.hoisted(() => ({
   wallClockMs: undefined as number | undefined,
-  weights: undefined as { tests: number; judge: number } | undefined
+  weights: undefined as { tests: number; judge: number } | undefined,
+  metrics: undefined as import("../types.js").MetricSpec[] | undefined
 }));
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
@@ -42,7 +44,10 @@ vi.mock("./clone.js", () => ({
 }));
 
 vi.mock("./scorer.js", () => ({ runScorer: mockedEvaluation.runScorer }));
-vi.mock("./judge.js", () => ({ judgeRun: mockedEvaluation.judgeRun }));
+vi.mock("./judge.js", () => ({
+  judgeRun: mockedEvaluation.judgeRun,
+  judgeMetric: mockedEvaluation.judgeMetric
+}));
 vi.mock("../source/registry.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../source/registry.js")>();
   return {
@@ -54,7 +59,8 @@ vi.mock("../source/registry.js", async (importOriginal) => {
         ...(mockedRegistry.wallClockMs === undefined
           ? {}
           : { budget: { ...evalDef.budget, wallClockMs: mockedRegistry.wallClockMs } }),
-        ...(mockedRegistry.weights === undefined ? {} : { weights: mockedRegistry.weights })
+        ...(mockedRegistry.weights === undefined ? {} : { weights: mockedRegistry.weights }),
+        ...(mockedRegistry.metrics === undefined ? {} : { metrics: mockedRegistry.metrics })
       };
     }
   };
@@ -72,8 +78,10 @@ describe("runEval lifecycle evidence", () => {
     });
     mockedEvaluation.runScorer.mockReset().mockResolvedValue({ passed: 1, total: 1, cases: [] });
     mockedEvaluation.judgeRun.mockReset().mockResolvedValue({ completeness: 5, mean: 5 });
+    mockedEvaluation.judgeMetric.mockReset().mockResolvedValue({ score: 1, reason: "ok" });
     mockedRegistry.wallClockMs = undefined;
     mockedRegistry.weights = undefined;
+    mockedRegistry.metrics = undefined;
   });
 
   afterEach(() => {
@@ -212,6 +220,25 @@ describe("runEval lifecycle evidence", () => {
     });
   });
 
+  it("runs legacy judge configuration without overriding deterministic oracle correctness", async () => {
+    const outDir = await createRunOutDir();
+    mockedRegistry.weights = { tests: 0.7, judge: 0.3 };
+    mockedEvaluation.judgeRun.mockResolvedValueOnce({ completeness: 0, mean: 0 });
+
+    const result = await runEval({
+      sourceDir: sourceFixture("plan"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      verifyOracle: false
+    });
+
+    expect(result).toMatchObject({ verdict: "pass", correctness: 1 });
+    expect(result.metrics).toBeUndefined();
+    expect(mockedEvaluation.judgeRun).toHaveBeenCalledOnce();
+  });
+
   it("fails a completed execution when a required oracle assertion fails", async () => {
     const outDir = await createRunOutDir();
     mockedEvaluation.runScorer.mockResolvedValueOnce({ passed: 1, total: 2, cases: [] });
@@ -228,6 +255,89 @@ describe("runEval lifecycle evidence", () => {
 
     expect(result).toMatchObject({ verdict: "fail", correctness: 0.5 });
     expect(result.scoring.tests.status).toBe("executed");
+  });
+
+  it("fails required metric thresholds without reducing deterministic oracle correctness", async () => {
+    const outDir = await createRunOutDir();
+    mockedRegistry.metrics = [
+      {
+        id: "task_completion",
+        enabled: true,
+        required: true,
+        weight: 1,
+        threshold: 1,
+        evaluator: { kind: "deterministic", config: {} }
+      },
+      {
+        id: "tool_correctness",
+        enabled: true,
+        required: true,
+        weight: 1,
+        threshold: 1,
+        evaluator: { kind: "deterministic", config: {} }
+      }
+    ];
+    mockedAgentSpawn.spawnStreaming.mockReturnValueOnce({
+      events: (async function* () {
+        yield { event: "tool_start", id: "x", kind: "read", title: "Read", input: {} };
+        yield { event: "tool_complete", id: "x", kind: "read", status: "failed" };
+      })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+
+    const result = await runEval({
+      sourceDir: sourceFixture("plan"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      judge: "off",
+      verifyOracle: false
+    });
+
+    expect(result).toMatchObject({ verdict: "fail", correctness: 1 });
+    expect(result.metrics?.find((metric) => metric.id === "tool_correctness")).toMatchObject({
+      score: 0,
+      passed: false,
+      required: true,
+      status: "executed"
+    });
+  });
+
+  it("errors when a required judge-backed metric is disabled", async () => {
+    const outDir = await createRunOutDir();
+    mockedRegistry.metrics = [
+      {
+        id: "plan_adherence",
+        enabled: true,
+        required: true,
+        weight: 1,
+        threshold: 0.8,
+        evaluator: { kind: "judge" }
+      }
+    ];
+
+    const result = await runEval({
+      sourceDir: sourceFixture("plan"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      judge: "off",
+      verifyOracle: false
+    });
+
+    expect(result).toMatchObject({
+      verdict: "error",
+      correctness: 1,
+      error: "Required metric plan_adherence could not execute: Judge-backed metrics are disabled."
+    });
+    expect(result.metrics?.[0]).toMatchObject({
+      id: "plan_adherence",
+      required: true,
+      status: "disabled",
+      passed: false
+    });
   });
 
   it("skips judging after cheating is detected", async () => {
@@ -323,7 +433,7 @@ describe("runEval lifecycle evidence", () => {
       verifyOracle: false
     });
 
-    expect(result).toMatchObject({ verdict: "error", correctness: 0.7, error: "judge exploded" });
+    expect(result).toMatchObject({ verdict: "error", correctness: 1, error: "judge exploded" });
     expect(result.scoring.judge).toMatchObject({
       effectiveWeight: 0.3,
       status: "failed",

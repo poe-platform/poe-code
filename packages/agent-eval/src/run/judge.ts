@@ -12,12 +12,18 @@ import {
   type SpawnResult,
   type StreamingSpawnFn
 } from "@poe-code/agent-spawn";
-import type { EvalDef, JudgeSpec, RubricKey } from "../types.js";
+import type { EvalDef, JudgeSpec, MetricSpec, RubricKey } from "../types.js";
 import type { NormalizedTrace } from "./trace/types.js";
 
 type JudgeScores = Record<RubricKey, number> & { mean: number };
 type JudgeSpawnResult = AutonomousResult | SpawnResult | string;
 type AutonomousSpawnFn = (service: string, options: SpawnOptions) => Promise<AutonomousResult>;
+
+export interface JudgeMetricScore {
+  score: number;
+  reason: string;
+  traceReferences?: readonly number[];
+}
 
 export async function judgeRun(input: {
   evalDef: EvalDef;
@@ -40,6 +46,35 @@ export async function judgeRun(input: {
   });
 
   return parseJudgeScores(extractFinalText(result), rubric);
+}
+
+export async function judgeMetric(input: {
+  evalDef: EvalDef;
+  metric: MetricSpec;
+  cloneDir: string;
+  traceJsonPath: string;
+  trace: NormalizedTrace;
+  oracleOutcome: { passed: number; total: number };
+  agentUnderTest: string;
+}): Promise<JudgeMetricScore> {
+  if (input.metric.evaluator.kind !== "judge") {
+    throw new Error(`Metric ${input.metric.id} is not judge-backed.`);
+  }
+  const spec = input.metric.evaluator;
+  const judgeAgent =
+    (spec.agent ?? input.evalDef.judge.agent) === input.agentUnderTest
+      ? "codex"
+      : (spec.agent ?? input.evalDef.judge.agent);
+  const prompt = await buildMetricJudgePrompt(input);
+  const result = await spawnAutonomous(createJudgeStreamingSpawn(), {
+    service: judgeAgent,
+    prompt,
+    cwd: input.cloneDir,
+    model: spec.model ?? input.evalDef.judge.model,
+    mode: resolveJudgeMode(judgeAgent)
+  });
+
+  return parseJudgeMetricScore(extractFinalText(result));
 }
 
 async function buildJudgePrompt(
@@ -84,6 +119,44 @@ async function buildJudgePrompt(
 function renderResponseShape(rubric: readonly RubricKey[]): string {
   const entries = rubric.map((key) => `${JSON.stringify(key)}: n`);
   return `{ ${entries.join(", ")} }`;
+}
+
+async function buildMetricJudgePrompt(input: {
+  evalDef: EvalDef;
+  metric: MetricSpec;
+  cloneDir: string;
+  traceJsonPath: string;
+  trace: NormalizedTrace;
+  oracleOutcome: { passed: number; total: number };
+}): Promise<string> {
+  const files = await listFilesWithSizes(input.cloneDir);
+  const evaluator = input.metric.evaluator.kind === "judge" ? input.metric.evaluator : undefined;
+
+  return [
+    `Judge named metric: ${input.metric.id}.`,
+    "Return evidence-based evaluation of this single agent-oriented dimension.",
+    "Do not override deterministic oracle test correctness.",
+    "",
+    "Task prompt:",
+    input.evalDef.plan.body,
+    "",
+    "Clone files:",
+    files.length > 0
+      ? files.map((file) => `${file.path}\t${file.bytes} bytes`).join("\n")
+      : "(none)",
+    "",
+    `Oracle outcome: ${input.oracleOutcome.passed}/${input.oracleOutcome.total} passed`,
+    `Normalized trace artifact path: ${input.traceJsonPath}`,
+    "Normalized trace JSON:",
+    JSON.stringify(input.trace),
+    ...(evaluator?.instructions === undefined
+      ? []
+      : ["", "Evaluator instructions:", evaluator.instructions]),
+    "",
+    "Respond with JSON only.",
+    'Use exactly this shape: { "score": n, "reason": "text", "traceReferences": [sequenceNumber] }',
+    "score must be a number from 0 to 1; omit traceReferences when not supported."
+  ].join("\n");
 }
 
 async function listFilesWithSizes(
@@ -247,6 +320,42 @@ function clampScore(value: unknown): number {
     return 0;
   }
   return Math.min(5, Math.max(0, value));
+}
+
+function parseJudgeMetricScore(rawOutput: string): JudgeMetricScore {
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(rawOutput.trim());
+  } catch (error) {
+    throw new Error(`Failed to parse judge metric output: ${formatUnknownError(error)}`);
+  }
+  if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+    throw new Error("Malformed judge metric output: expected a JSON object");
+  }
+  const source = parsed as Record<string, unknown>;
+  const reason = readNonEmptyString(source.reason);
+  if (reason === undefined) {
+    throw new Error("Malformed judge metric output: expected a non-empty reason");
+  }
+  const traceReferences = Array.isArray(source.traceReferences)
+    ? source.traceReferences.filter(
+        (value): value is number =>
+          typeof value === "number" && Number.isInteger(value) && value >= 0
+      )
+    : undefined;
+  return {
+    score: clampNormalizedScore(source.score),
+    reason,
+    ...(traceReferences === undefined ? {} : { traceReferences })
+  };
+}
+
+function clampNormalizedScore(value: unknown): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return 0;
+  }
+  return Math.min(1, Math.max(0, value));
 }
 
 function readNonEmptyString(value: unknown): string | undefined {

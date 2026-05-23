@@ -31,6 +31,7 @@ import type {
   EvalScoringResult,
   JudgeSpec,
   JudgeOverrideSpec,
+  MetricResult,
   SpawnEvent,
   Verdict
 } from "../types.js";
@@ -39,6 +40,7 @@ import { CheatFilter } from "./cheat.js";
 import { cloneTarget } from "./clone.js";
 import { resolveDispatch, type DispatchSpec } from "./dispatch.js";
 import { judgeRun } from "./judge.js";
+import { executeMetrics } from "./metrics/metrics.js";
 import { verifyOracle } from "./oracle.js";
 import { runScorer } from "./scorer.js";
 import { createTraceNormalizer } from "./trace/normalize.js";
@@ -152,8 +154,10 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
 
     let testsResult = emptyTestsResult();
     let judgeResult: EvalRunResult["judge"] | undefined;
+    let metricResults: readonly MetricResult[] | undefined;
     let evaluationError: string | undefined;
-    const judgeSpec = resolveJudgeSpec(opts.judge, evalDef);
+    const judgeSpec =
+      evalDef.metrics === undefined ? resolveJudgeSpec(opts.judge, evalDef) : undefined;
     let testsStatus: EvalScoringResult["tests"]["status"] = "executed";
     let testsReason: string | undefined;
     let judgeStatus: EvalScoringResult["judge"]["status"] =
@@ -198,6 +202,31 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
       }
     }
 
+    if (evalDef.metrics !== undefined) {
+      const metricJudgeSkipReason = judgeSkipReason({
+        cheated: cheatReport.cheated,
+        budgetTripped: budgetSnapshot.tripped !== undefined,
+        spawnErrored: spawnError !== undefined,
+        testsFailed: testsStatus === "failed"
+      });
+      metricResults = await executeMetrics({
+        evalDef,
+        cloneDir,
+        traceJsonPath: path.join(runDir, "trace.json"),
+        trace,
+        oracleOutcome: testsResult,
+        agentUnderTest: opts.agent,
+        judgeEnabled: opts.judge !== "off",
+        ...(metricJudgeSkipReason === undefined ? {} : { judgeSkipReason: metricJudgeSkipReason })
+      });
+      const unavailableRequiredMetric = metricResults.find(
+        (metric) => metric.required && metric.status !== "executed"
+      );
+      if (unavailableRequiredMetric !== undefined && evaluationError === undefined) {
+        evaluationError = `Required metric ${unavailableRequiredMetric.id} could not execute: ${unavailableRequiredMetric.reason}`;
+      }
+    }
+
     let result = createEvalRunResult({
       opts,
       evalDef,
@@ -207,6 +236,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
       cheatReport,
       testsResult,
       judgeResult,
+      metricResults,
       scoring: createScoringResult({
         evalDef,
         testsStatus,
@@ -233,6 +263,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
         cheatReport,
         testsResult,
         judgeResult,
+        metricResults,
         scoring: createScoringResult({
           evalDef,
           testsStatus,
@@ -451,6 +482,7 @@ function createEvalRunResult(input: {
   cheatReport: CheatReport;
   testsResult: { passed: number; total: number; cases: CaseResult[] };
   judgeResult?: EvalRunResult["judge"];
+  metricResults?: readonly MetricResult[];
   scoring?: EvalScoringResult;
   spawnError?: string;
   evaluationError?: string;
@@ -459,6 +491,10 @@ function createEvalRunResult(input: {
     cheated: input.cheatReport.cheated,
     budgetTripped: input.budgetSnapshot.tripped !== undefined,
     testsResult: input.testsResult,
+    requiredMetricFailed:
+      input.metricResults?.some(
+        (metric) => metric.required && metric.status === "executed" && !metric.passed
+      ) ?? false,
     spawnErrored: input.spawnError !== undefined,
     evaluationErrored: input.evaluationError !== undefined
   });
@@ -485,9 +521,7 @@ function createEvalRunResult(input: {
     verdict,
     correctness: calculateCorrectness({
       cheated: input.cheatReport.cheated,
-      testsResult: input.testsResult,
-      scoring,
-      judgeResult: input.judgeResult
+      testsResult: input.testsResult
     }),
     iterations: input.budgetSnapshot.iterations,
     durationMs: Date.now() - input.startedAt,
@@ -506,6 +540,7 @@ function createEvalRunResult(input: {
       pass_rate: calculatePassRate(input.testsResult)
     },
     ...(input.judgeResult === undefined ? {} : { judge: input.judgeResult }),
+    ...(input.metricResults === undefined ? {} : { metrics: input.metricResults }),
     scoring,
     cheated: input.cheatReport.cheated,
     cheatReport: input.cheatReport,
@@ -519,6 +554,7 @@ function resolveVerdict(input: {
   cheated: boolean;
   budgetTripped: boolean;
   testsResult: { passed: number; total: number };
+  requiredMetricFailed: boolean;
   spawnErrored: boolean;
   evaluationErrored: boolean;
 }): Verdict {
@@ -537,6 +573,9 @@ function resolveVerdict(input: {
   if (input.testsResult.total === 0 || input.testsResult.passed !== input.testsResult.total) {
     return "fail";
   }
+  if (input.requiredMetricFailed) {
+    return "fail";
+  }
   return "pass";
 }
 
@@ -547,18 +586,13 @@ function emptyTestsResult(): { passed: number; total: number; cases: CaseResult[
 function calculateCorrectness(input: {
   cheated: boolean;
   testsResult: { passed: number; total: number };
-  scoring: EvalScoringResult;
-  judgeResult?: EvalRunResult["judge"];
 }): number {
   if (input.cheated) {
     return 0;
   }
 
   const testScore = calculatePassRate(input.testsResult);
-  return (
-    testScore * input.scoring.tests.effectiveWeight +
-    ((input.judgeResult?.mean ?? 0) / 5) * input.scoring.judge.effectiveWeight
-  );
+  return testScore;
 }
 
 function createScoringResult(input: {

@@ -12,6 +12,44 @@ export type PlanKind = "plan" | "pipeline" | "superintendent" | "experiment";
 export type RubricKey = "completeness" | "spec_adherence" | "code_quality" | string;
 export type Verdict = "pass" | "fail" | "error" | "cheated" | "budget_exceeded";
 export type ScoringComponentStatus = "executed" | "skipped" | "failed" | "disabled";
+export type MetricId =
+  | "task_completion"
+  | "plan_adherence"
+  | "tool_correctness"
+  | "step_efficiency";
+export type MetricExecutionStatus = ScoringComponentStatus;
+
+export type MetricEvaluatorSpec =
+  | { kind: "deterministic"; config?: unknown }
+  | {
+      kind: "judge";
+      agent?: string;
+      model?: string;
+      instructions?: string;
+      config?: unknown;
+    };
+
+export interface MetricSpec {
+  id: MetricId;
+  enabled: boolean;
+  required: boolean;
+  weight: number;
+  threshold: number;
+  evaluator: MetricEvaluatorSpec;
+}
+
+export interface MetricResult {
+  id: MetricId;
+  enabled: boolean;
+  required: boolean;
+  weight: number;
+  score: number;
+  threshold: number;
+  passed: boolean;
+  status: MetricExecutionStatus;
+  reason: string;
+  traceReferences?: readonly number[];
+}
 
 export interface ScoringComponentResult {
   configured: boolean;
@@ -91,6 +129,7 @@ export interface EvalDef {
     tests: number;
     judge: number;
   };
+  metrics?: readonly MetricSpec[];
   verify?: {
     command: string;
     timeoutMs: number;
@@ -166,6 +205,7 @@ export interface EvalRunResult {
     cases: CaseResult[];
   };
   judge?: Record<RubricKey, number> & { mean: number };
+  metrics?: readonly MetricResult[];
   scoring: EvalScoringResult;
   cheated: boolean;
   cheatReport: CheatReport;

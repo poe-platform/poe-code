@@ -91,6 +91,18 @@ export async function loadEval(
       tests: evalYaml.weights.tests,
       judge: evalYaml.weights.judge
     },
+    ...(evalYaml.metrics === undefined
+      ? {}
+      : {
+          metrics: evalYaml.metrics.map((metric) => ({
+            id: metric.id,
+            enabled: metric.enabled ?? true,
+            required: metric.required ?? false,
+            weight: metric.weight ?? 1,
+            threshold: metric.threshold ?? 0.8,
+            evaluator: metric.evaluator
+          }))
+        }),
     ...(evalYaml.verify === undefined
       ? {}
       : {

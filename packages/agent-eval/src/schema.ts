@@ -1,6 +1,30 @@
 import { S, validate } from "toolcraft-schema";
 import type { Static, ValidationIssue } from "toolcraft-schema";
 
+const metricEvaluatorSchema = S.OneOf({
+  discriminator: "kind",
+  branches: {
+    deterministic: S.Object({
+      config: S.Optional(S.Json())
+    }),
+    judge: S.Object({
+      agent: S.Optional(S.String()),
+      model: S.Optional(S.String()),
+      instructions: S.Optional(S.String()),
+      config: S.Optional(S.Json())
+    })
+  }
+});
+
+const metricSchema = S.Object({
+  id: S.Enum(["task_completion", "plan_adherence", "tool_correctness", "step_efficiency"]),
+  enabled: S.Optional(S.Boolean({ default: true })),
+  required: S.Optional(S.Boolean({ default: false })),
+  weight: S.Optional(S.Number({ default: 1, minimum: 0 })),
+  threshold: S.Optional(S.Number({ default: 0.8, minimum: 0, maximum: 1 })),
+  evaluator: metricEvaluatorSchema
+});
+
 /**
  * Schema for an eval.yaml file.
  *
@@ -50,6 +74,7 @@ export const evalYamlSchema = S.Object({
     tests: S.Number(),
     judge: S.Number()
   }),
+  metrics: S.Optional(S.Array(metricSchema)),
   verify: S.Optional(
     S.Object({
       command: S.String(),
@@ -74,10 +99,47 @@ export function validateEvalYaml(value: unknown, filePath = "eval.yaml"): EvalYa
   const result = validate(evalYamlSchema, value);
 
   if (result.ok) {
+    const metricIssues = validateMetrics(result.value.metrics);
+    if (metricIssues.length > 0) {
+      throw new EvalYamlValidationError(formatIssues(filePath, metricIssues), metricIssues);
+    }
     return result.value;
   }
 
   throw new EvalYamlValidationError(formatIssues(filePath, result.issues), result.issues);
+}
+
+function validateMetrics(metrics: EvalYaml["metrics"]): readonly ValidationIssue[] {
+  if (metrics === undefined) {
+    return [];
+  }
+
+  const issues: ValidationIssue[] = [];
+  const identifiers = new Set<string>();
+
+  for (const [index, metric] of metrics.entries()) {
+    if (identifiers.has(metric.id)) {
+      issues.push({
+        path: ["metrics", String(index), "id"],
+        expected: "unique metric identifier",
+        received: metric.id,
+        message: "Metric identifiers must be unique."
+      });
+    }
+    identifiers.add(metric.id);
+
+    const expectedKind = metric.id === "plan_adherence" ? "judge" : "deterministic";
+    if (metric.evaluator.kind !== expectedKind) {
+      issues.push({
+        path: ["metrics", String(index), "evaluator", "kind"],
+        expected: expectedKind,
+        received: metric.evaluator.kind,
+        message: `Metric ${metric.id} must use a ${expectedKind} evaluator.`
+      });
+    }
+  }
+
+  return issues;
 }
 
 function formatIssues(filePath: string, issues: readonly ValidationIssue[]): string {

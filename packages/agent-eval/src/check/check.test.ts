@@ -82,6 +82,28 @@ describe("evalCheck", () => {
     expect(result.durationMs).toBeGreaterThanOrEqual(0);
   });
 
+  it("loads declared metrics without changing deterministic check scoring", async () => {
+    mocks.fs = createFsFromVolume(
+      Volume.fromJSON(
+        createSourceFiles({
+          metrics: true
+        }),
+        "/"
+      )
+    ).promises;
+
+    const result = await evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" });
+
+    expect(result.tests).toEqual({ passed: 1, total: 1, cases });
+    expect(mocks.runScorer).toHaveBeenCalledWith(
+      expect.objectContaining({
+        evalDef: expect.objectContaining({
+          metrics: [expect.objectContaining({ id: "task_completion" })]
+        })
+      })
+    );
+  });
+
   it("defaults oracle.solution_dest to the clone root", async () => {
     mocks.fs = createFsFromVolume(
       Volume.fromJSON(createSourceFiles({ solutionDest: undefined }), "/")
@@ -137,12 +159,13 @@ function createSourceFiles(
   input: {
     includeSourceConfig?: boolean;
     solutionDest?: string;
+    metrics?: boolean;
   } = {}
 ): Record<string, string> {
   const solutionDest = "solutionDest" in input ? input.solutionDest : "patched";
   const files: Record<string, string> = {
     "/repo/evals/.poe-code-eval.json": JSON.stringify({ out: "artifacts" }),
-    "/repo/evals/smoke/eval.yaml": createEvalYaml(solutionDest),
+    "/repo/evals/smoke/eval.yaml": createEvalYaml(solutionDest, input.metrics === true),
     "/repo/evals/smoke/plan.md": ["---", "kind: plan", "---", "Implement the task."].join("\n"),
     "/repo/evals/smoke/starter/starter.txt": "starter\n",
     "/repo/evals/smoke/oracle/solution/answer.txt": "solution\n"
@@ -155,7 +178,7 @@ function createSourceFiles(
   return files;
 }
 
-function createEvalYaml(solutionDest: string | undefined): string {
+function createEvalYaml(solutionDest: string | undefined, metrics = false): string {
   return [
     "id: smoke",
     "title: Smoke eval",
@@ -179,6 +202,16 @@ function createEvalYaml(solutionDest: string | undefined): string {
     "    - completeness",
     "weights:",
     "  tests: 0.7",
-    "  judge: 0.3"
+    "  judge: 0.3",
+    ...(metrics
+      ? [
+          "metrics:",
+          "  - id: task_completion",
+          "    required: true",
+          "    threshold: 1",
+          "    evaluator:",
+          "      kind: deterministic"
+        ]
+      : [])
   ].join("\n");
 }

@@ -1,7 +1,7 @@
 import { vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSpawnMock } from "@poe-code/agent-spawn/testing";
-import type { EvalDef, JudgeSpec } from "../types.js";
+import type { EvalDef, JudgeSpec, MetricSpec } from "../types.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -22,7 +22,7 @@ vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   };
 });
 
-const { judgeRun } = await import("./judge.js");
+const { judgeMetric, judgeRun } = await import("./judge.js");
 
 describe("judgeRun", () => {
   beforeEach(() => {
@@ -261,7 +261,57 @@ describe("judgeRun", () => {
     expect(prompt).toContain("custom_quality");
     expect(prompt).not.toContain("spec_adherence");
   });
+
+  it("scores a named metric using task, oracle outcome, and normalized trace evidence", async () => {
+    vol.fromJSON({ "/repo/file.ts": "abc" });
+    mockedAgentSpawn.spawnMock!.autonomous.mockResolvedValueOnce({
+      text: JSON.stringify({
+        score: 0.75,
+        reason: "The trace follows most plan steps.",
+        traceReferences: [2]
+      })
+    });
+
+    await expect(
+      judgeMetric({
+        evalDef: createEval(),
+        metric: createMetric(),
+        cloneDir: "/repo",
+        traceJsonPath: "/runs/trace.json",
+        trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
+        oracleOutcome: { passed: 1, total: 2 },
+        agentUnderTest: "claude-code"
+      })
+    ).resolves.toEqual({
+      score: 0.75,
+      reason: "The trace follows most plan steps.",
+      traceReferences: [2]
+    });
+
+    const prompt = mockedAgentSpawn.spawnMock!.autonomous.mock.calls[0]?.[1]?.prompt as string;
+    expect(prompt).toContain("Judge named metric: plan_adherence.");
+    expect(prompt).toContain("Implement the feature.");
+    expect(prompt).toContain("Oracle outcome: 1/2 passed");
+    expect(prompt).toContain("Normalized trace JSON:");
+    expect(prompt).toContain("Assess the implementation against the written plan.");
+  });
 });
+
+function createMetric(): MetricSpec {
+  return {
+    id: "plan_adherence",
+    enabled: true,
+    required: false,
+    weight: 1,
+    threshold: 0.8,
+    evaluator: {
+      kind: "judge",
+      agent: "codex",
+      model: "judge-model",
+      instructions: "Assess the implementation against the written plan."
+    }
+  };
+}
 
 function createJudgeSpec(overrides: Partial<JudgeSpec> = {}): JudgeSpec {
   return {

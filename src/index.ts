@@ -63,6 +63,21 @@ export type {
   LintResult
 } from "@poe-code/agent-eval";
 export {
+  codeReviewGroup,
+  createCodeReviewAgentMcpConfig,
+  createCodeReviewGroup,
+  createCodeReviewSession,
+  createCodeReviewState,
+  discoverCodeReviewProfiles,
+  ingestCodeReviewProfile,
+  installCodeReviewAssets,
+  loadCodeReviewProfile,
+  readCodeReviewDraft,
+  runCodeReview,
+  runCodeReviewAgentMcp,
+  commitCodeReviewDrafts
+} from "agent-code-review";
+export {
   followLaunchLogs,
   listLaunches,
   readLaunchLogs,
@@ -133,6 +148,23 @@ export type {
 } from "@poe-code/agent-maestro";
 export type { RalphRunOptions, RalphRunResult } from "./sdk/ralph.js";
 export type { AutomationDefinition } from "@poe-code/github-workflows";
+export type {
+  CodeReviewAgentMcpConfig,
+  CodeReviewAgentMcpContext,
+  CodeReviewCliDependencies,
+  CodeReviewCommitResult,
+  CodeReviewIngestInput,
+  CodeReviewIngestResult,
+  CodeReviewInstallResult,
+  CodeReviewOrchestrationInput,
+  CodeReviewProfile,
+  CodeReviewResult,
+  CodeReviewRunInput,
+  CodeReviewRunOptions,
+  CodeReviewState,
+  CommitCodeReviewDraftsInput,
+  ReadCodeReviewDraftInput
+} from "agent-code-review";
 export type {
   ExperimentRunOptions,
   ExperimentRunResult,

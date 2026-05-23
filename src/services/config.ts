@@ -17,6 +17,7 @@ import type {
 } from "@poe-code/poe-code-config";
 import { parseNullablePluginConfigEntries, type PluginConfigEntry } from "@poe-code/poe-agent";
 import { superintendentConfigScope } from "@poe-code/superintendent";
+import { codeReviewConfigScope } from "agent-code-review";
 import type { FileSystem } from "../utils/file-system.js";
 
 export interface ConfigStoreOptions {
@@ -114,7 +115,8 @@ export const knownConfigScopes = [
   experimentConfigScope,
   planConfigScope,
   agentConfigScope,
-  superintendentConfigScope
+  superintendentConfigScope,
+  codeReviewConfigScope
 ] as const;
 
 const CORE_SCOPE = coreConfigScope.scope;

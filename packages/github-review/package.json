@@ -1,0 +1,26 @@
+{
+  "name": "github-review",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./test-support/harness": {
+      "types": "./dist/test-support/harness.d.ts",
+      "import": "./dist/test-support/harness.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "cd ../.. && vitest run packages/github-review/src",
+    "test:unit": "cd ../.. && vitest run packages/github-review/src"
+  },
+  "files": [
+    "dist"
+  ]
+}

@@ -98,4 +98,70 @@ describe("createProgram", () => {
     process.exitCode = originalExitCode;
     stdoutSpy.mockRestore();
   });
+
+  it("registers the code-review command group in root help", () => {
+    const fs = createMemFs(homeDir);
+    const program = createProgram({
+      fs,
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    expect(program.commands.find((command) => command.name() === "code-review")).toBeDefined();
+    expect(program.helpInformation()).toContain("code-review");
+  });
+
+  it("forwards code-review help through the root command", async () => {
+    const fs = createMemFs(homeDir);
+    const writes: string[] = [];
+    vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+      writes.push(String(chunk));
+      return true;
+    }) as typeof process.stdout.write);
+    process.argv = ["node", "poe-code", "code-review", "--help"];
+    const program = createProgram({
+      fs,
+      prompts: async () => ({}),
+      env: { cwd: "/repo", homeDir },
+      logger: () => {},
+      exitOverride: true,
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(process.argv);
+
+    const output = writes.join("");
+    expect(output).toContain("code-review");
+    for (const command of ["install", "profiles", "ingest", "run", "drafts", "commit", "agent-mcp"]) {
+      expect(output).toContain(command);
+    }
+  });
+
+  it.each(["install", "profiles", "ingest", "run", "drafts", "commit", "agent-mcp"])(
+    "forwards code-review %s help through the root command",
+    async (command) => {
+      const fs = createMemFs(homeDir);
+      const writes: string[] = [];
+      vi.spyOn(process.stdout, "write").mockImplementation(((chunk: unknown) => {
+        writes.push(String(chunk));
+        return true;
+      }) as typeof process.stdout.write);
+      process.argv = ["node", "poe-code", "code-review", command, "--help"];
+      const program = createProgram({
+        fs,
+        prompts: async () => ({}),
+        env: { cwd: "/repo", homeDir },
+        logger: () => {},
+        exitOverride: true,
+        suppressCommanderOutput: true
+      });
+
+      await program.parseAsync(process.argv);
+
+      expect(writes.join("")).toContain(command);
+    }
+  );
 });

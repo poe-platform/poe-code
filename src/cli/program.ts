@@ -5,6 +5,7 @@ import { S, type Static } from "toolcraft-schema";
 import { runCLI } from "toolcraft/cli";
 import { evalGroup } from "@poe-code/agent-eval";
 import { ghGroup } from "@poe-code/github-workflows";
+import { codeReviewGroup } from "agent-code-review";
 import { superintendentGroup } from "@poe-code/superintendent";
 import {
   runMaestro,
@@ -133,6 +134,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["launch"] },
   { path: ["approvals"], args: "[command]" },
   { path: ["github-workflows"], args: "[automation]" },
+  { path: ["code-review"], args: "[command]" },
   { path: ["usage"] },
   { path: ["usage", "list"] },
   { path: ["utils", "config"] }
@@ -724,7 +726,8 @@ function bootstrapProgram(container: CliContainer): Command {
   const toolcraftRoots = [
     evalGroup as Group<object>,
     ghGroup as Group<object>,
-    superintendentGroup as Group<object>
+    superintendentGroup as Group<object>,
+    codeReviewGroup as Group<object>
   ];
 
   program
@@ -794,6 +797,18 @@ function bootstrapProgram(container: CliContainer): Command {
       name: ghGroup.name,
       description: ghGroup.description ?? "",
       aliases: ghGroup.aliases
+    },
+    toolcraftRoots,
+    heading,
+    usageCommand
+  );
+  registerForwardedToolcraftCommand(
+    program,
+    container,
+    {
+      name: codeReviewGroup.name,
+      description: codeReviewGroup.description ?? "",
+      aliases: codeReviewGroup.aliases
     },
     toolcraftRoots,
     heading,

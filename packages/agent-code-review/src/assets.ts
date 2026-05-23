@@ -1,0 +1,420 @@
+import { randomUUID } from "node:crypto";
+import { constants } from "node:fs";
+import {
+  link,
+  lstat,
+  mkdir,
+  open,
+  readdir,
+  rename,
+  stat,
+  unlink
+} from "node:fs/promises";
+import { basename, dirname, join, relative, resolve, sep } from "node:path";
+import {
+  parseCodeReviewProfileMarkdown,
+  parseCodeReviewPromptMarkdown,
+  requireSafeDocumentSegment
+} from "./document-schemas.js";
+
+export type CodeReviewAssetReader = (filePath: string, encoding: BufferEncoding) => Promise<string>;
+
+export const CODE_REVIEW_PROMPT_ROLES = [
+  "orchestrator",
+  "subagent",
+  "agent",
+  "profile-synthesis"
+] as const;
+
+export type CodeReviewPromptRole = (typeof CODE_REVIEW_PROMPT_ROLES)[number];
+
+export interface CodeReviewProfile {
+  name: string;
+  content: string;
+  filePath?: string;
+  source: "repo" | "built-in";
+}
+
+export interface CodeReviewInstallResult {
+  created: string[];
+  overwritten: string[];
+  skipped: string[];
+}
+
+export const CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT =
+  "In user-facing review/profile output, do not mention dry-run, fake-submit, orchestration, subagents, internal tool flow, source GitHub usernames, source URLs, or generation details.";
+
+export const BUILT_IN_GENERIC_PROFILE = `# Generic review profile
+
+Focus on correctness, regressions, security, and missing tests. Report only concrete, actionable findings.
+`;
+
+export const BUILT_IN_CODE_REVIEW_PROMPTS: Record<CodeReviewPromptRole, string> = {
+  orchestrator: `Review this pull request and return actionable findings only. Use the available reviewer profiles where they help identify concrete issues.
+`,
+  subagent: `Review the assigned pull request changes using the supplied reviewer profile. Return only concrete, actionable findings.
+`,
+  agent: `Review the requested pull request directly without orchestrating other agents. Read the pull request context with the available tools, then create exactly one review draft with concrete, actionable findings only.
+
+${CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT}
+`,
+  "profile-synthesis": `Synthesize a concise code-review profile from the supplied review evidence, emphasizing actionable review priorities and style.
+`
+};
+
+function requireUserFacingOutputContract(prompt: string): string {
+  if (prompt.includes(CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT)) {
+    return prompt;
+  }
+  return `${prompt.trimEnd()}\n\n${CODE_REVIEW_USER_FACING_OUTPUT_CONTRACT}\n`;
+}
+
+const INSTALL_ASSETS: ReadonlyArray<readonly [string, string]> = [
+  ["profiles/generic.md", BUILT_IN_GENERIC_PROFILE],
+  ["prompts/orchestrator.md", BUILT_IN_CODE_REVIEW_PROMPTS.orchestrator],
+  ["prompts/subagent.md", BUILT_IN_CODE_REVIEW_PROMPTS.subagent],
+  ["prompts/agent.md", BUILT_IN_CODE_REVIEW_PROMPTS.agent],
+  ["prompts/profile-synthesis.md", BUILT_IN_CODE_REVIEW_PROMPTS["profile-synthesis"]]
+];
+
+function requireMarkdownBody(content: string, filePath: string): string {
+  if (content.trim().length === 0) {
+    throw new Error(`Code review asset is empty: ${filePath}`);
+  }
+  return content;
+}
+
+export function codeReviewAssetsDirectory(cwd: string): string {
+  return join(cwd, ".poe-code", "code-review");
+}
+
+export async function loadCodeReviewProfile(
+  filePath: string,
+  reader?: CodeReviewAssetReader
+): Promise<string> {
+  const parsed = parseCodeReviewProfileMarkdown(
+    await (reader ? reader(filePath, "utf8") : readRegularAssetFile(filePath)),
+    filePath
+  );
+  return requireMarkdownBody(parsed.content, filePath);
+}
+
+export async function loadCodeReviewPrompt(
+  filePath: string,
+  reader?: CodeReviewAssetReader
+): Promise<string> {
+  const parsed = parseCodeReviewPromptMarkdown(
+    await (reader ? reader(filePath, "utf8") : readRegularAssetFile(filePath)),
+    filePath
+  );
+  return requireMarkdownBody(parsed.content, filePath);
+}
+
+export async function discoverCodeReviewProfiles(input: {
+  cwd: string;
+  filters?: readonly string[];
+}): Promise<CodeReviewProfile[]> {
+  const profilesDirectory = join(codeReviewAssetsDirectory(input.cwd), "profiles");
+  await assertContainedAssetDirectoryOrMissing(resolve(input.cwd), profilesDirectory);
+  let profileFileNames: string[];
+  try {
+    const profileEntries = await readdir(profilesDirectory, {
+      withFileTypes: true
+    });
+    for (const entry of profileEntries) {
+      if (entry.name.endsWith(".md") && !entry.isFile()) {
+        throw invalidInstallTargetError(join(profilesDirectory, entry.name));
+      }
+    }
+    profileFileNames = profileEntries
+      .filter((entry) => entry.isFile() && entry.name.endsWith(".md"))
+      .map((entry) => entry.name)
+      .sort();
+  } catch (error) {
+    if (!isMissingFileError(error)) {
+      throw error;
+    }
+    profileFileNames = [];
+  }
+
+  const availableNames = profileFileNames.map((fileName) =>
+    requireSafeDocumentSegment(
+      profileNameFromFile(fileName),
+      `${join(profilesDirectory, fileName)}: filename`
+    )
+  );
+  const normalizedNames = new Set<string>();
+  for (const name of availableNames) {
+    const normalized = name.normalize("NFKC").toLowerCase();
+    if (normalizedNames.has(normalized)) {
+      throw new Error(`Code review profile filenames normalize to the same name: ${name}`);
+    }
+    normalizedNames.add(normalized);
+  }
+  if (availableNames.length === 0) {
+    validateProfileFilters(input.filters, ["generic"]);
+    return [
+      {
+        name: "generic",
+        content: BUILT_IN_GENERIC_PROFILE,
+        source: "built-in"
+      }
+    ];
+  }
+
+  validateProfileFilters(input.filters, availableNames);
+  const filterSet = input.filters?.length ? new Set(input.filters) : undefined;
+  return Promise.all(
+    profileFileNames
+      .filter((fileName) => !filterSet || filterSet.has(profileNameFromFile(fileName)))
+      .map(async (fileName) => {
+        const filePath = join(profilesDirectory, fileName);
+        return {
+          name: profileNameFromFile(fileName),
+          content: await loadCodeReviewProfile(filePath),
+          filePath,
+          source: "repo" as const
+        };
+      })
+  );
+}
+
+export async function loadCodeReviewRolePrompt(input: {
+  cwd: string;
+  role: CodeReviewPromptRole;
+}): Promise<string> {
+  const cwd = resolve(input.cwd);
+  const filePath = join(codeReviewAssetsDirectory(cwd), "prompts", `${input.role}.md`);
+  try {
+    await assertContainedAssetDirectoryOrMissing(cwd, dirname(filePath));
+    const parsed = parseCodeReviewPromptMarkdown(
+      await readRegularAssetFile(filePath),
+      filePath,
+      input.role
+    );
+    const prompt = requireMarkdownBody(parsed.content, filePath);
+    return input.role === "agent" ? requireUserFacingOutputContract(prompt) : prompt;
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      const prompt = BUILT_IN_CODE_REVIEW_PROMPTS[input.role];
+      return input.role === "agent" ? requireUserFacingOutputContract(prompt) : prompt;
+    }
+    throw error;
+  }
+}
+
+export async function installCodeReviewAssets(input: {
+  cwd: string;
+  force?: boolean;
+}): Promise<CodeReviewInstallResult> {
+  const cwd = resolve(input.cwd);
+  const assetsDirectory = codeReviewAssetsDirectory(cwd);
+  const result: CodeReviewInstallResult = {
+    created: [],
+    overwritten: [],
+    skipped: []
+  };
+  for (const [relativePath, content] of INSTALL_ASSETS) {
+    const filePath = join(assetsDirectory, relativePath);
+    await ensureContainedDirectory(cwd, dirname(filePath));
+    if (!input.force) {
+      const installed = await createAssetUnlessPresent(filePath, content);
+      (installed ? result.created : result.skipped).push(filePath);
+      continue;
+    }
+    const exists = await assertInstallTargetIsFileOrMissing(filePath);
+    await overwriteAssetAtomically(filePath, content);
+    (exists ? result.overwritten : result.created).push(filePath);
+  }
+  return result;
+}
+
+async function ensureContainedDirectory(cwd: string, targetDirectory: string) {
+  const pathFromCwd = relative(cwd, targetDirectory);
+  if (pathFromCwd.startsWith("..") || pathFromCwd.startsWith(sep)) {
+    throw new Error(`Code review asset directory escapes repository: ${targetDirectory}`);
+  }
+  await mkdir(cwd, { recursive: true });
+  if (!(await stat(cwd)).isDirectory()) {
+    throw new Error(`Code review repository path is not a directory: ${cwd}`);
+  }
+  let currentDirectory = cwd;
+  for (const segment of pathFromCwd.split(sep).filter(Boolean)) {
+    currentDirectory = join(currentDirectory, segment);
+    try {
+      await mkdir(currentDirectory);
+    } catch (error) {
+      if (!isAlreadyExistsError(error)) {
+        throw error;
+      }
+    }
+    const status = await lstat(currentDirectory);
+    if (!status.isDirectory()) {
+      throw new Error(
+        `Code review asset directory is not a regular directory: ${currentDirectory}`
+      );
+    }
+  }
+}
+
+async function assertContainedAssetDirectoryOrMissing(
+  cwd: string,
+  targetDirectory: string
+): Promise<void> {
+  const pathFromCwd = relative(cwd, targetDirectory);
+  if (pathFromCwd.startsWith("..") || pathFromCwd.startsWith(sep)) {
+    throw new Error(`Code review asset directory escapes repository: ${targetDirectory}`);
+  }
+  let currentDirectory = cwd;
+  for (const segment of pathFromCwd.split(sep).filter(Boolean)) {
+    currentDirectory = join(currentDirectory, segment);
+    let status: Awaited<ReturnType<typeof lstat>>;
+    try {
+      status = await lstat(currentDirectory);
+    } catch (error) {
+      if (isMissingFileError(error)) {
+        return;
+      }
+      throw error;
+    }
+    if (!status.isDirectory()) {
+      throw new Error(
+        `Code review asset directory is not a regular directory: ${currentDirectory}`
+      );
+    }
+  }
+}
+
+function profileNameFromFile(fileName: string): string {
+  return basename(fileName, ".md");
+}
+
+function validateProfileFilters(
+  filters: readonly string[] | undefined,
+  availableNames: readonly string[]
+): void {
+  if (!filters?.length) {
+    return;
+  }
+  const validatedFilters = filters.map((profile) =>
+    requireSafeDocumentSegment(profile, "Code review profile filter")
+  );
+  const available = new Set(availableNames);
+  const unknown = validatedFilters.filter((profile) => !available.has(profile));
+  if (unknown.length > 0) {
+    throw new Error(
+      `Unknown code review profile filter(s): ${unknown.join(", ")}. Available profiles: ${availableNames.join(", ")}.`
+    );
+  }
+}
+
+async function createAssetUnlessPresent(filePath: string, content: string): Promise<boolean> {
+  for (;;) {
+    const temporaryPath = join(dirname(filePath), `.${basename(filePath)}.${randomUUID()}.tmp`);
+    let temporary: Awaited<ReturnType<typeof open>> | undefined;
+    try {
+      temporary = await open(
+        temporaryPath,
+        constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY
+      );
+      try {
+        await temporary.writeFile(content, "utf8");
+        await temporary.sync();
+      } finally {
+        await temporary.close();
+        temporary = undefined;
+      }
+      await link(temporaryPath, filePath);
+      await unlink(temporaryPath);
+      await syncDirectory(dirname(filePath));
+      return true;
+    } catch (error) {
+      await temporary?.close().catch(() => undefined);
+      await unlink(temporaryPath).catch(() => undefined);
+      if (!isAlreadyExistsError(error)) {
+        throw error;
+      }
+      try {
+        const status = await lstat(filePath);
+        if (!status.isFile()) {
+          throw invalidInstallTargetError(filePath);
+        }
+        return false;
+      } catch (statusError) {
+        if (isMissingFileError(statusError)) {
+          continue;
+        }
+        throw statusError;
+      }
+    }
+  }
+}
+
+async function assertInstallTargetIsFileOrMissing(filePath: string): Promise<boolean> {
+  try {
+    const status = await lstat(filePath);
+    if (!status.isFile()) {
+      throw invalidInstallTargetError(filePath);
+    }
+    return true;
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return false;
+    }
+    throw error;
+  }
+}
+
+async function overwriteAssetAtomically(filePath: string, content: string): Promise<void> {
+  const temporaryPath = join(dirname(filePath), `.${basename(filePath)}.${randomUUID()}.tmp`);
+  let temporary: Awaited<ReturnType<typeof open>> | undefined;
+  try {
+    temporary = await open(
+      temporaryPath,
+      constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY
+    );
+    await temporary.writeFile(content, "utf8");
+    await temporary.sync();
+    await temporary.close();
+    temporary = undefined;
+    await rename(temporaryPath, filePath);
+    await syncDirectory(dirname(filePath));
+  } catch (error) {
+    await temporary?.close().catch(() => undefined);
+    await unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
+}
+
+async function syncDirectory(directory: string): Promise<void> {
+  const parent = await open(directory, constants.O_RDONLY);
+  try {
+    await parent.sync();
+  } finally {
+    await parent.close();
+  }
+}
+
+async function readRegularAssetFile(filePath: string): Promise<string> {
+  const handle = await open(filePath, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0));
+  try {
+    if (!(await handle.stat()).isFile()) {
+      throw invalidInstallTargetError(filePath);
+    }
+    return await handle.readFile("utf8");
+  } finally {
+    await handle.close();
+  }
+}
+
+function invalidInstallTargetError(filePath: string): Error {
+  return new Error(`Code review asset path is not a regular file: ${filePath}`);
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "EEXIST";
+}
+
+function isMissingFileError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+}

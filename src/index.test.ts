@@ -4,13 +4,25 @@ import {
   createLogWriter,
   createStateStore,
   createSupervisor,
+  codeReviewGroup,
+  createCodeReviewAgentMcpConfig,
+  createCodeReviewSession,
+  createCodeReviewState,
+  commitCodeReviewDrafts,
+  discoverCodeReviewProfiles,
   ghGroup,
   getPoeApiKey,
+  ingestCodeReviewProfile,
+  installCodeReviewAssets,
   isCliInvocation,
+  loadCodeReviewProfile,
   planDocumentSchema,
   planDocumentSchemaId,
   openaiResponsesPlugin,
+  readCodeReviewDraft,
   runExperiment,
+  runCodeReview,
+  runCodeReviewAgentMcp,
   runRalph,
   systemPromptPlugin,
   waitForReady,
@@ -61,6 +73,21 @@ describe("entrypoint module", () => {
 
   it("re-exports runRalph", () => {
     expect(typeof runRalph).toBe("function");
+  });
+
+  it("re-exports code-review SDK and CLI wiring", () => {
+    expect(codeReviewGroup.name).toBe("code-review");
+    expect(typeof createCodeReviewAgentMcpConfig).toBe("function");
+    expect(typeof createCodeReviewSession).toBe("function");
+    expect(typeof createCodeReviewState).toBe("function");
+    expect(typeof discoverCodeReviewProfiles).toBe("function");
+    expect(typeof installCodeReviewAssets).toBe("function");
+    expect(typeof loadCodeReviewProfile).toBe("function");
+    expect(typeof ingestCodeReviewProfile).toBe("function");
+    expect(typeof runCodeReview).toBe("function");
+    expect(typeof readCodeReviewDraft).toBe("function");
+    expect(typeof commitCodeReviewDrafts).toBe("function");
+    expect(typeof runCodeReviewAgentMcp).toBe("function");
   });
 
   it("re-exports runExperiment", () => {

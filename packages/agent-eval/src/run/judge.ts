@@ -22,6 +22,7 @@ type AutonomousSpawnFn = (service: string, options: SpawnOptions) => Promise<Aut
 export async function judgeRun(input: {
   evalDef: EvalDef;
   cloneDir: string;
+  traceJsonPath: string;
   trace: NormalizedTrace;
   testsResult: { passed: number; total: number };
   spec: JudgeSpec;
@@ -45,6 +46,7 @@ async function buildJudgePrompt(
   input: {
     evalDef: EvalDef;
     cloneDir: string;
+    traceJsonPath: string;
     trace: NormalizedTrace;
     testsResult: { passed: number; total: number };
   },
@@ -66,6 +68,7 @@ async function buildJudgePrompt(
       : "(none)",
     "",
     `Tests: ${input.testsResult.passed}/${input.testsResult.total} passed`,
+    `Normalized trace artifact path: ${input.traceJsonPath}`,
     "Normalized trace JSON:",
     JSON.stringify(input.trace),
     "",

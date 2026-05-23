@@ -2,6 +2,12 @@ import type { Budget, SpawnUsage } from "../types.js";
 import type { NormalizedTraceEvent } from "./trace/types.js";
 
 type BudgetKey = keyof Budget;
+type BudgetSnapshot = {
+  iterations: number;
+  usage: SpawnUsage;
+  elapsedMs: number;
+  tripped?: keyof Budget;
+};
 
 export class BudgetEnforcer {
   private readonly startedAt = Date.now();
@@ -17,6 +23,7 @@ export class BudgetEnforcer {
   private iterationsTotal = 0;
   private pendingTrip: BudgetKey | undefined;
   private tripped: BudgetKey | undefined;
+  private completed: BudgetSnapshot | undefined;
 
   constructor(budget: Budget, controller: AbortController) {
     this.budget = budget;
@@ -39,6 +46,10 @@ export class BudgetEnforcer {
   }
 
   onEvent(event: NormalizedTraceEvent): void {
+    if (this.completed !== undefined) {
+      return;
+    }
+
     if (event.type === "tool") {
       this.countToolIteration(event);
     }
@@ -50,14 +61,26 @@ export class BudgetEnforcer {
     this.checkCaps();
   }
 
-  snapshot(): { iterations: number; usage: SpawnUsage; elapsedMs: number; tripped?: keyof Budget } {
-    const snapshot = {
+  finalize(): BudgetSnapshot {
+    if (this.completed === undefined) {
+      clearTimeout(this.wallTimer);
+      this.completed = this.currentSnapshot();
+    }
+
+    return copySnapshot(this.completed);
+  }
+
+  snapshot(): BudgetSnapshot {
+    return this.completed === undefined ? this.currentSnapshot() : copySnapshot(this.completed);
+  }
+
+  private currentSnapshot(): BudgetSnapshot {
+    return {
       iterations: this.iterationsTotal,
       usage: { ...this.usageTotal },
       elapsedMs: Date.now() - this.startedAt,
       ...(this.tripped === undefined ? {} : { tripped: this.tripped })
     };
-    return snapshot;
   }
 
   private addUsage(usage: SpawnUsage): void {
@@ -99,7 +122,11 @@ export class BudgetEnforcer {
   }
 
   private trip(budgetKey: BudgetKey): void {
-    if (this.tripped !== undefined || this.controller.signal.aborted) {
+    if (
+      this.completed !== undefined ||
+      this.tripped !== undefined ||
+      this.controller.signal.aborted
+    ) {
       return;
     }
 
@@ -109,4 +136,11 @@ export class BudgetEnforcer {
       this.tripped = budgetKey;
     }
   }
+}
+
+function copySnapshot(snapshot: BudgetSnapshot): BudgetSnapshot {
+  return {
+    ...snapshot,
+    usage: { ...snapshot.usage }
+  };
 }

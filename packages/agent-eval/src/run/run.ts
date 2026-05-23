@@ -41,7 +41,7 @@ import { judgeRun } from "./judge.js";
 import { verifyOracle } from "./oracle.js";
 import { runScorer } from "./scorer.js";
 import { createTraceNormalizer } from "./trace/normalize.js";
-import { writeRunArtifacts } from "./result-writer.js";
+import { writeRunCompletion, writeRunEvidence, writeRunResult } from "./result-writer.js";
 import type { CaseResult } from "./vitest-runner.js";
 
 export class EvalFrameworkError extends Error {
@@ -128,29 +128,54 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
       onEvent
     });
 
-    const budgetSnapshot = enforcer.snapshot();
+    const budgetSnapshot = enforcer.finalize();
     const cheatReport = filter.report();
     const trace = traceNormalizer.snapshot();
-    const testsResult = await runScorer({
-      evalDef,
-      evalDir: path.join(source.rootDir, opts.evalId),
-      cloneDir,
-      signal: controller.signal
-    });
-    const judgeSpec = resolveJudgeSpec(opts.judge, evalDef);
-    const judgeResult =
-      judgeSpec !== undefined && !cheatReport.cheated && budgetSnapshot.tripped === undefined
-        ? await judgeRun({
-            evalDef,
-            cloneDir,
-            trace,
-            testsResult,
-            spec: judgeSpec,
-            agentUnderTest: opts.agent
-          })
-        : undefined;
+    try {
+      await writeRunEvidence(runDir, { events, trace, cheatReport, planMd, evalYaml });
+    } catch (error) {
+      const result = createEvalRunResult({
+        opts,
+        evalDef,
+        runId,
+        startedAt,
+        budgetSnapshot,
+        cheatReport,
+        testsResult: emptyTestsResult(),
+        spawnError,
+        evaluationError: `Artifact evidence write failed: ${formatUnknownError(error)}`
+      });
+      await writeRunResult(runDir, result).catch(() => undefined);
+      return result;
+    }
 
-    const result = createEvalRunResult({
+    let testsResult = emptyTestsResult();
+    let judgeResult: EvalRunResult["judge"] | undefined;
+    let evaluationError: string | undefined;
+    try {
+      testsResult = await runScorer({
+        evalDef,
+        evalDir: path.join(source.rootDir, opts.evalId),
+        cloneDir
+      });
+      const judgeSpec = resolveJudgeSpec(opts.judge, evalDef);
+      judgeResult =
+        judgeSpec !== undefined && !cheatReport.cheated && budgetSnapshot.tripped === undefined
+          ? await judgeRun({
+              evalDef,
+              cloneDir,
+              traceJsonPath: path.join(runDir, "trace.json"),
+              trace,
+              testsResult,
+              spec: judgeSpec,
+              agentUnderTest: opts.agent
+            })
+          : undefined;
+    } catch (error) {
+      evaluationError = formatUnknownError(error);
+    }
+
+    let result = createEvalRunResult({
       opts,
       evalDef,
       runId,
@@ -159,18 +184,30 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
       cheatReport,
       testsResult,
       judgeResult,
-      spawnError
+      spawnError,
+      evaluationError
     });
 
-    await writeRunArtifacts(runDir, {
-      result,
-      events,
-      trace,
-      cheatReport,
-      judge: judgeResult,
-      planMd,
-      evalYaml
-    });
+    try {
+      await writeRunCompletion(runDir, {
+        result,
+        judge: judgeResult
+      });
+    } catch (error) {
+      result = createEvalRunResult({
+        opts,
+        evalDef,
+        runId,
+        startedAt,
+        budgetSnapshot,
+        cheatReport,
+        testsResult,
+        judgeResult,
+        spawnError,
+        evaluationError: `Artifact write failed: ${formatUnknownError(error)}`
+      });
+      await writeRunResult(runDir, result).catch(() => undefined);
+    }
 
     return result;
   } finally {
@@ -378,12 +415,14 @@ function createEvalRunResult(input: {
   testsResult: { passed: number; total: number; cases: CaseResult[] };
   judgeResult?: EvalRunResult["judge"];
   spawnError?: string;
+  evaluationError?: string;
 }): EvalRunResult {
   const verdict = resolveVerdict({
     cheated: input.cheatReport.cheated,
     budgetTripped: input.budgetSnapshot.tripped !== undefined,
     testsResult: input.testsResult,
-    spawnErrored: input.spawnError !== undefined
+    spawnErrored: input.spawnError !== undefined,
+    evaluationErrored: input.evaluationError !== undefined
   });
 
   return {
@@ -418,7 +457,9 @@ function createEvalRunResult(input: {
     ...(input.judgeResult === undefined ? {} : { judge: input.judgeResult }),
     cheated: input.cheatReport.cheated,
     cheatReport: input.cheatReport,
-    ...(input.spawnError === undefined ? {} : { error: input.spawnError })
+    ...(input.evaluationError === undefined && input.spawnError === undefined
+      ? {}
+      : { error: input.evaluationError ?? input.spawnError })
   };
 }
 
@@ -427,12 +468,16 @@ function resolveVerdict(input: {
   budgetTripped: boolean;
   testsResult: { passed: number; total: number };
   spawnErrored: boolean;
+  evaluationErrored: boolean;
 }): Verdict {
   if (input.cheated) {
     return "cheated";
   }
   if (input.budgetTripped) {
     return "budget_exceeded";
+  }
+  if (input.evaluationErrored) {
+    return "error";
   }
   if (
     input.testsResult.total === 0 ||
@@ -444,6 +489,10 @@ function resolveVerdict(input: {
     return "error";
   }
   return "pass";
+}
+
+function emptyTestsResult(): { passed: number; total: number; cases: CaseResult[] } {
+  return { passed: 0, total: 0, cases: [] };
 }
 
 function calculateCorrectness(input: {

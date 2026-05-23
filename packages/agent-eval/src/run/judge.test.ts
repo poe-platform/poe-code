@@ -46,6 +46,7 @@ describe("judgeRun", () => {
     const result = await judgeRun({
       evalDef: createEval(),
       cloneDir: "/repo",
+      traceJsonPath: "/runs/trace.json",
       trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
       testsResult: { passed: 2, total: 3 },
       spec: createJudgeSpec(),
@@ -92,6 +93,7 @@ describe("judgeRun", () => {
     await judgeRun({
       evalDef: createEval(),
       cloneDir: "/repo",
+      traceJsonPath: "/runs/trace.json",
       trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
       testsResult: { passed: 1, total: 1 },
       spec: createJudgeSpec({ agent: "claude-code" }),
@@ -114,6 +116,7 @@ describe("judgeRun", () => {
     await judgeRun({
       evalDef: createEval(),
       cloneDir: "/repo",
+      traceJsonPath: "/runs/trace.json",
       trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
       testsResult: { passed: 1, total: 1 },
       spec: createJudgeSpec({ agent: "custom-agent" }),
@@ -136,6 +139,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
+        traceJsonPath: "/runs/trace.json",
         trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 0, total: 1 },
         spec: createJudgeSpec(),
@@ -159,6 +163,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
+        traceJsonPath: "/runs/trace.json",
         trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 1, total: 1 },
         spec: createJudgeSpec(),
@@ -186,6 +191,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
+        traceJsonPath: "/runs/trace.json",
         trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 0, total: 1 },
         spec: createJudgeSpec(),
@@ -215,6 +221,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
+        traceJsonPath: "/runs/trace.json",
         trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 1, total: 2 },
         spec,
@@ -239,6 +246,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
+        traceJsonPath: "/runs/trace.json",
         trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 1, total: 1 },
         spec: createJudgeSpec({ rubric: ["custom_quality"] }),

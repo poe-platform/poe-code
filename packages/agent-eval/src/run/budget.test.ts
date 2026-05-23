@@ -159,4 +159,18 @@ describe("BudgetEnforcer", () => {
       elapsedMs: 500
     });
   });
+
+  it("finalizes execution metrics and clears the wall timer", () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const enforcer = new BudgetEnforcer({ ...relaxedBudget, wallClockMs: 50 }, controller);
+
+    vi.advanceTimersByTime(25);
+    const completed = enforcer.finalize();
+    vi.advanceTimersByTime(100);
+
+    expect(controller.signal.aborted).toBe(false);
+    expect(enforcer.snapshot()).toEqual(completed);
+    expect(completed.elapsedMs).toBe(25);
+  });
 });

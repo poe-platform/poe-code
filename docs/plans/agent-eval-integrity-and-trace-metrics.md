@@ -106,10 +106,10 @@ tasks:
       scorer/judge work, wall-clock trips during dispatch, and partial artifact
       persistence when post-dispatch evaluation fails.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: correct-verdict-and-score-semantics
     title: Correct verdict and score semantics

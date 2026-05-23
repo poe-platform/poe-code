@@ -1,15 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 import { createSpawnMock } from "@poe-code/agent-spawn/testing";
 import {
+  assertObservedNestedEvents,
   assertSuccessfulRun,
   copyFixtureClone,
   createRunOutDir,
+  nestedAcpEvents,
   registerRunIntegrationCleanup,
   sourceFixture
 } from "./run.integration-helper.js";
 
 const mockedAgentSpawn = vi.hoisted(() => ({
-  spawnMock: undefined as ReturnType<typeof createSpawnMock> | undefined
+  spawnMock: undefined as ReturnType<typeof createSpawnMock> | undefined,
+  spawnStreaming: vi.fn()
 }));
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
@@ -18,7 +21,8 @@ vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   mockedAgentSpawn.spawnMock = spawnMock;
   return {
     ...actual,
-    ...spawnMock.factory()
+    ...spawnMock.factory(),
+    spawnStreaming: mockedAgentSpawn.spawnStreaming
   };
 });
 
@@ -34,8 +38,15 @@ const { runEval } = await import("./run.js");
 registerRunIntegrationCleanup();
 
 describe("runEval plan integration", () => {
-  it("runs a plan eval and writes artifacts", async () => {
+  it("records direct agent ACP events for budget and anti-cheat consumers", async () => {
     const outDir = await createRunOutDir();
+    const outsidePath = "/private/agent-eval-plan-cheat.txt";
+    mockedAgentSpawn.spawnStreaming.mockReturnValueOnce({
+      events: (async function* () {
+        yield* nestedAcpEvents(outsidePath);
+      })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
 
     const result = await runEval({
       sourceDir: sourceFixture("plan"),
@@ -47,9 +58,29 @@ describe("runEval plan integration", () => {
       verifyOracle: false
     });
 
-    expect(mockedAgentSpawn.spawnMock!.autonomous).toHaveBeenCalledWith(
-      "codex",
+    await assertObservedNestedEvents({ outDir, result, expectedPath: outsidePath });
+  });
+
+  it("runs a plan eval and writes artifacts", async () => {
+    const outDir = await createRunOutDir();
+    mockedAgentSpawn.spawnStreaming.mockReturnValueOnce({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+
+    const result = await runEval({
+      sourceDir: sourceFixture("plan"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      judge: "off",
+      verifyOracle: false
+    });
+
+    expect(mockedAgentSpawn.spawnStreaming).toHaveBeenCalledWith(
       expect.objectContaining({
+        agentId: "codex",
         cwd: expect.stringContaining("clone"),
         model: "openai/gpt-5",
         prompt: expect.stringContaining("Implement the plan fixture.")

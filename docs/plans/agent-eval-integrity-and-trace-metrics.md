@@ -37,7 +37,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: capture-orchestrated-run-events
     title: Capture traces for every plan kind
@@ -68,10 +68,10 @@ tasks:
       events, and proving budget and anti-cheat consumers receive events for
       orchestrated runs rather than only direct `plan` runs.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: repair-run-lifecycle-and-artifacts
     title: Repair run lifecycle and judge artifacts

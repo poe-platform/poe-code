@@ -11,8 +11,11 @@
   },
   "dependencies": {
     "@poe-code/agent-spawn": "*",
+    "@poe-code/experiment-loop": "*",
     "@poe-code/file-lock": "*",
+    "@poe-code/pipeline": "*",
     "@poe-code/process-runner": "*",
+    "@poe-code/superintendent": "*",
     "@poe-code/design-system": "*",
     "toolcraft": "*",
     "toolcraft-schema": "*",

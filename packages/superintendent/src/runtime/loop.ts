@@ -1,6 +1,10 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { lockWorkflow, makeRunLogFileName, resolveWorkflowPath } from "@poe-code/agent-harness-tools";
+import {
+  lockWorkflow,
+  makeRunLogFileName,
+  resolveWorkflowPath
+} from "@poe-code/agent-harness-tools";
 import { parseSuperintendentDoc, type SuperintendentDoc } from "../document/parse.js";
 import { parseTaskBoard } from "../document/tasks.js";
 import { updateStatus } from "../document/write.js";
@@ -31,11 +35,7 @@ export interface SuperintendentFileStat {
 
 export interface SuperintendentFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
-  writeFile(
-    path: string,
-    data: string,
-    options?: { encoding?: BufferEncoding }
-  ): Promise<void>;
+  writeFile(path: string, data: string, options?: { encoding?: BufferEncoding }): Promise<void>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<SuperintendentFileStat>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
@@ -107,6 +107,7 @@ export type RunLoopOptions = {
   fs?: SuperintendentFileSystem;
   callbacks?: LoopCallbacks;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  builderAgent?: string;
   runners?: LoopRunners;
   signal?: AbortSignal;
   logDir?: string;
@@ -126,6 +127,7 @@ type LoopRuntime = {
   fs: SuperintendentFileSystem;
   callbacks: LoopCallbacks;
   runAgent?: (input: AgentRunInput) => Promise<AgentRunResult>;
+  builderAgent?: string;
   runners: ResolvedRunners;
   signal?: AbortSignal;
   logDir?: string;
@@ -142,7 +144,10 @@ type TemplateLoopContext = {
 };
 
 type LockCapableSuperintendentFs = {
-  open(path: string, flags: string): Promise<{
+  open(
+    path: string,
+    flags: string
+  ): Promise<{
     close(): Promise<void>;
     writeFile(
       data: string,
@@ -195,8 +200,17 @@ export async function runLoop(
 
           let builderResult: BuilderResult;
           try {
+            const builderDoc = await readDocument(options.fs, options.docPath);
             builderResult = await options.runners.builder(
-              await readDocument(options.fs, options.docPath),
+              options.builderAgent
+                ? {
+                    ...builderDoc,
+                    frontmatter: {
+                      ...builderDoc.frontmatter,
+                      builder: { ...builderDoc.frontmatter.builder, agent: options.builderAgent }
+                    }
+                  }
+                : builderDoc,
               createTemplateContext(context),
               buildRoleOptions(options, "builder")
             );
@@ -323,7 +337,9 @@ export async function runLoop(
           const superintendentResult = await executeSuperintendent(options, context);
 
           if (superintendentResult.transition?.action !== "request_review") {
-            throw new Error("Superintendent must call request_review to continue a review exchange");
+            throw new Error(
+              "Superintendent must call request_review to continue a review exchange"
+            );
           }
 
           context = {
@@ -414,6 +430,7 @@ function normalizeOptions(input: string | RunLoopOptions, callbacks?: LoopCallba
       callbacks: input.callbacks ?? {},
       runners: resolveRunners(input.runners),
       ...(input.runAgent ? { runAgent: input.runAgent } : {}),
+      ...(input.builderAgent ? { builderAgent: input.builderAgent } : {}),
       ...(input.signal ? { signal: input.signal } : {}),
       ...(input.logDir ? { logDir: input.logDir } : {})
     };
@@ -480,10 +497,7 @@ async function readDocument(
   return parseSuperintendentDoc(docPath, content);
 }
 
-async function readDocumentContent(
-  fs: SuperintendentFileSystem,
-  docPath: string
-): Promise<string> {
+async function readDocumentContent(fs: SuperintendentFileSystem, docPath: string): Promise<string> {
   return fs.readFile(docPath, "utf8");
 }
 
@@ -720,7 +734,9 @@ async function withInjectedAgentRunner<T>(
 
     if (result.exitCode !== 0) {
       throw new Error(
-        result.stderr || result.stdout || `Agent \`${agent}\` failed with exit code ${result.exitCode}`
+        result.stderr ||
+          result.stdout ||
+          `Agent \`${agent}\` failed with exit code ${result.exitCode}`
       );
     }
 

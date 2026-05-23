@@ -6,8 +6,7 @@ const baseInput = {
   planBody: "Implement the requested feature.",
   planPath: "/tmp/eval-clone/docs/plans/task.md",
   agent: "codex",
-  model: "gpt-5",
-  poeCodeCliPath: "/repo/packages/poe-code/dist/cli.js"
+  model: "gpt-5"
 };
 
 describe("resolveDispatch", () => {
@@ -15,64 +14,40 @@ describe("resolveDispatch", () => {
     expect(resolveDispatch({ ...baseInput, planKind: "plan" })).toEqual({
       kind: "agent",
       agent: "codex",
-      prompt: "Implement the requested feature.",
-      args: []
+      prompt: "Implement the requested feature."
     });
   });
 
-  it("resolves pipeline dispatch to the poe-code CLI pipeline runner", () => {
+  it("resolves pipeline dispatch to its package runner", () => {
     expect(resolveDispatch({ ...baseInput, planKind: "pipeline" })).toEqual({
-      kind: "node",
-      script: "/repo/packages/poe-code/dist/cli.js",
-      args: [
-        "pipeline",
-        "run",
-        "--plan",
-        "/tmp/eval-clone/docs/plans/task.md",
-        "--agent",
-        "codex",
-        "--model",
-        "gpt-5"
-      ]
+      kind: "pipeline",
+      planPath: "/tmp/eval-clone/docs/plans/task.md",
+      agent: "codex",
+      model: "gpt-5"
     });
   });
 
-  it("resolves superintendent dispatch to the poe-code CLI superintendent runner", () => {
+  it("resolves superintendent dispatch to its package runner", () => {
     expect(resolveDispatch({ ...baseInput, planKind: "superintendent" })).toEqual({
-      kind: "node",
-      script: "/repo/packages/poe-code/dist/cli.js",
-      args: [
-        "superintendent",
-        "run",
-        "/tmp/eval-clone/docs/plans/task.md",
-        "--agent",
-        "codex",
-        "--model",
-        "gpt-5"
-      ]
+      kind: "superintendent",
+      planPath: "/tmp/eval-clone/docs/plans/task.md",
+      agent: "codex",
+      model: "gpt-5"
     });
   });
 
-  it("resolves experiment dispatch to the poe-code CLI experiment runner", () => {
+  it("resolves experiment dispatch to its package runner", () => {
     expect(resolveDispatch({ ...baseInput, planKind: "experiment" })).toEqual({
-      kind: "node",
-      script: "/repo/packages/poe-code/dist/cli.js",
-      args: [
-        "experiment",
-        "run",
-        "--doc",
-        "/tmp/eval-clone/docs/plans/task.md",
-        "--agent",
-        "codex",
-        "--model",
-        "gpt-5"
-      ]
+      kind: "experiment",
+      planPath: "/tmp/eval-clone/docs/plans/task.md",
+      agent: "codex",
+      model: "gpt-5"
     });
   });
 
   it("throws UnsupportedPlanKindError for unsupported plan kinds", () => {
-    expect(() =>
-      resolveDispatch({ ...baseInput, planKind: "unknown" as never })
-    ).toThrow(UnsupportedPlanKindError);
+    expect(() => resolveDispatch({ ...baseInput, planKind: "unknown" as never })).toThrow(
+      UnsupportedPlanKindError
+    );
   });
 });

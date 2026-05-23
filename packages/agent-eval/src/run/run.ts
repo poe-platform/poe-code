@@ -1,18 +1,26 @@
 import { cp, mkdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { acquireFileLock } from "@poe-code/file-lock";
 import {
-  spawn,
+  applyMiddlewares,
+  sessionCapture,
   spawnAutonomous,
   spawnStreaming,
+  usageCapture,
   type AcpEvent,
-  type AutonomousResult,
+  type AcpSpawnContext,
   type SpawnOptions,
-  type SpawnResult,
-  type StreamingSpawnFn
+  type SpawnResult
 } from "@poe-code/agent-spawn";
-import { createHostRunner, type RunHandle } from "@poe-code/process-runner";
+import { runPipeline, type AgentRunInput as PipelineAgentRunInput } from "@poe-code/pipeline";
+import {
+  runLoop,
+  type AgentRunInput as SuperintendentAgentRunInput
+} from "@poe-code/superintendent";
+import {
+  runExperimentLoop,
+  type AgentRunInput as ExperimentAgentRunInput
+} from "@poe-code/experiment-loop";
 import { openSource } from "../source/open.js";
 import { loadEval } from "../source/registry.js";
 import type {
@@ -36,8 +44,6 @@ import { createTraceNormalizer } from "./trace/normalize.js";
 import { writeRunArtifacts } from "./result-writer.js";
 import type { CaseResult } from "./vitest-runner.js";
 
-type DispatchResult = AutonomousResult | SpawnResult;
-
 export class EvalFrameworkError extends Error {
   constructor(message: string) {
     super(message);
@@ -49,7 +55,6 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
   const startedAt = Date.now();
   const source = await openSource(opts.sourceDir);
   const evalDef = await loadEval(source, opts.evalId);
-  const poeCodeCliPath = resolvePoeCodeCliPath();
 
   if (opts.verifyOracle !== false) {
     const oracleVerification = await verifyOracle(source, opts.evalId);
@@ -113,8 +118,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
       planBody: evalDef.plan.body,
       planPath: clonedPlanPath,
       agent: opts.agent,
-      model: opts.model,
-      poeCodeCliPath
+      model: opts.model
     });
 
     const spawnError = await runDispatch(dispatch, {
@@ -192,10 +196,6 @@ function isoUtcSafe(now: Date): string {
   return now.toISOString().replace(/[:.]/g, "-");
 }
 
-function resolvePoeCodeCliPath(): string {
-  return fileURLToPath(new URL("../../../poe-code/dist/cli.js", import.meta.url));
-}
-
 async function copyStarterIfPresent(starterDir: string, cloneDir: string): Promise<void> {
   try {
     const starterStat = await stat(starterDir);
@@ -225,110 +225,120 @@ async function runDispatch(
   }
 ): Promise<string | undefined> {
   try {
-    const result =
-      dispatch.kind === "agent"
-        ? await spawnAutonomous(createAgentStreamSpawn(input.onEvent), {
-            service: dispatch.agent ?? "",
-            prompt: dispatch.prompt ?? "",
-            cwd: input.cloneDir,
-            model: input.model,
-            mode: "yolo",
-            args: [...dispatch.args],
-            signal: input.signal
-          })
-        : await spawnAutonomous(createNodeStreamSpawn(input.onEvent), {
-            service: "node",
-            prompt: dispatch.prompt ?? "",
-            cwd: input.cloneDir,
-            model: input.model,
-            mode: "yolo",
-            args:
-              dispatch.script === undefined
-                ? [...dispatch.args]
-                : [dispatch.script, ...dispatch.args],
-            signal: input.signal
-          });
-
-    return readSpawnExitError(result);
+    switch (dispatch.kind) {
+      case "agent":
+        return readSpawnExitError(
+          await runNestedAgent(
+            {
+              agent: dispatch.agent,
+              prompt: dispatch.prompt,
+              cwd: input.cloneDir,
+              model: input.model,
+              mode: "yolo",
+              signal: input.signal
+            },
+            input.onEvent
+          )
+        );
+      case "pipeline": {
+        const result = await runPipeline({
+          agent: dispatch.agent,
+          model: dispatch.model,
+          plan: dispatch.planPath,
+          cwd: input.cloneDir,
+          homeDir: input.cloneDir,
+          assumeYes: true,
+          signal: input.signal,
+          runAgent: (nestedInput) => runNestedAgent(nestedInput, input.onEvent)
+        });
+        return result.stopReason === "failed" ? "Pipeline run failed." : undefined;
+      }
+      case "superintendent":
+        await runLoop({
+          docPath: dispatch.planPath,
+          cwd: input.cloneDir,
+          homeDir: input.cloneDir,
+          builderAgent: `${dispatch.agent}:${dispatch.model}`,
+          signal: input.signal,
+          runAgent: (nestedInput) => runNestedAgent(nestedInput, input.onEvent)
+        });
+        return undefined;
+      case "experiment":
+        await runExperimentLoop({
+          docPath: dispatch.planPath,
+          cwd: input.cloneDir,
+          homeDir: input.cloneDir,
+          agent: `${dispatch.agent}:${dispatch.model}`,
+          signal: input.signal,
+          runAgent: (nestedInput) => runNestedAgent(nestedInput, input.onEvent)
+        });
+        return undefined;
+    }
   } catch (error) {
     return formatUnknownError(error);
   }
 }
 
-function createAgentStreamSpawn(
+type NestedAgentInput =
+  | PipelineAgentRunInput
+  | SuperintendentAgentRunInput
+  | ExperimentAgentRunInput;
+
+async function runNestedAgent(
+  input: NestedAgentInput,
   onEvent: (event: SpawnEvent) => void
-): StreamingSpawnFn<SpawnOptions, DispatchResult> {
-  const autonomous = (
-    spawn as typeof spawn & {
-      autonomous?: (service: string, options: SpawnOptions) => Promise<AutonomousResult>;
-    }
-  ).autonomous;
-
-  if (autonomous !== undefined) {
-    return (service, options) => ({
-      events: emptyEvents(),
-      result: autonomous(service, options)
-    });
-  }
-
-  return (service, options) => {
-    const handle = spawnStreaming({ ...options, agentId: service });
-    return {
-      events: observeEvents(handle.events, onEvent),
-      result: handle.done
-    };
+): Promise<SpawnResult & { sessionResult?: unknown; toolCalls?: unknown[] }> {
+  let context: AcpSpawnContext | undefined;
+  const options: SpawnOptions = {
+    prompt: input.prompt,
+    cwd: input.cwd,
+    ...("model" in input && input.model ? { model: input.model } : {}),
+    ...(input.signal ? { signal: input.signal } : {}),
+    ...("mode" in input && input.mode ? { mode: input.mode as SpawnOptions["mode"] } : {}),
+    ...("skills" in input && input.skills ? { skills: input.skills } : {}),
+    ...("mcpServers" in input && input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+    ...("logDir" in input && input.logDir ? { logDir: input.logDir } : {}),
+    ...("logFileName" in input && input.logFileName ? { logFileName: input.logFileName } : {}),
+    ...("logPath" in input && input.logPath ? { logPath: input.logPath } : {})
   };
-}
-
-function createNodeStreamSpawn(
-  _onEvent: (event: SpawnEvent) => void
-): StreamingSpawnFn<SpawnOptions, DispatchResult> {
-  const autonomous = (
-    spawn as typeof spawn & {
-      autonomous?: (service: string, options: SpawnOptions) => Promise<AutonomousResult>;
-    }
-  ).autonomous;
-
-  if (autonomous !== undefined) {
-    return (service, options) => ({
-      events: emptyEvents(),
-      result: autonomous(service, options)
-    });
-  }
-
-  return (_service, options) => ({
-    events: emptyEvents(),
-    result: runNodeCommand(options)
-  });
-}
-
-async function runNodeCommand(options: SpawnOptions): Promise<SpawnResult> {
-  const [script, ...args] = options.args ?? [];
-  if (script === undefined) {
-    return {
-      stdout: "",
-      stderr: "Missing node script.",
-      exitCode: 1
-    };
-  }
-
-  const handle = createHostRunner().exec({
-    command: process.execPath,
-    args: [script, ...args],
-    cwd: options.cwd,
-    stdout: "pipe",
-    stderr: "pipe",
-    signal: options.signal
-  });
-  const stdout = captureStream(handle.stdout);
-  const stderr = captureStream(handle.stderr);
-  const result = await handle.result;
-  await Promise.all([stdout.finished, stderr.finished]);
+  const result = await spawnAutonomous(
+    (agent, spawnOptions) => {
+      const handle = spawnStreaming({ ...spawnOptions, agentId: agent });
+      const attemptContext: AcpSpawnContext = {
+        sessionId: "unknown",
+        agent,
+        events: [],
+        usage: { inputTokens: 0, outputTokens: 0 },
+        eventStream: observeEvents(handle.events, onEvent),
+        prompt: spawnOptions.prompt,
+        cwd: spawnOptions.cwd,
+        ...(spawnOptions.model ? { model: spawnOptions.model } : {})
+      };
+      context = attemptContext;
+      return {
+        events: (async function* () {
+          await applyMiddlewares([usageCapture, sessionCapture], attemptContext);
+          yield* attemptContext.eventStream ?? emptyEvents();
+        })(),
+        result: handle.done
+      };
+    },
+    { ...options, service: input.agent }
+  );
 
   return {
-    stdout: stdout.output(),
-    stderr: stderr.output(),
-    exitCode: result.exitCode
+    ...result,
+    ...(context &&
+    (context.usage.inputTokens > 0 ||
+      context.usage.outputTokens > 0 ||
+      context.usage.cachedTokens !== undefined ||
+      context.usage.costUsd !== undefined)
+      ? { usage: context.usage }
+      : {}),
+    ...(context?.sessionResult ? { sessionResult: context.sessionResult } : {}),
+    ...(context?.sessionResult?.toolCalls.length
+      ? { toolCalls: context.sessionResult.toolCalls }
+      : {})
   };
 }
 
@@ -344,35 +354,8 @@ async function* observeEvents(
 
 async function* emptyEvents(): AsyncIterable<never> {}
 
-function captureStream(stream: RunHandle["stdout"]): {
-  output(): string;
-  finished: Promise<void>;
-} {
-  if (stream === null) {
-    return {
-      output: () => "",
-      finished: Promise.resolve()
-    };
-  }
-
-  let output = "";
-  stream.setEncoding("utf8");
-  const finished = new Promise<void>((resolve, reject) => {
-    stream.on("data", (chunk: string) => {
-      output += chunk;
-    });
-    stream.once("end", resolve);
-    stream.once("error", reject);
-  });
-
-  return {
-    output: () => output,
-    finished
-  };
-}
-
-function readSpawnExitError(result: DispatchResult): string | undefined {
-  if (!isSpawnResult(result) || result.exitCode === 0) {
+function readSpawnExitError(result: SpawnResult): string | undefined {
+  if (result.exitCode === 0) {
     return undefined;
   }
 
@@ -502,15 +485,6 @@ function mergeJudgeSpec(base: JudgeSpec, override: JudgeSpec | JudgeOverrideSpec
     model: override.model ?? base.model,
     rubric: override.rubric ?? base.rubric
   };
-}
-
-function isSpawnResult(result: DispatchResult): result is SpawnResult {
-  return (
-    typeof result === "object" &&
-    result !== null &&
-    "exitCode" in result &&
-    typeof (result as { exitCode?: unknown }).exitCode === "number"
-  );
 }
 
 function isMissingPath(error: unknown): boolean {

@@ -23,10 +23,11 @@ export { runInspector, runAllInspectors } from "./runtime/run-inspector.js";
 export { resolveTemplate } from "./runtime/templates.js";
 export type {
   LoopCallbacks,
-  BuilderResult,
-  InspectorResult,
-  TemplateContext
-} from "./runtime/types.js";
+  RunLoopOptions,
+  AgentRunInput,
+  AgentRunResult
+} from "./runtime/loop.js";
+export type { BuilderResult, InspectorResult, TemplateContext } from "./runtime/types.js";
 
 // State
 export { createLoopState, applyTransition, isComplete } from "./state/machine.js";

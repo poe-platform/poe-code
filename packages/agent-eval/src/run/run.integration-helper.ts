@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, expect } from "vitest";
 import type { EvalRunResult } from "../types.js";
+import type { AcpEvent } from "@poe-code/agent-spawn";
 
 const fixtureRoot = fileURLToPath(new URL("../__fixtures__", import.meta.url));
 
@@ -96,4 +97,55 @@ export async function assertSuccessfulRun(input: {
 
   const copiedPlan = await readFile(path.join(cloneDir, "docs", "plans", "eval-task.md"), "utf8");
   expect(copiedPlan).toContain(`kind: ${input.kind}`);
+}
+
+export async function assertObservedNestedEvents(input: {
+  outDir: string;
+  result: EvalRunResult;
+  expectedPath: string;
+}): Promise<void> {
+  expect(input.result).toEqual(
+    expect.objectContaining({
+      iterations: 1,
+      usage: expect.objectContaining({ inputTokens: 13, outputTokens: 8 }),
+      cheated: true,
+      verdict: "cheated"
+    })
+  );
+
+  const runDir = path.join(input.outDir, input.result.runId);
+  const events = (await readFile(path.join(runDir, "events.jsonl"), "utf8"))
+    .trim()
+    .split("\n")
+    .map((line) => JSON.parse(line) as AcpEvent);
+  expect(events.map((event) => event.event)).toEqual(["tool_start", "tool_complete", "usage"]);
+  expect(JSON.parse(await readFile(path.join(runDir, "trace.json"), "utf8"))).toEqual(
+    expect.objectContaining({
+      usage: expect.objectContaining({ inputTokens: 13, outputTokens: 8 }),
+      events: expect.arrayContaining([
+        expect.objectContaining({ type: "tool", phase: "start" }),
+        expect.objectContaining({ type: "usage" })
+      ])
+    })
+  );
+  expect(JSON.parse(await readFile(path.join(runDir, "cheat-report.json"), "utf8"))).toEqual(
+    expect.objectContaining({
+      cheated: true,
+      violations: [expect.objectContaining({ path: input.expectedPath })]
+    })
+  );
+}
+
+export function nestedAcpEvents(outsidePath: string): AcpEvent[] {
+  return [
+    {
+      event: "tool_start",
+      id: "read-1",
+      kind: "read",
+      title: "Read",
+      input: { path: outsidePath }
+    },
+    { event: "tool_complete", id: "read-1", kind: "read", path: outsidePath },
+    { event: "usage", inputTokens: 13, outputTokens: 8 }
+  ];
 }

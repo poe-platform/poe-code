@@ -40,7 +40,7 @@ tasks:
       Keep prose dense per repo conventions. No restating, no hedging.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: package-skeleton
     title: Scaffold @poe-code/agent-hook-config package
@@ -74,8 +74,8 @@ tasks:
       repo's per-package build invocation is — match what `agent-skill-config`
       uses) and confirm the empty package compiles.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: agent-hook-config-registry
     title: Per-agent hook config registry

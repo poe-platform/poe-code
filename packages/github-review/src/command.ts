@@ -11,6 +11,8 @@ export interface CommandRunnerOptions {
   input?: string;
 }
 
+const COMMAND_OUTPUT_MAX_BUFFER = 50 * 1024 * 1024;
+
 export type CommandRunner = (
   command: string,
   args: readonly string[],
@@ -21,7 +23,8 @@ export const defaultCommandRunner: CommandRunner = (command, args, options = {})
   const result: SpawnSyncReturns<string> = spawnSync(command, args, {
     cwd: options.cwd,
     input: options.input,
-    encoding: "utf-8"
+    encoding: "utf-8",
+    maxBuffer: COMMAND_OUTPUT_MAX_BUFFER
   });
 
   return {

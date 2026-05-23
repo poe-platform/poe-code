@@ -254,7 +254,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: event-mapping
     title: Event/handler/placeholder mapping rules
@@ -345,9 +345,9 @@ tasks:
 
       Export from `index.ts`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: hook-transformer
     title: Pure transform source entries to target entries

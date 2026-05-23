@@ -1,5 +1,12 @@
 import type { RenderTableOptions, TableColumn } from "@poe-code/design-system";
-import type { AggregateStats, AggregatedCell, EvalRunResult } from "../types.js";
+import type {
+  AggregateStats,
+  AggregatedCell,
+  EvalRunResult,
+  ScoringComponentCounts,
+  ScoringComponentResult,
+  Verdict
+} from "../types.js";
 
 type ReportColumnName =
   | "eval"
@@ -12,6 +19,7 @@ type ReportColumnName =
   | "cost"
   | "tests"
   | "judge"
+  | "components"
   | "correct"
   | "verdict";
 
@@ -26,8 +34,9 @@ export const reportColumns: TableColumn[] = [
   { name: "cost", title: "$", alignment: "right", maxLen: 11 },
   { name: "tests", title: "Tests", alignment: "right", maxLen: 11 },
   { name: "judge", title: "Judge", alignment: "right", maxLen: 11 },
+  { name: "components", title: "Components", alignment: "left", maxLen: 48 },
   { name: "correct", title: "Correct", alignment: "right", maxLen: 11 },
-  { name: "verdict", title: "Verdict", alignment: "left", maxLen: 15 }
+  { name: "verdict", title: "Verdict", alignment: "left", maxLen: 48 }
 ];
 
 export type ReportRow = Record<ReportColumnName, string>;
@@ -48,6 +57,7 @@ export function matrixRows(cells: readonly AggregatedCell[]): ReportRow[] {
       max: cell.tests.passRateMax
     }),
     judge: cell.judge === undefined ? "-" : formatStats(cell.judge.mean),
+    components: `tests:${formatComponentCounts(cell.scoring.tests)} judge:${formatComponentCounts(cell.scoring.judge)}`,
     correct: formatStats(cell.correctness),
     verdict: matrixVerdict(cell)
   }));
@@ -65,6 +75,7 @@ export function runRows(runs: readonly EvalRunResult[]): ReportRow[] {
     cost: formatCostValue(run.usage.costUsd ?? 0),
     tests: `${run.tests.passed}/${run.tests.total}`,
     judge: run.judge === undefined ? "-" : formatNumber(run.judge.mean),
+    components: `tests:${formatComponent(run.scoring.tests)} judge:${formatComponent(run.scoring.judge)}`,
     correct: formatNumber(run.correctness),
     verdict: run.verdict
   }));
@@ -153,8 +164,28 @@ function totalTokenStats(cell: AggregatedCell): AggregateStats {
 }
 
 function matrixVerdict(cell: AggregatedCell): string {
-  if (cell.cheated_any) {
-    return "cheated";
+  const displayed: Verdict[] = ["cheated", "budget_exceeded", "error", "fail", "pass"];
+  const present = displayed.filter((verdict) => cell.verdicts[verdict] > 0);
+  if (present.length === 1) {
+    return present[0] as Verdict;
   }
-  return cell.correctness.mean >= 1 ? "pass" : "fail";
+  return present.map((verdict) => `${verdict}:${cell.verdicts[verdict]}`).join(" ");
+}
+
+function formatComponent(component: ScoringComponentResult): string {
+  return `${component.configured ? "cfg" : "uncfg"}/${component.status}`;
+}
+
+function formatComponentCounts(counts: ScoringComponentCounts): string {
+  const labels = [
+    ["cfg", counts.configured],
+    ["exec", counts.executed],
+    ["skip", counts.skipped],
+    ["fail", counts.failed],
+    ["off", counts.disabled]
+  ] as const;
+  return labels
+    .filter(([, count]) => count > 0)
+    .map(([label, count]) => `${label}${count}`)
+    .join("/");
 }

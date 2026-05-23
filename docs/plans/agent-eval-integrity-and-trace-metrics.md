@@ -144,9 +144,9 @@ tasks:
       because of cheating/budget, scorer error, metric execution error, and
       aggregates containing skipped versus executed components.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: harden-anti-cheat-from-normalized-trace

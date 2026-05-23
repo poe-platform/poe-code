@@ -32,6 +32,23 @@ function run(
       cases: [],
       ...tests
     },
+    scoring: {
+      tests: {
+        configured: true,
+        required: true,
+        configuredWeight: 1,
+        effectiveWeight: 1,
+        status: "executed"
+      },
+      judge: {
+        configured: true,
+        required: false,
+        configuredWeight: 0,
+        effectiveWeight: 0,
+        status: "disabled",
+        reason: "disabled"
+      }
+    },
     cheated: false,
     cheatReport: {
       cheated: false,
@@ -116,6 +133,7 @@ describe("aggregateRuns", () => {
       repeats: 3,
       runIds: ["run-1", "run-2", "run-3"],
       cheated_any: false,
+      verdicts: { pass: 3, fail: 0, error: 0, cheated: 0, budget_exceeded: 0 },
       iterations: {
         mean: 3,
         min: 1,
@@ -157,6 +175,10 @@ describe("aggregateRuns", () => {
         mean: 7 / 12,
         min: 0.25,
         max: 1
+      },
+      scoring: {
+        tests: { configured: 3, executed: 3, skipped: 0, failed: 0, disabled: 0 },
+        judge: { configured: 3, executed: 0, skipped: 0, failed: 0, disabled: 3 }
       },
       judge: {
         mean: {
@@ -248,6 +270,57 @@ describe("aggregateRuns", () => {
     ]);
 
     expect(result.judge).toBeUndefined();
+  });
+
+  it("counts executed and skipped scoring components separately", () => {
+    const result = aggregateRuns([
+      run({
+        runId: "run-1",
+        scoring: {
+          tests: {
+            configured: true,
+            required: true,
+            configuredWeight: 0.7,
+            effectiveWeight: 0.7,
+            status: "executed"
+          },
+          judge: {
+            configured: true,
+            required: false,
+            configuredWeight: 0.3,
+            effectiveWeight: 0.3,
+            status: "executed"
+          }
+        }
+      }),
+      run({
+        runId: "run-2",
+        scoring: {
+          tests: {
+            configured: true,
+            required: true,
+            configuredWeight: 0.7,
+            effectiveWeight: 1,
+            status: "executed"
+          },
+          judge: {
+            configured: true,
+            required: false,
+            configuredWeight: 0.3,
+            effectiveWeight: 0,
+            status: "skipped",
+            reason: "budget_exceeded"
+          }
+        },
+        verdict: "budget_exceeded"
+      })
+    ]);
+
+    expect(result.scoring).toEqual({
+      tests: { configured: 2, executed: 2, skipped: 0, failed: 0, disabled: 0 },
+      judge: { configured: 2, executed: 1, skipped: 1, failed: 0, disabled: 0 }
+    });
+    expect(result.verdicts).toMatchObject({ pass: 1, budget_exceeded: 1 });
   });
 
   it("treats omitted optional usage metrics as zero", () => {

@@ -5,6 +5,7 @@ import { createSpawnMock } from "@poe-code/agent-spawn/testing";
 import {
   copyFixtureClone,
   createRunOutDir,
+  nestedAcpEvents,
   registerRunIntegrationCleanup,
   sourceFixture
 } from "./run.integration-helper.js";
@@ -17,7 +18,10 @@ const mockedEvaluation = vi.hoisted(() => ({
   runScorer: vi.fn(),
   judgeRun: vi.fn()
 }));
-const mockedRegistry = vi.hoisted(() => ({ wallClockMs: undefined as number | undefined }));
+const mockedRegistry = vi.hoisted(() => ({
+  wallClockMs: undefined as number | undefined,
+  weights: undefined as { tests: number; judge: number } | undefined
+}));
 
 vi.mock("@poe-code/agent-spawn", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/agent-spawn")>();
@@ -45,9 +49,13 @@ vi.mock("../source/registry.js", async (importOriginal) => {
     ...actual,
     loadEval: async (...input: Parameters<typeof actual.loadEval>) => {
       const evalDef = await actual.loadEval(...input);
-      return mockedRegistry.wallClockMs === undefined
-        ? evalDef
-        : { ...evalDef, budget: { ...evalDef.budget, wallClockMs: mockedRegistry.wallClockMs } };
+      return {
+        ...evalDef,
+        ...(mockedRegistry.wallClockMs === undefined
+          ? {}
+          : { budget: { ...evalDef.budget, wallClockMs: mockedRegistry.wallClockMs } }),
+        ...(mockedRegistry.weights === undefined ? {} : { weights: mockedRegistry.weights })
+      };
     }
   };
 });
@@ -65,6 +73,7 @@ describe("runEval lifecycle evidence", () => {
     mockedEvaluation.runScorer.mockReset().mockResolvedValue({ passed: 1, total: 1, cases: [] });
     mockedEvaluation.judgeRun.mockReset().mockResolvedValue({ completeness: 5, mean: 5 });
     mockedRegistry.wallClockMs = undefined;
+    mockedRegistry.weights = undefined;
   });
 
   afterEach(() => {
@@ -122,6 +131,7 @@ describe("runEval lifecycle evidence", () => {
   it("aborts dispatch on a wall-clock budget trip and skips judging", async () => {
     const outDir = await createRunOutDir();
     mockedRegistry.wallClockMs = 10;
+    mockedRegistry.weights = { tests: 0.7, judge: 0.3 };
     mockedAgentSpawn.spawnStreaming.mockImplementationOnce((input: { signal?: AbortSignal }) => ({
       events: (async function* () {})(),
       done: new Promise((_, reject) => {
@@ -139,7 +149,105 @@ describe("runEval lifecycle evidence", () => {
     });
     const result = await run;
 
-    expect(result.verdict).toBe("budget_exceeded");
+    expect(result).toMatchObject({ verdict: "budget_exceeded", correctness: 1 });
+    expect(result.scoring.tests).toMatchObject({ effectiveWeight: 1, status: "executed" });
+    expect(result.scoring.judge).toMatchObject({ status: "skipped", reason: "budget_exceeded" });
+    expect(mockedEvaluation.judgeRun).not.toHaveBeenCalled();
+  });
+
+  it("reports a dispatch failure as error even when one oracle assertion passes", async () => {
+    const outDir = await createRunOutDir();
+    mockedAgentSpawn.spawnStreaming.mockReturnValueOnce({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "dispatch exploded", exitCode: 1 })
+    });
+    mockedEvaluation.runScorer.mockResolvedValueOnce({ passed: 1, total: 2, cases: [] });
+
+    const result = await runEval({
+      sourceDir: sourceFixture("plan"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      verifyOracle: false
+    });
+
+    expect(result).toMatchObject({ verdict: "error", error: "dispatch exploded" });
+    expect(result.scoring.tests.status).toBe("executed");
+    expect(result.scoring.judge).toMatchObject({ status: "skipped", reason: "execution_error" });
+    expect(mockedEvaluation.judgeRun).not.toHaveBeenCalled();
+  });
+
+  it("normalizes active score weights when judging is disabled", async () => {
+    const outDir = await createRunOutDir();
+    mockedRegistry.weights = { tests: 0.7, judge: 0.3 };
+
+    const result = await runEval({
+      sourceDir: sourceFixture("plan"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      judge: "off",
+      verifyOracle: false
+    });
+
+    expect(result).toMatchObject({ verdict: "pass", correctness: 1 });
+    expect(result.scoring).toEqual({
+      tests: {
+        configured: true,
+        required: true,
+        configuredWeight: 0.7,
+        effectiveWeight: 1,
+        status: "executed"
+      },
+      judge: {
+        configured: true,
+        required: false,
+        configuredWeight: 0.3,
+        effectiveWeight: 0,
+        status: "disabled",
+        reason: "disabled"
+      }
+    });
+  });
+
+  it("fails a completed execution when a required oracle assertion fails", async () => {
+    const outDir = await createRunOutDir();
+    mockedEvaluation.runScorer.mockResolvedValueOnce({ passed: 1, total: 2, cases: [] });
+
+    const result = await runEval({
+      sourceDir: sourceFixture("plan"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      judge: "off",
+      verifyOracle: false
+    });
+
+    expect(result).toMatchObject({ verdict: "fail", correctness: 0.5 });
+    expect(result.scoring.tests.status).toBe("executed");
+  });
+
+  it("skips judging after cheating is detected", async () => {
+    const outDir = await createRunOutDir();
+    mockedAgentSpawn.spawnStreaming.mockReturnValueOnce({
+      events: nestedAcpEvents("/private/agent-eval-cheat.txt"),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+
+    const result = await runEval({
+      sourceDir: sourceFixture("plan"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      verifyOracle: false
+    });
+
+    expect(result.verdict).toBe("cheated");
+    expect(result.scoring.judge).toMatchObject({ status: "skipped", reason: "cheated" });
     expect(mockedEvaluation.judgeRun).not.toHaveBeenCalled();
   });
 
@@ -158,6 +266,8 @@ describe("runEval lifecycle evidence", () => {
     });
 
     expect(result).toMatchObject({ verdict: "error", error: "scorer exploded" });
+    expect(result.scoring.tests).toMatchObject({ status: "failed", reason: "scorer exploded" });
+    expect(result.scoring.judge).toMatchObject({ status: "disabled" });
     const [runId] = await readdir(outDir);
     await expect(readFile(path.join(outDir, runId, "events.jsonl"), "utf8")).resolves.toBe("");
     await expect(readFile(path.join(outDir, runId, "trace.json"), "utf8")).resolves.toContain(
@@ -168,8 +278,40 @@ describe("runEval lifecycle evidence", () => {
     );
   });
 
+  it("keeps a required metric execution error visible in scoring metadata", async () => {
+    const outDir = await createRunOutDir();
+    mockedRegistry.weights = { tests: 0.7, judge: 0.3 };
+    mockedEvaluation.runScorer.mockRejectedValueOnce(new Error("metric execution failed"));
+
+    const result = await runEval({
+      sourceDir: sourceFixture("plan"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      verifyOracle: false
+    });
+
+    expect(result).toMatchObject({
+      verdict: "error",
+      correctness: 0,
+      error: "metric execution failed"
+    });
+    expect(result.scoring.tests).toMatchObject({
+      status: "failed",
+      configuredWeight: 0.7,
+      effectiveWeight: 1,
+      reason: "metric execution failed"
+    });
+    expect(result.scoring.judge).toMatchObject({
+      status: "skipped",
+      reason: "required_component_failed"
+    });
+  });
+
   it("persists evidence and an error result when judge evaluation fails", async () => {
     const outDir = await createRunOutDir();
+    mockedRegistry.weights = { tests: 0.7, judge: 0.3 };
     mockedEvaluation.judgeRun.mockRejectedValueOnce(new Error("judge exploded"));
 
     const result = await runEval({
@@ -181,7 +323,12 @@ describe("runEval lifecycle evidence", () => {
       verifyOracle: false
     });
 
-    expect(result).toMatchObject({ verdict: "error", error: "judge exploded" });
+    expect(result).toMatchObject({ verdict: "error", correctness: 0.7, error: "judge exploded" });
+    expect(result.scoring.judge).toMatchObject({
+      effectiveWeight: 0.3,
+      status: "failed",
+      reason: "judge exploded"
+    });
     const [runId] = await readdir(outDir);
     expect(JSON.parse(await readFile(path.join(outDir, runId, "result.json"), "utf8"))).toEqual(
       result

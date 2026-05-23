@@ -18,7 +18,10 @@ describe("renderMatrixTable", () => {
   });
 
   it("renders a fixed matrix fixture through the design-system table", () => {
-    expect(renderMatrixTable([cellFixture()])).toMatchSnapshot();
+    const report = renderMatrixTable([cellFixture()]);
+
+    expect(report).toContain("tests:cfg3/exec3 judge:cfg3/exec2/skip1");
+    expect(report).toMatchSnapshot();
   });
 });
 
@@ -33,6 +36,7 @@ function cellFixture(): AggregatedCell {
     repeats: 3,
     runIds: ["run-1", "run-2", "run-3"],
     cheated_any: false,
+    verdicts: { pass: 0, fail: 3, error: 0, cheated: 0, budget_exceeded: 0 },
     iterations: {
       mean: 3,
       min: 1,
@@ -74,6 +78,10 @@ function cellFixture(): AggregatedCell {
       mean: 0.75,
       min: 0.5,
       max: 1
+    },
+    scoring: {
+      tests: { configured: 3, executed: 3, skipped: 0, failed: 0, disabled: 0 },
+      judge: { configured: 3, executed: 2, skipped: 1, failed: 0, disabled: 0 }
     },
     judge: {
       mean: {

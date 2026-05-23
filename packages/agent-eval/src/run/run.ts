@@ -28,6 +28,7 @@ import type {
   EvalDef,
   EvalRunOptions,
   EvalRunResult,
+  EvalScoringResult,
   JudgeSpec,
   JudgeOverrideSpec,
   SpawnEvent,
@@ -152,27 +153,49 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
     let testsResult = emptyTestsResult();
     let judgeResult: EvalRunResult["judge"] | undefined;
     let evaluationError: string | undefined;
+    const judgeSpec = resolveJudgeSpec(opts.judge, evalDef);
+    let testsStatus: EvalScoringResult["tests"]["status"] = "executed";
+    let testsReason: string | undefined;
+    let judgeStatus: EvalScoringResult["judge"]["status"] =
+      judgeSpec === undefined ? "disabled" : "skipped";
+    let judgeReason: string | undefined = judgeSpec === undefined ? "disabled" : undefined;
     try {
       testsResult = await runScorer({
         evalDef,
         evalDir: path.join(source.rootDir, opts.evalId),
         cloneDir
       });
-      const judgeSpec = resolveJudgeSpec(opts.judge, evalDef);
-      judgeResult =
-        judgeSpec !== undefined && !cheatReport.cheated && budgetSnapshot.tripped === undefined
-          ? await judgeRun({
-              evalDef,
-              cloneDir,
-              traceJsonPath: path.join(runDir, "trace.json"),
-              trace,
-              testsResult,
-              spec: judgeSpec,
-              agentUnderTest: opts.agent
-            })
-          : undefined;
     } catch (error) {
       evaluationError = formatUnknownError(error);
+      testsStatus = "failed";
+      testsReason = evaluationError;
+    }
+
+    if (judgeSpec !== undefined) {
+      judgeReason = judgeSkipReason({
+        cheated: cheatReport.cheated,
+        budgetTripped: budgetSnapshot.tripped !== undefined,
+        spawnErrored: spawnError !== undefined,
+        testsFailed: testsStatus === "failed"
+      });
+      if (judgeReason === undefined) {
+        try {
+          judgeResult = await judgeRun({
+            evalDef,
+            cloneDir,
+            traceJsonPath: path.join(runDir, "trace.json"),
+            trace,
+            testsResult,
+            spec: judgeSpec,
+            agentUnderTest: opts.agent
+          });
+          judgeStatus = "executed";
+        } catch (error) {
+          evaluationError = formatUnknownError(error);
+          judgeStatus = "failed";
+          judgeReason = evaluationError;
+        }
+      }
     }
 
     let result = createEvalRunResult({
@@ -184,6 +207,13 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
       cheatReport,
       testsResult,
       judgeResult,
+      scoring: createScoringResult({
+        evalDef,
+        testsStatus,
+        testsReason,
+        judgeStatus,
+        judgeReason
+      }),
       spawnError,
       evaluationError
     });
@@ -203,6 +233,13 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
         cheatReport,
         testsResult,
         judgeResult,
+        scoring: createScoringResult({
+          evalDef,
+          testsStatus,
+          testsReason,
+          judgeStatus,
+          judgeReason
+        }),
         spawnError,
         evaluationError: `Artifact write failed: ${formatUnknownError(error)}`
       });
@@ -414,6 +451,7 @@ function createEvalRunResult(input: {
   cheatReport: CheatReport;
   testsResult: { passed: number; total: number; cases: CaseResult[] };
   judgeResult?: EvalRunResult["judge"];
+  scoring?: EvalScoringResult;
   spawnError?: string;
   evaluationError?: string;
 }): EvalRunResult {
@@ -424,6 +462,19 @@ function createEvalRunResult(input: {
     spawnErrored: input.spawnError !== undefined,
     evaluationErrored: input.evaluationError !== undefined
   });
+  const scoring =
+    input.scoring ??
+    createScoringResult({
+      evalDef: input.evalDef,
+      testsStatus: "skipped",
+      testsReason: "framework_error",
+      judgeStatus:
+        resolveJudgeSpec(input.opts.judge, input.evalDef) === undefined ? "disabled" : "skipped",
+      judgeReason:
+        resolveJudgeSpec(input.opts.judge, input.evalDef) === undefined
+          ? "disabled"
+          : "framework_error"
+    });
 
   return {
     runId: input.runId,
@@ -435,7 +486,7 @@ function createEvalRunResult(input: {
     correctness: calculateCorrectness({
       cheated: input.cheatReport.cheated,
       testsResult: input.testsResult,
-      weights: input.evalDef.weights,
+      scoring,
       judgeResult: input.judgeResult
     }),
     iterations: input.budgetSnapshot.iterations,
@@ -455,6 +506,7 @@ function createEvalRunResult(input: {
       pass_rate: calculatePassRate(input.testsResult)
     },
     ...(input.judgeResult === undefined ? {} : { judge: input.judgeResult }),
+    scoring,
     cheated: input.cheatReport.cheated,
     cheatReport: input.cheatReport,
     ...(input.evaluationError === undefined && input.spawnError === undefined
@@ -479,14 +531,11 @@ function resolveVerdict(input: {
   if (input.evaluationErrored) {
     return "error";
   }
-  if (
-    input.testsResult.total === 0 ||
-    (input.testsResult.passed === 0 && input.testsResult.total > 0)
-  ) {
-    return "fail";
-  }
   if (input.spawnErrored) {
     return "error";
+  }
+  if (input.testsResult.total === 0 || input.testsResult.passed !== input.testsResult.total) {
+    return "fail";
   }
   return "pass";
 }
@@ -498,7 +547,7 @@ function emptyTestsResult(): { passed: number; total: number; cases: CaseResult[
 function calculateCorrectness(input: {
   cheated: boolean;
   testsResult: { passed: number; total: number };
-  weights: EvalDef["weights"];
+  scoring: EvalScoringResult;
   judgeResult?: EvalRunResult["judge"];
 }): number {
   if (input.cheated) {
@@ -507,8 +556,70 @@ function calculateCorrectness(input: {
 
   const testScore = calculatePassRate(input.testsResult);
   return (
-    testScore * input.weights.tests + ((input.judgeResult?.mean ?? 0) / 5) * input.weights.judge
+    testScore * input.scoring.tests.effectiveWeight +
+    ((input.judgeResult?.mean ?? 0) / 5) * input.scoring.judge.effectiveWeight
   );
+}
+
+function createScoringResult(input: {
+  evalDef: EvalDef;
+  testsStatus: EvalScoringResult["tests"]["status"];
+  testsReason?: string;
+  judgeStatus: EvalScoringResult["judge"]["status"];
+  judgeReason?: string;
+}): EvalScoringResult {
+  const activeWeight =
+    input.evalDef.weights.tests +
+    (isActiveStatus(input.judgeStatus) ? input.evalDef.weights.judge : 0);
+  const effectiveTestWeight = activeWeight === 0 ? 0 : input.evalDef.weights.tests / activeWeight;
+  const effectiveJudgeWeight =
+    activeWeight === 0 || !isActiveStatus(input.judgeStatus)
+      ? 0
+      : input.evalDef.weights.judge / activeWeight;
+
+  return {
+    tests: {
+      configured: true,
+      required: true,
+      configuredWeight: input.evalDef.weights.tests,
+      effectiveWeight: effectiveTestWeight,
+      status: input.testsStatus,
+      ...(input.testsReason === undefined ? {} : { reason: input.testsReason })
+    },
+    judge: {
+      configured: true,
+      required: false,
+      configuredWeight: input.evalDef.weights.judge,
+      effectiveWeight: effectiveJudgeWeight,
+      status: input.judgeStatus,
+      ...(input.judgeReason === undefined ? {} : { reason: input.judgeReason })
+    }
+  };
+}
+
+function isActiveStatus(status: EvalScoringResult["judge"]["status"]): boolean {
+  return status === "executed" || status === "failed";
+}
+
+function judgeSkipReason(input: {
+  cheated: boolean;
+  budgetTripped: boolean;
+  spawnErrored: boolean;
+  testsFailed: boolean;
+}): string | undefined {
+  if (input.cheated) {
+    return "cheated";
+  }
+  if (input.budgetTripped) {
+    return "budget_exceeded";
+  }
+  if (input.spawnErrored) {
+    return "execution_error";
+  }
+  if (input.testsFailed) {
+    return "required_component_failed";
+  }
+  return undefined;
 }
 
 function calculatePassRate(testsResult: { passed: number; total: number }): number {

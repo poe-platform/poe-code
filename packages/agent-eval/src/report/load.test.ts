@@ -151,6 +151,23 @@ function runResult(
       cases: [],
       ...tests
     },
+    scoring: {
+      tests: {
+        configured: true,
+        required: true,
+        configuredWeight: 1,
+        effectiveWeight: 1,
+        status: "executed"
+      },
+      judge: {
+        configured: true,
+        required: false,
+        configuredWeight: 0,
+        effectiveWeight: 0,
+        status: "disabled",
+        reason: "disabled"
+      }
+    },
     cheated: false,
     cheatReport: {
       cheated: false,
@@ -172,6 +189,7 @@ function aggregateCell(overrides: Partial<AggregatedCell["cell"]> = {}): Aggrega
     repeats: 2,
     runIds: ["run-1", "run-2"],
     cheated_any: false,
+    verdicts: { pass: 2, fail: 0, error: 0, cheated: 0, budget_exceeded: 0 },
     iterations: {
       mean: 3,
       min: 2,
@@ -213,6 +231,10 @@ function aggregateCell(overrides: Partial<AggregatedCell["cell"]> = {}): Aggrega
       mean: 1,
       min: 1,
       max: 1
+    },
+    scoring: {
+      tests: { configured: 2, executed: 2, skipped: 0, failed: 0, disabled: 0 },
+      judge: { configured: 2, executed: 2, skipped: 0, failed: 0, disabled: 0 }
     },
     judge: {
       mean: {

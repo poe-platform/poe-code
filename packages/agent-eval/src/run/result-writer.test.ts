@@ -94,6 +94,23 @@ function createResult(overrides: Partial<EvalRunResult> = {}): EvalRunResult {
       pass_rate: 1,
       cases: []
     },
+    scoring: {
+      tests: {
+        configured: true,
+        required: true,
+        configuredWeight: 1,
+        effectiveWeight: 1,
+        status: "executed"
+      },
+      judge: {
+        configured: true,
+        required: false,
+        configuredWeight: 0,
+        effectiveWeight: 0,
+        status: "disabled",
+        reason: "disabled"
+      }
+    },
     cheated: false,
     cheatReport: {
       cheated: false,

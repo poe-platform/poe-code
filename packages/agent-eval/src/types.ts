@@ -11,6 +11,21 @@ export type { SpawnUsage } from "@poe-code/agent-spawn";
 export type PlanKind = "plan" | "pipeline" | "superintendent" | "experiment";
 export type RubricKey = "completeness" | "spec_adherence" | "code_quality" | string;
 export type Verdict = "pass" | "fail" | "error" | "cheated" | "budget_exceeded";
+export type ScoringComponentStatus = "executed" | "skipped" | "failed" | "disabled";
+
+export interface ScoringComponentResult {
+  configured: boolean;
+  required: boolean;
+  configuredWeight: number;
+  effectiveWeight: number;
+  status: ScoringComponentStatus;
+  reason?: string;
+}
+
+export interface EvalScoringResult {
+  tests: ScoringComponentResult;
+  judge: ScoringComponentResult;
+}
 
 export interface EvalSource {
   rootDir: string;
@@ -146,6 +161,7 @@ export interface EvalRunResult {
     cases: CaseResult[];
   };
   judge?: Record<RubricKey, number> & { mean: number };
+  scoring: EvalScoringResult;
   cheated: boolean;
   cheatReport: CheatReport;
   error?: string;
@@ -173,6 +189,7 @@ export interface AggregatedCell {
   repeats: number;
   runIds: readonly string[];
   cheated_any: boolean;
+  verdicts: Record<Verdict, number>;
   iterations: AggregateStats;
   durationMs: AggregateStats;
   usage: {
@@ -187,9 +204,21 @@ export interface AggregatedCell {
     passRateMax: number;
   };
   correctness: AggregateStats;
+  scoring: {
+    tests: ScoringComponentCounts;
+    judge: ScoringComponentCounts;
+  };
   judge?: {
     mean: AggregateStats;
   };
+}
+
+export interface ScoringComponentCounts {
+  configured: number;
+  executed: number;
+  skipped: number;
+  failed: number;
+  disabled: number;
 }
 
 export interface SourceConfig {

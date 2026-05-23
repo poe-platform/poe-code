@@ -3,7 +3,13 @@ import path from "node:path";
 import { aggregateRuns } from "../aggregate.js";
 import { openSource } from "../source/open.js";
 import { listEvals, loadEval } from "../source/registry.js";
-import type { EvalMatrixOptions, EvalRunOptions, EvalRunResult, PlanKind } from "../types.js";
+import type {
+  EvalDef,
+  EvalMatrixOptions,
+  EvalRunOptions,
+  EvalRunResult,
+  PlanKind
+} from "../types.js";
 import { runEval } from "./run.js";
 
 const defaultRepeats = 3;
@@ -43,7 +49,8 @@ export async function* runMatrix(opts: EvalMatrixOptions): AsyncIterable<EvalRun
 
           const result = await runSingle(runOpts, {
             matrixId,
-            planKind: evalDef.plan.kind
+            planKind: evalDef.plan.kind,
+            weights: evalDef.weights
           });
           cellRuns.push(result);
           yield result;
@@ -61,6 +68,7 @@ async function runSingle(
   context: {
     matrixId: string;
     planKind: PlanKind;
+    weights: EvalDef["weights"];
   }
 ): Promise<EvalRunResult> {
   const startedAt = Date.now();
@@ -71,6 +79,7 @@ async function runSingle(
     return createErrorResult(opts, {
       matrixId: context.matrixId,
       planKind: context.planKind,
+      weights: context.weights,
       durationMs: Date.now() - startedAt,
       error: getErrorMessage(error)
     });
@@ -82,6 +91,7 @@ function createErrorResult(
   context: {
     matrixId: string;
     planKind: PlanKind;
+    weights: EvalDef["weights"];
     durationMs: number;
     error: string;
   }
@@ -109,6 +119,24 @@ function createErrorResult(
       total: 0,
       pass_rate: 0,
       cases: []
+    },
+    scoring: {
+      tests: {
+        configured: true,
+        required: true,
+        configuredWeight: context.weights.tests,
+        effectiveWeight: 0,
+        status: "skipped",
+        reason: "framework_error"
+      },
+      judge: {
+        configured: true,
+        required: false,
+        configuredWeight: context.weights.judge,
+        effectiveWeight: 0,
+        status: opts.judge === "off" ? "disabled" : "skipped",
+        reason: opts.judge === "off" ? "disabled" : "framework_error"
+      }
     },
     cheated: false,
     cheatReport: {

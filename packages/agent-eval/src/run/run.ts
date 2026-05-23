@@ -32,6 +32,7 @@ import type {
   JudgeSpec,
   JudgeOverrideSpec,
   MetricResult,
+  RunTraceSummary,
   SpawnEvent,
   Verdict
 } from "../types.js";
@@ -145,6 +146,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
         budgetSnapshot,
         cheatReport,
         testsResult: emptyTestsResult(),
+        trace: summarizeTrace(trace),
         spawnError,
         evaluationError: `Artifact evidence write failed: ${formatUnknownError(error)}`
       });
@@ -235,6 +237,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
       budgetSnapshot,
       cheatReport,
       testsResult,
+      trace: summarizeTrace(trace),
       judgeResult,
       metricResults,
       scoring: createScoringResult({
@@ -262,6 +265,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
         budgetSnapshot,
         cheatReport,
         testsResult,
+        trace: summarizeTrace(trace),
         judgeResult,
         metricResults,
         scoring: createScoringResult({
@@ -481,6 +485,7 @@ function createEvalRunResult(input: {
   };
   cheatReport: CheatReport;
   testsResult: { passed: number; total: number; cases: CaseResult[] };
+  trace?: RunTraceSummary;
   judgeResult?: EvalRunResult["judge"];
   metricResults?: readonly MetricResult[];
   scoring?: EvalScoringResult;
@@ -544,9 +549,19 @@ function createEvalRunResult(input: {
     scoring,
     cheated: input.cheatReport.cheated,
     cheatReport: input.cheatReport,
+    ...(input.trace === undefined ? {} : { trace: input.trace }),
     ...(input.evaluationError === undefined && input.spawnError === undefined
       ? {}
       : { error: input.evaluationError ?? input.spawnError })
+  };
+}
+
+function summarizeTrace(trace: { events: readonly { type: string }[] }): RunTraceSummary {
+  return {
+    available: true,
+    eventCount: trace.events.length,
+    toolEventCount: trace.events.filter((event) => event.type === "tool").length,
+    errorEventCount: trace.events.filter((event) => event.type === "error").length
   };
 }
 

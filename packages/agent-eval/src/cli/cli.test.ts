@@ -8,7 +8,10 @@ const mockedRun = vi.hoisted(() => ({
   runMatrix: vi.fn<(opts: EvalMatrixOptions) => AsyncIterable<EvalRunResult>>(),
   runInitCli: vi.fn(),
   runCheckCli: vi.fn(),
-  runLintCli: vi.fn()
+  runLintCli: vi.fn(),
+  listRuns: vi.fn(),
+  loadRunResult: vi.fn(),
+  loadLatestMatrix: vi.fn()
 }));
 
 vi.mock("../run/matrix.js", () => ({
@@ -27,6 +30,12 @@ vi.mock("./lint.js", () => ({
   runLintCli: mockedRun.runLintCli
 }));
 
+vi.mock("../report/load.js", () => ({
+  listRuns: mockedRun.listRuns,
+  loadRunResult: mockedRun.loadRunResult,
+  loadLatestMatrix: mockedRun.loadLatestMatrix
+}));
+
 const { evalGroup } = await import("./commands.js");
 
 const fixtureRoot = fileURLToPath(new URL("../__fixtures__/source/example-plan", import.meta.url));
@@ -42,6 +51,8 @@ beforeEach(() => {
   mockedRun.runInitCli.mockResolvedValue(0);
   mockedRun.runCheckCli.mockResolvedValue(0);
   mockedRun.runLintCli.mockResolvedValue(0);
+  mockedRun.listRuns.mockResolvedValue([]);
+  mockedRun.loadLatestMatrix.mockResolvedValue({ matrixId: "matrix", cells: [] });
 });
 
 afterEach(() => {
@@ -52,6 +63,9 @@ afterEach(() => {
   mockedRun.runInitCli.mockReset();
   mockedRun.runCheckCli.mockReset();
   mockedRun.runLintCli.mockReset();
+  mockedRun.listRuns.mockReset();
+  mockedRun.loadRunResult.mockReset();
+  mockedRun.loadLatestMatrix.mockReset();
 });
 
 describe("agent-eval cli", () => {
@@ -219,7 +233,56 @@ describe("agent-eval cli", () => {
       sourceDir: "/repo/evals"
     });
   });
+
+  it("renders local baseline comparisons for all reported runs", async () => {
+    mockedRun.listRuns.mockImplementation(async (outDir: string) =>
+      outDir.endsWith("baseline") ? ["baseline-run"] : ["current-run"]
+    );
+    mockedRun.loadRunResult.mockImplementation(async (runId: string) =>
+      reportRun(runId, runId === "baseline-run" ? 1 : 0.5)
+    );
+
+    await runEvalCli(["report", "--all-runs", "--out", "current", "--baseline-out", "baseline"]);
+
+    expect(output()).toContain("regressions:1");
+    expect(output()).toContain("oracle_correctness:-0.5!");
+  });
 });
+
+function reportRun(runId: string, correctness: number): EvalRunResult {
+  return {
+    runId,
+    eval: "task",
+    agent: "codex",
+    model: "gpt-5",
+    planKind: "plan",
+    verdict: correctness === 1 ? "pass" : "fail",
+    correctness,
+    iterations: 1,
+    durationMs: 100,
+    usage: { inputTokens: 10, outputTokens: 5, costUsd: 0.1 },
+    tests: { passed: correctness === 1 ? 1 : 0, total: 1, pass_rate: correctness, cases: [] },
+    scoring: {
+      tests: {
+        configured: true,
+        required: true,
+        configuredWeight: 1,
+        effectiveWeight: 1,
+        status: "executed"
+      },
+      judge: {
+        configured: false,
+        required: false,
+        configuredWeight: 0,
+        effectiveWeight: 0,
+        status: "disabled"
+      }
+    },
+    cheated: false,
+    cheatReport: { cheated: false, violations: [] },
+    trace: { available: true, eventCount: 1, toolEventCount: 0, errorEventCount: 0 }
+  };
+}
 
 async function runEvalCli(args: string[]): Promise<void> {
   process.argv = ["node", "poe-code", "eval", ...args];

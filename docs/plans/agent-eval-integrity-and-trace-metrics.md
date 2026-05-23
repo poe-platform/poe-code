@@ -224,7 +224,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: report-metrics-and-regressions
     title: Report evidence and behavior metrics
@@ -262,10 +262,10 @@ tasks:
       screenshot validation with `npm run screenshot-poe-code -- <affected
       eval command>` for visual output changes.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: validate-agent-eval-p0
     title: Validate complete agent-eval P0 behavior
@@ -290,8 +290,8 @@ tasks:
       plan changes and tests in the conventional commit(s); never blanket-stage
       unrelated working tree changes.
     status:
-      test: open
-      commit: open
+      test: done
+      commit: done
 ---
 
 # Context

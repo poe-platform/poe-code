@@ -11,6 +11,7 @@ import type {
   PlanKind
 } from "../types.js";
 import { runEval } from "./run.js";
+import { writeRunResult } from "./result-writer.js";
 
 const defaultRepeats = 3;
 
@@ -76,13 +77,17 @@ async function runSingle(
   try {
     return await runEval(opts);
   } catch (error) {
-    return createErrorResult(opts, {
+    const result = createErrorResult(opts, {
       matrixId: context.matrixId,
       planKind: context.planKind,
       weights: context.weights,
       durationMs: Date.now() - startedAt,
       error: getErrorMessage(error)
     });
+    const runDir = path.join(opts.outDir ?? "runs", result.runId);
+    await mkdir(runDir, { recursive: true });
+    await writeRunResult(runDir, result);
+    return result;
   }
 }
 
@@ -143,6 +148,7 @@ function createErrorResult(
       cheated: false,
       violations: []
     },
+    trace: { available: false },
     error: context.error
   };
 }

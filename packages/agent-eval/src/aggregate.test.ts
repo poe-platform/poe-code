@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { aggregateRuns } from "./aggregate.js";
+import { aggregateRuns, compareResultCollections } from "./aggregate.js";
 import type { EvalRunResult } from "./types.js";
 
 function run(
@@ -166,6 +166,13 @@ describe("aggregateRuns", () => {
           max: 0.375
         }
       },
+      totals: {
+        durationMs: 900,
+        inputTokens: 600,
+        outputTokens: 300,
+        cachedTokens: 60,
+        costUsd: 0.75
+      },
       tests: {
         passRateMean: 2 / 3,
         passRateMin: 0.25,
@@ -179,6 +186,12 @@ describe("aggregateRuns", () => {
       scoring: {
         tests: { configured: 3, executed: 3, skipped: 0, failed: 0, disabled: 0 },
         judge: { configured: 3, executed: 0, skipped: 0, failed: 0, disabled: 3 }
+      },
+      integrity: {
+        cheatViolations: 0,
+        uninspectableActions: 0,
+        tracesAvailable: 0,
+        executionErrors: 0
       },
       judge: {
         mean: {
@@ -349,5 +362,167 @@ describe("aggregateRuns", () => {
 
   it("throws for empty input", () => {
     expect(() => aggregateRuns([])).toThrow("Cannot aggregate zero runs");
+  });
+
+  it("aggregates named metrics and integrity evidence", () => {
+    const result = aggregateRuns([
+      run({
+        runId: "run-1",
+        metrics: [
+          {
+            id: "task_completion",
+            enabled: true,
+            required: true,
+            weight: 1,
+            score: 1,
+            threshold: 0.8,
+            passed: true,
+            status: "executed",
+            reason: "complete"
+          }
+        ],
+        cheatReport: {
+          cheated: true,
+          violations: [{ path: "/outside", toolCall: "read", reason: "outside-clone" }],
+          uninspectable: [{ toolCall: "exec", operation: "exec", reason: "shell-command" }]
+        },
+        cheated: true,
+        trace: { available: true, eventCount: 4, toolEventCount: 2, errorEventCount: 0 }
+      }),
+      run({
+        runId: "run-2",
+        verdict: "error",
+        error: "evaluation failed",
+        metrics: [
+          {
+            id: "task_completion",
+            enabled: true,
+            required: true,
+            weight: 1,
+            score: 0,
+            threshold: 0.8,
+            passed: false,
+            status: "failed",
+            reason: "metric failed"
+          }
+        ],
+        trace: { available: false }
+      })
+    ]);
+
+    expect(result.metrics).toEqual({
+      task_completion: {
+        score: { mean: 1, min: 1, max: 1 },
+        passed: 1,
+        failed: 0,
+        statuses: { configured: 2, executed: 1, skipped: 0, failed: 1, disabled: 0 }
+      }
+    });
+    expect(result.integrity).toEqual({
+      cheatViolations: 1,
+      uninspectableActions: 1,
+      tracesAvailable: 1,
+      executionErrors: 1
+    });
+  });
+
+  it("compares local result collections on recorded numeric dimensions", () => {
+    const comparison = compareResultCollections(
+      [
+        run({
+          correctness: 1,
+          durationMs: 100,
+          usage: { inputTokens: 100, outputTokens: 50, costUsd: 0.1 },
+          metrics: [
+            {
+              id: "task_completion",
+              enabled: true,
+              required: true,
+              weight: 1,
+              score: 0.9,
+              threshold: 0.8,
+              passed: true,
+              status: "executed",
+              reason: "baseline"
+            }
+          ]
+        })
+      ],
+      [
+        run({
+          correctness: 0.5,
+          durationMs: 150,
+          usage: { inputTokens: 120, outputTokens: 60, costUsd: 0.2 },
+          metrics: [
+            {
+              id: "task_completion",
+              enabled: true,
+              required: true,
+              weight: 1,
+              score: 0.7,
+              threshold: 0.8,
+              passed: false,
+              status: "executed",
+              reason: "current"
+            }
+          ]
+        })
+      ]
+    );
+
+    const deltas = Object.fromEntries(
+      (comparison[0]?.deltas ?? []).map((value) => [value.dimension, value])
+    );
+    expect(deltas.oracle_correctness).toMatchObject({ delta: -0.5, regression: true });
+    expect(deltas["metric:task_completion"]?.delta).toBeCloseTo(-0.2);
+    expect(deltas["metric:task_completion"]?.regression).toBe(true);
+    expect(deltas.duration_ms).toMatchObject({ delta: 50, regression: true });
+    expect(deltas.tokens).toMatchObject({ delta: 30, regression: true });
+    expect(deltas.cost_usd).toMatchObject({ delta: 0.1, regression: true });
+  });
+
+  it("does not compare unavailable metric scores or unrecorded costs", () => {
+    const comparison = compareResultCollections(
+      [
+        run({
+          usage: { inputTokens: 100, outputTokens: 50 },
+          metrics: [
+            {
+              id: "task_completion",
+              enabled: true,
+              required: true,
+              weight: 1,
+              score: 0.9,
+              threshold: 0.8,
+              passed: true,
+              status: "executed",
+              reason: "baseline"
+            }
+          ]
+        })
+      ],
+      [
+        run({
+          usage: { inputTokens: 100, outputTokens: 50 },
+          metrics: [
+            {
+              id: "task_completion",
+              enabled: true,
+              required: true,
+              weight: 1,
+              score: 0,
+              threshold: 0.8,
+              passed: false,
+              status: "skipped",
+              reason: "budget exceeded"
+            }
+          ]
+        })
+      ]
+    );
+
+    const dimensions = comparison[0]?.deltas.map((value) => value.dimension);
+    expect(dimensions).not.toContain("metric:task_completion");
+    expect(dimensions).not.toContain("cost_usd");
   });
 });

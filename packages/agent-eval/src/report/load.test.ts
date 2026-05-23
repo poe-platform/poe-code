@@ -20,7 +20,35 @@ describe("report loaders", () => {
       "/runs/run-direct/result.json": JSON.stringify(result)
     });
 
-    await expect(loadRunResult("run-direct", "/runs")).resolves.toEqual(result);
+    await expect(loadRunResult("run-direct", "/runs")).resolves.toEqual({
+      ...result,
+      trace: { available: false }
+    });
+  });
+
+  it("enriches loaded results with normalized trace availability", async () => {
+    const result = runResult({ runId: "run-traced" });
+    vol.fromJSON({
+      "/runs/run-traced/result.json": JSON.stringify(result),
+      "/runs/run-traced/trace.json": JSON.stringify({
+        events: [
+          {
+            type: "tool",
+            sequence: 1,
+            phase: "complete",
+            operation: "read",
+            name: "read",
+            paths: []
+          },
+          { type: "error", sequence: 2, message: "failed" }
+        ],
+        usage: {}
+      })
+    });
+
+    await expect(loadRunResult("run-traced", "/runs")).resolves.toMatchObject({
+      trace: { available: true, eventCount: 2, toolEventCount: 1, errorEventCount: 1 }
+    });
   });
 
   it("loads a nested matrix run result by id", async () => {
@@ -29,7 +57,10 @@ describe("report loaders", () => {
       "/runs/2026-05-18T10-00-00Z/run-nested/result.json": JSON.stringify(result)
     });
 
-    await expect(loadRunResult("run-nested", "/runs")).resolves.toEqual(result);
+    await expect(loadRunResult("run-nested", "/runs")).resolves.toEqual({
+      ...result,
+      trace: { available: false }
+    });
   });
 
   it("rejects run ids that escape the runs directory", async () => {
@@ -74,6 +105,37 @@ describe("report loaders", () => {
     await expect(loadLatestMatrix("/runs")).resolves.toEqual({
       matrixId: "2026-05-19T10-00-00Z",
       cells: [newestFirst, newestSecond]
+    });
+  });
+
+  it("rebuilds matrix evidence from previously recorded run artifacts", async () => {
+    const cell = aggregateCell({ eval: "task" });
+    vol.fromJSON({
+      "/runs/2026-05-19T10-00-00Z/aggregate-task-codex-gpt-5.json": JSON.stringify({
+        ...cell,
+        runIds: ["run-1", "run-2"]
+      }),
+      "/runs/2026-05-19T10-00-00Z/run-1/result.json": JSON.stringify(
+        runResult({
+          runId: "run-1",
+          metrics: [metricResult(1, true)],
+          cheatReport: { cheated: false, violations: [] }
+        })
+      ),
+      "/runs/2026-05-19T10-00-00Z/run-1/trace.json": JSON.stringify({ events: [], usage: {} }),
+      "/runs/2026-05-19T10-00-00Z/run-2/result.json": JSON.stringify(
+        runResult({
+          runId: "run-2",
+          metrics: [metricResult(0, false)],
+          error: "failed"
+        })
+      )
+    });
+
+    const matrix = await loadLatestMatrix("/runs");
+    expect(matrix.cells[0]).toMatchObject({
+      metrics: { task_completion: { score: { mean: 0.5 }, passed: 1, failed: 1 } },
+      integrity: { tracesAvailable: 1, executionErrors: 1 }
     });
   });
 
@@ -243,5 +305,19 @@ function aggregateCell(overrides: Partial<AggregatedCell["cell"]> = {}): Aggrega
         max: 5
       }
     }
+  };
+}
+
+function metricResult(score: number, passed: boolean) {
+  return {
+    id: "task_completion" as const,
+    enabled: true,
+    required: true,
+    weight: 1,
+    score,
+    threshold: 0.8,
+    passed,
+    status: "executed" as const,
+    reason: "recorded"
   };
 }

@@ -151,6 +151,10 @@ describe("runMatrix integration", () => {
     expect(matrixEntries).toHaveLength(1);
     const matrixDir = path.join(outDir, matrixEntries[0] as string);
 
+    await expect(
+      readFile(path.join(matrixDir, errorResult?.runId as string, "result.json"), "utf8")
+    ).resolves.toContain('"verdict": "error"');
+
     expect(mockedRun.runEval).toHaveBeenCalledWith(
       expect.objectContaining({
         sourceDir: sourceFixture("plan"),

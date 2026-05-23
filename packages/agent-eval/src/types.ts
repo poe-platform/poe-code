@@ -209,7 +209,15 @@ export interface EvalRunResult {
   scoring: EvalScoringResult;
   cheated: boolean;
   cheatReport: CheatReport;
+  trace?: RunTraceSummary;
   error?: string;
+}
+
+export interface RunTraceSummary {
+  available: boolean;
+  eventCount?: number;
+  toolEventCount?: number;
+  errorEventCount?: number;
 }
 
 export interface EvalMatrixOptions {
@@ -243,6 +251,13 @@ export interface AggregatedCell {
     cachedTokens: AggregateStats;
     costUsd: AggregateStats;
   };
+  totals?: {
+    durationMs: number;
+    inputTokens: number;
+    outputTokens: number;
+    cachedTokens: number;
+    costUsd?: number;
+  };
   tests: {
     passRateMean: number;
     passRateMin: number;
@@ -253,9 +268,46 @@ export interface AggregatedCell {
     tests: ScoringComponentCounts;
     judge: ScoringComponentCounts;
   };
+  metrics?: Record<string, AggregatedMetricResult>;
+  integrity?: AggregateIntegritySummary;
   judge?: {
     mean: AggregateStats;
   };
+}
+
+export interface AggregatedMetricResult {
+  score?: AggregateStats;
+  passed: number;
+  failed: number;
+  statuses: ScoringComponentCounts;
+}
+
+export interface AggregateIntegritySummary {
+  cheatViolations: number;
+  uninspectableActions: number;
+  tracesAvailable: number;
+  executionErrors: number;
+}
+
+export type ComparisonDimension =
+  | "oracle_correctness"
+  | "duration_ms"
+  | "tokens"
+  | "cost_usd"
+  | `metric:${string}`;
+
+export interface ResultComparisonDelta {
+  dimension: ComparisonDimension;
+  baseline: number;
+  current: number;
+  delta: number;
+  regression: boolean;
+}
+
+export interface ResultComparison {
+  cell: AggregatedCell["cell"];
+  deltas: readonly ResultComparisonDelta[];
+  regressions: number;
 }
 
 export interface ScoringComponentCounts {

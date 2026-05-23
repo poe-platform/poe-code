@@ -1,7 +1,9 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import type { Dirent } from "node:fs";
-import type { AggregatedCell, EvalRunResult } from "../types.js";
+import type { AggregatedCell, EvalRunResult, RunTraceSummary } from "../types.js";
+import type { NormalizedTrace } from "../run/trace/types.js";
+import { aggregateRuns } from "../aggregate.js";
 
 const defaultOutDir = "runs";
 const resultFileName = "result.json";
@@ -13,15 +15,15 @@ interface RunResultLocation {
   resultPath: string;
 }
 
-export async function loadRunResult(
-  runId: string,
-  outDir = defaultOutDir
-): Promise<EvalRunResult> {
+export async function loadRunResult(runId: string, outDir = defaultOutDir): Promise<EvalRunResult> {
   assertValidRunId(runId);
   const directPath = path.join(outDir, runId, resultFileName);
 
   try {
-    return parseJson<EvalRunResult>(await readFile(directPath, "utf8"), directPath);
+    return enrichRunResult(
+      parseJson<EvalRunResult>(await readFile(directPath, "utf8"), directPath),
+      path.dirname(directPath)
+    );
   } catch (error) {
     if (!isMissingPath(error)) {
       throw error;
@@ -37,7 +39,10 @@ export async function loadRunResult(
   }
 
   const match = matches[0] as RunResultLocation;
-  return parseJson<EvalRunResult>(await readFile(match.resultPath, "utf8"), match.resultPath);
+  return enrichRunResult(
+    parseJson<EvalRunResult>(await readFile(match.resultPath, "utf8"), match.resultPath),
+    path.dirname(match.resultPath)
+  );
 }
 
 export async function listRuns(outDir = defaultOutDir): Promise<readonly string[]> {
@@ -75,7 +80,8 @@ export async function loadLatestMatrix(outDir = defaultOutDir): Promise<{
   const cells = await Promise.all(
     latest.aggregateFiles.map(async (fileName) => {
       const filePath = path.join(outDir, latest.matrixId, fileName);
-      return parseJson<AggregatedCell>(await readFile(filePath, "utf8"), filePath);
+      const cell = parseJson<AggregatedCell>(await readFile(filePath, "utf8"), filePath);
+      return enrichAggregatedCell(cell, path.join(outDir, latest.matrixId));
     })
   );
 
@@ -83,6 +89,18 @@ export async function loadLatestMatrix(outDir = defaultOutDir): Promise<{
     matrixId: latest.matrixId,
     cells
   };
+}
+
+async function enrichAggregatedCell(cell: AggregatedCell, outDir: string): Promise<AggregatedCell> {
+  try {
+    const runs = await Promise.all(cell.runIds.map((runId) => loadRunResult(runId, outDir)));
+    return aggregateRuns(runs);
+  } catch (error) {
+    if (isRunResultNotFound(error)) {
+      return cell;
+    }
+    throw error;
+  }
 }
 
 async function findRunResults(outDir: string): Promise<RunResultLocation[]> {
@@ -153,6 +171,33 @@ function parseJson<T>(content: string, filePath: string): T {
   }
 }
 
+async function enrichRunResult(result: EvalRunResult, runDir: string): Promise<EvalRunResult> {
+  if (result.trace !== undefined) {
+    return result;
+  }
+  return {
+    ...result,
+    trace: await loadTraceSummary(path.join(runDir, "trace.json"))
+  };
+}
+
+async function loadTraceSummary(tracePath: string): Promise<RunTraceSummary> {
+  try {
+    const trace = parseJson<NormalizedTrace>(await readFile(tracePath, "utf8"), tracePath);
+    return {
+      available: true,
+      eventCount: trace.events.length,
+      toolEventCount: trace.events.filter((event) => event.type === "tool").length,
+      errorEventCount: trace.events.filter((event) => event.type === "error").length
+    };
+  } catch (error) {
+    if (isMissingPath(error)) {
+      return { available: false };
+    }
+    throw error;
+  }
+}
+
 function assertValidRunId(runId: string): void {
   if (
     runId.length === 0 ||
@@ -175,6 +220,10 @@ function hasTimestampPrefix(value: string): boolean {
     value[7] === "-" &&
     hasDigits(value, 8, 2)
   );
+}
+
+function isRunResultNotFound(error: unknown): boolean {
+  return error instanceof Error && error.message.startsWith("Run result not found for ");
 }
 
 function hasDigits(value: string, start: number, length: number): boolean {

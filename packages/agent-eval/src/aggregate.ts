@@ -1,6 +1,9 @@
 import type {
   AggregatedCell,
   EvalRunResult,
+  MetricResult,
+  ResultComparison,
+  ResultComparisonDelta,
   ScoringComponentCounts,
   ScoringComponentResult,
   Verdict
@@ -86,6 +89,15 @@ export function aggregateRuns(runs: readonly EvalRunResult[]): AggregatedCell {
       cachedTokens: stats(runs.map((run) => run.usage.cachedTokens ?? 0)),
       costUsd: stats(runs.map((run) => run.usage.costUsd ?? 0))
     },
+    totals: {
+      durationMs: total(runs.map((run) => run.durationMs)),
+      inputTokens: total(runs.map((run) => run.usage.inputTokens)),
+      outputTokens: total(runs.map((run) => run.usage.outputTokens)),
+      cachedTokens: total(runs.map((run) => run.usage.cachedTokens ?? 0)),
+      ...(hasRecordedCost(runs)
+        ? { costUsd: total(runs.map((run) => run.usage.costUsd as number)) }
+        : {})
+    },
     tests: {
       passRateMean: passRateStats.mean,
       passRateMin: passRateStats.min,
@@ -95,8 +107,19 @@ export function aggregateRuns(runs: readonly EvalRunResult[]): AggregatedCell {
     scoring: {
       tests: countComponents(runs.map((run) => run.scoring.tests)),
       judge: countComponents(runs.map((run) => run.scoring.judge))
+    },
+    integrity: {
+      cheatViolations: total(runs.map((run) => run.cheatReport.violations.length)),
+      uninspectableActions: total(runs.map((run) => run.cheatReport.uninspectable?.length ?? 0)),
+      tracesAvailable: runs.filter((run) => run.trace?.available === true).length,
+      executionErrors: runs.filter((run) => run.error !== undefined).length
     }
   };
+
+  const metrics = aggregateMetrics(runs);
+  if (metrics !== undefined) {
+    aggregate.metrics = metrics;
+  }
 
   if (runs.every((run) => run.judge?.mean !== undefined)) {
     aggregate.judge = {
@@ -105,6 +128,32 @@ export function aggregateRuns(runs: readonly EvalRunResult[]): AggregatedCell {
   }
 
   return aggregate;
+}
+
+export function compareResultCollections(
+  baselineRuns: readonly EvalRunResult[],
+  currentRuns: readonly EvalRunResult[]
+): ResultComparison[] {
+  const baseline = groupRuns(baselineRuns);
+  const current = groupRuns(currentRuns);
+  const comparisons: ResultComparison[] = [];
+
+  for (const [key, currentCellRuns] of current) {
+    const baselineCellRuns = baseline.get(key);
+    if (baselineCellRuns === undefined) {
+      continue;
+    }
+    const baselineCell = aggregateRuns(baselineCellRuns);
+    const currentCell = aggregateRuns(currentCellRuns);
+    const deltas = compareCells(baselineCell, currentCell, baselineCellRuns, currentCellRuns);
+    comparisons.push({
+      cell: currentCell.cell,
+      deltas,
+      regressions: deltas.filter((delta) => delta.regression).length
+    });
+  }
+
+  return comparisons;
 }
 
 function countVerdicts(runs: readonly EvalRunResult[]): Record<Verdict, number> {
@@ -120,5 +169,108 @@ function countComponents(components: readonly ScoringComponentResult[]): Scoring
     skipped: components.filter((component) => component.status === "skipped").length,
     failed: components.filter((component) => component.status === "failed").length,
     disabled: components.filter((component) => component.status === "disabled").length
+  };
+}
+
+function aggregateMetrics(
+  runs: readonly EvalRunResult[]
+): NonNullable<AggregatedCell["metrics"]> | undefined {
+  const metrics = runs.flatMap((run) => run.metrics ?? []);
+  if (metrics.length === 0) {
+    return undefined;
+  }
+  const byId = new Map<string, MetricResult[]>();
+  for (const metric of metrics) {
+    const existing = byId.get(metric.id) ?? [];
+    existing.push(metric);
+    byId.set(metric.id, existing);
+  }
+  return Object.fromEntries(
+    [...byId.entries()].map(([id, values]) => {
+      const executed = values.filter((value) => value.status === "executed");
+      return [
+        id,
+        {
+          ...(executed.length === 0 ? {} : { score: stats(executed.map((value) => value.score)) }),
+          passed: executed.filter((value) => value.passed).length,
+          failed: executed.filter((value) => !value.passed).length,
+          statuses: countComponents(values.map(metricAsComponent))
+        }
+      ];
+    })
+  );
+}
+
+function metricAsComponent(metric: MetricResult): ScoringComponentResult {
+  return {
+    configured: true,
+    required: metric.required,
+    configuredWeight: metric.weight,
+    effectiveWeight: metric.weight,
+    status: metric.status
+  };
+}
+
+function total(values: readonly number[]): number {
+  return values.reduce((sum, value) => sum + value, 0);
+}
+
+function groupRuns(runs: readonly EvalRunResult[]): Map<string, EvalRunResult[]> {
+  const grouped = new Map<string, EvalRunResult[]>();
+  for (const run of runs) {
+    const key = cellKeys.map((cellKey) => run[cellKey]).join("\u0000");
+    const cellRuns = grouped.get(key) ?? [];
+    cellRuns.push(run);
+    grouped.set(key, cellRuns);
+  }
+  return grouped;
+}
+
+function compareCells(
+  baseline: AggregatedCell,
+  current: AggregatedCell,
+  baselineRuns: readonly EvalRunResult[],
+  currentRuns: readonly EvalRunResult[]
+): ResultComparisonDelta[] {
+  const deltas: ResultComparisonDelta[] = [
+    delta("oracle_correctness", baseline.correctness.mean, current.correctness.mean, "higher"),
+    delta("duration_ms", baseline.durationMs.mean, current.durationMs.mean, "lower"),
+    delta("tokens", totalTokens(baseline), totalTokens(current), "lower")
+  ];
+  if (hasRecordedCost(baselineRuns) && hasRecordedCost(currentRuns)) {
+    deltas.push(
+      delta("cost_usd", baseline.usage.costUsd.mean, current.usage.costUsd.mean, "lower")
+    );
+  }
+  for (const [id, metric] of Object.entries(current.metrics ?? {})) {
+    const baselineMetric = baseline.metrics?.[id];
+    if (baselineMetric?.score !== undefined && metric.score !== undefined) {
+      deltas.push(delta(`metric:${id}`, baselineMetric.score.mean, metric.score.mean, "higher"));
+    }
+  }
+  return deltas;
+}
+
+function hasRecordedCost(runs: readonly EvalRunResult[]): boolean {
+  return runs.every((run) => run.usage.costUsd !== undefined);
+}
+
+function totalTokens(cell: AggregatedCell): number {
+  return cell.usage.inputTokens.mean + cell.usage.outputTokens.mean;
+}
+
+function delta(
+  dimension: ResultComparisonDelta["dimension"],
+  baseline: number,
+  current: number,
+  preferred: "higher" | "lower"
+): ResultComparisonDelta {
+  const difference = current - baseline;
+  return {
+    dimension,
+    baseline,
+    current,
+    delta: difference,
+    regression: preferred === "higher" ? difference < 0 : difference > 0
   };
 }

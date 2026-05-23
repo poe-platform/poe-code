@@ -7,7 +7,7 @@ export {
 export { defaultSourceConfig, loadSourceConfig } from "./source/config.js";
 export { openSource } from "./source/open.js";
 export { listEvals, loadEval } from "./source/registry.js";
-export { aggregateRuns, type AggregateStats } from "./aggregate.js";
+export { aggregateRuns, compareResultCollections, type AggregateStats } from "./aggregate.js";
 export { evalCheck, type CheckOptions, type CheckResult } from "./check/check.js";
 export { evalInit, type InitOptions, type InitResult } from "./init/init.js";
 export { evalLint, type LintIssue, type LintResult } from "./lint/lint.js";
@@ -55,6 +55,9 @@ export type {
   MetricExecutionStatus,
   MetricId,
   MetricResult,
+  ResultComparison,
+  ResultComparisonDelta,
+  RunTraceSummary,
   MetricSpec,
   PlanKind,
   RubricKey,

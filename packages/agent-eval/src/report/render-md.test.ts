@@ -10,6 +10,87 @@ describe("renderMatrixMarkdown", () => {
   it("renders per-run scoring component states", () => {
     expect(renderRunsMarkdown([runFixture()])).toContain("tests:cfg/executed judge:cfg/disabled");
   });
+
+  it("renders detailed run metric and integrity evidence", () => {
+    const report = renderRunsMarkdown([
+      {
+        ...runFixture(),
+        error: "evaluation failed",
+        metrics: [
+          {
+            id: "tool_correctness",
+            enabled: true,
+            required: true,
+            weight: 1,
+            score: 0.5,
+            threshold: 0.8,
+            passed: false,
+            status: "executed",
+            reason: "One risky tool call failed.",
+            traceReferences: [2]
+          }
+        ],
+        cheated: true,
+        cheatReport: {
+          cheated: true,
+          violations: [{ path: "/private/key", toolCall: "read", reason: "outside-clone" }],
+          uninspectable: [{ toolCall: "exec", operation: "exec", reason: "shell-command" }]
+        },
+        trace: { available: true, eventCount: 3, toolEventCount: 1, errorEventCount: 1 }
+      }
+    ]);
+
+    expect(report).toContain("### Run `run-1`");
+    expect(report).toContain("`tool_correctness`: 0.5 (fail, executed)");
+    expect(report).toContain("One risky tool call failed.");
+    expect(report).toContain("trace events `2`");
+    expect(report).toContain("/private/key");
+    expect(report).toContain("shell-command");
+    expect(report).toContain("evaluation failed");
+  });
+
+  it("renders skipped metrics without synthetic scores", () => {
+    const report = renderRunsMarkdown([
+      {
+        ...runFixture(),
+        metrics: [{
+          id: "task_completion",
+          enabled: true,
+          required: true,
+          weight: 1,
+          score: 0,
+          threshold: 0.8,
+          passed: false,
+          status: "skipped",
+          reason: "budget exceeded"
+        }]
+      }
+    ]);
+
+    expect(report).toContain("`task_completion`: skipped — budget exceeded");
+    expect(report).not.toContain("`task_completion`: 0.0");
+  });
+
+  it("omits missing metric reasons from detailed output", () => {
+    const report = renderRunsMarkdown([
+      {
+        ...runFixture(),
+        metrics: [{
+          id: "task_completion",
+          enabled: true,
+          required: true,
+          weight: 1,
+          score: 1,
+          threshold: 0.8,
+          passed: true,
+          status: "executed"
+        }]
+      }
+    ]);
+
+    expect(report).toContain("`task_completion`: 1.0 (pass, executed)");
+    expect(report).not.toContain("undefined");
+  });
 });
 
 function runFixture(): EvalRunResult {

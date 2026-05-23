@@ -7,9 +7,18 @@ import { loadSourceConfig } from "../source/config.js";
 import { openSource } from "../source/open.js";
 import { listEvals } from "../source/registry.js";
 import { runMatrix } from "../run/matrix.js";
+import { compareResultCollections } from "../aggregate.js";
 import { listRuns, loadLatestMatrix, loadRunResult } from "../report/load.js";
-import { renderMatrixMarkdown, renderRunsMarkdown } from "../report/render-md.js";
-import { renderMatrixTable, renderRunsTable } from "../report/render-table.js";
+import {
+  renderComparisonMarkdown,
+  renderMatrixMarkdown,
+  renderRunsMarkdown
+} from "../report/render-md.js";
+import {
+  renderComparisonTable,
+  renderMatrixTable,
+  renderRunsTable
+} from "../report/render-table.js";
 import type {
   AggregatedCell,
   EvalMatrixOptions,
@@ -105,7 +114,8 @@ const reportParams = S.Object({
     default: "table"
   }),
   allRuns: S.Optional(S.Boolean({ description: "Report every run result" })),
-  out: S.Optional(S.String({ description: "Runs output directory" }))
+  out: S.Optional(S.String({ description: "Runs output directory" })),
+  baselineOut: S.Optional(S.String({ description: "Local baseline runs output directory" }))
 });
 
 export const evalRunCommand = defineCommand({
@@ -160,22 +170,49 @@ export const evalReportCommand = defineCommand({
     const source = await openSource(sourceDir);
     const config = await loadSourceConfig(source);
     const outDir = resolveOutputDirectory(source.rootDir, params.out ?? config.out);
+    const baselineOutDir =
+      params.baselineOut === undefined
+        ? undefined
+        : resolveOutputDirectory(source.rootDir, params.baselineOut);
 
     if (params.runId !== undefined) {
       const run = await loadRunResult(params.runId, outDir);
-      printRunsReport([run], params.format);
+      if (baselineOutDir !== undefined) {
+        const comparison = compareResultCollections(await loadCollection(baselineOutDir), [run]);
+        printRunsReport([run], params.format, comparison);
+      } else {
+        printRunsReport([run], params.format);
+      }
       return null;
     }
 
     if (params.allRuns === true) {
       const runIds = await listRuns(outDir);
       const runs = await Promise.all(runIds.map((runId) => loadRunResult(runId, outDir)));
-      printRunsReport(runs, params.format);
+      if (baselineOutDir !== undefined) {
+        const comparison = compareResultCollections(await loadCollection(baselineOutDir), runs);
+        printRunsReport(runs, params.format, comparison);
+      } else {
+        printRunsReport(runs, params.format);
+      }
       return null;
     }
 
     const matrix = await loadLatestMatrix(outDir);
-    printMatrixReport(matrix.cells, params.format);
+    const runs =
+      params.format === "md" || baselineOutDir !== undefined
+        ? await loadMatrixRuns(matrix.cells, outDir)
+        : [];
+    if (baselineOutDir !== undefined) {
+      const baselineMatrix = await loadLatestMatrix(baselineOutDir);
+      const comparison = compareResultCollections(
+        await loadMatrixRuns(baselineMatrix.cells, baselineOutDir),
+        runs
+      );
+      printMatrixReport(matrix.cells, params.format, runs, comparison);
+    } else {
+      printMatrixReport(matrix.cells, params.format, runs);
+    }
     return null;
   },
   render: {
@@ -300,22 +337,72 @@ function resolveJudgeOption(
   return override;
 }
 
-function printRunsReport(runs: readonly EvalRunResult[], format: ReportFormat): void {
+function printRunsReport(
+  runs: readonly EvalRunResult[],
+  format: ReportFormat,
+  comparison?: ReturnType<typeof compareResultCollections>
+): void {
   if (format === "json") {
-    process.stdout.write(`${JSON.stringify(runs, null, 2)}\n`);
+    process.stdout.write(
+      `${JSON.stringify(comparison === undefined ? runs : { runs, comparison }, null, 2)}\n`
+    );
     return;
   }
 
   process.stdout.write(`${format === "md" ? renderRunsMarkdown(runs) : renderRunsTable(runs)}\n`);
+  if (comparison !== undefined) {
+    printComparison(comparison, format);
+  }
 }
 
-function printMatrixReport(cells: readonly AggregatedCell[], format: ReportFormat): void {
+function printMatrixReport(
+  cells: readonly AggregatedCell[],
+  format: ReportFormat,
+  runs: readonly EvalRunResult[] = [],
+  comparison?: ReturnType<typeof compareResultCollections>
+): void {
   if (format === "json") {
-    process.stdout.write(`${JSON.stringify(cells, null, 2)}\n`);
+    process.stdout.write(
+      `${JSON.stringify(comparison === undefined ? cells : { cells, comparison }, null, 2)}\n`
+    );
     return;
   }
 
   process.stdout.write(
-    `${format === "md" ? renderMatrixMarkdown(cells) : renderMatrixTable(cells)}\n`
+    `${format === "md" ? renderMatrixMarkdown(cells, runs) : renderMatrixTable(cells)}\n`
   );
+  if (comparison !== undefined) {
+    printComparison(comparison, format);
+  }
+}
+
+function printComparison(
+  comparison: ReturnType<typeof compareResultCollections>,
+  format: ReportFormat
+): void {
+  process.stdout.write(
+    `\n${format === "md" ? renderComparisonMarkdown(comparison) : renderComparisonTable(comparison)}\n`
+  );
+}
+
+async function loadCollection(outDir: string): Promise<EvalRunResult[]> {
+  const runIds = await listRuns(outDir);
+  return Promise.all(runIds.map((runId) => loadRunResult(runId, outDir)));
+}
+
+async function loadMatrixRuns(
+  cells: readonly AggregatedCell[],
+  outDir: string
+): Promise<EvalRunResult[]> {
+  const runs: EvalRunResult[] = [];
+  for (const runId of cells.flatMap((cell) => cell.runIds)) {
+    try {
+      runs.push(await loadRunResult(runId, outDir));
+    } catch (error) {
+      if (!(error instanceof Error) || !error.message.startsWith("Run result not found for ")) {
+        throw error;
+      }
+    }
+  }
+  return runs;
 }

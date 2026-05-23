@@ -32,6 +32,7 @@ import { resolveDispatch, type DispatchSpec } from "./dispatch.js";
 import { judgeRun } from "./judge.js";
 import { verifyOracle } from "./oracle.js";
 import { runScorer } from "./scorer.js";
+import { createTraceNormalizer } from "./trace/normalize.js";
 import { writeRunArtifacts } from "./result-writer.js";
 import type { CaseResult } from "./vitest-runner.js";
 
@@ -92,12 +93,19 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
     await cp(sourcePlanPath, clonedPlanPath);
 
     const events: SpawnEvent[] = [];
+    const traceNormalizer = createTraceNormalizer();
     const filter = new CheatFilter({ cloneDir });
     const enforcer = new BudgetEnforcer(evalDef.budget, controller);
     const onEvent = (event: SpawnEvent): void => {
       events.push(event);
-      filter.onEvent(event);
-      enforcer.onEvent(event);
+      const traceEvent = traceNormalizer.record(event);
+      if (traceEvent === undefined) {
+        return;
+      }
+      if (traceEvent.type === "tool") {
+        filter.onEvent(traceEvent);
+      }
+      enforcer.onEvent(traceEvent);
     };
 
     const dispatch = resolveDispatch({
@@ -118,6 +126,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
 
     const budgetSnapshot = enforcer.snapshot();
     const cheatReport = filter.report();
+    const trace = traceNormalizer.snapshot();
     const testsResult = await runScorer({
       evalDef,
       evalDir: path.join(source.rootDir, opts.evalId),
@@ -130,7 +139,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
         ? await judgeRun({
             evalDef,
             cloneDir,
-            eventsJsonlPath: path.join(runDir, "events.jsonl"),
+            trace,
             testsResult,
             spec: judgeSpec,
             agentUnderTest: opts.agent
@@ -152,6 +161,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
     await writeRunArtifacts(runDir, {
       result,
       events,
+      trace,
       cheatReport,
       judge: judgeResult,
       planMd,

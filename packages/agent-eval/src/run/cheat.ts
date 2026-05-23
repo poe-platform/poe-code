@@ -1,22 +1,16 @@
 import os from "node:os";
 import path from "node:path";
 
-import type { CheatReport, SpawnEvent } from "../types.js";
+import type { CheatReport } from "../types.js";
+import type { TraceToolEvent } from "./trace/types.js";
 
 type CheatViolation = CheatReport["violations"][number];
-type ToolPathEvent = {
-  kind: "read" | "exec" | "glob";
-  title: string;
-  path?: string;
-  rawInput?: unknown;
-};
-
-const RAW_INPUT_PATH_KEYS = ["path", "filePath", "file_path", "pattern", "command"] as const;
 
 export class CheatFilter {
   private readonly cloneDir: string;
   private readonly allowedPaths: readonly string[];
   private readonly violations: CheatViolation[] = [];
+  private readonly observedToolIds = new Set<string>();
 
   constructor(input: { cloneDir: string; allowedPaths?: readonly string[] }) {
     this.cloneDir = path.resolve(input.cloneDir);
@@ -25,27 +19,36 @@ export class CheatFilter {
       .map((allowedPath) => path.resolve(allowedPath));
   }
 
-  onEvent(event: SpawnEvent): void {
-    const toolEvent = readToolPathEvent(event);
-    if (toolEvent === undefined) {
+  onEvent(event: TraceToolEvent): void {
+    if (!isObservedOperation(event.operation) || this.alreadyObserved(event)) {
       return;
     }
 
-    const eventPath = readToolPath(toolEvent);
-    if (eventPath === undefined) {
-      return;
+    for (const eventPath of readToolPaths(event)) {
+      const resolvedPath = resolveAgainstClone(this.cloneDir, eventPath);
+      if (isUnderAny(resolvedPath, [this.cloneDir, ...this.allowedPaths])) {
+        continue;
+      }
+
+      this.violations.push({
+        path: resolvedPath,
+        toolCall: event.name,
+        reason: "outside-clone"
+      });
+    }
+  }
+
+  private alreadyObserved(event: TraceToolEvent): boolean {
+    if (event.id === undefined) {
+      return event.phase !== "start";
     }
 
-    const resolvedPath = resolveAgainstClone(this.cloneDir, eventPath);
-    if (isUnderAny(resolvedPath, [this.cloneDir, ...this.allowedPaths])) {
-      return;
+    if (this.observedToolIds.has(event.id)) {
+      return true;
     }
 
-    this.violations.push({
-      path: resolvedPath,
-      toolCall: toolEvent.title,
-      reason: "outside-clone"
-    });
+    this.observedToolIds.add(event.id);
+    return false;
   }
 
   report(): CheatReport {
@@ -72,104 +75,48 @@ function defaultAllowedPaths(): string[] {
   return allowedPaths;
 }
 
-function readToolPathEvent(event: SpawnEvent): ToolPathEvent | undefined {
-  if (isRecord(event) && event.sessionUpdate === "tool_call") {
-    const kind = normalizeToolKind(readString(event.kind));
-    if (kind === undefined) {
-      return undefined;
-    }
-
-    const fallbackTitle = readString(event.toolCallId) ?? kind;
-    return {
-      kind,
-      title: readString(event.title) ?? fallbackTitle,
-      path: readLocationPath(event),
-      rawInput: event.rawInput ?? event.input
-    };
-  }
-
-  if (isRecord(event) && event.event === "tool_start") {
-    const kind = normalizeToolKind(readString(event.kind));
-    if (kind === undefined) {
-      return undefined;
-    }
-
-    const fallbackTitle = readString(event.id) ?? kind;
-    return {
-      kind,
-      title: readString(event.title) ?? fallbackTitle,
-      path: readString(event.path),
-      rawInput: event.rawInput ?? event.input
-    };
-  }
-
-  return undefined;
+function isObservedOperation(operation: TraceToolEvent["operation"]): boolean {
+  return operation === "read" || operation === "search" || operation === "exec";
 }
 
-function normalizeToolKind(kind: string | undefined): ToolPathEvent["kind"] | undefined {
-  if (kind === "execute" || kind === "exec") {
-    return "exec";
-  }
-  if (kind === "read" || kind === "glob") {
-    return kind;
-  }
-  if (kind === "search") {
-    return "glob";
-  }
-  return undefined;
-}
-
-function readToolPath(event: ToolPathEvent): string | undefined {
-  if (event.path !== undefined) {
-    return event.path;
+function readToolPaths(event: TraceToolEvent): readonly string[] {
+  if (event.paths.length > 0) {
+    return event.paths;
   }
 
-  const inputPath = readRawInputPath(event.rawInput);
+  const inputPath = readRawInputPath(event.rawArguments);
   if (inputPath !== undefined) {
-    return inputPath;
+    return [inputPath];
   }
 
-  if (event.kind === "exec") {
-    return readFirstToken(event.title);
+  if (event.operation === "exec") {
+    const executable = readFirstToken(event.name);
+    return executable === undefined ? [] : [executable];
   }
 
-  return event.title;
+  return [event.name];
 }
 
-function readRawInputPath(rawInput: unknown): string | undefined {
-  if (!isRecord(rawInput)) {
+function readRawInputPath(rawArguments: unknown): string | undefined {
+  if (!isRecord(rawArguments)) {
     return undefined;
   }
 
-  for (const key of RAW_INPUT_PATH_KEYS) {
-    const value = readString(rawInput[key]);
-    if (value === undefined) {
-      continue;
-    }
-    return key === "command" ? readFirstToken(value) : value;
+  const pathValue =
+    readString(rawArguments.path) ??
+    readString(rawArguments.filePath) ??
+    readString(rawArguments.file_path);
+  if (pathValue !== undefined) {
+    return pathValue;
   }
 
-  return undefined;
-}
-
-function readLocationPath(event: Record<string, unknown>): string | undefined {
-  const locations = event.locations;
-  if (!Array.isArray(locations)) {
-    return undefined;
+  const pattern = readString(rawArguments.pattern);
+  if (pattern !== undefined) {
+    return pattern;
   }
 
-  for (const location of locations) {
-    if (!isRecord(location)) {
-      continue;
-    }
-
-    const locationPath = readString(location.path);
-    if (locationPath !== undefined) {
-      return locationPath;
-    }
-  }
-
-  return undefined;
+  const command = readString(rawArguments.command);
+  return command === undefined ? undefined : readFirstToken(command);
 }
 
 function readFirstToken(value: string): string | undefined {
@@ -179,7 +126,7 @@ function readFirstToken(value: string): string | undefined {
   }
 
   const quote = trimmed[0];
-  if (quote === "\"" || quote === "'") {
+  if (quote === '"' || quote === "'") {
     const end = trimmed.indexOf(quote, 1);
     return end === -1 ? trimmed.slice(1) : trimmed.slice(1, end);
   }
@@ -209,8 +156,8 @@ function isUnderAny(targetPath: string, roots: readonly string[]): boolean {
 }
 
 function isUnderPath(targetPath: string, rootPath: string): boolean {
-  const relativePath = path.relative(rootPath, targetPath);
-  return relativePath === "" || (!relativePath.startsWith("..") && !path.isAbsolute(relativePath));
+  const relative = path.relative(rootPath, targetPath);
+  return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
 }
 
 function readString(value: unknown): string | undefined {

@@ -1,4 +1,5 @@
-import type { Budget, SpawnEvent, SpawnUsage } from "../types.js";
+import type { Budget, SpawnUsage } from "../types.js";
+import type { NormalizedTraceEvent } from "./trace/types.js";
 
 type BudgetKey = keyof Budget;
 
@@ -11,6 +12,7 @@ export class BudgetEnforcer {
     inputTokens: 0,
     outputTokens: 0
   };
+  private readonly countedToolIds = new Set<string>();
 
   private iterationsTotal = 0;
   private pendingTrip: BudgetKey | undefined;
@@ -19,10 +21,14 @@ export class BudgetEnforcer {
   constructor(budget: Budget, controller: AbortController) {
     this.budget = budget;
     this.controller = controller;
-    this.controller.signal.addEventListener("abort", () => {
-      this.tripped = this.pendingTrip;
-      clearTimeout(this.wallTimer);
-    }, { once: true });
+    this.controller.signal.addEventListener(
+      "abort",
+      () => {
+        this.tripped = this.pendingTrip;
+        clearTimeout(this.wallTimer);
+      },
+      { once: true }
+    );
 
     this.wallTimer = setTimeout(() => {
       this.trip("wallClockMs");
@@ -32,14 +38,13 @@ export class BudgetEnforcer {
     maybeTimer.unref?.();
   }
 
-  onEvent(event: SpawnEvent): void {
-    if (isToolCallEvent(event)) {
-      this.iterationsTotal += 1;
+  onEvent(event: NormalizedTraceEvent): void {
+    if (event.type === "tool") {
+      this.countToolIteration(event);
     }
 
-    const usage = readUsage(event);
-    if (usage !== undefined) {
-      this.addUsage(usage);
+    if (event.type === "usage") {
+      this.addUsage(event.usage);
     }
 
     this.checkCaps();
@@ -68,6 +73,20 @@ export class BudgetEnforcer {
     }
   }
 
+  private countToolIteration(event: Extract<NormalizedTraceEvent, { type: "tool" }>): void {
+    if (event.id === undefined) {
+      this.iterationsTotal += 1;
+      return;
+    }
+
+    if (this.countedToolIds.has(event.id)) {
+      return;
+    }
+
+    this.countedToolIds.add(event.id);
+    this.iterationsTotal += 1;
+  }
+
   private checkCaps(): void {
     if (this.iterationsTotal >= this.budget.maxIterations) {
       this.trip("maxIterations");
@@ -90,85 +109,4 @@ export class BudgetEnforcer {
       this.tripped = budgetKey;
     }
   }
-}
-
-function isToolCallEvent(event: SpawnEvent): boolean {
-  return (
-    (isRecord(event) && event.sessionUpdate === "tool_call") ||
-    (isRecord(event) && event.event === "tool_start")
-  );
-}
-
-function readUsage(event: SpawnEvent): SpawnUsage | undefined {
-  if (isRecord(event) && event.event === "usage") {
-    const inputTokens = readNumber(event.inputTokens);
-    const outputTokens = readNumber(event.outputTokens);
-    if (inputTokens === undefined || outputTokens === undefined) {
-      return undefined;
-    }
-
-    return readOptionalUsage({
-      inputTokens,
-      outputTokens,
-      cachedTokens: event.cachedTokens,
-      costUsd: event.costUsd
-    });
-  }
-
-  if (isRecord(event) && event.sessionUpdate === "usage_update") {
-    const meta = isRecord(event._meta) ? event._meta : {};
-    const used = readNumber(event.used);
-    const size = readNumber(event.size);
-    if (used === undefined || size === undefined) {
-      return undefined;
-    }
-
-    const inputTokens = readNumber(meta.inputTokens) ?? used;
-    const outputTokens = readNumber(meta.outputTokens) ?? 0;
-    const cachedTokens = readNumber(meta.cachedTokens) ?? Math.max(0, size - used);
-    const cost = isRecord(event.cost) && event.cost.currency === "USD"
-      ? readNumber(event.cost.amount)
-      : undefined;
-
-    return readOptionalUsage({
-      inputTokens,
-      outputTokens,
-      cachedTokens,
-      costUsd: cost
-    });
-  }
-
-  return undefined;
-}
-
-function readOptionalUsage(input: {
-  inputTokens: number;
-  outputTokens: number;
-  cachedTokens?: unknown;
-  costUsd?: unknown;
-}): SpawnUsage {
-  const usage: SpawnUsage = {
-    inputTokens: input.inputTokens,
-    outputTokens: input.outputTokens
-  };
-
-  const cachedTokens = readNumber(input.cachedTokens);
-  if (cachedTokens !== undefined) {
-    usage.cachedTokens = cachedTokens;
-  }
-
-  const costUsd = readNumber(input.costUsd);
-  if (costUsd !== undefined) {
-    usage.costUsd = costUsd;
-  }
-
-  return usage;
-}
-
-function readNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }

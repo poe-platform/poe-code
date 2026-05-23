@@ -1,6 +1,7 @@
 import { vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EvalRunResult } from "../types.js";
+import type { NormalizedTrace } from "./trace/types.js";
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -18,6 +19,7 @@ describe("writeRunArtifacts", () => {
     await writeRunArtifacts("/runs/run-1", {
       result: createResult(),
       events: [{ sessionUpdate: "tool_call", toolCall: "read" }],
+      trace: createTrace(),
       cheatReport: { cheated: false, violations: [] },
       planMd: "# Plan\n",
       evalYaml: "id: task\n"
@@ -27,6 +29,7 @@ describe("writeRunArtifacts", () => {
     expect(await readText("/runs/run-1/events.jsonl")).toBe(
       `${JSON.stringify({ sessionUpdate: "tool_call", toolCall: "read" })}\n`
     );
+    expect(JSON.parse(await readText("/runs/run-1/trace.json"))).toEqual(createTrace());
     expect(JSON.parse(await readText("/runs/run-1/cheat-report.json"))).toEqual({
       cheated: false,
       violations: []
@@ -40,6 +43,7 @@ describe("writeRunArtifacts", () => {
     await writeRunArtifacts("/runs/run-1", {
       result: createResult({ judge: { completeness: 4, mean: 4 } }),
       events: [],
+      trace: createTrace(),
       cheatReport: { cheated: false, violations: [] },
       judge: { completeness: 4, mean: 4 },
       planMd: "# Plan\n",
@@ -57,6 +61,16 @@ describe("writeRunArtifacts", () => {
 async function readText(path: string): Promise<string> {
   const { fs } = await import("memfs");
   return fs.promises.readFile(path, "utf8") as Promise<string>;
+}
+
+function createTrace(): NormalizedTrace {
+  return {
+    events: [],
+    usage: {
+      inputTokens: 0,
+      outputTokens: 0
+    }
+  };
 }
 
 function createResult(overrides: Partial<EvalRunResult> = {}): EvalRunResult {

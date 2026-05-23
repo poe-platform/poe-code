@@ -2,12 +2,14 @@ import { randomUUID } from "node:crypto";
 import { mkdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { CheatReport, EvalRunResult, SpawnEvent } from "../types.js";
+import type { NormalizedTrace } from "./trace/types.js";
 
 export async function writeRunArtifacts(
   runDir: string,
   parts: {
     result: EvalRunResult;
     events: readonly SpawnEvent[];
+    trace: NormalizedTrace;
     cheatReport: CheatReport;
     judge?: unknown;
     planMd: string;
@@ -19,6 +21,7 @@ export async function writeRunArtifacts(
   await Promise.all([
     atomicWrite(path.join(runDir, "result.json"), `${JSON.stringify(parts.result, null, 2)}\n`),
     atomicWrite(path.join(runDir, "events.jsonl"), formatEventsJsonl(parts.events)),
+    atomicWrite(path.join(runDir, "trace.json"), `${JSON.stringify(parts.trace, null, 2)}\n`),
     atomicWrite(
       path.join(runDir, "cheat-report.json"),
       `${JSON.stringify(parts.cheatReport, null, 2)}\n`
@@ -27,12 +30,7 @@ export async function writeRunArtifacts(
     atomicWrite(path.join(runDir, "eval.yaml"), parts.evalYaml),
     ...(parts.judge === undefined
       ? []
-      : [
-          atomicWrite(
-            path.join(runDir, "judge.json"),
-            `${JSON.stringify(parts.judge, null, 2)}\n`
-          )
-        ])
+      : [atomicWrite(path.join(runDir, "judge.json"), `${JSON.stringify(parts.judge, null, 2)}\n`)])
   ]);
 }
 

@@ -46,7 +46,7 @@ describe("judgeRun", () => {
     const result = await judgeRun({
       evalDef: createEval(),
       cloneDir: "/repo",
-      eventsJsonlPath: "/runs/events.jsonl",
+      trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
       testsResult: { passed: 2, total: 3 },
       spec: createJudgeSpec(),
       agentUnderTest: "claude-code"
@@ -73,7 +73,7 @@ describe("judgeRun", () => {
     expect(prompt).toContain("src/secret.txt\t14 bytes");
     expect(prompt).not.toContain("do-not-include");
     expect(prompt).toContain("Tests: 2/3 passed");
-    expect(prompt).toContain("Events JSONL path: /runs/events.jsonl");
+    expect(prompt).toContain("Normalized trace JSON:");
     expect(prompt).toContain("completeness");
     expect(prompt).toContain("spec_adherence");
     expect(prompt).toContain("code_quality");
@@ -92,7 +92,7 @@ describe("judgeRun", () => {
     await judgeRun({
       evalDef: createEval(),
       cloneDir: "/repo",
-      eventsJsonlPath: "/runs/events.jsonl",
+      trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
       testsResult: { passed: 1, total: 1 },
       spec: createJudgeSpec({ agent: "claude-code" }),
       agentUnderTest: "claude-code"
@@ -114,7 +114,7 @@ describe("judgeRun", () => {
     await judgeRun({
       evalDef: createEval(),
       cloneDir: "/repo",
-      eventsJsonlPath: "/runs/events.jsonl",
+      trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
       testsResult: { passed: 1, total: 1 },
       spec: createJudgeSpec({ agent: "custom-agent" }),
       agentUnderTest: "claude-code"
@@ -136,7 +136,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
-        eventsJsonlPath: "/runs/events.jsonl",
+        trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 0, total: 1 },
         spec: createJudgeSpec(),
         agentUnderTest: "claude-code"
@@ -159,7 +159,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
-        eventsJsonlPath: "/runs/events.jsonl",
+        trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 1, total: 1 },
         spec: createJudgeSpec(),
         agentUnderTest: "claude-code"
@@ -186,7 +186,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
-        eventsJsonlPath: "/runs/events.jsonl",
+        trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 0, total: 1 },
         spec: createJudgeSpec(),
         agentUnderTest: "claude-code"
@@ -215,7 +215,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
-        eventsJsonlPath: "/runs/events.jsonl",
+        trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 1, total: 2 },
         spec,
         agentUnderTest: "claude-code"
@@ -239,7 +239,7 @@ describe("judgeRun", () => {
       judgeRun({
         evalDef: createEval(),
         cloneDir: "/repo",
-        eventsJsonlPath: "/runs/events.jsonl",
+        trace: { events: [], usage: { inputTokens: 0, outputTokens: 0 } },
         testsResult: { passed: 1, total: 1 },
         spec: createJudgeSpec({ rubric: ["custom_quality"] }),
         agentUnderTest: "claude-code"

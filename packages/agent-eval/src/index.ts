@@ -20,6 +20,7 @@ export { judgeRun } from "./run/judge.js";
 export { runMatrix } from "./run/matrix.js";
 export { verifyOracle } from "./run/oracle.js";
 export { runEval, EvalFrameworkError } from "./run/run.js";
+export { normalizeTrace } from "./run/trace/normalize.js";
 export { runScorer, ScorerError, ScorerTimeoutError } from "./run/scorer.js";
 export {
   runVitest,
@@ -58,4 +59,15 @@ export type {
   SourceConfig,
   Verdict
 } from "./types.js";
+export type {
+  NormalizedTrace,
+  NormalizedTraceEvent,
+  TraceErrorEvent,
+  TraceMessageEvent,
+  TraceTimestamp,
+  TraceToolEvent,
+  TraceToolOperation,
+  TraceToolOutcome,
+  TraceUsageEvent
+} from "./run/trace/types.js";
 export { resolveScorer } from "./types.js";

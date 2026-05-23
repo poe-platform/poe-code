@@ -3,22 +3,27 @@ import path from "node:path";
 import { describe, expect, it } from "vitest";
 
 import { CheatFilter } from "./cheat.js";
-import type { SpawnEvent } from "../types.js";
+import type { TraceToolEvent } from "./trace/types.js";
 
 function toolCall(input: {
+  id?: string;
   title?: string;
   kind?: string;
   path?: string;
+  paths?: readonly string[];
   rawInput?: unknown;
-}): SpawnEvent {
+  phase?: TraceToolEvent["phase"];
+}): TraceToolEvent {
   return {
-    sessionUpdate: "tool_call",
-    toolCallId: "tool-1",
-    title: input.title ?? input.path ?? "read",
-    kind: input.kind ?? "read",
-    ...(input.path === undefined ? {} : { locations: [{ path: input.path }] }),
-    ...(input.rawInput === undefined ? {} : { rawInput: input.rawInput })
-  } as SpawnEvent;
+    type: "tool",
+    sequence: 0,
+    phase: input.phase ?? "start",
+    id: input.id ?? "tool-1",
+    name: input.title ?? input.path ?? "read",
+    operation: operation(input.kind ?? "read"),
+    paths: input.paths ?? (input.path === undefined ? [] : [input.path]),
+    ...(input.rawInput === undefined ? {} : { rawArguments: input.rawInput })
+  };
 }
 
 function toolStart(input: {
@@ -26,15 +31,26 @@ function toolStart(input: {
   kind: string;
   rawInput?: unknown;
   input?: unknown;
-}): SpawnEvent {
+}): TraceToolEvent {
   return {
-    event: "tool_start",
+    type: "tool",
+    sequence: 0,
+    phase: "start",
     id: "tool-1",
-    title: input.title,
-    kind: input.kind,
-    ...(input.rawInput === undefined ? {} : { rawInput: input.rawInput }),
-    ...(input.input === undefined ? {} : { input: input.input })
-  } as SpawnEvent;
+    name: input.title,
+    operation: operation(input.kind),
+    paths: [],
+    ...(input.rawInput === undefined && input.input === undefined
+      ? {}
+      : { rawArguments: input.rawInput ?? input.input })
+  };
+}
+
+function operation(kind: string): TraceToolEvent["operation"] {
+  if (kind === "read") return "read";
+  if (kind === "search" || kind === "glob") return "search";
+  if (kind === "exec") return "exec";
+  return "other";
 }
 
 describe("CheatFilter", () => {
@@ -68,8 +84,12 @@ describe("CheatFilter", () => {
     const filter = new CheatFilter({ cloneDir: "/work/clone" });
 
     filter.onEvent(toolCall({ path: path.join(os.tmpdir(), "agent-eval.tmp") }));
-    filter.onEvent(toolCall({ path: path.join(os.homedir(), ".cache", "agent-eval", "state.json") }));
-    filter.onEvent(toolCall({ title: "env", kind: "exec", rawInput: { command: "/usr/bin/env node" } }));
+    filter.onEvent(
+      toolCall({ path: path.join(os.homedir(), ".cache", "agent-eval", "state.json") })
+    );
+    filter.onEvent(
+      toolCall({ title: "env", kind: "exec", rawInput: { command: "/usr/bin/env node" } })
+    );
 
     expect(filter.report()).toEqual({
       cheated: false,
@@ -114,11 +134,75 @@ describe("CheatFilter", () => {
     });
   });
 
+  it("flags every referenced path from one tool start", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    filter.onEvent(
+      toolCall({
+        title: "Search files",
+        kind: "search",
+        paths: ["src", "/private/secret.txt"]
+      })
+    );
+    expect(filter.report()).toEqual({
+      cheated: true,
+      violations: [
+        {
+          path: "/private/secret.txt",
+          toolCall: "Search files",
+          reason: "outside-clone"
+        }
+      ]
+    });
+  });
+
+  it("flags terminal-only tool calls without duplicating completed lifecycles", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    filter.onEvent(
+      toolCall({
+        id: "terminal-only",
+        title: "Read secret",
+        path: "/private/secret.txt",
+        phase: "complete"
+      })
+    );
+    filter.onEvent(
+      toolCall({ id: "lifecycle", title: "Read second", path: "/private/second.txt" })
+    );
+    filter.onEvent(
+      toolCall({
+        id: "lifecycle",
+        title: "Read second",
+        path: "/private/second.txt",
+        phase: "complete"
+      })
+    );
+
+    expect(filter.report()).toEqual({
+      cheated: true,
+      violations: [
+        {
+          path: "/private/secret.txt",
+          toolCall: "Read secret",
+          reason: "outside-clone"
+        },
+        {
+          path: "/private/second.txt",
+          toolCall: "Read second",
+          reason: "outside-clone"
+        }
+      ]
+    });
+  });
+
   it("resolves relative paths against the clone", () => {
     const cloneDir = "/work/clone";
     const filter = new CheatFilter({ cloneDir });
 
-    filter.onEvent(toolCall({ title: "Glob parent", kind: "glob", rawInput: { pattern: "../outside" } }));
+    filter.onEvent(
+      toolCall({ title: "Glob parent", kind: "glob", rawInput: { pattern: "../outside" } })
+    );
     filter.onEvent(toolCall({ title: "Read local", path: "src/index.ts" }));
 
     expect(filter.report()).toEqual({
@@ -153,11 +237,13 @@ describe("CheatFilter", () => {
   it("reads adapter input paths before display titles", () => {
     const filter = new CheatFilter({ cloneDir: "/work/clone" });
 
-    filter.onEvent(toolStart({
-      title: "secret",
-      kind: "search",
-      input: { path: "/private", pattern: "secret" }
-    }));
+    filter.onEvent(
+      toolStart({
+        title: "secret",
+        kind: "search",
+        input: { path: "/private", pattern: "secret" }
+      })
+    );
 
     expect(filter.report()).toEqual({
       cheated: true,

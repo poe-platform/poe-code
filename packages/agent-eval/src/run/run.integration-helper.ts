@@ -82,6 +82,13 @@ export async function assertSuccessfulRun(input: {
     violations: []
   });
   await expect(readFile(path.join(runDir, "events.jsonl"), "utf8")).resolves.toBe("");
+  expect(JSON.parse(await readFile(path.join(runDir, "trace.json"), "utf8"))).toEqual({
+    events: [],
+    usage: {
+      inputTokens: 0,
+      outputTokens: 0
+    }
+  });
   await expect(readFile(path.join(runDir, "plan.md"), "utf8")).resolves.toContain(
     `kind: ${input.kind}`
   );

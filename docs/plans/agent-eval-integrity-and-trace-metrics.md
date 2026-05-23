@@ -34,9 +34,9 @@ tasks:
       paths, usage records, malformed events, ordering, and tool failures. Use
       in-memory filesystem patterns already present where artifacts are tested.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: capture-orchestrated-run-events

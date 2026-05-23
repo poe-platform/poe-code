@@ -13,18 +13,16 @@ import {
   type StreamingSpawnFn
 } from "@poe-code/agent-spawn";
 import type { EvalDef, JudgeSpec, RubricKey } from "../types.js";
+import type { NormalizedTrace } from "./trace/types.js";
 
 type JudgeScores = Record<RubricKey, number> & { mean: number };
 type JudgeSpawnResult = AutonomousResult | SpawnResult | string;
-type AutonomousSpawnFn = (
-  service: string,
-  options: SpawnOptions
-) => Promise<AutonomousResult>;
+type AutonomousSpawnFn = (service: string, options: SpawnOptions) => Promise<AutonomousResult>;
 
 export async function judgeRun(input: {
   evalDef: EvalDef;
   cloneDir: string;
-  eventsJsonlPath: string;
+  trace: NormalizedTrace;
   testsResult: { passed: number; total: number };
   spec: JudgeSpec;
   agentUnderTest: string;
@@ -47,7 +45,7 @@ async function buildJudgePrompt(
   input: {
     evalDef: EvalDef;
     cloneDir: string;
-    eventsJsonlPath: string;
+    trace: NormalizedTrace;
     testsResult: { passed: number; total: number };
   },
   rubric: readonly RubricKey[]
@@ -63,10 +61,13 @@ async function buildJudgePrompt(
     input.evalDef.plan.body,
     "",
     "Clone files:",
-    files.length > 0 ? files.map((file) => `${file.path}\t${file.bytes} bytes`).join("\n") : "(none)",
+    files.length > 0
+      ? files.map((file) => `${file.path}\t${file.bytes} bytes`).join("\n")
+      : "(none)",
     "",
     `Tests: ${input.testsResult.passed}/${input.testsResult.total} passed`,
-    `Events JSONL path: ${input.eventsJsonlPath}`,
+    "Normalized trace JSON:",
+    JSON.stringify(input.trace),
     "",
     "Rubric keys:",
     rubric.join("\n"),

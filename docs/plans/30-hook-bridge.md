@@ -39,7 +39,7 @@ tasks:
 
       Keep prose dense per repo conventions. No restating, no hedging.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: package-skeleton
@@ -1164,15 +1164,15 @@ are never overwritten.
 
 Captured in full at `docs/research/hook-formats.md`. Cliff notes:
 
-| Aspect | claude-code | codex |
-|---|---|---|
-| File | `~/.claude/settings.json`, `.claude/settings.json` | `~/.codex/hooks.json`, `<repo>/.codex/hooks.json`, OR inline `[[hooks.*]]` in `config.toml` |
-| Format | JSON | JSON or TOML |
-| Schema shape | `hooks: { Event: [{ matcher, hooks: [{type, command, ...}] }] }` | Same logical shape |
-| Events | SessionStart, SessionEnd, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, Stop, StopFailure, Notification, PreCompact, PostCompact, SubagentStart, SubagentStop | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, Stop |
-| Handler types | command, http, mcp_tool, prompt, agent | command only |
-| Placeholders | `${CLAUDE_PROJECT_DIR}`, `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_DATA}` | `$(git rev-parse --show-toplevel)`, `$PLUGIN_ROOT`, `$PLUGIN_DATA` |
-| Multi-source merge | last-write wins per layer | union across layers; no replacement |
+| Aspect             | claude-code                                                                                                                                                                   | codex                                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| File               | `~/.claude/settings.json`, `.claude/settings.json`                                                                                                                            | `~/.codex/hooks.json`, `<repo>/.codex/hooks.json`, OR inline `[[hooks.*]]` in `config.toml` |
+| Format             | JSON                                                                                                                                                                          | JSON or TOML                                                                                |
+| Schema shape       | `hooks: { Event: [{ matcher, hooks: [{type, command, ...}] }] }`                                                                                                              | Same logical shape                                                                          |
+| Events             | SessionStart, SessionEnd, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, Stop, StopFailure, Notification, PreCompact, PostCompact, SubagentStart, SubagentStop | SessionStart, UserPromptSubmit, PreToolUse, PostToolUse, PermissionRequest, Stop            |
+| Handler types      | command, http, mcp_tool, prompt, agent                                                                                                                                        | command only                                                                                |
+| Placeholders       | `${CLAUDE_PROJECT_DIR}`, `${CLAUDE_PLUGIN_ROOT}`, `${CLAUDE_PLUGIN_DATA}`                                                                                                     | `$(git rev-parse --show-toplevel)`, `$PLUGIN_ROOT`, `$PLUGIN_DATA`                          |
+| Multi-source merge | last-write wins per layer                                                                                                                                                     | union across layers; no replacement                                                         |
 
 opencode hooks are plugin-functions in TS, not file-based — out of scope
 for v1.

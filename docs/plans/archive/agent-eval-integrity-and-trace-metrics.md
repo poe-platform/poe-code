@@ -2,43 +2,66 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: normalize-agent-eval-traces
     title: Normalize agent-eval execution traces
-    prompt: |
-      In `packages/agent-eval`, introduce a stable normalized trace model used by
-      evaluation logic instead of inspecting provider-shaped `SpawnEvent` objects
+    prompt: >
+      In `packages/agent-eval`, introduce a stable normalized trace model used
+      by
+
+      evaluation logic instead of inspecting provider-shaped `SpawnEvent`
+      objects
+
       ad hoc. Add narrowly scoped source files under
+
       `packages/agent-eval/src/run/trace/` for the trace types and event
+
       normalization, and export only the public types/functions needed by the
+
       package from `packages/agent-eval/src/index.ts`.
 
+
       The normalized model must preserve enough evidence for deterministic
+
       evaluation of coding-agent behavior: ordered message/tool/usage/error
+
       events; tool name and normalized operation kind (`read`, `search`, `exec`,
-      `edit`, `write`, `mcp`, or `other`); raw arguments when present; referenced
+
+      `edit`, `write`, `mcp`, or `other`); raw arguments when present;
+      referenced
+
       file paths; timestamps or sequence ordering; usage totals; and tool
+
       completion/error outcome where emitted by the underlying ACP stream.
+
       Normalization must accept the existing ACP forms already consumed in this
+
       package (`event: "tool_start"` and `sessionUpdate: "tool_call"`) without
+
       provider-specific branching elsewhere in `agent-eval`.
 
+
       Preserve raw `events.jsonl` artifacts for debugging, but add a normalized
+
       trace artifact such as `trace.json` or `trace.jsonl` from
+
       `packages/agent-eval/src/run/result-writer.ts`. Future budget, cheating,
+
       metric, and judge code must consume the normalized trace representation.
 
+
       Follow TDD: add unit tests for normalization before implementation,
+
       including read/search/exec/edit/write/MCP calls, locations and raw-input
+
       paths, usage records, malformed events, ordering, and tool failures. Use
+
       in-memory filesystem patterns already present where artifacts are tested.
     status:
       implement: done
       refactor: done
       test: done
       commit: done
-
   - id: capture-orchestrated-run-events
     title: Capture traces for every plan kind
     prompt: |
@@ -72,7 +95,6 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: repair-run-lifecycle-and-artifacts
     title: Repair run lifecycle and judge artifacts
     prompt: |
@@ -110,45 +132,68 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: correct-verdict-and-score-semantics
     title: Correct verdict and score semantics
-    prompt: |
+    prompt: >
       Fix result semantics in `packages/agent-eval/src/run/run.ts`,
-      `packages/agent-eval/src/types.ts`, `packages/agent-eval/src/aggregate.ts`,
+
+      `packages/agent-eval/src/types.ts`,
+      `packages/agent-eval/src/aggregate.ts`,
+
       and report formatting/tests under `packages/agent-eval/src/report/`.
 
+
       A failed or aborted agent/workflow execution must never be reported as
+
       `pass` merely because one or more oracle assertions happen to pass.
+
       Preserve the priority of cheating and execution-budget failures, then
+
       classify dispatch/scorer/judge/framework failures as `error`, and only
+
       classify a completed valid execution as `pass` or `fail` from its
+
       required evaluation results.
 
+
       Correct weight behavior when a scoring component is intentionally disabled
+
       or skipped. In particular, `--no-judge` or a legitimately unavailable
+
       optional judge must not cap a perfect deterministic result at the tests
+
       weight (for example `0.7` under a `0.7/0.3` configuration). Normalize
+
       active component weights at evaluation time or record an explicit scoring
+
       policy that gives equivalent behavior. A required metric that fails or
+
       cannot execute must remain visible as failure/error; it must not be
+
       silently removed from the denominator.
 
+
       Add result metadata sufficient for reports to distinguish configured,
+
       executed, skipped, failed, and disabled scoring components. Update table
+
       and Markdown reports without removing existing correctness, test, token,
+
       cost, duration, and verdict information.
 
+
       Follow TDD: add unit/integration cases for dispatch error plus partial
+
       oracle pass, disabled judge with nonzero configured weight, judge skipped
+
       because of cheating/budget, scorer error, metric execution error, and
+
       aggregates containing skipped versus executed components.
     status:
       implement: done
       refactor: done
       test: done
       commit: done
-
   - id: harden-anti-cheat-from-normalized-trace
     title: Detect outside-clone mutation and tool access
     prompt: |
@@ -182,7 +227,6 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: add-declarative-trace-metrics
     title: Add declarative trace-derived metrics
     prompt: |
@@ -225,7 +269,6 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: report-metrics-and-regressions
     title: Report evidence and behavior metrics
     prompt: |
@@ -266,7 +309,6 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: validate-agent-eval-p0
     title: Validate complete agent-eval P0 behavior
     prompt: |
@@ -292,6 +334,8 @@ tasks:
     status:
       test: done
       commit: done
+name: agent-eval-integrity-and-trace-metrics
+state: archived
 ---
 
 # Context

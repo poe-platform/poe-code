@@ -158,25 +158,34 @@ This is important: we don't need to match the entire stdout, just one line.
 | Config dir exists | `container.exec('test -d /root/.codex')` | Exit code `0` |
 | Config file exists | `container.fileExists('/root/.codex/config.toml')` | `true` |
 | Config: model_provider | parsed TOML | `"poe"` |
-| Config: model | parsed TOML | Default: `gpt-5.2-codex` |
+| Config: model | parsed TOML | Default: `gpt-5.5` |
 | Config: model_reasoning_effort | parsed TOML | Default: `medium` |
+| Config: model_verbosity | parsed TOML | Default: `medium` |
+| Config: profiles.gpt-5.5.model | parsed TOML | `gpt-5.5` |
 | Config: model_providers.poe.base_url | parsed TOML | Non-empty URL |
 | Config: model_providers.poe.experimental_bearer_token | parsed TOML | Non-empty string (API key) |
 
 **Expected config structure (TOML):**
 ```toml
 model_provider = "poe"
-model = "gpt-5.2-codex"
+model = "gpt-5.5"
 model_reasoning_effort = "medium"
+model_verbosity = "medium"
+
+[profiles."gpt-5.5"]
+model = "gpt-5.5"
+model_provider = "poe"
+model_reasoning_effort = "medium"
+model_verbosity = "medium"
 
 [model_providers.poe]
 name = "poe"
-base_url = "https://api.poe.com"
+base_url = "https://api.poe.com/v1"
 wire_api = "responses"
 experimental_bearer_token = "<api-key>"
 ```
 
-**Default model:** `openai/gpt-5.2-codex` (stripped to `gpt-5.2-codex`)
+**Default model:** `openai/gpt-5.5` (stripped to `gpt-5.5`)
 
 #### opencode
 
@@ -246,7 +255,7 @@ max_context_size = 256000
 
 [providers.poe]
 type = "openai_legacy"
-base_url = "https://api.poe.com"
+base_url = "https://api.poe.com/v1"
 api_key = "<api-key>"
 ```
 

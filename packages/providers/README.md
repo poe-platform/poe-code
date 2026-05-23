@@ -44,8 +44,8 @@ whose model names must be typed by the user rather than selected from an agent-o
 import { ProviderRegistry } from "@poe-code/providers";
 
 const registry = new ProviderRegistry([anthropic, poe]);
-registry.list();               // all providers, construction order
-registry.get("anthropic");     // AuthProvider | undefined
+registry.list(); // all providers, construction order
+registry.get("anthropic"); // AuthProvider | undefined
 registry.forAgent({ id: "claude-code", apiShapes: ["anthropic-messages"] });
 ```
 
@@ -80,6 +80,25 @@ while still storing the resulting API key through the same provider secret store
 
 `ProviderRegistry.isLoggedIn()` also treats a non-empty declared env var as logged in,
 matching what `login()` would use in CI.
+
+## CLI integration
+
+`poe-code provider login <id>` stores the provider credential and any provider endpoint
+metadata needed later by `poe-code configure`. `--base-url <url>` must be an `http` or
+`https` URL; for providers with `apiShapes[].baseUrlPath`, Poe Code derives and stores the
+shape-specific endpoint URLs from that root. `--shape-base-url <shape-id>=<url>` can set or
+override individual API-shape endpoints directly.
+
+Providers with `requiresBaseUrl: true`, such as Cloudflare AI Gateway, require a gateway
+root URL before they can configure an agent. Interactive login prompts for the URL when no
+`--base-url`, `--shape-base-url`, or `baseUrlEnvVar` value is available. Non-interactive
+`--yes` login must receive the URL through one of those inputs.
+
+During `poe-code configure <agent> --provider <id>`, the active API-shape base URL resolves
+from explicit shape URLs, then `--base-url`, then the provider `baseUrlEnvVar`, then stored
+login metadata, then the shape's default URL. Providers with `modelInput: { kind: "freeform" }`
+use the configured model, an explicit `--model`, or an interactive text prompt; `--yes`
+requires one of those model sources.
 
 ## Environment variables
 

@@ -133,7 +133,7 @@ export function createCodeReviewAgentMcpConfig(
   if (context.profiles?.length) {
     args.push("--profiles", context.profiles.join(","));
   }
-  return { transport: "stdio", command: "code-review", args };
+  return { transport: "stdio", command: "poe-code", args: ["code-review", ...args] };
 }
 
 export function createCodeReviewAgentMcpGroup(

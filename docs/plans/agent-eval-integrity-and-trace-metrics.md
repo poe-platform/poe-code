@@ -147,7 +147,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: harden-anti-cheat-from-normalized-trace
     title: Detect outside-clone mutation and tool access
@@ -178,9 +178,9 @@ tasks:
       inside-clone writes, structured command argument checks, uninspectable
       shell command reporting, and orchestrated-plan integration coverage.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: add-declarative-trace-metrics

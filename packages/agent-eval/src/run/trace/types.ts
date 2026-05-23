@@ -3,6 +3,10 @@ import type { SpawnUsage } from "../../types.js";
 export type TraceToolOperation = "read" | "search" | "exec" | "edit" | "write" | "mcp" | "other";
 export type TraceToolOutcome = "completed" | "failed" | "cancelled";
 export type TraceTimestamp = string | number;
+export interface TraceToolInspection {
+  status: "uninspectable";
+  reason: "shell-command" | "missing-path";
+}
 
 export interface TraceMessageEvent {
   type: "message";
@@ -22,6 +26,7 @@ export interface TraceToolEvent {
   rawArguments?: unknown;
   rawOutput?: unknown;
   paths: readonly string[];
+  inspection?: TraceToolInspection;
   outcome?: TraceToolOutcome;
   timestamp?: TraceTimestamp;
 }

@@ -26,30 +26,13 @@ function toolCall(input: {
   };
 }
 
-function toolStart(input: {
-  title: string;
-  kind: string;
-  rawInput?: unknown;
-  input?: unknown;
-}): TraceToolEvent {
-  return {
-    type: "tool",
-    sequence: 0,
-    phase: "start",
-    id: "tool-1",
-    name: input.title,
-    operation: operation(input.kind),
-    paths: [],
-    ...(input.rawInput === undefined && input.input === undefined
-      ? {}
-      : { rawArguments: input.rawInput ?? input.input })
-  };
-}
-
 function operation(kind: string): TraceToolEvent["operation"] {
   if (kind === "read") return "read";
   if (kind === "search" || kind === "glob") return "search";
   if (kind === "exec") return "exec";
+  if (kind === "edit") return "edit";
+  if (kind === "write") return "write";
+  if (kind === "mcp") return "mcp";
   return "other";
 }
 
@@ -64,6 +47,15 @@ describe("CheatFilter", () => {
       cheated: false,
       violations: []
     });
+  });
+
+  it("passes edits and writes inside the clone", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    filter.onEvent(toolCall({ title: "Patch local", kind: "edit", path: "src/index.ts" }));
+    filter.onEvent(toolCall({ title: "Write local", kind: "write", path: "src/new.ts" }));
+
+    expect(filter.report()).toEqual({ cheated: false, violations: [] });
   });
 
   it("passes allowlisted paths", () => {
@@ -134,6 +126,137 @@ describe("CheatFilter", () => {
     });
   });
 
+  it.each([
+    ["edit", "Patch secret"],
+    ["write", "Write secret"],
+    ["mcp", "filesystem.write_file"]
+  ])("flags outside-clone %s operations", (kind, title) => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    filter.onEvent(toolCall({ title, kind, path: "/private/secret.txt" }));
+
+    expect(filter.report()).toEqual({
+      cheated: true,
+      violations: [
+        {
+          path: "/private/secret.txt",
+          toolCall: title,
+          reason: "outside-clone"
+        }
+      ]
+    });
+  });
+
+  it("checks structured command target paths without treating executables as targets", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    filter.onEvent(toolCall({ title: "Run env", kind: "exec", paths: ["/private/result.txt"] }));
+
+    expect(filter.report()).toEqual({
+      cheated: true,
+      violations: [
+        {
+          path: "/private/result.txt",
+          toolCall: "Run env",
+          reason: "outside-clone"
+        }
+      ]
+    });
+  });
+
+  it("reports uninspectable shell commands without declaring a violation", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    filter.onEvent({
+      ...toolCall({ title: "Shell redirect", kind: "exec" }),
+      inspection: { status: "uninspectable", reason: "shell-command" }
+    });
+
+    expect(filter.report()).toEqual({
+      cheated: false,
+      violations: [],
+      uninspectable: [
+        {
+          toolCall: "Shell redirect",
+          operation: "exec",
+          reason: "shell-command"
+        }
+      ]
+    });
+  });
+
+  it("reports uninspectable MCP file calls without declaring a violation", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    filter.onEvent({
+      ...toolCall({ title: "fs.write_file", kind: "mcp" }),
+      inspection: { status: "uninspectable", reason: "missing-path" }
+    });
+
+    expect(filter.report()).toEqual({
+      cheated: false,
+      violations: [],
+      uninspectable: [
+        {
+          toolCall: "fs.write_file",
+          operation: "mcp",
+          reason: "missing-path"
+        }
+      ]
+    });
+  });
+
+  it("replaces provisional MCP uncertainty with confirmed completion targets", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    filter.onEvent({
+      ...toolCall({ id: "mcp-1", title: "fs.write_file", kind: "mcp" }),
+      inspection: { status: "uninspectable", reason: "missing-path" }
+    });
+    filter.onEvent(
+      toolCall({
+        id: "mcp-1",
+        title: "fs.write_file",
+        kind: "mcp",
+        path: "/private/secret.txt",
+        phase: "complete"
+      })
+    );
+
+    expect(filter.report()).toEqual({
+      cheated: true,
+      violations: [
+        { path: "/private/secret.txt", toolCall: "fs.write_file", reason: "outside-clone" }
+      ]
+    });
+  });
+
+  it("only resolves the completed MCP call when tool names match", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    for (const id of ["mcp-1", "mcp-2"]) {
+      filter.onEvent({
+        ...toolCall({ id, title: "fs.write_file", kind: "mcp" }),
+        inspection: { status: "uninspectable", reason: "missing-path" }
+      });
+    }
+    filter.onEvent(
+      toolCall({
+        id: "mcp-2",
+        title: "fs.write_file",
+        kind: "mcp",
+        path: "src/local.txt",
+        phase: "complete"
+      })
+    );
+
+    expect(filter.report()).toEqual({
+      cheated: false,
+      violations: [],
+      uninspectable: [{ toolCall: "fs.write_file", operation: "mcp", reason: "missing-path" }]
+    });
+  });
+
   it("flags every referenced path from one tool start", () => {
     const filter = new CheatFilter({ cloneDir: "/work/clone" });
 
@@ -156,17 +279,9 @@ describe("CheatFilter", () => {
     });
   });
 
-  it("flags terminal-only tool calls without duplicating completed lifecycles", () => {
+  it("does not duplicate completed lifecycle violations", () => {
     const filter = new CheatFilter({ cloneDir: "/work/clone" });
 
-    filter.onEvent(
-      toolCall({
-        id: "terminal-only",
-        title: "Read secret",
-        path: "/private/secret.txt",
-        phase: "complete"
-      })
-    );
     filter.onEvent(
       toolCall({ id: "lifecycle", title: "Read second", path: "/private/second.txt" })
     );
@@ -183,13 +298,34 @@ describe("CheatFilter", () => {
       cheated: true,
       violations: [
         {
-          path: "/private/secret.txt",
-          toolCall: "Read secret",
-          reason: "outside-clone"
-        },
-        {
           path: "/private/second.txt",
           toolCall: "Read second",
+          reason: "outside-clone"
+        }
+      ]
+    });
+  });
+
+  it("checks edit targets first reported when a tool completes", () => {
+    const filter = new CheatFilter({ cloneDir: "/work/clone" });
+
+    filter.onEvent(toolCall({ id: "late-path", title: "Edit late", kind: "edit" }));
+    filter.onEvent(
+      toolCall({
+        id: "late-path",
+        title: "Edit late",
+        kind: "edit",
+        path: "/private/late.txt",
+        phase: "complete"
+      })
+    );
+
+    expect(filter.report()).toEqual({
+      cheated: true,
+      violations: [
+        {
+          path: "/private/late.txt",
+          toolCall: "Edit late",
           reason: "outside-clone"
         }
       ]
@@ -200,9 +336,7 @@ describe("CheatFilter", () => {
     const cloneDir = "/work/clone";
     const filter = new CheatFilter({ cloneDir });
 
-    filter.onEvent(
-      toolCall({ title: "Glob parent", kind: "glob", rawInput: { pattern: "../outside" } })
-    );
+    filter.onEvent(toolCall({ title: "Glob parent", kind: "glob", paths: ["../outside"] }));
     filter.onEvent(toolCall({ title: "Read local", path: "src/index.ts" }));
 
     expect(filter.report()).toEqual({
@@ -237,13 +371,7 @@ describe("CheatFilter", () => {
   it("reads adapter input paths before display titles", () => {
     const filter = new CheatFilter({ cloneDir: "/work/clone" });
 
-    filter.onEvent(
-      toolStart({
-        title: "secret",
-        kind: "search",
-        input: { path: "/private", pattern: "secret" }
-      })
-    );
+    filter.onEvent(toolCall({ title: "secret", kind: "search", paths: ["/private"] }));
 
     expect(filter.report()).toEqual({
       cheated: true,

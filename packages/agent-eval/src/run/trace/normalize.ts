@@ -8,9 +8,13 @@ import type {
   TraceToolOutcome
 } from "./types.js";
 
-type StartedTool = Pick<TraceToolEvent, "id" | "name" | "operation" | "rawArguments" | "paths">;
+type StartedTool = Pick<
+  TraceToolEvent,
+  "id" | "name" | "operation" | "rawArguments" | "paths" | "inspection"
+>;
 
 const ARGUMENT_PATH_KEYS = ["path", "filePath", "file_path"] as const;
+const COMMAND_DIRECTORY_KEYS = ["cwd", "workdir", "workingDirectory", "working_directory"] as const;
 
 export function normalizeTrace(events: readonly SpawnEvent[]): NormalizedTrace {
   const normalizer = createTraceNormalizer();
@@ -141,7 +145,8 @@ function normalizeTool(
     }
     const operation = normalizeToolOperation(kind, name);
     const rawArguments = event.rawInput ?? event.input;
-    const paths = readPaths(event, rawArguments, operation);
+    const paths = readPaths(event, rawArguments, operation, kind, name);
+    const inspection = readInspection(rawArguments, operation, name, paths);
     const outcome = isSessionTool ? readOutcome(event.status) : undefined;
     const start: TraceToolEvent = {
       type: "tool",
@@ -153,6 +158,7 @@ function normalizeTool(
       ...(rawArguments === undefined ? {} : { rawArguments }),
       ...(event.rawOutput === undefined ? {} : { rawOutput: event.rawOutput }),
       paths,
+      ...(inspection === undefined ? {} : { inspection }),
       ...(outcome === undefined ? {} : { outcome }),
       ...optionalTimestamp(timestamp)
     };
@@ -183,6 +189,18 @@ function normalizeTool(
     started?.operation ?? normalizeToolOperation(readString(event.kind), readString(event.title));
   const name = started?.name ?? readString(event.title) ?? id ?? operation;
   const rawArguments = started?.rawArguments ?? event.rawInput ?? event.input;
+  const paths = mergePaths(
+    started?.paths ?? [],
+    readPaths(
+      event,
+      rawArguments,
+      operation,
+      readString(event.kind),
+      name,
+      started === undefined && (operation === "edit" || operation === "write")
+    )
+  );
+  const inspection = readInspection(rawArguments, operation, name, paths);
   return {
     type: "tool",
     sequence,
@@ -192,7 +210,8 @@ function normalizeTool(
     operation,
     ...(rawArguments === undefined ? {} : { rawArguments }),
     ...(event.rawOutput === undefined ? {} : { rawOutput: event.rawOutput }),
-    paths: mergePaths(started?.paths ?? [], readPaths(event, rawArguments, operation)),
+    paths,
+    ...(inspection === undefined ? {} : { inspection }),
     outcome: status,
     ...optionalTimestamp(timestamp)
   };
@@ -262,17 +281,26 @@ function normalizeToolOperation(kind: string | undefined, name?: string): TraceT
     case "mcp_tool_call":
       return "mcp";
     default:
-      return kind === "other" && name?.includes(".") === true ? "mcp" : "other";
+      return kind === "other" && isMcpToolName(name) ? "mcp" : "other";
   }
+}
+
+function isMcpToolName(name: string | undefined): boolean {
+  return name?.includes(".") === true || name?.startsWith("mcp__") === true;
 }
 
 function readPaths(
   event: Record<string, unknown>,
   rawArguments: unknown,
-  operation: TraceToolOperation
+  operation: TraceToolOperation,
+  kind: string | undefined,
+  name?: string,
+  trustTerminalPath = false
 ): readonly string[] {
   const paths: string[] = [];
-  addUnique(paths, readString(event.path));
+  if (event.event === "tool_start" || trustTerminalPath) {
+    addUnique(paths, readString(event.path));
+  }
   if (Array.isArray(event.locations)) {
     for (const location of event.locations) {
       if (isRecord(location)) {
@@ -284,34 +312,120 @@ function readPaths(
     for (const key of ARGUMENT_PATH_KEYS) {
       addUnique(paths, readString(rawArguments[key]));
     }
-    if (operation === "search") {
+    if (operation === "search" && kind?.toLowerCase() === "glob") {
       addUnique(paths, readString(rawArguments.pattern));
     }
     if (operation === "exec") {
-      const command = readString(rawArguments.command);
-      addUnique(paths, command === undefined ? undefined : readFirstToken(command));
+      for (const key of COMMAND_DIRECTORY_KEYS) {
+        addUnique(paths, readString(rawArguments[key]));
+      }
+      if (Array.isArray(rawArguments.args) && !isShellScriptInvocation(rawArguments)) {
+        for (const argument of rawArguments.args) {
+          const value = readString(argument);
+          addUnique(paths, value !== undefined && resemblesPath(value) ? value : undefined);
+        }
+      }
     }
+  }
+  if (paths.length === 0 && operation !== "exec" && operation !== "mcp") {
+    addUnique(paths, name !== undefined && resemblesPath(name) ? name : undefined);
   }
   return paths;
 }
 
-function readFirstToken(value: string): string | undefined {
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
+function readInspection(
+  rawArguments: unknown,
+  operation: TraceToolOperation,
+  name: string,
+  paths: readonly string[]
+): TraceToolEvent["inspection"] | undefined {
+  if (operation === "exec") {
+    if (isRecord(rawArguments) && hasUninspectableShellScriptEvidence(rawArguments)) {
+      return { status: "uninspectable", reason: "shell-command" };
+    }
+    const command = isRecord(rawArguments) ? readString(rawArguments.command) : name;
+    if (command !== undefined && hasUninspectableShellEvidence(command)) {
+      return { status: "uninspectable", reason: "shell-command" };
+    }
     return undefined;
   }
-  const quote = trimmed[0];
-  if (quote === '"' || quote === "'") {
-    const end = trimmed.indexOf(quote, 1);
-    return end === -1 ? trimmed.slice(1) : trimmed.slice(1, end);
+  if (paths.length === 0 && isPathRequiredOperation(operation, name)) {
+    return { status: "uninspectable", reason: "missing-path" };
   }
-  for (let index = 0; index < trimmed.length; index += 1) {
-    const char = trimmed[index];
-    if (char === " " || char === "\n" || char === "\r" || char === "\t") {
-      return trimmed.slice(0, index);
-    }
+  return undefined;
+}
+
+function isPathRequiredOperation(operation: TraceToolOperation, name: string): boolean {
+  if (operation !== "mcp") {
+    return (
+      operation === "read" ||
+      operation === "search" ||
+      operation === "edit" ||
+      operation === "write"
+    );
   }
-  return trimmed;
+  const normalized = name.toLowerCase();
+  return (
+    normalized.includes("read") ||
+    normalized.includes("write") ||
+    normalized.includes("edit") ||
+    normalized.includes("patch") ||
+    normalized.includes("file") ||
+    normalized.includes("glob") ||
+    normalized.includes("search")
+  );
+}
+
+function isShellScriptInvocation(rawArguments: Record<string, unknown>): boolean {
+  const command = readString(rawArguments.command);
+  const args = rawArguments.args;
+  if (command === undefined || !Array.isArray(args)) {
+    return false;
+  }
+  const executable = command.split("/").at(-1);
+  if (isShellExecutable(executable)) {
+    return args.some((argument) => argument === "-c");
+  }
+  return args.some(
+    (argument, index) =>
+      typeof argument === "string" &&
+      isShellExecutable(argument.split("/").at(-1)) &&
+      args[index + 1] === "-c"
+  );
+}
+
+function hasUninspectableShellScriptEvidence(rawArguments: Record<string, unknown>): boolean {
+  if (!isShellScriptInvocation(rawArguments) || !Array.isArray(rawArguments.args)) {
+    return false;
+  }
+  const commandIndex = rawArguments.args.indexOf("-c") + 1;
+  const script = readString(rawArguments.args[commandIndex]);
+  return script !== undefined && hasUninspectableShellEvidence(script);
+}
+
+function isShellExecutable(executable: string | undefined): boolean {
+  return executable === "sh" || executable === "bash" || executable === "zsh";
+}
+
+function hasUninspectableShellEvidence(command: string): boolean {
+  if (command.includes(">") || command.includes("<")) {
+    return true;
+  }
+  const tokens = command.split(" ").filter((token) => token.length > 0);
+  return tokens.slice(1).some((token) => resemblesPath(token));
+}
+
+function resemblesPath(value: string): boolean {
+  if (value.includes("://")) {
+    return false;
+  }
+  return (
+    value.startsWith("/") ||
+    value.startsWith("./") ||
+    value.startsWith("../") ||
+    value.includes("/") ||
+    value.includes("\\")
+  );
 }
 
 function mergePaths(first: readonly string[], second: readonly string[]): readonly string[] {

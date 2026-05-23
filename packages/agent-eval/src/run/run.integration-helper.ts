@@ -149,3 +149,31 @@ export function nestedAcpEvents(outsidePath: string): AcpEvent[] {
     { event: "usage", inputTokens: 13, outputTokens: 8 }
   ];
 }
+
+export function nestedWriteEvents(outsidePath: string): AcpEvent[] {
+  return [
+    {
+      event: "tool_start",
+      id: "write-1",
+      kind: "write",
+      title: "Write",
+      input: { path: outsidePath }
+    },
+    { event: "tool_complete", id: "write-1", kind: "write", path: outsidePath },
+    { event: "usage", inputTokens: 13, outputTokens: 8 }
+  ];
+}
+
+export function nestedUninspectableShellEvents(): AcpEvent[] {
+  return [
+    {
+      event: "tool_start",
+      id: "exec-1",
+      kind: "exec",
+      title: "Shell redirect",
+      input: { command: "/bin/sh", args: ["-c", "cat src/input.txt > /private/output.txt"] }
+    },
+    { event: "tool_complete", id: "exec-1", kind: "exec", path: "completed" },
+    { event: "usage", inputTokens: 13, outputTokens: 8 }
+  ];
+}

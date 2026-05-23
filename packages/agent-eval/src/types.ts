@@ -136,6 +136,11 @@ export interface CheatReport {
     toolCall: string;
     reason: "outside-clone";
   }[];
+  uninspectable?: readonly {
+    toolCall: string;
+    operation: "read" | "search" | "exec" | "edit" | "write" | "mcp";
+    reason: "shell-command" | "missing-path";
+  }[];
 }
 
 export interface EvalRunResult {

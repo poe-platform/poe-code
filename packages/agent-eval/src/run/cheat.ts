@@ -5,12 +5,15 @@ import type { CheatReport } from "../types.js";
 import type { TraceToolEvent } from "./trace/types.js";
 
 type CheatViolation = CheatReport["violations"][number];
+type UninspectableAction = NonNullable<CheatReport["uninspectable"]>[number];
+type ObservedUninspectableAction = UninspectableAction & { evidenceKey: string };
 
 export class CheatFilter {
   private readonly cloneDir: string;
   private readonly allowedPaths: readonly string[];
   private readonly violations: CheatViolation[] = [];
-  private readonly observedToolIds = new Set<string>();
+  private readonly uninspectable: ObservedUninspectableAction[] = [];
+  private readonly observedEvidence = new Set<string>();
 
   constructor(input: { cloneDir: string; allowedPaths?: readonly string[] }) {
     this.cloneDir = path.resolve(input.cloneDir);
@@ -20,13 +23,33 @@ export class CheatFilter {
   }
 
   onEvent(event: TraceToolEvent): void {
-    if (!isObservedOperation(event.operation) || this.alreadyObserved(event)) {
+    if (!isObservedOperation(event.operation) || !canContainNewEvidence(event)) {
       return;
     }
 
-    for (const eventPath of readToolPaths(event)) {
+    if (event.paths.length > 0) {
+      this.clearResolvedMissingPath(event);
+    }
+
+    if (
+      event.inspection?.status === "uninspectable" &&
+      isUninspectableOperation(event.operation) &&
+      this.recordEvidence(event, `inspection:${event.inspection.reason}`)
+    ) {
+      this.uninspectable.push({
+        toolCall: event.name,
+        operation: event.operation,
+        reason: event.inspection.reason,
+        evidenceKey: this.evidenceKey(event, `inspection:${event.inspection.reason}`)
+      });
+    }
+
+    for (const eventPath of event.paths) {
       const resolvedPath = resolveAgainstClone(this.cloneDir, eventPath);
       if (isUnderAny(resolvedPath, [this.cloneDir, ...this.allowedPaths])) {
+        continue;
+      }
+      if (!this.recordEvidence(event, `path:${resolvedPath}`)) {
         continue;
       }
 
@@ -38,25 +61,47 @@ export class CheatFilter {
     }
   }
 
-  private alreadyObserved(event: TraceToolEvent): boolean {
-    if (event.id === undefined) {
-      return event.phase !== "start";
+  private recordEvidence(event: TraceToolEvent, evidence: string): boolean {
+    const evidenceKey = this.evidenceKey(event, evidence);
+    if (this.observedEvidence.has(evidenceKey)) {
+      return false;
     }
+    this.observedEvidence.add(evidenceKey);
+    return true;
+  }
 
-    if (this.observedToolIds.has(event.id)) {
-      return true;
+  private clearResolvedMissingPath(event: TraceToolEvent): void {
+    const missingPathKey = this.evidenceKey(event, "inspection:missing-path");
+    if (!this.observedEvidence.delete(missingPathKey)) {
+      return;
     }
+    const index = this.uninspectable.findIndex((action) => action.evidenceKey === missingPathKey);
+    if (index !== -1) {
+      this.uninspectable.splice(index, 1);
+    }
+  }
 
-    this.observedToolIds.add(event.id);
-    return false;
+  private evidenceKey(event: TraceToolEvent, evidence: string): string {
+    return `${event.id ?? `sequence:${event.sequence}`}:${evidence}`;
   }
 
   report(): CheatReport {
     return {
       cheated: this.violations.length > 0,
-      violations: this.violations.slice()
+      violations: this.violations.slice(),
+      ...(this.uninspectable.length === 0
+        ? {}
+        : {
+            uninspectable: this.uninspectable.map(
+              ({ evidenceKey: _evidenceKey, ...action }) => action
+            )
+          })
     };
   }
+}
+
+function canContainNewEvidence(event: TraceToolEvent): boolean {
+  return event.id !== undefined || event.phase === "start";
 }
 
 function defaultAllowedPaths(): string[] {
@@ -76,72 +121,20 @@ function defaultAllowedPaths(): string[] {
 }
 
 function isObservedOperation(operation: TraceToolEvent["operation"]): boolean {
-  return operation === "read" || operation === "search" || operation === "exec";
+  return (
+    operation === "read" ||
+    operation === "search" ||
+    operation === "exec" ||
+    operation === "edit" ||
+    operation === "write" ||
+    operation === "mcp"
+  );
 }
 
-function readToolPaths(event: TraceToolEvent): readonly string[] {
-  if (event.paths.length > 0) {
-    return event.paths;
-  }
-
-  const inputPath = readRawInputPath(event.rawArguments);
-  if (inputPath !== undefined) {
-    return [inputPath];
-  }
-
-  if (event.operation === "exec") {
-    const executable = readFirstToken(event.name);
-    return executable === undefined ? [] : [executable];
-  }
-
-  return [event.name];
-}
-
-function readRawInputPath(rawArguments: unknown): string | undefined {
-  if (!isRecord(rawArguments)) {
-    return undefined;
-  }
-
-  const pathValue =
-    readString(rawArguments.path) ??
-    readString(rawArguments.filePath) ??
-    readString(rawArguments.file_path);
-  if (pathValue !== undefined) {
-    return pathValue;
-  }
-
-  const pattern = readString(rawArguments.pattern);
-  if (pattern !== undefined) {
-    return pattern;
-  }
-
-  const command = readString(rawArguments.command);
-  return command === undefined ? undefined : readFirstToken(command);
-}
-
-function readFirstToken(value: string): string | undefined {
-  const trimmed = value.trim();
-  if (trimmed.length === 0) {
-    return undefined;
-  }
-
-  const quote = trimmed[0];
-  if (quote === '"' || quote === "'") {
-    const end = trimmed.indexOf(quote, 1);
-    return end === -1 ? trimmed.slice(1) : trimmed.slice(1, end);
-  }
-
-  for (let index = 0; index < trimmed.length; index += 1) {
-    if (isWhitespace(trimmed[index])) {
-      return trimmed.slice(0, index);
-    }
-  }
-
-  return trimmed;
-}
-
-function isWhitespace(char: string): boolean {
-  return char === " " || char === "\n" || char === "\r" || char === "\t";
+function isUninspectableOperation(
+  operation: TraceToolEvent["operation"]
+): operation is Exclude<TraceToolEvent["operation"], "other"> {
+  return isObservedOperation(operation);
 }
 
 function resolveAgainstClone(cloneDir: string, targetPath: string): string {
@@ -158,12 +151,4 @@ function isUnderAny(targetPath: string, roots: readonly string[]): boolean {
 function isUnderPath(targetPath: string, rootPath: string): boolean {
   const relative = path.relative(rootPath, targetPath);
   return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
-}
-
-function readString(value: unknown): string | undefined {
-  return typeof value === "string" && value.length > 0 ? value : undefined;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }

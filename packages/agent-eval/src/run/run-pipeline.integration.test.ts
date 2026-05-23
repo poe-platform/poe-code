@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { createSpawnMock } from "@poe-code/agent-spawn/testing";
 import {
@@ -6,6 +8,8 @@ import {
   copyFixtureClone,
   createRunOutDir,
   nestedAcpEvents,
+  nestedUninspectableShellEvents,
+  nestedWriteEvents,
   registerRunIntegrationCleanup,
   sourceFixture
 } from "./run.integration-helper.js";
@@ -78,6 +82,73 @@ describe("runEval pipeline integration", () => {
     });
 
     await assertObservedNestedEvents({ outDir, result, expectedPath: outsidePath });
+  });
+
+  it("zeroes correctness for outside-clone writes in orchestrated runs", async () => {
+    const outDir = await createRunOutDir();
+    const outsidePath = "/private/agent-eval-pipeline-write.txt";
+    mockedAgentSpawn.spawnStreaming.mockReturnValueOnce({
+      events: (async function* () {
+        yield* nestedWriteEvents(outsidePath);
+      })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+    mockedPipeline.runPipeline.mockImplementationOnce(
+      async (options: { runAgent: (input: object) => Promise<unknown> }) => {
+        await options.runAgent({ agent: "codex", prompt: "nested", cwd: "/tmp", mode: "yolo" });
+        return { stopReason: "completed" };
+      }
+    );
+
+    const result = await runEval({
+      sourceDir: sourceFixture("pipeline"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      judge: "off",
+      verifyOracle: false
+    });
+
+    expect(result.correctness).toBe(0);
+    await assertObservedNestedEvents({ outDir, result, expectedPath: outsidePath });
+  });
+
+  it("persists uninspectable nested shell actions without marking cheating", async () => {
+    const outDir = await createRunOutDir();
+    mockedAgentSpawn.spawnStreaming.mockReturnValueOnce({
+      events: (async function* () {
+        yield* nestedUninspectableShellEvents();
+      })(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    });
+    mockedPipeline.runPipeline.mockImplementationOnce(
+      async (options: { runAgent: (input: object) => Promise<unknown> }) => {
+        await options.runAgent({ agent: "codex", prompt: "nested", cwd: "/tmp", mode: "yolo" });
+        return { stopReason: "completed" };
+      }
+    );
+
+    const result = await runEval({
+      sourceDir: sourceFixture("pipeline"),
+      evalId: "task",
+      agent: "codex",
+      model: "openai/gpt-5",
+      outDir,
+      judge: "off",
+      verifyOracle: false
+    });
+
+    expect(result.verdict).toBe("pass");
+    expect(result.cheatReport).toEqual({
+      cheated: false,
+      violations: [],
+      uninspectable: [{ toolCall: "Shell redirect", operation: "exec", reason: "shell-command" }]
+    });
+    const runDir = path.join(outDir, result.runId);
+    expect(JSON.parse(await readFile(path.join(runDir, "cheat-report.json"), "utf8"))).toEqual(
+      result.cheatReport
+    );
   });
 
   it("runs a pipeline eval and writes artifacts", async () => {

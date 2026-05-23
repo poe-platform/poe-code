@@ -7,11 +7,13 @@ describe("normalizeTrace", () => {
   it("normalizes tool operations, arguments, and referenced paths in order", () => {
     const events = [
       toolCall("read-1", "Read file", "read", { path: "src/read.ts" }, [{ path: "src/read.ts" }]),
-      toolStart("search-1", "Search files", "search", { pattern: "../outside", path: "src" }),
+      toolStart("search-1", "Search files", "search", { pattern: "needle", path: "src" }),
+      toolStart("glob-1", "Glob outside", "glob", { pattern: "../outside" }),
       toolStart("exec-1", "Run tests", "execute", { command: "/usr/bin/npm test" }),
       toolStart("edit-1", "Patch file", "edit", { file_path: "src/edit.ts" }),
       toolStart("write-1", "Write file", "write", { filePath: "src/new.ts" }),
-      toolCall("mcp-1", "filesystem.read", "other", { path: "/tmp/input.txt" })
+      toolCall("mcp-1", "filesystem.read", "other", { path: "/tmp/input.txt" }),
+      toolCall("mcp-2", "mcp__filesystem__write_file", "other", { path: "/tmp/output.txt" })
     ];
 
     const trace = normalizeTrace(events);
@@ -30,39 +32,232 @@ describe("normalizeTrace", () => {
         sequence: 1,
         name: "Search files",
         operation: "search",
-        paths: ["src", "../outside"],
-        rawArguments: { pattern: "../outside", path: "src" }
+        paths: ["src"],
+        rawArguments: { pattern: "needle", path: "src" }
       }),
       expect.objectContaining({
         type: "tool",
         sequence: 2,
-        name: "Run tests",
-        operation: "exec",
-        paths: ["/usr/bin/npm"],
-        rawArguments: { command: "/usr/bin/npm test" }
+        name: "Glob outside",
+        operation: "search",
+        paths: ["../outside"],
+        rawArguments: { pattern: "../outside" }
       }),
       expect.objectContaining({
         type: "tool",
         sequence: 3,
+        name: "Run tests",
+        operation: "exec",
+        paths: [],
+        rawArguments: { command: "/usr/bin/npm test" }
+      }),
+      expect.objectContaining({
+        type: "tool",
+        sequence: 4,
         name: "Patch file",
         operation: "edit",
         paths: ["src/edit.ts"]
       }),
       expect.objectContaining({
         type: "tool",
-        sequence: 4,
+        sequence: 5,
         name: "Write file",
         operation: "write",
         paths: ["src/new.ts"]
       }),
       expect.objectContaining({
         type: "tool",
-        sequence: 5,
+        sequence: 6,
         name: "filesystem.read",
         operation: "mcp",
         paths: ["/tmp/input.txt"]
+      }),
+      expect.objectContaining({
+        type: "tool",
+        sequence: 7,
+        name: "mcp__filesystem__write_file",
+        operation: "mcp",
+        paths: ["/tmp/output.txt"]
       })
     ]);
+  });
+
+  it("normalizes structured command path arguments without including executables", () => {
+    const trace = normalizeTrace([
+      toolStart("exec-1", "Copy file", "execute", {
+        command: "/usr/bin/env",
+        args: ["cp", "src/input.txt", "/private/output.txt"],
+        cwd: "src"
+      })
+    ]);
+
+    expect(trace.events).toEqual([
+      expect.objectContaining({
+        operation: "exec",
+        paths: ["src", "src/input.txt", "/private/output.txt"],
+        rawArguments: {
+          command: "/usr/bin/env",
+          args: ["cp", "src/input.txt", "/private/output.txt"],
+          cwd: "src"
+        }
+      })
+    ]);
+  });
+
+  it("does not treat URL arguments as filesystem targets", () => {
+    const trace = normalizeTrace([
+      toolStart("exec-1", "Fetch docs", "execute", {
+        command: "/usr/bin/env",
+        args: ["curl", "https://example.com/private/output.txt"]
+      })
+    ]);
+
+    expect(trace.events).toEqual([expect.objectContaining({ operation: "exec", paths: [] })]);
+  });
+
+  it("reports shell script command arguments as uninspectable evidence", () => {
+    const trace = normalizeTrace([
+      toolStart("exec-1", "Shell write", "execute", {
+        command: "/bin/sh",
+        args: ["-c", "cat src/input.txt > /private/output.txt"]
+      })
+    ]);
+
+    expect(trace.events).toEqual([
+      expect.objectContaining({
+        operation: "exec",
+        paths: [],
+        inspection: { status: "uninspectable", reason: "shell-command" }
+      })
+    ]);
+  });
+
+  it("reports env-wrapped shell scripts without extracting script paths", () => {
+    const trace = normalizeTrace([
+      toolStart("exec-1", "Wrapped shell write", "execute", {
+        command: "/usr/bin/env",
+        args: ["sh", "-c", "cat src/input.txt > /private/output.txt"]
+      })
+    ]);
+
+    expect(trace.events).toEqual([
+      expect.objectContaining({
+        operation: "exec",
+        paths: [],
+        inspection: { status: "uninspectable", reason: "shell-command" }
+      })
+    ]);
+  });
+
+  it("reports shell syntax in structured arguments while retaining explicit directories", () => {
+    const trace = normalizeTrace([
+      toolStart("exec-1", "Wrapped script", "execute", {
+        command: "/usr/bin/sudo",
+        args: ["/bin/sh", "-c", "cat src/input.txt > /private/output.txt"],
+        cwd: "src"
+      })
+    ]);
+
+    expect(trace.events).toEqual([
+      expect.objectContaining({
+        operation: "exec",
+        paths: ["src"],
+        inspection: { status: "uninspectable", reason: "shell-command" }
+      })
+    ]);
+  });
+
+  it("extracts outside targets from adapter edit titles", () => {
+    const trace = normalizeTrace([
+      {
+        event: "tool_start",
+        id: "edit-1",
+        kind: "edit",
+        title: "/private/secret.txt"
+      } as SpawnEvent
+    ]);
+
+    expect(trace.events).toEqual([
+      expect.objectContaining({ operation: "edit", paths: ["/private/secret.txt"] })
+    ]);
+  });
+
+  it("reports visible shell titles and targetless file tools as uninspectable", () => {
+    const trace = normalizeTrace([
+      {
+        event: "tool_start",
+        id: "exec-1",
+        kind: "exec",
+        title: "cat src/a > /private/out"
+      } as SpawnEvent,
+      { event: "tool_start", id: "mcp-1", kind: "other", title: "fs.write_file" } as SpawnEvent
+    ]);
+
+    expect(trace.events).toEqual([
+      expect.objectContaining({
+        operation: "exec",
+        paths: [],
+        inspection: { status: "uninspectable", reason: "shell-command" }
+      }),
+      expect.objectContaining({
+        operation: "mcp",
+        paths: [],
+        inspection: { status: "uninspectable", reason: "missing-path" }
+      })
+    ]);
+  });
+
+  it("does not treat MCP completion output as a filesystem target", () => {
+    const trace = normalizeTrace([
+      toolCall("mcp-1", "fs.read", "other", { path: "src/local.txt" }),
+      {
+        event: "tool_complete",
+        id: "mcp-1",
+        kind: "other",
+        path: "/private/output text"
+      } as SpawnEvent
+    ]);
+
+    expect(trace.events[1]).toEqual(
+      expect.objectContaining({ operation: "mcp", paths: ["src/local.txt"] })
+    );
+  });
+
+  it("uses completion locations before declaring an MCP action uninspectable", () => {
+    const trace = normalizeTrace([
+      {
+        sessionUpdate: "tool_call",
+        toolCallId: "mcp-1",
+        title: "fs.write_file",
+        kind: "other"
+      } as SpawnEvent,
+      {
+        sessionUpdate: "tool_call_update",
+        toolCallId: "mcp-1",
+        status: "completed",
+        locations: [{ path: "/private/output.txt" }]
+      } as SpawnEvent
+    ]);
+
+    expect(trace.events[0]).toEqual(
+      expect.objectContaining({ inspection: { status: "uninspectable", reason: "missing-path" } })
+    );
+    expect(trace.events[1]).toEqual(
+      expect.objectContaining({ operation: "mcp", paths: ["/private/output.txt"] })
+    );
+    expect(trace.events[1]).not.toHaveProperty("inspection");
+  });
+
+  it("does not report shell commands without file-affecting evidence", () => {
+    const trace = normalizeTrace([
+      toolStart("exec-1", "Shell echo", "execute", {
+        command: "/bin/sh",
+        args: ["-c", "echo hi"]
+      })
+    ]);
+
+    expect(trace.events).toEqual([expect.objectContaining({ operation: "exec", paths: [] })]);
+    expect(trace.events[0]).not.toHaveProperty("inspection");
   });
 
   it("normalizes messages, usage totals, errors, timestamps, and malformed events", () => {
@@ -173,6 +368,21 @@ describe("normalizeTrace", () => {
     ]);
   });
 
+  it("does not interpret command output paths as command targets", () => {
+    const trace = normalizeTrace([
+      {
+        event: "tool_complete",
+        id: "exec-output",
+        kind: "exec",
+        path: "/private/printed-output.txt\n"
+      } as SpawnEvent
+    ]);
+
+    expect(trace.events).toEqual([
+      expect.objectContaining({ operation: "exec", paths: [], outcome: "completed" })
+    ]);
+  });
+
   it("preserves evidence when ACP emits only a terminal tool update", () => {
     const trace = normalizeTrace([
       {
@@ -216,7 +426,7 @@ describe("normalizeTrace", () => {
         name: "Run cancelled",
         operation: "exec",
         rawArguments: { command: "npm test" },
-        paths: ["npm"],
+        paths: [],
         outcome: "cancelled"
       }
     ]);

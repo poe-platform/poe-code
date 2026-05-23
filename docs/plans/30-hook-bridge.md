@@ -180,7 +180,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: source-reader-claude
     title: Read hooks from a claude-code settings.json
@@ -252,8 +252,8 @@ tasks:
 
       Export from `packages/agent-hook-config/src/index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: event-mapping

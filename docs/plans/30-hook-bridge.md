@@ -449,7 +449,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: target-writer-codex
     title: Write generated entries to codex hooks.json with marked region
@@ -536,8 +536,8 @@ tasks:
 
       Export from `index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: symlink-path

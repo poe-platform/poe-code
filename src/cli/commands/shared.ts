@@ -15,7 +15,7 @@ import type { CommandCheck } from "../../utils/command-checks.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
 import type { PromptForSecret } from "@poe-code/providers";
 import { resolveIsolatedTargetDirectory } from "../isolated-env.js";
-import { getSpawnConfig } from "@poe-code/agent-spawn";
+import { getSpawnConfig, type HookBridgeOptions } from "@poe-code/agent-spawn";
 import {
   allAgents,
   formatAgentSpecifier,
@@ -351,7 +351,7 @@ export function buildProviderContext(
   container: CliContainer,
   adapter: ProviderService,
   resources: ExecutionResources,
-  options?: { model?: string; activeProvider?: ActiveProvider }
+  options?: { model?: string; hooks?: HookBridgeOptions; activeProvider?: ActiveProvider }
 ): ProviderContext {
   const runCheck = createCheckRunner(resources);
   return {
@@ -359,6 +359,7 @@ export function buildProviderContext(
     command: resources.context,
     logger: resources.logger,
     model: options?.model,
+    hooks: options?.hooks,
     activeProvider: options?.activeProvider,
     runCheck
   };
@@ -369,7 +370,8 @@ function createCheckRunner(resources: ExecutionResources): (check: CommandCheck)
     await check.run({
       isDryRun: resources.logger.context.dryRun,
       runCommand: resources.context.runCommand,
-      logDryRun: (message) => resources.logger.dryRun(message)
+      logDryRun: (message) => resources.logger.dryRun(message),
+      logWarning: (message) => resources.logger.warn(message)
     });
   };
 }

@@ -4,21 +4,15 @@ import type { ScopedLogger } from "./logger.js";
 import type { FileSystem } from "../utils/file-system.js";
 import type { CommandCheck } from "../utils/command-checks.js";
 import type { HttpClient } from "./http.js";
-import type {
-  PromptLibrary,
-  ModelPromptInput,
-  ReasoningPromptInput
-} from "./prompts.js";
+import type { PromptLibrary, ModelPromptInput, ReasoningPromptInput } from "./prompts.js";
 import type { MutationObservers } from "@poe-code/config-mutations";
 import { resolveAgentId, parseAgentSpecifier } from "@poe-code/agent-defs";
 import type { PromptFn } from "./types.js";
 import type { ActiveProvider } from "./commands/shared.js";
+import type { HookBridgeOptions } from "@poe-code/agent-spawn";
 
 export interface ServiceManifestPathMapper {
-  mapTargetDirectory: (input: {
-    targetDirectory: string;
-    env: CliEnvironment;
-  }) => string;
+  mapTargetDirectory: (input: { targetDirectory: string; env: CliEnvironment }) => string;
 }
 
 export interface ServiceRunOptions {
@@ -44,6 +38,7 @@ export interface ProviderContext {
   command: CommandContext;
   logger: ScopedLogger;
   model?: string;
+  hooks?: HookBridgeOptions;
   activeProvider?: ActiveProvider;
   runCheck(check: CommandCheck): Promise<void>;
 }
@@ -68,11 +63,7 @@ export interface ProviderConfigurePayloadContext {
   commandOptions: Record<string, unknown>;
 }
 
-export interface ProviderService<
-  TConfigure = any,
-  TUnconfigure = TConfigure,
-  TSpawn = any
-> {
+export interface ProviderService<TConfigure = any, TUnconfigure = TConfigure, TSpawn = any> {
   id: string;
   summary: string;
   aliases?: string[];
@@ -119,23 +110,20 @@ export interface IsolatedCliSettings {
   /** Top-level settings that need runtime resolution */
   resolved?: Record<
     string,
-    IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl
-    | IsolatedEnvAgentBaseUrl
+    IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl | IsolatedEnvAgentBaseUrl
   >;
   /** Environment variables to inject into settings.env (resolved at runtime) */
   env?: Record<
     string,
-    string | IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl
-    | IsolatedEnvAgentBaseUrl
+    string | IsolatedEnvProviderCredential | IsolatedEnvProviderBaseUrl | IsolatedEnvAgentBaseUrl
   >;
 }
 
-export type IsolatedEnvRepair =
-  | {
-      kind: "chmod";
-      relativePath: string;
-      mode: number;
-    };
+export type IsolatedEnvRepair = {
+  kind: "chmod";
+  relativePath: string;
+  mode: number;
+};
 
 export type IsolatedEnvPath =
   | {
@@ -173,12 +161,7 @@ export type IsolatedEnvAgentBaseUrl = {
   kind: "agentBaseUrl";
 };
 
-export type ProviderOperation =
-  | "install"
-  | "configure"
-  | "unconfigure"
-  | "spawn"
-  | "test";
+export type ProviderOperation = "install" | "configure" | "unconfigure" | "spawn" | "test";
 
 export interface ServiceRegistry {
   register(adapter: ProviderService): void;

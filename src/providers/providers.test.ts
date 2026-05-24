@@ -854,6 +854,23 @@ describe("codex service", () => {
     );
   });
 
+  it("routes Codex hook bridge health checks through poe-code spawn", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: "CODEX_OK\n",
+      stderr: "",
+      exitCode: 0
+    });
+    const { context } = createProviderTestContext(runCommand);
+    context.hooks = { from: "claude-code", strategy: "transform" };
+
+    await codexService.codexService.test?.(context);
+
+    expect(runCommand).toHaveBeenCalledWith(
+      "poe-code",
+      expect.arrayContaining(["spawn", "--hooks-from", "claude-code", "codex"])
+    );
+  });
+
   it("skips the Codex health check during dry runs", async () => {
     const runCommand = vi.fn();
     const { context } = createProviderTestContext(runCommand, { dryRun: true });

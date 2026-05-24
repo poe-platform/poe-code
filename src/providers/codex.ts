@@ -1,8 +1,5 @@
 import type { CliEnvironment } from "../cli/environment.js";
-import {
-  createBinaryExistsCheck,
-  createSpawnHealthCheck
-} from "../utils/command-checks.js";
+import { createBinaryExistsCheck, createSpawnHealthCheck } from "../utils/command-checks.js";
 import { type ServiceInstallDefinition } from "../services/service-install.js";
 import {
   configMutation,
@@ -53,11 +50,7 @@ function resolveCodexConfigModel(options: CodexConfigureContext): string {
 export const CODEX_INSTALL_DEFINITION: ServiceInstallDefinition = {
   id: "codex",
   summary: "Codex CLI",
-  check: createBinaryExistsCheck(
-    "codex",
-    "codex-cli-binary",
-    "Codex CLI binary must exist"
-  ),
+  check: createBinaryExistsCheck("codex", "codex-cli-binary", "Codex CLI binary must exist"),
   steps: [
     {
       id: "install-codex-cli-npm",
@@ -150,10 +143,7 @@ function isTableEmpty(value: unknown): value is ConfigObject {
   return isConfigObject(value) && Object.keys(value).length === 0;
 }
 
-export const codexService = createProvider<
-  CodexConfigureContext,
-  CodexUnconfigureContext
->({
+export const codexService = createProvider<CodexConfigureContext, CodexUnconfigureContext>({
   ...codexAgent,
   supportsStdinPrompt: true,
   configurePrompts: {
@@ -178,7 +168,8 @@ export const codexService = createProvider<
     return context.runCheck(
       createSpawnHealthCheck("codex", {
         model: context.model ?? DEFAULT_CODEX_MODEL,
-        expectedOutput: "CODEX_OK"
+        expectedOutput: "CODEX_OK",
+        hooks: context.hooks
       })
     );
   },

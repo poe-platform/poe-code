@@ -384,6 +384,42 @@ describe("createSpawnHealthCheck", () => {
     );
   });
 
+  it("runs hook-enabled health checks through poe-code spawn", async () => {
+    const runCommand = vi.fn().mockResolvedValue({
+      stdout: [
+        'Dropped bridged hook event "PreToolUse" with handler type "http"',
+        'Dropped bridged hook event "SessionEnd" with handler type "command"',
+        "CODEX_OK"
+      ].join("\n"),
+      stderr: "",
+      exitCode: 0
+    });
+    const logWarning = vi.fn();
+
+    const check = createSpawnHealthCheck("codex", {
+      model: "test-model",
+      expectedOutput: "CODEX_OK",
+      hooks: { from: "claude-code", strategy: "transform" }
+    });
+    await check.run({ isDryRun: false, runCommand, logWarning });
+
+    expect(runCommand).toHaveBeenCalledWith("poe-code", [
+      "spawn",
+      "--hooks-from",
+      "claude-code",
+      "--hooks-strategy",
+      "transform",
+      "--model",
+      "test-model",
+      "--mode",
+      "yolo",
+      "codex",
+      "Output exactly: CODEX_OK"
+    ]);
+    expect(logWarning).toHaveBeenCalledWith(expect.stringContaining('handler type "http"'));
+    expect(logWarning).toHaveBeenCalledWith(expect.stringContaining('event "SessionEnd"'));
+  });
+
   it("passes when expected output is found in stdout", async () => {
     const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"DEMO_OK"}\n',

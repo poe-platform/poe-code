@@ -3,7 +3,7 @@ import type {
   CommandRunnerOptions,
   CommandRunnerResult
 } from "@poe-code/agent-spawn";
-import { buildSpawnArgs } from "@poe-code/agent-spawn";
+import { buildSpawnArgs, type HookBridgeOptions } from "@poe-code/agent-spawn";
 import { createBinaryExistsDetectors } from "@poe-code/agent-harness-tools";
 
 export type {
@@ -136,6 +136,7 @@ export interface CommandCheckContext {
   isDryRun: boolean;
   runCommand: CommandRunner;
   logDryRun?: (message: string) => void;
+  logWarning?: (message: string) => void;
 }
 
 export interface CommandCheck {
@@ -149,6 +150,7 @@ export function createSpawnHealthCheck(
   options: {
     model?: string;
     expectedOutput: string;
+    hooks?: HookBridgeOptions;
     invocation?: { command: string; args: string[]; env?: Record<string, string> };
   }
 ): CommandCheck {
@@ -156,17 +158,33 @@ export function createSpawnHealthCheck(
     binaryName,
     args,
     env: modeEnv
-  } = options.invocation
+  } = options.hooks
     ? {
-        binaryName: options.invocation.command,
-        args: options.invocation.args,
-        env: options.invocation.env
+        binaryName: "poe-code",
+        args: [
+          "spawn",
+          "--hooks-from",
+          options.hooks.from,
+          ...(options.hooks.strategy ? ["--hooks-strategy", options.hooks.strategy] : []),
+          ...(options.model ? ["--model", options.model] : []),
+          "--mode",
+          "yolo",
+          agentId,
+          `Output exactly: ${options.expectedOutput}`
+        ],
+        env: undefined
       }
-    : buildSpawnArgs(agentId, {
-        prompt: `Output exactly: ${options.expectedOutput}`,
-        model: options.model,
-        mode: "yolo"
-      });
+    : options.invocation
+      ? {
+          binaryName: options.invocation.command,
+          args: options.invocation.args,
+          env: options.invocation.env
+        }
+      : buildSpawnArgs(agentId, {
+          prompt: `Output exactly: ${options.expectedOutput}`,
+          model: options.model,
+          mode: "yolo"
+        });
   return {
     id: `${agentId}-cli-health`,
     description: `spawn ${agentId} (expecting "${options.expectedOutput}")`,
@@ -181,6 +199,14 @@ export function createSpawnHealthCheck(
       const result = modeEnv
         ? await context.runCommand(binaryName, args, { env: modeEnv })
         : await context.runCommand(binaryName, args);
+
+      if (options.hooks) {
+        for (const line of result.stdout.split("\n")) {
+          if (line.includes("Dropped bridged hook event")) {
+            context.logWarning?.(line);
+          }
+        }
+      }
 
       if (result.exitCode !== 0) {
         throw new Error(

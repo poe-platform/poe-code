@@ -416,8 +416,9 @@ describe("configure command", () => {
 
     const program = createTestProgram();
 
-    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
-      .resolves.toBe("claude-code");
+    await expect(
+      resolveServiceArgument(program, container, undefined, { action: "configure" })
+    ).resolves.toBe("claude-code");
     expect(prompts).not.toHaveBeenCalled();
   });
 
@@ -432,8 +433,9 @@ describe("configure command", () => {
 
     const program = createTestProgram();
 
-    await expect(resolveServiceArgument(program, container, "codex", { action: "configure" }))
-      .resolves.toBe("codex");
+    await expect(
+      resolveServiceArgument(program, container, "codex", { action: "configure" })
+    ).resolves.toBe("codex");
     expect(prompts).not.toHaveBeenCalled();
   });
 
@@ -448,8 +450,9 @@ describe("configure command", () => {
 
     const program = createTestProgram(["node", "cli", "--yes"]);
 
-    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
-      .resolves.toBe("claude-code");
+    await expect(
+      resolveServiceArgument(program, container, undefined, { action: "configure" })
+    ).resolves.toBe("claude-code");
     expect(prompts).not.toHaveBeenCalled();
   });
 
@@ -457,8 +460,9 @@ describe("configure command", () => {
     const { container, prompts } = createContainer();
     const program = createTestProgram(["node", "cli", "--yes"]);
 
-    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
-      .resolves.toBe("claude-code");
+    await expect(
+      resolveServiceArgument(program, container, undefined, { action: "configure" })
+    ).resolves.toBe("claude-code");
     expect(prompts).not.toHaveBeenCalled();
   });
 
@@ -474,8 +478,9 @@ describe("configure command", () => {
     const invokeSpy = vi.spyOn(container.registry, "invoke");
     const program = createTestProgram();
 
-    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
-      .rejects.toBeInstanceOf(ValidationError);
+    await expect(
+      resolveServiceArgument(program, container, undefined, { action: "configure" })
+    ).rejects.toBeInstanceOf(ValidationError);
     expect(prompts).not.toHaveBeenCalled();
     expect(invokeSpy).not.toHaveBeenCalled();
   });
@@ -495,8 +500,9 @@ describe("configure command", () => {
 
     const program = createTestProgram();
 
-    await expect(resolveServiceArgument(program, container, undefined, { action: "configure" }))
-      .resolves.toBe("claude-code");
+    await expect(
+      resolveServiceArgument(program, container, undefined, { action: "configure" })
+    ).resolves.toBe("claude-code");
     expect(prompts).not.toHaveBeenCalled();
   });
 });
@@ -1387,6 +1393,36 @@ describe("test command", () => {
     await program.parseAsync(["node", "cli", "test", "demo-service", "--model", "claude-opus-4-6"]);
 
     expect(receivedModel).toBe("claude-opus-4-6");
+  });
+
+  it("passes hook bridge options to provider tests", async () => {
+    const container = createTestContainer();
+    let receivedHooks: unknown;
+    container.registry.register(
+      createProviderStub({
+        name: "demo-service",
+        label: "Demo Service",
+        async test(context) {
+          receivedHooks = context.hooks;
+        }
+      })
+    );
+
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "test",
+      "demo-service",
+      "--hooks-from",
+      "claude-code",
+      "--hooks-strategy",
+      "transform"
+    ]);
+
+    expect(receivedHooks).toEqual({ from: "claude-code", strategy: "transform" });
   });
 
   it("model is undefined when --model is not provided", async () => {

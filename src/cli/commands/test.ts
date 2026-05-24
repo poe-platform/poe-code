@@ -1,4 +1,4 @@
-import type { Command } from "commander";
+import { Option, type Command } from "commander";
 import type { CliContainer } from "../container.js";
 import {
   buildProviderContext,
@@ -10,44 +10,49 @@ import {
   listServiceNames
 } from "./shared.js";
 import { resolveServiceArgument } from "./configure.js";
-import {
-  type CommandCheck
-} from "../../utils/command-checks.js";
+import { type CommandCheck } from "../../utils/command-checks.js";
 import { withSpinner } from "@poe-code/design-system";
 import { resolveProviderRuntimeEnv } from "../isolated-env.js";
 
-export function registerTestCommand(
-  program: Command,
-  container: CliContainer
-): Command {
+export function registerTestCommand(program: Command, container: CliContainer): Command {
   const serviceNames = container.registry
     .list()
     .filter((service) => typeof service.test === "function");
-  const serviceDescription =
-    `Agent to test${formatServiceList(listServiceNames(serviceNames))}`;
+  const serviceDescription = `Agent to test${formatServiceList(listServiceNames(serviceNames))}`;
   return program
     .command("test")
     .description("Run agent health checks.")
-    .argument(
-      "[agent]",
-      serviceDescription
-    )
+    .argument("[agent]", serviceDescription)
     .option("--isolated", "Run the health check using isolated configuration.")
     .option("--model <model>", "Model override passed to the agent for the health check")
+    .option("--hooks-from <agentId>", "Agent hook configuration to bridge for this health check")
+    .addOption(
+      new Option("--hooks-strategy <strategy>", "Hook bridge strategy (default: auto)").choices([
+        "auto",
+        "symlink",
+        "transform"
+      ])
+    )
     .action(async function (this: Command, service: string | undefined) {
-      const resolved = await resolveServiceArgument(
-        program,
-        container,
-        service,
-        { action: "test" }
-      );
+      const resolved = await resolveServiceArgument(program, container, service, {
+        action: "test"
+      });
       const opts = this.opts<{
         isolated?: boolean;
         model?: string;
+        hooksFrom?: string;
+        hooksStrategy?: "auto" | "symlink" | "transform";
       }>();
+      if (!opts.hooksFrom && opts.hooksStrategy) {
+        this.outputHelp({ error: true });
+        this.error("error: option '--hooks-strategy <strategy>' requires '--hooks-from <agentId>'");
+      }
       await executeTest(this, container, resolved, {
         isolated: Boolean(opts.isolated),
-        model: opts.model
+        model: opts.model,
+        hooks: opts.hooksFrom
+          ? { from: opts.hooksFrom, strategy: opts.hooksStrategy ?? "auto" }
+          : undefined
       });
     });
 }
@@ -56,25 +61,23 @@ export async function executeTest(
   program: Command,
   container: CliContainer,
   service: string,
-  options: { isolated?: boolean; model?: string } = {}
+  options: {
+    isolated?: boolean;
+    model?: string;
+    hooks?: { from: string; strategy?: "auto" | "symlink" | "transform" };
+  } = {}
 ): Promise<void> {
   const adapter = resolveServiceAdapter(container, service);
   const canonicalService = adapter.name;
   const flags = resolveCommandFlags(program);
-  const resources = createExecutionResources(
-    container,
-    flags,
-    `test:${canonicalService}`
-  );
+  const resources = createExecutionResources(container, flags, `test:${canonicalService}`);
 
   resources.logger.intro(`test ${canonicalService}`);
 
-  const providerContext = buildProviderContext(
-    container,
-    adapter,
-    resources,
-    { model: options.model }
-  );
+  const providerContext = buildProviderContext(container, adapter, resources, {
+    model: options.model,
+    hooks: options.hooks
+  });
 
   const useIsolated = Boolean(options.isolated && adapter.isolatedEnv);
   let runtimeEnvPromise: Promise<Record<string, string>> | undefined;
@@ -98,9 +101,7 @@ export async function executeTest(
     : undefined;
 
   if (useIsolated) {
-    const { ensureIsolatedConfigForService } = await import(
-      "./ensure-isolated-config.js"
-    );
+    const { ensureIsolatedConfigForService } = await import("./ensure-isolated-config.js");
     await ensureIsolatedConfigForService({
       container,
       adapter,
@@ -117,45 +118,45 @@ export async function executeTest(
           throw new Error(`Agent "${canonicalService}" does not support test.`);
         }
         const activeContext = useIsolated
+          ? {
+              ...providerContext,
+              runCheck: async (check: CommandCheck) => {
+                await check.run({
+                  isDryRun: providerContext.logger.context.dryRun,
+                  runCommand: (command: string, args: string[]) =>
+                    resources.context.runCommand("poe-code", [
+                      "wrap",
+                      canonicalService,
+                      "--",
+                      ...args
+                    ]),
+                  logDryRun: (message: string) => providerContext.logger.dryRun(message),
+                  logWarning: (message: string) => providerContext.logger.warn(message)
+                });
+              }
+            }
+          : resolveRuntimeEnv
             ? {
                 ...providerContext,
                 runCheck: async (check: CommandCheck) => {
                   await check.run({
                     isDryRun: providerContext.logger.context.dryRun,
-                    runCommand: (command: string, args: string[]) =>
-                      resources.context.runCommand("poe-code", [
-                        "wrap",
-                        canonicalService,
-                        "--",
-                        ...args
-                      ]),
-                    logDryRun: (message: string) =>
-                      providerContext.logger.dryRun(message)
+                    runCommand: async (command, args, runOptions) => {
+                      const runtimeEnv = await resolveRuntimeEnv();
+                      return resources.context.runCommand(command, args, {
+                        ...runOptions,
+                        env: {
+                          ...(runOptions?.env ?? {}),
+                          ...runtimeEnv
+                        }
+                      });
+                    },
+                    logDryRun: (message) => providerContext.logger.dryRun(message),
+                    logWarning: (message) => providerContext.logger.warn(message)
                   });
                 }
               }
-            : resolveRuntimeEnv
-              ? {
-                  ...providerContext,
-                  runCheck: async (check: CommandCheck) => {
-                    await check.run({
-                      isDryRun: providerContext.logger.context.dryRun,
-                      runCommand: async (command, args, runOptions) => {
-                        const runtimeEnv = await resolveRuntimeEnv();
-                        return resources.context.runCommand(command, args, {
-                            ...runOptions,
-                            env: {
-                              ...(runOptions?.env ?? {}),
-                              ...runtimeEnv
-                            }
-                          });
-                      },
-                      logDryRun: (message) =>
-                        providerContext.logger.dryRun(message)
-                    });
-                  }
-                }
-              : providerContext;
+            : providerContext;
 
         await entry.test(activeContext);
       }),

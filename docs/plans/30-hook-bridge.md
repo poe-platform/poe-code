@@ -1038,9 +1038,9 @@ tasks:
 
       Do NOT write a github-workflow test or a screenshot test.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: package-readme
     title: Document @poe-code/agent-hook-config

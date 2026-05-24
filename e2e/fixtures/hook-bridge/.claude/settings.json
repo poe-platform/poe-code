@@ -1,0 +1,30 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo HOOK_BRIDGE_MARKER",
+            "statusMessage": "Run hook bridge marker"
+          },
+          {
+            "type": "http",
+            "url": "https://hooks.invalid/pre-tool-use"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "printf 'SESSION_END_MUST_DROP\\n'"
+          }
+        ]
+      }
+    ]
+  }
+}

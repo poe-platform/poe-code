@@ -9,10 +9,6 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    },
-    "./test-support/harness": {
-      "types": "./dist/test-support/harness.d.ts",
-      "import": "./dist/test-support/harness.js"
     }
   },
   "scripts": {

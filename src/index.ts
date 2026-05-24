@@ -51,6 +51,7 @@ export {
 } from "./sdk/launch.js";
 export type {
   SpawnOptions,
+  HookBridgeOptions,
   SpawnRetryOptions,
   SpawnUsage,
   SpawnResult,

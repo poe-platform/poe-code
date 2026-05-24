@@ -22,6 +22,11 @@ const skillBridgeMock = vi.hoisted(() => ({
   cleanupBridgedSkills: vi.fn()
 }));
 
+const hookBridgeMock = vi.hoisted(() => ({
+  bridgeHooks: vi.fn(),
+  cleanupBridgedHooks: vi.fn()
+}));
+
 const designLoggerMock = vi.hoisted(() => ({
   warn: vi.fn()
 }));
@@ -33,6 +38,11 @@ vi.mock("node:child_process", () => ({
 vi.mock("@poe-code/agent-skill-config", () => ({
   bridgeActiveSkills: skillBridgeMock.bridgeActiveSkills,
   cleanupBridgedSkills: skillBridgeMock.cleanupBridgedSkills
+}));
+
+vi.mock("@poe-code/agent-hook-config", () => ({
+  bridgeHooks: hookBridgeMock.bridgeHooks,
+  cleanupBridgedHooks: hookBridgeMock.cleanupBridgedHooks
 }));
 
 vi.mock("@poe-code/design-system", () => ({
@@ -603,6 +613,14 @@ describe("spawn", () => {
       entries: [],
       warnings: []
     });
+    hookBridgeMock.bridgeHooks.mockReturnValue({
+      sourceAgentId: "claude-code",
+      targetAgentId: "codex",
+      cwd: "/repo",
+      runId: "run-id",
+      strategy: "transform",
+      drops: []
+    });
   });
 
   it("throws error if agent ID cannot be resolved", async () => {
@@ -1041,6 +1059,157 @@ describe("spawn", () => {
     await expect(resultPromise).rejects.toMatchObject({ name: "AbortError" });
     expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledTimes(1);
     expect(skillBridgeMock.cleanupBridgedSkills).toHaveBeenCalledWith(manifest);
+  });
+
+  it("does not bridge hooks when hooks are omitted", async () => {
+    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+
+    await spawn("codex", { prompt: "hello" });
+
+    expect(hookBridgeMock.bridgeHooks).not.toHaveBeenCalled();
+    expect(hookBridgeMock.cleanupBridgedHooks).not.toHaveBeenCalled();
+  });
+
+  it("bridges provided hooks before launching with the shared skills run id", async () => {
+    const order: string[] = [];
+    hookBridgeMock.bridgeHooks.mockImplementation(() => {
+      order.push("hooks");
+      return {
+        sourceAgentId: "claude-code",
+        targetAgentId: "codex",
+        cwd: "/repo",
+        runId: "run-id",
+        strategy: "transform",
+        drops: []
+      };
+    });
+    vi.mocked(spawnChildProcess).mockImplementation(() => {
+      order.push("spawn");
+      return createMockChildProcess({ exitCode: 0 });
+    });
+
+    await spawn("codex", {
+      prompt: "hello",
+      cwd: "/repo",
+      skills: ["foo"],
+      hooks: { from: "claude-code", strategy: "auto", scope: "project" }
+    });
+
+    expect(hookBridgeMock.bridgeHooks).toHaveBeenCalledWith(
+      "claude-code",
+      "codex",
+      "/repo",
+      expect.any(String),
+      expect.any(String),
+      { strategy: undefined, scope: "project" }
+    );
+    expect(skillBridgeMock.bridgeActiveSkills.mock.calls[0]?.[4]).toBe(
+      hookBridgeMock.bridgeHooks.mock.calls[0]?.[4]
+    );
+    expect(order).toEqual(["hooks", "spawn"]);
+  });
+
+  it("does not launch the agent process when hook bridging throws", async () => {
+    hookBridgeMock.bridgeHooks.mockImplementation(() => {
+      throw new Error("Unknown hook source agent: unknown");
+    });
+
+    await expect(
+      spawn("codex", { prompt: "hello", cwd: "/repo", hooks: { from: "unknown" } })
+    ).rejects.toThrow("Unknown hook source agent: unknown");
+
+    expect(spawnChildProcess).not.toHaveBeenCalled();
+    expect(hookBridgeMock.cleanupBridgedHooks).not.toHaveBeenCalled();
+  });
+
+  it("surfaces dropped hooks and still launches the agent process", async () => {
+    hookBridgeMock.bridgeHooks.mockReturnValue({
+      sourceAgentId: "claude-code",
+      targetAgentId: "codex",
+      cwd: "/repo",
+      runId: "run-id",
+      strategy: "transform",
+      drops: [
+        {
+          reason: "unsupported-handler-type",
+          detail: 'Unsupported handler type "prompt": codex does not honor it',
+          source: { event: "Stop", handler: { type: "prompt" } }
+        }
+      ]
+    });
+    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+
+    await spawn("codex", { prompt: "hello", cwd: "/repo", hooks: { from: "claude-code" } });
+
+    expect(designLoggerMock.warn).toHaveBeenCalledWith(expect.stringContaining("Stop"));
+    expect(designLoggerMock.warn).toHaveBeenCalledWith(expect.stringContaining("prompt"));
+    expect(spawnChildProcess).toHaveBeenCalledTimes(1);
+  });
+
+  it("cleans up bridged hooks once after a clean agent exit", async () => {
+    const manifest = {
+      sourceAgentId: "claude-code",
+      targetAgentId: "codex",
+      cwd: "/repo",
+      runId: "run-id",
+      strategy: "transform",
+      drops: []
+    };
+    hookBridgeMock.bridgeHooks.mockReturnValue(manifest);
+    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ exitCode: 0 }));
+
+    await spawn("codex", { prompt: "hello", cwd: "/repo", hooks: { from: "claude-code" } });
+
+    expect(hookBridgeMock.cleanupBridgedHooks).toHaveBeenCalledTimes(1);
+    expect(hookBridgeMock.cleanupBridgedHooks).toHaveBeenCalledWith(manifest);
+  });
+
+  it("cleans up bridged hooks when the agent launcher throws", async () => {
+    const manifest = {
+      sourceAgentId: "claude-code",
+      targetAgentId: "codex",
+      cwd: "/repo",
+      runId: "run-id",
+      strategy: "transform",
+      drops: []
+    };
+    hookBridgeMock.bridgeHooks.mockReturnValue(manifest);
+    vi.mocked(spawnChildProcess).mockImplementation(() => {
+      throw new Error("spawn failed");
+    });
+
+    await expect(
+      spawn("codex", { prompt: "hello", cwd: "/repo", hooks: { from: "claude-code" } })
+    ).rejects.toThrow("spawn failed");
+
+    expect(hookBridgeMock.cleanupBridgedHooks).toHaveBeenCalledTimes(1);
+    expect(hookBridgeMock.cleanupBridgedHooks).toHaveBeenCalledWith(manifest);
+  });
+
+  it("cleans up bridged hooks when the agent run is aborted", async () => {
+    const manifest = {
+      sourceAgentId: "claude-code",
+      targetAgentId: "codex",
+      cwd: "/repo",
+      runId: "run-id",
+      strategy: "transform",
+      drops: []
+    };
+    hookBridgeMock.bridgeHooks.mockReturnValue(manifest);
+    const controller = new AbortController();
+    vi.mocked(spawnChildProcess).mockReturnValue(createMockChildProcess({ autoClose: false }));
+
+    const resultPromise = spawn("codex", {
+      prompt: "hello",
+      cwd: "/repo",
+      hooks: { from: "claude-code" },
+      signal: controller.signal
+    });
+    controller.abort();
+
+    await expect(resultPromise).rejects.toMatchObject({ name: "AbortError" });
+    expect(hookBridgeMock.cleanupBridgedHooks).toHaveBeenCalledTimes(1);
+    expect(hookBridgeMock.cleanupBridgedHooks).toHaveBeenCalledWith(manifest);
   });
 
   it("records the expected otel span lifecycle for a CLI spawn", async () => {

@@ -835,7 +835,7 @@ tasks:
       4. Build the workspace and confirm types resolve.
     status:
       implement: done
-      commit: open
+      commit: done
 
   - id: spawn-runner-wire-hooks
     title: Wire bridgeHooks into the spawn runner
@@ -894,9 +894,9 @@ tasks:
       still called. Stub the agent-process launcher, the warning channel,
       and use `memfs` for the FS.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: spawn-cli-hooks-flag
     title: Add --hooks-from and --hooks-strategy CLI flags to poe-code spawn

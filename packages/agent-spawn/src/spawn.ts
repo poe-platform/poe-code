@@ -10,7 +10,7 @@ import { createSpawnParallel } from "./parallel.js";
 import { shouldSendPromptViaStdin } from "./prompt-transport.js";
 import { createSpawnRetry } from "./retry.js";
 import { resolveSpawnExecution } from "./runtime.js";
-import { bridgeSkillsForRun, cleanupSkillsForRun } from "./skill-bridge.js";
+import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
 import { spawnStreaming } from "./acp/spawn.js";
 import {
   resolveModeConfig,
@@ -223,7 +223,7 @@ async function runSpawn(
   }
 
   const cwd = options.cwd ?? process.cwd();
-  const manifest = bridgeSkillsForRun(agentId, cwd, options.skills);
+  const manifest = bridgeResourcesForRun(agentId, cwd, options.skills, options.hooks);
   let logFd: number | undefined;
 
   try {
@@ -296,7 +296,7 @@ async function runSpawn(
     };
   } finally {
     closeSpawnLog(logFd);
-    cleanupSkillsForRun(manifest);
+    cleanupResourcesForRun(manifest);
   }
 }
 

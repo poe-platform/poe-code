@@ -30,6 +30,7 @@
   "dependencies": {
     "@poe-code/agent-defs": "*",
     "@poe-code/agent-harness-tools": "*",
+    "@poe-code/agent-hook-config": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/design-system": "*",
     "@poe-code/poe-acp-client": "*",

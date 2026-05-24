@@ -296,6 +296,30 @@ describe("SDK spawn()", () => {
     );
   });
 
+  it("passes bridged hooks through to streaming agent spawns", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt", {
+      hooks: { from: "claude-code", strategy: "transform", scope: "project" }
+    });
+
+    await result;
+
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hooks: { from: "claude-code", strategy: "transform", scope: "project" }
+      })
+    );
+  });
+
   it("passes resumeThreadId through to ACP agent spawns", async () => {
     vi.mocked(getAcpSpawnConfig).mockReturnValue({
       kind: "acp",
@@ -566,6 +590,29 @@ describe("SDK spawn()", () => {
       "aider",
       expect.objectContaining({
         skills: ["foo"]
+      })
+    );
+  });
+
+  it("passes bridged hooks through to non-streaming agent spawns", async () => {
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "aider",
+      promptFlag: "-p",
+      defaultArgs: []
+    } as any);
+    vi.mocked(agentSpawn).mockResolvedValue({ stdout: "", stderr: "", exitCode: 0 });
+
+    const { result } = spawn("aider", "test prompt", {
+      hooks: { from: "claude-code" }
+    });
+
+    await result;
+
+    expect(agentSpawn).toHaveBeenCalledWith(
+      "aider",
+      expect.objectContaining({
+        hooks: { from: "claude-code" }
       })
     );
   });

@@ -7,6 +7,12 @@ import type {
   SpawnMode
 } from "@poe-code/agent-spawn";
 
+export interface HookBridgeOptions {
+  from: string;
+  strategy?: "auto" | "symlink" | "transform";
+  scope?: "project" | "user" | "merged";
+}
+
 /**
  * Options for spawning a provider CLI.
  */
@@ -27,6 +33,8 @@ export interface SpawnOptions {
   mcpConfig?: McpSpawnConfig;
   /** Skill references to bridge into the spawned agent for this run. */
   skills?: string[];
+  /** Hooks to bridge from another agent configuration for this run. */
+  hooks?: HookBridgeOptions;
   /** Resume a prior provider thread/session before sending the prompt. */
   resumeThreadId?: string;
   /** Directory override for ACP JSONL spawn logs */

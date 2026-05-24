@@ -5,27 +5,67 @@ import {
   cleanupBridgedSkills,
   type BridgeManifest
 } from "@poe-code/agent-skill-config";
+import {
+  bridgeHooks,
+  cleanupBridgedHooks,
+  type BridgeHookManifest
+} from "@poe-code/agent-hook-config";
 import { logger } from "@poe-code/design-system";
+import type { HookBridgeOptions } from "./types.js";
 
-export function bridgeSkillsForRun(
+export interface BridgedRunManifest {
+  skills?: BridgeManifest;
+  hooks?: BridgeHookManifest;
+}
+
+export function bridgeResourcesForRun(
   agentId: string,
   cwd: string,
-  skills: string[] | undefined
-): BridgeManifest | undefined {
-  if (!skills || skills.length === 0) {
+  skills: string[] | undefined,
+  hooks: HookBridgeOptions | undefined
+): BridgedRunManifest | undefined {
+  if ((!skills || skills.length === 0) && !hooks) {
     return undefined;
   }
 
-  const manifest = bridgeActiveSkills(agentId, cwd, skills, os.homedir(), crypto.randomUUID());
-  for (const warning of manifest.warnings) {
-    logger.warn(warning.message);
+  const runId = crypto.randomUUID();
+  const manifests: BridgedRunManifest = {};
+
+  try {
+    if (skills && skills.length > 0) {
+      manifests.skills = bridgeActiveSkills(agentId, cwd, skills, os.homedir(), runId);
+      for (const warning of manifests.skills.warnings) {
+        logger.warn(warning.message);
+      }
+    }
+
+    if (hooks) {
+      manifests.hooks = bridgeHooks(hooks.from, agentId, cwd, os.homedir(), runId, {
+        strategy: hooks.strategy === "auto" ? undefined : hooks.strategy,
+        scope: hooks.scope
+      });
+      for (const drop of manifests.hooks.drops) {
+        logger.warn(
+          `Dropped bridged hook event "${drop.source.event}" with handler type "${drop.source.handler.type}": ${drop.detail}`
+        );
+      }
+    }
+  } catch (error) {
+    cleanupResourcesForRun(manifests);
+    throw error;
   }
-  return manifest;
+
+  return manifests;
 }
 
-export function cleanupSkillsForRun(manifest: BridgeManifest | undefined): void {
+export function cleanupResourcesForRun(manifest: BridgedRunManifest | undefined): void {
   if (!manifest) {
     return;
   }
-  cleanupBridgedSkills(manifest);
+  if (manifest.hooks) {
+    cleanupBridgedHooks(manifest.hooks);
+  }
+  if (manifest.skills) {
+    cleanupBridgedSkills(manifest.skills);
+  }
 }

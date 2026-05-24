@@ -4,7 +4,7 @@ import { resolveConfig } from "./configs/resolve-config.js";
 import { getMcpArgs } from "./mcp-args.js";
 import { stripModelNamespace } from "./model-utils.js";
 import { resolveSpawnExecution } from "./runtime.js";
-import { bridgeSkillsForRun, cleanupSkillsForRun } from "./skill-bridge.js";
+import { bridgeResourcesForRun, cleanupResourcesForRun } from "./skill-bridge.js";
 import { resolveModeConfig, type SpawnOptions, type SpawnResult } from "./types.js";
 
 export async function spawnInteractive(
@@ -127,7 +127,7 @@ export async function spawnInteractive(
     }
   });
 
-  const manifest = bridgeSkillsForRun(agentId, cwd, options.skills);
+  const manifest = bridgeResourcesForRun(agentId, cwd, options.skills, options.hooks);
   try {
     const result = await runPoeCommand({
       factory: execution.factory,
@@ -146,6 +146,6 @@ export async function spawnInteractive(
         : {})
     };
   } finally {
-    cleanupSkillsForRun(manifest);
+    cleanupResourcesForRun(manifest);
   }
 }

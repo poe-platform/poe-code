@@ -1,5 +1,6 @@
 import type { AcpMiddleware, McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
 import type { RuntimeOverrideOptions } from "@poe-code/agent-harness-tools";
+import type { HookBridgeOptions } from "../sdk/types.js";
 
 export interface SpawnCommandOptions {
   prompt: string;
@@ -8,6 +9,7 @@ export interface SpawnCommandOptions {
   mode?: SpawnMode;
   mcpServers?: McpSpawnConfig;
   skills?: string[];
+  hooks?: HookBridgeOptions;
   resumeThreadId?: string;
   logDir?: string;
   activityTimeoutMs?: number;

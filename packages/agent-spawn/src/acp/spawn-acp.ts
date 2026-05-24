@@ -7,7 +7,8 @@ import { stampReceiveTime } from "./meta.js";
 import { sessionUpdateToEvents, createToolRenderState } from "./session-update-converter.js";
 import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "./middleware.js";
 import { observeAgentSpawn } from "../observability/otel.js";
-import { bridgeSkillsForRun, cleanupSkillsForRun } from "../skill-bridge.js";
+import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
+import type { HookBridgeOptions } from "../types.js";
 
 export interface SpawnAcpOptions {
   agentId: string;
@@ -17,6 +18,7 @@ export interface SpawnAcpOptions {
   mode?: SpawnMode;
   mcpServers?: McpSpawnConfig;
   skills?: string[];
+  hooks?: HookBridgeOptions;
   resumeThreadId?: string;
   runtime?: "host" | "docker" | "e2b";
   runtimeImage?: string;
@@ -108,7 +110,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   const env =
     Object.keys(envOverrides).length > 0 ? { ...process.env, ...envOverrides } : undefined;
   const cwd = options.cwd ?? process.cwd();
-  const manifest = bridgeSkillsForRun(options.agentId, cwd, options.skills);
+  const manifest = bridgeResourcesForRun(options.agentId, cwd, options.skills, options.hooks);
 
   let client: AcpClient;
   try {
@@ -128,7 +130,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
       autoApprove: (options.mode ?? "yolo") === "yolo"
     });
   } catch (error) {
-    cleanupSkillsForRun(manifest);
+    cleanupResourcesForRun(manifest);
     throw error;
   }
 
@@ -332,7 +334,7 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
         ...(ctx.logFile && !finalResult?.logFile ? { logFile: ctx.logFile } : {})
       };
     } finally {
-      cleanupSkillsForRun(manifest);
+      cleanupResourcesForRun(manifest);
     }
   })();
 

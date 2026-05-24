@@ -24,6 +24,7 @@ export type {
   McpSpawnServer,
   OtelSink,
   OtelSpan,
+  HookBridgeOptions,
   SpawnMode,
   SpawnModeConfig,
   SpawnOptions,

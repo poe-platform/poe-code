@@ -10,6 +10,7 @@ import {
 } from "../cli/commands/shared.js";
 import type { SpawnCommandOptions } from "../providers/spawn-options.js";
 import type { McpSpawnConfig, SpawnMode } from "@poe-code/agent-spawn";
+import type { HookBridgeOptions } from "./types.js";
 import type { CommandRunnerResult } from "../utils/command-checks.js";
 import { resolveSpawnWorkspace } from "../workspace/resolve-spawn-workspace.js";
 
@@ -28,6 +29,8 @@ export interface SpawnCoreOptions {
   mcpServers?: McpSpawnConfig;
   /** Skill references to bridge into the spawned agent for this run. */
   skills?: string[];
+  /** Hooks to bridge from another agent configuration for this run. */
+  hooks?: HookBridgeOptions;
   /** Resume a prior provider thread/session before sending the prompt. */
   resumeThreadId?: string;
   /** Whether prompt was read from stdin */
@@ -73,6 +76,7 @@ export async function spawnCore(
       mode: options.mode,
       mcpServers: options.mcpServers,
       skills: options.skills,
+      hooks: options.hooks,
       resumeThreadId: options.resumeThreadId,
       cwd: cwdOverride,
       useStdin: options.useStdin ?? false

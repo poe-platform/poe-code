@@ -9,7 +9,7 @@ import { stripModelNamespace } from "../model-utils.js";
 import { observeAgentSpawn } from "../observability/otel.js";
 import { shouldSendPromptViaStdin } from "../prompt-transport.js";
 import { resolveSpawnExecution } from "../runtime.js";
-import { bridgeSkillsForRun, cleanupSkillsForRun } from "../skill-bridge.js";
+import { bridgeResourcesForRun, cleanupResourcesForRun } from "../skill-bridge.js";
 import {
   resolveModeConfig,
   type CliSpawnConfig,
@@ -377,7 +377,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
     }
   };
 
-  const manifest = bridgeSkillsForRun(options.agentId, cwd, options.skills);
+  const manifest = bridgeResourcesForRun(options.agentId, cwd, options.skills, options.hooks);
 
   void (async () => {
     try {
@@ -432,7 +432,7 @@ export function spawnStreaming(options: SpawnStreamingOptions): SpawnStreamingRe
         ...(ctx.logFile && !result.logFile ? { logFile: ctx.logFile } : {})
       };
     } finally {
-      cleanupSkillsForRun(manifest);
+      cleanupResourcesForRun(manifest);
     }
   })();
 

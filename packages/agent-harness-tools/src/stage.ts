@@ -1,8 +1,5 @@
-import { type RunAgentFn, type WorkflowMode } from "./hooks.js";
-import {
-  selectParticipantAgent,
-  type WorkflowParticipant
-} from "./participant.js";
+import { type RunAgentFn, type RunAgentHooks, type WorkflowMode } from "./hooks.js";
+import { selectParticipantAgent, type WorkflowParticipant } from "./participant.js";
 
 export interface WorkflowStage {
   id: string;
@@ -10,6 +7,7 @@ export interface WorkflowStage {
   prompt?: string;
   mode?: WorkflowMode;
   skills?: string[];
+  hooks?: RunAgentHooks;
   onFailure?: "stop" | "continue";
 }
 
@@ -33,10 +31,7 @@ function resolveStageParticipant(
   return participant;
 }
 
-function resolveStageMode(
-  stage: WorkflowStage,
-  participant: WorkflowParticipant
-): WorkflowMode {
+function resolveStageMode(stage: WorkflowStage, participant: WorkflowParticipant): WorkflowMode {
   const mode = stage.mode ?? participant.mode;
   if (mode === undefined) {
     throw new Error(`Stage is missing mode for participant "${participant.id}".`);
@@ -45,10 +40,7 @@ function resolveStageMode(
   return mode;
 }
 
-function resolveStagePrompt(
-  stage: WorkflowStage,
-  participant: WorkflowParticipant
-): string {
+function resolveStagePrompt(stage: WorkflowStage, participant: WorkflowParticipant): string {
   return stage.prompt ?? participant.prompt ?? "";
 }
 
@@ -71,6 +63,7 @@ export async function runWorkflowStage(
       cwd: context.cwd,
       ...(participant.model ? { model: participant.model } : {}),
       ...(stage.skills ? { skills: stage.skills } : {}),
+      ...(stage.hooks ? { hooks: stage.hooks } : {}),
       ...(context.signal ? { signal: context.signal } : {})
     });
 

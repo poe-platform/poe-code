@@ -3,6 +3,7 @@ export type {
   AgentRunResult,
   RalphFileStat,
   RalphFileSystem,
+  RalphHooks,
   RalphRunOptions,
   RalphRunResult,
   RalphStopReason

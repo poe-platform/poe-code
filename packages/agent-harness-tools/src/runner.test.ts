@@ -25,15 +25,17 @@ function createFs(files: Record<string, string> = {}): {
   return { fs, volume };
 }
 
-function createOptions(options: {
-  frontmatter?: Frontmatter;
-  fs?: WorkflowFileSystem;
-  runAgent?: DocumentWorkflowOptions["runAgent"];
-  readConfig?: DocumentWorkflowOptions["readConfig"];
-  signal?: AbortSignal;
-  onIterationStart?: (iteration: number) => void;
-  onIterationEnd?: (iteration: number, result: IterationResult) => void;
-} = {}): DocumentWorkflowOptions {
+function createOptions(
+  options: {
+    frontmatter?: Frontmatter;
+    fs?: WorkflowFileSystem;
+    runAgent?: DocumentWorkflowOptions["runAgent"];
+    readConfig?: DocumentWorkflowOptions["readConfig"];
+    signal?: AbortSignal;
+    onIterationStart?: (iteration: number) => void;
+    onIterationEnd?: (iteration: number, result: IterationResult) => void;
+  } = {}
+): DocumentWorkflowOptions {
   const { fs = createFs({ "/repo/workflow.md": "# workflow" }).fs } = options;
 
   return {
@@ -49,23 +51,22 @@ function createOptions(options: {
     readConfig:
       options.readConfig ??
       vi.fn((_content: string) => ({
-        frontmatter:
-          options.frontmatter ?? {
-            participants: {
-              default: {
-                agent: "claude",
-                mode: "edit"
-              }
-            },
-            stages: [
-              {
-                id: "draft",
-                participant: "default",
-                prompt: "Draft the document"
-              }
-            ],
-            max_iterations: 1
+        frontmatter: options.frontmatter ?? {
+          participants: {
+            default: {
+              agent: "claude",
+              mode: "edit"
+            }
           },
+          stages: [
+            {
+              id: "draft",
+              participant: "default",
+              prompt: "Draft the document"
+            }
+          ],
+          max_iterations: 1
+        },
         body: "Body"
       })),
     ...(options.signal ? { signal: options.signal } : {}),
@@ -118,12 +119,7 @@ describe("runDocumentWorkflow", () => {
 
     await runDocumentWorkflow(options);
 
-    expect(prompts).toEqual([
-      "Setup workspace",
-      "Draft changes",
-      "Review changes",
-      "Clean up"
-    ]);
+    expect(prompts).toEqual(["Setup workspace", "Draft changes", "Review changes", "Clean up"]);
   });
 
   it("respects max_iterations", async () => {
@@ -429,11 +425,7 @@ describe("runDocumentWorkflow", () => {
 
     await runDocumentWorkflow(options);
 
-    expect(events).toEqual([
-      "start:0",
-      "run",
-      "end:0:completed"
-    ]);
+    expect(events).toEqual(["start:0", "run", "end:0:completed"]);
   });
 
   it("parses stage skills from workflow frontmatter and leaves stages without skills unchanged", async () => {
@@ -482,6 +474,40 @@ describe("runDocumentWorkflow", () => {
       }
     ]);
     expect(Object.hasOwn(runAgent.mock.calls[1]![0], "skills")).toBe(false);
+  });
+
+  it("parses stage hooks from workflow frontmatter and leaves absent hooks unchanged", async () => {
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+    const options = createOptions({
+      frontmatter: {
+        participants: {
+          default: {
+            agent: "claude",
+            mode: "edit"
+          }
+        },
+        stages: [
+          {
+            id: "implement",
+            participant: "default",
+            prompt: "Implement",
+            hooks: { from: "claude" }
+          },
+          {
+            id: "review",
+            participant: "default",
+            prompt: "Review"
+          }
+        ],
+        max_iterations: 1
+      },
+      runAgent
+    });
+
+    await runDocumentWorkflow(options);
+
+    expect(runAgent.mock.calls[0]![0]).toMatchObject({ hooks: { from: "claude" } });
+    expect(Object.hasOwn(runAgent.mock.calls[1]![0], "hooks")).toBe(false);
   });
 
   it("rejects malformed stage skills", async () => {

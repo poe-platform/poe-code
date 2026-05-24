@@ -1,9 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import {
-  runWorkflowStage,
-  type WorkflowStage,
-  type StageContext
-} from "./stage.js";
+import { runWorkflowStage, type WorkflowStage, type StageContext } from "./stage.js";
 import type { RunAgentInput } from "./hooks.js";
 
 function createContext(overrides: Partial<StageContext> = {}): StageContext {
@@ -137,6 +133,28 @@ describe("runWorkflowStage", () => {
       mode: "edit",
       cwd: "/workspace",
       skills: ["foo", "claude/bar"]
+    });
+  });
+
+  it("forwards stage hooks to runAgent", async () => {
+    const context = createContext();
+
+    await runWorkflowStage(
+      {
+        id: "build",
+        participant: "builder",
+        prompt: "Build the feature",
+        hooks: { from: "claude" }
+      },
+      context
+    );
+
+    expect(getRunAgentInput(context)).toEqual({
+      agent: "claude-code",
+      prompt: "Build the feature",
+      mode: "edit",
+      cwd: "/workspace",
+      hooks: { from: "claude" }
     });
   });
 

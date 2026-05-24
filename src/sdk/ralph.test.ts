@@ -113,7 +113,8 @@ describe("SDK ralph", () => {
       agent: "codex",
       prompt: "Improve the doc",
       cwd: "/repo",
-      model: "gpt-5.2"
+      model: "gpt-5.2",
+      hooks: { from: "claude" }
     });
 
     expect(spawnAutonomousMock).toHaveBeenCalledWith("codex", {
@@ -121,6 +122,7 @@ describe("SDK ralph", () => {
       cwd: "/repo",
       model: "gpt-5.2",
       mode: "yolo",
+      hooks: { from: "claude" },
       runtime: "docker",
       runtimeImage: "poe-code:test",
       detach: true
@@ -130,6 +132,69 @@ describe("SDK ralph", () => {
       stderr: "",
       exitCode: 0
     });
+
+    await capturedOptions?.runAgent?.({
+      agent: "codex",
+      prompt: "Improve without hooks",
+      cwd: "/repo",
+      model: "gpt-5.2"
+    });
+
+    expect(spawnAutonomousMock).toHaveBeenLastCalledWith("codex", {
+      prompt: "Improve without hooks",
+      cwd: "/repo",
+      model: "gpt-5.2",
+      mode: "yolo",
+      runtime: "docker",
+      runtimeImage: "poe-code:test",
+      detach: true
+    });
+  });
+
+  it("uses autonomous spawn for hook-enabled e2b Ralph iterations", async () => {
+    let capturedOptions: RalphRunOptions | undefined;
+
+    spawnAutonomousMock.mockResolvedValue({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+    runWorkspaceRalphMock.mockImplementationOnce(async (options: RalphRunOptions) => {
+      capturedOptions = options;
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Bridge hooks",
+        cwd: "/tmp/ralph",
+        hooks: { from: "claude" }
+      });
+      return {
+        stopReason: "max_iterations",
+        docPath: "/tmp/ralph/plan.md",
+        iterationsCompleted: 1,
+        totalDurationMs: 1_000
+      };
+    });
+
+    await runRalph({
+      cwd: "/tmp/ralph",
+      homeDir: "/home/test",
+      docPath: "/tmp/ralph/plan.md",
+      runtime: "e2b",
+      runtimeTemplate: "tmpl_test"
+    });
+
+    expect(capturedOptions?.runAgent).toEqual(expect.any(Function));
+    expect(spawnAutonomousMock).toHaveBeenCalledWith("codex", {
+      prompt: "Bridge hooks",
+      cwd: "/tmp/ralph",
+      model: undefined,
+      mode: "yolo",
+      hooks: { from: "claude" },
+      runtime: "e2b",
+      runtimeTemplate: "tmpl_test"
+    });
+    expect(createPoeCommandSessionMock).not.toHaveBeenCalled();
+    expect(buildSpawnArgsMock).not.toHaveBeenCalled();
   });
 
   it("reuses one e2b command session for the default Ralph runner", async () => {

@@ -109,6 +109,7 @@ function createRalphDashboardRunAgent(options: {
             cwd: input.cwd,
             model: input.model,
             mode: "yolo",
+            ...(input.hooks ? { hooks: input.hooks } : {}),
             ...options.runtimeOptions,
             ...(input.runtimeConfigCwd ? { runtimeConfigCwd: input.runtimeConfigCwd } : {}),
             ...(input.signal ? { signal: input.signal } : {}),

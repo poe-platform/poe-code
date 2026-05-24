@@ -74,7 +74,8 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
             fresh.agents,
             fresh.maxIterations,
             fresh.prompt,
-            fresh.skills
+            fresh.skills,
+            fresh.hooks
           ),
           body: fresh.prompt
         };
@@ -101,6 +102,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
             ...(options.runnerSync ? { runnerSync: options.runnerSync } : {}),
             ...((specifier.model ?? input.model) ? { model: specifier.model ?? input.model } : {}),
             ...(input.skills ? { skills: input.skills } : {}),
+            ...(input.hooks ? { hooks: input.hooks } : {}),
             ...(input.signal ? { signal: input.signal } : {})
           });
 
@@ -246,6 +248,7 @@ async function resolveDocumentConfigFromContent(
   agents: AgentSpecifier[];
   maxIterations: number;
   skills?: string[];
+  hooks?: ReturnType<typeof parseFrontmatterData>["hooks"];
   prompt: string;
 }> {
   const resolved = await resolve(
@@ -284,6 +287,7 @@ async function resolveDocumentConfigFromContent(
     agents: normalizeAgents(frontmatter.agent),
     maxIterations: normalizeMaxIterations(frontmatter.iterations),
     ...(frontmatter.skills !== undefined ? { skills: frontmatter.skills } : {}),
+    ...(frontmatter.hooks !== undefined ? { hooks: frontmatter.hooks } : {}),
     prompt: interpolateVariables(normalizeResolvedPrompt(resolved.data.prompt), {
       current_file: absoluteDocPath
     })
@@ -298,6 +302,7 @@ async function resolveDocumentConfig(
   agents: AgentSpecifier[];
   maxIterations: number;
   skills?: string[];
+  hooks?: ReturnType<typeof parseFrontmatterData>["hooks"];
   prompt: string;
 }> {
   const rawContent = await fs.readFile(absoluteDocPath, "utf8");
@@ -308,7 +313,8 @@ function createWorkflowFrontmatter(
   agents: AgentSpecifier[],
   maxIterations: number,
   prompt: string,
-  skills: string[] | undefined
+  skills: string[] | undefined,
+  hooks: ReturnType<typeof parseFrontmatterData>["hooks"]
 ): {
   participants: {
     default: {
@@ -322,6 +328,7 @@ function createWorkflowFrontmatter(
       participant: "default";
       prompt: string;
       skills?: string[];
+      hooks?: ReturnType<typeof parseFrontmatterData>["hooks"];
       onFailure: "stop";
     }
   ];
@@ -342,6 +349,7 @@ function createWorkflowFrontmatter(
         participant: "default",
         prompt,
         ...(skills !== undefined ? { skills } : {}),
+        ...(hooks !== undefined ? { hooks } : {}),
         onFailure: "stop"
       }
     ],

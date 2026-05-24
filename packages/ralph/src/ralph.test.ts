@@ -48,7 +48,7 @@ function createRunFs(files: Record<string, string>) {
 
   return {
     rawFs,
-    fs: ({
+    fs: {
       readFile: (filePath: string, encoding: BufferEncoding) =>
         rawFs.readFile(filePath, encoding) as Promise<string>,
       writeFile: async (filePath: string, content: string) => {
@@ -82,7 +82,7 @@ function createRunFs(files: Record<string, string>) {
         });
         await rawFs.rename(oldPath, newPath);
       }
-    }) as RalphRunOptions["fs"]
+    } as RalphRunOptions["fs"]
   };
 }
 
@@ -363,6 +363,64 @@ describe("parseFrontmatter", () => {
     });
   });
 
+  it("parses hooks from Ralph plan frontmatter", () => {
+    const doc = ["---", "hooks:", "  from: claude", "---", "Body"].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(result.data).toMatchObject({
+      hooks: { from: "claude" }
+    });
+  });
+
+  it("parses optional hook bridge configuration", () => {
+    const doc = [
+      "---",
+      "hooks:",
+      "  from: claude",
+      "  strategy: transform",
+      "  scope: merged",
+      "---",
+      "Body"
+    ].join("\n");
+
+    expect(parseFrontmatter(doc).data.hooks).toEqual({
+      from: "claude",
+      strategy: "transform",
+      scope: "merged"
+    });
+  });
+
+  it.each([
+    {
+      name: "missing from",
+      yaml: ["hooks:", "  scope: project"],
+      message: '"hooks.from" must be a non-empty string'
+    },
+    {
+      name: "invalid strategy",
+      yaml: ["hooks:", "  from: claude", "  strategy: copy"],
+      message: '"hooks.strategy" must be "auto", "symlink", or "transform"'
+    },
+    {
+      name: "invalid scope",
+      yaml: ["hooks:", "  from: claude", "  scope: team"],
+      message: '"hooks.scope" must be "project", "user", or "merged"'
+    }
+  ])("rejects hooks with $name", ({ yaml, message }) => {
+    const doc = ["---", ...yaml, "---", "Body"].join("\n");
+
+    expect(() => parseFrontmatter(doc)).toThrow(message);
+  });
+
+  it("leaves plans without hooks unchanged", () => {
+    const doc = ["---", "agent: codex", "---", "Body"].join("\n");
+
+    const result = parseFrontmatter(doc);
+
+    expect(Object.hasOwn(result.data, "hooks")).toBe(false);
+  });
+
   it("rejects malformed skill references", () => {
     expect(() =>
       parseFrontmatter(
@@ -380,15 +438,9 @@ describe("parseFrontmatter", () => {
 
     expect(() =>
       parseFrontmatter(
-        [
-          "---",
-          "skills: foo",
-          "status:",
-          "  state: open",
-          "  iteration: 0",
-          "---",
-          "Body"
-        ].join("\n")
+        ["---", "skills: foo", "status:", "  state: open", "  iteration: 0", "---", "Body"].join(
+          "\n"
+        )
       )
     ).toThrow(/must be an array of strings/i);
   });
@@ -629,12 +681,7 @@ describe("createRalphSimulation", () => {
 
   it("passes skills to the agent runner", async () => {
     const sim = createRalphSimulation({
-      docContent: [
-        "---",
-        "skills: [foo, claude/bar]",
-        "---",
-        "Use focused skills"
-      ].join("\n"),
+      docContent: ["---", "skills: [foo, claude/bar]", "---", "Use focused skills"].join("\n"),
       maxIterations: 2,
       turns: [successTurn(), successTurn()]
     });
@@ -657,6 +704,30 @@ describe("createRalphSimulation", () => {
     const { runs } = await sim.run();
 
     expect(Object.hasOwn(runs[0]!, "skills")).toBe(false);
+  });
+
+  it("passes hooks to the agent runner", async () => {
+    const sim = createRalphSimulation({
+      docContent: ["---", "hooks:", "  from: claude", "---", "Use hooks"].join("\n"),
+      maxIterations: 1,
+      turns: [successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(runs[0]).toMatchObject({ hooks: { from: "claude" } });
+  });
+
+  it("omits hooks from agent runner input when the plan has no hooks field", async () => {
+    const sim = createRalphSimulation({
+      docContent: "No hooks",
+      maxIterations: 1,
+      turns: [successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(Object.hasOwn(runs[0]!, "hooks")).toBe(false);
   });
 
   it("rejects an empty agent array", async () => {
@@ -850,9 +921,7 @@ describe("createRalphSimulation", () => {
       "03-third.md",
       "archive"
     ]);
-    expect((await fs.readdir("/repo/.poe-code/ralph/plans/archive")).sort()).toEqual([
-      "second.md"
-    ]);
+    expect((await fs.readdir("/repo/.poe-code/ralph/plans/archive")).sort()).toEqual(["second.md"]);
 
     const archived = await readFile(".poe-code/ralph/plans/archive/second.md");
     const { data, body } = parseFrontmatter(archived);

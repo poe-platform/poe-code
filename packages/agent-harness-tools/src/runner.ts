@@ -1,9 +1,11 @@
-import { runWorkflowHook, type RunAgentFn, type WorkflowHook } from "./hooks.js";
-import { lockWorkflow } from "./lock.js";
 import {
-  normalizeParticipantConfig,
-  type WorkflowParticipant
-} from "./participant.js";
+  runWorkflowHook,
+  type RunAgentFn,
+  type RunAgentHooks,
+  type WorkflowHook
+} from "./hooks.js";
+import { lockWorkflow } from "./lock.js";
+import { normalizeParticipantConfig, type WorkflowParticipant } from "./participant.js";
 import { runWorkflowStage, type WorkflowStage } from "./stage.js";
 
 export interface WorkflowFileStat {
@@ -27,15 +29,10 @@ export interface DocumentWorkflowOptions {
   runAgent: RunAgentFn;
   readConfig: (
     content: string
-  ) =>
-    | { frontmatter: any; body: string }
-    | Promise<{ frontmatter: any; body: string }>;
+  ) => { frontmatter: any; body: string } | Promise<{ frontmatter: any; body: string }>;
   signal?: AbortSignal;
   onIterationStart?: (iteration: number) => void | Promise<void>;
-  onIterationEnd?: (
-    iteration: number,
-    result: IterationResult
-  ) => void | Promise<void>;
+  onIterationEnd?: (iteration: number, result: IterationResult) => void | Promise<void>;
 }
 
 export type IterationResult = "completed" | "nothing_to_run" | "failed";
@@ -98,9 +95,7 @@ function parseWorkflowHook(value: unknown, fieldName: string): WorkflowHook | un
     value.mode !== "edit" &&
     value.mode !== "yolo"
   ) {
-    throw new Error(
-      `Workflow "${fieldName}" mode must be "read", "edit", or "yolo".`
-    );
+    throw new Error(`Workflow "${fieldName}" mode must be "read", "edit", or "yolo".`);
   }
 
   return {
@@ -111,7 +106,10 @@ function parseWorkflowHook(value: unknown, fieldName: string): WorkflowHook | un
 }
 
 type LockCapableWorkflowFs = {
-  open(path: string, flags: string): Promise<{
+  open(
+    path: string,
+    flags: string
+  ): Promise<{
     close(): Promise<void>;
     writeFile(
       data: string,
@@ -134,9 +132,7 @@ function parseWorkflowStage(value: unknown, index: number): WorkflowStage {
   }
 
   if (typeof value.participant !== "string" || value.participant.length === 0) {
-    throw new Error(
-      `Workflow stage "${value.id}" must define a non-empty participant.`
-    );
+    throw new Error(`Workflow stage "${value.id}" must define a non-empty participant.`);
   }
 
   if (value.prompt !== undefined && typeof value.prompt !== "string") {
@@ -149,9 +145,7 @@ function parseWorkflowStage(value: unknown, index: number): WorkflowStage {
     value.mode !== "edit" &&
     value.mode !== "yolo"
   ) {
-    throw new Error(
-      `Workflow stage "${value.id}" mode must be "read", "edit", or "yolo".`
-    );
+    throw new Error(`Workflow stage "${value.id}" mode must be "read", "edit", or "yolo".`);
   }
 
   if (
@@ -159,12 +153,11 @@ function parseWorkflowStage(value: unknown, index: number): WorkflowStage {
     value.onFailure !== "stop" &&
     value.onFailure !== "continue"
   ) {
-    throw new Error(
-      `Workflow stage "${value.id}" onFailure must be "stop" or "continue".`
-    );
+    throw new Error(`Workflow stage "${value.id}" onFailure must be "stop" or "continue".`);
   }
 
   const skills = parseSkills(value.skills, `Workflow stage "${value.id}"`);
+  const hooks = parseHooks(value.hooks, `Workflow stage "${value.id}"`);
 
   return {
     id: value.id,
@@ -172,6 +165,7 @@ function parseWorkflowStage(value: unknown, index: number): WorkflowStage {
     ...(value.prompt !== undefined ? { prompt: value.prompt } : {}),
     ...(value.mode !== undefined ? { mode: value.mode } : {}),
     ...(skills !== undefined ? { skills } : {}),
+    ...(hooks !== undefined ? { hooks } : {}),
     ...(value.onFailure !== undefined ? { onFailure: value.onFailure } : {})
   };
 }
@@ -204,6 +198,39 @@ function parseSkills(value: unknown, label: string): string[] | undefined {
   return value;
 }
 
+function parseHooks(value: unknown, label: string): RunAgentHooks | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isRecord(value)) {
+    throw new Error(`${label} hooks must be an object.`);
+  }
+  if (typeof value.from !== "string" || value.from.length === 0) {
+    throw new Error(`${label} hooks from must be a non-empty string.`);
+  }
+  if (
+    value.strategy !== undefined &&
+    value.strategy !== "auto" &&
+    value.strategy !== "symlink" &&
+    value.strategy !== "transform"
+  ) {
+    throw new Error(`${label} hooks strategy must be "auto", "symlink", or "transform".`);
+  }
+  if (
+    value.scope !== undefined &&
+    value.scope !== "project" &&
+    value.scope !== "user" &&
+    value.scope !== "merged"
+  ) {
+    throw new Error(`${label} hooks scope must be "project", "user", or "merged".`);
+  }
+  return {
+    from: value.from,
+    ...(value.strategy !== undefined ? { strategy: value.strategy } : {}),
+    ...(value.scope !== undefined ? { scope: value.scope } : {})
+  };
+}
+
 function parseParticipants(value: unknown): Record<string, WorkflowParticipant> {
   if (value === undefined || value === null) {
     return {};
@@ -215,10 +242,7 @@ function parseParticipants(value: unknown): Record<string, WorkflowParticipant> 
 
   const participants: Record<string, WorkflowParticipant> = {};
   for (const [participantId, participantConfig] of Object.entries(value)) {
-    participants[participantId] = normalizeParticipantConfig(
-      participantId,
-      participantConfig
-    );
+    participants[participantId] = normalizeParticipantConfig(participantId, participantConfig);
   }
 
   return participants;
@@ -271,15 +295,10 @@ function mergeErrors(primary: unknown, secondary: unknown): unknown {
     return secondary;
   }
 
-  return new AggregateError(
-    [primary, secondary],
-    "Workflow execution and teardown both failed."
-  );
+  return new AggregateError([primary, secondary], "Workflow execution and teardown both failed.");
 }
 
-export async function runDocumentWorkflow(
-  options: DocumentWorkflowOptions
-): Promise<void> {
+export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Promise<void> {
   const readWorkflow = async (): Promise<ParsedWorkflowDocument> => {
     const content = await options.fs.readFile(options.docPath, "utf8");
     const { frontmatter } = await options.readConfig(content);

@@ -431,6 +431,7 @@ describe("ralphDriver", () => {
               model: "openai/gpt-5.4",
               mode: "yolo",
               cwd: "/repo/workspaces/task-1",
+              hooks: { from: "claude" },
               signal: controller.signal
             });
           }
@@ -444,7 +445,8 @@ describe("ralphDriver", () => {
             agent: "codex",
             model: "openai/gpt-5.4",
             mode: "yolo",
-            prompt: "Forward this prompt"
+            prompt: "Forward this prompt",
+            hooks: { from: "claude" }
           }
         ]
       })

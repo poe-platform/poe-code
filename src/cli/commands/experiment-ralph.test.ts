@@ -2694,6 +2694,7 @@ describe("ralph run command", () => {
         agent: "claude-code",
         prompt: "Inspect the plan doc",
         cwd,
+        hooks: { from: "claude" },
         signal: options.signal
       });
       options.onIterationComplete?.(1, 2_000, true);
@@ -2744,6 +2745,7 @@ describe("ralph run command", () => {
         prompt: "Inspect the plan doc",
         cwd,
         mode: "yolo",
+        hooks: { from: "claude" },
         signal: expect.any(AbortSignal),
         useStdin: true,
         tee: expect.objectContaining({

@@ -117,6 +117,7 @@ async function runAgent(
     prompt: input.prompt,
     model: input.model,
     mode: input.mode,
+    ...(input.hooks ? { hooks: input.hooks } : {}),
     signal: input.signal
   });
 

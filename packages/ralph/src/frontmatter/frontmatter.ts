@@ -1,4 +1,5 @@
 import { parse, stringify } from "yaml";
+import type { RalphHooks } from "../types.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
 
@@ -28,6 +29,7 @@ export interface RalphFrontmatter {
   extends?: boolean;
   iterations?: number;
   skills?: string[];
+  hooks?: RalphHooks;
   status: {
     state: RalphPlanStatus;
     iteration: number;
@@ -84,6 +86,25 @@ export const ralphDocumentSchema: JsonSchema = {
         type: "string",
         minLength: 1
       }
+    },
+    hooks: {
+      type: "object",
+      properties: {
+        from: {
+          type: "string",
+          minLength: 1
+        },
+        strategy: {
+          type: "string",
+          enum: ["auto", "symlink", "transform"]
+        },
+        scope: {
+          type: "string",
+          enum: ["project", "user", "merged"]
+        }
+      },
+      required: ["from"],
+      additionalProperties: false
     },
     status: {
       type: "object",
@@ -150,6 +171,7 @@ export function writeFrontmatter(data: RalphFrontmatter, body: string): string {
     ...(data.extends !== undefined ? { extends: data.extends } : {}),
     ...(data.iterations !== undefined ? { iterations: data.iterations } : {}),
     ...(data.skills !== undefined ? { skills: data.skills } : {}),
+    ...(data.hooks !== undefined ? { hooks: data.hooks } : {}),
     status: {
       state: data.status.state,
       iteration: data.status.iteration
@@ -184,12 +206,14 @@ export function parseFrontmatterData(value: unknown): RalphFrontmatter {
   const extendsValue = parseBoolean(parsed?.extends);
   const iterations = parsePositiveInteger(parsed?.iterations);
   const skills = parseSkills(parsed?.skills);
+  const hooks = parseHooks(parsed?.hooks);
 
   return {
     ...(agent !== undefined ? { agent } : {}),
     ...(extendsValue !== undefined ? { extends: extendsValue } : {}),
     ...(iterations !== undefined ? { iterations } : {}),
     ...(skills !== undefined ? { skills } : {}),
+    ...(hooks !== undefined ? { hooks } : {}),
     status: {
       state,
       iteration
@@ -254,6 +278,48 @@ function parseSkills(value: unknown): string[] | undefined {
   }
 
   return value;
+}
+
+function parseHooks(value: unknown): RalphHooks | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  if (!isRecord(value)) {
+    throw new Error('Invalid Ralph frontmatter: "hooks" must be an object.');
+  }
+
+  if (typeof value.from !== "string" || value.from.trim().length === 0) {
+    throw new Error('Invalid Ralph frontmatter: "hooks.from" must be a non-empty string.');
+  }
+
+  if (
+    value.strategy !== undefined &&
+    value.strategy !== "auto" &&
+    value.strategy !== "symlink" &&
+    value.strategy !== "transform"
+  ) {
+    throw new Error(
+      'Invalid Ralph frontmatter: "hooks.strategy" must be "auto", "symlink", or "transform".'
+    );
+  }
+
+  if (
+    value.scope !== undefined &&
+    value.scope !== "project" &&
+    value.scope !== "user" &&
+    value.scope !== "merged"
+  ) {
+    throw new Error(
+      'Invalid Ralph frontmatter: "hooks.scope" must be "project", "user", or "merged".'
+    );
+  }
+
+  return {
+    from: value.from.trim(),
+    ...(value.strategy !== undefined ? { strategy: value.strategy } : {}),
+    ...(value.scope !== undefined ? { scope: value.scope } : {})
+  };
 }
 
 function parsePlanStatus(value: unknown): RalphPlanStatus | undefined {

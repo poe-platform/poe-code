@@ -14,12 +14,19 @@ export interface RalphFileSystem {
   rename(oldPath: string, newPath: string): Promise<void>;
 }
 
+export interface RalphHooks {
+  from: string;
+  strategy?: "auto" | "symlink" | "transform";
+  scope?: "project" | "user" | "merged";
+}
+
 export interface AgentRunInput {
   agent: string;
   prompt: string;
   cwd: string;
   model?: string;
   skills?: string[];
+  hooks?: RalphHooks;
   runtime?: "host" | "docker" | "e2b";
   runtimeImage?: string;
   runtimeTemplate?: string;

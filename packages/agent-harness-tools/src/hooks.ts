@@ -1,9 +1,12 @@
-import {
-  selectParticipantAgent,
-  type WorkflowParticipant
-} from "./participant.js";
+import { selectParticipantAgent, type WorkflowParticipant } from "./participant.js";
 
 export type WorkflowMode = "read" | "edit" | "yolo";
+
+export interface RunAgentHooks {
+  from: string;
+  strategy?: "auto" | "symlink" | "transform";
+  scope?: "project" | "user" | "merged";
+}
 
 export interface WorkflowHook {
   participant?: string;
@@ -18,6 +21,7 @@ export interface RunAgentInput {
   cwd: string;
   model?: string;
   skills?: string[];
+  hooks?: RunAgentHooks;
   signal?: AbortSignal;
 }
 
@@ -62,10 +66,7 @@ function resolveHookParticipant(
   return participant;
 }
 
-export async function runWorkflowHook(
-  hook: WorkflowHook,
-  context: HookContext
-): Promise<void> {
+export async function runWorkflowHook(hook: WorkflowHook, context: HookContext): Promise<void> {
   const participant = resolveHookParticipant(hook, context.participants);
   const mode = hook.mode ?? participant.mode;
 

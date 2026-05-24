@@ -1,13 +1,5 @@
-export {
-  discoverWorkflowDocs,
-  resolveWorkflowPath,
-  type DiscoverDocsOptions
-} from "./paths.js";
-export {
-  archivePlan,
-  discoverPlans,
-  openPlanList
-} from "./plans.js";
+export { discoverWorkflowDocs, resolveWorkflowPath, type DiscoverDocsOptions } from "./paths.js";
+export { archivePlan, discoverPlans, openPlanList } from "./plans.js";
 export type {
   ArchivePlanOptions,
   DiscoverPlansOptions,
@@ -24,15 +16,12 @@ export {
   runWorkflowHook,
   type HookContext,
   type RunAgentFn,
+  type RunAgentHooks,
   type RunAgentInput,
   type WorkflowHook,
   type WorkflowMode
 } from "./hooks.js";
-export {
-  runWorkflowStage,
-  type StageContext,
-  type WorkflowStage
-} from "./stage.js";
+export { runWorkflowStage, type StageContext, type WorkflowStage } from "./stage.js";
 export { lockWorkflow, type LockOptions } from "./lock.js";
 export {
   runDocumentWorkflow,
@@ -41,10 +30,7 @@ export {
   type WorkflowFileStat,
   type WorkflowFileSystem
 } from "./runner.js";
-export {
-  runDocumentWorkflowSequence,
-  type DocumentWorkflowSequenceOptions
-} from "./sequence.js";
+export { runDocumentWorkflowSequence, type DocumentWorkflowSequenceOptions } from "./sequence.js";
 export {
   makeRunLogFileName,
   resolveRunLogDir,

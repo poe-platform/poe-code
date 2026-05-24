@@ -44,6 +44,7 @@ function createDefaultRalphRunAgent(
       cwd: input.cwd,
       model: input.model,
       mode: "yolo",
+      ...(input.hooks ? { hooks: input.hooks } : {}),
       ...(options.runtime ? { runtime: options.runtime } : {}),
       ...(options.runtimeImage ? { runtimeImage: options.runtimeImage } : {}),
       ...(options.runtimeTemplate ? { runtimeTemplate: options.runtimeTemplate } : {}),
@@ -59,12 +60,17 @@ function createReusableE2bRalphRunner(options: RalphRunOptions): {
   runAgent: NonNullable<RalphRunOptions["runAgent"]>;
   close(): Promise<void>;
 } {
+  const autonomousRunAgent = createDefaultRalphRunAgent(options);
   let session: PoeCommandSession | null = null;
   let sessionFactory: unknown;
   let sessionState: ReturnType<typeof resolvePoeCommandExecution>["state"] | undefined;
 
   return {
     async runAgent(input) {
+      if (input.hooks !== undefined) {
+        return autonomousRunAgent(input);
+      }
+
       await ensurePoeApiKey();
       const spawnArgs = buildSpawnArgs(input.agent, {
         prompt: input.prompt,

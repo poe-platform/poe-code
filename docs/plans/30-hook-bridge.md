@@ -998,9 +998,9 @@ tasks:
 
       `memfs` for disk-based plan-parsing tests.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: e2e-spawn-test-hook-bridge
     title: End-to-end test that poe-code test command bridges hooks

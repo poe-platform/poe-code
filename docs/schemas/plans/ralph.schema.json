@@ -27,6 +27,35 @@
     "extends": {
       "type": "boolean"
     },
+    "hooks": {
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope": {
+          "type": "string",
+          "enum": [
+            "project",
+            "user",
+            "merged"
+          ]
+        },
+        "strategy": {
+          "type": "string",
+          "enum": [
+            "auto",
+            "symlink",
+            "transform"
+          ]
+        }
+      },
+      "required": [
+        "from"
+      ],
+      "additionalProperties": false
+    },
     "iterations": {
       "type": "integer",
       "minimum": 1

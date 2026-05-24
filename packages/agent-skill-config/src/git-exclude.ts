@@ -4,7 +4,7 @@ import path from "node:path";
 
 export type GitDirRunner = (cwd: string) => string | undefined;
 
-const markerPrefix = "# poe-code-spawn-skills:";
+const defaultMarkerPrefix = "poe-code-spawn-skills";
 
 function defaultGitDirRunner(cwd: string): string | undefined {
   try {
@@ -37,10 +37,10 @@ function resolveExcludePath(cwd: string): string | undefined {
   return path.join(path.isAbsolute(gitDir) ? gitDir : path.resolve(cwd, gitDir), "info/exclude");
 }
 
-function markers(runId: string): { begin: string; end: string } {
+function markers(runId: string, markerPrefix: string): { begin: string; end: string } {
   return {
-    begin: `${markerPrefix}${runId} begin`,
-    end: `${markerPrefix}${runId} end`
+    begin: `# ${markerPrefix}:${runId} begin`,
+    end: `# ${markerPrefix}:${runId} end`
   };
 }
 
@@ -59,8 +59,8 @@ function isNodeError(error: unknown): error is NodeJS.ErrnoException {
   return error instanceof Error && "code" in error;
 }
 
-function removeBlock(content: string, runId: string): string {
-  const { begin, end } = markers(runId);
+function removeBlock(content: string, runId: string, markerPrefix: string): string {
+  const { begin, end } = markers(runId, markerPrefix);
   const lines = content.split("\n");
   const result: string[] = [];
 
@@ -79,14 +79,24 @@ function removeBlock(content: string, runId: string): string {
   return result.join("\n");
 }
 
-function appendBlock(content: string | undefined, runId: string, entries: string[]): string {
-  const { begin, end } = markers(runId);
+function appendBlock(
+  content: string | undefined,
+  runId: string,
+  entries: string[],
+  markerPrefix: string
+): string {
+  const { begin, end } = markers(runId, markerPrefix);
   const existing = content ?? "";
   const prefix = existing.length === 0 || existing.endsWith("\n") ? existing : `${existing}\n`;
   return `${prefix}${[begin, ...entries, end, ""].join("\n")}`;
 }
 
-export function appendExcludeBlock(cwd: string, runId: string, entries: string[]): void {
+export function appendExcludeBlock(
+  cwd: string,
+  runId: string,
+  entries: string[],
+  markerPrefix = defaultMarkerPrefix
+): void {
   const excludePath = resolveExcludePath(cwd);
   if (excludePath === undefined) {
     return;
@@ -94,10 +104,14 @@ export function appendExcludeBlock(cwd: string, runId: string, entries: string[]
 
   fs.mkdirSync(path.dirname(excludePath), { recursive: true });
   const content = readExcludeFile(excludePath);
-  fs.writeFileSync(excludePath, appendBlock(content, runId, entries), "utf8");
+  fs.writeFileSync(excludePath, appendBlock(content, runId, entries, markerPrefix), "utf8");
 }
 
-export function removeExcludeBlock(cwd: string, runId: string): void {
+export function removeExcludeBlock(
+  cwd: string,
+  runId: string,
+  markerPrefix = defaultMarkerPrefix
+): void {
   const excludePath = resolveExcludePath(cwd);
   if (excludePath === undefined) {
     return;
@@ -108,5 +122,5 @@ export function removeExcludeBlock(cwd: string, runId: string): void {
     return;
   }
 
-  fs.writeFileSync(excludePath, removeBlock(content, runId), "utf8");
+  fs.writeFileSync(excludePath, removeBlock(content, runId, markerPrefix), "utf8");
 }

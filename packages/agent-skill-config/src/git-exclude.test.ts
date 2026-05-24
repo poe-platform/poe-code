@@ -62,6 +62,22 @@ describe("git exclude blocks", () => {
     );
   });
 
+  it("uses an optional marker prefix for sibling bridge features", () => {
+    appendExcludeBlock(cwd, "run-1", [".codex/hooks.json"], "poe-code-spawn-hooks");
+
+    expect(vol.readFileSync(excludePath, "utf8")).toBe(
+      [
+        "# poe-code-spawn-hooks:run-1 begin",
+        ".codex/hooks.json",
+        "# poe-code-spawn-hooks:run-1 end",
+        ""
+      ].join("\n")
+    );
+
+    removeExcludeBlock(cwd, "run-1", "poe-code-spawn-hooks");
+    expect(vol.readFileSync(excludePath, "utf8")).toBe("");
+  });
+
   it("resolves relative git dirs from cwd", () => {
     restoreRunner();
     restoreRunner = setGitDirRunnerForTest(() => ".git");

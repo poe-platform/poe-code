@@ -755,8 +755,8 @@ tasks:
 
       Export from `index.ts`.
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: git-exclude-helper-parametrize

@@ -1,4 +1,5 @@
 export * from "./configs.js";
+export * from "./bridge-hooks.js";
 export * from "./event-mapping.js";
 export * from "./read-hooks.js";
 export * from "./symlink-hooks.js";

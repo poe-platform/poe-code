@@ -970,9 +970,9 @@ tasks:
 
       `memfs` for any disk-based YAML test.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: ralph-step-hooks
     title: hooks field on ralph plan/step flows to spawn

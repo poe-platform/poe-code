@@ -9,6 +9,7 @@ import type {
   StepDefinition,
   StepDefinitionOverride,
   StepDefinitionOverrides,
+  StepHooks,
   StepMode
 } from "../types.js";
 import { isRecord } from "../utils.js";
@@ -42,6 +43,17 @@ const pipelineStatusSchema: JsonSchema = {
   enum: ["open", "done", "failed"]
 };
 
+const stepHooksSchema: JsonSchema = {
+  type: "object",
+  properties: {
+    from: { type: "string", minLength: 1 },
+    strategy: { type: "string", enum: ["auto", "symlink", "transform"] },
+    scope: { type: "string", enum: ["project", "user", "merged"] }
+  },
+  required: ["from"],
+  additionalProperties: false
+};
+
 const stepDefinitionSchema: JsonSchema = {
   type: "object",
   properties: {
@@ -68,7 +80,8 @@ const stepDefinitionSchema: JsonSchema = {
         type: "string",
         minLength: 1
       }
-    }
+    },
+    hooks: stepHooksSchema
   },
   required: ["prompt"],
   additionalProperties: false
@@ -99,7 +112,8 @@ const stepDefinitionOverrideSchema: JsonSchema = {
         type: "string",
         minLength: 1
       }
-    }
+    },
+    hooks: stepHooksSchema
   },
   additionalProperties: false
 };
@@ -319,11 +333,48 @@ function parseSkills(value: unknown, label: string): string[] | undefined {
   return value;
 }
 
-function parseOptionalAgentFields(
+function parseHooks(value: unknown, label: string): StepHooks | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isRecord(value)) {
+    throw new Error(`Invalid plan YAML: "${label}.hooks" must be an object.`);
+  }
+  if (typeof value.from !== "string" || value.from.length === 0) {
+    throw new Error(`Invalid plan YAML: "${label}.hooks.from" must be a non-empty string.`);
+  }
+  if (
+    value.strategy !== undefined &&
+    value.strategy !== "auto" &&
+    value.strategy !== "symlink" &&
+    value.strategy !== "transform"
+  ) {
+    throw new Error(
+      `Invalid plan YAML: "${label}.hooks.strategy" must be "auto", "symlink", or "transform".`
+    );
+  }
+  if (
+    value.scope !== undefined &&
+    value.scope !== "project" &&
+    value.scope !== "user" &&
+    value.scope !== "merged"
+  ) {
+    throw new Error(
+      `Invalid plan YAML: "${label}.hooks.scope" must be "project", "user", or "merged".`
+    );
+  }
+  return {
+    from: value.from,
+    ...(value.strategy !== undefined ? { strategy: value.strategy } : {}),
+    ...(value.scope !== undefined ? { scope: value.scope } : {})
+  };
+}
+
+function parseOptionalStepFields(
   value: Record<string, unknown>,
   label: string
-): Pick<StepDefinitionOverride, "agent" | "model" | "skills"> {
-  const result: Pick<StepDefinitionOverride, "agent" | "model" | "skills"> = {};
+): Pick<StepDefinitionOverride, "agent" | "model" | "skills" | "hooks"> {
+  const result: Pick<StepDefinitionOverride, "agent" | "model" | "skills" | "hooks"> = {};
 
   if (value.agent !== undefined) {
     if (typeof value.agent !== "string" || value.agent.length === 0) {
@@ -344,6 +395,11 @@ function parseOptionalAgentFields(
     result.skills = skills;
   }
 
+  const hooks = parseHooks(value.hooks, label);
+  if (hooks !== undefined) {
+    result.hooks = hooks;
+  }
+
   return result;
 }
 
@@ -353,7 +409,7 @@ function parseStepOverride(value: unknown, label: string): StepDefinitionOverrid
   }
 
   const result: StepDefinitionOverride = {
-    ...parseOptionalAgentFields(value, label)
+    ...parseOptionalStepFields(value, label)
   };
 
   const mode = parseStepMode(value.mode, label);
@@ -382,7 +438,8 @@ function parseStepDef(value: unknown, label: string): StepDefinition {
     prompt: override.prompt,
     ...(override.agent ? { agent: override.agent } : {}),
     ...(override.model ? { model: override.model } : {}),
-    ...(override.skills ? { skills: override.skills } : {})
+    ...(override.skills ? { skills: override.skills } : {}),
+    ...(override.hooks ? { hooks: override.hooks } : {})
   };
 }
 

@@ -19,11 +19,7 @@ import {
 } from "@poe-code/agent-defs";
 import { renderAcpEvent, type AcpEvent, type AcpMiddleware } from "@poe-code/agent-spawn";
 import { skillPlanConfigSection } from "@poe-code/agent-harness-tools";
-import {
-  installSkill,
-  resolveAgentSupport,
-  type SkillScope
-} from "@poe-code/agent-skill-config";
+import { installSkill, resolveAgentSupport, type SkillScope } from "@poe-code/agent-skill-config";
 import {
   mergePipelineCallbacks,
   readMergedDocument,
@@ -76,11 +72,7 @@ async function resolvePipelineCommandConfig(container: CliContainer): Promise<{
   tui: boolean;
 }> {
   const [configDoc, pipelineYamlConfig] = await Promise.all([
-    readMergedDocument(
-      container.fs,
-      container.env.configPath,
-      container.env.projectConfigPath
-    ),
+    readMergedDocument(container.fs, container.env.configPath, container.env.projectConfigPath),
     loadPipelineConfig({
       cwd: container.env.cwd,
       homeDir: container.env.homeDir,
@@ -240,8 +232,7 @@ function summarizePipelinePlan(plan: ReturnType<typeof parsePlan>): PlanSummary 
   };
 
   for (const task of plan.tasks) {
-    const statuses =
-      typeof task.status === "string" ? [task.status] : Object.values(task.status);
+    const statuses = typeof task.status === "string" ? [task.status] : Object.values(task.status);
     if (statuses.length > 0 && statuses.every((status) => status === "done")) {
       summary.done += 1;
     } else if (statuses.some((status) => status === "failed")) {
@@ -432,6 +423,7 @@ function createPipelineDashboardRunAgent(options: {
           logDir: input.logDir,
           model: input.model,
           mode: input.mode,
+          ...(input.hooks ? { hooks: input.hooks } : {}),
           ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
           ...(input.signal ? { signal: input.signal } : {}),
           ...(options.middlewares ? { middlewares: options.middlewares } : {}),
@@ -501,6 +493,7 @@ function createPipelineCliRunAgent(
       logDir: input.logDir,
       model: input.model,
       mode: input.mode,
+      ...(input.hooks ? { hooks: input.hooks } : {}),
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
       ...(input.signal ? { signal: input.signal } : {}),
       middlewares
@@ -642,14 +635,10 @@ async function runPipelineWithDashboard(
         syncStats();
       }
     };
-    const result = await runPipelineWithIntegrations(
-      options.integrations,
-      options.planPath,
-      {
-        ...runOptions,
-        ...mergePipelineCallbacks(runOptions, options.integrations?.pipelineCallbacks)
-      }
-    );
+    const result = await runPipelineWithIntegrations(options.integrations, options.planPath, {
+      ...runOptions,
+      ...mergePipelineCallbacks(runOptions, options.integrations?.pipelineCallbacks)
+    });
 
     status = dashboardStatusForResult(result);
     syncStats();
@@ -673,8 +662,10 @@ async function runPipelineWithIntegrations(
   name: string,
   options: PipelineRunOptions
 ): Promise<PipelineRunResult> {
-  return integrations?.traceRun("pipeline", name, () => sdkRunPipeline(options)) ??
-    sdkRunPipeline(options);
+  return (
+    integrations?.traceRun("pipeline", name, () => sdkRunPipeline(options)) ??
+    sdkRunPipeline(options)
+  );
 }
 
 function resolvePipelinePaths(
@@ -943,45 +934,41 @@ export function registerPipelineCommand(program: Command, container: CliContaine
                 runOptions,
                 ...(integrations ? { integrations } : {})
               })
-            : await runPipelineWithIntegrations(
-                integrations,
-                planPath,
-                {
-                  ...runOptions,
-                  onPlanReloadError(error: Error) {
-                    resources.logger.warn(
-                      `Plan reload failed, using last good state: ${error.message}`
-                    );
-                  },
-                  ...mergePipelineCallbacks(
-                    {
-                      onLockStatusChange(lockStatus: PipelineLockStatus) {
-                        resources.logger.info(lockStatus.message);
-                      },
-                      onPlanResolved(summary: PlanSummary) {
-                        resources.logger.resolved(
-                          "Config",
-                          formatPipelineConfigSummary({
-                            agent,
-                            model: options.model,
-                            planPath: summary.planPath,
-                            planIndex: index,
-                            totalPlans
-                          }).replaceAll(" · ", "\n   ")
-                        );
-                        resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
-                      },
-                      onTaskStart(progress: TaskProgress) {
-                        resources.logger.info(formatTaskStartMessage(progress));
-                      },
-                      onTaskComplete(progress: TaskCompletion) {
-                        resources.logger.info(formatTaskCompleteMessage(progress));
-                      }
+            : await runPipelineWithIntegrations(integrations, planPath, {
+                ...runOptions,
+                onPlanReloadError(error: Error) {
+                  resources.logger.warn(
+                    `Plan reload failed, using last good state: ${error.message}`
+                  );
+                },
+                ...mergePipelineCallbacks(
+                  {
+                    onLockStatusChange(lockStatus: PipelineLockStatus) {
+                      resources.logger.info(lockStatus.message);
                     },
-                    integrations?.pipelineCallbacks
-                  )
-                }
-              );
+                    onPlanResolved(summary: PlanSummary) {
+                      resources.logger.resolved(
+                        "Config",
+                        formatPipelineConfigSummary({
+                          agent,
+                          model: options.model,
+                          planPath: summary.planPath,
+                          planIndex: index,
+                          totalPlans
+                        }).replaceAll(" · ", "\n   ")
+                      );
+                      resources.logger.resolved("Tasks", formatPipelineTasksSummary(summary));
+                    },
+                    onTaskStart(progress: TaskProgress) {
+                      resources.logger.info(formatTaskStartMessage(progress));
+                    },
+                    onTaskComplete(progress: TaskCompletion) {
+                      resources.logger.info(formatTaskCompleteMessage(progress));
+                    }
+                  },
+                  integrations?.pipelineCallbacks
+                )
+              });
 
           const summary = formatRunSummary(result);
 
@@ -1374,7 +1361,10 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           }
         }
 
-        const legacyDefaultStepsExists = await pathExists(container.fs, pipelinePaths.legacyDefaultStepsPath);
+        const legacyDefaultStepsExists = await pathExists(
+          container.fs,
+          pipelinePaths.legacyDefaultStepsPath
+        );
         let stepsExists = await pathExists(container.fs, pipelinePaths.stepsPath);
 
         if (legacyDefaultStepsExists && !stepsExists) {
@@ -1383,7 +1373,10 @@ export function registerPipelineCommand(program: Command, container: CliContaine
               `Would rename: ${pipelinePaths.displayStepsPath} (migrate from steps/default.yaml)`
             );
           } else {
-            await container.fs.rename(pipelinePaths.legacyDefaultStepsPath, pipelinePaths.stepsPath);
+            await container.fs.rename(
+              pipelinePaths.legacyDefaultStepsPath,
+              pipelinePaths.stepsPath
+            );
             resources.logger.info(
               `Rename: steps/default.yaml -> ${pipelinePaths.displayStepsPath}`
             );

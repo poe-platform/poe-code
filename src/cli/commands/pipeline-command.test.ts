@@ -268,9 +268,7 @@ describe("pipeline run command", () => {
     expect(vi.mocked(sdkRunPipeline)).not.toHaveBeenCalled();
     expect(await fs.readFile("/repo/docs/plans/plan.md", "utf8")).toBe(planContent);
     expect(logs.some((message) => message.includes("Would run: docs/plans/plan.md"))).toBe(true);
-    expect(logs.some((message) => message.includes("Tasks: 0 done, 0 failed, 1 open"))).toBe(
-      true
-    );
+    expect(logs.some((message) => message.includes("Tasks: 0 done, 0 failed, 1 open"))).toBe(true);
   });
 
   it("runs integration pipeline callbacks after CLI callbacks when enabled", async () => {
@@ -553,12 +551,8 @@ describe("pipeline run command", () => {
     expect(
       logs.some((message) => message.includes("Total tokens: 5000 input, 2000 output, 1000 cached"))
     ).toBe(true);
-    expect(
-      logs.some((message) => message.includes("Tasks: 1 completed, 0 failed"))
-    ).toBe(true);
-    expect(
-      logs.some((message) => message.includes("Steps: 1 completed"))
-    ).toBe(true);
+    expect(logs.some((message) => message.includes("Tasks: 1 completed, 0 failed"))).toBe(true);
+    expect(logs.some((message) => message.includes("Steps: 1 completed"))).toBe(true);
   });
 
   it("reports pipeline failures without blocked retry messaging", async () => {
@@ -1211,6 +1205,7 @@ describe("pipeline run command", () => {
         mode: "yolo",
         cwd,
         model: "gpt-5.2",
+        hooks: { from: "claude", strategy: "transform", scope: "merged" },
         signal: options.signal
       });
 
@@ -1281,6 +1276,7 @@ describe("pipeline run command", () => {
         cwd,
         model: "gpt-5.2",
         mode: "yolo",
+        hooks: { from: "claude", strategy: "transform", scope: "merged" },
         signal: expect.any(AbortSignal),
         tee: expect.objectContaining({
           stdout: expect.any(Object),
@@ -1495,15 +1491,7 @@ describe("pipeline init command", () => {
     const program = createBaseProgram();
     registerPipelineCommand(program, container);
 
-    await expect(
-      program.parseAsync([
-        "node",
-        "cli",
-        "--yes",
-        "pipeline",
-        "init"
-      ])
-    ).rejects.toEqual(
+    await expect(program.parseAsync(["node", "cli", "--yes", "pipeline", "init"])).rejects.toEqual(
       new ValidationError("Provide --source or --sources when using --yes.")
     );
   });
@@ -1581,9 +1569,13 @@ describe("pipeline init command", () => {
       })
     );
     expect(logs.some((message) => message.includes("Source 1/2: docs/plans/alpha.md"))).toBe(true);
-    expect(logs.some((message) => message.includes("Completed 1/2: docs/plans/alpha.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Completed 1/2: docs/plans/alpha.md"))).toBe(
+      true
+    );
     expect(logs.some((message) => message.includes("Source 2/2: docs/plans/beta.md"))).toBe(true);
-    expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(true);
+    expect(logs.some((message) => message.includes("Completed 2/2: docs/plans/beta.md"))).toBe(
+      true
+    );
     expect(logs.some((message) => message.includes("Pipeline init finished."))).toBe(true);
   });
 

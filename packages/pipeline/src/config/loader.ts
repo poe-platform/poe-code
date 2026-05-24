@@ -9,6 +9,7 @@ import type {
   StepDefinition,
   StepDefinitionOverride,
   StepDefinitionOverrides,
+  StepHooks,
   StepMode
 } from "../types.js";
 import { isNotFound, isRecord, readOptionalFile } from "../utils.js";
@@ -40,12 +41,53 @@ function parseSkills(value: unknown, context: string, filePath: string): string[
     return undefined;
   }
   if (!Array.isArray(value) || !value.every((skill) => typeof skill === "string")) {
-    throw new Error(`Invalid skills for ${context} in "${filePath}": expected an array of strings.`);
+    throw new Error(
+      `Invalid skills for ${context} in "${filePath}": expected an array of strings.`
+    );
   }
   if (!value.every(isSkillReference)) {
     throw new Error(`Invalid skills for ${context} in "${filePath}": expected skill references.`);
   }
   return value;
+}
+
+function parseHooks(value: unknown, context: string, filePath: string): StepHooks | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  if (!isRecord(value)) {
+    throw new Error(`Invalid hooks for ${context} in "${filePath}": expected an object.`);
+  }
+  if (typeof value.from !== "string" || value.from.length === 0) {
+    throw new Error(
+      `Invalid hooks from for ${context} in "${filePath}": expected a non-empty string.`
+    );
+  }
+  if (
+    value.strategy !== undefined &&
+    value.strategy !== "auto" &&
+    value.strategy !== "symlink" &&
+    value.strategy !== "transform"
+  ) {
+    throw new Error(
+      `Invalid hooks strategy for ${context} in "${filePath}": expected "auto", "symlink", or "transform".`
+    );
+  }
+  if (
+    value.scope !== undefined &&
+    value.scope !== "project" &&
+    value.scope !== "user" &&
+    value.scope !== "merged"
+  ) {
+    throw new Error(
+      `Invalid hooks scope for ${context} in "${filePath}": expected "project", "user", or "merged".`
+    );
+  }
+  return {
+    from: value.from,
+    ...(value.strategy !== undefined ? { strategy: value.strategy } : {}),
+    ...(value.scope !== undefined ? { scope: value.scope } : {})
+  };
 }
 
 function parseYamlDocument(filePath: string, content: string): unknown {
@@ -78,7 +120,10 @@ function parseStepConfigData(filePath: string, document: unknown): ResolvedSteps
       prompt,
       ...(typeof value.agent === "string" && value.agent.length > 0 ? { agent: value.agent } : {}),
       ...(typeof value.model === "string" && value.model.length > 0 ? { model: value.model } : {}),
-      ...(value.skills !== undefined ? { skills: parseSkills(value.skills, context, filePath) } : {})
+      ...(value.skills !== undefined
+        ? { skills: parseSkills(value.skills, context, filePath) }
+        : {}),
+      ...(value.hooks !== undefined ? { hooks: parseHooks(value.hooks, context, filePath) } : {})
     };
   }
 
@@ -117,13 +162,15 @@ function mergeStepDefinition(
   const agent = override.agent ?? base?.agent;
   const model = override.model ?? base?.model;
   const skills = override.skills ?? base?.skills;
+  const hooks = override.hooks ?? base?.hooks;
 
   return {
     mode: override.mode ?? base?.mode ?? "yolo",
     prompt,
     ...(agent ? { agent } : {}),
     ...(model ? { model } : {}),
-    ...(skills ? { skills } : {})
+    ...(skills ? { skills } : {}),
+    ...(hooks ? { hooks } : {})
   };
 }
 

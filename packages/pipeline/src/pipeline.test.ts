@@ -34,13 +34,7 @@ function createFs(files: Record<string, string> = {}): TestFs {
   return createFsFromVolume(volume).promises;
 }
 
-const PIPELINE_MD_EMPTY = [
-  "---",
-  "kind: pipeline",
-  "tasks: []",
-  "---",
-  ""
-].join("\n");
+const PIPELINE_MD_EMPTY = ["---", "kind: pipeline", "tasks: []", "---", ""].join("\n");
 
 afterEach(() => {
   vi.useRealTimers();
@@ -561,6 +555,70 @@ describe("loadResolvedSteps", () => {
     });
   });
 
+  it("parses minimal and full per-step hooks while leaving absent hooks unchanged", async () => {
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
+          "steps:",
+          "  minimal:",
+          "    prompt: Minimal hooks",
+          "    hooks:",
+          "      from: claude",
+          "  full:",
+          "    prompt: Full hooks",
+          "    hooks:",
+          "      from: claude",
+          "      strategy: transform",
+          "      scope: merged",
+          "  plain:",
+          "    prompt: No hooks",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(config.steps).toEqual({
+      minimal: {
+        mode: "yolo",
+        prompt: "Minimal hooks",
+        hooks: { from: "claude" }
+      },
+      full: {
+        mode: "yolo",
+        prompt: "Full hooks",
+        hooks: { from: "claude", strategy: "transform", scope: "merged" }
+      },
+      plain: {
+        mode: "yolo",
+        prompt: "No hooks"
+      }
+    });
+  });
+
+  it("rejects an invalid per-step hooks strategy with a precise error", async () => {
+    await expect(
+      loadResolvedSteps({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/.poe-code/pipeline/steps/default.yaml": [
+            "steps:",
+            "  implement:",
+            "    prompt: Implement",
+            "    hooks:",
+            "      from: claude",
+            "      strategy: copy",
+            ""
+          ].join("\n")
+        })
+      })
+    ).rejects.toThrow(
+      'Invalid hooks strategy for step "implement" in "/repo/.poe-code/pipeline/steps/default.yaml": expected "auto", "symlink", or "transform".'
+    );
+  });
+
   it("rejects malformed per-step skills", async () => {
     await expect(
       loadResolvedSteps({
@@ -634,7 +692,11 @@ describe("loadResolvedSteps", () => {
           "  prompt: Global teardown",
           ""
         ].join("\n"),
-        "/repo/.poe-code/pipeline/steps/default.yaml": ["setup:", "  prompt: Project setup", ""].join("\n")
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
+          "setup:",
+          "  prompt: Project setup",
+          ""
+        ].join("\n")
       })
     });
 
@@ -1178,6 +1240,45 @@ describe("parsePlan", () => {
         prompt: "Review"
       }
     });
+  });
+
+  it("parses hooks from inline step definitions", () => {
+    const plan = parsePlan(
+      [
+        "steps:",
+        "  implement:",
+        "    hooks:",
+        "      from: claude",
+        "      strategy: symlink",
+        "      scope: project",
+        "tasks: []",
+        ""
+      ].join("\n")
+    );
+
+    expect(plan.stepOverrides).toEqual({
+      implement: {
+        hooks: { from: "claude", strategy: "symlink", scope: "project" }
+      }
+    });
+  });
+
+  it("rejects an invalid inline hooks strategy", () => {
+    expect(() =>
+      parsePlan(
+        [
+          "steps:",
+          "  implement:",
+          "    hooks:",
+          "      from: claude",
+          "      strategy: copy",
+          "tasks: []",
+          ""
+        ].join("\n")
+      )
+    ).toThrow(
+      'Invalid plan YAML: "steps.implement.hooks.strategy" must be "auto", "symlink", or "transform".'
+    );
   });
 
   it("rejects malformed inline step skills", () => {
@@ -1879,9 +1980,9 @@ describe("interpolatePipelineVars", () => {
   });
 
   it("mixes escaped placeholders with real ones", () => {
-    expect(
-      interpolatePipelineVars("real={{x}}, literal=\\{{ x }}", { x: "yes" })
-    ).toBe("real=yes, literal={{ x }}");
+    expect(interpolatePipelineVars("real={{x}}, literal=\\{{ x }}", { x: "yes" })).toBe(
+      "real=yes, literal={{ x }}"
+    );
   });
 
   it("does not require values for escaped placeholders", () => {
@@ -3001,6 +3102,74 @@ describe("createPipelineSimulation", () => {
     const { runs } = await sim.run();
 
     expect(Object.hasOwn(runs[0]!, "skills")).toBe(false);
+  });
+
+  it("passes per-step hooks to the agent runner", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/pipeline/steps/default.yaml": [
+        "steps:",
+        "  implement:",
+        "    prompt: Implement {{id}}",
+        "    hooks:",
+        "      from: claude",
+        "      strategy: transform",
+        "      scope: merged",
+        ""
+      ].join("\n"),
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "tasks:",
+        "  - id: feat",
+        "    title: Feature",
+        "    prompt: Add feature",
+        "    status:",
+        "      implement: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const runAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      fs,
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        hooks: { from: "claude", strategy: "transform", scope: "merged" }
+      })
+    );
+  });
+
+  it("omits hooks from agent runner input when a step has no hooks field", async () => {
+    const sim = createPipelineSimulation({
+      projectSteps: {
+        implement: {
+          mode: "yolo",
+          prompt: "Implement {{id}}"
+        }
+      },
+      plan: {
+        tasks: [
+          {
+            id: "feat",
+            title: "Feature",
+            prompt: "Add feature",
+            status: { implement: "open" }
+          }
+        ]
+      },
+      turns: [successTurn()]
+    });
+
+    const { runs } = await sim.run();
+
+    expect(Object.hasOwn(runs[0]!, "hooks")).toBe(false);
   });
 
   it("passes setup and teardown skills to the agent runner", async () => {

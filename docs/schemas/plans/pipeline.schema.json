@@ -54,6 +54,35 @@
               "type": "string",
               "minLength": 1
             },
+            "hooks": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "enum": [
+                    "project",
+                    "user",
+                    "merged"
+                  ]
+                },
+                "strategy": {
+                  "type": "string",
+                  "enum": [
+                    "auto",
+                    "symlink",
+                    "transform"
+                  ]
+                }
+              },
+              "required": [
+                "from"
+              ],
+              "additionalProperties": false
+            },
             "mode": {
               "type": "string",
               "default": "yolo",
@@ -100,6 +129,35 @@
           "agent": {
             "type": "string",
             "minLength": 1
+          },
+          "hooks": {
+            "type": "object",
+            "properties": {
+              "from": {
+                "type": "string",
+                "minLength": 1
+              },
+              "scope": {
+                "type": "string",
+                "enum": [
+                  "project",
+                  "user",
+                  "merged"
+                ]
+              },
+              "strategy": {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "symlink",
+                  "transform"
+                ]
+              }
+            },
+            "required": [
+              "from"
+            ],
+            "additionalProperties": false
           },
           "mode": {
             "type": "string",
@@ -186,6 +244,35 @@
             "agent": {
               "type": "string",
               "minLength": 1
+            },
+            "hooks": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "scope": {
+                  "type": "string",
+                  "enum": [
+                    "project",
+                    "user",
+                    "merged"
+                  ]
+                },
+                "strategy": {
+                  "type": "string",
+                  "enum": [
+                    "auto",
+                    "symlink",
+                    "transform"
+                  ]
+                }
+              },
+              "required": [
+                "from"
+              ],
+              "additionalProperties": false
             },
             "mode": {
               "type": "string",

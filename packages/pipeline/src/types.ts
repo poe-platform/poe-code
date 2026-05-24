@@ -1,6 +1,12 @@
 export type PipelineStatus = "open" | "done" | "failed";
 export type StepMode = "yolo" | "edit" | "read";
 
+export interface StepHooks {
+  from: string;
+  strategy?: "auto" | "symlink" | "transform";
+  scope?: "project" | "user" | "merged";
+}
+
 export interface McpSpawnServer {
   command: string;
   args?: string[];
@@ -15,6 +21,7 @@ export interface StepDefinition {
   agent?: string;
   model?: string;
   skills?: string[];
+  hooks?: StepHooks;
 }
 
 export interface StepDefinitionOverride {
@@ -23,6 +30,7 @@ export interface StepDefinitionOverride {
   agent?: string;
   model?: string;
   skills?: string[];
+  hooks?: StepHooks;
 }
 
 export type ResolvedStepDefinitions = Record<string, StepDefinition>;
@@ -81,6 +89,7 @@ export interface AgentRunInput {
   logFileName?: string;
   model?: string;
   skills?: string[];
+  hooks?: StepHooks;
   mcpServers?: McpSpawnConfig;
   signal?: AbortSignal;
 }

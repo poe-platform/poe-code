@@ -4,7 +4,8 @@ import type { PipelineRunResult } from "@poe-code/pipeline";
 
 const workspaceRunPipelineMock = vi.hoisted(() => vi.fn());
 const sdkSpawnAutonomousMock = vi.hoisted(() => vi.fn());
-const pipelineSkillPlanPath = new URL("../templates/pipeline/SKILL_plan.md", import.meta.url).pathname;
+const pipelineSkillPlanPath = new URL("../templates/pipeline/SKILL_plan.md", import.meta.url)
+  .pathname;
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
@@ -46,10 +47,13 @@ const workspaceResult: PipelineRunResult = {
 
 function seedFs(files: Record<string, string>): void {
   vol.reset();
-  vol.fromJSON({
-    [pipelineSkillPlanPath]: "Pipeline skill template",
-    ...files
-  }, "/");
+  vol.fromJSON(
+    {
+      [pipelineSkillPlanPath]: "Pipeline skill template",
+      ...files
+    },
+    "/"
+  );
   vol.mkdirSync(cwd, { recursive: true });
   vol.mkdirSync(homeDir, { recursive: true });
 }
@@ -230,14 +234,11 @@ describe("SDK pipeline", () => {
     });
 
     const timeoutError = createActivityTimeoutError();
-    const runAgent = vi
-      .fn()
-      .mockRejectedValueOnce(timeoutError)
-      .mockResolvedValueOnce({
-        stdout: "done",
-        stderr: "",
-        exitCode: 0
-      });
+    const runAgent = vi.fn().mockRejectedValueOnce(timeoutError).mockResolvedValueOnce({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
     workspaceRunPipelineMock.mockImplementationOnce(async (options) => {
       await options.runAgent?.({
         agent: "codex",
@@ -260,7 +261,7 @@ describe("SDK pipeline", () => {
     expect(runAgent).toHaveBeenCalledTimes(2);
   });
 
-  it("passes pipeline step skills through the default SDK spawn runner", async () => {
+  it("passes pipeline step options through the default SDK spawn runner", async () => {
     seedFs({
       "/repo/feature.md": initializedPlan()
     });
@@ -276,7 +277,8 @@ describe("SDK pipeline", () => {
         prompt: "Ship it.",
         mode: "yolo",
         cwd,
-        skills: ["foo", "claude/bar"]
+        skills: ["foo", "claude/bar"],
+        hooks: { from: "claude", strategy: "transform", scope: "merged" }
       });
 
       return workspaceResult;
@@ -296,7 +298,8 @@ describe("SDK pipeline", () => {
         prompt: "Ship it.",
         cwd,
         mode: "yolo",
-        skills: ["foo", "claude/bar"]
+        skills: ["foo", "claude/bar"],
+        hooks: { from: "claude", strategy: "transform", scope: "merged" }
       })
     );
   });

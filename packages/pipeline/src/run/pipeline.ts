@@ -47,10 +47,7 @@ function createDefaultFs(): PipelineFileSystem {
       } satisfies PipelineFileStat;
     },
     unlink: fsPromises.unlink,
-    mkdir: async (
-      filePath: string,
-      options?: { recursive?: boolean }
-    ) => {
+    mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, options);
     },
     rmdir: fsPromises.rmdir,
@@ -61,7 +58,10 @@ function createDefaultFs(): PipelineFileSystem {
 }
 
 type LockCapablePipelineFs = {
-  open(path: string, flags: string): Promise<{
+  open(
+    path: string,
+    flags: string
+  ): Promise<{
     close(): Promise<void>;
     writeFile(
       data: string,
@@ -289,6 +289,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         logFileName: makeRunLogFileName(phase),
         ...((phaseDef.model ?? options.model) ? { model: phaseDef.model ?? options.model } : {}),
         ...(phaseDef.skills ? { skills: phaseDef.skills } : {}),
+        ...(phaseDef.hooks ? { hooks: phaseDef.hooks } : {}),
         ...(mcp ? { mcpServers: mcp } : {}),
         ...(options.signal ? { signal: options.signal } : {})
       });
@@ -316,10 +317,8 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   }
 
   const initialContent = await fs.readFile(absolutePlanPath, "utf8");
-  const {
-    plan: initialPlan,
-    stepsConfig: initialStepsConfig
-  } = await readResolvedPlanFromContent(initialContent);
+  const { plan: initialPlan, stepsConfig: initialStepsConfig } =
+    await readResolvedPlanFromContent(initialContent);
   const resolvedSetup =
     initialPlan.setup === null ? undefined : (initialPlan.setup ?? initialStepsConfig.setup);
   const initialResolvedTeardown =
@@ -503,6 +502,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
           logFileName: makeRunLogFileName(role),
           ...(model ? { model } : {}),
           ...(stepDef?.skills ? { skills: stepDef.skills } : {}),
+          ...(stepDef?.hooks ? { hooks: stepDef.hooks } : {}),
           ...(plan.mcp ? { mcpServers: plan.mcp } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });

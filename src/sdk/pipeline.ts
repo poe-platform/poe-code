@@ -23,6 +23,7 @@ export type {
   ResolvedStepDefinitions,
   ResolvedStepsConfig,
   StepDefinition,
+  StepHooks,
   StepMode,
   TaskProgress,
   PlanSummary
@@ -89,10 +90,7 @@ async function planNeedsInit(absolutePath: string): Promise<boolean> {
   return !Array.isArray(tasks) || tasks.length === 0;
 }
 
-async function runWithRetry<T>(
-  fn: () => Promise<T>,
-  maxAttempts: number
-): Promise<T> {
+async function runWithRetry<T>(fn: () => Promise<T>, maxAttempts: number): Promise<T> {
   let lastError: unknown;
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
@@ -105,21 +103,22 @@ async function runWithRetry<T>(
   throw lastError;
 }
 
-export async function runPipeline(
-  options: PipelineRunOptions
-): Promise<PipelineRunResult> {
-  const userRunAgent = options.runAgent ?? (async (input: PipelineAgentRunnerInput) => {
-    return await sdkSpawn.autonomous(input.agent, {
-      prompt: input.prompt,
-      cwd: input.cwd,
-      logDir: input.logDir,
-      model: input.model,
-      mode: input.mode,
-      ...(input.skills ? { skills: input.skills } : {}),
-      ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.signal ? { signal: input.signal } : {})
+export async function runPipeline(options: PipelineRunOptions): Promise<PipelineRunResult> {
+  const userRunAgent =
+    options.runAgent ??
+    (async (input: PipelineAgentRunnerInput) => {
+      return await sdkSpawn.autonomous(input.agent, {
+        prompt: input.prompt,
+        cwd: input.cwd,
+        logDir: input.logDir,
+        model: input.model,
+        mode: input.mode,
+        ...(input.skills ? { skills: input.skills } : {}),
+        ...(input.hooks ? { hooks: input.hooks } : {}),
+        ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
+        ...(input.signal ? { signal: input.signal } : {})
+      });
     });
-  });
 
   if (options.plan) {
     const planAbsolutePath = path.resolve(options.cwd, options.plan);
@@ -131,14 +130,15 @@ export async function runPipeline(
         skillContent: pipelineSkillPlan
       });
       await runWithRetry(
-        () => userRunAgent({
-          agent: options.agent,
-          prompt,
-          mode: "yolo",
-          cwd: options.cwd,
-          ...(options.model ? { model: options.model } : {}),
-          ...(options.signal ? { signal: options.signal } : {})
-        }),
+        () =>
+          userRunAgent({
+            agent: options.agent,
+            prompt,
+            mode: "yolo",
+            cwd: options.cwd,
+            ...(options.model ? { model: options.model } : {}),
+            ...(options.signal ? { signal: options.signal } : {})
+          }),
         PIPELINE_ACTIVITY_TIMEOUT_RETRY_COUNT
       );
     }
@@ -156,15 +156,17 @@ export async function runPipeline(
 export async function runPipelineInit(
   options: PipelineInitRunOptions
 ): Promise<PipelineInitRunResult> {
-  const runAgent = options.runAgent ?? (async (input: PipelineAgentRunnerInput) => {
-    return await sdkSpawn.autonomous(input.agent, {
-      prompt: input.prompt,
-      cwd: input.cwd,
-      model: input.model,
-      mode: input.mode,
-      ...(input.signal ? { signal: input.signal } : {})
+  const runAgent =
+    options.runAgent ??
+    (async (input: PipelineAgentRunnerInput) => {
+      return await sdkSpawn.autonomous(input.agent, {
+        prompt: input.prompt,
+        cwd: input.cwd,
+        model: input.model,
+        mode: input.mode,
+        ...(input.signal ? { signal: input.signal } : {})
+      });
     });
-  });
 
   if (options.signal?.aborted) {
     return {

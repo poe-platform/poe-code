@@ -19,6 +19,7 @@ export type {
   StepDefinition,
   StepDefinitionOverride,
   StepDefinitionOverrides,
+  StepHooks,
   StepMode,
   TaskCompletion,
   TaskProgress,

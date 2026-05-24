@@ -300,21 +300,6 @@ export function createCodeReviewAgentMcpGroup(
       } else {
         await store.addSubagent(pr, profile.name, pendingStatus);
       }
-      await store.appendOrchestratorAction(pr, {
-        action: "spawned_subagent",
-        profile: profile.name,
-        details: agent
-      });
-      const prDetails = await fetchPr(pr, undefined, { cwd: context.cwd });
-      const prompt = renderSubagentPrompt({
-        template: await loadCodeReviewRolePrompt({
-          cwd: context.cwd,
-          role: "subagent"
-        }),
-        profile: profile.content,
-        prUrl: pr,
-        prDetails
-      });
       const childConfig = createCodeReviewAgentMcpConfig({
         ...context,
         role: "subagent",
@@ -323,13 +308,28 @@ export function createCodeReviewAgentMcpGroup(
         profiles: [profile.name]
       });
       void (async () => {
-        await store.updateSubagent(pr, profile.name, {
-          profile: profile.name,
-          agent,
-          status: "running",
-          startedAt: now().toISOString()
-        });
         try {
+          await store.appendOrchestratorAction(pr, {
+            action: "spawned_subagent",
+            profile: profile.name,
+            details: agent
+          });
+          const prDetails = await fetchPr(pr, undefined, { cwd: context.cwd });
+          const prompt = renderSubagentPrompt({
+            template: await loadCodeReviewRolePrompt({
+              cwd: context.cwd,
+              role: "subagent"
+            }),
+            profile: profile.content,
+            prUrl: pr,
+            prDetails
+          });
+          await store.updateSubagent(pr, profile.name, {
+            profile: profile.name,
+            agent,
+            status: "running",
+            startedAt: now().toISOString()
+          });
           const result = await (dependencies.spawnAgent ?? spawnWithPoeCode)(agent, prompt, {
             cwd: context.cwd,
             mcpServers: {

@@ -5,9 +5,6 @@
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "bin": {
-    "code-review": "dist/bin.js"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -23,7 +20,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "test": "cd ../.. && vitest run packages/agent-code-review/src",
     "test:unit": "cd ../.. && vitest run packages/agent-code-review/src"
   },

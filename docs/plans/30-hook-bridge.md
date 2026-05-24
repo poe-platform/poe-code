@@ -1108,8 +1108,8 @@ tasks:
       Dense prose. No restating. No hedging
       ([[feedback_dense_prompts]]).
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 ---
 
 # Hook Bridge

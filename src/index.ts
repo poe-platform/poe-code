@@ -16,6 +16,7 @@ export { runRalph } from "./sdk/ralph.js";
 export { runExperiment, readExperimentJournal } from "./sdk/experiment.js";
 export { generate, generateImage, generateVideo, generateAudio } from "./sdk/generate.js";
 export { getPoeApiKey } from "./sdk/credentials.js";
+export { bridgeHooks, cleanupBridgedHooks, supportedHookAgents } from "@poe-code/agent-hook-config";
 export { planDocumentSchema, planDocumentSchemaId } from "./plan/document-schema.js";
 export { ghGroup } from "@poe-code/github-workflows";
 export {
@@ -58,6 +59,12 @@ export type {
   GenerateResult,
   MediaGenerateResult
 } from "./sdk/types.js";
+export type {
+  BridgeHookManifest,
+  BridgeStrategy,
+  GeneratedHookEntry,
+  HookDrop
+} from "@poe-code/agent-hook-config";
 export { SpawnParallelError } from "@poe-code/agent-spawn";
 export type {
   SpawnParallelCall,

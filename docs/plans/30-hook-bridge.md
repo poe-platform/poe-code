@@ -806,7 +806,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: package-exports
     title: Wire @poe-code/agent-hook-config into the SDK barrel
@@ -834,7 +834,7 @@ tasks:
 
       4. Build the workspace and confirm types resolve.
     status:
-      implement: open
+      implement: done
       commit: open
 
   - id: spawn-runner-wire-hooks

@@ -538,7 +538,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: symlink-path
     title: Symlink path for identical-schema agent pairs
@@ -610,9 +610,9 @@ tasks:
 
       Export from `index.ts`.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: bridge-orchestrator
     title: bridgeHooks orchestrator with manifest and cleanup

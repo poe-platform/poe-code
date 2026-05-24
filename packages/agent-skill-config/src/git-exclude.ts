@@ -95,7 +95,7 @@ export function appendExcludeBlock(
   cwd: string,
   runId: string,
   entries: string[],
-  markerPrefix = defaultMarkerPrefix
+  opts?: { markerPrefix?: string }
 ): void {
   const excludePath = resolveExcludePath(cwd);
   if (excludePath === undefined) {
@@ -104,13 +104,17 @@ export function appendExcludeBlock(
 
   fs.mkdirSync(path.dirname(excludePath), { recursive: true });
   const content = readExcludeFile(excludePath);
-  fs.writeFileSync(excludePath, appendBlock(content, runId, entries, markerPrefix), "utf8");
+  fs.writeFileSync(
+    excludePath,
+    appendBlock(content, runId, entries, opts?.markerPrefix ?? defaultMarkerPrefix),
+    "utf8"
+  );
 }
 
 export function removeExcludeBlock(
   cwd: string,
   runId: string,
-  markerPrefix = defaultMarkerPrefix
+  opts?: { markerPrefix?: string }
 ): void {
   const excludePath = resolveExcludePath(cwd);
   if (excludePath === undefined) {
@@ -122,5 +126,9 @@ export function removeExcludeBlock(
     return;
   }
 
-  fs.writeFileSync(excludePath, removeBlock(content, runId, markerPrefix), "utf8");
+  fs.writeFileSync(
+    excludePath,
+    removeBlock(content, runId, opts?.markerPrefix ?? defaultMarkerPrefix),
+    "utf8"
+  );
 }

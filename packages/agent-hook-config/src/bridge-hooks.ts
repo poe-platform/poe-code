@@ -183,12 +183,9 @@ export function bridgeHooks(
     manifest.symlinkPath = result.symlinkPath;
     manifest.symlinkTarget = result.targetPath;
     manifest.symlinkReplaced = result.replaced;
-    appendExcludeBlock(
-      cwd,
-      runId,
-      [relativeToCwd(cwd, result.symlinkPath)],
-      hookExcludeMarkerPrefix
-    );
+    appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, result.symlinkPath)], {
+      markerPrefix: hookExcludeMarkerPrefix
+    });
     return manifest;
   }
 
@@ -221,7 +218,9 @@ export function bridgeHooks(
       ...(group.matcher === undefined ? {} : { matcher: group.matcher })
     }))
   );
-  appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, targetPath)], hookExcludeMarkerPrefix);
+  appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, targetPath)], {
+    markerPrefix: hookExcludeMarkerPrefix
+  });
 
   return manifest;
 }
@@ -287,5 +286,5 @@ export function cleanupBridgedHooks(manifest: BridgeHookManifest): void {
     }
   }
 
-  removeExcludeBlock(manifest.cwd, manifest.runId, hookExcludeMarkerPrefix);
+  removeExcludeBlock(manifest.cwd, manifest.runId, { markerPrefix: hookExcludeMarkerPrefix });
 }

@@ -63,19 +63,47 @@ describe("git exclude blocks", () => {
   });
 
   it("uses an optional marker prefix for sibling bridge features", () => {
-    appendExcludeBlock(cwd, "run-1", [".codex/hooks.json"], "poe-code-spawn-hooks");
+    appendExcludeBlock(cwd, "run-1", [".codex/hooks.json"], {
+      markerPrefix: "custom-prefix"
+    });
+
+    expect(vol.readFileSync(excludePath, "utf8")).toBe(
+      ["# custom-prefix:run-1 begin", ".codex/hooks.json", "# custom-prefix:run-1 end", ""].join(
+        "\n"
+      )
+    );
+
+    removeExcludeBlock(cwd, "run-1", { markerPrefix: "custom-prefix" });
+    expect(vol.readFileSync(excludePath, "utf8")).toBe("");
+  });
+
+  it("keeps blocks with different marker prefixes independent", () => {
+    appendExcludeBlock(cwd, "run-1", [".poe-code/skills/run-1"]);
+    appendExcludeBlock(cwd, "run-1", [".codex/hooks.json"], {
+      markerPrefix: "custom-prefix"
+    });
+
+    removeExcludeBlock(cwd, "run-1", { markerPrefix: "custom-prefix" });
 
     expect(vol.readFileSync(excludePath, "utf8")).toBe(
       [
-        "# poe-code-spawn-hooks:run-1 begin",
-        ".codex/hooks.json",
-        "# poe-code-spawn-hooks:run-1 end",
+        "# poe-code-spawn-skills:run-1 begin",
+        ".poe-code/skills/run-1",
+        "# poe-code-spawn-skills:run-1 end",
         ""
       ].join("\n")
     );
 
-    removeExcludeBlock(cwd, "run-1", "poe-code-spawn-hooks");
-    expect(vol.readFileSync(excludePath, "utf8")).toBe("");
+    appendExcludeBlock(cwd, "run-1", [".codex/hooks.json"], {
+      markerPrefix: "custom-prefix"
+    });
+    removeExcludeBlock(cwd, "run-1");
+
+    expect(vol.readFileSync(excludePath, "utf8")).toBe(
+      ["# custom-prefix:run-1 begin", ".codex/hooks.json", "# custom-prefix:run-1 end", ""].join(
+        "\n"
+      )
+    );
   });
 
   it("resolves relative git dirs from cwd", () => {

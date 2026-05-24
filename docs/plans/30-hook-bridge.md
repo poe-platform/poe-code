@@ -757,7 +757,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: git-exclude-helper-parametrize
     title: Parametrize git-exclude marker prefix for hook reuse
@@ -804,8 +804,8 @@ tasks:
       shared helper is the right move per repo conventions
       ([[feedback_extend_not_duplicate]]).
     status:
-      implement: open
-      test: open
+      implement: done
+      test: done
       commit: open
 
   - id: package-exports

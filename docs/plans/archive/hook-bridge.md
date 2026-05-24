@@ -2,46 +2,70 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: research-hook-formats
     title: Capture hook-format research for claude-code, codex, opencode
-    prompt: |
+    prompt: >
       Write `docs/research/hook-formats.md` documenting how coding-agent
+
       hooks work. Single doc, no boilerplate. Cover at minimum:
 
+
       For each agent (claude-code, codex, opencode, goose if applicable):
+
       - canonical hook file path(s), both global and project scope
+
       - file format (JSON / TOML / TS plugin code)
+
       - top-level schema shape (paste a minimal example)
+
       - full event list with one-line semantics
-      - per-event input fields (focus on PreToolUse, PostToolUse, UserPromptSubmit, Stop, SessionStart, PermissionRequest)
+
+      - per-event input fields (focus on PreToolUse, PostToolUse,
+      UserPromptSubmit, Stop, SessionStart, PermissionRequest)
+
       - per-event output/decision schema
+
       - matcher syntax and what it filters on
-      - supported handler types (command/http/mcp_tool/prompt/agent for claude; command only for codex; plugin-functions for opencode)
-      - placeholder/env variables (`${CLAUDE_PROJECT_DIR}`, `${CLAUDE_PLUGIN_ROOT}`, `PLUGIN_ROOT`, etc.)
+
+      - supported handler types (command/http/mcp_tool/prompt/agent for claude;
+      command only for codex; plugin-functions for opencode)
+
+      - placeholder/env variables (`${CLAUDE_PROJECT_DIR}`,
+      `${CLAUDE_PLUGIN_ROOT}`, `PLUGIN_ROOT`, etc.)
+
       - precedence and merge behavior across layers
 
+
       End with a delta table titled "claude-code → codex conversion deltas"
+
       listing every divergence the bridge must handle:
+
       - events present in claude-code but absent in codex (must be dropped)
+
       - handler types present in claude-code but unsupported in codex
         (codex only honors `type: "command"` — `http`, `mcp_tool`, `prompt`,
         `agent` must be dropped)
       - placeholder/env-var renames
+
       - matcher-syntax differences (both use regex, but document any quirks)
+
       - JSON vs TOML write-target choice (out of v1 scope but note it)
 
+
       Sources to cite at top of doc:
+
       - https://code.claude.com/docs/en/hooks
+
       - https://developers.openai.com/codex/hooks
+
       - https://developers.openai.com/codex/config-reference
+
 
       Keep prose dense per repo conventions. No restating, no hedging.
     status:
       implement: done
       commit: done
-
   - id: package-skeleton
     title: Scaffold @poe-code/agent-hook-config package
     prompt: |
@@ -76,17 +100,23 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: agent-hook-config-registry
     title: Per-agent hook config registry
-    prompt: |
+    prompt: >
       In `packages/agent-hook-config/src/configs.ts` declare a per-agent
+
       registry capturing where each agent's hook config lives and what
+
       capabilities it has. Mirror the pattern used by `agentSkillConfigs`
+
       in `packages/agent-skill-config/src/configs.ts` — including the
+
       `expandHome`, `resolveAgentSupport`, `getAgentConfig` helpers, with
+
       the same case-insensitive alias handling delegating to
+
       `resolveAgentId`.
+
 
       Shape:
 
@@ -161,30 +191,42 @@ tasks:
 
       Export `supportedHookAgents = Object.keys(agentHookConfigs)`.
 
+
       Export `resolveAgentSupport(input, registry?)` and
+
       `getAgentConfig(agentId)` with the same semantics as their
+
       `agent-skill-config` counterparts.
 
+
       Export `resolveHookPath(config, scope, cwd, homeDir?)` matching the
+
       shape of `resolveSkillDir` but returning a FILE path (not a dir).
+
       Returns `undefined` when `scope === "local"` and the agent has no
+
       `localHookPath`.
 
+
       Add `configs.test.ts`. Cover: known agent resolves to config,
+
       alias resolution (`claude` → `claude-code`), unknown returns
+
       `{ status: "unknown" }`, supported but no local path returns
+
       `undefined` for local scope, `~` expansion works against an
+
       injected homeDir, project-scope path is cwd-rooted.
+
 
       Export everything from `packages/agent-hook-config/src/index.ts`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: source-reader-claude
     title: Read hooks from a claude-code settings.json
-    prompt: |
+    prompt: >
       In `packages/agent-hook-config/src/read-hooks.ts` add:
 
         export interface SourceHookEntry {
@@ -222,6 +264,7 @@ tasks:
         ): HookReadResult
 
       Behavior:
+
       - Resolve project file at `<cwd>/.claude/settings.json` and user file
         at `<homeDir>/.claude/settings.json`. Use `JSON.parse` after reading
         with `node:fs`.
@@ -230,7 +273,9 @@ tasks:
         AFTER user entries in `entries` (so caller can treat later entries as
         project-scoped overrides — but the bridge just emits both).
       - When a file doesn't exist, skip it silently (do not throw).
+
       - When a file is present but has no `hooks` key, treat as empty.
+
       - The settings.json structure is `{ hooks: { Event: [{ matcher,
         hooks: [{type, ...}] }] } }`. Walk that exhaustively. Each leaf hook
         becomes one `SourceHookEntry`. Preserve the parent `matcher` value
@@ -239,28 +284,40 @@ tasks:
         This is a raw reader; the transformer filters.
       - Malformed JSON throws a precise error naming the file path.
 
+
       Add `read-hooks.test.ts` using `memfs`. Cover:
+
       - both files absent → `{ entries: [], readPaths: [] }`
+
       - project-only file → entries match, `readPaths` lists only project
+
       - user-only file → same for user
+
       - both files present in `"merged"` → user entries first, project after
+
       - settings.json with no `hooks` key → empty result, path still listed
+
       - matcher omitted on a group → entry has `matcher: undefined`
+
       - multiple handlers under one matcher group → one entry per handler
+
       - nested handler fields (`args`, `headers`, `input`) flow through verbatim
+
       - malformed JSON throws naming the file path
+
 
       Export from `packages/agent-hook-config/src/index.ts`.
     status:
       implement: done
       test: done
       commit: done
-
   - id: event-mapping
     title: Event/handler/placeholder mapping rules
-    prompt: |
+    prompt: >
       In `packages/agent-hook-config/src/event-mapping.ts` declare the
+
       pure-data conversion table consumed by the transformer.
+
 
       Shape:
 
@@ -278,26 +335,46 @@ tasks:
           targetAgentId: string
         ): EventMapping[]
 
-      For the v1 pair (`sourceAgentId: "claude-code"`, `targetAgentId: "codex"`):
+      For the v1 pair (`sourceAgentId: "claude-code"`, `targetAgentId:
+      "codex"`):
+
       Build the mapping from the registry — every claude-code event maps to
+
       itself if codex supports it, otherwise `targetEvent: null` with a
+
       specific `dropReason`:
+
       - SessionStart → SessionStart
+
       - SessionEnd → null ("codex has no SessionEnd hook")
+
       - UserPromptSubmit → UserPromptSubmit
+
       - PreToolUse → PreToolUse
+
       - PostToolUse → PostToolUse
+
       - PermissionRequest → PermissionRequest
+
       - Stop → Stop
+
       - StopFailure → null ("codex has no StopFailure hook")
+
       - Notification → null ("codex has no Notification hook")
+
       - PreCompact / PostCompact → null
+
       - SubagentStart / SubagentStop → null
 
+
       Mapping is derived from the registry, not hard-coded per pair — when
+
       the same source event name appears in the target's `supportedEvents`,
+
       it maps; otherwise it drops with a generic reason naming the target
+
       agent.
+
 
       In the same file:
 
@@ -310,8 +387,11 @@ tasks:
         export function getHandlerTypeRules(targetAgentId: string): HandlerTypeRule[]
 
       For `targetAgentId: "codex"`, `command` is allowed; `http`,
+
       `mcp_tool`, `prompt`, `agent` are dropped with reasons like
+
       "codex only honors handlers of type \"command\"".
+
 
       Also export:
 
@@ -326,19 +406,29 @@ tasks:
         ): PlaceholderRewrite[]
 
       Produces an entry for each placeholder key present in both source
+
       and target configs (`projectDir`, `pluginRoot`, `pluginData`):
+
       `{ from: source.placeholders[key], to: target.placeholders[key] }`.
 
+
       No regex. No provider branching. All three functions are pure and
+
       take agent ids as input — the registry drives behavior.
 
+
       Add `event-mapping.test.ts`. Cover:
+
       - claude-code → codex produces the exact mapping listed above
+
       - source agent unknown → throws
+
       - target agent unknown → throws
+
       - identity case (claude-code → claude-code) → every event maps to
         itself, no drops
       - handler rules for codex target → only `command` allowed
+
       - placeholder rewrites for claude-code → codex → three entries
         (projectDir, pluginRoot, pluginData) with the substrings from
         the registry; identity case → empty array
@@ -348,7 +438,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: hook-transformer
     title: Pure transform source entries to target entries
     prompt: |
@@ -450,7 +539,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: target-writer-codex
     title: Write generated entries to codex hooks.json with marked region
     prompt: |
@@ -539,7 +627,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: symlink-path
     title: Symlink path for identical-schema agent pairs
     prompt: |
@@ -613,15 +700,19 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: bridge-orchestrator
     title: bridgeHooks orchestrator with manifest and cleanup
-    prompt: |
+    prompt: >
       In `packages/agent-hook-config/src/bridge-hooks.ts` add the
+
       orchestrator that ties read → transform → write (or symlink)
+
       together. Mirror the API surface of `bridgeActiveSkills` in
+
       `packages/agent-skill-config/src/bridge-active-skills.ts` — same
+
       manifest/cleanup pattern, same warning-vs-error discipline.
+
 
       Shape:
 
@@ -661,6 +752,7 @@ tasks:
         export function cleanupBridgedHooks(manifest: BridgeHookManifest): void
 
       Algorithm for `bridgeHooks`:
+
       1. Resolve `sourceAgentId` and `targetAgentId` through
          `resolveAgentSupport`. If either is unknown/unsupported, throw
          with a specific error that names the input and lists
@@ -700,6 +792,7 @@ tasks:
          relative to cwd.
 
       Algorithm for `cleanupBridgedHooks`:
+
       - When strategy was `"symlink"`: if the symlink at `symlinkPath`
         still points to `symlinkTarget`, unlink it. If it points elsewhere,
         leave it (some other tool replaced it). If it's a regular file
@@ -728,9 +821,12 @@ tasks:
       - Remove any directories the bridge created when they are now empty
         (reuse the `createdParents` idea from `bridge-active-skills.ts`).
       - Call `removeExcludeBlock(cwd, runId)` (with hook-prefixed marker).
+
       - Idempotent: a second call on the same manifest is a no-op.
 
+
       Add `bridge-hooks.test.ts` using `memfs`. Cover:
+
       - claude-code → codex with one PreToolUse Bash command hook in source
         project file → strategy `"transform"`, codex hooks.json created,
         one generated entry with the `[generated:<runId>]` marker
@@ -743,13 +839,17 @@ tasks:
       - identity case (claude-code → claude-code) → strategy `"symlink"`,
         symlink placed and manifest populated
       - source agent unknown → throws naming the input and supported set
+
       - target agent unknown → throws naming the input and supported set
+
       - target has no local path → throws
+
       - cleanup after transform removes only this run's entries; user
         entries in the same file preserved
       - cleanup after symlink removes the symlink only when it still
         points at the original target
       - cleanup is idempotent: second call does nothing, does not throw
+
       - exclude file lists the generated/symlink path; cleanup removes
         only this run's block
 
@@ -758,7 +858,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: git-exclude-helper-parametrize
     title: Parametrize git-exclude marker prefix for hook reuse
     prompt: |
@@ -807,7 +906,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: package-exports
     title: Wire @poe-code/agent-hook-config into the SDK barrel
     prompt: |
@@ -836,18 +934,24 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: spawn-runner-wire-hooks
     title: Wire bridgeHooks into the spawn runner
-    prompt: |
+    prompt: >
       Wire `bridgeHooks` and `cleanupBridgedHooks` into the spawn runner
+
       analogous to how `bridgeActiveSkills` was wired in plan 28's
+
       `spawn-runner-bridge` task. The runner already accepts a
+
       `skills?: string[]` option; add a sibling `hooks` option.
 
+
       Locate the spawn runner — `packages/agent-spawn/src/` houses it
+
       (the function that launches the external coding-agent process given
+
       an agent id, cwd, and prompt).
+
 
       Extend the runner's public entry point:
 
@@ -862,6 +966,7 @@ tasks:
         })
 
       Behavior:
+
       - `hooks` omitted → no bridge call, no manifest, no exclude-file edit.
         Runner identical to today.
       - `hooks` present:
@@ -882,22 +987,31 @@ tasks:
 
       Do not branch by provider. Pass `agentId` straight through.
 
+
       Update the SDK type surface so consumers can pass `hooks`. SDK is
+
       canonical, CLI calls into it.
 
+
       Add tests covering: `hooks` omitted → bridge never called; `hooks`
+
       provided → bridge called with right args and agent launched only
+
       after bridge resolves; bridge throws (unknown source agent) → agent
+
       process never spawned; bridge returns drops → drops surfaced via
+
       the design-system warning channel AND agent still launches; agent
+
       exits cleanly → cleanup called once; agent throws/aborts → cleanup
+
       still called. Stub the agent-process launcher, the warning channel,
+
       and use `memfs` for the FS.
     status:
       implement: done
       test: done
       commit: done
-
   - id: spawn-cli-hooks-flag
     title: Add --hooks-from and --hooks-strategy CLI flags to poe-code spawn
     prompt: |
@@ -936,7 +1050,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: pipeline-step-hooks
     title: hooks field on pipeline StepDefinition flows to spawn
     prompt: |
@@ -973,7 +1086,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: ralph-step-hooks
     title: hooks field on ralph plan/step flows to spawn
     prompt: |
@@ -1001,7 +1113,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: e2e-spawn-test-hook-bridge
     title: End-to-end test that poe-code test command bridges hooks
     prompt: |
@@ -1041,12 +1152,13 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: package-readme
     title: Document @poe-code/agent-hook-config
-    prompt: |
+    prompt: >
       Write `packages/agent-hook-config/README.md`. Do not modify the
+
       project root README (per CLAUDE.md). Content, in order, no fluff:
+
 
       1. One-paragraph "what this does": per-run, per-spawn bridge that
          materializes a source agent's hooks into a target agent's hook
@@ -1106,10 +1218,13 @@ tasks:
            project-scope only.
 
       Dense prose. No restating. No hedging
+
       ([[feedback_dense_prompts]]).
     status:
       implement: done
       commit: done
+name: hook-bridge
+state: archived
 ---
 
 # Hook Bridge

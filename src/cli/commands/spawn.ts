@@ -90,6 +90,14 @@ export function registerSpawnCommand(
       "Comma-separated active skill references to bridge for this run",
       collectSkillsOption
     )
+    .option("--hooks-from <agentId>", "Agent hook configuration to bridge for this run")
+    .addOption(
+      new Option("--hooks-strategy <strategy>", "Hook bridge strategy (default: auto)").choices([
+        "auto",
+        "symlink",
+        "transform"
+      ])
+    )
     .addOption(
       new Option("--mcp-config <json|@file>", "[deprecated: use --mcp-servers]").hideHelp()
     )
@@ -125,12 +133,19 @@ export function registerSpawnCommand(
           mcpConfig?: string;
           skill?: string[];
           skills?: string[] | boolean;
+          hooksFrom?: string;
+          hooksStrategy?: "auto" | "symlink" | "transform";
           logDir?: string;
           activityTimeoutMs?: number;
         } & RuntimeCliOptions
       >();
       const runtimeOptions = pickRuntimeOptions(commandOptions);
       const skills = resolveSkillOptions(commandOptions.skill, commandOptions.skills);
+      const hooks = resolveHookOptions(
+        commandOptions.hooksFrom,
+        commandOptions.hooksStrategy,
+        this
+      );
       let integrations: Integrations | null = null;
       const shouldEmitUiOutput = resolveOutputFormat() !== "json";
       const rawMcpInput = commandOptions.mcpServers ?? commandOptions.mcpConfig;
@@ -206,6 +221,7 @@ export function registerSpawnCommand(
             model,
             mode: commandOptions.mode as SpawnMode | undefined,
             ...(skills ? { skills } : {}),
+            ...(hooks ? { hooks } : {}),
             runtimeConfigCwd: container.env.cwd,
             ...runtimeOptions,
             ...(mcpServers ? { mcpServers } : {}),
@@ -222,6 +238,7 @@ export function registerSpawnCommand(
           mode: commandOptions.mode as SpawnMode | undefined,
           mcpServers,
           ...(skills ? { skills } : {}),
+          ...(hooks ? { hooks } : {}),
           cwd: cwdOverride,
           logDir: commandOptions.logDir,
           activityTimeoutMs: commandOptions.activityTimeoutMs,
@@ -322,6 +339,7 @@ export function registerSpawnCommand(
               cwd: spawnOptions.cwd,
               ...(spawnOptions.mcpServers ? { mcpServers: spawnOptions.mcpServers } : {}),
               ...(spawnOptions.skills ? { skills: spawnOptions.skills } : {}),
+              ...(spawnOptions.hooks ? { hooks: spawnOptions.hooks } : {}),
               ...(spawnOptions.logDir !== undefined ? { logDir: spawnOptions.logDir } : {}),
               ...(spawnOptions.activityTimeoutMs !== undefined
                 ? { activityTimeoutMs: spawnOptions.activityTimeoutMs }
@@ -660,6 +678,24 @@ function resolveSkillOptions(
 ): string[] | undefined {
   const resolved = [...(skill ?? []), ...(Array.isArray(skills) ? skills : [])];
   return resolved.length > 0 ? resolved : undefined;
+}
+
+function resolveHookOptions(
+  from: string | undefined,
+  strategy: "auto" | "symlink" | "transform" | undefined,
+  command: Command
+): NonNullable<SpawnCommandOptions["hooks"]> | undefined {
+  if (!from) {
+    if (strategy) {
+      command.outputHelp({ error: true });
+      command.error(
+        "error: option '--hooks-strategy <strategy>' requires '--hooks-from <agentId>'"
+      );
+    }
+    return undefined;
+  }
+
+  return { from, strategy: strategy ?? "auto" };
 }
 
 function assertSpawnSupport(label: string, service: string, providerSupportsSpawn: boolean): void {

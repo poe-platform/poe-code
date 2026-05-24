@@ -943,6 +943,185 @@ describe("spawn command", () => {
     });
   });
 
+  it("passes --hooks-from to SDK spawn with the default auto strategy", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--hooks-from",
+      "claude",
+      "codex",
+      "List files"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: undefined,
+      mode: undefined,
+      cwd: undefined,
+      hooks: { from: "claude", strategy: "auto" },
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
+  it("passes --hooks-from through without CLI agent-id normalization", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--hooks-from",
+      "CLAUDE-CODE",
+      "codex",
+      "List files"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: undefined,
+      mode: undefined,
+      cwd: undefined,
+      hooks: { from: "CLAUDE-CODE", strategy: "auto" },
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
+  it("passes --hooks-strategy through to SDK spawn", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--hooks-from",
+      "claude",
+      "--hooks-strategy",
+      "transform",
+      "codex",
+      "List files"
+    ]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: undefined,
+      mode: undefined,
+      cwd: undefined,
+      hooks: { from: "claude", strategy: "transform" },
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
+  it("shows usage when --hooks-strategy is provided without --hooks-from", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    let stderr = "";
+    const spawnCommand = program.commands.find((command) => command.name() === "spawn");
+    spawnCommand?.configureOutput({ writeErr: (value) => (stderr += value) });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--hooks-strategy",
+        "auto",
+        "codex",
+        "List files"
+      ])
+    ).rejects.toThrow("--hooks-from");
+
+    expect(stderr).toContain("Usage:");
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid --hooks-strategy values", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+    const spawnCommand = program.commands.find((command) => command.name() === "spawn");
+    spawnCommand?.configureOutput({ writeErr: () => {} });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--hooks-from",
+        "claude",
+        "--hooks-strategy",
+        "copy",
+        "codex",
+        "List files"
+      ])
+    ).rejects.toThrow("Allowed choices");
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
+  it("omits hooks when no --hooks-* flags are provided", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "spawn", "codex", "List files"]);
+
+    expect(sdkSpawn).toHaveBeenCalledWith("codex", {
+      prompt: "List files",
+      args: [],
+      model: undefined,
+      mode: undefined,
+      cwd: undefined,
+      activityTimeoutMs: 600_000,
+      runtimeConfigCwd: cwd
+    });
+  });
+
   it("uses the configured model for SDK spawn when --model is omitted", async () => {
     await fs.writeFile(
       resolveConfigPath(homeDir),

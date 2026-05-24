@@ -933,9 +933,9 @@ tasks:
       flags render coherently with the existing CLI design language. No
       screenshot test, per repo policy.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: pipeline-step-hooks
     title: hooks field on pipeline StepDefinition flows to spawn

@@ -58,7 +58,7 @@ async function createFreshCloneFixture(options: { syncScript?: string } = {}): P
         name: "poe-code-fresh-clone-fixture",
         version: "0.0.0",
         scripts: {
-          "sync-skills": "node scripts/sync-skills.ts",
+          "sync-skills": "node scripts/sync-skills.js",
           postinstall: "node scripts/postinstall-sync-skills.mjs"
         }
       },
@@ -74,6 +74,11 @@ async function createFreshCloneFixture(options: { syncScript?: string } = {}): P
   );
   await writeFile(
     path.join(cloneDir, "scripts/sync-skills.ts"),
+    "",
+    "utf8"
+  );
+  await writeFile(
+    path.join(cloneDir, "scripts/sync-skills.js"),
     options.syncScript ??
       [
         'import { mkdirSync, writeFileSync } from "node:fs";',

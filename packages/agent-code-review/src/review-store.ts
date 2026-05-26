@@ -157,7 +157,8 @@ export class CodeReviewYamlStore {
           selectedProfiles: freshState.selectedProfiles,
           state: "in_progress" as const,
           mergedReview: undefined,
-          subagents: refreshInterruptedSubagents(existing, resumedAt),
+          rawReviews: {},
+          subagents: {},
           orchestratorActions: [
             ...existing.orchestratorActions,
             { at: resumedAt, action: "resumed_run" }
@@ -491,30 +492,6 @@ async function samePublishedState(sourcePath: string, archivePath: string): Prom
   }
 }
 
-function refreshInterruptedSubagents(
-  state: CodeReviewState,
-  timestamp: string
-): Record<string, CodeReviewSubagentStatus> {
-  return Object.fromEntries(
-    Object.entries(state.subagents).map(([actor, status]) => {
-      if (state.rawReviews[actor]) {
-        return [actor, { ...status, status: "completed", error: undefined }];
-      }
-      if (status.status === "pending" || status.status === "running") {
-        return [
-          actor,
-          {
-            ...status,
-            status: "failed",
-            completedAt: timestamp,
-            error: "Interrupted run; reviewer process or output is unavailable."
-          }
-        ];
-      }
-      return [actor, status];
-    })
-  );
-}
 
 function hasUnresolvedPublicationClaim(state: CodeReviewState): boolean {
   for (let index = state.orchestratorActions.length - 1; index >= 0; index -= 1) {

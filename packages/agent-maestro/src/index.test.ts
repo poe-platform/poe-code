@@ -21,6 +21,7 @@ import {
 import {
   createState,
   maestroTaskStateMachine,
+  resolveWorkflowPath,
   runMaestro,
   tick,
   type MaestroEvent
@@ -39,6 +40,61 @@ describe("runMaestro", () => {
   beforeEach(() => {
     vol.reset();
     vi.useRealTimers();
+  });
+
+  it("resolves the default named workflow at the repository root", () => {
+    expect(resolveWorkflowPath("default", "/repo")).toBe("/repo/WORKFLOW.md");
+  });
+
+  it("resolves a named workflow at the repository root", () => {
+    expect(resolveWorkflowPath("bugs", "/repo")).toBe("/repo/BUGS.WORKFLOW.md");
+  });
+
+  it.each(["", "../bugs", "nested/bugs", "nested\\bugs"])(
+    "rejects a workflow name that is not a root file id: %s",
+    (name) => {
+      expect(() => resolveWorkflowPath(name, "/repo")).toThrow(
+        `Invalid workflow name "${name}". Expected a non-empty id without path separators.`
+      );
+    }
+  );
+
+  it("loads the default named workflow from the repository root", async () => {
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": workflowFrontmatter({
+        tasks: ["  type: yaml-file", "  path: /repo/tasks.yaml"],
+        states: ["  planned:", "    prompt: Work.", "  done:", "    terminal: true"],
+        agent: ["  list: tasks"]
+      })
+    });
+    const taskList = createMockTaskList({ lists: ["tasks"] });
+
+    try {
+      await expect(runMaestro({ name: "default", dryRun: true, taskList })).resolves.toBeTypeOf(
+        "function"
+      );
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
+  it("rejects both a workflow path and a workflow name", async () => {
+    await expect(runMaestro({ workflowPath: "/repo/WORKFLOW.md", name: "bugs" })).rejects.toThrow(
+      "Cannot specify both workflowPath and name for Maestro."
+    );
+  });
+
+  it("reports a missing named workflow file", async () => {
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+
+    try {
+      await expect(runMaestro({ name: "bugs" })).rejects.toThrow(
+        "Missing workflow file at /repo/BUGS.WORKFLOW.md."
+      );
+    } finally {
+      cwd.mockRestore();
+    }
   });
 
   it("runs the default state machine, emits phases and agent events, and cleans a completed task workspace", async () => {
@@ -712,10 +768,12 @@ describe("integration", () => {
     expect(capturedEvents[0]).toEqual(tickEvent(25));
     expect(tick50Index).toBeGreaterThan(0);
     expect(capturedEvents.at(-1)).toEqual(tickEvent(75));
-    expect(dispatches.slice(0, 2).map((event) => event.task_id).sort()).toEqual([
-      "tasks/one",
-      "tasks/two"
-    ]);
+    expect(
+      dispatches
+        .slice(0, 2)
+        .map((event) => event.task_id)
+        .sort()
+    ).toEqual(["tasks/one", "tasks/two"]);
     expect(dispatches[2]).toEqual(dispatchEvent(fixture, "three"));
     expect(capturedEvents.findIndex((event) => event === dispatches[2])).toBeGreaterThan(
       tick50Index

@@ -14,6 +14,7 @@ import type { AttemptPhase, FailureCategory } from "./runtime/phases.js";
 import { createState, release, type RunningEntry } from "./runtime/state.js";
 import { tick, type TickEvent, type TrackedWorker } from "./runtime/loop.js";
 import { removeWorkspace, startupTerminalCleanup } from "./workspace/manager.js";
+import { resolveWorkflowPath } from "./workflow-path.js";
 import "./drivers/index.js";
 
 export interface Logger {
@@ -24,6 +25,7 @@ export interface Logger {
 
 export interface RunMaestroOptions {
   workflowPath?: string;
+  name?: string;
   maxConcurrent?: number;
   pollIntervalMs?: number;
   list?: string;
@@ -73,7 +75,11 @@ export type MaestroEvent =
 const STOP_BUDGET_MS = 10_000;
 
 export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Promise<void>> {
-  const workflowPath = opts.workflowPath ?? "./WORKFLOW.md";
+  if (opts.workflowPath !== undefined && opts.name !== undefined) {
+    throw new Error("Cannot specify both workflowPath and name for Maestro.");
+  }
+
+  const workflowPath = opts.workflowPath ?? resolveWorkflowPath(opts.name, process.cwd());
   const workflow = await loadWorkflow(workflowPath);
   const cfg = applyOptionOverrides(
     resolveConfig(workflow.config, path.dirname(workflow.sourcePath)),
@@ -489,6 +495,7 @@ export {
   type DispatchValidationResult
 } from "./config/validate.js";
 export { renderStepPrompt, renderTaskPrompt } from "./prompt/render.js";
+export { resolveWorkflowPath } from "./workflow-path.js";
 export { runMaestroTick, type RunMaestroTickOptions } from "./tick-command.js";
 export {
   runAttempt,

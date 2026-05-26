@@ -7,9 +7,11 @@ import { resolveConfiguredTaskListOptions } from "./config/task-list.js";
 import type { MaestroEvent } from "./index.js";
 import { advanceTaskToRunning } from "./runtime/advance.js";
 import { maestroTaskStateMachine } from "./state-machine.js";
+import { resolveWorkflowPath } from "./workflow-path.js";
 
 export interface RunMaestroTickOptions {
   configPath?: string;
+  name?: string;
   task: string;
   transition: string;
   list?: string;
@@ -19,7 +21,13 @@ export interface RunMaestroTickOptions {
 }
 
 export async function runMaestroTick(options: RunMaestroTickOptions): Promise<void> {
-  const workflow = await loadWorkflow(options.configPath ?? "./WORKFLOW.md");
+  if (options.configPath !== undefined && options.name !== undefined) {
+    throw new Error("Cannot specify both configPath and name for Maestro.");
+  }
+
+  const workflow = await loadWorkflow(
+    options.configPath ?? resolveWorkflowPath(options.name, process.cwd())
+  );
   const cfg = applyTickOptionOverrides(
     resolveConfig(workflow.config, path.dirname(workflow.sourcePath)),
     options

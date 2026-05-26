@@ -202,13 +202,86 @@ describe("runMaestroTui", () => {
     expect(runExplorerMock).toHaveBeenCalledOnce();
   });
 
-  it("rejects workflow configs without task-list settings before opening the explorer", async () => {
+  it("loads a named workflow from the repository root", async () => {
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    const tasks = taskList([task({ id: "loaded", qualifiedId: "tasks/loaded" })]);
+    openTaskListMock.mockResolvedValue(tasks);
     vol.fromJSON({
-      "/repo/WORKFLOW.md": workflowFrontmatter([
+      "/repo/BUGS.WORKFLOW.md": workflowFrontmatter([
+        "tasks:",
+        "  type: yaml-file",
+        "  path: tasks.yaml",
         "states:",
         "  planned:",
-        "    prompt: Start."
+        "    prompt: Start.",
+        "  done:",
+        "    terminal: true"
       ])
+    });
+    const { runMaestroTui } = await import("./run.js");
+
+    try {
+      await runMaestroTui({ name: "bugs" });
+
+      expect(openTaskListMock).toHaveBeenCalledOnce();
+      expect(runExplorerMock).toHaveBeenCalledOnce();
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
+  it("loads the default named workflow from the repository root", async () => {
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    const tasks = taskList([task({ id: "loaded", qualifiedId: "tasks/loaded" })]);
+    openTaskListMock.mockResolvedValue(tasks);
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": workflowFrontmatter([
+        "tasks:",
+        "  type: yaml-file",
+        "  path: tasks.yaml",
+        "states:",
+        "  planned:",
+        "    prompt: Start.",
+        "  done:",
+        "    terminal: true"
+      ])
+    });
+    const { runMaestroTui } = await import("./run.js");
+
+    try {
+      await runMaestroTui({ name: "default" });
+
+      expect(openTaskListMock).toHaveBeenCalledOnce();
+      expect(runExplorerMock).toHaveBeenCalledOnce();
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
+  it("rejects both a workflow path and a workflow name", async () => {
+    const { runMaestroTui } = await import("./run.js");
+
+    await expect(
+      runMaestroTui({ workflowPath: "/repo/WORKFLOW.md", name: "bugs" })
+    ).rejects.toThrow("Cannot specify both workflowPath and name for Maestro.");
+  });
+
+  it("reports a missing named workflow file", async () => {
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    const { runMaestroTui } = await import("./run.js");
+
+    try {
+      await expect(runMaestroTui({ name: "bugs" })).rejects.toThrow(
+        "Missing workflow file at /repo/BUGS.WORKFLOW.md."
+      );
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
+  it("rejects workflow configs without task-list settings before opening the explorer", async () => {
+    vol.fromJSON({
+      "/repo/WORKFLOW.md": workflowFrontmatter(["states:", "  planned:", "    prompt: Start."])
     });
     const { runMaestroTui } = await import("./run.js");
 

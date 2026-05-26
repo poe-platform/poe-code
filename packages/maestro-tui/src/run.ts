@@ -2,7 +2,8 @@ import path from "node:path";
 import {
   loadWorkflow,
   resolveConfig,
-  resolveConfiguredTaskListOptions
+  resolveConfiguredTaskListOptions,
+  resolveWorkflowPath
 } from "@poe-code/agent-maestro";
 import { runExplorer } from "@poe-code/design-system";
 import { openTaskList, type TaskList } from "@poe-code/task-list";
@@ -10,12 +11,18 @@ import { buildMaestroExplorerConfig } from "./explorer-config.js";
 
 export interface RunMaestroTuiOptions {
   workflowPath?: string;
+  name?: string;
   taskList?: TaskList;
   variables?: Record<string, string | undefined>;
 }
 
 export async function runMaestroTui(options: RunMaestroTuiOptions = {}): Promise<void> {
-  const taskList = options.taskList ?? (await openWorkflowTaskList(options.workflowPath));
+  if (options.workflowPath !== undefined && options.name !== undefined) {
+    throw new Error("Cannot specify both workflowPath and name for Maestro.");
+  }
+
+  const workflowPath = options.workflowPath ?? resolveWorkflowPath(options.name, process.cwd());
+  const taskList = options.taskList ?? (await openWorkflowTaskList(workflowPath));
   const loadTasks = () => taskList.allTasks();
   const tasks = await loadTasks();
   const config = buildMaestroExplorerConfig({
@@ -28,7 +35,7 @@ export async function runMaestroTui(options: RunMaestroTuiOptions = {}): Promise
   await runExplorer(config);
 }
 
-async function openWorkflowTaskList(workflowPath = "./WORKFLOW.md"): Promise<TaskList> {
+async function openWorkflowTaskList(workflowPath: string): Promise<TaskList> {
   const workflow = await loadWorkflow(workflowPath);
   const cfg = resolveConfig(workflow.config, path.dirname(workflow.sourcePath));
   return openTaskList(resolveConfiguredTaskListOptions(cfg));

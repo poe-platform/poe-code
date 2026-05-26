@@ -80,6 +80,18 @@ describe("maestro command", () => {
     );
   });
 
+  it("passes --name through maestro run", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync(["node", "cli", "maestro", "run", "--name", "bugs"]);
+
+    expect(runMaestroMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "bugs"
+      })
+    );
+  });
+
   it("uses command defaults when optional args are omitted", async () => {
     const program = createTestProgram();
 
@@ -195,6 +207,25 @@ describe("maestro command", () => {
     expect(runMaestroTuiMock).not.toHaveBeenCalled();
   });
 
+  it("passes --name through maestro tick", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "maestro",
+      "tick",
+      "--task",
+      "maestro/one",
+      "--transition",
+      "queued:agent-running",
+      "--name",
+      "bugs"
+    ]);
+
+    expect(runMaestroTickMock).toHaveBeenCalledWith(expect.objectContaining({ name: "bugs" }));
+  });
+
   it("forwards parent --list to maestro tick when tick --list is omitted", async () => {
     const program = createTestProgram();
 
@@ -243,6 +274,24 @@ describe("maestro command", () => {
     expect(runMaestroMock).not.toHaveBeenCalled();
   });
 
+  it("opens the Maestro TUI with --config forwarded as workflowPath", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync(["node", "cli", "maestro", "tui", "--config", "custom/WORKFLOW.md"]);
+
+    expect(runMaestroTuiMock).toHaveBeenCalledWith({
+      workflowPath: "custom/WORKFLOW.md"
+    });
+  });
+
+  it("passes --name through maestro tui", async () => {
+    const program = createTestProgram();
+
+    await program.parseAsync(["node", "cli", "maestro", "tui", "--name", "bugs"]);
+
+    expect(runMaestroTuiMock).toHaveBeenCalledWith({ name: "bugs" });
+  });
+
   it("opens the Maestro TUI without prompting when --workflow is omitted", async () => {
     const prompts = vi.fn().mockResolvedValue({});
     const program = createProgram({
@@ -266,7 +315,7 @@ describe("maestro command", () => {
 
     await expect(
       program.parseAsync(["node", "cli", "maestro", "tui", "--list", "backlog"])
-    ).rejects.toThrow("`poe-code maestro tui` only accepts --workflow.");
+    ).rejects.toThrow("`poe-code maestro tui` only accepts --config, --workflow, or --name.");
     expect(runMaestroTuiMock).not.toHaveBeenCalled();
   });
 
@@ -276,7 +325,7 @@ describe("maestro command", () => {
       const program = createTestProgram();
 
       await expect(program.parseAsync(["node", "cli", flag, "maestro", "tui"])).rejects.toThrow(
-        "`poe-code maestro tui` only accepts --workflow."
+        "`poe-code maestro tui` only accepts --config, --workflow, or --name."
       );
       expect(runMaestroTuiMock).not.toHaveBeenCalled();
     }
@@ -288,7 +337,7 @@ describe("maestro command", () => {
       const program = createTestProgram();
 
       await expect(program.parseAsync(["node", "cli", "maestro", "tui", flag])).rejects.toThrow(
-        "`poe-code maestro tui` only accepts --workflow."
+        "`poe-code maestro tui` only accepts --config, --workflow, or --name."
       );
       expect(runMaestroTuiMock).not.toHaveBeenCalled();
     }

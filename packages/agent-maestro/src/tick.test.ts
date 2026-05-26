@@ -37,6 +37,67 @@ describe("runMaestroTick", () => {
     expect(events).toEqual([{ type: "tick_started", at: "2026-01-01T00:00:00.000Z" }]);
   });
 
+  it("resolves a named workflow at the repository root", async () => {
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    vol.fromJSON({ "/repo/BUGS.WORKFLOW.md": workflowSource() });
+
+    try {
+      await expect(
+        runMaestroTick({
+          name: "bugs",
+          task: "maestro/missing",
+          transition: "queued:agent-running"
+        })
+      ).resolves.toBeUndefined();
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
+  it("resolves the default named workflow at the repository root", async () => {
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+    vol.fromJSON({ "/repo/WORKFLOW.md": workflowSource() });
+
+    try {
+      await expect(
+        runMaestroTick({
+          name: "default",
+          task: "maestro/missing",
+          transition: "queued:agent-running"
+        })
+      ).resolves.toBeUndefined();
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
+  it("rejects both a config path and a workflow name", async () => {
+    await expect(
+      runMaestroTick({
+        configPath: "/repo/WORKFLOW.md",
+        name: "bugs",
+        task: "maestro/missing",
+        transition: "queued:agent-running"
+      })
+    ).rejects.toThrow("Cannot specify both configPath and name for Maestro.");
+  });
+
+  it("reports a missing named workflow file", async () => {
+    const cwd = vi.spyOn(process, "cwd").mockReturnValue("/repo");
+
+    try {
+      await expect(
+        runMaestroTick({
+          name: "bugs",
+          task: "maestro/missing",
+          transition: "queued:agent-running"
+        })
+      ).rejects.toThrow("Missing workflow file at /repo/BUGS.WORKFLOW.md.");
+    } finally {
+      cwd.mockRestore();
+    }
+  });
+
   it("rejects a transition that is not a real maestro state-machine edge", async () => {
     writeWorkflow();
     const taskList = createMockTaskList({
@@ -166,31 +227,35 @@ describe("runMaestroTick", () => {
 
 function writeWorkflow(): void {
   vol.fromJSON({
-    "/repo/WORKFLOW.md": [
-      "---",
-      "tasks:",
-      "  type: yaml-file",
-      "  path: ./tasks.yaml",
-      "states:",
-      "  queued:",
-      "    prompt: Work",
-      "  agent-running:",
-      "    prompt: Continue",
-      "  human-review:",
-      "    prompt: Review",
-      "  done:",
-      "    terminal: true",
-      "  failed:",
-      "    terminal: true",
-      "  archived:",
-      "    terminal: true",
-      "agent:",
-      "  list: maestro",
-      "---",
-      "",
-      "Work on {{ task.name }}."
-    ].join("\n")
+    "/repo/WORKFLOW.md": workflowSource()
   });
+}
+
+function workflowSource(): string {
+  return [
+    "---",
+    "tasks:",
+    "  type: yaml-file",
+    "  path: ./tasks.yaml",
+    "states:",
+    "  queued:",
+    "    prompt: Work",
+    "  agent-running:",
+    "    prompt: Continue",
+    "  human-review:",
+    "    prompt: Review",
+    "  done:",
+    "    terminal: true",
+    "  failed:",
+    "    terminal: true",
+    "  archived:",
+    "    terminal: true",
+    "agent:",
+    "  list: maestro",
+    "---",
+    "",
+    "Work on {{ task.name }}."
+  ].join("\n");
 }
 
 function writeGhIssuesWorkflow(): void {

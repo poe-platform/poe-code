@@ -421,6 +421,18 @@ interface MaestroTickCommandArgs {
   transition: string;
   list?: string;
   config?: string;
+  name?: string;
+}
+
+interface MaestroRunCommandArgs {
+  config?: string;
+  name?: string;
+  maxConcurrent?: number;
+  pollIntervalMs?: number;
+  list?: string;
+  dryRun?: boolean;
+  yes?: boolean;
+  logLevel: "trace" | "debug" | "info" | "warn" | "error";
 }
 
 function parseOptionalPositiveInteger(value: string, optionName: string): number {
@@ -491,7 +503,9 @@ function assertNoUnsupportedOptionsForMaestroTui(command: Command): void {
     "logLevel"
   ];
   if (unsupportedOptionNames.some((name) => hasCliOptionSource(command, name))) {
-    throw new ValidationError("`poe-code maestro tui` only accepts --workflow.");
+    throw new ValidationError(
+      "`poe-code maestro tui` only accepts --config, --workflow, or --name."
+    );
   }
 }
 
@@ -542,7 +556,9 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
     )
     .action(async (path: string, options: Omit<MaestroCommandArgs, "path">, command: Command) => {
       if (path === "tui") {
-        throw new ValidationError("`poe-code maestro tui` only accepts --workflow.");
+        throw new ValidationError(
+          "`poe-code maestro tui` only accepts --config, --workflow, or --name."
+        );
       }
       const mergedOptions = {
         ...options,
@@ -567,6 +583,57 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
   });
 
   maestro
+    .command("run")
+    .description("Run the Maestro task-driven agent daemon.")
+    .option("--config <path>", "Path to WORKFLOW.md")
+    .option("--name <id>", "Named workflow id")
+    .option(
+      "-c, --max-concurrent <n>",
+      maestroCommandSchema.shape.maxConcurrent.inner.description ??
+        "Override agent.max_concurrent_agents",
+      (value: string) => parseOptionalPositiveInteger(value, "--max-concurrent")
+    )
+    .option(
+      "--poll-interval-ms <ms>",
+      maestroCommandSchema.shape.pollIntervalMs.inner.description ?? "Override polling.interval_ms",
+      (value: string) => parseOptionalPositiveInteger(value, "--poll-interval-ms")
+    )
+    .option(
+      "--list <name>",
+      maestroCommandSchema.shape.list.inner.description ?? "Override agent.list"
+    )
+    .option(
+      "--dry-run",
+      maestroCommandSchema.shape.dryRun.inner.description ??
+        "Validate config, inspect candidates, and exit"
+    )
+    .option(
+      "--yes",
+      maestroCommandSchema.shape.yes.inner.description ?? "Accept defaults non-interactively"
+    )
+    .addOption(
+      new Option(
+        "--log-level <level>",
+        maestroCommandSchema.shape.logLevel.description ?? "Log level"
+      )
+        .choices(maestroCommandSchema.shape.logLevel.values.map(String))
+        .default(maestroCommandSchema.shape.logLevel.default)
+    )
+    .action(async (options: MaestroRunCommandArgs) => {
+      await runMaestro({
+        workflowPath: options.config,
+        name: options.name,
+        maxConcurrent: options.maxConcurrent,
+        pollIntervalMs: options.pollIntervalMs,
+        list: options.list,
+        dryRun: options.dryRun,
+        yes: options.yes,
+        logLevel: options.logLevel,
+        logger: createMaestroLogger(container, options)
+      });
+    });
+
+  maestro
     .command("tick")
     .description("Emit one Maestro tick event for an external trigger.")
     .requiredOption("--task <qualifiedId>", "Qualified task id")
@@ -576,12 +643,14 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
       maestroCommandSchema.shape.list.inner.description ?? "Override agent.list"
     )
     .option("--config <path>", "Path to WORKFLOW.md")
+    .option("--name <id>", "Named workflow id")
     .action(async (options: MaestroTickCommandArgs, command: Command) => {
       await runMaestroTick({
         task: options.task,
         transition: options.transition,
         list: options.list ?? readCommandTreeOption<string>(command, "list"),
         configPath: options.config,
+        name: options.name,
         onEvent: writeMaestroEventNdjson
       });
     });
@@ -589,17 +658,23 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
   maestro
     .command("tui")
     .description("Open the Maestro interactive task explorer.")
+    .option("--config <path>", "Path to WORKFLOW.md")
     .option("--workflow <path>", "Path to WORKFLOW.md")
-    .action(async (options: { workflow?: string }, command: Command) => {
-      assertNoUnsupportedOptionsForMaestroTui(command);
-      await runMaestroTui(
-        options.workflow === undefined
-          ? {}
-          : {
-              workflowPath: options.workflow
-            }
-      );
-    });
+    .option("--name <id>", "Named workflow id")
+    .action(
+      async (options: { config?: string; workflow?: string; name?: string }, command: Command) => {
+        assertNoUnsupportedOptionsForMaestroTui(command);
+        if (options.config !== undefined && options.workflow !== undefined) {
+          throw new ValidationError("Specify only one of --config or --workflow for Maestro TUI.");
+        }
+        await runMaestroTui({
+          ...(options.config === undefined && options.workflow === undefined
+            ? {}
+            : { workflowPath: options.config ?? options.workflow }),
+          ...(options.name === undefined ? {} : { name: options.name })
+        });
+      }
+    );
 }
 
 function buildToolcraftArgv(argv: string[], commandNames: readonly string[]): string[] {

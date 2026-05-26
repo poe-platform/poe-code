@@ -162,7 +162,7 @@ async function resolveProfile(
     return input.profile;
   }
   if (options.profilePath) {
-    return loadCodeReviewProfile(options.profilePath);
+    return loadCodeReviewProfile(resolve(options.cwd, options.profilePath));
   }
   return profiles.map((profile) => `## ${profile.name}\n\n${profile.content.trim()}`).join("\n\n");
 }
@@ -175,7 +175,7 @@ async function resolvePrompt(
     return input.prompt;
   }
   return options.promptPath
-    ? loadCodeReviewPrompt(options.promptPath)
+    ? loadCodeReviewPrompt(resolve(options.cwd, options.promptPath))
     : loadCodeReviewRolePrompt({ cwd: options.cwd, role: "orchestrator" });
 }
 

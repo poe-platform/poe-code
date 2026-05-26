@@ -7,7 +7,7 @@ import {
 } from "@poe-code/poe-code-config";
 import type { RunHandle, RunResult, RunSpec } from "@poe-code/process-runner";
 import { createFsFromVolume, Volume } from "memfs";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type {
   DownloadResult,
   ExecutionEnvFactory,
@@ -112,15 +112,16 @@ function createMockEnv(
     },
     exec(spec): RunHandle {
       env.execSpecs.push(spec);
-      if (spec.command === "sh" && spec.args?.[0] === "-c") {
-        void writeExitFile(rawFs.promises, spec, commandExitCode);
-      }
+      const executionResult =
+        spec.command === "sh" && spec.args?.[0] === "-c"
+          ? writeExitFile(rawFs.promises, spec, commandExitCode).then(() => result)
+          : result;
       return {
         pid: 123,
         stdout: null,
         stderr: null,
         stdin: null,
-        result,
+        result: executionResult,
         kill() {}
       };
     },
@@ -255,6 +256,46 @@ describe("runPoeCommand", () => {
     });
   });
 
+  it("does not poll for a wrapped command exit file after its process completes", async () => {
+    vi.useFakeTimers();
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+
+    try {
+      await expect(
+        runPoeCommand({
+          factory: createFactory(env),
+          openSpec: createOpenSpec(),
+          detach: false,
+          state
+        })
+      ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("does not poll for a wrapped command exit file when cancellation remains inactive", async () => {
+    vi.useFakeTimers();
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    const controller = new AbortController();
+
+    try {
+      await expect(
+        runPoeCommand({
+          factory: createFactory(env),
+          openSpec: createOpenSpec(),
+          detach: false,
+          state,
+          signal: controller.signal
+        })
+      ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("leaves the environment open in detach mode", async () => {
     const { state, statuses } = createRecordingState();
     const runResult = deferred<RunResult>();
@@ -373,9 +414,8 @@ describe("runPoeCommand", () => {
     };
     env.exec = (spec): RunHandle => {
       env.execSpecs.push(spec);
-      const nextIteration = remoteIterations.trim().length === 0
-        ? 1
-        : remoteIterations.trim().split("\n").length + 1;
+      const nextIteration =
+        remoteIterations.trim().length === 0 ? 1 : remoteIterations.trim().split("\n").length + 1;
       remoteIterations += `${nextIteration}\n`;
       return {
         pid: 123,

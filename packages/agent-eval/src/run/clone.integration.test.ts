@@ -1,18 +1,10 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import {
-  access,
-  chmod,
-  mkdtemp,
-  mkdir,
-  readdir,
-  rm,
-  writeFile
-} from "node:fs/promises";
+import { access, cp, chmod, mkdtemp, mkdir, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { simpleGit } from "simple-git";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import { cloneTarget } from "./clone.js";
 
@@ -25,6 +17,8 @@ interface FixtureRepo {
 }
 
 let roots: string[] = [];
+let fixtureRoot: string;
+let fixtureTemplate: FixtureRepo;
 
 async function tempRoot(): Promise<string> {
   const root = await mkdtemp(path.join(tmpdir(), "agent-eval-clone-"));
@@ -57,6 +51,16 @@ async function createFixtureRepo(root: string): Promise<FixtureRepo> {
   return { sourceRepo, bareRepo, headSha };
 }
 
+async function copyFixtureRepo(root: string): Promise<FixtureRepo> {
+  const sourceRepo = path.join(root, "source");
+  const bareRepo = path.join(root, "fixture.git");
+  await Promise.all([
+    cp(fixtureTemplate.sourceRepo, sourceRepo, { recursive: true }),
+    cp(fixtureTemplate.bareRepo, bareRepo, { recursive: true })
+  ]);
+  return { sourceRepo, bareRepo, headSha: fixtureTemplate.headSha };
+}
+
 async function commitFixtureChange(
   sourceRepo: string,
   fileName: string,
@@ -76,6 +80,15 @@ async function expectMissing(target: string): Promise<void> {
 }
 
 describe("cloneTarget", () => {
+  beforeAll(async () => {
+    fixtureRoot = await mkdtemp(path.join(tmpdir(), "agent-eval-clone-template-"));
+    fixtureTemplate = await createFixtureRepo(fixtureRoot);
+  });
+
+  afterAll(async () => {
+    await rm(fixtureRoot, { recursive: true, force: true });
+  });
+
   beforeEach(() => {
     roots = [];
   });
@@ -86,7 +99,7 @@ describe("cloneTarget", () => {
 
   it("clones a ref and returns the resolved HEAD sha", async () => {
     const root = await tempRoot();
-    const fixture = await createFixtureRepo(root);
+    const fixture = await copyFixtureRepo(root);
     const dest = path.join(root, "clone");
 
     const result = await cloneTarget({
@@ -101,7 +114,7 @@ describe("cloneTarget", () => {
 
   it("reuses a cached bare repo for repeated worktrees", async () => {
     const root = await tempRoot();
-    const fixture = await createFixtureRepo(root);
+    const fixture = await copyFixtureRepo(root);
     const cacheDir = path.join(root, "cache");
 
     await expect(
@@ -129,7 +142,7 @@ describe("cloneTarget", () => {
 
   it("fetches cached bare repos before creating later worktrees", async () => {
     const root = await tempRoot();
-    const fixture = await createFixtureRepo(root);
+    const fixture = await copyFixtureRepo(root);
     const cacheDir = path.join(root, "cache");
 
     await expect(
@@ -161,7 +174,7 @@ describe("cloneTarget", () => {
 
   it("reuses a cached destination after its previous worktree was deleted", async () => {
     const root = await tempRoot();
-    const fixture = await createFixtureRepo(root);
+    const fixture = await copyFixtureRepo(root);
     const cacheDir = path.join(root, "cache");
     const dest = path.join(root, "same-dest");
 
@@ -188,7 +201,7 @@ describe("cloneTarget", () => {
 
   it("cleans up the destination when an in-flight clone is aborted", async () => {
     const root = await tempRoot();
-    const fixture = await createFixtureRepo(root);
+    const fixture = await copyFixtureRepo(root);
     const wrapperDir = path.join(root, "bin");
     const dest = path.join(root, "aborted");
     const originalPath = process.env.PATH;
@@ -200,13 +213,13 @@ describe("cloneTarget", () => {
       path.join(wrapperDir, "git"),
       [
         "#!/bin/sh",
-        "if [ \"$1\" = \"clone\" ]; then",
-        "  dest=\"\"",
-        "  for arg in \"$@\"; do dest=\"$arg\"; done",
-        "  mkdir -p \"$dest/.git\"",
+        'if [ "$1" = "clone" ]; then',
+        '  dest=""',
+        '  for arg in "$@"; do dest="$arg"; done',
+        '  mkdir -p "$dest/.git"',
         "  sleep 2",
         "fi",
-        "exec \"$REAL_GIT\" \"$@\"",
+        'exec "$REAL_GIT" "$@"',
         ""
       ].join("\n")
     );

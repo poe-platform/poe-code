@@ -65,7 +65,7 @@ export async function runPoeCommand(opts: {
           stdout: execution?.stdout ?? "pipe",
           stderr: execution?.stderr ?? "pipe",
           signal: opts.signal
-    });
+        });
 
     if (execution?.input !== undefined) {
       writeExecutionInput(handle, execution.input);
@@ -479,7 +479,13 @@ function createAbortSync(
 
   if (signal === undefined) {
     return {
-      waitForExit: (env, jobId) => waitForExit(toLogStreamEnv(env), jobId),
+      waitForExit: async (env, jobId) => {
+        await handle.result;
+        if (timedOut) {
+          throw createActivityTimeoutError(activityTimeoutMs!);
+        }
+        return waitForExit(toLogStreamEnv(env), jobId);
+      },
       waitForHandle: async () => {
         const result = await handle.result;
         if (timedOut) {
@@ -494,7 +500,6 @@ function createAbortSync(
     };
   }
 
-  const exitWaitController = new AbortController();
   let aborted = signal.aborted;
   const abortedPromise = new Promise<void>((resolve) => {
     notifyAbort = resolve;
@@ -517,26 +522,21 @@ function createAbortSync(
         return handle.result;
       }
 
-      const exit = waitForExit(toLogStreamEnv(env), jobId, {
-        signal: exitWaitController.signal
-      }).then(
-        (value) => ({ kind: "exit" as const, value }),
-        (error: unknown) => ({ kind: "error" as const, error })
-      );
       const result = await Promise.race([
-        exit,
+        handle.result.then((value) => ({ kind: "exit" as const, value })),
         abortedPromise.then(() => ({ kind: "abort" as const }))
       ]);
 
       if (result.kind === "exit") {
-        return result.value;
+        if (timedOut) {
+          throw createActivityTimeoutError(activityTimeoutMs!);
+        }
+        if (aborted) {
+          return result.value;
+        }
+        return waitForExit(toLogStreamEnv(env), jobId);
       }
 
-      if (result.kind === "error") {
-        throw result.error;
-      }
-
-      exitWaitController.abort();
       return handle.result;
     },
     async waitForHandle() {
@@ -563,7 +563,6 @@ function createAbortSync(
     resetActivityTimer,
     dispose() {
       if (activityTimer) clearTimeout(activityTimer);
-      exitWaitController.abort();
       signal.removeEventListener("abort", kill);
     }
   };

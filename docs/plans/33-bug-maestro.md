@@ -173,8 +173,8 @@ tasks:
         poe-code maestro run --name bugs --dry-run
       The dry-run must load the workflow without errors.
     status:
-      implement: open
-      commit: open
+      implement: done
+      commit: done
 
   - id: wire-and-screenshot
     title: End-to-end subset verification with screenshot

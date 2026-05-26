@@ -272,6 +272,23 @@ describe("validateDispatch", () => {
     });
   });
 
+  it("accepts label-backed gh-issues tasks without requiring a project board", async () => {
+    await expect(
+      validateDispatch(
+        cfg({
+          tasks: {
+            type: "gh-issues",
+            repo: "octo/repo",
+            state: { labelPrefix: "status:" }
+          }
+        }),
+        taskList()
+      )
+    ).resolves.toEqual({ ok: true });
+
+    expect(verifyGhProject).not.toHaveBeenCalled();
+  });
+
   it("returns ok when config, list, and board are valid", async () => {
     verifyGhProject.mockResolvedValue({
       ok: true,

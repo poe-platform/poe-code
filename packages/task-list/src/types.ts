@@ -173,8 +173,10 @@ export interface OpenYamlFileOptions {
 export interface OpenGhIssuesOptions {
   type: "gh-issues";
   repo: string;
-  project: { owner: string; number: number };
+  project?: { owner: string; number: number };
+  filter?: string;
   state?: { labelPrefix?: string };
+  stateMachine?: StateMachineDef;
   defaults?: TaskDefaults;
   auth?: { token: string };
   fetch?: typeof fetch;

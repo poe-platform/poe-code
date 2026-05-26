@@ -26,9 +26,9 @@ export type DispatchValidationResult =
       report: Awaited<ReturnType<typeof verifyGhProject>>;
     };
 
-export function validateStateDefinitions(value: unknown): asserts value is
-  | Record<string, JsonRecord>
-  | Map<string, JsonRecord> {
+export function validateStateDefinitions(
+  value: unknown
+): asserts value is Record<string, JsonRecord> | Map<string, JsonRecord> {
   if (!isStateMap(value)) {
     throw new Error("Workflow config requires a states map.");
   }
@@ -52,11 +52,7 @@ export async function validateDispatch(
   cfg: ResolvedConfig,
   taskList: Pick<TaskList, "lists">
 ): Promise<DispatchValidationResult> {
-  if (
-    cfg.tasks === undefined ||
-    hasEmptyStringValue(cfg.tasks) ||
-    hasMissingTaskField(cfg.tasks)
-  ) {
+  if (cfg.tasks === undefined || hasEmptyStringValue(cfg.tasks) || hasMissingTaskField(cfg.tasks)) {
     return { ok: false, code: "missing_tasks_config" };
   }
 
@@ -90,7 +86,7 @@ export async function validateDispatch(
     return { ok: false, code: "list_not_found", list };
   }
 
-  if (cfg.tasks.type === "gh-issues") {
+  if (cfg.tasks.type === "gh-issues" && cfg.tasks.project !== undefined) {
     const report = await verifyGhProject({
       owner: cfg.tasks.project.owner,
       number: cfg.tasks.project.number,
@@ -157,9 +153,10 @@ const taskFieldValidators: Record<string, (value: JsonRecord) => boolean> = {
   "yaml-file": (value) => isNonEmptyString(value.path),
   "gh-issues": (value) =>
     isNonEmptyString(value.repo) &&
-    isRecord(value.project) &&
-    isNonEmptyString(value.project.owner) &&
-    isFiniteNumber(value.project.number)
+    ((isRecord(value.project) &&
+      isNonEmptyString(value.project.owner) &&
+      isFiniteNumber(value.project.number)) ||
+      (isRecord(value.state) && isNonEmptyString(value.state.labelPrefix)))
 };
 
 function hasMissingTaskField(value: unknown): boolean {

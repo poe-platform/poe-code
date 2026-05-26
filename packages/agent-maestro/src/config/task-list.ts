@@ -8,7 +8,10 @@ export function resolveConfiguredTaskListOptions(
     throw new Error("Maestro workflow is missing tasks config.");
   }
 
-  if (!("path" in cfg.tasks)) {
+  if (
+    !("path" in cfg.tasks) &&
+    !(cfg.tasks.type === "gh-issues" && cfg.tasks.project === undefined)
+  ) {
     return cfg.tasks;
   }
 

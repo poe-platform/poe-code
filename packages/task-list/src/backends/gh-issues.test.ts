@@ -21,6 +21,87 @@ const DEFAULT_DEPS = {
 } satisfies Omit<GhIssuesBackendDeps, "fetch">;
 
 describe("ghIssuesBackend", () => {
+  it("reads repository issues through label-backed state without a project", async () => {
+    const fetchMock = createFetchMock([
+      repositoryIssuesResponse([
+        issue({
+          number: 482,
+          title: "Label driven",
+          labels: ["bug", "status:fix"]
+        })
+      ])
+    ]);
+    const taskList = await ghIssuesBackend({
+      repo: "octo/repo",
+      filter: "label:bug",
+      state: { labelPrefix: "status:" },
+      stateMachine: {
+        initial: "draft",
+        states: ["draft", "fix", "released"],
+        events: {
+          draft: { from: "*", to: "draft" },
+          fix: { from: "*", to: "fix" },
+          released: { from: "*", to: "released" }
+        }
+      },
+      defaults: { metadata: {} },
+      token: "test-token",
+      endpoint: "https://api.github.test/graphql",
+      fetch: fetchMock
+    });
+
+    await expect(taskList.lists()).resolves.toEqual(["octo/repo"]);
+    await expect(taskList.allTasks()).resolves.toEqual([
+      expect.objectContaining({
+        qualifiedId: "octo/repo#482",
+        state: "fix"
+      })
+    ]);
+    expect(readGraphqlCall(fetchMock, 0)).toEqual(
+      expect.objectContaining({ variables: expect.objectContaining({ labels: ["bug"] }) })
+    );
+  });
+
+  it("writes repository-only label-backed transitions without a project", async () => {
+    const fetchMock = createFetchMock([
+      issueResponse({
+        number: 482,
+        title: "Label driven",
+        labels: ["status:draft"],
+        labelIds: ["label-draft"]
+      }),
+      repositoryLabelResponse("label-fix"),
+      addLabelsResponse(),
+      removeLabelsResponse(),
+      issueResponse({ number: 482, title: "Label driven", labels: ["status:fix"] })
+    ]);
+    const taskList = await ghIssuesBackend({
+      repo: "octo/repo",
+      state: { labelPrefix: "status:" },
+      stateMachine: {
+        initial: "draft",
+        states: ["draft", "fix", "released"],
+        events: {
+          draft: { from: "*", to: "draft" },
+          fix: { from: "*", to: "fix" },
+          released: { from: "*", to: "released" }
+        }
+      },
+      defaults: { metadata: {} },
+      token: "test-token",
+      endpoint: "https://api.github.test/graphql",
+      fetch: fetchMock
+    });
+
+    await expect(taskList.list("octo/repo").fire("482", "fix")).resolves.toMatchObject({
+      state: "fix"
+    });
+    expect(readMutationCalls(fetchMock)).toEqual([
+      expect.objectContaining({ query: expect.stringContaining("mutation AddLabels") }),
+      expect.objectContaining({ query: expect.stringContaining("mutation RemoveLabels") })
+    ]);
+  });
+
   it("fetches the project Status field and builds a state machine from display ordered options", async () => {
     const fetchMock = createFetchMock([
       projectResponse({
@@ -122,7 +203,7 @@ describe("ghIssuesBackend", () => {
         state: { labelPrefix: "" },
         fetch: createFetchMock([projectResponse()])
       })
-    ).rejects.toThrow('gh-issues state.labelPrefix must be a non-empty string when configured.');
+    ).rejects.toThrow("gh-issues state.labelPrefix must be a non-empty string when configured.");
   });
 
   it("throws when the project has no Status field", async () => {
@@ -637,7 +718,9 @@ describe("ghIssuesBackend", () => {
       fetch: fetchMock
     });
 
-    await expect(taskList.list("octo-org/7").create({ name: "Label created" })).resolves.toMatchObject({
+    await expect(
+      taskList.list("octo-org/7").create({ name: "Label created" })
+    ).resolves.toMatchObject({
       id: "573",
       state: "Todo"
     });
@@ -1306,6 +1389,17 @@ function issueResponse(options: {
             }
           ]
         }
+      }
+    }
+  });
+}
+
+function repositoryIssuesResponse(nodes: unknown[]): Response {
+  return graphqlResponse({
+    repository: {
+      issues: {
+        nodes,
+        pageInfo: { hasNextPage: false, endCursor: null }
       }
     }
   });

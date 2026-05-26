@@ -43,4 +43,26 @@ describe("resolveConfiguredTaskListOptions", () => {
       })
     ).toBe(tasks);
   });
+
+  it("derives workflow states for label-backed GitHub issues without a project", () => {
+    const options = resolveConfiguredTaskListOptions({
+      tasks: {
+        type: "gh-issues",
+        repo: "owner/repo",
+        state: { labelPrefix: "status:" }
+      },
+      stateOrder: ["draft", "fix", "released"],
+      terminalStateNames: ["released"]
+    });
+
+    expect(options).toMatchObject({
+      type: "gh-issues",
+      repo: "owner/repo",
+      state: { labelPrefix: "status:" },
+      stateMachine: {
+        initial: "draft",
+        states: ["draft", "fix", "released"]
+      }
+    });
+  });
 });

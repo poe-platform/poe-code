@@ -2,7 +2,6 @@
 $schema: https://poe-platform.github.io/poe-code/schemas/plans/pipeline.schema.json
 kind: pipeline
 version: 1
-
 tasks:
   - id: multi-workflow-resolve
     title: Resolve maestro workflows by name
@@ -35,7 +34,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: gh-issues-state-via-labels
     title: State-via-labels mode in gh-issues backend
     prompt: |
@@ -63,13 +61,15 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: move-tasks-sdk
     title: moveTasks transfer API in @poe-code/task-list
-    prompt: |
+    prompt: >
       Add a `moveTasks` function to @poe-code/task-list that transfers tasks
+
       from one configured backend to another. Generic — bug import is one
+
       caller; future provider migrations reuse the same function.
+
 
       Public API:
         moveTasks(opts: {
@@ -86,21 +86,33 @@ tasks:
         MoveResult = { created: number; skipped: number; errors: Array<{ id: string; error: string }> }
 
       Per task: read { name, description, state, metadata } from source,
+
       create equivalent in target (state via stateMap; falls back to target
+
       initial state if unmapped), then delete from source iff
+
       `deleteSource` and the target create resolved successfully. Atomic
+
       per-task — partial failures leave source intact so re-runs are
+
       idempotent.
 
+
       Throttle creations to `rate` per minute regardless of backend. Use
+
       a simple token bucket; honor `dryRun` (emit progress events only,
+
       no writes). Errors accumulate, never abort the run.
 
+
       Tests:
+
       - memfs markdown-dir → markdown-dir: state mapping, dryRun.
+
       - fake-fetch markdown-dir → gh-issues: target uses
         gh-issues-state-via-labels mode added in the prior task.
       - vi.useFakeTimers for throttle timing assertions.
+
       - One source task that fails on target.create: result.errors has it,
         source file remains, run continues.
     status:
@@ -108,7 +120,6 @@ tasks:
       refactor: done
       test: done
       commit: done
-
   - id: move-tasks-cli
     title: poe-code tasks move CLI
     prompt: |
@@ -136,7 +147,6 @@ tasks:
       implement: done
       test: done
       commit: done
-
   - id: bugs-workflow-file
     title: Write BUGS.WORKFLOW.md
     prompt: |
@@ -175,12 +185,13 @@ tasks:
     status:
       implement: done
       commit: done
-
   - id: wire-and-screenshot
     title: End-to-end subset verification with screenshot
-    prompt: |
+    prompt: >
       Verify the bugs maestro pipeline end-to-end on a small subset (do
+
       not drain production docs/bugs/ yet).
+
 
       Steps:
         1. Create a temporary BUGS-IMPORT.WORKFLOW.md at the repo root
@@ -201,12 +212,17 @@ tasks:
            NOT commit them.
 
       Only the screenshot file is a real deliverable; everything else is
+
       a smoke test. Production drain of docs/bugs/ is a separate ops
+
       step, tracked in the # Context section of this plan and run by
+
       hand after merge.
     status:
       implement: done
-      commit: open
+      commit: done
+name: bug-maestro
+state: archived
 ---
 
 # Context

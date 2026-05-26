@@ -104,9 +104,9 @@ tasks:
       - One source task that fails on target.create: result.errors has it,
         source file remains, run continues.
     status:
-      implement: open
-      refactor: open
-      test: open
+      implement: done
+      refactor: done
+      test: done
       commit: open
 
   - id: move-tasks-cli

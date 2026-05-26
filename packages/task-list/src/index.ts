@@ -1,4 +1,5 @@
 export { openTaskList } from "./open.js";
+export { moveTasks } from "./move.js";
 export { assertEvent, assertTransition, defaultStateMachine, type TaskEvent } from "./state.js";
 export {
   eventsFromState,
@@ -15,6 +16,9 @@ export {
   TaskAlreadyExistsError,
   TaskNotFoundError,
   type ListFilter,
+  type MoveProgressEvent,
+  type MoveResult,
+  type MoveTasksOptions,
   type MoveAnchor,
   type OpenGhIssuesOptions,
   type OpenMarkdownDirOptions,
@@ -25,6 +29,7 @@ export {
   type TaskDefaults,
   type TaskFireOptions,
   type TaskList,
+  type TaskListOptions,
   type TaskListFs,
   type TaskOrder,
   type TaskState,

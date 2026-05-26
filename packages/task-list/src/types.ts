@@ -103,6 +103,49 @@ export type OpenTaskListOptions =
   | OpenYamlFileOptions
   | OpenGhIssuesOptions;
 
+export type TaskListOptions = OpenTaskListOptions;
+
+export interface MoveTasksOptions {
+  source: TaskListOptions;
+  target: TaskListOptions;
+  deleteSource?: boolean;
+  limit?: number;
+  rate?: number;
+  dryRun?: boolean;
+  stateMap?: Record<string, string>;
+  onProgress?: (event: MoveProgressEvent) => void;
+}
+
+export interface MoveResult {
+  created: number;
+  skipped: number;
+  errors: Array<{ id: string; error: string }>;
+}
+
+export type MoveProgressEvent =
+  | {
+      type: "created";
+      id: string;
+      source: Task;
+      target: Task;
+      targetList: string;
+      targetState: string;
+    }
+  | {
+      type: "skipped";
+      id: string;
+      source: Task;
+      targetList: string;
+      targetState: string;
+      reason: "dry-run";
+    }
+  | {
+      type: "error";
+      id: string;
+      source: Task;
+      error: string;
+    };
+
 export interface OpenMarkdownDirOptions {
   type: "markdown-dir";
   path: string;

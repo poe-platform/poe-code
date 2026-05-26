@@ -113,6 +113,20 @@ const mainBuild = await esbuild.build({
   metafile: true,
 });
 
+await esbuild.build({
+  entryPoints: [path.join(rootDir, "src/agent.ts")],
+  bundle: true,
+  platform: "node",
+  target: "node18",
+  format: "esm",
+  outfile: path.join(rootDir, "dist/agent.js"),
+  external: externalDeps,
+  alias: workspaceAliases,
+  sourcemap: true,
+  plugins: [stripShebangPlugin],
+  loader: { ".md": "text", ".mustache": "text", ".log": "text" }
+});
+
 const providerEntryPoints = await getProviderEntryPoints(rootDir);
 if (providerEntryPoints.length > 0) {
   await esbuild.build({

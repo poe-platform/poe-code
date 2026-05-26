@@ -13,6 +13,10 @@
     "./memory": {
       "types": "./packages/memory/dist/index.d.ts",
       "import": "./packages/memory/dist/index.js"
+    },
+    "./agent": {
+      "types": "./dist/agent.d.ts",
+      "import": "./dist/agent.js"
     }
   },
   "workspaces": [

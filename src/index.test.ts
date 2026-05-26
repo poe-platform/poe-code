@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  agent,
   createLogWriter,
   createStateStore,
   createSupervisor,
@@ -8,15 +9,27 @@ import {
   isCliInvocation,
   planDocumentSchema,
   planDocumentSchemaId,
+  openaiResponsesPlugin,
   runExperiment,
   runRalph,
+  systemPromptPlugin,
   waitForReady,
+  type AgentPlugin,
   type AutomationDefinition,
   type ProcessSpec,
   type SupervisorOptions
 } from "./index.js";
 
 describe("entrypoint module", () => {
+  it("re-exports the composable agent runtime", () => {
+    const plugin: AgentPlugin = { name: "consumer-plugin" };
+
+    expect(typeof agent).toBe("function");
+    expect(typeof openaiResponsesPlugin).toBe("function");
+    expect(typeof systemPromptPlugin).toBe("function");
+    expect(plugin.name).toBe("consumer-plugin");
+  });
+
   it("re-exports getPoeApiKey", async () => {
     const previous = process.env.POE_API_KEY;
     process.env.POE_API_KEY = "sdk-test-key";

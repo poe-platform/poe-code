@@ -774,7 +774,10 @@ function formatJsonParseUserErrorMessage(
   options: { quotePath: boolean }
 ): string {
   const location = getJsonParseErrorLocation(error, source);
-  const message = getErrorMessage(error);
+  const message =
+    location === null
+      ? getErrorMessage(error)
+      : removeNativeJsonParseLocation(getErrorMessage(error), location);
   const positionText =
     location === null ? "" : ` at line ${location.line} column ${location.column}`;
   const formattedPath = options.quotePath ? `"${filePath}"` : filePath;
@@ -789,6 +792,15 @@ function formatJsonParseUserErrorMessage(
         })}`;
 
   return `${label} ${formattedPath} is not valid JSON: ${message}${positionText}.${snippet}`;
+}
+
+function removeNativeJsonParseLocation(
+  message: string,
+  location: { line: number; column: number }
+): string {
+  const nativeSuffix = ` (line ${location.line} column ${location.column})`;
+
+  return message.endsWith(nativeSuffix) ? message.slice(0, -nativeSuffix.length) : message;
 }
 
 function getJsonParseErrorLocation(

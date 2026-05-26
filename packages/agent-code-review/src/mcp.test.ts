@@ -86,3 +86,53 @@ describe("createCodeReviewAgentMcpConfig", () => {
     });
   });
 });
+
+describe("createCodeReviewAgentMcpGroup orchestrator tools", () => {
+  it("exposes local merged-draft edit, delete, and discard commands", async () => {
+    const state = createCodeReviewState({
+      sessionId: "session-1",
+      prUrl: "https://github.com/acme/repo/pull/1",
+      selectedAgent: "codex",
+      selectedProfiles: ["generic"]
+    });
+    const editedState = {
+      ...state,
+      state: "merged" as const,
+      mergedReview: { body: "Summary", comments: [{ path: "src/a.ts", line: 3, body: "edit" }] }
+    };
+    const store = {
+      read: vi.fn(async () => editedState),
+      editMergedInlineComment: vi.fn(async () => editedState),
+      deleteMergedInlineComment: vi.fn(async () => editedState),
+      discardMergedReview: vi.fn(async () => state),
+      appendOrchestratorAction: vi.fn(async () => editedState)
+    };
+    const group = createCodeReviewAgentMcpGroup(
+      {
+        role: "orchestrator",
+        session: "session-1",
+        actor: "orchestrator",
+        cwd: "/repo",
+        agent: "codex"
+      },
+      { store: store as never }
+    );
+    const command = (name: string) => group.children.find((child) => child.name === name);
+
+    await command("code_review_edit_inline_comment")?.handler({
+      params: { pr: state.prUrl, index: 0, path: "src/a.ts", line: 3, body: "edit" }
+    } as never);
+    await command("code_review_delete_inline_comment")?.handler({
+      params: { pr: state.prUrl, index: 0 }
+    } as never);
+    await command("code_review_discard_draft")?.handler({ params: { pr: state.prUrl } } as never);
+
+    expect(store.editMergedInlineComment).toHaveBeenCalledWith(state.prUrl, 0, {
+      path: "src/a.ts",
+      line: 3,
+      body: "edit"
+    });
+    expect(store.deleteMergedInlineComment).toHaveBeenCalledWith(state.prUrl, 0);
+    expect(store.discardMergedReview).toHaveBeenCalledWith(state.prUrl);
+  });
+});

@@ -53,6 +53,78 @@ describe("ghIssuesBackend", () => {
     });
   });
 
+  it("reads state from prefixed labels when label mode is configured", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Label driven",
+        status: "Todo",
+        labels: ["status:Done"]
+      })
+    ]);
+    const taskList = await ghIssuesBackend({
+      ...DEFAULT_DEPS,
+      state: { labelPrefix: "status:" },
+      fetch: fetchMock
+    });
+
+    await expect(taskList.list("octo-org/7").get("482")).resolves.toMatchObject({
+      state: "Done"
+    });
+  });
+
+  it("uses the initial declared state when label mode has no state label", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Unlabelled state",
+        status: "Done",
+        labels: ["backend"]
+      })
+    ]);
+    const taskList = await ghIssuesBackend({
+      ...DEFAULT_DEPS,
+      state: { labelPrefix: "status:" },
+      fetch: fetchMock
+    });
+
+    await expect(taskList.list("octo-org/7").get("482")).resolves.toMatchObject({
+      state: "Todo"
+    });
+  });
+
+  it("uses the first declared state when multiple prefixed labels are present", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Conflicted labels",
+        labels: ["status:Done", "status:Todo"]
+      })
+    ]);
+    const taskList = await ghIssuesBackend({
+      ...DEFAULT_DEPS,
+      state: { labelPrefix: "status:" },
+      fetch: fetchMock
+    });
+
+    await expect(taskList.list("octo-org/7").get("482")).resolves.toMatchObject({
+      state: "Todo"
+    });
+  });
+
+  it("rejects an empty labelPrefix instead of matching every issue label", async () => {
+    await expect(
+      ghIssuesBackend({
+        ...DEFAULT_DEPS,
+        state: { labelPrefix: "" },
+        fetch: createFetchMock([projectResponse()])
+      })
+    ).rejects.toThrow('gh-issues state.labelPrefix must be a non-empty string when configured.');
+  });
+
   it("throws when the project has no Status field", async () => {
     const fetchMock = createFetchMock([
       projectResponse({
@@ -543,6 +615,42 @@ describe("ghIssuesBackend", () => {
     expect(readMutationCalls(fetchMock)).toMatchSnapshot();
   });
 
+  it("create adds the initial state label instead of writing Status in label mode", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      repositoryResponse("repo-node"),
+      createIssueResponse({ issueId: "issue-node-573", number: 573 }),
+      addProjectItemResponse("item-573"),
+      repositoryLabelResponse("label-todo"),
+      addLabelsResponse(),
+      issueResponse({
+        number: 573,
+        title: "Label created",
+        status: "Done",
+        labels: ["status:Todo"],
+        projectItemId: "item-573"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({
+      ...DEFAULT_DEPS,
+      state: { labelPrefix: "status:" },
+      fetch: fetchMock
+    });
+
+    await expect(taskList.list("octo-org/7").create({ name: "Label created" })).resolves.toMatchObject({
+      id: "573",
+      state: "Todo"
+    });
+    expect(readMutationCalls(fetchMock)).toEqual([
+      expect.objectContaining({ query: expect.stringContaining("mutation CreateIssue") }),
+      expect.objectContaining({ query: expect.stringContaining("mutation AddProjectItem") }),
+      expect.objectContaining({
+        query: expect.stringContaining("mutation AddLabels"),
+        variables: { input: { labelableId: "issue-node-573", labelIds: ["label-todo"] } }
+      })
+    ]);
+  });
+
   it("create fetches the repository id lazily and caches it for later creates", async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
@@ -708,6 +816,105 @@ describe("ghIssuesBackend", () => {
       state: "Done"
     });
     expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it('fire("482", "<known-state>") adds and removes state labels in label mode', async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Move me",
+        status: "Todo",
+        labels: ["backend", "status:Todo", "status:Doing"],
+        labelIds: ["label-backend", "label-todo", "label-doing"]
+      }),
+      repositoryLabelResponse("label-done"),
+      addLabelsResponse(),
+      removeLabelsResponse(),
+      issueResponse({
+        number: 482,
+        title: "Move me",
+        status: "Todo",
+        labels: ["backend", "status:Done"],
+        labelIds: ["label-backend", "label-done"]
+      })
+    ]);
+    const taskList = await ghIssuesBackend({
+      ...DEFAULT_DEPS,
+      state: { labelPrefix: "status:" },
+      fetch: fetchMock
+    });
+
+    await expect(taskList.list("octo-org/7").fire("482", "Done")).resolves.toMatchObject({
+      id: "482",
+      state: "Done"
+    });
+    expect(readGraphqlCall(fetchMock, 1)).toEqual(
+      expect.objectContaining({ query: expect.stringContaining("query IssueStateLabels") })
+    );
+    expect(readMutationCalls(fetchMock)).toEqual([
+      expect.objectContaining({
+        query: expect.stringContaining("mutation AddLabels"),
+        variables: { input: { labelableId: "issue-node-482", labelIds: ["label-done"] } }
+      }),
+      expect.objectContaining({
+        query: expect.stringContaining("mutation RemoveLabels"),
+        variables: {
+          input: { labelableId: "issue-node-482", labelIds: ["label-todo", "label-doing"] }
+        }
+      })
+    ]);
+  });
+
+  it("does not write state labels for issues outside the configured project", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Outside project",
+        labels: ["status:Todo"],
+        projectId: "another-project"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({
+      ...DEFAULT_DEPS,
+      state: { labelPrefix: "status:" },
+      fetch: fetchMock
+    });
+
+    await expect(taskList.list("octo-org/7").fire("482", "Done")).rejects.toBeInstanceOf(
+      TaskNotFoundError
+    );
+    expect(readMutationCalls(fetchMock)).toEqual([]);
+  });
+
+  it("keeps Status-field transitions when labelPrefix is unset", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-482"
+      }),
+      updateStatusResponse(),
+      issueResponse({
+        number: 482,
+        title: "Move me",
+        status: "Done",
+        labels: ["status:Todo"],
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").fire("482", "Done")).resolves.toMatchObject({
+      state: "Done"
+    });
+    expect(readMutationCalls(fetchMock)).toHaveLength(1);
+    expect(readMutationCalls(fetchMock)[0]).toEqual(
+      expect.objectContaining({
+        query: expect.stringContaining("mutation UpdateProjectItemStatus")
+      })
+    );
   });
 
   it("fire ignores metadataPatch and only writes the Status field", async () => {
@@ -1071,6 +1278,7 @@ function issueResponse(options: {
   body?: string | null;
   status?: string | null;
   labels?: string[];
+  labelIds?: string[];
   assignees?: string[];
   milestone?: string | null;
   projectId?: string;
@@ -1081,6 +1289,7 @@ function issueResponse(options: {
     repository: {
       issue: {
         ...issue(options),
+        id: `issue-node-${options.number}`,
         projectItems: {
           nodes: [
             {
@@ -1147,6 +1356,22 @@ function updateStatusResponse(): Response {
       }
     }
   });
+}
+
+function repositoryLabelResponse(id: string): Response {
+  return graphqlResponse({
+    repository: {
+      label: { id }
+    }
+  });
+}
+
+function addLabelsResponse(): Response {
+  return graphqlResponse({ addLabelsToLabelable: { clientMutationId: null } });
+}
+
+function removeLabelsResponse(): Response {
+  return graphqlResponse({ removeLabelsFromLabelable: { clientMutationId: null } });
 }
 
 function issueNodeIdResponse(issueId: string): Response {
@@ -1302,6 +1527,7 @@ function issue(options: {
   title?: string;
   body?: string | null;
   labels?: string[];
+  labelIds?: string[];
   assignees?: string[];
   milestone?: string | null;
   createdAt?: string;
@@ -1314,7 +1540,10 @@ function issue(options: {
     url: `https://github.example.test/octo/repo/issues/${options.number}`,
     createdAt: options.createdAt ?? "2026-01-01T00:00:00Z",
     labels: {
-      nodes: (options.labels ?? []).map((name) => ({ name }))
+      nodes: (options.labels ?? []).map((name, index) => ({
+        id: options.labelIds?.[index] ?? `label-${name}`,
+        name
+      }))
     },
     assignees: {
       nodes: (options.assignees ?? []).map((login) => ({ login }))

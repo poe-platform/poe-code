@@ -126,6 +126,21 @@ const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!)
   }
 }`;
 
+const ISSUE_STATE_LABELS_QUERY = `query IssueStateLabels($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $number) {
+      id
+      labels(first: 50) { nodes { id name } }
+      projectItems(first: 10) {
+        nodes {
+          id
+          project { id }
+        }
+      }
+    }
+  }
+}`;
+
 const REPOSITORY_QUERY = `query Repository($owner: String!, $repo: String!) {
   repository(owner: $owner, name: $repo) {
     id
@@ -140,16 +155,10 @@ const ISSUE_ID_QUERY = `query IssueId($owner: String!, $repo: String!, $number: 
   }
 }`;
 
-const ISSUE_PROJECT_ITEM_QUERY = `query IssueProjectItem($owner: String!, $repo: String!, $number: Int!) {
+const REPOSITORY_LABEL_QUERY = `query RepositoryLabel($owner: String!, $repo: String!, $name: String!) {
   repository(owner: $owner, name: $repo) {
-    issue(number: $number) {
+    label(name: $name) {
       id
-      projectItems(first: 10) {
-        nodes {
-          id
-          project { id }
-        }
-      }
     }
   }
 }`;
@@ -187,6 +196,18 @@ const UPDATE_ISSUE_MUTATION = `mutation UpdateIssue($input: UpdateIssueInput!) {
   }
 }`;
 
+const ADD_LABELS_MUTATION = `mutation AddLabels($input: AddLabelsToLabelableInput!) {
+  addLabelsToLabelable(input: $input) {
+    clientMutationId
+  }
+}`;
+
+const REMOVE_LABELS_MUTATION = `mutation RemoveLabels($input: RemoveLabelsFromLabelableInput!) {
+  removeLabelsFromLabelable(input: $input) {
+    clientMutationId
+  }
+}`;
+
 const ADD_COMMENT_MUTATION = `mutation AddComment($input: AddCommentInput!) {
   addComment(input: $input) {
     commentEdge {
@@ -212,6 +233,7 @@ const DELETE_PROJECT_ITEM_MUTATION = `mutation DeleteProjectItem($input: DeleteP
 export interface GhIssuesBackendDeps {
   repo: string;
   project: { owner: string; number: number };
+  state?: { labelPrefix?: string };
   defaults: Required<TaskDefaults>;
   token: string;
   endpoint: string;
@@ -248,6 +270,8 @@ interface GhIssuesSession {
   statusFieldId: string;
   statusOptions: ReadonlyMap<string, string>;
   stateMachine: StateMachineDef;
+  labelPrefix?: string;
+  labelIds: Map<string, string>;
 }
 
 interface GhIssuesTasksContext {
@@ -298,10 +322,19 @@ interface IssueIdResponse {
   } | null;
 }
 
-interface IssueProjectItemResponse {
+interface RepositoryLabelResponse {
+  repository?: {
+    label?: {
+      id?: string | null;
+    } | null;
+  } | null;
+}
+
+interface IssueStateLabelsResponse {
   repository?: {
     issue?: {
       id?: string | null;
+      labels?: IssueNode["labels"];
       projectItems?: {
         nodes?: ProjectItemMembership[];
       } | null;
@@ -328,13 +361,14 @@ interface AddProjectItemResponse {
 
 interface IssueNode {
   __typename?: "Issue";
+  id?: string;
   number: number;
   title: string;
   body?: string | null;
   url: string;
   createdAt: string;
   labels?: {
-    nodes?: Array<{ name: string } | null>;
+    nodes?: Array<{ id?: string; name: string } | null>;
   } | null;
   assignees?: {
     nodes?: Array<{ login: string } | null>;
@@ -363,6 +397,10 @@ interface StatusValue {
 }
 
 export async function ghIssuesBackend(deps: GhIssuesBackendDeps): Promise<TaskList> {
+  if (deps.state?.labelPrefix === "") {
+    throw new Error("gh-issues state.labelPrefix must be a non-empty string when configured.");
+  }
+
   const client = createGhClient({
     token: deps.token,
     endpoint: deps.endpoint,
@@ -398,7 +436,7 @@ export async function ghIssuesBackend(deps: GhIssuesBackendDeps): Promise<TaskLi
     throw new Error(`Project ${listName} Status field has no options.`);
   }
 
-  const session = createSession(project, field);
+  const session = createSession(project, field, deps.state?.labelPrefix);
   const repoParts = parseRepo(deps.repo);
   const context = {
     client,
@@ -430,7 +468,11 @@ export async function ghIssuesBackend(deps: GhIssuesBackendDeps): Promise<TaskLi
   };
 }
 
-function createSession(project: ProjectV2, field: StatusField): GhIssuesSession {
+function createSession(
+  project: ProjectV2,
+  field: StatusField,
+  labelPrefix?: string
+): GhIssuesSession {
   const statusOptions = new Map(field.options.map((option) => [option.name, option.id]));
   const states = field.options.map((option) => option.name);
   const events = Object.fromEntries(
@@ -446,7 +488,9 @@ function createSession(project: ProjectV2, field: StatusField): GhIssuesSession 
     projectId: project.id,
     statusFieldId: field.id,
     statusOptions,
-    stateMachine
+    stateMachine,
+    labelPrefix,
+    labelIds: new Map<string, string>()
   });
 }
 
@@ -522,7 +566,16 @@ function createTasksView(
         throw new Error("GitHub addProjectV2ItemById response did not include project item id.");
       }
 
-      await updateProjectItemStatus(projectItemId, session.stateMachine.initial, session, context);
+      if (session.labelPrefix === undefined) {
+        await updateProjectItemStatus(
+          projectItemId,
+          session.stateMachine.initial,
+          session,
+          context
+        );
+      } else {
+        await addStateLabel(issueId, session.stateMachine.initial, session, context);
+      }
       return fetchIssueTask(String(issueNumber), name, session, context);
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
@@ -555,9 +608,13 @@ function createTasksView(
         });
       }
 
-      const projectItemId = await resolveProjectItemId(id, name, session, context);
       // opts.metadataPatch writes are out of scope for v1 on gh-issues.
-      await updateProjectItemStatus(projectItemId, event, session, context);
+      if (session.labelPrefix === undefined) {
+        const projectItemId = await resolveProjectItemId(id, name, session, context);
+        await updateProjectItemStatus(projectItemId, event, session, context);
+      } else {
+        await updateIssueStateLabel(id, name, event, session, context);
+      }
       return fetchIssueTask(id, name, session, context);
     },
     async comment(id: string, body: string): Promise<void> {
@@ -687,7 +744,7 @@ async function resolveProjectItemId(
   context: GhIssuesTasksContext
 ): Promise<string> {
   const issueNumber = parseIssueNumber(id, listName);
-  const result = await context.client.graphql<IssueProjectItemResponse>(ISSUE_PROJECT_ITEM_QUERY, {
+  const result = await context.client.graphql<IssueStateLabelsResponse>(ISSUE_STATE_LABELS_QUERY, {
     owner: context.repoOwner,
     repo: context.repoName,
     number: issueNumber
@@ -734,6 +791,94 @@ async function updateProjectItemStatus(
       }
     }
   });
+}
+
+async function addStateLabel(
+  issueId: string,
+  state: string,
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<void> {
+  const labelId = await resolveStateLabelId(state, session, context);
+  await context.client.graphql(ADD_LABELS_MUTATION, {
+    input: {
+      labelableId: issueId,
+      labelIds: [labelId]
+    }
+  });
+}
+
+async function updateIssueStateLabel(
+  id: string,
+  listName: string,
+  state: string,
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<void> {
+  const issueNumber = parseIssueNumber(id, listName);
+  const result = await context.client.graphql<IssueStateLabelsResponse>(ISSUE_STATE_LABELS_QUERY, {
+    owner: context.repoOwner,
+    repo: context.repoName,
+    number: issueNumber
+  });
+  const issue = result.repository?.issue ?? null;
+  if (issue === null) {
+    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+  }
+  const issueId = issue.id ?? null;
+  if (issueId === null) {
+    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+  }
+  if (!issue.projectItems?.nodes?.some((item) => item.project?.id === session.projectId)) {
+    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+  }
+
+  const targetLabel = `${session.labelPrefix}${state}`;
+  const stateLabels = (issue.labels?.nodes ?? []).filter(
+    (node): node is { id?: string; name: string } =>
+      node !== null && node.name.startsWith(session.labelPrefix ?? "")
+  );
+  const targetNode = stateLabels.find((node) => node.name === targetLabel);
+  if (targetNode === undefined) {
+    await addStateLabel(issueId, state, session, context);
+  }
+
+  const labelIdsToRemove = stateLabels
+    .filter((node) => node.name !== targetLabel && node.id !== undefined)
+    .map((node) => node.id as string);
+  if (labelIdsToRemove.length > 0) {
+    await context.client.graphql(REMOVE_LABELS_MUTATION, {
+      input: {
+        labelableId: issueId,
+        labelIds: labelIdsToRemove
+      }
+    });
+  }
+}
+
+async function resolveStateLabelId(
+  state: string,
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<string> {
+  const name = `${session.labelPrefix}${state}`;
+  const cachedLabelId = session.labelIds.get(name);
+  if (cachedLabelId !== undefined) {
+    return cachedLabelId;
+  }
+
+  const result = await context.client.graphql<RepositoryLabelResponse>(REPOSITORY_LABEL_QUERY, {
+    owner: context.repoOwner,
+    repo: context.repoName,
+    name
+  });
+  const labelId = result.repository?.label?.id ?? null;
+  if (labelId === null) {
+    throw new Error(`GitHub label "${name}" not found or inaccessible.`);
+  }
+
+  session.labelIds.set(name, labelId);
+  return labelId;
 }
 
 async function updateProjectItemPosition(
@@ -866,7 +1011,7 @@ async function fetchIssueTask(
     projectItemId: projectItem.id,
     statusName: projectItem.fieldValueByName?.name ?? null,
     listName,
-    initialState: session.stateMachine.initial
+    session
   });
 }
 
@@ -894,7 +1039,7 @@ function mapProjectItemToTask(
     projectItemId: item.id,
     statusName: item.fieldValueByName?.name ?? null,
     listName,
-    initialState: session.stateMachine.initial
+    session
   });
 }
 
@@ -914,11 +1059,11 @@ function mapIssueToTask(options: {
   projectItemId: string;
   statusName: string | null;
   listName: string;
-  initialState: string;
+  session: GhIssuesSession;
 }): Task {
   const id = String(options.issue.number);
   const labels = (options.issue.labels?.nodes ?? [])
-    .filter((node): node is { name: string } => node !== null)
+    .filter((node): node is { id?: string; name: string } => node !== null)
     .map((node) => node.name);
   const assignees = (options.issue.assignees?.nodes ?? [])
     .filter((node): node is { login: string } => node !== null)
@@ -930,7 +1075,7 @@ function mapIssueToTask(options: {
     qualifiedId: `${options.listName}#${id}`,
     name: options.issue.title,
     description: options.issue.body ?? "",
-    state: options.statusName ?? options.initialState,
+    state: resolveTaskState(labels, options.statusName, options.session),
     metadata: {
       url: options.issue.url,
       labels,
@@ -940,6 +1085,22 @@ function mapIssueToTask(options: {
       created: options.issue.createdAt
     }
   };
+}
+
+function resolveTaskState(
+  labels: readonly string[],
+  statusName: string | null,
+  session: GhIssuesSession
+): string {
+  if (session.labelPrefix === undefined) {
+    return statusName ?? session.stateMachine.initial;
+  }
+
+  return (
+    session.stateMachine.states.find((state) =>
+      labels.includes(`${session.labelPrefix}${state}`)
+    ) ?? session.stateMachine.initial
+  );
 }
 
 function projectItemIdFromTask(task: Task): string {

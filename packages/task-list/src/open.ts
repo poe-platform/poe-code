@@ -72,6 +72,7 @@ async function openGhIssuesBackend(options: OpenGhIssuesOptions): Promise<TaskLi
   return ghIssuesBackend({
     repo: options.repo,
     project: options.project,
+    state: options.state,
     defaults: {
       metadata: { ...(options.defaults?.metadata ?? {}) }
     },

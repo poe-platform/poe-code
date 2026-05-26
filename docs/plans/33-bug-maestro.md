@@ -34,7 +34,7 @@ tasks:
     status:
       implement: done
       test: done
-      commit: open
+      commit: done
 
   - id: gh-issues-state-via-labels
     title: State-via-labels mode in gh-issues backend
@@ -59,10 +59,10 @@ tasks:
       labels on one issue resolve deterministically (first declared state
       wins), and labelPrefix unset preserves prior behavior.
     status:
-      implement: open
-      refactor: open
-      test: open
-      commit: open
+      implement: done
+      refactor: done
+      test: done
+      commit: done
 
   - id: move-tasks-sdk
     title: moveTasks transfer API in @poe-code/task-list

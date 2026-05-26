@@ -187,6 +187,68 @@ describe("openTaskList", () => {
     }
   });
 
+  it("passes gh-issues state.labelPrefix through to label-backed reads", async () => {
+    const fetchMock: typeof fetch = vi
+      .fn()
+      .mockResolvedValueOnce(
+        createJsonResponse({
+          data: {
+            organization: {
+              projectV2: {
+                id: "project-1",
+                title: "Roadmap",
+                field: {
+                  id: "status-field",
+                  options: [
+                    { id: "status-todo", name: "Todo" },
+                    { id: "status-done", name: "Done" }
+                  ]
+                }
+              }
+            }
+          }
+        })
+      )
+      .mockResolvedValueOnce(
+        createJsonResponse({
+          data: {
+            repository: {
+              issue: {
+                number: 1,
+                title: "Ship",
+                body: "",
+                url: "https://github.example.test/owner/name/issues/1",
+                createdAt: "2026-01-01T00:00:00Z",
+                labels: { nodes: [{ name: "status:Done" }] },
+                assignees: { nodes: [] },
+                milestone: null,
+                projectItems: {
+                  nodes: [
+                    {
+                      id: "item-1",
+                      project: { id: "project-1" },
+                      fieldValueByName: { name: "Todo" }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        })
+      ) as unknown as typeof fetch;
+
+    const taskList = await openTaskList({
+      type: "gh-issues",
+      repo: "owner/name",
+      project: { owner: "owner", number: 1 },
+      state: { labelPrefix: "status:" },
+      auth: { token: "explicit-token" },
+      fetch: fetchMock
+    });
+
+    await expect(taskList.list("owner/1").get("1")).resolves.toMatchObject({ state: "Done" });
+  });
+
   it("normalizes missing defaults", async () => {
     const taskList = createTaskList();
     const { fs } = createFs();

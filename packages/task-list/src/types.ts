@@ -40,10 +40,7 @@ export interface ListFilter {
   order?: TaskOrder;
 }
 
-export type MoveAnchor =
-  | { before: string }
-  | { after: string }
-  | { position: "top" | "bottom" };
+export type MoveAnchor = { before: string } | { after: string } | { position: "top" | "bottom" };
 
 export interface Tasks {
   readonly name: string;
@@ -75,7 +72,10 @@ export interface TaskDefaults {
 
 export interface TaskListFs {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
-  open(path: string, flags: string): Promise<{
+  open(
+    path: string,
+    flags: string
+  ): Promise<{
     close(): Promise<void>;
     writeFile(
       data: string | NodeJS.ArrayBufferView,
@@ -131,6 +131,7 @@ export interface OpenGhIssuesOptions {
   type: "gh-issues";
   repo: string;
   project: { owner: string; number: number };
+  state?: { labelPrefix?: string };
   defaults?: TaskDefaults;
   auth?: { token: string };
   fetch?: typeof fetch;

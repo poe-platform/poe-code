@@ -61,6 +61,9 @@ const inlineCommentSchema = S.Object({
   line: S.Number({ description: "Right-side line number in the PR diff." }),
   body: S.String({ description: "Inline review comment body." })
 });
+const inlineCommentIndexSchema = S.Number({
+  description: "Zero-based merged review inline comment index."
+});
 
 const prParam = S.String({ description: "GitHub pull request URL." });
 export function parseCodeReviewAgentMcpArgs(argv: string[]): CodeReviewAgentMcpContext {
@@ -386,6 +389,61 @@ export function createCodeReviewAgentMcpGroup(
       };
     }
   });
+  const editInlineCommentCommand = defineCommand({
+    name: "code_review_edit_inline_comment",
+    description: "Replace one inline comment in the merged review draft.",
+    scope: ["mcp"],
+    params: S.Object({
+      pr: prParam,
+      index: inlineCommentIndexSchema,
+      path: S.String({ description: "Repository-relative path in the PR diff." }),
+      line: S.Number({ description: "Right-side line number in the PR diff." }),
+      body: S.String({ description: "Inline review comment body." })
+    }),
+    handler: async ({ params }) => {
+      const pr = canonicalPullRequestUrl(params.pr);
+      await requireState(store, context, pr);
+      const state = await store.editMergedInlineComment(pr, params.index, {
+        path: params.path,
+        line: params.line,
+        body: params.body
+      });
+      await store.appendOrchestratorAction(pr, {
+        action: "edited_inline_comment",
+        details: String(params.index)
+      });
+      return { ok: true, dry_run: true, merged_review: state.mergedReview };
+    }
+  });
+  const deleteInlineCommentCommand = defineCommand({
+    name: "code_review_delete_inline_comment",
+    description: "Delete one inline comment from the merged review draft.",
+    scope: ["mcp"],
+    params: S.Object({ pr: prParam, index: inlineCommentIndexSchema }),
+    handler: async ({ params }) => {
+      const pr = canonicalPullRequestUrl(params.pr);
+      await requireState(store, context, pr);
+      const state = await store.deleteMergedInlineComment(pr, params.index);
+      await store.appendOrchestratorAction(pr, {
+        action: "deleted_inline_comment",
+        details: String(params.index)
+      });
+      return { ok: true, dry_run: true, merged_review: state.mergedReview };
+    }
+  });
+  const discardDraftCommand = defineCommand({
+    name: "code_review_discard_draft",
+    description: "Discard the merged review draft without changing raw reviews.",
+    scope: ["mcp"],
+    params: S.Object({ pr: prParam }),
+    handler: async ({ params }) => {
+      const pr = canonicalPullRequestUrl(params.pr);
+      await requireState(store, context, pr);
+      await store.discardMergedReview(pr);
+      await store.appendOrchestratorAction(pr, { action: "discarded_merged_review" });
+      return { ok: true, dry_run: true, merged_review: null };
+    }
+  });
   const commitDraftsCommand = defineCommand({
     name: "code_review_commit_drafts",
     description: "Preview publishing stored drafts; MCP never publishes to GitHub.",
@@ -409,6 +467,9 @@ export function createCodeReviewAgentMcpGroup(
       agentSpawnCommand,
       agentStatusCommand,
       listDraftsCommand,
+      editInlineCommentCommand,
+      deleteInlineCommentCommand,
+      discardDraftCommand,
       commitDraftsCommand
     ]
   });

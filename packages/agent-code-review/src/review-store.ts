@@ -21,6 +21,7 @@ import {
 import { requireSafeDocumentSegment } from "./document-schemas.js";
 import {
   type CodeReviewDraft,
+  type CodeReviewInlineComment,
   type CodeReviewOrchestratorAction,
   type CodeReviewPublishedReceipt,
   type CodeReviewState,
@@ -153,6 +154,7 @@ export class CodeReviewYamlStore {
         const resumedAt = this.#timestamp();
         const resumed = {
           ...existing,
+          sessionId: freshState.sessionId,
           selectedAgent: freshState.selectedAgent,
           selectedProfiles: freshState.selectedProfiles,
           state: "in_progress" as const,
@@ -250,6 +252,44 @@ export class CodeReviewYamlStore {
         state: "merged",
         mergedReview: review
       };
+    });
+  }
+
+  async editMergedInlineComment(
+    prUrl: string,
+    index: number,
+    comment: CodeReviewInlineComment
+  ): Promise<CodeReviewState> {
+    return this.#updateActive(prUrl, (state) => {
+      const mergedReview = requireMergedReview(state);
+      const commentIndex = requireInlineCommentIndex(index, mergedReview.comments.length);
+      const comments = [...mergedReview.comments];
+      comments[commentIndex] = comment;
+      return {
+        ...state,
+        mergedReview: { ...mergedReview, comments }
+      };
+    });
+  }
+
+  async deleteMergedInlineComment(prUrl: string, index: number): Promise<CodeReviewState> {
+    return this.#updateActive(prUrl, (state) => {
+      const mergedReview = requireMergedReview(state);
+      const commentIndex = requireInlineCommentIndex(index, mergedReview.comments.length);
+      return {
+        ...state,
+        mergedReview: {
+          ...mergedReview,
+          comments: mergedReview.comments.filter((_, currentIndex) => currentIndex !== commentIndex)
+        }
+      };
+    });
+  }
+
+  async discardMergedReview(prUrl: string): Promise<CodeReviewState> {
+    return this.#updateActive(prUrl, (state) => {
+      requireMergedReview(state);
+      return { ...state, state: "in_progress", mergedReview: undefined };
     });
   }
 
@@ -681,6 +721,20 @@ function requirePullRequestRef(prUrl: string) {
 
 function requireActor(actor: string): string {
   return requireSafeDocumentSegment(actor, "Code review actor");
+}
+
+function requireMergedReview(state: CodeReviewState): CodeReviewDraft {
+  if (state.mergedReview === undefined) {
+    throw new Error("Code review has no merged draft to modify.");
+  }
+  return state.mergedReview;
+}
+
+function requireInlineCommentIndex(index: number, commentCount: number): number {
+  if (!Number.isSafeInteger(index) || index < 0 || index >= commentCount) {
+    throw new Error(`Merged review inline comment index is out of range: ${index}`);
+  }
+  return index;
 }
 
 function safeFilePart(part: string): string {

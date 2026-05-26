@@ -1,7 +1,7 @@
 name: 'GitHub: Issue Opened'
 on:
   issues:
-    types: [opened]
+    types: [labeled]
 
 # Keep these permissions in sync with the reusable workflow referenced below.
 permissions:
@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   run:
+    if: github.event.label.name == 'agent'
     uses: __UPSTREAM_REPO__/.github/workflows/gh-github-issue-opened.yml@main
     secrets: inherit
     with:

@@ -24,6 +24,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   guard:
+    if: github.event.label.name == 'agent'
     runs-on: ubuntu-latest
     env:
       OUTPUT_FORMAT: terminal

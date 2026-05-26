@@ -2,7 +2,7 @@
 name: 'GitHub: Issue Opened'
 on:
   issues:
-    types: [opened]
+    types: [labeled]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.issue.number }}
@@ -10,6 +10,7 @@ concurrency:
 
 jobs:
   guard:
+    if: github.event.label.name == 'agent'
     runs-on: ubuntu-latest
     env:
       OUTPUT_FORMAT: terminal

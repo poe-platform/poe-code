@@ -7,6 +7,7 @@ import {
   syncGhProject,
   verifyGhProject,
   type OpenTaskListOptions,
+  type MoveProgressEvent,
   type Task,
   type TaskList,
   type TaskListFs,
@@ -18,6 +19,7 @@ import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
 import {
   resolveTasksOptions,
+  resolveWorkflowMoveTargetOptions,
   resolveWorkflowTaskListOptions,
   resolveWorkflowTasksOptions,
   type ResolvedWorkflowTasksOptions,
@@ -240,16 +242,31 @@ async function runMove(options: TasksCommandOptions, container: CliContainer): P
 
     await moveTasks({
       source: await resolveWorkflowTaskListOptions(options.from),
-      target: await resolveWorkflowTaskListOptions(options.to),
+      target: await resolveWorkflowMoveTargetOptions(options.to),
       ...(options.deleteSource === true ? { deleteSource: true } : {}),
       ...(rate !== undefined ? { rate } : {}),
       ...(limit !== undefined ? { limit } : {}),
       ...(options.dryRun === true ? { dryRun: true } : {}),
-      ...(stateMap !== undefined ? { stateMap } : {})
+      ...(stateMap !== undefined ? { stateMap } : {}),
+      onProgress: (event) => logMoveProgress(event, logger)
     });
   } catch (error) {
     handleCommandError(error, logger, options.json);
   }
+}
+
+function logMoveProgress(event: MoveProgressEvent, logger: ScopedLogger): void {
+  if (event.type === "skipped") {
+    logger.dryRun(`[dry-run] Would create "${event.source.name}" as ${event.targetState}.`);
+    return;
+  }
+
+  if (event.type === "created") {
+    logger.success(`[created] Created "${event.source.name}" as ${event.targetState}.`);
+    return;
+  }
+
+  logger.error(`[error] Failed to create "${event.source.name}": ${event.error}`);
 }
 
 async function runGet(

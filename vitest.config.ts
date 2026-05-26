@@ -23,9 +23,10 @@ function rawTextPlugin(): Plugin {
 
 function getPackageAliases(): Record<string, string> {
   const packagesDir = path.resolve(__dirname, "packages");
-  const packages = fs.readdirSync(packagesDir, { withFileTypes: true })
-    .filter(dirent => dirent.isDirectory())
-    .map(dirent => dirent.name);
+  const packages = fs
+    .readdirSync(packagesDir, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .map((dirent) => dirent.name);
 
   const mainAliases: Record<string, string> = {};
   const subpathAliases: Record<string, string> = {};
@@ -38,9 +39,7 @@ function getPackageAliases(): Record<string, string> {
       exports?: unknown;
       name?: unknown;
     };
-    const packageName = typeof packageJson.name === "string"
-      ? packageJson.name
-      : undefined;
+    const packageName = typeof packageJson.name === "string" ? packageJson.name : undefined;
     const mainEntryPath = path.resolve(packagesDir, pkg, "src/index.ts");
 
     // Main export: @poe-code/<name> -> packages/<name>/src/index.ts
@@ -75,9 +74,9 @@ function getPackageAliases(): Record<string, string> {
     }
 
     if (
-      typeof packageJson.exports === "object"
-      && packageJson.exports !== null
-      && !Array.isArray(packageJson.exports)
+      typeof packageJson.exports === "object" &&
+      packageJson.exports !== null &&
+      !Array.isArray(packageJson.exports)
     ) {
       for (const exportKey of Object.keys(packageJson.exports)) {
         if (exportKey === "." || !exportKey.startsWith("./")) {
@@ -125,18 +124,18 @@ export default defineConfig({
     environment: "node",
     pool: "threads",
     include: [
-      "src/**/*.test.ts",              // Collocated unit tests
-      "tests/helpers/**/*.test.ts",    // Test helper tests
+      "src/**/*.test.ts", // Collocated unit tests
+      "tests/helpers/**/*.test.ts", // Test helper tests
       "tests/integration/**/*.test.ts", // Integration tests
-      "packages/**/*.test.ts",         // Package tests
-      "packages/**/*.spec.ts",         // Package specs
-      "scripts/**/*.test.ts"           // Script tests
+      "packages/**/*.test.ts", // Package tests
+      "packages/**/*.spec.ts", // Package specs
+      "scripts/**/*.test.ts" // Script tests
     ],
     exclude: [
       "**/node_modules/**",
-      "**/*.e2e.test.ts"               // E2E tests run separately
+      "**/*.e2e.test.ts" // E2E tests run separately
     ],
-    maxWorkers: 1,
+    maxWorkers: 2,
     setupFiles: ["tests/setup.ts"]
   }
 });

@@ -205,7 +205,7 @@ tasks:
       step, tracked in the # Context section of this plan and run by
       hand after merge.
     status:
-      implement: open
+      implement: done
       commit: open
 ---
 

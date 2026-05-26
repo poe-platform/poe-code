@@ -58,6 +58,23 @@ export async function resolveWorkflowTaskListOptions(
   return readTaskListOptions(frontmatter, workflowPath);
 }
 
+export async function resolveWorkflowMoveTargetOptions(
+  workflowPath: string
+): Promise<OpenTaskListOptions> {
+  const frontmatter = await readWorkflowFrontmatter(workflowPath);
+  const taskListOptions = readTaskListOptions(frontmatter, workflowPath);
+  const stateOrder = readWorkflowStates(frontmatter);
+
+  if (stateOrder.length === 0) {
+    return taskListOptions;
+  }
+
+  return {
+    ...taskListOptions,
+    stateMachine: createAnyToAnyStateMachine(stateOrder)
+  } as OpenTaskListOptions;
+}
+
 export async function resolveTasksOptions(
   list: string | undefined,
   options: TasksCliOptions
@@ -182,19 +199,9 @@ function resolveRequiredStates(
     );
   }
 
-  const declaredStates = readDeclaredStates(frontmatter.states);
-  if (declaredStates.length > 0) {
-    return declaredStates;
-  }
-
-  const topLevelStates = readLegacyTopLevelStates(frontmatter);
-  if (topLevelStates.length > 0) {
-    return topLevelStates;
-  }
-
-  const maestroStates = readMaestroStates(frontmatter);
-  if (maestroStates.length > 0) {
-    return maestroStates;
+  const workflowStates = readWorkflowStates(frontmatter);
+  if (workflowStates.length > 0) {
+    return workflowStates;
   }
 
   if (referencesMaestroTaskStateMachine(frontmatter)) {
@@ -205,6 +212,20 @@ function resolveRequiredStates(
     "missing_required_states",
     "Required task states were not provided and WORKFLOW.md does not define them."
   );
+}
+
+function readWorkflowStates(frontmatter: Record<string, unknown>): string[] {
+  const declaredStates = readDeclaredStates(frontmatter.states);
+  if (declaredStates.length > 0) {
+    return declaredStates;
+  }
+
+  const topLevelStates = readLegacyTopLevelStates(frontmatter);
+  if (topLevelStates.length > 0) {
+    return topLevelStates;
+  }
+
+  return readMaestroStates(frontmatter);
 }
 
 function parseStatesCsv(value: string): string[] {

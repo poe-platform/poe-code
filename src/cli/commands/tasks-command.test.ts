@@ -3,7 +3,11 @@ import { vol, fs as memfs } from "memfs";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
-import type { SyncGhProjectReport, VerifyGhProjectReport } from "@poe-code/task-list";
+import type {
+  MoveTasksOptions,
+  SyncGhProjectReport,
+  VerifyGhProjectReport
+} from "@poe-code/task-list";
 
 const taskListMocks = vi.hoisted(() => {
   class MockGhProjectSyncError extends Error {
@@ -441,6 +445,11 @@ tasks:
 tasks:
   type: yaml-file
   path: ./target.yml
+states:
+  draft:
+    prompt: Triage it
+  done:
+    terminal: true
 `,
       `${cwd}/target.md`
     );
@@ -463,13 +472,88 @@ tasks:
 
     expect(taskListMocks.moveTasks).toHaveBeenCalledWith({
       source: { type: "markdown-dir", path: `${cwd}/source-tasks` },
-      target: { type: "yaml-file", path: `${cwd}/target.yml` },
+      target: {
+        type: "yaml-file",
+        path: `${cwd}/target.yml`,
+        stateMachine: {
+          initial: "draft",
+          states: ["draft", "done"],
+          events: {
+            draft: { from: "*", to: "draft" },
+            done: { from: "*", to: "done" }
+          }
+        }
+      },
       deleteSource: true,
       rate: 25,
       limit: 8,
       dryRun: true,
-      stateMap: { queued: "Todo", done: "Done" }
+      stateMap: { queued: "Todo", done: "Done" },
+      onProgress: expect.any(Function)
     });
+  });
+
+  it("move reports planned dry-run creations with task titles", async () => {
+    const logs: string[] = [];
+    seedWorkflow(
+      `
+tasks:
+  type: markdown-dir
+  path: ./source-tasks
+`,
+      `${cwd}/source.md`
+    );
+    seedWorkflow(
+      `
+tasks:
+  type: gh-issues
+  repo: acme/repo
+  filter: label:bug
+  state:
+    labelPrefix: "status:"
+states:
+  draft:
+    prompt: Triage it
+  done:
+    terminal: true
+`,
+      `${cwd}/target.md`
+    );
+    taskListMocks.moveTasks.mockImplementationOnce(async (options: MoveTasksOptions) => {
+      options.onProgress?.({
+        type: "skipped",
+        id: "bug-a",
+        source: {
+          id: "bug-a",
+          list: "bugs",
+          qualifiedId: "bugs/bug-a",
+          name: "First imported bug",
+          description: "Details",
+          metadata: {},
+          state: "draft"
+        },
+        targetList: "acme/repo",
+        targetState: "draft",
+        reason: "dry-run"
+      });
+      return { created: 0, skipped: 1, errors: [] };
+    });
+
+    await runTasks(
+      ["move", "--from", `${cwd}/source.md`, "--to", `${cwd}/target.md`, "--dry-run"],
+      logs
+    );
+
+    expect(logs).toEqual(['[dry-run] Would create "First imported bug" as draft.']);
+    expect(taskListMocks.moveTasks).toHaveBeenCalledWith(
+      expect.objectContaining({
+        target: expect.objectContaining({
+          type: "gh-issues",
+          stateMachine: expect.objectContaining({ initial: "draft" })
+        }),
+        onProgress: expect.any(Function)
+      })
+    );
   });
 
   it("move reports missing --from or --to clearly", async () => {

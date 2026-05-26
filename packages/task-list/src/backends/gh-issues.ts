@@ -145,6 +145,21 @@ const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!)
   }
 }`;
 
+const REPOSITORY_ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $number) {
+      number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
+    }
+  }
+}`;
+
 const ISSUE_STATE_LABELS_QUERY = `query IssueStateLabels($owner: String!, $repo: String!, $number: Int!) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
@@ -156,6 +171,15 @@ const ISSUE_STATE_LABELS_QUERY = `query IssueStateLabels($owner: String!, $repo:
           project { id }
         }
       }
+    }
+  }
+}`;
+
+const REPOSITORY_ISSUE_STATE_LABELS_QUERY = `query IssueStateLabels($owner: String!, $repo: String!, $number: Int!) {
+  repository(owner: $owner, name: $repo) {
+    issue(number: $number) {
+      id
+      labels(first: 50) { nodes { id name } }
     }
   }
 }`;
@@ -591,11 +615,13 @@ function createTasksView(
      */
     async create(input: TaskCreate): Promise<Task> {
       const repositoryId = await resolveRepositoryId(context);
+      const labelIds = await resolveConfiguredLabelIds(session, context);
       const created = await context.client.graphql<CreateIssueResponse>(CREATE_ISSUE_MUTATION, {
         input: {
           repositoryId,
           title: input.name,
-          body: input.description ?? ""
+          body: input.description ?? "",
+          ...(labelIds.length === 0 ? {} : { labelIds })
         }
       });
       const issue = created.createIssue?.issue;
@@ -692,7 +718,16 @@ function createTasksView(
       return eventsFromState(session.stateMachine, id);
     },
     async delete(id: string): Promise<void> {
-      assertProjectBacked(session, "delete");
+      if (session.projectId === undefined) {
+        await context.client.graphql(UPDATE_ISSUE_MUTATION, {
+          input: {
+            id: await resolveIssueId(id, name, context),
+            state: "CLOSED"
+          }
+        });
+        return;
+      }
+
       const projectItemId = await resolveProjectItemId(id, name, session, context);
       await context.client.graphql(DELETE_PROJECT_ITEM_MUTATION, {
         input: {
@@ -881,11 +916,16 @@ async function updateIssueStateLabel(
   context: GhIssuesTasksContext
 ): Promise<void> {
   const issueNumber = parseIssueNumber(id, listName);
-  const result = await context.client.graphql<IssueStateLabelsResponse>(ISSUE_STATE_LABELS_QUERY, {
-    owner: context.repoOwner,
-    repo: context.repoName,
-    number: issueNumber
-  });
+  const result = await context.client.graphql<IssueStateLabelsResponse>(
+    session.projectId === undefined
+      ? REPOSITORY_ISSUE_STATE_LABELS_QUERY
+      : ISSUE_STATE_LABELS_QUERY,
+    {
+      owner: context.repoOwner,
+      repo: context.repoName,
+      number: issueNumber
+    }
+  );
   const issue = result.repository?.issue ?? null;
   if (issue === null) {
     throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
@@ -929,7 +969,21 @@ async function resolveStateLabelId(
   session: GhIssuesSession,
   context: GhIssuesTasksContext
 ): Promise<string> {
-  const name = `${session.labelPrefix}${state}`;
+  return resolveLabelId(`${session.labelPrefix}${state}`, session, context);
+}
+
+async function resolveConfiguredLabelIds(
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<string[]> {
+  return Promise.all((context.labels ?? []).map((name) => resolveLabelId(name, session, context)));
+}
+
+async function resolveLabelId(
+  name: string,
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<string> {
   const cachedLabelId = session.labelIds.get(name);
   if (cachedLabelId !== undefined) {
     return cachedLabelId;
@@ -1095,11 +1149,14 @@ async function fetchIssueTask(
 ): Promise<Task> {
   const issueNumber = parseIssueNumber(id, listName);
 
-  const result = await context.client.graphql<IssueResponse>(ISSUE_QUERY, {
-    owner: context.repoOwner,
-    repo: context.repoName,
-    number: issueNumber
-  });
+  const result = await context.client.graphql<IssueResponse>(
+    session.projectId === undefined ? REPOSITORY_ISSUE_QUERY : ISSUE_QUERY,
+    {
+      owner: context.repoOwner,
+      repo: context.repoName,
+      number: issueNumber
+    }
+  );
   const issue = result.repository?.issue ?? null;
   if (issue === null) {
     throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);

@@ -102,6 +102,96 @@ describe("ghIssuesBackend", () => {
     ]);
   });
 
+  it("creates filtered label-backed issues without requesting project fields", async () => {
+    const fetchMock = createFetchMock([
+      repositoryResponse("repo-node"),
+      repositoryLabelResponse("label-bug"),
+      createIssueResponse({ issueId: "issue-node-573", number: 573 }),
+      repositoryLabelResponse("label-draft"),
+      addLabelsResponse(),
+      issueResponse({
+        number: 573,
+        title: "Imported bug",
+        labels: ["bug", "status:draft"]
+      })
+    ]);
+    const taskList = await ghIssuesBackend({
+      repo: "octo/repo",
+      filter: "label:bug",
+      state: { labelPrefix: "status:" },
+      stateMachine: {
+        initial: "draft",
+        states: ["draft", "fix", "released"],
+        events: {
+          draft: { from: "*", to: "draft" },
+          fix: { from: "*", to: "fix" },
+          released: { from: "*", to: "released" }
+        }
+      },
+      defaults: { metadata: {} },
+      token: "test-token",
+      endpoint: "https://api.github.test/graphql",
+      fetch: fetchMock
+    });
+
+    await expect(
+      taskList.list("octo/repo").create({ name: "Imported bug" })
+    ).resolves.toMatchObject({
+      id: "573",
+      state: "draft",
+      metadata: { labels: ["bug", "status:draft"] }
+    });
+    expect(readMutationCalls(fetchMock)).toEqual([
+      expect.objectContaining({
+        query: expect.stringContaining("mutation CreateIssue"),
+        variables: {
+          input: {
+            repositoryId: "repo-node",
+            title: "Imported bug",
+            body: "",
+            labelIds: ["label-bug"]
+          }
+        }
+      }),
+      expect.objectContaining({ query: expect.stringContaining("mutation AddLabels") })
+    ]);
+    expect(readGraphqlCalls(fetchMock).map((call) => JSON.stringify(call))).not.toEqual(
+      expect.arrayContaining([expect.stringContaining("projectItems")])
+    );
+  });
+
+  it("closes repository-only issues when rolling back label-backed creates", async () => {
+    const fetchMock = createFetchMock([
+      issueNodeIdResponse("issue-node-573"),
+      updateIssueResponse()
+    ]);
+    const taskList = await ghIssuesBackend({
+      repo: "octo/repo",
+      state: { labelPrefix: "status:" },
+      stateMachine: {
+        initial: "draft",
+        states: ["draft", "fix", "released"],
+        events: {
+          draft: { from: "*", to: "draft" },
+          fix: { from: "*", to: "fix" },
+          released: { from: "*", to: "released" }
+        }
+      },
+      defaults: { metadata: {} },
+      token: "test-token",
+      endpoint: "https://api.github.test/graphql",
+      fetch: fetchMock
+    });
+
+    await expect(taskList.list("octo/repo").delete("573")).resolves.toBeUndefined();
+    expect(readMutationCalls(fetchMock)).toEqual([
+      expect.objectContaining({
+        query: expect.stringContaining("mutation UpdateIssue"),
+        variables: { input: { id: "issue-node-573", state: "CLOSED" } }
+      })
+    ]);
+  });
+
   it("fetches the project Status field and builds a state machine from display ordered options", async () => {
     const fetchMock = createFetchMock([
       projectResponse({

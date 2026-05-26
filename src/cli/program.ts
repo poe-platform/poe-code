@@ -89,6 +89,7 @@ const ROOT_HELP_COMMAND_SPECS: readonly RootHelpCommandSpec[] = [
   { path: ["models"] },
   { path: ["tasks", "verify"], args: "<list>" },
   { path: ["tasks", "sync"], args: "<list>" },
+  { path: ["tasks", "move"] },
   { path: ["mcp", "configure"] },
   { path: ["mcp", "unconfigure"] },
   { path: ["skill", "configure"] },

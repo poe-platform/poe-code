@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import {
   GhProjectSyncError,
   MalformedTaskError,
+  moveTasks,
   openTaskList,
   syncGhProject,
   verifyGhProject,
@@ -17,6 +18,7 @@ import type { CliContainer } from "../container.js";
 import type { ScopedLogger } from "../logger.js";
 import {
   resolveTasksOptions,
+  resolveWorkflowTaskListOptions,
   resolveWorkflowTasksOptions,
   type ResolvedWorkflowTasksOptions,
   type TasksCliOptions,
@@ -33,6 +35,13 @@ interface TasksCommandOptions extends TasksCliOptions {
   name?: string;
   file?: string;
   yes?: boolean;
+  from?: string;
+  to?: string;
+  deleteSource?: boolean;
+  dryRun?: boolean;
+  rate?: string;
+  limit?: string;
+  stateMap?: string;
 }
 
 export function registerTasksCommand(program: Command, container: CliContainer): void {
@@ -63,6 +72,20 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .option("--yes", "Confirm non-interactive sync.")
     .action(async (list: string, options: TasksCommandOptions, command: Command) => {
       await runSync(list, mergeCommandOptions(options, command), container);
+    });
+
+  tasks
+    .command("move")
+    .description("Move tasks between workflow-configured backends.")
+    .option("--from <workflow.md>", "Source workflow file path.")
+    .option("--to <workflow.md>", "Target workflow file path.")
+    .option("--delete-source", "Delete source tasks after successful creation.")
+    .option("--rate <number>", "Maximum task creates per minute.")
+    .option("--limit <number>", "Maximum tasks to move.")
+    .option("--dry-run", "Simulate the move without writing changes.")
+    .option("--state-map <pairs>", "Map source states to target states as key:value pairs.")
+    .action(async (options: TasksCommandOptions, command: Command) => {
+      await runMove(mergeCommandOptions(options, command), container);
     });
 
   tasks
@@ -126,10 +149,11 @@ export function registerTasksCommand(program: Command, container: CliContainer):
 }
 
 function mergeCommandOptions(options: TasksCommandOptions, command: Command): TasksCommandOptions {
-  const globals = command.optsWithGlobals<{ yes?: boolean }>();
+  const globals = command.optsWithGlobals<{ yes?: boolean; dryRun?: boolean }>();
   return {
     ...options,
-    yes: options.yes ?? globals.yes
+    yes: options.yes ?? globals.yes,
+    dryRun: options.dryRun ?? globals.dryRun
   };
 }
 
@@ -193,6 +217,37 @@ async function runSync(
       return;
     }
 
+    handleCommandError(error, logger, options.json);
+  }
+}
+
+async function runMove(options: TasksCommandOptions, container: CliContainer): Promise<void> {
+  const logger = container.loggerFactory.create({ scope: "tasks:move" });
+
+  try {
+    if (options.from === undefined || options.from.trim() === "") {
+      throw new TasksCommandUsageError("tasks move requires --from <workflow.md>.");
+    }
+    if (options.to === undefined || options.to.trim() === "") {
+      throw new TasksCommandUsageError("tasks move requires --to <workflow.md>.");
+    }
+
+    const rate =
+      options.rate === undefined ? undefined : parsePositiveNumber(options.rate, "--rate");
+    const limit =
+      options.limit === undefined ? undefined : parseNonNegativeInteger(options.limit, "--limit");
+    const stateMap = options.stateMap === undefined ? undefined : parseStateMap(options.stateMap);
+
+    await moveTasks({
+      source: await resolveWorkflowTaskListOptions(options.from),
+      target: await resolveWorkflowTaskListOptions(options.to),
+      ...(options.deleteSource === true ? { deleteSource: true } : {}),
+      ...(rate !== undefined ? { rate } : {}),
+      ...(limit !== undefined ? { limit } : {}),
+      ...(options.dryRun === true ? { dryRun: true } : {}),
+      ...(stateMap !== undefined ? { stateMap } : {})
+    });
+  } catch (error) {
     handleCommandError(error, logger, options.json);
   }
 }
@@ -524,6 +579,52 @@ function parseMetadataJson(value: string): Record<string, unknown> {
   }
 
   return parsed as Record<string, unknown>;
+}
+
+function parsePositiveNumber(value: string, optionName: string): number {
+  const trimmed = value.trim();
+  const parsed = Number(trimmed);
+  if (trimmed === "" || !Number.isFinite(parsed) || parsed <= 0) {
+    throw new TasksCommandUsageError(`${optionName} must be a positive number.`);
+  }
+  return parsed;
+}
+
+function parseNonNegativeInteger(value: string, optionName: string): number {
+  const trimmed = value.trim();
+  const parsed = Number(trimmed);
+  if (trimmed === "" || !Number.isInteger(parsed) || parsed < 0) {
+    throw new TasksCommandUsageError(`${optionName} must be a non-negative integer.`);
+  }
+  return parsed;
+}
+
+function parseStateMap(value: string): Record<string, string> {
+  const entries = value.split(",");
+  if (entries.at(-1) === "") {
+    entries.pop();
+  }
+
+  const stateMap: Record<string, string> = {};
+  for (const entry of entries) {
+    const pair = entry.split(":");
+    const sourceState = pair[0]?.trim();
+    const targetState = pair[1]?.trim();
+    if (pair.length !== 2 || sourceState === "" || targetState === "") {
+      throw new TasksCommandUsageError(
+        "--state-map must be comma-separated key:value pairs with non-empty keys and values."
+      );
+    }
+    stateMap[sourceState] = targetState;
+  }
+
+  if (Object.keys(stateMap).length === 0) {
+    throw new TasksCommandUsageError(
+      "--state-map must be comma-separated key:value pairs with non-empty keys and values."
+    );
+  }
+
+  return stateMap;
 }
 
 function readCommentMethod(

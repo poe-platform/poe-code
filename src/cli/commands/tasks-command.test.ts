@@ -24,6 +24,7 @@ const taskListMocks = vi.hoisted(() => {
 
   return {
     GhProjectSyncError: MockGhProjectSyncError,
+    moveTasks: vi.fn(),
     syncGhProject: vi.fn(),
     verifyGhProject: vi.fn()
   };
@@ -34,6 +35,7 @@ vi.mock("@poe-code/task-list", async (importOriginal) => {
   return {
     ...actual,
     GhProjectSyncError: taskListMocks.GhProjectSyncError,
+    moveTasks: taskListMocks.moveTasks,
     syncGhProject: taskListMocks.syncGhProject,
     verifyGhProject: taskListMocks.verifyGhProject
   };
@@ -177,6 +179,7 @@ describe("tasks command", () => {
     vol.mkdirSync(homeDir, { recursive: true });
     taskListMocks.verifyGhProject.mockReset();
     taskListMocks.syncGhProject.mockReset();
+    taskListMocks.moveTasks.mockReset().mockResolvedValue({ created: 0, skipped: 0, errors: [] });
     process.exitCode = undefined;
   });
 
@@ -422,6 +425,104 @@ maestro:
     expect(taskListMocks.verifyGhProject).toHaveBeenCalledWith(
       expect.objectContaining({ requiredStates: ["triage", "blocked"] })
     );
+  });
+
+  it("move parses SDK flags from task-only workflow files", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: markdown-dir
+  path: ./source-tasks
+`,
+      `${cwd}/source.md`
+    );
+    seedWorkflow(
+      `
+tasks:
+  type: yaml-file
+  path: ./target.yml
+`,
+      `${cwd}/target.md`
+    );
+
+    await runTasks([
+      "move",
+      "--from",
+      `${cwd}/source.md`,
+      "--to",
+      `${cwd}/target.md`,
+      "--delete-source",
+      "--rate",
+      "25",
+      "--limit",
+      "8",
+      "--dry-run",
+      "--state-map",
+      "queued:Todo,done:Done,"
+    ]);
+
+    expect(taskListMocks.moveTasks).toHaveBeenCalledWith({
+      source: { type: "markdown-dir", path: `${cwd}/source-tasks` },
+      target: { type: "yaml-file", path: `${cwd}/target.yml` },
+      deleteSource: true,
+      rate: 25,
+      limit: 8,
+      dryRun: true,
+      stateMap: { queued: "Todo", done: "Done" }
+    });
+  });
+
+  it("move reports missing --from or --to clearly", async () => {
+    const logs: string[] = [];
+
+    await runTasks(["move", "--to", `${cwd}/target.md`], logs);
+    await runTasks(["move", "--from", `${cwd}/source.md`], logs);
+    await runTasks(["move", "--from", " ", "--to", `${cwd}/target.md`], logs);
+    await runTasks(["move", "--from", `${cwd}/source.md`, "--to", " "], logs);
+
+    expect(logs).toEqual([
+      "[error] tasks move requires --from <workflow.md>.",
+      "[error] tasks move requires --to <workflow.md>.",
+      "[error] tasks move requires --from <workflow.md>.",
+      "[error] tasks move requires --to <workflow.md>."
+    ]);
+    expect(process.exitCode).toBe(2);
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
+  });
+
+  it.each(["queued:", ":Todo", "queued:Todo,,done:Done", "queued:Todo, ", "queued:Todo:extra"])(
+    "move rejects malformed --state-map %s",
+    async (stateMap) => {
+      const logs: string[] = [];
+
+      await runTasks(
+        ["move", "--from", `${cwd}/source.md`, "--to", `${cwd}/target.md`, "--state-map", stateMap],
+        logs
+      );
+
+      expect(logs).toEqual([
+        "[error] --state-map must be comma-separated key:value pairs with non-empty keys and values."
+      ]);
+      expect(process.exitCode).toBe(2);
+      expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each([
+    ["--rate", "0", "--rate must be a positive number."],
+    ["--limit", "", "--limit must be a non-negative integer."],
+    ["--limit", "-1", "--limit must be a non-negative integer."]
+  ])("move rejects invalid numeric flag %s %s", async (flag, value, message) => {
+    const logs: string[] = [];
+
+    await runTasks(
+      ["move", "--from", `${cwd}/source.md`, "--to", `${cwd}/target.md`, flag, value],
+      logs
+    );
+
+    expect(logs).toEqual([`[error] ${message}`]);
+    expect(process.exitCode).toBe(2);
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
   });
 
   it("get prints a task field with a trailing newline", async () => {

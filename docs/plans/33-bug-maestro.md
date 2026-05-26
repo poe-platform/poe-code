@@ -107,7 +107,7 @@ tasks:
       implement: done
       refactor: done
       test: done
-      commit: open
+      commit: done
 
   - id: move-tasks-cli
     title: poe-code tasks move CLI
@@ -133,9 +133,9 @@ tasks:
       --from or --to errors clearly, --state-map parser handles trailing
       commas and rejects empty keys/values.
     status:
-      implement: open
-      test: open
-      commit: open
+      implement: done
+      test: done
+      commit: done
 
   - id: bugs-workflow-file
     title: Write BUGS.WORKFLOW.md

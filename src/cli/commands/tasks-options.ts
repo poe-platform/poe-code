@@ -51,6 +51,13 @@ export interface ResolvedWorkflowTasksOptions {
   workflowPath: string;
 }
 
+export async function resolveWorkflowTaskListOptions(
+  workflowPath: string
+): Promise<OpenTaskListOptions> {
+  const frontmatter = await readWorkflowFrontmatter(workflowPath);
+  return readTaskListOptions(frontmatter, workflowPath);
+}
+
 export async function resolveTasksOptions(
   list: string | undefined,
   options: TasksCliOptions

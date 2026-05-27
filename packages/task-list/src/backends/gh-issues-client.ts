@@ -37,9 +37,14 @@ export function createGhClient(options: GhClientOptions): GhClient {
       }
 
       const parsed = JSON.parse(body) as {
-        data?: T;
+        data?: T | null;
         errors?: { message?: string }[];
       };
+
+      if (parsed.data !== undefined && parsed.data !== null) {
+        return parsed.data;
+      }
+
       const firstError = parsed.errors?.[0];
       if (firstError !== undefined) {
         throw new Error(firstError.message ?? "GitHub GraphQL request failed");

@@ -44,18 +44,18 @@ describe("syncGhProject idempotency", () => {
     expect(secondRunCalls.every((call) => !call.query.includes("mutation"))).toBe(true);
   });
 
-  it("resumes option creation after a mid-sync network failure without recreating the field", async () => {
+  it("resumes after a mid-sync update failure without recreating the field", async () => {
     const client = createStatefulProjectClient({
       projectExists: true,
       fieldExists: false,
       options: [],
-      failOptionOnce: "Doing"
+      failUpdateOnce: true
     });
 
     await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).rejects.toMatchObject({
       name: "GhProjectSyncError",
       op: "createOption",
-      target: "Doing",
+      target: "Todo,Doing,Done",
       message: "network failed"
     } satisfies Partial<GhProjectSyncError>);
 
@@ -66,12 +66,12 @@ describe("syncGhProject idempotency", () => {
       missingProject: false,
       missingStatusField: false,
       missingOptions: [],
-      created: ["option:Doing", "option:Done"],
+      created: ["option:Todo", "option:Doing", "option:Done"],
       updated: []
     });
 
     expect(mutationCalls(client, "createProjectV2Field")).toHaveLength(1);
-    expect(mutationCalls(client, "createProjectV2SingleSelectFieldOption")).toHaveLength(4);
+    expect(mutationCalls(client, "updateProjectV2Field")).toHaveLength(2);
   });
 });
 
@@ -79,18 +79,23 @@ function createStatefulProjectClient(state: {
   projectExists: boolean;
   fieldExists: boolean;
   options: string[];
-  failOptionOnce?: string;
+  failUpdateOnce?: boolean;
 }): MockGhClient {
   const response = (query: string, variables: Record<string, unknown>): unknown => {
-    if (query.includes("createProjectV2SingleSelectFieldOption")) {
-      const input = variables.input as { name: string };
-      if (input.name === state.failOptionOnce) {
-        state.failOptionOnce = undefined;
+    if (query.includes("updateProjectV2Field")) {
+      if (state.failUpdateOnce === true) {
+        state.failUpdateOnce = false;
         throw new Error("network failed");
       }
 
-      state.options.push(input.name);
-      return createOptionResponse({ id: optionId(input.name), name: input.name });
+      const input = variables.input as {
+        singleSelectOptions: Array<{ id?: string; name: string }>;
+      };
+      state.options = input.singleSelectOptions.map((option) => option.name);
+      return updateFieldResponse({
+        id: "status-field",
+        options: state.options.map((name) => ({ id: optionId(name), name }))
+      });
     }
 
     if (query.includes("createProjectV2Field")) {
@@ -160,10 +165,22 @@ function createFieldResponse(field: {
   };
 }
 
-function createOptionResponse(option: { id: string; name: string }): unknown {
+function updateFieldResponse(field: {
+  id: string;
+  options: Array<{ id: string; name: string }>;
+}): unknown {
   return {
-    createProjectV2SingleSelectFieldOption: {
-      singleSelectFieldOption: option
+    updateProjectV2Field: {
+      projectV2Field: {
+        id: field.id,
+        name: "Status",
+        options: field.options.map((option) => ({
+          id: option.id,
+          name: option.name,
+          color: "GRAY",
+          description: ""
+        }))
+      }
     }
   };
 }

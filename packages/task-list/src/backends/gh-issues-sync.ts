@@ -34,11 +34,14 @@ const CREATE_STATUS_FIELD_MUTATION = `mutation CreateStatusField($input: CreateP
   }
 }`;
 
-const CREATE_STATUS_OPTION_MUTATION = `mutation CreateStatusOption($input: CreateProjectV2SingleSelectFieldOptionInput!) {
-  createProjectV2SingleSelectFieldOption(input: $input) {
-    singleSelectFieldOption {
-      id
-      name
+const UPDATE_STATUS_FIELD_OPTIONS_MUTATION = `mutation UpdateStatusFieldOptions($input: UpdateProjectV2FieldInput!) {
+  updateProjectV2Field(input: $input) {
+    projectV2Field {
+      ... on ProjectV2SingleSelectField {
+        id
+        name
+        options { id name color description }
+      }
     }
   }
 }`;
@@ -92,11 +95,22 @@ export async function verifyGhProject(
   opts: VerifyGhProjectOptions
 ): Promise<VerifyGhProjectReport> {
   const client = resolveGhClient(opts);
-  const target = `project:${opts.owner}/${opts.number}`;
-  const variables = {
-    owner: opts.owner,
-    number: opts.number
-  };
+  const lookup = await lookupProject(client, opts.owner, opts.number);
+  return buildVerifyReport(lookup, opts);
+}
+
+interface ProjectLookup {
+  project: ProjectV2 | null;
+  statusField: StatusField | null;
+}
+
+async function lookupProject(
+  client: GhClient,
+  owner: string,
+  number: number
+): Promise<ProjectLookup> {
+  const target = `project:${owner}/${number}`;
+  const variables = { owner, number };
 
   let project: ProjectV2 | null;
   try {
@@ -119,7 +133,17 @@ export async function verifyGhProject(
     });
   }
 
-  if (project === null) {
+  return {
+    project,
+    statusField: project === null ? null : selectStatusField(project)
+  };
+}
+
+function buildVerifyReport(
+  lookup: ProjectLookup,
+  opts: VerifyGhProjectOptions
+): VerifyGhProjectReport {
+  if (lookup.project === null) {
     return {
       ok: false,
       project: null,
@@ -130,12 +154,11 @@ export async function verifyGhProject(
     };
   }
 
-  const statusField = selectStatusField(project);
-  if (statusField === null) {
+  if (lookup.statusField === null) {
     return {
       ok: false,
       project: {
-        id: project.id,
+        id: lookup.project.id,
         number: opts.number,
         owner: opts.owner
       },
@@ -146,18 +169,18 @@ export async function verifyGhProject(
     };
   }
 
-  const options = statusField.options.map((option) => option.name);
+  const options = lookup.statusField.options.map((option) => option.name);
   const missingOptions = opts.requiredStates.filter((state) => !options.includes(state));
 
   return {
     ok: missingOptions.length === 0,
     project: {
-      id: project.id,
+      id: lookup.project.id,
       number: opts.number,
       owner: opts.owner
     },
     statusField: {
-      id: statusField.id,
+      id: lookup.statusField.id,
       options
     },
     missingProject: false,
@@ -168,56 +191,59 @@ export async function verifyGhProject(
 
 export async function syncGhProject(opts: SyncGhProjectOptions): Promise<SyncGhProjectReport> {
   const client = resolveGhClient(opts);
-  const verified = await verifyGhProject({ ...opts, client });
+  let lookup = await lookupProject(client, opts.owner, opts.number);
+  let resolvedNumber = opts.number;
   const created: string[] = [];
 
-  if (verified.ok) {
-    return {
-      ...verified,
-      created,
-      updated: []
-    };
-  }
-
-  let project = verified.project;
-  let statusField = verified.statusField;
-  let missingOptions = [...verified.missingOptions];
-
-  if (project === null) {
-    project = await createProject(client, opts);
+  if (lookup.project === null) {
+    const newProject = await createProject(client, opts);
     created.push("project");
-    statusField = null;
-    missingOptions = [...opts.requiredStates];
+    resolvedNumber = newProject.number;
+    // Re-look up against the new project number so we can pick up any
+    // auto-created Status field (GitHub adds one by default).
+    lookup = await lookupProject(client, opts.owner, resolvedNumber);
   }
 
+  if (lookup.project === null) {
+    throw new GhProjectSyncError({
+      op: "createProject",
+      target: `${opts.owner}/${opts.number}`,
+      message: "project was not found after creation"
+    });
+  }
+
+  let statusField = lookup.statusField;
   if (statusField === null) {
-    const createdStatusField = await createStatusField(client, project.id);
-    statusField = createdStatusField;
+    statusField = await createStatusField(client, lookup.project.id);
     created.push("field");
-    missingOptions = opts.requiredStates.filter(
-      (state) => !createdStatusField.options.includes(state)
-    );
   }
 
-  if (missingOptions.length > 0) {
-    for (const optionName of missingOptions) {
-      await createStatusOption(client, statusField.id, optionName);
-      created.push(`option:${optionName}`);
+  const existingNames = new Set(statusField.options.map((option) => option.name));
+  const missingOptionNames = opts.requiredStates.filter((state) => !existingNames.has(state));
+
+  if (missingOptionNames.length > 0) {
+    statusField = await addStatusOptions(client, statusField, missingOptionNames);
+    for (const name of missingOptionNames) {
+      created.push(`option:${name}`);
     }
-
-    statusField = {
-      id: statusField.id,
-      options: [...statusField.options, ...missingOptions]
-    };
-    missingOptions = [];
   }
+
+  const optionNames = statusField.options.map((option) => option.name);
+  const missingOptions = opts.requiredStates.filter((state) => !optionNames.includes(state));
 
   return {
-    ok: statusField !== null && missingOptions.length === 0,
-    project,
-    statusField,
+    ok: missingOptions.length === 0,
+    project: {
+      id: lookup.project.id,
+      number: resolvedNumber,
+      owner: opts.owner
+    },
+    statusField: {
+      id: statusField.id,
+      options: optionNames
+    },
     missingProject: false,
-    missingStatusField: statusField === null,
+    missingStatusField: false,
     missingOptions,
     created,
     updated: []
@@ -244,12 +270,9 @@ interface CreateStatusFieldResponse {
   } | null;
 }
 
-interface CreateStatusOptionResponse {
-  createProjectV2SingleSelectFieldOption?: {
-    singleSelectFieldOption?: {
-      id: string;
-      name: string;
-    } | null;
+interface UpdateStatusFieldResponse {
+  updateProjectV2Field?: {
+    projectV2Field?: unknown;
   } | null;
 }
 
@@ -324,10 +347,7 @@ async function lookupOwnerId(client: GhClient, owner: string): Promise<string> {
   throw new Error(`GitHub owner not found: ${owner}`);
 }
 
-async function createStatusField(
-  client: GhClient,
-  projectId: string
-): Promise<{ id: string; options: string[] }> {
+async function createStatusField(client: GhClient, projectId: string): Promise<StatusField> {
   try {
     const result = await client.graphql<CreateStatusFieldResponse>(CREATE_STATUS_FIELD_MUTATION, {
       input: {
@@ -342,10 +362,7 @@ async function createStatusField(
       throw new Error("createProjectV2Field returned no Status field");
     }
 
-    return {
-      id: field.id,
-      options: field.options.map((option) => option.name)
-    };
+    return field;
   } catch (error) {
     throw new GhProjectSyncError({
       op: "createField",
@@ -356,19 +373,45 @@ async function createStatusField(
   }
 }
 
-async function createStatusOption(client: GhClient, fieldId: string, name: string): Promise<void> {
+async function addStatusOptions(
+  client: GhClient,
+  field: StatusField,
+  missingNames: readonly string[]
+): Promise<StatusField> {
+  const singleSelectOptions = [
+    ...field.options.map((option) => ({
+      id: option.id,
+      name: option.name,
+      color: option.color ?? "GRAY",
+      description: option.description ?? ""
+    })),
+    ...missingNames.map((name) => ({
+      name,
+      color: "GRAY",
+      description: ""
+    }))
+  ];
+
   try {
-    await client.graphql<CreateStatusOptionResponse>(CREATE_STATUS_OPTION_MUTATION, {
-      input: {
-        fieldId,
-        name,
-        color: "GRAY"
+    const result = await client.graphql<UpdateStatusFieldResponse>(
+      UPDATE_STATUS_FIELD_OPTIONS_MUTATION,
+      {
+        input: {
+          fieldId: field.id,
+          singleSelectOptions
+        }
       }
-    });
+    );
+    const updated = result.updateProjectV2Field?.projectV2Field;
+    if (!isStatusField(updated)) {
+      throw new Error("updateProjectV2Field returned no Status field");
+    }
+
+    return updated;
   } catch (error) {
     throw new GhProjectSyncError({
       op: "createOption",
-      target: name,
+      target: missingNames.join(","),
       cause: error,
       message: errorMessage(error)
     });
@@ -388,6 +431,8 @@ interface StatusField {
 interface StatusOption {
   id: string;
   name: string;
+  color?: string;
+  description?: string;
 }
 
 function resolveGhClient(opts: VerifyGhProjectOptions): GhClient {
@@ -435,7 +480,9 @@ function isStatusOption(value: unknown): value is StatusOption {
     "id" in value &&
     typeof value.id === "string" &&
     "name" in value &&
-    typeof value.name === "string"
+    typeof value.name === "string" &&
+    (!("color" in value) || typeof value.color === "string") &&
+    (!("description" in value) || typeof value.description === "string")
   );
 }
 

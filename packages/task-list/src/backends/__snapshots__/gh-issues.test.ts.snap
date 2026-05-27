@@ -635,7 +635,7 @@ exports[`ghIssuesBackend > keeps the project GraphQL request wire shape stable 1
         ... on ProjectV2SingleSelectField {
           id
           name
-          options { id name }
+          options { id name color description }
         }
       }
       fields(first: 100) {
@@ -643,7 +643,7 @@ exports[`ghIssuesBackend > keeps the project GraphQL request wire shape stable 1
           ... on ProjectV2SingleSelectField {
             id
             name
-            options { id name }
+            options { id name color description }
           }
         }
       }

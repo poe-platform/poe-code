@@ -86,7 +86,7 @@ describe("syncGhProject errors", () => {
     } satisfies Partial<GhProjectSyncError>);
   });
 
-  it("wraps createProjectV2SingleSelectFieldOption failures with the GitHub message", async () => {
+  it("wraps updateProjectV2Field failures with the GitHub message when adding options", async () => {
     const client = new MockGhClient([
       projectResponse({
         organization: {
@@ -95,14 +95,14 @@ describe("syncGhProject errors", () => {
           })
         }
       }),
-      new Error("option already exists")
+      new Error("option update rejected")
     ]);
 
     await expect(syncGhProject({ ...DEFAULT_OPTIONS, client })).rejects.toMatchObject({
       name: "GhProjectSyncError",
       op: "createOption",
-      target: "Doing",
-      message: "option already exists"
+      target: "Doing,Done",
+      message: "option update rejected"
     } satisfies Partial<GhProjectSyncError>);
   });
 });

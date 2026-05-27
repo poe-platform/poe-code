@@ -28,7 +28,7 @@ export const PROJECT_ORGANIZATION_QUERY = `query Project($owner: String!, $numbe
         ... on ProjectV2SingleSelectField {
           id
           name
-          options { id name }
+          options { id name color description }
         }
       }
       fields(first: 100) {
@@ -36,7 +36,7 @@ export const PROJECT_ORGANIZATION_QUERY = `query Project($owner: String!, $numbe
           ... on ProjectV2SingleSelectField {
             id
             name
-            options { id name }
+            options { id name color description }
           }
         }
       }
@@ -53,7 +53,7 @@ export const PROJECT_USER_QUERY = `query Project($owner: String!, $number: Int!)
         ... on ProjectV2SingleSelectField {
           id
           name
-          options { id name }
+          options { id name color description }
         }
       }
       fields(first: 100) {
@@ -61,7 +61,7 @@ export const PROJECT_USER_QUERY = `query Project($owner: String!, $number: Int!)
           ... on ProjectV2SingleSelectField {
             id
             name
-            options { id name }
+            options { id name color description }
           }
         }
       }

@@ -391,7 +391,6 @@ function serializeProviderInput(messages: AcpModelRequestMessage[]): unknown[] {
 
       for (const toolCall of message.tool_calls ?? []) {
         input.push({
-          id: toolCall.id,
           call_id: toolCall.id,
           type: "function_call",
           name: toolCall.function.name,

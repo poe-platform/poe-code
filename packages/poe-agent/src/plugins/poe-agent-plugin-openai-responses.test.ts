@@ -770,4 +770,62 @@ describe("poe-agent-plugin-openai-responses", () => {
       })
     );
   });
+
+  it("does not serialize tool call ids as historical function call item ids", async () => {
+    openAiResponsesStreamMock.mockReturnValue(createEventStream([]));
+
+    const plugin = openaiResponsesPlugin({ apiKey: "test-key" });
+    const model = await plugin.providers?.[0]?.createModel("gpt-5.4", {
+      fetch: globalThis.fetch,
+      options: {}
+    });
+
+    await model?.complete({
+      messages: [
+        {
+          role: "assistant",
+          content: "",
+          tool_calls: [
+            {
+              id: "call_docajrA7yeAeaU8BuUJ6eMtW",
+              type: "function",
+              function: {
+                name: "read_file",
+                arguments: '{"path":"README.md"}'
+              }
+            }
+          ]
+        },
+        {
+          role: "tool",
+          tool_call_id: "call_docajrA7yeAeaU8BuUJ6eMtW",
+          content: "contents"
+        }
+      ],
+      tools: [],
+      signal: new AbortController().signal
+    });
+
+    expect(openAiResponsesStreamMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        input: [
+          {
+            call_id: "call_docajrA7yeAeaU8BuUJ6eMtW",
+            type: "function_call",
+            name: "read_file",
+            arguments: '{"path":"README.md"}',
+            status: "completed"
+          },
+          {
+            type: "function_call_output",
+            call_id: "call_docajrA7yeAeaU8BuUJ6eMtW",
+            output: "contents"
+          }
+        ]
+      }),
+      expect.objectContaining({
+        signal: expect.any(AbortSignal)
+      })
+    );
+  });
 });

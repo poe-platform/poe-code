@@ -194,6 +194,45 @@ describe("harness command", () => {
     );
   });
 
+  it("forwards --agent/--model/--mode as frontmatterOverrides on the agent block", async () => {
+    await runHarnessCommand([
+      "harness",
+      "run",
+      "harness.md",
+      "--agent",
+      "codex",
+      "--model",
+      "iris-alpha",
+      "--mode",
+      "edit"
+    ]);
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({
+        frontmatterOverrides: { agent: { agent: "codex", model: "iris-alpha", mode: "edit" } }
+      })
+    );
+  });
+
+  it("omits frontmatterOverrides when no override flags are supplied", async () => {
+    await runHarnessCommand(["harness", "run", "harness.md"]);
+
+    const call = harnessMocks.runHarnessPairMock.mock.calls.at(-1);
+    expect(call?.[1].frontmatterOverrides).toBeUndefined();
+  });
+
+  it("forwards only the supplied override flag, leaving the others off the merge object", async () => {
+    await runHarnessCommand(["harness", "run", "harness.md", "--model", "iris-alpha"]);
+
+    expect(harnessMocks.runHarnessPairMock).toHaveBeenCalledWith(
+      "/repo/harness.md",
+      expect.objectContaining({
+        frontmatterOverrides: { agent: { model: "iris-alpha" } }
+      })
+    );
+  });
+
   it("prints non-error lint diagnostics reported by the harness runner", async () => {
     const logs: string[] = [];
     harnessMocks.runHarnessPairMock.mockImplementation(async (_mdPath, options) => {

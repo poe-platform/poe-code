@@ -95,6 +95,14 @@ npx poe-code@latest spawn codex "Review the auth module" --cwd github://owner/re
 echo "Say hello" | npx poe-code@latest spawn codex
 ```
 
+#### Review a GitHub pull request
+
+```bash
+npx poe-code@latest code-review install
+npx poe-code@latest code-review run "https://github.com/owner/repo/pull/123"
+npx poe-code@latest code-review commit "https://github.com/owner/repo/pull/123" --dry-run
+```
+
 #### Test a configured service
 
 ```bash
@@ -215,6 +223,23 @@ const { events, result: ghResult } = spawn("codex", {
 });
 
 console.log(result.stdout);
+```
+
+For plugin-first agent composition, import the public agent builder from the
+`poe-code/agent` subpath:
+
+```typescript
+import { agent, openaiResponsesPlugin, systemPromptPlugin } from "poe-code/agent";
+
+const run = await agent()
+  .model("gpt-5.5")
+  .use(openaiResponsesPlugin())
+  .use(systemPromptPlugin())
+  .run("Summarize the current repository", {
+    cwd: process.cwd()
+  });
+
+console.log(run.output);
 ```
 
 ### `spawn(service, options)`

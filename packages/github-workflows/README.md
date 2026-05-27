@@ -50,7 +50,7 @@ The workflow triggers automatically on the configured event.
 
 | Name                               | Trigger               | Description                                                                              |
 | ---------------------------------- | --------------------- | ---------------------------------------------------------------------------------------- |
-| `github-issue-opened`              | Issue opened          | Reads the issue, asks for missing details when needed, and implements actionable changes |
+| `github-issue-opened`              | Issue labeled `agent` | Reads the issue, asks for missing details when needed, and implements actionable changes |
 | `github-issue-comment-created`     | Issue comment created | Acts on prefixed issue comments, restricted to allowed roles                             |
 | `github-pull-request-opened`       | PR opened             | Reviews the pull request                                                                 |
 | `github-pull-request-synchronized` | PR updated            | Re-reviews the PR after new commits are pushed                                           |
@@ -62,9 +62,11 @@ The built-in GitHub issue, issue-comment, pull-request, pull-request-comment, an
 pull-request-synchronized automations allow `OWNER`, `MEMBER`, `COLLABORATOR`,
 and `CONTRIBUTOR` author associations by default.
 
-The built-in issue-opened automation always leaves a visible response. When the
-issue lacks enough detail for a code change, it asks for the missing details and
-leaves the issue open instead of closing it.
+The built-in issue-opened automation runs when the `agent` label is added to an
+issue. Opening an issue without that label, or adding any other label, does not
+spawn an agent. When the automation runs, it always leaves a visible response.
+When the issue lacks enough detail for a code change, it asks for the missing
+details and leaves the issue open instead of closing it.
 
 ### List available automations
 

@@ -61,7 +61,8 @@ export class PluginApiImpl implements PluginApi {
             }
     });
     const client = new McpClient({
-      clientInfo: DEFAULT_MCP_CLIENT_INFO
+      clientInfo: DEFAULT_MCP_CLIENT_INFO,
+      ...(config.timeout === undefined ? {} : { requestTimeoutMs: config.timeout * 1_000 })
     });
 
     this.#runContext.registerDisposeHook(async () => {

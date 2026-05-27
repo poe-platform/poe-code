@@ -168,6 +168,7 @@ describe("PluginApiImpl", () => {
       command: "node",
       args: ["server.js"],
       env: { NODE_ENV: "test" },
+      timeout: 3_600,
       visibility: "skill",
     });
 
@@ -177,6 +178,7 @@ describe("PluginApiImpl", () => {
         command: "node",
         args: ["server.js"],
         env: { NODE_ENV: "test" },
+        timeout: 3_600,
         visibility: "skill",
       },
     ]);
@@ -192,6 +194,7 @@ describe("PluginApiImpl", () => {
     );
     expect(mcpClientConstructorMock).toHaveBeenCalledWith({
       clientInfo: { name: "poe-agent", version: "0.0.1" },
+      requestTimeoutMs: 3_600_000,
     });
     expect(mcpClientConnectMock).toHaveBeenCalledTimes(1);
     expect(mcpClientListToolsMock).toHaveBeenNthCalledWith(1, undefined);

@@ -7521,6 +7521,46 @@ describe("McpClient ping", () => {
     }
   });
 
+  it("uses the configured request timeout for client requests", async () => {
+    vi.useFakeTimers();
+
+    try {
+      const readable = new PassThrough();
+      const writable = new PassThrough();
+      const transport: McpTransport = {
+        readable,
+        writable,
+        closed: new Promise(() => {}),
+        dispose: vi.fn(),
+      };
+      const client = new McpClient({
+        clientInfo: {
+          name: "tiny-mcp-client",
+          version: "0.1.0",
+        },
+        requestTimeoutMs: 42_000,
+      });
+
+      const connectPromise = client.connect(transport);
+      const iterator = readLines(writable)[Symbol.asyncIterator]();
+      const initializeLineResult = await iterator.next();
+      if (initializeLineResult.done) {
+        throw new Error("Expected initialize request line to be written");
+      }
+
+      const timeoutPromise = expect(connectPromise).rejects.toThrow(
+        'JSON-RPC request "initialize" timed out after 42000ms'
+      );
+
+      await vi.advanceTimersByTimeAsync(42_000);
+
+      await timeoutPromise;
+      await client.close();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("responds with an empty object when the server sends a ping request", async () => {
     const readable = new PassThrough();
     const writable = new PassThrough();

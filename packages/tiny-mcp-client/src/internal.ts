@@ -97,6 +97,7 @@ export interface InitializeResult {
 
 export interface McpClientOptions {
   clientInfo: Implementation;
+  requestTimeoutMs?: number;
   capabilities?: ClientCapabilities;
   onToolsChanged?: () => void | Promise<void>;
   onResourcesChanged?: () => void | Promise<void>;
@@ -170,7 +171,7 @@ export class McpClient {
     const messageLayer = new JsonRpcMessageLayer(
       transport.readable,
       transport.writable,
-      30_000,
+      this.options.requestTimeoutMs,
       transportClosedReason
     );
     const {

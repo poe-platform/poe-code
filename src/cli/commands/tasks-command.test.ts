@@ -609,6 +609,153 @@ states:
     expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
   });
 
+  it("import builds a markdown-dir source from --from and forwards SDK flags", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: gh-issues
+  repo: acme/repo
+  filter: label:bug
+  state:
+    labelPrefix: "status:"
+states:
+  draft:
+    prompt: Triage it
+  done:
+    terminal: true
+`,
+      `${cwd}/target.md`
+    );
+
+    await runTasks([
+      "import",
+      "--from",
+      `${cwd}/source-dir`,
+      "--to",
+      `${cwd}/target.md`,
+      "--rate",
+      "25",
+      "--limit",
+      "8",
+      "--dry-run"
+    ]);
+
+    expect(taskListMocks.moveTasks).toHaveBeenCalledWith({
+      source: {
+        type: "markdown-dir",
+        path: `${cwd}/source-dir`,
+        singleList: "import",
+        frontmatterMode: "passthrough"
+      },
+      target: {
+        type: "gh-issues",
+        repo: "acme/repo",
+        filter: "label:bug",
+        state: { labelPrefix: "status:" },
+        stateMachine: {
+          initial: "draft",
+          states: ["draft", "done"],
+          events: {
+            draft: { from: "*", to: "draft" },
+            done: { from: "*", to: "done" }
+          }
+        }
+      },
+      deleteSource: true,
+      rate: 25,
+      limit: 8,
+      dryRun: true,
+      onProgress: expect.any(Function)
+    });
+  });
+
+  it("import keeps source files when --keep is passed", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: gh-issues
+  repo: acme/repo
+states:
+  draft:
+    prompt: Triage it
+`,
+      `${cwd}/target.md`
+    );
+
+    await runTasks([
+      "import",
+      "--from",
+      `${cwd}/source-dir`,
+      "--to",
+      `${cwd}/target.md`,
+      "--keep"
+    ]);
+
+    expect(taskListMocks.moveTasks).toHaveBeenCalledWith(
+      expect.not.objectContaining({ deleteSource: expect.anything() })
+    );
+  });
+
+  it("import resolves --from relative to the current working directory", async () => {
+    seedWorkflow(
+      `
+tasks:
+  type: gh-issues
+  repo: acme/repo
+states:
+  draft:
+    prompt: Triage it
+`,
+      `${cwd}/target.md`
+    );
+
+    await runTasks(["import", "--from", "./bugs-here", "--to", `${cwd}/target.md`]);
+
+    expect(taskListMocks.moveTasks).toHaveBeenCalledWith(
+      expect.objectContaining({
+        source: expect.objectContaining({
+          type: "markdown-dir",
+          path: `${cwd}/bugs-here`
+        }),
+        deleteSource: true
+      })
+    );
+  });
+
+  it("import reports missing --from or --to clearly", async () => {
+    const logs: string[] = [];
+
+    await runTasks(["import", "--to", `${cwd}/target.md`], logs);
+    await runTasks(["import", "--from", `${cwd}/dir`], logs);
+    await runTasks(["import", "--from", " ", "--to", `${cwd}/target.md`], logs);
+    await runTasks(["import", "--from", `${cwd}/dir`, "--to", " "], logs);
+
+    expect(logs).toEqual([
+      "[error] tasks import requires --from <source-dir>.",
+      "[error] tasks import requires --to <workflow.md>.",
+      "[error] tasks import requires --from <source-dir>.",
+      "[error] tasks import requires --to <workflow.md>."
+    ]);
+    expect(process.exitCode).toBe(2);
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["--rate", "0", "--rate must be a positive number."],
+    ["--limit", "-1", "--limit must be a non-negative integer."]
+  ])("import rejects invalid numeric flag %s %s", async (flag, value, message) => {
+    const logs: string[] = [];
+
+    await runTasks(
+      ["import", "--from", `${cwd}/dir`, "--to", `${cwd}/target.md`, flag, value],
+      logs
+    );
+
+    expect(logs).toEqual([`[error] ${message}`]);
+    expect(process.exitCode).toBe(2);
+    expect(taskListMocks.moveTasks).not.toHaveBeenCalled();
+  });
+
   it("get prints a task field with a trailing newline", async () => {
     seedTaskWorkspace({ description: "Field body" });
     const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);

@@ -1,3 +1,4 @@
+import path from "node:path";
 import type { Command } from "commander";
 import {
   GhProjectSyncError,
@@ -40,6 +41,7 @@ interface TasksCommandOptions extends TasksCliOptions {
   from?: string;
   to?: string;
   deleteSource?: boolean;
+  keep?: boolean;
   dryRun?: boolean;
   rate?: string;
   limit?: string;
@@ -88,6 +90,19 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .option("--state-map <pairs>", "Map source states to target states as key:value pairs.")
     .action(async (options: TasksCommandOptions, command: Command) => {
       await runMove(mergeCommandOptions(options, command), container);
+    });
+
+  tasks
+    .command("import")
+    .description("Import markdown task files into a workflow-configured backend.")
+    .option("--from <dir>", "Source directory of markdown task files.")
+    .option("--to <workflow.md>", "Target workflow file path.")
+    .option("--keep", "Keep source files after successful creation.")
+    .option("--rate <number>", "Maximum task creates per minute.")
+    .option("--limit <number>", "Maximum tasks to import.")
+    .option("--dry-run", "Simulate the import without writing changes.")
+    .action(async (options: TasksCommandOptions, command: Command) => {
+      await runImport(mergeCommandOptions(options, command), container);
     });
 
   tasks
@@ -248,6 +263,43 @@ async function runMove(options: TasksCommandOptions, container: CliContainer): P
       ...(limit !== undefined ? { limit } : {}),
       ...(options.dryRun === true ? { dryRun: true } : {}),
       ...(stateMap !== undefined ? { stateMap } : {}),
+      onProgress: (event) => logMoveProgress(event, logger)
+    });
+  } catch (error) {
+    handleCommandError(error, logger, options.json);
+  }
+}
+
+async function runImport(options: TasksCommandOptions, container: CliContainer): Promise<void> {
+  const logger = container.loggerFactory.create({ scope: "tasks:import" });
+
+  try {
+    if (options.from === undefined || options.from.trim() === "") {
+      throw new TasksCommandUsageError("tasks import requires --from <source-dir>.");
+    }
+    if (options.to === undefined || options.to.trim() === "") {
+      throw new TasksCommandUsageError("tasks import requires --to <workflow.md>.");
+    }
+
+    const rate =
+      options.rate === undefined ? undefined : parsePositiveNumber(options.rate, "--rate");
+    const limit =
+      options.limit === undefined ? undefined : parseNonNegativeInteger(options.limit, "--limit");
+
+    const source: OpenTaskListOptions = {
+      type: "markdown-dir",
+      path: path.resolve(options.from),
+      singleList: "import",
+      frontmatterMode: "passthrough"
+    };
+
+    await moveTasks({
+      source,
+      target: await resolveWorkflowMoveTargetOptions(options.to),
+      ...(options.keep === true ? {} : { deleteSource: true }),
+      ...(rate !== undefined ? { rate } : {}),
+      ...(limit !== undefined ? { limit } : {}),
+      ...(options.dryRun === true ? { dryRun: true } : {}),
       onProgress: (event) => logMoveProgress(event, logger)
     });
   } catch (error) {

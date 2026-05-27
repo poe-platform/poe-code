@@ -16,9 +16,6 @@ import type {
   TaskListFs
 } from "./types.js";
 
-const DEFAULT_LOCK_STALE_MS = 30_000;
-const DEFAULT_LOCK_RETRIES = 20;
-
 type FileBackendOptions = OpenMarkdownDirOptions | OpenYamlFileOptions;
 
 export const backendFactories: Record<FileBackendOptions["type"], BackendFactory> = {
@@ -55,8 +52,6 @@ async function openFileBackend(options: FileBackendOptions): Promise<TaskList> {
     },
     singleList: markdownOptions?.singleList,
     frontmatterMode: markdownOptions?.frontmatterMode ?? "strict",
-    lockStaleMs: options.lockStaleMs ?? DEFAULT_LOCK_STALE_MS,
-    lockRetries: options.lockRetries ?? DEFAULT_LOCK_RETRIES,
     create: options.create ?? false,
     fs: options.fs ?? createDefaultFs(),
     stateMachine

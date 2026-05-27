@@ -15,13 +15,6 @@ export interface StateFileSystem {
     mtimeMs: number;
   }>;
   unlink(path: string): Promise<void>;
-  open(path: string, flags: string): Promise<{
-    close(): Promise<void>;
-    writeFile(
-      data: string,
-      options?: BufferEncoding | { encoding?: BufferEncoding }
-    ): Promise<void>;
-  }>;
 }
 
 export const defaultStateFs = nodeFs as unknown as StateFileSystem;

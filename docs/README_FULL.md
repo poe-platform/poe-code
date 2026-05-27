@@ -997,7 +997,6 @@ poe-code pipeline install [--agent <name>] [--local | --global] [--force]
 **Additional behavior notes (`pipeline run`):**
 
 - Plan directory resolution is `plan.plan_directory` by default, and `.poe-code/pipeline/config.yaml` `plan_directory` overrides it when set.
-- Lock wait/acquire status is reported while waiting for the per-plan lock.
 - Unresolved prompt variables fail the run before step execution.
 
 ---
@@ -2568,7 +2567,7 @@ poe-code/
 │   └── templates/                  # Mustache templates for configs
 ├── packages/
 │   ├── agent-defs/                 # Agent definitions and metadata
-│   ├── agent-harness-tools/        # Shared loop runner, locks, and agent selection helpers
+│   ├── agent-harness-tools/        # Shared loop runner and agent selection helpers
 │   ├── agent-human-in-loop/        # Approval prompt providers for human-in-loop workflows
 │   ├── agent-spawn/                # Agent spawning and streaming
 │   ├── agent-mcp-config/           # MCP configuration per agent
@@ -2577,7 +2576,6 @@ poe-code/
 │   ├── cached-resource/            # Resource caching
 │   ├── config-mutations/           # Declarative file mutation DSL
 │   ├── design-system/              # CLI UI components and themes
-│   ├── file-lock/                  # Cross-process file locking
 │   ├── github-workflows/           # GitHub automation prompt/workflow helpers
 │   ├── mcp-oauth/                  # OAuth client/server primitives for MCP HTTP transports
 │   ├── memory/                     # Repo-scoped memory files and MCP helpers

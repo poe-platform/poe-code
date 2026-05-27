@@ -1,12 +1,7 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { parseFrontmatter } from "./frontmatter.js";
-import {
-  assertSafeRelPath,
-  MEMORY_CACHE_DIR_RELPATH,
-  MEMORY_LOCK_RELPATH,
-  MEMORY_PAGES_DIR_RELPATH
-} from "./paths.js";
+import { assertSafeRelPath, MEMORY_CACHE_DIR_RELPATH, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
 import type { MemoryPage, MemoryRoot } from "./types.js";
 
 export async function listPages(root: MemoryRoot): Promise<MemoryPage[]> {
@@ -89,10 +84,6 @@ async function collectMarkdownRelPathsInto(
     }
 
     if (!isMarkdownPath(entryRelPath)) {
-      if (entryName === MEMORY_LOCK_RELPATH) {
-        continue;
-      }
-
       console.warn(`Skipping non-markdown memory file "${entryRelPath}".`);
       continue;
     }
@@ -115,10 +106,5 @@ function isMarkdownPath(relPath: string): boolean {
 }
 
 function isMissing(error: unknown): boolean {
-  return (
-    typeof error === "object" &&
-    error !== null &&
-    "code" in error &&
-    error.code === "ENOENT"
-  );
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }

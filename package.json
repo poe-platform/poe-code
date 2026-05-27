@@ -154,7 +154,6 @@
     "@poe-code/design-system": "*",
     "@poe-code/e2e-test-runner": "*",
     "@poe-code/experiment-loop": "*",
-    "@poe-code/file-lock": "*",
     "@poe-code/github-workflows": "*",
     "@poe-code/maestro-tui": "*",
     "@poe-code/markdown-reader": "*",

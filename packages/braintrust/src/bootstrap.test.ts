@@ -8,7 +8,7 @@ const mockBraintrust = vi.hoisted(() => ({
   initExperiment: vi.fn(),
   flush: vi.fn(),
   traced: vi.fn(),
-  currentSpan: vi.fn(),
+  currentSpan: vi.fn()
 }));
 
 vi.mock("braintrust", () => {
@@ -19,7 +19,7 @@ vi.mock("braintrust", () => {
     initExperiment: mockBraintrust.initExperiment,
     flush: mockBraintrust.flush,
     traced: mockBraintrust.traced,
-    currentSpan: mockBraintrust.currentSpan,
+    currentSpan: mockBraintrust.currentSpan
   };
 });
 
@@ -43,51 +43,52 @@ describe("bootstrap", () => {
   it("throws a one-line apiKey message", async () => {
     const { bootstrap } = await import("./index.js");
 
-    expect(() =>
-      bootstrap(config({ enabled: true, project: "project" })),
-    ).toThrow("Braintrust integration is enabled but apiKey is missing");
+    expect(() => bootstrap(config({ enabled: true, project: "project" }))).toThrow(
+      "Braintrust integration is enabled but apiKey is missing"
+    );
   });
 
   it("throws a one-line apiKey message for empty strings", async () => {
     const { bootstrap } = await import("./index.js");
 
-    expect(() =>
-      bootstrap(config({ enabled: true, apiKey: "  ", project: "project" })),
-    ).toThrow("Braintrust integration is enabled but apiKey is missing");
+    expect(() => bootstrap(config({ enabled: true, apiKey: "  ", project: "project" }))).toThrow(
+      "Braintrust integration is enabled but apiKey is missing"
+    );
   });
 
   it("throws a one-line project message", async () => {
     const { bootstrap } = await import("./index.js");
 
-    expect(() =>
-      bootstrap(config({ enabled: true, apiKey: "key" })),
-    ).toThrow("Braintrust integration is enabled but project is missing");
+    expect(() => bootstrap(config({ enabled: true, apiKey: "key" }))).toThrow(
+      "Braintrust integration is enabled but project is missing"
+    );
   });
 
   it("throws a one-line project message for empty strings", async () => {
     const { bootstrap } = await import("./index.js");
 
-    expect(() =>
-      bootstrap(config({ enabled: true, apiKey: "key", project: "" })),
-    ).toThrow("Braintrust integration is enabled but project is missing");
+    expect(() => bootstrap(config({ enabled: true, apiKey: "key", project: "" }))).toThrow(
+      "Braintrust integration is enabled but project is missing"
+    );
   });
 
   it("returns integrations with all callback fields populated when enabled and valid", async () => {
     const { bootstrap } = await import("./index.js");
 
-    const integrations = bootstrap(config({
-      enabled: true,
-      apiKey: "key",
-      project: "project",
-    }));
+    const integrations = bootstrap(
+      config({
+        enabled: true,
+        apiKey: "key",
+        project: "project"
+      })
+    );
 
     expect(integrations).not.toBeNull();
     expect(integrations?.spawnMiddleware).toEqual(expect.any(Function));
     expect(integrations?.pipelineCallbacks).toMatchObject({
       onPlanResolved: expect.any(Function),
       onTaskStart: expect.any(Function),
-      onTaskComplete: expect.any(Function),
-      onLockStatusChange: expect.any(Function),
+      onTaskComplete: expect.any(Function)
     });
     expect(integrations?.experimentCallbacks).toMatchObject({
       onExperimentStart: expect.any(Function),
@@ -95,7 +96,7 @@ describe("bootstrap", () => {
       onMetricResult: expect.any(Function),
       onCommit: expect.any(Function),
       onReset: expect.any(Function),
-      onExperimentComplete: expect.any(Function),
+      onExperimentComplete: expect.any(Function)
     });
     expect(integrations?.superintendentCallbacks).toMatchObject({
       onBuilderComplete: expect.any(Function),
@@ -103,7 +104,7 @@ describe("bootstrap", () => {
       onInspectorComplete: expect.any(Function),
       onInspectorFailed: expect.any(Function),
       onSuperintendentComplete: expect.any(Function),
-      onOwnerComplete: expect.any(Function),
+      onOwnerComplete: expect.any(Function)
     });
     expect(integrations?.traceRun).toEqual(expect.any(Function));
     expect(integrations?.shutdown).toEqual(expect.any(Function));
@@ -112,17 +113,17 @@ describe("bootstrap", () => {
   it("flushes the shared Braintrust client on shutdown", async () => {
     const logger = {};
     mockBraintrust.initLogger.mockReturnValue(logger);
-    mockBraintrust.traced.mockImplementation(
-      async (fn: () => Promise<unknown>) => fn(),
-    );
+    mockBraintrust.traced.mockImplementation(async (fn: () => Promise<unknown>) => fn());
     mockBraintrust.flush.mockResolvedValue(undefined);
     const { bootstrap } = await import("./index.js");
 
-    const integrations = bootstrap(config({
-      enabled: true,
-      apiKey: "key",
-      project: "project",
-    }));
+    const integrations = bootstrap(
+      config({
+        enabled: true,
+        apiKey: "key",
+        project: "project"
+      })
+    );
 
     await integrations?.traceRun("pipeline", "smoke", async () => "ok");
     await integrations?.shutdown();
@@ -130,14 +131,12 @@ describe("bootstrap", () => {
     expect(mockBraintrust.initLogger).toHaveBeenCalledWith({
       apiKey: "key",
       apiUrl: undefined,
-      projectName: "project",
+      projectName: "project"
     });
     expect(mockBraintrust.flush).toHaveBeenCalledWith(logger);
   });
 });
 
-function config(
-  braintrust?: Partial<BraintrustOptions>,
-): BraintrustOptions | undefined {
+function config(braintrust?: Partial<BraintrustOptions>): BraintrustOptions | undefined {
   return braintrust;
 }

@@ -21,7 +21,6 @@
     "@poe-code/agent-defs": "*",
     "@poe-code/config-extends": "*",
     "@poe-code/config-mutations": "*",
-    "@poe-code/file-lock": "*",
     "@poe-code/providers": "*"
   }
 }

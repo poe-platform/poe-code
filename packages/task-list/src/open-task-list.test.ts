@@ -74,8 +74,6 @@ describe("openTaskList", () => {
       },
       singleList: undefined,
       frontmatterMode: "strict",
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs,
       stateMachine: defaultStateMachine
@@ -100,8 +98,6 @@ describe("openTaskList", () => {
       },
       singleList: undefined,
       frontmatterMode: "strict",
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs: expect.any(Object),
       stateMachine: defaultStateMachine
@@ -300,7 +296,7 @@ describe("openTaskList", () => {
     );
   });
 
-  it("passes through explicit create and lock overrides", async () => {
+  it("passes through explicit create", async () => {
     const taskList = createTaskList();
     const { fs } = createFs();
     const spy = vi.spyOn(backendFactories, "markdown-dir").mockResolvedValue(taskList);
@@ -309,16 +305,12 @@ describe("openTaskList", () => {
       type: "markdown-dir",
       path: "/repo/tasks",
       create: true,
-      lockStaleMs: 90_000,
-      lockRetries: 7,
       fs
     });
 
     expect(spy).toHaveBeenCalledWith(
       expect.objectContaining({
-        create: true,
-        lockStaleMs: 90_000,
-        lockRetries: 7
+        create: true
       })
     );
   });

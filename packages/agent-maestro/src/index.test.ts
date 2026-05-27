@@ -159,7 +159,6 @@ describe("runMaestro", () => {
     expect(vol.existsSync("/repo/workspaces/tasks_one")).toBe(false);
 
     await stop();
-    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
   });
 
   it("runs the recommended state machine handoff path as terminal with cleanup and no retry", async () => {
@@ -229,7 +228,7 @@ describe("runMaestro", () => {
     await stop();
   });
 
-  it("dry-runs validation and exits without spawning or creating a workflow lock", async () => {
+  it("dry-runs validation and exits without spawning", async () => {
     vol.fromJSON({
       "/repo/WORKFLOW.md": workflowFrontmatter({
         tasks: ["  type: yaml-file", "  path: /repo/tasks.yaml"],
@@ -266,7 +265,6 @@ describe("runMaestro", () => {
     });
 
     expect(spawn.calls).toEqual([]);
-    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
     expect(logger.info).toHaveBeenCalledWith("maestro config OK", {
       tasks: "yaml-file",
       list: "tasks"
@@ -408,7 +406,6 @@ describe("shutdown", () => {
     await stop();
 
     expect(Date.now() - startedAt).toBeLessThan(50);
-    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
   });
 
   it("aborts all active workers and waits for their promises to settle within the stop budget", async () => {
@@ -453,7 +450,6 @@ describe("shutdown", () => {
     expect(spawn.calls.every((call) => call.signal?.aborted === true)).toBe(true);
     await stopPromise;
     expect(Date.now() - stoppedAt).toBeLessThan(STOP_BUDGET_MS);
-    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
   });
 
   it("returns after the stop budget when a worker ignores abort and still attempts workspace cleanup", async () => {
@@ -486,7 +482,6 @@ describe("shutdown", () => {
     await stopPromise;
 
     expect(vol.existsSync(shutdownWorkspacePath("blocked"))).toBe(false);
-    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
   });
 
   it("waits for an active tick to finish before stop returns", async () => {
@@ -525,7 +520,6 @@ describe("shutdown", () => {
     await stopPromise;
 
     expect(stripUndefined(events.events)).toEqual([tickEvent(25)]);
-    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
   });
 
   it("logs workspace cleanup failures during stop and still resolves", async () => {
@@ -562,35 +556,6 @@ describe("shutdown", () => {
     expect(rmSpy).toHaveBeenCalled();
   });
 
-  it("releases the file lock even when stop encounters cleanup errors", async () => {
-    vol.fromJSON({
-      "/repo/WORKFLOW.md": shutdownWorkflow()
-    });
-    const taskList = createMockTaskList({
-      lists: ["tasks"],
-      tasks: [createTask({ qualifiedId: "tasks/cleanup-fails" })]
-    });
-    const events = createEventCollector();
-    const stop = await runMaestro({
-      workflowPath: "/repo/WORKFLOW.md",
-      taskList,
-      agentSpawn: createMockSpawn({
-        codex: [{ kind: "wait", ms: STOP_BUDGET_MS + 1, ignoreAbort: true }]
-      }).spawn,
-      logger: { warn: vi.fn(), error: vi.fn() },
-      onEvent: events.onEvent
-    });
-    vi.spyOn(fs.promises, "rm").mockRejectedValueOnce(new Error("rm failed"));
-    await advancePoll();
-    await waitForEventCount(events.events, 2);
-
-    const stopPromise = stop();
-    await vi.advanceTimersByTimeAsync(STOP_BUDGET_MS);
-    await stopPromise;
-
-    expect(vol.existsSync("/repo/WORKFLOW.md.lock")).toBe(false);
-  });
-
   it("can be invoked from a SIGTERM-style signal handler without awaiting in the handler", async () => {
     vol.fromJSON({
       "/repo/WORKFLOW.md": shutdownWorkflow()
@@ -605,7 +570,6 @@ describe("shutdown", () => {
 
     try {
       expect(process.emit("SIGTERM", "SIGTERM")).toBe(true);
-      await waitForCondition(() => !vol.existsSync("/repo/WORKFLOW.md.lock"));
     } finally {
       process.removeListener("SIGTERM", stop);
     }
@@ -726,7 +690,6 @@ describe("integration", () => {
     await expect(taskList.get("tasks/one")).resolves.toMatchObject({ state: "done" });
 
     await stop();
-    expect(nodeFs.existsSync(`${fixture.workflowPath}.lock`)).toBe(false);
   });
 
   it("dispatches three tasks with capacity two across three ticks", async () => {
@@ -896,7 +859,6 @@ describe("integration", () => {
       }
     ]);
     expect(nodeFs.existsSync(workspacePath(fixture, "blocked"))).toBe(false);
-    expect(nodeFs.existsSync(`${fixture.workflowPath}.lock`)).toBe(false);
   });
 
   it("stops before the first interval tick without spawning workers", async () => {
@@ -917,7 +879,6 @@ describe("integration", () => {
 
     expect(stripUndefined(events.events)).toEqual([]);
     expect(spawn.calls).toEqual([]);
-    expect(nodeFs.existsSync(`${fixture.workflowPath}.lock`)).toBe(false);
   });
 
   it("allows stop to be called twice without double cleanup", async () => {
@@ -944,48 +905,6 @@ describe("integration", () => {
       dispatchEvent(fixture, "one"),
       ...successEvents("one")
     ]);
-    expect(nodeFs.existsSync(`${fixture.workflowPath}.lock`)).toBe(false);
-  });
-
-  it("rejects a second run on the same workflow path without corrupting the first run", async () => {
-    const { runMaestro } = await importRealMaestro();
-    const fixture = createIntegrationFixture("lock-contention");
-    tempRoots.push(fixture.root);
-    const firstTaskList = createIntegrationTaskList([integrationTask("one")]);
-    const secondTaskList = createIntegrationTaskList([integrationTask("two")]);
-    const firstSpawn = createTaskScriptSpawn(firstTaskList, { one: [{ kind: "complete" }] });
-    const secondSpawn = createTaskScriptSpawn(secondTaskList, { two: [{ kind: "complete" }] });
-    const firstEvents = createEventCollector();
-    const secondEvents = createEventCollector();
-    const firstStop = await runMaestro({
-      workflowPath: fixture.workflowPath,
-      pollIntervalMs: 1_000_000,
-      taskList: firstTaskList,
-      agentSpawn: firstSpawn.spawn,
-      onEvent: firstEvents.onEvent
-    });
-    nodeFs.writeFileSync(
-      `${fixture.workflowPath}.lock`,
-      JSON.stringify({ host: os.hostname(), pid: process.pid }),
-      "utf8"
-    );
-    const secondRun = runMaestro({
-      workflowPath: fixture.workflowPath,
-      pollIntervalMs: 1_000_000,
-      taskList: secondTaskList,
-      agentSpawn: secondSpawn.spawn,
-      onEvent: secondEvents.onEvent
-    });
-
-    await expectLockRejection(secondRun);
-
-    expect(stripUndefined(firstEvents.events)).toEqual([]);
-    expect(stripUndefined(secondEvents.events)).toEqual([]);
-    expect(nodeFs.existsSync(`${fixture.workflowPath}.lock`)).toBe(true);
-    expect(secondSpawn.calls).toEqual([]);
-
-    await firstStop();
-    expect(nodeFs.existsSync(`${fixture.workflowPath}.lock`)).toBe(false);
   });
 
   it("dry-runs a mock task list, reports candidates, and does not dispatch", async () => {
@@ -1246,21 +1165,6 @@ async function waitForEventCount(events: readonly MaestroEvent[], count: number)
   }
 
   throw new Error(`Expected ${count} maestro events, received ${events.length}.`);
-}
-
-async function expectLockRejection(promise: Promise<unknown>): Promise<void> {
-  let error: unknown;
-  promise.catch((reason) => {
-    error = reason;
-  });
-
-  for (let attempt = 0; attempt < 200 && error === undefined; attempt += 1) {
-    await new Promise<void>((resolve) => realSetImmediate(resolve));
-    await vi.advanceTimersByTimeAsync(1_000);
-  }
-
-  expect(error).toBeInstanceOf(Error);
-  expect((error as Error).message).toMatch(/lock/i);
 }
 
 async function promiseSettled(promise: Promise<unknown>): Promise<boolean> {

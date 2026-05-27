@@ -22,7 +22,6 @@ export {
   type WorkflowMode
 } from "./hooks.js";
 export { runWorkflowStage, type StageContext, type WorkflowStage } from "./stage.js";
-export { lockWorkflow, type LockOptions } from "./lock.js";
 export {
   runDocumentWorkflow,
   type DocumentWorkflowOptions,

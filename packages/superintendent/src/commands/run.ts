@@ -1267,7 +1267,6 @@ function createDefaultFs(): SuperintendentFileSystem {
     readFile: fsPromises.readFile as SuperintendentFileSystem["readFile"],
     writeFile: fsPromises.writeFile as SuperintendentFileSystem["writeFile"],
     readdir: fsPromises.readdir,
-    open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -1275,9 +1274,6 @@ function createDefaultFs(): SuperintendentFileSystem {
         isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       };
-    },
-    unlink: async (filePath: string) => {
-      await fsPromises.unlink(filePath);
     },
     mkdir: async (filePath: string, mkdirOptions?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, mkdirOptions);

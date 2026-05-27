@@ -6,16 +6,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-vi.mock("./lock.js", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("./lock.js")>();
-  return {
-    ...actual,
-    withLock: vi.fn(actual.withLock)
-  };
-});
-
 const { appendToPage, clearMemory, writePage } = await import("./write.js");
-const { withLock } = await import("./lock.js");
 
 describe("clearMemory", () => {
   beforeEach(() => {
@@ -34,7 +25,7 @@ describe("clearMemory", () => {
       "/repo/.poe-code/memory/LOG.md": "- old entry\n",
       "/repo/.poe-code/memory/pages/architecture.md": "# Architecture\n",
       "/repo/.poe-code/memory/pages/packages/superintendent.md": "# Superintendent\n",
-      "/repo/.poe-code/memory/.cache/ingest/source.json": "{\"cached\":true}\n",
+      "/repo/.poe-code/memory/.cache/ingest/source.json": '{"cached":true}\n',
       "/repo/.poe-code/memory/notes.md": "# stray\n"
     });
 
@@ -47,25 +38,10 @@ describe("clearMemory", () => {
     await expect(vol.promises.readFile("/repo/.poe-code/memory/INDEX.md", "utf8")).resolves.toBe(
       "# Memory index\n"
     );
-    await expect(vol.promises.readFile("/repo/.poe-code/memory/LOG.md", "utf8")).resolves.toBe(
-      ""
-    );
+    await expect(vol.promises.readFile("/repo/.poe-code/memory/LOG.md", "utf8")).resolves.toBe("");
     await expect(vol.promises.stat("/repo/.poe-code/memory/notes.md")).rejects.toMatchObject({
       code: "ENOENT"
     });
-  });
-
-  it("takes the memory lock while clearing", async () => {
-    vol.fromJSON({
-      "/repo/.poe-code/memory/INDEX.md": "# Existing index\n",
-      "/repo/.poe-code/memory/LOG.md": "- old entry\n",
-      "/repo/.poe-code/memory/pages/architecture.md": "# Architecture\n"
-    });
-
-    await clearMemory("/repo/.poe-code/memory");
-
-    expect(withLock).toHaveBeenCalledTimes(1);
-    expect(withLock).toHaveBeenLastCalledWith("/repo/.poe-code/memory", expect.any(Function));
   });
 });
 
@@ -81,12 +57,13 @@ describe("writePage", () => {
     vi.restoreAllMocks();
   });
 
-  it("writes a page, then reconciles index, log, and frontmatter under the lock", async () => {
+  it("writes a page, then reconciles index, log, and frontmatter", async () => {
     const root = "/repo/.poe-code/memory";
 
     vol.fromJSON({
       [`${root}/INDEX.md`]: "# stale index\n",
-      [`${root}/LOG.md`]: "- 2026-04-18T10:00:00.000Z  **update** `pages/architecture.md` — old reason\n",
+      [`${root}/LOG.md`]:
+        "- 2026-04-18T10:00:00.000Z  **update** `pages/architecture.md` — old reason\n",
       [`${root}/pages/architecture.md`]: [
         "---",
         "description: System overview",
@@ -148,9 +125,6 @@ describe("writePage", () => {
         ""
       ].join("\n")
     );
-
-    expect(withLock).toHaveBeenCalledTimes(1);
-    expect(withLock).toHaveBeenLastCalledWith(root, expect.any(Function));
   });
 });
 
@@ -216,8 +190,5 @@ describe("appendToPage", () => {
         ""
       ].join("\n")
     );
-
-    expect(withLock).toHaveBeenCalledTimes(1);
-    expect(withLock).toHaveBeenLastCalledWith(root, expect.any(Function));
   });
 });

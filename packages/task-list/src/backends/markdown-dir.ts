@@ -1,5 +1,4 @@
 import path from "node:path";
-import { acquireFileLock } from "@poe-code/file-lock";
 import { parseDocument, stringify } from "yaml";
 import taskSchema from "../schema/task.schema.json" with { type: "json" };
 import { eventsFromState, findEvent } from "../state-machine.js";
@@ -38,7 +37,6 @@ const MARKDOWN_EXTENSION = ".md";
 const TASK_KIND = "task";
 const TASK_VERSION = 1;
 const TASK_SCHEMA_ID = taskSchema.$id;
-const ORDER_LOCK_FILENAME = ".order.lock";
 const MIN_PREFIX_WIDTH = 2;
 const RESERVED_FRONTMATTER_KEYS = new Set([
   "$schema",
@@ -131,10 +129,6 @@ function isHiddenEntry(entryName: string): boolean {
   return entryName.startsWith(".");
 }
 
-function isLockFile(entryName: string): boolean {
-  return entryName.endsWith(".lock");
-}
-
 function isValidTaskIdShape(id: string): boolean {
   return (
     id.length > 0 &&
@@ -185,8 +179,7 @@ function splitTaskDocument(
   frontmatter: string;
 } {
   const lines = content.split("\n");
-  const hasFrontmatterBlock =
-    lines.length > 0 && stripTrailingCarriageReturn(lines[0]) === "---";
+  const hasFrontmatterBlock = lines.length > 0 && stripTrailingCarriageReturn(lines[0]) === "---";
 
   if (!hasFrontmatterBlock) {
     if (mode === "passthrough") {
@@ -384,7 +377,7 @@ async function findActiveTaskFilename(
 ): Promise<string | undefined> {
   const entries = await readDirectoryNames(fs, listDirectoryPath);
   for (const entryName of entries) {
-    if (isHiddenEntry(entryName) || isLockFile(entryName)) continue;
+    if (isHiddenEntry(entryName)) continue;
     const parsed = parseActiveFilename(entryName);
     if (parsed?.id === id) {
       return entryName;
@@ -584,7 +577,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
     const result: ActiveEntry[] = [];
 
     for (const entryName of entries) {
-      if (isHiddenEntry(entryName) || isLockFile(entryName)) continue;
+      if (isHiddenEntry(entryName)) continue;
       const parsed = parseActiveFilename(entryName);
       if (!parsed) continue;
 
@@ -635,7 +628,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
     const result: { task: Task; raw: TaskRecord }[] = [];
 
     for (const entryName of entries) {
-      if (isHiddenEntry(entryName) || isLockFile(entryName) || !isMarkdownFile(entryName)) continue;
+      if (isHiddenEntry(entryName) || !isMarkdownFile(entryName)) continue;
 
       const entryPath = path.join(archivePath, entryName);
       const entryStat = await statIfExists(deps.fs, entryPath);
@@ -781,40 +774,6 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
     }
   }
 
-  async function withListLock<T>(action: () => Promise<T>): Promise<T> {
-    await deps.fs.mkdir(listDirectoryPath, { recursive: true });
-    const release = await acquireFileLock(path.join(listDirectoryPath, ORDER_LOCK_FILENAME), {
-      fs: deps.fs,
-      staleMs: deps.lockStaleMs,
-      retries: deps.lockRetries
-    });
-
-    try {
-      return await action();
-    } finally {
-      await release();
-    }
-  }
-
-  async function withTaskLock<T>(id: string, action: () => Promise<T>): Promise<T> {
-    validateTaskId(id);
-    return withListLock(action);
-  }
-
-  async function withLocatedTaskLock<T>(location: TaskLocation, action: () => Promise<T>) {
-    const release = await acquireFileLock(location.path, {
-      fs: deps.fs,
-      staleMs: deps.lockStaleMs,
-      retries: deps.lockRetries
-    });
-
-    try {
-      return await action();
-    } finally {
-      await release();
-    }
-  }
-
   async function getTaskFile(id: string): Promise<TaskFile> {
     validateTaskId(id);
     return readTaskAtLocation(
@@ -875,70 +834,60 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       validateTaskId(input.id);
       await deps.fs.mkdir(listDirectoryPath, { recursive: true });
 
-      return withListLock(async () => {
-        const existing = await findTaskLocation(deps.fs, deps.path, layout, list, input.id);
-        if (existing) {
-          throw new TaskAlreadyExistsError(`Task "${list}/${input.id}" already exists.`);
-        }
+      const existing = await findTaskLocation(deps.fs, deps.path, layout, list, input.id);
+      if (existing) {
+        throw new TaskAlreadyExistsError(`Task "${list}/${input.id}" already exists.`);
+      }
 
-        const activeEntries = await readActiveEntries();
-        const maxOrder = activeEntries.reduce(
-          (max, entry) => (entry.order !== null && entry.order > max ? entry.order : max),
-          0
-        );
-        const nextOrder = maxOrder + 1;
-        const width = padWidthForCount(activeEntries.length + 1);
-        const filename = activeTaskFilename(input.id, nextOrder, width);
-        const targetPath = path.join(listDirectoryPath, filename);
+      const activeEntries = await readActiveEntries();
+      const maxOrder = activeEntries.reduce(
+        (max, entry) => (entry.order !== null && entry.order > max ? entry.order : max),
+        0
+      );
+      const nextOrder = maxOrder + 1;
+      const width = padWidthForCount(activeEntries.length + 1);
+      const filename = activeTaskFilename(input.id, nextOrder, width);
+      const targetPath = path.join(listDirectoryPath, filename);
 
-        const frontmatter = createdFrontmatter(
-          deps.defaults,
-          input,
-          stateMachine.initial,
-          deps.frontmatterMode
-        );
-        const description = input.description ?? "";
+      const frontmatter = createdFrontmatter(
+        deps.defaults,
+        input,
+        stateMachine.initial,
+        deps.frontmatterMode
+      );
+      const description = input.description ?? "";
 
-        await writeAtomically(deps.fs, targetPath, serializeTaskDocument(frontmatter, description));
+      await writeAtomically(deps.fs, targetPath, serializeTaskDocument(frontmatter, description));
 
-        return createTask(
-          list,
-          input.id,
-          frontmatter,
-          description,
-          deps.frontmatterMode,
-          targetPath
-        );
-      });
+      return createTask(list, input.id, frontmatter, description, deps.frontmatterMode, targetPath);
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
       assertUpdateDoesNotSetState(patch);
+      validateTaskId(id);
 
-      return withTaskLock(id, async () => {
-        const existing = await getTaskFile(id);
-        const nextFrontmatter = updatedFrontmatter(
-          existing.frontmatter,
-          existing.task,
-          patch,
-          deps.frontmatterMode
-        );
-        const description = patch.description ?? existing.task.description;
+      const existing = await getTaskFile(id);
+      const nextFrontmatter = updatedFrontmatter(
+        existing.frontmatter,
+        existing.task,
+        patch,
+        deps.frontmatterMode
+      );
+      const description = patch.description ?? existing.task.description;
 
-        await writeAtomically(
-          deps.fs,
-          existing.path,
-          serializeTaskDocument(nextFrontmatter, description)
-        );
+      await writeAtomically(
+        deps.fs,
+        existing.path,
+        serializeTaskDocument(nextFrontmatter, description)
+      );
 
-        return createTask(
-          list,
-          id,
-          nextFrontmatter,
-          description,
-          deps.frontmatterMode,
-          existing.path
-        );
-      });
+      return createTask(
+        list,
+        id,
+        nextFrontmatter,
+        description,
+        deps.frontmatterMode,
+        existing.path
+      );
     },
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
       const fireTask = async (): Promise<Task> => {
@@ -1005,18 +954,14 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
       if (stateMachine.events[eventName]?.to === "archived") {
         validateTaskId(id);
-
-        return withListLock(async () => {
-          const location = await findTaskLocation(deps.fs, deps.path, layout, list, id);
-          if (!location) {
-            throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
-          }
-
-          return withLocatedTaskLock(location, fireTask);
-        });
+        const location = await findTaskLocation(deps.fs, deps.path, layout, list, id);
+        if (!location) {
+          throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
+        }
       }
 
-      return withTaskLock(id, fireTask);
+      validateTaskId(id);
+      return fireTask();
     },
     async canFire(id: string, eventName: string): Promise<boolean> {
       const task = (await getTaskFile(id)).task;
@@ -1033,67 +978,62 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       return eventsFromState(stateMachine, task.state);
     },
     async delete(id: string): Promise<void> {
-      await withTaskLock(id, async () => {
-        const location = await findTaskLocation(deps.fs, deps.path, layout, list, id);
-        if (!location) {
-          throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
-        }
+      validateTaskId(id);
+      const location = await findTaskLocation(deps.fs, deps.path, layout, list, id);
+      if (!location) {
+        throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
+      }
 
-        await deps.fs.unlink(location.path);
-      });
+      await deps.fs.unlink(location.path);
     },
     async move(id: string, anchor: MoveAnchor): Promise<Task> {
       validateTaskId(id);
 
-      return withListLock(async () => {
-        const { entries } = await readActiveTasks();
-        const fromIndex = entries.findIndex((entry) => entry.id === id);
-        if (fromIndex < 0) {
-          throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
+      const { entries } = await readActiveTasks();
+      const fromIndex = entries.findIndex((entry) => entry.id === id);
+      if (fromIndex < 0) {
+        throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
+      }
+
+      const ordered = entries.map((entry) => entry.id);
+      ordered.splice(fromIndex, 1);
+
+      let insertIndex: number;
+      if ("position" in anchor) {
+        insertIndex = anchor.position === "top" ? 0 : ordered.length;
+      } else {
+        const anchorId = "before" in anchor ? anchor.before : anchor.after;
+        const anchorIndex = ordered.indexOf(anchorId);
+        if (anchorIndex < 0) {
+          throw new AnchorNotFoundError(anchorId);
         }
+        insertIndex = "before" in anchor ? anchorIndex : anchorIndex + 1;
+      }
 
-        const ordered = entries.map((entry) => entry.id);
-        ordered.splice(fromIndex, 1);
+      ordered.splice(insertIndex, 0, id);
+      await rewriteMovedPrefix(id, ordered);
 
-        let insertIndex: number;
-        if ("position" in anchor) {
-          insertIndex = anchor.position === "top" ? 0 : ordered.length;
-        } else {
-          const anchorId = "before" in anchor ? anchor.before : anchor.after;
-          const anchorIndex = ordered.indexOf(anchorId);
-          if (anchorIndex < 0) {
-            throw new AnchorNotFoundError(anchorId);
-          }
-          insertIndex = "before" in anchor ? anchorIndex : anchorIndex + 1;
-        }
-
-        ordered.splice(insertIndex, 0, id);
-        await rewriteMovedPrefix(id, ordered);
-
-        return (await getTaskFile(id)).task;
-      });
+      return (await getTaskFile(id)).task;
     },
     async reorder(ids: readonly string[]): Promise<readonly Task[]> {
       for (const id of ids) {
         validateTaskId(id);
       }
 
-      return withListLock(async () => {
-        const { entries } = await readActiveTasks();
-        const currentIds = entries.map((entry) => entry.id);
-        const currentSet = new Set(currentIds);
-        const inputSet = new Set(ids);
-        const missing = currentIds.filter((id) => !inputSet.has(id));
-        const extra = ids.filter((id) => !currentSet.has(id));
+      const { entries } = await readActiveTasks();
+      const currentIds = entries.map((entry) => entry.id);
+      const currentSet = new Set(currentIds);
+      const inputSet = new Set(ids);
+      const missing = currentIds.filter((id) => !inputSet.has(id));
+      const extra = ids.filter((id) => !currentSet.has(id));
 
-        if (missing.length > 0 || extra.length > 0) {
-          throw new OrderMismatchError({ missing, extra });
-        }
+      if (missing.length > 0 || extra.length > 0) {
+        throw new OrderMismatchError({ missing, extra });
+      }
 
-        await rewriteListPrefixes(ids);
+      await rewriteListPrefixes(ids);
 
-        return Promise.all(ids.map(async (id) => (await getTaskFile(id)).task));
-      });
+      return Promise.all(ids.map(async (id) => (await getTaskFile(id)).task));
     }
   };
 }
@@ -1126,11 +1066,7 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
     const result: string[] = [];
 
     for (const entryName of entries) {
-      if (
-        entryName === ARCHIVE_DIRECTORY_NAME ||
-        isHiddenEntry(entryName) ||
-        isLockFile(entryName)
-      ) {
+      if (entryName === ARCHIVE_DIRECTORY_NAME || isHiddenEntry(entryName)) {
         continue;
       }
 
@@ -1199,7 +1135,7 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
       const out: ActiveEntry[] = [];
       const names = await readDirectoryNames(deps.fs, targetListDir);
       for (const entryName of names) {
-        if (isHiddenEntry(entryName) || isLockFile(entryName)) continue;
+        if (isHiddenEntry(entryName)) continue;
         const parsed = parseActiveFilename(entryName);
         if (!parsed) continue;
         out.push({ id: parsed.id, order: parsed.order, filename: entryName });

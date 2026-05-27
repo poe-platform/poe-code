@@ -2,8 +2,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { initMemory } from "./init.js";
-import { withLock } from "./lock.js";
-import { assertSafeRelPath, MEMORY_LOCK_RELPATH, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
+import { assertSafeRelPath, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
 import { reconcile, snapshot } from "./reconcile.js";
 import type { MemoryDiff, MemoryRoot, PageFrontmatter } from "./types.js";
 
@@ -15,16 +14,14 @@ export async function writePage(
 ): Promise<MemoryDiff> {
   const pageRelPath = assertPageRelPath(relPath);
 
-  return withLock(root, async () => {
-    const before = await snapshot(root);
-    await fs.mkdir(path.dirname(path.join(root, pageRelPath)), { recursive: true });
-    await fs.writeFile(
-      path.join(root, pageRelPath),
-      serializeFrontmatter(opts.frontmatter ?? {}, body),
-      "utf8"
-    );
-    return reconcile(root, before, "update", opts.reason);
-  });
+  const before = await snapshot(root);
+  await fs.mkdir(path.dirname(path.join(root, pageRelPath)), { recursive: true });
+  await fs.writeFile(
+    path.join(root, pageRelPath),
+    serializeFrontmatter(opts.frontmatter ?? {}, body),
+    "utf8"
+  );
+  return reconcile(root, before, "update", opts.reason);
 }
 
 export async function appendToPage(
@@ -35,37 +32,30 @@ export async function appendToPage(
 ): Promise<MemoryDiff> {
   const pageRelPath = assertPageRelPath(relPath);
 
-  return withLock(root, async () => {
-    const before = await snapshot(root);
-    const pagePath = path.join(root, pageRelPath);
-    await fs.mkdir(path.dirname(pagePath), { recursive: true });
+  const before = await snapshot(root);
+  const pagePath = path.join(root, pageRelPath);
+  await fs.mkdir(path.dirname(pagePath), { recursive: true });
 
-    const existing = await readMarkdownIfPresent(pagePath);
-    const parsed = existing === undefined ? { frontmatter: {}, body: "" } : parseFrontmatter(existing);
+  const existing = await readMarkdownIfPresent(pagePath);
+  const parsed =
+    existing === undefined ? { frontmatter: {}, body: "" } : parseFrontmatter(existing);
 
-    await fs.writeFile(
-      pagePath,
-      serializeFrontmatter(parsed.frontmatter, `${parsed.body}${content}`),
-      "utf8"
-    );
+  await fs.writeFile(
+    pagePath,
+    serializeFrontmatter(parsed.frontmatter, `${parsed.body}${content}`),
+    "utf8"
+  );
 
-    return reconcile(root, before, "update", opts.reason);
-  });
+  return reconcile(root, before, "update", opts.reason);
 }
 
 export async function clearMemory(root: MemoryRoot): Promise<void> {
-  await withLock(root, async () => {
-    await removeChildren(root);
-    await initMemory(root);
-  });
+  await removeChildren(root);
+  await initMemory(root);
 }
 
 async function removeChildren(directoryPath: string): Promise<void> {
   for (const entryName of await fs.readdir(directoryPath)) {
-    if (entryName === MEMORY_LOCK_RELPATH) {
-      continue;
-    }
-
     const entryPath = path.join(directoryPath, entryName);
     const stat = await fs.stat(entryPath);
 
@@ -101,12 +91,7 @@ async function readMarkdownIfPresent(filePath: string): Promise<string | undefin
   try {
     return await fs.readFile(filePath, "utf8");
   } catch (error) {
-    if (
-      typeof error === "object" &&
-      error !== null &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
       return undefined;
     }
 

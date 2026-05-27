@@ -1086,35 +1086,7 @@ describe("createRalphSimulation", () => {
     expect(body).toBe("Fix {{ current_file }}");
   });
 
-  it("holds an agent-kit workflow lock while the iteration is running", async () => {
-    const { fs, rawFs } = createRunFs({
-      "/repo/.poe-code/ralph/plans/plan.md": "# Plan"
-    });
-    const runAgent = vi.fn(async () => {
-      const stat = await rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock");
-      expect(stat.isFile()).toBe(true);
-      return {
-        stdout: "",
-        stderr: "",
-        exitCode: 0
-      };
-    });
-
-    await runRalph({
-      cwd: "/repo",
-      homeDir: "/home/test",
-      docPath: ".poe-code/ralph/plans/plan.md",
-      maxIterations: 1,
-      fs,
-      runAgent
-    });
-
-    await expect(rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock")).rejects.toMatchObject({
-      code: "ENOENT"
-    });
-  });
-
-  it("restores open status and releases the lock when the agent throws unexpectedly", async () => {
+  it("restores open status when the agent throws unexpectedly", async () => {
     const { fs, rawFs } = createRunFs({
       "/repo/.poe-code/ralph/plans/plan.md": "# Plan"
     });
@@ -1150,9 +1122,6 @@ describe("createRalphSimulation", () => {
     expect(data.status).toEqual({
       state: "open",
       iteration: 1
-    });
-    await expect(rawFs.stat("/repo/.poe-code/ralph/plans/plan.md.lock")).rejects.toMatchObject({
-      code: "ENOENT"
     });
   });
 

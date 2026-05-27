@@ -1,6 +1,5 @@
 import { cp, mkdir, readFile, stat } from "node:fs/promises";
 import path from "node:path";
-import { acquireFileLock } from "@poe-code/file-lock";
 import {
   applyMiddlewares,
   sessionCapture,
@@ -77,8 +76,7 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
   const runDir = path.join(opts.outDir ?? "runs", runId);
   await mkdir(path.dirname(runDir), { recursive: true });
 
-  const releaseLock = await acquireFileLock(runDir);
-  try {
+  {
     await mkdir(runDir, { recursive: true });
 
     const controller = new AbortController();
@@ -282,8 +280,6 @@ export async function runEval(opts: EvalRunOptions): Promise<EvalRunResult> {
     }
 
     return result;
-  } finally {
-    await releaseLock();
   }
 }
 

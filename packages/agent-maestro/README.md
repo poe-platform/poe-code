@@ -2,9 +2,9 @@
 
 ## Env Vars
 
-| Env var            | Used by                              | Behavior                                                                                                                                                                                           |
-| ------------------ | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GH_HOST`          | `tasks.type: gh-issues`              | Overrides the GitHub GraphQL host used by the `gh-issues` task backend. Empty, unset, and `github.com` use `https://api.github.com/graphql`; any other value uses `https://<GH_HOST>/api/graphql`. |
+| Env var            | Used by                               | Behavior                                                                                                                                                                                                                               |
+| ------------------ | ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `GH_HOST`          | `tasks.type: gh-issues`               | Overrides the GitHub GraphQL host used by the `gh-issues` task backend. Empty, unset, and `github.com` use `https://api.github.com/graphql`; any other value uses `https://<GH_HOST>/api/graphql`.                                     |
 | `MAESTRO_GH_TOKEN` | turn-based GitHub Actions `gh-issues` | PAT or GitHub App token for the turn-based workflow template and `gh-issues` backend when configured as `tasks.auth.token: $MAESTRO_GH_TOKEN`. Use this instead of `GITHUB_TOKEN` when issue changes must trigger later workflow runs. |
 
 `WORKFLOW.md` string config values can also reference environment variables with `$NAME`. The referenced name must contain only uppercase letters, digits, and `_`.
@@ -34,8 +34,6 @@
 | `create`            | `markdown-dir`, `yaml-file` | boolean                                        | `false`           | Creates missing local task storage when enabled.                                                                       |
 | `singleList`        | `markdown-dir`              | string                                         | unset             | Treats the configured directory as one list with this list name.                                                       |
 | `frontmatterMode`   | `markdown-dir`              | `"strict" \| "passthrough"`                    | `"strict"`        | Controls how Markdown task frontmatter is read and written.                                                            |
-| `lockStaleMs`       | `markdown-dir`, `yaml-file` | number                                         | `30000`           | Stale threshold for local file locks.                                                                                  |
-| `lockRetries`       | `markdown-dir`, `yaml-file` | number                                         | `20`              | Retry count for local file locks.                                                                                      |
 | `auth.token`        | `gh-issues`                 | string                                         | unset             | Explicit GitHub token. If omitted, the backend runs `gh auth token`.                                                   |
 | `fs`                | `markdown-dir`, `yaml-file` | `TaskListFs`                                   | Node fs adapter   | SDK-only injectable filesystem.                                                                                        |
 | `stateMachine`      | `markdown-dir`, `yaml-file` | `StateMachineDef`                              | task-list default | SDK-only custom task lifecycle.                                                                                        |
@@ -122,12 +120,12 @@ poe-code maestro tick --task <id> --transition <from>:<to>
 
 Flags:
 
-| Flag                          | Required | Behavior                                                                 |
-| ----------------------------- | -------- | ------------------------------------------------------------------------ |
-| `--task <qualifiedId>`        | yes      | Task id. Unqualified ids use `agent.list`; qualified ids must match it.  |
-| `--transition <fromState:toState>` | yes | External transition edge.                                                |
-| `--list <name>`               | no       | Overrides `agent.list`; also inherited from parent `poe-code maestro --list`. |
-| `--config <path>`             | no       | Path to `WORKFLOW.md`. Defaults to `./WORKFLOW.md`.                      |
+| Flag                               | Required | Behavior                                                                      |
+| ---------------------------------- | -------- | ----------------------------------------------------------------------------- |
+| `--task <qualifiedId>`             | yes      | Task id. Unqualified ids use `agent.list`; qualified ids must match it.       |
+| `--transition <fromState:toState>` | yes      | External transition edge.                                                     |
+| `--list <name>`                    | no       | Overrides `agent.list`; also inherited from parent `poe-code maestro --list`. |
+| `--config <path>`                  | no       | Path to `WORKFLOW.md`. Defaults to `./WORKFLOW.md`.                           |
 
 For GitHub Issues storage, use `tasks.type: gh-issues`; the backend is implemented in [packages/task-list/src/backends/gh-issues.ts](../task-list/src/backends/gh-issues.ts) and documented in [@poe-code/task-list](../task-list/README.md#gh-issues). Configure `tasks.repo`, `tasks.project.owner`, `tasks.project.number`, and usually `tasks.auth.token: $MAESTRO_GH_TOKEN` in GitHub Actions; see [Examples](#examples).
 
@@ -138,8 +136,6 @@ GitHub Actions workflows triggered by `GITHUB_TOKEN` do not chain. Use a PAT or 
 Workflow template: [packages/github-workflows/src/workflow-templates/maestro-turn.yml](../github-workflows/src/workflow-templates/maestro-turn.yml).
 
 ## Failure semantics
-
-Non-dry-run `runMaestro` acquires an exclusive `<WORKFLOW.md>.lock` before opening the task backend. If another process holds the lock, startup waits using the bounded retry behavior from `@poe-code/file-lock`; if the lock is still unavailable after those retries, `runMaestro` rejects and does not emit maestro events or dispatch agents. Dry runs do not acquire the workflow lock.
 
 Shutdown aborts the active polling tick before waiting for it to finish. The runtime checks that signal before fetching candidates and between dispatches, so large ticks stop claiming new work promptly. Workers already dispatched by that tick are then aborted during shutdown.
 

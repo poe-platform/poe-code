@@ -67,8 +67,6 @@ describe("markdownDirBackend", () => {
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -108,8 +106,6 @@ Initial body`
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -143,8 +139,6 @@ Body`
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -171,8 +165,6 @@ Broken`
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -202,8 +194,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -214,7 +204,7 @@ state: draft
     await expect(taskList.list("planning").get("pipeline")).rejects.toThrow('"kind"');
   });
 
-  it("ignores hidden entries, lockfiles, and the reserved archive directory at the root", async () => {
+  it("ignores hidden entries and the reserved archive directory at the root", async () => {
     const { fs } = createFs({
       "/repo/tasks/alpha/one.md": `---
 name: One
@@ -231,7 +221,6 @@ name: Hidden
 state: draft
 ---
 `,
-      "/repo/tasks/beta.md.lock": "",
       "/repo/tasks/readme.txt": "not a list"
     });
     const taskList = await markdownDirBackend({
@@ -239,8 +228,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -267,8 +254,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -304,8 +289,6 @@ version: 1
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -343,8 +326,6 @@ Body description`
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -378,8 +359,6 @@ Body description`
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -407,8 +386,6 @@ Body paragraph.
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -438,8 +415,6 @@ version: 1
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -472,8 +447,6 @@ version: 1
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -514,8 +487,6 @@ version: 1
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -537,8 +508,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -570,8 +539,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -595,8 +562,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -639,8 +604,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -657,8 +620,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -700,8 +661,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -746,8 +705,6 @@ version: 1
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -785,8 +742,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -825,8 +780,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -854,8 +807,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -884,8 +835,6 @@ version: 1
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -894,73 +843,6 @@ version: 1
 
     await expect(readSortedDirectory(rawFs, "/repo/tasks")).resolves.toEqual(["archive"]);
     await expect(readSortedDirectory(rawFs, "/repo/tasks/archive")).resolves.toEqual(["only.md"]);
-  });
-
-  it("serializes concurrent archive fires under the list lock", async () => {
-    const baseFs = createFs({
-      "/repo/tasks/planning/01-foo.md": `---
-name: Foo
-state: draft
----
-`,
-      "/repo/tasks/planning/02-bar.md": `---
-name: Bar
-state: draft
----
-`,
-      "/repo/tasks/planning/03-baz.md": `---
-name: Baz
-state: draft
----
-`
-    });
-    const firstRead = createDeferred();
-    const readPaths: string[] = [];
-    let blockedFirstRead = false;
-    const fs = {
-      ...baseFs.fs,
-      readFile: async (path, encoding) => {
-        if (path.endsWith(".md")) {
-          readPaths.push(path);
-        }
-
-        if (path === "/repo/tasks/planning/01-foo.md" && !blockedFirstRead) {
-          blockedFirstRead = true;
-          await firstRead.promise;
-        }
-
-        return baseFs.rawFs.readFile(path, encoding);
-      }
-    };
-    const taskList = await markdownDirBackend({
-      path: "/repo/tasks",
-      defaults: {
-        metadata: {}
-      },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
-      create: false,
-      fs
-    });
-
-    const archiveFoo = taskList.list("planning").fire("foo", "archive");
-    await waitForCondition(() => readPaths.includes("/repo/tasks/planning/01-foo.md"));
-
-    const archiveBar = taskList.list("planning").fire("bar", "archive");
-
-    await new Promise((resolve) => setTimeout(resolve, 35));
-    expect(readPaths).toEqual(["/repo/tasks/planning/01-foo.md"]);
-
-    firstRead.resolve();
-    await Promise.all([archiveFoo, archiveBar]);
-
-    await expect(readSortedDirectory(baseFs.rawFs, "/repo/tasks/planning")).resolves.toEqual([
-      "03-baz.md",
-      "archive"
-    ]);
-    await expect(
-      readSortedDirectory(baseFs.rawFs, "/repo/tasks/planning/archive")
-    ).resolves.toEqual(["bar.md", "foo.md"]);
   });
 
   it("does not contend for updates to different task paths", async () => {
@@ -989,8 +871,6 @@ state: draft
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });

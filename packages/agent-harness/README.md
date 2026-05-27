@@ -14,7 +14,7 @@ Shared harness loader, template, schema, and runtime orchestration APIs for `.md
 
 A harness is a Markdown document plus a sibling `.ajs` script. The Markdown frontmatter configures the run; the body is passed to the harness import metadata. The `.ajs` file must export a default entry point and may export `schema` to validate frontmatter before execution.
 
-`runHarnessPair` locks the Markdown file while it runs, injects the `schema` module, wraps host modules for deterministic replay across resumes, writes snapshots, and cleans up completed snapshots after successful runs.
+`runHarnessPair` injects the `schema` module, wraps host modules for deterministic replay across resumes, writes snapshots, and cleans up completed snapshots after successful runs.
 
 ## Snapshots and resume
 

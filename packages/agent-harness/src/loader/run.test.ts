@@ -485,7 +485,7 @@ describe("runHarnessPair", () => {
     });
   });
 
-  it("throws validation errors with the md path and field path, releases the lock, and leaves snapshots untouched", async () => {
+  it("throws validation errors with the md path and field path and leaves snapshots untouched", async () => {
     const mdPath = "/repo/harness/invalid.md";
     const snapshotPath = "/snapshots/invalid.json";
     vol.fromJSON({
@@ -506,7 +506,6 @@ describe("runHarnessPair", () => {
       })
     ).rejects.toThrow(`${mdPath} (title): Expected string at title, got integer`);
 
-    expect(vol.existsSync(`${mdPath}.lock`)).toBe(false);
     expect(vol.existsSync(snapshotPath)).toBe(false);
   });
 
@@ -1002,43 +1001,6 @@ describe("runHarnessPair", () => {
     expect(read).toHaveBeenCalledTimes(1);
     expect(vol.existsSync(snapshotPath)).toBe(false);
     expect(vol.existsSync(`${snapshotPath}.host-calls.json`)).toBe(false);
-  });
-
-  it("rejects a concurrent run against the same .md while the first run holds the lock", async () => {
-    const mdPath = "/repo/harness/concurrent.md";
-    vol.fromJSON({
-      [mdPath]: "---\nkind: concurrent\nversion: 1\n---\n",
-      "/repo/harness/concurrent.ajs": [
-        'import { wait } from "host";',
-        "export default async () => {",
-        "  await wait();",
-        "  return 'done';",
-        "};"
-      ].join("\n")
-    });
-
-    const releaseFirst = createDeferred<void>();
-    const firstRun = runHarnessPair(mdPath, {
-      modulesFor: () => ({
-        host: {
-          async wait() {
-            return releaseFirst.promise;
-          }
-        }
-      })
-    });
-    await flushMicrotasks();
-    await flushMicrotasks();
-
-    await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).rejects.toMatchObject({
-      code: "EEXIST"
-    });
-
-    releaseFirst.resolve();
-    await expect(firstRun).resolves.toMatchObject({
-      ok: true,
-      returnValue: "done"
-    });
   });
 });
 

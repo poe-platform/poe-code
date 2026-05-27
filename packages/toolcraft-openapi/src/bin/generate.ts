@@ -6,7 +6,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { UserError } from "toolcraft";
 import { generate, type GeneratedFile } from "../generate.js";
-import { readOpenApiLock, writeOpenApiLock } from "../lock.js";
 import { parseOpenApiDocument, readOpenApiSourceText } from "../spec-source.js";
 
 interface GenerateCliFileSystem {
@@ -33,7 +32,6 @@ interface GenerateCliServices {
 interface GenerateCliOptions {
   check: boolean;
   input: string;
-  lockPath: string;
   outputDir: string;
 }
 
@@ -47,7 +45,6 @@ interface SyncGeneratedClientResult {
 const DEFAULT_OPTIONS: GenerateCliOptions = {
   check: false,
   input: "openapi.json",
-  lockPath: "openapi.lock",
   outputDir: "src/generated"
 };
 
@@ -56,8 +53,7 @@ const HELP_TEXT = `Usage: toolcraft-openapi-generate [options]
 Options:
   --input <path-or-url>  OpenAPI document to read (default: openapi.json)
   --output <dir>         Directory for generated command files (default: src/generated)
-  --lock <path>          Lock file path (default: openapi.lock)
-  --check                Exit non-zero if generated output or lock file would change
+  --check                Exit non-zero if generated output would change
   -h, --help             Show this help text
 `;
 
@@ -131,8 +127,6 @@ export async function syncGeneratedClient(
   const document = parseOpenApiDocument(sourceText, options.input);
   const generatedFiles = generate(document, { specSha });
   const outputDir = path.resolve(services.cwd, options.outputDir);
-  const lockPath = path.resolve(services.cwd, options.lockPath);
-  const currentLock = await readOpenApiLock(services.fs, lockPath);
   const currentFiles = await readGeneratedFiles(services.fs, outputDir);
   const desiredFiles = new Map([
     ...generatedFiles.map((file) => [path.resolve(outputDir, file.path), file.contents] as const),
@@ -142,13 +136,11 @@ export async function syncGeneratedClient(
   ]);
   const updatedFiles = collectUpdatedFiles(currentFiles, desiredFiles);
   const deletedFiles = collectDeletedFiles(currentFiles, desiredFiles);
-  const drifted =
-    currentLock?.specSha !== specSha || updatedFiles.length > 0 || deletedFiles.length > 0;
+  const drifted = updatedFiles.length > 0 || deletedFiles.length > 0;
 
   if (!options.check && drifted) {
     await writeGeneratedFiles(services.fs, updatedFiles);
     await deleteGeneratedFiles(services.fs, deletedFiles);
-    await writeOpenApiLock(services.fs, lockPath, { specSha });
   }
 
   return {
@@ -174,7 +166,7 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
       continue;
     }
 
-    if (argument === "--input" || argument === "--output" || argument === "--lock") {
+    if (argument === "--input" || argument === "--output") {
       const value = argv[index + 1];
 
       if (value === undefined) {
@@ -196,11 +188,6 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
       continue;
     }
 
-    if (argument.startsWith("--lock=")) {
-      assignOptionValue(options, "--lock", argument.slice("--lock=".length));
-      continue;
-    }
-
     throw new UserError(`Unknown argument ${JSON.stringify(argument)}.`);
   }
 
@@ -209,7 +196,7 @@ function parseGenerateCliArgs(argv: string[]): GenerateCliOptions | "help" {
 
 function assignOptionValue(
   options: GenerateCliOptions,
-  argument: "--input" | "--output" | "--lock",
+  argument: "--input" | "--output",
   value: string
 ): void {
   if (value.length === 0) {
@@ -221,12 +208,7 @@ function assignOptionValue(
     return;
   }
 
-  if (argument === "--output") {
-    options.outputDir = value;
-    return;
-  }
-
-  options.lockPath = value;
+  options.outputDir = value;
 }
 
 function createSpecSha(sourceText: string): string {

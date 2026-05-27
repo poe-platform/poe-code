@@ -211,8 +211,8 @@ defineCommand({
     apiVersion: ">=1.2.0", // fails if runner reports older apiVersion
     check: async (ctx) => ({
       // arbitrary async gate
-      ok: ctx.fs.exists(".lock") === false,
-      message: ".lock present, refusing to run"
+      ok: ctx.fs.exists("READY") === true,
+      message: "READY marker missing, refusing to run"
     })
   }
 });

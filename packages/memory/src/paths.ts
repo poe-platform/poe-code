@@ -3,7 +3,6 @@ import type { MemoryRoot } from "./types.js";
 
 export const MEMORY_INDEX_RELPATH = "INDEX.md";
 export const MEMORY_LOG_RELPATH = "LOG.md";
-export const MEMORY_LOCK_RELPATH = ".lock";
 export const MEMORY_PAGES_DIR_RELPATH = "pages";
 export const MEMORY_CACHE_DIR_RELPATH = ".cache";
 export const MEMORY_INGEST_CACHE_DIR_RELPATH = `${MEMORY_CACHE_DIR_RELPATH}/ingest`;

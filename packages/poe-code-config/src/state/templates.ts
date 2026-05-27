@@ -1,5 +1,4 @@
 import path from "node:path";
-import { acquireFileLock, type FileLockFs } from "@poe-code/file-lock";
 import { defaultStateFs, isNotFoundError, type StateFileSystem } from "./fs.js";
 
 export type TemplateBackend = "docker" | "e2b";
@@ -27,6 +26,7 @@ export function createTemplateRegistry(
   fs: StateFileSystem = defaultStateFs
 ): TemplateRegistry {
   const filePath = path.join(homeDir, ".poe-code", "state", "templates.json");
+  let pendingUpdate: Promise<void> = Promise.resolve();
 
   async function readState(): Promise<TemplateState> {
     try {
@@ -48,15 +48,14 @@ export function createTemplateRegistry(
   }
 
   async function updateState(mutator: (state: TemplateState) => void): Promise<void> {
-    await fs.mkdir(path.dirname(filePath), { recursive: true });
-    const release = await acquireFileLock(filePath, { fs: fs as unknown as FileLockFs });
-    try {
+    const update = pendingUpdate.then(async () => {
+      await fs.mkdir(path.dirname(filePath), { recursive: true });
       const state = await readState();
       mutator(state);
       await writeState(state);
-    } finally {
-      await release();
-    }
+    });
+    pendingUpdate = update.catch(() => undefined);
+    await update;
   }
 
   async function get(backend: TemplateBackend, hash: string): Promise<TemplateEntry | null> {

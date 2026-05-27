@@ -72,16 +72,6 @@ export interface TaskDefaults {
 
 export interface TaskListFs {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
-  open(
-    path: string,
-    flags: string
-  ): Promise<{
-    close(): Promise<void>;
-    writeFile(
-      data: string | NodeJS.ArrayBufferView,
-      options?: BufferEncoding | { encoding?: BufferEncoding }
-    ): Promise<void>;
-  }>;
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   readdir(path: string): Promise<string[]>;
   rename(fromPath: string, toPath: string): Promise<void>;
@@ -153,8 +143,6 @@ export interface OpenMarkdownDirOptions {
   create?: boolean;
   singleList?: string;
   frontmatterMode?: "strict" | "passthrough";
-  lockStaleMs?: number;
-  lockRetries?: number;
   fs?: TaskListFs;
   stateMachine?: StateMachineDef;
 }
@@ -164,8 +152,6 @@ export interface OpenYamlFileOptions {
   path: string;
   defaults?: TaskDefaults;
   create?: boolean;
-  lockStaleMs?: number;
-  lockRetries?: number;
   fs?: TaskListFs;
   stateMachine?: StateMachineDef;
 }
@@ -187,8 +173,6 @@ export interface BackendDeps {
   defaults: Required<TaskDefaults>;
   singleList?: string;
   frontmatterMode: "strict" | "passthrough";
-  lockStaleMs: number;
-  lockRetries: number;
   create: boolean;
   fs: TaskListFs;
   stateMachine?: StateMachineDef;

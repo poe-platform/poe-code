@@ -16,7 +16,7 @@ import {
 } from "../types.js";
 import { markdownDirBackend } from "./markdown-dir.js";
 import { yamlFileBackend } from "./yaml-file.js";
-import { createDeferred, createFs, flushMicrotasks, waitForCondition } from "./test-helpers.js";
+import { createFs } from "./test-helpers.js";
 
 type BackendFactoryUnderTest = (deps: BackendDeps) => Promise<TaskList>;
 type BackendPaths = {
@@ -66,7 +66,6 @@ async function openBackend(
     defaults?: BackendDeps["defaults"];
     files?: Record<string, string>;
     fs?: TaskListFs;
-    lockRetries?: number;
     path?: string;
   } = {}
 ): Promise<{
@@ -83,8 +82,6 @@ async function openBackend(
       metadata: { ...(options.defaults?.metadata ?? {}) }
     },
     frontmatterMode: "strict",
-    lockStaleMs: 30_000,
-    lockRetries: options.lockRetries ?? 20,
     create: options.create ?? true,
     fs
   });
@@ -253,7 +250,11 @@ function describeBackendConformance(
 
     it("rejects state at the type boundary", () => {
       // @ts-expect-error create does not accept state
-      const createInput: TaskCreate = { id: "typed-create", name: "Typed create", state: "planned" };
+      const createInput: TaskCreate = {
+        id: "typed-create",
+        name: "Typed create",
+        state: "planned"
+      };
 
       expect(createInput.id).toBe("typed-create");
     });
@@ -284,7 +285,9 @@ function describeBackendConformance(
           name: "Illegal create",
           state: "planned"
         } as TaskCreate)
-      ).rejects.toThrow('Tasks.create() does not accept "state"; new tasks always start at stateMachine.initial.');
+      ).rejects.toThrow(
+        'Tasks.create() does not accept "state"; new tasks always start at stateMachine.initial.'
+      );
       await expect(
         tasks.update("state-guard", {
           state: "planned"
@@ -299,10 +302,14 @@ function describeBackendConformance(
           const tasks = taskList.list("planning");
           const expectedState = assertEvent(defaultStateMachine, from, eventName).to;
 
-          await createTaskInState(tasks, {
-            id: `${from}-${eventName}`,
-            name: `${from} ${eventName}`
-          }, from);
+          await createTaskInState(
+            tasks,
+            {
+              id: `${from}-${eventName}`,
+              name: `${from} ${eventName}`
+            },
+            from
+          );
 
           await expect(tasks.fire(`${from}-${eventName}`, eventName)).resolves.toMatchObject({
             state: expectedState
@@ -323,14 +330,18 @@ function describeBackendConformance(
           const { taskList } = await openBackend(factory, { path: rootPath });
           const tasks = taskList.list("planning");
 
-          await createTaskInState(tasks, {
-            id: `${from}-illegal-${eventName}`,
-            name: `${from} illegal ${eventName}`
-          }, from);
-
-          await expect(tasks.fire(`${from}-illegal-${eventName}`, eventName)).rejects.toBeInstanceOf(
-            InvalidTransitionError
+          await createTaskInState(
+            tasks,
+            {
+              id: `${from}-illegal-${eventName}`,
+              name: `${from} illegal ${eventName}`
+            },
+            from
           );
+
+          await expect(
+            tasks.fire(`${from}-illegal-${eventName}`, eventName)
+          ).rejects.toBeInstanceOf(InvalidTransitionError);
         }
       }
     });
@@ -353,8 +364,6 @@ function describeBackendConformance(
         defaults: {
           metadata: {}
         },
-        lockStaleMs: 30_000,
-        lockRetries: 20,
         create: false,
         fs
       });
@@ -446,72 +455,6 @@ function describeBackendConformance(
       ).resolves.toEqual([expect.objectContaining({ id: "done-task", state: "archived" })]);
     });
 
-    it("serializes concurrent updates to the same task", async () => {
-      vi.useFakeTimers();
-      vi.spyOn(Math, "random").mockReturnValue(0);
-      const baseFs = createFs();
-      const taskPath = pathsForTask(rootPath, "planning", "serial").taskPath;
-      const reads = [createDeferred(), createDeferred()];
-      let armReadBlockers = false;
-      let readCount = 0;
-      const fs: TaskListFs = {
-        ...baseFs.fs,
-        readFile: async (path, encoding) => {
-          if (armReadBlockers && path === taskPath && readCount < reads.length) {
-            const currentRead = readCount;
-            readCount += 1;
-            await reads[currentRead].promise;
-          }
-
-          return baseFs.rawFs.readFile(path, encoding);
-        }
-      };
-      const { taskList } = await openBackend(factory, {
-        fs,
-        lockRetries: 5,
-        path: rootPath
-      });
-      const tasks = taskList.list("planning");
-
-      await tasks.create({
-        id: "serial",
-        name: "Serial task"
-      });
-      armReadBlockers = true;
-
-      const firstUpdate = tasks.update("serial", {
-        metadata: {
-          owner: "kj"
-        }
-      });
-      const secondUpdate = tasks.update("serial", {
-        metadata: {
-          reviewer: "pm"
-        }
-      });
-
-      await waitForCondition(() => readCount === 1);
-      expect(readCount).toBe(1);
-
-      reads[0].resolve();
-      await flushMicrotasks();
-      await vi.advanceTimersByTimeAsync(25);
-      await flushMicrotasks();
-
-      expect(readCount).toBe(2);
-
-      reads[1].resolve();
-
-      await Promise.all([firstUpdate, secondUpdate]);
-
-      await expect(tasks.get("serial")).resolves.toMatchObject({
-        metadata: {
-          owner: "kj",
-          reviewer: "pm"
-        }
-      });
-    });
-
     it("rejects unsafe list names and ids", async () => {
       const { taskList } = await openBackend(factory, { path: rootPath });
 
@@ -591,7 +534,9 @@ function describeBackendConformance(
         const tasks = taskList.list("planning");
         await seedThree(tasks);
 
-        await expect(tasks.move("alpha", { before: "missing" })).rejects.toBeInstanceOf(AnchorNotFoundError);
+        await expect(tasks.move("alpha", { before: "missing" })).rejects.toBeInstanceOf(
+          AnchorNotFoundError
+        );
       });
 
       it("reorder replaces the entire order", async () => {
@@ -610,9 +555,9 @@ function describeBackendConformance(
         await seedThree(tasks);
 
         await expect(tasks.reorder(["alpha", "bravo"])).rejects.toBeInstanceOf(OrderMismatchError);
-        await expect(
-          tasks.reorder(["alpha", "bravo", "charlie", "delta"])
-        ).rejects.toBeInstanceOf(OrderMismatchError);
+        await expect(tasks.reorder(["alpha", "bravo", "charlie", "delta"])).rejects.toBeInstanceOf(
+          OrderMismatchError
+        );
       });
 
       it("archive removes the task from priority order", async () => {
@@ -692,10 +637,20 @@ function describeBackendConformance(
   });
 }
 
-describeBackendConformance("markdown-dir backend", markdownDirBackend, "/repo/tasks", (rootPath, list, id) => ({
-  taskPath: `${rootPath}/${list}/01-${id}.md`
-}));
+describeBackendConformance(
+  "markdown-dir backend",
+  markdownDirBackend,
+  "/repo/tasks",
+  (rootPath, list, id) => ({
+    taskPath: `${rootPath}/${list}/01-${id}.md`
+  })
+);
 
-describeBackendConformance("yaml-file backend", yamlFileBackend, "/repo/tasks.yaml", (rootPath) => ({
-  taskPath: rootPath
-}));
+describeBackendConformance(
+  "yaml-file backend",
+  yamlFileBackend,
+  "/repo/tasks.yaml",
+  (rootPath) => ({
+    taskPath: rootPath
+  })
+);

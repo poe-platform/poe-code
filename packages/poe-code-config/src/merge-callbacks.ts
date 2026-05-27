@@ -6,7 +6,6 @@ export type PipelineCallbackFields = {
   onPlanResolved?: BivariantCallback<[summary: unknown]>;
   onTaskStart?: BivariantCallback<[progress: unknown]>;
   onTaskComplete?: BivariantCallback<[progress: unknown]>;
-  onLockStatusChange?: BivariantCallback<[status: unknown]>;
 };
 
 export type ExperimentCallbackFields = {

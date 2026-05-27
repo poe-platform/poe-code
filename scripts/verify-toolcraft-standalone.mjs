@@ -124,18 +124,15 @@ function runConsumerSmoke(projectDir, tarballs) {
     process.platform === "win32" ? "toolcraft-openapi-generate.cmd" : "toolcraft-openapi-generate"
   );
 
-  execFileSync(
-    generatorPath,
-    ["--input", "openapi.json", "--output", "src/generated", "--lock", "openapi.lock"],
-    { cwd: projectDir, stdio: "inherit" }
-  );
+  execFileSync(generatorPath, ["--input", "openapi.json", "--output", "src/generated"], {
+    cwd: projectDir,
+    stdio: "inherit"
+  });
 
   assert(
     existsSync(path.join(projectDir, "src", "generated", "index.ts")),
     "Expected generated index.ts."
   );
-  assert(existsSync(path.join(projectDir, "openapi.lock")), "Expected openapi.lock.");
-
   const generatedIndex = readFileSync(
     path.join(projectDir, "src", "generated", "index.ts"),
     "utf8"

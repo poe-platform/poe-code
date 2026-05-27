@@ -1,6 +1,5 @@
 import path from "node:path";
 import { spawn as defaultSpawn } from "@poe-code/agent-spawn";
-import { acquireFileLock } from "@poe-code/file-lock";
 import { openTaskList, type Task, type TaskList } from "@poe-code/task-list";
 
 import { loadWorkflow } from "./config/load.js";
@@ -92,124 +91,114 @@ export async function runMaestro(opts: RunMaestroOptions = {}): Promise<() => Pr
     return async () => undefined;
   }
 
-  const releaseLock = await acquireFileLock(workflow.sourcePath);
   let stopped = false;
-  let timer: ReturnType<typeof setInterval> | undefined;
   let activeTick: Promise<void> = Promise.resolve();
   let activeTickController: AbortController | undefined;
   const workers = new Map<string, TrackedWorker>();
 
-  try {
-    const taskList = opts.taskList ?? (await openConfiguredTaskList(cfg));
-    const terminalTasks = await collectTerminalTaskIds(taskList, cfg.terminalStateNames);
-    await startupTerminalCleanup(cfg.workspace.root, terminalTasks);
-    const state = createState(cfg);
+  const taskList = opts.taskList ?? (await openConfiguredTaskList(cfg));
+  const terminalTasks = await collectTerminalTaskIds(taskList, cfg.terminalStateNames);
+  await startupTerminalCleanup(cfg.workspace.root, terminalTasks);
+  const state = createState(cfg);
 
-    const runTick = (): Promise<void> => {
-      if (stopped) {
-        return Promise.resolve();
-      }
+  const runTick = (): Promise<void> => {
+    if (stopped) {
+      return Promise.resolve();
+    }
 
-      activeTick = activeTick
-        .catch(() => undefined)
-        .then(async () => {
-          const tickController = new AbortController();
-          activeTickController = tickController;
+    activeTick = activeTick
+      .catch(() => undefined)
+      .then(async () => {
+        const tickController = new AbortController();
+        activeTickController = tickController;
 
-          try {
-            if (stopped || tickController.signal.aborted) {
-              return;
-            }
-
-            await tick(state, {
-              tasks: taskList,
-              spawn: opts.agentSpawn,
-              taskPromptTemplate: workflow.promptTemplate,
-              logger,
-              abort: tickController.signal,
-              trackWorker: (worker) => {
-                workers.set(worker.taskId, worker);
-                void worker.promise.finally(() => {
-                  workers.delete(worker.taskId);
-                });
-              },
-              reconcileRunning: (currentState) =>
-                defaultReconcileRunning(currentState, {
-                  tasks: taskList,
-                  stopWorker: async (entry, action) => {
-                    if (action === "stop_clean") {
-                      workers.get(entry.taskId)?.controller.abort();
-                    }
-                  },
-                  removeWorkspace,
-                  logger,
-                  onEvent: (event) => {
-                    const mapped = mapReconcileEvent(event);
-                    if (mapped !== undefined) {
-                      opts.onEvent?.(mapped);
-                    }
-                  }
-                }),
-              removeWorkspace,
-              onEvent: (event) => {
-                const mapped = mapTickEvent(event);
-                if (mapped !== undefined) {
-                  opts.onEvent?.(mapped);
-                }
-              }
-            });
-          } finally {
-            if (activeTickController === tickController) {
-              activeTickController = undefined;
-            }
+        try {
+          if (stopped || tickController.signal.aborted) {
+            return;
           }
-        })
-        .catch((error) => {
-          logger.error?.("maestro tick failed", { error: errorMessage(error) });
-        });
 
-      return activeTick;
-    };
-
-    timer = setInterval(() => {
-      void runTick();
-    }, cfg.polling.intervalMs);
-
-    return async () => {
-      if (stopped) {
-        return;
-      }
-
-      stopped = true;
-      if (timer !== undefined) {
-        clearInterval(timer);
-      }
-      activeTickController?.abort();
-
-      try {
-        await activeTick.catch(() => undefined);
-
-        for (const worker of workers.values()) {
-          worker.controller.abort();
+          await tick(state, {
+            tasks: taskList,
+            spawn: opts.agentSpawn,
+            taskPromptTemplate: workflow.promptTemplate,
+            logger,
+            abort: tickController.signal,
+            trackWorker: (worker) => {
+              workers.set(worker.taskId, worker);
+              void worker.promise.finally(() => {
+                workers.delete(worker.taskId);
+              });
+            },
+            reconcileRunning: (currentState) =>
+              defaultReconcileRunning(currentState, {
+                tasks: taskList,
+                stopWorker: async (entry, action) => {
+                  if (action === "stop_clean") {
+                    workers.get(entry.taskId)?.controller.abort();
+                  }
+                },
+                removeWorkspace,
+                logger,
+                onEvent: (event) => {
+                  const mapped = mapReconcileEvent(event);
+                  if (mapped !== undefined) {
+                    opts.onEvent?.(mapped);
+                  }
+                }
+              }),
+            removeWorkspace,
+            onEvent: (event) => {
+              const mapped = mapTickEvent(event);
+              if (mapped !== undefined) {
+                opts.onEvent?.(mapped);
+              }
+            }
+          });
+        } finally {
+          if (activeTickController === tickController) {
+            activeTickController = undefined;
+          }
         }
+      })
+      .catch((error) => {
+        logger.error?.("maestro tick failed", { error: errorMessage(error) });
+      });
 
-        await withBudget(
-          Promise.allSettled([...workers.values()].map((worker) => worker.promise)),
-          STOP_BUDGET_MS
-        );
-        await cleanupRunningWorkspaces(state.running, cfg, logger);
-      } finally {
-        for (const taskId of [...state.running.keys()]) {
-          release(state, taskId);
-        }
-        workers.clear();
-        await releaseLock();
+    return activeTick;
+  };
+
+  const timer = setInterval(() => {
+    void runTick();
+  }, cfg.polling.intervalMs);
+
+  return async () => {
+    if (stopped) {
+      return;
+    }
+
+    stopped = true;
+    clearInterval(timer);
+    activeTickController?.abort();
+
+    try {
+      await activeTick.catch(() => undefined);
+
+      for (const worker of workers.values()) {
+        worker.controller.abort();
       }
-    };
-  } catch (error) {
-    await releaseLock();
-    throw error;
-  }
+
+      await withBudget(
+        Promise.allSettled([...workers.values()].map((worker) => worker.promise)),
+        STOP_BUDGET_MS
+      );
+      await cleanupRunningWorkspaces(state.running, cfg, logger);
+    } finally {
+      for (const taskId of [...state.running.keys()]) {
+        release(state, taskId);
+      }
+      workers.clear();
+    }
+  };
 }
 
 function applyOptionOverrides(cfg: ResolvedConfig, opts: RunMaestroOptions): ResolvedConfig {

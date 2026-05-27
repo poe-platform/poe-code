@@ -1,4 +1,9 @@
-import type { PipelineLockStatus, PipelineRunOptions, PlanSummary, TaskCompletion, TaskProgress } from "@poe-code/pipeline";
+import type {
+  PipelineRunOptions,
+  PlanSummary,
+  TaskCompletion,
+  TaskProgress
+} from "@poe-code/pipeline";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { BraintrustClient } from "../client.js";
@@ -6,7 +11,7 @@ import { makePipelineRowState } from "../row-builder.js";
 import { createPipelineCallbacks } from "./pipeline.js";
 
 vi.mock("../row-builder.js", () => ({
-  makePipelineRowState: vi.fn(),
+  makePipelineRowState: vi.fn()
 }));
 
 const mockMakePipelineRowState = vi.mocked(makePipelineRowState);
@@ -36,7 +41,7 @@ describe("createPipelineCallbacks", () => {
       done: 1,
       failed: 0,
       open: 2,
-      total: 3,
+      total: 3
     } satisfies PlanSummary;
     const started = {
       taskId: "task-1",
@@ -45,27 +50,20 @@ describe("createPipelineCallbacks", () => {
       taskIndex: 1,
       totalTasks: 3,
       stepIndex: 0,
-      totalSteps: 2,
+      totalSteps: 2
     } satisfies TaskProgress;
     const completed = {
       ...started,
       durationMs: 42,
-      success: true,
+      success: true
     } satisfies TaskCompletion;
-    const lockStatus = {
-      state: "acquired",
-      message: "locked",
-    } satisfies PipelineLockStatus;
-
     expect(callbacks.onPlanResolved).toBeTypeOf("function");
     expect(callbacks.onTaskStart).toBeTypeOf("function");
     expect(callbacks.onTaskComplete).toBeTypeOf("function");
-    expect(callbacks.onLockStatusChange).toBeTypeOf("function");
 
     callbacks.onPlanResolved(summary);
     callbacks.onTaskStart(started);
     callbacks.onTaskComplete(completed);
-    callbacks.onLockStatusChange(lockStatus);
 
     expect(rowState.start).toHaveBeenCalledWith(started);
     expect(rowState.complete).toHaveBeenCalledWith(completed);
@@ -77,7 +75,7 @@ describe("createPipelineCallbacks", () => {
 function createRowState(): ReturnType<typeof makePipelineRowState> {
   return {
     start: vi.fn(),
-    complete: vi.fn(),
+    complete: vi.fn()
   };
 }
 
@@ -91,12 +89,12 @@ function createMockClient(): BraintrustClient {
     status: vi.fn(() => ({
       lastError: null,
       errorCount: 0,
-      project: "project",
-    })),
+      project: "project"
+    }))
   };
 }
 
 type ignoredPipelineCallbackFields = Pick<
   PipelineRunOptions,
-  "onPlanResolved" | "onTaskStart" | "onTaskComplete" | "onLockStatusChange"
+  "onPlanResolved" | "onTaskStart" | "onTaskComplete"
 >;

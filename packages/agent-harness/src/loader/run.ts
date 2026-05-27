@@ -2,7 +2,7 @@ import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import { dirname, join } from "node:path";
 
-import { lockWorkflow, resolveRunLogDir } from "@poe-code/agent-harness-tools";
+import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import {
   lint,
   FileSnapshotBackend,
@@ -80,9 +80,7 @@ export async function runHarnessPair(
   options: RunHarnessPairOptions
 ): Promise<RunResult> {
   const pair = await resolvePair(mdPath);
-  const releaseLock = await acquireHarnessLock(pair.mdPath);
-
-  try {
+  {
     const [ajsSource, mdSource] = await Promise.all([
       readTextFile(pair.ajsPath),
       readTextFile(pair.mdPath)
@@ -207,22 +205,6 @@ export async function runHarnessPair(
       ...result,
       usage
     };
-  } finally {
-    await releaseLock();
-  }
-}
-
-async function acquireHarnessLock(mdPath: string): Promise<() => Promise<void>> {
-  try {
-    return await lockWorkflow(mdPath, {
-      retries: 0
-    });
-  } catch (error) {
-    if (error instanceof Error && error.name === "LockTimeoutError") {
-      Object.assign(error, { code: "EEXIST" });
-    }
-
-    throw error;
   }
 }
 

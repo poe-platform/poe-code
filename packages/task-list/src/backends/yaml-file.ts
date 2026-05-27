@@ -1,5 +1,4 @@
 import path from "node:path";
-import { acquireFileLock } from "@poe-code/file-lock";
 import { isMap, parseDocument, type Document, type YAMLMap } from "yaml";
 import storeSchema from "../schema/store.schema.json" with { type: "json" };
 import taskSchema from "../schema/task.schema.json" with { type: "json" };
@@ -252,7 +251,11 @@ function assertValidStoreRecord(store: unknown, filePath: string): asserts store
     throw malformedStore(filePath, "kind");
   }
 
-  if (typeof store.version !== "number" || !Number.isInteger(store.version) || store.version !== STORE_VERSION) {
+  if (
+    typeof store.version !== "number" ||
+    !Number.isInteger(store.version) ||
+    store.version !== STORE_VERSION
+  ) {
     throw malformedStore(filePath, "version");
   }
 
@@ -407,7 +410,12 @@ function pairKey(pair: { key: unknown }): string | undefined {
   if (typeof key === "string") {
     return key;
   }
-  if (key && typeof key === "object" && "value" in key && typeof (key as { value: unknown }).value === "string") {
+  if (
+    key &&
+    typeof key === "object" &&
+    "value" in key &&
+    typeof (key as { value: unknown }).value === "string"
+  ) {
     return (key as { value: string }).value;
   }
   return undefined;
@@ -425,7 +433,12 @@ function activeItemIds(listNode: YAMLMap, validStates: ReadonlySet<string>): str
 
     const value = pair.value;
     let state: unknown;
-    if (value && typeof value === "object" && "get" in value && typeof (value as { get: unknown }).get === "function") {
+    if (
+      value &&
+      typeof value === "object" &&
+      "get" in value &&
+      typeof (value as { get: unknown }).get === "function"
+    ) {
       state = (value as YAMLMap).get("state");
     } else if (isRecord(value)) {
       state = value.state;
@@ -437,7 +450,6 @@ function activeItemIds(listNode: YAMLMap, validStates: ReadonlySet<string>): str
   }
   return ids;
 }
-
 
 async function ensureStorePath(deps: BackendDeps): Promise<void> {
   if (!deps.create) {
@@ -465,20 +477,6 @@ async function ensureStorePath(deps: BackendDeps): Promise<void> {
       )
     )
   );
-}
-
-async function withStoreLock<T>(deps: BackendDeps, action: () => Promise<T>): Promise<T> {
-  const release = await acquireFileLock(deps.path, {
-    fs: deps.fs,
-    staleMs: deps.lockStaleMs,
-    retries: deps.lockRetries
-  });
-
-  try {
-    return await action();
-  } finally {
-    await release();
-  }
 }
 
 function createTasksView(deps: BackendDeps, list: string): Tasks {
@@ -534,84 +532,78 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       assertCreateHasId(input);
       validateTaskId(input.id);
 
-      return withStoreLock(deps, async () => {
-        const { document, store } = await readStore(deps.fs, deps.path, validStates);
-        if (getTaskRecord(store, list, input.id)) {
-          throw new TaskAlreadyExistsError(`Task "${list}/${input.id}" already exists.`);
-        }
+      const { document, store } = await readStore(deps.fs, deps.path, validStates);
+      if (getTaskRecord(store, list, input.id)) {
+        throw new TaskAlreadyExistsError(`Task "${list}/${input.id}" already exists.`);
+      }
 
-        const taskRecord = createTaskRecord(deps.defaults, input, stateMachine.initial);
-        document.setIn(["lists", list, input.id], taskRecord);
-        await writeAtomically(deps.fs, deps.path, serializeDocument(document));
+      const taskRecord = createTaskRecord(deps.defaults, input, stateMachine.initial);
+      document.setIn(["lists", list, input.id], taskRecord);
+      await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-        return createTask(list, input.id, taskRecord, deps.path);
-      });
+      return createTask(list, input.id, taskRecord, deps.path);
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
       assertUpdateDoesNotSetState(patch);
       validateTaskId(id);
 
-      return withStoreLock(deps, async () => {
-        const { document, store } = await readStore(deps.fs, deps.path, validStates);
-        const existing = getTaskOrThrow(store, list, id);
-        const nextTaskRecord = buildUpdatedTaskRecord(existing, patch);
+      const { document, store } = await readStore(deps.fs, deps.path, validStates);
+      const existing = getTaskOrThrow(store, list, id);
+      const nextTaskRecord = buildUpdatedTaskRecord(existing, patch);
 
-        if (patch.name !== undefined) {
-          document.setIn(["lists", list, id, "name"], patch.name);
+      if (patch.name !== undefined) {
+        document.setIn(["lists", list, id, "name"], patch.name);
+      }
+
+      if (patch.description !== undefined) {
+        document.setIn(["lists", list, id, "description"], patch.description);
+      }
+
+      for (const [key, value] of Object.entries(patch.metadata ?? {})) {
+        if (!RESERVED_TASK_KEYS.has(key)) {
+          document.setIn(["lists", list, id, key], value);
         }
+      }
 
-        if (patch.description !== undefined) {
-          document.setIn(["lists", list, id, "description"], patch.description);
-        }
+      await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-        for (const [key, value] of Object.entries(patch.metadata ?? {})) {
-          if (!RESERVED_TASK_KEYS.has(key)) {
-            document.setIn(["lists", list, id, key], value);
-          }
-        }
-
-        await writeAtomically(deps.fs, deps.path, serializeDocument(document));
-
-        return createTask(list, id, nextTaskRecord, deps.path);
-      });
+      return createTask(list, id, nextTaskRecord, deps.path);
     },
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
       validateTaskId(id);
 
-      return withStoreLock(deps, async () => {
-        const { document, store } = await readStore(deps.fs, deps.path, validStates);
-        const existing = getTaskOrThrow(store, list, id);
-        const task = createTask(list, id, existing, deps.path);
-        const event = assertFireableTaskEvent(task, eventName);
-        const guardResult = event.guard?.(task) ?? true;
+      const { document, store } = await readStore(deps.fs, deps.path, validStates);
+      const existing = getTaskOrThrow(store, list, id);
+      const task = createTask(list, id, existing, deps.path);
+      const event = assertFireableTaskEvent(task, eventName);
+      const guardResult = event.guard?.(task) ?? true;
 
-        if (guardResult !== true) {
-          throw new InvalidTransitionError({
-            task,
-            event: eventName,
-            to: event.to,
-            reason: guardResult
-          });
+      if (guardResult !== true) {
+        throw new InvalidTransitionError({
+          task,
+          event: eventName,
+          to: event.to,
+          reason: guardResult
+        });
+      }
+
+      await event.onExit?.(task);
+
+      const nextTaskRecord = buildFiredTaskRecord(existing, event.to, opts?.metadataPatch);
+      document.setIn(["lists", list, id, "state"], event.to);
+
+      for (const [key, value] of Object.entries(opts?.metadataPatch ?? {})) {
+        if (!RESERVED_TASK_KEYS.has(key)) {
+          document.setIn(["lists", list, id, key], value);
         }
+      }
 
-        await event.onExit?.(task);
+      await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-        const nextTaskRecord = buildFiredTaskRecord(existing, event.to, opts?.metadataPatch);
-        document.setIn(["lists", list, id, "state"], event.to);
+      const nextTask = createTask(list, id, nextTaskRecord, deps.path);
+      await event.onEnter?.(nextTask);
 
-        for (const [key, value] of Object.entries(opts?.metadataPatch ?? {})) {
-          if (!RESERVED_TASK_KEYS.has(key)) {
-            document.setIn(["lists", list, id, key], value);
-          }
-        }
-
-        await writeAtomically(deps.fs, deps.path, serializeDocument(document));
-
-        const nextTask = createTask(list, id, nextTaskRecord, deps.path);
-        await event.onEnter?.(nextTask);
-
-        return nextTask;
-      });
+      return nextTask;
     },
     async canFire(id: string, eventName: string): Promise<boolean> {
       validateTaskId(id);
@@ -635,92 +627,86 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     async delete(id: string): Promise<void> {
       validateTaskId(id);
 
-      await withStoreLock(deps, async () => {
-        const { document, store } = await readStore(deps.fs, deps.path, validStates);
-        getTaskOrThrow(store, list, id);
-        document.deleteIn(["lists", list, id]);
-        await writeAtomically(deps.fs, deps.path, serializeDocument(document));
-      });
+      const { document, store } = await readStore(deps.fs, deps.path, validStates);
+      getTaskOrThrow(store, list, id);
+      document.deleteIn(["lists", list, id]);
+      await writeAtomically(deps.fs, deps.path, serializeDocument(document));
     },
     async move(id: string, anchor: MoveAnchor): Promise<Task> {
       validateTaskId(id);
 
-      return withStoreLock(deps, async () => {
-        const { document, store } = await readStore(deps.fs, deps.path, validStates);
-        const taskRecord = getTaskOrThrow(store, list, id);
-        const listNode = getListNode(document, list);
-        if (!listNode) {
-          throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
+      const { document, store } = await readStore(deps.fs, deps.path, validStates);
+      const taskRecord = getTaskOrThrow(store, list, id);
+      const listNode = getListNode(document, list);
+      if (!listNode) {
+        throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
+      }
+
+      const fromIndex = findItemIndex(listNode, id);
+      if (fromIndex < 0) {
+        throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
+      }
+
+      const [movedPair] = listNode.items.splice(fromIndex, 1);
+
+      let insertIndex: number;
+      if ("position" in anchor) {
+        insertIndex = anchor.position === "top" ? 0 : listNode.items.length;
+      } else {
+        const anchorId = "before" in anchor ? anchor.before : anchor.after;
+        const anchorIndex = findItemIndex(listNode, anchorId);
+        if (anchorIndex < 0) {
+          listNode.items.splice(fromIndex, 0, movedPair);
+          throw new AnchorNotFoundError(anchorId);
         }
+        insertIndex = "before" in anchor ? anchorIndex : anchorIndex + 1;
+      }
 
-        const fromIndex = findItemIndex(listNode, id);
-        if (fromIndex < 0) {
-          throw new TaskNotFoundError(`Task "${list}/${id}" not found.`);
-        }
+      listNode.items.splice(insertIndex, 0, movedPair);
+      await writeAtomically(deps.fs, deps.path, serializeDocument(document));
 
-        const [movedPair] = listNode.items.splice(fromIndex, 1);
-
-        let insertIndex: number;
-        if ("position" in anchor) {
-          insertIndex = anchor.position === "top" ? 0 : listNode.items.length;
-        } else {
-          const anchorId = "before" in anchor ? anchor.before : anchor.after;
-          const anchorIndex = findItemIndex(listNode, anchorId);
-          if (anchorIndex < 0) {
-            listNode.items.splice(fromIndex, 0, movedPair);
-            throw new AnchorNotFoundError(anchorId);
-          }
-          insertIndex = "before" in anchor ? anchorIndex : anchorIndex + 1;
-        }
-
-        listNode.items.splice(insertIndex, 0, movedPair);
-        await writeAtomically(deps.fs, deps.path, serializeDocument(document));
-
-        return createTask(list, id, taskRecord, deps.path);
-      });
+      return createTask(list, id, taskRecord, deps.path);
     },
     async reorder(ids: readonly string[]): Promise<readonly Task[]> {
       for (const id of ids) {
         validateTaskId(id);
       }
 
-      return withStoreLock(deps, async () => {
-        const { document, store } = await readStore(deps.fs, deps.path, validStates);
-        const listNode = getListNode(document, list);
-        if (!listNode) {
-          throw new OrderMismatchError({ missing: [...ids], extra: [] });
-        }
+      const { document, store } = await readStore(deps.fs, deps.path, validStates);
+      const listNode = getListNode(document, list);
+      if (!listNode) {
+        throw new OrderMismatchError({ missing: [...ids], extra: [] });
+      }
 
-        const currentActive = activeItemIds(listNode, validStates);
-        const currentSet = new Set(currentActive);
-        const inputSet = new Set(ids);
-        const missing = currentActive.filter((id) => !inputSet.has(id));
-        const extra = ids.filter((id) => !currentSet.has(id));
+      const currentActive = activeItemIds(listNode, validStates);
+      const currentSet = new Set(currentActive);
+      const inputSet = new Set(ids);
+      const missing = currentActive.filter((id) => !inputSet.has(id));
+      const extra = ids.filter((id) => !currentSet.has(id));
 
-        if (missing.length > 0 || extra.length > 0) {
-          throw new OrderMismatchError({ missing, extra });
-        }
+      if (missing.length > 0 || extra.length > 0) {
+        throw new OrderMismatchError({ missing, extra });
+      }
 
-        const archivedPairs = listNode.items.filter((pair) => {
-          const id = pairKey(pair);
-          return id !== undefined && !currentSet.has(id);
-        });
-        const orderedActive = ids.map((id) => {
-          const pair = listNode.items.find((p) => pairKey(p) === id);
-          if (!pair) {
-            throw new OrderMismatchError({ missing: [id], extra: [] });
-          }
-          return pair;
-        });
-
-        listNode.items.splice(0, listNode.items.length, ...orderedActive, ...archivedPairs);
-        await writeAtomically(deps.fs, deps.path, serializeDocument(document));
-
-        const tasks = ids.map((id) =>
-          createTask(list, id, getTaskOrThrow(store, list, id), deps.path)
-        );
-        return tasks;
+      const archivedPairs = listNode.items.filter((pair) => {
+        const id = pairKey(pair);
+        return id !== undefined && !currentSet.has(id);
       });
+      const orderedActive = ids.map((id) => {
+        const pair = listNode.items.find((p) => pairKey(p) === id);
+        if (!pair) {
+          throw new OrderMismatchError({ missing: [id], extra: [] });
+        }
+        return pair;
+      });
+
+      listNode.items.splice(0, listNode.items.length, ...orderedActive, ...archivedPairs);
+      await writeAtomically(deps.fs, deps.path, serializeDocument(document));
+
+      const tasks = ids.map((id) =>
+        createTask(list, id, getTaskOrThrow(store, list, id), deps.path)
+      );
+      return tasks;
     }
   };
 }
@@ -771,24 +757,22 @@ export async function yamlFileBackend(deps: BackendDeps): Promise<TaskList> {
     const { list: sourceListName, id } = parseQualifiedId(qualifiedId);
     const targetListName = validateListName(targetList);
 
-    return withStoreLock(deps, async () => {
-      const { document, store } = await readStore(deps.fs, deps.path, validStates);
-      const taskRecord = getTaskOrThrow(store, sourceListName, id);
+    const { document, store } = await readStore(deps.fs, deps.path, validStates);
+    const taskRecord = getTaskOrThrow(store, sourceListName, id);
 
-      if (sourceListName === targetListName) {
-        return createTask(targetListName, id, taskRecord, deps.path);
-      }
-
-      if (getTaskRecord(store, targetListName, id)) {
-        throw new TaskAlreadyExistsError(`Task "${targetListName}/${id}" already exists.`);
-      }
-
-      document.deleteIn(["lists", sourceListName, id]);
-      document.setIn(["lists", targetListName, id], taskRecord);
-      await writeAtomically(deps.fs, deps.path, serializeDocument(document));
-
+    if (sourceListName === targetListName) {
       return createTask(targetListName, id, taskRecord, deps.path);
-    });
+    }
+
+    if (getTaskRecord(store, targetListName, id)) {
+      throw new TaskAlreadyExistsError(`Task "${targetListName}/${id}" already exists.`);
+    }
+
+    document.deleteIn(["lists", sourceListName, id]);
+    document.setIn(["lists", targetListName, id], taskRecord);
+    await writeAtomically(deps.fs, deps.path, serializeDocument(document));
+
+    return createTask(targetListName, id, taskRecord, deps.path);
   };
 
   return {

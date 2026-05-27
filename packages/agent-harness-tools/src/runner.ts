@@ -4,7 +4,6 @@ import {
   type RunAgentHooks,
   type WorkflowHook
 } from "./hooks.js";
-import { lockWorkflow } from "./lock.js";
 import { normalizeParticipantConfig, type WorkflowParticipant } from "./participant.js";
 import { runWorkflowStage, type WorkflowStage } from "./stage.js";
 
@@ -104,23 +103,6 @@ function parseWorkflowHook(value: unknown, fieldName: string): WorkflowHook | un
     ...(value.mode ? { mode: value.mode } : {})
   };
 }
-
-type LockCapableWorkflowFs = {
-  open(
-    path: string,
-    flags: string
-  ): Promise<{
-    close(): Promise<void>;
-    writeFile(
-      data: string,
-      options?: BufferEncoding | { encoding?: BufferEncoding }
-    ): Promise<void>;
-  }>;
-  stat(path: string): Promise<{
-    mtimeMs: number;
-  }>;
-  unlink(path: string): Promise<void>;
-};
 
 function parseWorkflowStage(value: unknown, index: number): WorkflowStage {
   if (!isRecord(value)) {
@@ -306,10 +288,6 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
   };
 
   const initialWorkflow = await readWorkflow();
-  const releaseLock = await lockWorkflow(options.docPath, {
-    fs: options.fs as unknown as LockCapableWorkflowFs
-  });
-
   let pendingError: unknown;
   let currentWorkflow = initialWorkflow;
 
@@ -388,8 +366,6 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
       }
     } catch (error) {
       pendingError = mergeErrors(pendingError, error);
-    } finally {
-      await releaseLock();
     }
   }
 

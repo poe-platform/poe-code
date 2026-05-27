@@ -19,12 +19,11 @@ const auth = bearerTokenAuth({
 ## Generator CLI
 
 `toolcraft-openapi-generate` reads an OpenAPI document from disk or a URL, writes generated
-command files, and stores the current spec hash in `openapi.lock`.
+command files.
 
 - `--input <path-or-url>` — OpenAPI document to read. Defaults to `openapi.json`.
 - `--output <dir>` — directory for generated files. Defaults to `src/generated`.
-- `--lock <path>` — lock file path. Defaults to `openapi.lock`.
-- `--check` — exits non-zero when generated files or `openapi.lock` would change.
+- `--check` — exits non-zero when generated files would change.
 
 ### CI drift check
 

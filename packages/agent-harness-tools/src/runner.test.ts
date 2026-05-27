@@ -152,7 +152,7 @@ describe("runDocumentWorkflow", () => {
     expect(prompts).toEqual(["Draft changes", "Draft changes"]);
   });
 
-  it("acquires the lock before execution and releases it after", async () => {
+  it("runs setup, stages, and teardown in execution order", async () => {
     const operations: string[] = [];
     const baseFs = createFs({ "/repo/workflow.md": "# workflow" }).fs;
     const fs = {
@@ -162,15 +162,7 @@ describe("runDocumentWorkflow", () => {
       },
       mkdir: async (filePath, options) => baseFs.mkdir(filePath, options),
       rmdir: async (filePath) => baseFs.rmdir(filePath),
-      stat: async (filePath) => baseFs.stat(filePath),
-      open: async (filePath, flags) => {
-        operations.push(`open:${filePath}`);
-        return baseFs.open(filePath, flags);
-      },
-      unlink: async (filePath) => {
-        operations.push(`unlink:${filePath}`);
-        await baseFs.unlink(filePath);
-      }
+      stat: async (filePath) => baseFs.stat(filePath)
     } as WorkflowFileSystem;
     const options = createOptions({
       fs,
@@ -206,15 +198,13 @@ describe("runDocumentWorkflow", () => {
 
     expect(operations).toEqual([
       "readFile:/repo/workflow.md",
-      "open:/repo/workflow.md.lock",
       "run:Setup workspace",
       "run:Draft changes",
-      "run:Clean up",
-      "unlink:/repo/workflow.md.lock"
+      "run:Clean up"
     ]);
   });
 
-  it("releases the lock even when execution throws", async () => {
+  it("throws when execution fails", async () => {
     const { fs } = createFs({ "/repo/workflow.md": "# workflow" });
     const options = createOptions({
       fs,
@@ -240,9 +230,6 @@ describe("runDocumentWorkflow", () => {
     });
 
     await expect(runDocumentWorkflow(options)).rejects.toThrow("stage failed");
-    await expect(fs.stat("/repo/workflow.md.lock")).rejects.toMatchObject({
-      code: "ENOENT"
-    });
   });
 
   it('breaks the loop when a stage with onFailure "stop" fails', async () => {
@@ -305,9 +292,6 @@ describe("runDocumentWorkflow", () => {
     ).rejects.toThrow("cancelled");
 
     expect(runAgent).not.toHaveBeenCalled();
-    await expect(fs.stat("/repo/workflow.md.lock")).rejects.toMatchObject({
-      code: "ENOENT"
-    });
   });
 
   it("runs teardown even when execution is aborted", async () => {

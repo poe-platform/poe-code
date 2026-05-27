@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { openTaskList } from "../open.js";
 import { MalformedTaskError } from "../types.js";
 import { yamlFileBackend } from "./yaml-file.js";
-import { createDeferred, createFs, flushMicrotasks, waitForCondition } from "./test-helpers.js";
+import { createFs } from "./test-helpers.js";
 
 function parseYaml(content: string): Record<string, unknown> {
   const document = parseDocument(content);
@@ -101,8 +101,6 @@ describe("yamlFileBackend", () => {
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -150,8 +148,6 @@ describe("yamlFileBackend", () => {
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -184,8 +180,6 @@ describe("yamlFileBackend", () => {
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -215,8 +209,6 @@ describe("yamlFileBackend", () => {
       defaults: {
         metadata: {}
       },
-      lockStaleMs: 30_000,
-      lockRetries: 20,
       create: false,
       fs
     });
@@ -227,101 +219,5 @@ describe("yamlFileBackend", () => {
         message: expect.stringContaining('/repo/tasks.yaml": invalid "lists"')
       })
     );
-  });
-
-  it("serializes concurrent updates across different lists with the whole-file lock", async () => {
-    vi.useFakeTimers();
-    vi.spyOn(Math, "random").mockReturnValue(0);
-
-    const baseFs = createFs({
-      "/repo/tasks.yaml": [
-        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
-        "kind: task-store",
-        "version: 1",
-        "lists:",
-        "  alpha:",
-        "    one:",
-        "      name: Alpha one",
-        "      state: draft",
-        "      description: ''",
-        "  beta:",
-        "    two:",
-        "      name: Beta two",
-        "      state: draft",
-        "      description: ''",
-        ""
-      ].join("\n")
-    });
-    const reads = [createDeferred(), createDeferred()];
-    let activeReads = 0;
-    let readCount = 0;
-    let armReadBlockers = false;
-    const fs: TaskListFs = {
-      ...baseFs.fs,
-      readFile: async (path, encoding) => {
-        if (armReadBlockers && path === "/repo/tasks.yaml" && readCount < reads.length) {
-          const currentRead = readCount;
-          readCount += 1;
-          activeReads += 1;
-
-          try {
-            await reads[currentRead].promise;
-          } finally {
-            activeReads -= 1;
-          }
-        }
-
-        return baseFs.rawFs.readFile(path, encoding);
-      }
-    };
-    const taskList = await yamlFileBackend({
-      path: "/repo/tasks.yaml",
-      defaults: {
-        metadata: {}
-      },
-      lockStaleMs: 30_000,
-      lockRetries: 5,
-      create: false,
-      fs
-    });
-
-    armReadBlockers = true;
-
-    const alphaUpdate = taskList.list("alpha").update("one", {
-      metadata: {
-        owner: "alpha"
-      }
-    });
-    const betaUpdate = taskList.list("beta").update("two", {
-      metadata: {
-        owner: "beta"
-      }
-    });
-
-    await waitForCondition(() => readCount === 1);
-    expect(activeReads).toBe(1);
-
-    reads[0].resolve();
-    await flushMicrotasks();
-    await vi.advanceTimersByTimeAsync(25);
-    await flushMicrotasks();
-
-    expect(readCount).toBe(2);
-    expect(activeReads).toBe(1);
-
-    reads[1].resolve();
-
-    await Promise.all([alphaUpdate, betaUpdate]);
-
-    await expect(taskList.get("alpha/one")).resolves.toMatchObject({
-      metadata: {
-        owner: "alpha"
-      }
-    });
-    await expect(taskList.get("beta/two")).resolves.toMatchObject({
-      metadata: {
-        owner: "beta"
-      }
-    });
   });
 });

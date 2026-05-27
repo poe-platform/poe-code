@@ -52,7 +52,7 @@ describe("state manager", () => {
 });
 
 describe("TemplateRegistry", () => {
-  it("serializes concurrent puts through the file lock", async () => {
+  it("preserves concurrent puts", async () => {
     const fs = createMemFs();
     const registry = createTemplateRegistry("/home/tester", fs);
     const entries = Array.from({ length: 20 }, (_, index) =>
@@ -113,7 +113,7 @@ describe("TemplateRegistry", () => {
 });
 
 describe("JobRegistry", () => {
-  it("serializes concurrent updates through the file lock", async () => {
+  it("preserves concurrent updates", async () => {
     const fs = createMemFs();
     const registry = createJobRegistry("/home/tester", fs);
 

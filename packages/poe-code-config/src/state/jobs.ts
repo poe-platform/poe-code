@@ -1,5 +1,4 @@
 import path from "node:path";
-import { acquireFileLock, type FileLockFs } from "@poe-code/file-lock";
 import { defaultStateFs, isNotFoundError, type StateFileSystem } from "./fs.js";
 
 export type JobStatus = "pending" | "running" | "exited" | "killed" | "lost";
@@ -38,6 +37,7 @@ export function createJobRegistry(
   fs: StateFileSystem = defaultStateFs
 ): JobRegistry {
   const jobsDir = path.join(homeDir, ".poe-code", "state", "jobs");
+  let pendingMutation: Promise<void> = Promise.resolve();
 
   function jobPath(id: string): string {
     assertSafeJobId(id);
@@ -59,20 +59,16 @@ export function createJobRegistry(
   async function put(entry: JobEntry): Promise<void> {
     assertJobEntry(entry);
     const filePath = jobPath(entry.id);
-    await fs.mkdir(jobsDir, { recursive: true });
-    const release = await acquireFileLock(filePath, { fs: fs as unknown as FileLockFs });
-    try {
+    await mutate(async () => {
+      await fs.mkdir(jobsDir, { recursive: true });
       await writeJobAtomically(filePath, entry);
-    } finally {
-      await release();
-    }
+    });
   }
 
   async function update(id: string, patch: Partial<JobEntry>): Promise<JobEntry | null> {
     const filePath = jobPath(id);
-    await fs.mkdir(jobsDir, { recursive: true });
-    const release = await acquireFileLock(filePath, { fs: fs as unknown as FileLockFs });
-    try {
+    return mutate(async () => {
+      await fs.mkdir(jobsDir, { recursive: true });
       const current = await get(id);
       if (current === null) {
         return null;
@@ -86,9 +82,7 @@ export function createJobRegistry(
       assertJobEntry(updated);
       await writeJobAtomically(filePath, updated);
       return updated;
-    } finally {
-      await release();
-    }
+    });
   }
 
   async function list(filter: JobListFilter = {}): Promise<JobEntry[]> {
@@ -126,26 +120,34 @@ export function createJobRegistry(
 
   async function remove(id: string): Promise<void> {
     const filePath = jobPath(id);
-    try {
-      await fs.stat(jobsDir);
-    } catch (error) {
-      if (isNotFoundError(error)) {
-        return;
-      }
+    await mutate(async () => {
+      try {
+        await fs.stat(jobsDir);
+      } catch (error) {
+        if (isNotFoundError(error)) {
+          return;
+        }
 
-      throw error;
-    }
-
-    const release = await acquireFileLock(filePath, { fs: fs as unknown as FileLockFs });
-    try {
-      await fs.unlink(filePath);
-    } catch (error) {
-      if (!isNotFoundError(error)) {
         throw error;
       }
-    } finally {
-      await release();
-    }
+
+      try {
+        await fs.unlink(filePath);
+      } catch (error) {
+        if (!isNotFoundError(error)) {
+          throw error;
+        }
+      }
+    });
+  }
+
+  async function mutate<Result>(operation: () => Promise<Result>): Promise<Result> {
+    const mutation = pendingMutation.then(operation);
+    pendingMutation = mutation.then(
+      () => undefined,
+      () => undefined
+    );
+    return mutation;
   }
 
   async function writeJobAtomically(filePath: string, entry: JobEntry): Promise<void> {

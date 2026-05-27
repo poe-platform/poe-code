@@ -3,7 +3,6 @@ import {
   MEMORY_CACHE_DIR_RELPATH,
   MEMORY_INDEX_RELPATH,
   MEMORY_INGEST_CACHE_DIR_RELPATH,
-  MEMORY_LOCK_RELPATH,
   MEMORY_LOG_RELPATH,
   MEMORY_PAGES_DIR_RELPATH,
   MemoryPathError,
@@ -20,7 +19,6 @@ describe("resolveMemoryRoot", () => {
   it("exposes the planned relative path constants", () => {
     expect(MEMORY_INDEX_RELPATH).toBe("INDEX.md");
     expect(MEMORY_LOG_RELPATH).toBe("LOG.md");
-    expect(MEMORY_LOCK_RELPATH).toBe(".lock");
     expect(MEMORY_PAGES_DIR_RELPATH).toBe("pages");
     expect(MEMORY_CACHE_DIR_RELPATH).toBe(".cache");
     expect(MEMORY_INGEST_CACHE_DIR_RELPATH).toBe(".cache/ingest");

@@ -153,11 +153,6 @@ export interface PlanSummary {
   total: number;
 }
 
-export interface PipelineLockStatus {
-  state: "waiting" | "acquired";
-  message: string;
-}
-
 export interface PipelineRunOptions {
   agent: string;
   cwd: string;
@@ -180,7 +175,6 @@ export interface PipelineRunOptions {
   onTaskStart?: (progress: TaskProgress) => void;
   onTaskComplete?: (progress: TaskCompletion) => void;
   onPlanReloadError?: (error: Error) => void;
-  onLockStatusChange?: (status: PipelineLockStatus) => void;
   signal?: AbortSignal;
 }
 

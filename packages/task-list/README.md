@@ -56,8 +56,6 @@ Pass a custom machine with `openTaskList({ stateMachine })`. If omitted, the pac
 | `create`          | `boolean`                                      | `false`                    | Creates missing storage for the selected backend when enabled.                                                    |
 | `singleList`      | `string`                                       | unset                      | `markdown-dir` only. Treats `path` as one list with this name instead of one subdirectory per list.               |
 | `frontmatterMode` | `"strict" \| "passthrough"`                    | `"strict"`                 | `markdown-dir` only. `passthrough` preserves non-task frontmatter and allows files without a frontmatter block.   |
-| `lockStaleMs`     | `number`                                       | `30_000`                   | Stale threshold passed to backend file locking.                                                                   |
-| `lockRetries`     | `number`                                       | `20`                       | Retry count passed to backend file locking.                                                                       |
 | `fs`              | `TaskListFs`                                   | `node:fs/promises` adapter | Injectable filesystem, primarily for tests.                                                                       |
 | `stateMachine`    | `StateMachineDef`                              | `defaultStateMachine`      | Overrides the task lifecycle used by `create`, `fire`, `canFire`, and `events`.                                   |
 

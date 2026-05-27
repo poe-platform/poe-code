@@ -5,12 +5,10 @@ import { makePipelineRowState } from "../row-builder.js";
 
 export type PipelineCallbackFields = Pick<
   PipelineRunOptions,
-  "onPlanResolved" | "onTaskStart" | "onTaskComplete" | "onLockStatusChange"
+  "onPlanResolved" | "onTaskStart" | "onTaskComplete"
 >;
 
-export function createPipelineCallbacks(
-  client: BraintrustClient,
-): PipelineCallbackFields {
+export function createPipelineCallbacks(client: BraintrustClient): PipelineCallbackFields {
   const state = makePipelineRowState(client);
 
   return {
@@ -22,9 +20,6 @@ export function createPipelineCallbacks(
     },
     onTaskComplete(progress) {
       state.complete(progress);
-    },
-    onLockStatusChange(status) {
-      void status;
-    },
+    }
   };
 }

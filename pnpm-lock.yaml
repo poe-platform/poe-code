@@ -108,9 +108,6 @@ importers:
       '@poe-code/experiment-loop':
         specifier: '*'
         version: link:packages/experiment-loop
-      '@poe-code/file-lock':
-        specifier: '*'
-        version: link:packages/file-lock
       '@poe-code/github-workflows':
         specifier: '*'
         version: link:packages/github-workflows
@@ -275,9 +272,6 @@ importers:
       '@poe-code/design-system':
         specifier: '*'
         version: link:../design-system
-      '@poe-code/file-lock':
-        specifier: '*'
-        version: link:../file-lock
 
   packages/agent-human-in-loop: {}
 
@@ -393,8 +387,6 @@ importers:
       gray-matter:
         specifier: ^4.0.3
         version: 4.0.3
-
-  packages/file-lock: {}
 
   packages/github-workflows:
     dependencies:
@@ -635,9 +627,6 @@ importers:
 
   packages/task-list:
     dependencies:
-      '@poe-code/file-lock':
-        specifier: '*'
-        version: link:../file-lock
       yaml:
         specifier: '*'
         version: 2.8.3
@@ -866,9 +855,6 @@ importers:
       '@poe-code/design-system':
         specifier: ^0.0.1
         version: link:../design-system
-      '@poe-code/file-lock':
-        specifier: '*'
-        version: link:../file-lock
       '@poe-code/task-list':
         specifier: '*'
         version: link:../task-list
@@ -2850,7 +2836,6 @@ packages:
       - '@poe-code/agent-mcp-config'
       - '@poe-code/agent-human-in-loop'
       - '@poe-code/task-list'
-      - '@poe-code/file-lock'
       - '@poe-code/agent-defs'
       - '@poe-code/config-mutations'
       - tiny-mcp-client

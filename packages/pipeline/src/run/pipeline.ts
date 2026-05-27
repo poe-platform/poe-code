@@ -3,7 +3,6 @@ import * as fsPromises from "node:fs/promises";
 import { loadResolvedSteps } from "../config/loader.js";
 import {
   archivePlan as archivePlanShared,
-  lockWorkflow,
   makeRunLogFileName,
   resolveRunLogDir
 } from "@poe-code/agent-harness-tools";
@@ -18,7 +17,6 @@ import type {
   AgentRunResult,
   PipelineFileStat,
   PipelineFileSystem,
-  PipelineLockStatus,
   PipelineMetrics,
   PipelinePlan,
   PipelineRunOptions,
@@ -37,7 +35,6 @@ function createDefaultFs(): PipelineFileSystem {
     readFile: fsPromises.readFile as PipelineFileSystem["readFile"],
     writeFile: fsPromises.writeFile as PipelineFileSystem["writeFile"],
     readdir: fsPromises.readdir,
-    open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -46,7 +43,6 @@ function createDefaultFs(): PipelineFileSystem {
         mtimeMs: stat.mtimeMs
       } satisfies PipelineFileStat;
     },
-    unlink: fsPromises.unlink,
     mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, options);
     },
@@ -56,23 +52,6 @@ function createDefaultFs(): PipelineFileSystem {
 
   return fs as PipelineFileSystem;
 }
-
-type LockCapablePipelineFs = {
-  open(
-    path: string,
-    flags: string
-  ): Promise<{
-    close(): Promise<void>;
-    writeFile(
-      data: string,
-      options?: BufferEncoding | { encoding?: BufferEncoding }
-    ): Promise<void>;
-  }>;
-  stat(path: string): Promise<{
-    mtimeMs: number;
-  }>;
-  unlink(path: string): Promise<void>;
-};
 
 function isTaskDone(status: PipelineTask["status"]): boolean {
   if (typeof status === "string") {
@@ -94,50 +73,6 @@ function completesTaskOnSuccess(task: PipelineTask, stepName?: string): boolean 
 
 function isAbortError(error: unknown): boolean {
   return error instanceof Error && error.name === "AbortError";
-}
-
-function formatLockWaitMessage(planPath: string): string {
-  return `Another pipeline run is holding the lock for ${planPath}. Waiting...`;
-}
-
-function formatLockAcquiredMessage(planPath: string): string {
-  return `Lock acquired for ${planPath}. Continuing.`;
-}
-
-async function acquirePipelineLock(options: {
-  absolutePlanPath: string;
-  planPath: string;
-  fs: PipelineFileSystem;
-  signal?: AbortSignal;
-  onLockStatusChange?: (status: PipelineLockStatus) => void;
-}): Promise<() => Promise<void>> {
-  let waitingReported = false;
-  const timerId = global.setTimeout(() => {
-    waitingReported = true;
-    options.onLockStatusChange?.({
-      state: "waiting",
-      message: formatLockWaitMessage(options.planPath)
-    });
-  }, 2_000);
-
-  try {
-    const release = await lockWorkflow(options.absolutePlanPath, {
-      fs: options.fs as unknown as LockCapablePipelineFs,
-      retries: Number.POSITIVE_INFINITY,
-      ...(options.signal ? { signal: options.signal } : {})
-    });
-
-    if (waitingReported) {
-      options.onLockStatusChange?.({
-        state: "acquired",
-        message: formatLockAcquiredMessage(options.planPath)
-      });
-    }
-
-    return release;
-  } finally {
-    global.clearTimeout(timerId);
-  }
 }
 
 function resolveMode(
@@ -361,22 +296,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
   while (runsCompleted < maxRuns) {
     assertNotAborted(options.signal);
-    const release = await acquirePipelineLock({
-      absolutePlanPath,
-      planPath,
-      fs,
-      ...(options.signal ? { signal: options.signal } : {}),
-      onLockStatusChange: options.onLockStatusChange
-    });
-    let lockReleased = false;
-    const releaseLock = async (): Promise<void> => {
-      if (lockReleased) {
-        return;
-      }
-      lockReleased = true;
-      await release();
-    };
-    try {
+    {
       let stepsConfig: ResolvedStepsConfig;
       let plan: PipelinePlan;
 
@@ -415,7 +335,6 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       if (selection.kind === "completed") {
         if (runsCompleted > 0) {
-          await releaseLock();
           const id = planIdFromArchivePath(absolutePlanPath);
           await archivePlanShared({
             cwd,
@@ -579,8 +498,6 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
           ...(selection.stepName ? { lastStepName: selection.stepName } : {})
         };
       }
-    } finally {
-      await releaseLock();
     }
   }
 

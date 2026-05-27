@@ -2,7 +2,6 @@ import "@poe-code/agent-spawn/register-factories";
 import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import {
-  lockWorkflow,
   makeRunLogFileName,
   resolvePoeCommandExecution,
   resolveRunLogDir,
@@ -30,27 +29,12 @@ import type {
   RunConfig
 } from "../types.js";
 
-type LockCapableExperimentFs = {
-  open(path: string, flags: string): Promise<{
-    close(): Promise<void>;
-    writeFile(
-      data: string,
-      options?: BufferEncoding | { encoding?: BufferEncoding }
-    ): Promise<void>;
-  }>;
-  stat(path: string): Promise<{
-    mtimeMs: number;
-  }>;
-  unlink(path: string): Promise<void>;
-};
-
 function createDefaultFs(): ExperimentFileSystem {
   const fs = {
     readFile: fsPromises.readFile as ExperimentFileSystem["readFile"],
     writeFile: (filePath: string, content: string) =>
       fsPromises.writeFile(filePath, content, "utf8"),
     readdir: fsPromises.readdir,
-    open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -58,9 +42,6 @@ function createDefaultFs(): ExperimentFileSystem {
         isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       };
-    },
-    unlink: async (filePath: string) => {
-      await fsPromises.unlink(filePath);
     },
     mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, options);
@@ -311,7 +292,6 @@ export async function runExperimentLoop(
     homeDir: options.homeDir
   });
   const startTime = Date.now();
-  let releaseLock: (() => Promise<void>) | undefined;
 
   async function readDoc(): Promise<{ frontmatter: ExperimentFrontmatter; body: string }> {
     const rawContent = await fs.readFile(absoluteDocPath, "utf8");
@@ -352,9 +332,6 @@ export async function runExperimentLoop(
 
   try {
     assertNotAborted(options.signal);
-    releaseLock = await lockWorkflow(absoluteDocPath, {
-      fs: fs as unknown as LockCapableExperimentFs
-    });
 
     const journal = new ExperimentJournal(resolveJournalPath(absoluteDocPath), fs);
     await journal.init();
@@ -504,8 +481,6 @@ export async function runExperimentLoop(
     }
 
     throw error;
-  } finally {
-    await releaseLock?.();
   }
 
   return finalize("max_experiments");

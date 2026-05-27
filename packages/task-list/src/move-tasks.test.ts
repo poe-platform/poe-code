@@ -286,6 +286,58 @@ describe("moveTasks", () => {
     });
   });
 
+  it("fires no transitions when source state already matches the target initial in a from-* state machine", async () => {
+    const { fs } = createFs();
+    const sourceTaskList = await openTaskList(markdownOptions("/source", fs));
+    await sourceTaskList
+      .list("planning")
+      .create({ id: "stable", name: "stable", description: "stable body" });
+
+    // Label-backed gh-issues target whose state machine has only from:"*" events.
+    // Every state can be reached from any other state via a single event — the
+    // pattern produced by createAnyToAnyStateMachine in the workflow loader.
+    const targetStateMachine = {
+      initial: "draft",
+      states: ["draft", "confirmed"],
+      events: {
+        draft: { from: "*" as const, to: "draft" },
+        confirmed: { from: "*" as const, to: "confirmed" }
+      }
+    };
+
+    // Only the responses needed for the happy path: repo id → create → resolve
+    // status:draft → add label → fetch back. If the bug returns and a spurious
+    // "status:confirmed" fire happens, fetchMock runs out and throws.
+    const fetchMock = createFetchMock([
+      graphqlResponse({ repository: { id: "repo-node" } }),
+      graphqlResponse({ createIssue: { issue: { id: "issue-node-1", number: 1 } } }),
+      graphqlResponse({ repository: { label: { id: "label-draft" } } }),
+      graphqlResponse({ addLabelsToLabelable: { clientMutationId: null } }),
+      repositoryIssueResponse(["status:draft"])
+    ]);
+
+    await expect(
+      moveTasks({
+        source: markdownOptions("/source", fs),
+        target: {
+          type: "gh-issues",
+          repo: "octo/repo",
+          state: { labelPrefix: "status:" },
+          stateMachine: targetStateMachine,
+          auth: { token: "secret" },
+          fetch: fetchMock
+        }
+      })
+    ).resolves.toEqual({ created: 1, skipped: 0, errors: [] });
+
+    const labelLookups = vi
+      .mocked(fetchMock)
+      .mock.calls.map((call) => JSON.parse(String(call[1]?.body)) as { variables?: { name?: string } })
+      .filter((req) => typeof req.variables?.name === "string")
+      .map((req) => req.variables!.name);
+    expect(labelLookups).toEqual(["status:draft"]);
+  });
+
   it("rolls back a created target when mapped state cannot be applied", async () => {
     const { fs } = createFs();
     await createPlannedTask("/source", fs, "bad-state");
@@ -351,6 +403,25 @@ function issueResponse(labels: string[]): Response {
             { id: "item-573", project: { id: "project-id" }, fieldValueByName: { name: "Todo" } }
           ]
         }
+      }
+    }
+  });
+}
+
+function repositoryIssueResponse(labels: string[]): Response {
+  return graphqlResponse({
+    repository: {
+      issue: {
+        __typename: "Issue",
+        id: "issue-node-1",
+        number: 1,
+        title: "stable",
+        body: "stable body",
+        url: "https://example.test/issues/1",
+        createdAt: "2026-05-26T00:00:00Z",
+        labels: { nodes: labels.map((name) => ({ name })) },
+        assignees: { nodes: [] },
+        milestone: null
       }
     }
   });

@@ -220,6 +220,9 @@ function findTransitionEvents(
   fromState: string,
   targetState: string
 ): string[] | undefined {
+  if (fromState === targetState) {
+    return [];
+  }
   const queue: Array<{ state: string; events: string[] }> = [{ state: fromState, events: [] }];
   const visited = new Set([fromState]);
 

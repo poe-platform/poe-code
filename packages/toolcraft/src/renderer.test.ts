@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { S } from "toolcraft-schema";
-import YAML from "yaml";
 import { defineCommand } from "./index.js";
 import { renderResult } from "./renderer.js";
 import type { RenderPrimitives } from "./index.js";
@@ -26,6 +25,7 @@ function createPrimitives(): RenderPrimitives {
     getTheme: vi.fn(() => ({
       header: (value: string) => value,
       muted: (value: string) => value,
+      badge: (value: string) => `[${value}]`,
     })),
     note: vi.fn(),
   };
@@ -34,6 +34,7 @@ function createPrimitives(): RenderPrimitives {
 function createCommand(result: unknown, render?: Parameters<typeof defineCommand>[0]["render"]) {
   return defineCommand({
     name: "demo",
+    description: "Show result",
     params: S.Object({}),
     handler: async () => result,
     render,
@@ -70,30 +71,97 @@ describe("renderResult auto renderer", () => {
     expect(render(["hello", "world"]).stdout).toBe("hello\nworld\n");
   });
 
-  it("renders objects as YAML by default", () => {
-    expect(render({ foo: 1, bar: [1, 2] }).stdout).toMatchInlineSnapshot(`
-      "foo: 1
-      bar:
-        - 1
-        - 2
-
-      "
-    `);
+  it("renders arbitrary objects as rich detail cards by default", () => {
+    expect(render({
+      resource_id: 3065,
+      resource_name: "Example",
+      enabled: true,
+      url: "https://cdn.example.com/files/long-resource-preview.jpeg",
+      settings: { allow_uploads: false }
+    }).stdout).toBe([
+      "Show result",
+      "",
+      "Resource id    3065",
+      "Resource name  Example",
+      "Enabled        Yes",
+      "Url            cdn.example.com/…/long-resource-preview.jpeg",
+      "",
+      "Settings",
+      "Allow uploads  No",
+      ""
+    ].join("\n"));
   });
 
-  it("renders arrays of objects as YAML by default", () => {
-    expect(render([{ foo: 1 }, { bar: [1, 2] }]).stdout).toMatchInlineSnapshot(`
-      "- foo: 1
-      - bar:
-          - 1
-          - 2
-
-      "
-    `);
+  it("does not infer hierarchy from a long scalar string", () => {
+    const text = "This is a sufficiently long piece of descriptive text that should read as a paragraph instead of being squeezed into one metadata row.";
+    expect(render({ id: 1, narrative: text }).stdout).toBe([
+      "Show result",
+      "",
+      "Id         1",
+      "Narrative  This is a sufficiently long piece of descriptive text that should",
+      "           read as a paragraph instead of being squeezed into one metadata row.",
+      ""
+    ].join("\n"));
   });
 
-  it("invokes Command.render.rich and bypasses YAML", () => {
-    const stringifyYaml = vi.spyOn(YAML, "stringify");
+  it("renders mutation responses without resource-specific rules", () => {
+    expect(render({
+      success: true,
+      message: "Update applied.",
+      before: { enabled: false },
+      after: { enabled: true },
+      changed_fields: ["enabled"]
+    }).stdout).toBe([
+      "Show result",
+      "",
+      "Success  Yes",
+      "Message  Update applied.",
+      "",
+      "Before",
+      "Enabled  No",
+      "",
+      "After",
+      "Enabled  Yes",
+      "",
+      "Lists",
+      "Changed fields  enabled",
+      ""
+    ].join("\n"));
+  });
+
+  it("uses the command name when a description is too long for a title", () => {
+    const command = defineCommand({
+      name: "set-policy",
+      description: "Update a resource policy while validating all dependent settings and returning an audit summary.",
+      params: S.Object({}),
+      handler: async () => ({ success: true })
+    });
+    const primitives = createPrimitives();
+    let stdout = "";
+
+    renderResult(command, { success: true }, "rich", primitives, (chunk) => {
+      stdout += chunk;
+    });
+
+    expect(stdout).toBe("Set policy\n\nSuccess  Yes\n");
+  });
+
+  it("renders arrays of objects as rich tables by default", () => {
+    expect(render([{ foo: 1 }, { bar: [1, 2] }]).stdout).toBe(
+      `${JSON.stringify({
+        columns: [
+          { name: "foo", title: "foo" },
+          { name: "bar", title: "bar" }
+        ],
+        rows: [
+          { foo: "1", bar: "" },
+          { foo: "", bar: "[1,2]" }
+        ]
+      })}\n`
+    );
+  });
+
+  it("invokes Command.render.rich and bypasses automatic details", () => {
     const rich = vi.fn();
     const command = createCommand({ foo: 1 }, { rich });
     const primitives = createPrimitives();
@@ -105,23 +173,16 @@ describe("renderResult auto renderer", () => {
 
     expect(rich).toHaveBeenCalledWith({ foo: 1 }, primitives);
     expect(stdout).toBe("");
-    expect(stringifyYaml).not.toHaveBeenCalled();
   });
 
-  it("uses the markdown renderer for --output md and bypasses YAML", () => {
-    const stringifyYaml = vi.spyOn(YAML, "stringify");
-
+  it("uses the markdown renderer for --output md", () => {
     expect(render({ foo: 1, bar: [1, 2] }, "md").stdout).toBe("- foo: 1\n- bar: [1,2]\n");
-    expect(stringifyYaml).not.toHaveBeenCalled();
   });
 
-  it("uses the JSON renderer for --output json and bypasses YAML", () => {
-    const stringifyYaml = vi.spyOn(YAML, "stringify");
-
+  it("uses the JSON renderer for --output json", () => {
     expect(render({ foo: 1, bar: [1, 2] }, "json").stdout).toBe(
       '{\n  "foo": 1,\n  "bar": [\n    1,\n    2\n  ]\n}\n'
     );
-    expect(stringifyYaml).not.toHaveBeenCalled();
   });
 });
 

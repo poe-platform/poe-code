@@ -270,6 +270,64 @@ describe("renderTable", () => {
       `);
     });
 
+    it("renders detail rows without table chrome", () => {
+      const result = renderTable({
+        theme,
+        variant: "detail",
+        columns: [
+          { name: "label", title: "Label", alignment: "left", maxLen: 12 },
+          { name: "value", title: "Value", alignment: "left", maxLen: 8 },
+        ],
+        rows: [
+          { label: "Display name", value: "GPT-5.5" },
+          { label: "Description", value: "Handles complex multi-step agent work with less guidance." },
+          { label: "Creator", value: "" },
+          { label: "  Handle", value: "openai" },
+        ],
+        maxWidth: 44,
+      });
+
+      expect(stripAnsi(result)).toBe([
+        "Display name  GPT-5.5",
+        "Description   Handles complex multi-step",
+        "              agent work with less guidance.",
+        "Creator",
+        "  Handle      openai",
+      ].join("\n"));
+    });
+
+    it("wraps long unbroken detail values", () => {
+      const result = renderTable({
+        theme,
+        variant: "detail",
+        maxWidth: 24,
+        columns: [
+          { name: "label", title: "Label", alignment: "left", maxLen: 5 },
+          { name: "value", title: "Value", alignment: "left", maxLen: 8 },
+        ],
+        rows: [{ label: "Image", value: "https://example.com/avatar.jpeg" }],
+      });
+
+      expect(stripAnsi(result)).toBe([
+        "Image  https://example.com/",
+        "       avatar.jpeg",
+      ].join("\n"));
+    });
+
+    it("does not truncate standard long detail labels", () => {
+      const result = renderTable({
+        theme,
+        variant: "detail",
+        columns: [
+          { name: "label", title: "Label", alignment: "left", maxLen: 33 },
+          { name: "value", title: "Value", alignment: "left", maxLen: 5 },
+        ],
+        rows: [{ label: "Allow related bot recommendations", value: "true" }],
+      });
+
+      expect(stripAnsi(result)).toBe("Allow related bot recommendations  true");
+    });
+
     it("keeps multi-codepoint emoji sequences intact when measuring width", () => {
       const result = renderTable({
         theme,

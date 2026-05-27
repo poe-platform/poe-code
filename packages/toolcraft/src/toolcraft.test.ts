@@ -1841,7 +1841,7 @@ describe("renderResult", () => {
       label: "object in rich",
       output: "rich" as const,
       result: { name: "demo", count: 2 },
-      expected: "name: demo\ncount: 2\n\n"
+      expected: "Demo\n\nName   demo\nCount  2\n"
     },
     {
       label: "object in markdown",
@@ -1862,7 +1862,7 @@ describe("renderResult", () => {
         { name: "alpha", count: 1 },
         { name: "beta", count: 2 }
       ],
-      expected: "- name: alpha\n  count: 1\n- name: beta\n  count: 2\n\n"
+      expected: '{"columns":[{"name":"name","title":"name"},{"name":"count","title":"count"}],"rows":[{"name":"alpha","count":"1"},{"name":"beta","count":"2"}]}\n'
     },
     {
       label: "array of objects in markdown",
@@ -1966,7 +1966,7 @@ describe("renderResult", () => {
         ],
         "rich"
       )
-    ).toBe("- name: alpha|beta\n  count: 1\n- enabled: true\n  count: 2\n\n");
+    ).toBe('{"columns":[{"name":"name","title":"name"},{"name":"count","title":"count"},{"name":"enabled","title":"enabled"}],"rows":[{"name":"alpha|beta","count":"1","enabled":""},{"name":"","count":"2","enabled":"true"}]}\n');
 
     expect(
       runRender(

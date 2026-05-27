@@ -1,4 +1,5 @@
 import type { ThemePalette } from "../tokens/colors.js";
+import { widths } from "../tokens/widths.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 import { stripAnsi } from "../internal/strip-ansi.js";
 
@@ -13,6 +14,8 @@ export interface RenderTableOptions {
   theme: ThemePalette;
   columns: TableColumn[];
   rows: Record<string, string>[];
+  variant?: "table" | "detail";
+  maxWidth?: number;
 }
 
 type TableAlignment = TableColumn["alignment"] | "center";
@@ -245,9 +248,87 @@ function renderTerminalRow(values: string[], columns: ComputedColumn[], theme: T
   return `${vertical}${cells.join(vertical)}${vertical}`;
 }
 
+function wrapDetailValue(value: string, width: number): string[] {
+  const lines: string[] = [];
+
+  for (const paragraph of value.split("\n")) {
+    let line = "";
+
+    for (const rawWord of paragraph.split(" ")) {
+      const words: string[] = [];
+      let word = rawWord;
+
+      while (displayWidth(word) > width) {
+        let chunk = "";
+        let index = 0;
+
+        while (index < word.length) {
+          const cluster = readPrintableCluster(word, index);
+          if (displayWidth(`${chunk}${cluster}`) > width) {
+            break;
+          }
+          chunk += cluster;
+          index += cluster.length;
+        }
+
+        words.push(chunk);
+        word = word.slice(chunk.length);
+      }
+
+      words.push(word);
+
+      for (const word of words) {
+        if (line.length === 0) {
+          line = word;
+          continue;
+        }
+
+        if (displayWidth(`${line} ${word}`) <= width) {
+          line = `${line} ${word}`;
+          continue;
+        }
+
+        lines.push(line);
+        line = word;
+      }
+    }
+
+    lines.push(line);
+  }
+
+  return lines.length > 0 ? lines : [""];
+}
+
 function renderTableTerminal(options: RenderTableOptions): string {
   const { theme, columns, rows } = options;
   const computedColumns = computeColumns(columns);
+  if (options.variant === "detail") {
+    const labelColumn = computedColumns[0];
+    const valueColumn = computedColumns[1];
+    if (!labelColumn || !valueColumn) {
+      return "";
+    }
+
+    const detailLabelWidth = widths.helpColumn + 12;
+    const labelWidth = Math.min(labelColumn.width, detailLabelWidth);
+    const valueWidth = Math.max(20, (options.maxWidth ?? widths.maxLine) - labelWidth - 2);
+    const continuation = " ".repeat(labelWidth + 2);
+
+    return rows
+      .flatMap((row) => {
+        const label = truncateToWidth(row[labelColumn.name] ?? "", labelWidth);
+        const values = wrapDetailValue(row[valueColumn.name] ?? "", valueWidth);
+        if (values.length === 1 && values[0] === "") {
+          return [theme.header(label)];
+        }
+        return [
+          `${theme.muted(padCell(label, labelWidth, "left"))}  ${values[0] ?? ""}`,
+          ...values.slice(1).map((value) => `${continuation}${value}`)
+        ];
+      })
+      .join("\n");
+  }
+
   const separatorOptions = options as { rowSeparator?: boolean; rowSeparators?: boolean };
   const includeRowSeparators =
     separatorOptions.rowSeparator === true || separatorOptions.rowSeparators === true;

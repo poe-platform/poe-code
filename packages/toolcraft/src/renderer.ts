@@ -1,4 +1,5 @@
 import YAML from "yaml";
+import { renderDetailCard } from "@poe-code/design-system";
 import type { Command, RenderPrimitives } from "./index.js";
 
 export type OutputMode = "rich" | "md" | "json";
@@ -108,20 +109,145 @@ function stringifyJson(value: unknown, spaces?: number): string {
   }
 }
 
+function humanizeKey(key: string): string {
+  let output = "";
+  let capitalizeNext = true;
+
+  for (const char of key) {
+    if (char === "_" || char === "-") {
+      output += " ";
+      capitalizeNext = false;
+      continue;
+    }
+
+    if (char >= "A" && char <= "Z" && output.length > 0 && !output.endsWith(" ")) {
+      output += " ";
+    }
+
+    if (capitalizeNext) {
+      output += char.toUpperCase();
+      capitalizeNext = false;
+      continue;
+    }
+
+    output += char;
+  }
+
+  return output;
+}
+
+function detailRows(
+  result: Record<string, unknown>,
+  depth = 0
+): Array<{ label: string; value: string }> {
+  const rows: Array<{ label: string; value: string }> = [];
+
+  for (const [key, value] of Object.entries(result)) {
+    const label = `${"  ".repeat(depth)}${humanizeKey(key)}`;
+
+    if (isObject(value)) {
+      if (Object.keys(value).length === 0) {
+        rows.push({ label, value: "{}" });
+        continue;
+      }
+
+      rows.push({ label, value: "" });
+      rows.push(...detailRows(value, depth + 1));
+      continue;
+    }
+
+    rows.push({ label, value: displayScalar(value) });
+  }
+
+  return rows;
+}
+
+function displayScalar(value: unknown): string {
+  if (typeof value === "boolean") {
+    return value ? "Yes" : "No";
+  }
+  if (Array.isArray(value) && value.every((entry) => !isObject(entry) && !Array.isArray(entry))) {
+    return value.map((entry) => displayScalar(entry)).join(", ") || "—";
+  }
+  return stringifyValue(value) || "—";
+}
+
+function isUrl(value: unknown): value is string {
+  return typeof value === "string" && (value.startsWith("https://") || value.startsWith("http://"));
+}
+
+function compactUrl(value: string): string {
+  try {
+    const url = new URL(value);
+    const tail = url.pathname.split("/").filter(Boolean).at(-1);
+    return tail ? `${url.hostname}/…/${tail}` : url.hostname;
+  } catch {
+    return value;
+  }
+}
+
+function displayRowValue(value: unknown): string {
+  return isUrl(value) ? compactUrl(value) : displayScalar(value);
+}
+
+function directScalarRows(result: Record<string, unknown>): Array<{ label: string; value: string }> {
+  return Object.entries(result)
+    .filter(([, value]) => !isObject(value) && !Array.isArray(value))
+    .map(([key, value]) => ({ label: humanizeKey(key), value: displayRowValue(value) }));
+}
+
+function directObjectSections(result: Record<string, unknown>): Array<{ title: string; rows: Array<{ label: string; value: string }> }> {
+  return Object.entries(result)
+    .filter(([, value]) => isObject(value))
+    .map(([key, value]) => ({ title: humanizeKey(key), rows: detailRows(value as Record<string, unknown>) }))
+    .filter((section) => section.rows.length > 0);
+}
+
+function renderObjectCard(
+  result: Record<string, unknown>,
+  primitives: RenderPrimitives,
+  title: string
+): string {
+  const scalarRows = directScalarRows(result);
+  const nestedSections = directObjectSections(result);
+  const listRows = Object.entries(result)
+    .filter(([, value]) => Array.isArray(value))
+    .map(([key, value]) => ({ label: humanizeKey(key), value: displayScalar(value) }));
+
+  return renderDetailCard({
+    theme: primitives.getTheme(),
+    title,
+    sections: [
+      { rows: scalarRows },
+      ...nestedSections,
+      { title: "Lists", rows: listRows }
+    ]
+  });
+}
+
+function richResultTitle(command: Command<any, any, any, any>): string {
+  const description = command.description?.trim();
+  if (description && !description.includes("\n") && description.length <= 64) {
+    return description;
+  }
+  return command.name ? humanizeKey(command.name) : "Result";
+}
+
 export function renderObjectTable(result: Record<string, unknown>, primitives: RenderPrimitives): string {
-  const rows = Object.entries(result).map(([key, value]) => ({
-    key,
-    value: stringifyValue(value),
-  }));
+  const rows = detailRows(result);
+  if (rows.length === 0) {
+    return "{}";
+  }
 
   return primitives.renderTable({
     theme: primitives.getTheme(),
+    variant: "detail",
     columns: [
       {
-        name: "key",
-        title: "Key",
+        name: "label",
+        title: "Label",
         alignment: "left",
-        maxLen: Math.max("Key".length, ...rows.map((row) => row.key.length)),
+        maxLen: Math.max("Label".length, ...rows.map((row) => row.label.length)),
       },
       {
         name: "value",
@@ -196,7 +322,12 @@ function renderArrayMarkdown(result: Array<Record<string, unknown>>): string {
   return [header, separator, ...rows].join("\n");
 }
 
-function autoRender(result: unknown, output: OutputMode, _primitives: RenderPrimitives): string {
+function autoRender(
+  command: Command<any, any, any, any>,
+  result: unknown,
+  output: OutputMode,
+  primitives: RenderPrimitives
+): string {
   if (result === null || result === undefined) {
     if (output === "json") {
       return stringifyJson({ ok: true }, 2);
@@ -225,6 +356,8 @@ function autoRender(result: unknown, output: OutputMode, _primitives: RenderPrim
     if (output === "json") {
       return stringifyJson(result, 2);
     }
+
+    return renderObjectCard(result, primitives, richResultTitle(command));
   }
 
   if (isArrayOfObjects(result)) {
@@ -235,6 +368,8 @@ function autoRender(result: unknown, output: OutputMode, _primitives: RenderPrim
     if (output === "json") {
       return stringifyJson(result, 2);
     }
+
+    return renderArrayTable(result, primitives);
   }
 
   if (output === "rich") {
@@ -262,7 +397,7 @@ export function renderResult(
   result = unwrapped.result;
 
   if (unwrapped.mcpError) {
-    const payload = autoRender(result, output, primitives);
+    const payload = autoRender(command, result, output, primitives);
     if (payload.length > 0) {
       write(`${payload}\n`, "stderr");
     }
@@ -290,7 +425,7 @@ export function renderResult(
     return { mcpError: false };
   }
 
-  const payload = autoRender(result, output, primitives);
+  const payload = autoRender(command, result, output, primitives);
   if (payload.length > 0) {
     write(`${payload}\n`);
   }

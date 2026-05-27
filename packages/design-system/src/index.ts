@@ -20,6 +20,8 @@ export { formatCommandNotFound } from "./components/command-errors.js";
 export { formatCommandNotFoundPanel } from "./components/command-errors.js";
 export { renderTable } from "./components/table.js";
 export type { TableColumn, RenderTableOptions } from "./components/table.js";
+export { renderDetailCard } from "./components/detail-card.js";
+export type { DetailCardRow, DetailCardSection, RenderDetailCardOptions } from "./components/detail-card.js";
 export { renderTemplate } from "./components/template.js";
 export type { RenderTemplateOptions, TemplateEscape } from "./components/template.js";
 export { openExternal } from "./components/browser.js";

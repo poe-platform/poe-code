@@ -29,6 +29,7 @@ const taskListMocks = vi.hoisted(() => {
   return {
     GhProjectSyncError: MockGhProjectSyncError,
     moveTasks: vi.fn(),
+    resolveAuth: vi.fn(),
     syncGhProject: vi.fn(),
     verifyGhProject: vi.fn()
   };
@@ -40,6 +41,7 @@ vi.mock("@poe-code/task-list", async (importOriginal) => {
     ...actual,
     GhProjectSyncError: taskListMocks.GhProjectSyncError,
     moveTasks: taskListMocks.moveTasks,
+    resolveAuth: taskListMocks.resolveAuth,
     syncGhProject: taskListMocks.syncGhProject,
     verifyGhProject: taskListMocks.verifyGhProject
   };
@@ -184,6 +186,7 @@ describe("tasks command", () => {
     taskListMocks.verifyGhProject.mockReset();
     taskListMocks.syncGhProject.mockReset();
     taskListMocks.moveTasks.mockReset().mockResolvedValue({ created: 0, skipped: 0, errors: [] });
+    taskListMocks.resolveAuth.mockReset().mockResolvedValue("fallback-token");
     process.exitCode = undefined;
   });
 
@@ -238,6 +241,7 @@ tasks:
       number: 12,
       requiredStates: ["queued", "done"],
       repo: "flag/repo",
+      auth: { token: "fallback-token" },
       workflowPath: "./WORKFLOW.md",
       yes: true
     });
@@ -257,6 +261,36 @@ maestro:
 
     expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Bugs" })
+    );
+  });
+
+  it("sync forwards the workflow's tasks.auth.token after env expansion", async () => {
+    const restoreEnv = process.env.SYNC_TOKEN_TEST;
+    process.env.SYNC_TOKEN_TEST = "ghp_envtoken";
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+tasks:
+  auth:
+    token: $SYNC_TOKEN_TEST
+`);
+    taskListMocks.syncGhProject.mockResolvedValue(createSyncReport());
+
+    try {
+      await runTasks(["sync", "acme/12", "--yes"]);
+    } finally {
+      if (restoreEnv === undefined) {
+        delete process.env.SYNC_TOKEN_TEST;
+      } else {
+        process.env.SYNC_TOKEN_TEST = restoreEnv;
+      }
+    }
+
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ auth: { token: "ghp_envtoken" } })
     );
   });
 

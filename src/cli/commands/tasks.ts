@@ -5,6 +5,7 @@ import {
   MalformedTaskError,
   moveTasks,
   openTaskList,
+  resolveAuth,
   syncGhProject,
   verifyGhProject,
   type OpenTaskListOptions,
@@ -217,8 +218,10 @@ async function runSync(
 
   try {
     const resolved = await resolveTasksOptions(list, options);
+    const auth = resolved.auth ?? { token: await resolveAuth({}) };
     const report = await syncGhProject({
       ...resolved,
+      auth,
       ...(options.title !== undefined && options.title.trim() !== ""
         ? { title: options.title.trim() }
         : {}),

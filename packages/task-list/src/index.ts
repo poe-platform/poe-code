@@ -36,6 +36,7 @@ export {
   type Tasks,
   type TaskUpdate
 } from "./types.js";
+export { resolveAuth } from "./backends/gh-issues-client.js";
 export type {
   GhClient,
   GhClientOptions,

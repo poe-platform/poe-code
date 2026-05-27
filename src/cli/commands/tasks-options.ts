@@ -41,6 +41,7 @@ export interface ResolvedTasksOptions {
   number: number;
   requiredStates: string[];
   repo?: string;
+  auth?: { token: string };
   workflowPath: string;
 }
 
@@ -85,12 +86,14 @@ export async function resolveTasksOptions(
   const frontmatterRepo = readTasksRepo(frontmatter);
   const requiredStates = resolveRequiredStates(options.states, frontmatter);
   const repo = resolveRepo(options.repo, frontmatterRepo);
+  const authToken = readTasksAuthToken(frontmatter);
 
   return {
     owner: project.owner,
     number: project.number,
     requiredStates,
     ...(repo ? { repo } : {}),
+    ...(authToken !== undefined ? { auth: { token: authToken } } : {}),
     workflowPath
   };
 }
@@ -264,6 +267,16 @@ function readTasksRepo(frontmatter: Record<string, unknown>): string | undefined
   return typeof tasks?.repo === "string" && tasks.repo.trim().length > 0
     ? tasks.repo.trim()
     : undefined;
+}
+
+function readTasksAuthToken(frontmatter: Record<string, unknown>): string | undefined {
+  const auth = asRecord(asRecord(frontmatter.tasks)?.auth);
+  if (auth === undefined || typeof auth.token !== "string") {
+    return undefined;
+  }
+
+  const token = resolveStringValue(auth.token).trim();
+  return token.length > 0 && !token.startsWith("$") ? token : undefined;
 }
 
 function resolveRepo(

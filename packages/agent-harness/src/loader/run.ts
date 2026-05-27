@@ -52,6 +52,7 @@ export type RunHarnessPairOptions = {
     now: () => number;
   };
   fix?: boolean;
+  frontmatterOverrides?: Record<string, unknown>;
   modulesFor: (frontmatter: Record<string, unknown>, meta: HarnessImportMeta) => ModuleRegistry;
   onDiagnostics?: (diagnostics: readonly Diagnostic[]) => void;
   onEvent?: (event: HarnessRunEvent) => void;
@@ -86,9 +87,13 @@ export async function runHarnessPair(
       readTextFile(pair.mdPath)
     ]);
     const { frontmatter, body } = splitFrontmatter(mdSource);
+    const merged =
+      options.frontmatterOverrides === undefined
+        ? frontmatter
+        : deepMergeFrontmatter(frontmatter, options.frontmatterOverrides);
     const schema = await extractSchema(ajsSource, pair.ajsPath);
     const validated = (
-      schema === undefined ? frontmatter : validateFrontmatter(schema, frontmatter, pair.mdPath)
+      schema === undefined ? merged : validateFrontmatter(schema, merged, pair.mdPath)
     ) as Record<string, unknown>;
     const meta: HarnessImportMeta = {
       kind: readString(validated.kind),
@@ -624,4 +629,27 @@ function hasErrorCode(error: unknown, code: string): boolean {
     "code" in error &&
     (error as { code?: unknown }).code === code
   );
+}
+
+function deepMergeFrontmatter(
+  target: Record<string, unknown>,
+  source: Record<string, unknown>
+): Record<string, unknown> {
+  const result: Record<string, unknown> = { ...target };
+  for (const [key, value] of Object.entries(source)) {
+    if (value === undefined) {
+      continue;
+    }
+    const existing = result[key];
+    if (isPlainObject(existing) && isPlainObject(value)) {
+      result[key] = deepMergeFrontmatter(existing, value);
+      continue;
+    }
+    result[key] = value;
+  }
+  return result;
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }

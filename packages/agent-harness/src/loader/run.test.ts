@@ -1002,6 +1002,122 @@ describe("runHarnessPair", () => {
     expect(vol.existsSync(snapshotPath)).toBe(false);
     expect(vol.existsSync(`${snapshotPath}.host-calls.json`)).toBe(false);
   });
+
+  it("deep-merges frontmatterOverrides into the validated frontmatter before invoking the default export", async () => {
+    const mdPath = "/repo/harness/override.md";
+    vol.fromJSON({
+      [mdPath]: [
+        "---",
+        "kind: override",
+        "version: 1",
+        "agent:",
+        "  agent: codex",
+        "  mode: edit",
+        "---",
+        ""
+      ].join("\n"),
+      "/repo/harness/override.ajs": [
+        'import { S } from "schema";',
+        "export const schema = S.Object({",
+        "  kind: S.String(),",
+        "  version: S.Number(),",
+        "  agent: S.Object({",
+        "    agent: S.String(),",
+        "    mode: S.Optional(S.String()),",
+        "    model: S.Optional(S.String())",
+        "  })",
+        "});",
+        "export default async (frontmatter) => frontmatter.agent;"
+      ].join("\n")
+    });
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({}),
+      frontmatterOverrides: { agent: { model: "iris-alpha" } }
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: { agent: "codex", mode: "edit", model: "iris-alpha" }
+    });
+  });
+
+  it("lets frontmatterOverrides replace a scalar field on the agent block", async () => {
+    const mdPath = "/repo/harness/override-scalar.md";
+    vol.fromJSON({
+      [mdPath]: [
+        "---",
+        "kind: override-scalar",
+        "version: 1",
+        "agent:",
+        "  agent: codex",
+        "  model: original",
+        "---",
+        ""
+      ].join("\n"),
+      "/repo/harness/override-scalar.ajs": [
+        'import { S } from "schema";',
+        "export const schema = S.Object({",
+        "  kind: S.String(),",
+        "  version: S.Number(),",
+        "  agent: S.Object({",
+        "    agent: S.String(),",
+        "    model: S.Optional(S.String())",
+        "  })",
+        "});",
+        "export default async (frontmatter) => frontmatter.agent;"
+      ].join("\n")
+    });
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({}),
+      frontmatterOverrides: { agent: { agent: "claude-code", model: "iris-alpha" } }
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: { agent: "claude-code", model: "iris-alpha" }
+    });
+  });
+
+  it("ignores undefined values inside frontmatterOverrides instead of clobbering the frontmatter", async () => {
+    const mdPath = "/repo/harness/override-undefined.md";
+    vol.fromJSON({
+      [mdPath]: [
+        "---",
+        "kind: override-undefined",
+        "version: 1",
+        "agent:",
+        "  agent: codex",
+        "  mode: edit",
+        "---",
+        ""
+      ].join("\n"),
+      "/repo/harness/override-undefined.ajs": [
+        'import { S } from "schema";',
+        "export const schema = S.Object({",
+        "  kind: S.String(),",
+        "  version: S.Number(),",
+        "  agent: S.Object({",
+        "    agent: S.String(),",
+        "    mode: S.Optional(S.String()),",
+        "    model: S.Optional(S.String())",
+        "  })",
+        "});",
+        "export default async (frontmatter) => frontmatter.agent;"
+      ].join("\n")
+    });
+
+    const result = await runHarnessPair(mdPath, {
+      modulesFor: () => ({}),
+      frontmatterOverrides: { agent: { agent: undefined, mode: undefined, model: "iris-alpha" } }
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      returnValue: { agent: "codex", mode: "edit", model: "iris-alpha" }
+    });
+  });
 });
 
 class MemorySnapshotBackend implements SnapshotBackend {

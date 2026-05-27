@@ -5,6 +5,7 @@ import { resolveConfigPath } from "@poe-code/poe-code-config";
 import type { FileSystem } from "../utils/file-system.js";
 import {
   coreConfigScope,
+  knownConfigScopes,
   loadConfig,
   saveConfig,
   loadConfiguredServices,
@@ -61,6 +62,10 @@ describe("config store", () => {
       env: "POE_DEFAULT_AGENT",
       doc: "Agent (or agent:model) used when no --agent flag is provided; skips the selection prompt"
     });
+  });
+
+  it("registers the codeReview config scope", () => {
+    expect(knownConfigScopes.map((scope) => scope.scope)).toContain("codeReview");
   });
 
   it("returns stored api key when file is valid json", async () => {

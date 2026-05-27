@@ -1,0 +1,38 @@
+{
+  "name": "agent-code-review",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./cli": {
+      "types": "./dist/cli.d.ts",
+      "import": "./dist/cli.js"
+    },
+    "./mcp": {
+      "types": "./dist/mcp.d.ts",
+      "import": "./dist/mcp.js"
+    }
+  },
+  "scripts": {
+    "build": "rm -rf dist && tsc",
+    "test": "cd ../.. && vitest run packages/agent-code-review/src",
+    "test:unit": "cd ../.. && vitest run packages/agent-code-review/src"
+  },
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "@poe-code/agent-spawn": "*",
+    "@poe-code/poe-code-config": "*",
+    "github-review": "*",
+    "toolcraft": "*",
+    "toolcraft-schema": "*",
+    "yaml": "^2.8.2"
+  }
+}

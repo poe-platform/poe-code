@@ -1,0 +1,233 @@
+import { S, defineCommand, defineGroup } from "toolcraft";
+import { discoverCodeReviewProfiles, installCodeReviewAssets } from "./assets.js";
+import {
+  type CodeReviewCommitResult,
+  type CodeReviewPublicationPayload,
+  type CommitCodeReviewDraftsInput,
+  commitCodeReviewDrafts
+} from "./commit.js";
+import { ingestCodeReviewProfile } from "./ingest.js";
+import { parseCodeReviewAgentMcpArgs, runCodeReviewAgentMcp } from "./mcp.js";
+import {
+  type CodeReviewOrchestrationInput,
+  type CodeReviewResult,
+  runCodeReview
+} from "./review.js";
+import { readCodeReviewDraft } from "./review-store.js";
+
+type RunCodeReviewHandler = (input: CodeReviewOrchestrationInput) => Promise<CodeReviewResult>;
+type CommitCodeReviewDraftsHandler = (
+  input: CommitCodeReviewDraftsInput
+) => Promise<CodeReviewCommitResult | CodeReviewPublicationPayload>;
+
+const agentMcpCommand = defineCommand({
+  name: "agent-mcp",
+  description: "Run the stdio MCP server used by code review agents.",
+  params: S.Object({
+    role: S.Enum(["agent", "orchestrator", "subagent"] as const, {
+      description: "Review-agent role controlling exposed MCP tools."
+    }),
+    session: S.String({ description: "Code-review session id." }),
+    actor: S.String({ description: "Actor writing drafts in this process." }),
+    cwd: S.String({ description: "Repository working directory." }),
+    draftStore: S.Optional(S.String({ description: "Absolute YAML review state directory." })),
+    agent: S.String({ description: "Poe Code agent used for subagents." }),
+    profiles: S.Optional(S.String({ description: "Comma-separated allowed profile names." }))
+  }),
+  scope: ["cli"],
+  handler: async ({ params }) =>
+    runCodeReviewAgentMcp(
+      parseCodeReviewAgentMcpArgs([
+        "--role",
+        params.role,
+        "--session",
+        params.session,
+        "--actor",
+        params.actor,
+        "--cwd",
+        params.cwd,
+        ...(params.draftStore ? ["--draft-store", params.draftStore] : []),
+        "--agent",
+        params.agent,
+        ...(params.profiles ? ["--profiles", params.profiles] : [])
+      ])
+    )
+});
+
+export const installCodeReviewAssetsCommand = defineCommand({
+  name: "install",
+  description: "Install repo-local code review profiles and prompts.",
+  params: S.Object({
+    cwd: S.Optional(S.String({ description: "Repository root directory." })),
+    force: S.Optional(
+      S.Boolean({
+        description: "Overwrite existing profile and prompt files."
+      })
+    )
+  }),
+  scope: ["cli"],
+  handler: async ({ params }) =>
+    installCodeReviewAssets({
+      cwd: params.cwd?.trim() || process.cwd(),
+      force: Boolean(params.force)
+    })
+});
+
+export const listCodeReviewProfilesCommand = defineCommand({
+  name: "profiles",
+  description: "List repo-local code review profiles.",
+  params: S.Object({
+    cwd: S.Optional(S.String({ description: "Repository root directory." }))
+  }),
+  scope: ["cli"],
+  handler: async ({ params }) =>
+    (await discoverCodeReviewProfiles({ cwd: params.cwd?.trim() || process.cwd() })).map(
+      ({ name, source, filePath }) => ({
+        name,
+        source,
+        ...(filePath ? { filePath } : {})
+      })
+    )
+});
+
+export const readCodeReviewDraftCommand = defineCommand({
+  name: "drafts",
+  description: "Read the current YAML draft for a pull request.",
+  positional: ["prUrl"],
+  params: S.Object({
+    prUrl: S.String({ description: "GitHub pull request URL." }),
+    cwd: S.Optional(S.String({ description: "Repository root directory." })),
+    draftStore: S.Optional(S.String({ description: "YAML review state directory." }))
+  }),
+  scope: ["cli"],
+  handler: async ({ params }) => {
+    const draft = await readCodeReviewDraft({
+      prUrl: params.prUrl,
+      cwd: params.cwd?.trim() || process.cwd(),
+      ...(params.draftStore ? { draftStore: params.draftStore } : {})
+    });
+    if (draft === undefined) {
+      throw new Error(`No active code review draft found for ${params.prUrl}.`);
+    }
+    return draft;
+  }
+});
+
+function createRunCodeReviewCommand(run: RunCodeReviewHandler = (input) => runCodeReview(input)) {
+  return defineCommand({
+    name: "run",
+    description: "Run an agent-assisted GitHub pull request review.",
+    positional: ["prUrl"],
+    params: S.Object({
+      prUrl: S.String({ description: "GitHub pull request URL." }),
+      cwd: S.Optional(S.String({ description: "Repository root directory." })),
+      agent: S.Optional(S.String({ description: "Poe Code review agent." })),
+      draftStore: S.Optional(S.String({ description: "YAML review state directory." })),
+      profilePath: S.Optional(
+        S.String({ description: "Explicit reviewer profile Markdown path." })
+      ),
+      promptPath: S.Optional(
+        S.String({
+          description: "Explicit orchestrator prompt Markdown path."
+        })
+      ),
+      profiles: S.Optional(S.Array(S.String(), { description: "Reviewer profile filter." })),
+      additionalFeedback: S.Optional(S.String({ description: "Additional rerun feedback." }))
+    }),
+    scope: ["cli"],
+    handler: async ({ params }) =>
+      run({
+        prUrl: params.prUrl,
+        cwd: params.cwd?.trim() || process.cwd(),
+        ...(params.agent ? { agent: params.agent } : {}),
+        ...(params.draftStore ? { draftStore: params.draftStore } : {}),
+        ...(params.profilePath ? { profilePath: params.profilePath } : {}),
+        ...(params.promptPath ? { promptPath: params.promptPath } : {}),
+        ...(params.profiles ? { profiles: params.profiles } : {}),
+        ...(params.additionalFeedback ? { additionalFeedback: params.additionalFeedback } : {})
+      })
+  });
+}
+
+export const runCodeReviewCommand = createRunCodeReviewCommand();
+
+function createCommitCodeReviewDraftsCommand(
+  commit: CommitCodeReviewDraftsHandler = (input) => commitCodeReviewDrafts(input)
+) {
+  return defineCommand({
+    name: "commit",
+    description: "Validate and publish a merged code review draft to GitHub.",
+    positional: ["prUrl"],
+    params: S.Object({
+      prUrl: S.String({ description: "GitHub pull request URL." }),
+      cwd: S.Optional(S.String({ description: "Repository root directory." })),
+      draftStore: S.Optional(S.String({ description: "YAML review state directory." })),
+      dryRun: S.Optional(
+        S.Boolean({
+          description: "Preview the validated GitHub review payload only."
+        })
+      ),
+      actor: S.Optional(S.String({ description: "Publishing actor receipt name." }))
+    }),
+    scope: ["cli"],
+    handler: async ({ params }) =>
+      commit({
+        prUrl: params.prUrl,
+        cwd: params.cwd?.trim() || process.cwd(),
+        ...(params.draftStore ? { draftStore: params.draftStore } : {}),
+        ...(params.actor ? { actor: params.actor } : {}),
+        dryRun: Boolean(params.dryRun)
+      })
+  });
+}
+
+export const commitCodeReviewDraftsCommand = createCommitCodeReviewDraftsCommand();
+
+export const ingestCodeReviewProfileCommand = defineCommand({
+  name: "ingest",
+  description: "Build a runtime reviewer profile from GitHub review history.",
+  positional: ["githubUsername"],
+  params: S.Object({
+    githubUsername: S.String({ description: "GitHub username to ingest." }),
+    repo: S.Array(S.String(), {
+      description: "GitHub owner/name repository; repeat --repo for more."
+    }),
+    profile: S.Optional(S.String({ description: "Output reviewer profile name." })),
+    agent: S.Optional(S.String({ description: "Poe Code agent used for synthesis." })),
+    cwd: S.Optional(S.String({ description: "Repository root directory." }))
+  }),
+  scope: ["cli"],
+  handler: async ({ params }) =>
+    ingestCodeReviewProfile({
+      username: params.githubUsername,
+      repos: params.repo,
+      ...(params.profile ? { profile: params.profile } : {}),
+      ...(params.agent ? { agent: params.agent } : {}),
+      cwd: params.cwd?.trim() || process.cwd()
+    })
+});
+
+export interface CodeReviewCliDependencies {
+  run?: RunCodeReviewHandler;
+  commit?: CommitCodeReviewDraftsHandler;
+}
+
+export function createCodeReviewGroup(dependencies: CodeReviewCliDependencies = {}) {
+  return defineGroup({
+    name: "code-review",
+    description: "Run agent-assisted GitHub pull request reviews.",
+    children: [
+      agentMcpCommand,
+      installCodeReviewAssetsCommand,
+      listCodeReviewProfilesCommand,
+      dependencies.run ? createRunCodeReviewCommand(dependencies.run) : runCodeReviewCommand,
+      dependencies.commit
+        ? createCommitCodeReviewDraftsCommand(dependencies.commit)
+        : commitCodeReviewDraftsCommand,
+      ingestCodeReviewProfileCommand,
+      readCodeReviewDraftCommand
+    ]
+  });
+}
+
+export const codeReviewGroup = createCodeReviewGroup();

@@ -22,6 +22,7 @@
   - [provider](#provider)
   - [approvals](#approvals)
   - [spawn](#spawn)
+  - [code-review](#code-review)
   - [research](#research)
   - [wrap](#wrap)
   - [test](#test)
@@ -36,6 +37,7 @@
 - [SDK Reference](#sdk-reference)
   - [spawn()](#spawn-sdk)
   - [spawn.pretty()](#spawnpretty)
+  - [Composable agent runtime](#composable-agent-runtime)
   - [generate()](#generate-sdk)
   - [generateImage()](#generateimage)
   - [generateVideo()](#generatevideo)
@@ -444,6 +446,36 @@ poe-code spawn claude-code "Hello" -- --max-tokens 1000
 
 # In CI with full automation
 poe-code spawn codex "Run lint and fix issues" --mode yolo --yes
+```
+
+---
+
+### code-review
+
+Run agent-assisted GitHub pull request reviews.
+
+```bash
+poe-code code-review <subcommand>
+```
+
+**Subcommands:**
+
+| Subcommand | Description |
+|------------|-------------|
+| `install` | Install repo-local reviewer profiles and prompts. |
+| `profiles` | List repo-local reviewer profiles. |
+| `ingest <github-username>` | Build a runtime reviewer profile from GitHub review history. |
+| `run <github-pr-url>` | Fetch a PR, run reviewer agents, and create a YAML draft. |
+| `drafts <github-pr-url>` | Read the active YAML draft for a PR. |
+| `commit <github-pr-url>` | Validate and publish the merged draft to GitHub; use `--dry-run` to preview. |
+| `agent-mcp` | Run the stdio MCP server used by spawned review agents. |
+
+**Examples:**
+
+```bash
+poe-code code-review install
+poe-code code-review run "https://github.com/owner/repo/pull/123"
+poe-code code-review commit "https://github.com/owner/repo/pull/123" --dry-run
 ```
 
 ---
@@ -1151,6 +1183,31 @@ const result2 = await spawn.pretty("claude-code", {
   cwd: "/path/to/project"
 });
 ```
+
+### Composable agent runtime
+
+The `poe-code/agent` subpath exposes the plugin-first agent builder and focused
+runtime types for SDK users that want to compose providers, tools, MCP servers,
+and hooks directly instead of spawning an external agent CLI.
+
+```typescript
+import { agent, openaiResponsesPlugin, systemPromptPlugin } from "poe-code/agent";
+
+const result = await agent()
+  .model("gpt-5.5")
+  .use(openaiResponsesPlugin())
+  .use(systemPromptPlugin())
+  .run("Summarize the current repository", {
+    cwd: process.cwd()
+  });
+
+console.log(result.output);
+```
+
+The builder supports `.model(...)`, `.use(...)`, `.tools(...)`, `.mcp(...)`,
+`.acp(...)`, `.run(...)`, and `.stream(...)`. The subpath also exports
+`openaiChatCompletionsPlugin`, `openaiResponsesPlugin`, and
+`systemPromptPlugin`.
 
 ### generate() {#generate-sdk}
 
@@ -2615,6 +2672,7 @@ poe-code/
 | `provider` | `list`, `login`, `logout` | Provider authentication management |
 | `approvals` | `list`, `show`, `run` | Toolcraft human-in-loop approval queue |
 | `spawn <agent> [prompt]` | — | Run agent with prompt |
+| `code-review` | `install`, `profiles`, `ingest`, `run`, `drafts`, `commit`, `agent-mcp` | Agent-assisted GitHub pull request reviews |
 | `research [prompt]` | — | Research codebase (read mode) |
 | `wrap <agent>` | — | One-off isolated session |
 | `test [agent]` | — | Health check |
@@ -2638,6 +2696,12 @@ export { generateImage } from "poe-code";   // Image generation
 export { generateVideo } from "poe-code";   // Video generation
 export { generateAudio } from "poe-code";   // Audio generation
 export { getPoeApiKey } from "poe-code";    // API key resolution
+export {
+  agent,
+  openaiChatCompletionsPlugin,
+  openaiResponsesPlugin,
+  systemPromptPlugin
+} from "poe-code/agent";                     // Composable agent runtime
 
 // Types
 export type { SpawnOptions } from "poe-code";
@@ -2646,6 +2710,14 @@ export type { GenerateOptions } from "poe-code";
 export type { GenerateResult } from "poe-code";
 export type { MediaGenerateOptions } from "poe-code";
 export type { MediaGenerateResult } from "poe-code";
+export type {
+  AgentBuilder,
+  AgentPlugin,
+  AgentRunOptions,
+  Provider,
+  RunResult,
+  Tool
+} from "poe-code/agent";
 
 // CLI (for programmatic CLI invocation)
 export { main, isCliInvocation } from "poe-code";

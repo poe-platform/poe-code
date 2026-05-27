@@ -147,6 +147,8 @@
     "@poe-code/agent-script": "*",
     "@poe-code/agent-skill-config": "*",
     "@poe-code/agent-spawn": "*",
+    "agent-code-review": "*",
+    "github-review": "*",
     "@poe-code/braintrust": "*",
     "@poe-code/cached-resource": "*",
     "@poe-code/config-extends": "*",

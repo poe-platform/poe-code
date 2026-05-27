@@ -243,6 +243,23 @@ tasks:
     });
   });
 
+  it("sync forwards --title to the SDK call for new projects", async () => {
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+`);
+    taskListMocks.syncGhProject.mockResolvedValue(createSyncReport());
+
+    await runTasks(["sync", "acme/0", "--title", "Bugs", "--yes"]);
+
+    expect(taskListMocks.syncGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Bugs" })
+    );
+  });
+
   it("prints verify --json as exactly the report JSON", async () => {
     seedWorkflow(`
 maestro:

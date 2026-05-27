@@ -36,6 +36,7 @@ interface TasksCommandOptions extends TasksCliOptions {
   message?: string;
   metadataJson?: string;
   name?: string;
+  title?: string;
   file?: string;
   yes?: boolean;
   from?: string;
@@ -72,6 +73,7 @@ export function registerTasksCommand(program: Command, container: CliContainer):
     .option("--repo <owner/name>", "GitHub repository owner/name.")
     .option("--project <owner/number>", "GitHub project owner/number.")
     .option("--states <csv>", "Required task state names.")
+    .option("--title <name>", "Project title used when the project must be created.")
     .option("--json", "Print the sync report as JSON.")
     .option("--yes", "Confirm non-interactive sync.")
     .action(async (list: string, options: TasksCommandOptions, command: Command) => {
@@ -215,7 +217,13 @@ async function runSync(
 
   try {
     const resolved = await resolveTasksOptions(list, options);
-    const report = await syncGhProject({ ...resolved, yes: options.yes === true });
+    const report = await syncGhProject({
+      ...resolved,
+      ...(options.title !== undefined && options.title.trim() !== ""
+        ? { title: options.title.trim() }
+        : {}),
+      yes: options.yes === true
+    });
 
     if (options.json) {
       writeJson(report);

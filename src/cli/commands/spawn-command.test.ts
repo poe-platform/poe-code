@@ -1453,6 +1453,31 @@ describe("spawn command", () => {
     expect(sdkSpawn).not.toHaveBeenCalled();
   });
 
+  it("rejects overflowing --mcp-servers timeout values", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "spawn",
+        "--mcp-servers",
+        '{"bad":{"command":"srv","timeout":1e400}}',
+        "codex",
+        "hello"
+      ])
+    ).rejects.toThrow('--mcp-servers entry "bad".timeout must be a positive number');
+
+    expect(sdkSpawn).not.toHaveBeenCalled();
+  });
+
   it("rejects --mcp-servers when the referenced @file does not exist", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

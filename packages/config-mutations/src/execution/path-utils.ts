@@ -59,9 +59,15 @@ export function resolvePath(
 ): string {
   validateHomePath(rawPath);
   const expanded = expandHome(rawPath, homeDir);
+  const canonicalHome = path.resolve(homeDir);
+  const canonicalExpanded = path.resolve(expanded);
+  const relative = path.relative(canonicalHome, canonicalExpanded);
+  if (relative === ".." || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) {
+    throw new Error(`Target path resolves outside home directory: "${rawPath}"`);
+  }
 
   if (!pathMapper) {
-    return expanded;
+    return canonicalExpanded;
   }
 
   // Map the directory portion

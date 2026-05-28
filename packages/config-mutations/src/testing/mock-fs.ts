@@ -139,6 +139,18 @@ export function createMockFs(
       delete files[absolutePath];
     },
 
+    async rename(oldPath: string, newPath: string): Promise<void> {
+      const absoluteOldPath = expandPath(oldPath, homeDir);
+      const absoluteNewPath = expandPath(newPath, homeDir);
+      if (!(absoluteOldPath in files)) {
+        const error = new Error(`ENOENT: no such file or directory, rename '${absoluteOldPath}'`);
+        (error as NodeJS.ErrnoException).code = "ENOENT";
+        throw error;
+      }
+      files[absoluteNewPath] = files[absoluteOldPath]!;
+      delete files[absoluteOldPath];
+    },
+
     async stat(filePath: string): Promise<{ mode?: number }> {
       const absolutePath = expandPath(filePath, homeDir);
       if (absolutePath in files) {

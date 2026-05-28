@@ -43,7 +43,49 @@ async function backupInvalidDocument(
   content: string
 ): Promise<void> {
   const backupPath = createInvalidDocumentBackupPath(targetPath);
-  await fs.writeFile(backupPath, content, { encoding: "utf8" });
+  await fs.writeFile(backupPath, content, { encoding: "utf8", flag: "wx" });
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
+}
+
+async function assertRegularWriteTarget(fs: FileSystem, targetPath: string): Promise<void> {
+  try {
+    if ((await fs.lstat(targetPath)).isSymbolicLink()) {
+      throw new Error(`Refusing mutation write through symbolic link: ${targetPath}`);
+    }
+  } catch (error) {
+    if (!isNotFound(error)) {
+      throw error;
+    }
+  }
+}
+
+async function writeAtomically(fs: FileSystem, targetPath: string, content: string): Promise<void> {
+  await assertRegularWriteTarget(fs, targetPath);
+  let attempt = 0;
+  while (true) {
+    const tempPath = `${targetPath}.mutation-tmp-${attempt}`;
+    try {
+      await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+      await fs.rename(tempPath, targetPath);
+      return;
+    } catch (error) {
+      if (isAlreadyExists(error)) {
+        attempt += 1;
+        continue;
+      }
+      try {
+        await fs.unlink(tempPath);
+      } catch (cleanupError) {
+        if (!isNotFound(cleanupError)) {
+          void cleanupError;
+        }
+      }
+      throw error;
+    }
+  }
 }
 
 function describeMutation(kind: string, targetPath?: string): string {
@@ -268,6 +310,9 @@ async function applyRemoveFile(
     const trimmed = content.trim();
 
     // Check whenContentMatches guard
+    if (mutation.whenContentMatches) {
+      mutation.whenContentMatches.lastIndex = 0;
+    }
     if (mutation.whenContentMatches && !mutation.whenContentMatches.test(trimmed)) {
       return {
         outcome: { changed: false, effect: "none", detail: "noop" },
@@ -376,8 +421,20 @@ async function applyBackup(
   }
 
   if (!context.dryRun) {
-    const backupPath = `${targetPath}.backup-${createTimestamp()}`;
-    await context.fs.writeFile(backupPath, content, { encoding: "utf8" });
+    const baseBackupPath = `${targetPath}.backup-${createTimestamp()}`;
+    let attempt = 0;
+    while (true) {
+      const backupPath = attempt === 0 ? baseBackupPath : `${baseBackupPath}-${attempt}`;
+      try {
+        await context.fs.writeFile(backupPath, content, { encoding: "utf8", flag: "wx" });
+        break;
+      } catch (error) {
+        if (!isAlreadyExists(error)) {
+          throw error;
+        }
+        attempt += 1;
+      }
+    }
   }
 
   return {
@@ -418,7 +475,7 @@ async function applyConfigMerge(
     current = rawContent === null ? {} : format.parse(rawContent);
   } catch {
     // Invalid file - backup and start fresh
-    if (rawContent !== null) {
+    if (rawContent !== null && !context.dryRun) {
       await backupInvalidDocument(context.fs, targetPath, rawContent);
     }
     current = {};
@@ -438,7 +495,7 @@ async function applyConfigMerge(
   const changed = serialized !== rawContent;
 
   if (changed && !context.dryRun) {
-    await context.fs.writeFile(targetPath, serialized, { encoding: "utf8" });
+    await writeAtomically(context.fs, targetPath, serialized);
   }
 
   return {
@@ -523,7 +580,7 @@ async function applyConfigPrune(
 
   const serialized = format.serialize(result);
   if (!context.dryRun) {
-    await context.fs.writeFile(targetPath, serialized, { encoding: "utf8" });
+    await writeAtomically(context.fs, targetPath, serialized);
   }
 
   return {
@@ -559,7 +616,7 @@ async function applyConfigTransform(
   try {
     current = rawContent === null ? {} : format.parse(rawContent);
   } catch {
-    if (rawContent !== null) {
+    if (rawContent !== null && !context.dryRun) {
       await backupInvalidDocument(context.fs, targetPath, rawContent);
     }
     current = {};
@@ -593,7 +650,7 @@ async function applyConfigTransform(
 
   const serialized = format.serialize(transformed);
   if (!context.dryRun) {
-    await context.fs.writeFile(targetPath, serialized, { encoding: "utf8" });
+    await writeAtomically(context.fs, targetPath, serialized);
   }
 
   return {
@@ -637,17 +694,18 @@ async function applyTemplateWrite(
     : {};
   const rendered = renderTemplate(template, templateContext);
 
-  const existed = await pathExists(context.fs, targetPath);
+  const current = await readFileIfExists(context.fs, targetPath);
+  const changed = current !== rendered;
 
-  if (!context.dryRun) {
-    await context.fs.writeFile(targetPath, rendered, { encoding: "utf8" });
+  if (changed && !context.dryRun) {
+    await writeAtomically(context.fs, targetPath, rendered);
   }
 
   return {
     outcome: {
-      changed: true,
-      effect: "write",
-      detail: existed ? "update" : "create"
+      changed,
+      effect: changed ? "write" : "none",
+      detail: changed ? (current === null ? "create" : "update") : "noop"
     },
     details
   };
@@ -701,7 +759,7 @@ async function applyTemplateMerge(
   try {
     current = rawContent === null ? {} : format.parse(rawContent);
   } catch {
-    if (rawContent !== null) {
+    if (rawContent !== null && !context.dryRun) {
       await backupInvalidDocument(context.fs, targetPath, rawContent);
     }
     current = {};
@@ -713,7 +771,7 @@ async function applyTemplateMerge(
   const changed = serialized !== rawContent;
 
   if (changed && !context.dryRun) {
-    await context.fs.writeFile(targetPath, serialized, { encoding: "utf8" });
+    await writeAtomically(context.fs, targetPath, serialized);
   }
 
   return {

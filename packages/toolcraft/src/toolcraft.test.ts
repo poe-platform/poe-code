@@ -2082,6 +2082,18 @@ describe("renderResult", () => {
     );
   });
 
+  it("leaves inherited constructor values out of sparse markdown table cells", () => {
+    const command = defineCommand({
+      name: "demo",
+      params: S.Object({}),
+      handler: async () => undefined
+    });
+
+    expect(runRender(command, [JSON.parse('{"constructor":"provided"}'), {}], "md")).toBe(
+      "| constructor |\n| :--- |\n| provided |\n|  |\n"
+    );
+  });
+
   it("passes design-system primitives to format overrides", () => {
     const rich = vi.fn();
     const markdown = vi.fn(() => "override-md");

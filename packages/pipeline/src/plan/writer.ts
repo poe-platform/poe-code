@@ -2,7 +2,7 @@ import { parseDocument, isMap, isSeq, type YAMLMap, type YAMLSeq } from "yaml";
 import type { PipelineFileSystem, PipelineStatus } from "../types.js";
 import { pipelineDocumentSchemaId } from "./parser.js";
 
-type WritableFs = Pick<PipelineFileSystem, "readFile" | "writeFile">;
+type WritableFs = Pick<PipelineFileSystem, "readFile" | "writeFile" | "lstat">;
 type WritableDocument = MarkdownPlanDocument | YamlPlanDocument;
 
 type MarkdownPlanDocument = {
@@ -202,6 +202,9 @@ export async function writeTaskStatus(options: {
   status: PipelineStatus;
   stepName?: string;
 }): Promise<void> {
+  if ((await options.fs.lstat(options.planPath)).isSymbolicLink()) {
+    throw new Error(`Refusing to write task status through symbolic link: ${options.planPath}`);
+  }
   const content = await readPlanFile(options.fs, options.planPath);
   const parts = splitWritableDocument(content);
   const document = parseDocument(parts.kind === "markdown" ? parts.frontmatterText : content);

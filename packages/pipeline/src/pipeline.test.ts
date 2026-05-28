@@ -1720,6 +1720,34 @@ describe("parsePlan", () => {
 });
 
 describe("writeTaskStatus", () => {
+  it("rejects a symlinked plan file", async () => {
+    const volume = Volume.fromJSON({
+      "/outside/plan.md": [
+        "---",
+        "tasks:",
+        "  - id: first",
+        "    title: First",
+        "    prompt: Do first",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    volume.mkdirSync("/repo/docs/plans", { recursive: true });
+    volume.symlinkSync("/outside/plan.md", "/repo/docs/plans/linked.md");
+    const fs = createFsFromVolume(volume).promises;
+
+    await expect(
+      writeTaskStatus({
+        fs,
+        planPath: "/repo/docs/plans/linked.md",
+        taskId: "first",
+        status: "done"
+      })
+    ).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/outside/plan.md", "utf8")).resolves.toContain("status: open");
+  });
+
   it("updates a stepless task status to done", async () => {
     const fs = createFs({
       "/repo/plan.yaml": [
@@ -2229,6 +2257,12 @@ describe("resolveFileIncludes", () => {
   it("resolves paths relative to cwd", async () => {
     const result = await resolveFileIncludes("{{file 'docs/context.md'}}", "/repo", readFile);
     expect(result).toBe("# Context\nSome context here.");
+  });
+
+  it("rejects includes that escape the project root", async () => {
+    await expect(resolveFileIncludes("{{file '../secret.txt'}}", "/repo", readFile)).rejects.toThrow(
+      /outside the project root/i
+    );
   });
 
   it("throws when the referenced file does not exist", async () => {

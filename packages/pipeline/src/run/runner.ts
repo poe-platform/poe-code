@@ -53,6 +53,14 @@ export async function resolveFileIncludes(
   let result = template;
   for (const match of matches) {
     const absolutePath = path.resolve(cwd, match[1]);
+    const relativePath = path.relative(cwd, absolutePath);
+    if (
+      relativePath === ".." ||
+      relativePath.startsWith(`..${path.sep}`) ||
+      path.isAbsolute(relativePath)
+    ) {
+      throw new Error(`Pipeline file include resolves outside the project root: ${match[1]}`);
+    }
     const content = await readFile(absolutePath, "utf8");
     result = result.replace(match[0], content);
   }

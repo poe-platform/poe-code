@@ -228,6 +228,28 @@ describe("mockFetch", () => {
     expect(response.status).toBe(422);
   });
 
+  it("returns 422 for undeclared fields in a closed request body schema", async () => {
+    const spec = createSetOfficialSpec();
+    const requestSchema = spec.paths!["/v1/bots/{botHandle}/actions/set-official"]!.post!
+      .requestBody as { content: Record<string, { schema: { additionalProperties?: boolean } }> };
+    requestSchema.content["application/json"]!.schema.additionalProperties = false;
+    const { fetch } = await mockFetch({
+      spec,
+      fixtures: { set_official: { body: { success: true } } }
+    });
+
+    const response = await fetch(
+      "https://api.example.com/v1/bots/x/actions/set-official",
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ is_official: true, injected: "not-declared" })
+      }
+    );
+
+    expect(response.status).toBe(422);
+  });
+
   it("accepts a valid request body and records the parsed body", async () => {
     const { fetch, requests } = await mockFetch({
       spec: createSetOfficialSpec(),

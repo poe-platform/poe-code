@@ -391,7 +391,7 @@ export function createDefaultOAuthClientProvider(
 
     if (
       typeof payload.client_id !== "string" ||
-      payload.client_id.length === 0
+      payload.client_id.trim().length === 0
     ) {
       throw new Error("OAuth client registration response missing client_id");
     }

@@ -125,13 +125,21 @@ async function requestTokens(input: {
   });
   const payload = await readOAuthJsonObjectResponse(response);
 
-  if (typeof payload.access_token !== "string" || payload.access_token.length === 0) {
+  if (typeof payload.access_token !== "string" || payload.access_token.trim().length === 0) {
     throw new Error("OAuth token response missing access_token");
   }
 
   const tokenType = normalizeBearerTokenType(payload.token_type);
   if (tokenType === null) {
     throw new Error("OAuth token response missing token_type=Bearer");
+  }
+
+  if (
+    typeof payload.expires_in === "number"
+    && Number.isFinite(payload.expires_in)
+    && payload.expires_in < 0
+  ) {
+    throw new Error("OAuth token response has invalid expires_in");
   }
 
   return {

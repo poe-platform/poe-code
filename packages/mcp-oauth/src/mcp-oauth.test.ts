@@ -1105,6 +1105,75 @@ describe("createDefaultOAuthClientProvider", () => {
     ).toHaveLength(1);
   });
 
+  it.each([
+    {
+      name: "whitespace-only access tokens",
+      response: { access_token: "   ", refresh_token: "refresh-next", token_type: "Bearer" },
+      error: "OAuth token response missing access_token",
+    },
+    {
+      name: "negative access token expiration",
+      response: {
+        access_token: "access-next",
+        refresh_token: "refresh-next",
+        token_type: "Bearer",
+        expires_in: -1,
+      },
+      error: "OAuth token response has invalid expires_in",
+    },
+  ])("rejects refresh responses containing $name", async ({ response, error }) => {
+    const sessionStore = createMemorySessionStore();
+    const originalSession: StoredOAuthSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        authorizationServer: AUTHORIZATION_SERVER,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+      tokens: {
+        accessToken: "access-current",
+        refreshToken: "refresh-current",
+        tokenType: "Bearer",
+        expiresAt: 3_700_000,
+      },
+    };
+    sessionStore.sessions.set(RESOURCE_URL, originalSession);
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "static",
+        clientId: "static-client",
+      },
+      browser: {
+        openBrowser: vi.fn(),
+      },
+      sessionStore,
+      now: () => 10_000,
+    });
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify(response), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    }));
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, { status: 401 }),
+      challenge: {
+        scheme: "Bearer",
+        raw: "",
+        params: { error: "invalid_token" },
+      },
+      discovery: createDiscoveryResult(),
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error?.message).toBe(error);
+    }
+    expect(await sessionStore.load(RESOURCE_URL)).toEqual(originalSession);
+  });
+
   it("clears invalid refresh tokens, avoids echoing them, and falls back to one fresh authorization flow", async () => {
     const pair = createOAuthPair();
     const sessionStore = createMemorySessionStore();
@@ -1397,6 +1466,43 @@ describe("createDefaultOAuthClientProvider", () => {
     expect(pair.authorizationRequests).toHaveLength(2);
     expect(pair.authorizationRequests[0]?.searchParams.get("client_id")).toBe("client-1");
     expect(pair.authorizationRequests[1]?.searchParams.get("client_id")).toBe("client-1");
+  });
+
+  it("rejects whitespace-only dynamic client registration identifiers", async () => {
+    const pair = createOAuthPair();
+    const fetchMock = vi.fn(async (input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (input.toString() === REGISTRATION_ENDPOINT) {
+        return new Response(JSON.stringify({ client_id: "   " }), {
+          status: 201,
+          headers: { "Content-Type": "application/json" },
+        });
+      }
+
+      return pair.fetchMock(input, init);
+    });
+    const provider = createDefaultOAuthClientProvider({
+      client: {
+        mode: "dynamic",
+        metadata: { clientName: "poe-code test" },
+      },
+      browser: { openBrowser: pair.openBrowser },
+      sessionStore: createMemorySessionStore(),
+      now: () => 10_000,
+    });
+
+    const result = await provider.handleUnauthorized({
+      requestUrl: new URL(RESOURCE_URL),
+      response: new Response(null, { status: 401 }),
+      challenge: null,
+      discovery: createDiscoveryResult(),
+      fetch: fetchMock as typeof fetch,
+    });
+
+    expect(result.action).toBe("fail");
+    if (result.action === "fail") {
+      expect(result.error?.message).toBe("OAuth client registration response missing client_id");
+    }
+    expect(pair.authorizationRequests).toHaveLength(0);
   });
 
   it("falls back to a configured static client_id when registration_endpoint is missing", async () => {

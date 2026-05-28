@@ -71,4 +71,43 @@ describe("createLoopbackAuthorizationSession", () => {
       session.close();
     }
   });
+
+  it("does not settle a state-bound authorization for an error callback without matching state", async () => {
+    const session = await createLoopbackAuthorizationSession();
+    const waitForCode = session.waitForCode(
+      "https://auth.example.com/authorize?state=expected-state"
+    );
+    void waitForCode.catch(() => undefined);
+
+    try {
+      await expect(
+        requestUrl(`${session.redirectUri}?error=access_denied&error_description=forged`)
+      ).resolves.toMatchObject({
+        status: 400,
+        body: "OAuth callback missing state",
+      });
+
+      await requestUrl(
+        `${session.redirectUri}?code=code-123&state=expected-state`
+      );
+      await expect(waitForCode).resolves.toBe("code-123");
+    } finally {
+      session.close();
+    }
+  });
+
+  it("reports an authorization denial pasted through manual input", async () => {
+    const session = await createLoopbackAuthorizationSession({
+      readLine: async () =>
+        "http://127.0.0.1/callback?error=access_denied&error_description=User%20declined&state=expected-state",
+    });
+
+    try {
+      await expect(
+        session.waitForCode("https://auth.example.com/authorize?state=expected-state")
+      ).rejects.toThrow("OAuth authorization failed: access_denied — User declined");
+    } finally {
+      session.close();
+    }
+  });
 });

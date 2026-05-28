@@ -55,6 +55,6 @@ export const apiKeyAuthStrategy: AuthStrategy<ApiKeyLoginOptions> = {
         `No stored credential for provider "${provider.id}". Run \`poe-code provider login ${provider.id}\`.`
       );
     }
-    return value;
+    return value.trim();
   }
 };

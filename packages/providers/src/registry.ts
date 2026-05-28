@@ -44,7 +44,7 @@ export class ProviderRegistry {
       }
       byId.set(provider.id, provider);
     }
-    this.providers = providers;
+    this.providers = Object.freeze([...providers]);
     this.byId = byId;
     this.storeFactory = storeFactory;
     this.envVars = options?.envVars ?? {};
@@ -74,7 +74,7 @@ export class ProviderRegistry {
     }
     const store = this.requireStore(id);
     const credential = await store.get();
-    return credential !== null;
+    return typeof credential === "string" && credential.trim().length > 0;
   }
 
   async login(id: string, options: ApiKeyLoginOptions, context?: LoginContext): Promise<void> {
@@ -84,16 +84,16 @@ export class ProviderRegistry {
       throw new Error(`Provider "${id}" does not use api-key auth.`);
     }
     const auth = provider.auth;
-    const envApiKey = context?.envVars?.[auth.envVar];
+    const envApiKey = (context?.envVars ?? this.envVars)[auth.envVar];
     const resolvedApiKey =
       options.apiKey ??
       (typeof envApiKey === "string" && envApiKey.trim() ? envApiKey : undefined);
     if (auth.preferredLogin && context?.resolvePreferredLogin) {
-      const apiKey = await context.resolvePreferredLogin({
+      const apiKey = normalizeRequiredCredential(provider.id, await context.resolvePreferredLogin({
         provider,
         apiKey: options.apiKey,
         envValue: typeof envApiKey === "string" ? envApiKey : undefined
-      });
+      }));
       await store.set(apiKey);
       return;
     }

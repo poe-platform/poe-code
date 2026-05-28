@@ -15,6 +15,17 @@ describe("anthropicProvider", () => {
     expect(anthropicProvider.auth.kind).toBe("api-key");
   });
 
+  it("does not allow mutation of the exported auth configuration", () => {
+    if (anthropicProvider.auth.kind !== "api-key") {
+      throw new Error("Expected api-key auth");
+    }
+
+    expect(() => {
+      anthropicProvider.auth.envVar = "UNTRUSTED_API_KEY";
+    }).toThrow();
+    expect(anthropicProvider.auth.envVar).toBe("ANTHROPIC_API_KEY");
+  });
+
   it("has the correct baseUrl", () => {
     expect(anthropicProvider.baseUrl).toBe("https://api.anthropic.com");
   });

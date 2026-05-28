@@ -1,8 +1,8 @@
-import type { AuthProvider } from "../types.js";
+import { defineProvider } from "../types.js";
 
 export const POE_PROVIDER_ID = "poe" as const;
 
-export const poeProvider: AuthProvider = {
+export const poeProvider = defineProvider({
   id: POE_PROVIDER_ID,
   label: "Poe",
   summary: "Route AI coding agents through Poe's API.",
@@ -35,4 +35,4 @@ export const poeProvider: AuthProvider = {
       defaultBaseUrl: "https://api.poe.com/anthropic"
     }
   ]
-};
+});

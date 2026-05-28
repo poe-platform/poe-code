@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { allAgents } from "@poe-code/agent-defs";
 import { ProviderRegistry } from "./registry.js";
 import { cloudflareProvider } from "./providers/cloudflare.js";
+import { anthropicProvider } from "./providers/anthropic.js";
 import { poeProvider } from "./providers/poe.js";
 import type { ApiShapeId, AuthProvider } from "./types.js";
 
@@ -45,6 +46,17 @@ describe("ProviderRegistry", () => {
   it("lists providers in construction order", () => {
     const registry = new ProviderRegistry([poe, anthropic, openai]);
     expect(registry.list().map((p) => p.id)).toEqual(["poe", "anthropic", "openai"]);
+  });
+
+  it("snapshots the constructor provider collection", () => {
+    const providers = [poe];
+    const registry = new ProviderRegistry(providers);
+
+    providers.push(anthropic);
+
+    expect(registry.list()).toEqual([poe]);
+    expect(registry.forAgent({ id: "claude-code", apiShapes: ["anthropic-messages"] })).toEqual([poe]);
+    expect(registry.get("anthropic")).toBeUndefined();
   });
 
   it("looks up a provider by id", () => {
@@ -207,6 +219,16 @@ describe("ProviderRegistry", () => {
     await expect(registry.isLoggedIn("poe")).resolves.toBe(true);
   });
 
+  it("isLoggedIn rejects whitespace-only stored credentials", async () => {
+    const store = {
+      get: async () => "   \n\t",
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    const registry = new ProviderRegistry([poe], () => store);
+    await expect(registry.isLoggedIn("poe")).resolves.toBe(false);
+  });
+
   it("uses preferred login resolver instead of the generic api-key prompt", async () => {
     const promptForSecret = async () => {
       throw new Error("generic prompt should not run");
@@ -240,6 +262,35 @@ describe("ProviderRegistry", () => {
     expect(stored).toBe("sk-from-oauth");
   });
 
+  it("rejects blank credentials returned by preferred login", async () => {
+    const store = {
+      get: async () => null,
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+    const registry = new ProviderRegistry([poeProvider], () => store);
+
+    await expect(registry.login("poe", {}, {
+      resolvePreferredLogin: async () => "   "
+    })).rejects.toThrow(/No API key available/);
+  });
+
+  it("uses constructor environment credentials during login", async () => {
+    let stored: string | null = null;
+    const store = {
+      get: async () => null,
+      set: async (value: string) => { stored = value; },
+      delete: async () => undefined
+    };
+    const registry = new ProviderRegistry([anthropicProvider], () => store, {
+      envVars: { ANTHROPIC_API_KEY: "  env-key  " }
+    });
+
+    await registry.login("anthropic", {});
+
+    expect(stored).toBe("env-key");
+  });
+
   it("resolves credentials from explicit input, env, then provider store", async () => {
     const store = {
       get: async () => "stored-key",
@@ -254,6 +305,18 @@ describe("ProviderRegistry", () => {
       registry.resolveCredential("poe", { apiKey: " explicit-key " })
     ).resolves.toBe("explicit-key");
     await expect(registry.resolveCredential("poe")).resolves.toBe("env-key");
+    await expect(
+      new ProviderRegistry([poe], () => store).resolveCredential("poe")
+    ).resolves.toBe("stored-key");
+  });
+
+  it("trims stored credentials when resolving them", async () => {
+    const store = {
+      get: async () => "  stored-key  ",
+      set: async () => undefined,
+      delete: async () => undefined
+    };
+
     await expect(
       new ProviderRegistry([poe], () => store).resolveCredential("poe")
     ).resolves.toBe("stored-key");

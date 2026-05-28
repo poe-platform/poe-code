@@ -2,6 +2,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse, stringify } from "yaml";
+import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
 
 const pkg = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const repoRoot = path.resolve(pkg, "../..");
@@ -57,6 +58,7 @@ for (const name of automations) {
     `# Source: packages/github-workflows/src/workflow-templates/${name}.ejected.yml\n` +
     stringify(output, { lineWidth: 0 });
 
+  await assertSafeOutputDirectory(repoRoot, outputPath);
   writeFileSync(outputPath, content);
   console.log(`Generated ${path.relative(repoRoot, outputPath)}`);
 }

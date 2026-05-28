@@ -9,6 +9,7 @@ import { createRequire } from "node:module";
 import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
+import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
 
 const ROOT_DIR = path.resolve(import.meta.dirname, "../../..");
 const SCREENSHOTS_DIR = path.join(ROOT_DIR, "docs/design-language");
@@ -604,7 +605,7 @@ export function renderTextDocument(
   return lines.join("\n");
 }
 
-function generateTerminalArtifacts(): void {
+async function generateTerminalArtifacts(): Promise<void> {
   rmSync(SCREENSHOTS_DIR, { recursive: true, force: true });
   mkdirSync(SCREENSHOTS_DIR, { recursive: true });
 
@@ -614,11 +615,13 @@ function generateTerminalArtifacts(): void {
     }
   }
 
+  await assertSafeOutputDirectory(ROOT_DIR, OUTPUT_DOCS.terminal);
   writeFileSync(OUTPUT_DOCS.terminal, renderTerminalDocument());
   console.log(`Generated: ${OUTPUT_DOCS.terminal}`);
 }
 
-function generateTextArtifacts(format: Extract<OutputMode, "markdown" | "json">): void {
+async function generateTextArtifacts(format: Extract<OutputMode, "markdown" | "json">): Promise<void> {
+  await assertSafeOutputDirectory(ROOT_DIR, OUTPUT_DOCS[format]);
   writeFileSync(OUTPUT_DOCS[format], renderTextDocument(format));
   console.log(`Generated: ${OUTPUT_DOCS[format]}`);
 }
@@ -643,15 +646,15 @@ export async function main(argv = process.argv): Promise<void> {
   const mode = parseMode(argv);
 
   if (mode === "terminal" || mode === "all") {
-    generateTerminalArtifacts();
+    await generateTerminalArtifacts();
   }
 
   if (mode === "markdown" || mode === "all") {
-    generateTextArtifacts("markdown");
+    await generateTextArtifacts("markdown");
   }
 
   if (mode === "json" || mode === "all") {
-    generateTextArtifacts("json");
+    await generateTextArtifacts("json");
   }
 }
 

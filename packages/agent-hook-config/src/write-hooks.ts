@@ -110,11 +110,12 @@ function appendEntries(file: CodexHooksFile, entries: GeneratedHookEntry[]): voi
 export function writeCodexHooks(
   targetPath: string,
   entries: GeneratedHookEntry[],
-  runId: string
+  runId: string,
+  opts?: { preserveGenerated?: boolean }
 ): WriteResult {
   const { file, fileCreated } = parseHooksFile(targetPath);
   validateEntries(entries, runId);
-  const previousGeneratedRemoved = removeGeneratedHandlers(file);
+  const previousGeneratedRemoved = opts?.preserveGenerated ? 0 : removeGeneratedHandlers(file);
   appendEntries(file, entries);
 
   mkdirSync(path.dirname(targetPath), { recursive: true });

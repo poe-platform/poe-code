@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { lstatSync, readFileSync } from "node:fs";
 import path from "node:path";
 
 export interface SourceHookEntry {
@@ -42,6 +42,9 @@ function readSettingsFile(filePath: string): ClaudeSettings | undefined {
   let content: string;
 
   try {
+    if (lstatSync(filePath).isSymbolicLink()) {
+      throw new Error(`Hook settings path must not be a symbolic link: ${filePath}`);
+    }
     content = readFileSync(filePath, "utf8");
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {

@@ -149,7 +149,13 @@ export function symlinkHooks(
     );
   }
 
-  const targetPath = resolveScopedPath(source, sourceAgentId, cwd, homeDir, scope);
+  const targetPath = resolveScopedPath(
+    source,
+    sourceAgentId,
+    cwd,
+    homeDir,
+    sourceAgentId === targetAgentId && scope === "project" ? "user" : scope
+  );
   const symlinkPath = resolveScopedPath(target, targetAgentId, cwd, homeDir, scope);
   let replaced: SymlinkResult["replaced"] = "none";
   let replacedContents: string | undefined;

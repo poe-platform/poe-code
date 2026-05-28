@@ -71,6 +71,18 @@ describe("symlinkHooks", () => {
     expect(readlinkSync(targetPath)).toBe(sourcePath);
   });
 
+  it("links a same-agent project target to its user hook source", () => {
+    const userPath = path.join(homeDir, ".source/settings.json");
+    vol.mkdirSync(path.dirname(userPath), { recursive: true });
+    vol.writeFileSync(userPath, "{}", "utf8");
+
+    expect(symlinkHooks("source", "source", cwd, homeDir, "project")).toMatchObject({
+      symlinkPath: sourcePath,
+      targetPath: userPath
+    });
+    expect(readlinkSync(sourcePath)).toBe(userPath);
+  });
+
   it("is idempotent when the existing symlink points to the target", () => {
     symlinkHooks("source", "target", cwd, homeDir, "project");
 

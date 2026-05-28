@@ -183,6 +183,39 @@ const getMessageLayerOrThrow = (client: McpClient): JsonRpcMessageLayer =>
     }
   ).getMessageLayerOrThrow();
 
+async function startClientHandshake(
+  result: unknown,
+  options: ConstructorParameters<typeof McpClient>[0] = {
+    clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
+  }
+): Promise<{
+  client: McpClient;
+  readable: PassThrough;
+  writable: PassThrough;
+  iterator: AsyncIterator<string>;
+  connectPromise: Promise<unknown>;
+}> {
+  const readable = new PassThrough();
+  const writable = new PassThrough();
+  const transport: McpTransport = {
+    readable,
+    writable,
+    closed: new Promise(() => {}),
+    dispose: vi.fn(),
+  };
+  const client = new McpClient(options);
+  const connectPromise = client.connect(transport);
+  const iterator = readLines(writable)[Symbol.asyncIterator]();
+  const initializeLine = await iterator.next();
+  if (initializeLine.done) {
+    throw new Error("Expected initialize request line to be written");
+  }
+  const initializeRequest = JSON.parse(initializeLine.value) as { id: number };
+  readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: initializeRequest.id, result })}\n`);
+
+  return { client, readable, writable, iterator, connectPromise };
+}
+
 describe("HttpTransport constructor", () => {
   it("accepts url, headers, and injected fetch", () => {
     const mockFetch = async (): Promise<Response> => new Response(null, { status: 202 });
@@ -4836,6 +4869,29 @@ describe("McpClient connect", () => {
     expect(client.serverInfo).toBeNull();
     expect(client.instructions).toBeUndefined();
   });
+
+  it("rejects malformed initialize server identity", async () => {
+    const { client, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: {},
+      serverInfo: { name: "server", version: 7 },
+    });
+
+    await expect(connectPromise).rejects.toThrow("Invalid initialize result");
+    expect(client.state).not.toBe("ready");
+    expect(client.serverInfo).toBeNull();
+  });
+
+  it("rejects null initialize capabilities", async () => {
+    const { client, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: null,
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+
+    await expect(connectPromise).rejects.toThrow("Invalid initialize result");
+    expect(client.state).not.toBe("ready");
+  });
 });
 
 describe("McpClient listTools", () => {
@@ -6844,6 +6900,46 @@ describe("McpClient callTool", () => {
 
     await client.close();
   });
+
+  it("rejects malformed successful tool results", async () => {
+    const { client, readable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { tools: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+
+    const requestPromise = client.callTool({ name: "bad", arguments: {} });
+    const requestLine = await iterator.next();
+    if (requestLine.done) {
+      throw new Error("Expected tools/call request line to be written");
+    }
+    const request = JSON.parse(requestLine.value) as { id: number };
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: request.id, result: { content: [{ type: "text" }] } })}\n`);
+
+    await expect(requestPromise).rejects.toThrow("Invalid tool result");
+    await client.close();
+  });
+
+  it("does not dispatch a pre-aborted tool call", async () => {
+    const { client, writable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { tools: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+    const controller = new AbortController();
+    controller.abort("already cancelled");
+
+    await expect(client.callTool({ name: "echo" }, { signal: controller.signal })).rejects.toBe(
+      "already cancelled"
+    );
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(writable.readableLength).toBe(0);
+    await client.close();
+  });
 });
 
 describe("McpClient setLogLevel", () => {
@@ -8093,6 +8189,29 @@ describe("McpClient capability gating", () => {
 
     try {
       await expect(client.listTools()).rejects.toThrow("Server does not support tools");
+    } finally {
+      await closeClient();
+    }
+  });
+
+  it("listTools throws when server advertises null tools capability", async () => {
+    const { connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { tools: null },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+
+    await expect(connectPromise).rejects.toThrow("Invalid initialize result");
+  });
+
+  it("does not authorize subscriptions after exposed capabilities are mutated", async () => {
+    const { client, closeClient } = await createConnectedClient({ resources: {} });
+
+    try {
+      (client.serverCapabilities as { resources: { subscribe?: boolean } }).resources.subscribe = true;
+      await expect(client.subscribe("file:///readme.txt")).rejects.toThrow(
+        "Server does not support resource subscriptions"
+      );
     } finally {
       await closeClient();
     }

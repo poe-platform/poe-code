@@ -131,7 +131,9 @@ export class McpClient {
   }
 
   get serverCapabilities(): ServerCapabilities | null {
-    return this.currentServerCapabilities;
+    return this.currentServerCapabilities === null
+      ? null
+      : structuredClone(this.currentServerCapabilities);
   }
 
   get serverInfo(): Implementation | null {
@@ -335,11 +337,17 @@ export class McpClient {
       };
     }
 
-    const initializeResult = (await messageLayer.sendRequest("initialize", {
+    const initializeResultValue = await messageLayer.sendRequest("initialize", {
       protocolVersion: MCP_PROTOCOL_VERSION,
       clientInfo: this.options.clientInfo,
       capabilities,
-    })) as InitializeResult;
+    });
+
+    if (!isInitializeResult(initializeResultValue)) {
+      throw new McpError(ERROR_INVALID_REQUEST, "Invalid initialize result");
+    }
+
+    const initializeResult = initializeResultValue;
 
     if (initializeResult.protocolVersion !== MCP_PROTOCOL_VERSION) {
       throw new McpError(
@@ -348,8 +356,8 @@ export class McpClient {
       );
     }
 
-    this.currentServerCapabilities = initializeResult.capabilities;
-    this.currentServerInfo = initializeResult.serverInfo;
+    this.currentServerCapabilities = structuredClone(initializeResult.capabilities);
+    this.currentServerInfo = { ...initializeResult.serverInfo };
     this.currentInstructions = initializeResult.instructions;
     messageLayer.sendNotification("notifications/initialized");
     this.currentState = "ready";
@@ -386,6 +394,10 @@ export class McpClient {
       throw new Error("Server does not support tools");
     }
 
+    if (options.signal?.aborted) {
+      throw options.signal.reason;
+    }
+
     const requestParams =
       options.progressToken === undefined
         ? params
@@ -401,7 +413,13 @@ export class McpClient {
       onRequestId: (nextRequestId) => {
         requestId = nextRequestId;
       },
-    }) as Promise<CallToolResult>;
+    }).then((result) => {
+      if (!isCallToolResult(result)) {
+        throw new McpError(ERROR_INVALID_REQUEST, "Invalid tool result");
+      }
+
+      return result;
+    });
     if (options.signal === undefined) {
       return await requestPromise;
     }
@@ -3385,6 +3403,76 @@ export class JsonRpcMessageLayer {
 
 function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function isInitializeResult(value: unknown): value is InitializeResult {
+  if (!isObjectRecord(value) || typeof value.protocolVersion !== "string") {
+    return false;
+  }
+
+  if (!isServerCapabilities(value.capabilities)) {
+    return false;
+  }
+
+  if (
+    !isObjectRecord(value.serverInfo)
+    || typeof value.serverInfo.name !== "string"
+    || value.serverInfo.name.length === 0
+    || typeof value.serverInfo.version !== "string"
+    || value.serverInfo.version.length === 0
+  ) {
+    return false;
+  }
+
+  return value.instructions === undefined || typeof value.instructions === "string";
+}
+
+function isServerCapabilities(value: unknown): value is ServerCapabilities {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  for (const capability of ["prompts", "resources", "tools", "logging", "completions", "experimental"] as const) {
+    if (value[capability] !== undefined && !isObjectRecord(value[capability])) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isCallToolResult(value: unknown): value is CallToolResult {
+  if (!isObjectRecord(value) || !Array.isArray(value.content)) {
+    return false;
+  }
+
+  if (value.isError !== undefined && typeof value.isError !== "boolean") {
+    return false;
+  }
+
+  return value.content.every(isContentItem);
+}
+
+function isContentItem(value: unknown): value is ContentItem {
+  if (!isObjectRecord(value)) {
+    return false;
+  }
+
+  if (value.type === "text") {
+    return typeof value.text === "string";
+  }
+
+  if (value.type === "image" || value.type === "audio") {
+    return typeof value.data === "string" && typeof value.mimeType === "string";
+  }
+
+  if (value.type !== "resource" || !isObjectRecord(value.resource)) {
+    return false;
+  }
+
+  return typeof value.resource.uri === "string"
+    && (value.resource.mimeType === undefined || typeof value.resource.mimeType === "string")
+    && (typeof value.resource.text === "string" || typeof value.resource.blob === "string");
 }
 
 function hasOwn(

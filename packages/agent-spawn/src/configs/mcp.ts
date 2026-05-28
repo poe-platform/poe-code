@@ -8,7 +8,7 @@ interface JsonMcpServer {
 }
 
 function toJsonMcpServers(servers: McpSpawnConfig): Record<string, JsonMcpServer> {
-  const out: Record<string, JsonMcpServer> = {};
+  const out: Record<string, JsonMcpServer> = Object.create(null);
 
   for (const [name, server] of Object.entries(servers)) {
     const mapped: JsonMcpServer = { command: server.command };
@@ -52,7 +52,7 @@ export function serializeOpenCodeMcpEnv(servers: McpSpawnConfig): Record<string,
   const mcp: Record<
     string,
     { type: "local"; command: string[]; environment?: Record<string, string> }
-  > = {};
+  > = Object.create(null);
   for (const [name, server] of Object.entries(servers)) {
     const entry: {
       type: "local";

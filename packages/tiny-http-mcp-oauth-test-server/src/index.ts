@@ -121,6 +121,17 @@ function normalizeScopes(scopes: string[] | undefined): string[] {
   return scopes === undefined ? ["mcp.read"] : [...scopes];
 }
 
+function normalizeTtlSeconds(ttlSeconds: number | undefined): number {
+  const normalizedTtlSeconds = ttlSeconds ?? 60;
+  if (!Number.isInteger(normalizedTtlSeconds) || normalizedTtlSeconds <= 0) {
+    throw new TypeError(
+      `ttlSeconds must be a positive integer, received ${normalizedTtlSeconds}`
+    );
+  }
+
+  return normalizedTtlSeconds;
+}
+
 function closeServer(server: http.Server): Promise<void> {
   return new Promise((resolve, reject) => {
     server.close((error) => {
@@ -161,6 +172,7 @@ export function createMcpOAuthTestServer(
 ): McpOAuthTestServer {
   const mcpPath = normalizePath(options.mcpPath);
   const scopes = normalizeScopes(options.scopes);
+  const ttlSeconds = normalizeTtlSeconds(options.ttlSeconds);
   const configuredIssuer =
     options.issuer === undefined ? undefined : parseHttpUrl(options.issuer, "issuer");
   let currentHandle: McpOAuthTestServerHandle | null = null;
@@ -236,7 +248,7 @@ export function createMcpOAuthTestServer(
 
       const oauth = createOAuthTestServer({
         issuer,
-        defaultTokenTtlSeconds: options.ttlSeconds ?? 60,
+          defaultTokenTtlSeconds: ttlSeconds,
         staticClients: options.staticClients,
         defaultAuthorization: {
           autoApprove: options.autoApprove ?? false,

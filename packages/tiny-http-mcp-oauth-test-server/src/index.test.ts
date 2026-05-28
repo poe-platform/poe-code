@@ -124,6 +124,15 @@ describe("createMcpOAuthTestServer", () => {
     cleanups.clear();
   });
 
+  it("rejects invalid configured default token TTLs before listening", () => {
+    expect(() => createMcpOAuthTestServer({ ttlSeconds: -1 })).toThrow(
+      "ttlSeconds must be a positive integer, received -1"
+    );
+    expect(() => createMcpOAuthTestServer({ ttlSeconds: Number.POSITIVE_INFINITY })).toThrow(
+      "ttlSeconds must be a positive integer, received Infinity"
+    );
+  });
+
   it("boots, serves PRM pointing at the embedded authorization server, and rejects unauthenticated MCP traffic", async () => {
     const server = createMcpOAuthTestServer({
       autoApprove: true,

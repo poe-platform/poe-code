@@ -2,31 +2,42 @@ import path from "node:path";
 import { realpath } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-export async function assertSafeDistDirectory(packageDirectory, fileSystem = { realpath }) {
-  const distDirectory = path.join(packageDirectory, "dist");
-  let canonicalDistDirectory;
+export async function assertSafeOutputDirectory(
+  packageDirectory,
+  outputDirectory = path.join(packageDirectory, "dist"),
+  fileSystem = { realpath },
+) {
+  let existingOutputDirectory = outputDirectory;
+  let canonicalOutputDirectory;
 
-  try {
-    canonicalDistDirectory = await fileSystem.realpath(distDirectory);
-  } catch (error) {
-    if (error?.code === "ENOENT") {
-      return;
+  while (true) {
+    try {
+      canonicalOutputDirectory = await fileSystem.realpath(existingOutputDirectory);
+      break;
+    } catch (error) {
+      if (error?.code !== "ENOENT") {
+        throw error;
+      }
+      const parentDirectory = path.dirname(existingOutputDirectory);
+      if (parentDirectory === existingOutputDirectory) {
+        throw error;
+      }
+      existingOutputDirectory = parentDirectory;
     }
-    throw error;
   }
 
   const canonicalPackageDirectory = await fileSystem.realpath(packageDirectory);
-  const relativeDistDirectory = path.relative(canonicalPackageDirectory, canonicalDistDirectory);
+  const relativeOutputDirectory = path.relative(canonicalPackageDirectory, canonicalOutputDirectory);
 
   if (
-    relativeDistDirectory === ".." ||
-    relativeDistDirectory.startsWith(`..${path.sep}`) ||
-    path.isAbsolute(relativeDistDirectory)
+    relativeOutputDirectory === ".." ||
+    relativeOutputDirectory.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativeOutputDirectory)
   ) {
-    throw new Error("The dist directory must remain inside the package directory.");
+    throw new Error("The output directory must remain inside the package directory.");
   }
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  await assertSafeDistDirectory(process.cwd());
+  await assertSafeOutputDirectory(process.cwd());
 }

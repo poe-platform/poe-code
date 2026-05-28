@@ -2,6 +2,7 @@ import * as esbuild from "esbuild";
 import path from "node:path";
 import { cp, mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
+import { assertSafeOutputDirectory } from "../../../scripts/guard-package-dist.mjs";
 
 const packageDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const rootDir = path.resolve(packageDir, "../..");
@@ -102,6 +103,7 @@ if (!cliContents.startsWith("#!/usr/bin/env node")) {
   await writeFile(cliPath, `#!/usr/bin/env node\n${cliContents}`, "utf8");
 }
 
+await assertSafeOutputDirectory(packageDir, path.join(distDir, "templates"));
 await mkdir(path.join(distDir, "templates"), { recursive: true });
 await cp(
   path.join(rootDir, "packages", "agent-skill-config", "src", "templates", "terminal-pilot.md"),

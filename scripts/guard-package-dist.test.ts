@@ -2,9 +2,9 @@ import path from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 
-import { assertSafeDistDirectory } from "./guard-package-dist.mjs";
+import { assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 
-describe("assertSafeDistDirectory", () => {
+describe("assertSafeOutputDirectory", () => {
   it("rejects a dist symlink that escapes the package directory", async () => {
     const volume = Volume.fromJSON({
       "/repo/packages/example/src/index.ts": "export {};",
@@ -14,8 +14,8 @@ describe("assertSafeDistDirectory", () => {
     volume.symlinkSync("/outside", "/repo/packages/example/dist");
 
     await expect(
-      assertSafeDistDirectory("/repo/packages/example", fileSystem),
-    ).rejects.toThrow("dist directory must remain inside the package directory");
+      assertSafeOutputDirectory("/repo/packages/example", undefined, fileSystem),
+    ).rejects.toThrow("output directory must remain inside the package directory");
   });
 
   it("accepts an absent or local dist directory", async () => {
@@ -24,10 +24,27 @@ describe("assertSafeDistDirectory", () => {
     });
     const fileSystem = createFsFromVolume(volume).promises;
 
-    await expect(assertSafeDistDirectory("/repo/packages/example", fileSystem)).resolves.toBeUndefined();
+    await expect(assertSafeOutputDirectory("/repo/packages/example", undefined, fileSystem)).resolves.toBeUndefined();
 
     volume.mkdirSync(path.join("/repo/packages/example", "dist"));
 
-    await expect(assertSafeDistDirectory("/repo/packages/example", fileSystem)).resolves.toBeUndefined();
+    await expect(assertSafeOutputDirectory("/repo/packages/example", undefined, fileSystem)).resolves.toBeUndefined();
+  });
+
+  it("rejects a nested output symlink below a local dist directory", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/packages/example/dist/marker": "local",
+      "/outside/marker": "outside",
+    });
+    const fileSystem = createFsFromVolume(volume).promises;
+    volume.symlinkSync("/outside", "/repo/packages/example/dist/templates");
+
+    await expect(
+      assertSafeOutputDirectory(
+        "/repo/packages/example",
+        "/repo/packages/example/dist/templates",
+        fileSystem,
+      ),
+    ).rejects.toThrow("output directory must remain inside the package directory");
   });
 });

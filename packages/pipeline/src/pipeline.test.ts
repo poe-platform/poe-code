@@ -1228,6 +1228,13 @@ describe("parsePlan", () => {
     ).toThrow(/closing frontmatter delimiter/i);
   });
 
+  it.each([
+    ["kind", "kind: ralph", /kind.*pipeline/i],
+    ["version", "version: 2", /version.*1/i]
+  ])("rejects an explicit incompatible %s", (_field, declaration, expected) => {
+    expect(() => parsePlan([declaration, "tasks: []", ""].join("\n"))).toThrow(expected);
+  });
+
   it("parses a stepless task plan", () => {
     const plan = parsePlan(
       [

@@ -521,6 +521,12 @@ export function parsePlan(
     "teardown",
     "mcp"
   ]);
+  if (document.kind !== undefined && document.kind !== "pipeline") {
+    throw new Error('Invalid plan YAML: "kind" must be "pipeline".');
+  }
+  if (document.version !== undefined && document.version !== 1) {
+    throw new Error('Invalid plan YAML: "version" must be 1.');
+  }
 
   let extendsName = "default";
   if (document.extends !== undefined) {

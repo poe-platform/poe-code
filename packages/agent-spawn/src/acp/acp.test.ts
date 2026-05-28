@@ -63,6 +63,7 @@ let lastMockAcpClient: any;
 let lastMockAcpClientOptions: any;
 let mockPromptNotifications: any[] | null = null;
 let mockAcpClientConstructorError: Error | null = null;
+let mockNewSession: (() => Promise<{ sessionId: string }>) | null = null;
 
 vi.mock("@poe-code/poe-acp-client", () => {
   const initResponse = { protocolVersion: 1 };
@@ -89,7 +90,9 @@ vi.mock("@poe-code/poe-acp-client", () => {
 
   class MockAcpClient {
     initialize = vi.fn().mockResolvedValue(initResponse);
-    newSession = vi.fn().mockResolvedValue(newSessionResponse);
+    newSession = vi.fn().mockImplementation(() =>
+      mockNewSession ? mockNewSession() : Promise.resolve(newSessionResponse)
+    );
     loadSession = vi.fn().mockImplementation((sessionId: string) => {
       return Promise.resolve({ sessionId });
     });
@@ -103,6 +106,7 @@ vi.mock("@poe-code/poe-acp-client", () => {
         }
       };
     });
+    cancelSession = vi.fn().mockResolvedValue(undefined);
     dispose = vi.fn().mockResolvedValue(undefined);
     constructor(options: unknown) {
       acpLaunchOrder.push("client");
@@ -654,6 +658,7 @@ describe("spawnAcp", () => {
     lastMockAcpClientOptions = undefined;
     mockPromptNotifications = null;
     mockAcpClientConstructorError = null;
+    mockNewSession = null;
     skillBridgeMock.bridgeActiveSkills.mockReturnValue({
       runId: "run-id",
       spawnAgentId: "opencode",
@@ -681,6 +686,33 @@ describe("spawnAcp", () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toBe("Hello world!\n");
     expect(result.threadId).toBe("ses_test_123");
+  });
+
+  it("returns the stream replaced by native ACP middleware", async () => {
+    const redactMessages: AcpMiddleware = async (ctx, next) => {
+      expect(ctx.eventStream).toBeDefined();
+      await next();
+      const source = ctx.eventStream!;
+      ctx.eventStream = (async function* () {
+        for await (const event of source) {
+          yield event.event === "agent_message" ? { ...event, text: "redacted" } : event;
+        }
+      })();
+    };
+
+    const { events, done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "Say hello",
+      cwd: "/tmp/test",
+      middlewares: [redactMessages]
+    });
+
+    await expect(collect(events).then(stripMeta)).resolves.toEqual([
+      { event: "session_start", threadId: "ses_test_123" },
+      { event: "agent_message", text: "redacted" },
+      { event: "agent_message", text: "redacted" }
+    ]);
+    await expect(done).resolves.toMatchObject({ exitCode: 0 });
   });
 
   it("passes MCP servers to newSession", async () => {
@@ -895,6 +927,28 @@ describe("spawnAcp", () => {
         signal: controller.signal
       })
     ).toThrow("Agent spawn aborted");
+  });
+
+  it("does not prompt when aborted while creating an ACP session", async () => {
+    let resolveSession: ((value: { sessionId: string }) => void) | undefined;
+    mockNewSession = () =>
+      new Promise<{ sessionId: string }>((resolve) => {
+        resolveSession = resolve;
+      });
+    const controller = new AbortController();
+    const { done } = spawnAcp({
+      agentId: "opencode",
+      prompt: "do not send",
+      signal: controller.signal
+    });
+
+    await vi.waitFor(() => expect(lastMockAcpClient.newSession).toHaveBeenCalledTimes(1));
+    controller.abort();
+    resolveSession?.({ sessionId: "ses_after_abort" });
+
+    await expect(done).rejects.toMatchObject({ name: "AbortError" });
+    expect(lastMockAcpClient.prompt).not.toHaveBeenCalled();
+    expect(lastMockAcpClient.cancelSession).toHaveBeenCalledWith("ses_after_abort");
   });
 });
 

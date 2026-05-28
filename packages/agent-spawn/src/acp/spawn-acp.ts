@@ -216,6 +216,15 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
       };
     }
   };
+  ctx.eventStream = events;
+
+  const hasMiddlewares = options.middlewares !== undefined && options.middlewares.length > 0;
+  let resolveMiddlewaresApplied: (() => void) | undefined;
+  const middlewaresApplied = hasMiddlewares
+    ? new Promise<void>((resolve) => {
+        resolveMiddlewaresApplied = resolve;
+      })
+    : undefined;
 
   const done = (async (): Promise<SpawnResult> => {
     try {
@@ -242,6 +251,11 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
               } else {
                 const session = await client.newSession(cwd, mcpServers);
                 sessionId = session.sessionId;
+              }
+
+              if (aborted) {
+                await client.cancelSession(sessionId).catch(() => undefined);
+                throw createAbortError();
               }
 
               pushEvent({ event: "session_start", threadId: sessionId });
@@ -334,12 +348,28 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
         ...(ctx.logFile && !finalResult?.logFile ? { logFile: ctx.logFile } : {})
       };
     } finally {
+      resolveMiddlewaresApplied?.();
       cleanupResourcesForRun(manifest);
     }
   })();
 
+  const returnedEvents = hasMiddlewares
+    ? {
+        [Symbol.asyncIterator](): AsyncIterator<AcpEvent> {
+          let iterator: AsyncIterator<AcpEvent> | undefined;
+          return {
+            async next(): Promise<IteratorResult<AcpEvent>> {
+              await middlewaresApplied;
+              iterator ??= ctx.eventStream![Symbol.asyncIterator]();
+              return iterator.next();
+            }
+          };
+        }
+      }
+    : events;
+
   return {
-    events,
+    events: returnedEvents,
     done: observeAgentSpawn(
       {
         agent: resolvedId,

@@ -74,6 +74,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     }) as FileSystem["readFile"],
     symlink: (target, path) => fs.symlink(target, path),
     readlink: (path) => fs.readlink(path, { encoding: "utf8" }),
+    realpath: (path) => fs.realpath(path),
     writeFile: (path, data, opts) => fs.writeFile(path, data, opts),
     mkdir: (path, opts) => fs.mkdir(path, opts).then(() => {}),
     stat: (path) => fs.stat(path),

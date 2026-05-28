@@ -103,6 +103,9 @@ export function createDryRunFileSystem(
     async readlink(path: string): Promise<string> {
       return base.readlink(path);
     },
+    async realpath(path: string): Promise<string> {
+      return base.realpath(path);
+    },
     async mkdir(
       path: string,
       options?: { recursive?: boolean }

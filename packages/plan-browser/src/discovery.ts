@@ -18,6 +18,10 @@ function createDefaultFs(): DiscoveryFs {
         mtimeMs: stat.mtimeMs
       };
     },
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     mkdir: async (directoryPath, mkdirOptions) => {
       await fsPromises.mkdir(directoryPath, mkdirOptions);
     },

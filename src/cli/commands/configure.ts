@@ -309,6 +309,9 @@ function createOverlayFileSystem(base: FileSystem): {
     async readlink(filePath) {
       return base.readlink(filePath);
     },
+    async realpath(filePath) {
+      return base.realpath(filePath);
+    },
     async rename(from, to) {
       writes.set(to, await readOverlayText(from));
       writes.set(from, null);

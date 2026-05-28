@@ -1,11 +1,11 @@
 import path from "node:path";
-import { homedir } from "node:os";
 import type { Dirent } from "node:fs";
 import { open, readdir } from "node:fs/promises";
 import { createInterface } from "node:readline";
 import type { SessionUpdate } from "@poe-code/poe-acp-client";
 import { mapLegacyEventToSessionUpdates } from "@poe-code/poe-acp-client";
 import { renderSessionUpdateStream } from "./renderer.js";
+import { ensureSafeDefaultSpawnLogDir } from "./spawn-log-path.js";
 import type { AcpEvent } from "./types.js";
 
 const DEFAULT_LOG_LIMIT = 80;
@@ -140,8 +140,15 @@ export async function* readSpawnLog(filePath: string): AsyncIterable<SessionUpda
 }
 
 export async function listSpawnLogs(options: ListSpawnLogsOptions = {}): Promise<LogEntry[]> {
-  const logDir = path.join(homedir(), ".poe-code", "spawn-logs");
   const limit = normalizeLimit(options.limit);
+  let logDir: string;
+
+  try {
+    logDir = await ensureSafeDefaultSpawnLogDir(false);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return [];
+    throw error;
+  }
 
   let entries: Dirent[];
   try {

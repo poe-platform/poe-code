@@ -1,6 +1,6 @@
 import path from "node:path";
-import { homedir } from "node:os";
 import { mkdir, open, type FileHandle } from "node:fs/promises";
+import { ensureSafeDefaultSpawnLogDir, getDefaultSpawnLogDir } from "../spawn-log-path.js";
 import type { AcpEvent } from "../types.js";
 import type { AcpMiddleware, SpawnContext } from "../middleware.js";
 
@@ -45,7 +45,7 @@ function resolveLogFilePath(ctx: SpawnContext): string {
   if (ctx.logPath) {
     return ctx.logPath;
   }
-  const baseDir = ctx.logDir ?? path.join(homedir(), ".poe-code", "spawn-logs");
+  const baseDir = ctx.logDir ?? getDefaultSpawnLogDir();
   if (ctx.logFileName) {
     return path.join(baseDir, ctx.logFileName);
   }
@@ -64,9 +64,12 @@ class SpawnLogWriter {
 
   private readonly logDirPath: string;
 
+  private readonly usesDefaultLogDir: boolean;
+
   constructor(ctx: SpawnContext) {
     this.filePath = resolveLogFilePath(ctx);
     this.logDirPath = path.dirname(this.filePath);
+    this.usesDefaultLogDir = ctx.logPath === undefined && ctx.logDir === undefined;
   }
 
   async writeEvent(event: AcpEvent): Promise<void> {
@@ -109,7 +112,11 @@ class SpawnLogWriter {
     }
 
     try {
-      await mkdir(this.logDirPath, { recursive: true });
+      if (this.usesDefaultLogDir) {
+        await ensureSafeDefaultSpawnLogDir(true);
+      } else {
+        await mkdir(this.logDirPath, { recursive: true });
+      }
       this.fileHandle = await open(this.filePath, "a");
     } catch {
       this.isDisabled = true;

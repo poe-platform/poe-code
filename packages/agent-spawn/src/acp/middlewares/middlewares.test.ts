@@ -302,6 +302,24 @@ describe("acp/middlewares/spawnLog", () => {
     expect(files).toEqual(["20260320-123456-789-codex.jsonl"]);
   });
 
+  it("does not write default logs through a symlink outside state", async () => {
+    const stateDir = path.join(homedir(), ".poe-code");
+    const logDir = path.join(stateDir, "spawn-logs");
+    const outsideDir = path.join(homedir(), "outside");
+    await fs.mkdir(stateDir, { recursive: true });
+    await fs.mkdir(outsideDir, { recursive: true });
+    await fs.symlink(outsideDir, logDir);
+
+    const ctx = createContext({
+      events: [{ event: "agent_message", text: "external log probe" }],
+      startedAt: new Date("2026-03-20T12:34:56.789Z")
+    });
+
+    await applyMiddlewares([spawnLog], ctx);
+
+    await expect(fs.readdir(outsideDir)).resolves.toEqual([]);
+  });
+
   it("falls back to current time when startedAt is invalid", async () => {
     vi.useFakeTimers();
     try {

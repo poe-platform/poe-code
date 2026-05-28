@@ -87,6 +87,10 @@ function createFs(files: Record<string, string>): TestFs {
         mtimeMs: Number(stat.mtimeMs)
       };
     },
+    lstat: async (filePath: string) => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await rawFs.mkdir(filePath, options);
     },

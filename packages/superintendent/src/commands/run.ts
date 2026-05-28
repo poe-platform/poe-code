@@ -343,9 +343,14 @@ const configFs = {
     await fsPromises.mkdir(filePath, options);
   },
   unlink: (filePath: string) => fsPromises.unlink(filePath),
+  rename: (oldPath: string, newPath: string) => fsPromises.rename(oldPath, newPath),
   stat: async (filePath: string) => {
     const stat = await fsPromises.stat(filePath);
     return { mode: stat.mode };
+  },
+  lstat: async (filePath: string) => {
+    const stat = await fsPromises.lstat(filePath);
+    return { isSymbolicLink: () => stat.isSymbolicLink() };
   },
   readdir: (filePath: string) => fsPromises.readdir(filePath) as Promise<string[]>
 };
@@ -367,6 +372,10 @@ function createConfigResolutionFs(fs?: SuperintendentFileSystem): typeof configF
     },
     mkdir: async (filePath: string, options?: { recursive: boolean }): Promise<void> => {
       await fs.mkdir(filePath, options);
+    },
+    rename: (oldPath: string, newPath: string) => fs.rename(oldPath, newPath),
+    lstat: async (filePath: string) => {
+      return fs.lstat(filePath);
     }
   };
 }
@@ -1274,6 +1283,10 @@ function createDefaultFs(): SuperintendentFileSystem {
         isDirectory: () => stat.isDirectory(),
         mtimeMs: stat.mtimeMs
       };
+    },
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
     },
     mkdir: async (filePath: string, mkdirOptions?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, mkdirOptions);

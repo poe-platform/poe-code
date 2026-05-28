@@ -17,12 +17,14 @@ export type TerminalPilotInstallerFileSystem = {
     options?: { encoding: "utf8" }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive: boolean }): Promise<void>;
+  rename(oldPath: string, newPath: string): Promise<void>;
   unlink(path: string): Promise<void>;
   rm?(
     path: string,
     options?: { recursive?: boolean; force?: boolean }
   ): Promise<void>;
   stat(path: string): Promise<{ mode?: number }>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   readdir(path: string): Promise<string[]>;
   chmod?(path: string, mode: number): Promise<void>;
 };

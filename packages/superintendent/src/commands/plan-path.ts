@@ -1,5 +1,5 @@
 import path from "node:path";
-import { readFile, writeFile, mkdir, unlink, stat, readdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, rename, unlink, stat, lstat, readdir } from "node:fs/promises";
 import { S, defineCommand } from "toolcraft";
 import {
   planConfigScope,
@@ -13,8 +13,10 @@ const fs = {
   readFile: (p: string, encoding: "utf8") => readFile(p, encoding),
   writeFile: (p: string, content: string) => writeFile(p, content),
   mkdir: (p: string, options?: { recursive: boolean }) => mkdir(p, options).then(() => undefined) as Promise<void>,
+  rename: (oldPath: string, newPath: string) => rename(oldPath, newPath),
   unlink: (p: string) => unlink(p),
   stat: (p: string) => stat(p).then((s) => ({ mode: s.mode })),
+  lstat: (p: string) => lstat(p).then((s) => ({ isSymbolicLink: () => s.isSymbolicLink() })),
   readdir: (p: string) => readdir(p)
 };
 

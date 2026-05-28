@@ -110,6 +110,10 @@ function createSimulationFs(options: SimulationOptions): {
         mtimeMs: Number(stat.mtimeMs)
       };
     },
+    lstat: async (filePath) => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     unlink: async (filePath: string) => {
       await rawFs.unlink(filePath);
     },

@@ -80,6 +80,21 @@ describe("resolveConfig", () => {
     });
   });
 
+  it.each([
+    ["polling.interval_ms", { polling: { interval_ms: -1 } }, "positive integer"],
+    ["agent.max_retry_backoff_ms", { agent: { max_retry_backoff_ms: -1 } }, "non-negative integer"],
+    ["agent.max_concurrent_agents", { agent: { max_concurrent_agents: 0 } }, "positive integer"],
+    ["agent.max_turns", { agent: { max_turns: 0 } }, "positive integer"],
+  ])("rejects invalid %s", (_field, override, message) => {
+    expect(() => resolveConfig({
+      states: {
+        planned: { prompt: "Plan" },
+        done: { terminal: true }
+      },
+      ...override
+    }, "/repo")).toThrow(message);
+  });
+
   it("resolves $VAR values and expands ~ paths", () => {
     process.env.MAESTRO_TASKS = "/repo/tasks";
     process.env.MAESTRO_WORKSPACE = "~/maestro";

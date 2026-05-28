@@ -76,7 +76,7 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
     terminalStateNames: stateOrder.filter((name) => states[name]?.terminal === true),
     stateOrder,
     polling: {
-      intervalMs: readNumber(polling.interval_ms, 30_000)
+      intervalMs: readPositiveInteger(polling.interval_ms, 30_000, "polling.interval_ms")
     },
     workspace: {
       root: resolvePathValue(
@@ -87,9 +87,9 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
     agent: {
       service: readString(agent.service) ?? "codex",
       list: readString(resolveStringValue(agent.list)),
-      maxConcurrentAgents: readNumber(agent.max_concurrent_agents, 1),
-      maxTurns: readNumber(agent.max_turns, 20),
-      maxRetryBackoffMs: readNumber(agent.max_retry_backoff_ms, 300_000)
+      maxConcurrentAgents: readPositiveInteger(agent.max_concurrent_agents, 1, "agent.max_concurrent_agents"),
+      maxTurns: readPositiveInteger(agent.max_turns, 20, "agent.max_turns"),
+      maxRetryBackoffMs: readNonNegativeInteger(agent.max_retry_backoff_ms, 300_000, "agent.max_retry_backoff_ms")
     }
   };
 }
@@ -235,6 +235,22 @@ function readString(value: unknown): string | undefined {
 
 function readNumber(value: unknown, fallback: number): number {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
+}
+
+function readPositiveInteger(value: unknown, fallback: number, field: string): number {
+  const numberValue = readNumber(value, fallback);
+  if (!Number.isInteger(numberValue) || numberValue <= 0) {
+    throw new Error(`Expected "${field}" to be a positive integer.`);
+  }
+  return numberValue;
+}
+
+function readNonNegativeInteger(value: unknown, fallback: number, field: string): number {
+  const numberValue = readNumber(value, fallback);
+  if (!Number.isInteger(numberValue) || numberValue < 0) {
+    throw new Error(`Expected "${field}" to be a non-negative integer.`);
+  }
+  return numberValue;
 }
 
 function readOptionalString(value: unknown, field: string): string | undefined {

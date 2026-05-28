@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { get_encoding } from "tiktoken";
 import { BUILT_IN_CORPUS_ARTICLES, CORPUS_ARTICLE_SEPARATOR } from "./corpus.js";
 import { runCli } from "./cli.js";
 import { tokenfill } from "./tokenfill.js";
@@ -73,6 +74,20 @@ describe("tokenizer wrapper", () => {
     const truncated = tokenizer.truncate(text, 5);
 
     expect(tokenizer.count(truncated)).toBe(5);
+  });
+
+  it("rejects truncation when a token prefix would corrupt Unicode text", () => {
+    vi.mocked(get_encoding).mockReturnValueOnce({
+      encode: (text: string): Uint32Array =>
+        text === "👨" ? Uint32Array.from([1, 2]) : Uint32Array.from([3]),
+      decode: () => Uint8Array.from([0xf0, 0x9f]),
+      free: vi.fn()
+    } as never);
+    const tokenizer = createTokenizer();
+
+    expect(() => tokenizer.truncate("👨", 1)).toThrow(
+      "Cannot truncate text to exactly 1 tokens without corrupting UTF-8 text."
+    );
   });
 });
 

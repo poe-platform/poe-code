@@ -2162,6 +2162,95 @@ describe("createSDK", () => {
     });
   });
 
+  it("preserves declared __proto__ parameters through SDK dispatch", async () => {
+    const handler = vi.fn(async ({ params }: { params: Record<string, unknown> }) => params);
+    const paramsShape = Object.fromEntries([["__proto__", S.String()]]) as Record<
+      string,
+      ReturnType<typeof S.String>
+    >;
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "probe",
+          scope: ["sdk"],
+          params: S.Object(paramsShape),
+          handler
+        })
+      ]
+    });
+
+    const sdk = createSDK(root) as { probe(params: { proto: string }): Promise<unknown> };
+    await sdk.probe({ proto: "visible" });
+
+    const params = handler.mock.calls[0]?.[0].params;
+    expect(Object.prototype.hasOwnProperty.call(params, "__proto__")).toBe(true);
+    expect(params?.["__proto__"]).toBe("visible");
+  });
+
+  it("rejects SDK parameters that normalize to the same member name", () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "submit",
+          scope: ["sdk"],
+          params: S.Object({
+            fooBar: S.String(),
+            foo_bar: S.String()
+          }),
+          handler: async ({ params }) => params
+        })
+      ]
+    });
+
+    expect(() => createSDK(root)).toThrow(
+      'Parameters "fooBar" and "foo_bar" use conflicting SDK member "fooBar".'
+    );
+  });
+
+  it("rejects commands that normalize to the same SDK member name", () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "runTask",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => "camel"
+        }),
+        defineCommand({
+          name: "run_task",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => "snake"
+        })
+      ]
+    });
+
+    expect(() => createSDK(root)).toThrow(
+      'SDK members "runTask" and "run_task" use conflicting member "runTask".'
+    );
+  });
+
+  it("rejects a root SDK command named then", () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineCommand({
+          name: "then",
+          scope: ["sdk"],
+          params: S.Object({}),
+          handler: async () => "reachable"
+        })
+      ]
+    });
+
+    expect(() => createSDK(root)).toThrow(
+      'SDK member "then" uses reserved root member "then".'
+    );
+  });
+
   it("treats required array params as required in the SDK even when CLI-only helper flags make the direct param optional", async () => {
     const root = defineGroup({
       name: "root",

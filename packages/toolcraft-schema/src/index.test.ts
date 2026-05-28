@@ -574,6 +574,20 @@ describe("toolcraft-schema", () => {
     ).toThrow("OneOf schema requires at least one branch");
   });
 
+  it("rejects oneOf branches that declare the discriminator field", () => {
+    expect(() =>
+      S.OneOf({
+        discriminator: "kind",
+        branches: {
+          text: S.Object({
+            kind: S.Enum(["custom"] as const),
+            value: S.String(),
+          }),
+        },
+      })
+    ).toThrow('OneOf branch "text" must not declare discriminator field "kind".');
+  });
+
   it("rejects union schemas without branches at runtime", () => {
     expect(() => S.Union([])).toThrow("Union schema requires at least one branch");
   });

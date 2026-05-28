@@ -22,19 +22,28 @@ export function getRequiredKeyFingerprint(schema: ObjectSchema<any>): string {
 }
 
 function assertUniqueRequiredKeyFingerprints(branches: readonly ObjectSchema<any>[]): void {
-  const fingerprints = new Map<string, number[]>();
+  const fingerprints = new Map<string, { display: string; indices: number[] }>();
 
   branches.forEach((branch, index) => {
-    const fingerprint = getRequiredKeyFingerprint(branch);
-    const indices = fingerprints.get(fingerprint) ?? [];
-    indices.push(index);
-    fingerprints.set(fingerprint, indices);
+    const requiredKeys = getRequiredKeys(branch);
+    const fingerprint = JSON.stringify(requiredKeys);
+    const existing = fingerprints.get(fingerprint);
+
+    if (existing === undefined) {
+      fingerprints.set(fingerprint, {
+        display: requiredKeys.join("+"),
+        indices: [index],
+      });
+      return;
+    }
+
+    existing.indices.push(index);
   });
 
-  for (const [fingerprint, indices] of fingerprints) {
+  for (const { display, indices } of fingerprints.values()) {
     if (indices.length > 1) {
       throw new Error(
-        `Union branches [${indices.join(", ")}] share required-key fingerprint "${fingerprint}". Each branch must require a distinct set of keys.`
+        `Union branches [${indices.join(", ")}] share required-key fingerprint "${display}". Each branch must require a distinct set of keys.`
       );
     }
   }

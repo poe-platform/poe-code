@@ -17,7 +17,12 @@ export function resolveScope<S extends ScopeSchema>(
     const field = schema[key];
     const envValue = resolveEnvValue(field, env, key);
     const fileValue = resolveFileValue(field, fileValues?.[key], key);
-    defineDataProperty(resolved, key, (envValue ?? fileValue ?? field.default) as InferConfig<S>[typeof key]);
+    const value = envValue ?? fileValue;
+    defineDataProperty(
+      resolved,
+      key,
+      (value === undefined ? cloneValue(field.default) : value) as InferConfig<S>[typeof key]
+    );
   }
 
   return resolved;
@@ -30,6 +35,22 @@ function defineDataProperty(object: object, key: string, value: unknown): void {
     value,
     writable: true
   });
+}
+
+function cloneValue<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((entry) => cloneValue(entry)) as T;
+  }
+
+  if (!value || typeof value !== "object") {
+    return value;
+  }
+
+  const clone = Object.create(Object.getPrototypeOf(value)) as Record<string, unknown>;
+  for (const [key, entry] of Object.entries(value)) {
+    defineDataProperty(clone, key, cloneValue(entry));
+  }
+  return clone as T;
 }
 
 function resolveEnvValue<T extends SchemaField>(
@@ -84,7 +105,7 @@ function coerceNumber(value: unknown): number | undefined {
   }
 
   const parsed = Number(value);
-  return Number.isNaN(parsed) ? undefined : parsed;
+  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 function coerceBoolean(value: unknown): boolean | undefined {

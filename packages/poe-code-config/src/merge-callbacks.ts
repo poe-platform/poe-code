@@ -85,7 +85,12 @@ function mergeCallbacks<T extends object>(
         const userResult = userCallback.apply(this, args);
 
         try {
-          addedCallback.apply(this, args);
+          const addedResult = addedCallback.apply(this, args);
+          if (isPromiseLike(addedResult)) {
+            void addedResult.catch((error) => {
+              console.warn(`Added callback ${key} failed`, error);
+            });
+          }
         } catch (error) {
           console.warn(`Added callback ${key} failed`, error);
         }
@@ -99,4 +104,8 @@ function mergeCallbacks<T extends object>(
   }
 
   return result as unknown as T;
+}
+
+function isPromiseLike(value: unknown): value is PromiseLike<unknown> & { catch(callback: (error: unknown) => void): unknown } {
+  return Boolean(value && typeof value === "object" && "catch" in value && typeof value.catch === "function");
 }

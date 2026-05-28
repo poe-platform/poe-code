@@ -39,6 +39,20 @@ describe("runtime config", () => {
     });
   });
 
+  it("does not expose mutable runtime backend defaults", () => {
+    expect(() => {
+      (runtimeConfigScope.schema.type as { default: string }).default = "docker";
+    }).toThrow();
+    expect(resolveScope(runtimeConfigScope.schema, undefined, {}).type).toBe("host");
+  });
+
+  it("returns independent nested runner defaults", () => {
+    const first = resolveScope(runtimeConfigScope.schema, undefined, {}).runner;
+    first.workspace?.exclude?.push("secret.txt");
+
+    expect(resolveScope(runtimeConfigScope.schema, undefined, {}).runner.workspace?.exclude).not.toContain("secret.txt");
+  });
+
   it("parses runner scope fields", () => {
     expect(
       parseRunner({
@@ -189,6 +203,19 @@ describe("runtime config", () => {
     expect(() =>
       parseRuntime({ type: "e2b", template_id: "tmpl_123", workspace_dir: "workspace" })
     ).toThrow("workspace_dir: expected an absolute sandbox path");
+  });
+
+  it("rejects empty docker mount sources", () => {
+    expect(() => parseRuntime({ type: "docker", mounts: [{ source: "", target: "/workspace" }] })).toThrow(
+      "mounts[0].source: expected a non-empty string."
+    );
+  });
+
+  it("preserves __proto__ build argument keys", () => {
+    const runtime = parseRuntime(JSON.parse('{"type":"docker","build_args":{"__proto__":"value"}}'));
+
+    expect(Object.hasOwn(runtime.build_args, "__proto__")).toBe(true);
+    expect(runtime.build_args.__proto__).toBe("value");
   });
 
   it("resolves dockerfile and build context defaults when a docker runtime builds from a Dockerfile", () => {

@@ -77,6 +77,23 @@ describe("mergePipelineCallbacks", () => {
     warn.mockRestore();
   });
 
+  it("observes rejected added callback promises without rejecting the user path", async () => {
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    let rejectAdded: ((error: Error) => void) | undefined;
+    const merged = mergePipelineCallbacks(
+      { onPlanResolved: vi.fn() },
+      { onPlanResolved: () => new Promise((_resolve, reject) => { rejectAdded = reject; }) }
+    );
+
+    expect(() => merged?.onPlanResolved?.({ planPath: "/tmp/plan.md", done: 0, failed: 0, open: 1, total: 1 })).not.toThrow();
+    rejectAdded?.(new Error("added async failed"));
+    await Promise.resolve();
+    expect(warn).toHaveBeenCalledTimes(1);
+    expect(warn.mock.calls[0]?.[0]).toContain("onPlanResolved");
+
+    warn.mockRestore();
+  });
+
   it("uses only-user and only-added callbacks directly", () => {
     const onlyUser: PipelineCallbackFields["onTaskStart"] = vi.fn();
     const onlyAdded: PipelineCallbackFields["onTaskComplete"] = vi.fn();

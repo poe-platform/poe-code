@@ -571,6 +571,15 @@ describe("collectEnvOverrides", () => {
     expect(result.entries).toEqual([]);
   });
 
+  it("skips non-finite number strings", () => {
+    const result = collectEnvOverrides([extraScope], {
+      POE_TIMEOUT: "Infinity"
+    });
+
+    expect(result.document).toEqual({});
+    expect(result.entries).toEqual([]);
+  });
+
   it("collects an environment override for a __proto__ schema field", () => {
     const schema = Object.fromEntries([
       ["__proto__", { type: "string", default: "", env: "PROTO_VALUE", doc: "Proto field" }]
@@ -1043,6 +1052,19 @@ describe("resolveScope", () => {
       timeout: 30,
       enabled: false
     });
+  });
+
+  it("ignores non-finite number env values", () => {
+    const schema = {
+      timeout: {
+        type: "number" as const,
+        default: 30,
+        env: "POE_TIMEOUT",
+        doc: "Timeout"
+      }
+    };
+
+    expect(resolveScope(schema, undefined, { POE_TIMEOUT: "Infinity" })).toEqual({ timeout: 30 });
   });
 
   it("falls back to file values when env coercion fails", () => {

@@ -135,7 +135,7 @@ function coerceEnvValue(
       return undefined;
     }
     const parsed = Number(raw);
-    return Number.isNaN(parsed) ? undefined : parsed;
+    return Number.isFinite(parsed) ? parsed : undefined;
   }
   if (type === "json") {
     try {

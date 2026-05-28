@@ -191,6 +191,23 @@ describe("configured services", () => {
     expect(writeSpy).not.toHaveBeenCalled();
   });
 
+  it("does not load an arbitrary apiShape string as typed metadata", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"configured_services":{"codex":{"provider":"poe","apiShape":"attacker-shape","files":[]}}}\n'
+      },
+      homeDir
+    );
+
+    await expect(loadConfiguredServices({ fs, filePath: configPath })).resolves.toEqual({
+      codex: {
+        provider: "poe",
+        apiShape: "openai-responses",
+        files: []
+      }
+    });
+  });
+
   it("does not rewrite or warn after apiShape migration has already run", async () => {
     const fs = createMockFs(
       {

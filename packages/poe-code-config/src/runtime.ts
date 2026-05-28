@@ -72,7 +72,7 @@ export interface RuntimeResolveResult {
 
 type RuntimeResolver = (input: { cwd: string; runtime: RuntimeConfig }) => RuntimeResolveResult;
 
-export const runtimeConfigScope = {
+export const runtimeConfigScope = deepFreeze({
   scope: "runtime",
   schema: {
     type: {
@@ -174,7 +174,7 @@ export const runtimeConfigScope = {
       doc: "Hours to keep an E2B sandbox alive after job exit"
     }
   }
-} satisfies ScopeDefinition<Record<string, SchemaField>>;
+} satisfies ScopeDefinition<Record<string, SchemaField>>);
 
 export function parseRunner(raw: unknown): RunnerScope {
   if (raw === undefined) {
@@ -425,7 +425,7 @@ function parseBuildArgs(value: unknown): Record<string, string> {
     if (typeof entry !== "string") {
       throw new Error(`build_args.${key}: expected a string.`);
     }
-    parsed[key] = entry;
+    defineDataProperty(parsed, key, entry);
   }
   return parsed;
 }
@@ -447,6 +447,9 @@ function parseMounts(value: unknown): RuntimeMount[] {
     const target = record.target;
     if (typeof source !== "string") {
       throw new Error(`mounts[${index}].source: expected a string.`);
+    }
+    if (source.trim().length === 0) {
+      throw new Error(`mounts[${index}].source: expected a non-empty string.`);
     }
     if (typeof target !== "string") {
       throw new Error(`mounts[${index}].target: expected a string.`);
@@ -471,6 +474,27 @@ function parseOptionalString(value: unknown): string | undefined {
     return undefined;
   }
   return value;
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
+}
+
+function deepFreeze<T>(value: T): T {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) {
+    return value;
+  }
+
+  for (const entry of Object.values(value)) {
+    deepFreeze(entry);
+  }
+
+  return Object.freeze(value);
 }
 
 function parseOptionalStringArray(value: unknown, key = ""): string[] | undefined {

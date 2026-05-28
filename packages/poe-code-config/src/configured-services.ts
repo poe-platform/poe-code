@@ -121,7 +121,7 @@ async function migrateConfiguredServicesIfNeeded(
       needsMigration = true;
     }
 
-    if (typeof entry.apiShape !== "string") {
+    if (!isApiShape(entry.apiShape)) {
       const apiShape = deriveApiShape({
         service,
         provider,
@@ -177,7 +177,7 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
 
     defineDataProperty(entries, key, normalizeConfiguredServiceMetadata({
       provider: typeof entry.provider === "string" ? entry.provider : "poe",
-      apiShape: typeof entry.apiShape === "string" ? (entry.apiShape as ApiShapeId) : undefined,
+      apiShape: isApiShape(entry.apiShape) ? entry.apiShape : undefined,
       files: Array.isArray(entry.files) ? entry.files : []
     }));
   }
@@ -285,6 +285,15 @@ function createInvalidBackupPath(filePath: string): string {
 
 function omitUndefined<T extends Record<string, unknown>>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined)) as T;
+}
+
+function isApiShape(value: unknown): value is ApiShapeId {
+  return (
+    value === "openai-chat-completions" ||
+    value === "openai-responses" ||
+    value === "anthropic-messages" ||
+    value === "google-generations"
+  );
 }
 
 function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {

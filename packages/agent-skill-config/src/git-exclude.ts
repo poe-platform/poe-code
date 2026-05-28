@@ -44,6 +44,12 @@ function markers(runId: string, markerPrefix: string): { begin: string; end: str
   };
 }
 
+function assertSingleLine(value: string, label: string): void {
+  if (value.includes("\n") || value.includes("\r")) {
+    throw new Error(`${label} must be a single line`);
+  }
+}
+
 function readExcludeFile(excludePath: string): string | undefined {
   try {
     return fs.readFileSync(excludePath, "utf8");
@@ -97,6 +103,11 @@ export function appendExcludeBlock(
   entries: string[],
   opts?: { markerPrefix?: string }
 ): void {
+  assertSingleLine(runId, "runId");
+  assertSingleLine(opts?.markerPrefix ?? defaultMarkerPrefix, "markerPrefix");
+  for (const entry of entries) {
+    assertSingleLine(entry, "exclude entry");
+  }
   const excludePath = resolveExcludePath(cwd);
   if (excludePath === undefined) {
     return;
@@ -116,6 +127,8 @@ export function removeExcludeBlock(
   runId: string,
   opts?: { markerPrefix?: string }
 ): void {
+  assertSingleLine(runId, "runId");
+  assertSingleLine(opts?.markerPrefix ?? defaultMarkerPrefix, "markerPrefix");
   const excludePath = resolveExcludePath(cwd);
   if (excludePath === undefined) {
     return;

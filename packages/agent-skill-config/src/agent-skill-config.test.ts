@@ -101,6 +101,12 @@ describe("supportedAgents", () => {
   it("includes supported agent ids", () => {
     expect(supportedAgents).toEqual(["claude-code", "codex", "gemini-cli", "opencode", "goose"]);
   });
+
+  it("does not expose mutable agent config state", () => {
+    const config = getAgentConfig("codex")!;
+    config.localSkillDir = ".redirected/skills";
+    expect(getAgentConfig("codex")?.localSkillDir).toBe(".codex/skills");
+  });
 });
 
 describe("resolveAgentSupport", () => {
@@ -115,21 +121,21 @@ describe("resolveAgentSupport", () => {
     const result = resolveAgentSupport("claude-code", fixtureRegistry);
     expect(result.status).toBe("supported");
     expect(result.id).toBe("claude-code");
-    expect(result.config).toBe(claudeConfig);
+    expect(result.config).toEqual(claudeConfig);
   });
 
   it("returns supported for aliases resolved via resolveAgentId", () => {
     const result = resolveAgentSupport("CLAUDE", fixtureRegistry);
     expect(result.status).toBe("supported");
     expect(result.id).toBe("claude-code");
-    expect(result.config).toBe(claudeConfig);
+    expect(result.config).toEqual(claudeConfig);
   });
 
   it("returns supported for goose", () => {
     const result = resolveAgentSupport("goose", fixtureRegistry);
     expect(result.status).toBe("supported");
     expect(result.id).toBe("goose");
-    expect(result.config).toBe(gooseConfig);
+    expect(result.config).toEqual(gooseConfig);
   });
 
   it("returns unknown when no agent matches", () => {
@@ -249,6 +255,19 @@ describe("configure", () => {
     expect(content).toContain("# poe-code generate");
   });
 
+  it("does not overwrite a user-authored bundled filename", async () => {
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+    await memFs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "user skill", { encoding: "utf8" });
+
+    await expect(configure("claude-code", { fs: memFs, homeDir, cwd })).rejects.toThrow("already exists");
+    await expect(memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, "utf8")).resolves.toBe("user skill");
+  });
+
+  it("is idempotent when the bundled skill is already installed", async () => {
+    await configure("claude-code", { fs: memFs, homeDir, cwd });
+    await expect(configure("claude-code", { fs: memFs, homeDir, cwd })).resolves.toBeUndefined();
+  });
+
   it("creates goose skill directories using the shared .agents convention", async () => {
     await configure("goose", { fs: memFs, homeDir, cwd });
     await configure("goose", { fs: memFs, homeDir, cwd, scope: "local" });
@@ -311,6 +330,22 @@ describe("unconfigure", () => {
     await unconfigure("claude-code", { fs: memFs, homeDir, cwd });
 
     await expect(memFs.stat(`${homeDir}/.claude/skills`)).rejects.toThrow("ENOENT");
+  });
+
+  it("removes its bundled skill during ordinary unconfigure", async () => {
+    await configure("claude-code", { fs: memFs, homeDir, cwd });
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd });
+
+    await expect(memFs.stat(`${homeDir}/.claude/skills/poe-generate.md`)).rejects.toThrow("ENOENT");
+  });
+
+  it("preserves an unowned skill during ordinary unconfigure", async () => {
+    vol.mkdirSync(`${homeDir}/.claude/skills`, { recursive: true });
+    await memFs.writeFile(`${homeDir}/.claude/skills/poe-generate.md`, "user skill", { encoding: "utf8" });
+
+    await unconfigure("claude-code", { fs: memFs, homeDir, cwd });
+
+    await expect(memFs.readFile(`${homeDir}/.claude/skills/poe-generate.md`, "utf8")).resolves.toBe("user skill");
   });
 
   it("removes local skill directory in cwd when force is set", async () => {
@@ -385,6 +420,22 @@ describe("installSkill", () => {
         encoding: "utf8"
       })
     ).resolves.toBe("# Goose skill");
+  });
+
+  it("rejects skill names that escape the configured skill directory", async () => {
+    await expect(
+      installSkill("claude-code", { name: "../escaped", content: "outside" }, { fs: memFs, cwd, homeDir, scope: "local" })
+    ).rejects.toThrow("skill name");
+  });
+
+  it("does not overwrite an existing user-installed skill", async () => {
+    vol.mkdirSync(`${cwd}/.claude/skills/existing`, { recursive: true });
+    await memFs.writeFile(`${cwd}/.claude/skills/existing/SKILL.md`, "user", { encoding: "utf8" });
+
+    await expect(
+      installSkill("claude-code", { name: "existing", content: "generated" }, { fs: memFs, cwd, homeDir, scope: "local" })
+    ).rejects.toThrow("already exists");
+    await expect(memFs.readFile(`${cwd}/.claude/skills/existing/SKILL.md`, "utf8")).resolves.toBe("user");
   });
 });
 

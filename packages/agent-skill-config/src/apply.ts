@@ -24,6 +24,18 @@ function toHomeRelative(localSkillDir: string): string {
 
 const bundledSkillTemplateIds = ["poe-generate.md"] as const;
 
+async function pathExists(fs: ApplyOptions["fs"], targetPath: string): Promise<boolean> {
+  try {
+    await fs.stat(targetPath);
+    return true;
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") {
+      return false;
+    }
+    throw error;
+  }
+}
+
 export async function configure(agentId: string, options: ApplyOptions): Promise<void> {
   const support = resolveAgentSupport(agentId);
   if (support.status !== "supported") {
@@ -36,6 +48,17 @@ export async function configure(agentId: string, options: ApplyOptions): Promise
   const skillDir =
     scope === "global" ? config.globalSkillDir : toHomeRelative(config.localSkillDir);
   const homeDir = scope === "global" ? options.homeDir : options.cwd;
+  const templateLoader = createTemplateLoader();
+
+  for (const templateId of bundledSkillTemplateIds) {
+    const targetPath = `${scope === "global" ? options.homeDir : options.cwd}/${skillDir.slice(2)}/${templateId}`;
+    if (await pathExists(options.fs, targetPath)) {
+      const existing = await options.fs.readFile(targetPath, "utf8");
+      if (existing !== (await templateLoader(templateId))) {
+        throw new Error(`Skill already exists: ${targetPath}`);
+      }
+    }
+  }
 
   await runMutations(
     [
@@ -56,7 +79,7 @@ export async function configure(agentId: string, options: ApplyOptions): Promise
       homeDir,
       dryRun: options.dryRun,
       observers: options.observers,
-      templates: createTemplateLoader()
+      templates: templateLoader
     }
   );
 }
@@ -76,9 +99,27 @@ export async function unconfigure(
   const skillDir =
     scope === "global" ? config.globalSkillDir : toHomeRelative(config.localSkillDir);
   const homeDir = scope === "global" ? options.homeDir : options.cwd;
+  const templateLoader = createTemplateLoader();
+  const removeBundledSkills = [];
+
+  for (const templateId of bundledSkillTemplateIds) {
+    const targetPath = `${scope === "global" ? options.homeDir : options.cwd}/${skillDir.slice(2)}/${templateId}`;
+    if (await pathExists(options.fs, targetPath)) {
+      const existing = await options.fs.readFile(targetPath, "utf8");
+      if (existing === (await templateLoader(templateId))) {
+        removeBundledSkills.push(
+          fileMutation.remove({
+            target: `${skillDir}/${templateId}`,
+            label: `Remove bundled skill ${templateId} from ${skillDir}`
+          })
+        );
+      }
+    }
+  }
 
   await runMutations(
     [
+      ...removeBundledSkills,
       fileMutation.removeDirectory({
         path: skillDir,
         force: options.force,
@@ -127,12 +168,29 @@ export async function installSkill(
   const scope = options.scope ?? "local";
   const config = support.config!;
 
+  if (
+    skill.name.length === 0 ||
+    skill.name === "." ||
+    skill.name === ".." ||
+    skill.name.includes("/") ||
+    skill.name.includes("\\") ||
+    skill.name.includes("\n") ||
+    skill.name.includes("\r")
+  ) {
+    throw new Error(`Invalid skill name: ${skill.name}`);
+  }
+
   // Use home-relative paths for mutations (same pattern as configure/unconfigure)
   const skillDir =
     scope === "global" ? config.globalSkillDir : toHomeRelative(config.localSkillDir);
   const skillFolderPath = `${skillDir}/${skill.name}`;
   const skillFilePath = `${skillFolderPath}/SKILL.md`;
   const displayPath = `${scope === "global" ? config.globalSkillDir : config.localSkillDir}/${skill.name}/SKILL.md`;
+  const absoluteSkillPath = `${scope === "global" ? options.homeDir : options.cwd}/${skillFilePath.slice(2)}`;
+
+  if (await pathExists(options.fs, absoluteSkillPath)) {
+    throw new Error(`Skill already exists: ${displayPath}`);
+  }
 
   await runMutations(
     [

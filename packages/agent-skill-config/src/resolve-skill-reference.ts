@@ -24,7 +24,14 @@ interface SearchTier {
 }
 
 function isMalformedSegment(segment: string): boolean {
-  return segment.length === 0 || segment !== segment.trim();
+  return (
+    segment.length === 0 ||
+    segment !== segment.trim() ||
+    segment === "." ||
+    segment === ".." ||
+    segment.includes("\n") ||
+    segment.includes("\r")
+  );
 }
 
 function isDirectory(targetPath: string): boolean {

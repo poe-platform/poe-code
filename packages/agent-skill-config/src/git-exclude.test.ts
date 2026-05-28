@@ -62,6 +62,14 @@ describe("git exclude blocks", () => {
     );
   });
 
+  it("rejects multiline run identifiers", () => {
+    expect(() => appendExcludeBlock(cwd, "run\nextra", [".poe-code/skills/run"])).toThrow("single line");
+  });
+
+  it("rejects multiline exclude entries", () => {
+    expect(() => appendExcludeBlock(cwd, "run-1", [".poe-code/skills/helper\nsecret.env"])).toThrow("single line");
+  });
+
   it("uses an optional marker prefix for sibling bridge features", () => {
     appendExcludeBlock(cwd, "run-1", [".codex/hooks.json"], {
       markerPrefix: "custom-prefix"

@@ -929,6 +929,22 @@ describe("spawnAcp", () => {
     ).toThrow("Agent spawn aborted");
   });
 
+  it("rejects runtime overrides unsupported by native ACP spawning", () => {
+    expect(() =>
+      spawnAcp({
+        agentId: "opencode",
+        prompt: "test",
+        runtime: "docker",
+        runtimeImage: "poe-code:test",
+        detach: true,
+        mountPoeCode: true,
+        runnerSync: "both"
+      })
+    ).toThrow("spawnAcp does not support runtime overrides; use spawnStreaming instead.");
+
+    expect(lastMockAcpClient).toBeUndefined();
+  });
+
   it("does not prompt when aborted while creating an ACP session", async () => {
     let resolveSession: ((value: { sessionId: string }) => void) | undefined;
     mockNewSession = () =>

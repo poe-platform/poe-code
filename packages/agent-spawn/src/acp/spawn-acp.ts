@@ -88,6 +88,17 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
     throw createAbortError();
   }
 
+  if (
+    options.runtime !== undefined ||
+    options.runtimeImage !== undefined ||
+    options.runtimeTemplate !== undefined ||
+    options.detach !== undefined ||
+    options.mountPoeCode !== undefined ||
+    options.runnerSync !== undefined
+  ) {
+    throw new Error("spawnAcp does not support runtime overrides; use spawnStreaming instead.");
+  }
+
   const resolvedId = resolveAgentId(options.agentId);
   if (!resolvedId) {
     throw new Error(`Unknown agent "${options.agentId}".`);

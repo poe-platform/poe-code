@@ -42,6 +42,12 @@ describe("runMaestro", () => {
     vi.useRealTimers();
   });
 
+  it("does not publish an unimplemented experiment workflow driver", async () => {
+    const publicApi = await import("./index.js");
+
+    expect(publicApi).not.toHaveProperty("experimentDriver");
+  });
+
   it("resolves the default named workflow at the repository root", () => {
     expect(resolveWorkflowPath("default", "/repo")).toBe("/repo/WORKFLOW.md");
   });

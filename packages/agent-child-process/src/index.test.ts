@@ -595,6 +595,35 @@ describe("@poe-code/agent-child-process", () => {
     });
   });
 
+  it("preserves command diagnostics when the agent follow-up rejects", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const runAgent = vi
+      .fn<AgentChildProcessRunAgent>()
+      .mockRejectedValue(new Error("agent unavailable"));
+    const resultPromise = execFile("npm", ["test"], {
+      spawnProcess,
+      runAgent,
+      onExit: {
+        agent: "codex",
+        prompt: "Fix this"
+      }
+    });
+
+    finish(children[0]!, { stderr: "original failure", exitCode: 1 });
+
+    await expect(resultPromise).rejects.toMatchObject({
+      name: "AgentChildProcessError",
+      message: "Agent follow-up failed",
+      result: {
+        exitCode: 1,
+        stderr: "original failure"
+      },
+      cause: {
+        message: "agent unavailable"
+      }
+    });
+  });
+
   it("keeps agent non-zero exits separate from the command exit code", async () => {
     const { children, spawnProcess } = createSpawnHarness();
     const runAgent = vi.fn<AgentChildProcessRunAgent>().mockResolvedValue({

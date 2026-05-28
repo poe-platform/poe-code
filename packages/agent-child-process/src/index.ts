@@ -307,13 +307,20 @@ async function maybeRunAgent(
   }
 
   const runAgent = options.runAgent ?? defaultRunAgent;
-  const agentResult = await runAgent({
-    agent: policy.agent,
-    prompt: buildAgentPrompt(policy, result.attempts[0], options.context),
-    cwd: options.cwd,
-    signal: options.signal,
-    ...(policy.model !== undefined ? { model: policy.model } : {})
-  });
+  let agentResult: SpawnResult;
+  try {
+    agentResult = await runAgent({
+      agent: policy.agent,
+      prompt: buildAgentPrompt(policy, result.attempts[0], options.context),
+      cwd: options.cwd,
+      signal: options.signal,
+      ...(policy.model !== undefined ? { model: policy.model } : {})
+    });
+  } catch (error) {
+    throw new AgentChildProcessError("Agent follow-up failed", result, {
+      cause: error
+    });
+  }
 
   return {
     ...result,

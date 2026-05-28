@@ -108,4 +108,19 @@ describe("plan actions", () => {
       .rejects.toThrow("Archive destination already exists");
     await expect(fs.readFile("/repo/docs/plans/archive/plan.md", "utf8")).resolves.toBe("# Historic");
   });
+
+  it("removes a newly created archive directory when moving fails", async () => {
+    const raw = createMemFs({ "/repo/docs/plans/plan.md": "# Current" });
+    const fs: ActionFs = {
+      ...raw,
+      rename: async () => { throw new Error("move failed"); }
+    };
+
+    await expect(archivePlan({ absolutePath: "/repo/docs/plans/plan.md" }, fs))
+      .rejects.toThrow("move failed");
+    await expect(raw.readFile("/repo/docs/plans/plan.md", "utf8")).resolves.toBe("# Current");
+    await expect(raw.readFile("/repo/docs/plans/archive/plan.md", "utf8")).rejects.toThrow();
+    await expect((raw as unknown as { readdir(path: string): Promise<string[]> }).readdir("/repo/docs/plans/archive"))
+      .rejects.toThrow();
+  });
 });

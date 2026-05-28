@@ -9,6 +9,7 @@ function createDefaultFs(): DiscoveryFs {
     readFile: fsPromises.readFile as DiscoveryFs["readFile"],
     writeFile: fsPromises.writeFile as DiscoveryFs["writeFile"],
     readdir: fsPromises.readdir,
+    realpath: fsPromises.realpath,
     stat: async (filePath) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -134,6 +135,20 @@ async function discoverSharedPlans(options: {
 }): Promise<PlanEntry[]> {
   const displayDir = await resolveSharedPlanDirectory(options);
   const absoluteDir = resolveAbsoluteDirectory(displayDir, options.cwd, options.homeDir);
+  const canonicalDir = await options.fs.realpath(absoluteDir).catch((error: unknown) => {
+    if (isNotFound(error)) {
+      return undefined;
+    }
+    throw error;
+  });
+
+  if (canonicalDir === undefined) {
+    return [];
+  }
+
+  if (canonicalDir !== path.resolve(absoluteDir)) {
+    throw new Error(`Plan directory must not be a symbolic link: ${displayDir}`);
+  }
 
   let entries: string[];
   try {
@@ -152,6 +167,10 @@ async function discoverSharedPlans(options: {
     }
 
     const absolutePath = path.join(absoluteDir, name);
+    const canonicalPath = await options.fs.realpath(absolutePath);
+    if (canonicalPath !== path.resolve(absolutePath)) {
+      throw new Error(`Plan file must not be a symbolic link: ${path.join(displayDir, name)}`);
+    }
     const stat = await options.fs.stat(absolutePath);
     if (!stat.isFile()) {
       continue;

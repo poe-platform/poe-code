@@ -51,8 +51,15 @@ async function archiveSelectedPlan(
       throw error;
     }
   }
-  await fs.mkdir(archiveDir, { recursive: true });
-  await fs.rename(entry.absolutePath, archivedPath);
+  const createdDirectory = await fs.mkdir(archiveDir, { recursive: true });
+  try {
+    await fs.rename(entry.absolutePath, archivedPath);
+  } catch (error) {
+    if (createdDirectory !== undefined) {
+      await fs.rmdir(archiveDir).catch(() => undefined);
+    }
+    throw error;
+  }
   return archivedPath;
 }
 

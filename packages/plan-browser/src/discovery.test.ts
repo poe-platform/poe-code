@@ -327,4 +327,24 @@ describe("discoverAllPlans", () => {
       })
     ).rejects.toThrow("docs/plans/plan-markdown-reader.md: missing required frontmatter kind");
   });
+
+  it("rejects symlinked plan directories and plan files", async () => {
+    const linkedDirectoryVolume = Volume.fromJSON({ "/outside/plan.md": "# External" }, "/");
+    linkedDirectoryVolume.mkdirSync("/repo/docs", { recursive: true });
+    linkedDirectoryVolume.mkdirSync(homeDir, { recursive: true });
+    linkedDirectoryVolume.symlinkSync("/outside", "/repo/docs/plans");
+    const linkedDirectoryFs = createFsFromVolume(linkedDirectoryVolume).promises as unknown as DiscoveryFs;
+
+    await expect(discoverAllPlans({ cwd, homeDir, fs: linkedDirectoryFs, configPath: resolveConfigPath(homeDir), projectConfigPath: resolveProjectConfigPath(cwd) }))
+      .rejects.toThrow("Plan directory must not be a symbolic link");
+
+    const linkedFileVolume = Volume.fromJSON({ "/outside.md": "# External" }, "/");
+    linkedFileVolume.mkdirSync("/repo/docs/plans", { recursive: true });
+    linkedFileVolume.mkdirSync(homeDir, { recursive: true });
+    linkedFileVolume.symlinkSync("/outside.md", "/repo/docs/plans/local.md");
+    const linkedFileFs = createFsFromVolume(linkedFileVolume).promises as unknown as DiscoveryFs;
+
+    await expect(discoverAllPlans({ cwd, homeDir, fs: linkedFileFs, configPath: resolveConfigPath(homeDir), projectConfigPath: resolveProjectConfigPath(cwd) }))
+      .rejects.toThrow("Plan file must not be a symbolic link");
+  });
 });

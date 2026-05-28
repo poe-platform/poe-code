@@ -1,4 +1,5 @@
-import { describe, it, expect } from "vitest";
+import { Volume, createFsFromVolume } from "memfs";
+import { describe, it, expect, vi } from "vitest";
 import { createMockFs } from "@poe-code/config-mutations/testing";
 import { parse as parseYaml } from "yaml";
 import {
@@ -101,6 +102,42 @@ describe("configure", () => {
         },
         otherKey: "value"
       });
+    });
+
+    it("rejects a non-object MCP server container", async () => {
+      const fs = createMockFs(
+        { "~/.claude.json": JSON.stringify({ mcpServers: ["user-value"], keep: true }) },
+        HOME_DIR
+      );
+
+      await expect(
+        configure(
+          "claude-code",
+          { name: "poe-code", config: { transport: "stdio", command: "poe-code" } },
+          createOptions(fs)
+        )
+      ).rejects.toThrow("Expected mcpServers to be an object.");
+
+      expect(JSON.parse(fs.getContent("/home/test/.claude.json")!)).toEqual({
+        mcpServers: ["user-value"],
+        keep: true
+      });
+    });
+
+    it("does not rewrite an identical server definition", async () => {
+      const fs = createMockFs(
+        { "~/.claude.json": JSON.stringify({ mcpServers: { "poe-code": { command: "npx" } } }) },
+        HOME_DIR
+      );
+      const onComplete = vi.fn();
+
+      await configure(
+        "claude-code",
+        { name: "poe-code", config: { transport: "stdio", command: "npx" } },
+        { ...createOptions(fs), observers: { onComplete } }
+      );
+
+      expect(onComplete.mock.calls.map(([, outcome]) => outcome.changed)).toEqual([false, false]);
     });
 
     it("removes server when enabled: false", async () => {
@@ -432,6 +469,68 @@ describe("configure", () => {
         theme: "dark"
       });
     });
+
+    it("reports YAML mutations through observers", async () => {
+      const fs = createMockFs({}, HOME_DIR);
+      const onStart = vi.fn();
+      const onComplete = vi.fn();
+      const onError = vi.fn();
+
+      await configure(
+        "goose",
+        { name: "poe-code", config: { transport: "stdio", command: "poe-code", args: ["mcp"] } },
+        { ...createOptions(fs), observers: { onStart, onComplete, onError } }
+      );
+
+      expect(onStart).toHaveBeenCalledTimes(2);
+      expect(onComplete).toHaveBeenCalledTimes(2);
+      expect(onError).not.toHaveBeenCalled();
+    });
+
+    it("preserves existing YAML when a replacement write fails", async () => {
+      const targetPath = "/home/test/.config/goose/config.yaml";
+      const previous = "extensions:\n  old:\n    type: stdio\n    cmd: old-command\n";
+      const base = createFsFromVolume(Volume.fromJSON({ [targetPath]: previous })).promises as unknown as ApplyOptions["fs"];
+      const fs: ApplyOptions["fs"] = {
+        ...base,
+        async writeFile(filePath, data, options) {
+          if (filePath.includes(".mutation-tmp-")) {
+            await base.writeFile(filePath, "extensions: [", options);
+            throw new Error("goose config disk full");
+          }
+          await base.writeFile(filePath, data, options);
+        }
+      };
+
+      await expect(
+        configure(
+          "goose",
+          { name: "new", config: { transport: "stdio", command: "new-command" } },
+          { fs, homeDir: HOME_DIR, platform: "linux" }
+        )
+      ).rejects.toThrow("goose config disk full");
+
+      await expect(base.readFile(targetPath, "utf8")).resolves.toBe(previous);
+    });
+
+    it("refuses a symlinked YAML target", async () => {
+      const targetPath = "/home/test/.config/goose/config.yaml";
+      const outsidePath = "/outside/config.yaml";
+      const volume = Volume.fromJSON({ [outsidePath]: "outside: true\n" });
+      volume.mkdirSync("/home/test/.config/goose", { recursive: true });
+      volume.symlinkSync(outsidePath, targetPath);
+      const fs = createFsFromVolume(volume).promises as unknown as ApplyOptions["fs"];
+
+      await expect(
+        configure(
+          "goose",
+          { name: "poe-code", config: { transport: "stdio", command: "poe-code" } },
+          { fs, homeDir: HOME_DIR, platform: "linux" }
+        )
+      ).rejects.toThrow("symbolic link");
+
+      await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside: true\n");
+    });
   });
 
   describe("error handling", () => {
@@ -559,6 +658,20 @@ command = "test"
       otherKey: "value"
     });
   });
+
+  it("does not treat inherited Goose extension names as configured", async () => {
+    const fs = createMockFs(
+      { "~/.config/goose/config.yaml": "extensions: {}\nother: keep\n" },
+      HOME_DIR
+    );
+
+    await unconfigure("goose", "constructor", createOptions(fs));
+
+    expect(parseYaml(fs.getContent("/home/test/.config/goose/config.yaml")!)).toEqual({
+      extensions: {},
+      other: "keep"
+    });
+  });
 });
 
 describe("resolveAgentSupport", () => {
@@ -577,6 +690,26 @@ describe("resolveAgentSupport", () => {
     const result = resolveAgentSupport("  CLAUDE  ");
     expect(result.status).toBe("supported");
     expect(result.id).toBe("claude-code");
+  });
+
+  it("does not expose mutable registry configuration", async () => {
+    const support = resolveAgentSupport("claude-code");
+
+    if (support.status !== "supported" || support.config === undefined) {
+      throw new Error("Expected claude-code support");
+    }
+
+    support.config.configFile = "~/.redirected/mcp.json";
+    const fs = createMockFs({}, HOME_DIR);
+
+    await configure(
+      "claude-code",
+      { name: "poe-code", config: { transport: "stdio", command: "npx" } },
+      createOptions(fs)
+    );
+
+    expect(fs.getContent("/home/test/.claude.json")).toBeDefined();
+    expect(fs.getContent("/home/test/.redirected/mcp.json")).toBeUndefined();
   });
 
   it("returns unknown when no agent matches", () => {

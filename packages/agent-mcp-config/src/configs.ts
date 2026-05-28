@@ -12,6 +12,10 @@ export interface AgentMcpConfig {
   mcpOutputFormat?: string;
 }
 
+function snapshotConfig(config: AgentMcpConfig): AgentMcpConfig {
+  return { ...config };
+}
+
 const agentMcpConfigs: Record<string, AgentMcpConfig> = {
   "claude-code": {
     configFile: "~/.claude.json",
@@ -84,7 +88,7 @@ export function resolveAgentSupport(
   if (!config) {
     return { status: "unsupported", input, id: resolvedId };
   }
-  return { status: "supported", input, id: resolvedId, config };
+  return { status: "supported", input, id: resolvedId, config: snapshotConfig(config) };
 }
 
 export function isSupported(agentId: string): boolean {

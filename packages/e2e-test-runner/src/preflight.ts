@@ -25,6 +25,11 @@ interface IsolatedHostContext {
   env: NodeJS.ProcessEnv;
 }
 
+interface OrphanCleanupResult {
+  found: number;
+  removed: number;
+}
+
 export interface RunPreflightOptions {
   backend?: Backend;
   verbose?: boolean;
@@ -88,11 +93,19 @@ export async function runPreflight(
 
   if (backend === 'podman') {
     const cleaned = await cleanupOrphans('podman');
-    if (cleaned > 0) {
+    if (cleaned.removed < cleaned.found) {
+      results.push({
+        name: 'Cleanup',
+        passed: false,
+        message: `Removed ${cleaned.removed} of ${cleaned.found} orphaned container(s)`,
+      });
+      return { passed: false, results, environment };
+    }
+    if (cleaned.removed > 0) {
       results.push({
         name: 'Cleanup',
         passed: true,
-        message: `Cleaned up ${cleaned} orphaned container(s)`,
+        message: `Cleaned up ${cleaned.removed} orphaned container(s)`,
       });
     }
   }
@@ -275,7 +288,7 @@ async function checkApiKey(): Promise<CheckResult> {
   };
 }
 
-export async function cleanupOrphans(engine: Engine = 'podman'): Promise<number> {
+export async function cleanupOrphans(engine: Engine = 'podman'): Promise<OrphanCleanupResult> {
   try {
     const output = execSync(
       `${engine} ps -aq --filter label=${LABEL}=true`,
@@ -284,9 +297,10 @@ export async function cleanupOrphans(engine: Engine = 'podman'): Promise<number>
     const containerIds = output.trim().split('\n').filter(Boolean);
 
     if (containerIds.length === 0) {
-      return 0;
+      return { found: 0, removed: 0 };
     }
 
+    let removed = 0;
     for (const id of containerIds) {
       try {
         execSync(`${engine} stop ${id}`, { stdio: 'ignore' });
@@ -295,14 +309,15 @@ export async function cleanupOrphans(engine: Engine = 'podman'): Promise<number>
       }
       try {
         execSync(`${engine} rm -f ${id}`, { stdio: 'ignore' });
+        removed += 1;
       } catch {
         // Ignore errors.
       }
     }
 
-    return containerIds.length;
+    return { found: containerIds.length, removed };
   } catch {
-    return 0;
+    return { found: 0, removed: 0 };
   }
 }
 

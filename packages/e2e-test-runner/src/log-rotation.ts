@@ -4,6 +4,10 @@ import { join } from 'node:path';
 const DEFAULT_MAX_LOGS = 50;
 
 export function rotateLogs(logsDir: string, maxLogs: number = DEFAULT_MAX_LOGS): number {
+  if (!Number.isFinite(maxLogs) || !Number.isInteger(maxLogs) || maxLogs < 0) {
+    throw new Error('maxLogs must be a finite non-negative integer');
+  }
+
   let files: string[];
   try {
     files = readdirSync(logsDir)
@@ -23,13 +27,15 @@ export function rotateLogs(logsDir: string, maxLogs: number = DEFAULT_MAX_LOGS):
   }
 
   const toDelete = files.slice(maxLogs);
+  let deleted = 0;
   for (const file of toDelete) {
     try {
       unlinkSync(file);
+      deleted += 1;
     } catch {
       // Ignore deletion errors
     }
   }
 
-  return toDelete.length;
+  return deleted;
 }

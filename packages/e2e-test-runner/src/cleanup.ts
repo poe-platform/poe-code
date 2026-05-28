@@ -44,7 +44,7 @@ export async function cleanupDisk(
 
   const engine = options.engine ?? detectEngine();
 
-  const orphanedContainers = await cleanupOrphans(engine);
+  const orphanedContainers = (await cleanupOrphans(engine)).removed;
   const removedE2eImages = removeE2eImages(engine);
   pruneContainerArtifacts(engine, aggressive);
 

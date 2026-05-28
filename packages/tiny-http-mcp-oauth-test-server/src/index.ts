@@ -55,6 +55,10 @@ function normalizePath(path: string | undefined): string {
     return "/mcp";
   }
 
+  if (path.includes("?") || path.includes("#")) {
+    throw new Error("mcpPath must not include a query or fragment");
+  }
+
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return normalizedPath.length > 1 && normalizedPath.endsWith("/")
     ? normalizedPath.slice(0, -1)
@@ -80,7 +84,27 @@ function parseHttpUrl(value: string, label: string): URL {
     );
   }
 
+  if (url.search.length > 0 || url.hash.length > 0) {
+    throw new Error(`${label} must not include a query or fragment`);
+  }
+
   return url;
+}
+
+function parseResourceUrl(value: string): string {
+  let url: URL;
+
+  try {
+    url = new URL(value);
+  } catch {
+    throw new Error("resource must be an absolute URL");
+  }
+
+  if (url.hash.length > 0) {
+    throw new Error("resource must not include a fragment");
+  }
+
+  return url.toString();
 }
 
 function normalizeHostForListen(hostname: string): string {
@@ -118,7 +142,12 @@ function isRevokedToken(oauth: OAuthTestServer, token: string): boolean {
 }
 
 function normalizeScopes(scopes: string[] | undefined): string[] {
-  return scopes === undefined ? ["mcp.read"] : [...scopes];
+  const normalizedScopes = scopes === undefined ? ["mcp.read"] : [...scopes];
+  if (normalizedScopes.some((scope) => scope.trim().length === 0)) {
+    throw new Error("scopes must contain non-empty values");
+  }
+
+  return normalizedScopes;
 }
 
 function normalizeTtlSeconds(ttlSeconds: number | undefined): number {
@@ -175,6 +204,8 @@ export function createMcpOAuthTestServer(
   const ttlSeconds = normalizeTtlSeconds(options.ttlSeconds);
   const configuredIssuer =
     options.issuer === undefined ? undefined : parseHttpUrl(options.issuer, "issuer");
+  const configuredResource =
+    options.resource === undefined ? undefined : parseResourceUrl(options.resource);
   let currentHandle: McpOAuthTestServerHandle | null = null;
   let listenPending = false;
 
@@ -237,7 +268,7 @@ export function createMcpOAuthTestServer(
         );
       }
 
-      if (fixedPort === 0 && options.resource === undefined) {
+      if (fixedPort === 0 && configuredResource === undefined) {
         do {
           fixedPort = await reservePort(hostname);
         } while (
@@ -265,7 +296,7 @@ export function createMcpOAuthTestServer(
           port: oauthPort,
           hostname: oauthHostname,
         });
-        const resource = options.resource ?? buildUrl(hostname, fixedPort, mcpPath);
+        const resource = configuredResource ?? buildUrl(hostname, fixedPort, mcpPath);
         const jwksVerifier = createJwksTokenVerifier({
           jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
           fetch: (input, init) =>
@@ -338,7 +369,14 @@ export function createMcpOAuthTestServer(
           closeOperations.unshift(mcpHandle.close());
         }
 
-        await Promise.allSettled(closeOperations);
+        const closeResults = await Promise.allSettled(closeOperations);
+        const failedClose = closeResults.find(
+          (result): result is PromiseRejectedResult => result.status === "rejected"
+        );
+        if (failedClose !== undefined) {
+          throw failedClose.reason;
+        }
+
         throw error;
       }
   }

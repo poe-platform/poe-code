@@ -125,6 +125,9 @@ describe("createMcpOAuthTestServer", () => {
   });
 
   it("rejects invalid configured default token TTLs before listening", () => {
+    expect(() => createMcpOAuthTestServer({ ttlSeconds: 0 })).toThrow(
+      "ttlSeconds must be a positive integer, received 0"
+    );
     expect(() => createMcpOAuthTestServer({ ttlSeconds: -1 })).toThrow(
       "ttlSeconds must be a positive integer, received -1"
     );
@@ -170,6 +173,36 @@ describe("createMcpOAuthTestServer", () => {
         issuer: "http://127.0.0.1:43191",
       })
     ).toThrow("issuer must include a non-root path");
+
+    expect(() =>
+      createMcpOAuthTestServer({
+        issuer: "http://127.0.0.1:43191/oauth?tenant=demo",
+      })
+    ).toThrow("issuer must not include a query or fragment");
+
+    expect(() =>
+      createMcpOAuthTestServer({
+        issuer: "http://127.0.0.1:43191/oauth#fragment",
+      })
+    ).toThrow("issuer must not include a query or fragment");
+  });
+
+  it("rejects unsupported protected-resource and route configuration", () => {
+    expect(() => createMcpOAuthTestServer({ resource: "/mcp" })).toThrow(
+      "resource must be an absolute URL"
+    );
+    expect(() => createMcpOAuthTestServer({ resource: "https://resource.example/mcp#fragment" })).toThrow(
+      "resource must not include a fragment"
+    );
+    expect(() => createMcpOAuthTestServer({ mcpPath: "/mcp?tenant=demo" })).toThrow(
+      "mcpPath must not include a query or fragment"
+    );
+    expect(() => createMcpOAuthTestServer({ mcpPath: "/mcp#fragment" })).toThrow(
+      "mcpPath must not include a query or fragment"
+    );
+    expect(() => createMcpOAuthTestServer({ scopes: ["mcp.read", "   "] })).toThrow(
+      "scopes must contain non-empty values"
+    );
   });
 
   it("accepts direct tokens from the embedded OAuth server and exposes the test MCP tools", async () => {

@@ -203,6 +203,36 @@ describe("createMcpOAuthTestServer", () => {
     });
   });
 
+  it("rejects concurrent listener startup on one server instance", async () => {
+    const server = createMcpOAuthTestServer({ autoApprove: true, scopes: ["mcp.read"] });
+    const results = await Promise.allSettled([
+      server.listen({ port: 0, hostname: "127.0.0.1" }),
+      server.listen({ port: 0, hostname: "127.0.0.1" })
+    ]);
+    const fulfilled = results.filter(
+      (result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof server.listen>>> =>
+        result.status === "fulfilled"
+    );
+
+    expect(fulfilled).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    if (fulfilled[0]) {
+      await fulfilled[0].value.close();
+    }
+  });
+
+  it("does not let a stale handle orphan a replacement listener", async () => {
+    const server = createMcpOAuthTestServer({ autoApprove: true, scopes: ["mcp.read"] });
+    const first = await server.listen({ port: 0, hostname: "127.0.0.1" });
+    await first.close();
+    const second = await server.listen({ port: 0, hostname: "127.0.0.1" });
+
+    await first.close();
+    await second.close();
+
+    await expect(nodeFetch(second.mcpUrl)).rejects.toThrow();
+  });
+
   it("rejects a direct token whose audience is bound to a different resource", async () => {
     const server = createMcpOAuthTestServer({
       autoApprove: true,

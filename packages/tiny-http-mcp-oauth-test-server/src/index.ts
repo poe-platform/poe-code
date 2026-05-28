@@ -164,14 +164,17 @@ export function createMcpOAuthTestServer(
   const configuredIssuer =
     options.issuer === undefined ? undefined : parseHttpUrl(options.issuer, "issuer");
   let currentHandle: McpOAuthTestServerHandle | null = null;
+  let listenPending = false;
 
   return {
     async listen(
       listenOptions: McpOAuthTestServerListenOptions = {}
     ): Promise<McpOAuthTestServerHandle> {
-      if (currentHandle !== null) {
+      if (currentHandle !== null || listenPending) {
         throw new Error("MCP OAuth test server is already listening");
       }
+
+      listenPending = true;
 
       const hostname = listenOptions.hostname ?? "127.0.0.1";
       const requestedPort = listenOptions.port ?? 0;
@@ -179,15 +182,19 @@ export function createMcpOAuthTestServer(
 
       for (let attempt = 0; attempt < 10; attempt += 1) {
         try {
-          return await listenOnce(hostname, requestedPort);
+          const handle = await listenOnce(hostname, requestedPort);
+          listenPending = false;
+          return handle;
         } catch (error) {
           lastError = error;
           if (requestedPort !== 0 || !isAddressInUseError(error)) {
+            listenPending = false;
             throw error;
           }
         }
       }
 
+      listenPending = false;
       throw lastError;
     },
   };
@@ -283,18 +290,16 @@ export function createMcpOAuthTestServer(
 
         const prmUrl = getProtectedResourceMetadataUrl(mcpHandle.url);
 
-        currentHandle = {
+        const handle: McpOAuthTestServerHandle = {
           url: mcpHandle.url,
           mcpUrl: mcpHandle.url,
           prmUrl,
           resource,
           oauth,
           close: async () => {
-            if (currentHandle === null) {
+            if (currentHandle !== handle) {
               return;
             }
-
-            currentHandle = null;
 
             const results = await Promise.allSettled([
               mcpHandle?.close(),
@@ -307,10 +312,13 @@ export function createMcpOAuthTestServer(
             if (rejected !== undefined) {
               throw rejected.reason;
             }
+
+            currentHandle = null;
           },
         };
 
-        return currentHandle;
+        currentHandle = handle;
+        return handle;
       } catch (error) {
         const closeOperations = oauthHandle === undefined ? [] : [oauthHandle.close()];
 

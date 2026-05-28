@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
@@ -174,6 +175,18 @@ describe("git exclude blocks", () => {
     );
   });
 
+  it("keeps duplicate caller run ids in independently removable blocks", () => {
+    const firstId = appendExcludeBlock(cwd, "run-1", [".poe-code/skills/one"]);
+    const secondId = appendExcludeBlock(cwd, "run-1", [".poe-code/skills/two"]);
+
+    expect(firstId).toBe("run-1");
+    expect(secondId).not.toBe(firstId);
+
+    removeExcludeBlock(cwd, firstId!);
+
+    expect(vol.readFileSync(excludePath, "utf8")).toContain(".poe-code/skills/two");
+  });
+
   it("removes this run block while leaving other run blocks intact", () => {
     vol.mkdirSync(path.dirname(excludePath), { recursive: true });
     vol.writeFileSync(
@@ -228,6 +241,33 @@ describe("git exclude blocks", () => {
         ""
       ].join("\n")
     );
+  });
+
+  it("rejects a symlinked exclude file", () => {
+    vol.mkdirSync(path.dirname(excludePath), { recursive: true });
+    vol.mkdirSync("/outside", { recursive: true });
+    vol.writeFileSync("/outside/exclude", "# outside\n");
+    fs.symlinkSync("/outside/exclude", excludePath);
+
+    expect(() => appendExcludeBlock(cwd, "run-1", [".poe-code/skills/run-1"])).toThrow(
+      /symbolic link/
+    );
+    expect(vol.readFileSync("/outside/exclude", "utf8")).toBe("# outside\n");
+  });
+
+  it("preserves prior exclude content when atomic replacement fails", () => {
+    vol.mkdirSync(path.dirname(excludePath), { recursive: true });
+    vol.writeFileSync(excludePath, "# user ignore\n");
+    const rename = vi.spyOn(fs, "renameSync").mockImplementation(() => {
+      throw new Error("rename failed");
+    });
+
+    expect(() => appendExcludeBlock(cwd, "run-1", [".poe-code/skills/run-1"])).toThrow(
+      "rename failed"
+    );
+    expect(vol.readFileSync(excludePath, "utf8")).toBe("# user ignore\n");
+
+    rename.mockRestore();
   });
 
   it("silently no-ops outside a git repo", () => {

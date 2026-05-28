@@ -100,14 +100,19 @@ function parseStates(value: unknown): {
 } {
   validateStateDefinitions(value);
 
-  const states: Record<string, StateDefinition> = {};
+  const states = Object.create(null) as Record<string, StateDefinition>;
   const stateOrder: string[] = [];
   const entries = value instanceof Map ? value.entries() : Object.entries(value);
 
   for (const [name, rawDefinition] of entries) {
     const stateName = String(name);
     const definition = rawDefinition as JsonRecord;
-    states[stateName] = parseStateDefinition(definition);
+    Object.defineProperty(states, stateName, {
+      configurable: true,
+      enumerable: true,
+      value: parseStateDefinition(definition),
+      writable: true
+    });
     stateOrder.push(stateName);
   }
 
@@ -202,7 +207,7 @@ function resolvePathValue(value: string, cwd: string): string {
   const expanded = expandHome(resolveStringValue(value));
 
   if (typeof expanded !== "string" || expanded.length === 0) {
-    return "";
+    throw new Error("workspace.root must not resolve to an empty path");
   }
 
   return path.isAbsolute(expanded) ? expanded : path.resolve(cwd, expanded);

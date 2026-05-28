@@ -13,6 +13,28 @@ vi.mock("node:fs/promises", async () => {
 });
 
 describe("resolveConfig", () => {
+  it("rejects an unresolved environment variable used as workspace root", () => {
+    delete process.env.MAESTRO_MISSING_WORKSPACE;
+
+    expect(() =>
+      resolveConfig({
+        states: { planned: { prompt: "Plan" } },
+        workspace: { root: "$MAESTRO_MISSING_WORKSPACE" }
+      }, "/repo")
+    ).toThrow("workspace.root must not resolve to an empty path");
+  });
+
+  it("preserves __proto__ as an own configured state", () => {
+    const states = Object.create(null) as Record<string, unknown>;
+    states.__proto__ = { prompt: "Plan safely" };
+
+    const config = resolveConfig({ states }, "/repo");
+
+    expect(Object.hasOwn(config.states, "__proto__")).toBe(true);
+    expect(config.states.__proto__).toEqual({ prompt: "Plan safely" });
+    expect(config.activeStateNames).toContain("__proto__");
+  });
+
   const originalEnv = { ...process.env };
 
   beforeEach(() => {

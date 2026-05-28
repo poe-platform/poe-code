@@ -100,7 +100,9 @@ export function findEvent<TState extends string, TEvent extends string>(
   fromState: TState,
   eventName: TEvent
 ): EventDef<TState> | undefined {
-  const event = machine.events[eventName];
+  const event = Object.prototype.hasOwnProperty.call(machine.events, eventName)
+    ? machine.events[eventName]
+    : undefined;
 
   if (event === undefined) {
     return undefined;

@@ -377,7 +377,10 @@ function getListRecord(store: StoreRecord, list: string): Record<string, unknown
 
 function getTaskRecord(store: StoreRecord, list: string, id: string): TaskRecord | undefined {
   const listRecord = getListRecord(store, list);
-  const taskRecord = listRecord?.[id];
+  const taskRecord =
+    listRecord !== undefined && Object.prototype.hasOwnProperty.call(listRecord, id)
+      ? listRecord[id]
+      : undefined;
 
   return isRecord(taskRecord) ? taskRecord : undefined;
 }
@@ -691,7 +694,7 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
       const missing = currentActive.filter((id) => !inputSet.has(id));
       const extra = ids.filter((id) => !currentSet.has(id));
 
-      if (missing.length > 0 || extra.length > 0) {
+      if (inputSet.size !== ids.length || missing.length > 0 || extra.length > 0) {
         throw new OrderMismatchError({ missing, extra });
       }
 

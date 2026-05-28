@@ -1032,7 +1032,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       const missing = currentIds.filter((id) => !inputSet.has(id));
       const extra = ids.filter((id) => !currentSet.has(id));
 
-      if (missing.length > 0 || extra.length > 0) {
+      if (inputSet.size !== ids.length || missing.length > 0 || extra.length > 0) {
         throw new OrderMismatchError({ missing, extra });
       }
 

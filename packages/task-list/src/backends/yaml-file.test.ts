@@ -128,6 +128,31 @@ describe("yamlFileBackend", () => {
     });
   });
 
+  it("does not resolve inherited task IDs from list records", async () => {
+    const { fs } = createFs({
+      "/repo/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  planning: {}",
+        ""
+      ].join("\n")
+    });
+    const taskList = await yamlFileBackend({
+      path: "/repo/tasks.yaml",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+
+    await expect(tasks.get("__proto__")).rejects.toThrow('Task "planning/__proto__" not found.');
+    await expect(tasks.create({ id: "__proto__", name: "Proto" })).resolves.toMatchObject({
+      id: "__proto__"
+    });
+  });
+
   it("sets an absolute sourcePath when reading tasks", async () => {
     const { fs } = createFs({
       "/repo/tasks.yaml": [

@@ -126,6 +126,19 @@ describe("Tasks.fire", () => {
         });
       });
 
+      it("rejects inherited event names as invalid transitions", async () => {
+        const tasks = await openTasks(backend, createWorkflowMachine());
+
+        await tasks.create({
+          id: "ship",
+          name: "Ship"
+        });
+
+        await expect(tasks.fire("ship", "constructor")).rejects.toBeInstanceOf(
+          InvalidTransitionError
+        );
+      });
+
       it("allows only one simultaneous transition from the same state", async () => {
         const tasks = await openTasks(backend, createApprovalMachine());
 

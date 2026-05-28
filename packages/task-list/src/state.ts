@@ -18,6 +18,16 @@ export const defaultStateMachine = {
   }
 } as const satisfies StateMachineDef<TaskState, TaskEvent>;
 
+Object.freeze(defaultStateMachine.states);
+for (const event of Object.values(defaultStateMachine.events)) {
+  if (event.from !== "*") {
+    Object.freeze(event.from);
+  }
+  Object.freeze(event);
+}
+Object.freeze(defaultStateMachine.events);
+Object.freeze(defaultStateMachine);
+
 function deriveLegacyTransitions(
   machine: typeof defaultStateMachine
 ): Readonly<Record<TaskState, ReadonlySet<TaskState>>> {

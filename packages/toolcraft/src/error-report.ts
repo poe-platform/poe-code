@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, realpath, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
@@ -105,6 +105,31 @@ function resolveReportDir(option: ErrorReportsOption | undefined, projectRoot: s
   }
 
   return path.isAbsolute(configuredDir) ? configuredDir : path.join(projectRoot, configuredDir);
+}
+
+function reportDirMustStayWithinProject(option: ErrorReportsOption | undefined): boolean {
+  const configuredDir = typeof option === "object" ? option.dir : undefined;
+  return configuredDir === undefined || configuredDir.length === 0 || !path.isAbsolute(configuredDir);
+}
+
+function isWithinDirectory(parent: string, child: string): boolean {
+  const relative = path.relative(parent, child);
+  return relative === "" || (!path.isAbsolute(relative) && relative !== ".." && !relative.startsWith(`..${path.sep}`));
+}
+
+async function assertReportDirWithinProject(projectRoot: string, reportDir: string): Promise<void> {
+  if (!isWithinDirectory(path.resolve(projectRoot), path.resolve(reportDir))) {
+    throw new Error("Error report directory resolves outside project root.");
+  }
+
+  const [canonicalProjectRoot, canonicalReportDir] = await Promise.all([
+    realpath(projectRoot),
+    realpath(reportDir)
+  ]);
+
+  if (!isWithinDirectory(canonicalProjectRoot, canonicalReportDir)) {
+    throw new Error("Error report directory resolves outside project root.");
+  }
 }
 
 function resolveProjectRoot(projectRoot: string | undefined): string {
@@ -475,6 +500,9 @@ export async function writeErrorReport(
   const absolutePath = path.join(reportDir, fileName);
 
   await mkdir(reportDir, { recursive: true });
+  if (reportDirMustStayWithinProject(context.errorReports)) {
+    await assertReportDirWithinProject(projectRoot, reportDir);
+  }
   await writeFile(absolutePath, buildReport(context));
 
   return {

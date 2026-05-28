@@ -1,4 +1,4 @@
-import { readFile } from "node:fs/promises";
+import { readFile, symlink } from "node:fs/promises";
 import path from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
@@ -282,5 +282,24 @@ describe("writeErrorReport", () => {
         expect.stringContaining("second failure")
       ])
     );
+  });
+
+  it("rejects a symlinked default report directory outside the project", async () => {
+    vol.fromJSON({
+      "/repo/.toolcraft/.keep": "",
+      "/outside/.keep": ""
+    });
+    await symlink("/outside", "/repo/.toolcraft/errors");
+
+    await expect(
+      writeErrorReport({
+        commandPath: "widgets.create",
+        error: new Error("failure"),
+        errorReports: true,
+        projectRoot: "/repo"
+      })
+    ).rejects.toThrow("Error report directory resolves outside project root.");
+
+    expect(Object.keys(vol.toJSON("/outside"))).toEqual(["/outside/.keep"]);
   });
 });

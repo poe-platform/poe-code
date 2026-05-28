@@ -1,3 +1,7 @@
+---
+name: "Terminal PNG measures tab characters as single cells"
+---
+
 # Terminal PNG measures tab characters as single cells
 
 ## Summary

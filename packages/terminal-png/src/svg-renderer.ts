@@ -132,21 +132,39 @@ function splitIntoLines(runs: StyledRun[]): StyledRun[][] {
 
 function measureLines(lines: StyledRun[][]): number {
   return Math.max(
-    ...lines.map(line => line.reduce((width, run) => width + (displayWidth(run.text) * CHARACTER_WIDTH), 0)),
+    ...lines.map((line) => displayWidth(line.map((run) => run.text).join("")) * CHARACTER_WIDTH),
     0
   );
 }
 
-function displayWidth(text: string): number {
+function displayWidth(text: string, startColumn = 0): number {
   const segmenter = new Intl.Segmenter();
-  let width = 0;
+  let column = startColumn;
 
   for (const { segment } of segmenter.segment(text)) {
+    if (segment === "\t") {
+      column += 8 - (column % 8);
+      continue;
+    }
+
     const cp = segment.codePointAt(0);
-    width += cp !== undefined && isWideCodePoint(cp) ? 2 : 1;
+    if (cp !== undefined && isZeroWidthCodePoint(cp)) {
+      continue;
+    }
+
+    column += cp !== undefined && (isWideCodePoint(cp) || isFlagSegment(segment)) ? 2 : 1;
   }
 
-  return width;
+  return column - startColumn;
+}
+
+function isZeroWidthCodePoint(cp: number): boolean {
+  return (cp >= 0x0300 && cp <= 0x036f) || (cp >= 0x1ab0 && cp <= 0x1aff) || (cp >= 0x1dc0 && cp <= 0x1dff) || (cp >= 0x20d0 && cp <= 0x20ff) || (cp >= 0xfe20 && cp <= 0xfe2f);
+}
+
+function isFlagSegment(segment: string): boolean {
+  const codePoints = [...segment].map((character) => character.codePointAt(0));
+  return codePoints.length === 2 && codePoints.every((cp) => cp !== undefined && cp >= 0x1f1e6 && cp <= 0x1f1ff);
 }
 
 function isWideCodePoint(cp: number): boolean {
@@ -188,6 +206,7 @@ function renderLines(
       }
 
       return [
+        renderBackgrounds(line, textStartX, textStartY + (index * lineHeightPx) - lineHeightPx, lineHeightPx),
         `<text x="${formatNumber(textStartX)}" y="${y}" xml:space="preserve">`,
         line.map(renderRun).join(""),
         "</text>"
@@ -196,9 +215,25 @@ function renderLines(
     .join("");
 }
 
+function renderBackgrounds(line: StyledRun[], startX: number, y: number, height: number): string {
+  let column = 0;
+  const rectangles: string[] = [];
+
+  for (const run of line) {
+    const width = displayWidth(run.text, column);
+    const background = resolveBackgroundColor(run);
+    if (background !== BACKGROUND && width > 0) {
+      rectangles.push(`<rect x="${formatNumber(startX + (column * CHARACTER_WIDTH))}" y="${formatNumber(y)}" width="${formatNumber(width * CHARACTER_WIDTH)}" height="${formatNumber(height)}" fill="${escapeXmlAttribute(background)}" />`);
+    }
+    column += width;
+  }
+
+  return rectangles.join("");
+}
+
 function renderRun(run: StyledRun): string {
   const attributes = ['xml:space="preserve"'];
-  const color = resolveColor(run.fg);
+  const color = resolveForegroundColor(run);
   const textDecorations: string[] = [];
 
   if (color !== DEFAULT_FOREGROUND) {
@@ -229,7 +264,8 @@ function renderRun(run: StyledRun): string {
     attributes.push('opacity="0.7"');
   }
 
-  return `<tspan ${attributes.join(" ")}>${escapeXmlText(run.text)}</tspan>`;
+  const text = run.conceal ? " ".repeat(displayWidth(run.text)) : run.text;
+  return `<tspan ${attributes.join(" ")}>${escapeXmlText(text)}</tspan>`;
 }
 
 function renderWindowControls(): string {
@@ -258,6 +294,18 @@ function resolveColor(color: Color | null): string {
   }
 
   return `rgb(${color.r},${color.g},${color.b})`;
+}
+
+function resolveForegroundColor(run: StyledRun): string {
+  return run.inverse ? resolveColorOrDefault(run.bg, BACKGROUND) : resolveColor(run.fg);
+}
+
+function resolveBackgroundColor(run: StyledRun): string {
+  return run.inverse ? resolveColor(run.fg) : resolveColorOrDefault(run.bg, BACKGROUND);
+}
+
+function resolveColorOrDefault(color: Color | null, defaultColor: string): string {
+  return color === null ? defaultColor : resolveColor(color);
 }
 
 function escapeXmlText(value: string): string {

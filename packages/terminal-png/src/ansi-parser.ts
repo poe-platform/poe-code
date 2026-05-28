@@ -12,6 +12,8 @@ export type StyledRun = {
   underline: boolean;
   strikethrough: boolean;
   dim: boolean;
+  inverse: boolean;
+  conceal: boolean;
 };
 
 type StyleState = Omit<StyledRun, "text">;
@@ -26,7 +28,9 @@ function createDefaultStyle(): StyleState {
     italic: false,
     underline: false,
     strikethrough: false,
-    dim: false
+    dim: false,
+    inverse: false,
+    conceal: false
   };
 }
 
@@ -41,6 +45,8 @@ function stylesEqual(left: StyleState, right: StyleState): boolean {
     left.underline === right.underline &&
     left.strikethrough === right.strikethrough &&
     left.dim === right.dim &&
+    left.inverse === right.inverse &&
+    left.conceal === right.conceal &&
     colorsEqual(left.fg, right.fg) &&
     colorsEqual(left.bg, right.bg)
   );
@@ -85,7 +91,9 @@ function pushRun(runs: StyledRun[], style: StyleState, text: string): void {
     italic: style.italic,
     underline: style.underline,
     strikethrough: style.strikethrough,
-    dim: style.dim
+    dim: style.dim,
+    inverse: style.inverse,
+    conceal: style.conceal
   });
 }
 
@@ -175,19 +183,25 @@ function applyExtendedColor(
 function applySgr(style: StyleState, paramsText: string): StyleState {
   const nextStyle = cloneStyle(style);
   const rawParams = paramsText.length === 0 ? ["0"] : paramsText.split(";");
-  const params: number[] = [];
 
-  for (const rawParam of rawParams) {
-    const value = toInteger(rawParam);
+  for (let index = 0; index < rawParams.length; index += 1) {
+    const rawParam = rawParams[index] ?? "";
+    const colonColor = applyColonExtendedColor(rawParam);
+    if (colonColor !== undefined) {
+      if (colonColor !== null) {
+        if (colonColor.target === 38) {
+          nextStyle.fg = colonColor.color;
+        } else {
+          nextStyle.bg = colonColor.color;
+        }
+      }
+      continue;
+    }
+
+    const value = rawParam.length === 0 ? 0 : toInteger(rawParam);
     if (value === null) {
       return nextStyle;
     }
-
-    params.push(value);
-  }
-
-  for (let index = 0; index < params.length; index += 1) {
-    const value = params[index];
 
     if (value === 0) {
       Object.assign(nextStyle, createDefaultStyle());
@@ -240,6 +254,26 @@ function applySgr(style: StyleState, paramsText: string): StyleState {
       continue;
     }
 
+    if (value === 7) {
+      nextStyle.inverse = true;
+      continue;
+    }
+
+    if (value === 27) {
+      nextStyle.inverse = false;
+      continue;
+    }
+
+    if (value === 8) {
+      nextStyle.conceal = true;
+      continue;
+    }
+
+    if (value === 28) {
+      nextStyle.conceal = false;
+      continue;
+    }
+
     if (value === 39) {
       nextStyle.fg = null;
       continue;
@@ -271,8 +305,14 @@ function applySgr(style: StyleState, paramsText: string): StyleState {
     }
 
     if (value === 38 || value === 48) {
-      const extended = applyExtendedColor(params, index + 1);
+      const params = rawParams.map((param) => toInteger(param));
+      const extended = params.every((param) => param !== null)
+        ? applyExtendedColor(params as number[], index + 1)
+        : null;
       if (!extended) {
+        if (rawParams[index + 1] === "2" || rawParams[index + 1] === "5") {
+          break;
+        }
         continue;
       }
 
@@ -287,6 +327,40 @@ function applySgr(style: StyleState, paramsText: string): StyleState {
   }
 
   return nextStyle;
+}
+
+function applyColonExtendedColor(
+  rawParam: string
+): { target: 38 | 48; color: Color } | null | undefined {
+  if (!rawParam.includes(":")) {
+    return undefined;
+  }
+
+  const segments = rawParam.split(":");
+  const target = toInteger(segments[0]);
+  if (target !== 38 && target !== 48) {
+    return null;
+  }
+
+  const mode = toInteger(segments[1]);
+  if (mode === 5) {
+    const index = toInteger(segments[2]);
+    return index === null ? null : { target, color: { type: "ansi8", index: clampByte(index) } };
+  }
+
+  if (mode !== 2) {
+    return null;
+  }
+
+  const offset = segments[2] === "" ? 3 : 2;
+  const r = toInteger(segments[offset]);
+  const g = toInteger(segments[offset + 1]);
+  const b = toInteger(segments[offset + 2]);
+  if (r === null || g === null || b === null) {
+    return null;
+  }
+
+  return { target, color: { type: "rgb", r: clampByte(r), g: clampByte(g), b: clampByte(b) } };
 }
 
 export function parseAnsi(input: string): StyledRun[] {

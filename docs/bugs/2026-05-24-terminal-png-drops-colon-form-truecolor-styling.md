@@ -1,3 +1,7 @@
+---
+name: "Terminal PNG drops colon-form truecolor styling"
+---
+
 # Terminal PNG drops colon-form truecolor styling
 
 ## Summary

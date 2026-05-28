@@ -1,3 +1,7 @@
+---
+name: "Terminal PNG measures flag emoji as one cell"
+---
+
 # Terminal PNG measures flag emoji as one cell
 
 ## Summary

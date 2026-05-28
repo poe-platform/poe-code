@@ -1,3 +1,7 @@
+---
+name: "Terminal PNG allocates cell to standalone combining mark"
+---
+
 # Terminal PNG allocates cell to standalone combining mark
 
 ## Summary

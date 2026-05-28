@@ -1,3 +1,7 @@
+---
+name: "Terminal PNG renders ANSI concealed text visible in images"
+---
+
 # Terminal PNG renders ANSI concealed text visible in images
 
 ## Summary

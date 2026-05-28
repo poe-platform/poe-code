@@ -1,3 +1,7 @@
+---
+name: "Terminal PNG drops parsed ANSI background colors from images"
+---
+
 # Terminal PNG drops parsed ANSI background colors from images
 
 ## Summary

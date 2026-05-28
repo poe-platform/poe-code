@@ -1,3 +1,7 @@
+---
+name: "Terminal PNG empty SGR parameter fails to reset active style"
+---
+
 # Terminal PNG empty SGR parameter fails to reset active style
 
 ## Summary

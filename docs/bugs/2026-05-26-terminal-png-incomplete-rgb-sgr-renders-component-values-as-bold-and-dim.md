@@ -1,3 +1,7 @@
+---
+name: "Terminal PNG incomplete RGB SGR renders component values as bold and dim"
+---
+
 # Terminal PNG incomplete RGB SGR renders component values as bold and dim
 
 ## Summary

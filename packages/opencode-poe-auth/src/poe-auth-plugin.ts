@@ -62,7 +62,7 @@ export async function PoeAuthPlugin(_input: PluginInput): Promise<Hooks> {
           return {};
         }
 
-        if (auth.expires < Date.now()) {
+        if (!Number.isFinite(auth.expires) || auth.expires <= Date.now()) {
           throw new Error("Poe API key expired. Run `opencode providers login` again.");
         }
 

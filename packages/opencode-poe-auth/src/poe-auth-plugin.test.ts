@@ -96,6 +96,39 @@ describe("PoeAuthPlugin", () => {
     ).rejects.toThrow("Poe API key expired");
   });
 
+  it("loader rejects oauth auth at its expiration instant", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(1_700_000_000_000);
+    const loader = getAuthHook(await PoeAuthPlugin({} as never)).loader!;
+
+    await expect(
+      loader(
+        async () => ({
+          type: "oauth",
+          access: "sk-expired-now",
+          refresh: "sk-expired-now",
+          expires: 1_700_000_000_000
+        }),
+        {} as never
+      )
+    ).rejects.toThrow("Poe API key expired");
+  });
+
+  it("loader rejects oauth auth with nonnumeric expiry metadata", async () => {
+    const loader = getAuthHook(await PoeAuthPlugin({} as never)).loader!;
+
+    await expect(
+      loader(
+        async () => ({
+          type: "oauth",
+          access: "sk-invalid-expiry",
+          refresh: "sk-invalid-expiry",
+          expires: "not-a-timestamp" as unknown as number
+        }),
+        {} as never
+      )
+    ).rejects.toThrow("Poe API key expired");
+  });
+
   it("loader returns empty object for unknown auth type", async () => {
     const hooks = await PoeAuthPlugin({} as never);
     const loader = getAuthHook(hooks).loader;

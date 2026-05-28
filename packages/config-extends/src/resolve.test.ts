@@ -640,6 +640,29 @@ describe("resolve", () => {
     });
   });
 
+  it("resolves a base directory with a trailing separator", async () => {
+    const fs = createMemFs({
+      "/bases/review.yaml": "tone: base"
+    });
+
+    const result = await resolve(
+      [
+        {
+          source: "document",
+          filePath: "/project/review.yaml",
+          content: "extends: true\ntitle: Document"
+        },
+        {
+          source: "base",
+          path: "/bases/"
+        }
+      ],
+      { fs }
+    );
+
+    expect(result.data).toEqual({ title: "Document", tone: "base" });
+  });
+
   it("supports a JSON document extending a YAML base", async () => {
     const fs = createMemFs({
       "/bases/review.yaml": ["tone: YAML base", "count: 2"].join("\n")

@@ -145,8 +145,9 @@ async function resolveBaseChain({
     );
   }
 
+  const discoveredBaseDirectory = path.resolve(path.dirname(discoveredBase.filePath));
   const matchedBaseIndex = baseLayers.findIndex(
-    (layer) => layer.path === path.dirname(discoveredBase.filePath)
+    (layer) => path.resolve(layer.path) === discoveredBaseDirectory
   );
 
   if (matchedBaseIndex === -1) {

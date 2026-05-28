@@ -25,6 +25,11 @@ import type { TypedSchema } from "./schema.js";
 import { toContentBlocks } from "./content/convert.js";
 
 const PROTOCOL_VERSION = "2025-11-25";
+const SUPPORTED_PROTOCOL_VERSIONS = new Set([
+  "2025-03-26",
+  "2025-06-18",
+  PROTOCOL_VERSION,
+]);
 
 export interface Server {
   tool<T>(
@@ -68,9 +73,12 @@ export function createServer(options: ServerOptions): Server {
       const requestedProtocol =
         typeof params?.protocolVersion === "string"
           ? params.protocolVersion
-          : null;
+          : undefined;
       const result: InitializeResult = {
-        protocolVersion: requestedProtocol ?? PROTOCOL_VERSION,
+        protocolVersion:
+          requestedProtocol !== undefined && SUPPORTED_PROTOCOL_VERSIONS.has(requestedProtocol)
+            ? requestedProtocol
+            : PROTOCOL_VERSION,
         capabilities: {
           tools: {
             listChanged: true,

@@ -974,6 +974,24 @@ describe("StreamableHttpTransport", () => {
     });
   });
 
+  it("negotiates the supported protocol version for unsupported requests", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: undefined,
+    });
+
+    const response = await fixture.post({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: { protocolVersion: "not-a-supported-version" },
+    });
+
+    expect(await readJsonRpcBody(response)).toMatchObject({
+      result: { protocolVersion: "2025-11-25" },
+    });
+  });
+
   it("T2 POST initialized notification returns 202", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,

@@ -2008,7 +2008,7 @@ describe("server protocol handlers", () => {
       expect(response.result.serverInfo).toBeDefined();
     });
 
-    it("echoes requested protocol version when provided", async () => {
+    it("echoes a supported requested protocol version", async () => {
       const transport = createTestTransport();
       const server = createServer({ name: "test", version: "1.0.0" });
 
@@ -2022,6 +2022,22 @@ describe("server protocol handlers", () => {
 
       const response = transport.getLastResponse();
       expect(response.result.protocolVersion).toBe("2025-06-18");
+    });
+
+    it("returns its latest supported protocol version for an unsupported request", async () => {
+      const transport = createTestTransport();
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      const connectPromise = server.connect(transport);
+      transport.send(
+        '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"not-a-supported-version"}}'
+      );
+      transport.close();
+
+      await connectPromise;
+
+      const response = transport.getLastResponse();
+      expect(response.result.protocolVersion).toBe("2025-11-25");
     });
   });
 

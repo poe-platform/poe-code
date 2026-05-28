@@ -323,4 +323,28 @@ describe("runGenerateCli", () => {
     );
     expect(harness.stderr()).toBe("");
   });
+
+  it("rejects a symlinked generated output directory", async () => {
+    const specText = createEmptySpec();
+    const harness = createCliHarness({ "/repo/openapi.json": specText, "/outside/marker": "keep" });
+    await harness.fs.mkdir("/repo/src", { recursive: true });
+    await harness.fs.symlink("/outside", "/repo/src/generated");
+
+    await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toThrow(
+      "Generated output must remain inside the output directory."
+    );
+    await expect(harness.fs.readFile("/outside/index.ts", "utf8")).rejects.toThrow();
+  });
+
+  it("rejects a symlinked generated child directory", async () => {
+    const specText = createSpec("List bots.");
+    const harness = createCliHarness({ "/repo/openapi.json": specText, "/outside/marker": "keep" });
+    await harness.fs.mkdir("/repo/src/generated", { recursive: true });
+    await harness.fs.symlink("/outside", "/repo/src/generated/bots");
+
+    await expect(runGenerateCli(["node", "generate"], harness.services)).rejects.toThrow(
+      "Generated output must remain inside the output directory."
+    );
+    await expect(harness.fs.readFile("/outside/list.ts", "utf8")).rejects.toThrow();
+  });
 });

@@ -168,6 +168,13 @@ export class McpClient {
       throw new Error("MCP client is already connected");
     }
 
+    this.currentServerCapabilities = null;
+    this.currentClientCapabilities = null;
+    this.currentServerInfo = null;
+    this.currentInstructions = undefined;
+    this.subscribedResourceUris.clear();
+    this.activeProgressTokens.clear();
+
     const transportClosedReason = transport.closed
       .then((closedEvent) => closedEvent.reason)
       .catch((error: unknown) =>
@@ -342,37 +349,50 @@ export class McpClient {
 
     this.currentClientCapabilities = structuredClone(capabilities);
 
-    const initializeResultValue = await messageLayer.sendRequest("initialize", {
-      protocolVersion: MCP_PROTOCOL_VERSION,
-      clientInfo: this.options.clientInfo,
-      capabilities,
-    });
+    try {
+      const initializeResultValue = await messageLayer.sendRequest("initialize", {
+        protocolVersion: MCP_PROTOCOL_VERSION,
+        clientInfo: this.options.clientInfo,
+        capabilities,
+      });
 
-    if (!isInitializeResult(initializeResultValue)) {
-      throw new McpError(ERROR_INVALID_REQUEST, "Invalid initialize result");
+      if (!isInitializeResult(initializeResultValue)) {
+        throw new McpError(ERROR_INVALID_REQUEST, "Invalid initialize result");
+      }
+
+      const initializeResult = initializeResultValue;
+
+      if (initializeResult.protocolVersion !== MCP_PROTOCOL_VERSION) {
+        throw new McpError(
+          ERROR_INVALID_REQUEST,
+          `Unsupported protocol version: ${initializeResult.protocolVersion}`
+        );
+      }
+
+      this.currentServerCapabilities = structuredClone(initializeResult.capabilities);
+      this.currentServerInfo = { ...initializeResult.serverInfo };
+      this.currentInstructions = initializeResult.instructions;
+      if (onRootsList !== undefined) {
+        messageLayer.onRequest("roots/list", async () => ({
+          roots: await onRootsList(),
+        }));
+      }
+      messageLayer.sendNotification("notifications/initialized");
+      this.currentState = "ready";
+
+      return initializeResult;
+    } catch (error) {
+      if (this.transport === transport) {
+        const reason = error instanceof Error ? error : new Error(String(error));
+        messageLayer.dispose(reason);
+        transport.dispose(reason);
+        this.messageLayer = null;
+        this.transport = null;
+        this.currentState = "disconnected";
+      }
+
+      throw error;
     }
-
-    const initializeResult = initializeResultValue;
-
-    if (initializeResult.protocolVersion !== MCP_PROTOCOL_VERSION) {
-      throw new McpError(
-        ERROR_INVALID_REQUEST,
-        `Unsupported protocol version: ${initializeResult.protocolVersion}`
-      );
-    }
-
-    this.currentServerCapabilities = structuredClone(initializeResult.capabilities);
-    this.currentServerInfo = { ...initializeResult.serverInfo };
-    this.currentInstructions = initializeResult.instructions;
-    if (onRootsList !== undefined) {
-      messageLayer.onRequest("roots/list", async () => ({
-        roots: await onRootsList(),
-      }));
-    }
-    messageLayer.sendNotification("notifications/initialized");
-    this.currentState = "ready";
-
-    return initializeResult;
   }
 
   private getServerCapabilitiesOrThrow(): ServerCapabilities {
@@ -626,6 +646,10 @@ export class McpClient {
     this.transport?.dispose(closeError);
     this.messageLayer = null;
     this.transport = null;
+    this.currentServerCapabilities = null;
+    this.currentClientCapabilities = null;
+    this.currentServerInfo = null;
+    this.currentInstructions = undefined;
     this.subscribedResourceUris.clear();
     this.activeProgressTokens.clear();
     this.currentState = "closed";

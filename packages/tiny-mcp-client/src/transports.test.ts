@@ -2860,6 +2860,51 @@ describe("McpClient state guards", () => {
 });
 
 describe("McpClient connect", () => {
+  it("releases a transport after a rejected initialize response", async () => {
+    const firstReadable = new PassThrough();
+    const firstWritable = new PassThrough();
+    const firstTransport: McpTransport = {
+      readable: firstReadable,
+      writable: firstWritable,
+      closed: new Promise(() => {}),
+      dispose: vi.fn(),
+    };
+    const client = new McpClient({
+      clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
+    });
+
+    const firstConnect = client.connect(firstTransport);
+    const firstIterator = readLines(firstWritable)[Symbol.asyncIterator]();
+    const firstInitializeLine = await firstIterator.next();
+    if (firstInitializeLine.done) {
+      throw new Error("Expected initialize request line to be written");
+    }
+    const firstInitialize = JSON.parse(firstInitializeLine.value) as { id: number };
+    firstReadable.write(`${JSON.stringify({ jsonrpc: "2.0", id: firstInitialize.id, result: { protocolVersion: "2024-11-05", capabilities: {}, serverInfo: { name: "bad", version: "1" } } })}\n`);
+
+    await expect(firstConnect).rejects.toThrow("Unsupported protocol version: 2024-11-05");
+    expect(firstTransport.dispose).toHaveBeenCalledTimes(1);
+    expect(client.state).toBe("disconnected");
+
+    const secondReadable = new PassThrough();
+    const secondWritable = new PassThrough();
+    const secondConnect = client.connect({
+      readable: secondReadable,
+      writable: secondWritable,
+      closed: new Promise(() => {}),
+      dispose: vi.fn(),
+    });
+    const secondIterator = readLines(secondWritable)[Symbol.asyncIterator]();
+    const secondInitializeLine = await secondIterator.next();
+    if (secondInitializeLine.done) {
+      throw new Error("Expected replacement initialize request line to be written");
+    }
+    const secondInitialize = JSON.parse(secondInitializeLine.value) as { id: number };
+    secondReadable.write(`${JSON.stringify({ jsonrpc: "2.0", id: secondInitialize.id, result: { protocolVersion: "2025-03-26", capabilities: {}, serverInfo: { name: "good", version: "1" } } })}\n`);
+    await expect(secondConnect).resolves.toBeDefined();
+    await client.close();
+  });
+
   it("registers notification handlers for all supported server notifications", async () => {
     const readable = new PassThrough();
     const writable = new PassThrough();
@@ -7997,6 +8042,47 @@ describe("McpClient close", () => {
 
     await client.close();
     expect(secondTransport.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not use previous capabilities while reconnecting", async () => {
+    const client = new McpClient({
+      clientInfo: { name: "tiny-mcp-client", version: "0.1.0" },
+    });
+    const firstReadable = new PassThrough();
+    const firstWritable = new PassThrough();
+    const firstConnect = client.connect({
+      readable: firstReadable,
+      writable: firstWritable,
+      closed: new Promise(() => {}),
+      dispose: vi.fn(),
+    });
+    const firstIterator = readLines(firstWritable)[Symbol.asyncIterator]();
+    const firstInitializeLine = await firstIterator.next();
+    if (firstInitializeLine.done) {
+      throw new Error("Expected first initialize request line to be written");
+    }
+    const firstInitialize = JSON.parse(firstInitializeLine.value) as { id: number };
+    firstReadable.write(`${JSON.stringify({ jsonrpc: "2.0", id: firstInitialize.id, result: { protocolVersion: "2025-03-26", capabilities: { tools: {} }, serverInfo: { name: "first", version: "1" } } })}\n`);
+    await firstConnect;
+    await client.close();
+
+    const secondReadable = new PassThrough();
+    const secondWritable = new PassThrough();
+    const secondConnect = client.connect({
+      readable: secondReadable,
+      writable: secondWritable,
+      closed: new Promise(() => {}),
+      dispose: vi.fn(),
+    });
+    const secondIterator = readLines(secondWritable)[Symbol.asyncIterator]();
+    await secondIterator.next();
+
+    expect(client.serverCapabilities).toBeNull();
+    await expect(client.listTools()).rejects.toThrow("MCP client has not completed initialization");
+    expect(secondWritable.readableLength).toBe(0);
+
+    await client.close();
+    await expect(secondConnect).rejects.toThrow("MCP client closed");
   });
 
   it("rejects connect when closed immediately before initialize handshake completes", async () => {

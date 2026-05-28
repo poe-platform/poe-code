@@ -56,6 +56,10 @@ describe("parseStdout", () => {
     expect(parseStdout("Approve\n")).toEqual({ outcome: "approved" });
   });
 
+  it('parses "Approve" terminated with CRLF as approved', () => {
+    expect(parseStdout("Approve\r\n")).toEqual({ outcome: "approved" });
+  });
+
   it('parses "Decline" as declined without a reason', () => {
     expect(parseStdout("Decline\n")).toEqual({ outcome: "declined" });
   });
@@ -68,6 +72,13 @@ describe("parseStdout", () => {
     expect(parseStdout("DECLINED:foo\n")).toEqual({
       outcome: "declined",
       reason: "foo",
+    });
+  });
+
+  it("preserves a trailing newline in a decline reason", () => {
+    expect(parseStdout("DECLINED:line one\n\n")).toEqual({
+      outcome: "declined",
+      reason: "line one\n",
     });
   });
 

@@ -27,7 +27,11 @@ end try`;
 }
 
 export function parseStdout(out: string): ApprovalResult {
-  const value = out.replace(/\n+$/u, "");
+  const value = out.endsWith("\r\n")
+    ? out.slice(0, -2)
+    : out.endsWith("\n")
+      ? out.slice(0, -1)
+      : out;
 
   switch (value) {
     case "Approve":

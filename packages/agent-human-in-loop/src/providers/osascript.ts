@@ -14,7 +14,7 @@ export interface OsascriptProviderOptions {
 function isUserCanceled(error: unknown): boolean {
   const message = error instanceof Error ? error.message : error === undefined ? "" : String(error);
   const stderr = (error as { stderr?: string } | undefined)?.stderr ?? "";
-  return `${message}\n${stderr}`.includes("(-128)");
+  return [message, stderr].some((value) => value.includes("User canceled. (-128)"));
 }
 
 export function osascriptProvider(options: OsascriptProviderOptions = {}): HumanInLoopProvider {

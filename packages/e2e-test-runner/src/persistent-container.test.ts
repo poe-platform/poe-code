@@ -316,6 +316,24 @@ describe('createContainer', () => {
     ).rejects.toThrow('useSnapshots requires testName');
   });
 
+  it('rejects snapshot test names that escape the fixture directory', async () => {
+    const { createContainer } = await import('./persistent-container.js');
+
+    await expect(createContainer({ image: 'poe-code-e2e:abc123', testName: '../../outside', useSnapshots: true }))
+      .rejects.toThrow('Invalid snapshot test name');
+  });
+
+  it('rejects symlinked host snapshot directories', async () => {
+    setWorkspaceDir('/workspace/repo');
+    vol.mkdirSync('/workspace/repo/.snapshots', { recursive: true });
+    vol.mkdirSync('/outside', { recursive: true });
+    vol.symlinkSync('/outside', '/workspace/repo/.snapshots/proxy');
+    const { createContainer } = await import('./persistent-container.js');
+
+    await expect(createContainer({ image: 'poe-code-e2e:abc123', testName: 'proxy', useSnapshots: true }))
+      .rejects.toThrow('symbolic link');
+  });
+
   it('starts proxy lifecycle when fixtures directory exists', async () => {
     setWorkspaceDir('/workspace/repo');
     vol.mkdirSync('/workspace/repo/.snapshots/proxy', { recursive: true });
@@ -934,8 +952,23 @@ describe('destroy', () => {
     expect(mockSpawnSync).toHaveBeenCalledWith(
       'podman',
       ['rm', '-f', 'my-container-id'],
-      { stdio: 'ignore' }
+      { encoding: 'utf-8', stdio: 'pipe' }
     );
+  });
+
+  it('rejects destroy when removing the container fails', async () => {
+    const { spawnSync } = await import('node:child_process');
+    const mockSpawnSync = vi.mocked(spawnSync);
+    mockSpawnSync.mockImplementation((_cmd, args) => {
+      const argsArr = args as string[];
+      if (argsArr[0] === 'create') return { status: 0, stdout: 'my-container-id\n', stderr: '', pid: 1, output: [], signal: null };
+      if (argsArr[0] === 'rm') return { status: 1, stdout: '', stderr: 'remove failed', pid: 1, output: [], signal: null };
+      return { status: 0, stdout: '', stderr: '', pid: 1, output: [], signal: null };
+    });
+    const { createContainer } = await import('./persistent-container.js');
+    const container = await createContainer({ image: 'poe-code-e2e:abc123' });
+
+    await expect(container.destroy()).rejects.toThrow('Failed to remove container: remove failed');
   });
 });
 

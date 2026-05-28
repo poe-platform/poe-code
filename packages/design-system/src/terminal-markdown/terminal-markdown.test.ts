@@ -1232,6 +1232,13 @@ describe("extractFrontmatter", () => {
     });
   });
 
+  it("parses frontmatter with carriage-return-only line endings", () => {
+    expect(extractFrontmatter(["---", "title: Example", "---", "Body"].join("\r"))).toEqual({
+      frontmatter: { title: "Example" },
+      body: "Body"
+    });
+  });
+
   it("does not treat non-leading or unclosed fences as frontmatter (tests 72, 130)", () => {
     expect(extractFrontmatter(["# Heading", "---", "title: Example", "---"].join("\n"))).toEqual({
       body: "# Heading\n---\ntitle: Example\n---"

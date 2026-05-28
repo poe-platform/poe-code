@@ -498,8 +498,10 @@ function startsWithFrontmatterFence(value: string): boolean {
   return (
     value.startsWith("---\n") ||
     value.startsWith("---\r\n") ||
+    value.startsWith("---\r") ||
     value.startsWith("\uFEFF---\n") ||
-    value.startsWith("\uFEFF---\r\n")
+    value.startsWith("\uFEFF---\r\n") ||
+    value.startsWith("\uFEFF---\r")
   );
 }
 

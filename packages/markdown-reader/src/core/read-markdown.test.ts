@@ -114,6 +114,31 @@ describe("readMarkdown", () => {
     });
   });
 
+  it("reads frontmatter from carriage-return-only markdown", async () => {
+    const readMarkdown = createReadMarkdown({
+      fs: createMemFs({
+        "/repo/docs/metadata.md": ["---", "title: Metadata", "owner: docs", "---", "# Heading"].join("\r")
+      }),
+      cwd: "/repo"
+    });
+
+    await expect(readMarkdown({ file: "docs/metadata.md" })).resolves.toMatchObject({
+      frontmatter: { title: "Metadata", owner: "docs" },
+      sections: [{ depth: 1, number: null, title: "Heading" }]
+    });
+  });
+
+  it("rejects invalid table-of-contents depths", async () => {
+    const readMarkdown = createReadMarkdown({
+      fs: createMemFs({ "/repo/docs/simple.md": simpleFixture }),
+      cwd: "/repo"
+    });
+
+    await expect(readMarkdown({ file: "docs/simple.md", depth: Number.NaN })).rejects.toThrowError(
+      new UserError("invalid depth: expected a non-negative integer")
+    );
+  });
+
   it("throws a UserError when the file is missing", async () => {
     const readMarkdown = createReadMarkdown({ fs: createMemFs({}), cwd: "/repo" });
 

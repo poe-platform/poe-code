@@ -54,6 +54,30 @@ describe("readSection", () => {
     });
   });
 
+  it("selects an unnumbered title over a duplicate child title", async () => {
+    const readSection = createReadSection({
+      fs: createMemFs({ "/repo/docs/overview.md": "# Overview\n\nIntro.\n\n## Overview\n\nDetails.\n" }),
+      cwd: "/repo"
+    });
+
+    await expect(readSection({ file: "docs/overview.md", section: "Overview" })).resolves.toMatchObject({
+      markdown: "# Overview\n\nIntro.\n\n## Overview\n\nDetails.\n",
+      section: { depth: 1, number: null, title: "Overview" }
+    });
+  });
+
+  it("selects an unnumbered numeric title before a child path", async () => {
+    const readSection = createReadSection({
+      fs: createMemFs({ "/repo/docs/numeric.md": "# 1\n\nIntro.\n\n## Child\n\nDetails.\n" }),
+      cwd: "/repo"
+    });
+
+    await expect(readSection({ file: "docs/numeric.md", section: "1" })).resolves.toMatchObject({
+      markdown: "# 1\n\nIntro.\n\n## Child\n\nDetails.\n",
+      section: { depth: 1, number: null, title: "1" }
+    });
+  });
+
   it("preserves fenced code blocks and trailing blank lines exactly", async () => {
     const readSection = createReadSection({
       fs: createMemFs({ "/repo/docs/with-fenced-code.md": fencedCodeFixture }),

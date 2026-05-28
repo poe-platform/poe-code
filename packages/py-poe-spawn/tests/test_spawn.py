@@ -27,6 +27,12 @@ class FakeProcess:
         return self.wait_code
 
 
+class FailingSignalProcess(FakeProcess):
+    def send_signal(self, sig) -> None:
+        self.sent_signals.append(sig)
+        raise PermissionError("signal denied")
+
+
 class ResolveCliCommandTest(unittest.TestCase):
     def test_prefers_poe_code_on_path(self) -> None:
         with mock.patch("poe_spawn._spawn.shutil.which") as which:
@@ -153,6 +159,18 @@ class SpawnTest(unittest.TestCase):
         self.assertEqual(handle.result.thread_id, "thread-9")
         self.assertEqual(handle.result.usage, UsageEvent(event="usage", input_tokens=8, output_tokens=13))
 
+    def test_spawn_preserves_protocol_result_exit_code(self) -> None:
+        fake_process = FakeProcess('{"event":"spawn_result","exitCode":9,"threadId":"t"}\n')
+
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", return_value=fake_process
+        ):
+            handle = spawn("codex", "Report result")
+            list(handle.events)
+
+        self.assertEqual(handle.result.exit_code, 9)
+        self.assertEqual(handle.result.thread_id, "t")
+
     def test_pretty_inherits_terminal_output_and_returns_exit_code(self) -> None:
         fake_process = FakeProcess("", wait_code=3)
         popen_calls = []
@@ -199,6 +217,43 @@ class SpawnTest(unittest.TestCase):
 
         self.assertEqual(events, [AgentMessageEvent(event="agent_message", text="done")])
         self.assertFalse(handle._cancel_watcher.is_alive())
+
+    def test_spawn_rejects_invalid_cancel_event_before_starting_process(self) -> None:
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen"
+        ) as popen:
+            with self.assertRaises(TypeError):
+                spawn("codex", "Invalid cancellation", cancel_event=object())
+
+        popen.assert_not_called()
+
+    def test_spawn_surfaces_async_cancel_signal_failure(self) -> None:
+        fake_process = FailingSignalProcess('{"event":"agent_message","text":"done"}\n')
+        cancel_event = threading.Event()
+
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", return_value=fake_process
+        ):
+            handle = spawn("codex", "Cancel", cancel_event=cancel_event)
+            cancel_event.set()
+            with self.assertRaises(PermissionError):
+                list(handle.events)
+
+        self.assertEqual(len(fake_process.sent_signals), 1)
+
+    def test_spawn_returns_handle_when_preset_cancel_signal_fails(self) -> None:
+        fake_process = FailingSignalProcess('{"event":"agent_message","text":"done"}\n')
+        cancel_event = threading.Event()
+        cancel_event.set()
+
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", return_value=fake_process
+        ):
+            handle = spawn("codex", "Already cancelled", cancel_event=cancel_event)
+            with self.assertRaises(PermissionError):
+                list(handle.events)
+
+        self.assertEqual(len(fake_process.sent_signals), 1)
 
     def test_spawn_serializes_mcp_servers(self) -> None:
         fake_process = FakeProcess("")
@@ -275,6 +330,20 @@ class SpawnTest(unittest.TestCase):
                 mcp_servers={"one": {"command": "server-a"}},
                 mcp_config={"two": {"command": "server-b"}},
             )
+
+    def test_pretty_rejects_fractional_activity_timeout(self) -> None:
+        with mock.patch("poe_spawn._spawn.subprocess.Popen") as popen:
+            with self.assertRaises(ValueError):
+                spawn.pretty("codex", "Invalid timeout", activity_timeout_ms=1.9)
+
+        popen.assert_not_called()
+
+    def test_pretty_rejects_string_args(self) -> None:
+        with mock.patch("poe_spawn._spawn.subprocess.Popen") as popen:
+            with self.assertRaises(TypeError):
+                spawn.pretty("codex", "Invalid args", args="--verbose")
+
+        popen.assert_not_called()
 
 
 if __name__ == "__main__":

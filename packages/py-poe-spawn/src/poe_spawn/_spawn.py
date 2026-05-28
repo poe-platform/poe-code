@@ -28,11 +28,14 @@ class SpawnHandle:
     ) -> None:
         self._process = process
         self._cancel_event = cancel_event
+        self._cancel_error: Optional[BaseException] = None
+        self._cancel_attempted = False
+        self._cancel_lock = threading.Lock()
         self._cancel_watcher_done = threading.Event()
         self._cancel_watcher = _start_cancel_watcher(
-            process=self._process,
             cancel_event=self._cancel_event,
             done=self._cancel_watcher_done,
+            request_cancel=self._request_cancel,
         )
         self._completed = False
         self._result_event: Optional[SpawnResultEvent] = None
@@ -48,6 +51,21 @@ class SpawnHandle:
 
     def cancel(self) -> None:
         _send_interrupt(self._process)
+
+    def _request_cancel(self) -> None:
+        with self._cancel_lock:
+            if self._cancel_attempted:
+                return
+            self._cancel_attempted = True
+
+        try:
+            _send_interrupt(self._process)
+        except BaseException as error:
+            self._cancel_error = error
+
+    def _request_pending_cancel(self) -> None:
+        if self._cancel_event is not None and _cancel_event_is_set(self._cancel_event):
+            self._request_cancel()
 
     def _iter_events(self) -> Iterator[AcpEvent]:
         stdout = self._process.stdout
@@ -84,11 +102,12 @@ class SpawnHandle:
         if self._completed:
             return
 
+        self._request_pending_cancel()
         exit_code = self._process.wait()
         parsed = self._result_event
         self._result_event = SpawnResultEvent(
             event="spawn_result",
-            exit_code=exit_code,
+            exit_code=parsed.exit_code if parsed else exit_code,
             thread_id=(parsed.thread_id if parsed else None) or self._last_thread_id,
             usage=(parsed.usage if parsed else None) or self._last_usage,
             protocol_version=parsed.protocol_version if parsed else None,
@@ -97,6 +116,8 @@ class SpawnHandle:
         self._cancel_watcher_done.set()
         if self._cancel_watcher is not None:
             self._cancel_watcher.join(timeout=0.1)
+        if self._cancel_error is not None:
+            raise self._cancel_error
 
 
 class _SpawnInvoker:
@@ -115,6 +136,7 @@ class _SpawnInvoker:
         activity_timeout_ms: Optional[int] = None,
         cancel_event: Any = None,
     ) -> SpawnHandle:
+        _validate_cancel_event(cancel_event)
         command = _build_spawn_command(
             agent=agent,
             prompt=prompt,
@@ -152,6 +174,7 @@ class _SpawnInvoker:
         activity_timeout_ms: Optional[int] = None,
         cancel_event: Any = None,
     ) -> SpawnResultEvent:
+        _validate_cancel_event(cancel_event)
         command = _build_spawn_command(
             agent=agent,
             prompt=prompt,
@@ -172,11 +195,15 @@ class _SpawnInvoker:
             env=_child_env("terminal"),
         )
         watcher_done = threading.Event()
-        watcher = _start_cancel_watcher(
-            process=process,
-            cancel_event=cancel_event,
-            done=watcher_done,
-        )
+        cancel_error: list[BaseException] = []
+
+        def request_cancel() -> None:
+            try:
+                _send_interrupt(process)
+            except BaseException as error:
+                cancel_error.append(error)
+
+        watcher = _start_cancel_watcher(cancel_event=cancel_event, done=watcher_done, request_cancel=request_cancel)
 
         try:
             exit_code = process.wait()
@@ -184,6 +211,9 @@ class _SpawnInvoker:
             watcher_done.set()
             if watcher is not None:
                 watcher.join(timeout=0.1)
+
+        if cancel_error:
+            raise cancel_error[0]
 
         return SpawnResultEvent(event="spawn_result", exit_code=exit_code)
 
@@ -223,12 +253,14 @@ def _build_spawn_command(
         command.extend(["--log-dir", log_dir])
 
     if activity_timeout_ms is not None:
-        timeout = int(activity_timeout_ms)
-        if timeout <= 0:
+        if not isinstance(activity_timeout_ms, int) or isinstance(activity_timeout_ms, bool) or activity_timeout_ms <= 0:
             raise ValueError("activity_timeout_ms must be a positive integer.")
-        command.extend(["--activity-timeout-ms", str(timeout)])
+        command.extend(["--activity-timeout-ms", str(activity_timeout_ms)])
 
     command.extend([_enum_value(agent), prompt])
+
+    if isinstance(args, (str, bytes)):
+        raise TypeError("args must be a sequence of strings, not a string.")
 
     if args:
         command.extend(args)
@@ -320,14 +352,9 @@ def _enum_value(value: Agent | SpawnMode | str) -> str:
     return value
 
 
-def _start_cancel_watcher(
-    *,
-    process: subprocess.Popen[str],
-    cancel_event: Any,
-    done: threading.Event,
-) -> Optional[threading.Thread]:
+def _validate_cancel_event(cancel_event: Any) -> None:
     if cancel_event is None:
-        return None
+        return
 
     has_wait = hasattr(cancel_event, "wait") and callable(cancel_event.wait)
     has_is_set = hasattr(cancel_event, "is_set") and callable(cancel_event.is_set)
@@ -335,20 +362,36 @@ def _start_cancel_watcher(
     if not has_wait and not has_is_set:
         raise TypeError("cancel_event must expose wait() or is_set().")
 
+def _cancel_event_is_set(cancel_event: Any) -> bool:
+    return bool(hasattr(cancel_event, "is_set") and callable(cancel_event.is_set) and cancel_event.is_set())
+
+
+def _start_cancel_watcher(
+    *,
+    cancel_event: Any,
+    done: threading.Event,
+    request_cancel: Any,
+) -> Optional[threading.Thread]:
+    _validate_cancel_event(cancel_event)
+    if cancel_event is None:
+        return None
+
+    has_is_set = hasattr(cancel_event, "is_set") and callable(cancel_event.is_set)
+
     if has_is_set and cancel_event.is_set():
-        _send_interrupt(process)
+        request_cancel()
         return None
 
     target = _poll_cancel_event if has_is_set else _wait_for_cancel_event
-    thread = threading.Thread(target=target, args=(process, cancel_event, done), daemon=True)
+    thread = threading.Thread(target=target, args=(cancel_event, done, request_cancel), daemon=True)
     thread.start()
     return thread
 
 
 def _wait_for_cancel_event(
-    process: subprocess.Popen[str],
     cancel_event: Any,
     done: threading.Event,
+    request_cancel: Any,
 ) -> None:
     while not done.is_set():
         try:
@@ -358,18 +401,18 @@ def _wait_for_cancel_event(
             did_cancel = True
 
         if did_cancel and not done.is_set():
-            _send_interrupt(process)
+            request_cancel()
             return
 
 
 def _poll_cancel_event(
-    process: subprocess.Popen[str],
     cancel_event: Any,
     done: threading.Event,
+    request_cancel: Any,
 ) -> None:
     while not done.is_set():
         if cancel_event.is_set():
-            _send_interrupt(process)
+            request_cancel()
             return
         time.sleep(0.05)
 

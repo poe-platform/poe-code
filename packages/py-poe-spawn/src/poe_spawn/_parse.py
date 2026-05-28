@@ -54,7 +54,7 @@ def parse_jsonl_line(line: str) -> Tuple[Optional[AcpEvent], Optional[SpawnResul
         return None, None
 
     event = _instantiate_dataclass(event_type, normalized)
-    if event is None:
+    if event is None or not _is_valid_event(event):
         return None, None
 
     return cast(AcpEvent, event), None
@@ -71,7 +71,8 @@ def _parse_spawn_result(payload: dict[str, Any]) -> Optional[SpawnResultEvent]:
 
     spawn_result_fields = dict(payload)
     spawn_result_fields["usage"] = usage
-    return cast(Optional[SpawnResultEvent], _instantiate_dataclass(SpawnResultEvent, spawn_result_fields))
+    result = cast(Optional[SpawnResultEvent], _instantiate_dataclass(SpawnResultEvent, spawn_result_fields))
+    return result if result is not None and _is_valid_spawn_result(result) else None
 
 
 def _instantiate_dataclass(dataclass_type: Type[Any], payload: dict[str, Any]) -> Optional[Any]:
@@ -84,6 +85,62 @@ def _instantiate_dataclass(dataclass_type: Type[Any], payload: dict[str, Any]) -
         return dataclass_type(**kwargs)
     except TypeError:
         return None
+
+
+def _is_int(value: Any) -> bool:
+    return isinstance(value, int) and not isinstance(value, bool)
+
+
+def _is_optional_str(value: Any) -> bool:
+    return value is None or isinstance(value, str)
+
+
+def _is_valid_usage(event: UsageEvent) -> bool:
+    return (
+        event.event == "usage"
+        and _is_int(event.input_tokens)
+        and _is_int(event.output_tokens)
+        and (event.cached_tokens is None or _is_int(event.cached_tokens))
+        and (event.cost_usd is None or isinstance(event.cost_usd, (int, float)))
+    )
+
+
+def _is_valid_event(event: Any) -> bool:
+    if isinstance(event, SessionStartEvent):
+        return event.event == "session_start" and _is_optional_str(event.thread_id)
+    if isinstance(event, AgentMessageEvent):
+        return event.event == "agent_message" and isinstance(event.text, str)
+    if isinstance(event, ToolStartEvent):
+        return (
+            event.event == "tool_start"
+            and isinstance(event.kind, str)
+            and isinstance(event.title, str)
+            and _is_optional_str(event.id)
+        )
+    if isinstance(event, ToolCompleteEvent):
+        return (
+            event.event == "tool_complete"
+            and isinstance(event.kind, str)
+            and isinstance(event.path, str)
+            and _is_optional_str(event.id)
+        )
+    if isinstance(event, ReasoningEvent):
+        return event.event == "reasoning" and isinstance(event.text, str)
+    if isinstance(event, UsageEvent):
+        return _is_valid_usage(event)
+    if isinstance(event, ErrorEvent):
+        return event.event == "error" and isinstance(event.message, str) and _is_optional_str(event.stack)
+    return False
+
+
+def _is_valid_spawn_result(result: SpawnResultEvent) -> bool:
+    return (
+        result.event == "spawn_result"
+        and _is_int(result.exit_code)
+        and _is_optional_str(result.thread_id)
+        and (result.usage is None or _is_valid_usage(result.usage))
+        and (result.protocol_version is None or _is_int(result.protocol_version))
+    )
 
 
 def _normalize_keys(payload: dict[str, Any]) -> dict[str, Any]:

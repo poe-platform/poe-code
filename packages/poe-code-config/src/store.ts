@@ -31,12 +31,29 @@ export async function readMergedDocument(
   globalPath: string,
   projectPath?: string
 ): Promise<ConfigDocument> {
-  const globalDocument = await readStoredDocument(fs, globalPath);
+  return readMergedStoredDocument(fs, globalPath, projectPath, true);
+}
+
+export async function readMergedDocumentReadonly(
+  fs: FileSystem,
+  globalPath: string,
+  projectPath?: string
+): Promise<ConfigDocument> {
+  return readMergedStoredDocument(fs, globalPath, projectPath, false);
+}
+
+async function readMergedStoredDocument(
+  fs: FileSystem,
+  globalPath: string,
+  projectPath: string | undefined,
+  recoverInvalid: boolean
+): Promise<ConfigDocument> {
+  const globalDocument = await readStoredDocument(fs, globalPath, recoverInvalid);
   if (!projectPath || projectPath === globalPath) {
     return globalDocument.data;
   }
 
-  const projectDocument = await readStoredDocument(fs, projectPath);
+  const projectDocument = await readStoredDocument(fs, projectPath, recoverInvalid);
   const resolved = await resolve(
     [
       {
@@ -60,11 +77,12 @@ export async function readMergedDocument(
 
 async function readStoredDocument(
   fs: FileSystem,
-  filePath: string
+  filePath: string,
+  recoverInvalid = true
 ): Promise<{ content: string; data: ConfigDocument }> {
   try {
     const raw = await fs.readFile(filePath, "utf8");
-    return await parseStoredDocument(fs, filePath, raw);
+    return await parseStoredDocument(fs, filePath, raw, recoverInvalid);
   } catch (error) {
     if (isNotFound(error)) {
       return {
@@ -80,7 +98,8 @@ async function readStoredDocument(
 async function parseStoredDocument(
   fs: FileSystem,
   filePath: string,
-  raw: string
+  raw: string,
+  recoverInvalid: boolean
 ): Promise<{ content: string; data: ConfigDocument }> {
   try {
     return {
@@ -89,6 +108,9 @@ async function parseStoredDocument(
     };
   } catch (error) {
     if (error instanceof SyntaxError) {
+      if (!recoverInvalid) {
+        throw error;
+      }
       await recoverInvalidDocument(fs, filePath, raw);
       return {
         content: EMPTY_DOCUMENT,

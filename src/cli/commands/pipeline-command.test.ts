@@ -1969,6 +1969,25 @@ describe("pipeline plan-path command", () => {
 
     expect(writeSpy).toHaveBeenCalledWith("/repo/docs/plans\n");
   });
+
+  it("does not recover malformed project config while printing the path", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "pipeline", "plan-path"])).rejects.toThrow();
+
+    expect(await fs.readFile("/repo/.poe-code/config.json", "utf8")).toBe("{ invalid json\n");
+    expect(await fs.readdir("/repo/.poe-code")).toEqual(["config.json"]);
+  });
 });
 
 describe("pipeline install command", () => {

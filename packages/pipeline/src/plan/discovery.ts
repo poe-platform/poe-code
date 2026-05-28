@@ -37,7 +37,8 @@ function countCompletedTasks(planPath: string, content: string): PlanCandidate {
     if (typeof task.status === "string") {
       return task.status === "done";
     }
-    return Object.values(task.status).every((status) => status === "done");
+    const statuses = Object.values(task.status);
+    return statuses.length > 0 && statuses.every((status) => status === "done");
   }).length;
 
   return {

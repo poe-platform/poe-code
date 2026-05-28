@@ -12,7 +12,7 @@ import type {
   StepHooks,
   StepMode
 } from "../types.js";
-import { isNotFound, isRecord, readOptionalFile } from "../utils.js";
+import { defineRecordEntry, isNotFound, isRecord, readOptionalFile } from "../utils.js";
 
 function asStepMode(value: unknown): StepMode {
   if (value === undefined || value === null) {
@@ -134,7 +134,7 @@ function parseStepConfigData(filePath: string, document: unknown): ResolvedSteps
       throw new Error(`Invalid pipeline step config in "${filePath}": "steps" must be an object.`);
     }
     for (const [stepName, value] of Object.entries(stepsValue)) {
-      steps[stepName] = parseDef(value, `step "${stepName}"`);
+      defineRecordEntry(steps, stepName, parseDef(value, `step "${stepName}"`));
     }
   }
 
@@ -185,7 +185,11 @@ function applyStepOverrides(
   const steps: ResolvedStepDefinitions = { ...config.steps };
 
   for (const [stepName, override] of Object.entries(stepOverrides)) {
-    steps[stepName] = mergeStepDefinition(steps[stepName], override, `plan step "${stepName}"`);
+    defineRecordEntry(
+      steps,
+      stepName,
+      mergeStepDefinition(steps[stepName], override, `plan step "${stepName}"`)
+    );
   }
 
   return {

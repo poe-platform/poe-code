@@ -1,5 +1,6 @@
 import path from "node:path";
 import { resolveFileIncludes } from "../run/runner.js";
+import { defineRecordEntry } from "../utils.js";
 
 function looksLikeDocPath(value: string): boolean {
   const trimmed = value.trim();
@@ -44,11 +45,10 @@ export async function resolvePipelineVars(
   for (const [key, value] of Object.entries(vars)) {
     if (key.endsWith("_doc") && looksLikeDocPath(value)) {
       const docContent = await resolveDocVarFromPath({ key, value, cwd, readFile });
-      resolved[key] = await resolveFileIncludes(docContent, cwd, readFile);
+      defineRecordEntry(resolved, key, await resolveFileIncludes(docContent, cwd, readFile));
       continue;
     }
-    resolved[key] = await resolveFileIncludes(value, cwd, readFile);
+    defineRecordEntry(resolved, key, await resolveFileIncludes(value, cwd, readFile));
   }
   return resolved;
 }
-

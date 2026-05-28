@@ -37,6 +37,7 @@ export {
 export { planConfigScope } from "./plan-scope.js";
 export { createConfigStore } from "./config.js";
 export { deepMergeDocuments } from "./merge.js";
+export { readMergedDocumentReadonly } from "./store.js";
 export {
   mergeExperimentCallbacks,
   mergeLoopCallbacks,

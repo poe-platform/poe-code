@@ -11,6 +11,7 @@ import {
   type ExecutionSelection
 } from "./run/runner.js";
 import { interpolatePipelineVars } from "./vars/interpolate.js";
+import { resolvePipelineVars } from "./vars/resolve.js";
 import { runPipeline } from "./run/pipeline.js";
 import { createPipelineSimulation, failTurn, successTurn } from "./testing/simulation.js";
 import type {
@@ -234,6 +235,22 @@ describe("loadResolvedSteps", () => {
         model: "o3"
       }
     });
+  });
+
+  it("resolves an inline step override named __proto__", async () => {
+    const plan = parsePlan(
+      ["steps:", "  __proto__:", "    prompt: Override prompt", "tasks: []", ""].join("\n")
+    );
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs(),
+      stepOverrides: plan.stepOverrides
+    });
+
+    expect(Object.hasOwn(plan.stepOverrides ?? {}, "__proto__")).toBe(true);
+    expect(Object.hasOwn(config.steps, "__proto__")).toBe(true);
+    expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Override prompt" });
   });
 
   it("throws a clear error when plan extends an unknown named config", async () => {
@@ -1064,6 +1081,36 @@ describe("resolvePlanPaths", () => {
     );
     expect(result).toEqual(["docs/plans/plan-alpha.md", "docs/plans/plan-beta.md"]);
   });
+
+  it("does not count an empty step status map as completed", async () => {
+    const selectPlan = vi.fn().mockResolvedValue("docs/plans/plan.md");
+
+    await resolvePlanPaths({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/docs/plans/plan.md": [
+          "---",
+          "kind: pipeline",
+          "version: 1",
+          "tasks:",
+          "  - id: implement",
+          "    title: Implement feature",
+          "    prompt: Ship it",
+          "    status: {}",
+          "---",
+          ""
+        ].join("\n")
+      }),
+      selectPlan
+    });
+
+    expect(selectPlan).toHaveBeenCalledWith(
+      expect.objectContaining({
+        options: [{ label: "docs/plans/plan.md (0/1)", value: "docs/plans/plan.md" }]
+      })
+    );
+  });
 });
 
 describe("resolvePlanDirectory", () => {
@@ -1421,6 +1468,16 @@ describe("parsePlan", () => {
     expect(plan.mcp).toEqual({ minimal: { command: "my-tool" } });
   });
 
+  it("preserves an mcp server named __proto__", () => {
+    const plan = parsePlan(
+      ["mcp:", "  __proto__:", "    command: custom-server", "tasks: []", ""].join("\n")
+    );
+
+    expect(Object.hasOwn(plan.mcp ?? {}, "__proto__")).toBe(true);
+    expect(plan.mcp?.__proto__).toEqual({ command: "custom-server" });
+    expect(Object.getPrototypeOf(plan.mcp ?? {})).toBe(Object.prototype);
+  });
+
   it("omits mcp when not present", () => {
     const plan = parsePlan("tasks: []\n");
     expect(plan.mcp).toBeUndefined();
@@ -1494,6 +1551,15 @@ describe("parsePlan", () => {
       plan_doc: "docs/plans/my-feature.md",
       env: "production"
     });
+  });
+
+  it("preserves and resolves a variable named __proto__", async () => {
+    const plan = parsePlan(["vars:", "  __proto__: production", "tasks: []", ""].join("\n"));
+    const vars = await resolvePipelineVars(plan.vars ?? {}, "/repo", async () => "");
+
+    expect(Object.hasOwn(plan.vars ?? {}, "__proto__")).toBe(true);
+    expect(Object.hasOwn(vars, "__proto__")).toBe(true);
+    expect(interpolatePipelineVars("{{__proto__}}", vars)).toBe("production");
   });
 
   it("omits vars when not defined", () => {

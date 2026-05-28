@@ -23,6 +23,7 @@ import { installSkill, resolveAgentSupport, type SkillScope } from "@poe-code/ag
 import {
   mergePipelineCallbacks,
   readMergedDocument,
+  readMergedDocumentReadonly,
   resolveScope,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
@@ -65,13 +66,20 @@ import {
   shouldUseInteractiveDashboard
 } from "./dashboard-loop-shared.js";
 
-async function resolvePipelineCommandConfig(container: CliContainer): Promise<{
+async function resolvePipelineCommandConfig(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<{
   configDoc: ConfigDocument;
   planDirectory: string;
   tui: boolean;
 }> {
   const [configDoc, pipelineYamlConfig] = await Promise.all([
-    readMergedDocument(container.fs, container.env.configPath, container.env.projectConfigPath),
+    (options.readOnly ? readMergedDocumentReadonly : readMergedDocument)(
+      container.fs,
+      container.env.configPath,
+      container.env.projectConfigPath
+    ),
     loadPipelineConfig({
       cwd: container.env.cwd,
       homeDir: container.env.homeDir,
@@ -1240,7 +1248,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
     .command("plan-path")
     .description("Print the directory where pipeline plan files should be placed.")
     .action(async function () {
-      const commandConfig = await resolvePipelineCommandConfig(container);
+      const commandConfig = await resolvePipelineCommandConfig(container, { readOnly: true });
 
       const resolvedPath = resolvePlanDirectory({
         cwd: container.env.cwd,

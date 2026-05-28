@@ -12,7 +12,7 @@ import type {
   StepHooks,
   StepMode
 } from "../types.js";
-import { isRecord } from "../utils.js";
+import { defineRecordEntry, isRecord } from "../utils.js";
 
 type JsonSchemaType = "string" | "number" | "integer" | "boolean" | "array" | "object" | "null";
 
@@ -292,7 +292,7 @@ function parseTaskStatus(
     if (availableSteps && !(stepName in availableSteps)) {
       throw new Error(`Unknown step "${stepName}" referenced by task "${taskId}".`);
     }
-    statusMap[stepName] = normalizeStatus(stepStatus, `step status for "${stepName}"`);
+    defineRecordEntry(statusMap, stepName, normalizeStatus(stepStatus, `step status for "${stepName}"`));
   }
 
   return statusMap;
@@ -468,7 +468,7 @@ function parseMcpConfig(value: unknown): McpSpawnConfig {
       }
       server.env = entry.env as Record<string, string>;
     }
-    result[name] = server;
+    defineRecordEntry(result, name, server);
   }
   return result;
 }
@@ -506,7 +506,7 @@ export function parsePlan(
 
     stepOverrides = {};
     for (const [stepName, value] of Object.entries(document.steps)) {
-      stepOverrides[stepName] = parseStepOverride(value, `steps.${stepName}`);
+      defineRecordEntry(stepOverrides, stepName, parseStepOverride(value, `steps.${stepName}`));
     }
   }
 
@@ -561,7 +561,7 @@ export function parsePlan(
       if (typeof val !== "string") {
         throw new Error(`Invalid plan YAML: vars["${key}"] must be a string.`);
       }
-      vars[key] = val;
+      defineRecordEntry(vars, key, val);
     }
   }
 

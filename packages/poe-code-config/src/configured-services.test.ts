@@ -157,6 +157,37 @@ describe("configured services", () => {
     });
   });
 
+  it("rolls back layered migrations when a project migration cannot be committed", async () => {
+    const globalPath = "/home/test/.poe-code/config.json";
+    const projectPath = "/workspace/.poe-code/config.json";
+    const base = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"configured_services":{"codex":{"files":["/global"]}}}\n',
+        "/workspace/.poe-code/config.json": '{"configured_services":{"opencode":{"files":["/project"]}}}\n'
+      },
+      homeDir
+    );
+    const fs = {
+      ...base,
+      async rename(oldPath: string, newPath: string) {
+        if (newPath === projectPath) {
+          throw new Error("project write offline");
+        }
+        await base.rename(oldPath, newPath);
+      }
+    };
+
+    await expect(loadConfiguredServices({ fs, filePath: globalPath, projectFilePath: projectPath })).rejects.toThrow(
+      "project write offline"
+    );
+    expect(JSON.parse(await base.readFile(globalPath, "utf8"))).toEqual({
+      configured_services: { codex: { files: ["/global"] } }
+    });
+    expect(JSON.parse(await base.readFile(projectPath, "utf8"))).toEqual({
+      configured_services: { opencode: { files: ["/project"] } }
+    });
+  });
+
   it("does not rewrite or warn when apiShape already exists", async () => {
     const fs = createMockFs(
       {

@@ -44,10 +44,10 @@ export async function loadConfiguredServices(
 ): Promise<Record<string, ConfiguredServiceMetadata>> {
   const { fs, filePath, projectFilePath } = options;
   await migrateLegacyCredentialsIfNeeded(fs, filePath);
-  await migrateConfiguredServicesIfNeeded(options, filePath);
-  if (projectFilePath && projectFilePath !== filePath) {
-    await migrateConfiguredServicesIfNeeded(options, projectFilePath);
-  }
+  await migrateConfiguredServiceLayers(options, [
+    filePath,
+    ...(projectFilePath && projectFilePath !== filePath ? [projectFilePath] : [])
+  ]);
 
   const document = await readMergedDocument(fs, filePath, projectFilePath);
   return normalizeConfiguredServices(document[configuredServicesScope]);
@@ -96,10 +96,48 @@ async function migrateConfiguredServicesIfNeeded(
   options: ConfigStoreOptions,
   filePath: string
 ): Promise<void> {
+  const migration = await prepareConfiguredServicesMigration(options, filePath);
+  if (migration) {
+    await writeScope(options.fs, filePath, configuredServicesScope, migration.migrated);
+  }
+}
+
+async function migrateConfiguredServiceLayers(
+  options: ConfigStoreOptions,
+  filePaths: string[]
+): Promise<void> {
+  const migrations = (await Promise.all(
+    filePaths.map((filePath) => prepareConfiguredServicesMigration(options, filePath))
+  )).filter((migration) => migration !== undefined);
+  const committed: ConfiguredServicesMigration[] = [];
+
+  try {
+    for (const migration of migrations) {
+      await writeScope(options.fs, migration.filePath, configuredServicesScope, migration.migrated);
+      committed.push(migration);
+    }
+  } catch (error) {
+    for (const migration of committed.reverse()) {
+      await writeScope(options.fs, migration.filePath, configuredServicesScope, migration.original).catch(() => undefined);
+    }
+    throw error;
+  }
+}
+
+interface ConfiguredServicesMigration {
+  filePath: string;
+  migrated: Record<string, unknown>;
+  original: Record<string, unknown>;
+}
+
+async function prepareConfiguredServicesMigration(
+  options: ConfigStoreOptions,
+  filePath: string
+): Promise<ConfiguredServicesMigration | undefined> {
   const document = await readDocument(options.fs, filePath);
   const rawServices = document[configuredServicesScope];
   if (!isRecord(rawServices)) {
-    return;
+    return undefined;
   }
 
   let needsMigration = false;
@@ -138,8 +176,14 @@ async function migrateConfiguredServicesIfNeeded(
   }
 
   if (needsMigration) {
-    await writeScope(options.fs, filePath, configuredServicesScope, migrated);
+    return {
+      filePath,
+      migrated,
+      original: rawServices
+    };
   }
+
+  return undefined;
 }
 
 function deriveApiShape(input: {

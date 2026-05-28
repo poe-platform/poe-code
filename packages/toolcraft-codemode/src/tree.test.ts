@@ -62,12 +62,6 @@ describe("resolveCommandTree", () => {
         commandName: "status"
       },
       {
-        path: "issues.list",
-        groupPath: "issues",
-        name: "list",
-        commandName: "list"
-      },
-      {
         path: "issues.comments.create",
         groupPath: "issues.comments",
         name: "create",
@@ -89,7 +83,6 @@ describe("resolveCommandTree", () => {
 
     expect([...tree.exportsByGroupPath.entries()]).toEqual([
       ["", ["status"]],
-      ["issues", ["list"]],
       ["issues.comments", ["create", "mirror"]],
       ["users", ["get"]]
     ]);
@@ -109,7 +102,7 @@ describe("resolveCommandTree", () => {
               name: "nested",
               children: [
                 testCommand("still_cli"),
-                testCommand("explicit_mcp", ["mcp"])
+            testCommand("explicit_mcp", ["mcp"])
               ]
             })
           ]
@@ -129,15 +122,46 @@ describe("resolveCommandTree", () => {
     const tree = await resolveCommandTree(root);
 
     expect(tree.entries.map((entry) => entry.path)).toEqual([
-      "cli_only.explicit_sdk",
-      "cli_only.nested.explicit_mcp",
-      "mcp_group.inherited_mcp"
+      "cli_only.explicit_sdk"
     ]);
 
     expect([...tree.exportsByGroupPath.entries()]).toEqual([
-      ["cli_only", ["explicit_sdk"]],
-      ["cli_only.nested", ["explicit_mcp"]],
-      ["mcp_group", ["inherited_mcp"]]
+      ["cli_only", ["explicit_sdk"]]
     ]);
+  });
+
+  it("canonicalizes separator names without colliding nested groups", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [
+        defineGroup({ name: "a.b", children: [testCommand("read.secret", ["sdk"])] }),
+        defineGroup({
+          name: "a",
+          children: [defineGroup({ name: "b", children: [testCommand("read_secret", ["sdk"])] })]
+        })
+      ]
+    });
+
+    const tree = await resolveCommandTree(root);
+
+    expect(tree.entries.map((entry) => entry.path)).toEqual([
+      "a_b.read_secret",
+      "a.b.read_secret"
+    ]);
+    expect([...tree.exportsByGroupPath.entries()]).toEqual([
+      ["a_b", ["read_secret"]],
+      ["a.b", ["read_secret"]]
+    ]);
+  });
+
+  it("fails when commands collapse onto the same executable export", async () => {
+    const root = defineGroup({
+      name: "root",
+      children: [testCommand("read.secret", ["sdk"]), testCommand("read_secret", ["sdk"])]
+    });
+
+    await expect(resolveCommandTree(root)).rejects.toThrow(
+      'Duplicate codemode command path "read_secret".'
+    );
   });
 });

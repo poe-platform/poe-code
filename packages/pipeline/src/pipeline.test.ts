@@ -253,6 +253,25 @@ describe("loadResolvedSteps", () => {
     expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Override prompt" });
   });
 
+  it("loads a named step definition named __proto__", async () => {
+    const config = await loadResolvedSteps({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs: createFs({
+        "/repo/.poe-code/pipeline/steps/default.yaml": [
+          "steps:",
+          "  __proto__:",
+          "    prompt: Execute custom step",
+          ""
+        ].join("\n")
+      })
+    });
+
+    expect(Object.hasOwn(config.steps, "__proto__")).toBe(true);
+    expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Execute custom step" });
+    expect(Object.getPrototypeOf(config.steps)).toBe(Object.prototype);
+  });
+
   it("throws a clear error when plan extends an unknown named config", async () => {
     await expect(
       loadResolvedSteps({
@@ -1435,6 +1454,38 @@ describe("parsePlan", () => {
     ).toThrow(/unknown step "unknown_step"/i);
   });
 
+  it("rejects empty task step status maps", () => {
+    expect(() =>
+      parsePlan(
+        [
+          "tasks:",
+          "  - id: task-1",
+          "    title: Harden auth",
+          "    prompt: Improve auth validation",
+          "    status: {}",
+          ""
+        ].join("\n")
+      )
+    ).toThrow(/status.*at least one step/i);
+  });
+
+  it("rejects inherited step names absent from available steps", () => {
+    expect(() =>
+      parsePlan(
+        [
+          "tasks:",
+          "  - id: task-1",
+          "    title: Harden auth",
+          "    prompt: Improve auth validation",
+          "    status:",
+          "      constructor: open",
+          ""
+        ].join("\n"),
+        { availableSteps: {} }
+      )
+    ).toThrow(/unknown step "constructor"/i);
+  });
+
   it("accepts an empty tasks array", () => {
     const plan = parsePlan("tasks: []\n");
     expect(plan.tasks).toEqual([]);
@@ -2100,6 +2151,40 @@ describe("resolveFileIncludes", () => {
 });
 
 describe("createPipelineSimulation", () => {
+  it("rejects an empty stepped task before reporting completion", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: implement",
+        "    title: Implement feature",
+        "    prompt: Ship it",
+        "    status: {}",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const onPlanResolved = vi.fn();
+    const runAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd: "/repo",
+        homeDir: "/home/test",
+        plan: "docs/plans/plan.md",
+        fs,
+        onPlanResolved,
+        runAgent
+      })
+    ).rejects.toThrow(/status.*at least one step/i);
+
+    expect(onPlanResolved).not.toHaveBeenCalled();
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
   it("completes a stepless task in one run", async () => {
     const sim = createPipelineSimulation({
       plan: {

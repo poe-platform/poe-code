@@ -288,8 +288,12 @@ function parseTaskStatus(
   }
 
   const statusMap: Record<string, PipelineStatus> = {};
-  for (const [stepName, stepStatus] of Object.entries(value)) {
-    if (availableSteps && !(stepName in availableSteps)) {
+  const stepStatuses = Object.entries(value);
+  if (stepStatuses.length === 0) {
+    throw new Error(`Invalid status for task "${taskId}": expected at least one step status.`);
+  }
+  for (const [stepName, stepStatus] of stepStatuses) {
+    if (availableSteps && !Object.hasOwn(availableSteps, stepName)) {
       throw new Error(`Unknown step "${stepName}" referenced by task "${taskId}".`);
     }
     defineRecordEntry(statusMap, stepName, normalizeStatus(stepStatus, `step status for "${stepName}"`));

@@ -5,6 +5,7 @@ import type {
   StdioOptions
 } from "node:child_process";
 import type { Readable, Writable } from "node:stream";
+import { StringDecoder } from "node:string_decoder";
 import type { SpawnResult, SpawnUsage } from "@poe-code/agent-spawn";
 
 export type SpawnProcess = typeof import("node:child_process").spawn;
@@ -223,21 +224,25 @@ function collectResult(
   child: ChildProcess,
   spec: ExecutionSpec
 ): Promise<AgentChildProcessResult> {
+  const stdoutDecoder = new StringDecoder("utf8");
+  const stderrDecoder = new StringDecoder("utf8");
   let stdout = "";
   let stderr = "";
   let settled = false;
 
   child.stdout?.on("data", (chunk: Buffer | string) => {
-    stdout += String(chunk);
+    stdout += typeof chunk === "string" ? chunk : stdoutDecoder.write(chunk);
   });
   child.stderr?.on("data", (chunk: Buffer | string) => {
-    stderr += String(chunk);
+    stderr += typeof chunk === "string" ? chunk : stderrDecoder.write(chunk);
   });
 
   return new Promise((resolve) => {
     const finish = (exitCode: number, error?: Error) => {
       if (settled) return;
       settled = true;
+      stdout += stdoutDecoder.end();
+      stderr += stderrDecoder.end();
       if (error && stderr.length === 0) {
         stderr = error.message;
       }

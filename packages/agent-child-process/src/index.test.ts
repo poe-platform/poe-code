@@ -189,6 +189,23 @@ describe("@poe-code/agent-child-process", () => {
     });
   });
 
+  it("preserves UTF-8 characters split across stream chunks", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const resultPromise = execFile("npm", ["test"], { spawnProcess });
+    const emoji = Buffer.from("🙂", "utf8");
+
+    children[0]!.stdout.emit("data", emoji.subarray(0, 2));
+    children[0]!.stdout.emit("data", emoji.subarray(2));
+    children[0]!.stderr.emit("data", emoji.subarray(0, 1));
+    children[0]!.stderr.emit("data", emoji.subarray(1));
+    children[0]!.emit("close", 0, null);
+
+    await expect(resultPromise).resolves.toMatchObject({
+      stdout: "🙂",
+      stderr: "🙂"
+    });
+  });
+
   it("resolves non-zero exits by default", async () => {
     const { children, spawnProcess } = createSpawnHarness();
     const resultPromise = execFile("npm", ["test"], { spawnProcess });

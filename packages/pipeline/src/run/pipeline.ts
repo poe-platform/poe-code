@@ -116,6 +116,7 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
   if (!runAgent) {
     throw new Error("runPipeline requires a runAgent implementation.");
   }
+  assertNotAborted(options.signal);
   const metrics: PipelineMetrics = {
     totalInputTokens: 0,
     totalOutputTokens: 0,

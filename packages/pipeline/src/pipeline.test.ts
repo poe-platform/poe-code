@@ -3394,6 +3394,42 @@ describe("createPipelineSimulation", () => {
     expect(result.metrics.tasksCompleted).toBe(1);
   });
 
+  it("does not run setup when the request is already aborted", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "setup:",
+        "  prompt: Prepare workspace",
+        "tasks:",
+        "  - id: work",
+        "    title: Work",
+        "    prompt: Do work",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const controller = new AbortController();
+    controller.abort();
+    const runAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(
+      runPipeline({
+        agent: "codex",
+        cwd: "/repo",
+        homeDir: "/home/test",
+        plan: "docs/plans/plan.md",
+        fs,
+        signal: controller.signal,
+        runAgent
+      })
+    ).rejects.toMatchObject({ name: "AbortError" });
+
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
   it("stops before tasks when setup fails", async () => {
     const sim = createPipelineSimulation({
       plan: {

@@ -197,6 +197,26 @@ describe("requestJson", () => {
     );
   });
 
+  it("rejects inherited path parameters as missing", async () => {
+    const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots/{constructor}",
+        method: "GET",
+        auth: "none",
+        tokenSource: createTokenSource("unused"),
+        fetch: fetchMock,
+        pathParams: {}
+      })
+    ).rejects.toSatisfy(
+      (error: unknown) =>
+        error instanceof UserError && error.message === 'Missing path parameter "constructor".'
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("URL-encodes path parameters that contain slashes", async () => {
     const fetchMock = vi.fn(async () => createJsonResponse({ ok: true }));
 

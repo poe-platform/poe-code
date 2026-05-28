@@ -192,7 +192,10 @@ function substitutePathParams(
   pathParams?: Record<string, string | number | boolean>
 ): string {
   const resolvedPath = path.replace(/\{([^}]+)\}/g, (_match, key: string) => {
-    const value = pathParams?.[key];
+    const value =
+      pathParams !== undefined && Object.prototype.hasOwnProperty.call(pathParams, key)
+        ? pathParams[key]
+        : undefined;
 
     if (value === undefined) {
       throw new UserError(`Missing path parameter "${key}".`);

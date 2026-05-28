@@ -95,6 +95,28 @@ describe("approval tasks", () => {
     expect(first.tasks.stateMachine).toBe(approvalStateMachine);
   });
 
+  it("opens configured task-list storage read-only without creating it", async () => {
+    const runtimeOptions: HumanInLoopRuntimeOptions = {
+      taskList: {
+        dir: "/repo/approvals.yaml",
+        format: "yaml-file"
+      }
+    };
+    const openTaskListMock = vi.fn(async (options: OpenTaskListOptions) => {
+      throw Object.assign(new Error("missing"), { code: "ENOENT", options });
+    });
+
+    await expect(
+      ensureApprovalList(runtimeOptions, { create: false, openTaskList: openTaskListMock })
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    expect(openTaskListMock).toHaveBeenCalledWith({
+      create: false,
+      type: "yaml-file",
+      path: "/repo/approvals.yaml",
+      stateMachine: approvalStateMachine
+    });
+  });
+
   it("accepts task lists opened with a structurally equal approval state machine", async () => {
     const taskList = await openTaskList({
       type: "yaml-file",

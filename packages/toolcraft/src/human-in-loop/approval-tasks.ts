@@ -31,6 +31,7 @@ export interface ApprovalPayload {
 export async function ensureApprovalList(
   runtimeOptions: HumanInLoopRuntimeOptions | undefined,
   deps: {
+    create?: boolean;
     openTaskList?: (options: OpenTaskListOptions) => Promise<TaskList>;
   } = {}
 ): Promise<{ taskList: TaskList; listName: string; tasks: Tasks }> {
@@ -42,7 +43,8 @@ export async function ensureApprovalList(
   const taskList = await resolveTaskList(
     runtimeOptions,
     runtimeOptions.taskList,
-    deps.openTaskList ?? openTaskList
+    deps.openTaskList ?? openTaskList,
+    deps.create ?? true
   );
   const tasks = taskList.list(listName);
 
@@ -104,25 +106,28 @@ export async function loadApproval(ctx: {
 async function resolveTaskList(
   runtimeOptions: HumanInLoopRuntimeOptions,
   taskList: NonNullable<HumanInLoopRuntimeOptions["taskList"]>,
-  openTaskListFn: (options: OpenTaskListOptions) => Promise<TaskList>
+  openTaskListFn: (options: OpenTaskListOptions) => Promise<TaskList>,
+  create: boolean
 ): Promise<TaskList> {
   if (!isTaskListConfig(taskList)) {
     return taskList;
   }
 
-  const cachedTaskList = openedTaskListsByRuntime.get(runtimeOptions);
+  const cachedTaskList = create ? openedTaskListsByRuntime.get(runtimeOptions) : undefined;
 
   if (cachedTaskList !== undefined) {
     return cachedTaskList;
   }
 
   const openedTaskList = openTaskListFn({
-    create: true,
+    create,
     type: taskList.format,
     path: taskList.dir,
     stateMachine: approvalStateMachine
   });
-  openedTaskListsByRuntime.set(runtimeOptions, openedTaskList);
+  if (create) {
+    openedTaskListsByRuntime.set(runtimeOptions, openedTaskList);
+  }
   return openedTaskList;
 }
 

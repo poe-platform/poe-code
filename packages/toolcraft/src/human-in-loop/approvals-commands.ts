@@ -1,4 +1,4 @@
-import type { Task } from "@poe-code/task-list";
+import { TaskNotFoundError, type Task } from "@poe-code/task-list";
 import { S } from "toolcraft-schema";
 import type { CommandNode, Group, RenderPrimitives } from "../index.js";
 import { UserError, defineCommand, defineGroup } from "../index.js";
@@ -40,8 +40,15 @@ export const approvalsGroup = markApprovalsBuiltIn(
         scope: listScope as unknown as ["cli", "mcp", "sdk"],
         params: listParams,
         handler: async ({ params, runtimeOptions }) => {
-          const { tasks } = await ensureApprovalList(runtimeOptions);
-          return loadApprovals(tasks, params.state);
+          try {
+            const { tasks } = await ensureApprovalList(runtimeOptions, { create: false });
+            return loadApprovals(tasks, params.state);
+          } catch (error) {
+            if (isMissingStateError(error)) {
+              return [];
+            }
+            throw error;
+          }
         },
         render: {
           rich: (result, primitives) => renderApprovalList(result, primitives),
@@ -62,8 +69,15 @@ export const approvalsGroup = markApprovalsBuiltIn(
         scope: listScope as unknown as ["cli", "mcp", "sdk"],
         params: showParams,
         handler: async ({ params, runtimeOptions }) => {
-          const { tasks } = await ensureApprovalList(runtimeOptions);
-          return tasks.get(params.approvalId);
+          try {
+            const { tasks } = await ensureApprovalList(runtimeOptions, { create: false });
+            return tasks.get(params.approvalId);
+          } catch (error) {
+            if (isMissingStateError(error)) {
+              throw new TaskNotFoundError(`Task "approvals/${params.approvalId}" not found.`);
+            }
+            throw error;
+          }
         },
         render: {
           rich: (result, primitives) => renderApprovalDetails(result, primitives),
@@ -275,4 +289,8 @@ function stringifyValue(value: unknown): string {
 
 function escapeMarkdownCell(value: string): string {
   return value.replaceAll("|", "\\|");
+}
+
+function isMissingStateError(error: unknown): error is NodeJS.ErrnoException {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }

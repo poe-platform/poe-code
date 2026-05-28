@@ -74,7 +74,7 @@ export function createServer(options: ServerOptions): Server {
     (notification: JSONRPCNotification) => void
   >();
   const connectionNotificationListeners = new Map<
-    (notification: JSONRPCNotification) => void,
+    (notification: JSONRPCNotification) => void | Promise<void>,
     LifecycleState
   >();
   const defaultLifecycle: LifecycleState = {
@@ -291,7 +291,7 @@ export function createServer(options: ServerOptions): Server {
     }
   };
 
-  const broadcastNotification = (method: string): void => {
+  const broadcastNotification = async (method: string): Promise<void> => {
     const notification: JSONRPCNotification = {
       jsonrpc: "2.0",
       method,
@@ -301,11 +301,13 @@ export function createServer(options: ServerOptions): Server {
       listener(notification);
     }
 
-    for (const [listener, lifecycle] of connectionNotificationListeners) {
-      if (lifecycle.initialized) {
-        listener(notification);
-      }
-    }
+    await Promise.all(
+      [...connectionNotificationListeners].map(async ([listener, lifecycle]) => {
+        if (lifecycle.initialized) {
+          await listener(notification);
+        }
+      })
+    );
   };
 
   const server: Server = {
@@ -339,7 +341,7 @@ export function createServer(options: ServerOptions): Server {
 
     async notifyToolsChanged(): Promise<void> {
       if ([...messageLifecycles].some((lifecycle) => lifecycle.initialized)) {
-        broadcastNotification("notifications/tools/list_changed");
+        await broadcastNotification("notifications/tools/list_changed");
       }
     },
 
@@ -367,12 +369,18 @@ export function createServer(options: ServerOptions): Server {
           input: transport.readable,
           crlfDelay: Infinity,
         });
+        const pendingMessages = new Set<Promise<void>>();
 
         rl.on("line", (line) => {
-          processLine(line, (data) => transport.writable.write(data), messageHandler);
+          const message = processLine(line, (data) => transport.writable.write(data), messageHandler);
+          pendingMessages.add(message);
+          void message.finally(() => {
+            pendingMessages.delete(message);
+          });
         });
 
-        rl.on("close", () => {
+        rl.on("close", async () => {
+          await Promise.all([...pendingMessages]);
           connectionNotificationListeners.delete(listener);
           messageLifecycles.delete(lifecycle);
           resolve();
@@ -381,14 +389,12 @@ export function createServer(options: ServerOptions): Server {
     },
 
     async connectSDK(transport: SDKTransport): Promise<void> {
-      return new Promise<void>((resolve) => {
+      return new Promise<void>((resolve, reject) => {
         const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false };
         const messageHandler: MessageHandler = (method, params) =>
           handleMessageWithLifecycle(method, lifecycle, params);
         messageLifecycles.add(lifecycle);
-        const listener = (notification: JSONRPCNotification) => {
-          void transport.send(notification);
-        };
+        const listener = (notification: JSONRPCNotification) => transport.send(notification);
         connectionNotificationListeners.set(listener, lifecycle);
 
         transport.onmessage = async (message: JSONRPCMessage) => {
@@ -445,7 +451,11 @@ export function createServer(options: ServerOptions): Server {
           resolve();
         };
 
-        transport.start();
+        void transport.start().catch((error: unknown) => {
+          connectionNotificationListeners.delete(listener);
+          messageLifecycles.delete(lifecycle);
+          reject(error);
+        });
       });
     },
   };

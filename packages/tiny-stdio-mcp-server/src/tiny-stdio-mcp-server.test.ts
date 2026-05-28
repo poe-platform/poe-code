@@ -2959,6 +2959,49 @@ describe("transport connection", () => {
     expect(responses).toHaveLength(3);
   });
 
+  it("waits for accepted tool responses before resolving connect", async () => {
+    const transport = createTestTransport();
+    let finishTool: ((value: string) => void) | undefined;
+    let markToolStarted: (() => void) | undefined;
+    const toolStarted = new Promise<void>((resolve) => {
+      markToolStarted = resolve;
+    });
+    const server = createServer({ name: "test", version: "1.0.0" }).tool(
+      "slow",
+      "Slow",
+      defineSchema({}),
+      () => new Promise<string>((resolve) => {
+        markToolStarted?.();
+        finishTool = resolve;
+      })
+    );
+    const connectPromise = server.connect(transport);
+
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+    await vi.waitFor(() => {
+      expect(getResponsesWithId(transport.getAllResponses()).some((response) => response.id === 1)).toBe(true);
+    });
+    transport.send('{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"slow","arguments":{}}}');
+    await toolStarted;
+    transport.close();
+
+    await Promise.resolve();
+    let resolved = false;
+    void connectPromise.then(() => {
+      resolved = true;
+    });
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+
+    finishTool?.("finished");
+    await connectPromise;
+    expect(getResponsesWithId(transport.getAllResponses()).find((response) => response.id === 2)).toEqual({
+      jsonrpc: "2.0",
+      id: 2,
+      result: { content: [{ type: "text", text: "finished" }] },
+    });
+  });
+
   it("does not unlock tools from notification-form initialize", async () => {
     const transport = createTestTransport();
     const server = createServer({ name: "test", version: "1.0.0" });
@@ -3023,6 +3066,34 @@ describe("SDK connection lifecycle", () => {
 
     first.transport.onclose?.();
     second.transport.onclose?.();
+  });
+
+  it("rejects when SDK transport startup fails", async () => {
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const transport = createSdkTransport().transport;
+    transport.start = vi.fn(async () => {
+      throw new Error("start failed");
+    });
+
+    await expect(server.connectSDK(transport)).rejects.toThrow("start failed");
+  });
+
+  it("rejects notifyToolsChanged when SDK notification delivery fails", async () => {
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const sdk = createSdkTransport();
+    sdk.transport.send = vi.fn(async (message: JSONRPCMessage) => {
+      if ("method" in message && message.method === "notifications/tools/list_changed") {
+        throw new Error("transport closed");
+      }
+      sdk.sent.push(message);
+    });
+
+    void server.connectSDK(sdk.transport);
+    await sdk.transport.onmessage?.({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} });
+    await sdk.transport.onmessage?.({ jsonrpc: "2.0", method: "notifications/initialized" });
+
+    await expect(server.notifyToolsChanged()).rejects.toThrow("transport closed");
+    sdk.transport.onclose?.();
   });
 });
 

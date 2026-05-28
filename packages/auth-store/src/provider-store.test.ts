@@ -11,6 +11,12 @@ function createMockStore(initial: string | null = null): SecretStore {
   };
 }
 
+function deferred(): { promise: Promise<void>; resolve: () => void } {
+  let resolve!: () => void;
+  const promise = new Promise<void>((resolvePromise) => { resolve = resolvePromise; });
+  return { promise, resolve };
+}
+
 describe("key", () => {
   it("returns provider:<id> string", () => {
     expect(key("poe")).toBe("provider:poe");
@@ -49,6 +55,53 @@ describe("MigratingSecretStore", () => {
       expect(legacy.set).toHaveBeenCalledWith("new-value");
     });
 
+    it("keeps concurrent mirrored writes in last-write order", async () => {
+      const firstLegacyWrite = deferred();
+      const primary = createMockStore();
+      let legacyValue: string | null = null;
+      const legacy: SecretStore = {
+        get: vi.fn(async () => legacyValue),
+        set: vi.fn(async (value: string) => {
+          if (value === "first") {
+            await firstLegacyWrite.promise;
+          }
+          legacyValue = value;
+        }),
+        delete: vi.fn(async () => { legacyValue = null; })
+      };
+      const store = new MigratingSecretStore(primary, legacy);
+
+      const firstWrite = store.set("first");
+      await vi.waitFor(() => expect(legacy.set).toHaveBeenCalledWith("first"));
+      const secondWrite = store.set("second");
+      firstLegacyWrite.resolve();
+      await Promise.all([firstWrite, secondWrite]);
+
+      await expect(primary.get()).resolves.toBe("second");
+      await expect(legacy.get()).resolves.toBe("second");
+    });
+
+    it("rolls back primary changes when mirroring a set fails", async () => {
+      const primary = createMockStore("old-value");
+      let legacyValue: string | null = "old-value";
+      const legacy: SecretStore = {
+        get: vi.fn(async () => legacyValue),
+        set: vi.fn()
+          .mockImplementationOnce(async (value: string) => {
+            legacyValue = value;
+            throw new Error("legacy unavailable");
+          })
+          .mockImplementation(async (value: string) => { legacyValue = value; }),
+        delete: vi.fn(async () => { legacyValue = null; })
+      };
+      const store = new MigratingSecretStore(primary, legacy);
+
+      await expect(store.set("new-value")).rejects.toThrow("legacy unavailable");
+
+      await expect(primary.get()).resolves.toBe("old-value");
+      await expect(legacy.get()).resolves.toBe("old-value");
+    });
+
     it("delegates delete to primary store", async () => {
       const primary = createMockStore("something");
       const store = new MigratingSecretStore(primary, null);
@@ -66,6 +119,18 @@ describe("MigratingSecretStore", () => {
 
       expect(primary.delete).toHaveBeenCalled();
       expect(legacy.delete).toHaveBeenCalled();
+    });
+
+    it("restores credentials when deleting the legacy mirror fails", async () => {
+      const primary = createMockStore("primary");
+      const legacy = createMockStore("legacy");
+      vi.mocked(legacy.delete).mockRejectedValueOnce(new Error("legacy delete failed"));
+      const store = new MigratingSecretStore(primary, legacy);
+
+      await expect(store.delete()).rejects.toThrow("legacy delete failed");
+
+      await expect(store.get()).resolves.toBe("primary");
+      await expect(legacy.get()).resolves.toBe("legacy");
     });
   });
 
@@ -86,6 +151,34 @@ describe("MigratingSecretStore", () => {
       await store.get();
 
       expect(primary.set).toHaveBeenCalledWith("legacy-credential");
+    });
+
+    it("returns readable legacy credentials when migration persistence fails", async () => {
+      const primary = createMockStore(null);
+      const legacy = createMockStore("legacy-credential");
+      vi.mocked(primary.set).mockRejectedValueOnce(new Error("primary unavailable"));
+      const store = new MigratingSecretStore(primary, legacy);
+
+      await expect(store.get()).resolves.toBe("legacy-credential");
+    });
+
+    it("does not overwrite a newer primary credential during migration", async () => {
+      const readLegacy = deferred();
+      const primary = createMockStore(null);
+      const legacy = createMockStore("legacy-credential");
+      vi.mocked(legacy.get).mockImplementationOnce(async () => {
+        await readLegacy.promise;
+        return "legacy-credential";
+      });
+      const store = new MigratingSecretStore(primary, legacy);
+
+      const read = store.get();
+      await vi.waitFor(() => expect(legacy.get).toHaveBeenCalled());
+      const write = store.set("new-credential");
+      readLegacy.resolve();
+      await Promise.all([read, write]);
+
+      await expect(primary.get()).resolves.toBe("new-credential");
     });
 
     it("returns null when both primary and legacy are empty", async () => {

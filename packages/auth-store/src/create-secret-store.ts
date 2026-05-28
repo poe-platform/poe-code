@@ -53,5 +53,9 @@ function resolveBackend(input: CreateSecretStoreInput): StoreBackend {
     return "keychain";
   }
 
-  return "file";
+  if (configuredBackend === undefined || configuredBackend === "file") {
+    return "file";
+  }
+
+  throw new Error(`Unsupported auth store backend: ${configuredBackend}`);
 }

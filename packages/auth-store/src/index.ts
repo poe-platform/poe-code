@@ -16,5 +16,6 @@ export type {
 export type {
   KeychainStoreInput,
   KeychainCommandRunner,
-  KeychainCommandResult
+  KeychainCommandResult,
+  KeychainCommandOptions
 } from "./keychain-store.js";

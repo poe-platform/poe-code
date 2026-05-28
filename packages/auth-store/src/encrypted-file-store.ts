@@ -30,7 +30,7 @@ export interface EncryptedFileStoreFileSystem {
   writeFile(
     path: string,
     data: string | NodeJS.ArrayBufferView,
-    options?: { encoding?: BufferEncoding }
+    options?: { encoding?: BufferEncoding; mode?: number }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void | string | undefined>;
   unlink(path: string): Promise<void>;
@@ -124,11 +124,33 @@ export class EncryptedFileStore implements SecretStore {
       ciphertext: ciphertext.toString("base64")
     };
 
+    let previousDocument: string | null = null;
+    try {
+      previousDocument = await this.fs.readFile(this.filePath, "utf8");
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        throw error;
+      }
+    }
+
     await this.fs.mkdir(path.dirname(this.filePath), { recursive: true });
     await this.fs.writeFile(this.filePath, JSON.stringify(document), {
-      encoding: "utf8"
+      encoding: "utf8",
+      mode: ENCRYPTION_FILE_MODE
     });
-    await this.fs.chmod(this.filePath, ENCRYPTION_FILE_MODE);
+    try {
+      await this.fs.chmod(this.filePath, ENCRYPTION_FILE_MODE);
+    } catch (error) {
+      if (previousDocument === null) {
+        await this.fs.unlink(this.filePath);
+      } else {
+        await this.fs.writeFile(this.filePath, previousDocument, {
+          encoding: "utf8",
+          mode: ENCRYPTION_FILE_MODE
+        });
+      }
+      throw error;
+    }
   }
 
   async delete(): Promise<void> {
@@ -143,7 +165,13 @@ export class EncryptedFileStore implements SecretStore {
 
   private getEncryptionKey(): Promise<Buffer> {
     if (!this.keyPromise) {
-      this.keyPromise = deriveEncryptionKey(this.getMachineIdentity, this.salt);
+      const retryableKeyPromise = deriveEncryptionKey(this.getMachineIdentity, this.salt).catch((error) => {
+        if (this.keyPromise === retryableKeyPromise) {
+          this.keyPromise = null;
+        }
+        throw error;
+      });
+      this.keyPromise = retryableKeyPromise;
     }
     return this.keyPromise;
   }
@@ -162,7 +190,7 @@ async function deriveEncryptionKey(
 ): Promise<Buffer> {
   const machineIdentity = await getMachineIdentity();
   const secret = `${machineIdentity.hostname}:${machineIdentity.username}`;
-  const cacheKey = `${secret}:${salt}`;
+  const cacheKey = JSON.stringify([machineIdentity.hostname, machineIdentity.username, salt]);
 
   const cached = derivedKeyCache.get(cacheKey);
   if (cached) {
@@ -180,7 +208,12 @@ async function deriveEncryptionKey(
   });
 
   derivedKeyCache.set(cacheKey, keyPromise);
-  return keyPromise;
+  return keyPromise.catch((error) => {
+    if (derivedKeyCache.get(cacheKey) === keyPromise) {
+      derivedKeyCache.delete(cacheKey);
+    }
+    throw error;
+  });
 }
 
 function parseEncryptedDocument(raw: string): EncryptedDocument | null {

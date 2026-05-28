@@ -47,4 +47,17 @@ describe("assertSafeOutputDirectory", () => {
       ),
     ).rejects.toThrow("output directory must remain inside the package directory");
   });
+
+  it("rejects a generated output file symlink below a local directory", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/dist/bin/marker": "local",
+      "/outside/wrapper.js": "outside",
+    });
+    const fileSystem = createFsFromVolume(volume).promises;
+    volume.symlinkSync("/outside/wrapper.js", "/repo/dist/bin/poe-codex.js");
+
+    await expect(
+      assertSafeOutputDirectory("/repo", "/repo/dist/bin/poe-codex.js", fileSystem),
+    ).rejects.toThrow("output directory must remain inside the package directory");
+  });
 });

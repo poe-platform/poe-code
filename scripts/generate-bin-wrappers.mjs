@@ -1,6 +1,7 @@
 import path from "node:path";
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
@@ -22,6 +23,7 @@ await mkdir(binDir, { recursive: true });
 
 for (const alias of aliases) {
   const filePath = path.join(binDir, `${alias.binName}.js`);
+  await assertSafeOutputDirectory(rootDir, filePath);
   const content = [
     "#!/usr/bin/env node",
     versionGateSnippet(alias.binName),
@@ -47,6 +49,7 @@ for (const alias of aliases) {
 
 // Generate standalone poe-agent binary wrapper
 const poeAgentPath = path.join(binDir, "poe-agent.js");
+await assertSafeOutputDirectory(rootDir, poeAgentPath);
 const poeAgentContent = [
   "#!/usr/bin/env node",
   versionGateSnippet("poe-agent"),
@@ -54,4 +57,3 @@ const poeAgentContent = [
   ""
 ].join("\n");
 await writeFile(poeAgentPath, poeAgentContent, { encoding: "utf8" });
-

@@ -7,15 +7,31 @@ import { kimiSpawnConfig, kimiAcpSpawnConfig } from "./kimi.js";
 import { gooseSpawnConfig, gooseAcpSpawnConfig } from "./goose.js";
 import { geminiCliAcpSpawnConfig } from "./gemini-cli.js";
 
+function freezeConfig<T extends SpawnConfig | AcpSpawnConfig>(config: T): T {
+  freezeValue(config);
+  return config;
+}
+
+function freezeValue(value: unknown): void {
+  if (!value || typeof value !== "object" || Object.isFrozen(value)) {
+    return;
+  }
+
+  for (const nested of Object.values(value)) {
+    freezeValue(nested);
+  }
+  Object.freeze(value);
+}
+
 // ACP adapter support (spawn streaming):
 // - Supported (has `adapter`): claude-code, codex, opencode, kimi, goose
-export const allSpawnConfigs: readonly SpawnConfig[] = [
-  claudeCodeSpawnConfig,
-  codexSpawnConfig,
-  openCodeSpawnConfig,
-  kimiSpawnConfig,
-  gooseSpawnConfig
-];
+export const allSpawnConfigs: readonly SpawnConfig[] = Object.freeze([
+  freezeConfig(claudeCodeSpawnConfig),
+  freezeConfig(codexSpawnConfig),
+  freezeConfig(openCodeSpawnConfig),
+  freezeConfig(kimiSpawnConfig),
+  freezeConfig(gooseSpawnConfig)
+]);
 
 const lookup = new Map<string, SpawnConfig>();
 
@@ -24,10 +40,10 @@ for (const config of allSpawnConfigs) {
 }
 
 const acpLookup = new Map<string, AcpSpawnConfig>();
-acpLookup.set(openCodeAcpSpawnConfig.agentId, openCodeAcpSpawnConfig);
-acpLookup.set(kimiAcpSpawnConfig.agentId, kimiAcpSpawnConfig);
-acpLookup.set(gooseAcpSpawnConfig.agentId, gooseAcpSpawnConfig);
-acpLookup.set(geminiCliAcpSpawnConfig.agentId, geminiCliAcpSpawnConfig);
+acpLookup.set(openCodeAcpSpawnConfig.agentId, freezeConfig(openCodeAcpSpawnConfig));
+acpLookup.set(kimiAcpSpawnConfig.agentId, freezeConfig(kimiAcpSpawnConfig));
+acpLookup.set(gooseAcpSpawnConfig.agentId, freezeConfig(gooseAcpSpawnConfig));
+acpLookup.set(geminiCliAcpSpawnConfig.agentId, freezeConfig(geminiCliAcpSpawnConfig));
 
 export function getSpawnConfig(input: string): SpawnConfig | undefined {
   const resolvedId = resolveAgentId(input);

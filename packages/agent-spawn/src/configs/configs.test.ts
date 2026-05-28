@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  allSpawnConfigs,
   getAcpSpawnConfig,
   getSpawnConfig,
   listMcpSupportedAgents,
@@ -16,6 +17,25 @@ import { serializeGooseMcpArgs, serializeOpenCodeMcpEnv } from "./mcp.js";
 describe("configs/getSpawnConfig", () => {
   it("returns undefined for claude-desktop", () => {
     expect(getSpawnConfig("claude-desktop")).toBeUndefined();
+  });
+
+  it("does not allow returned config mutations to affect future spawns", () => {
+    const config = getSpawnConfig("codex");
+
+    expect(config?.kind).toBe("cli");
+    if (!config || config.kind !== "cli") {
+      throw new Error("Expected Codex CLI config");
+    }
+
+    expect(() => config.defaultArgs.push("--unexpected-mutated-flag")).toThrow();
+    expect(() => config.modes.yolo.push("--unexpected-mode-flag")).toThrow();
+    expect(config.defaultArgs).not.toContain("--unexpected-mutated-flag");
+    expect(config.modes.yolo).not.toContain("--unexpected-mode-flag");
+  });
+
+  it("publishes immutable registry configuration", () => {
+    expect(Object.isFrozen(allSpawnConfigs)).toBe(true);
+    expect(Object.isFrozen(allSpawnConfigs[0])).toBe(true);
   });
 });
 

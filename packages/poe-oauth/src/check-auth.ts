@@ -34,7 +34,10 @@ export async function checkAuth(options: CheckAuthOptions): Promise<AuthIdentity
       return null;
     }
 
-    const data = (await response.json()) as CurrentBalanceResponse;
+    const data = await response.json() as unknown;
+    if (!isCurrentBalanceResponse(data)) {
+      return null;
+    }
 
     return {
       email: typeof data.email === "string" && data.email.length > 0 ? data.email : null,
@@ -46,7 +49,25 @@ export async function checkAuth(options: CheckAuthOptions): Promise<AuthIdentity
 }
 
 function createCurrentBalanceUrl(baseUrl: string): string {
-  const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+  const url = new URL(baseUrl);
+  const path = url.pathname.endsWith("/") ? url.pathname.slice(0, -1) : url.pathname;
+  url.pathname = `${path}/usage/current_balance`;
+  return url.toString();
+}
 
-  return `${normalizedBaseUrl}/usage/current_balance`;
+function isCurrentBalanceResponse(value: unknown): value is CurrentBalanceResponse {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    return false;
+  }
+
+  const data = value as CurrentBalanceResponse;
+  const hasEmail = typeof data.email === "string" && data.email.length > 0;
+  const hasBalance = data.current_point_balance !== undefined;
+  if (!hasEmail && !hasBalance) {
+    return false;
+  }
+
+  return data.current_point_balance === undefined
+    || data.current_point_balance === null
+    || (typeof data.current_point_balance === "number" && Number.isFinite(data.current_point_balance));
 }

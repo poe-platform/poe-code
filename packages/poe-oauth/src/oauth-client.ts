@@ -1,4 +1,5 @@
 import type http from "node:http";
+import { createAuthorizationState } from "./authorization-state.js";
 import { createLoopbackAuthorizationSession } from "./loopback-authorization.js";
 import type { OAuthLandingPage } from "./loopback-authorization.js";
 import {
@@ -71,24 +72,32 @@ async function startAuthorization(
     endpoint: authorizationEndpoint,
     clientId: config.clientId,
     redirectUri,
-    codeChallenge
+    codeChallenge,
+    state: createAuthorizationState({
+      issuer: new URL(authorizationEndpoint).origin,
+      requireIssuer: false,
+    }),
   });
 
-  const waitForResult = async (): Promise<OAuthResult> => {
-    try {
-      const code = await loopbackSession.waitForCode(authorizationUrl);
+  let resultPromise: Promise<OAuthResult> | undefined;
+  const waitForResult = (): Promise<OAuthResult> => {
+    resultPromise ??= (async () => {
+      try {
+        const code = await loopbackSession.waitForCode(authorizationUrl);
 
-      return await exchangeCodeForApiKey({
-        tokenEndpoint,
-        code,
-        codeVerifier,
-        clientId: config.clientId,
-        redirectUri,
-        fetchFn
-      });
-    } finally {
-      loopbackSession.close();
-    }
+        return await exchangeCodeForApiKey({
+          tokenEndpoint,
+          code,
+          codeVerifier,
+          clientId: config.clientId,
+          redirectUri,
+          fetchFn
+        });
+      } finally {
+        loopbackSession.close();
+      }
+    })();
+    return resultPromise;
   };
 
   return { authorizationUrl, waitForResult };
@@ -99,6 +108,7 @@ function buildAuthorizationUrl(params: {
   clientId: string;
   redirectUri: string;
   codeChallenge: string;
+  state: string;
 }): string {
   const url = new URL(params.endpoint);
   url.searchParams.set("response_type", "code");
@@ -107,6 +117,7 @@ function buildAuthorizationUrl(params: {
   url.searchParams.set("code_challenge", params.codeChallenge);
   url.searchParams.set("code_challenge_method", "S256");
   url.searchParams.set("redirect_uri", params.redirectUri);
+  url.searchParams.set("state", params.state);
   return url.toString();
 }
 
@@ -139,10 +150,33 @@ async function exchangeCodeForApiKey(params: {
     throw new Error(description ?? `Token exchange failed (${response.status}): ${text}`);
   }
 
-  const data = (await response.json()) as Record<string, unknown>;
+  let value: unknown;
+  try {
+    value = await response.json() as unknown;
+  } catch (error) {
+    throw new Error(`Token exchange failed: invalid JSON response from ${params.tokenEndpoint}`, {
+      cause: error,
+    });
+  }
 
-  if (typeof data.api_key !== "string" || data.api_key.length === 0) {
+  if (value === null || typeof value !== "object" || Array.isArray(value)) {
+    throw new Error("Token response must be a JSON object");
+  }
+  const data = value as Record<string, unknown>;
+
+  if (typeof data.api_key !== "string" || data.api_key.trim().length === 0) {
     throw new Error("Token response missing api_key field");
+  }
+
+  if (
+    "api_key_expires_in" in data
+    && (
+      typeof data.api_key_expires_in !== "number"
+      || !Number.isFinite(data.api_key_expires_in)
+      || data.api_key_expires_in < 0
+    )
+  ) {
+    throw new Error("Token response invalid api_key_expires_in field");
   }
 
   return {

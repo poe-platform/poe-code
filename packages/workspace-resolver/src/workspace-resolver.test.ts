@@ -283,7 +283,7 @@ describe("resolveWorkspace", () => {
         }),
         expect.objectContaining({
           command: "git",
-          args: ["checkout", "main"],
+          args: ["checkout", "--", "main"],
           cwd: cachePath
         }),
         expect.objectContaining({
@@ -377,6 +377,9 @@ describe("resolveWorkspace", () => {
         fs,
         exec: async (command, args) => {
           calls.push({ command, args });
+          if (args[0] === "clone") {
+            await fs.mkdir(cachePath, { recursive: true });
+          }
           return { stdout: "", stderr: "", exitCode: 0 };
         }
       })
@@ -443,7 +446,7 @@ describe("resolveWorkspace", () => {
     expect(calls).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ command: "git", args: ["fetch", "origin"] }),
-        expect.objectContaining({ command: "git", args: ["checkout", "v2.0.0"] })
+        expect.objectContaining({ command: "git", args: ["checkout", "--", "v2.0.0"] })
       ])
     );
   });

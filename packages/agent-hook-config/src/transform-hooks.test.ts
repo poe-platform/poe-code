@@ -28,14 +28,14 @@ describe("transformHooks", () => {
           handler: {
             type: "command",
             command: "lint",
-            statusMessage: "[generated:bridge-run] "
+            statusMessage: "[generated:poe-code:bridge-run] "
           },
           generatedId: "generated-bridge-run-0"
         }
       ],
       drops: []
     });
-    expect(result.entries[0]?.handler.statusMessage).toMatch(/^\[generated:bridge-run\] /);
+    expect(result.entries[0]?.handler.statusMessage).toMatch(/^\[generated:poe-code:bridge-run\] /);
   });
 
   it("drops an unsupported event and names it in the detail", () => {
@@ -118,8 +118,8 @@ describe("transformHooks", () => {
     );
 
     expect(result.entries.map((entry) => entry.handler.statusMessage)).toEqual([
-      "[generated:bridge-run] ",
-      "[generated:bridge-run]  running exactly  "
+      "[generated:poe-code:bridge-run] ",
+      "[generated:poe-code:bridge-run]  running exactly  "
     ]);
   });
 
@@ -146,7 +146,7 @@ describe("transformHooks", () => {
       command: "notify",
       args: ["now"],
       timeout: 50,
-      statusMessage: "[generated:bridge-run] "
+      statusMessage: "[generated:poe-code:bridge-run] "
     });
   });
 
@@ -195,5 +195,17 @@ describe("transformHooks", () => {
       entries: [],
       drops: []
     });
+  });
+
+  it("drops command handlers missing an executable command", () => {
+    const result = transformHooks(
+      [commandEntry("Stop", { type: "command" })],
+      "claude-code",
+      "codex",
+      { runId }
+    );
+
+    expect(result.entries).toEqual([]);
+    expect(result.drops).toHaveLength(1);
   });
 });

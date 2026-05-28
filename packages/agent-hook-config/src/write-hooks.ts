@@ -1,4 +1,4 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, renameSync, unlinkSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import type { SourceHookEntry } from "./read-hooks.js";
 import type { GeneratedHookEntry } from "./transform-hooks.js";
@@ -19,8 +19,16 @@ interface CodexHooksFile {
   hooks?: Record<string, CodexMatcherGroup[]>;
 }
 
-function isGeneratedHandler(handler: SourceHookEntry["handler"]): boolean {
-  return handler.statusMessage?.startsWith("[generated:") ?? false;
+function validateHooksFile(file: CodexHooksFile, targetPath: string): void {
+  for (const groups of Object.values(file.hooks ?? {})) {
+    if (!Array.isArray(groups) || groups.some((group) => !Array.isArray(group.hooks))) {
+      throw new Error(`Malformed hooks in ${targetPath}`);
+    }
+  }
+}
+
+function isGeneratedHandler(handler: SourceHookEntry["handler"], runId?: string): boolean {
+  return handler.statusMessage?.startsWith(`[generated:poe-code:${runId ?? ""}`) ?? false;
 }
 
 function parseHooksFile(targetPath: string): { file: CodexHooksFile; fileCreated: boolean } {
@@ -36,19 +44,25 @@ function parseHooksFile(targetPath: string): { file: CodexHooksFile; fileCreated
     throw error;
   }
 
+  let file: CodexHooksFile;
   try {
-    return { file: JSON.parse(content) as CodexHooksFile, fileCreated: false };
+    file = JSON.parse(content) as CodexHooksFile;
   } catch (error) {
     throw new Error(`Malformed JSON in ${targetPath}`, { cause: error });
   }
+  validateHooksFile(file, targetPath);
+  return { file, fileCreated: false };
 }
 
-function validateEntries(entries: GeneratedHookEntry[]): void {
+function validateEntries(entries: GeneratedHookEntry[], runId: string): void {
   for (const entry of entries) {
-    if (!isGeneratedHandler(entry.handler)) {
+    if (!isGeneratedHandler(entry.handler, runId)) {
       throw new Error(
-        `Generated hook entry "${entry.generatedId}" has statusMessage that must start with "[generated:"`
+        `Generated hook entry "${entry.generatedId}" has statusMessage that must start with "[generated:poe-code:${runId}]"`
       );
+    }
+    if (entry.handler.timeout !== undefined && !Number.isFinite(entry.handler.timeout)) {
+      throw new Error(`Generated hook entry "${entry.generatedId}" must have a finite timeout`);
     }
   }
 }
@@ -96,17 +110,25 @@ function appendEntries(file: CodexHooksFile, entries: GeneratedHookEntry[]): voi
 export function writeCodexHooks(
   targetPath: string,
   entries: GeneratedHookEntry[],
-  _runId: string
+  runId: string
 ): WriteResult {
   const { file, fileCreated } = parseHooksFile(targetPath);
-  validateEntries(entries);
+  validateEntries(entries, runId);
   const previousGeneratedRemoved = removeGeneratedHandlers(file);
   appendEntries(file, entries);
 
   mkdirSync(path.dirname(targetPath), { recursive: true });
-  const temporaryPath = `${targetPath}.tmp`;
-  writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`);
-  renameSync(temporaryPath, targetPath);
+  const temporaryPath = writeTemporaryFile(targetPath, runId, `${JSON.stringify(file, null, 2)}\n`);
+  try {
+    renameSync(temporaryPath, targetPath);
+  } catch (error) {
+    try {
+      unlinkSync(temporaryPath);
+    } catch (cleanupError) {
+      void cleanupError;
+    }
+    throw error;
+  }
 
   return {
     path: targetPath,
@@ -114,4 +136,18 @@ export function writeCodexHooks(
     previousGeneratedRemoved,
     generatedWritten: entries.length
   };
+}
+
+function writeTemporaryFile(targetPath: string, runId: string, content: string): string {
+  for (let index = 0; ; index += 1) {
+    const temporaryPath = `${targetPath}.tmp-${runId}-${index}`;
+    try {
+      writeFileSync(temporaryPath, content, { flag: "wx" });
+      return temporaryPath;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "EEXIST") {
+        throw error;
+      }
+    }
+  }
 }

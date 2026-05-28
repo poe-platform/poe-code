@@ -86,7 +86,7 @@ describe("bridgeHooks", () => {
       {
         type: "command",
         command: "npm test",
-        statusMessage: "[generated:bridge-run] "
+        statusMessage: "[generated:poe-code:bridge-run] "
       }
     ]);
   });
@@ -216,7 +216,7 @@ describe("bridgeHooks", () => {
     fileWithConcurrentRun.hooks.PreToolUse[0]?.hooks.push({
       type: "command",
       command: "other-generated",
-      statusMessage: "[generated:other-run] "
+      statusMessage: "[generated:poe-code:other-run] "
     });
     vol.writeFileSync(targetPath, JSON.stringify(fileWithConcurrentRun));
 
@@ -232,13 +232,47 @@ describe("bridgeHooks", () => {
               {
                 type: "command",
                 command: "other-generated",
-                statusMessage: "[generated:other-run] "
+                statusMessage: "[generated:poe-code:other-run] "
               }
             ]
           }
         ]
       }
     });
+  });
+
+  it("rolls back generated hooks when exclude bookkeeping fails", () => {
+    sourceHooks({ Stop: [{ hooks: [{ type: "command", command: "generated" }] }] });
+    const writeFileSync = fs.writeFileSync.bind(fs);
+    vi.spyOn(fs, "writeFileSync").mockImplementation((filePath, data, options) => {
+      if (String(filePath) === excludePath) {
+        throw new Error("exclude write failed");
+      }
+      return writeFileSync(filePath, data, options);
+    });
+
+    expect(() => bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" })).toThrow(
+      "exclude write failed"
+    );
+    expect(vol.existsSync(targetPath)).toBe(false);
+  });
+
+  it("preserves the hook file when cleanup rewrite fails", () => {
+    vol.mkdirSync(path.dirname(targetPath), { recursive: true });
+    vol.writeFileSync(targetPath, JSON.stringify({ hooks: { Stop: [{ hooks: [{ type: "command", command: "user" }] }] } }));
+    sourceHooks({ Stop: [{ hooks: [{ type: "command", command: "generated" }] }] });
+    const manifest = bridgeHooks("claude-code", "codex", cwd, homeDir, runId, { scope: "project" });
+    const original = vol.readFileSync(targetPath, "utf8") as string;
+    const renameSync = fs.renameSync.bind(fs);
+    vi.spyOn(fs, "renameSync").mockImplementation((from, to) => {
+      if (String(to) === targetPath) {
+        throw new Error("cleanup rename failed");
+      }
+      renameSync(from, to);
+    });
+
+    expect(() => cleanupBridgedHooks(manifest)).toThrow("cleanup rename failed");
+    expect(vol.readFileSync(targetPath, "utf8")).toBe(original);
   });
 
   it("removes a bridge symlink only while it still targets its source", () => {

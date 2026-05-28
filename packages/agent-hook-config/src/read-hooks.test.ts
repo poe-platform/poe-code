@@ -180,4 +180,12 @@ describe("readClaudeHooks", () => {
       `Malformed JSON in ${projectPath}`
     );
   });
+
+  it("rejects null event groups as malformed configuration", () => {
+    vol.fromJSON({ [projectPath]: JSON.stringify({ hooks: { Stop: null } }) }, "/");
+
+    expect(() => readClaudeHooks(cwd, homeDir, { scope: "project" })).toThrow(
+      `Malformed hooks in ${projectPath}`
+    );
+  });
 });

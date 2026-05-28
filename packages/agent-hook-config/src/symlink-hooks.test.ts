@@ -1,3 +1,4 @@
+import * as fs from "node:fs";
 import path from "node:path";
 import { lstatSync, readFileSync, readlinkSync } from "node:fs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -44,7 +45,7 @@ const homeDir = "/home/tester";
 const sourcePath = path.join(cwd, ".source/settings.json");
 const targetPath = path.join(cwd, ".target/settings.json");
 
-function generatedSettings(statusMessage = "[generated:bridge-run] running"): string {
+function generatedSettings(statusMessage = "[generated:poe-code:bridge-run] running"): string {
   return JSON.stringify({
     hooks: { Stop: [{ hooks: [{ type: "command", command: "notify", statusMessage }] }] }
   });
@@ -53,6 +54,7 @@ function generatedSettings(statusMessage = "[generated:bridge-run] running"): st
 describe("symlinkHooks", () => {
   beforeEach(() => {
     vol.reset();
+    vi.restoreAllMocks();
   });
 
   it("throws with both format names when source and target formats differ", () => {
@@ -95,6 +97,19 @@ describe("symlinkHooks", () => {
     expect(lstatSync(targetPath).isSymbolicLink()).toBe(true);
   });
 
+  it("restores a generated regular file when replacement symlink creation fails", () => {
+    const contents = generatedSettings();
+    vol.fromJSON({ [targetPath]: contents }, "/");
+    vi.spyOn(fs, "symlinkSync").mockImplementation(() => {
+      throw new Error("symlink creation denied");
+    });
+
+    expect(() => symlinkHooks("source", "target", cwd, homeDir, "project")).toThrow(
+      "symlink creation denied"
+    );
+    expect(readFileSync(targetPath, "utf8")).toBe(contents);
+  });
+
   it("refuses to replace a regular file containing a user-authored hook", () => {
     const contents = generatedSettings("user-authored");
     vol.fromJSON({ [targetPath]: contents }, "/");
@@ -116,7 +131,7 @@ describe("symlinkHooks", () => {
               {
                 type: "command",
                 command: "notify",
-                statusMessage: "[generated:bridge-run] running"
+                statusMessage: "[generated:poe-code:bridge-run] running"
               }
             ]
           }

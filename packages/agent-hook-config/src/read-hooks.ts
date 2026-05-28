@@ -79,7 +79,13 @@ export function readClaudeHooks(
     result.readPaths.push(sourcePath);
 
     for (const [event, groups] of Object.entries(settings.hooks ?? {})) {
+      if (!Array.isArray(groups)) {
+        throw new Error(`Malformed hooks in ${sourcePath}`);
+      }
       for (const group of groups) {
+        if (!group || !Array.isArray(group.hooks)) {
+          throw new Error(`Malformed hooks in ${sourcePath}`);
+        }
         for (const handler of group.hooks) {
           result.entries.push({ event, matcher: group.matcher, handler });
         }

@@ -34,6 +34,17 @@ describe("getAgentConfig", () => {
       }
     });
   });
+
+  it("does not expose mutable registry configuration", () => {
+    const exposed = getAgentConfig("codex")!;
+    exposed.localHookPath = ".redirected/hooks.json";
+
+    expect(getAgentConfig("codex")?.localHookPath).toBe(".codex/hooks.json");
+  });
+
+  it("does not expose a mutable supported-agent list", () => {
+    expect(Object.isFrozen(supportedHookAgents)).toBe(true);
+  });
 });
 
 describe("resolveAgentSupport", () => {
@@ -42,7 +53,7 @@ describe("resolveAgentSupport", () => {
 
     expect(result.status).toBe("supported");
     expect(result.id).toBe("claude-code");
-    expect(result.config).toBe(getAgentConfig("claude-code"));
+    expect(result.config).toEqual(getAgentConfig("claude-code"));
   });
 
   it("resolves aliases without regard to input case", () => {

@@ -70,10 +70,19 @@ export function transformHooks(
       continue;
     }
 
+    if (sourceEntry.handler.type === "command" && !sourceEntry.handler.command) {
+      result.drops.push({
+        reason: "unsupported-handler-type",
+        detail: "Command hook is missing an executable command",
+        source: sourceEntry
+      });
+      continue;
+    }
+
     const handler: GeneratedHookEntry["handler"] = {
       type: "command",
       command: applyPlaceholderRewrites(sourceEntry.handler.command ?? "", placeholderRewrites),
-      statusMessage: `[generated:${opts.runId}] ${sourceEntry.handler.statusMessage ?? ""}`
+      statusMessage: `[generated:poe-code:${opts.runId}] ${sourceEntry.handler.statusMessage ?? ""}`
     };
 
     if (sourceEntry.handler.args !== undefined) {

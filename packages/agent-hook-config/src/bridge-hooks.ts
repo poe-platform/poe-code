@@ -137,7 +137,18 @@ function readCodexFile(targetPath: string): CodexHooksFile | undefined {
 }
 
 function writeCodexFile(targetPath: string, file: CodexHooksFile): void {
-  fs.writeFileSync(targetPath, `${JSON.stringify(file, null, 2)}\n`, "utf8");
+  const temporaryPath = `${targetPath}.cleanup-tmp`;
+  fs.writeFileSync(temporaryPath, `${JSON.stringify(file, null, 2)}\n`, { flag: "wx" });
+  try {
+    fs.renameSync(temporaryPath, targetPath);
+  } catch (error) {
+    try {
+      fs.unlinkSync(temporaryPath);
+    } catch (cleanupError) {
+      void cleanupError;
+    }
+    throw error;
+  }
 }
 
 function hasOnlyEmptyHooks(file: CodexHooksFile): boolean {
@@ -183,9 +194,16 @@ export function bridgeHooks(
     manifest.symlinkPath = result.symlinkPath;
     manifest.symlinkTarget = result.targetPath;
     manifest.symlinkReplaced = result.replaced;
-    appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, result.symlinkPath)], {
-      markerPrefix: hookExcludeMarkerPrefix
-    });
+    try {
+      appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, result.symlinkPath)], {
+        markerPrefix: hookExcludeMarkerPrefix
+      });
+    } catch (error) {
+      if (fs.lstatSync(result.symlinkPath).isSymbolicLink()) {
+        fs.unlinkSync(result.symlinkPath);
+      }
+      throw error;
+    }
     return manifest;
   }
 
@@ -218,9 +236,21 @@ export function bridgeHooks(
       ...(group.matcher === undefined ? {} : { matcher: group.matcher })
     }))
   );
-  appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, targetPath)], {
-    markerPrefix: hookExcludeMarkerPrefix
-  });
+  try {
+    appendExcludeBlock(cwd, runId, [relativeToCwd(cwd, targetPath)], {
+      markerPrefix: hookExcludeMarkerPrefix
+    });
+  } catch (error) {
+    if (priorFile) {
+      writeCodexFile(targetPath, priorFile);
+    } else {
+      fs.unlinkSync(targetPath);
+    }
+    for (const parent of [...createdParents].reverse()) {
+      removeDirectoryIfEmpty(parent);
+    }
+    throw error;
+  }
 
   return manifest;
 }
@@ -248,7 +278,7 @@ export function cleanupBridgedHooks(manifest: BridgeHookManifest): void {
   if (manifest.strategy === "transform" && manifest.writtenPath) {
     const file = readCodexFile(manifest.writtenPath);
     if (file) {
-      const generatedPrefix = `[generated:${manifest.runId}]`;
+      const generatedPrefix = `[generated:poe-code:${manifest.runId}]`;
       const preExistingEvents = new Set(manifest.preExistingEvents ?? []);
       const preExistingMatchers = new Set(
         (manifest.preExistingMatchers ?? []).map((group) => matcherKey(group.event, group.matcher))

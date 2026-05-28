@@ -95,6 +95,26 @@ describe("createHostRunner", () => {
     expect(result.exitCode).not.toBe(0);
   });
 
+  it("does not spawn when the abort signal is already aborted", async () => {
+    const spawnMock = vi.fn();
+    vi.resetModules();
+    vi.doMock("node:child_process", () => ({ spawn: spawnMock }));
+    const { createHostRunner: createMockedHostRunner } = await import("./host-runner.js");
+    const controller = new AbortController();
+    controller.abort();
+
+    const handle = createMockedHostRunner().exec({
+      command: "must-not-run",
+      signal: controller.signal
+    });
+
+    expect(spawnMock).not.toHaveBeenCalled();
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+
+    vi.doUnmock("node:child_process");
+    vi.resetModules();
+  });
+
   it.runIf(process.platform !== "win32")(
     "uses process group kill for detached mode on unix",
     async () => {
@@ -111,6 +131,38 @@ describe("createHostRunner", () => {
 
       await expect(handle.result).resolves.toEqual({ exitCode: 1 });
       expect(processKillSpy).toHaveBeenCalledWith(-(handle.pid as number), "SIGKILL");
+    }
+  );
+
+  it.runIf(process.platform !== "win32")(
+    "does not throw when aborting a detached process group that already exited",
+    async () => {
+      const child = {
+        pid: 321,
+        stdin: null,
+        stdout: null,
+        stderr: null,
+        kill: vi.fn(),
+        once: vi.fn(() => child),
+        unref: vi.fn()
+      };
+      vi.resetModules();
+      vi.doMock("node:child_process", () => ({ spawn: vi.fn(() => child) }));
+      vi.spyOn(process, "kill").mockImplementation(() => {
+        throw Object.assign(new Error("kill ESRCH"), { code: "ESRCH" });
+      });
+      const { createHostRunner: createDetachedHostRunner } = await import("./host-runner.js");
+      const controller = new AbortController();
+      createDetachedHostRunner({ detached: true }).exec({
+        command: "worker",
+        signal: controller.signal
+      });
+
+      expect(() => controller.abort()).not.toThrow();
+
+      vi.restoreAllMocks();
+      vi.doUnmock("node:child_process");
+      vi.resetModules();
     }
   );
 

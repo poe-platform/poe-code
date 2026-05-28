@@ -19,7 +19,9 @@ export function emitToOtel(trace: AcpTrace, tracer: OtelTracerLike): void {
 function emitSpan(traceSpan: AcpTraceSpan, tracer: OtelTracerLike, parent?: OtelSpanLike): void {
   const span = tracer.startSpan(
     traceSpan.name,
-    traceSpan.startTs !== undefined ? { startTime: traceSpan.startTs } : undefined,
+    readFiniteTimestamp(traceSpan.startTs) !== undefined
+      ? { startTime: traceSpan.startTs }
+      : undefined,
     parent,
   );
 
@@ -33,7 +35,7 @@ function emitSpan(traceSpan: AcpTraceSpan, tracer: OtelTracerLike, parent?: Otel
       emitSpan(child, tracer, span);
     }
   } finally {
-    if (traceSpan.endTs !== undefined) {
+    if (readFiniteTimestamp(traceSpan.endTs) !== undefined) {
       span.end(traceSpan.endTs);
     } else {
       span.end();
@@ -51,13 +53,13 @@ function toOtelAttributes(span: AcpTraceSpan): Record<string, OtelAttributeValue
     addAttribute(attrs, "gen_ai.usage.input_tokens", span.metrics?.prompt_tokens);
     addAttribute(attrs, "gen_ai.usage.output_tokens", span.metrics?.completion_tokens);
     addAttribute(attrs, "gen_ai.usage.cached_tokens", span.metrics?.prompt_cached_tokens);
-    addAttribute(attrs, "poe_code.session_id", readPrimitive(span.metadata?.sessionId));
-    addAttribute(attrs, "poe_code.thread_id", readPrimitive(span.metadata?.threadId));
+    addAttribute(attrs, "poe_code.session_id", readPrimitive(readOwnMetadata(span.metadata, "sessionId")));
+    addAttribute(attrs, "poe_code.thread_id", readPrimitive(readOwnMetadata(span.metadata, "threadId")));
   }
 
   if (span.kind === "tool") {
     addAttribute(attrs, "gen_ai.tool.name", readToolName(span.name));
-    addAttribute(attrs, "poe_code.tool_call_id", readPrimitive(span.metadata?.toolCallId));
+    addAttribute(attrs, "poe_code.tool_call_id", readPrimitive(readOwnMetadata(span.metadata, "toolCallId")));
   }
 
   addInputOutputAttribute(attrs, "poe_code.input", span.input);
@@ -81,7 +83,11 @@ function addInputOutputAttribute(
     return;
   }
 
-  const serialized = JSON.stringify(value);
+  if (typeof value === "number") {
+    return;
+  }
+
+  const serialized = safelySerialize(value);
   if (serialized !== undefined) {
     attrs[key] = serialized;
   }
@@ -130,4 +136,25 @@ function readPrimitive(value: unknown): OtelAttributeValue | undefined {
   return typeof value === "number" && Number.isFinite(value)
     ? value
     : undefined;
+}
+
+function readOwnMetadata(
+  metadata: Record<string, unknown> | undefined,
+  key: string,
+): unknown {
+  return metadata !== undefined && Object.hasOwn(metadata, key)
+    ? metadata[key]
+    : undefined;
+}
+
+function readFiniteTimestamp(value: number | undefined): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function safelySerialize(value: unknown): string | undefined {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return undefined;
+  }
 }

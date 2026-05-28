@@ -57,4 +57,14 @@ describe("redact", () => {
     });
     expect(redact(input)).not.toBe(input);
   });
+
+  it("replaces cyclic references without throwing", () => {
+    const value: Record<string, unknown> = { output: "ok" };
+    value.self = value;
+
+    expect(redact(value)).toEqual({
+      output: "ok",
+      self: "[circular]",
+    });
+  });
 });

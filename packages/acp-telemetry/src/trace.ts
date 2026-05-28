@@ -37,9 +37,9 @@ export function acpToTrace(ctx: AcpSpawnContext): AcpTrace {
       }),
       output: redact(accumulateAgentOutput(ctx.events)),
       metadata: {
+        ...spawnCtx.metadata,
         sessionId: ctx.sessionId,
         threadId: ctx.threadId,
-        ...spawnCtx.metadata,
       },
       metrics: buildMetrics(ctx),
       children: logToolSpans(ctx.events),
@@ -84,22 +84,27 @@ function collectToolMeta(
   const startMeta = asRecord(asRecord(events[toolCallIndex])?._meta);
   if (startMeta) {
     for (const [key, value] of Object.entries(startMeta)) {
-      merged[key === "ts" ? "startTs" : key] = value;
+      setOwnProperty(merged, key === "ts" ? "startTs" : key, value);
     }
   }
 
   for (const event of events.slice(toolCallIndex + 1)) {
     const update = asToolCallUpdate(event);
     if (update === undefined) continue;
-    if (toolCallId !== undefined && readToolCallId(update) !== toolCallId) continue;
+    if (readToolCallId(update) !== toolCallId) continue;
     const updateMeta = asRecord(update._meta);
     if (!updateMeta) continue;
     for (const [key, value] of Object.entries(updateMeta)) {
-      merged[key === "ts" ? "endTs" : key] = value;
+      setOwnProperty(merged, key === "ts" ? "endTs" : key, value);
     }
   }
 
-  return Object.keys(merged).length > 0 ? merged : undefined;
+  if (Object.keys(merged).length === 0) {
+    return undefined;
+  }
+
+  const redactedMetadata = redact(merged);
+  return asRecord(redactedMetadata) ?? { redacted: redactedMetadata };
 }
 
 function accumulateAgentOutput(events: AcpEvent[]): string {
@@ -138,7 +143,7 @@ function assembleToolOutput(
       continue;
     }
 
-    if (toolCallId !== undefined && readToolCallId(update) !== toolCallId) {
+    if (readToolCallId(update) !== toolCallId) {
       continue;
     }
 
@@ -280,5 +285,22 @@ function sumIfPresent(
   left: number | undefined,
   right: number | undefined,
 ): number | undefined {
-  return left !== undefined && right !== undefined ? left + right : undefined;
+  if (left === undefined || right === undefined) {
+    return undefined;
+  }
+
+  return readNumber(left + right);
+}
+
+function setOwnProperty(
+  target: Record<string, unknown>,
+  key: string,
+  value: unknown,
+): void {
+  Object.defineProperty(target, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true,
+  });
 }

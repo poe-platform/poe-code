@@ -240,6 +240,85 @@ describe("emitToOtel", () => {
       },
     ]);
   });
+
+  it("omits unsafe output values and inherited identity metadata", () => {
+    const cyclicOutput: Record<string, unknown> = {};
+    cyclicOutput.self = cyclicOutput;
+    const metadata = Object.create({ sessionId: "inherited-session" }) as Record<string, unknown>;
+    const trace: AcpTrace = {
+      root: {
+        name: "agent:codex:gpt-5",
+        kind: "agent",
+        output: Number.POSITIVE_INFINITY,
+        metadata,
+        children: [
+          {
+            name: "tool_call:read",
+            kind: "tool",
+            output: cyclicOutput,
+            children: [],
+          },
+        ],
+      },
+    };
+    const tracer = new FakeOtelTracer();
+
+    expect(() => emitToOtel(trace, tracer)).not.toThrow();
+    expect(tracer.calls.filter((call) => call.method === "setAttributes")).toEqual([
+      {
+        span: "agent:codex:gpt-5",
+        method: "setAttributes",
+        attrs: {
+          "gen_ai.system": "poe-code",
+          "gen_ai.request.model": "gpt-5",
+          "gen_ai.agent.name": "codex",
+        },
+      },
+      {
+        span: "tool_call:read",
+        method: "setAttributes",
+        attrs: {
+          "gen_ai.tool.name": "read",
+        },
+      },
+    ]);
+  });
+
+  it("does not forward non-finite span timestamps", () => {
+    const trace: AcpTrace = {
+      root: {
+        name: "agent:codex:gpt-5",
+        kind: "agent",
+        startTs: Number.POSITIVE_INFINITY,
+        endTs: Number.NEGATIVE_INFINITY,
+        children: [],
+      },
+    };
+    const tracer = new FakeOtelTracer();
+
+    emitToOtel(trace, tracer);
+
+    expect(tracer.calls).toEqual([
+      {
+        span: "tracer",
+        method: "startSpan",
+        name: "agent:codex:gpt-5",
+      },
+      {
+        span: "agent:codex:gpt-5",
+        method: "setAttributes",
+        attrs: {
+          "gen_ai.system": "poe-code",
+          "gen_ai.request.model": "gpt-5",
+          "gen_ai.agent.name": "codex",
+        },
+      },
+      {
+        span: "agent:codex:gpt-5",
+        method: "end",
+      },
+    ]);
+  });
 });
 
 type FakeCall =

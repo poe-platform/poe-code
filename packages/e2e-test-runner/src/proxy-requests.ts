@@ -82,7 +82,12 @@ export class CapturedRequests {
 
   toolNamesAt(index: number): string[] {
     const requestBody = this.at(index).request.body as RequestBody | undefined;
-    return (requestBody?.tools ?? [])
+    const tools = requestBody?.tools;
+    if (tools !== undefined && !Array.isArray(tools)) {
+      throw new Error('Captured request tools must be an array');
+    }
+
+    return (tools ?? [])
       .map((tool) => tool.function?.name)
       .filter((name): name is string => Boolean(name));
   }
@@ -95,9 +100,13 @@ export class CapturedRequests {
         if (!name || !argumentsJson) {
           return null;
         }
+        const parsedArguments: unknown = JSON.parse(argumentsJson);
+        if (!isRecord(parsedArguments)) {
+          throw new Error('Tool call arguments must decode to an object');
+        }
         return {
           name,
-          arguments: JSON.parse(argumentsJson) as Record<string, unknown>,
+          arguments: parsedArguments,
         };
       })
       .filter((toolCall): toolCall is { name: string; arguments: Record<string, unknown> } => toolCall !== null);
@@ -169,4 +178,8 @@ export class CapturedRequests {
     const responseBody = exchange.response.body as ResponseBody | undefined;
     return responseBody?.choices?.[0]?.message?.tool_calls ?? [];
   }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === 'object' && !Array.isArray(value);
 }

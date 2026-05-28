@@ -21,7 +21,6 @@ type RequestContextRunner = <T>(
 
 const ALLOWED_METHODS = "POST, GET, DELETE";
 const MCP_SESSION_ID_HEADER = "Mcp-Session-Id";
-const MCP_PROTOCOL_VERSION_HEADER = "MCP-Protocol-Version";
 
 export class StreamableHttpTransport {
   private readonly sessionIdGenerator: (() => string) | undefined;

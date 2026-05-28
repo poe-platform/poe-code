@@ -1,8 +1,21 @@
 import path from "node:path";
 import process from "node:process";
+import { pathToFileURL } from "node:url";
 import { McpClient, StdioTransport } from "tiny-mcp-client";
 
 const ROOT = path.resolve(import.meta.dirname, "../../..");
+const EXPECTED_TOOL_NAMES = ["approvals__list", "approvals__show", "read", "read_section"];
+
+export function assertExpectedToolNames(names: string[]): void {
+  const sortedNames = [...names].sort();
+  const namesMatch =
+    sortedNames.length === EXPECTED_TOOL_NAMES.length &&
+    EXPECTED_TOOL_NAMES.every((name, index) => sortedNames[index] === name);
+
+  if (!namesMatch) {
+    throw new Error(`tools/list mismatch. got: ${JSON.stringify(sortedNames)}`);
+  }
+}
 
 async function run(): Promise<void> {
   const transport = new StdioTransport({
@@ -20,14 +33,7 @@ async function run(): Promise<void> {
 
     const { tools } = await client.listTools();
     const names = tools.map((t) => t.name).sort();
-
-    const expected = ["read", "read_section"];
-    const namesMatch =
-      names.length === expected.length && expected.every((n, i) => names[i] === n);
-
-    if (!namesMatch) {
-      throw new Error(`tools/list mismatch. got: ${JSON.stringify(names)}`);
-    }
+    assertExpectedToolNames(names);
     console.log(`✓ tools/list — ${names.join(", ")}`);
 
     const result = await client.callTool({
@@ -47,7 +53,12 @@ async function run(): Promise<void> {
   console.log("\nAll smoke tests passed.");
 }
 
-run().catch((err) => {
-  console.error("Smoke test failed:", err.message);
-  process.exitCode = 1;
-});
+const entryPoint = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : null;
+
+if (entryPoint === import.meta.url) {
+  run().catch((err: unknown) => {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error("Smoke test failed:", message);
+    process.exitCode = 1;
+  });
+}

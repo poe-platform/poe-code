@@ -186,4 +186,19 @@ describe("readMarkdown", () => {
       })
     );
   });
+
+  it("rejects malformed frontmatter after a UTF-8 byte-order mark", async () => {
+    const readMarkdown = createReadMarkdown({
+      fs: createMemFs({
+        "/repo/docs/bom-frontmatter.md": "\uFEFF---\ntitle: demo: broken\n---\n\n# Broken\n"
+      }),
+      cwd: "/repo"
+    });
+
+    await expect(readMarkdown({ file: "docs/bom-frontmatter.md" })).rejects.toThrowError(
+      expect.objectContaining({
+        message: expect.stringContaining("invalid frontmatter in docs/bom-frontmatter.md:")
+      })
+    );
+  });
 });

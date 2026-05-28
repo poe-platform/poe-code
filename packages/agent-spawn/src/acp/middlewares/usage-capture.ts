@@ -46,9 +46,14 @@ export const usageCapture: AcpMiddleware = async (ctx, next) => {
   await next();
 
   const source = ctx.eventStream;
+  const preloadedCounts = new Map<AcpEvent, number>();
 
-  for (const event of ctx.events) {
-    accumulateUsage(ctx, event);
+  if (ctx.events.length > 0) {
+    ctx.usage = { inputTokens: 0, outputTokens: 0 };
+    for (const event of ctx.events) {
+      accumulateUsage(ctx, event);
+      preloadedCounts.set(event, (preloadedCounts.get(event) ?? 0) + 1);
+    }
   }
 
   if (!source) {
@@ -57,7 +62,16 @@ export const usageCapture: AcpMiddleware = async (ctx, next) => {
 
   ctx.eventStream = (async function* () {
     for await (const event of source) {
-      accumulateUsage(ctx, event);
+      const preloadedCount = preloadedCounts.get(event) ?? 0;
+      if (preloadedCount > 0) {
+        if (preloadedCount === 1) {
+          preloadedCounts.delete(event);
+        } else {
+          preloadedCounts.set(event, preloadedCount - 1);
+        }
+      } else {
+        accumulateUsage(ctx, event);
+      }
       yield event;
     }
   })();

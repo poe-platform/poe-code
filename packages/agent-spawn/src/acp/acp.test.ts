@@ -14,6 +14,7 @@ import {
 
 import { readLines } from "./line-reader.js";
 import { applyMiddlewares, type AcpMiddleware, type SpawnContext } from "./middleware.js";
+import { usageCapture } from "./middlewares/usage-capture.js";
 import { spawnAcp } from "./spawn-acp.js";
 import { spawnStreaming } from "./spawn.js";
 import * as adapterModule from "../adapters/index.js";
@@ -1102,6 +1103,76 @@ describe("acp/spawnStreaming", () => {
         sessionId: "ses_done_only"
       }
     ]);
+  });
+
+  it("returns the stream replaced by streaming middleware", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({
+          type: "text",
+          sessionID: "ses_redacted",
+          part: { type: "text", messageID: "msg_1", text: "secret" }
+        })
+      ],
+      exitCode: 0
+    });
+
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    const redactMessages: AcpMiddleware = async (ctx, next) => {
+      await next();
+      const source = ctx.eventStream!;
+      ctx.eventStream = (async function* () {
+        for await (const event of source) {
+          yield event.event === "agent_message" ? { ...event, text: "redacted" } : event;
+        }
+      })();
+    };
+
+    const { events, done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "hello",
+      cwd: "/tmp",
+      middlewares: [redactMessages]
+    });
+
+    await expect(collect(events).then(stripMeta)).resolves.toEqual([
+      { event: "session_start", threadId: "ses_redacted" },
+      { event: "agent_message", text: "redacted" }
+    ]);
+    await expect(done).resolves.toMatchObject({ exitCode: 0 });
+  });
+
+  it("does not double count usage captured by streaming middleware", async () => {
+    const mock = createMockChildProcess({
+      stdoutLines: [
+        JSON.stringify({
+          type: "step_finish",
+          sessionID: "ses_usage",
+          part: { tokens: { input: 2, output: 3, cache: { read: 5, write: 0 } } }
+        })
+      ],
+      exitCode: 0
+    });
+
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+
+    let observedUsage: unknown;
+    const inspectUsage: AcpMiddleware = async (ctx, next) => {
+      await next();
+      observedUsage = ctx.usage;
+    };
+
+    const { events, done } = spawnStreaming({
+      agentId: "opencode",
+      prompt: "hello",
+      cwd: "/tmp",
+      middlewares: [inspectUsage, usageCapture]
+    });
+
+    await collect(events);
+    await expect(done).resolves.toMatchObject({ exitCode: 0 });
+    expect(observedUsage).toEqual({ inputTokens: 2, outputTokens: 3, cachedTokens: 5 });
   });
 
   it("passes resumeThreadId through streaming provider args", async () => {

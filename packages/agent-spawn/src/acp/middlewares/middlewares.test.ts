@@ -508,6 +508,26 @@ describe("acp/middlewares/usageCapture", () => {
     });
   });
 
+  it("does not recount preloaded stream events while capturing later usage", async () => {
+    const preloadedEvent: AcpEvent = { event: "usage", inputTokens: 10, outputTokens: 20 };
+    const laterEvent: AcpEvent = { event: "usage", inputTokens: 30, outputTokens: 40 };
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        yield preloadedEvent;
+        yield laterEvent;
+      })();
+    };
+    const ctx = createContext({
+      events: [preloadedEvent],
+      usage: { inputTokens: 10, outputTokens: 20 }
+    });
+
+    await applyMiddlewares([usageCapture, source], ctx);
+    await collect(ctx.eventStream!);
+
+    expect(ctx.usage).toEqual({ inputTokens: 40, outputTokens: 60 });
+  });
+
   it("ignores malformed usage payloads", async () => {
     const sourceEvents: AcpEvent[] = [
       { event: "usage", inputTokens: 1, outputTokens: 2 },

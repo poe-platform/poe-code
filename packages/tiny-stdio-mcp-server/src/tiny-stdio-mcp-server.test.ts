@@ -9,7 +9,7 @@ import {
 } from "./jsonrpc.js";
 import { ToolError } from "./index.js";
 import { JSON_RPC_ERROR_CODES } from "./types.js";
-import type { JSONRPCNotification } from "./types.js";
+import type { JSONRPCMessage, JSONRPCNotification, SDKTransport } from "./types.js";
 import { defineSchema } from "./schema.js";
 import { createServer } from "./server.js";
 import { createTestPair, type TestPair } from "./testing.js";
@@ -1290,6 +1290,21 @@ function getResponsesWithId(responses: Array<Record<string, unknown>>) {
   return responses.filter((response) => "id" in response);
 }
 
+function createSdkTransport() {
+  const sent: JSONRPCMessage[] = [];
+  const transport = {
+    onmessage: undefined,
+    onclose: undefined,
+    start: vi.fn(async () => undefined),
+    close: vi.fn(async () => undefined),
+    send: vi.fn(async (message: JSONRPCMessage) => {
+      sent.push(message);
+    }),
+  } as unknown as SDKTransport;
+
+  return { sent, transport };
+}
+
 describe("createServer", () => {
   describe("server creation", () => {
     it("creates a server with options", () => {
@@ -1803,10 +1818,37 @@ describe("server protocol handlers", () => {
     it('R9: handleMessage("notifications/initialized") returns { result: undefined }', async () => {
       const server = createServer({ name: "test", version: "1.0.0" });
 
+      await server.handleMessage("initialize", {});
+
       await expect(
         server.handleMessage("notifications/initialized")
       ).resolves.toEqual({
         result: undefined,
+      });
+    });
+
+    it('rejects handleMessage("notifications/initialized") before initialize', async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await expect(server.handleMessage("notifications/initialized")).resolves.toEqual({
+        error: {
+          code: -32600,
+          message: "Server not initialized",
+        },
+      });
+    });
+
+    it("rejects a second initialize after acknowledgement", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" });
+
+      await server.handleMessage("initialize", {});
+      await server.handleMessage("notifications/initialized", {});
+
+      await expect(server.handleMessage("initialize", {})).resolves.toEqual({
+        error: {
+          code: -32600,
+          message: "Server already initialized",
+        },
       });
     });
 
@@ -2819,6 +2861,72 @@ describe("transport connection", () => {
 
     const responses = getResponsesWithId(transport.getAllResponses());
     expect(responses).toHaveLength(3);
+  });
+
+  it("does not unlock tools from notification-form initialize", async () => {
+    const transport = createTestTransport();
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const connectPromise = server.connect(transport);
+
+    transport.send('{"jsonrpc":"2.0","method":"initialize","params":{}}');
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"tools/list"}');
+    transport.close();
+
+    await connectPromise;
+
+    expect(getResponsesWithId(transport.getAllResponses())).toEqual([
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        error: { code: -32600, message: "Server not initialized" },
+      },
+    ]);
+  });
+
+  it("responds with an error to request-form notifications/initialized", async () => {
+    const transport = createTestTransport();
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const connectPromise = server.connect(transport);
+
+    transport.send('{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}');
+    transport.send('{"jsonrpc":"2.0","id":2,"method":"notifications/initialized"}');
+    transport.close();
+
+    await connectPromise;
+
+    expect(
+      getResponsesWithId(transport.getAllResponses()).find((response) => response.id === 2)
+    ).toEqual({
+      jsonrpc: "2.0",
+      id: 2,
+      error: { code: -32600, message: "Invalid Request" },
+    });
+  });
+});
+
+describe("SDK connection lifecycle", () => {
+  it("keeps initialization state isolated per connection", async () => {
+    const server = createServer({ name: "test", version: "1.0.0" });
+    const first = createSdkTransport();
+    const second = createSdkTransport();
+
+    void server.connectSDK(first.transport);
+    void server.connectSDK(second.transport);
+
+    await first.transport.onmessage?.({ jsonrpc: "2.0", id: 1, method: "initialize", params: {} });
+    await first.transport.onmessage?.({ jsonrpc: "2.0", method: "notifications/initialized" });
+    await second.transport.onmessage?.({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} });
+
+    expect(second.sent).toEqual([
+      {
+        jsonrpc: "2.0",
+        id: 2,
+        error: { code: -32600, message: "Server not initialized" },
+      },
+    ]);
+
+    first.transport.onclose?.();
+    second.transport.onclose?.();
   });
 });
 

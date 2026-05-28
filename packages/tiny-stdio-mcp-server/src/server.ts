@@ -43,6 +43,7 @@ export interface Server {
   ): () => void;
   removeTool(name: string): boolean;
   notifyToolsChanged(): Promise<void>;
+  createMessageSession(): MessageSession;
   handleMessage(
     method: string,
     params?: Record<string, unknown>
@@ -52,15 +53,39 @@ export interface Server {
   connectSDK(transport: SDKTransport): Promise<void>;
 }
 
+export type MessageHandler = (
+  method: string,
+  params?: Record<string, unknown>
+) => Promise<HandleResult>;
+
+export interface MessageSession {
+  handleMessage: MessageHandler;
+  close(): void;
+}
+
+interface LifecycleState {
+  initialized: boolean;
+  initializeAccepted: boolean;
+}
+
 export function createServer(options: ServerOptions): Server {
   const tools = new Map<string, ToolDefinition>();
   const notificationListeners = new Set<
     (notification: JSONRPCNotification) => void
   >();
-  let initialized = false;
+  const connectionNotificationListeners = new Map<
+    (notification: JSONRPCNotification) => void,
+    LifecycleState
+  >();
+  const defaultLifecycle: LifecycleState = {
+    initialized: false,
+    initializeAccepted: false,
+  };
+  const messageLifecycles = new Set<LifecycleState>([defaultLifecycle]);
 
-  const handleMessage = async (
+  const handleMessageWithLifecycle = async (
     method: string,
+    lifecycle: LifecycleState,
     params?: Record<string, unknown>
   ): Promise<HandleResult> => {
     // Allow ping and initialize before initialization
@@ -69,7 +94,17 @@ export function createServer(options: ServerOptions): Server {
     }
 
     if (method === "initialize") {
-      initialized = true;
+      if (lifecycle.initializeAccepted) {
+        return {
+          error: {
+            code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+            message: "Server already initialized",
+          },
+        };
+      }
+
+      lifecycle.initializeAccepted = true;
+      lifecycle.initialized = true;
       const requestedProtocol =
         typeof params?.protocolVersion === "string"
           ? params.protocolVersion
@@ -93,11 +128,20 @@ export function createServer(options: ServerOptions): Server {
     }
 
     if (method === "notifications/initialized") {
+      if (!lifecycle.initializeAccepted) {
+        return {
+          error: {
+            code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+            message: "Server not initialized",
+          },
+        };
+      }
+
       return { result: undefined };
     }
 
     // All other methods require initialization
-    if (!initialized) {
+    if (!lifecycle.initialized) {
       return {
         error: {
           code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
@@ -175,9 +219,28 @@ export function createServer(options: ServerOptions): Server {
     };
   };
 
+  const createMessageSession = (): MessageSession => {
+    const lifecycle: LifecycleState = {
+      initialized: false,
+      initializeAccepted: false,
+    };
+    messageLifecycles.add(lifecycle);
+
+    return {
+      handleMessage: (method, params) => handleMessageWithLifecycle(method, lifecycle, params),
+      close: () => {
+        messageLifecycles.delete(lifecycle);
+      },
+    };
+  };
+
+  const handleMessage: MessageHandler = (method, params) =>
+    handleMessageWithLifecycle(method, defaultLifecycle, params);
+
   const processLine = async (
     line: string,
-    write: (data: string) => void
+    write: (data: string) => void,
+    messageHandler: MessageHandler
   ): Promise<void> => {
     const parsed = parseMessage(line);
 
@@ -187,10 +250,21 @@ export function createServer(options: ServerOptions): Server {
     }
 
     const { request, isNotification } = parsed;
-    const { result, error } = await server.handleMessage(
-      request.method,
-      request.params
-    );
+
+    if (isNotification && request.method === "initialize") {
+      return;
+    }
+
+    if (!isNotification && request.method === "notifications/initialized") {
+      const requestWithId = request as JSONRPCRequest;
+      write(formatErrorResponse(requestWithId.id, {
+        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        message: "Invalid Request",
+      }) + "\n");
+      return;
+    }
+
+    const { result, error } = await messageHandler(request.method, request.params);
 
     if (isNotification) {
       return;
@@ -213,6 +287,12 @@ export function createServer(options: ServerOptions): Server {
 
     for (const listener of notificationListeners) {
       listener(notification);
+    }
+
+    for (const [listener, lifecycle] of connectionNotificationListeners) {
+      if (lifecycle.initialized) {
+        listener(notification);
+      }
     }
   };
 
@@ -246,11 +326,12 @@ export function createServer(options: ServerOptions): Server {
     },
 
     async notifyToolsChanged(): Promise<void> {
-      if (initialized) {
+      if ([...messageLifecycles].some((lifecycle) => lifecycle.initialized)) {
         broadcastNotification("notifications/tools/list_changed");
       }
     },
 
+    createMessageSession,
     handleMessage,
 
     async listen(): Promise<void> {
@@ -262,20 +343,26 @@ export function createServer(options: ServerOptions): Server {
 
     async connect(transport: Transport): Promise<void> {
       return new Promise((resolve) => {
-        const unsubscribe = server.onNotification((notification) => {
+        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false };
+        const messageHandler: MessageHandler = (method, params) =>
+          handleMessageWithLifecycle(method, lifecycle, params);
+        messageLifecycles.add(lifecycle);
+        const listener = (notification: JSONRPCNotification) => {
           transport.writable.write(`${JSON.stringify(notification)}\n`);
-        });
+        };
+        connectionNotificationListeners.set(listener, lifecycle);
         const rl = readline.createInterface({
           input: transport.readable,
           crlfDelay: Infinity,
         });
 
         rl.on("line", (line) => {
-          processLine(line, (data) => transport.writable.write(data));
+          processLine(line, (data) => transport.writable.write(data), messageHandler);
         });
 
         rl.on("close", () => {
-          unsubscribe();
+          connectionNotificationListeners.delete(listener);
+          messageLifecycles.delete(lifecycle);
           resolve();
         });
       });
@@ -283,9 +370,14 @@ export function createServer(options: ServerOptions): Server {
 
     async connectSDK(transport: SDKTransport): Promise<void> {
       return new Promise<void>((resolve) => {
-        const unsubscribe = server.onNotification((notification) => {
+        const lifecycle: LifecycleState = { initialized: false, initializeAccepted: false };
+        const messageHandler: MessageHandler = (method, params) =>
+          handleMessageWithLifecycle(method, lifecycle, params);
+        messageLifecycles.add(lifecycle);
+        const listener = (notification: JSONRPCNotification) => {
           void transport.send(notification);
-        });
+        };
+        connectionNotificationListeners.set(listener, lifecycle);
 
         transport.onmessage = async (message: JSONRPCMessage) => {
           // Ignore responses (we only handle requests/notifications)
@@ -295,15 +387,28 @@ export function createServer(options: ServerOptions): Server {
 
           // Handle notifications (no id) - don't respond
           if (!("id" in message) || message.id === undefined) {
-            await server.handleMessage(message.method, message.params);
+            if (message.method === "initialize") {
+              return;
+            }
+
+            await messageHandler(message.method, message.params);
+            return;
+          }
+
+          if (message.method === "notifications/initialized") {
+            await transport.send({
+              jsonrpc: "2.0",
+              id: message.id,
+              error: {
+                code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+                message: "Invalid Request",
+              },
+            });
             return;
           }
 
           const request = message as JSONRPCRequest;
-          const { result, error } = await server.handleMessage(
-            request.method,
-            request.params
-          );
+          const { result, error } = await messageHandler(request.method, request.params);
 
           if (error) {
             const response: JSONRPCResponse = {
@@ -323,7 +428,8 @@ export function createServer(options: ServerOptions): Server {
         };
 
         transport.onclose = () => {
-          unsubscribe();
+          connectionNotificationListeners.delete(listener);
+          messageLifecycles.delete(lifecycle);
           resolve();
         };
 

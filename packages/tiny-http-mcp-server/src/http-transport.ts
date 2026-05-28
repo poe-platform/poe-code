@@ -1,5 +1,5 @@
 import { validateHeaderValue, type IncomingMessage, type ServerResponse } from "node:http";
-import type { JSONRPCMessage, JSONRPCRequest, Server } from "tiny-stdio-mcp-server";
+import type { JSONRPCMessage, JSONRPCRequest, MessageSession, Server } from "tiny-stdio-mcp-server";
 import { JSON_RPC_ERROR_CODES } from "tiny-stdio-mcp-server";
 import {
   formatErrorResponse,
@@ -26,6 +26,7 @@ export class StreamableHttpTransport {
   private readonly sessionIdGenerator: (() => string) | undefined;
   private readonly enableJsonResponse: boolean;
   private readonly sessionStore = createSessionStore();
+  private readonly sessionMessages = new Map<string, MessageSession>();
   private readonly sseStreams = new Map<string, Set<ServerResponse>>();
   private nextNotificationEventId = 1;
   private notificationUnsubscribe: (() => void) | undefined;
@@ -93,6 +94,11 @@ export class StreamableHttpTransport {
     for (const sessionId of [...this.sseStreams.keys()]) {
       this.closeStreamsForSession(sessionId);
     }
+
+    for (const session of this.sessionMessages.values()) {
+      session.close();
+    }
+    this.sessionMessages.clear();
   }
 
   private async handlePost(
@@ -149,6 +155,7 @@ export class StreamableHttpTransport {
         }
 
         this.sessionStore.create(sessionId);
+        this.sessionMessages.set(sessionId, this.server.createMessageSession());
       } else if (!this.sessionStore.has(headerSessionId)) {
         this.respondWithStatus(res, 404);
         return;
@@ -195,7 +202,10 @@ export class StreamableHttpTransport {
           continue;
         }
 
-        const { error, result } = await this.server.handleMessage(
+        const messageHandler = sessionId === undefined
+          ? this.server.handleMessage
+          : this.sessionMessages.get(sessionId)?.handleMessage ?? this.server.handleMessage;
+        const { error, result } = await messageHandler(
           message.method,
           message.params
         );
@@ -344,6 +354,8 @@ export class StreamableHttpTransport {
       return;
     }
 
+    this.sessionMessages.get(sessionId)?.close();
+    this.sessionMessages.delete(sessionId);
     this.closeStreamsForSession(sessionId);
     this.respondWithStatus(res, 204);
   }

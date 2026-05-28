@@ -42,9 +42,19 @@ export function createTemplateRegistry(
   }
 
   async function writeState(state: TemplateState): Promise<void> {
-    await fs.writeFile(filePath, `${JSON.stringify(state, null, 2)}\n`, {
-      encoding: "utf8"
-    });
+    const tempPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random()
+      .toString(36)
+      .slice(2)}.tmp`;
+
+    try {
+      await fs.writeFile(tempPath, `${JSON.stringify(state, null, 2)}\n`, {
+        encoding: "utf8"
+      });
+      await fs.rename(tempPath, filePath);
+    } catch (error) {
+      await fs.unlink(tempPath).catch(() => undefined);
+      throw error;
+    }
   }
 
   async function updateState(mutator: (state: TemplateState) => void): Promise<void> {

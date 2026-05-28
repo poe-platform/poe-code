@@ -91,6 +91,28 @@ describe("TemplateRegistry", () => {
     await expect(registry.get("docker", "alpha")).resolves.toBeNull();
   });
 
+  it("preserves stored templates when an interrupted write rejects", async () => {
+    const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
+    const original = createTemplate("alpha");
+    const base = createMemFs({
+      [templatesPath]: `${JSON.stringify({ docker: { alpha: original }, e2b: {} }, null, 2)}\n`
+    });
+    const fs: StateFileSystem = {
+      ...base,
+      async writeFile(targetPath, data, options) {
+        if (targetPath === templatesPath || targetPath.includes(".tmp")) {
+          await base.writeFile(targetPath, "{", options);
+          throw new Error("templates disk full");
+        }
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+    const registry = createTemplateRegistry("/home/tester", fs);
+
+    await expect(registry.put("docker", createTemplate("bravo"))).rejects.toThrow("templates disk full");
+    await expect(createTemplateRegistry("/home/tester", base).get("docker", "alpha")).resolves.toEqual(original);
+  });
+
   it("ignores persisted templates stored under a mismatched hash key", async () => {
     const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
     const fs = createMemFs({
@@ -145,6 +167,45 @@ describe("JobRegistry", () => {
 
     await expect(registry.get("job-1")).resolves.toEqual(job);
     await expect(registry.list()).resolves.toEqual([job]);
+  });
+
+  it("preserves rename failures when temporary cleanup also rejects", async () => {
+    const base = createMemFs();
+    const fs: StateFileSystem = {
+      ...base,
+      async rename() {
+        throw new Error("rename offline");
+      },
+      async unlink(filePath) {
+        if (filePath.includes(".tmp")) {
+          throw new Error("temp cleanup denied");
+        }
+        await base.unlink(filePath);
+      }
+    };
+
+    await expect(createJobRegistry("/home/tester", fs).put(createJob("job-1"))).rejects.toThrow("rename offline");
+  });
+
+  it("ignores job records whose id does not match their filename", async () => {
+    const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
+    const fs = createMemFs({
+      [path.join(jobsDir, "requested-job.json")]: `${JSON.stringify(createJob("other-job"), null, 2)}\n`
+    });
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await expect(registry.get("requested-job")).resolves.toBeNull();
+    await expect(registry.list()).resolves.toEqual([]);
+  });
+
+  it("rejects non-finite job exit codes before persisting them", async () => {
+    const fs = createMemFs();
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await expect(registry.put(createJob("job-1", { exit_code: Number.POSITIVE_INFINITY }))).rejects.toThrow(
+      "Invalid job entry."
+    );
+    await expect(registry.get("job-1")).resolves.toBeNull();
   });
 
   it("filters listed jobs by status, tool, env kind, and env id", async () => {

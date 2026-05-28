@@ -1179,6 +1179,22 @@ describe("store", () => {
     expect(fs.getContent("~/.poe-code/config.json")).toBe("{}\n");
   });
 
+  it("keeps separate invalid backups created in the same millisecond", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-03-23T12:34:56.789Z"));
+    const fs = createMockFs({ "~/.poe-code/config.json": "first invalid\n" }, homeDir);
+
+    await readDocument(fs, configPath);
+    await fs.writeFile(configPath, "second invalid\n", { encoding: "utf8" });
+    await readDocument(fs, configPath);
+
+    const backups = (await fs.readdir(path.dirname(configPath))).filter((entry) => entry.includes(".invalid-")).sort();
+    expect(backups).toHaveLength(2);
+    expect(backups.map((entry) => fs.getContent(`~/.poe-code/${entry}`))).toEqual(
+      expect.arrayContaining(["first invalid\n", "second invalid\n"])
+    );
+  });
+
   it("writes a scope while preserving unrelated scopes", async () => {
     const fs = createMockFs(
       {
@@ -1210,6 +1226,24 @@ describe("store", () => {
         codex: { files: ["/tmp/config.toml"] }
       }
     });
+  });
+
+  it("preserves the existing document when a scope write fails", async () => {
+    const original = '{"core":{"apiKey":"old"}}\n';
+    const base = createMockFs({ "~/.poe-code/config.json": original }, homeDir);
+    const fs: FileSystem = {
+      ...base,
+      async writeFile(targetPath, content, options) {
+        if (targetPath === configPath || targetPath.includes(".tmp")) {
+          await base.writeFile(targetPath, "{", options);
+          throw new Error("config scope disk full");
+        }
+        await base.writeFile(targetPath, content, options);
+      }
+    };
+
+    await expect(writeScope(fs, configPath, "ui", { darkMode: true })).rejects.toThrow("config scope disk full");
+    await expect(base.readFile(configPath, "utf8")).resolves.toBe(original);
   });
 
   it("preserves a stored __proto__ key inside a normal scope", async () => {

@@ -46,7 +46,7 @@ export function createJobRegistry(
 
   async function get(id: string): Promise<JobEntry | null> {
     try {
-      return parseJobEntry(await fs.readFile(jobPath(id), "utf8"));
+      return parseJobEntry(await fs.readFile(jobPath(id), "utf8"), id);
     } catch (error) {
       if (isNotFoundError(error)) {
         return null;
@@ -110,8 +110,8 @@ export function createJobRegistry(
         continue;
       }
 
-      const job = parseJobEntry(await fs.readFile(filePath, "utf8"));
-      if (matchesFilter(job, filter)) {
+      const job = parseJobEntry(await fs.readFile(filePath, "utf8"), entry.slice(0, -".json".length));
+      if (job !== null && matchesFilter(job, filter)) {
         jobs.push(job);
       }
     }
@@ -162,7 +162,7 @@ export function createJobRegistry(
       });
       await fs.rename(tempPath, filePath);
     } catch (error) {
-      await removeTempFile(tempPath);
+      await removeTempFile(tempPath).catch(() => undefined);
       throw error;
     }
   }
@@ -215,12 +215,12 @@ function matchesFilter(job: JobEntry, filter: JobListFilter): boolean {
   );
 }
 
-function parseJobEntry(content: string): JobEntry {
+function parseJobEntry(content: string, expectedId: string): JobEntry | null {
   const parsed = JSON.parse(content) as unknown;
   if (!isJobEntry(parsed)) {
     throw new Error("Invalid job state file.");
   }
-  return parsed;
+  return parsed.id === expectedId ? parsed : null;
 }
 
 function isJobEntry(value: unknown): value is JobEntry {
@@ -235,7 +235,7 @@ function isJobEntry(value: unknown): value is JobEntry {
     typeof value.cwd === "string" &&
     typeof value.started_at === "string" &&
     isJobStatus(value.status) &&
-    (value.exit_code === undefined || typeof value.exit_code === "number") &&
+    (value.exit_code === undefined || (typeof value.exit_code === "number" && Number.isFinite(value.exit_code))) &&
     (value.exited_at === undefined || typeof value.exited_at === "string") &&
     (value.log_file === undefined || typeof value.log_file === "string")
   );

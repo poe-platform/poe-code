@@ -163,9 +163,7 @@ async function writeDocument(
   await assertConfigPathSafe(fs, filePath);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await assertConfigPathSafe(fs, filePath);
-  await fs.writeFile(filePath, `${JSON.stringify(document, null, 2)}\n`, {
-    encoding: "utf8"
-  });
+  await writeFileAtomically(fs, filePath, `${JSON.stringify(document, null, 2)}\n`);
 }
 
 async function recoverInvalidDocument(
@@ -176,9 +174,8 @@ async function recoverInvalidDocument(
   await assertConfigPathSafe(fs, filePath);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await assertConfigPathSafe(fs, filePath);
-  const backupPath = createInvalidBackupPath(filePath);
-  await fs.writeFile(backupPath, content, { encoding: "utf8" });
-  await fs.writeFile(filePath, EMPTY_DOCUMENT, { encoding: "utf8" });
+  await writeInvalidBackup(fs, filePath, content);
+  await writeFileAtomically(fs, filePath, EMPTY_DOCUMENT);
 }
 
 export async function assertConfigPathSafe(fs: FileSystem, filePath: string): Promise<void> {
@@ -199,6 +196,40 @@ function createInvalidBackupPath(filePath: string): string {
   const directory = path.dirname(filePath);
   const baseName = path.basename(filePath);
   return path.join(directory, `${baseName}.invalid-${createTimestamp()}.json`);
+}
+
+async function writeInvalidBackup(fs: FileSystem, filePath: string, content: string): Promise<void> {
+  const backupPath = createInvalidBackupPath(filePath);
+  const backupStem = backupPath.slice(0, -".json".length);
+
+  for (let suffix = 0; ; suffix += 1) {
+    const candidate = suffix === 0 ? backupPath : `${backupStem}-${suffix}.json`;
+
+    try {
+      await fs.writeFile(candidate, content, { encoding: "utf8", flag: "wx" });
+      return;
+    } catch (error) {
+      if (!isAlreadyExists(error)) {
+        throw error;
+      }
+    }
+  }
+}
+
+async function writeFileAtomically(fs: FileSystem, filePath: string, content: string): Promise<void> {
+  const tempPath = `${filePath}.${process.pid}.${Date.now()}.${Math.random().toString(36).slice(2)}.tmp`;
+
+  try {
+    await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+    await fs.rename(tempPath, filePath);
+  } catch (error) {
+    await fs.unlink(tempPath).catch(() => undefined);
+    throw error;
+  }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

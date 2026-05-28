@@ -16,6 +16,16 @@ export async function findBase(
   for (const basePath of bases) {
     for (const extension of [".md", ".yaml", ".yml", ".json"]) {
       const filePath = path.join(basePath, `${name}${extension}`);
+      const relativePath = path.relative(path.resolve(basePath), path.resolve(filePath));
+
+      if (
+        relativePath === ".." ||
+        relativePath.startsWith(`..${path.sep}`) ||
+        path.isAbsolute(relativePath)
+      ) {
+        throw new Error("Base name must remain inside configured base directories.");
+      }
+
       checkedPaths.push(filePath);
 
       try {

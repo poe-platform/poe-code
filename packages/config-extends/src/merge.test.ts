@@ -486,4 +486,15 @@ describe("mergeLayers", () => {
       }
     });
   });
+
+  it("preserves __proto__ as data without changing result prototypes", () => {
+    const malicious = JSON.parse('{"__proto__":{"polluted":"yes"}}') as Record<string, unknown>;
+    const result = mergeLayers([{ source: "document", data: malicious }]);
+
+    expect(Object.hasOwn(result.data, "__proto__")).toBe(true);
+    expect(result.data.__proto__).toEqual({ polluted: "yes" });
+    expect((result.data as { polluted?: string }).polluted).toBeUndefined();
+    expect(result.sources.__proto__).toBe("document");
+    expect(Object.getPrototypeOf(result.sources)).toBe(Object.prototype);
+  });
 });

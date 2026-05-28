@@ -126,4 +126,14 @@ describe("findBase", () => {
       message: "permission denied"
     });
   });
+
+  it("rejects base names that traverse outside configured directories", async () => {
+    const fs = createMemFs({
+      "/project/secret.md": "external base content"
+    });
+
+    await expect(findBase("../secret", ["/project/bases"], fs)).rejects.toThrow(
+      "Base name must remain inside configured base directories."
+    );
+  });
 });

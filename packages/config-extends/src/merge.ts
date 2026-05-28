@@ -20,8 +20,10 @@ function mergeObjectLayers(layers: DataLayer[], path: string[]): MergeLayersResu
       continue;
     }
 
-    data[key] = resolved.value;
-    Object.assign(sources, resolved.sources);
+    defineDataProperty(data, key, resolved.value);
+    for (const [sourcePath, source] of Object.entries(resolved.sources)) {
+      defineDataProperty(sources, sourcePath, source);
+    }
   }
 
   return { data, sources };
@@ -140,8 +142,17 @@ function cloneValue(value: unknown): unknown {
   const clone = Object.create(Object.getPrototypeOf(value)) as Record<string, unknown>;
 
   for (const [key, entry] of Object.entries(value)) {
-    clone[key] = cloneValue(entry);
+    defineDataProperty(clone, key, cloneValue(entry));
   }
 
   return clone;
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }

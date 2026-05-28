@@ -1170,6 +1170,27 @@ describe("StreamableHttpTransport", () => {
     expect(body.map((entry) => entry.id)).toEqual([2, 3, 4]);
   });
 
+  it("returns valid batch results alongside invalid member errors", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: undefined,
+    });
+
+    const response = await fixture.post([
+      { jsonrpc: "2.0", id: 1, method: "ping" },
+      17,
+      { jsonrpc: "2.0", id: 2, method: "ping" },
+    ]);
+    const body = await readJsonRpcBody(response);
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual([
+      { jsonrpc: "2.0", id: 1, result: {} },
+      { jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } },
+      { jsonrpc: "2.0", id: 2, result: {} },
+    ]);
+  });
+
   it("T11 batch of notifications returns 202", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
@@ -1555,6 +1576,7 @@ describe("StreamableHttpTransport", () => {
 
     const event = await readSseEvent(reader);
 
+    expect(event).toContain("id: ");
     expect(event).toContain("data: ");
     expect(event).toContain("notifications/tools/list_changed");
   });

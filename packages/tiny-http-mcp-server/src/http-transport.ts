@@ -27,6 +27,7 @@ export class StreamableHttpTransport {
   private readonly enableJsonResponse: boolean;
   private readonly sessionStore = createSessionStore();
   private readonly sseStreams = new Map<string, Set<ServerResponse>>();
+  private nextNotificationEventId = 1;
   private notificationUnsubscribe: (() => void) | undefined;
 
   constructor(
@@ -43,7 +44,10 @@ export class StreamableHttpTransport {
         : defaultSessionIdGenerator;
     this.enableJsonResponse = options.enableJsonResponse ?? false;
     this.notificationUnsubscribe = this.server.onNotification((notification) => {
-      const event = formatSseEvent({ data: JSON.stringify(notification) });
+      const event = formatSseEvent({
+        id: String(this.nextNotificationEventId++),
+        data: JSON.stringify(notification),
+      });
 
       for (const streams of this.sseStreams.values()) {
         for (const response of streams) {
@@ -152,7 +156,15 @@ export class StreamableHttpTransport {
     const formattedResponses = await this.runWithRequestContext(req, async () => {
       const responses: string[] = [];
 
-      for (const message of classified.messages) {
+      for (const message of classified.entries) {
+        if (message === null) {
+          responses.push(formatErrorResponse(null, {
+            code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+            message: "Invalid Request",
+          }));
+          continue;
+        }
+
         if (!("method" in message)) {
           continue;
         }

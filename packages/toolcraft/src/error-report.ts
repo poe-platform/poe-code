@@ -1,4 +1,5 @@
 import { mkdir, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import os from "node:os";
 import path from "node:path";
 import { CommanderError } from "commander";
@@ -470,7 +471,7 @@ export async function writeErrorReport(
 
   const projectRoot = resolveProjectRoot(context.projectRoot);
   const reportDir = resolveReportDir(context.errorReports, projectRoot);
-  const fileName = `${formatTimestamp(new Date())}-${slugifyCommandPath(context.commandPath)}.log`;
+  const fileName = `${formatTimestamp(new Date())}-${slugifyCommandPath(context.commandPath)}-${randomUUID()}.log`;
   const absolutePath = path.join(reportDir, fileName);
 
   await mkdir(reportDir, { recursive: true });

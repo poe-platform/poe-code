@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 import { S } from "toolcraft-schema";
 import { defineCommand, UserError } from "./index.js";
@@ -108,6 +108,10 @@ async function readOnlyReportFile(projectRoot: string): Promise<string | undefin
 }
 
 describe("writeErrorReport", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
     vol.reset();
@@ -145,7 +149,7 @@ describe("writeErrorReport", () => {
     });
 
     expect(result?.displayPath).toContain(".toolcraft/errors/");
-    expect(result?.displayPath).toContain("widgets-create.log");
+    expect(result?.displayPath).toMatch(/widgets-create-[0-9a-f-]+\.log$/);
     const report = await readOnlyReportFile("/repo");
 
     expect(report).toContain("toolcraft version: 1.2.3");
@@ -250,5 +254,33 @@ describe("writeErrorReport", () => {
     const report = await readOnlyReportFile("/repo");
     expect(report).toContain('"__proto__": {');
     expect(report).toContain('"requestId": "visible"');
+  });
+
+  it("retains separate reports for failures in the same minute", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-25T12:34:56.789Z"));
+
+    const first = await writeErrorReport({
+      commandPath: "widgets.create",
+      error: new Error("first failure"),
+      errorReports: true,
+      projectRoot: "/repo"
+    });
+    const second = await writeErrorReport({
+      commandPath: "widgets.create",
+      error: new Error("second failure"),
+      errorReports: true,
+      projectRoot: "/repo"
+    });
+
+    expect(first?.absolutePath).not.toBe(second?.absolutePath);
+    const reports = Object.values(vol.toJSON("/repo/.toolcraft/errors"));
+    expect(reports).toHaveLength(2);
+    expect(reports).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("first failure"),
+        expect.stringContaining("second failure")
+      ])
+    );
   });
 });

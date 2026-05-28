@@ -518,11 +518,12 @@ function sanitizeLoggedBody(
   }
 
   const params = new URLSearchParams(body);
-  if (!params.has("code_verifier")) {
-    return body;
+  if (params.has("code_verifier")) {
+    params.set("code_verifier", "[redacted]");
   }
-
-  params.set("code_verifier", "[redacted]");
+  if (params.has("refresh_token")) {
+    params.set("refresh_token", "[redacted]");
+  }
   return params.toString();
 }
 
@@ -673,6 +674,7 @@ export function createOAuthTestServer(
   let nextClientId = 1;
   let server: http.Server | null = null;
   let currentHandle: OAuthTestServerListeningHandle | null = null;
+  let listenPending = false;
   let runtimeIssuer = options.issuer ? normalizeIssuer(options.issuer) : null;
   let nextAuthorization: AuthorizationDecision | null = null;
 
@@ -695,9 +697,11 @@ export function createOAuthTestServer(
     },
 
     async listen(listenOptions: OAuthTestServerListenOptions = {}) {
-      if (server !== null || currentHandle !== null) {
+      if (server !== null || currentHandle !== null || listenPending) {
         throw new Error("OAuth test server is already listening");
       }
+
+      listenPending = true;
 
       const hostname = listenOptions.hostname ?? "127.0.0.1";
       const requestedPort = listenOptions.port ?? 0;
@@ -713,10 +717,15 @@ export function createOAuthTestServer(
         });
       });
 
-      await new Promise<void>((resolve, reject) => {
-        httpServer.once("error", reject);
-        httpServer.listen(requestedPort, hostname, () => resolve());
-      });
+      try {
+        await new Promise<void>((resolve, reject) => {
+          httpServer.once("error", reject);
+          httpServer.listen(requestedPort, hostname, () => resolve());
+        });
+      } catch (error) {
+        listenPending = false;
+        throw error;
+      }
 
       const address = httpServer.address();
       if (address === null || typeof address === "string") {
@@ -726,6 +735,7 @@ export function createOAuthTestServer(
       const port = (address as AddressInfo).port;
       const url = `http://${formatAuthorityHostname(hostname)}:${port}`;
       server = httpServer;
+      listenPending = false;
       if (options.issuer === undefined) {
         runtimeIssuer = normalizeIssuer(url);
       }
@@ -772,6 +782,9 @@ export function createOAuthTestServer(
       const issuer = getIssuer();
       const resource = parseAbsoluteUrl(input.resource, "resource");
       const ttlSeconds = input.ttlSeconds ?? defaultTokenTtlSeconds;
+      if (!Number.isInteger(ttlSeconds) || ttlSeconds <= 0) {
+        throw new Error("ttlSeconds must be a positive integer");
+      }
       const token = await issueAccessToken({
         issuer,
         clientId: input.clientId,
@@ -1329,7 +1342,7 @@ export function createOAuthTestServer(
   }
 
   function isExpired(expiresAt: number): boolean {
-    return nowInSeconds() > expiresAt + clockSkewSeconds;
+    return nowInSeconds() >= expiresAt + clockSkewSeconds;
   }
 
   async function createTokenResponse(input: {

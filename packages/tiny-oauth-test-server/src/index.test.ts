@@ -2,7 +2,7 @@ import http from "node:http";
 import https from "node:https";
 import { createHash } from "node:crypto";
 import { Readable } from "node:stream";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createLocalJWKSet, jwtVerify } from "jose";
 import { createOAuthTestServer } from "./index.js";
 
@@ -255,6 +255,7 @@ describe("tiny-oauth-test-server", () => {
     }
 
     cleanups.clear();
+    vi.restoreAllMocks();
   });
 
   async function listenServer() {
@@ -288,6 +289,24 @@ describe("tiny-oauth-test-server", () => {
       code_challenge_methods_supported: ["S256"],
       authorization_response_iss_parameter_supported: true,
     });
+  });
+
+  it("rejects a concurrent second listener instead of orphaning a bound server", async () => {
+    const server = createOAuthTestServer({ signingKeySeed: "tiny-oauth-test-server:concurrent" });
+    const results = await Promise.allSettled([
+      server.listen({ port: 0, hostname: "127.0.0.1" }),
+      server.listen({ port: 0, hostname: "127.0.0.1" })
+    ]);
+    const fulfilled = results.filter(
+      (result): result is PromiseFulfilledResult<Awaited<ReturnType<typeof server.listen>>> =>
+        result.status === "fulfilled"
+    );
+
+    expect(fulfilled).toHaveLength(1);
+    expect(results.filter((result) => result.status === "rejected")).toHaveLength(1);
+    if (fulfilled[0]) {
+      cleanups.add(fulfilled[0].value.close);
+    }
   });
 
   it("serves RFC 8414 metadata only from the path-based well-known location for pathful issuers", async () => {
@@ -709,6 +728,43 @@ describe("tiny-oauth-test-server", () => {
     expect(refreshPayload.refresh_token).not.toBe(firstPayload.refresh_token);
   });
 
+  it("rejects a refresh token at its exact expiration instant", async () => {
+    let now = 1_700_000_000_000;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43142/callback";
+    const resource = "https://resource.example.com/refresh-expired";
+    const codeVerifier = createValidVerifier("refresh-expired-verifier");
+    const clientId = await registerClient({ baseUrl: server.issuer, redirectUris: [redirectUri] });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier)
+    });
+    const tokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource
+    });
+    const payload = (await tokenResponse.json()) as { refresh_token: string };
+
+    now += 3_600_000;
+    const refreshResponse = await refreshAccessToken({
+      baseUrl: server.issuer,
+      clientId,
+      refreshToken: payload.refresh_token,
+      resource
+    });
+
+    expect(refreshResponse.status).toBe(400);
+    await expect(refreshResponse.json()).resolves.toMatchObject({ error: "invalid_grant" });
+  });
+
   it("rejects refresh-token reuse after rotation invalidates the old token", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://127.0.0.1:43135/callback";
@@ -857,6 +913,11 @@ describe("tiny-oauth-test-server", () => {
         return new URLSearchParams(request.body ?? "").get("grant_type") === "refresh_token";
       })
     ).toHaveLength(1);
+    const refreshRequest = requestLog.find((request) =>
+      request.body?.includes("grant_type=refresh_token")
+    );
+    expect(refreshRequest?.body).not.toContain(tokenPayload.refresh_token);
+    expect(refreshRequest?.body).toContain("refresh_token=%5Bredacted%5D");
   });
 
   it("rejects authorization codes after the first successful exchange", async () => {
@@ -900,6 +961,36 @@ describe("tiny-oauth-test-server", () => {
     await expect(secondResponse.json()).resolves.toMatchObject({
       error: "invalid_grant",
     });
+  });
+
+  it("rejects authorization codes at their exact expiration instant", async () => {
+    let now = 1_700_000_000_000;
+    vi.spyOn(Date, "now").mockImplementation(() => now);
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43143/callback";
+    const resource = "https://resource.example.com/code-expired";
+    const codeVerifier = createValidVerifier("code-expired-verifier");
+    const clientId = await registerClient({ baseUrl: server.issuer, redirectUris: [redirectUri] });
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier)
+    });
+
+    now += 300_000;
+    const response = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_grant" });
   });
 
   it("rejects re-used PKCE verifiers across two token requests", async () => {
@@ -1147,6 +1238,19 @@ describe("tiny-oauth-test-server", () => {
     expect(verified.payload.client_id).toBe("direct-client");
     expect(verified.payload.scope).toBe("mcp.read");
     expect(verified.payload.exp).toBe(verified.payload.iat! + 120);
+  });
+
+  it("rejects direct tokens with a non-positive ttl", async () => {
+    const { server } = await listenServer();
+
+    await expect(
+      server.issueTokenFor({
+        clientId: "direct-client",
+        resource: "https://resource.example.com/direct",
+        scopes: [],
+        ttlSeconds: -60
+      })
+    ).rejects.toThrow("ttlSeconds must be a positive integer");
   });
 
   it("accepts IPv6 loopback redirect URIs", async () => {

@@ -72,4 +72,21 @@ describe("harness schema codegen", () => {
       "enum": [
         "https://poe-platform.github.io/poe-code/schemas/harnesses/ralph-demo.schema.json"`);
   });
+
+  it("rejects a generated schema symlink outside the repository", async () => {
+    const volume = Volume.fromJSON({
+      "/outside.json": "{\"external\":true}\n"
+    });
+    const fs = createFsFromVolume(volume).promises;
+    volume.mkdirSync("/repo/docs/schemas/harnesses", { recursive: true });
+    volume.symlinkSync(
+      "/outside.json",
+      "/repo/docs/schemas/harnesses/pipeline-demo.schema.json"
+    );
+
+    await expect(runHarnessCodegen({ fs, repoRoot: "/repo" })).rejects.toThrow(
+      "Generated schema output must remain inside the repository."
+    );
+    await expect(fs.readFile("/outside.json", "utf8")).resolves.toBe("{\"external\":true}\n");
+  });
 });

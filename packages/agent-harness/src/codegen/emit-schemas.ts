@@ -8,6 +8,7 @@ import { extractSchema } from "../loader/extract-schema.js";
 
 interface HarnessSchemaFileSystem {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
+  realpath(path: string): Promise<string>;
   writeFile(
     filePath: string,
     data: string,
@@ -54,13 +55,57 @@ export async function runHarnessCodegen(
       $id: `${publicHarnessSchemaBaseUrl}/${fileName}`,
       ...toJsonSchema(schema)
     };
+    const outputPath = path.join(outputDirectory, fileName);
+
+    await assertSafeSchemaOutput(repoRoot, outputPath, fs);
 
     await fs.writeFile(
-      path.join(outputDirectory, fileName),
+      outputPath,
       serializeJsonDocument(document),
       "utf8"
     );
   }
+}
+
+async function assertSafeSchemaOutput(
+  repoRoot: string,
+  outputPath: string,
+  fs: Pick<HarnessSchemaFileSystem, "realpath">
+): Promise<void> {
+  let existingPath = outputPath;
+  let canonicalOutputPath: string;
+
+  while (true) {
+    try {
+      canonicalOutputPath = await fs.realpath(existingPath);
+      break;
+    } catch (error) {
+      if (!isMissingPathError(error)) {
+        throw error;
+      }
+
+      const parentPath = path.dirname(existingPath);
+      if (parentPath === existingPath) {
+        throw error;
+      }
+      existingPath = parentPath;
+    }
+  }
+
+  const canonicalRepoRoot = await fs.realpath(repoRoot);
+  const relativeOutputPath = path.relative(canonicalRepoRoot, canonicalOutputPath);
+
+  if (
+    relativeOutputPath === ".." ||
+    relativeOutputPath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativeOutputPath)
+  ) {
+    throw new Error("Generated schema output must remain inside the repository.");
+  }
+}
+
+function isMissingPathError(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
 function resolveRepoRoot(): string {

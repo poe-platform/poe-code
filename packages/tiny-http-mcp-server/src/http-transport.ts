@@ -21,6 +21,7 @@ type RequestContextRunner = <T>(
 
 const ALLOWED_METHODS = "POST, GET, DELETE";
 const MCP_SESSION_ID_HEADER = "Mcp-Session-Id";
+const MCP_PROTOCOL_VERSION_HEADER = "MCP-Protocol-Version";
 
 export class StreamableHttpTransport {
   private readonly sessionIdGenerator: (() => string) | undefined;
@@ -49,7 +50,11 @@ export class StreamableHttpTransport {
         data: JSON.stringify(notification),
       });
 
-      for (const streams of this.sseStreams.values()) {
+      for (const [sessionId, streams] of this.sseStreams) {
+        if (!this.sessionStore.get(sessionId)?.initialized) {
+          continue;
+        }
+
         for (const response of streams) {
           if (!response.writableEnded) {
             response.write(event);
@@ -125,7 +130,7 @@ export class StreamableHttpTransport {
     }
 
     const initMessage = classified.messages.find(
-      (message) => "method" in message && message.method === "initialize"
+      (message) => this.isRequest(message) && message.method === "initialize"
     );
     let sessionId: string | undefined;
 
@@ -150,6 +155,11 @@ export class StreamableHttpTransport {
         return;
       } else {
         sessionId = headerSessionId;
+        const session = this.sessionStore.get(sessionId);
+        if (session?.protocolVersion !== undefined && !this.hasProtocolVersion(req, session.protocolVersion)) {
+          this.respondWithStatus(res, 400);
+          return;
+        }
       }
     }
 
@@ -169,15 +179,39 @@ export class StreamableHttpTransport {
           continue;
         }
 
+        const session = sessionId === undefined ? undefined : this.sessionStore.get(sessionId);
+        if (
+          session !== undefined
+          && message.method !== "initialize"
+          && message.method !== "notifications/initialized"
+          && message.method !== "ping"
+          && !session.initialized
+        ) {
+          if (this.isRequest(message)) {
+            responses.push(formatErrorResponse(message.id, {
+              code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+              message: "Session not initialized",
+            }));
+          }
+          continue;
+        }
+
         const { error, result } = await this.server.handleMessage(
           message.method,
           message.params
         );
 
-        if (message.method === "initialize" && sessionId !== undefined) {
-          const session = this.sessionStore.get(sessionId);
-          if (session !== undefined) {
-            session.initialized = error === undefined;
+        if (session !== undefined && error === undefined) {
+          if (message.method === "initialize" && this.isRequest(message)) {
+            const initializeResult = result as { protocolVersion?: unknown } | undefined;
+            if (typeof initializeResult?.protocolVersion === "string") {
+              session.protocolVersion = initializeResult.protocolVersion;
+            }
+          } else if (
+            message.method === "notifications/initialized"
+            && session.protocolVersion !== undefined
+          ) {
+            session.initialized = true;
           }
         }
 
@@ -247,6 +281,19 @@ export class StreamableHttpTransport {
       return;
     }
 
+    const session = this.sessionStore.get(sessionId);
+    if (
+      session === undefined
+      || (
+        session.initialized
+        && session.protocolVersion !== undefined
+        && !this.hasProtocolVersion(req, session.protocolVersion)
+      )
+    ) {
+      this.respondWithStatus(res, 400);
+      return;
+    }
+
     let streams = this.sseStreams.get(sessionId);
     if (streams === undefined) {
       streams = new Set();
@@ -287,6 +334,12 @@ export class StreamableHttpTransport {
       return;
     }
 
+    const session = this.sessionStore.get(sessionId);
+    if (session?.protocolVersion !== undefined && !this.hasProtocolVersion(req, session.protocolVersion)) {
+      this.respondWithStatus(res, 400);
+      return;
+    }
+
     if (!this.sessionStore.delete(sessionId)) {
       this.respondWithStatus(res, 404);
       return;
@@ -300,6 +353,12 @@ export class StreamableHttpTransport {
     const value = req.headers["mcp-session-id"];
     const id = Array.isArray(value) ? value[0] : value;
     return id !== undefined && id.length > 0 ? id : undefined;
+  }
+
+  private hasProtocolVersion(req: IncomingMessage, protocolVersion: string): boolean {
+    const value = req.headers["mcp-protocol-version"];
+    const header = Array.isArray(value) ? value[0] : value;
+    return header === protocolVersion;
   }
 
   private closeStreamsForSession(sessionId: string): void {

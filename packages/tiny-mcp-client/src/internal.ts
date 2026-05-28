@@ -2480,6 +2480,7 @@ export class HttpTransport implements McpTransport {
     headers.set("Content-Type", "application/json");
     if (this.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", this.sessionId);
+      headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     }
     return this.authorizeRequestHeaders(headers);
   }
@@ -2489,6 +2490,7 @@ export class HttpTransport implements McpTransport {
     headers.set("Accept", "text/event-stream");
     if (this.sessionId !== undefined) {
       headers.set("Mcp-Session-Id", this.sessionId);
+      headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     }
     if (this.lastEventId !== undefined) {
       headers.set("Last-Event-ID", this.lastEventId);
@@ -2499,6 +2501,7 @@ export class HttpTransport implements McpTransport {
   private async createDeleteHeaders(sessionId: string): Promise<Headers> {
     const headers = new Headers(this.headers);
     headers.set("Mcp-Session-Id", sessionId);
+    headers.set("MCP-Protocol-Version", MCP_PROTOCOL_VERSION);
     return this.authorizeRequestHeaders(headers);
   }
 

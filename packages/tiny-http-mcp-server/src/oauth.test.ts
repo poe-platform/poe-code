@@ -740,13 +740,32 @@ describe("OAuth protected resource", () => {
     expect(initializeResponse.status).toBe(200);
     expect(sessionId).toBeTruthy();
 
+    const initializedResponse = await nodeFetch(handle.url, {
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/event-stream",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...(sessionId === null ? {} : {
+          "Mcp-Session-Id": sessionId,
+          "MCP-Protocol-Version": "2025-03-26",
+        }),
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", method: "notifications/initialized" }),
+    });
+
+    expect(initializedResponse.status).toBe(202);
+
     const toolResponse = await nodeFetch(handle.url, {
       method: "POST",
       headers: {
         Accept: "application/json, text/event-stream",
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
-        ...(sessionId === null ? {} : { "Mcp-Session-Id": sessionId }),
+        ...(sessionId === null ? {} : {
+          "Mcp-Session-Id": sessionId,
+          "MCP-Protocol-Version": "2025-03-26",
+        }),
       },
       body: createToolCallRequestBody("auth_snapshot"),
     });

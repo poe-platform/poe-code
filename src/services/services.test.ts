@@ -24,6 +24,7 @@ import {
   FixedStrategy,
   RoundRobinStrategy,
   ModelStrategyFactory,
+  AVAILABLE_MODELS,
   type ModelContext,
   type StrategyConfig,
 } from "./model-strategy.js";
@@ -837,6 +838,21 @@ describe("ModelStrategyFactory", () => {
     expect(strategy).toBeInstanceOf(RoundRobinStrategy);
     expect(strategy.getNextModel()).toBe("gpt-5.4");
     expect(strategy.getNextModel()).toBe(CLAUDE_MODEL_SONNET);
+  });
+
+  it("rejects an empty round-robin custom order", () => {
+    expect(() => ModelStrategyFactory.createStrategy({
+      type: "round-robin",
+      customOrder: []
+    })).toThrow("Round-robin custom order must include at least one model");
+  });
+
+  it("does not allow supported-model metadata to alter routing", () => {
+    expect(() => (AVAILABLE_MODELS as unknown as string[]).push("injected-model"))
+      .toThrow();
+
+    const strategy = ModelStrategyFactory.createStrategy({ type: "round-robin" });
+    expect(strategy.getDescription()).not.toContain("injected-model");
   });
 
   it("lists all available strategies", () => {

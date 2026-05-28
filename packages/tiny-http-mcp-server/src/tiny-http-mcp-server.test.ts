@@ -1086,6 +1086,25 @@ describe("StreamableHttpTransport", () => {
     expect(response.headers.get("content-type")).toBe("text/event-stream");
   });
 
+  it("rejects SSE POST responses when the client accepts only JSON", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: false,
+      sessionIdGenerator: undefined,
+    });
+
+    const response = await fixture.post(
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: "2025-03-26" },
+      },
+      { headers: { Accept: "application/json" } }
+    );
+
+    expect(response.status).toBe(406);
+  });
+
   it("T8 SSE POST body contains data lines", async () => {
     const fixture = await createFixture({
       enableJsonResponse: false,
@@ -1306,6 +1325,26 @@ describe("StreamableHttpTransport", () => {
     expect(response.status).toBe(400);
   });
 
+  it("rejects POST requests without a JSON content type", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: undefined,
+    });
+
+    const response = await fixture.request(
+      "POST",
+      {
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: { protocolVersion: "2025-03-26" },
+      },
+      { headers: { Accept: "application/json" } }
+    );
+
+    expect(response.status).toBe(400);
+  });
+
   it("T21 unknown method returns JSON-RPC METHOD_NOT_FOUND", async () => {
     const fixture = await createFixture({
       enableJsonResponse: true,
@@ -1409,6 +1448,32 @@ describe("StreamableHttpTransport", () => {
     const { response } = await fixture.initialize();
 
     expect(response.headers.get("mcp-session-id")).toBe("session-1");
+  });
+
+  it("rejects generated session identifiers that cannot be emitted in headers", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "bad\nheader",
+    });
+
+    const { response, sessionId } = await fixture.initialize();
+
+    expect(response.status).toBe(500);
+    expect(sessionId).toBeNull();
+  });
+
+  it("rejects generated session identifier collisions", async () => {
+    const fixture = await createFixture({
+      enableJsonResponse: true,
+      sessionIdGenerator: () => "shared-session",
+    });
+
+    const first = await fixture.initialize();
+    const second = await fixture.initialize();
+
+    expect(first.response.status).toBe(200);
+    expect(second.response.status).toBe(500);
+    expect(second.sessionId).toBeNull();
   });
 
   it("T26 subsequent responses include the same Mcp-Session-Id", async () => {

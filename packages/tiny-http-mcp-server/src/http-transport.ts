@@ -1,4 +1,4 @@
-import type { IncomingMessage, ServerResponse } from "node:http";
+import { validateHeaderValue, type IncomingMessage, type ServerResponse } from "node:http";
 import type { JSONRPCMessage, JSONRPCRequest, Server } from "tiny-stdio-mcp-server";
 import { JSON_RPC_ERROR_CODES } from "tiny-stdio-mcp-server";
 import {
@@ -101,6 +101,11 @@ export class StreamableHttpTransport {
       return;
     }
 
+    if (!this.acceptsConfiguredResponse(req)) {
+      this.respondWithStatus(res, 406);
+      return;
+    }
+
     let classified;
     try {
       classified = await readAndClassifyBody(req);
@@ -130,6 +135,11 @@ export class StreamableHttpTransport {
         }
 
         sessionId = this.sessionIdGenerator();
+        if (!this.isValidNewSessionId(sessionId)) {
+          this.respondWithStatus(res, 500);
+          return;
+        }
+
         this.sessionStore.create(sessionId);
       } else if (!this.sessionStore.has(headerSessionId)) {
         this.respondWithStatus(res, 404);
@@ -299,13 +309,40 @@ export class StreamableHttpTransport {
     const contentType = req.headers["content-type"];
 
     if (contentType === undefined) {
-      return true;
+      return false;
     }
 
     const value = Array.isArray(contentType) ? contentType[0] : contentType;
     const type = value.split(";")[0]?.trim().toLowerCase();
 
     return type === "application/json";
+  }
+
+  private acceptsConfiguredResponse(req: IncomingMessage): boolean {
+    const accept = req.headers.accept;
+    if (accept === undefined) {
+      return true;
+    }
+
+    const expectedType = this.enableJsonResponse ? "application/json" : "text/event-stream";
+    const value = Array.isArray(accept) ? accept.join(",") : accept;
+    return value
+      .split(",")
+      .map((type) => type.split(";")[0]?.trim().toLowerCase())
+      .some((type) => type === "*/*" || type === expectedType);
+  }
+
+  private isValidNewSessionId(sessionId: string): boolean {
+    if (sessionId.length === 0 || this.sessionStore.has(sessionId)) {
+      return false;
+    }
+
+    try {
+      validateHeaderValue(MCP_SESSION_ID_HEADER, sessionId);
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private isRequest(message: JSONRPCMessage): message is JSONRPCRequest {

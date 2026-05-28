@@ -160,6 +160,23 @@ describe("fetchFromApi", () => {
     ).rejects.toThrow("Request timed out after 1000ms");
   });
 
+  it("normalizes Error-shaped AbortError timeout failures", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL | Request, init?: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => {
+          reject(Object.assign(new Error("aborted by signal"), { name: "AbortError" }));
+        });
+      })
+    );
+
+    await expect(
+      fetchFromApi(
+        { apiEndpoint: "https://api.example.com/data", fetchTimeout: 1 },
+        { fetch: mockFetch },
+      ),
+    ).rejects.toThrow("Request timed out after 1ms");
+  });
+
   it("rethrows non-abort errors as-is", async () => {
     const networkError = new Error("Network failure");
     const mockFetch = vi

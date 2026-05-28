@@ -182,4 +182,16 @@ describe("prompt renderers", () => {
       "State sees "
     );
   });
+
+  it("does not serialize cyclic metadata unless the template uses it", () => {
+    const metadata: Record<string, unknown> = {};
+    metadata.self = metadata;
+
+    expect(
+      renderTaskPrompt("Task: {{ task.name }}", {
+        task: { ...task, metadata },
+        attempt: 1
+      })
+    ).toBe("Task: Ship prompt renderer");
+  });
 });

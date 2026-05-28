@@ -15,21 +15,21 @@ export function renderTaskPrompt(
   template: string,
   vars: { task: Task; attempt: number | null }
 ): string {
-  return interpolateVars(resolveTaskTemplate(template), renderVars(vars));
+  return interpolateTaskVars(resolveTaskTemplate(template), vars);
 }
 
 export function renderStepPrompt(
   step: PromptTemplate,
   vars: { prompt: string; task: Task; attempt: number | null }
 ): string {
-  return interpolateVars(step.prompt, renderVars(vars));
+  return interpolateTaskVars(step.prompt, vars);
 }
 
 export function renderPromptTemplate(
   template: string,
   vars: { prompt: string; task: Task; attempt: number | null }
 ): string {
-  return interpolateVars(template, renderVars(vars));
+  return interpolateTaskVars(template, vars);
 }
 
 function resolveTaskTemplate(template: string): string {
@@ -69,8 +69,19 @@ function renderVars(vars: {
     "task.state": vars.task.state,
     "task.description": vars.task.description,
     "task.url": typeof vars.task.metadata?.url === "string" ? vars.task.metadata.url : "",
-    "task.metadata": stableJsonStringify(vars.task.metadata)
   };
+}
+
+function interpolateTaskVars(
+  template: string,
+  vars: { prompt?: string; task: Task; attempt: number | null }
+): string {
+  const values = renderVars(vars);
+  if (template.includes("task.metadata")) {
+    values["task.metadata"] = stableJsonStringify(vars.task.metadata);
+  }
+
+  return interpolateVars(template, values);
 }
 
 function stableJsonStringify(value: unknown): string {

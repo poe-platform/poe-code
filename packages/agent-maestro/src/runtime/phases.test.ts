@@ -26,6 +26,13 @@ const FAILURE_CATEGORIES: readonly FailureCategory[] = [
 ];
 
 describe("transitionPhase", () => {
+  it("keeps terminal transitions immutable through the exported metadata", () => {
+    expect(() => (ATTEMPT_TRANSITIONS.succeeded as AttemptPhase[]).push("running-step")).toThrow();
+    expect(() => transitionPhase({ phase: "succeeded" }, "running-step", { step: "unexpected" })).toThrow(
+      "Illegal attempt phase transition: succeeded -> running-step"
+    );
+  });
+
   it("accepts every legal transition in ATTEMPT_TRANSITIONS", () => {
     for (const [current, nextPhases] of Object.entries(ATTEMPT_TRANSITIONS) as [
       AttemptPhase,

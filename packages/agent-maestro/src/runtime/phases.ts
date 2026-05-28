@@ -22,13 +22,13 @@ export interface AttemptState {
   error?: string;
 }
 
-export const ATTEMPT_TRANSITIONS: Readonly<Record<AttemptPhase, readonly AttemptPhase[]>> = {
-  "preparing-workspace": ["running-step", "failed", "canceled"],
-  "running-step": ["running-step", "succeeded", "failed", "canceled"],
-  succeeded: [],
-  failed: [],
-  canceled: [],
-};
+export const ATTEMPT_TRANSITIONS: Readonly<Record<AttemptPhase, readonly AttemptPhase[]>> = Object.freeze({
+  "preparing-workspace": Object.freeze(["running-step", "failed", "canceled"] satisfies AttemptPhase[]),
+  "running-step": Object.freeze(["running-step", "succeeded", "failed", "canceled"] satisfies AttemptPhase[]),
+  succeeded: Object.freeze([] satisfies AttemptPhase[]),
+  failed: Object.freeze([] satisfies AttemptPhase[]),
+  canceled: Object.freeze([] satisfies AttemptPhase[]),
+});
 
 type TransitionContext = Partial<Omit<AttemptState, "phase">>;
 

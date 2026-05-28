@@ -7,6 +7,7 @@ import {
   formatSuperintendentDetail,
   getLastExperimentState,
   loadPlanPreviewMarkdown,
+  readExperimentState,
   readPlanMetadata
 } from "./format.js";
 import { parseExperimentFrontmatter } from "@poe-code/experiment-loop";
@@ -92,6 +93,23 @@ describe("format helpers", () => {
     ).toBe("keep");
   });
 
+  it("returns the last experiment journal status with CR line endings", () => {
+    expect(
+      getLastExperimentState(
+        [JSON.stringify({ status: "discard" }), JSON.stringify({ status: "keep" })].join("\r")
+      )
+    ).toBe("keep");
+  });
+
+  it("surfaces experiment journal read failures other than missing journals", async () => {
+    await expect(
+      readExperimentState(
+        { readFile: async () => { throw Object.assign(new Error("permission denied"), { code: "EACCES" }); } },
+        "/repo/docs/plans/tune.md"
+      )
+    ).rejects.toThrow("permission denied");
+  });
+
   it("falls back to open when experiment journal content is empty or invalid", () => {
     expect(getLastExperimentState("")).toBe("open");
     expect(getLastExperimentState("{not-json")).toBe("open");
@@ -126,6 +144,35 @@ describe("format helpers", () => {
   it("derives a markdown title from the first heading when present", () => {
     expect(deriveMarkdownTitle("# My Plan\n\nBody", "fallback.md")).toBe("My Plan");
     expect(deriveMarkdownTitle("Body only", "fallback.md")).toBe("fallback.md");
+  });
+
+  it("ignores headings in fenced code and supports CR-only documents", () => {
+    expect(
+      deriveMarkdownTitle("```md\n# Example\n```\n\n# Actual Title", "fallback.md")
+    ).toBe("Actual Title");
+    expect(deriveMarkdownTitle("# Actual Title\r\rBody", "fallback.md")).toBe("Actual Title");
+  });
+
+  it("reads pipeline metadata from CR-only markdown frontmatter", async () => {
+    const metadata = await readPlanMetadata({
+      kind: "pipeline",
+      absolutePath: "/repo/docs/plans/plan-feature.md",
+      path: "docs/plans/plan-feature.md",
+      fs: {
+        readFile: async () => [
+          "---",
+          "kind: pipeline",
+          "tasks:",
+          "  - id: feature",
+          "    title: Add feature",
+          "    prompt: Ship it",
+          "    status: done",
+          "---"
+        ].join("\r")
+      }
+    });
+
+    expect(metadata.detail).toBe("1/1 done");
   });
 
   it("reads generic kind metadata with a heading-based detail summary", async () => {

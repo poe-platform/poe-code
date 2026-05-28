@@ -69,6 +69,10 @@ function stripBom(content: string): string {
   return content.startsWith("\uFEFF") ? content.slice(1) : content;
 }
 
+function normalizeLineEndings(content: string): string {
+  return content.replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+}
+
 function readOpeningLineBreak(content: string): "\n" | "\r\n" | undefined {
   if (!content.startsWith(FRONTMATTER_FENCE)) {
     return undefined;
@@ -131,7 +135,7 @@ export function splitFrontmatter(content: string, filePath: string): {
   body: string;
   data: Record<string, unknown> | undefined;
 } {
-  const normalizedContent = stripBom(content);
+  const normalizedContent = normalizeLineEndings(stripBom(content));
   const openingLineBreak = readOpeningLineBreak(normalizedContent);
 
   if (openingLineBreak === undefined) {
@@ -182,7 +186,7 @@ export function formatSuperintendentDetail(frontmatter: Record<string, unknown>)
 
 export function getLastExperimentState(journalContent: string): string {
   const lines = journalContent
-    .split("\n")
+    .split(/\r\n|\r|\n/)
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
 
@@ -201,11 +205,21 @@ export function getLastExperimentState(journalContent: string): string {
 }
 
 function extractFirstHeading(content: string): string | undefined {
-  const line = content
-    .split("\n")
-    .map((l) => l.trim())
-    .find((l) => l.startsWith("# "));
-  return line ? line.slice(2).trim() || undefined : undefined;
+  let insideFence = false;
+
+  for (const sourceLine of normalizeLineEndings(content).split("\n")) {
+    const line = sourceLine.trim();
+    if (line.startsWith("```") || line.startsWith("~~~")) {
+      insideFence = !insideFence;
+      continue;
+    }
+
+    if (!insideFence && line.startsWith("# ")) {
+      return line.slice(2).trim() || undefined;
+    }
+  }
+
+  return undefined;
 }
 
 export function deriveMarkdownTitle(content: string, fallbackName: string): string {
@@ -268,8 +282,11 @@ export async function readExperimentState(
   try {
     const content = await fs.readFile(resolveExperimentJournalPath(absolutePath), "utf8");
     return getLastExperimentState(content);
-  } catch {
-    return "open";
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return "open";
+    }
+    throw error;
   }
 }
 
@@ -304,7 +321,7 @@ export async function readPlanMetadata(options: {
   path: string;
   fs: Pick<DiscoveryFs, "readFile">;
 }): Promise<Pick<PlanEntry, "title" | "detail" | "format">> {
-  const content = await options.fs.readFile(options.absolutePath, "utf8");
+  const content = normalizeLineEndings(await options.fs.readFile(options.absolutePath, "utf8"));
   const fallbackName = path.basename(options.path);
 
   if (options.kind === "pipeline") {

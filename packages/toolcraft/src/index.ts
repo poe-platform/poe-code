@@ -583,7 +583,12 @@ export function resolveCommandSecrets(
       throw new UserError(`Missing required secret ${secret.env}${details}${suggestionLine}`);
     }
 
-    secrets[name] = value;
+    Object.defineProperty(secrets, name, {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
   }
 
   return secrets;

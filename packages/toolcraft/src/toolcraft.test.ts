@@ -640,6 +640,19 @@ describe("toolcraft", () => {
     expect(resolveCommandSecrets(cmd, {})).toEqual({ token: undefined });
   });
 
+  it("preserves a declared __proto__ secret in resolved command secrets", () => {
+    const cmd = defineCommand({
+      name: "cmd",
+      params: S.Object({}),
+      secrets: JSON.parse('{"__proto__":{"env":"TOKEN"}}'),
+      handler: async () => null
+    });
+
+    const secrets = resolveCommandSecrets(cmd, { TOKEN: "visible" });
+    expect(Object.prototype.hasOwnProperty.call(secrets, "__proto__")).toBe(true);
+    expect(secrets["__proto__"]).toBe("visible");
+  });
+
   it("throws when a required inherited secret is missing", () => {
     const deploy = defineCommand({
       name: "deploy",

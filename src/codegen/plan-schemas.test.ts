@@ -100,4 +100,16 @@ describe("plan schema codegen", () => {
     expect(source).not.toContain("../packages/ralph/src/index.js");
     expect(source).not.toContain("../packages/superintendent/src/index.js");
   });
+
+  it("rejects a generated plan schema symlink outside the repository", async () => {
+    const volume = Volume.fromJSON({ "/outside.json": "{\"external\":true}\n" });
+    const fs = createFsFromVolume(volume).promises;
+    volume.mkdirSync("/repo/docs/schemas/plans", { recursive: true });
+    volume.symlinkSync("/outside.json", "/repo/docs/schemas/plans/plan.schema.json");
+
+    await expect(runPlanSchemaCodegen({ fs, repoRoot: "/repo" })).rejects.toThrow(
+      "Generated plan schema output must remain inside the repository."
+    );
+    await expect(fs.readFile("/outside.json", "utf8")).resolves.toBe("{\"external\":true}\n");
+  });
 });

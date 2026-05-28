@@ -2345,7 +2345,7 @@ describe("createSDK", () => {
     );
   });
 
-  it("rejects a root SDK command named then", () => {
+  it("rejects an SDK command named then", () => {
     const root = defineGroup({
       name: "root",
       children: [
@@ -2359,8 +2359,29 @@ describe("createSDK", () => {
     });
 
     expect(() => createSDK(root)).toThrow(
-      'SDK member "then" uses reserved root member "then".'
+      'SDK member "then" uses reserved member "then".'
     );
+  });
+
+  it("rejects a nested SDK command named then consistently with deferred SDKs", () => {
+    const local = defineGroup({
+      name: "root",
+      children: [
+        defineGroup({
+          name: "ops",
+          children: [
+            defineCommand({
+              name: "then",
+              scope: ["sdk"],
+              params: S.Object({}),
+              handler: async () => "reachable"
+            })
+          ]
+        })
+      ]
+    });
+
+    expect(() => createSDK(local)).toThrow('SDK member "then" uses reserved member "then".');
   });
 
   it("treats required array params as required in the SDK even when CLI-only helper flags make the direct param optional", async () => {

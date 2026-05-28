@@ -664,8 +664,8 @@ function createResolvedSDK(
       }
 
       const member = formatSegment(child.name);
-      if (node === root && member === "then") {
-        throw new UserError(`SDK member "${child.name}" uses reserved root member "then".`);
+      if (member === "then") {
+        throw new UserError(`SDK member "${child.name}" uses reserved member "then".`);
       }
 
       const existingName = sourceNamesByMember.get(member);

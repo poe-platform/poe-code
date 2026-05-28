@@ -660,6 +660,40 @@ describe("HttpTransport constructor", () => {
     transport.dispose();
   });
 
+  it("closes when the GET event stream reports an expired session", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 404 });
+      }
+
+      return new Response(null, { status: 202, headers: { "Mcp-Session-Id": "expired-session" } });
+    });
+    const transport = new HttpTransport({ url: "https://example.com/mcp", fetch: mockFetch });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("session expired") }),
+    });
+  });
+
+  it("closes when the GET event stream returns a server error", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response("event stream failed", { status: 500 });
+      }
+
+      return new Response(null, { status: 202, headers: { "Mcp-Session-Id": "broken-events" } });
+    });
+    const transport = new HttpTransport({ url: "https://example.com/mcp", fetch: mockFetch });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("GET failed") }),
+    });
+  });
+
   it("sends DELETE with session ID when disposed after initialization", async () => {
     const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
       if (init?.method === "GET") {
@@ -739,6 +773,103 @@ describe("HttpTransport constructor", () => {
     await vi.waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(3);
     });
+  });
+
+  it("reports failure when DELETE session termination is rejected", async () => {
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 405 });
+      }
+      if (init?.method === "DELETE") {
+        return new Response("cleanup refused", { status: 500 });
+      }
+
+      return new Response(null, { status: 202, headers: { "Mcp-Session-Id": "failed-delete" } });
+    });
+    const transport = new HttpTransport({ url: "https://example.com/mcp", fetch: mockFetch });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+    await vi.waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+    transport.dispose();
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("DELETE failed") }),
+    });
+  });
+
+  it("rejects a changed session id returned mid-session", async () => {
+    let postCount = 0;
+    const requestSessions: Array<string | null> = [];
+    const mockFetch = vi.fn(async (_input: string | URL, init?: RequestInit): Promise<Response> => {
+      if (init?.method === "GET") {
+        return new Response(null, { status: 405 });
+      }
+      if (init?.method === "DELETE") {
+        return new Response(null, { status: 204 });
+      }
+      requestSessions.push(new Headers(init?.headers).get("mcp-session-id"));
+      postCount += 1;
+      return new Response(null, {
+        status: 202,
+        headers: { "Mcp-Session-Id": postCount === 1 ? "session-original" : "session-replacement" },
+      });
+    });
+    const transport = new HttpTransport({ url: "https://example.com/mcp", fetch: mockFetch });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"initialize"}\n');
+    await vi.waitFor(() => expect(postCount).toBe(1));
+    transport.writable.write('{"jsonrpc":"2.0","id":2,"method":"tools/list"}\n');
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("session ID") }),
+    });
+    expect(requestSessions).toEqual([null, "session-original"]);
+  });
+
+  it("closes on a successful unsupported HTTP representation", async () => {
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: vi.fn(async () => new Response("not-json", { status: 200, headers: { "Content-Type": "text/plain" } })),
+    });
+
+    transport.writable.write('{"jsonrpc":"2.0","id":1,"method":"ping"}\n');
+
+    await expect(transport.closed).resolves.toMatchObject({
+      reason: expect.objectContaining({ message: expect.stringContaining("unsupported response content type") }),
+    });
+  });
+
+  it("does not block a subsequent POST behind an open SSE response", async () => {
+    const encoder = new TextEncoder();
+    let firstController: ReadableStreamDefaultController<Uint8Array> | undefined;
+    let postCount = 0;
+    const transport = new HttpTransport({
+      url: "https://example.com/mcp",
+      fetch: vi.fn(async (_input: string | URL, init?: RequestInit) => {
+        if (init?.method !== "POST") {
+          return new Response(null, { status: 405 });
+        }
+        postCount += 1;
+        if (postCount === 1) {
+          return new Response(new ReadableStream({
+            start(controller) {
+              firstController = controller;
+              controller.enqueue(encoder.encode('data: {"jsonrpc":"2.0","id":1,"result":"first"}\n\n'));
+            },
+          }), { status: 200, headers: { "Content-Type": "text/event-stream" } });
+        }
+        return new Response('{"jsonrpc":"2.0","id":2,"result":"second"}', { status: 200, headers: { "Content-Type": "application/json" } });
+      }),
+    });
+    const layer = new JsonRpcMessageLayer(transport.readable, transport.writable, 100, transport.closed.then((event) => event.reason));
+
+    await expect(layer.sendRequest("first")).resolves.toBe("first");
+    await expect(layer.sendRequest("second")).resolves.toBe("second");
+    expect(postCount).toBe(2);
+
+    firstController?.close();
+    layer.dispose();
+    transport.dispose();
   });
 
   it("aborts in-flight POST fetch when disposed", async () => {

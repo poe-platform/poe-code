@@ -2483,7 +2483,6 @@ export class HttpTransport implements McpTransport {
     this.disposed = true;
     this.abortInFlightFetches();
     this.cancelOpenSseReaders();
-    this.terminateSession();
 
     if (!this.writeStream.destroyed && !this.writeStream.writableEnded) {
       this.writeStream.end();
@@ -2493,9 +2492,24 @@ export class HttpTransport implements McpTransport {
       this.readStream.end();
     }
 
+    void this.closeWithSessionTermination(reason);
+  }
+
+  private async closeWithSessionTermination(reason: Error): Promise<void> {
+    let closeReason = reason;
+    if (this.sessionId !== undefined) {
+      const sessionId = this.sessionId;
+      this.sessionId = undefined;
+      try {
+        await this.sendSessionTerminationRequest(sessionId);
+      } catch (error) {
+        closeReason = error instanceof Error ? error : new Error(String(error));
+      }
+    }
+
     const resolveClosed = this.resolveClosed;
     this.resolveClosed = undefined;
-    resolveClosed?.({ reason });
+    resolveClosed?.({ reason: closeReason });
   }
 
   private abortInFlightFetches(): void {
@@ -2550,7 +2564,9 @@ export class HttpTransport implements McpTransport {
       await this.throwForPostHttpError(response);
       this.captureSessionId(response);
       this.maybeOpenGetSseStream();
-      await this.forwardResponseMessages(response);
+      void this.forwardResponseMessages(response).catch((error) => {
+        this.dispose(error instanceof Error ? error : new Error(String(error)));
+      });
     }
   }
 
@@ -2600,6 +2616,10 @@ export class HttpTransport implements McpTransport {
       return;
     }
 
+    if (this.sessionId !== undefined && this.sessionId !== sessionId) {
+      throw new Error("HTTP transport response changed active session ID");
+    }
+
     this.sessionId = sessionId;
   }
 
@@ -2618,26 +2638,22 @@ export class HttpTransport implements McpTransport {
     });
   }
 
-  private terminateSession(): void {
-    if (this.sessionId === undefined) {
-      return;
-    }
-
-    const sessionId = this.sessionId;
-    this.sessionId = undefined;
-
-    this.sendSessionTerminationRequest(sessionId).catch(() => undefined);
-  }
-
   private async sendSessionTerminationRequest(sessionId: string): Promise<void> {
     const response = await this.fetchImpl(this.url, {
       method: "DELETE",
       headers: await this.createDeleteHeaders(sessionId),
     });
 
-    if (response.status === 405) {
+    if (response.status === 405 || response.ok) {
       return;
     }
+
+    const responseBody = (await response.text()).trim();
+    const statusDescriptor = `${response.status} ${response.statusText}`.trim();
+    const message = responseBody.length === 0
+      ? `HTTP transport DELETE failed (${statusDescriptor})`
+      : `HTTP transport DELETE failed (${statusDescriptor}): ${responseBody}`;
+    throw new Error(message);
   }
 
   private async consumeGetSseStream(): Promise<void> {
@@ -2648,6 +2664,20 @@ export class HttpTransport implements McpTransport {
 
     if (response.status === 405) {
       throw new HttpTransportGetSseNotSupportedError();
+    }
+
+    if (response.status === 404) {
+      this.sessionId = undefined;
+      throw new Error("HTTP transport session expired (GET 404 response)");
+    }
+
+    if (!response.ok) {
+      const responseBody = (await response.text()).trim();
+      const statusDescriptor = `${response.status} ${response.statusText}`.trim();
+      const message = responseBody.length === 0
+        ? `HTTP transport GET failed (${statusDescriptor})`
+        : `HTTP transport GET failed (${statusDescriptor}): ${responseBody}`;
+      throw new Error(message);
     }
 
     const contentType = response.headers.get("Content-Type");
@@ -2661,7 +2691,10 @@ export class HttpTransport implements McpTransport {
       if (!this.disposed && this.sessionId !== undefined && this.lastEventId !== undefined) {
         this.maybeOpenGetSseStream();
       }
+      return;
     }
+
+    return;
   }
 
   private async throwForPostHttpError(response: Response): Promise<void> {
@@ -2729,7 +2762,10 @@ export class HttpTransport implements McpTransport {
 
     if (normalizedContentType.includes("application/json")) {
       await this.forwardJsonResponseMessage(response);
+      return;
     }
+
+    throw new Error("HTTP transport POST returned an unsupported response content type");
   }
 
   private async forwardSseResponseMessages(response: Response): Promise<void> {

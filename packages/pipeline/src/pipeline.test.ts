@@ -1374,6 +1374,36 @@ describe("parsePlan", () => {
     ).toThrow(/must be an array of strings/i);
   });
 
+  it.each([
+    ["setup field", ["setup:", "  prompt: Prepare", "  agnet: codex", "tasks: []", ""], "setup.agnet"],
+    ["setup model", ["setup:", "  prompt: Prepare", "  modle: o3", "tasks: []", ""], "setup.modle"],
+    ["setup skills", ["setup:", "  prompt: Prepare", "  skils: [audit]", "tasks: []", ""], "setup.skils"],
+    [
+      "hook scope",
+      ["setup:", "  prompt: Prepare", "  hooks:", "    from: pack", "    scoep: user", "tasks: []", ""],
+      "setup.hooks.scoep"
+    ],
+    [
+      "hook strategy",
+      [
+        "setup:",
+        "  prompt: Prepare",
+        "  hooks:",
+        "    from: pack",
+        "    stratgey: transform",
+        "tasks: []",
+        ""
+      ],
+      "setup.hooks.stratgey"
+    ],
+    ["teardown field", ["teardown:", "  prompt: Clean", "  agnet: codex", "tasks: []", ""], "teardown.agnet"],
+    ["mcp field", ["mcp:", "  server:", "    command: node", "    argz: [server.mjs]", "tasks: []", ""], "mcp.server.argz"],
+    ["top-level setup", ["seutp:", "  prompt: Prepare", "tasks: []", ""], "seutp"],
+    ["top-level teardown", ["taerdown:", "  prompt: Clean", "tasks: []", ""], "taerdown"]
+  ])("rejects unknown %s keys", (_name, lines, field) => {
+    expect(() => parsePlan(lines.join("\n"))).toThrow(new RegExp(String(field)));
+  });
+
   it("allows mixed scalar and stepped tasks", () => {
     const plan = parsePlan(
       [

@@ -275,6 +275,19 @@ function normalizeStatus(value: unknown, field: string): PipelineStatus {
   throw new Error(`Invalid ${field} "${value}". Expected "open", "done", or "failed".`);
 }
 
+function rejectUnknownProperties(
+  value: Record<string, unknown>,
+  allowed: readonly string[],
+  label = ""
+): void {
+  const allowedProperties = new Set(allowed);
+  for (const key of Object.keys(value)) {
+    if (!allowedProperties.has(key)) {
+      throw new Error(`Invalid plan YAML: unknown property "${label}${key}".`);
+    }
+  }
+}
+
 function parseTaskStatus(
   value: unknown,
   availableSteps: ResolvedStepDefinitions | undefined,
@@ -344,6 +357,7 @@ function parseHooks(value: unknown, label: string): StepHooks | undefined {
   if (!isRecord(value)) {
     throw new Error(`Invalid plan YAML: "${label}.hooks" must be an object.`);
   }
+  rejectUnknownProperties(value, ["from", "strategy", "scope"], `${label}.hooks.`);
   if (typeof value.from !== "string" || value.from.length === 0) {
     throw new Error(`Invalid plan YAML: "${label}.hooks.from" must be a non-empty string.`);
   }
@@ -411,6 +425,7 @@ function parseStepOverride(value: unknown, label: string): StepDefinitionOverrid
   if (!isRecord(value)) {
     throw new Error(`Invalid plan YAML: "${label}" must be an object.`);
   }
+  rejectUnknownProperties(value, ["mode", "prompt", "agent", "model", "skills", "hooks"], `${label}.`);
 
   const result: StepDefinitionOverride = {
     ...parseOptionalStepFields(value, label)
@@ -456,6 +471,7 @@ function parseMcpConfig(value: unknown): McpSpawnConfig {
     if (!isRecord(entry)) {
       throw new Error(`Invalid plan YAML: mcp["${name}"] must be an object.`);
     }
+    rejectUnknownProperties(entry, ["command", "args", "env"], `mcp.${name}.`);
     if (typeof entry.command !== "string" || entry.command.length === 0) {
       throw new Error(`Invalid plan YAML: mcp["${name}"].command must be a non-empty string.`);
     }
@@ -493,6 +509,18 @@ export function parsePlan(
   if (!isRecord(document)) {
     throw new Error("Invalid plan YAML: expected a top-level object.");
   }
+  rejectUnknownProperties(document, [
+    "$schema",
+    "kind",
+    "version",
+    "extends",
+    "steps",
+    "tasks",
+    "vars",
+    "setup",
+    "teardown",
+    "mcp"
+  ]);
 
   let extendsName = "default";
   if (document.extends !== undefined) {

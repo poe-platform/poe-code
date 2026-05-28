@@ -262,6 +262,7 @@ describe("tiny-oauth-test-server", () => {
     const server = createOAuthTestServer({
       defaultTokenTtlSeconds: 60,
       signingKeySeed: "tiny-oauth-test-server:test-seed",
+      defaultAuthorization: { autoApprove: true },
     });
     const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
     cleanups.add(handle.close);
@@ -345,7 +346,7 @@ describe("tiny-oauth-test-server", () => {
 
     const response = await nodeFetch(
       `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent(redirectUri)}`
-        + "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~"
+        + `&response_type=code&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("empty-scope-verifier")))}`
         + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp&scope=mcp.admin",
       { redirect: "manual" }
     );
@@ -401,6 +402,32 @@ describe("tiny-oauth-test-server", () => {
         }
       }
     }
+  });
+
+  it("does not expose root authorization aliases for a pathful issuer", async () => {
+    const issuerPort = await reservePort("127.0.0.1");
+    const server = createOAuthTestServer({
+      issuer: `http://127.0.0.1:${issuerPort}/oauth`,
+      signingKeySeed: "tiny-oauth-test-server:pathful-routes",
+      defaultAuthorization: { autoApprove: true },
+      requireDcr: false
+    });
+    const handle = await server.listen({ hostname: "127.0.0.1", port: issuerPort });
+    cleanups.add(handle.close);
+
+    const response = await nodeFetch(
+      `http://127.0.0.1:${issuerPort}/authorize?client_id=client&redirect_uri=${encodeURIComponent("http://127.0.0.1:43123/callback")}`
+        + "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO12&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(404);
+  });
+
+  it("preserves query parameters in configured issuer identifiers", () => {
+    const server = createOAuthTestServer({ issuer: "http://127.0.0.1?tenant=demo" });
+
+    expect(server.issuer).toBe("http://127.0.0.1/?tenant=demo");
   });
 
   it("round-trips register, authorize, and token into a verifiable JWT", async () => {
@@ -523,6 +550,41 @@ describe("tiny-oauth-test-server", () => {
     });
   });
 
+  it("does not allow refresh grants omitted during registration", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43145/callback";
+    const resource = "https://resource.example.com/no-refresh";
+    const registration = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        redirect_uris: [redirectUri],
+        grant_types: ["authorization_code"],
+        response_types: ["code"]
+      })
+    });
+    const clientId = ((await registration.json()) as { client_id: string }).client_id;
+    const codeVerifier = createValidVerifier("no-refresh-verifier");
+    const authorization = await authorize({
+      baseUrl: server.issuer,
+      clientId,
+      redirectUri,
+      resource,
+      codeChallenge: createPkceChallenge(codeVerifier)
+    });
+    const tokenResponse = await exchangeAuthorizationCode({
+      baseUrl: server.issuer,
+      clientId,
+      code: authorization.code,
+      codeVerifier,
+      redirectUri,
+      resource
+    });
+    const payload = (await tokenResponse.json()) as Record<string, unknown>;
+
+    expect(payload.refresh_token).toBeUndefined();
+  });
+
   it("rejects malformed registration metadata instead of silently defaulting it", async () => {
     const { server } = await listenServer();
     for (const body of [
@@ -538,6 +600,18 @@ describe("tiny-oauth-test-server", () => {
       expect(response.status).toBe(400);
       await expect(response.json()).resolves.toMatchObject({ error: "invalid_client_metadata" });
     }
+  });
+
+  it("rejects dynamic registrations with non-loopback redirects", async () => {
+    const { server } = await listenServer();
+    const response = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect_uris: ["https://attacker.example/callback"] })
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_redirect_uri" });
   });
 
   it("accepts a valid PKCE verifier that uses the full RFC 7636 unreserved alphabet", async () => {
@@ -761,6 +835,61 @@ describe("tiny-oauth-test-server", () => {
       error: "invalid_request",
     });
   });
+
+  it("rejects malformed S256 challenges before issuing an authorization code", async () => {
+    const { server } = await listenServer();
+    const redirectUri = "http://127.0.0.1:43146/callback";
+    const clientId = await registerClient({ baseUrl: server.issuer, redirectUris: [redirectUri] });
+    const response = await nodeFetch(
+      `${server.issuer}/authorize?client_id=${encodeURIComponent(clientId)}`
+        + `&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code`
+        + "&code_challenge=not-a-sha256-code-challenge&code_challenge_method=S256"
+        + "&resource=https%3A%2F%2Fresource.example.com%2Fmcp&auto_approve=1",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_request" });
+  });
+
+  it("does not let authorization query parameters bypass disabled consent", async () => {
+    const redirectUri = "http://127.0.0.1:43147/callback";
+    const server = createOAuthTestServer({
+      signingKeySeed: "tiny-oauth-test-server:consent",
+      staticClients: [{ clientId: "client", redirectUris: [redirectUri] }],
+      defaultAuthorization: { autoApprove: false }
+    });
+    const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
+    cleanups.add(handle.close);
+    const response = await nodeFetch(
+      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent(redirectUri)}`
+        + `&response_type=code&code_challenge=${encodeURIComponent(createPkceChallenge(createValidVerifier("consent-verifier")))}`
+        + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp&auto_approve=1",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("Authorize test client");
+  });
+
+  it("allows retrying shutdown after a transient close failure", async () => {
+    const originalClose = http.Server.prototype.close;
+    const close = vi.spyOn(http.Server.prototype, "close");
+    close.mockImplementationOnce(function (callback?: (error?: Error) => void) {
+      callback?.(new Error("close temporarily failed"));
+      return this;
+    });
+    close.mockImplementation(function (callback?: (error?: Error) => void) {
+      return originalClose.call(this, callback as never);
+    });
+    const server = createOAuthTestServer({ signingKeySeed: "tiny-oauth-test-server:close-retry" });
+    const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
+
+    await expect(handle.close()).rejects.toThrow("close temporarily failed");
+    await expect(handle.close()).resolves.toBeUndefined();
+    expect(close).toHaveBeenCalledTimes(2);
+  });
+
 
   it("rotates refresh tokens and issues a new access token", async () => {
     const { server } = await listenServer();
@@ -1128,61 +1257,49 @@ describe("tiny-oauth-test-server", () => {
   it("rejects localhost redirect URIs during authorization", async () => {
     const { server } = await listenServer();
     const redirectUri = "http://localhost:43136/callback";
-    const resource = "https://resource.example.com/localhost";
-    const clientId = await registerClient({
-      baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+    const response = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect_uris: [redirectUri] })
     });
-    const response = await nodeFetch(
-      new URL(
-        `/authorize?client_id=${encodeURIComponent(clientId)}`
-        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
-        + "&response_type=code"
-        + `&code_challenge=${encodeURIComponent(createPkceChallenge("localhost-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123"))}`
-        + "&code_challenge_method=S256"
-        + `&resource=${encodeURIComponent(resource)}`
-        + "&auto_approve=1",
-        server.issuer
-      ),
-      {
-        redirect: "manual",
-      }
-    );
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
-      error: "invalid_request",
+      error: "invalid_redirect_uri",
     });
   });
 
   it("rejects https redirect URIs in the public-client loopback flow", async () => {
     const { server } = await listenServer();
     const redirectUri = "https://127.0.0.1/callback";
-    const resource = "https://resource.example.com/https-redirect";
-    const clientId = await registerClient({
-      baseUrl: server.issuer,
-      redirectUris: [redirectUri],
+    const response = await nodeFetch(`${server.issuer}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ redirect_uris: [redirectUri] })
     });
-    const response = await nodeFetch(
-      new URL(
-        `/authorize?client_id=${encodeURIComponent(clientId)}`
-        + `&redirect_uri=${encodeURIComponent(redirectUri)}`
-        + "&response_type=code"
-        + `&code_challenge=${encodeURIComponent(createPkceChallenge("https-verifier-ABCDEFGHIJKLMNOPQRSTUVWXYZ123"))}`
-        + "&code_challenge_method=S256"
-        + `&resource=${encodeURIComponent(resource)}`
-        + "&auto_approve=1",
-        server.issuer
-      ),
-      {
-        redirect: "manual",
-      }
-    );
 
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
-      error: "invalid_request",
+      error: "invalid_redirect_uri",
     });
+  });
+
+  it("rejects hostname values merely prefixed with the loopback octet", async () => {
+    const server = createOAuthTestServer({
+      signingKeySeed: "tiny-oauth-test-server:hostname-prefix",
+      requireDcr: false,
+      defaultAuthorization: { autoApprove: true }
+    });
+    const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
+    cleanups.add(handle.close);
+    const response = await nodeFetch(
+      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent("http://127.attacker.example.test/callback")}`
+        + "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNO12"
+        + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(400);
   });
 
   it("allows port-only variance against a registered loopback redirect URI", async () => {

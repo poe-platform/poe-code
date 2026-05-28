@@ -79,6 +79,7 @@ interface StoredClient {
   clientId: string;
   redirectUris: string[];
   scopes?: string[];
+  grantTypes: string[];
   metadata: ObjectRecord;
 }
 
@@ -88,6 +89,7 @@ interface AuthorizationCodeRecord {
   resource: string;
   scopes: string[];
   codeChallenge: string;
+  issueRefreshToken: boolean;
   expiresAt: number;
   used: boolean;
 }
@@ -195,8 +197,9 @@ function isLoopbackRedirectUri(value: string): boolean {
     return false;
   }
 
-  const firstOctet = Number(octets[0]);
-  return Number.isInteger(firstOctet) && firstOctet === 127;
+  const numericOctets = octets.map((octet) => Number(octet));
+  return numericOctets.every((octet) => Number.isInteger(octet) && octet >= 0 && octet <= 255)
+    && numericOctets[0] === 127;
 }
 
 function stripUrlPort(value: string): string {
@@ -227,6 +230,10 @@ function isValidPkceVerifier(value: string): boolean {
     && value.length <= 128
     && [...value].every(isPkceVerifierCharacter)
   );
+}
+
+function isValidPkceChallenge(value: string): boolean {
+  return value.length === 43 && [...value].every(isPkceVerifierCharacter);
 }
 
 function parseScope(value: string | null): string[] {
@@ -407,13 +414,7 @@ function getEndpointPaths(issuer: string): {
       ? "/.well-known/oauth-authorization-server"
       : `/.well-known/oauth-authorization-server${basePath}`;
 
-  const rootAliases = {
-    authorize: "/authorize",
-    token: "/token",
-    register: "/register",
-    jwks: "/.well-known/jwks.json",
-    issueToken: "/testing/issue-token",
-  };
+  const rootIssueTokenPath = "/testing/issue-token";
   const issueTokenPath = joinBasePath(basePath, "/testing/issue-token");
 
   return {
@@ -421,21 +422,14 @@ function getEndpointPaths(issuer: string): {
       metadataPath === "/.well-known/oauth-authorization-server"
         ? [metadataPath]
         : [metadataPath],
-    authorizePaths:
-      authorizePath === rootAliases.authorize
-        ? [authorizePath]
-        : [authorizePath, rootAliases.authorize],
-    tokenPaths:
-      tokenPath === rootAliases.token ? [tokenPath] : [tokenPath, rootAliases.token],
-    registerPaths:
-      registerPath === rootAliases.register
-        ? [registerPath]
-        : [registerPath, rootAliases.register],
-    jwksPaths: jwksPath === rootAliases.jwks ? [jwksPath] : [jwksPath, rootAliases.jwks],
+    authorizePaths: [authorizePath],
+    tokenPaths: [tokenPath],
+    registerPaths: [registerPath],
+    jwksPaths: [jwksPath],
     issueTokenPaths:
-      issueTokenPath === rootAliases.issueToken
+      issueTokenPath === rootIssueTokenPath
         ? [issueTokenPath]
-        : [issueTokenPath, rootAliases.issueToken],
+        : [issueTokenPath, rootIssueTokenPath],
     authorizeUrl: new URL(authorizePath, issuer).toString(),
     tokenUrl: new URL(tokenPath, issuer).toString(),
     registerUrl: new URL(registerPath, issuer).toString(),
@@ -664,6 +658,7 @@ function normalizeStaticClient(input: OAuthTestStaticClient): StoredClient {
       parseAbsoluteUrl(redirectUri, "staticClients[].redirectUris[]")
     ),
     scopes: input.scopes === undefined ? undefined : [...input.scopes],
+    grantTypes: ["authorization_code", "refresh_token"],
     metadata: {},
   };
 }
@@ -697,6 +692,7 @@ export function createOAuthTestServer(
   const usedCodeVerifiers = new Set<string>();
   const revokedTokens = new Set<string>();
   const requestLog: OAuthTestServerRequest[] = [];
+  const consentApprovals = new Set<string>();
 
   let nextClientId = 1;
   let server: http.Server | null = null;
@@ -776,12 +772,6 @@ export function createOAuthTestServer(
           }
 
           const activeServer = server;
-          server = null;
-          currentHandle = null;
-          if (options.issuer === undefined) {
-            runtimeIssuer = null;
-          }
-
           await new Promise<void>((resolve, reject) => {
             activeServer.close((error) => {
               if (error !== undefined) {
@@ -799,6 +789,12 @@ export function createOAuthTestServer(
             activeServer.closeIdleConnections?.();
             activeServer.closeAllConnections?.();
           });
+
+          server = null;
+          currentHandle = null;
+          if (options.issuer === undefined) {
+            runtimeIssuer = null;
+          }
         },
       };
 
@@ -858,8 +854,7 @@ export function createOAuthTestServer(
       url.pathname = url.pathname.slice(0, -1);
     }
     url.hash = "";
-    const serialized = url.toString();
-    return url.pathname === "/" ? serialized.slice(0, -1) : serialized;
+    return url.pathname === "/" && url.search.length === 0 ? url.origin : url.toString();
   }
 
   function getIssuer(): string {
@@ -975,6 +970,13 @@ export function createOAuthTestServer(
     const normalizedRedirectUris = redirectUris.map((redirectUri) =>
       parseAbsoluteUrl(redirectUri, "redirect_uris[]")
     );
+    if (normalizedRedirectUris.some((redirectUri) => !isLoopbackRedirectUri(redirectUri))) {
+      throw new OAuthRequestError(
+        400,
+        "invalid_redirect_uri",
+        "redirect_uris must use loopback HTTP origins"
+      );
+    }
     const grantTypes = normalizeRegistrationStringArray(
       payload.grant_types,
       "grant_types",
@@ -1048,6 +1050,7 @@ export function createOAuthTestServer(
       clientId,
       redirectUris: normalizedRedirectUris,
       scopes: scope,
+      grantTypes,
       metadata: {
         ...(clientName === undefined ? {} : { client_name: clientName }),
         ...(scope === undefined ? {} : { scope: formatScope(scope) }),
@@ -1111,11 +1114,20 @@ export function createOAuthTestServer(
       );
     }
 
+    if (!isValidPkceChallenge(codeChallenge)) {
+      throw new OAuthRequestError(
+        400,
+        "invalid_request",
+        "code_challenge must be a valid S256 value"
+      );
+    }
+
     assertAllowedScopes(requestedScopes, client);
 
     const decision = nextAuthorization ?? defaultAuthorization;
+    const approvalToken = readSingleParam(url.searchParams, "approval_token");
     const autoApprove =
-      readSingleParam(url.searchParams, "auto_approve") === "1" || decision.autoApprove;
+      decision.autoApprove || (approvalToken !== null && consentApprovals.delete(approvalToken));
     const grantedScopes = decision.scopes === undefined ? requestedScopes : [...decision.scopes];
     assertAllowedScopes(grantedScopes, client);
 
@@ -1133,6 +1145,7 @@ export function createOAuthTestServer(
       resource,
       scopes: grantedScopes,
       codeChallenge,
+      issueRefreshToken: client.grantTypes.includes("refresh_token"),
       expiresAt: nowInSeconds() + 300,
       used: false,
     });
@@ -1153,7 +1166,9 @@ export function createOAuthTestServer(
     resource: string,
     scopes: readonly string[]
   ): string {
-    const approvalUrl = withUpdatedSearchParam(url, "auto_approve", "1");
+    const approvalToken = createRandomToken();
+    consentApprovals.add(approvalToken);
+    const approvalUrl = withUpdatedSearchParam(url, "approval_token", approvalToken);
     const scopeSummary = formatScope(scopes) ?? "(no scopes requested)";
 
     return [
@@ -1204,6 +1219,7 @@ export function createOAuthTestServer(
     return {
       clientId,
       redirectUris: [redirectUri],
+      grantTypes: ["authorization_code", "refresh_token"],
       metadata: {},
     };
   }
@@ -1341,6 +1357,7 @@ export function createOAuthTestServer(
       resource,
       scopes: record.scopes,
       ttlSeconds: defaultTokenTtlSeconds,
+      issueRefreshToken: record.issueRefreshToken,
     });
   }
 
@@ -1375,6 +1392,7 @@ export function createOAuthTestServer(
       resource,
       scopes: record.scopes,
       ttlSeconds: defaultTokenTtlSeconds,
+      issueRefreshToken: true,
     });
   }
 
@@ -1387,6 +1405,7 @@ export function createOAuthTestServer(
     resource: string;
     scopes: string[];
     ttlSeconds: number;
+    issueRefreshToken: boolean;
   }): Promise<ObjectRecord> {
     const accessToken = await issueAccessToken({
       issuer: getIssuer(),
@@ -1395,21 +1414,23 @@ export function createOAuthTestServer(
       scopes: input.scopes,
       ttlSeconds: input.ttlSeconds,
     });
-    const refreshToken = createRandomToken();
-    refreshTokens.set(refreshToken, {
-      clientId: input.clientId,
-      resource: input.resource,
-      scopes: [...input.scopes],
-      expiresAt: nowInSeconds() + 3_600,
-      used: false,
-      revoked: false,
-    });
+    const refreshToken = input.issueRefreshToken ? createRandomToken() : undefined;
+    if (refreshToken !== undefined) {
+      refreshTokens.set(refreshToken, {
+        clientId: input.clientId,
+        resource: input.resource,
+        scopes: [...input.scopes],
+        expiresAt: nowInSeconds() + 3_600,
+        used: false,
+        revoked: false,
+      });
+    }
 
     return {
       access_token: accessToken,
       token_type: "Bearer",
       expires_in: input.ttlSeconds,
-      refresh_token: refreshToken,
+      ...(refreshToken === undefined ? {} : { refresh_token: refreshToken }),
       ...(input.scopes.length === 0 ? {} : { scope: input.scopes.join(" ") }),
     };
   }

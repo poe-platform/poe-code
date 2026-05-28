@@ -79,12 +79,27 @@ describe("tiny-oauth-test-server CLI", () => {
     expect(output.stdout).toContain("Bound URL: http://127.0.0.1:");
     expect(output.stdout).toContain("Issuer: http://127.0.0.1:");
     expect(output.stdout).toContain(
-      "PRM metadata URL: http://127.0.0.1:"
+      "Authorization server metadata URL: http://127.0.0.1:"
     );
     expect(output.stdout).toContain(
       "Issue token curl: curl -sS -X POST http://127.0.0.1:"
     );
     expect(output.stdout).toContain("/testing/issue-token");
     expect(output.stderr).toBe("");
+  });
+
+  it("prints the served metadata path for a pathful issuer", async () => {
+    const output = createCapturedOutput();
+
+    await runCli(["--port", "0", "--hostname", "127.0.0.1", "--issuer", "http://127.0.0.1:43219/oauth"], {
+      ...output.io,
+      waitForShutdown: async (shutdown) => {
+        await shutdown();
+      }
+    });
+
+    expect(output.stdout).toContain(
+      "Authorization server metadata URL: http://127.0.0.1:43219/.well-known/oauth-authorization-server/oauth"
+    );
   });
 });

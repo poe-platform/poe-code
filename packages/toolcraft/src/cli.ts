@@ -1027,12 +1027,38 @@ function createOption(
 
 const ALWAYS_GLOBAL_LONG_OPTION_FLAGS = ["--yes", "--output", "--debug", "--verbose"] as const;
 
-function getGlobalLongOptionFlags(presetsEnabled: boolean): ReadonlySet<string> {
-  return new Set(
-    presetsEnabled
-      ? ["--preset", ...ALWAYS_GLOBAL_LONG_OPTION_FLAGS]
-      : ALWAYS_GLOBAL_LONG_OPTION_FLAGS
-  );
+function getGlobalLongOptionFlags(
+  presetsEnabled: boolean,
+  versionEnabled = false
+): ReadonlySet<string> {
+  const flags = presetsEnabled
+    ? ["--preset", ...ALWAYS_GLOBAL_LONG_OPTION_FLAGS]
+    : [...ALWAYS_GLOBAL_LONG_OPTION_FLAGS];
+
+  if (versionEnabled) {
+    flags.push("--version");
+  }
+
+  return new Set(flags);
+}
+
+function validateUniqueOptionFlags(fields: FieldDefinition[]): void {
+  const fieldsByFlag = new Map<string, FieldDefinition>();
+
+  for (const field of fields) {
+    if (field.positionalIndex !== undefined) {
+      continue;
+    }
+
+    const existing = fieldsByFlag.get(field.optionFlag);
+    if (existing !== undefined) {
+      throw new UserError(
+        `Parameters "${existing.displayPath}" and "${field.displayPath}" use conflicting CLI flag "${field.optionFlag}".`
+      );
+    }
+
+    fieldsByFlag.set(field.optionFlag, field);
+  }
 }
 
 function createCommanderOption(
@@ -1647,7 +1673,10 @@ function renderGroupHelp<TServices extends object>(
   isRoot: boolean
 ): string {
   const sections: string[] = [];
-  const globalLongOptionFlags = getGlobalLongOptionFlags(globalOptions.presetsEnabled);
+  const globalLongOptionFlags = getGlobalLongOptionFlags(
+    globalOptions.presetsEnabled,
+    globalOptions.showVersion
+  );
   const commandRows = formatCommandRows(group, scope, casing, globalLongOptionFlags);
 
   if (commandRows.length > 0) {
@@ -1693,7 +1722,10 @@ function renderLeafHelp<TServices extends object>(
   rootUsageName: string
 ): string {
   const sections: string[] = [];
-  const globalLongOptionFlags = getGlobalLongOptionFlags(globalOptions.presetsEnabled);
+  const globalLongOptionFlags = getGlobalLongOptionFlags(
+    globalOptions.presetsEnabled,
+    globalOptions.showVersion
+  );
   const collected = collectFields(command.params, casing, globalLongOptionFlags);
   const fields = assignPositionals(collected.fields, command.positional);
   const optionRows = fields
@@ -1827,6 +1859,7 @@ function createNodeCommand<TServices extends object>(
     const command = new CommanderCommand(node.name);
     const collected = collectFields(node.params, casing, globalLongOptionFlags);
     const fields = assignPositionals(collected.fields, node.positional);
+    validateUniqueOptionFlags(fields);
 
     if (node.description !== undefined) {
       command.description(node.description);
@@ -4445,7 +4478,7 @@ export async function runCLI<TServices extends object = Record<string, unknown>>
   program.showHelpAfterError();
   program.addHelpCommand(false);
   const presetsEnabled = options.presets === true;
-  const globalLongOptionFlags = getGlobalLongOptionFlags(presetsEnabled);
+  const globalLongOptionFlags = getGlobalLongOptionFlags(presetsEnabled, version !== undefined);
   addGlobalOptions(program, presetsEnabled);
 
   if (version !== undefined) {

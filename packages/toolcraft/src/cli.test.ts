@@ -1176,6 +1176,27 @@ describe("runCLI", () => {
     expect(output).not.toContain("-h, --help");
   });
 
+  it("rejects a version parameter when program version output reserves --version", async () => {
+    const submit = defineCommand({
+      name: "submit",
+      params: S.Object({
+        version: S.String()
+      }),
+      handler: vi.fn()
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [submit]
+    });
+
+    process.argv = ["node", "toolcraft", "submit", "--version", "release", "--yes"];
+
+    await expect(runCLI(root, { version: "1.2.3" })).rejects.toThrow(
+      'Parameter "version" uses reserved CLI flag "--version". Add a short flag or rename the parameter.'
+    );
+  });
+
   it("never renders commander help in generated global option tables", async () => {
     const deploy = defineCommand({
       name: "deploy",
@@ -3592,6 +3613,28 @@ describe("runCLI", () => {
     const params = handler.mock.calls[0]?.[0].params as Record<string, unknown>;
     expect(Object.prototype.hasOwnProperty.call(params, "__proto__")).toBe(true);
     expect(params["__proto__"]).toBe("visible");
+  });
+
+  it("rejects params that normalize to the same option flag", async () => {
+    const submit = defineCommand({
+      name: "submit",
+      params: S.Object({
+        fooBar: S.String(),
+        foo_bar: S.String()
+      }),
+      handler: vi.fn()
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [submit]
+    });
+
+    process.argv = ["node", "toolcraft", "submit", "--foo-bar", "value", "--yes"];
+
+    await expect(runCLI(root)).rejects.toThrow(
+      'Parameters "fooBar" and "foo_bar" use conflicting CLI flag "--foo-bar".'
+    );
   });
 
   it("falls back to a short option when a command param collides with a global flag", async () => {

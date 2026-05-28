@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { constants } from "node:os";
 
 export interface CommandRunnerResult {
   stdout: string;
@@ -69,12 +70,17 @@ export function runCommand(
       });
     });
 
-    child.on("close", (code) => {
+    child.on("close", (code, signal) => {
       resolve({
         stdout,
         stderr,
-        exitCode: code ?? 0
+        exitCode: code ?? signalExitCode(signal)
       });
     });
   });
+}
+
+function signalExitCode(signal: NodeJS.Signals | null): number {
+  const signalNumber = signal ? constants.signals[signal] : undefined;
+  return typeof signalNumber === "number" ? 128 + signalNumber : 1;
 }

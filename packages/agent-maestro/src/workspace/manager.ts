@@ -161,18 +161,6 @@ function isSafeWorkspaceKeyCharacter(character: string): boolean {
   );
 }
 
-async function statIfExists(filePath: string): Promise<Stats | undefined> {
-  try {
-    return await fs.stat(filePath);
-  } catch (error) {
-    if (isNodeError(error) && error.code === "ENOENT") {
-      return undefined;
-    }
-
-    throw error;
-  }
-}
-
 async function lstatIfExists(filePath: string): Promise<Stats | undefined> {
   try {
     return await fs.lstat(filePath);

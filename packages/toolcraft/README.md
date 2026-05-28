@@ -250,7 +250,7 @@ Services are merged into the handler context alongside the built-ins (`fetch`, `
 
 ## Output rendering
 
-Handlers return raw values. Add per-format renderers when you want richer CLI output:
+Handlers return raw values. Add per-format renderers when you want custom CLI output:
 
 ```ts
 defineCommand({
@@ -265,7 +265,16 @@ defineCommand({
 });
 ```
 
-CLI picks `rich` by default, `--json` switches to `json`. SDK and MCP always return the raw handler value.
+CLI picks `rich` by default, `--json` switches to `json`, and `--output md` switches to Markdown. SDK and MCP always return the raw handler value.
+
+When a command does not define a renderer, Toolcraft auto-renders common shapes:
+
+- `undefined` / `null` → `Done.` for rich and Markdown output, or `{ "ok": true }` for JSON.
+- `string` → printed as-is.
+- `string[]` → printed one item per line in rich output.
+- object records → rich detail cards with scalar fields, nested-object sections, compact URLs, boolean values as `Yes` / `No`, and arrays under a `Lists` section.
+- arrays of objects → rich tables with columns inferred from object keys.
+- MCP call-tool envelopes → unwrapped from `structuredContent.result`, `structuredContent`, or text content before rendering; `isError: true` writes the rendered payload to stderr and marks the CLI run as failed.
 
 ## MCP proxy: adopt an existing MCP server
 

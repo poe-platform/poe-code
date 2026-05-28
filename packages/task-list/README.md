@@ -19,6 +19,7 @@ The task lifecycle is `draft -> planned -> in-progress -> done -> archived`. `ar
 - `openTaskList(options)`: opens a task store and returns a `TaskList`
 - `TaskList`: top-level interface for listing lists, querying all tasks, and resolving qualified IDs
 - `Tasks`: per-list interface for create, update, `fire`, `canFire`, `events`, delete, `move`, `reorder`, and list operations
+- `moveTasks(options)`: copies tasks from one backend to another with optional state mapping, rate limiting, dry-run, and source deletion
 - `Task`: normalized task record with `list`, `id`, `qualifiedId`, `name`, `state`, `description`, and `metadata`
 - `TaskState`: `"draft" | "planned" | "in-progress" | "done" | "archived"`
 - `TaskDefaults`: default `metadata` applied when creating new tasks
@@ -102,6 +103,33 @@ await plans.list("plans").reorder(["api-shape-providers", "memory"]);
 ```
 
 `frontmatterMode: "strict"` expects full task frontmatter (`kind`, `version`, `name`, `state`, and related task fields). `frontmatterMode: "passthrough"` keeps unrelated frontmatter keys as task metadata and writes back only the task-owned fields (`name`, `description`, `state`), so existing plan metadata is preserved.
+
+### Moving tasks between backends
+
+Use `moveTasks` to migrate tasks between two configured backends. The helper creates target tasks, optionally maps source states to target states, rate-limits creates, rolls back a target task when a later step fails, and can delete the source task after a successful create.
+
+```ts
+import { moveTasks } from "@poe-code/task-list";
+
+await moveTasks({
+  source: {
+    type: "markdown-dir",
+    path: "/repo/docs/plans",
+    singleList: "import",
+    frontmatterMode: "passthrough"
+  },
+  target: {
+    type: "gh-issues",
+    repo: "octo-org/octo-repo",
+    project: { owner: "octo-org", number: 7 }
+  },
+  stateMap: { planned: "queued", done: "done" },
+  rate: 30,
+  deleteSource: true
+});
+```
+
+When the source state already matches the target state, no transition event is fired. This avoids spurious round-trips through other states on any-to-any state machines.
 
 ### `yaml-file`
 
@@ -235,10 +263,10 @@ The CLI exposes the same verification and provisioning flow:
 
 ```sh
 poe-code tasks verify <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --project octo-org/7 --states queued,agent-running,human-review,done,failed,archived --json
-poe-code tasks sync <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --project octo-org/7 --states queued,agent-running,human-review,done,failed,archived --json --yes
+poe-code tasks sync <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --project octo-org/7 --states queued,agent-running,human-review,done,failed,archived --title "Delivery Board" --json --yes
 ```
 
-`<list>` and `--project` both use `<owner>/<number>` project syntax. `--workflow` defaults to `./WORKFLOW.md`. `--repo` overrides the task repository from workflow frontmatter. `--states` overrides the required state list from workflow frontmatter. `--json` prints the report object as JSON. `--yes` confirms non-interactive sync; it is only used by `poe-code tasks sync`.
+`<list>` and `--project` both use `<owner>/<number>` project syntax. `--workflow` defaults to `./WORKFLOW.md`. `--repo` overrides the task repository from workflow frontmatter. `--states` overrides the required state list from workflow frontmatter. `--title` sets the human-readable project title when sync must create a missing project. `--json` prints the report object as JSON. `--yes` confirms non-interactive sync; it is only used by `poe-code tasks sync`.
 
 | Option                     | Commands         | Behavior                                            |
 | -------------------------- | ---------------- | --------------------------------------------------- |
@@ -246,12 +274,26 @@ poe-code tasks sync <list> --workflow ./WORKFLOW.md --repo octo-org/octo-repo --
 | `--repo <owner/name>`      | `verify`, `sync` | GitHub repository owner/name.                       |
 | `--project <owner/number>` | `verify`, `sync` | GitHub Project v2 owner/number. Overrides `<list>`. |
 | `--states <csv>`           | `verify`, `sync` | Required task state names.                          |
+| `--title <name>`           | `sync`           | Project title to use if sync creates the project.   |
 | `--json`                   | `verify`, `sync` | Prints the report as JSON.                          |
 | `--yes`                    | `sync`           | Confirms non-interactive provisioning.              |
 
 The `Status` field name and option names are matched case-sensitively. The field must be named `Status`, and required option names must match exactly. For example, `status` is treated as a missing field, and `Done` is treated as missing when the required state is `done`.
 
-In v1, if sync creates a new GitHub Project v2 board, the CLI prints the new project number and does not rewrite `WORKFLOW.md`. The operator must update `WORKFLOW.md` by hand with the printed `<owner>/<number>`.
+If sync creates a new GitHub Project v2 board, it re-reads the new project to pick up GitHub's auto-created `Status` field before adding missing options. Existing option colors and descriptions are preserved when missing options are appended. The CLI prints the new project number and does not rewrite `WORKFLOW.md`; the operator must update `WORKFLOW.md` by hand with the printed `<owner>/<number>`.
+
+`poe-code tasks sync` reads `tasks.auth.token` from workflow frontmatter with the same `$ENV` expansion used by backend options. If the workflow does not provide a token, the CLI falls back to `gh auth token`.
+
+## Importing Markdown task files
+
+Use `poe-code tasks import` to ingest a directory of Markdown files into the backend configured by a target workflow file:
+
+```sh
+poe-code tasks import --from ./incoming-tasks --to ./WORKFLOW.md --rate 30
+poe-code tasks import --from ./incoming-tasks --to ./WORKFLOW.md --dry-run --keep
+```
+
+The import source is treated as a `markdown-dir` backend with `singleList: "import"` and `frontmatterMode: "passthrough"`, so files without full task frontmatter can be imported. By default, successfully imported source files are deleted. Pass `--keep` to leave source files in place. `--rate`, `--limit`, and `--dry-run` match `poe-code tasks move`.
 
 ## Notes
 

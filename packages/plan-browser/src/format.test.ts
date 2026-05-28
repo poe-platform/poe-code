@@ -113,6 +113,7 @@ describe("format helpers", () => {
   it("falls back to open when experiment journal content is empty or invalid", () => {
     expect(getLastExperimentState("")).toBe("open");
     expect(getLastExperimentState("{not-json")).toBe("open");
+    expect(getLastExperimentState(JSON.stringify({ status: "completed" }))).toBe("open");
   });
 
   it("converts pipeline YAML plans into preview markdown", () => {
@@ -240,6 +241,21 @@ describe("format helpers", () => {
       detail: "1/1 done",
       format: "markdown"
     });
+  });
+
+  it("does not count pipeline tasks without any step statuses as done", () => {
+    expect(
+      formatPipelinePlanMarkdown({
+        title: "Empty steps",
+        content: [
+          "tasks:",
+          "  - id: feature",
+          "    title: Add feature",
+          "    prompt: Ship it",
+          "    status: {}"
+        ].join("\n")
+      })
+    ).toContain("Status: 0/1 done");
   });
 
   it("reads superintendent metadata from status blocks", async () => {

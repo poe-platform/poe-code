@@ -15,7 +15,8 @@ function isPipelineTaskDone(task: PipelineTask): boolean {
     return task.status === "done";
   }
 
-  return Object.values(task.status).every((status) => status === "done");
+  const statuses = Object.values(task.status);
+  return statuses.length > 0 && statuses.every((status) => status === "done");
 }
 
 export function formatPipelineProgress(content: string): string {
@@ -193,7 +194,7 @@ export function getLastExperimentState(journalContent: string): string {
   for (let index = lines.length - 1; index >= 0; index -= 1) {
     try {
       const parsed = JSON.parse(lines[index]!) as { status?: string };
-      if (typeof parsed.status === "string" && parsed.status.length > 0) {
+      if (parsed.status === "keep" || parsed.status === "discard") {
         return parsed.status;
       }
     } catch {
@@ -320,8 +321,11 @@ export async function readPlanMetadata(options: {
   absolutePath: string;
   path: string;
   fs: Pick<DiscoveryFs, "readFile">;
+  content?: string;
 }): Promise<Pick<PlanEntry, "title" | "detail" | "format">> {
-  const content = normalizeLineEndings(await options.fs.readFile(options.absolutePath, "utf8"));
+  const content = normalizeLineEndings(
+    options.content ?? await options.fs.readFile(options.absolutePath, "utf8")
+  );
   const fallbackName = path.basename(options.path);
 
   if (options.kind === "pipeline") {

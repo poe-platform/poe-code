@@ -127,6 +127,28 @@ describe("buildPlanExplorerConfig", () => {
     ).toBe("# Feature\n\nPreview");
   });
 
+  it("keeps duplicate visible rows bound to their displayed entries", async () => {
+    const first = plan({ path: "docs/plans/first.md", absolutePath: "/repo/docs/plans/shared.md", title: "First", detail: "first" });
+    const second = plan({ path: "docs/plans/second.md", absolutePath: "/repo/docs/plans/shared.md", title: "Second", detail: "second" });
+    const config = buildPlanExplorerConfig({
+      plans: [first, second],
+      fs: createMemFs(),
+      variables: {},
+      onRefresh: async () => [first, second],
+      loadDetailMarkdown: async (entry) => `# ${entry.title}`
+    });
+    const rows = await config.rows();
+
+    expect(rows[0]?.id).not.toBe(rows[1]?.id);
+    const items = await config.detail.items(rows[0]!, {
+      width: 80,
+      height: 20,
+      signal: new AbortController().signal,
+      row: rows[0]!
+    });
+    expect(items[0]!.render({ width: 80, height: 20, signal: new AbortController().signal, row: rows[0]! })).toBe("# First");
+  });
+
   it("returns no detail items when the detail load is aborted", async () => {
     const entry = plan();
     let resolveLoad: (value: string) => void = () => undefined;

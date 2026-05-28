@@ -170,6 +170,37 @@ describe("discoverAllPlans", () => {
     ]);
   });
 
+  it("derives a plan entry from one file snapshot", async () => {
+    const baseFs = createMemFs({
+      "/repo/docs/plans/feature.md": [
+        "---",
+        "kind: pipeline",
+        "tasks:",
+        "  - id: feature",
+        "    title: Feature",
+        "    prompt: Ship it",
+        "    status: done",
+        "---"
+      ].join("\n")
+    });
+    let planReads = 0;
+    const fs: DiscoveryFs = {
+      ...baseFs,
+      readFile: async (filePath, encoding) => {
+        if (filePath === "/repo/docs/plans/feature.md") {
+          planReads += 1;
+          return planReads === 1 ? await baseFs.readFile(filePath, encoding) : "# Current plan\n";
+        }
+        return baseFs.readFile(filePath, encoding);
+      }
+    };
+
+    await expect(
+      discoverAllPlans({ cwd, homeDir, fs, configPath: resolveConfigPath(homeDir), projectConfigPath: resolveProjectConfigPath(cwd) })
+    ).resolves.toEqual([expect.objectContaining({ kind: "pipeline", detail: "1/1 done" })]);
+    expect(planReads).toBe(1);
+  });
+
   it("uses plan.plan_directory config and POE_PLAN_DIRECTORY overrides", async () => {
     const fs = createMemFs({
       "/repo/.poe-code/config.json": JSON.stringify({

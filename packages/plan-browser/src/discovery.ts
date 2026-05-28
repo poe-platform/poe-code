@@ -169,7 +169,8 @@ async function discoverSharedPlans(options: {
       kind,
       absolutePath,
       path: displayPath,
-      fs: options.fs
+      fs: options.fs,
+      content
     });
 
     plans.push({

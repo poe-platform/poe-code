@@ -31,6 +31,10 @@ export function createTokenizer(options: TokenizerOptions = {}): Tokenizer {
   const count = (text: string): number => encode(text).length;
 
   const truncate = (text: string, tokenCount: number): string => {
+    if (!Number.isInteger(tokenCount) || tokenCount < 0) {
+      throw new TypeError(`tokenCount must be a non-negative integer, received ${tokenCount}`);
+    }
+
     if (tokenCount <= 0) {
       return "";
     }

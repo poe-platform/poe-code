@@ -76,6 +76,17 @@ describe("tokenizer wrapper", () => {
     expect(tokenizer.count(truncated)).toBe(5);
   });
 
+  it("rejects invalid truncation token counts", () => {
+    const tokenizer = createTokenizer();
+
+    expect(() => tokenizer.truncate("hello world", 1.5)).toThrow(
+      "tokenCount must be a non-negative integer, received 1.5"
+    );
+    expect(() => tokenizer.truncate("hello world", Number.NaN)).toThrow(
+      "tokenCount must be a non-negative integer, received NaN"
+    );
+  });
+
   it("rejects truncation when a token prefix would corrupt Unicode text", () => {
     vi.mocked(get_encoding).mockReturnValueOnce({
       encode: (text: string): Uint32Array =>

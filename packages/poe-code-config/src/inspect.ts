@@ -26,7 +26,7 @@ export function collectEnvOverrides(
       continue;
     }
 
-    document[definition.scope] = scopeResult.values;
+    defineDataProperty(document, definition.scope, scopeResult.values);
     entries.push(...scopeResult.entries);
   }
 
@@ -103,11 +103,20 @@ function collectScopeEnvOverrides<S extends ScopeSchema>(
       continue;
     }
 
-    values[key] = value;
+    defineDataProperty(values, key, value);
     entries.push(`  ${field.env} = ${String(value)}`);
   }
 
   return { entries, values };
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 function coerceEnvValue(

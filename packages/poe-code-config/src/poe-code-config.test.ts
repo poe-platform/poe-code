@@ -114,6 +114,46 @@ describe("createConfigStore", () => {
     });
   });
 
+  it("does not resolve an inherited scope through a stored __proto__ key", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"__proto__":{"feature":{"mode":"attacker"}}}\n'
+      },
+      homeDir
+    );
+    const featureScope = defineScope("feature", {
+      mode: {
+        type: "string" as const,
+        default: "safe",
+        doc: "Feature mode"
+      }
+    });
+
+    await expect(createConfigStore({ fs, filePath: configPath }).scope(featureScope).getAll()).resolves.toEqual({
+      mode: "safe"
+    });
+  });
+
+  it("does not resolve inherited field values through a nested __proto__ key", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"feature":{"__proto__":{"mode":"attacker"}}}\n'
+      },
+      homeDir
+    );
+    const featureScope = defineScope("feature", {
+      mode: {
+        type: "string" as const,
+        default: "safe",
+        doc: "Feature mode"
+      }
+    });
+
+    await expect(createConfigStore({ fs, filePath: configPath }).scope(featureScope).getAll()).resolves.toEqual({
+      mode: "safe"
+    });
+  });
+
   it("prefers project config values on get", async () => {
     const fs = createMockFs(
       {
@@ -529,6 +569,19 @@ describe("collectEnvOverrides", () => {
 
     expect(result.document).toEqual({});
     expect(result.entries).toEqual([]);
+  });
+
+  it("collects an environment override for a __proto__ schema field", () => {
+    const schema = Object.fromEntries([
+      ["__proto__", { type: "string", default: "", env: "PROTO_VALUE", doc: "Proto field" }]
+    ]);
+    const result = collectEnvOverrides([defineScope("custom", schema as never)], {
+      PROTO_VALUE: "visible"
+    });
+
+    expect(Object.hasOwn(result.document.custom, "__proto__")).toBe(true);
+    expect(result.document.custom.__proto__).toBe("visible");
+    expect(result.entries).toEqual(["  PROTO_VALUE = visible"]);
   });
 });
 
@@ -1157,6 +1210,41 @@ describe("store", () => {
         codex: { files: ["/tmp/config.toml"] }
       }
     });
+  });
+
+  it("preserves a stored __proto__ key inside a normal scope", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"core":{"__proto__":"stored-value"}}\n'
+      },
+      homeDir
+    );
+
+    const document = await readDocument(fs, configPath);
+
+    expect(Object.hasOwn(document.core, "__proto__")).toBe(true);
+    expect(document.core.__proto__).toBe("stored-value");
+  });
+
+  it("writes a __proto__ key inside a normal scope", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    const values = JSON.parse('{"__proto__":"written-value"}') as Record<string, unknown>;
+
+    await writeScope(fs, configPath, "core", values);
+
+    const persisted = JSON.parse(fs.getContent("~/.poe-code/config.json") as string) as Record<string, Record<string, unknown>>;
+    expect(Object.hasOwn(persisted.core, "__proto__")).toBe(true);
+    expect(persisted.core.__proto__).toBe("written-value");
+  });
+
+  it("writes a scope named __proto__ as configuration data", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await writeScope(fs, configPath, "__proto__", { enabled: true });
+
+    const persisted = JSON.parse(fs.getContent("~/.poe-code/config.json") as string) as Record<string, Record<string, unknown>>;
+    expect(Object.hasOwn(persisted, "__proto__")).toBe(true);
+    expect(persisted.__proto__).toEqual({ enabled: true });
   });
 
   it("removes a scope when writing an empty object", async () => {

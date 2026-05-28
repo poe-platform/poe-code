@@ -17,10 +17,19 @@ export function resolveScope<S extends ScopeSchema>(
     const field = schema[key];
     const envValue = resolveEnvValue(field, env, key);
     const fileValue = resolveFileValue(field, fileValues?.[key], key);
-    resolved[key] = (envValue ?? fileValue ?? field.default) as InferConfig<S>[typeof key];
+    defineDataProperty(resolved, key, (envValue ?? fileValue ?? field.default) as InferConfig<S>[typeof key]);
   }
 
   return resolved;
+}
+
+function defineDataProperty(object: object, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 function resolveEnvValue<T extends SchemaField>(

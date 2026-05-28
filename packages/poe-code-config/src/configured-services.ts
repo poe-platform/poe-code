@@ -61,7 +61,7 @@ export async function saveConfiguredService(options: SaveConfiguredServiceOption
   const document = await readDocument(fs, filePath);
   const services = normalizeConfiguredServices(document[configuredServicesScope]);
   const registry = options.providerRegistry ?? defaultProviderRegistry;
-  services[service] = normalizeConfiguredServiceMetadata({
+  defineDataProperty(services, service, normalizeConfiguredServiceMetadata({
     ...metadata,
     apiShape:
       metadata.apiShape ??
@@ -71,7 +71,7 @@ export async function saveConfiguredService(options: SaveConfiguredServiceOption
         registry,
         warn: options.warn ?? console.warn
       })
-  });
+  }));
 
   await writeScope(fs, filePath, configuredServicesScope, services);
 }
@@ -83,7 +83,7 @@ export async function unconfigureService(options: UnconfigureServiceOptions): Pr
   const document = await readDocument(fs, filePath);
   const services = normalizeConfiguredServices(document[configuredServicesScope]);
 
-  if (!(service in services)) {
+  if (!Object.hasOwn(services, service)) {
     return false;
   }
 
@@ -134,7 +134,7 @@ async function migrateConfiguredServicesIfNeeded(
       }
     }
 
-    migrated[service] = normalizedEntry;
+    defineDataProperty(migrated, service, normalizedEntry);
   }
 
   if (needsMigration) {
@@ -175,11 +175,11 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
       continue;
     }
 
-    entries[key] = normalizeConfiguredServiceMetadata({
+    defineDataProperty(entries, key, normalizeConfiguredServiceMetadata({
       provider: typeof entry.provider === "string" ? entry.provider : "poe",
       apiShape: typeof entry.apiShape === "string" ? (entry.apiShape as ApiShapeId) : undefined,
       files: Array.isArray(entry.files) ? entry.files : []
-    });
+    }));
   }
 
   return entries;
@@ -285,6 +285,15 @@ function createInvalidBackupPath(filePath: string): string {
 
 function omitUndefined<T extends Record<string, unknown>>(value: T): T {
   return Object.fromEntries(Object.entries(value).filter(([, entry]) => entry !== undefined)) as T;
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, any> {

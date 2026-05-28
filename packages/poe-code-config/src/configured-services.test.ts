@@ -1,6 +1,6 @@
 import { createMockFs } from "@poe-code/config-mutations/testing";
 import { describe, expect, it, vi } from "vitest";
-import { loadConfiguredServices, saveConfiguredService } from "./configured-services.js";
+import { loadConfiguredServices, saveConfiguredService, unconfigureService } from "./configured-services.js";
 
 const homeDir = "/home/test";
 const configPath = `${homeDir}/.poe-code/config.json`;
@@ -33,6 +33,40 @@ describe("configured services", () => {
       }
       "
     `);
+  });
+
+  it("saves a configured service named __proto__", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "__proto__",
+      metadata: {
+        provider: "poe",
+        files: ["/tmp/proto.toml"]
+      },
+      warn: () => undefined
+    });
+
+    const services = await loadConfiguredServices({ fs, filePath: configPath, warn: () => undefined });
+    expect(Object.hasOwn(services, "__proto__")).toBe(true);
+    expect(services.__proto__).toEqual({
+      provider: "poe",
+      files: ["/tmp/proto.toml"]
+    });
+  });
+
+  it("does not unconfigure an absent inherited constructor service", async () => {
+    const fs = createMockFs(
+      {
+        "~/.poe-code/config.json": '{"configured_services":{"codex":{"provider":"poe","files":[]}}}\n'
+      },
+      homeDir
+    );
+
+    await expect(unconfigureService({ fs, filePath: configPath, service: "constructor" })).resolves.toBe(false);
+    await expect(loadConfiguredServices({ fs, filePath: configPath })).resolves.toHaveProperty("codex");
   });
 
   it("migrates missing apiShape on read and preserves it on save", async () => {

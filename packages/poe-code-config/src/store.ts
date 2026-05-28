@@ -20,7 +20,7 @@ export async function writeScope(
   if (Object.keys(normalizedValues).length === 0) {
     delete document[scope];
   } else {
-    document[scope] = normalizedValues;
+    defineDataProperty(document, scope, normalizedValues);
   }
 
   await writeDocument(fs, filePath, document);
@@ -108,7 +108,7 @@ function normalizeDocument(value: unknown): ConfigDocument {
   for (const [scope, scopeValues] of Object.entries(value)) {
     const normalizedValues = normalizeScopeValues(scopeValues);
     if (Object.keys(normalizedValues).length > 0) {
-      document[scope] = normalizedValues;
+      defineDataProperty(document, scope, normalizedValues);
     }
   }
 
@@ -123,11 +123,20 @@ function normalizeScopeValues(value: unknown): Record<string, unknown> {
   const normalized: Record<string, unknown> = {};
   for (const [key, entry] of Object.entries(value)) {
     if (entry !== undefined) {
-      normalized[key] = entry;
+      defineDataProperty(normalized, key, entry);
     }
   }
 
   return normalized;
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 function createResolvedConfigFs(

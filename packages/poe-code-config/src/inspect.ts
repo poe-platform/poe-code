@@ -1,5 +1,6 @@
 import path from "node:path";
 import { pathExists, type FileSystem } from "@poe-code/config-mutations";
+import { assertConfigPathSafe } from "./store.js";
 import type { ConfigDocument, ConfigFieldType, ScopeDefinition, ScopeSchema } from "./types.js";
 
 export interface EnvOverrides {
@@ -58,13 +59,26 @@ export async function initProjectConfig(
   fs: FileSystem,
   targetPath: string
 ): Promise<"created" | "already-exists"> {
+  await assertConfigPathSafe(fs, targetPath);
   if (await pathExists(fs, targetPath)) {
     return "already-exists";
   }
 
   await fs.mkdir(path.dirname(targetPath), { recursive: true });
-  await fs.writeFile(targetPath, EMPTY_DOCUMENT, { encoding: "utf8" });
-  return "created";
+  await assertConfigPathSafe(fs, targetPath);
+  try {
+    await fs.writeFile(targetPath, EMPTY_DOCUMENT, { encoding: "utf8", flag: "wx" });
+    return "created";
+  } catch (error) {
+    if (isAlreadyExists(error)) {
+      return "already-exists";
+    }
+    throw error;
+  }
+}
+
+function isAlreadyExists(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
 }
 
 function collectScopeEnvOverrides<S extends ScopeSchema>(

@@ -151,7 +151,9 @@ async function writeDocument(
   filePath: string,
   document: ConfigDocument
 ): Promise<void> {
+  await assertConfigPathSafe(fs, filePath);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await assertConfigPathSafe(fs, filePath);
   await fs.writeFile(filePath, `${JSON.stringify(document, null, 2)}\n`, {
     encoding: "utf8"
   });
@@ -162,10 +164,26 @@ async function recoverInvalidDocument(
   filePath: string,
   content: string
 ): Promise<void> {
+  await assertConfigPathSafe(fs, filePath);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
+  await assertConfigPathSafe(fs, filePath);
   const backupPath = createInvalidBackupPath(filePath);
   await fs.writeFile(backupPath, content, { encoding: "utf8" });
   await fs.writeFile(filePath, EMPTY_DOCUMENT, { encoding: "utf8" });
+}
+
+export async function assertConfigPathSafe(fs: FileSystem, filePath: string): Promise<void> {
+  for (const target of [path.dirname(filePath), filePath]) {
+    try {
+      if ((await fs.lstat(target)).isSymbolicLink()) {
+        throw new Error(`Refusing configuration access through symbolic link: ${target}`);
+      }
+    } catch (error) {
+      if (!isNotFound(error)) {
+        throw error;
+      }
+    }
+  }
 }
 
 function createInvalidBackupPath(filePath: string): string {

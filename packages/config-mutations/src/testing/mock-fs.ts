@@ -81,10 +81,15 @@ export function createMockFs(
     async writeFile(
       filePath: string,
       content: string | NodeJS.ArrayBufferView,
-      options?: { encoding?: BufferEncoding }
+      options?: { encoding?: BufferEncoding; flag?: string }
     ): Promise<void> {
-      void options; // TypeScript satisfaction
       const absolutePath = expandPath(filePath, homeDir);
+
+      if (options?.flag === "wx" && absolutePath in files) {
+        const error = new Error(`EEXIST: file already exists, open '${absolutePath}'`);
+        (error as NodeJS.ErrnoException).code = "EEXIST";
+        throw error;
+      }
 
       // Ensure parent directory exists
       const parentDir = path.dirname(absolutePath);
@@ -143,6 +148,16 @@ export function createMockFs(
         return { mode: 0o755 };
       }
       const error = new Error(`ENOENT: no such file or directory, stat '${absolutePath}'`);
+      (error as NodeJS.ErrnoException).code = "ENOENT";
+      throw error;
+    },
+
+    async lstat(filePath: string): Promise<{ isSymbolicLink(): boolean }> {
+      const absolutePath = expandPath(filePath, homeDir);
+      if (absolutePath in files || directories.has(absolutePath)) {
+        return { isSymbolicLink: () => false };
+      }
+      const error = new Error(`ENOENT: no such file or directory, lstat '${absolutePath}'`);
       (error as NodeJS.ErrnoException).code = "ENOENT";
       throw error;
     },

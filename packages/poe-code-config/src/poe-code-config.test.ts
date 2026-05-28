@@ -1,4 +1,6 @@
 import { createMockFs } from "@poe-code/config-mutations/testing";
+import type { FileSystem } from "@poe-code/config-mutations";
+import { Volume, createFsFromVolume } from "memfs";
 import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createConfigStore } from "./config.js";
@@ -611,6 +613,38 @@ describe("initProjectConfig", () => {
 
     expect(result).toBe("already-exists");
     expect(fs.getContent(projectConfigPath)).toBe('{ "core": {} }\n');
+  });
+
+  it("does not write through a symlinked project state directory", async () => {
+    const volume = Volume.fromJSON({ "/outside/.keep": "" });
+    volume.mkdirSync("/repo", { recursive: true });
+    volume.symlinkSync("/outside", "/repo/.poe-code");
+    const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+    await expect(initProjectConfig(fs, projectConfigPath)).rejects.toThrow("symbolic link");
+    await expect(fs.stat("/outside/config.json")).rejects.toBeTruthy();
+  });
+
+  it("does not overwrite a config created during initialization", async () => {
+    const fs = createMockFs(undefined, homeDir);
+    fs.directories.add("/repo");
+    const originalStat = fs.stat.bind(fs);
+    let created = false;
+
+    fs.stat = async (filePath) => {
+      try {
+        return await originalStat(filePath);
+      } catch (error) {
+        if (!created && filePath === projectConfigPath) {
+          created = true;
+          fs.files[projectConfigPath] = '{"core":{"apiKey":"concurrent-value"}}\n';
+        }
+        throw error;
+      }
+    };
+
+    await expect(initProjectConfig(fs, projectConfigPath)).resolves.toBe("already-exists");
+    expect(fs.getContent(projectConfigPath)).toBe('{"core":{"apiKey":"concurrent-value"}}\n');
   });
 });
 

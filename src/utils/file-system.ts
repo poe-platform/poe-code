@@ -8,7 +8,7 @@ export interface FileSystem {
   writeFile(
     path: string,
     data: string | NodeJS.ArrayBufferView,
-    options?: { encoding?: BufferEncoding }
+    options?: { encoding?: BufferEncoding; flag?: string }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   stat(path: string): Promise<Stats>;

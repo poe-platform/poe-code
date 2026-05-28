@@ -40,6 +40,31 @@ describe("config.ts — saveConfig / loadConfig", () => {
     await deleteConfig({ fs, filePath: configPath });
     await expect(loadConfig({ fs, filePath: configPath })).resolves.toBeNull();
   });
+
+  it("does not write global config through a symlinked state directory", async () => {
+    const outsidePath = "/outside/config.json";
+    fs = createMemFs();
+    await fs.mkdir("/home/user", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.symlink("/outside", path.dirname(configPath));
+
+    await expect(saveConfig({ fs, filePath: configPath, apiKey: "sk-test" })).rejects.toThrow(
+      "symbolic link"
+    );
+    await expect(fs.stat(outsidePath)).rejects.toBeTruthy();
+  });
+
+  it("does not delete global config through a symlinked state directory", async () => {
+    const outsidePath = "/outside/config.json";
+    fs = createMemFs();
+    await fs.mkdir("/home/user", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile(outsidePath, "outside", { encoding: "utf8" });
+    await fs.symlink("/outside", path.dirname(configPath));
+
+    await expect(deleteConfig({ fs, filePath: configPath })).rejects.toThrow("symbolic link");
+    await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("outside");
+  });
 });
 
 describe("config.ts — loadConfiguredServices / saveConfiguredService", () => {

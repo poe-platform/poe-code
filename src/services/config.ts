@@ -146,6 +146,7 @@ export async function loadConfig(options: ConfigStoreOptions): Promise<string | 
 
 export async function deleteConfig(options: ConfigStoreOptions): Promise<boolean> {
   const { fs, filePath } = options;
+  await assertSafeConfigDeletion(fs, filePath);
   try {
     await fs.unlink(filePath);
     return true;
@@ -154,6 +155,20 @@ export async function deleteConfig(options: ConfigStoreOptions): Promise<boolean
       return false;
     }
     throw error;
+  }
+}
+
+async function assertSafeConfigDeletion(fs: FileSystem, filePath: string): Promise<void> {
+  for (const target of [path.dirname(filePath), filePath]) {
+    try {
+      if ((await fs.lstat(target)).isSymbolicLink()) {
+        throw new Error(`Refusing configuration access through symbolic link: ${target}`);
+      }
+    } catch (error) {
+      if (!isNotFound(error)) {
+        throw error;
+      }
+    }
   }
 }
 

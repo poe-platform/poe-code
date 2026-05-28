@@ -22,7 +22,7 @@ export interface FileSystem {
   writeFile(
     path: string,
     content: string,
-    options?: { encoding: "utf8" }
+    options?: { encoding: "utf8"; flag?: string }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive: boolean }): Promise<void>;
   unlink(path: string): Promise<void>;
@@ -31,6 +31,7 @@ export interface FileSystem {
     options?: { recursive?: boolean; force?: boolean }
   ): Promise<void>;
   stat(path: string): Promise<{ mode?: number }>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   readdir(path: string): Promise<string[]>;
   chmod?(path: string, mode: number): Promise<void>;
 }

@@ -41,8 +41,15 @@ export async function createLoopbackAuthorizationSession(
 }
 
 async function startServer(server: http.Server): Promise<number> {
-  return new Promise<number>((resolve) => {
+  return new Promise<number>((resolve, reject) => {
+    const handleError = (error: Error) => {
+      server.off("error", handleError);
+      reject(error);
+    };
+
+    server.once("error", handleError);
     server.listen(0, "127.0.0.1", () => {
+      server.off("error", handleError);
       const address = server.address() as { port: number };
       resolve(address.port);
     });
@@ -136,7 +143,9 @@ function waitForAuthorizationCode(
         } catch (error) {
           settle(() => reject(error instanceof Error ? error : new Error(String(error))));
         }
-      }).catch(() => undefined);
+      }).catch((error) => {
+        settle(() => reject(error instanceof Error ? error : new Error(String(error))));
+      });
     }
 
     if (options.openBrowser !== undefined) {

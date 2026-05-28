@@ -175,6 +175,32 @@ describe("createJwksTokenVerifier", () => {
     });
   });
 
+  it("rejects tokens missing any required scope", async () => {
+    const oauth = await listenOAuthServer();
+    const verifier = createJwksTokenVerifier({
+      jwksUrl: `${oauth.issuer}/.well-known/jwks.json`,
+      fetch: nodeFetch,
+    });
+    const token = await oauth.issueTokenFor({
+      clientId: "demo-client",
+      resource: "https://resource.example.com/mcp",
+      scopes: ["mcp.read"],
+    });
+
+    await expect(
+      verifier.verify({
+        token,
+        resource: "https://resource.example.com/mcp",
+        authorizationServers: [oauth.issuer],
+        requiredScopes: ["mcp.read", "mcp.write"],
+      })
+    ).rejects.toMatchObject({
+      error: "insufficient_scope",
+      errorDescription: "insufficient scope",
+      scope: ["mcp.read", "mcp.write"],
+    });
+  });
+
   it("tries every matching kid in the JWKS until one verifies the signature", async () => {
     const { publicKey: wrongPublicKey } = await generateKeyPair("ES256");
     const { privateKey: correctPrivateKey, publicKey: correctPublicKey } = await generateKeyPair("ES256");

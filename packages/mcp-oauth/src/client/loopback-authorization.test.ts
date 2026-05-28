@@ -1,4 +1,5 @@
 import http from "node:http";
+import { EventEmitter } from "node:events";
 import { describe, expect, it } from "vitest";
 import { createLoopbackAuthorizationSession } from "../index.js";
 
@@ -25,6 +26,21 @@ async function requestUrl(
 }
 
 describe("createLoopbackAuthorizationSession", () => {
+  it("rejects when the loopback listener cannot start", async () => {
+    class FailingServer extends EventEmitter {
+      listen(): this {
+        queueMicrotask(() => this.emit("error", new Error("address in use")));
+        return this;
+      }
+    }
+
+    await expect(
+      createLoopbackAuthorizationSession({
+        createServer: () => new FailingServer() as unknown as http.Server,
+      })
+    ).rejects.toThrow("address in use");
+  });
+
   it("uses an http://127.0.0.1:<random>/callback redirect URI by default", async () => {
     const session = await createLoopbackAuthorizationSession();
 
@@ -106,6 +122,22 @@ describe("createLoopbackAuthorizationSession", () => {
       await expect(
         session.waitForCode("https://auth.example.com/authorize?state=expected-state")
       ).rejects.toThrow("OAuth authorization failed: access_denied — User declined");
+    } finally {
+      session.close();
+    }
+  });
+
+  it("rejects when manual callback input fails", async () => {
+    const session = await createLoopbackAuthorizationSession({
+      readLine: async () => {
+        throw new Error("stdin failed");
+      },
+    });
+
+    try {
+      await expect(
+        session.waitForCode("https://auth.example.com/authorize")
+      ).rejects.toThrow("stdin failed");
     } finally {
       session.close();
     }

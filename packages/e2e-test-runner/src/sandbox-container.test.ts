@@ -83,6 +83,7 @@ describe('createSandboxContainer', () => {
   });
 
   afterEach(() => {
+    delete process.env.__proto__;
     if (originalPath === undefined) {
       delete process.env.PATH;
     } else {
@@ -138,6 +139,28 @@ describe('createSandboxContainer', () => {
         stdio: ['ignore', 'pipe', 'pipe'],
       }),
     );
+  });
+
+  it('preserves ambient environment variables named __proto__', async () => {
+    const { spawn, spawnSync } = await import('node:child_process');
+    process.env.__proto__ = 'visible';
+    vi.mocked(spawnSync).mockReturnValue({
+      status: 0,
+      stdout: 'ok\n',
+      stderr: '',
+      pid: 1,
+      output: [],
+      signal: null,
+    });
+    vi.mocked(spawn).mockImplementation(() => createMockChildProcess(0, '', ''));
+
+    const { createSandboxContainer } = await import('./sandbox-container.js');
+    const container = await createSandboxContainer();
+    await container.exec('echo ok');
+
+    const config = vi.mocked(buildSandboxCommand).mock.calls[0]![0] as { env: Record<string, string> };
+    expect(Object.hasOwn(config.env, '__proto__')).toBe(true);
+    expect(config.env.__proto__).toBe('visible');
   });
 
   it('supports the same file operations as env-container', async () => {

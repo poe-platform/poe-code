@@ -20,6 +20,8 @@ import { mkdirSync, existsSync, lstatSync, readdirSync } from 'node:fs';
 import { basename, relative, resolve } from 'node:path';
 import type { CapturedExchange } from './proxy-types.js';
 import { CapturedRequests as CapturedRequestsCollection } from './proxy-requests.js';
+import { shellQuote } from './shell-quote.js';
+import { E2E_CACHE_ROOT } from './runtime.js';
 
 const CONTAINER_LABEL = 'poe-e2e-test-runner=true';
 export const CONTAINER_PATH = `${CONTAINER_HOME}/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin`;
@@ -121,6 +123,9 @@ async function waitForProxyToBind(
 }
 
 function ensureCacheDirs(): void {
+  if (existsSync(E2E_CACHE_ROOT) && lstatSync(E2E_CACHE_ROOT).isSymbolicLink()) {
+    throw new Error(`Cache root must not be a symbolic link: ${E2E_CACHE_ROOT}`);
+  }
   for (const dir of [NPM_CACHE_DIR, UV_CACHE_DIR]) {
     if (!existsSync(dir)) {
       mkdirSync(dir, { recursive: true });
@@ -403,12 +408,12 @@ export async function createPersistentContainer(
     },
 
     async fileExists(filePath: string): Promise<boolean> {
-      const result = await execQuiet(`test -f ${filePath}`);
+      const result = await execQuiet(`test -f ${shellQuote(filePath)}`);
       return result.exitCode === 0;
     },
 
     async readFile(filePath: string): Promise<string> {
-      const result = await execQuiet(`cat ${filePath}`);
+      const result = await execQuiet(`cat ${shellQuote(filePath)}`);
       if (result.exitCode !== 0) {
         throw new Error(
           `Failed to read file "${filePath}": ${result.stderr}`
@@ -418,7 +423,7 @@ export async function createPersistentContainer(
     },
 
     async writeFile(filePath: string, content: string): Promise<void> {
-      const result = spawnSync(engine, ['exec', '-i', containerId, 'sh', '-c', `cat > ${filePath}`], {
+      const result = spawnSync(engine, ['exec', '-i', containerId, 'sh', '-c', `cat > ${shellQuote(filePath)}`], {
         encoding: 'utf-8',
         input: content,
         stdio: ['pipe', 'pipe', 'pipe'],

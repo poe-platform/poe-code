@@ -1,4 +1,4 @@
-import { readdirSync, statSync, unlinkSync } from 'node:fs';
+import { lstatSync, readdirSync, statSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 
 const DEFAULT_MAX_LOGS = 50;
@@ -10,6 +10,9 @@ export function rotateLogs(logsDir: string, maxLogs: number = DEFAULT_MAX_LOGS):
 
   let files: string[];
   try {
+    if (lstatSync(logsDir).isSymbolicLink()) {
+      throw new Error(`Logs directory must not be a symbolic link: ${logsDir}`);
+    }
     files = readdirSync(logsDir)
       .filter((f) => f.endsWith('.log'))
       .map((f) => join(logsDir, f))
@@ -18,7 +21,10 @@ export function rotateLogs(logsDir: string, maxLogs: number = DEFAULT_MAX_LOGS):
         const statB = statSync(b);
         return statB.mtime.getTime() - statA.mtime.getTime();
       });
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('symbolic link')) {
+      throw error;
+    }
     return 0;
   }
 

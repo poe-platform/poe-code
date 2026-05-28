@@ -4,7 +4,7 @@ import { createHostContainer } from './host-container.js';
 import type { Container, ContainerOptions } from './types.js';
 
 function toSandboxEnv(env: NodeJS.ProcessEnv): Record<string, string> {
-  const sandboxEnv: Record<string, string> = {};
+  const sandboxEnv = Object.create(null) as Record<string, string>;
 
   for (const [key, value] of Object.entries(env)) {
     if (value !== undefined) {

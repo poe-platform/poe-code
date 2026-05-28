@@ -5079,6 +5079,27 @@ describe("McpClient listTools", () => {
       nextCursor: "10",
     });
   });
+
+  it("rejects a numeric nextCursor returned from tools/list", async () => {
+    const { client, readable, iterator, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: { tools: {} },
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+    await iterator.next();
+
+    const requestPromise = client.listTools();
+    const requestLine = await iterator.next();
+    if (requestLine.done) {
+      throw new Error("Expected tools/list request line to be written");
+    }
+    const request = JSON.parse(requestLine.value) as { id: number };
+    readable.write(`${JSON.stringify({ jsonrpc: "2.0", id: request.id, result: { tools: [], nextCursor: 7 } })}\n`);
+
+    await expect(requestPromise).rejects.toThrow("Invalid tools/list result");
+    await client.close();
+  });
 });
 
 describe("McpClient listResources", () => {
@@ -7037,6 +7058,11 @@ describe("McpClient sendRootsChanged", () => {
         name: "tiny-mcp-client",
         version: "0.1.0",
       },
+      capabilities: {
+        roots: {
+          listChanged: true,
+        },
+      },
     });
 
     const connectPromise = client.connect(transport);
@@ -7080,6 +7106,20 @@ describe("McpClient sendRootsChanged", () => {
       jsonrpc: "2.0",
       method: "notifications/roots/list_changed",
     });
+  });
+
+  it("rejects when roots list changes were not advertised", async () => {
+    const { client, connectPromise } = await startClientHandshake({
+      protocolVersion: "2025-03-26",
+      capabilities: {},
+      serverInfo: { name: "server", version: "1.0.0" },
+    });
+    await connectPromise;
+
+    await expect(client.sendRootsChanged()).rejects.toThrow(
+      "Client did not advertise roots list changes"
+    );
+    await client.close();
   });
 });
 

@@ -116,6 +116,7 @@ const MCP_PROTOCOL_VERSION = "2025-03-26";
 export class McpClient {
   private currentState: "disconnected" | "initializing" | "ready" | "closed" = "disconnected";
   private currentServerCapabilities: ServerCapabilities | null = null;
+  private currentClientCapabilities: ClientCapabilities | null = null;
   private currentServerInfo: Implementation | null = null;
   private currentInstructions: string | undefined;
   private readonly options: McpClientOptions;
@@ -337,6 +338,8 @@ export class McpClient {
       };
     }
 
+    this.currentClientCapabilities = structuredClone(capabilities);
+
     const initializeResultValue = await messageLayer.sendRequest("initialize", {
       protocolVersion: MCP_PROTOCOL_VERSION,
       clientInfo: this.options.clientInfo,
@@ -381,10 +384,12 @@ export class McpClient {
     }
 
     const requestParams = params.cursor === undefined ? undefined : { cursor: params.cursor };
-    return (await messageLayer.sendRequest("tools/list", requestParams)) as {
-      tools: Tool[];
-      nextCursor?: string;
-    };
+    const result = await messageLayer.sendRequest("tools/list", requestParams);
+    if (!isToolsListResult(result)) {
+      throw new McpError(ERROR_INVALID_REQUEST, "Invalid tools/list result");
+    }
+
+    return result;
   }
 
   async callTool(params: CallToolParams, options: CallToolOptions = {}): Promise<CallToolResult> {
@@ -572,6 +577,10 @@ export class McpClient {
 
   async sendRootsChanged(): Promise<void> {
     const messageLayer = this.getMessageLayerOrThrow();
+    if (this.currentClientCapabilities?.roots?.listChanged !== true) {
+      throw new Error("Client did not advertise roots list changes");
+    }
+
     messageLayer.sendNotification("notifications/roots/list_changed");
   }
 
@@ -3451,6 +3460,12 @@ function isCallToolResult(value: unknown): value is CallToolResult {
   }
 
   return value.content.every(isContentItem);
+}
+
+function isToolsListResult(value: unknown): value is { tools: Tool[]; nextCursor?: string } {
+  return isObjectRecord(value)
+    && Array.isArray(value.tools)
+    && (value.nextCursor === undefined || typeof value.nextCursor === "string");
 }
 
 function isContentItem(value: unknown): value is ContentItem {

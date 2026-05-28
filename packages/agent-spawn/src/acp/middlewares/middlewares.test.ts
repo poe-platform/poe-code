@@ -241,7 +241,8 @@ describe("acp/middlewares/spawnLog", () => {
     expect(observed).toEqual(sourceEvents);
 
     const files = await fs.readdir("/tmp/spawn-logs");
-    expect(files).toEqual(["20260320-123456-789-codex.jsonl"]);
+    expect(files).toHaveLength(1);
+    expect(files[0]).toMatch(/^20260320-123456-789-codex-[\w-]+\.jsonl$/);
 
     const content = await fs.readFile(path.join("/tmp/spawn-logs", files[0]), "utf8");
     const lines = content.trim().split("\n");
@@ -278,6 +279,23 @@ describe("acp/middlewares/spawnLog", () => {
     expect(ctx.logFile).toBe("/tmp/spawn-logs/20260320-123456-789-builder.jsonl");
   });
 
+  it("does not allow ctx.logFileName to escape ctx.logDir", async () => {
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        yield { event: "agent_message", text: "safe" } as AcpEvent;
+      })();
+    };
+    const ctx = createContext({
+      logDir: "/tmp/spawn-logs",
+      logFileName: "../escaped.jsonl"
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    await collect(ctx.eventStream!);
+
+    expect(vol.existsSync("/tmp/escaped.jsonl")).toBe(false);
+  });
+
   it("uses the default spawn log directory when ctx.logDir is missing", async () => {
     const sourceEvents: AcpEvent[] = [{ event: "agent_message", text: "default dir" }];
 
@@ -299,7 +317,8 @@ describe("acp/middlewares/spawnLog", () => {
 
     const defaultDir = path.join(homedir(), ".poe-code", "spawn-logs");
     const files = await fs.readdir(defaultDir);
-    expect(files).toEqual(["20260320-123456-789-codex.jsonl"]);
+    expect(files).toHaveLength(1);
+    expect(files[0]).toMatch(/^20260320-123456-789-codex-[\w-]+\.jsonl$/);
   });
 
   it("does not write default logs through a symlink outside state", async () => {
@@ -345,7 +364,8 @@ describe("acp/middlewares/spawnLog", () => {
       await collect(ctx.eventStream!);
 
       const files = await fs.readdir("/tmp/spawn-logs");
-      expect(files).toEqual(["20260320-000000-001-codex.jsonl"]);
+      expect(files).toHaveLength(1);
+      expect(files[0]).toMatch(/^20260320-000000-001-codex-[\w-]+\.jsonl$/);
     } finally {
       vi.useRealTimers();
     }
@@ -392,7 +412,8 @@ describe("acp/middlewares/spawnLog", () => {
     await applyMiddlewares([spawnLog], ctx);
 
     const files = await fs.readdir("/tmp/preloaded-logs");
-    expect(files).toEqual(["20260320-123456-789-codex.jsonl"]);
+    expect(files).toHaveLength(1);
+    expect(files[0]).toMatch(/^20260320-123456-789-codex-[\w-]+\.jsonl$/);
 
     const content = await fs.readFile(path.join("/tmp/preloaded-logs", files[0]), "utf8");
     const lines = content.trim().split("\n");
@@ -416,7 +437,54 @@ describe("acp/middlewares/spawnLog", () => {
     await applyMiddlewares([spawnLog, source], ctx);
     await collect(ctx.eventStream!);
 
-    expect(ctx.logFile).toBe("/tmp/spawn-logs/20260320-123456-789-codex.jsonl");
+    expect(ctx.logFile).toMatch(/^\/tmp\/spawn-logs\/20260320-123456-789-codex-[\w-]+\.jsonl$/);
+  });
+
+  it("separates generated logs for sessions started in the same millisecond", async () => {
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        yield { event: "agent_message", text: ctx.sessionId } as AcpEvent;
+      })();
+    };
+    const startedAt = new Date("2026-03-20T12:34:56.789Z");
+    const first = createContext({
+      sessionId: "thread-one",
+      agent: "codex",
+      logDir: "/tmp/spawn-logs",
+      startedAt
+    });
+    const second = createContext({
+      sessionId: "thread-two",
+      agent: "codex",
+      logDir: "/tmp/spawn-logs",
+      startedAt
+    });
+
+    await applyMiddlewares([spawnLog, source], first);
+    await collect(first.eventStream!);
+    await applyMiddlewares([spawnLog, source], second);
+    await collect(second.eventStream!);
+
+    expect(first.logFile).not.toBe(second.logFile);
+    expect(await fs.readdir("/tmp/spawn-logs")).toHaveLength(2);
+  });
+
+  it("separates generated logs before a session id is known", async () => {
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        yield { event: "agent_message", text: "pending" } as AcpEvent;
+      })();
+    };
+    const startedAt = new Date("2026-03-20T12:34:56.789Z");
+    const first = createContext({ agent: "codex", logDir: "/tmp/spawn-logs", startedAt });
+    const second = createContext({ agent: "codex", logDir: "/tmp/spawn-logs", startedAt });
+
+    await applyMiddlewares([spawnLog, source], first);
+    await collect(first.eventStream!);
+    await applyMiddlewares([spawnLog, source], second);
+    await collect(second.eventStream!);
+
+    expect(first.logFile).not.toBe(second.logFile);
   });
 
   it("opens the file handle lazily and closes it when the stream completes", async () => {

@@ -95,6 +95,21 @@ describe("spawn() with logDir + logFileName", () => {
     expect(contents).toBe("hello\nwarn\n");
   });
 
+  it("does not allow logFileName to escape logDir", async () => {
+    vi.mocked(spawnChildProcess).mockReturnValue(
+      createMockChildProcess({ stdout: "hello\n", exitCode: 0 })
+    );
+
+    const result = await spawn("claude-code", {
+      prompt: "test",
+      logDir: "/tmp/run-logs",
+      logFileName: "../escaped.jsonl"
+    });
+
+    expect(result.logFile).toBeUndefined();
+    expect(hoisted.memFs.existsSync("/tmp/escaped.jsonl")).toBe(false);
+  });
+
   it("omits logFile when only logDir is provided", async () => {
     vi.mocked(spawnChildProcess).mockReturnValue(
       createMockChildProcess({ stdout: "ok\n", exitCode: 0 })

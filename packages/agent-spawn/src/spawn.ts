@@ -320,7 +320,20 @@ function resolveSpawnLogPath(options: SpawnOptions): string | undefined {
   if (!options.logDir || !options.logFileName) {
     return undefined;
   }
+  if (!isSafeLogFileName(options.logFileName)) {
+    return undefined;
+  }
   return path.join(options.logDir, options.logFileName);
+}
+
+function isSafeLogFileName(fileName: string): boolean {
+  return (
+    fileName.length > 0 &&
+    !path.isAbsolute(fileName) &&
+    !path.win32.isAbsolute(fileName) &&
+    path.basename(fileName) === fileName &&
+    path.win32.basename(fileName) === fileName
+  );
 }
 
 function openSpawnLog(filePath: string): number | undefined {

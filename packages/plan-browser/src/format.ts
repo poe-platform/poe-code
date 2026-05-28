@@ -5,6 +5,7 @@ import {
   type ExperimentFrontmatter
 } from "@poe-code/experiment-loop";
 import { parseFrontmatter, type RalphFrontmatter } from "@poe-code/ralph";
+import { parseSuperintendentDoc } from "@poe-code/superintendent";
 import { parseDocument } from "yaml";
 import type { DiscoveryFs, PlanEntry } from "./types.js";
 
@@ -356,10 +357,10 @@ export async function readPlanMetadata(options: {
   }
 
   if (options.kind === "superintendent") {
-    const parsed = splitFrontmatter(content, options.path);
+    const parsed = parseSuperintendentDoc(options.absolutePath, content);
     return {
       title: deriveMarkdownTitle(parsed.body, fallbackName),
-      detail: formatSuperintendentDetail(parsed.data ?? {}),
+      detail: formatSuperintendentDetail(parsed.frontmatter),
       format: "markdown"
     };
   }

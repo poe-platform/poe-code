@@ -22,6 +22,7 @@
     "@poe-code/experiment-loop": "*",
     "@poe-code/pipeline": "*",
     "@poe-code/poe-code-config": "*",
-    "@poe-code/ralph": "*"
+    "@poe-code/ralph": "*",
+    "@poe-code/superintendent": "*"
   }
 }

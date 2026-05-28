@@ -54,8 +54,12 @@ export function buildPlanExplorerConfig(
       handler: async (ctx) => {
         const entry = getEntry(entryByRowId, ctx.row.id);
         await archivePlan(entry, options.fs as ActionFs);
-        await ctx.refresh();
-        ctx.toast(`Archived ${path.basename(entry.path)}`, "warning");
+        try {
+          await ctx.refresh();
+          ctx.toast(`Archived ${path.basename(entry.path)}`, "warning");
+        } catch {
+          ctx.toast(`Archived ${path.basename(entry.path)}; refresh failed`, "warning");
+        }
       }
     },
     {
@@ -66,8 +70,12 @@ export function buildPlanExplorerConfig(
       handler: async (ctx) => {
         const entry = getEntry(entryByRowId, ctx.row.id);
         await deletePlan(entry, options.fs as ActionFs);
-        await ctx.refresh();
-        ctx.toast(`Deleted ${path.basename(entry.path)}`, "error");
+        try {
+          await ctx.refresh();
+          ctx.toast(`Deleted ${path.basename(entry.path)}`, "error");
+        } catch {
+          ctx.toast(`Deleted ${path.basename(entry.path)}; refresh failed`, "error");
+        }
       }
     }
   ];

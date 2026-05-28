@@ -267,6 +267,16 @@ describe("format helpers", () => {
         readFile: async () => [
           "---",
           "kind: superintendent",
+          "version: 1",
+          "builder:",
+          "  agent: codex",
+          "  prompt: Build.",
+          "superintendent:",
+          "  agent: codex",
+          "  prompt: Review.",
+          "owner:",
+          "  agent: codex",
+          "  prompt: Approve.",
           "status:",
           "  state: review",
           "  round: 4",
@@ -282,6 +292,29 @@ describe("format helpers", () => {
       detail: "review 12",
       format: "markdown"
     });
+  });
+
+  it("rejects superintendent metadata missing runnable roles", async () => {
+    await expect(
+      readPlanMetadata({
+        kind: "superintendent",
+        absolutePath: "/repo/docs/plans/broken.md",
+        path: "docs/plans/broken.md",
+        fs: {
+          readFile: async () => [
+            "---",
+            "kind: superintendent",
+            "version: 1",
+            "status:",
+            "  state: in_progress",
+            "  round: 0",
+            "  review_turn: 0",
+            "---",
+            "# Broken plan"
+          ].join("\n")
+        }
+      })
+    ).rejects.toThrow("missing required role `builder`");
   });
 
   it("reads superintendent base metadata as a non-runnable base doc", async () => {

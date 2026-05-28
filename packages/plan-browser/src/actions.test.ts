@@ -64,6 +64,23 @@ describe("plan actions", () => {
     });
   });
 
+  it("passes editor flags before the file path", () => {
+    const spawnSync = vi.fn(() => ({ status: 0 }));
+
+    editFile("/repo/docs/plans/plan.md", { env: { EDITOR: "code --wait" }, spawnSync });
+
+    expect(spawnSync).toHaveBeenCalledWith("code", ["--wait", "/repo/docs/plans/plan.md"], {
+      stdio: "inherit"
+    });
+  });
+
+  it("throws when an editor cannot be launched", () => {
+    const spawnSync = vi.fn(() => ({ error: new Error("spawn failed") }));
+
+    expect(() => editFile("/repo/docs/plans/plan.md", { env: { EDITOR: "code" }, spawnSync }))
+      .toThrow("spawn failed");
+  });
+
   it("keeps editPlan as a compatibility wrapper", () => {
     const spawnSync = vi.fn();
 
@@ -79,5 +96,16 @@ describe("plan actions", () => {
 
   it("falls back to vi when no editor env is set", () => {
     expect(resolveEditor({})).toBe("vi");
+  });
+
+  it("does not overwrite an existing archived plan", async () => {
+    const fs = createMemFs({
+      "/repo/docs/plans/plan.md": "# Current",
+      "/repo/docs/plans/archive/plan.md": "# Historic"
+    });
+
+    await expect(archivePlan({ absolutePath: "/repo/docs/plans/plan.md" }, fs))
+      .rejects.toThrow("Archive destination already exists");
+    await expect(fs.readFile("/repo/docs/plans/archive/plan.md", "utf8")).resolves.toBe("# Historic");
   });
 });

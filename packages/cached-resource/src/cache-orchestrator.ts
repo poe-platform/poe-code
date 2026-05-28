@@ -47,7 +47,7 @@ export async function resolveData<T>(
     }
   }
 
-  if (offline || preferOffline) {
+  if (offline) {
     return { data: bundledData, timestamp: 0 };
   }
 

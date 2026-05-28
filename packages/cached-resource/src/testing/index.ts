@@ -21,6 +21,7 @@ export function createMemFs(files: Record<string, string> = {}): DiskCacheFs {
     mkdir: (p: string, options?: { recursive?: boolean }) =>
       fs.mkdir(p, options) as Promise<void>,
     unlink: (p: string) => fs.unlink(p) as Promise<void>,
+    realpath: (p: string) => fs.realpath(p) as Promise<string>,
   };
 }
 

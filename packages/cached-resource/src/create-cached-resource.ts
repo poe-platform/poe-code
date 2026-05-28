@@ -33,6 +33,7 @@ function createDefaultFs(): DiskCacheFs {
     writeFile: (path, data) => fs.writeFile(path, data),
     mkdir: (path, options) => fs.mkdir(path, options).then(() => {}),
     unlink: (path) => fs.unlink(path),
+    realpath: (path) => fs.realpath(path),
   };
 }
 
@@ -65,6 +66,7 @@ export function createCachedResource<T>(
     },
 
     async clear(): Promise<void> {
+      await revalidator.waitForRevalidation(config.cacheName);
       memoryCache.clear();
       await removeFromDisk(config, { fs: diskFs });
     },

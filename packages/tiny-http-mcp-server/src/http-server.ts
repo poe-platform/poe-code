@@ -81,6 +81,10 @@ function normalizePath(path: string): string {
     return "/mcp";
   }
 
+  if (path.includes("?") || path.includes("#")) {
+    throw new Error("path must not include a query or fragment");
+  }
+
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
   return normalizedPath.length > 1 && normalizedPath.endsWith("/")
     ? normalizedPath.slice(0, -1)
@@ -282,7 +286,10 @@ export function createHttpServer(
         removeAbortListener();
         await transport.close();
         await closeServer(nodeServer);
-      })();
+      })().catch((error) => {
+        closePromise = undefined;
+        throw error;
+      });
 
       return closePromise;
     };

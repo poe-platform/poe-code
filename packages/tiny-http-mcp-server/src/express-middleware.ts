@@ -14,6 +14,10 @@ function normalizePath(path: string): string {
     return "/";
   }
 
+  if (path.includes("?") || path.includes("#")) {
+    throw new Error("path must not include a query or fragment");
+  }
+
   if (!path.startsWith("/")) {
     return `/${path}`;
   }

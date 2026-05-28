@@ -64,7 +64,7 @@ function cloneVerifiedAccessToken(
     ...token,
     audience: [...token.audience],
     scopes: [...token.scopes],
-    claims: { ...token.claims },
+    claims: structuredClone(token.claims),
   };
 }
 
@@ -125,9 +125,14 @@ export function createInMemoryTokenVerifier(
     },
     issueToken(input) {
       const token = input.token ?? `test-token-${nextTokenId++}`;
+      if (tokens.has(token)) {
+        throw new Error(`Token has already been issued: ${token}`);
+      }
+
       const audience = [...input.audience];
       const scopes = [...input.scopes];
       const claims = {
+        ...(input.claims ?? {}),
         iss: input.issuer,
         aud: audience.length === 1 ? audience[0] : audience,
         exp: input.expiresAt,
@@ -142,7 +147,6 @@ export function createInMemoryTokenVerifier(
           : {
               client_id: input.clientId,
             }),
-        ...(input.claims ?? {}),
       };
 
       tokens.set(token, {
@@ -176,7 +180,12 @@ export async function createHttpTestPair(server: HttpServer): Promise<HttpTestPa
     fetch: nodeFetch,
   });
 
-  await client.connect(transport);
+  try {
+    await client.connect(transport);
+  } catch (error) {
+    await handle.close();
+    throw error;
+  }
 
   return {
     client,
@@ -184,8 +193,13 @@ export async function createHttpTestPair(server: HttpServer): Promise<HttpTestPa
     handle,
     url: handle.url,
     cleanup: async () => {
-      await client.close();
-      await handle.close();
+      const results = await Promise.allSettled([client.close(), handle.close()]);
+      const rejected = results.find(
+        (result): result is PromiseRejectedResult => result.status === "rejected"
+      );
+      if (rejected !== undefined) {
+        throw rejected.reason;
+      }
     },
   };
 }

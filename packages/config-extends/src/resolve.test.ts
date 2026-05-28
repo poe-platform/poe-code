@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import path from "node:path";
 import { Volume, createFsFromVolume } from "memfs";
 import { resolve } from "./resolve.js";
 import type { FileSystem } from "./types.js";
@@ -413,6 +414,42 @@ describe("resolve", () => {
         title: "document"
       },
       chain: ["/workspace/review.yaml"]
+    });
+  });
+
+  it("does not merge an absolute on-disk self match for a relative document path", async () => {
+    const relativePath = "workspace/review.yaml";
+    const absolutePath = path.resolve(relativePath);
+    const fs = createMemFs({
+      [absolutePath]: "title: Stale\nstale: true"
+    });
+
+    await expect(
+      resolve(
+        [
+          {
+            source: "document",
+            filePath: relativePath,
+            content: "title: Edited"
+          },
+          {
+            source: "base",
+            path: path.dirname(absolutePath)
+          }
+        ],
+        {
+          fs,
+          autoExtend: true
+        }
+      )
+    ).resolves.toEqual({
+      data: {
+        title: "Edited"
+      },
+      sources: {
+        title: "document"
+      },
+      chain: [relativePath]
     });
   });
 

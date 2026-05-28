@@ -321,6 +321,48 @@ describe("mergeLayers", () => {
     });
   });
 
+  it("distinguishes literal dotted keys from nested provenance paths", () => {
+    expect(
+      mergeLayers([
+        {
+          source: "literal",
+          data: {
+            "service.url": "literal-value"
+          }
+        },
+        {
+          source: "nested",
+          data: {
+            service: {
+              url: "nested-value"
+            }
+          }
+        }
+      ])
+    ).toEqual({
+      data: {
+        "service.url": "literal-value",
+        service: {
+          url: "nested-value"
+        }
+      },
+      sources: {
+        "service\\.url": "literal",
+        service: "nested",
+        "service.url": "nested"
+      }
+    });
+  });
+
+  it("rejects cyclic object layers with a controlled error", () => {
+    const cyclic: Record<string, unknown> = {};
+    cyclic.self = cyclic;
+
+    expect(() => mergeLayers([{ source: "runtime", data: { config: cyclic } }])).toThrow(
+      "Cyclic config data is not supported."
+    );
+  });
+
   it("keeps the first nested value when both layers define the same nested key", () => {
     expect(
       mergeLayers([

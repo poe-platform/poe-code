@@ -20,7 +20,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "prepublishOnly": "tsc"
   },
   "files": [

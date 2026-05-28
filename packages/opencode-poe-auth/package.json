@@ -15,7 +15,7 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "test": "vitest run --config vitest.config.ts",
     "test:unit": "vitest run --config vitest.config.ts"
   },

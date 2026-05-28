@@ -12,7 +12,7 @@
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "test": "cd ../.. && vitest run --config vitest.config.ts packages/runner-e2b/src",
     "test:unit": "cd ../.. && vitest run --config vitest.config.ts packages/runner-e2b/src",
     "test:integration": "cd ../.. && vitest run --config packages/runner-e2b/vitest.integration.config.ts"

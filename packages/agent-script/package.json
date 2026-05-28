@@ -22,7 +22,7 @@
     "@poe-code/agent-spawn": "*"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "example:experiment": "tsx src/cli.ts examples/experiment.md",
     "example:pipeline": "tsx src/cli.ts examples/pipeline.md",
     "example:superintendent": "tsx src/cli.ts examples/superintendent.md",

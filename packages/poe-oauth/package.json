@@ -11,7 +11,7 @@
     }
   },
   "scripts": {
-    "build": "tsc"
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc"
   },
   "files": [
     "dist"

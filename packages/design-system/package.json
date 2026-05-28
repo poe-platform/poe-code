@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
     "postbuild": "node scripts/smoke-built-exports.cjs",
     "lint": "cd ../.. && eslint packages/design-system --ext ts && tsc -p packages/design-system/tsconfig.json --noEmit",
     "test": "cd ../.. && vitest run $(rg --files packages/design-system/src -g '*.test.ts' | sort | tr '\\n' ' ')",

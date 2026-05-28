@@ -42,7 +42,6 @@ export function createDefaultOAuthClientProvider(
   const sessionStore = options.sessionStore ?? createAuthStoreSessionStore(options.authStore);
   const clientStore = options.authStore === undefined ? null : createAuthStoreClientStore(options.authStore);
   const now = options.now ?? Date.now;
-  const sessions = new Map<string, StoredOAuthSession | null>();
   const registeredClients = new Map<string, StoredOAuthSession["client"] | null>();
   const refreshPromises = new Map<string, Promise<StoredOAuthSession | null>>();
   const authorizationPromises = new Map<string, Promise<StoredOAuthSession>>();
@@ -53,7 +52,12 @@ export function createDefaultOAuthClientProvider(
       const requestUrl = canonicalizeResourceIndicator(input.requestUrl);
       const session = await ensureAuthorizedSession(requestUrl, undefined, input.fetch, false);
       const accessToken = session?.tokens?.accessToken;
-      if (session === null || accessToken === undefined) {
+      if (
+        session === null
+        || accessToken === undefined
+        || session.tokens === undefined
+        || isExpired(session.tokens, now)
+      ) {
         return;
       }
 
@@ -122,11 +126,12 @@ export function createDefaultOAuthClientProvider(
       }
     }
 
-    if (!allowInteractive || sessionDiscovery === undefined) {
-      return session;
+    if (forceRefresh && session?.tokens !== undefined) {
+      session = clearSessionTokens(session);
+      await saveSession(canonicalResource, session);
     }
 
-    if (forceRefresh && session?.tokens !== undefined) {
+    if (!allowInteractive || sessionDiscovery === undefined) {
       return session;
     }
 
@@ -197,7 +202,10 @@ export function createDefaultOAuthClientProvider(
 
         const updatedSession: StoredOAuthSession = {
           ...session,
-          tokens: refreshedTokens,
+          tokens: {
+            ...refreshedTokens,
+            refreshToken: refreshedTokens.refreshToken ?? session.tokens.refreshToken,
+          },
           discovery: toStoredDiscovery(discovery),
         };
         await saveSession(resource, updatedSession);
@@ -413,22 +421,14 @@ export function createDefaultOAuthClientProvider(
   }
 
   async function loadSession(resource: string): Promise<StoredOAuthSession | null> {
-    if (sessions.has(resource)) {
-      return sessions.get(resource) ?? null;
-    }
-
-    const session = await sessionStore.load(resource);
-    sessions.set(resource, session);
-    return session;
+    return sessionStore.load(resource);
   }
 
   async function saveSession(resource: string, session: StoredOAuthSession): Promise<void> {
-    sessions.set(resource, session);
     await sessionStore.save(resource, session);
   }
 
   async function clearSession(resource: string): Promise<void> {
-    sessions.delete(resource);
     await sessionStore.clear(resource);
   }
 

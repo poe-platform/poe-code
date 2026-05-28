@@ -28,6 +28,7 @@ import {
   sortStrings,
   statIfExists,
   validateTaskId,
+  withFileLock,
   writeAtomically,
   type OrderedEntry
 } from "./utils.js";
@@ -572,35 +573,41 @@ function createTasksView(deps: BackendDeps, list: string): Tasks {
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
       validateTaskId(id);
 
-      const { document, store } = await readStore(deps.fs, deps.path, validStates);
-      const existing = getTaskOrThrow(store, list, id);
-      const task = createTask(list, id, existing, deps.path);
-      const event = assertFireableTaskEvent(task, eventName);
-      const guardResult = event.guard?.(task) ?? true;
+      const { event, nextTask } = await withFileLock(deps.fs, `${deps.path}.lock`, async () => {
+        const { document, store } = await readStore(deps.fs, deps.path, validStates);
+        const existing = getTaskOrThrow(store, list, id);
+        const task = createTask(list, id, existing, deps.path);
+        const event = assertFireableTaskEvent(task, eventName);
+        const guardResult = event.guard?.(task) ?? true;
 
-      if (guardResult !== true) {
-        throw new InvalidTransitionError({
-          task,
-          event: eventName,
-          to: event.to,
-          reason: guardResult
-        });
-      }
-
-      await event.onExit?.(task);
-
-      const nextTaskRecord = buildFiredTaskRecord(existing, event.to, opts?.metadataPatch);
-      document.setIn(["lists", list, id, "state"], event.to);
-
-      for (const [key, value] of Object.entries(opts?.metadataPatch ?? {})) {
-        if (!RESERVED_TASK_KEYS.has(key)) {
-          document.setIn(["lists", list, id, key], value);
+        if (guardResult !== true) {
+          throw new InvalidTransitionError({
+            task,
+            event: eventName,
+            to: event.to,
+            reason: guardResult
+          });
         }
-      }
 
-      await writeAtomically(deps.fs, deps.path, serializeDocument(document));
+        await event.onExit?.(task);
 
-      const nextTask = createTask(list, id, nextTaskRecord, deps.path);
+        const nextTaskRecord = buildFiredTaskRecord(existing, event.to, opts?.metadataPatch);
+        document.setIn(["lists", list, id, "state"], event.to);
+
+        for (const [key, value] of Object.entries(opts?.metadataPatch ?? {})) {
+          if (!RESERVED_TASK_KEYS.has(key)) {
+            document.setIn(["lists", list, id, key], value);
+          }
+        }
+
+        await writeAtomically(deps.fs, deps.path, serializeDocument(document));
+
+        return {
+          event,
+          nextTask: createTask(list, id, nextTaskRecord, deps.path)
+        };
+      });
+
       await event.onEnter?.(nextTask);
 
       return nextTask;

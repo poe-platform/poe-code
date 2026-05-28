@@ -9,10 +9,11 @@ describe("approvalStateMachine", () => {
 
   it("declares the documented transitions", () => {
     expect(approvalStateMachine.events).toEqual({
-      start: { from: ["pending"], to: "approved-running" },
+      claim: { from: ["pending"], to: "prompting" },
+      start: { from: ["prompting"], to: "approved-running" },
       succeed: { from: ["approved-running"], to: "approved-done" },
-      fail: { from: ["approved-running"], to: "approved-failed" },
-      decline: { from: ["pending"], to: "declined" },
+      fail: { from: ["prompting", "approved-running"], to: "approved-failed" },
+      decline: { from: ["pending", "prompting"], to: "declined" },
     });
   });
 
@@ -25,7 +26,7 @@ describe("approvalStateMachine", () => {
     }).toThrow();
 
     expect(approvalStateMachine.events.start).toEqual({
-      from: ["pending"],
+      from: ["prompting"],
       to: "approved-running",
     });
   });

@@ -146,11 +146,13 @@ describe("approvals built-in commands", () => {
       message: "declined"
     });
 
-    await tasks.fire(runningId, "start", {
+    await tasks.fire(runningId, "claim", {
       metadataPatch: {
         pid: 123
       }
     });
+    await tasks.fire(runningId, "start");
+    await tasks.fire(declinedId, "claim");
     await tasks.fire(declinedId, "decline", {
       metadataPatch: {
         error: {

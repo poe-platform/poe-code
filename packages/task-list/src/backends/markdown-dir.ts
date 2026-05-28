@@ -28,6 +28,7 @@ import {
   sortStrings,
   statIfExists,
   validateTaskId,
+  withFileLock,
   writeAtomically,
   type OrderedEntry
 } from "./utils.js";
@@ -890,7 +891,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       );
     },
     async fire(id: string, eventName: string, opts?: TaskFireOptions): Promise<Task> {
-      const fireTask = async (): Promise<Task> => {
+      const fireTask = async () => {
         const existing = await getTaskFile(id);
         const event = assertFireableTaskEvent(existing.task, eventName);
         const guardResult = event.guard?.(existing.task) ?? true;
@@ -933,9 +934,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
             deps.frontmatterMode,
             targetPath
           );
-          await event.onEnter?.(nextTask);
-
-          return nextTask;
+          return { event, nextTask };
         }
 
         await writeAtomically(deps.fs, existing.path, serializedTask);
@@ -947,9 +946,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
           deps.frontmatterMode,
           existing.path
         );
-        await event.onEnter?.(nextTask);
-
-        return nextTask;
+        return { event, nextTask };
       };
 
       if (stateMachine.events[eventName]?.to === "archived") {
@@ -961,7 +958,15 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       }
 
       validateTaskId(id);
-      return fireTask();
+      const { event, nextTask } = await withFileLock(
+        deps.fs,
+        path.join(listDirectoryPath, ".transition.lock"),
+        fireTask
+      );
+
+      await event.onEnter?.(nextTask);
+
+      return nextTask;
     },
     async canFire(id: string, eventName: string): Promise<boolean> {
       const task = (await getTaskFile(id)).task;

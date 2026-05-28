@@ -244,6 +244,18 @@ function formatScope(scope: readonly string[]): string | undefined {
   return scope.length === 0 ? undefined : scope.join(" ");
 }
 
+function validateConfiguredScopes(scopes: readonly string[] | undefined): void {
+  if (scopes === undefined) {
+    return;
+  }
+
+  for (const scope of scopes) {
+    if (scope.length === 0 || parseScope(scope).length !== 1 || parseScope(scope)[0] !== scope) {
+      throw new Error("scope entries must not contain spaces");
+    }
+  }
+}
+
 function createRandomToken(): string {
   return randomBytes(24).toString("base64url");
 }
@@ -623,7 +635,7 @@ function withUpdatedSearchParam(url: URL, name: string, value: string): string {
 }
 
 function assertAllowedScopes(requestedScopes: readonly string[], client: StoredClient): void {
-  if (client.scopes === undefined || client.scopes.length === 0) {
+  if (client.scopes === undefined) {
     return;
   }
 
@@ -640,6 +652,12 @@ function normalizeStaticClient(input: OAuthTestStaticClient): StoredClient {
     throw new Error("staticClients[].clientId must be non-empty");
   }
 
+  if (input.redirectUris.length === 0) {
+    throw new Error("staticClients[].redirectUris must be a non-empty array");
+  }
+
+  validateConfiguredScopes(input.scopes);
+
   return {
     clientId: input.clientId,
     redirectUris: input.redirectUris.map((redirectUri) =>
@@ -655,14 +673,23 @@ export function createOAuthTestServer(
 ): OAuthTestServer {
   const clockSkewSeconds = options.clockSkewSeconds ?? 0;
   const defaultTokenTtlSeconds = options.defaultTokenTtlSeconds ?? 60;
+  if (!Number.isFinite(clockSkewSeconds) || clockSkewSeconds < 0) {
+    throw new Error("clockSkewSeconds must be a non-negative finite number");
+  }
+  if (!Number.isInteger(defaultTokenTtlSeconds) || defaultTokenTtlSeconds <= 0) {
+    throw new Error("defaultTokenTtlSeconds must be a positive integer");
+  }
+  validateConfiguredScopes(options.defaultAuthorization?.scopes);
   const requireDcr = options.requireDcr ?? true;
   const signing = createSigningState(options);
-  const staticClients = new Map(
-    (options.staticClients ?? []).map((client) => {
-      const normalized = normalizeStaticClient(client);
-      return [normalized.clientId, normalized] as const;
-    })
-  );
+  const staticClients = new Map<string, StoredClient>();
+  for (const client of options.staticClients ?? []) {
+    const normalized = normalizeStaticClient(client);
+    if (staticClients.has(normalized.clientId)) {
+      throw new Error("staticClients[].clientId must be unique");
+    }
+    staticClients.set(normalized.clientId, normalized);
+  }
   const registeredClients = new Map<string, StoredClient>();
   const authorizationCodes = new Map<string, AuthorizationCodeRecord>();
   const refreshTokens = new Map<string, RefreshTokenRecord>();
@@ -824,6 +851,9 @@ export function createOAuthTestServer(
   function normalizeIssuer(issuer: string): string {
     const normalized = parseAbsoluteUrl(issuer, "issuer");
     const url = new URL(normalized);
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      throw new Error("issuer must use http or https");
+    }
     if (url.pathname.length > 1 && url.pathname.endsWith("/")) {
       url.pathname = url.pathname.slice(0, -1);
     }
@@ -955,10 +985,17 @@ export function createOAuthTestServer(
       "response_types",
       ["code"]
     );
-    const tokenEndpointAuthMethod =
-      typeof payload.token_endpoint_auth_method === "string"
-        ? payload.token_endpoint_auth_method
-        : "none";
+    if (
+      payload.token_endpoint_auth_method !== undefined
+      && typeof payload.token_endpoint_auth_method !== "string"
+    ) {
+      throw new OAuthRequestError(
+        400,
+        "invalid_client_metadata",
+        "token_endpoint_auth_method must be a string"
+      );
+    }
+    const tokenEndpointAuthMethod = payload.token_endpoint_auth_method ?? "none";
     if (tokenEndpointAuthMethod !== "none") {
       throw new OAuthRequestError(
         400,
@@ -987,7 +1024,10 @@ export function createOAuthTestServer(
       }
     }
 
-    const scope = typeof payload.scope === "string" ? parseScope(payload.scope) : undefined;
+    if (payload.scope !== undefined && typeof payload.scope !== "string") {
+      throw new OAuthRequestError(400, "invalid_client_metadata", "scope must be a string");
+    }
+    const scope = payload.scope === undefined ? undefined : parseScope(payload.scope);
     const clientName =
       typeof payload.client_name === "string" && payload.client_name.length > 0
         ? payload.client_name
@@ -1205,24 +1245,21 @@ export function createOAuthTestServer(
       throw new OAuthRequestError(400, "invalid_request", "resource is required");
     }
 
-    const parsedScopes =
-      typeof scopes === "string"
-        ? parseScope(scopes)
-        : isStringArray(scopes)
-          ? scopes
-          : [];
-    const parsedTtlSeconds =
-      typeof ttlSeconds === "number" && Number.isFinite(ttlSeconds)
-        ? Math.floor(ttlSeconds)
-        : defaultTokenTtlSeconds;
-
-    if (parsedTtlSeconds <= 0) {
+    if (scopes !== undefined && typeof scopes !== "string" && !isStringArray(scopes)) {
+      throw new OAuthRequestError(400, "invalid_request", "scopes must be a string or array");
+    }
+    const parsedScopes = typeof scopes === "string" ? parseScope(scopes) : scopes ?? [];
+    if (
+      ttlSeconds !== undefined
+      && (typeof ttlSeconds !== "number" || !Number.isInteger(ttlSeconds) || ttlSeconds <= 0)
+    ) {
       throw new OAuthRequestError(
         400,
         "invalid_request",
         "ttl_seconds must be a positive integer"
       );
     }
+    const parsedTtlSeconds = typeof ttlSeconds === "number" ? ttlSeconds : defaultTokenTtlSeconds;
 
     const accessToken = await issueAccessToken({
       issuer: getIssuer(),

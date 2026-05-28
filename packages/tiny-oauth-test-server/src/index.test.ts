@@ -291,6 +291,69 @@ describe("tiny-oauth-test-server", () => {
     });
   });
 
+  it("rejects invalid configured issuers and numeric lifetime options", () => {
+    expect(() => createOAuthTestServer({ issuer: "mailto:oauth@example.test" })).toThrow(
+      "issuer must use http or https"
+    );
+    expect(() => createOAuthTestServer({ clockSkewSeconds: Infinity })).toThrow(
+      "clockSkewSeconds must be a non-negative finite number"
+    );
+    expect(() => createOAuthTestServer({ clockSkewSeconds: -1 })).toThrow(
+      "clockSkewSeconds must be a non-negative finite number"
+    );
+    expect(() => createOAuthTestServer({ defaultTokenTtlSeconds: Infinity })).toThrow(
+      "defaultTokenTtlSeconds must be a positive integer"
+    );
+    expect(() => createOAuthTestServer({ defaultTokenTtlSeconds: -1 })).toThrow(
+      "defaultTokenTtlSeconds must be a positive integer"
+    );
+  });
+
+  it("rejects malformed static client configuration", () => {
+    const redirectUri = "http://127.0.0.1:43123/callback";
+
+    expect(() =>
+      createOAuthTestServer({ staticClients: [{ clientId: "client", redirectUris: [] }] })
+    ).toThrow("staticClients[].redirectUris must be a non-empty array");
+    expect(() =>
+      createOAuthTestServer({
+        staticClients: [
+          { clientId: "client", redirectUris: [redirectUri] },
+          { clientId: "client", redirectUris: [redirectUri] }
+        ]
+      })
+    ).toThrow("staticClients[].clientId must be unique");
+    expect(() =>
+      createOAuthTestServer({
+        staticClients: [{ clientId: "client", redirectUris: [redirectUri], scopes: ["mcp.read mcp.admin"] }]
+      })
+    ).toThrow("scope entries must not contain spaces");
+    expect(() =>
+      createOAuthTestServer({ defaultAuthorization: { scopes: ["mcp.read mcp.admin"] } })
+    ).toThrow("scope entries must not contain spaces");
+  });
+
+  it("enforces an explicitly empty static-client scope allowlist", async () => {
+    const redirectUri = "http://127.0.0.1:43123/callback";
+    const server = createOAuthTestServer({
+      signingKeySeed: "tiny-oauth-test-server:empty-scopes",
+      staticClients: [{ clientId: "client", redirectUris: [redirectUri], scopes: [] }],
+      defaultAuthorization: { autoApprove: true }
+    });
+    const handle = await server.listen({ port: 0, hostname: "127.0.0.1" });
+    cleanups.add(handle.close);
+
+    const response = await nodeFetch(
+      `${server.issuer}/authorize?client_id=client&redirect_uri=${encodeURIComponent(redirectUri)}`
+        + "&response_type=code&code_challenge=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890-._~"
+        + "&code_challenge_method=S256&resource=https%3A%2F%2Fresource.example.com%2Fmcp&scope=mcp.admin",
+      { redirect: "manual" }
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ error: "invalid_scope" });
+  });
+
   it("rejects a concurrent second listener instead of orphaning a bound server", async () => {
     const server = createOAuthTestServer({ signingKeySeed: "tiny-oauth-test-server:concurrent" });
     const results = await Promise.allSettled([
@@ -458,6 +521,23 @@ describe("tiny-oauth-test-server", () => {
       error: "invalid_client_metadata",
       error_description: "token_endpoint_auth_method client_secret_basic is not supported",
     });
+  });
+
+  it("rejects malformed registration metadata instead of silently defaulting it", async () => {
+    const { server } = await listenServer();
+    for (const body of [
+      { redirect_uris: ["http://127.0.0.1:43141/callback"], scope: ["mcp.read"] },
+      { redirect_uris: ["http://127.0.0.1:43141/callback"], token_endpoint_auth_method: {} }
+    ]) {
+      const response = await nodeFetch(`${server.issuer}/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({ error: "invalid_client_metadata" });
+    }
   });
 
   it("accepts a valid PKCE verifier that uses the full RFC 7636 unreserved alphabet", async () => {
@@ -1251,6 +1331,23 @@ describe("tiny-oauth-test-server", () => {
         ttlSeconds: -60
       })
     ).rejects.toThrow("ttlSeconds must be a positive integer");
+  });
+
+  it("rejects malformed HTTP direct-token fields", async () => {
+    const { server } = await listenServer();
+    for (const body of [
+      { client_id: "client", resource: "https://resource.example.com/direct", scopes: {} },
+      { client_id: "client", resource: "https://resource.example.com/direct", ttl_seconds: "never" }
+    ]) {
+      const response = await nodeFetch(`${server.issuer}/testing/issue-token`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      expect(response.status).toBe(400);
+      await expect(response.json()).resolves.toMatchObject({ error: "invalid_request" });
+    }
   });
 
   it("accepts IPv6 loopback redirect URIs", async () => {

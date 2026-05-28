@@ -119,6 +119,8 @@ export class McpClient {
   private currentClientCapabilities: ClientCapabilities | null = null;
   private currentServerInfo: Implementation | null = null;
   private currentInstructions: string | undefined;
+  private readonly subscribedResourceUris = new Set<string>();
+  private readonly activeProgressTokens = new Map<ProgressToken, number>();
   private readonly options: McpClientOptions;
   private transport: McpTransport | null = null;
   private messageLayer: JsonRpcMessageLayer | null = null;
@@ -196,14 +198,8 @@ export class McpClient {
       );
     }
 
-    if (onRootsList !== undefined) {
-      messageLayer.onRequest("roots/list", async () => ({
-        roots: await onRootsList(),
-      }));
-    }
-
     messageLayer.onNotification("notifications/tools/list_changed", async () => {
-      if (onToolsChanged === undefined) {
+      if (onToolsChanged === undefined || this.currentServerCapabilities?.tools?.listChanged !== true) {
         return;
       }
 
@@ -226,7 +222,7 @@ export class McpClient {
       }
 
       const { uri } = params as { uri?: unknown };
-      if (typeof uri !== "string") {
+      if (typeof uri !== "string" || !this.subscribedResourceUris.has(uri)) {
         return;
       }
 
@@ -269,7 +265,11 @@ export class McpClient {
       }
 
       const { progressToken, progress } = params;
-      if (!isRequestId(progressToken) || typeof progress !== "number") {
+      if (
+        !isRequestId(progressToken) ||
+        typeof progress !== "number" ||
+        !this.activeProgressTokens.has(progressToken)
+      ) {
         return;
       }
 
@@ -301,6 +301,8 @@ export class McpClient {
     this.transport = transport;
     this.messageLayer = messageLayer;
     this.currentState = "initializing";
+    this.subscribedResourceUris.clear();
+    this.activeProgressTokens.clear();
     transport.closed
       .then((closedEvent) => {
         if (this.transport !== transport) {
@@ -362,6 +364,11 @@ export class McpClient {
     this.currentServerCapabilities = structuredClone(initializeResult.capabilities);
     this.currentServerInfo = { ...initializeResult.serverInfo };
     this.currentInstructions = initializeResult.instructions;
+    if (onRootsList !== undefined) {
+      messageLayer.onRequest("roots/list", async () => ({
+        roots: await onRootsList(),
+      }));
+    }
     messageLayer.sendNotification("notifications/initialized");
     this.currentState = "ready";
 
@@ -413,45 +420,63 @@ export class McpClient {
             },
           };
 
-    let requestId: RequestId | undefined;
-    const requestPromise = messageLayer.sendRequest("tools/call", requestParams, {
-      onRequestId: (nextRequestId) => {
-        requestId = nextRequestId;
-      },
-    }).then((result) => {
-      if (!isCallToolResult(result)) {
-        throw new McpError(ERROR_INVALID_REQUEST, "Invalid tool result");
-      }
-
-      return result;
-    });
-    if (options.signal === undefined) {
-      return await requestPromise;
+    if (options.progressToken !== undefined) {
+      this.activeProgressTokens.set(
+        options.progressToken,
+        (this.activeProgressTokens.get(options.progressToken) ?? 0) + 1
+      );
     }
-    const signal = options.signal;
-
-    let abortListener: (() => void) | undefined;
-    const abortPromise = new Promise<CallToolResult>((_, reject) => {
-      const rejectWithAbortReason = () => {
-        if (requestId !== undefined) {
-          messageLayer.sendNotification("notifications/cancelled", { requestId });
-        }
-        reject(signal.reason);
-      };
-
-      abortListener = rejectWithAbortReason;
-      signal.addEventListener("abort", abortListener, { once: true });
-      if (signal.aborted) {
-        signal.removeEventListener("abort", abortListener);
-        rejectWithAbortReason();
-      }
-    });
 
     try {
-      return (await Promise.race([requestPromise, abortPromise])) as CallToolResult;
+      let requestId: RequestId | undefined;
+      const requestPromise = messageLayer.sendRequest("tools/call", requestParams, {
+        onRequestId: (nextRequestId) => {
+          requestId = nextRequestId;
+        },
+      }).then((result) => {
+        if (!isCallToolResult(result)) {
+          throw new McpError(ERROR_INVALID_REQUEST, "Invalid tool result");
+        }
+
+        return result;
+      });
+      if (options.signal === undefined) {
+        return await requestPromise;
+      }
+      const signal = options.signal;
+
+      let abortListener: (() => void) | undefined;
+      const abortPromise = new Promise<CallToolResult>((_, reject) => {
+        const rejectWithAbortReason = () => {
+          if (requestId !== undefined) {
+            messageLayer.sendNotification("notifications/cancelled", { requestId });
+          }
+          reject(signal.reason);
+        };
+
+        abortListener = rejectWithAbortReason;
+        signal.addEventListener("abort", abortListener, { once: true });
+        if (signal.aborted) {
+          signal.removeEventListener("abort", abortListener);
+          rejectWithAbortReason();
+        }
+      });
+
+      try {
+        return (await Promise.race([requestPromise, abortPromise])) as CallToolResult;
+      } finally {
+        if (abortListener !== undefined) {
+          signal.removeEventListener("abort", abortListener);
+        }
+      }
     } finally {
-      if (abortListener !== undefined) {
-        signal.removeEventListener("abort", abortListener);
+      if (options.progressToken !== undefined) {
+        const activeCount = this.activeProgressTokens.get(options.progressToken);
+        if (activeCount === 1) {
+          this.activeProgressTokens.delete(options.progressToken);
+        } else if (activeCount !== undefined) {
+          this.activeProgressTokens.set(options.progressToken, activeCount - 1);
+        }
       }
     }
   }
@@ -508,6 +533,7 @@ export class McpClient {
     }
 
     await messageLayer.sendRequest("resources/subscribe", { uri });
+    this.subscribedResourceUris.add(uri);
   }
 
   async unsubscribe(uri: string): Promise<void> {
@@ -518,6 +544,7 @@ export class McpClient {
     }
 
     await messageLayer.sendRequest("resources/unsubscribe", { uri });
+    this.subscribedResourceUris.delete(uri);
   }
 
   async listPrompts(params: PaginatedParams = {}): Promise<{ prompts: Prompt[]; nextCursor?: string }> {
@@ -599,6 +626,8 @@ export class McpClient {
     this.transport?.dispose(closeError);
     this.messageLayer = null;
     this.transport = null;
+    this.subscribedResourceUris.clear();
+    this.activeProgressTokens.clear();
     this.currentState = "closed";
   }
 }

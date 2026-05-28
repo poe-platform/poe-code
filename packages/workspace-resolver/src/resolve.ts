@@ -21,16 +21,18 @@ export async function resolveWorkspace(
   }
 
   const mode = options.mode ?? "read";
-  const cacheDir = await cloneOrUpdate(locator, options);
+  const needsIsolatedCheckout = mode === "edit" || (mode === "read" && locator.ref !== undefined);
+  const cacheLocator = needsIsolatedCheckout ? { ...locator, ref: undefined } : locator;
+  const cacheDir = await cloneOrUpdate(cacheLocator, options);
   let writable:
     | Awaited<ReturnType<typeof createWritableCheckout>>
     | undefined;
 
   try {
     writable =
-      mode === "read"
-        ? undefined
-        : await createWritableCheckout(locator, cacheDir, options);
+      needsIsolatedCheckout
+        ? await createWritableCheckout(locator, cacheDir, options)
+        : undefined;
     const workspaceRoot = writable?.cwd ?? cacheDir;
     const cwd = locator.subdir ? path.join(workspaceRoot, locator.subdir) : workspaceRoot;
 
@@ -52,8 +54,9 @@ async function assertPathExists(
   target: string,
   locator: ResolvedWorkspace["locator"]
 ): Promise<void> {
+  let stats: Awaited<ReturnType<WorkspaceResolverOptions["fs"]["stat"]>>;
   try {
-    await fs.stat(target);
+    stats = await fs.stat(target);
   } catch {
     if (locator.scheme === "github" && locator.subdir) {
       throw new Error(
@@ -61,5 +64,12 @@ async function assertPathExists(
       );
     }
     throw new Error(`Workspace path "${target}" does not exist.`);
+  }
+
+  if (!stats.isDirectory()) {
+    if (locator.scheme === "github" && locator.subdir) {
+      throw new Error(`Workspace subdirectory "${locator.subdir}" is not a directory.`);
+    }
+    throw new Error(`Workspace path "${target}" is not a directory.`);
   }
 }

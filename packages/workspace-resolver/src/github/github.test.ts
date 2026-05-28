@@ -23,7 +23,13 @@ describe("github clone helpers", () => {
 
   it("builds cache paths inside the shared workspace cache", () => {
     expect(buildCachePath("/home/test", locator)).toBe(
-      "/home/test/.poe-code/workspaces/github/poe-platform-poe-code"
+      "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
+    );
+  });
+
+  it("does not alias distinct owner and repository boundaries", () => {
+    expect(buildCachePath("/home/test", { scheme: "github", owner: "a-b", repo: "c" })).not.toBe(
+      buildCachePath("/home/test", { scheme: "github", owner: "a", repo: "b-c" })
     );
   });
 
@@ -42,7 +48,7 @@ describe("github clone helpers", () => {
 
     const cwd = await cloneOrUpdate(locator, options);
 
-    expect(cwd).toBe("/home/test/.poe-code/workspaces/github/poe-platform-poe-code");
+    expect(cwd).toBe("/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code");
     expect(calls).toEqual([
       {
         command: "git",
@@ -51,7 +57,7 @@ describe("github clone helpers", () => {
           "--depth",
           "1",
           "https://github.com/poe-platform/poe-code.git",
-          "/home/test/.poe-code/workspaces/github/poe-platform-poe-code"
+          "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
         ],
         cwd: undefined
       }
@@ -78,7 +84,7 @@ describe("github clone helpers", () => {
 
   it("updates a clean cached checkout and checks out the requested ref", async () => {
     const fs = createFs();
-    await fs.mkdir("/home/test/.poe-code/workspaces/github/poe-platform-poe-code", {
+    await fs.mkdir("/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code", {
       recursive: true
     });
     const calls: Array<{ command: string; args: string[]; cwd?: string }> = [];
@@ -96,29 +102,29 @@ describe("github clone helpers", () => {
       {
         command: "git",
         args: ["status", "--porcelain"],
-        cwd: "/home/test/.poe-code/workspaces/github/poe-platform-poe-code"
+        cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
       },
       {
         command: "git",
         args: ["pull", "--ff-only"],
-        cwd: "/home/test/.poe-code/workspaces/github/poe-platform-poe-code"
+        cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
       },
       {
         command: "git",
         args: ["fetch", "origin"],
-        cwd: "/home/test/.poe-code/workspaces/github/poe-platform-poe-code"
+        cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
       },
       {
         command: "git",
         args: ["checkout", "--", "beta"],
-        cwd: "/home/test/.poe-code/workspaces/github/poe-platform-poe-code"
+        cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
       }
     ]);
   });
 
   it("rejects a cached path that is not a git repository", async () => {
     const fs = createFs();
-    await fs.mkdir("/home/test/.poe-code/workspaces/github/poe-platform-poe-code", {
+    await fs.mkdir("/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code", {
       recursive: true
     });
 
@@ -132,7 +138,7 @@ describe("github clone helpers", () => {
 
   it("rejects a failed update of a clean cached checkout", async () => {
     const fs = createFs();
-    await fs.mkdir("/home/test/.poe-code/workspaces/github/poe-platform-poe-code", {
+    await fs.mkdir("/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code", {
       recursive: true
     });
 
@@ -148,7 +154,7 @@ describe("github clone helpers", () => {
 
   it("treats a dash-prefixed ref as a checkout operand", async () => {
     const fs = createFs();
-    await fs.mkdir("/home/test/.poe-code/workspaces/github/poe-platform-poe-code", {
+    await fs.mkdir("/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code", {
       recursive: true
     });
     const exec = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
@@ -158,7 +164,7 @@ describe("github clone helpers", () => {
     expect(exec).toHaveBeenCalledWith(
       "git",
       ["checkout", "--", "--detach"],
-      { cwd: "/home/test/.poe-code/workspaces/github/poe-platform-poe-code" }
+      { cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code" }
     );
   });
 });
@@ -177,7 +183,7 @@ describe("createWritableCheckout", () => {
 
     const result = await createWritableCheckout(
       { scheme: "github", owner: "poe-platform", repo: "poe-code", ref: "main" },
-      "/home/test/.poe-code/workspaces/github/poe-platform-poe-code",
+      "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code",
       options
     );
 
@@ -189,12 +195,12 @@ describe("createWritableCheckout", () => {
       {
         command: "git",
         args: ["worktree", "add", "--detach", result.cwd, "main"],
-        cwd: "/home/test/.poe-code/workspaces/github/poe-platform-poe-code"
+        cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
       },
       {
         command: "git",
         args: ["worktree", "remove", "--force", result.cwd],
-        cwd: "/home/test/.poe-code/workspaces/github/poe-platform-poe-code"
+        cwd: "/home/test/.poe-code/workspaces/github/c-poe-platform-poe-code"
       }
     ]);
   });

@@ -61,6 +61,12 @@ describe("parseLocator", () => {
     });
   });
 
+  it("rejects github subdirectories that traverse outside the repository", () => {
+    expect(() => parseLocator("github://owner/repo/../../outside")).toThrow(
+      "Invalid github workspace subdirectory"
+    );
+  });
+
   it("parses github locators with deeply nested subdir via path", () => {
     expect(parseLocator("github://owner/repo/a/b/c")).toEqual({
       scheme: "github",
@@ -195,7 +201,7 @@ describe("resolveWorkspace", () => {
     await fs.mkdir(`${cachePath}/packages/process-runner`, { recursive: true });
 
     const result = await resolveWorkspace(
-      "github://poe-platform/poe-code#main:packages/process-runner",
+      "github://poe-platform/poe-code/packages/process-runner",
       createOptions({ fs })
     );
 
@@ -205,7 +211,6 @@ describe("resolveWorkspace", () => {
       scheme: "github",
       owner: "poe-platform",
       repo: "poe-code",
-      ref: "main",
       subdir: "packages/process-runner"
     });
   });
@@ -237,6 +242,48 @@ describe("resolveWorkspace", () => {
     expect(result.cwd).toContain("/home/test/.poe-code/workspaces/checkouts/poe-platform-poe-code");
     expect(result.cwd.endsWith("/packages/process-runner")).toBe(true);
     expect(result.cleanup).toBeTypeOf("function");
+  });
+
+  it("uses direct cached access for yolo mode", async () => {
+    const fs = createFs();
+    const cachePath = buildCachePath("/home/test", { scheme: "github", owner: "owner", repo: "repo" });
+    await fs.mkdir(cachePath, { recursive: true });
+    const calls: string[][] = [];
+
+    const result = await resolveWorkspace(
+      "github://owner/repo",
+      createOptions({ mode: "yolo", fs, exec: async (_command, args) => {
+        calls.push(args);
+        return { stdout: " M change", stderr: "", exitCode: 0 };
+      } })
+    );
+
+    expect(result.cwd).toBe(cachePath);
+    expect(result.cleanup).toBeUndefined();
+    expect(calls.some((args) => args[0] === "worktree")).toBe(false);
+  });
+
+  it("isolates a read checkout when a ref is requested", async () => {
+    const fs = createFs();
+    const cachePath = buildCachePath("/home/test", { scheme: "github", owner: "owner", repo: "repo" });
+    await fs.mkdir(cachePath, { recursive: true });
+    const calls: string[][] = [];
+
+    const result = await resolveWorkspace(
+      "github://owner/repo#feature",
+      createOptions({ fs, exec: async (_command, args) => {
+        calls.push(args);
+        if (args[0] === "worktree" && args[1] === "add") {
+          await fs.mkdir(args[3], { recursive: true });
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      } })
+    );
+
+    expect(result.cwd).not.toBe(cachePath);
+    expect(result.cleanup).toBeTypeOf("function");
+    expect(calls).toContainEqual(["worktree", "add", "--detach", expect.any(String), "feature"]);
+    expect(calls).not.toContainEqual(["checkout", "--", "feature"]);
   });
 
   it("cleans up isolated writable checkouts when subdir validation fails", async () => {
@@ -274,16 +321,6 @@ describe("resolveWorkspace", () => {
         expect.objectContaining({
           command: "git",
           args: ["worktree", "add", "--detach", expect.any(String), "main"],
-          cwd: cachePath
-        }),
-        expect.objectContaining({
-          command: "git",
-          args: ["fetch", "origin"],
-          cwd: cachePath
-        }),
-        expect.objectContaining({
-          command: "git",
-          args: ["checkout", "--", "main"],
           cwd: cachePath
         }),
         expect.objectContaining({
@@ -339,6 +376,22 @@ describe("resolveWorkspace", () => {
     ).rejects.toThrow(
       'Workspace subdirectory "missing/dir" does not exist in github://owner/repo.'
     );
+  });
+
+  it("rejects a github subdirectory that is a regular file", async () => {
+    const fs = createFs();
+    const cachePath = buildCachePath("/home/test", { scheme: "github", owner: "owner", repo: "repo" });
+    await fs.mkdir(cachePath, { recursive: true });
+    const regularFileFs: ResolverFileSystem = {
+      ...fs,
+      stat: async (target) => target.endsWith("README.md")
+        ? { isDirectory: () => false }
+        : fs.stat(target)
+    };
+
+    await expect(
+      resolveWorkspace("github://owner/repo/README.md", createOptions({ fs: regularFileFs }))
+    ).rejects.toThrow('Workspace subdirectory "README.md" is not a directory');
   });
 
   it("resolves github locators without ref or subdir", async () => {
@@ -421,7 +474,7 @@ describe("resolveWorkspace", () => {
     );
   });
 
-  it("fetches and checks out the ref when specified", async () => {
+  it("creates an isolated checkout for a read-mode ref", async () => {
     const fs = createFs();
     const cachePath = buildCachePath("/home/test", {
       scheme: "github",
@@ -445,10 +498,13 @@ describe("resolveWorkspace", () => {
 
     expect(calls).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ command: "git", args: ["fetch", "origin"] }),
-        expect.objectContaining({ command: "git", args: ["checkout", "--", "v2.0.0"] })
+        expect.objectContaining({
+          command: "git",
+          args: ["worktree", "add", "--detach", expect.any(String), "v2.0.0"]
+        })
       ])
     );
+    expect(calls.some((call) => call.args[0] === "checkout")).toBe(false);
   });
 
   it("does not fetch or checkout when no ref is specified", async () => {

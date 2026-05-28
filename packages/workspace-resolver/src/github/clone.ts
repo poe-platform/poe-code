@@ -10,7 +10,7 @@ export function buildCachePath(
     ".poe-code",
     "workspaces",
     "github",
-    `${locator.owner}-${locator.repo}`
+    `${locator.owner.length.toString(36)}-${locator.owner}-${locator.repo}`
   );
 }
 

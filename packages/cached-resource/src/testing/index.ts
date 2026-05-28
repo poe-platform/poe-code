@@ -18,6 +18,7 @@ export function createMemFs(files: Record<string, string> = {}): DiskCacheFs {
       fs.readFile(p, encoding) as Promise<string>,
     writeFile: (p: string, data: string) =>
       fs.writeFile(p, data) as Promise<void>,
+    rename: (from: string, to: string) => fs.rename(from, to) as Promise<void>,
     mkdir: (p: string, options?: { recursive?: boolean }) =>
       fs.mkdir(p, options) as Promise<void>,
     unlink: (p: string) => fs.unlink(p) as Promise<void>,

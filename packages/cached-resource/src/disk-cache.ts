@@ -1,10 +1,12 @@
 import { isAbsolute, join, relative, resolve } from "node:path";
+import { randomUUID } from "node:crypto";
 import os from "node:os";
 import type { CachedData, CacheConfig } from "./types.js";
 
 export interface DiskCacheFs {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   writeFile(path: string, data: string): Promise<void>;
+  rename(from: string, to: string): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   unlink(path: string): Promise<void>;
   realpath(path: string): Promise<string>;
@@ -23,6 +25,10 @@ export async function loadFromDisk<T>(
   config: Pick<CacheConfig, "cacheDir" | "cacheName" | "staleTtl">,
   deps: DiskCacheDeps,
 ): Promise<CachedData<T> | null> {
+  if (!Number.isFinite(config.staleTtl) || config.staleTtl < 0) {
+    throw new Error("staleTtl must be a finite non-negative number");
+  }
+
   try {
     const filePath = await resolveCachePath(config, deps.fs);
     const content = await deps.fs.readFile(filePath, "utf8");
@@ -47,6 +53,7 @@ export async function persist<T>(
   config: Pick<CacheConfig, "cacheDir" | "cacheName">,
   deps: DiskCacheDeps,
 ): Promise<void> {
+  let temporaryPath: string | undefined;
   try {
     await deps.fs.mkdir(config.cacheDir, { recursive: true });
     const filePath = await resolveCachePath(config, deps.fs);
@@ -54,9 +61,13 @@ export async function persist<T>(
       data,
       timestamp: Date.now(),
     };
-    await deps.fs.writeFile(filePath, JSON.stringify(cached));
+    temporaryPath = `${filePath}.${randomUUID()}.tmp`;
+    await deps.fs.writeFile(temporaryPath, JSON.stringify(cached));
+    await deps.fs.rename(temporaryPath, filePath);
   } catch {
-    // silently fail on write errors
+    if (temporaryPath !== undefined) {
+      await deps.fs.unlink(temporaryPath).catch(() => undefined);
+    }
   }
 }
 
@@ -67,8 +78,13 @@ export async function removeFromDisk(
   try {
     const filePath = await resolveCachePath(config, deps.fs);
     await deps.fs.unlink(filePath);
-  } catch {
-    // silently ignore delete errors (file may not exist)
+  } catch (error) {
+    if (error instanceof Error && error.message === "Cache path must remain inside its configured directory.") {
+      return;
+    }
+    if (!hasCode(error, "ENOENT")) {
+      throw error;
+    }
   }
 }
 

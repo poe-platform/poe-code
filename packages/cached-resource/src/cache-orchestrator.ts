@@ -21,6 +21,10 @@ export async function resolveData<T>(
   deps: CacheOrchestratorDeps<T>,
   options?: FetchOptions,
 ): Promise<CachedData<T>> {
+  if (!Number.isFinite(config.freshTtl) || config.freshTtl < 0) {
+    throw new Error("freshTtl must be a finite non-negative number");
+  }
+
   const { forceRefresh, offline, preferOffline } = options ?? {};
 
   if (!forceRefresh) {

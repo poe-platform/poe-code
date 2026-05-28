@@ -8,6 +8,10 @@ export async function fetchFromApi<T>(
   config: Pick<CacheConfig, "apiEndpoint" | "fetchTimeout">,
   deps?: Partial<ApiFetchDeps>,
 ): Promise<T> {
+  if (!Number.isFinite(config.fetchTimeout) || config.fetchTimeout < 0) {
+    throw new Error("fetchTimeout must be a finite non-negative number");
+  }
+
   const fetchFn = deps?.fetch ?? globalThis.fetch;
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), config.fetchTimeout);

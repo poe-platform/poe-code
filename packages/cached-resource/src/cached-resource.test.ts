@@ -27,6 +27,7 @@ function createMemFs(files: Record<string, string> = {}): DiskCacheFs {
       fs.readFile(p, encoding) as Promise<string>,
     writeFile: (p: string, data: string) =>
       fs.writeFile(p, data) as Promise<void>,
+    rename: (from: string, to: string) => fs.rename(from, to) as Promise<void>,
     mkdir: (p: string, options?: { recursive?: boolean }) =>
       fs.mkdir(p, options) as Promise<void>,
     unlink: (p: string) => fs.unlink(p) as Promise<void>,
@@ -191,6 +192,13 @@ describe("fetchFromApi", () => {
       ),
     ).rejects.toThrow("Network failure");
   });
+
+  it("rejects non-finite timeout values", async () => {
+    await expect(fetchFromApi(
+      { apiEndpoint: "https://api.example.com/data", fetchTimeout: Infinity },
+      { fetch: createMockFetch([]) },
+    )).rejects.toThrow("fetchTimeout");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -223,6 +231,18 @@ describe("createRevalidator", () => {
 
     expect(firstCallback).toHaveBeenCalledOnce();
     expect(secondCallback).not.toHaveBeenCalled();
+  });
+
+  it("deduplicates a synchronous reentrant trigger for the same key", async () => {
+    const revalidator = createRevalidator();
+    const nested = vi.fn().mockResolvedValue(undefined);
+    const first = vi.fn(async () => revalidator.trigger("key", nested));
+
+    revalidator.trigger("key", first);
+    await revalidator.waitForRevalidation();
+
+    expect(first).toHaveBeenCalledOnce();
+    expect(nested).not.toHaveBeenCalled();
   });
 
   it("allows new revalidation after previous one completes", async () => {
@@ -261,6 +281,24 @@ describe("createRevalidator", () => {
 
     expect(callbackA).toHaveBeenCalledOnce();
     expect(callbackB).toHaveBeenCalledOnce();
+  });
+
+  it("waits for nested revalidation work", async () => {
+    const revalidator = createRevalidator();
+    let releaseNested!: () => void;
+    revalidator.trigger("first", async () => {
+      revalidator.trigger("nested", () => new Promise<void>((resolve) => { releaseNested = resolve; }));
+    });
+
+    const waiting = revalidator.waitForRevalidation();
+    await Promise.resolve();
+    await Promise.resolve();
+    let resolved = false;
+    waiting.then(() => { resolved = true; });
+    await Promise.resolve();
+    expect(resolved).toBe(false);
+    releaseNested();
+    await waiting;
   });
 
   it("waitForRevalidation resolves immediately when no inflight requests", async () => {
@@ -551,6 +589,13 @@ describe("resolveData", () => {
       expect(mockFetch).not.toHaveBeenCalled();
     });
 
+    it("rejects non-finite fresh ttl values", async () => {
+      await expect(resolveData(bundledData, { ...defaultConfig, freshTtl: Number.NaN }, {
+        memoryCache: createMockMemoryCache<string[]>(),
+        fs: createMemFs(),
+      })).rejects.toThrow("freshTtl");
+    });
+
     it("concurrent revalidation requests are deduplicated", async () => {
       const memoryCache = createMockMemoryCache<string[]>();
       const revalidator = createRevalidator();
@@ -793,7 +838,7 @@ describe("createCachedResource", () => {
     await expect(memFs.readFile("/cache/test.json", "utf8")).rejects.toThrow();
   });
 
-  it("clear silently ignores filesystem delete errors", async () => {
+  it("clear reports filesystem delete errors", async () => {
     const memFs = createMemFs();
     memFs.unlink = () => Promise.reject(new Error("permission denied"));
     const mockFetch = createMockFetch(["net-a"]);
@@ -804,8 +849,21 @@ describe("createCachedResource", () => {
 
     await resource.get();
 
-    await expect(resource.clear()).resolves.not.toThrow();
+    await expect(resource.clear()).rejects.toThrow("permission denied");
     expect(resource.stats().memoryCacheSize).toBe(0);
+  });
+
+  it("isolates returned values from the memory cache", async () => {
+    const resource = createCachedResource({ items: ["fresh"] }, defaultConfig, {
+      fs: createMemFs(),
+      fetch: createMockFetch({ items: ["fresh"] }),
+    });
+
+    const first = await resource.get();
+    first.data.items.push("mutated");
+    const second = await resource.get();
+
+    expect(second.data.items).toEqual(["fresh"]);
   });
 
   it("stats returns memory cache size, max, and cache directory", async () => {
@@ -875,9 +933,16 @@ describe("loadFromDisk", () => {
     expect(result).toBeNull();
   });
 
+  it("rejects non-finite stale ttl values", async () => {
+    await expect(loadFromDisk<string[]>(
+      { cacheDir: "/cache", cacheName: "test", staleTtl: Number.NaN },
+      { fs: createMemFs() },
+    )).rejects.toThrow("staleTtl");
+  });
+
   it("returns null when the timestamp is in the future", async () => {
     const fs = createMemFs({
-      "/cache/test.json": JSON.stringify({ data: ["a"], timestamp: Date.now() + 1 }),
+      "/cache/test.json": JSON.stringify({ data: ["a"], timestamp: Date.now() + 60_000 }),
     });
 
     await expect(
@@ -959,13 +1024,23 @@ describe("persist", () => {
     });
   });
 
-  it("silently fails on write errors", async () => {
-    const fs = createMemFs();
-    fs.writeFile = () => Promise.reject(new Error("disk full"));
+  it("preserves prior contents when replacement writing fails", async () => {
+    const fs = createMemFs({
+      "/cache/test.json": JSON.stringify({ data: "prior", timestamp: 1 }),
+    });
+    fs.writeFile = async (path, data) => {
+      if (path === "/cache/test.json") {
+        await Promise.reject(new Error("unexpected direct overwrite"));
+      }
+      if (path.includes(".tmp")) {
+        throw new Error(`disk full: ${data}`);
+      }
+    };
 
     await expect(
       persist("data", { cacheDir: "/cache", cacheName: "test" }, { fs }),
     ).resolves.not.toThrow();
+    await expect(fs.readFile("/cache/test.json", "utf8")).resolves.toContain("prior");
   });
 
   it("does not write through a symlinked cache subdirectory", async () => {
@@ -976,6 +1051,7 @@ describe("persist", () => {
     const fs: DiskCacheFs = {
       readFile: (p, encoding) => fsPromises.readFile(p, encoding) as Promise<string>,
       writeFile: (p, data) => fsPromises.writeFile(p, data) as Promise<void>,
+      rename: (from, to) => fsPromises.rename(from, to) as Promise<void>,
       mkdir: (p, options) => fsPromises.mkdir(p, options) as Promise<void>,
       unlink: (p) => fsPromises.unlink(p) as Promise<void>,
       realpath: (p) => fsPromises.realpath(p) as Promise<string>,
@@ -1005,13 +1081,13 @@ describe("removeFromDisk", () => {
     ).resolves.not.toThrow();
   });
 
-  it("silently ignores unlink errors", async () => {
-    const fs = createMemFs();
+  it("reports unlink errors other than missing files", async () => {
+    const fs = createMemFs({ "/cache/test.json": "cached" });
     fs.unlink = () => Promise.reject(new Error("permission denied"));
 
     await expect(
       removeFromDisk({ cacheDir: "/cache", cacheName: "test" }, { fs }),
-    ).resolves.not.toThrow();
+    ).rejects.toThrow("permission denied");
   });
 
   it("does not delete cache names outside the cache directory", async () => {

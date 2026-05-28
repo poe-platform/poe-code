@@ -3569,6 +3569,31 @@ describe("runCLI", () => {
     );
   });
 
+  it("passes a declared __proto__ option to the command handler", async () => {
+    const handler = vi.fn(async ({ params }: { params: Record<string, unknown> }) => params);
+
+    const inspect = defineCommand({
+      name: "inspect",
+      params: S.Object({
+        ["__proto__"]: S.Optional(S.String())
+      }),
+      handler
+    });
+
+    const root = defineGroup({
+      name: "toolcraft",
+      children: [inspect]
+    });
+
+    process.argv = ["node", "toolcraft", "inspect", "--proto", "visible", "--yes"];
+
+    await runCLI(root);
+
+    const params = handler.mock.calls[0]?.[0].params as Record<string, unknown>;
+    expect(Object.prototype.hasOwnProperty.call(params, "__proto__")).toBe(true);
+    expect(params["__proto__"]).toBe("visible");
+  });
+
   it("falls back to a short option when a command param collides with a global flag", async () => {
     const handler = vi.fn(async ({ params }: { params: { output: string } }) => params);
 

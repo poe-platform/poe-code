@@ -1969,7 +1969,9 @@ function setNestedValue(target: Record<string, unknown>, path: string[], value: 
 
   for (let index = 0; index < path.length - 1; index += 1) {
     const segment = path[index] ?? "";
-    const existing = cursor[segment];
+    const existing = Object.prototype.hasOwnProperty.call(cursor, segment)
+      ? cursor[segment]
+      : undefined;
 
     if (typeof existing === "object" && existing !== null) {
       cursor = existing as Record<string, unknown>;
@@ -1977,13 +1979,23 @@ function setNestedValue(target: Record<string, unknown>, path: string[], value: 
     }
 
     const next: Record<string, unknown> = {};
-    cursor[segment] = next;
+    Object.defineProperty(cursor, segment, {
+      value: next,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
     cursor = next;
   }
 
   const leaf = path[path.length - 1];
   if (leaf !== undefined) {
-    cursor[leaf] = value;
+    Object.defineProperty(cursor, leaf, {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
   }
 }
 

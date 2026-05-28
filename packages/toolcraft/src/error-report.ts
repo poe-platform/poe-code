@@ -327,10 +327,12 @@ function ownStructuredFields(error: Error): Record<string, unknown> {
       continue;
     }
 
-    fields[key] = redactStructuredErrorField(
-      key,
-      (error as unknown as Record<string, unknown>)[key]
-    );
+    Object.defineProperty(fields, key, {
+      value: redactStructuredErrorField(key, (error as unknown as Record<string, unknown>)[key]),
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
   }
 
   return fields;

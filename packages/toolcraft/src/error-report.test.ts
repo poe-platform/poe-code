@@ -229,4 +229,26 @@ describe("writeErrorReport", () => {
     expect(report).toContain('"refreshToken": "<redacted>"');
     expect(report).toContain("visible-label");
   });
+
+  it("preserves enumerable __proto__ structured error fields", async () => {
+    const error = new Error("boom");
+    Object.defineProperty(error, "__proto__", {
+      value: { requestId: "visible" },
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+
+    await writeErrorReport({
+      command,
+      commandPath: "widgets.create",
+      error,
+      errorReports: true,
+      projectRoot: "/repo"
+    });
+
+    const report = await readOnlyReportFile("/repo");
+    expect(report).toContain('"__proto__": {');
+    expect(report).toContain('"requestId": "visible"');
+  });
 });

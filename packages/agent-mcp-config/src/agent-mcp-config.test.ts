@@ -657,12 +657,20 @@ describe("standardShape", () => {
     expect(standardShape(entry)).toEqual({ command: "npx" });
   });
 
-  it("transforms http server to command with url", () => {
+  it("transforms http server with its url and headers", () => {
     const entry: McpServerEntry = {
       name: "test",
-      config: { transport: "http", url: "http://localhost:3000" }
+      config: {
+        transport: "http",
+        url: "http://localhost:3000",
+        headers: { Authorization: "Bearer secret" }
+      }
     };
-    expect(standardShape(entry)).toEqual({ command: "http://localhost:3000" });
+    expect(standardShape(entry)).toEqual({
+      type: "http",
+      url: "http://localhost:3000",
+      headers: { Authorization: "Bearer secret" }
+    });
   });
 });
 
@@ -721,14 +729,19 @@ describe("opencodeShape", () => {
     });
   });
 
-  it("transforms http server", () => {
+  it("transforms http server as a remote OpenCode MCP", () => {
     const entry: McpServerEntry = {
       name: "test",
-      config: { transport: "http", url: "http://localhost:3000" }
+      config: {
+        transport: "http",
+        url: "http://localhost:3000",
+        headers: { Authorization: "Bearer secret" }
+      }
     };
     expect(opencodeShape(entry)).toEqual({
-      type: "local",
-      command: ["http://localhost:3000"],
+      type: "remote",
+      url: "http://localhost:3000",
+      headers: { Authorization: "Bearer secret" },
       enabled: true
     });
   });

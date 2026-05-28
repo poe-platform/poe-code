@@ -8,12 +8,27 @@ export interface StandardShapeOutput {
   env?: Record<string, string>;
 }
 
-export interface OpencodeShapeOutput {
+export interface StandardHttpShapeOutput {
+  type: "http";
+  url: string;
+  headers?: Record<string, string>;
+}
+
+export interface OpencodeLocalShapeOutput {
   type: "local";
   command: string[];
   env?: Record<string, string>;
   enabled: boolean;
 }
+
+export interface OpencodeRemoteShapeOutput {
+  type: "remote";
+  url: string;
+  headers?: Record<string, string>;
+  enabled: boolean;
+}
+
+export type OpencodeShapeOutput = OpencodeLocalShapeOutput | OpencodeRemoteShapeOutput;
 
 export interface GooseStdioShapeOutput {
   type: "stdio";
@@ -32,6 +47,7 @@ export type GooseShapeOutput = GooseStdioShapeOutput | GooseHttpShapeOutput;
 
 export type ShapeOutput =
   | StandardShapeOutput
+  | StandardHttpShapeOutput
   | OpencodeShapeOutput
   | GooseShapeOutput;
 
@@ -70,7 +86,11 @@ export function standardShape(entry: McpServerEntry): ShapeOutput | undefined {
   }
 
   return {
-    command: entry.config.url
+    type: "http",
+    url: entry.config.url,
+    ...(entry.config.headers && Object.keys(entry.config.headers).length > 0
+      ? { headers: entry.config.headers }
+      : {})
   };
 }
 
@@ -101,9 +121,12 @@ export function opencodeShape(entry: McpServerEntry): OpencodeShapeOutput {
   }
 
   return {
-    type: "local",
-    command: [entry.config.url],
-    enabled
+    type: "remote",
+    url: entry.config.url,
+    enabled,
+    ...(entry.config.headers && Object.keys(entry.config.headers).length > 0
+      ? { headers: entry.config.headers }
+      : {})
   };
 }
 

@@ -18,6 +18,7 @@ export interface AgentChildProcessAttempt {
   args: string[];
   cwd?: string;
   exitCode: number;
+  signal?: NodeJS.Signals;
   stdout: string;
   stderr: string;
 }
@@ -228,7 +229,13 @@ function collectResult(
   const stderrDecoder = new StringDecoder("utf8");
   let stdout = "";
   let stderr = "";
-  let settled = false;
+  let childClosed = false;
+  let stdoutFinished = child.stdout === null;
+  let stderrFinished = child.stderr === null;
+  let exitCode = 1;
+  let exitSignal: NodeJS.Signals | null = null;
+  let processError: Error | undefined;
+  let outputError: Error | undefined;
 
   child.stdout?.on("data", (chunk: Buffer | string) => {
     stdout += typeof chunk === "string" ? chunk : stdoutDecoder.write(chunk);
@@ -238,30 +245,65 @@ function collectResult(
   });
 
   return new Promise((resolve) => {
-    const finish = (exitCode: number, error?: Error) => {
-      if (settled) return;
+    let settled = false;
+    const finish = () => {
+      if (settled || !childClosed || !stdoutFinished || !stderrFinished) return;
       settled = true;
       stdout += stdoutDecoder.end();
       stderr += stderrDecoder.end();
-      if (error && stderr.length === 0) {
+      const error = outputError ?? processError;
+      if (error !== undefined && stderr.length === 0) {
         stderr = error.message;
       }
       const attempt = createAttempt(spec, {
         stdout,
         stderr,
-        exitCode
+        exitCode: outputError !== undefined ? 1 : exitCode,
+        signal: exitSignal
       });
       resolve({ ...attempt, attempts: [attempt] });
     };
 
-    child.once("error", (error) => finish(1, error));
-    child.once("close", (code) => finish(code ?? 1));
+    child.stdout?.once("end", () => {
+      stdoutFinished = true;
+      finish();
+    });
+    child.stderr?.once("end", () => {
+      stderrFinished = true;
+      finish();
+    });
+    child.stdout?.once("error", (error) => {
+      outputError = error;
+      stdoutFinished = true;
+      finish();
+    });
+    child.stderr?.once("error", (error) => {
+      outputError = error;
+      stderrFinished = true;
+      finish();
+    });
+    child.once("error", (error) => {
+      processError = error;
+      if (child.pid === undefined) {
+        childClosed = true;
+        exitCode = 1;
+      }
+      finish();
+    });
+    child.once("close", (code, signal) => {
+      childClosed = true;
+      exitCode = code ?? 1;
+      exitSignal = signal;
+      finish();
+    });
   });
 }
 
 function createAttempt(
   spec: ExecutionSpec,
-  output: Pick<AgentChildProcessAttempt, "stdout" | "stderr" | "exitCode">
+  output: Pick<AgentChildProcessAttempt, "stdout" | "stderr" | "exitCode"> & {
+    signal: NodeJS.Signals | null;
+  }
 ): AgentChildProcessAttempt {
   return {
     kind: spec.kind,
@@ -269,6 +311,7 @@ function createAttempt(
     args: spec.resultArgs,
     ...(spec.options?.cwd ? { cwd: spec.options.cwd } : {}),
     exitCode: output.exitCode,
+    ...(output.signal !== null ? { signal: output.signal } : {}),
     stdout: output.stdout,
     stderr: output.stderr
   };

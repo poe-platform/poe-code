@@ -58,11 +58,13 @@ function createSpawnHarness() {
 
 function finish(
   child: FakeChild,
-  options: { stdout?: string; stderr?: string; exitCode?: number } = {}
+  options: { stdout?: string; stderr?: string; exitCode?: number; signal?: NodeJS.Signals | null } = {}
 ) {
-  child.stdout.emit("data", Buffer.from(options.stdout ?? ""));
-  child.stderr.emit("data", Buffer.from(options.stderr ?? ""));
-  child.emit("close", options.exitCode ?? 0, null);
+  child.stdout.push(options.stdout ?? "");
+  child.stderr.push(options.stderr ?? "");
+  child.emit("close", options.exitCode ?? 0, options.signal ?? null);
+  child.stdout.push(null);
+  child.stderr.push(null);
 }
 
 describe("@poe-code/agent-child-process", () => {
@@ -89,6 +91,7 @@ describe("@poe-code/agent-child-process", () => {
       args: string[];
       cwd?: string;
       exitCode: number;
+      signal?: NodeJS.Signals;
       stdout: string;
       stderr: string;
     }>();
@@ -189,6 +192,19 @@ describe("@poe-code/agent-child-process", () => {
     });
   });
 
+  it("waits for late stdout after close before resolving", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const resultPromise = execFile("npm", ["test"], { spawnProcess });
+    const child = children[0]!;
+
+    child.emit("close", 0, null);
+    child.stdout.push("late output");
+    child.stdout.push(null);
+    child.stderr.push(null);
+
+    await expect(resultPromise).resolves.toMatchObject({ stdout: "late output", exitCode: 0 });
+  });
+
   it("preserves UTF-8 characters split across stream chunks", async () => {
     const { children, spawnProcess } = createSpawnHarness();
     const resultPromise = execFile("npm", ["test"], { spawnProcess });
@@ -199,6 +215,8 @@ describe("@poe-code/agent-child-process", () => {
     children[0]!.stderr.emit("data", emoji.subarray(0, 1));
     children[0]!.stderr.emit("data", emoji.subarray(1));
     children[0]!.emit("close", 0, null);
+    children[0]!.stdout.push(null);
+    children[0]!.stderr.push(null);
 
     await expect(resultPromise).resolves.toMatchObject({
       stdout: "🙂",
@@ -817,13 +835,56 @@ describe("@poe-code/agent-child-process", () => {
     const { children, spawnProcess } = createSpawnHarness();
     const resultPromise = execFile("missing", [], { spawnProcess });
 
+    children[0]!.pid = undefined as unknown as number;
     children[0]!.emit("error", new Error("spawn failed"));
+    children[0]!.stdout.push(null);
+    children[0]!.stderr.push(null);
 
     await expect(resultPromise).resolves.toMatchObject({
       command: "missing",
       exitCode: 1,
       stderr: "spawn failed"
     });
+  });
+
+  it("does not settle on a nonterminal process error", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const handle = spawn("worker", [], { spawnProcess });
+    const child = children[0]!;
+
+    child.emit("error", new Error("kill failed"));
+    child.stdout.push("still running output");
+    finish(child);
+
+    await expect(handle.result).resolves.toMatchObject({
+      exitCode: 0,
+      stdout: "still running output",
+      stderr: "kill failed"
+    });
+  });
+
+  it("turns stdout stream errors into failed attempts", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const resultPromise = execFile("command", [], { spawnProcess });
+    const child = children[0]!;
+
+    child.stdout.emit("error", new Error("stdout pipe failed"));
+    child.emit("close", 0, null);
+    child.stderr.push(null);
+
+    await expect(resultPromise).resolves.toMatchObject({
+      exitCode: 1,
+      stderr: "stdout pipe failed"
+    });
+  });
+
+  it("preserves the signal that terminated a child", async () => {
+    const { children, spawnProcess } = createSpawnHarness();
+    const handle = spawn("worker", [], { spawnProcess });
+
+    finish(children[0]!, { exitCode: 1, signal: "SIGTERM" });
+
+    await expect(handle.result).resolves.toMatchObject({ signal: "SIGTERM" });
   });
 
   it("rejects synchronous spawn failures because no attempt exists", async () => {

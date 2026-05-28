@@ -164,7 +164,6 @@ export function createServer(options: ServerOptions): Server {
 
     if (method === "tools/call") {
       const toolName = params?.name as string | undefined;
-      const toolArgs = (params?.arguments as Record<string, unknown>) || {};
 
       if (!toolName) {
         return {
@@ -185,8 +184,21 @@ export function createServer(options: ServerOptions): Server {
         };
       }
 
+      const toolArgs = params?.arguments ?? {};
+      if (!areValidToolArguments(tool.inputSchema, toolArgs)) {
+        return {
+          error: {
+            code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,
+            message: "Invalid tool arguments",
+          },
+        };
+      }
+
       try {
         const handlerResult = await tool.handler(toolArgs);
+        if (hasContentArray(handlerResult) && !isCallToolResult(handlerResult)) {
+          throw new Error("Invalid tool result");
+        }
         const result: CallToolResult = isCallToolResult(handlerResult)
           ? handlerResult
           : { content: toContentBlocks(handlerResult) };
@@ -442,9 +454,64 @@ export function createServer(options: ServerOptions): Server {
 }
 
 function isCallToolResult(value: unknown): value is CallToolResult {
-  if (typeof value !== "object" || value === null || !("content" in value)) {
+  return hasContentArray(value) && value.content.every(isContentItem);
+}
+
+function hasContentArray(value: unknown): value is { content: unknown[] } {
+  return typeof value === "object" && value !== null && "content" in value
+    && Array.isArray((value as { content: unknown }).content);
+}
+
+function areValidToolArguments(schema: JSONSchema, value: unknown): value is Record<string, unknown> {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
     return false;
   }
 
-  return Array.isArray((value as { content: unknown }).content);
+  const argumentsObject = value as Record<string, unknown>;
+  for (const key of schema.required ?? []) {
+    if (!Object.hasOwn(argumentsObject, key)) {
+      return false;
+    }
+  }
+
+  for (const [key, property] of Object.entries(schema.properties)) {
+    if (!Object.hasOwn(argumentsObject, key)) {
+      continue;
+    }
+
+    const argument = argumentsObject[key];
+    if (
+      (property.type === "array" && !Array.isArray(argument))
+      || (property.type === "object" && (typeof argument !== "object" || argument === null || Array.isArray(argument)))
+      || (property.type !== "array" && property.type !== "object" && typeof argument !== property.type)
+    ) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
+function isContentItem(value: unknown): boolean {
+  if (typeof value !== "object" || value === null || !("type" in value)) {
+    return false;
+  }
+
+  const block = value as Record<string, unknown>;
+  if (block.type === "text") {
+    return typeof block.text === "string";
+  }
+
+  if (block.type === "image" || block.type === "audio") {
+    return typeof block.data === "string" && typeof block.mimeType === "string";
+  }
+
+  if (block.type !== "resource" || typeof block.resource !== "object" || block.resource === null) {
+    return false;
+  }
+
+  const resource = block.resource as Record<string, unknown>;
+  return typeof resource.uri === "string"
+    && typeof resource.mimeType === "string"
+    && (typeof resource.text === "string" || typeof resource.blob === "string");
 }

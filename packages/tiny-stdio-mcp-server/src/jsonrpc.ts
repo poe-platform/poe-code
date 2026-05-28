@@ -50,7 +50,31 @@ export function parseMessage(line: string): ParseResult | ParseError {
 
   const obj = parsed as Record<string, unknown>;
   const hasId = "id" in obj;
-  const id = typeof obj.id === "string" || typeof obj.id === "number" ? obj.id : null;
+  const id =
+    typeof obj.id === "string"
+      ? obj.id
+      : typeof obj.id === "number" && Number.isFinite(obj.id)
+        ? obj.id
+        : obj.id === null
+          ? null
+          : null;
+
+  if (
+    "params" in obj
+    && (
+      typeof obj.params !== "object"
+      || obj.params === null
+    )
+  ) {
+    return {
+      success: false,
+      error: {
+        code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
+        message: "Invalid Request",
+      },
+      id,
+    };
+  }
 
   if (obj.jsonrpc !== "2.0") {
     return {
@@ -86,7 +110,7 @@ export function parseMessage(line: string): ParseResult | ParseError {
     };
   }
 
-  if (id === null) {
+  if (obj.id !== null && id === null) {
     return {
       success: false,
       error: {

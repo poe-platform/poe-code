@@ -32,6 +32,22 @@ describe("tiny-stdio-mcp-server public entry point", () => {
   it("keeps HandleResult out of the runtime namespace", () => {
     expect(api).not.toHaveProperty("HandleResult");
   });
+
+  it("does not permit mutation of exported error codes", () => {
+    const errorCodes = JSON_RPC_ERROR_CODES as unknown as { INVALID_REQUEST: number };
+    const originalCode = errorCodes.INVALID_REQUEST;
+
+    try {
+      expect(() => {
+        errorCodes.INVALID_REQUEST = 7;
+      }).toThrow();
+      expect(JSON_RPC_ERROR_CODES.INVALID_REQUEST).toBe(-32600);
+    } finally {
+      if (errorCodes.INVALID_REQUEST !== originalCode) {
+        errorCodes.INVALID_REQUEST = originalCode;
+      }
+    }
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -128,6 +144,15 @@ describe("parseMessage", () => {
       expect(result.success).toBe(true);
       if (result.success && !result.isNotification) {
         expect(result.request.id).toBe("");
+      }
+    });
+
+    it("parses a request with an explicit null id", () => {
+      const result = parseMessage('{"jsonrpc":"2.0","id":null,"method":"ping"}');
+
+      expect(result.success).toBe(true);
+      if (result.success && !result.isNotification) {
+        expect(result.request.id).toBeNull();
       }
     });
 
@@ -290,6 +315,22 @@ describe("parseMessage", () => {
   });
 
   describe("invalid request errors", () => {
+    it("returns invalid request for primitive params", () => {
+      expect(parseMessage('{"jsonrpc":"2.0","id":1,"method":"test","params":"bad"}')).toEqual({
+        success: false,
+        error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request" },
+        id: 1,
+      });
+    });
+
+    it("returns invalid request for non-finite numeric ids", () => {
+      expect(parseMessage('{"jsonrpc":"2.0","id":1e999,"method":"test"}')).toEqual({
+        success: false,
+        error: { code: JSON_RPC_ERROR_CODES.INVALID_REQUEST, message: "Invalid Request" },
+        id: null,
+      });
+    });
+
     it("returns invalid request for missing jsonrpc field", () => {
       const result = parseMessage('{"id":1,"method":"test"}');
 
@@ -925,6 +966,15 @@ describe("defineSchema", () => {
         properties: {},
         required: [],
       });
+    });
+
+    it("preserves a declared __proto__ property", () => {
+      const schema = defineSchema(
+        Object.fromEntries([["__proto__", { type: "string" as const }]])
+      );
+
+      expect(Object.hasOwn(schema.properties, "__proto__")).toBe(true);
+      expect(schema.properties.__proto__).toEqual({ type: "string" });
     });
   });
 
@@ -1905,6 +1955,52 @@ describe("server protocol handlers", () => {
           message: "Missing required parameter",
         },
       });
+    });
+
+    it("does not invoke tools with invalid schema arguments", async () => {
+      const handler = vi.fn(async () => "unexpected");
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "validated",
+        "Validated",
+        defineSchema({ name: { type: "string" }, count: { type: "number" } }),
+        handler
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "validated",
+          arguments: { count: "many" },
+        })
+      ).resolves.toEqual({ error: { code: -32602, message: "Invalid tool arguments" } });
+      expect(handler).not.toHaveBeenCalled();
+    });
+
+    it("rejects malformed direct CallToolResult values", async () => {
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "malformed",
+        "Malformed",
+        defineSchema({}),
+        async () => ({ content: [{ type: "text" }] } as never)
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", { name: "malformed", arguments: {} })
+      ).resolves.toEqual({
+        result: {
+          content: [{ type: "text", text: "Error: Invalid tool result" }],
+          isError: true,
+        },
+      });
+    });
+
+    it("rejects non-finite ToolError codes", () => {
+      expect(() => new ToolError(Number.POSITIVE_INFINITY, "overflow")).toThrow(
+        "ToolError code must be a finite number"
+      );
     });
   });
 

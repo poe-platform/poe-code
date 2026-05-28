@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, renameSync, rmSync, writeFileSync, existsSync, readdirSync } from "node:fs";
+import { mkdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -45,6 +45,28 @@ function ensureRemoved(targetPath) {
   rmSync(targetPath, { recursive: true, force: true });
 }
 
+export function assertSafeBundledPath(packageDir, targetPath, fileSystem = { existsSync, realpathSync }) {
+  let existingPath = targetPath;
+  while (!fileSystem.existsSync(existingPath)) {
+    const parentPath = path.dirname(existingPath);
+    if (parentPath === existingPath) {
+      throw new Error("Bundled dependency output must remain inside the package directory.");
+    }
+    existingPath = parentPath;
+  }
+
+  const canonicalPackageDir = fileSystem.realpathSync(packageDir);
+  const canonicalTargetPath = fileSystem.realpathSync(existingPath);
+  const relativePath = path.relative(canonicalPackageDir, canonicalTargetPath);
+  if (
+    relativePath === ".." ||
+    relativePath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativePath)
+  ) {
+    throw new Error("Bundled dependency output must remain inside the package directory.");
+  }
+}
+
 function prepare(packageDir, dependencyNames) {
   const tempDir = path.join(os.tmpdir(), `poe-code-bundled-workspace-deps-${process.pid}`);
   ensureRemoved(tempDir);
@@ -68,6 +90,9 @@ function prepare(packageDir, dependencyNames) {
     const targetDir = dependencyTargetDir(packageDir, dependencyName);
     const extractedDir = path.join(parentDir, "package");
 
+    assertSafeBundledPath(packageDir, parentDir);
+    assertSafeBundledPath(packageDir, targetDir);
+    assertSafeBundledPath(packageDir, extractedDir);
     mkdirSync(parentDir, { recursive: true });
     ensureRemoved(targetDir);
     ensureRemoved(extractedDir);
@@ -76,8 +101,10 @@ function prepare(packageDir, dependencyNames) {
     bundledDirs.push(targetDir);
   }
 
+  const stampPath = path.join(packageDir, stampFileName);
+  assertSafeBundledPath(packageDir, stampPath);
   writeFileSync(
-    path.join(packageDir, stampFileName),
+    stampPath,
     JSON.stringify({ bundledDirs }, null, 2) + "\n",
     "utf8"
   );
@@ -90,8 +117,10 @@ function cleanup(packageDir) {
     return;
   }
 
+  assertSafeBundledPath(packageDir, stampPath);
   const { bundledDirs } = readJson(stampPath);
   for (const bundledDir of bundledDirs) {
+    assertSafeBundledPath(packageDir, bundledDir);
     ensureRemoved(bundledDir);
     const parentDir = path.dirname(bundledDir);
     if (existsSync(parentDir) && readdirSync(parentDir).length === 0) {
@@ -107,20 +136,22 @@ function cleanup(packageDir) {
   ensureRemoved(stampPath);
 }
 
-const [mode, packageDirArg, ...dependencyNames] = process.argv.slice(2);
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const [mode, packageDirArg, ...dependencyNames] = process.argv.slice(2);
 
-if (mode !== "prepare" && mode !== "cleanup") {
-  throw new Error('Expected mode to be "prepare" or "cleanup".');
-}
+  if (mode !== "prepare" && mode !== "cleanup") {
+    throw new Error('Expected mode to be "prepare" or "cleanup".');
+  }
 
-if (typeof packageDirArg !== "string") {
-  throw new Error("Expected a package directory argument.");
-}
+  if (typeof packageDirArg !== "string") {
+    throw new Error("Expected a package directory argument.");
+  }
 
-const packageDir = path.resolve(process.cwd(), packageDirArg);
+  const packageDir = path.resolve(process.cwd(), packageDirArg);
 
-if (mode === "prepare") {
-  prepare(packageDir, dependencyNames);
-} else {
-  cleanup(packageDir);
+  if (mode === "prepare") {
+    prepare(packageDir, dependencyNames);
+  } else {
+    cleanup(packageDir);
+  }
 }

@@ -779,6 +779,9 @@ describe("ErrorLogger (read-only environments)", () => {
     const syncFs = createSyncFs({});
 
     vi.spyOn(syncFs, "existsSync").mockImplementation((target: string) => {
+      if (target === "/") {
+        return true;
+      }
       if (target === logDir) {
         return false;
       }
@@ -807,6 +810,66 @@ describe("ErrorLogger (read-only environments)", () => {
     expect(appendSpy).not.toHaveBeenCalled();
     expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
     expect(consoleErrorSpy.mock.calls[0][0]).toContain("ERROR: run command");
+  });
+
+  it("does not write logs through a symlinked log directory", () => {
+    const syncFs = createSyncFs({ "/outside/.keep": "" });
+    syncFs.mkdirSync("/root/.poe-code", { recursive: true });
+    syncFs.symlinkSync("/outside", logDir);
+
+    const logger = new ErrorLogger({
+      fs: syncFs,
+      logDir,
+      logToStderr: false,
+      now
+    });
+
+    logger.logWarning("outside write blocked");
+
+    expect(syncFs.existsSync("/outside/errors.log")).toBe(false);
+    expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+    expect(consoleErrorSpy.mock.calls[0][0]).toContain("outside write blocked");
+  });
+
+  it("keeps retained backups when a later rotation rename fails", () => {
+    const backup1 = `${logFile}.1`;
+    const backup2 = `${logFile}.2`;
+    const syncFs = createSyncFs({
+      [logFile]: "current log at limit",
+      [backup1]: "newer history",
+      [backup2]: "oldest retained history"
+    });
+    const renameSync = syncFs.renameSync.bind(syncFs);
+    let failed = false;
+
+    vi.spyOn(syncFs, "renameSync").mockImplementation(
+      (source: string, target: string) => {
+        if (!failed && target === backup2 && source !== backup1) {
+          failed = true;
+          throw new Error("rotation rename denied");
+        }
+        renameSync(source, target);
+      }
+    );
+
+    const logger = new ErrorLogger({
+      fs: syncFs,
+      logDir,
+      logToStderr: false,
+      maxSize: 1,
+      maxBackups: 2,
+      now
+    });
+
+    logger.logWarning("new warning");
+
+    expect(syncFs.readFileSync(backup2, "utf8")).toBe("oldest retained history");
+    expect(syncFs.readFileSync(backup1, "utf8")).toBe("newer history");
+    expect(syncFs.readFileSync(logFile, "utf8")).toContain("new warning");
+    expect(consoleErrorSpy).toHaveBeenCalledWith(
+      "Error during log rotation:",
+      expect.any(Error)
+    );
   });
 });
 

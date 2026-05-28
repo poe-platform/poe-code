@@ -4,6 +4,7 @@ type SyncFileSystem = {
   appendFileSync(file: string, data: string): void;
   existsSync(path: string): boolean;
   mkdirSync(path: string, options?: { recursive?: boolean }): void;
+  realpathSync(path: string): string;
   renameSync(oldPath: string, newPath: string): void;
   statSync(path: string): { size: number };
   unlinkSync(path: string): void;
@@ -188,24 +189,61 @@ export class ErrorLogger {
       return;
     }
 
-    // Delete oldest backup
-    const oldestPath = this.buildBackupPath(this.maxBackups);
-    if (this.fs.existsSync(oldestPath)) {
-      this.fs.unlinkSync(oldestPath);
-    }
+    const moves = [
+      { source: this.logFilePath, target: this.buildBackupPath(1) },
+      ...Array.from({ length: this.maxBackups - 1 }, (_, index) => ({
+        source: this.buildBackupPath(index + 1),
+        target: this.buildBackupPath(index + 2)
+      })),
+      { source: this.buildBackupPath(this.maxBackups), target: undefined }
+    ]
+      .filter(({ source }) => this.fs.existsSync(source))
+      .map(({ source, target }, index) => {
+        let tempPath = `${this.logFilePath}.rotation-tmp-${index}`;
+        while (this.fs.existsSync(tempPath)) {
+          tempPath += "-next";
+        }
+        return { source, target, tempPath, staged: false, committed: false };
+      });
 
-    // Rotate existing backups
-    for (let i = this.maxBackups - 1; i >= 1; i--) {
-      const source = this.buildBackupPath(i);
-      if (this.fs.existsSync(source)) {
-        const target = this.buildBackupPath(i + 1);
-        this.fs.renameSync(source, target);
+    try {
+      for (const move of moves) {
+        this.fs.renameSync(move.source, move.tempPath);
+        move.staged = true;
       }
-    }
 
-    // Move current log to backup.1
-    if (this.fs.existsSync(this.logFilePath)) {
-      this.fs.renameSync(this.logFilePath, this.buildBackupPath(1));
+      for (const move of moves) {
+        if (move.target) {
+          this.fs.renameSync(move.tempPath, move.target);
+          move.committed = true;
+        } else {
+          this.fs.unlinkSync(move.tempPath);
+          move.staged = false;
+        }
+      }
+    } catch (error) {
+      for (const move of moves) {
+        try {
+          if (move.committed && move.target) {
+            this.fs.renameSync(move.target, move.tempPath);
+            move.committed = false;
+          }
+        } catch (rollbackError) {
+          void rollbackError;
+        }
+      }
+
+      for (const move of [...moves].reverse()) {
+        try {
+          if (move.staged) {
+            this.fs.renameSync(move.tempPath, move.source);
+            move.staged = false;
+          }
+        } catch (rollbackError) {
+          void rollbackError;
+        }
+      }
+      throw error;
     }
   }
 
@@ -216,11 +254,31 @@ export class ErrorLogger {
   private ensureLogDirectory(): boolean {
     const directory = path.dirname(this.logFilePath);
     try {
+      let existingAncestor = directory;
+      while (!this.fs.existsSync(existingAncestor)) {
+        const parent = path.dirname(existingAncestor);
+        if (parent === existingAncestor) {
+          return false;
+        }
+        existingAncestor = parent;
+      }
+
+      if (this.fs.realpathSync(existingAncestor) !== path.resolve(existingAncestor)) {
+        return false;
+      }
+
       if (!this.fs.existsSync(directory)) {
         this.fs.mkdirSync(directory, { recursive: true });
       }
+
+      if (this.fs.realpathSync(directory) !== path.resolve(directory)) {
+        return false;
+      }
+
       if (!this.fs.existsSync(this.logFilePath)) {
         this.fs.writeFileSync(this.logFilePath, "", { encoding: "utf8" });
+      } else if (this.fs.realpathSync(this.logFilePath) !== path.resolve(this.logFilePath)) {
+        return false;
       }
 
       return true;

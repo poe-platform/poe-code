@@ -11,6 +11,7 @@ import {
   type OAuthSessionStore,
   type StoredOAuthSession,
 } from "./index.js";
+import { createAuthStoreClientStore } from "./client/auth-store-session-store.js";
 
 const RESOURCE_URL = "https://resource.example.com/mcp";
 const NON_CANONICAL_RESOURCE_URL = "HTTPS://RESOURCE.EXAMPLE.COM:443/mcp#ignored";
@@ -634,6 +635,31 @@ describe("createAuthStoreSessionStore", () => {
 });
 
 describe("createDefaultOAuthClientProvider", () => {
+  it("does not emit malformed persisted access tokens as bearer credentials", async () => {
+    const malformedSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      tokens: { accessToken: 42, tokenType: "Bearer", expiresAt: null },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+    } as unknown as StoredOAuthSession;
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore: {
+        async load() { return malformedSession; },
+        async save() {},
+        async clear() {},
+      },
+    });
+
+    expect(await createAuthorizedHeaders(provider, vi.fn() as typeof fetch)).toBeNull();
+  });
+
   it("fails before authorization when the server metadata does not advertise S256", async () => {
     const pair = createOAuthPair();
     const provider = createDefaultOAuthClientProvider({
@@ -1132,6 +1158,39 @@ describe("createDefaultOAuthClientProvider", () => {
     const authorizationHeader = await createAuthorizedHeaders(provider, vi.fn() as typeof fetch);
 
     expect(authorizationHeader).toBeNull();
+  });
+
+  it("does not submit malformed persisted refresh credentials", async () => {
+    const malformedSession = {
+      resource: RESOURCE_URL,
+      authorizationServer: AUTHORIZATION_SERVER,
+      client: { clientId: "static-client" },
+      discovery: {
+        resourceMetadataUrl: RESOURCE_METADATA_URL,
+        resourceMetadata: createDiscoveryResult().resourceMetadata,
+        authorizationServerMetadata: createDiscoveryResult().authorizationServerMetadata,
+      },
+      tokens: {
+        accessToken: "expired-access",
+        refreshToken: { secret: true },
+        tokenType: "Bearer",
+        expiresAt: 1,
+      },
+    } as unknown as StoredOAuthSession;
+    const fetchMock = vi.fn();
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "static", clientId: "static-client" },
+      browser: { openBrowser: vi.fn() },
+      sessionStore: {
+        async load() { return malformedSession; },
+        async save() {},
+        async clear() {},
+      },
+      now: () => 10_000,
+    });
+
+    expect(await createAuthorizedHeaders(provider, fetchMock as typeof fetch)).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("reauthorizes after an invalid token challenge when no refresh credential exists", async () => {
@@ -1694,6 +1753,31 @@ describe("createDefaultOAuthClientProvider", () => {
       expect(result.error?.message).toBe("OAuth client registration response missing client_id");
     }
     expect(pair.authorizationRequests).toHaveLength(0);
+  });
+
+  it.each([
+    { clientId: "", clientSecret: undefined },
+    { clientId: "stored-client", clientSecret: 42 },
+  ])("discards unusable persisted dynamic client registrations", async (storedClient) => {
+    const fs = createFsFromVolume(new Volume()).promises as MemFsPromises;
+    const authStore = createAuthStoreConfig(fs);
+    const clientStore = createAuthStoreClientStore(authStore);
+    await clientStore.save(
+      AUTHORIZATION_SERVER,
+      storedClient as unknown as { clientId: string; clientSecret?: string }
+    );
+    const pair = createOAuthPair();
+    const provider = createDefaultOAuthClientProvider({
+      client: { mode: "dynamic", metadata: { clientName: "poe-code test" } },
+      browser: { openBrowser: pair.openBrowser },
+      sessionStore: createMemorySessionStore(),
+      authStore,
+      now: () => 10_000,
+    });
+
+    await authorizeProvider(provider, pair.fetchMock as typeof fetch);
+
+    expect(pair.registrationBodies).toHaveLength(1);
   });
 
   it("falls back to a configured static client_id when registration_endpoint is missing", async () => {

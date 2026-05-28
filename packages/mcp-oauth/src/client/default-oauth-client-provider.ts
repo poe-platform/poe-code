@@ -421,7 +421,7 @@ export function createDefaultOAuthClientProvider(
   }
 
   async function loadSession(resource: string): Promise<StoredOAuthSession | null> {
-    return sessionStore.load(resource);
+    return normalizeLoadedSession(await sessionStore.load(resource));
   }
 
   async function saveSession(resource: string, session: StoredOAuthSession): Promise<void> {
@@ -444,6 +444,11 @@ export function createDefaultOAuthClientProvider(
     }
 
     const client = await clientStore.load(issuer);
+    if (client !== null && !isUsableClient(client)) {
+      await clientStore.clear(issuer);
+      return null;
+    }
+
     registeredClients.set(issuer, client);
     return client;
   }
@@ -522,6 +527,48 @@ function hasCachedAccessToken(
   session: StoredOAuthSession | null
 ): session is StoredOAuthSession & { tokens: StoredOAuthTokens } {
   return session?.tokens?.accessToken !== undefined;
+}
+
+function normalizeLoadedSession(session: StoredOAuthSession | null): StoredOAuthSession | null {
+  if (session === null) {
+    return null;
+  }
+
+  if (!isUsableClient(session.client)) {
+    return { ...session, client: { clientId: "" }, tokens: undefined };
+  }
+
+  return isUsableTokens(session.tokens)
+    ? session
+    : { ...session, tokens: undefined };
+}
+
+function isUsableClient(client: StoredOAuthSession["client"]): boolean {
+  return (
+    typeof client.clientId === "string"
+    && client.clientId.trim().length > 0
+    && (
+      client.clientSecret === undefined
+      || (typeof client.clientSecret === "string" && client.clientSecret.trim().length > 0)
+    )
+  );
+}
+
+function isUsableTokens(tokens: StoredOAuthTokens | undefined): tokens is StoredOAuthTokens {
+  if (tokens === undefined) {
+    return true;
+  }
+
+  return (
+    typeof tokens.accessToken === "string"
+    && tokens.accessToken.trim().length > 0
+    && tokens.tokenType === "Bearer"
+    && (tokens.expiresAt === null || (typeof tokens.expiresAt === "number" && Number.isFinite(tokens.expiresAt)))
+    && (
+      tokens.refreshToken === undefined
+      || (typeof tokens.refreshToken === "string" && tokens.refreshToken.trim().length > 0)
+    )
+  );
 }
 
 function getClientMetadata(

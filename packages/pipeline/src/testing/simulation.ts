@@ -124,6 +124,10 @@ function createSimulationFs(options: SimulationOptions): { fs: SimulationFs; pla
         mtimeMs: Number(stat.mtimeMs)
       };
     },
+    lstat: async (filePath) => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     mkdir: (filePath, mkdirOptions) => rawFs.mkdir(filePath, mkdirOptions) as Promise<void>,
     rmdir: (filePath) => rawFs.rmdir(filePath) as Promise<void>,
     rename: (oldPath, newPath) => rawFs.rename(oldPath, newPath) as Promise<void>

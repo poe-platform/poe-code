@@ -75,6 +75,7 @@ export interface PipelineFileSystem {
   writeFile(path: string, data: string, options?: { encoding?: BufferEncoding }): Promise<void>;
   readdir(path: string): Promise<string[]>;
   stat(path: string): Promise<PipelineFileStat>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rmdir(path: string): Promise<void>;
   rename(oldPath: string, newPath: string): Promise<void>;

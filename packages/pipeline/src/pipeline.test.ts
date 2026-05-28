@@ -1,3 +1,4 @@
+import path from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { loadPipelineConfig, loadResolvedSteps } from "./config/loader.js";
@@ -270,6 +271,39 @@ describe("loadResolvedSteps", () => {
     expect(Object.hasOwn(config.steps, "__proto__")).toBe(true);
     expect(config.steps.__proto__).toEqual({ mode: "yolo", prompt: "Execute custom step" });
     expect(Object.getPrototypeOf(config.steps)).toBe(Object.prototype);
+  });
+
+  it("rejects traversal in named step configuration names", async () => {
+    await expect(
+      loadResolvedSteps({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFs({
+          "/repo/.poe-code/pipeline/steps/placeholder.yaml": "steps: {}\n",
+          "/repo/.poe-code/pipeline/outside.yaml": "steps:\n  implement:\n    prompt: Escaped instructions\n"
+        }),
+        name: "../outside"
+      })
+    ).rejects.toThrow(/invalid pipeline step config name/i);
+  });
+
+  it.each([
+    ["project steps file", "/repo/.poe-code/pipeline/steps.yaml", "/outside/steps.yaml"],
+    ["global pipeline directory", "/home/test/.poe-code/pipeline", "/outside"],
+    ["global steps directory", "/home/test/.poe-code/pipeline/steps", "/outside/steps"],
+    ["project steps directory", "/repo/.poe-code/pipeline/steps", "/outside/steps"]
+  ])("rejects a symlinked %s", async (_label, linkPath, targetPath) => {
+    const volume = Volume.fromJSON({
+      "/outside/steps.yaml": "steps:\n  review:\n    prompt: External step\n",
+      "/outside/steps/default.yaml": "steps:\n  review:\n    prompt: External step\n"
+    });
+    volume.mkdirSync(path.dirname(linkPath), { recursive: true });
+    volume.symlinkSync(targetPath, linkPath);
+    const fs = createFsFromVolume(volume).promises;
+
+    await expect(
+      loadResolvedSteps({ cwd: "/repo", homeDir: "/home/test", fs, name: "default" })
+    ).rejects.toThrow(/symbolic link/i);
   });
 
   it("throws a clear error when plan extends an unknown named config", async () => {
@@ -784,6 +818,23 @@ describe("loadPipelineConfig", () => {
         }
       }
     });
+  });
+
+  it("rejects a symlinked global pipeline configuration directory", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/.poe-code/pipeline/config.yaml": "extends: true\n",
+      "/outside/config.yaml": "plan_directory: external/plans\n"
+    });
+    volume.mkdirSync("/home/test/.poe-code", { recursive: true });
+    volume.symlinkSync("/outside", "/home/test/.poe-code/pipeline");
+
+    await expect(
+      loadPipelineConfig({
+        cwd: "/repo",
+        homeDir: "/home/test",
+        fs: createFsFromVolume(volume).promises
+      })
+    ).rejects.toThrow(/symbolic link/i);
   });
 
   it("does not auto-extend when the project config sets extends to false", async () => {

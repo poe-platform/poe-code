@@ -43,6 +43,10 @@ function createDefaultFs(): PipelineFileSystem {
         mtimeMs: stat.mtimeMs
       } satisfies PipelineFileStat;
     },
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     mkdir: async (filePath: string, options?: { recursive?: boolean }) => {
       await fsPromises.mkdir(filePath, options);
     },

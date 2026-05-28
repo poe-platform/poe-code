@@ -39,4 +39,11 @@ describe("renderPng options", () => {
     expect(renderMock).toHaveBeenCalled();
     expect(png).toEqual(Buffer.from([1, 2, 3]));
   });
+
+  it("does not allow consumers to replace bundled font paths", () => {
+    expect(Object.isFrozen(JETBRAINS_MONO_FONT_FILES)).toBe(true);
+    expect(() => {
+      (JETBRAINS_MONO_FONT_FILES as unknown as string[])[0] = "/tmp/unexpected-font.ttf";
+    }).toThrow();
+  });
 });

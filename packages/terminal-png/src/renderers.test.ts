@@ -120,6 +120,41 @@ describe("parseAnsi", () => {
   it("ignores incomplete rgb parameters instead of applying channel styles", () => {
     expect(parseAnsi("\u001b[38;2;1;2mX")).toEqual([createRun("X")]);
   });
+
+  it("applies horizontal cursor repositioning before later output", () => {
+    expect(parseAnsi("ready\u001b[1GFAIL")).toEqual([createRun("FAILy")]);
+  });
+
+  it("overwrites a previous cell after backspace", () => {
+    expect(parseAnsi("PASS\bF")).toEqual([createRun("PASF")]);
+  });
+
+  it("recognizes C1 CSI styling controls", () => {
+    expect(parseAnsi("\u009b31mRED\u009b0m")).toEqual([
+      createRun("RED", { fg: { type: "ansi4", index: 1 } })
+    ]);
+  });
+
+  it("renders carriage return updates as overwritten terminal cells", () => {
+    expect(parseAnsi("loading 0%\rloading 100%\n")).toEqual([
+      createRun("loading 100%"),
+      createRun("\n")
+    ]);
+  });
+
+  it("consumes OSC hyperlink metadata while retaining the label", () => {
+    expect(parseAnsi("\u001b]8;;https://secret.example/token\u0007click\u001b]8;;\u0007")).toEqual([
+      createRun("click")
+    ]);
+  });
+
+  it("moves vertically for a vertical tab without rendering its control byte", () => {
+    expect(parseAnsi("A\vB")).toEqual([
+      createRun("A"),
+      createRun("\n"),
+      createRun(" B")
+    ]);
+  });
 });
 
 describe("font", () => {

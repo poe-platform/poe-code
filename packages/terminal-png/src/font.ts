@@ -28,12 +28,12 @@ function createFontFace(base64: string, weight: 400 | 700, style: "normal" | "it
 }
 
 export const JETBRAINS_MONO_BASE64 = readWebfontBase64("JetBrainsMono-Regular.woff2");
-export const JETBRAINS_MONO_FONT_FILES = [
+export const JETBRAINS_MONO_FONT_FILES = Object.freeze([
   resolveAssetPath("jetbrains-mono-400-normal.ttf"),
   resolveAssetPath("jetbrains-mono-700-normal.ttf"),
   resolveAssetPath("jetbrains-mono-400-italic.ttf"),
   resolveAssetPath("jetbrains-mono-700-italic.ttf")
-] as const;
+] as const);
 export const JETBRAINS_MONO_TTF_PATH = JETBRAINS_MONO_FONT_FILES[0];
 
 export const FONT_FACE_CSS = [

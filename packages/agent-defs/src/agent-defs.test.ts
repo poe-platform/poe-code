@@ -67,6 +67,17 @@ describe("agent-defs package", () => {
     expect(allAgents).toEqual(expectedAgents);
   });
 
+  it("does not allow mutation of the canonical registry", () => {
+    expect(() => (allAgents as AgentDefinition[]).push(codexAgent)).toThrow();
+  });
+
+  it("does not allow exported definitions to redirect binaries", () => {
+    expect(() => {
+      codexAgent.binaryName = "unexpected-binary";
+    }).toThrow();
+    expect(codexAgent.binaryName).toBe("codex");
+  });
+
   it("has no duplicate agent ids", () => {
     const ids = allAgents.map((a) => a.id);
     const uniqueIds = new Set(ids);
@@ -109,6 +120,10 @@ describe("agent-defs package", () => {
     expect(resolveAgentId("GeMiNi")).toBe("gemini-cli");
     expect(resolveAgentId("kimi-cli")).toBe("kimi");
     expect(resolveAgentId("GOOSE")).toBe("goose");
+  });
+
+  it("resolves aliases with surrounding whitespace", () => {
+    expect(resolveAgentId("  CLAUDE  ")).toBe("claude-code");
   });
 
   it("returns undefined for unknown agents", () => {

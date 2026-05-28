@@ -427,6 +427,45 @@ describe("discoverOAuthMetadata", () => {
       hintedAuthorizationServerMetadataUrl,
     ]);
   });
+
+  it("refetches an explicitly repeated resource_metadata hint", async () => {
+    const resourceUrl = "https://resource.example.com/tenant/mcp";
+    const resourceMetadataUrl =
+      "https://resource.example.com/.well-known/oauth-protected-resource/tenant/mcp";
+    const firstIssuer = "https://auth.example.com/issuer-a";
+    const secondIssuer = "https://auth.example.com/issuer-b";
+    let rotated = false;
+    const fetchMock = vi.fn(async (input: string | URL): Promise<Response> => {
+      const url = input.toString();
+      if (url === resourceMetadataUrl) {
+        return jsonResponse({
+          resource: resourceUrl,
+          authorization_servers: [rotated ? secondIssuer : firstIssuer],
+        });
+      }
+      const issuer = url.includes("issuer-a") ? firstIssuer : secondIssuer;
+      return jsonResponse({
+        issuer,
+        authorization_endpoint: `${issuer}/authorize`,
+        token_endpoint: `${issuer}/token`,
+        response_types_supported: ["code"],
+        code_challenge_methods_supported: ["S256"],
+      });
+    });
+    const discoveryClient = new OAuthMetadataDiscovery({ fetch: fetchMock });
+
+    expect((await discoveryClient.discover(resourceUrl)).authorizationServer).toBe(firstIssuer);
+    rotated = true;
+    expect(
+      (await discoveryClient.discover(resourceUrl, { resourceMetadataUrl })).authorizationServer
+    ).toBe(secondIssuer);
+    expect(fetchMock.mock.calls.map(([input]) => input.toString())).toEqual([
+      resourceMetadataUrl,
+      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-a",
+      resourceMetadataUrl,
+      "https://auth.example.com/.well-known/oauth-authorization-server/issuer-b",
+    ]);
+  });
 });
 
 describe("parseBearerWwwAuthenticateHeader", () => {
@@ -463,6 +502,13 @@ describe("parseBearerWwwAuthenticateHeader", () => {
       raw:
         'Digest abc123==, Bearer abc123==, Bearer realm="mcp", resource_metadata="https://resource.example.com/.well-known/oauth-protected-resource/mcp"',
     });
+  });
+
+  it("preserves a __proto__ auth parameter as parsed data", () => {
+    const challenge = parseBearerWwwAuthenticateHeader('Bearer __proto__="visible"');
+
+    expect(Object.hasOwn(challenge!.params, "__proto__")).toBe(true);
+    expect(challenge?.params.__proto__).toBe("visible");
   });
 });
 

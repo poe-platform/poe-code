@@ -237,11 +237,7 @@ export class OAuthMetadataDiscovery {
       resourceMetadataUrl
     );
     const memoryCachedResult = this.memoryCache.get(cacheKey);
-    if (
-      memoryCachedResult !== undefined &&
-      (resourceMetadataUrl === undefined
-        || memoryCachedResult.resourceMetadataUrl === resourceMetadataLocation)
-    ) {
+    if (memoryCachedResult !== undefined && resourceMetadataUrl === undefined) {
       return memoryCachedResult;
     }
 
@@ -249,8 +245,7 @@ export class OAuthMetadataDiscovery {
     if (
       sharedCachedResult !== null &&
       sharedCachedResult !== undefined &&
-      (resourceMetadataUrl === undefined
-        || sharedCachedResult.resourceMetadataUrl === resourceMetadataLocation)
+      resourceMetadataUrl === undefined
     ) {
       this.memoryCache.set(cacheKey, sharedCachedResult);
       return sharedCachedResult;
@@ -530,7 +525,7 @@ export function parseBearerWwwAuthenticateHeader(
     }
 
     index = skipOptionalWhitespace(headerValue, scheme.nextIndex);
-    const params: Record<string, string> = {};
+    const params: Record<string, string> = Object.create(null) as Record<string, string>;
 
     if (index < headerValue.length && headerValue[index] !== ",") {
       const token68 = readToken68(headerValue, index);

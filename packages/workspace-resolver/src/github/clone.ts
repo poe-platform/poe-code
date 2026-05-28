@@ -32,6 +32,7 @@ export async function cloneOrUpdate(
       "git clone failed"
     );
   } else {
+    await assertNotSymbolicLink(options, cacheDir);
     const statusResult = await options.exec("git", ["status", "--porcelain"], { cwd: cacheDir });
     assertExecSuccess(statusResult, "git status failed");
     if (statusResult.exitCode === 0 && statusResult.stdout.trim().length === 0) {
@@ -54,6 +55,13 @@ export async function cloneOrUpdate(
   }
 
   return cacheDir;
+}
+
+async function assertNotSymbolicLink(options: WorkspaceResolverOptions, target: string): Promise<void> {
+  const stats = await options.fs.lstat(target);
+  if (stats.isSymbolicLink()) {
+    throw new Error(`Workspace cache path "${target}" must not be a symbolic link.`);
+  }
 }
 
 async function pathExists(

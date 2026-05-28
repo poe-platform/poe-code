@@ -19,6 +19,10 @@ export async function createWritableCheckout(
   const revision = locator.ref ?? "HEAD";
 
   await options.fs.mkdir(path.dirname(cwd), { recursive: true });
+  const checkoutParentStats = await options.fs.lstat(path.dirname(cwd));
+  if (checkoutParentStats.isSymbolicLink()) {
+    throw new Error(`Workspace checkout parent "${path.dirname(cwd)}" must not be a symbolic link.`);
+  }
   await assertExecSuccess(
     await options.exec("git", ["worktree", "add", "--detach", cwd, revision], {
       cwd: sourceCwd

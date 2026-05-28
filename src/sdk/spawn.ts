@@ -114,6 +114,7 @@ export function spawn(
           mkdir: async (target, resolveOptions) =>
             await nodeFs.mkdir(target, resolveOptions).then(() => undefined),
           stat: async (target) => await nodeFs.stat(target),
+          lstat: async (target) => await nodeFs.lstat(target),
           rm: async (target, resolveOptions) => await nodeFs.rm(target, resolveOptions)
         },
         exec: runCommand

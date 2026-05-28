@@ -472,6 +472,7 @@ async function resolveProcessWorkspace(
         await nodeFs.mkdir(target, options);
       },
       stat: async (target) => await nodeFs.stat(target),
+      lstat: async (target) => await nodeFs.lstat(target),
       rm: async (target, options) => {
         await nodeFs.rm(target, options);
       }

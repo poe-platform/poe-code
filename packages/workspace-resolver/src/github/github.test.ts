@@ -70,6 +70,7 @@ describe("github clone helpers", () => {
       stat: async () => {
         throw new Error("missing");
       },
+      lstat: async () => ({ isSymbolicLink: () => false }),
       mkdir: async () => {
         mkdirCalls += 1;
         if (mkdirCalls > 1) {
@@ -134,6 +135,20 @@ describe("github clone helpers", () => {
         exec: async () => ({ stdout: "", stderr: "fatal: not a git repository", exitCode: 128 })
       }))
     ).rejects.toThrow("fatal: not a git repository");
+  });
+
+  it("rejects a symbolic-link cached repository path", async () => {
+    const fs: ResolverFileSystem = {
+      mkdir: vi.fn(async () => undefined),
+      stat: vi.fn(async () => ({ isDirectory: () => true })),
+      lstat: vi.fn(async () => ({ isSymbolicLink: () => true }))
+    };
+    const exec = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(cloneOrUpdate(locator, createOptions({ fs, exec }))).rejects.toThrow(
+      "must not be a symbolic link"
+    );
+    expect(exec).not.toHaveBeenCalled();
   });
 
   it("rejects a failed update of a clean cached checkout", async () => {
@@ -227,7 +242,8 @@ describe("createWritableCheckout", () => {
       mode: "edit",
       fs: {
         mkdir: vi.fn(async () => undefined),
-        stat: vi.fn(async () => ({ isDirectory: () => true }))
+        stat: vi.fn(async () => ({ isDirectory: () => true })),
+        lstat: vi.fn(async () => ({ isSymbolicLink: () => false }))
       },
       exec: async (_command, args) => args[1] === "remove"
         ? { stdout: "", stderr: "still in use", exitCode: 1 }
@@ -249,6 +265,7 @@ describe("createWritableCheckout", () => {
         }
       }),
       stat: vi.fn(async () => ({ isDirectory: () => true })),
+      lstat: vi.fn(async () => ({ isSymbolicLink: () => false })),
       rm: vi.fn(async () => undefined)
     };
 
@@ -259,5 +276,19 @@ describe("createWritableCheckout", () => {
       ["worktree", "add"],
       ["worktree", "remove"]
     ]);
+  });
+
+  it("rejects a symbolic-link checkout parent", async () => {
+    const fs: ResolverFileSystem = {
+      mkdir: vi.fn(async () => undefined),
+      stat: vi.fn(async () => ({ isDirectory: () => true })),
+      lstat: vi.fn(async () => ({ isSymbolicLink: () => true }))
+    };
+    const exec = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(createWritableCheckout(locator, "/cache", createOptions({ fs, exec }))).rejects.toThrow(
+      "must not be a symbolic link"
+    );
+    expect(exec).not.toHaveBeenCalled();
   });
 });

@@ -60,6 +60,7 @@ describe("acpToTrace", () => {
         input: { path: "README.md" },
         output: "contents",
         metadata: {
+          toolCallId: "tc-1",
           startTs: 100,
           toolName: "Read",
           endTs: 250,
@@ -150,6 +151,41 @@ describe("acpToTrace", () => {
     });
   });
 
+  it("accepts contexts without optional usage metrics", () => {
+    const trace = acpToTrace(createContext({ usage: undefined }));
+
+    expect(trace.root.metrics).toEqual({});
+  });
+
+  it("converts internal tool lifecycle events into a tool span", () => {
+    const events = [
+      {
+        event: "tool_start",
+        id: "tc-1",
+        kind: "exec",
+        title: "pwd",
+        input: { command: "pwd" },
+      },
+      {
+        event: "tool_complete",
+        id: "tc-1",
+        kind: "exec",
+        path: "/repo",
+      },
+    ] as unknown as AcpEvent[];
+
+    const trace = acpToTrace(createContext({ events }));
+
+    expect(trace.root.children).toMatchObject([
+      {
+        name: "tool_call:exec",
+        input: { command: "pwd" },
+        output: "/repo",
+        metadata: { toolCallId: "tc-1" },
+      },
+    ]);
+  });
+
   it("carries ctx.metadata.aborted into root metadata", () => {
     const trace = acpToTrace(createContext({
       metadata: {
@@ -192,6 +228,7 @@ describe("acpToTrace", () => {
         input: { query: "status" },
         output: { ok: true },
         metadata: {
+          toolCallId: "tc-1",
           startTs: "not-a-number",
           phase: "end",
           endTs: "also-not-a-number",

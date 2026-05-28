@@ -9,17 +9,18 @@ export interface OtelSpanLike {
 }
 
 export interface OtelTracerLike {
-  startSpan(name: string, options?: { startTime?: number }): OtelSpanLike;
+  startSpan(name: string, options?: { startTime?: number }, parent?: OtelSpanLike): OtelSpanLike;
 }
 
 export function emitToOtel(trace: AcpTrace, tracer: OtelTracerLike): void {
   emitSpan(trace.root, tracer);
 }
 
-function emitSpan(traceSpan: AcpTraceSpan, tracer: OtelTracerLike): void {
+function emitSpan(traceSpan: AcpTraceSpan, tracer: OtelTracerLike, parent?: OtelSpanLike): void {
   const span = tracer.startSpan(
     traceSpan.name,
     traceSpan.startTs !== undefined ? { startTime: traceSpan.startTs } : undefined,
+    parent,
   );
 
   try {
@@ -29,7 +30,7 @@ function emitSpan(traceSpan: AcpTraceSpan, tracer: OtelTracerLike): void {
     }
 
     for (const child of traceSpan.children) {
-      emitSpan(child, tracer);
+      emitSpan(child, tracer, span);
     }
   } finally {
     if (traceSpan.endTs !== undefined) {

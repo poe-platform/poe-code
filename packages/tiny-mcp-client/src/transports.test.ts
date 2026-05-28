@@ -1342,6 +1342,37 @@ describe("JsonRpcMessageLayer sendRequest", () => {
   });
 });
 
+describe("JsonRpcMessageLayer UTF-8 input", () => {
+  it("preserves parameters split across UTF-8 chunks", async () => {
+    const output = new PassThrough();
+    const message = Buffer.from(
+      `${JSON.stringify({ jsonrpc: "2.0", id: 1, method: "echo", params: { text: "🧪" } })}\n`,
+      "utf8"
+    );
+    const markerStart = message.indexOf(Buffer.from("🧪", "utf8"));
+    const input = Readable.from(
+      (async function* () {
+        yield message.subarray(0, markerStart + 2);
+        await Promise.resolve();
+        yield message.subarray(markerStart + 2);
+      })()
+    );
+    trackForCleanup(output);
+    const outputIterator = readLines(output)[Symbol.asyncIterator]();
+    const layer = new JsonRpcMessageLayer(input, output);
+    const handler = vi.fn((params: unknown) => ({ params }));
+    layer.onRequest("echo", handler);
+
+    const responseLine = await outputIterator.next();
+    if (responseLine.done) {
+      throw new Error("Expected JSON-RPC response line to be written");
+    }
+
+    expect(handler).toHaveBeenCalledWith({ text: "🧪" }, expect.anything());
+    expect(JSON.parse(responseLine.value)).toMatchObject({ result: { params: { text: "🧪" } } });
+  });
+});
+
 describe("JsonRpcMessageLayer sendNotification", () => {
   it("writes notification without id and does not create pending request entry", async () => {
     const input = new PassThrough();

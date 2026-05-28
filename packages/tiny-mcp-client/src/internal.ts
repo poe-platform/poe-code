@@ -2940,9 +2940,13 @@ function normalizeLine(line: string): string {
 
 export async function* readLines(stream: Readable): AsyncGenerator<string> {
   let buffer = "";
+  const decoder = new TextDecoder();
 
   for await (const chunk of stream as AsyncIterable<unknown>) {
-    buffer += chunkToString(chunk);
+    buffer +=
+      chunk instanceof Uint8Array
+        ? decoder.decode(chunk, { stream: true })
+        : decoder.decode() + String(chunk);
 
     while (true) {
       const newlineIndex = buffer.indexOf("\n");
@@ -2955,6 +2959,8 @@ export async function* readLines(stream: Readable): AsyncGenerator<string> {
       yield normalizeLine(line);
     }
   }
+
+  buffer += decoder.decode();
 
   if (buffer.length > 0) {
     yield normalizeLine(buffer);

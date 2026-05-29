@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Command } from "commander";
 import { createCliContainer } from "../container.js";
-import { createHomeFs } from "../../../tests/test-helpers.js";
+import { createHomeFs, createTestProgram } from "../../../tests/test-helpers.js";
 import { registerProviderCommand } from "./provider.js";
+import { executeConfigure } from "./configure.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
 import type { AuthProvider } from "@poe-code/providers";
@@ -346,6 +347,109 @@ describe("provider login", () => {
     });
   });
 
+  it("does not persist a credential when provider endpoint storage fails", async () => {
+    const container = createContainer(fs);
+    await fs.writeFile(`${homeDir}/.config`, "not a directory", { encoding: "utf8" });
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--yes",
+        "provider",
+        "login",
+        "cloudflare",
+        "--api-key",
+        "sk-cloudflare-test",
+        "--base-url",
+        "https://gateway.example.test"
+      ])
+    ).rejects.toThrow();
+
+    await expect(container.providerRegistry.resolveCredential("cloudflare")).rejects.toThrow();
+  });
+
+  it("refreshes configured service credentials after provider key rotation", async () => {
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "cloudflare",
+      "--api-key",
+      "sk-old",
+      "--base-url",
+      "https://gateway.example.test"
+    ]);
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "cloudflare",
+      model: "@cf/meta/llama-3.1-8b-instruct"
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "cloudflare",
+      "--api-key",
+      "sk-new",
+      "--base-url",
+      "https://gateway.example.test"
+    ]);
+
+    const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
+    expect(settings.env.ANTHROPIC_CUSTOM_HEADERS).toBe("Authorization: Bearer sk-new");
+  });
+
+  it("refreshes configured service endpoints after provider base URL updates", async () => {
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "cloudflare",
+      "--api-key",
+      "sk-cloudflare-test",
+      "--base-url",
+      "https://old-gateway.example.test"
+    ]);
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "cloudflare",
+      model: "@cf/meta/llama-3.1-8b-instruct"
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "cloudflare",
+      "--api-key",
+      "sk-cloudflare-test",
+      "--base-url",
+      "https://new-gateway.example.test"
+    ]);
+
+    const settings = JSON.parse(await fs.readFile(`${homeDir}/.claude/settings.json`, "utf8"));
+    expect(settings.env.ANTHROPIC_BASE_URL).toBe("https://new-gateway.example.test/anthropic");
+  });
+
   it("prompts for Cloudflare credentials and stores shape URLs from a gateway base URL", async () => {
     const gatewayRoot =
       "https://gateway.ai.cloudflare.com/v1/fdb283a7279a7b4d1f3577dbb2089ff2/poe-ai-gateway/";
@@ -591,7 +695,7 @@ describe("provider logout", () => {
 
     await program.parseAsync(["node", "cli", "provider", "logout", "poe"]);
 
-    expect(logoutSpy).toHaveBeenCalledWith("poe");
+    expect(logoutSpy).toHaveBeenCalledWith("poe", { store: expect.any(Object) });
   });
 
   it("uses a preview store when logging out in dry-run mode", async () => {
@@ -617,6 +721,30 @@ describe("provider logout", () => {
 
     expect(logs.join("\n")).toContain("credentials.anthropic.enc");
     await expect(fs.stat(`${homeDir}/.poe-code/credentials.anthropic.enc`)).resolves.toBeTruthy();
+  });
+
+  it("removes provider credentials deployed into configured service files", async () => {
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--yes",
+      "provider",
+      "login",
+      "anthropic",
+      "--api-key",
+      "sk-anthropic-test"
+    ]);
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "claude-code", {
+      provider: "anthropic"
+    });
+
+    await program.parseAsync(["node", "cli", "provider", "logout", "anthropic"]);
+
+    await expect(fs.stat(`${homeDir}/.claude/settings.json`)).rejects.toThrow();
   });
 
   it("warns when an environment credential remains after logout", async () => {

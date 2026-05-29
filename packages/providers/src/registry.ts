@@ -8,6 +8,7 @@ import { resolveApiShape } from "./compatibility.js";
 export interface LoginContext {
   promptForSecret?: PromptForSecret;
   envVars?: Record<string, string | undefined>;
+  store?: SecretStore;
   resolvePreferredLogin?: (input: {
     provider: AuthProvider;
     apiKey?: string;
@@ -79,7 +80,7 @@ export class ProviderRegistry {
 
   async login(id: string, options: ApiKeyLoginOptions, context?: LoginContext): Promise<void> {
     const provider = this.requireProvider(id);
-    const store = this.requireStore(id);
+    const store = context?.store ?? this.requireStore(id);
     if (provider.auth.kind !== "api-key") {
       throw new Error(`Provider "${id}" does not use api-key auth.`);
     }

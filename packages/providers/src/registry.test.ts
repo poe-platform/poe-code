@@ -291,6 +291,27 @@ describe("ProviderRegistry", () => {
     expect(stored).toBe("env-key");
   });
 
+  it("stores login credentials in an injected transaction store", async () => {
+    let defaultStored: string | null = null;
+    let transactionStored: string | null = null;
+    const registry = new ProviderRegistry([anthropicProvider], () => ({
+      get: async () => defaultStored,
+      set: async (value: string) => { defaultStored = value; },
+      delete: async () => undefined
+    }));
+
+    await registry.login("anthropic", { apiKey: "transaction-key" }, {
+      store: {
+        get: async () => transactionStored,
+        set: async (value: string) => { transactionStored = value; },
+        delete: async () => undefined
+      }
+    });
+
+    expect(transactionStored).toBe("transaction-key");
+    expect(defaultStored).toBeNull();
+  });
+
   it("resolves credentials from explicit input, env, then provider store", async () => {
     const store = {
       get: async () => "stored-key",

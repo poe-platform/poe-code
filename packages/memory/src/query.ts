@@ -50,6 +50,10 @@ export async function selectQueryContext(
   question: string,
   budget: number
 ): Promise<QueryContext> {
+  if (!Number.isFinite(budget) || budget < 0) {
+    throw new Error("budget must be a finite non-negative number");
+  }
+
   const [indexText, pages] = await Promise.all([
     fs.readFile(path.join(root, MEMORY_INDEX_RELPATH), "utf8"),
     listPages(root)

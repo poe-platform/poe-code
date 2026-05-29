@@ -41,6 +41,10 @@ export async function startMemoryMcpServer(
       limit: { type: "number", optional: true }
     }),
     async ({ query, limit }: { query: string; limit?: number }) => {
+      if (limit !== undefined && (!Number.isInteger(limit) || limit < 0)) {
+        throw new Error("limit must be a non-negative integer");
+      }
+
       const hits = await handle.searchMemory(query);
       return { hits: typeof limit === "number" ? hits.slice(0, limit) : hits };
     }

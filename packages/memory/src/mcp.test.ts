@@ -121,4 +121,21 @@ describe("memory MCP helpers", () => {
     });
     expect(appendResult.error).toBeUndefined();
   });
+
+  it("rejects negative search result limits", async () => {
+    const handle = createHandle();
+    handle.searchMemory = vi.fn().mockResolvedValue([
+      { relPath: "pages/one.md", lineNumber: 1, line: "one" },
+    ]);
+    const { server } = await startMemoryMcpServer(handle, { allowWrites: false });
+    await server.handleMessage("initialize", { protocolVersion: "2025-11-25" });
+
+    const result = await server.handleMessage("tools/call", {
+      name: "search_memory",
+      arguments: { query: "one", limit: -1 },
+    });
+
+    expect(result.result).toMatchObject({ isError: true });
+    expect(handle.searchMemory).not.toHaveBeenCalled();
+  });
 });

@@ -89,6 +89,17 @@ describe("selectQueryContext", () => {
       /budget too small/i
     );
   });
+
+  it("rejects non-finite token budgets", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/pages/a.md": "# Alpha\n\nhello\n"
+    });
+
+    await expect(selectQueryContext("/repo/.poe-code/memory", "alpha", Number.NaN)).rejects.toThrow(
+      "budget must be a finite non-negative number"
+    );
+  });
 });
 
 describe("queryMemory", () => {

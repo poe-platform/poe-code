@@ -25,6 +25,19 @@ export async function executeLogout(program: Command, container: CliContainer): 
     projectFilePath: container.env.projectConfigPath
   });
 
+  let authenticatedProviders: Array<{ id: string; authenticated: boolean }> = [];
+  if (!flags.dryRun) {
+    authenticatedProviders = await Promise.all(
+      container.providerRegistry.list().map(async (provider) => ({
+        id: provider.id,
+        authenticated: await container.providerRegistry.isLoggedIn(provider.id)
+      }))
+    );
+    for (const provider of authenticatedProviders) {
+      await container.providerRegistry.logout(provider.id);
+    }
+  }
+
   for (const serviceName of Object.keys(configuredServices)) {
     const adapter = container.registry.get(serviceName);
     if (!adapter) {
@@ -40,16 +53,6 @@ export async function executeLogout(program: Command, container: CliContainer): 
     });
     resources.context.finalize();
     return;
-  }
-
-  const authenticatedProviders = await Promise.all(
-    container.providerRegistry.list().map(async (provider) => ({
-      id: provider.id,
-      authenticated: await container.providerRegistry.isLoggedIn(provider.id)
-    }))
-  );
-  for (const provider of authenticatedProviders) {
-    await container.providerRegistry.logout(provider.id);
   }
 
   const deleted = await deleteConfig({

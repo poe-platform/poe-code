@@ -1092,6 +1092,39 @@ describe("logout command", () => {
     expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
   });
 
+  it("deletes stored provider credentials before an unconfigure failure", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: vi.fn()
+    });
+    const adapter: ProviderService = createProviderStub({
+      name: "failing-service",
+      label: "Failing Service",
+      async unconfigure() {
+        throw new Error("cleanup failed");
+      }
+    });
+
+    container.registry.register(adapter);
+    await container.writeApiKey("sk-poe-LogoutFailureSecret1234567890abcdef");
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ configured_services: { "failing-service": { files: [] } } }),
+      { encoding: "utf8" }
+    );
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "logout"])).rejects.toThrow("cleanup failed");
+    await expect(container.providerRegistry.isLoggedIn("poe")).resolves.toBe(false);
+  });
+
   it("skips deletion during dry run", async () => {
     const fs = createMemFs();
     const logs: string[] = [];

@@ -392,6 +392,26 @@ describe("configure provider resolution", () => {
     });
   });
 
+  it("does not persist global codex configuration when isolated setup fails", async () => {
+    const container = createContainer(fs);
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.poe-code/codex`, "block isolated directory", {
+      encoding: "utf8"
+    });
+
+    await expect(
+      executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+        provider: "cloudflare",
+        apiKey: "partial-secret",
+        model: "partial-model",
+        baseUrl: "https://gateway.example.test"
+      })
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(`${homeDir}/.codex/config.toml`, "utf8")).rejects.toThrow();
+    expect(await loadConfiguredServices({ fs, filePath: configPath })).not.toHaveProperty("codex");
+  });
+
   it("configures chat-completions agents against Cloudflare with a /compat base URL", async () => {
     const container = createContainer(fs);
 

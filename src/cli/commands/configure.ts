@@ -1,4 +1,5 @@
 import type { Command } from "commander";
+import path from "node:path";
 import type { Stats } from "node:fs";
 import { parseAgentSpecifier, type AgentDefinition } from "@poe-code/agent-defs";
 import type { CliContainer } from "../container.js";
@@ -137,12 +138,23 @@ export async function executeConfigure(
     const tracker = createMutationTracker();
     const mutationLogger = createMutationReporter(resources.logger);
     const observers = combineMutationObservers(tracker.observers, mutationLogger);
+    const isolated = adapter.isolatedEnv;
+    const transaction =
+      !flags.dryRun && isolated && isolated.requiresConfig !== false
+        ? createOverlayFileSystem(providerContext.command.fs)
+        : undefined;
+    const executionCommand = transaction
+      ? createSilentDryRunCommand(providerContext.command, transaction.fs)
+      : providerContext.command;
+    const executionProviderContext = transaction
+      ? { ...providerContext, command: executionCommand }
+      : providerContext;
 
     await entry.configure(
       {
-        fs: providerContext.command.fs,
+        fs: executionCommand.fs,
         env: providerContext.env,
-        command: providerContext.command,
+        command: executionCommand,
         options: payload
       },
       observers
@@ -154,7 +166,7 @@ export async function executeConfigure(
 
     if (!flags.dryRun) {
       await saveConfiguredService({
-        fs: container.fs,
+        fs: executionCommand.fs,
         filePath: providerContext.env.configPath,
         projectFilePath: providerContext.env.projectConfigPath,
         service: canonicalService,
@@ -165,20 +177,21 @@ export async function executeConfigure(
       });
     }
 
-    const isolated = adapter.isolatedEnv;
     if (isolated && isolated.requiresConfig !== false) {
       const isolatedTracker = createMutationTracker();
       const isolatedLogger = createMutationReporter(resources.logger);
       const isolatedObservers = combineMutationObservers(isolatedTracker.observers, isolatedLogger);
       await applyIsolatedConfiguration({
         adapter: entry,
-        providerContext,
+        providerContext: executionProviderContext,
         payload,
         isolated,
         providerName: adapter.name,
         observers: isolatedObservers
       });
     }
+
+    await transaction?.commit();
   });
 
   if (skippedConfigured) {
@@ -257,9 +270,11 @@ function createNoopMutationObservers(): MutationObservers {
 function createOverlayFileSystem(base: FileSystem): {
   fs: FileSystem;
   hasMaterialChange(): Promise<boolean>;
+  commit(): Promise<void>;
 } {
   const writes = new Map<string, string | null>();
   const directories = new Set<string>();
+  const modes = new Map<string, number>();
 
   const readOverlayText = async (filePath: string): Promise<string> => {
     if (writes.has(filePath)) {
@@ -281,31 +296,65 @@ function createOverlayFileSystem(base: FileSystem): {
 
   const fs: FileSystem = {
     readFile,
-    async writeFile(filePath, content) {
+    async writeFile(filePath, content, options) {
+      await assertOverlayParentDirectory(filePath);
+      if (options?.flag === "wx" && (await overlayPathExists(filePath))) {
+        throw createFsError("EEXIST", filePath);
+      }
       writes.set(filePath, stringifyFileContent(content));
     },
-    async mkdir(directoryPath) {
+    async mkdir(directoryPath, options) {
+      if (await overlayPathExists(directoryPath)) {
+        if ((await fs.stat(directoryPath)).isDirectory()) {
+          return;
+        }
+        throw createFsError("EEXIST", directoryPath);
+      }
+      if (options?.recursive !== true) {
+        await assertOverlayParentDirectory(directoryPath);
+      } else {
+        await assertNoOverlayFileAncestor(directoryPath);
+        let currentPath = directoryPath;
+        while (!(await overlayPathExists(currentPath))) {
+          directories.add(currentPath);
+          const parentPath = path.dirname(currentPath);
+          if (parentPath === currentPath) {
+            break;
+          }
+          currentPath = parentPath;
+        }
+        return;
+      }
       directories.add(directoryPath);
     },
     async unlink(filePath) {
+      if (!(await overlayPathExists(filePath))) {
+        throw createNotFoundError(filePath);
+      }
       writes.set(filePath, null);
     },
     async stat(filePath) {
       if (directories.has(filePath)) {
-        return createOverlayStats();
+        return createOverlayStats(true);
       }
       if (writes.has(filePath)) {
         if (writes.get(filePath) === null) {
           throw createNotFoundError(filePath);
         }
-        return createOverlayStats();
+        return createOverlayStats(false);
       }
       return base.stat(filePath);
     },
     async lstat(filePath) {
-      return fs.stat(filePath);
+      if (directories.has(filePath) || writes.has(filePath)) {
+        return fs.stat(filePath);
+      }
+      return base.lstat(filePath);
     },
-    async symlink() {},
+    async symlink(target, filePath) {
+      await assertOverlayParentDirectory(filePath);
+      await base.symlink(target, filePath);
+    },
     async readlink(filePath) {
       return base.readlink(filePath);
     },
@@ -313,16 +362,80 @@ function createOverlayFileSystem(base: FileSystem): {
       return base.realpath(filePath);
     },
     async rename(from, to) {
+      await assertOverlayParentDirectory(to);
       writes.set(to, await readOverlayText(from));
       writes.set(from, null);
     },
     async readdir(directoryPath) {
-      return base.readdir(directoryPath);
+      const entries = new Set(await base.readdir(directoryPath).catch((error) => {
+        if (isNotFoundError(error)) {
+          return [];
+        }
+        throw error;
+      }));
+      for (const directory of directories) {
+        if (path.dirname(directory) === directoryPath) {
+          entries.add(path.basename(directory));
+        }
+      }
+      for (const [filePath, content] of writes) {
+        if (path.dirname(filePath) !== directoryPath) {
+          continue;
+        }
+        if (content === null) {
+          entries.delete(path.basename(filePath));
+        } else {
+          entries.add(path.basename(filePath));
+        }
+      }
+      return [...entries];
     },
     async rm(filePath) {
       writes.set(filePath, null);
     },
-    async chmod() {}
+    async chmod(filePath, mode) {
+      modes.set(filePath, mode);
+    }
+  };
+
+  const overlayPathExists = async (filePath: string): Promise<boolean> => {
+    try {
+      await fs.stat(filePath);
+      return true;
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return false;
+      }
+      throw error;
+    }
+  };
+
+  const assertOverlayParentDirectory = async (filePath: string): Promise<void> => {
+    const parentPath = path.dirname(filePath);
+    try {
+      const parent = await fs.stat(parentPath);
+      if (!parent.isDirectory()) {
+        throw createFsError("ENOTDIR", parentPath);
+      }
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        throw createNotFoundError(parentPath);
+      }
+      throw error;
+    }
+  };
+
+  const assertNoOverlayFileAncestor = async (directoryPath: string): Promise<void> => {
+    let currentPath = directoryPath;
+    while (currentPath !== path.dirname(currentPath)) {
+      if (await overlayPathExists(currentPath)) {
+        if (!(await fs.stat(currentPath)).isDirectory()) {
+          throw createFsError("ENOTDIR", currentPath);
+        }
+        return;
+      }
+      currentPath = path.dirname(currentPath);
+    }
   };
 
   return {
@@ -349,6 +462,30 @@ function createOverlayFileSystem(base: FileSystem): {
         }
       }
       return false;
+    },
+    async commit() {
+      for (const directoryPath of [...directories].sort(
+        (left, right) => left.split(path.sep).length - right.split(path.sep).length
+      )) {
+        await base.mkdir(directoryPath, { recursive: true });
+      }
+      for (const [filePath, content] of writes) {
+        if (filePath.includes(".mutation-tmp-") && content === null) {
+          continue;
+        }
+        if (content === null) {
+          await base.unlink(filePath).catch((error) => {
+            if (!isNotFoundError(error)) {
+              throw error;
+            }
+          });
+        } else {
+          await base.writeFile(filePath, content, { encoding: "utf8" });
+        }
+      }
+      for (const [filePath, mode] of modes) {
+        await base.chmod?.(filePath, mode);
+      }
     }
   };
 }
@@ -360,16 +497,22 @@ function stringifyFileContent(content: string | NodeJS.ArrayBufferView): string 
   return Buffer.from(content.buffer, content.byteOffset, content.byteLength).toString("utf8");
 }
 
-function createOverlayStats(): Stats {
+function createOverlayStats(directory: boolean): Stats {
   return {
-    isFile: () => true,
-    isDirectory: () => false,
+    isFile: () => !directory,
+    isDirectory: () => directory,
     isBlockDevice: () => false,
     isCharacterDevice: () => false,
     isSymbolicLink: () => false,
     isFIFO: () => false,
     isSocket: () => false
   } as Stats;
+}
+
+function createFsError(code: string, filePath: string): NodeJS.ErrnoException {
+  const error = new Error(`${code}: operation failed, '${filePath}'`) as NodeJS.ErrnoException;
+  error.code = code;
+  return error;
 }
 
 async function pathExists(fs: FileSystem, filePath: string): Promise<boolean> {

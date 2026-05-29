@@ -250,13 +250,13 @@ function createDockerEnv(input: {
     },
     shell() {
       const shellSpec = input.spec.shellSpec;
-      return this.exec({
-        command: shellSpec?.command ?? input.spec.env.SHELL ?? "sh",
-        ...(shellSpec?.args ? { args: shellSpec.args } : {}),
-        cwd: input.spec.cwd,
-        env: shellSpec && "env" in shellSpec ? shellSpec.env : input.spec.env,
-        stdin: "inherit",
-        stdout: "inherit",
+    return this.exec({
+      command: shellSpec?.command ?? input.spec.env.SHELL ?? "sh",
+      ...(shellSpec?.args ? { args: shellSpec.args } : {}),
+      cwd: shellSpec?.cwd ?? input.spec.cwd,
+      env: shellSpec && "env" in shellSpec ? shellSpec.env : input.spec.env,
+      stdin: "inherit",
+      stdout: "inherit",
         stderr: "inherit",
         tty: true
       });

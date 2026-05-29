@@ -291,6 +291,46 @@ describe("dockerExecutionEnvFactory", () => {
     await expect(handle.result).resolves.toEqual({ exitCode: 1 });
   });
 
+  it("uses the interactive shell working directory", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0 }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        hostRunner: runner,
+        shellSpec: { command: "bash", cwd: "/interactive" }
+      })
+    );
+
+    env.shell();
+
+    expect(runner.specs[1]?.args).toContain("/interactive");
+    expect(runner.specs[1]?.args).not.toContain("/repo");
+  });
+
+  it("forwards interactive shell cancellation signals to docker exec", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 1 }
+    ]);
+    const controller = new AbortController();
+    controller.abort();
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        hostRunner: runner,
+        shellSpec: { command: "bash", signal: controller.signal }
+      })
+    );
+
+    const handle = env.shell();
+
+    expect(runner.specs[1]).toMatchObject({ signal: controller.signal });
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+  });
+
   it("uploads and downloads the workspace through docker cp tarballs", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0, stdout: ["container-id\n"] },

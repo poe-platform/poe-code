@@ -436,6 +436,19 @@ describe("AcpTransport", () => {
     });
   });
 
+  it("settles disposal even when a killed child never emits close", async () => {
+    const mock = createMockChildProcess();
+    mock.kill.mockImplementation(() => true);
+    vi.mocked(spawnChildProcess).mockReturnValue(mock.child);
+    const transport = new AcpTransport({ command: "poe-agent" });
+    const reason = new Error("stop now");
+
+    transport.dispose(reason);
+
+    await expect(transport.closed).resolves.toMatchObject({ reason });
+    expect(mock.kill).toHaveBeenCalledOnce();
+  });
+
   it("rejects pending requests when the process errors", async () => {
     const mock = createMockChildProcess();
     vi.mocked(spawnChildProcess).mockReturnValue(mock.child);

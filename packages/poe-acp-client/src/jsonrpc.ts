@@ -684,6 +684,14 @@ export function formatSessionUpdate(
   update: SessionUpdate,
   meta?: AcpMeta
 ): string {
+  if (
+    update.sessionUpdate === "usage_update" &&
+    update.cost != null &&
+    !Number.isFinite(update.cost.amount)
+  ) {
+    throw new Error("usage_update cost amount must be finite");
+  }
+
   const params: SessionNotification = {
     sessionId,
     update,

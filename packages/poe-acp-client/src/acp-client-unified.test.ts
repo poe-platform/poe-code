@@ -2796,6 +2796,15 @@ describe("formatSessionUpdate", () => {
       },
     });
   });
+
+  it("rejects non-finite usage cost amounts before serialization", () => {
+    expect(() => formatSessionUpdate("session-1", {
+      sessionUpdate: "usage_update",
+      used: 1,
+      size: 2,
+      cost: { amount: Number.POSITIVE_INFINITY, currency: "USD" },
+    })).toThrow("usage_update cost amount must be finite");
+  });
 });
 
 describe("parseSessionUpdate", () => {

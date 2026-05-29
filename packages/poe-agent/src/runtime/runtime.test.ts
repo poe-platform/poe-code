@@ -2753,6 +2753,25 @@ describe("runAcpCore", () => {
     }
   });
 
+  it("retries transient completion disposal failures on the error path", async () => {
+    const disposeRun = vi.fn()
+      .mockRejectedValueOnce(new Error("transient dispose failure"))
+      .mockResolvedValueOnce(undefined);
+
+    const events = await collectEvents(
+      runAcpCore({
+        prompt: "ok",
+        runContext: createRunContext(),
+        host: createHost(),
+        model: createModel([{ message: { content: "done", toolCalls: [] } }]),
+        disposeRun
+      })
+    );
+
+    expect(events.at(-1)?.type).toBe("session.error");
+    expect(disposeRun).toHaveBeenCalledTimes(2);
+  });
+
   it("completes normally when postIteration token budget is not exceeded", async () => {
     const runContext = createRunContext();
     runContext.hooks.add(createTokenBudget(40));

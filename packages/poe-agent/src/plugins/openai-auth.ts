@@ -6,6 +6,11 @@ export async function resolveOpenaiApiKey(explicit: string | undefined): Promise
     return normalizedExplicitApiKey;
   }
 
+  const environmentApiKey = toNonEmptyString(process.env.POE_API_KEY);
+  if (environmentApiKey) {
+    return environmentApiKey;
+  }
+
   const { store } = createSecretStore({
     backendEnvVar: "POE_AUTH_BACKEND",
     fileStore: {

@@ -198,6 +198,38 @@ describe("agent builder", () => {
     expect(createModelMock).toHaveBeenCalledOnce();
   });
 
+  it("overlays explicit run credentials onto provider options", async () => {
+    const plugin = openaiChatCompletionsPlugin({
+      apiKey: "plugin-key",
+      baseUrl: "https://configured.example.com/v1",
+      timeout: 5
+    });
+    const provider = plugin.providers?.[0];
+    const createModelMock = vi.fn(async (_modelId: string, ctx: Record<string, unknown>) => {
+      expect(ctx.options).toEqual({
+        apiKey: "run-key",
+        baseUrl: "https://runtime.example.com/v1",
+        timeout: 5
+      });
+      return createModel(
+        [{ message: { content: "done", toolCalls: [] } }],
+        []
+      );
+    });
+
+    if (!provider) {
+      throw new Error("Expected openai chat completions provider.");
+    }
+    provider.createModel = createModelMock;
+
+    await agent().model("custom/provider-model").use(plugin).run("hello", {
+      apiKey: "run-key",
+      baseUrl: "https://runtime.example.com/v1"
+    });
+
+    expect(createModelMock).toHaveBeenCalledOnce();
+  });
+
   it("routes gpt-* model ids to the openai responses provider before the catch-all provider", async () => {
     const responsesPlugin = openaiResponsesPlugin();
     const chatPlugin = openaiChatCompletionsPlugin();

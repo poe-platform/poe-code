@@ -702,8 +702,9 @@ function resolveClientBaseUrl(baseUrl: string | undefined): string | undefined {
     return explicit;
   }
 
-  if (toNonEmptyString(process.env.OPENAI_BASE_URL) !== undefined) {
-    return undefined;
+  const environmentBaseUrl = toNonEmptyString(process.env.POE_BASE_URL);
+  if (environmentBaseUrl !== undefined) {
+    return environmentBaseUrl;
   }
 
   return DEFAULT_BASE_URL;

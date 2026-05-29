@@ -386,7 +386,7 @@ class ImmutableAgentBuilder implements AgentBuilder {
             fetch: options.fetch ?? globalThis.fetch,
             signal: runContext.abortController.signal,
             logger: runContext.logger,
-            options: getResolvedProviderOptions(provider)
+            options: mergeRunProviderOptions(getResolvedProviderOptions(provider), options)
           };
 
           return provider.createModel(modelName, providerContext);
@@ -427,6 +427,18 @@ class ImmutableAgentBuilder implements AgentBuilder {
       throw error;
     }
   }
+}
+
+function mergeRunProviderOptions(providerOptions: unknown, runOptions: AgentRunOptions): unknown {
+  if (providerOptions === null || typeof providerOptions !== "object" || Array.isArray(providerOptions)) {
+    return providerOptions;
+  }
+
+  return {
+    ...providerOptions,
+    ...(runOptions.apiKey === undefined ? {} : { apiKey: runOptions.apiKey }),
+    ...(runOptions.baseUrl === undefined ? {} : { baseUrl: runOptions.baseUrl })
+  };
 }
 
 const defaultTranscriptFs: TranscriptFsApi = {

@@ -1,4 +1,4 @@
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import type { AnySchema, ObjectSchema, Static } from "toolcraft-schema";
 import type { Command, Group, HandlerEnv, HandlerFs, Scope } from "./index.js";
 import {
@@ -308,7 +308,10 @@ function createFs(): HandlerFs {
       } catch {
         return false;
       }
-    }
+    },
+    lstat: async (path: string) => lstat(path),
+    rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
+    unlink: async (path: string) => unlink(path)
   };
 }
 

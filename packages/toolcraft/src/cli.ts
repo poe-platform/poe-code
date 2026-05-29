@@ -1,4 +1,4 @@
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   Command as CommanderCommand,
@@ -2173,7 +2173,10 @@ function createFs(): HandlerFs {
       } catch {
         return false;
       }
-    }
+    },
+    lstat: async (path: string) => lstat(path),
+    rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
+    unlink: async (path: string) => unlink(path)
   };
 }
 

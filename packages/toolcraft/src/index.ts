@@ -61,6 +61,9 @@ export interface HandlerFs {
   readFile(path: string, encoding?: BufferEncoding): Promise<string>;
   writeFile(path: string, contents: string): Promise<void>;
   exists(path: string): Promise<boolean>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
+  rename(fromPath: string, toPath: string): Promise<void>;
+  unlink(path: string): Promise<void>;
 }
 
 export interface HandlerEnv {

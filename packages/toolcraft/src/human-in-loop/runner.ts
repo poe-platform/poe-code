@@ -1,4 +1,4 @@
-import { access, readFile, writeFile } from "node:fs/promises";
+import { access, lstat, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import { InvalidTransitionError, type Task } from "@poe-code/task-list";
 import type { Command, CommandNode, HandlerEnv, HandlerFs, HandlerContext } from "../index.js";
 import { UserError, resolveCommandSecrets } from "../index.js";
@@ -259,6 +259,9 @@ function createFs(): HandlerFs {
         return false;
       }
     },
+    lstat: async (path: string) => lstat(path),
+    rename: async (fromPath: string, toPath: string) => rename(fromPath, toPath),
+    unlink: async (path: string) => unlink(path),
   };
 }
 

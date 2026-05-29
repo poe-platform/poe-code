@@ -26,6 +26,12 @@ describe("parseAnsi", () => {
     ]);
   });
 
+  it("overwrites visible text after a carriage return", () => {
+    expect(parseAnsi("\u001b[32mloading 0%\rloading 100%\u001b[0m")).toEqual([
+      { segments: [{ text: "loading 100%", style: { fg: "green" } }] }
+    ]);
+  });
+
   it("applies basic 16-color SGR codes", () => {
     const result = parseAnsi("\u001b[31mred\u001b[0m plain");
     expect(result).toEqual([
@@ -153,10 +159,16 @@ describe("parseAnsi", () => {
     ]);
   });
 
-  it("discards non-SGR CSI sequences", () => {
+  it("erases the current line for CSI 2 K", () => {
     const result = parseAnsi("before\u001b[2Kafter");
     expect(result).toEqual([
-      { segments: [{ text: "beforeafter", style: {} }] }
+      { segments: [{ text: "      after", style: {} }] }
+    ]);
+  });
+
+  it("applies backspace overstrikes to visible text", () => {
+    expect(parseAnsi("ok\bX")).toEqual([
+      { segments: [{ text: "oX", style: {} }] }
     ]);
   });
 
@@ -167,10 +179,10 @@ describe("parseAnsi", () => {
     ]);
   });
 
-  it("discards control characters other than newline and tab", () => {
+  it("discards non-rendering controls while applying backspace", () => {
     const result = parseAnsi("a\u0000b\u0008c\td");
     expect(result).toEqual([
-      { segments: [{ text: "abc\td", style: {} }] }
+      { segments: [{ text: "ac\td", style: {} }] }
     ]);
   });
 

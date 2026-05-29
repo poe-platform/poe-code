@@ -20,34 +20,21 @@ export function hasAnsi(text: string): boolean {
  * logical lines split on "\n". Each line is a list of styled segments: contiguous
  * printable runs of characters sharing the same style.
  *
- * Non-SGR CSI sequences and other control characters are discarded. `baseStyle` is
- * used as the initial style and as the restore target for SGR reset / default color.
+ * Common cursor-affecting line controls are rendered into their visible result.
+ * `baseStyle` is used as the initial style and as the restore target for SGR reset / default color.
  */
 export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
   const base = normalizeStyle(baseStyle);
   let style: CellStyle = { ...base };
   let concealed = false;
   const lines: StyledLine[] = [];
-  let segments: StyledSegment[] = [];
-  let pending = "";
-
-  const flushSegment = (): void => {
-    if (pending.length === 0) {
-      return;
-    }
-    const last = segments[segments.length - 1];
-    if (last && stylesEqual(last.style, style)) {
-      last.text += pending;
-    } else {
-      segments.push({ text: pending, style: { ...style } });
-    }
-    pending = "";
-  };
+  let cells: Array<{ ch: string; style: CellStyle } | undefined> = [];
+  let column = 0;
 
   const finishLine = (): void => {
-    flushSegment();
-    lines.push({ segments });
-    segments = [];
+    lines.push({ segments: cellsToSegments(cells) });
+    cells = [];
+    column = 0;
   };
 
   let index = 0;
@@ -56,7 +43,6 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
     const ch = text[index]!;
 
     if (ch === ESC && text[index + 1] === "[") {
-      flushSegment();
       const paramsStart = index + 2;
       let cursor = paramsStart;
 
@@ -76,6 +62,8 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
         const sgr = applySgr(style, concealed, parseParams(params), base);
         style = sgr.style;
         concealed = sgr.concealed;
+      } else if (finalByte === "K" && parseParams(params)[0] === 2) {
+        cells = [];
       }
 
       index = cursor + 1;
@@ -83,7 +71,6 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
     }
 
     if (ch === ESC) {
-      flushSegment();
       const next = text[index + 1];
       if (next === "]" || next === "P" || next === "X" || next === "^" || next === "_") {
         index = skipStringTerminated(text, index + 2);
@@ -94,6 +81,7 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
     }
 
     if (ch === "\r") {
+      column = 0;
       index += 1;
       continue;
     }
@@ -104,18 +92,42 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
       continue;
     }
 
+    if (ch === "\b") {
+      column = Math.max(0, column - 1);
+      index += 1;
+      continue;
+    }
+
     const code = ch.charCodeAt(0);
     if (code < 0x20 && ch !== "\t") {
       index += 1;
       continue;
     }
 
-    pending += concealed ? " " : ch;
+    cells[column] = { ch: concealed ? " " : ch, style: { ...style } };
+    column += 1;
     index += 1;
   }
 
   finishLine();
   return lines;
+}
+
+function cellsToSegments(cells: Array<{ ch: string; style: CellStyle } | undefined>): StyledSegment[] {
+  const segments: StyledSegment[] = [];
+
+  for (const cell of cells) {
+    const nextCell = cell ?? { ch: " ", style: {} };
+    const last = segments[segments.length - 1];
+
+    if (last && stylesEqual(last.style, nextCell.style)) {
+      last.text += nextCell.ch;
+    } else {
+      segments.push({ text: nextCell.ch, style: { ...nextCell.style } });
+    }
+  }
+
+  return segments;
 }
 
 function isCsiFinalByte(ch: string): boolean {

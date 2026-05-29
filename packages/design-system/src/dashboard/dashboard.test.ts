@@ -670,6 +670,18 @@ describe("output pane", () => {
     expect(buffer.get(7, 0)).toEqual({ ch: "p", style: {} });
   });
 
+  it("renderOutputPane renders plain backspace overstrikes without control cells", () => {
+    const buffer = new ScreenBuffer(20, 1);
+
+    renderOutputPane(buffer, { x: 0, y: 0, width: 20, height: 1 }, [
+      { kind: "status", text: "ok\bX", ts: 1 }
+    ]);
+
+    expect(buffer.get(3, 0)).toEqual({ ch: "o", style: { fg: "magenta" } });
+    expect(buffer.get(4, 0)).toEqual({ ch: "X", style: { fg: "magenta" } });
+    expect(buffer.get(5, 0).ch).not.toBe("\b");
+  });
+
   it("renderOutputPane renders the most recent lines when content exceeds pane height", () => {
     const buffer = new ScreenBuffer(16, 3);
     const rect: Rect = { x: 0, y: 0, width: 16, height: 3 };

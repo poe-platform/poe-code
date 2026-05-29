@@ -83,8 +83,8 @@ export function computeVisualLines(items: OutputItem[], width: number): VisualLi
   for (const item of items) {
     const itemStyle = getItemStyle(item.kind, themeName);
 
-    if (hasAnsi(item.text)) {
-      const styledLines = parseAnsi(item.text, {});
+    if (hasAnsi(item.text) || hasCursorControls(item.text)) {
+      const styledLines = parseAnsi(item.text, hasAnsi(item.text) ? {} : itemStyle);
       let firstRow = true;
       for (const styledLine of styledLines) {
         const rows = hardWrapSegments(styledLine.segments, textWidth);
@@ -114,6 +114,10 @@ export function computeVisualLines(items: OutputItem[], width: number): VisualLi
   }
 
   return visualLines;
+}
+
+function hasCursorControls(text: string): boolean {
+  return text.includes("\r") || text.includes("\b");
 }
 
 function hardWrapSegments(segments: StyledSegment[], width: number): StyledSegment[][] {

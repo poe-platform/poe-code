@@ -42,6 +42,27 @@ describe("streamLogFile", () => {
     }
   });
 
+  it("does not replay existing bytes for timestamp-filtered streams", async () => {
+    vi.useFakeTimers();
+    const since = new Date("2026-05-25T10:00:00.000Z");
+    const { fs } = createMemFs({
+      "/tmp/poe-jobs/job-1.log": "old output\n"
+    });
+    await fs.promises.utimes("/tmp/poe-jobs/job-1.log", since, new Date(since.getTime() + 1));
+    const env = { fs: { promises: fs.promises } };
+
+    try {
+      const chunksPromise = takeChunks(streamLogFile(env, "job-1", { since }), 1);
+      await vi.advanceTimersByTimeAsync(0);
+      await fs.promises.appendFile("/tmp/poe-jobs/job-1.log", "new output\n");
+      await vi.advanceTimersByTimeAsync(250);
+
+      await expect(chunksPromise).resolves.toEqual([{ byteOffset: 11, data: "new output\n" }]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it("polls until the log file exists when watch is unavailable", async () => {
     vi.useFakeTimers();
     const { fs } = createMemFs({});

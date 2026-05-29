@@ -47,7 +47,7 @@ export async function* streamLogFile(
 
   const fs = env.fs ?? nodeFs;
   const file = jobLogPath(jobId);
-  let byteOffset = opts.sinceByte ?? 0;
+  let byteOffset = opts.sinceByte ?? (opts.since === undefined ? 0 : await readCurrentByteLength(fs, file));
   let pendingBytes: Buffer = Buffer.alloc(0);
   let pendingByteOffset = byteOffset;
 
@@ -75,6 +75,11 @@ export async function* streamLogFile(
 
     await waitForLogChange(fs, file);
   }
+}
+
+async function readCurrentByteLength(fs: LogStreamFs, file: string): Promise<number> {
+  const contents = await readFileIfExists(fs, file);
+  return contents?.byteLength ?? 0;
 }
 
 async function wasModifiedSince(fs: LogStreamFs, file: string, since: Date): Promise<boolean> {

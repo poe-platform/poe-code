@@ -5,6 +5,7 @@ import {
   collectEnvOverrides,
   initProjectConfig,
   readDocument,
+  readDocumentReadonly,
   resolveEditTarget,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
@@ -78,10 +79,11 @@ async function executeConfigInfo(program: Command, container: CliContainer): Pro
 async function executeConfigShow(program: Command, container: CliContainer): Promise<void> {
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(container, flags, "config:show");
-  const globalDocument = await readDocument(container.fs, container.env.configPath);
-  const projectDocument = await readDocument(container.fs, container.env.projectConfigPath);
+  const readConfigDocument = flags.dryRun ? readDocumentReadonly : readDocument;
+  const globalDocument = await readConfigDocument(container.fs, container.env.configPath);
+  const projectDocument = await readConfigDocument(container.fs, container.env.projectConfigPath);
   const envOverrides = collectEnvOverrides(knownConfigScopes, container.env.variables);
-  const resolvedDocument = await resolveMergedDocument(container);
+  const resolvedDocument = await resolveMergedDocument(container, { readOnly: flags.dryRun });
 
   resources.logger.intro("config show");
   resources.logger.info(

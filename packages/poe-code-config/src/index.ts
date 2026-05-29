@@ -73,6 +73,7 @@ export {
 } from "./inspect.js";
 export {
   readDocument,
+  readDocumentReadonly,
   readMergedDocument,
   resolveConfigPath,
   resolveServicesConfigPath,

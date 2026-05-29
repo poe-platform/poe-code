@@ -390,6 +390,28 @@ describe("config command", () => {
     expect(output.match(/\(empty\)/g)?.length ?? 0).toBeGreaterThanOrEqual(4);
   });
 
+  it("does not recover malformed config files while previewing config show", async () => {
+    const malformedConfig = "not json\n";
+    await fs.mkdir(`${cwd}/.poe-code`, { recursive: true });
+    await fs.writeFile(projectConfigPath, malformedConfig, { encoding: "utf8" });
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: {} },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerUtilsCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "utils", "config", "show"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${cwd}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("creates an empty project config file", async () => {
     const container = createCliContainer({
       fs,

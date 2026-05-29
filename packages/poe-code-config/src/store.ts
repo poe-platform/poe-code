@@ -9,6 +9,12 @@ export async function readDocument(fs: FileSystem, filePath: string): Promise<Co
   return document.data;
 }
 
+export async function readDocumentReadonly(fs: FileSystem, filePath: string): Promise<ConfigDocument> {
+  await assertConfigPathSafe(fs, filePath);
+  const document = await readStoredDocument(fs, filePath, false);
+  return document.data;
+}
+
 export async function writeScope(
   fs: FileSystem,
   filePath: string,

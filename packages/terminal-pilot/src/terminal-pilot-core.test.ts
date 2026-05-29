@@ -437,6 +437,12 @@ describe("TerminalBuffer", () => {
       buf.write("\x1b[2J");
       expect(readScreen(buf, 3)).toEqual(["", "", ""]);
     });
+
+    it("does not clear the viewport when erasing scrollback", () => {
+      const buf = new TerminalBuffer(20, 2);
+      buf.write("visible\x1b[3J");
+      expect(readLine(buf, 0).trimEnd()).toBe("visible");
+    });
   });
 
   describe("CSI scroll region", () => {
@@ -456,6 +462,12 @@ describe("TerminalBuffer", () => {
       expect(readLine(buf, 1).trim()).toBe("LINE3");
       expect(readLine(buf, 2).trim()).toBe("LINE4");
       expect(readLine(buf, 3).trim()).toBe("");
+    });
+
+    it("positions the cursor relative to scroll margins in origin mode", () => {
+      const buf = new TerminalBuffer(10, 3);
+      buf.write("top\r\nmid\r\nbot\x1b[2;3r\x1b[?6h\x1b[1;1HX");
+      expect(readScreen(buf, 3)).toEqual(["top", "Xid", "bot"]);
     });
   });
 
@@ -683,6 +695,12 @@ describe("TerminalBuffer", () => {
       expect(readLine(buf, 1).trim()).toBe("row2");
       expect(readLine(buf, 2).trim()).toBe("row3");
       expect(readLine(buf, 3).trim()).toBe("");
+    });
+
+    it("ignores insert-lines outside the active scroll region", () => {
+      const buf = new TerminalBuffer(10, 4);
+      buf.write("head\r\nrow1\r\nrow2\r\nfoot\x1b[2;3r\x1b[1;1H\x1b[L");
+      expect(readScreen(buf, 4)).toEqual(["head", "row1", "row2", "foot"]);
     });
   });
 

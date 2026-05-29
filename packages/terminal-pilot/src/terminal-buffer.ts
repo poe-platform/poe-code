@@ -46,6 +46,7 @@ export class TerminalBuffer {
   private _csiParams = "";
   private _csiPrivate = "";
   private _autoWrap = true;
+  private _originMode = false;
   private _style: SgrStyleState = createDefaultStyleState();
   private _styleSequence = "";
 
@@ -178,6 +179,7 @@ export class TerminalBuffer {
 
   private _resetModes(): void {
     this._autoWrap = true;
+    this._originMode = false;
     this._resetStyle();
   }
 
@@ -252,6 +254,12 @@ export class TerminalBuffer {
           this._autoWrap = final === "h";
         }
 
+        if (params.includes(6)) {
+          this._originMode = final === "h";
+          this._cursorX = 0;
+          this._cursorY = this._originMode ? this._scrollTop : 0;
+        }
+
         if (params.includes(1049)) {
           if (final === "h") {
             this._screen = this._makeScreen(this._cols, this._rows);
@@ -296,7 +304,9 @@ export class TerminalBuffer {
         break;
       case "H": // cursor position
       case "f":
-        this._cursorY = this._clamp(Math.max(1, p0) - 1, 0, this._rows - 1);
+        this._cursorY = this._originMode
+          ? this._clamp(this._scrollTop + Math.max(1, p0) - 1, this._scrollTop, this._scrollBottom)
+          : this._clamp(Math.max(1, p0) - 1, 0, this._rows - 1);
         this._cursorX = this._clamp(Math.max(1, p1) - 1, 0, this._cols - 1);
         break;
       case "I": // cursor forward tabulation
@@ -311,7 +321,7 @@ export class TerminalBuffer {
         } else if (p0 === 1) {
           for (let y = 0; y < this._cursorY; y++) this._eraseLine(y, 0, this._cols - 1);
           this._eraseLine(this._cursorY, 0, this._cursorX);
-        } else if (p0 === 2 || p0 === 3) {
+        } else if (p0 === 2) {
           for (let y = 0; y < this._rows; y++) this._eraseLine(y, 0, this._cols - 1);
         }
         break;
@@ -324,6 +334,9 @@ export class TerminalBuffer {
         this._eraseLine(this._cursorY, this._cursorX, this._cursorX + Math.max(1, p0) - 1);
         break;
       case "L": { // insert lines
+        if (this._cursorY < this._scrollTop || this._cursorY > this._scrollBottom) {
+          break;
+        }
         const n = Math.max(1, p0);
         for (let i = 0; i < n; i++) {
           this._screen.splice(this._scrollBottom, 1);
@@ -332,6 +345,9 @@ export class TerminalBuffer {
         break;
       }
       case "M": { // delete lines
+        if (this._cursorY < this._scrollTop || this._cursorY > this._scrollBottom) {
+          break;
+        }
         const n = Math.max(1, p0);
         for (let i = 0; i < n; i++) {
           this._screen.splice(this._cursorY, 1);
@@ -384,7 +400,7 @@ export class TerminalBuffer {
           this._scrollBottom = bottom;
         }
         this._cursorX = 0;
-        this._cursorY = 0;
+        this._cursorY = this._originMode ? this._scrollTop : 0;
         break;
       }
       case "s": // save cursor

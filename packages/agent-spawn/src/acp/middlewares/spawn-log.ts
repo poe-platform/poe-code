@@ -99,6 +99,7 @@ class SpawnLogWriter {
       return;
     }
 
+    let previousSize: number | undefined;
     try {
       await this.ensureOpen();
       if (!this.fileHandle) {
@@ -107,9 +108,18 @@ class SpawnLogWriter {
 
       const meta = (event as { _meta?: Record<string, unknown> })._meta;
       const toLog = meta?.raw ?? event;
+      previousSize = (await this.fileHandle.stat()).size;
       await this.fileHandle.appendFile(`${JSON.stringify(toLog)}\n`, "utf8");
     } catch {
       this.isDisabled = true;
+      if (this.fileHandle && previousSize !== undefined) {
+        try {
+          await this.fileHandle.truncate(previousSize);
+        } catch (error) {
+          await this.close();
+          throw new Error("failed to restore ACP spawn log after append failure", { cause: error });
+        }
+      }
       await this.close();
     }
   }

@@ -398,6 +398,84 @@ describe("acp/middlewares/spawnLog", () => {
     expect(observed).toEqual(sourceEvents);
   });
 
+  it("rolls back a partial append before disabling event logging", async () => {
+    const sourceEvents: AcpEvent[] = [
+      { event: "agent_message", text: "first" },
+      { event: "agent_message", text: "second" }
+    ];
+
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        for (const event of sourceEvents) {
+          yield event;
+        }
+      })();
+    };
+
+    const realOpen = fs.open.bind(fs);
+    let appendAttempts = 0;
+    vi.spyOn(fs, "open").mockImplementation(async (filePath, flags) => {
+      const handle = await realOpen(filePath, flags);
+      const appendFile = handle.appendFile.bind(handle);
+      (handle as unknown as { appendFile: (content: string, encoding: string) => Promise<void> }).appendFile = async (
+        content,
+        encoding
+      ) => {
+        appendAttempts += 1;
+        if (appendAttempts === 1) {
+          await appendFile(content.slice(0, 1), encoding);
+          throw new Error("disk full");
+        }
+        await appendFile(content, encoding);
+      };
+      return handle;
+    });
+
+    const ctx = createContext({
+      logPath: "/tmp/partial-log/session.jsonl"
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+    const observed = await collect(ctx.eventStream!);
+
+    expect(observed).toEqual(sourceEvents);
+    expect(appendAttempts).toBe(1);
+    await expect(fs.readFile(ctx.logFile!, "utf8")).resolves.toBe("");
+  });
+
+  it("surfaces an append failure when a partial log cannot be rolled back", async () => {
+    const source: AcpMiddleware = async (ctx) => {
+      ctx.eventStream = (async function* () {
+        yield { event: "agent_message", text: "first" } as AcpEvent;
+      })();
+    };
+
+    const realOpen = fs.open.bind(fs);
+    vi.spyOn(fs, "open").mockImplementation(async (filePath, flags) => {
+      const handle = await realOpen(filePath, flags);
+      const appendFile = handle.appendFile.bind(handle);
+      (handle as unknown as { appendFile: (content: string, encoding: string) => Promise<void> }).appendFile = async (
+        content,
+        encoding
+      ) => {
+        await appendFile(content.slice(0, 1), encoding);
+        throw new Error("disk full");
+      };
+      (handle as unknown as { truncate: (length: number) => Promise<void> }).truncate = async () => {
+        throw new Error("truncate failed");
+      };
+      return handle;
+    });
+
+    const ctx = createContext({
+      logPath: "/tmp/unrecoverable-log/session.jsonl"
+    });
+
+    await applyMiddlewares([spawnLog, source], ctx);
+
+    await expect(collect(ctx.eventStream!)).rejects.toThrow("failed to restore ACP spawn log after append failure");
+  });
+
   it("logs preloaded events when no event stream is available", async () => {
     const ctx = createContext({
       agent: "codex",

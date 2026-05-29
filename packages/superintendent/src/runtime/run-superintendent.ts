@@ -37,6 +37,7 @@ const SUPERINTENDENT_TOOLS_TIMEOUT_SECONDS = 7200;
 export type RunSuperintendentOptions = {
   defaultCwd: string;
   logPath?: string;
+  signal?: AbortSignal;
 };
 
 export async function runSuperintendent(
@@ -59,7 +60,8 @@ export async function runSuperintendent(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.superintendent, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
   });
   const transition = extractTransition(result);
   const logPath = extractLogPath(result);

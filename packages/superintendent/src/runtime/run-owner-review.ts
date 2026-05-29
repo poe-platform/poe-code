@@ -42,6 +42,7 @@ const WORKFLOW_SERVER_TIMEOUT_SECONDS = 7200;
 export type RunOwnerReviewOptions = {
   defaultCwd: string;
   logPath?: string;
+  signal?: AbortSignal;
 };
 
 export async function runOwnerReview(
@@ -60,7 +61,8 @@ export async function runOwnerReview(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.owner, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
   });
 
   const logPath = extractLogPath(result);

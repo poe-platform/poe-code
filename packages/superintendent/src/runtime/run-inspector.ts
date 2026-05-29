@@ -19,6 +19,7 @@ export type RunInspectorOptions = {
   promptOverride?: string;
   defaultCwd: string;
   logPath?: string;
+  signal?: AbortSignal;
 };
 
 export async function runInspector(
@@ -49,7 +50,8 @@ export async function runInspector(
     prompt,
     cwd: resolveRoleCwd(config, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc, config),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
   });
 
   const logPath = extractLogPath(output);

@@ -18,6 +18,7 @@ export type RunBuilderOptions = {
   promptOverride?: string;
   defaultCwd: string;
   logPath?: string;
+  signal?: AbortSignal;
 };
 
 export async function runBuilder(
@@ -34,7 +35,8 @@ export async function runBuilder(
     prompt,
     cwd: resolveRoleCwd(doc.frontmatter.builder, doc.filePath, options.defaultCwd),
     mcpServers: buildMcpServers(doc),
-    ...(options.logPath ? { logPath: options.logPath } : {})
+    ...(options.logPath ? { logPath: options.logPath } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
   });
   const log = extractLog(result);
 

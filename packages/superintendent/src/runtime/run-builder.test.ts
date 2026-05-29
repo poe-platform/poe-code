@@ -11,6 +11,7 @@ const { autonomousMock } = vi.hoisted(() => ({
         cwd?: string;
         mcpServers?: unknown;
         logPath?: string;
+        signal?: AbortSignal;
       }
     ) => Promise<unknown>
   >()
@@ -24,13 +25,15 @@ vi.mock("./agent-runner.js", () => ({
     cwd?: string;
     mcpServers?: unknown;
     logPath?: string;
+    signal?: AbortSignal;
   }) =>
     autonomousMock(input.agent, {
       cwd: input.cwd,
       prompt: input.prompt,
       mode: input.mode,
       ...(input.mcpServers ? { mcpServers: input.mcpServers } : {}),
-      ...(input.logPath ? { logPath: input.logPath } : {})
+      ...(input.logPath ? { logPath: input.logPath } : {}),
+      ...(input.signal ? { signal: input.signal } : {})
     })
 }));
 
@@ -98,6 +101,19 @@ describe("runBuilder", () => {
       log: "Implemented the next task\nUpdated tests and docs",
       log_path: ""
     });
+  });
+
+  it("forwards the role cancellation signal", async () => {
+    const controller = new AbortController();
+    autonomousMock.mockResolvedValue("done");
+    const { runBuilder } = await import("./run-builder.js");
+
+    await runBuilder(document, {}, { defaultCwd: "/repo", signal: controller.signal });
+
+    expect(autonomousMock).toHaveBeenCalledWith(
+      "claude-code",
+      expect.objectContaining({ signal: controller.signal })
+    );
   });
 
   it("uses explicit summary, log, and logFile fields from structured autonomous output", async () => {

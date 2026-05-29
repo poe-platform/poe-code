@@ -613,10 +613,11 @@ function runRole<T>(
 function buildRoleOptions(
   options: LoopRuntime,
   role: string
-): { defaultCwd: string; logPath?: string } {
+): { defaultCwd: string; logPath?: string; signal?: AbortSignal } {
   return {
     defaultCwd: options.cwd,
-    ...(options.logDir ? { logPath: path.join(options.logDir, makeRunLogFileName(role)) } : {})
+    ...(options.logDir ? { logPath: path.join(options.logDir, makeRunLogFileName(role)) } : {}),
+    ...(options.signal ? { signal: options.signal } : {})
   };
 }
 

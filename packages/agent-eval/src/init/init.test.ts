@@ -11,10 +11,12 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("node:fs/promises", () => ({
   default: {
+    lstat: (...args: unknown[]) => mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>)),
     mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
     writeFile: (...args: unknown[]) =>
       mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>))
   },
+  lstat: (...args: unknown[]) => mocks.fs.lstat(...(args as Parameters<typeof mocks.fs.lstat>)),
   mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
   writeFile: (...args: unknown[]) =>
     mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>))
@@ -130,6 +132,18 @@ describe("evalInit", () => {
         kind: "plan"
       })
     ).rejects.toThrow("Eval folder already exists: /repo/evals/existing-task");
+  });
+
+  it("rejects a source directory symlink before writing scaffold files", async () => {
+    mocks.fs = createFsFromVolume(Volume.fromJSON({ "/repo": null, "/outside": null }, "/")).promises;
+    await mocks.fs.symlink("/outside", "/repo/evals");
+
+    await expect(
+      evalInit({ sourceDir: "/repo/evals", name: "escaped-task", kind: "plan" })
+    ).rejects.toThrow("Eval source directory must not be a symbolic link.");
+    await expect(mocks.fs.readFile("/outside/escaped-task/eval.yaml", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
   });
 });
 

@@ -621,6 +621,22 @@ describe("configure provider resolution", () => {
     ).resolves.not.toThrow();
   });
 
+  it("does not acquire or validate Poe credentials in an explicit dry-run preview", async () => {
+    const container = createContainer(fs);
+    useOnlyPoeCandidate(container);
+    const resolveApiKey = vi.spyOn(container.options, "resolveApiKey");
+    stubInvoke(container);
+
+    await executeConfigure(
+      createTestProgram(["node", "cli", "--dry-run", "--yes"]),
+      container,
+      "claude-code",
+      { provider: "poe", apiKey: "secret-key" }
+    );
+
+    expect(resolveApiKey).not.toHaveBeenCalled();
+  });
+
   it("does not recover malformed config while selecting a default agent in dry-run mode", async () => {
     const malformedConfig = "{ invalid json\n";
     await fs.mkdir(path.dirname(configPath), { recursive: true });

@@ -10,6 +10,7 @@ import { createSecretStore } from "auth-store";
 import * as clientInstance from "../../services/client-instance.js";
 import * as mcpServer from "../mcp-server.js";
 import { resolveApiKeyViaOAuth } from "../oauth-login.js";
+import { checkAuth } from "poe-oauth";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 function stripAnsi(value: string): string {
@@ -149,6 +150,8 @@ describe("login command", () => {
     fs = createLoginMemfs(homeDir);
     logs = [];
     prompts = vi.fn();
+    vi.mocked(checkAuth).mockClear();
+    vi.mocked(resolveApiKeyViaOAuth).mockClear();
   });
 
   it("stores the provided api key flag", async () => {
@@ -392,6 +395,59 @@ describe("login command", () => {
     const storedKey = await readStoredApiKey(fs, homeDir);
     expect(storedKey).toBeNull();
     expect(logs.some((message) => message.includes("Dry run: would save API key."))).toBe(true);
+  });
+
+  it("does not validate an explicit API key while previewing login", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: {} },
+      commandRunner,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "login", "--api-key", DRY_KEY]);
+
+    expect(checkAuth).not.toHaveBeenCalled();
+    expect(logs.some((message) => message.includes("Dry run"))).toBe(true);
+  });
+
+  it("does not start OAuth while previewing login without credentials", async () => {
+    const commandRunner: CommandRunner = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir, variables: {} },
+      commandRunner,
+      logger: (message) => logs.push(message)
+    });
+    vi.mocked(resolveApiKeyViaOAuth).mockClear();
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "login"]);
+
+    expect(resolveApiKeyViaOAuth).not.toHaveBeenCalled();
+    expect(logs.some((message) => message.includes("Dry run"))).toBe(true);
+  });
+
+  it.each(["goose", "kimi"])("does not expose the API key while previewing login reconfiguration for %s", async (service) => {
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ configured_services: { [service]: { provider: "poe", files: [] } } }),
+      "utf8"
+    );
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "login", "--api-key", DRY_KEY]);
+
+    expect(logs.join("\n")).not.toContain(DRY_KEY);
+    expect(logs.join("\n")).toContain("<redacted>");
   });
 });
 

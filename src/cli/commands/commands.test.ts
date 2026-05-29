@@ -145,6 +145,53 @@ describe("configure command", () => {
     await expect(fs.readFile(configPath, "utf8")).rejects.toThrow();
   });
 
+  it.each(["goose", "kimi"])("does not expose supplied credentials while previewing %s configuration", async (service) => {
+    const logs: string[] = [];
+    const { container } = createContainer({ logger: (message) => logs.push(message) });
+    vi.spyOn(container.options, "resolveModel").mockResolvedValue("test-model");
+    const program = createTestProgram(["node", "cli", "--dry-run", "--yes"]);
+
+    await executeConfigure(program, container, service, {
+      provider: "poe",
+      apiKey: "preview-secret",
+      model: "test-model"
+    });
+
+    expect(logs.join("\n")).not.toContain("preview-secret");
+    expect(logs.join("\n")).toContain("<redacted>");
+  });
+
+  it("does not fetch Goose model metadata while previewing configuration", async () => {
+    const httpClient = vi.fn();
+    const logs: string[] = [];
+    const { container } = createContainer({ httpClient, logger: (message) => logs.push(message) });
+    const program = createTestProgram(["node", "cli", "--dry-run", "--yes"]);
+
+    await executeConfigure(program, container, "goose", {
+      provider: "poe",
+      apiKey: "preview-secret",
+      model: "test-model"
+    });
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(logs.join("\n")).not.toContain("preview-secret");
+    expect(logs.join("\n")).toContain("<redacted>");
+  });
+
+  it("does not fetch Gemini model choices while previewing configuration", async () => {
+    const httpClient = vi.fn();
+    const { container } = createContainer({ httpClient });
+    const program = createTestProgram(["node", "cli", "--dry-run", "--yes"]);
+
+    await executeConfigure(program, container, "gemini-cli", {
+      provider: "cloudflare",
+      apiKey: "preview-secret",
+      baseUrl: "https://gateway.example.test"
+    });
+
+    expect(httpClient).not.toHaveBeenCalled();
+  });
+
   it("uses provider-defined prompt metadata for configure flows", async () => {
     const { container } = createContainer();
     const provider = container.registry.require("codex") as any;
@@ -1454,6 +1501,54 @@ describe("test command (isolated)", () => {
     registerTestCommand(program, container);
 
     await program.parseAsync(["node", "cli", "test", "demo-service", "--isolated"]);
+  });
+
+  it("does not start OAuth while previewing Poe-backed isolated tests", async () => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ configured_services: { opencode: { provider: "poe", files: [] } } }),
+      "utf8"
+    );
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    const resolveApiKey = vi.spyOn(container.options, "resolveApiKey");
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "test", "opencode", "--isolated"]);
+
+    expect(logs.join("\n")).toContain("Dry run");
+    expect(resolveApiKey).not.toHaveBeenCalled();
+  });
+
+  it.each(["goose", "kimi"])("does not expose credentials while previewing isolated %s tests", async (service) => {
+    const fs = createMemFs();
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(
+      configPath,
+      JSON.stringify({ configured_services: { [service]: { provider: "poe", files: [] } } }),
+      "utf8"
+    );
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "test-preview-secret" } },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "test", service, "--isolated"]);
+
+    expect(logs.join("\n")).not.toContain("test-preview-secret");
   });
 });
 

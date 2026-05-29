@@ -20,6 +20,8 @@ export interface LoginCommandOptions {
   apiKey?: string;
 }
 
+const PREVIEW_API_KEY = "<redacted>";
+
 export function registerLoginCommand(program: Command, container: CliContainer): void {
   program
     .command("login")
@@ -41,13 +43,15 @@ export async function executeLogin(
   resources.logger.intro("login");
 
   try {
-    const apiKey = await container.options.resolveApiKey({
-      value: options.apiKey,
-      envValue: container.env.getVariable("POE_API_KEY"),
-      dryRun: true,
-      assumeYes: flags.assumeYes,
-      allowStored: false
-    });
+    const apiKey = flags.dryRun
+      ? PREVIEW_API_KEY
+      : await container.options.resolveApiKey({
+          value: options.apiKey,
+          envValue: container.env.getVariable("POE_API_KEY"),
+          dryRun: true,
+          assumeYes: flags.assumeYes,
+          allowStored: false
+        });
 
     if (!flags.dryRun) {
       await container.providerRegistry.login(POE_PROVIDER_ID, { apiKey });

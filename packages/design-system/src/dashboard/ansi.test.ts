@@ -77,6 +77,13 @@ describe("parseAnsi", () => {
     ]);
   });
 
+  it("handles 24-bit truecolor via colon-separated SGR parameters", () => {
+    const result = parseAnsi("\u001b[38:2::255:0:0mred");
+    expect(result).toEqual([
+      { segments: [{ text: "red", style: { fg: "#ff0000" } }] }
+    ]);
+  });
+
   it("handles 256-color palette indexes in the cube range", () => {
     const result = parseAnsi("\u001b[38;5;196mred");
     expect(result).toEqual([

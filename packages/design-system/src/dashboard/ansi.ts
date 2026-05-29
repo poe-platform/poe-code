@@ -139,13 +139,24 @@ function parseParams(params: string): number[] {
   if (params.length === 0) {
     return [0];
   }
-  return params.split(";").map((part) => {
+
+  return params.split(";").flatMap((part) => {
+    const colonParams = part.split(":");
+
+    if (colonParams.length > 2 && colonParams[1] === "2") {
+      colonParams.splice(2, 1);
+    }
+
+    return colonParams.map(parseParam);
+  });
+}
+
+function parseParam(part: string): number {
     if (part.length === 0) {
       return 0;
     }
     const parsed = Number.parseInt(part, 10);
     return Number.isFinite(parsed) ? parsed : 0;
-  });
 }
 
 const BASIC_COLORS = [

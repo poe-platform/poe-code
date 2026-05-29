@@ -983,6 +983,27 @@ describe("createRalphSimulation", () => {
     });
   });
 
+  it("reports cancellation when the executor fails after aborting the run signal", async () => {
+    const { fs } = createRunFs({
+      "/repo/.poe-code/ralph/plans/plan.md": "---\nagent: claude-code\niterations: 2\n---\nWork"
+    });
+    const controller = new AbortController();
+
+    const result = await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: ".poe-code/ralph/plans/plan.md",
+      fs,
+      signal: controller.signal,
+      runAgent: async () => {
+        controller.abort();
+        throw new Error("transport closed after cancel");
+      }
+    });
+
+    expect(result.stopReason).toBe("cancelled");
+  });
+
   it("strips nested frontmatter from the prompt sent to the agent", async () => {
     const sim = createRalphSimulation({
       docContent: [

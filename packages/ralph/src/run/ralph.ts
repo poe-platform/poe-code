@@ -119,7 +119,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
             throw error;
           }
 
-          if (isAbortError(error)) {
+          if (isAbortError(error) || options.signal?.aborted) {
             lastStopKind = "cancelled";
             throw new RalphWorkflowStopError("cancelled");
           }

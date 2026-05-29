@@ -362,6 +362,14 @@ export async function runLoop(
       }
       options.callbacks.onOwnerComplete?.(ownerResult);
 
+      {
+        const stopReason = readInterruptionReason(options, state);
+
+        if (stopReason) {
+          return finishLoop(options.callbacks, state, stopReason);
+        }
+      }
+
       if (ownerResult.transition.action === "approve_completion") {
         context = {
           ...context,

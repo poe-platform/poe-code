@@ -878,4 +878,33 @@ describe("runLoop", () => {
 
     expect(runInspectorMock).not.toHaveBeenCalled();
   });
+
+  it("reports abort instead of completion when approval aborts in flight", async () => {
+    const docPath = "/repo/docs/plans/feature.md";
+    const { fs, rawFs } = createFs({ [docPath]: createDocument({ withInspectors: false }) });
+    const controller = new AbortController();
+
+    runBuilderMock.mockResolvedValue({ summary: "Done", log: "log" });
+    runSuperintendentMock.mockResolvedValue({
+      summary: "Done",
+      transition: { action: "request_review", summary: "Done" }
+    });
+    runOwnerReviewMock.mockImplementation(async () => {
+      controller.abort();
+      return { transition: { action: "approve_completion" } };
+    });
+
+    const result = await runLoop({
+      docPath,
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs,
+      runners,
+      signal: controller.signal
+    });
+
+    expect(result).toMatchObject({ state: "review", stopReason: "aborted" });
+    const finalDoc = await readDoc(rawFs, docPath);
+    expect(finalDoc.frontmatter.status.state).toBe("review");
+  });
 });

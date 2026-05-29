@@ -26,7 +26,7 @@ import type {
   WaitForTerminalExitRequest,
   WriteTextFileRequest,
 } from "./types.js";
-import { PassThrough } from "node:stream";
+import { PassThrough, Readable } from "node:stream";
 import {
   JsonRpcMessageLayer,
   createJsonRpcErrorResponse,
@@ -2573,6 +2573,54 @@ describe("JsonRpcMessageLayer", () => {
       jsonrpc: "2.0",
       id: 1,
       result: { text: "hello" },
+    });
+  });
+
+  it("preserves UTF-8 values split across binary input chunks", async () => {
+    const output = new PassThrough();
+    const written: string[] = [];
+    output.setEncoding("utf8");
+    output.on("data", (chunk) => { written.push(String(chunk)); });
+    const requestHandler = vi.fn((params: unknown) => params);
+    const message = Buffer.from('{"jsonrpc":"2.0","id":1,"method":"echo","params":{"text":"🧪"}}\n', "utf8");
+    const marker = Buffer.from("🧪", "utf8");
+    const splitAt = message.indexOf(marker) + 2;
+    const input = Readable.from([message.subarray(0, splitAt), message.subarray(splitAt)]);
+    const layer = new JsonRpcMessageLayer({ input, output });
+    layer.onRequest("echo", requestHandler);
+
+    await waitForWriteCount(written, 1);
+    expect(requestHandler).toHaveBeenCalledWith({ text: "🧪" }, { id: 1, method: "echo" });
+  });
+
+  it("processes responses while notification handlers are still pending", async () => {
+    const { input, written, layer } = createHarness();
+    let releaseNotification!: () => void;
+    const pendingNotification = new Promise<void>((resolve) => { releaseNotification = resolve; });
+    layer.onNotification("slow", async () => await pendingNotification);
+
+    const request = layer.sendRequest("lookup");
+    await waitForWriteCount(written, 1);
+    input.write('{"jsonrpc":"2.0","method":"slow"}\n');
+    input.write('{"jsonrpc":"2.0","id":1,"result":{"ok":true}}\n');
+
+    await expect(request).resolves.toEqual({ ok: true });
+    releaseNotification();
+  });
+
+  it("allows request handlers to await nested outbound responses", async () => {
+    const { input, written, layer } = createHarness();
+    layer.onRequest("nested", async () => await layer.sendRequest("lookup"));
+
+    input.write('{"jsonrpc":"2.0","id":"agent-1","method":"nested"}\n');
+    await waitForWriteCount(written, 1);
+    input.write('{"jsonrpc":"2.0","id":1,"result":{"found":true}}\n');
+
+    await waitForWriteCount(written, 2);
+    expect(parseWrittenMessages(written)).toContainEqual({
+      jsonrpc: "2.0",
+      id: "agent-1",
+      result: { found: true },
     });
   });
 

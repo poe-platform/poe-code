@@ -1,4 +1,5 @@
 import type { Readable, Writable } from "node:stream";
+import { StringDecoder } from "node:string_decoder";
 import {
   ACP_ERROR_CODE_INTERNAL,
   ACP_ERROR_CODE_INVALID_REQUEST,
@@ -174,27 +175,20 @@ function toDispatchError(error: unknown): AcpError {
   return internalError("Internal error");
 }
 
-function chunkToString(chunk: unknown): string {
-  if (typeof chunk === "string") {
-    return chunk;
-  }
-
-  if (chunk instanceof Uint8Array) {
-    return Buffer.from(chunk).toString("utf8");
-  }
-
-  return String(chunk);
-}
-
 function normalizeLine(line: string): string {
   return line.endsWith("\r") ? line.slice(0, -1) : line;
 }
 
 async function* readLines(stream: Readable): AsyncGenerator<string> {
   let buffer = "";
+  const decoder = new StringDecoder("utf8");
 
   for await (const chunk of stream as AsyncIterable<unknown>) {
-    buffer += chunkToString(chunk);
+    buffer += typeof chunk === "string"
+      ? chunk
+      : chunk instanceof Uint8Array
+        ? decoder.write(Buffer.from(chunk))
+        : String(chunk);
 
     while (true) {
       const newlineIndex = buffer.indexOf("\n");
@@ -207,6 +201,8 @@ async function* readLines(stream: Readable): AsyncGenerator<string> {
       yield normalizeLine(line);
     }
   }
+
+  buffer += decoder.end();
 
   if (buffer.length > 0) {
     yield normalizeLine(buffer);
@@ -485,7 +481,11 @@ export class JsonRpcMessageLayer {
           continue;
         }
 
-        await this.handleIncomingLine(line);
+        void this.handleIncomingLine(line).catch((error: unknown) => {
+          if (!this.disposed) {
+            this.dispose(error instanceof Error ? error : new Error(String(error)));
+          }
+        });
       }
 
       if (!this.disposed) {

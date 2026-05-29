@@ -229,6 +229,19 @@ describe("provider login", () => {
     expect(loginSpy).toHaveBeenCalledWith("poe", { apiKey: "sk-test" }, expect.any(Object));
   });
 
+  it("fails without prompting when --yes has no provider credential", async () => {
+    const prompts = vi.fn();
+    const container = createContainer(fs, [], prompts);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "provider", "login", "anthropic"])
+    ).rejects.toThrow('No API key available for provider "anthropic"');
+
+    expect(prompts).not.toHaveBeenCalled();
+  });
+
   it("does not call ProviderRegistry.login in dry-run mode", async () => {
     const container = createContainer(fs);
     const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();

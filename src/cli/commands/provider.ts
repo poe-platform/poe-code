@@ -129,7 +129,7 @@ async function executeProviderLogin(
       { apiKey: options.apiKey },
       {
         envVars: flags.assumeYes ? container.env.variables : {},
-        promptForSecret: createSecretPrompter(container),
+        promptForSecret: flags.assumeYes ? undefined : createSecretPrompter(container),
         resolvePreferredLogin: async (input) =>
           container.options.resolveApiKey({
             value: input.apiKey,

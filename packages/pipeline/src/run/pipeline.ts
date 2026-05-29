@@ -280,6 +280,16 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
     ...(initialResolvedTeardown ? { teardown: initialResolvedTeardown } : {})
   });
 
+  if (selectNextExecution(initialPlan, options.task).kind === "completed") {
+    return {
+      stopReason: "nothing_to_run",
+      planPath,
+      runsCompleted: 0,
+      totalDurationMs: Date.now() - pipelineStartTime,
+      metrics
+    };
+  }
+
   if (resolvedSetup) {
     const { success, cancelled } = await runPhase(
       resolvedSetup,

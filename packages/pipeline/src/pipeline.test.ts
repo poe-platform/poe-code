@@ -3112,6 +3112,22 @@ describe("createPipelineSimulation", () => {
     expect(entries).toContain("plan.md");
   });
 
+  it("does not run setup when every task is already complete", async () => {
+    const sim = createPipelineSimulation({
+      plan: {
+        setup: { mode: "yolo", prompt: "Prepare workspace" },
+        tasks: [{ id: "done", title: "Done", prompt: "Nothing", status: "done" }]
+      },
+      turns: []
+    });
+
+    const { result, prompts } = await sim.run();
+
+    expect(result.stopReason).toBe("nothing_to_run");
+    expect(prompts).toEqual([]);
+    expect(result.metrics.stepsCompleted).toBe(0);
+  });
+
   it("uses per-step agent and model overrides", async () => {
     const sim = createPipelineSimulation({
       projectSteps: {

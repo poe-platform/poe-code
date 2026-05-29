@@ -38,6 +38,7 @@ function waitForLogPattern(
   if (options.onLog === undefined || typeof options.onLog.subscribe !== "function") {
     return Promise.reject(new Error("A subscribable log source is required for log-pattern readiness checks."));
   }
+  const logSource = options.onLog;
 
   return new Promise<boolean>(resolve => {
     let finished = false;
@@ -45,7 +46,7 @@ function waitForLogPattern(
       finish(false);
     }, options.timeoutMs ?? 30_000);
 
-    const unsubscribe = options.onLog.subscribe((line: string) => {
+    const unsubscribe = logSource.subscribe((line: string) => {
       if (line.includes(pattern)) {
         finish(true);
       }

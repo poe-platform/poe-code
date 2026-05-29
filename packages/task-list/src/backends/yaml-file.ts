@@ -25,6 +25,7 @@ import {
 import {
   applyOrder,
   isRecord,
+  rejectSymbolicLinkComponents,
   sortStrings,
   statIfExists,
   validateTaskId,
@@ -456,6 +457,8 @@ function activeItemIds(listNode: YAMLMap, validStates: ReadonlySet<string>): str
 }
 
 async function ensureStorePath(deps: BackendDeps): Promise<void> {
+  await rejectSymbolicLinkComponents(deps.fs, deps.path);
+
   if (!deps.create) {
     await deps.fs.stat(deps.path);
     return;

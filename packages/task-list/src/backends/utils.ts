@@ -80,6 +80,32 @@ export async function statIfExists(
   }
 }
 
+export async function rejectSymbolicLinkComponents(
+  fs: TaskListFs,
+  filePath: string
+): Promise<void> {
+  const resolvedPath = path.resolve(filePath);
+  const rootPath = path.parse(resolvedPath).root;
+  const components = resolvedPath.slice(rootPath.length).split(path.sep).filter(Boolean);
+  let currentPath = rootPath;
+
+  for (const component of components) {
+    currentPath = path.join(currentPath, component);
+
+    try {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        throw new Error(`Task store path "${filePath}" contains a symbolic link.`);
+      }
+    } catch (error) {
+      if (hasErrorCode(error, "ENOENT")) {
+        return;
+      }
+
+      throw error;
+    }
+  }
+}
+
 export async function writeAtomically(fs: TaskListFs, filePath: string, content: string): Promise<void> {
   const tempPath = `${filePath}.tmp-${process.pid}-${tmpFileCounter}`;
   tmpFileCounter += 1;

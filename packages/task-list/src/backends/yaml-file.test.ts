@@ -223,6 +223,35 @@ describe("yamlFileBackend", () => {
     expect(listedTask?.sourcePath).toBe(task.sourcePath);
   });
 
+  it("rejects reads and writes through a symlinked yaml store path", async () => {
+    const { fs, rawFs, volume } = createFs({
+      "/outside/tasks.yaml": [
+        "$schema: https://poe-platform.github.io/poe-code/schemas/task-list/store.schema.json",
+        "kind: task-store",
+        "version: 1",
+        "lists:",
+        "  planning:",
+        "    external:",
+        "      name: External",
+        "      state: draft",
+        ""
+      ].join("\n")
+    });
+    volume.mkdirSync("/repo", { recursive: true });
+    volume.symlinkSync("/outside/tasks.yaml", "/repo/tasks.yaml");
+    await expect(
+      yamlFileBackend({
+        path: "/repo/tasks.yaml",
+        defaults: { metadata: {} },
+        create: false,
+        fs
+      })
+    ).rejects.toThrow(
+      "symbolic link"
+    );
+    await expect(rawFs.readFile("/outside/tasks.yaml", "utf8")).resolves.not.toContain("local:");
+  });
+
   it("throws MalformedTaskError naming the invalid list and id", async () => {
     const { fs } = createFs({
       "/repo/tasks.yaml": [

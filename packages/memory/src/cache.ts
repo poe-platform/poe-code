@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
-import { MEMORY_CACHE_DIR_RELPATH, MEMORY_INGEST_CACHE_DIR_RELPATH } from "./paths.js";
+import { assertSafeRelPath, MEMORY_CACHE_DIR_RELPATH, MEMORY_INGEST_CACHE_DIR_RELPATH } from "./paths.js";
 import type { IngestCacheEntry, IngestCacheKey, MemoryRoot } from "./types.js";
 
 export function computeIngestKey(input: {
@@ -25,7 +25,7 @@ export async function readCacheEntry(
   root: MemoryRoot,
   key: IngestCacheKey
 ): Promise<IngestCacheEntry | null> {
-  const cachePath = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${key}.json`);
+  const cachePath = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${assertSafeRelPath(key)}.json`);
 
   let raw: string;
   try {
@@ -48,9 +48,10 @@ export async function readCacheEntry(
 }
 
 export async function writeCacheEntry(root: MemoryRoot, entry: IngestCacheEntry): Promise<void> {
+  const key = assertSafeRelPath(entry.key);
   await fs.mkdir(path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH), { recursive: true });
   await fs.writeFile(
-    path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${entry.key}.json`),
+    path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH, `${key}.json`),
     `${JSON.stringify(entry)}\n`,
     "utf8"
   );

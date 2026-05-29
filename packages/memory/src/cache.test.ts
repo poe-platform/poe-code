@@ -105,6 +105,25 @@ describe("readCacheEntry and writeCacheEntry", () => {
       'Ignoring ingest cache entry "bad-shape": Expected string at "ingestedAt".'
     );
   });
+
+  it("rejects traversal cache keys before reading or writing", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/victim/secret.json": JSON.stringify(baseEntry)
+    });
+
+    await expect(readCacheEntry("/repo/.poe-code/memory", "../../victim/secret")).rejects.toThrow(
+      "cannot escape"
+    );
+    await expect(
+      writeCacheEntry("/repo/.poe-code/memory", {
+        ...baseEntry,
+        key: "../../victim/written"
+      })
+    ).rejects.toThrow("cannot escape");
+    await expect(vol.promises.stat("/repo/.poe-code/memory/victim/written.json")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
 });
 
 describe("clearCache", () => {

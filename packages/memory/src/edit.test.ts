@@ -129,4 +129,18 @@ describe("editPage", () => {
       vol.promises.readFile(`${root}/pages/packages/new-feature.md`, "utf8")
     ).resolves.toContain("# New page");
   });
+
+  it("rejects traversal paths before copying source content to the editor", async () => {
+    const root = "/repo/.poe-code/memory";
+    const launchEditor = vi.fn(async () => {});
+    vol.fromJSON({
+      [`${root}/pages/.keep`]: "",
+      "/repo/.poe-code/secret.md": "outside-memory-secret\n"
+    });
+
+    await expect(
+      editPage(root, "../secret.md", { reason: "inspect", launchEditor })
+    ).rejects.toThrow("cannot escape");
+    expect(launchEditor).not.toHaveBeenCalled();
+  });
 });

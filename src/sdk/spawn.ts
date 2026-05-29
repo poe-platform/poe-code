@@ -121,12 +121,18 @@ export function spawn(
       });
       const cwd = workspace.cwd;
 
-      const resolvedApiKey = await getPoeApiKey();
-      if (!process.env.POE_API_KEY || process.env.POE_API_KEY.trim().length === 0) {
-        process.env.POE_API_KEY = resolvedApiKey;
+      const container = createSdkContainer({ cwd });
+      const acpSpawnConfig = getAcpSpawnConfig(service);
+      const spawnConfig = getSpawnConfig(service);
+      const registeredService = container.registry.get(service);
+      const supportsInteractive = spawnConfig?.kind === "cli" && spawnConfig.interactive !== undefined;
+      const canSpawn = options.interactive
+        ? supportsInteractive
+        : acpSpawnConfig !== undefined || spawnConfig !== undefined || registeredService !== undefined;
+      if (canSpawn && (!process.env.POE_API_KEY || process.env.POE_API_KEY.trim().length === 0)) {
+        process.env.POE_API_KEY = await getPoeApiKey();
       }
 
-      const container = createSdkContainer({ cwd });
       integrations = await loadIntegrations(await resolveMergedDocument(container));
       const middlewares = [
         sessionCapture,
@@ -166,10 +172,9 @@ export function spawn(
         };
       }
 
-      const acpSpawnConfig = getAcpSpawnConfig(service);
       if (acpSpawnConfig && !hasRuntimeOverrides) {
         const model = await resolveModel();
-        const adapter = container.registry.get(service);
+        const adapter = registeredService;
         const activeProvider = adapter?.isolatedEnv
           ? await resolveActiveProviderForService(container, adapter.name)
           : undefined;
@@ -236,7 +241,6 @@ export function spawn(
         };
       }
 
-      const spawnConfig = getSpawnConfig(service);
       const supportsStreaming =
         !!spawnConfig &&
         spawnConfig.kind === "cli" &&
@@ -332,6 +336,10 @@ export function spawn(
       }
 
       resolveEventsOnce(emptyEvents);
+
+      if (!registeredService) {
+        throw new Error(`Unknown service "${service}".`);
+      }
 
       const model = await resolveModel();
       return spawnCore(container, service, {

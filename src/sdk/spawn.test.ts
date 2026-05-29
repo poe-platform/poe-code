@@ -672,6 +672,17 @@ describe("SDK spawn()", () => {
   });
 
   it("falls back to non-streaming and returns empty events when unsupported", async () => {
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs: createMemFs(),
+      env: {
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables: {}
+      },
+      registry: {
+        get: vi.fn(() => ({ name: "codex" }))
+      }
+    } as any);
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
     vi.mocked(spawnCore).mockResolvedValue({
       stdout: "out",
@@ -762,6 +773,17 @@ describe("SDK spawn()", () => {
   });
 
   it("propagates usage from spawnCore non-streaming result when unsupported", async () => {
+    vi.mocked(createSdkContainer).mockReturnValue({
+      fs: createMemFs(),
+      env: {
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveConfigPath(homeDir),
+        variables: {}
+      },
+      registry: {
+        get: vi.fn(() => ({ name: "codex" }))
+      }
+    } as any);
     vi.mocked(getSpawnConfig).mockReturnValue(undefined);
     vi.mocked(spawnCore).mockResolvedValue({
       stdout: "out",
@@ -1772,5 +1794,30 @@ describe("spawn.autonomous()", () => {
     await result;
 
     expect(process.env.POE_API_KEY).toBe("exported-key");
+  });
+
+  it("does not export stored credentials when the service is unknown", async () => {
+    delete process.env.POE_API_KEY;
+    getPoeApiKeyMock.mockResolvedValue("stored-key");
+    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
+
+    const { result } = spawn("unknown", "test prompt");
+
+    await expect(result).rejects.toThrow('Unknown service "unknown".');
+    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
+    expect(process.env.POE_API_KEY).toBeUndefined();
+  });
+
+  it("does not export stored credentials when interactive service validation fails", async () => {
+    delete process.env.POE_API_KEY;
+    getPoeApiKeyMock.mockResolvedValue("stored-key");
+    vi.mocked(getSpawnConfig).mockReturnValue(undefined);
+    vi.mocked(spawnInteractive).mockRejectedValue(new Error('Agent "unknown" has no spawn config.'));
+
+    const { result } = spawn("unknown", "test prompt", { interactive: true });
+
+    await expect(result).rejects.toThrow('Agent "unknown" has no spawn config.');
+    expect(getPoeApiKeyMock).not.toHaveBeenCalled();
+    expect(process.env.POE_API_KEY).toBeUndefined();
   });
 });

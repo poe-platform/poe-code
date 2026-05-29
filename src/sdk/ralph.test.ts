@@ -114,7 +114,10 @@ describe("SDK ralph", () => {
       prompt: "Improve the doc",
       cwd: "/repo",
       model: "gpt-5.2",
-      hooks: { from: "claude" }
+      hooks: { from: "claude" },
+      skills: ["foo", "claude/bar"],
+      logDir: "/home/test/.poe-code/logs/ralph/loop",
+      logFileName: "run-codex.jsonl"
     });
 
     expect(spawnAutonomousMock).toHaveBeenCalledWith("codex", {
@@ -123,6 +126,9 @@ describe("SDK ralph", () => {
       model: "gpt-5.2",
       mode: "yolo",
       hooks: { from: "claude" },
+      skills: ["foo", "claude/bar"],
+      logDir: "/home/test/.poe-code/logs/ralph/loop",
+      logFileName: "run-codex.jsonl",
       runtime: "docker",
       runtimeImage: "poe-code:test",
       detach: true

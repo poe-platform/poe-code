@@ -572,6 +572,9 @@ function createMemFsFromRaw(rawFs: ReturnType<typeof createFsFromVolume>["promis
     rm: async (filePath, options) => {
       await rawFs.rm(filePath, options);
     },
+    rename: async (sourcePath, destinationPath) => {
+      await rawFs.rename(sourcePath, destinationPath);
+    },
     stat: async filePath => {
       const stat = await rawFs.stat(filePath);
       return {

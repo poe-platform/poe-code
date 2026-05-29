@@ -161,4 +161,40 @@ describe("createStateStore", () => {
 
     await expect(store.read(updated.id)).resolves.toEqual(updated);
   });
+
+  it("rejects path traversal ids for all state operations", async () => {
+    const fs = createMemFs();
+    const store = createStateStore("/state", fs);
+    const escaped = createProcessState("../outside");
+
+    await expect(store.write(escaped.id, escaped)).rejects.toThrow(/process id/i);
+    await expect(store.read(escaped.id)).rejects.toThrow(/process id/i);
+    await expect(store.remove(escaped.id)).rejects.toThrow(/process id/i);
+    await expect(fs.readFile("/outside/state.json", "utf8")).rejects.toThrow();
+  });
+
+  it("preserves existing state if an updated write fails", async () => {
+    const volume = new Volume();
+    const rawFs = createFsFromVolume(volume).promises;
+    const base = rawFs as unknown as LauncherFileSystem;
+    const statePath = "/state/alpha/state.json";
+    const initial = createProcessState("alpha");
+    const updated = createProcessState("alpha", { pid: null, status: "crashed", lastExitCode: 1 });
+    const store = createStateStore("/state", base);
+    await store.write(initial.id, initial);
+    const fs = {
+      ...base,
+      writeFile: async (filePath: string, content: string) => {
+        if (filePath === `${statePath}.tmp`) {
+          await rawFs.writeFile(filePath, "{", { encoding: "utf8" });
+          throw new Error("state disk full");
+        }
+
+        await rawFs.writeFile(filePath, content, { encoding: "utf8" });
+      }
+    } as LauncherFileSystem;
+
+    await expect(createStateStore("/state", fs).write(updated.id, updated)).rejects.toThrow("state disk full");
+    await expect(store.read(initial.id)).resolves.toEqual(initial);
+  });
 });

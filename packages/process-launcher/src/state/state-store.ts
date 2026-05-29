@@ -6,6 +6,14 @@ function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
+function resolveProcessDir(stateDir: string, id: string): string {
+  if (id.length === 0 || id === "." || id === ".." || path.basename(id) !== id) {
+    throw new Error(`Invalid managed process id: ${id}`);
+  }
+
+  return path.join(stateDir, id);
+}
+
 async function removeDirectory(fs: LauncherFileSystem, directoryPath: string): Promise<void> {
   try {
     if ((await fs.lstat(directoryPath)).isSymbolicLink()) {
@@ -60,7 +68,7 @@ export function createStateStore(
   fs: LauncherFileSystem = nodeFs as unknown as LauncherFileSystem
 ): StateStore {
   async function read(id: string): Promise<ProcessState | null> {
-    const statePath = path.join(stateDir, id, "state.json");
+    const statePath = path.join(resolveProcessDir(stateDir, id), "state.json");
 
     try {
       const content = await fs.readFile(statePath, "utf8");
@@ -75,9 +83,18 @@ export function createStateStore(
   }
 
   async function write(id: string, state: ProcessState): Promise<void> {
-    const processDir = path.join(stateDir, id);
+    const processDir = resolveProcessDir(stateDir, id);
+    const statePath = path.join(processDir, "state.json");
+    const temporaryPath = `${statePath}.tmp`;
     await fs.mkdir(processDir, { recursive: true });
-    await fs.writeFile(path.join(processDir, "state.json"), `${JSON.stringify(state, null, 2)}\n`);
+
+    try {
+      await fs.writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);
+      await fs.rename(temporaryPath, statePath);
+    } catch (error) {
+      await fs.rm(temporaryPath, { force: true }).catch(() => undefined);
+      throw error;
+    }
   }
 
   async function list(): Promise<ProcessState[]> {
@@ -123,7 +140,7 @@ export function createStateStore(
   }
 
   async function remove(id: string): Promise<void> {
-    await removeDirectory(fs, path.join(stateDir, id));
+    await removeDirectory(fs, resolveProcessDir(stateDir, id));
   }
 
   return { read, write, list, remove };

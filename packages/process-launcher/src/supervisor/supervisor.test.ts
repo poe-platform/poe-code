@@ -623,7 +623,7 @@ function createMemFs(): {
   const originalWriteFile = fs.writeFile.bind(fs);
 
   fs.writeFile = vi.fn(async (filePath: string, content: string) => {
-    if (filePath.endsWith("state.json")) {
+    if (filePath.endsWith("state.json.tmp")) {
       stateWrites.push(content);
     }
 

@@ -5,8 +5,9 @@ export function formatCommandNotFound(input: {
   unknownCommand: string;
   helpCommand: string;
 }): { label: string; hint: string } {
-  const unknown = input.unknownCommand.length > 0
-    ? input.unknownCommand
+  const unknownInput = input.unknownCommand.replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll("\r", " ");
+  const unknown = unknownInput.length > 0
+    ? unknownInput
     : "<command>";
 
   return {

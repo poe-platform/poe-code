@@ -120,6 +120,11 @@ function hexChannel(value: string, offset: number): number {
 function normalizeHex(value: string): [number, number, number] {
   const normalized = value.startsWith("#") ? value.slice(1) : value;
 
+  if ((normalized.length !== 3 && normalized.length !== 6) ||
+    Array.from(normalized).some((char) => !"0123456789abcdefABCDEF".includes(char))) {
+    throw new Error(`Invalid hexadecimal color: ${value}`);
+  }
+
   if (normalized.length === 3) {
     const red = normalized[0]!;
     const green = normalized[1]!;
@@ -132,15 +137,11 @@ function normalizeHex(value: string): [number, number, number] {
     ];
   }
 
-  if (normalized.length === 6) {
-    return [
-      hexChannel(normalized, 0),
-      hexChannel(normalized, 2),
-      hexChannel(normalized, 4)
-    ];
-  }
-
-  return [0, 0, 0];
+  return [
+    hexChannel(normalized, 0),
+    hexChannel(normalized, 2),
+    hexChannel(normalized, 4)
+  ];
 }
 
 function rgbStyle(red: number, green: number, blue: number): AnsiPair {

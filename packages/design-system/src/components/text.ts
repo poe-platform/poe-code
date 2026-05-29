@@ -3,6 +3,33 @@ import { resolveOutputFormat } from "../internal/output-format.js";
 import { getTheme } from "../internal/theme-detect.js";
 import { typography } from "../tokens/typography.js";
 
+function renderMarkdownInline(content: string): string {
+  return content.replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll("\r", " ");
+}
+
+function renderMarkdownCode(content: string): string {
+  const value = renderMarkdownInline(content);
+  let longestRun = 0;
+  let currentRun = 0;
+  for (const char of value) {
+    if (char === "`") {
+      currentRun += 1;
+      longestRun = Math.max(longestRun, currentRun);
+      continue;
+    }
+    currentRun = 0;
+  }
+  const delimiter = "`".repeat(longestRun + 1);
+  return `${delimiter}${value}${delimiter}`;
+}
+
+function renderMarkdownLink(content: string): string {
+  const value = renderMarkdownInline(content);
+  const label = value.replaceAll("\\", "\\\\").replaceAll("[", "\\[").replaceAll("]", "\\]");
+  const url = value.replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
+  return `[${label}](${url})`;
+}
+
 export const text = {
   intro(content: string): string {
     const format = resolveOutputFormat();
@@ -31,7 +58,7 @@ export const text = {
   command(content: string): string {
     const format = resolveOutputFormat();
     if (format === "json") return content;
-    if (format === "markdown") return `\`${content}\``;
+    if (format === "markdown") return renderMarkdownCode(content);
     return getTheme().accent(content);
   },
   argument(content: string): string {
@@ -43,25 +70,25 @@ export const text = {
   option(content: string): string {
     const format = resolveOutputFormat();
     if (format === "json") return content;
-    if (format === "markdown") return `\`${content}\``;
+    if (format === "markdown") return renderMarkdownCode(content);
     return color.yellow(content);
   },
   example(content: string): string {
     const format = resolveOutputFormat();
     if (format === "json") return content;
-    if (format === "markdown") return `\`${content}\``;
+    if (format === "markdown") return renderMarkdownCode(content);
     return getTheme().muted(content);
   },
   usageCommand(content: string): string {
     const format = resolveOutputFormat();
     if (format === "json") return content;
-    if (format === "markdown") return `\`${content}\``;
+    if (format === "markdown") return renderMarkdownCode(content);
     return color.green(content);
   },
   link(content: string): string {
     const format = resolveOutputFormat();
     if (format === "json") return content;
-    if (format === "markdown") return `[${content}](${content})`;
+    if (format === "markdown") return renderMarkdownLink(content);
     return getTheme().accent(content);
   },
   muted(content: string): string {

@@ -84,6 +84,15 @@ describe("formatCommandNotFoundPanel", () => {
     expect(panel.title).toBe("mcp command not found");
     expect(stripAnsi(panel.footer)).toContain("poe-code mcp --help");
   });
+
+  it("keeps unknown commands on one diagnostic line", () => {
+    const panel = formatCommandNotFoundPanel({
+      unknownCommand: "bad\nRun rm -rf to repair",
+      helpCommand: "poe-code --help"
+    });
+
+    expect(stripAnsi(panel.label)).not.toContain("\nRun");
+  });
 });
 
 describe("components/logger", () => {
@@ -604,6 +613,8 @@ describe("text", () => {
       expect(text.link("https://example.com")).toBe(
         "[https://example.com](https://example.com)"
       );
+      expect(text.command("safe`\n\n## FORGED")).not.toContain("\n");
+      expect(text.link("safe](https://forged.test)\n## forged")).not.toContain("\n");
       expect(text.muted("Muted")).toBe("*Muted*");
       expect(text.error("Error")).toBe("**Error**");
       expect(text.badge("beta")).toBe("[beta]");

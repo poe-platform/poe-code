@@ -28,7 +28,7 @@ function renderTerminalNote(message: string, title?: string): string {
 export function note(message: string, title?: string): void {
   const format = resolveOutputFormat();
   const strippedMessage = stripAnsi(message);
-  const strippedTitle = stripAnsi(title ?? "");
+  const strippedTitle = stripAnsi(title ?? "").replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll("\r", " ");
 
   if (format === "markdown") {
     const lines = strippedMessage.split("\n");

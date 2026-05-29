@@ -10,6 +10,10 @@ export interface LogMessageOptions {
   withGuide?: boolean;
 }
 
+function renderMarkdownInline(value: string): string {
+  return stripAnsi(value).replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll("\r", " ");
+}
+
 function writeTerminalMessage(
   msg: string,
   {
@@ -56,7 +60,7 @@ function writeTerminalMessage(
 export function message(msg: string, options?: LogMessageOptions): void {
   const format = resolveOutputFormat();
   if (format === "markdown") {
-    process.stdout.write(`- ${stripAnsi(msg)}\n`);
+    process.stdout.write(`- ${renderMarkdownInline(msg)}\n`);
     return;
   }
   if (format === "json") {
@@ -72,7 +76,7 @@ export function message(msg: string, options?: LogMessageOptions): void {
 export function info(msg: string): void {
   const format = resolveOutputFormat();
   if (format === "markdown") {
-    process.stdout.write(`- **info:** ${stripAnsi(msg)}\n`);
+    process.stdout.write(`- **info:** ${renderMarkdownInline(msg)}\n`);
     return;
   }
   if (format === "json") {
@@ -88,7 +92,7 @@ export function info(msg: string): void {
 export function success(msg: string): void {
   const format = resolveOutputFormat();
   if (format === "markdown") {
-    process.stdout.write(`- **success:** ${stripAnsi(msg)}\n`);
+    process.stdout.write(`- **success:** ${renderMarkdownInline(msg)}\n`);
     return;
   }
   if (format === "json") {
@@ -104,7 +108,7 @@ export function success(msg: string): void {
 export function warn(msg: string): void {
   const format = resolveOutputFormat();
   if (format === "markdown") {
-    process.stdout.write(`- **warning:** ${stripAnsi(msg)}\n`);
+    process.stdout.write(`- **warning:** ${renderMarkdownInline(msg)}\n`);
     return;
   }
   if (format === "json") {
@@ -120,7 +124,7 @@ export function warn(msg: string): void {
 export function error(msg: string): void {
   const format = resolveOutputFormat();
   if (format === "markdown") {
-    process.stdout.write(`- **error:** ${stripAnsi(msg)}\n`);
+    process.stdout.write(`- **error:** ${renderMarkdownInline(msg)}\n`);
     return;
   }
   if (format === "json") {

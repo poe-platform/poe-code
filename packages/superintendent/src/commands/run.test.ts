@@ -218,7 +218,6 @@ describe("superintendent run command", () => {
   it("prompts for a builder agent when flag and frontmatter are empty", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-        '  agent: ""',
         "  prompt: |",
         "    Build {{plan.path}}"
       ])
@@ -360,7 +359,6 @@ describe("superintendent run command", () => {
   it("cancels cleanly when builder agent selection is cancelled", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-        '  agent: ""',
         "  prompt: |",
         "    Build {{plan.path}}"
       ])
@@ -408,7 +406,6 @@ describe("superintendent run command", () => {
   it("uses the configured default builder agent when flag and frontmatter are empty", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-        '  agent: ""',
         "  prompt: |",
         "    Build {{plan.path}}"
       ])
@@ -446,7 +443,6 @@ describe("superintendent run command", () => {
   it("falls back to claude-code with --yes when no builder agent is configured", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-        '  agent: ""',
         "  prompt: |",
         "    Build {{plan.path}}"
       ])
@@ -520,7 +516,6 @@ describe("superintendent run command", () => {
     const volume = Volume.fromJSON(
       {
         "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-          '  agent: ""',
           "  prompt: |",
           "    Build {{plan.path}}"
         ]),
@@ -593,7 +588,6 @@ describe("superintendent run command", () => {
     const volume = Volume.fromJSON(
       {
         "/repo/docs/plans/plan.md": createDocWithBuilderSection([
-          '  agent: ""',
           "  prompt: |",
           "    Build {{plan.path}}"
         ]),

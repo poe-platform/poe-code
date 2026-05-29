@@ -796,6 +796,8 @@ export function createProgram(dependencies: CliDependencies): Command {
   const container = createCliContainer(dependencies);
   const program = bootstrapProgram(container);
 
+  interceptUnknownHelpPaths(program, container);
+
   if (dependencies.exitOverride ?? true) {
     applyExitOverride(program);
   }
@@ -805,6 +807,47 @@ export function createProgram(dependencies: CliDependencies): Command {
   }
 
   return program;
+}
+
+function interceptUnknownHelpPaths(program: Command, container: CliContainer): void {
+  const parseAsync = program.parseAsync.bind(program);
+  program.parseAsync = async (argv, options) => {
+    const commandArgs = (argv ?? process.argv).slice(2);
+    if (commandArgs.includes("--help") || commandArgs.includes("-h")) {
+      const rootToken = commandArgs.find((arg) => !arg.startsWith("-"));
+      if (rootToken !== undefined && !findCommand(program, rootToken)) {
+        throwCommandNotFound({
+          container,
+          scope: "cli",
+          unknownCommand: rootToken,
+          helpArgs: ["--help"],
+          moduleUrl: import.meta.url
+        });
+      }
+
+      if (rootToken === "mcp" || rootToken === "skill") {
+        const group = findCommand(program, rootToken)!;
+        const tokenIndex = commandArgs.indexOf(rootToken);
+        const subcommandToken = commandArgs
+          .slice(tokenIndex + 1)
+          .find((arg) => !arg.startsWith("-"));
+        if (subcommandToken !== undefined && !findCommand(group, subcommandToken)) {
+          throwCommandNotFound({
+            container,
+            scope: rootToken,
+            unknownCommand: subcommandToken,
+            helpArgs: [rootToken, "--help"],
+            moduleUrl: import.meta.url
+          });
+        }
+      }
+    }
+    return parseAsync(argv, options);
+  };
+}
+
+function findCommand(parent: Command, name: string): Command | undefined {
+  return parent.commands.find((command) => command.name() === name || command.aliases().includes(name));
 }
 
 function bootstrapProgram(container: CliContainer): Command {

@@ -666,7 +666,8 @@ describe("root command", () => {
     expect(plainOutput).not.toContain("poe-code configure claude-code");
     expect(plainOutput).not.toContain('poe-code spawn codex "Say hello"');
     expect(plainOutput).toContain("Run poe-code <command> --help for command options.");
-    expect(plainOutput).not.toContain("Options:");
+    expect(plainOutput).toContain("Options:");
+    expect(plainOutput).toContain("--dry-run");
     expect(plainOutput).not.toContain("[service]");
     expect(plainOutput).not.toContain("<service>");
     expect(plainOutput).not.toContain("unconfigure<agent>");
@@ -984,6 +985,32 @@ describe("root command", () => {
     expect(plainLogger).toContain("Unknown command:");
     expect(plainLogger).toContain("nope");
     expect(plainLogger).toContain("poe mcp --help");
+  });
+
+  it.each([
+    { args: ["nope", "--help"], help: "poe --help" },
+    { args: ["mcp", "nope", "--help"], help: "poe mcp --help" },
+    { args: ["skill", "nope", "--help"], help: "poe skill --help" }
+  ])("errors for unknown help command paths: $args", async ({ args, help }) => {
+    process.argv = ["node", "/usr/local/bin/poe"];
+    let loggerOutput = "";
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test", variables: {} },
+      logger: (message) => {
+        loggerOutput += `${message}\n`;
+      }
+    });
+
+    await expect(program.parseAsync(["node", "cli", ...args])).rejects.toBeInstanceOf(
+      SilentError
+    );
+
+    const plainLogger = stripAnsi(loggerOutput);
+    expect(plainLogger).toContain("Unknown command:");
+    expect(plainLogger).toContain("nope");
+    expect(plainLogger).toContain(help);
   });
 
   it("uses the development invocation in help hints when running via npm run dev", async () => {

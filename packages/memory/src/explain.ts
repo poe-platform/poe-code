@@ -41,23 +41,54 @@ export async function explainPage(
 
   const configOptions = {
     fs: fs as MemoryConfigOptions["fs"],
-    filePath: path.join(inferRepoRoot(root), "poe-code.json")
+    filePath: path.join(inferRepoRoot(root), "poe-code.json"),
+    projectFilePath: path.join(inferRepoRoot(root), ".poe-code", "config.json")
   } satisfies MemoryConfigOptions;
   const agentId =
     (await resolveAgent(configOptions, options.agent ?? null)) ?? options.agent ?? "claude-code";
-  const response = (await spawn(agentId, { prompt })) as unknown as QueryResult;
+  const spawned = await spawn(agentId, { prompt });
+  const response = parseExplainResponse(spawned.stdout);
 
   return {
     answer: response.answer,
     citations: response.citations,
     tokensUsed: response.tokensUsed,
     budget: options.budget,
-    exitCode: response.exitCode,
+    exitCode: spawned.exitCode,
     inboundPages: relatedPages
       .filter((page) => page.relPath !== targetPage.relPath)
       .filter((page) => (page.frontmatter.sources ?? []).some((source) => source.path === targetPage.relPath))
       .map((page) => page.relPath),
     outboundSources: targetPage.frontmatter.sources ?? []
+  };
+}
+
+function parseExplainResponse(stdout: string): Pick<QueryResult, "answer" | "citations" | "tokensUsed"> {
+  let value: unknown;
+  try {
+    value = JSON.parse(stdout);
+  } catch {
+    throw new Error("Memory agent returned invalid JSON output.");
+  }
+
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("Memory agent returned an invalid result payload.");
+  }
+
+  const response = value as Record<string, unknown>;
+  if (
+    typeof response.answer !== "string" ||
+    !Array.isArray(response.citations) ||
+    typeof response.tokensUsed !== "number" ||
+    !Number.isFinite(response.tokensUsed)
+  ) {
+    throw new Error("Memory agent returned an invalid result payload.");
+  }
+
+  return {
+    answer: response.answer,
+    citations: response.citations as QueryResult["citations"],
+    tokensUsed: response.tokensUsed
   };
 }
 

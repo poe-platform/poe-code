@@ -22,6 +22,7 @@ import {
   getCurrentExecutionContext,
   toMcpServerCommand
 } from "../../utils/execution-context.js";
+import { POE_PROVIDER_ID } from "@poe-code/providers";
 
 const DEFAULT_MCP_AGENT = "claude-code";
 
@@ -95,7 +96,7 @@ export function registerMcpCommand(
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");
 
-      const existingKey = await container.readApiKey();
+      const existingKey = await resolvePoeCredential(container);
 
       if (!existingKey) {
         resources.logger.intro("login");
@@ -218,7 +219,7 @@ async function runMcpServer(
     options.outputFormat
   );
 
-  const apiKey = await container.readApiKey();
+  const apiKey = await resolvePoeCredential(container);
   if (!apiKey) {
     process.stderr.write("No API key found. Run 'poe-code login' first.\n");
     process.exit(1);
@@ -231,4 +232,14 @@ async function runMcpServer(
   });
 
   await runMcpServerWithTransport(outputFormatPreferences);
+}
+
+async function resolvePoeCredential(container: CliContainer): Promise<string | null> {
+  try {
+    return await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
+      envVars: container.env.variables
+    });
+  } catch {
+    return null;
+  }
 }

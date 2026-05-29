@@ -119,9 +119,12 @@ function createMcpMemfs(): FileSystem {
 async function createMcpProgram(options?: {
   fs?: FileSystem;
   variables?: Record<string, string | undefined>;
+  storeApiKey?: boolean;
 }) {
   const fs = options?.fs ?? createMcpMemfs();
-  await storeTestApiKey(fs, "/home/test", "test-api-key");
+  if (options?.storeApiKey !== false) {
+    await storeTestApiKey(fs, "/home/test", "test-api-key");
+  }
   const program = createProgram({
     fs,
     prompts: vi.fn(),
@@ -525,6 +528,24 @@ describe("mcp command", () => {
     }
   });
 
+  it("serves using POE_API_KEY when no stored credential exists", async () => {
+    const { program } = await createMcpProgram({
+      storeApiKey: false,
+      variables: { POE_API_KEY: ENV_KEY }
+    });
+    const initSpy = vi.spyOn(clientInstance, "initializeClient").mockResolvedValue(undefined);
+    const transportSpy = vi.spyOn(mcpServer, "runMcpServerWithTransport").mockResolvedValue(undefined);
+
+    try {
+      await program.parseAsync(["node", "cli", "mcp", "serve"]);
+      expect(initSpy).toHaveBeenCalledWith(expect.objectContaining({ apiKey: ENV_KEY }));
+      expect(transportSpy).toHaveBeenCalledWith(["url"]);
+    } finally {
+      initSpy.mockRestore();
+      transportSpy.mockRestore();
+    }
+  });
+
   it("parses comma-separated --output-format preferences", async () => {
     const { program } = await createMcpProgram();
     const initSpy = vi
@@ -624,6 +645,17 @@ describe("mcp command", () => {
     expect(logs.some(m => m.includes("login"))).toBe(true);
     expect(logs.some(m => m.includes("Logged in"))).toBe(true);
     expect(configureMock).toHaveBeenCalled();
+  });
+
+  it("configures using POE_API_KEY without starting login", async () => {
+    const { program } = await createMcpProgram({
+      storeApiKey: false,
+      variables: { POE_API_KEY: ENV_KEY }
+    });
+
+    await program.parseAsync(["node", "cli", "mcp", "configure", "codex", "--yes"]);
+
+    expect(configureMock).toHaveBeenCalledWith("codex", expect.any(Object), expect.any(Object));
   });
 
   it("rejects invalid agent names for configure", async () => {

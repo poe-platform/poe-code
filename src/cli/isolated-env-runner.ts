@@ -55,8 +55,8 @@ export async function isolatedEnvRunner(input: {
     child.on("error", (error) => {
       reject(error);
     });
-    child.on("close", (code) => {
-      process.exit(code ?? 0);
+    child.on("close", (code, signal) => {
+      process.exit(code ?? (signal === null ? 0 : 1));
     });
   });
 }

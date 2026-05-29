@@ -1,6 +1,6 @@
 import path from "node:path";
 import type { FileSystem } from "@poe-code/config-mutations";
-import { configuredMemoryRoot } from "@poe-code/poe-code-config";
+import { readMergedDocumentReadonly } from "@poe-code/poe-code-config";
 import { resolveMemoryRoot } from "./paths.js";
 import type { MemoryRoot } from "./types.js";
 
@@ -22,18 +22,24 @@ export async function resolveConfiguredMemoryRoot(
     return resolveAgainstCwd(options.cwd, envOverride);
   }
 
-  const configOverride = (
-    await configuredMemoryRoot({
-      fs: options.fs,
-      filePath: options.configPath,
-      projectFilePath: options.projectConfigPath
-    })
+  const configOverride = readMemoryRoot(
+    await readMergedDocumentReadonly(options.fs, options.configPath, options.projectConfigPath)
   )?.trim();
   if (configOverride && configOverride.length > 0) {
     return resolveAgainstCwd(options.cwd, configOverride);
   }
 
   return resolveMemoryRoot(options.cwd);
+}
+
+function readMemoryRoot(document: Record<string, unknown>): string | undefined {
+  const memory = document.memory;
+  if (!memory || typeof memory !== "object" || Array.isArray(memory)) {
+    return undefined;
+  }
+
+  const root = (memory as Record<string, unknown>).root;
+  return typeof root === "string" ? root : undefined;
 }
 
 function resolveAgainstCwd(cwd: string, value: string): string {

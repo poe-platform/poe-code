@@ -47,6 +47,9 @@ export class TerminalBuffer {
   private _csiPrivate = "";
   private _autoWrap = true;
   private _originMode = false;
+  private _insertMode = false;
+  private _tabStops: Set<number>;
+  private _lastPrintedChar: string | null = null;
   private _style: SgrStyleState = createDefaultStyleState();
   private _styleSequence = "";
 
@@ -61,6 +64,7 @@ export class TerminalBuffer {
     this._rows = rows;
     this._scrollBottom = rows - 1;
     this._screen = this._makeScreen(cols, rows);
+    this._tabStops = this._createDefaultTabStops(cols);
     this._savedCursor = this._createSavedCursorState();
 
     this.displayBuffer = Object.defineProperties(
@@ -147,6 +151,14 @@ export class TerminalBuffer {
     return Array(cols).fill(null) as Row;
   }
 
+  private _createDefaultTabStops(cols: number): Set<number> {
+    const tabStops = new Set<number>();
+    for (let column = 8; column < cols; column += 8) {
+      tabStops.add(column);
+    }
+    return tabStops;
+  }
+
   private _clamp(value: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, value));
   }
@@ -180,7 +192,30 @@ export class TerminalBuffer {
   private _resetModes(): void {
     this._autoWrap = true;
     this._originMode = false;
+    this._insertMode = false;
+    this._tabStops = this._createDefaultTabStops(this._cols);
     this._resetStyle();
+  }
+
+  private _writePrintable(ch: string): void {
+    if (this._insertMode) {
+      const row = this._screen[this._cursorY];
+      if (row) {
+        row.splice(this._cursorX, 0, null);
+        row.splice(this._cols);
+      }
+    }
+
+    this._setChar(this._cursorY, this._cursorX, ch);
+    this._lastPrintedChar = ch;
+    this._cursorX++;
+
+    if (!this._autoWrap) {
+      this._cursorX = Math.min(this._cursorX, this._cols - 1);
+    } else if (this._cursorX >= this._cols) {
+      this._cursorX = 0;
+      this._newline();
+    }
   }
 
   private _setChar(y: number, x: number, ch: string): void {
@@ -273,6 +308,11 @@ export class TerminalBuffer {
           this._resetStyle();
         }
       }
+      return;
+    }
+
+    if ((final === "h" || final === "l") && params.includes(4)) {
+      this._insertMode = final === "h";
       return;
     }
 
@@ -386,6 +426,13 @@ export class TerminalBuffer {
         }
         break;
       }
+      case "b": // repeat preceding character
+        if (this._lastPrintedChar !== null) {
+          for (let index = 0; index < Math.max(1, p0); index += 1) {
+            this._writePrintable(this._lastPrintedChar);
+          }
+        }
+        break;
       case "d": // line position absolute
         this._cursorY = this._clamp(Math.max(1, p0) - 1, 0, this._rows - 1);
         break;
@@ -467,7 +514,15 @@ export class TerminalBuffer {
         this._state = State.Normal;
         break;
       case State.EscHash:
-        // consume one character for line attributes
+        if (ch === "8") {
+          for (let row = 0; row < this._rows; row += 1) {
+            for (let column = 0; column < this._cols; column += 1) {
+              this._setChar(row, column, "E");
+            }
+          }
+          this._cursorX = 0;
+          this._cursorY = 0;
+        }
         this._state = State.Normal;
         break;
     }
@@ -506,7 +561,10 @@ export class TerminalBuffer {
       }
     } else if (code === 0x09) {
       // HT
-      this._cursorX = Math.min(this._cols - 1, (Math.floor(this._cursorX / 8) + 1) * 8);
+      const nextTabStop = [...this._tabStops]
+        .sort((left, right) => left - right)
+        .find((tabStop) => tabStop > this._cursorX);
+      this._cursorX = nextTabStop ?? this._cols - 1;
     } else if (code === 0x0a || code === 0x0b || code === 0x0c) {
       // LF, VT, FF
       this._newline();
@@ -517,19 +575,7 @@ export class TerminalBuffer {
       // SO, SI — charset switch, ignore
     } else if (code >= 0x20 && code !== 0x7f) {
       // Printable character (including multi-byte Unicode via code points)
-      this._setChar(this._cursorY, this._cursorX, ch);
-      this._cursorX++;
-
-      if (!this._autoWrap) {
-        this._cursorX = Math.min(this._cursorX, this._cols - 1);
-        return;
-      }
-
-      if (this._cursorX >= this._cols) {
-        // Auto-wrap
-        this._cursorX = 0;
-        this._newline();
-      }
+      this._writePrintable(ch);
     }
   }
 
@@ -574,7 +620,8 @@ export class TerminalBuffer {
         this._cursorY = Math.max(0, this._cursorY - 1);
       }
     } else if (code === 0x48) {
-      // ESC H = tab set (ignore)
+      // ESC H = horizontal tab set
+      this._tabStops.add(this._cursorX);
     } else if (code === 0x63) {
       // ESC c = full reset
       this._screen = this._makeScreen(this._cols, this._rows);

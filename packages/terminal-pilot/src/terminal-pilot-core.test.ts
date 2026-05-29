@@ -279,6 +279,12 @@ describe("TerminalBuffer", () => {
       buf.write("A\t");
       expect(buf.displayBuffer.cursorX).toBe(16);
     });
+
+    it("uses custom tab stops configured with HTS", () => {
+      const buf = new TerminalBuffer(20, 2);
+      buf.write("A\x1bH\r\tB");
+      expect(readLine(buf, 0).trimEnd()).toBe("AB");
+    });
   });
 
   describe("auto-wrap", () => {
@@ -480,6 +486,26 @@ describe("TerminalBuffer", () => {
       buf.write("\x1b8"); // restore
       expect(buf.displayBuffer.cursorY).toBe(4);
       expect(buf.displayBuffer.cursorX).toBe(6);
+    });
+  });
+
+  describe("DEC controls", () => {
+    it("fills the viewport for the alignment test pattern", () => {
+      const buf = new TerminalBuffer(4, 2);
+      buf.write("X\x1b#8");
+      expect(readScreen(buf, 2)).toEqual(["EEEE", "EEEE"]);
+    });
+
+    it("inserts printable characters while insert mode is enabled", () => {
+      const buf = new TerminalBuffer(8, 2);
+      buf.write("ABCDE\x1b[1;3H\x1b[4hX\x1b[4l");
+      expect(readLine(buf, 0).trimEnd()).toBe("ABXCDE");
+    });
+
+    it("repeats the preceding character for CSI b", () => {
+      const buf = new TerminalBuffer(8, 2);
+      buf.write("A\x1b[3b");
+      expect(readLine(buf, 0).trimEnd()).toBe("AAAA");
     });
   });
 

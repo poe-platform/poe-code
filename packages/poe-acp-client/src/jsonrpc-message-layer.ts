@@ -112,7 +112,11 @@ function hasOwn(
 }
 
 function isRequestId(value: unknown): value is RequestId {
-  return value === null || typeof value === "string" || typeof value === "number";
+  return (
+    value === null ||
+    typeof value === "string" ||
+    (typeof value === "number" && Number.isFinite(value))
+  );
 }
 
 function toRequestId(value: unknown): RequestId {
@@ -430,6 +434,10 @@ export class JsonRpcMessageLayer {
     }
 
     const id = options.id === undefined ? this.nextRequestId++ : options.id;
+
+    if (!isRequestId(id)) {
+      throw new Error("Request id must be null, a string, or a finite number");
+    }
 
     if (this.pending.has(id)) {
       throw new Error(`A request with id ${JSON.stringify(id)} is already pending`);

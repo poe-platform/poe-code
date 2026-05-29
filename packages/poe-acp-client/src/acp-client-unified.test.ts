@@ -2507,6 +2507,16 @@ describe("parseJsonRpcMessage", () => {
     expect(nullId).toMatchObject({ type: "request", message: { id: null } });
   });
 
+  it("rejects non-finite numeric request ids before writing requests", () => {
+    const { written, layer } = createHarness();
+
+    expect(() => layer.sendRequest("ping", undefined, { id: Number.NaN })).toThrow(
+      "Request id must be null, a string, or a finite number"
+    );
+    expect(layer.pendingRequestCount()).toBe(0);
+    expect(written).toEqual([]);
+  });
+
   it("returns parse error metadata for malformed JSON", () => {
     const parsed = parseJsonRpcMessage("{broken");
 
@@ -3080,6 +3090,44 @@ describe("saveRunReport", () => {
     const summaryOnDisk = await fs.readFile(output.summaryPath, "utf8");
     expect(summaryOnDisk).toContain("Run ID: run/123");
     expect(summaryOnDisk).toContain("Error count: 1");
+  });
+
+  it("removes a written report artifact when the companion write fails", async () => {
+    const written = new Set<string>();
+    const remove = vi.fn(async (path: string) => {
+      written.delete(path);
+    });
+    const report: RunReport = {
+      runId: "run-1",
+      startTime: "2026-05-25T00:00:00.000Z",
+      endTime: "2026-05-25T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 1, size: 2, updates: 1 },
+      errors: [],
+    };
+
+    await expect(
+      saveRunReport(report, {
+        fs: {
+          mkdir: async () => {},
+          writeFile: async (path: string) => {
+            if (path.endsWith(".txt")) {
+              throw new Error("summary write failed");
+            }
+            written.add(path);
+          },
+          rm: remove,
+        },
+        homeDir: "/home/test",
+        now: () => new Date("2026-05-25T01:02:03.004Z"),
+      })
+    ).rejects.toThrow("summary write failed");
+
+    expect(written).toEqual(new Set());
+    expect(remove).toHaveBeenCalledWith(
+      "/home/test/.poe-code/reports/20260525-010203-004-run-1.json"
+    );
   });
 });
 

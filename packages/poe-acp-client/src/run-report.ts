@@ -50,6 +50,7 @@ export type RunReportFileSystem = {
     data: string,
     options?: { encoding?: BufferEncoding },
   ): Promise<void>;
+  rm(path: string): Promise<void>;
 };
 
 export interface SaveRunReportOptions {
@@ -150,7 +151,12 @@ export async function saveRunReport(
   const summaryPath = join(reportsDir, `${baseFileName}.txt`);
 
   await fs.writeFile(jsonPath, JSON.stringify(report, null, 2), { encoding: "utf8" });
-  await fs.writeFile(summaryPath, formatRunReportSummary(report), { encoding: "utf8" });
+  try {
+    await fs.writeFile(summaryPath, formatRunReportSummary(report), { encoding: "utf8" });
+  } catch (error) {
+    await fs.rm(jsonPath);
+    throw error;
+  }
 
   return {
     reportsDir,

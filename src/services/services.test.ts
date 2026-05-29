@@ -213,6 +213,43 @@ describe("config store", () => {
     await expect(fs.readFile(legacyPath, "utf8")).rejects.toThrow();
   });
 
+  it("does not partially commit legacy credentials when the atomic config replacement fails", async () => {
+    const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+    const base = fs;
+    await base.writeFile(legacyPath, JSON.stringify({
+      apiKey: "legacy-key",
+      configured_services: { codex: { files: ["/home/user/.codex/config.toml"] } }
+    }), { encoding: "utf8" });
+    const failingFs = {
+      ...base,
+      async rename(oldPath: string, newPath: string) {
+        if (newPath === configPath) {
+          throw new Error("core write offline");
+        }
+        await base.rename(oldPath, newPath);
+      }
+    };
+
+    await expect(loadConfig({ fs: failingFs, filePath: configPath })).rejects.toThrow("core write offline");
+    await expect(base.readFile(configPath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(base.readFile(legacyPath, "utf8")).resolves.toContain("legacy-key");
+  });
+
+  it("preserves prototype-named configured services during legacy credentials migration", async () => {
+    const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+    await fs.writeFile(
+      legacyPath,
+      '{"apiKey":"legacy-key","configured_services":{"__proto__":{"files":["/home/user/.custom/config"]}}}',
+      { encoding: "utf8" }
+    );
+
+    await expect(loadConfig({ fs, filePath: configPath })).resolves.toBe("legacy-key");
+    const services = await loadConfiguredServices({ fs, filePath: configPath });
+
+    expect(Object.hasOwn(services, "__proto__")).toBe(true);
+    expect(services.__proto__).toMatchObject({ files: ["/home/user/.custom/config"] });
+  });
+
   it("rejects a symlinked legacy credentials file before importing external secrets", async () => {
     const legacyPath = path.join(path.dirname(configPath), "credentials.json");
     await fs.mkdir("/outside", { recursive: true });

@@ -8,6 +8,7 @@ import {
   readMergedDocument,
   saveConfiguredService,
   unconfigureService,
+  writeDocument,
   writeScope
 } from "@poe-code/poe-code-config";
 import type {
@@ -262,14 +263,15 @@ async function migrateLegacyCredentialsFile(fs: FileSystem, configPath: string):
     throw error;
   }
 
+  const document = await readDocument(fs, configPath);
   if (legacyDocument.configured_services) {
-    await writeScope(fs, configPath, configuredServicesScope, legacyDocument.configured_services);
+    defineDataProperty(document, configuredServicesScope, legacyDocument.configured_services);
   }
-
   if (legacyDocument.apiKey) {
-    await writeScope(fs, configPath, CORE_SCOPE, {
-      apiKey: legacyDocument.apiKey
-    });
+    defineDataProperty(document, CORE_SCOPE, { apiKey: legacyDocument.apiKey });
+  }
+  if (legacyDocument.configured_services || legacyDocument.apiKey) {
+    await writeDocument(fs, configPath, document);
   }
 
   await fs.unlink(legacyPath);
@@ -312,7 +314,7 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
       continue;
     }
 
-    entries[key] = normalizeConfiguredServiceMetadata({
+    defineDataProperty(entries, key, normalizeConfiguredServiceMetadata({
       provider: typeof entry.provider === "string" ? entry.provider : "poe",
       apiShape:
         typeof entry.apiShape === "string"
@@ -325,10 +327,19 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
       shapeBaseUrl: Array.isArray(entry.shapeBaseUrl)
         ? entry.shapeBaseUrl.filter((value): value is string => typeof value === "string")
         : undefined
-    });
+    }));
   }
 
   return entries;
+}
+
+function defineDataProperty(object: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(object, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true
+  });
 }
 
 async function recoverInvalidConfig(

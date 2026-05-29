@@ -184,7 +184,7 @@ function createResolvedConfigFs(
   };
 }
 
-async function writeDocument(
+export async function writeDocument(
   fs: FileSystem,
   filePath: string,
   document: ConfigDocument

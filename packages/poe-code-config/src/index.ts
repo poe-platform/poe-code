@@ -78,6 +78,7 @@ export {
   resolveConfigPath,
   resolveServicesConfigPath,
   resolveProjectConfigPath,
+  writeDocument,
   writeScope
 } from "./store.js";
 export {

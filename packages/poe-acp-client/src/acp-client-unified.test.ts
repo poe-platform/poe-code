@@ -746,6 +746,19 @@ describe("AcpClient", () => {
     });
   });
 
+  it("rejects session/new responses with non-string session ids", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock
+      .mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse)
+      .mockResolvedValueOnce({ sessionId: 17 });
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    await expect(client.newSession("/workspace", [])).rejects.toThrow(
+      'Invalid response from "session/new": "sessionId" must be a string.'
+    );
+  });
+
   it("supports creating multiple sessions over one connection", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     sendRequestMock
@@ -999,6 +1012,19 @@ describe("AcpClient", () => {
     ]);
   });
 
+  it("rejects session/set_config_option responses with non-array config options", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock
+      .mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse)
+      .mockResolvedValueOnce({ configOptions: 7 });
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    await expect(client.setConfigOption("session-1", "model", "sonnet")).rejects.toThrow(
+      'Invalid response from "session/set_config_option": "configOptions" must be an array.'
+    );
+  });
+
   it("registers fs/read_text_file only when readTextFile capability is advertised", () => {
     const { transport, onRequestMock } = createTransportMock();
     const readTextFile = vi.fn(async () => "content");
@@ -1181,6 +1207,32 @@ describe("AcpClient", () => {
     expect(readTextFile).not.toHaveBeenCalled();
   });
 
+  it.each([-1, 1.5, Number.NaN])(
+    "returns invalid_params when fs/read_text_file limit is %s",
+    async (limit) => {
+      const { transport, emitRequest } = createTransportMock();
+      const readTextFile = vi.fn(async () => "unused");
+      new AcpClient({
+        transport,
+        protocolVersion: 1,
+        clientCapabilities: { fs: { readTextFile: true } },
+        fsHandler: { readTextFile },
+      });
+
+      await expect(
+        emitRequest("fs/read_text_file", {
+          sessionId: "session-1",
+          path: "/workspace/file.txt",
+          limit,
+        } as ReadTextFileRequest)
+      ).rejects.toMatchObject({
+        code: -32602,
+        message: 'Invalid params: "limit" must be a non-negative integer',
+      });
+      expect(readTextFile).not.toHaveBeenCalled();
+    }
+  );
+
   it("returns method_not_found when fs capability is not advertised", async () => {
     const { transport, emitRequest } = createTransportMock();
     new AcpClient({
@@ -1274,6 +1326,38 @@ describe("AcpClient", () => {
     });
     expect(response).toEqual({ terminalId: "term-1" });
   });
+
+  it.each([-1, 1.5, Number.NaN])(
+    "returns invalid_params when terminal/create outputByteLimit is %s",
+    async (outputByteLimit) => {
+      const { transport, emitRequest } = createTransportMock();
+      const create = vi.fn(async () => "term-1");
+      new AcpClient({
+        transport,
+        protocolVersion: 1,
+        clientCapabilities: { terminal: true },
+        terminalHandler: {
+          create,
+          output: async () => ({ output: "", truncated: false }),
+          waitForExit: async () => ({ exitCode: 0 }),
+          kill: async () => {},
+          release: async () => {},
+        },
+      });
+
+      await expect(
+        emitRequest("terminal/create", {
+          sessionId: "session-1",
+          command: "npm",
+          outputByteLimit,
+        } as CreateTerminalRequest)
+      ).rejects.toMatchObject({
+        code: -32602,
+        message: 'Invalid params: "outputByteLimit" must be a non-negative integer',
+      });
+      expect(create).not.toHaveBeenCalled();
+    }
+  );
 
   it("handles terminal/output requests through terminalHandler", async () => {
     const { transport, emitRequest } = createTransportMock();

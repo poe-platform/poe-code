@@ -187,6 +187,20 @@ function assertOneBasedLineNumber(line: number | null | undefined): void {
   }
 }
 
+function assertNonNegativeInteger(value: number | null | undefined, fieldName: string): void {
+  if (value === null || value === undefined) {
+    return;
+  }
+
+  if (!Number.isInteger(value) || value < 0) {
+    throw invalidParams(`"${fieldName}" must be a non-negative integer`);
+  }
+}
+
+function invalidResponse(method: string, message: string): Error {
+  return new Error(`Invalid response from "${method}": ${message}`);
+}
+
 function assertExtensionMethod(method: string): asserts method is ExtensionMethod {
   if (!method.startsWith("_")) {
     throw new Error('Extension method must start with "_"');
@@ -480,10 +494,16 @@ export class AcpClient {
     this.assertReady("session/new");
     this.assertMcpServerCapabilitySupport(mcpServers);
 
-    return this.transport.sendRequest("session/new", {
+    const response = await this.transport.sendRequest("session/new", {
       cwd,
       mcpServers,
     });
+
+    if (typeof response.sessionId !== "string") {
+      throw invalidResponse("session/new", '"sessionId" must be a string.');
+    }
+
+    return response;
   }
 
   async loadSession(
@@ -534,6 +554,13 @@ export class AcpClient {
       configId,
       value,
     });
+
+    if (!Array.isArray(response.configOptions)) {
+      throw invalidResponse(
+        "session/set_config_option",
+        '"configOptions" must be an array.'
+      );
+    }
 
     return response.configOptions;
   }
@@ -691,6 +718,7 @@ export class AcpClient {
         async (params: ReadTextFileRequest): Promise<ReadTextFileResponse> => {
           assertAbsolutePath(params.path);
           assertOneBasedLineNumber(params.line);
+          assertNonNegativeInteger(params.limit, "limit");
 
           const content = await readTextFile({
             sessionId: params.sessionId,
@@ -736,6 +764,7 @@ export class AcpClient {
       this.transport.onRequest(
         "terminal/create",
         async (params: CreateTerminalRequest): Promise<CreateTerminalResponse> => {
+          assertNonNegativeInteger(params.outputByteLimit, "outputByteLimit");
           const terminalId = await terminalHandler.create({
             sessionId: params.sessionId,
             command: params.command,

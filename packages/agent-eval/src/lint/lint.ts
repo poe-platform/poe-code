@@ -5,6 +5,7 @@ import { parse as parseYaml } from "yaml";
 import { EvalYamlValidationError, validateEvalYaml, type EvalYaml } from "../schema.js";
 import type { EvalFs } from "../types.js";
 import { assertFsCanonicalContainedPathIfPresent } from "../path-boundary.js";
+import { assertSafeEvalId } from "../source/registry.js";
 
 export interface LintIssue {
   severity: "error" | "warning";
@@ -26,6 +27,8 @@ interface ParsedEvalYaml {
 const allowedPlanKinds = ["plan", "pipeline", "superintendent", "experiment"] as const;
 
 export async function evalLint(input: { sourceDir: string; evalId: string }): Promise<LintResult> {
+  assertSafeEvalId(input.evalId);
+
   const fs = nodeFs as unknown as EvalFs;
   const evalDir = path.join(input.sourceDir, input.evalId);
   const issues: LintIssue[] = [];

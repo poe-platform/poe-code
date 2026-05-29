@@ -206,7 +206,7 @@ function stripBom(content: string): string {
   return content.startsWith("\uFEFF") ? content.slice(1) : content;
 }
 
-function assertSafeEvalId(id: string): void {
+export function assertSafeEvalId(id: string): void {
   if (id === "" || id === "." || id === ".." || id.includes("/") || id.includes("\\")) {
     throw new Error(`Invalid eval id "${id}". Eval ids must be first-level directory names.`);
   }

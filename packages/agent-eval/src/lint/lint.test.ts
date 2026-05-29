@@ -30,6 +30,12 @@ describe("evalLint", () => {
     });
   });
 
+  it("rejects eval ids that escape the source directory", async () => {
+    await expect(evalLint({ sourceDir: "/repo/evals", evalId: "../victim" })).rejects.toThrow(
+      'Invalid eval id "../victim". Eval ids must be first-level directory names.'
+    );
+  });
+
   it("does not lint an eval definition symlinked outside the source directory", async () => {
     mocks.fs = createFsFromVolume(Volume.fromJSON(validFiles(), "/")).promises;
     await mocks.fs.mkdir("/outside", { recursive: true });

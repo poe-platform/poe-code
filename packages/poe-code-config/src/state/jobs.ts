@@ -45,7 +45,23 @@ export function createJobRegistry(
     return path.join(jobsDir, `${id}.json`);
   }
 
+  async function assertSafeJobsDir(): Promise<void> {
+    if (fs.lstat === undefined) {
+      return;
+    }
+    try {
+      if ((await fs.lstat(jobsDir)).isSymbolicLink()) {
+        throw new Error(`Refusing runtime job state access through symbolic link: ${jobsDir}`);
+      }
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        throw error;
+      }
+    }
+  }
+
   async function get(id: string): Promise<JobEntry | null> {
+    await assertSafeJobsDir();
     try {
       return parseJobEntry(await fs.readFile(jobPath(id), "utf8"), id);
     } catch (error) {
@@ -62,6 +78,7 @@ export function createJobRegistry(
     const filePath = jobPath(entry.id);
     await mutate(async () => {
       await fs.mkdir(jobsDir, { recursive: true });
+      await assertSafeJobsDir();
       await writeJobAtomically(filePath, entry);
     });
   }
@@ -70,6 +87,7 @@ export function createJobRegistry(
     const filePath = jobPath(id);
     return mutate(async () => {
       await fs.mkdir(jobsDir, { recursive: true });
+      await assertSafeJobsDir();
       const current = await get(id);
       if (current === null) {
         return null;
@@ -87,6 +105,7 @@ export function createJobRegistry(
   }
 
   async function list(filter: JobListFilter = {}): Promise<JobEntry[]> {
+    await assertSafeJobsDir();
     let entries: string[];
 
     try {
@@ -125,6 +144,7 @@ export function createJobRegistry(
   async function remove(id: string): Promise<void> {
     const filePath = jobPath(id);
     await mutate(async () => {
+      await assertSafeJobsDir();
       try {
         await fs.stat(jobsDir);
       } catch (error) {

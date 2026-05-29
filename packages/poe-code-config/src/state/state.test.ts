@@ -307,6 +307,32 @@ describe("JobRegistry", () => {
     await expect(registry.remove("../outside")).rejects.toThrow("Invalid job id.");
   });
 
+  it("rejects reads, writes, and removals through a symlinked jobs directory", async () => {
+    const jobsDir = path.join("/home/tester", ".poe-code", "state", "jobs");
+    const outsideDir = "/outside/jobs";
+    const vol = Volume.fromJSON(
+      { [path.join(outsideDir, "external.json")]: `${JSON.stringify(createJob("external"), null, 2)}\n` },
+      "/"
+    );
+    const fs = createFsFromVolume(vol).promises as unknown as StateFileSystem;
+    vol.mkdirSync(path.dirname(jobsDir), { recursive: true });
+    vol.symlinkSync(outsideDir, jobsDir);
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await expect(registry.put(createJob("job-1"))).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(registry.list()).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(registry.remove("external")).rejects.toThrow(
+      "Refusing runtime job state access through symbolic link"
+    );
+    await expect(fs.readFile(path.join(outsideDir, "external.json"), "utf8")).resolves.toContain(
+      '"id": "external"'
+    );
+  });
+
   it("rejects invalid job updates without corrupting the stored job", async () => {
     const fs = createMemFs();
     const registry = createJobRegistry("/home/tester", fs);

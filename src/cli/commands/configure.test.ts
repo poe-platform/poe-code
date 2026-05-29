@@ -621,6 +621,34 @@ describe("configure provider resolution", () => {
     ).resolves.not.toThrow();
   });
 
+  it("does not recover malformed config while selecting a default agent in dry-run mode", async () => {
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(path.dirname(configPath), { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerConfigureCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--dry-run",
+        "--yes",
+        "configure",
+        "--provider",
+        "poe",
+        "--api-key",
+        "probe-key",
+        "--model",
+        "test-model"
+      ])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(path.dirname(configPath))).resolves.toEqual(["config.json"]);
+  });
+
   it("honors the --provider flag", async () => {
     const fakeAnthropicProvider = createFakeProvider("anthropic", "Anthropic");
     const container = createContainer(fs);

@@ -599,7 +599,8 @@ export async function resolveServiceArgument(
   if (provided) {
     return provided;
   }
-  const fromConfig = await resolveDefaultAgent(container);
+  const flags = resolveCommandFlags(program);
+  const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
   if (fromConfig !== null) {
     return parseAgentSpecifier(fromConfig).agent;
   }
@@ -608,7 +609,6 @@ export async function resolveServiceArgument(
   if (services.length === 0) {
     throw new Error(`No agents available to ${action}.`);
   }
-  const flags = resolveCommandFlags(program);
   if (flags.assumeYes) {
     return DEFAULT_SERVICE_AGENT;
   }

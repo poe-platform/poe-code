@@ -1063,6 +1063,42 @@ describe("SDK spawn()", () => {
     expect(spawnCore).not.toHaveBeenCalled();
   });
 
+  it("uses CLI streaming for ACP agents that do not support MCP over ACP", async () => {
+    vi.mocked(getAcpSpawnConfig).mockReturnValue({
+      kind: "acp",
+      agentId: "kimi",
+      acpArgs: ["acp"],
+      supportsMcpServers: false
+    } as any);
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "kimi",
+      adapter: "kimi"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("kimi", "test prompt", {
+      mcpServers: {
+        test: { command: "tiny-stdio-mcp-test-server" }
+      }
+    });
+
+    await result;
+
+    expect(spawnAcp).not.toHaveBeenCalled();
+    expect(spawnStreaming).toHaveBeenCalledWith(
+      expect.objectContaining({
+        agentId: "kimi",
+        mcpServers: {
+          test: { command: "tiny-stdio-mcp-test-server" }
+        }
+      })
+    );
+  });
+
   it("uses runtime-aware streaming flow when ACP agents receive runtime overrides", async () => {
     vi.mocked(getAcpSpawnConfig).mockReturnValue({
       kind: "acp",

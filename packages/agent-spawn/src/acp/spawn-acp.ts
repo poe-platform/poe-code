@@ -108,6 +108,9 @@ export function spawnAcp(options: SpawnAcpOptions): SpawnAcpResult {
   if (!acpConfig) {
     throw new Error(`Agent "${resolvedId}" does not support ACP spawn.`);
   }
+  if (options.mcpServers && acpConfig.supportsMcpServers === false) {
+    throw new Error(`Agent "${resolvedId}" does not support MCP servers over ACP spawn.`);
+  }
 
   const agentDef = allAgents.find((a) => a.id === resolvedId);
   const binaryName = agentDef?.binaryName;

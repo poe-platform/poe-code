@@ -145,6 +145,8 @@ export function spawn(
         options.model ?? (await resolveConfiguredModel(container, service));
       const runtimeOverrides = pickRuntimeOverrides(options);
       const hasRuntimeOverrides = Object.keys(runtimeOverrides).length > 0;
+      const canUseAcpWithMcpServers =
+        acpSpawnConfig?.supportsMcpServers !== false || resolvedMcpServers === undefined;
 
       if (options.interactive) {
         resolveEventsOnce(emptyEvents);
@@ -172,7 +174,7 @@ export function spawn(
         };
       }
 
-      if (acpSpawnConfig && !hasRuntimeOverrides) {
+      if (acpSpawnConfig && !hasRuntimeOverrides && canUseAcpWithMcpServers) {
         const model = await resolveModel();
         const adapter = registeredService;
         const activeProvider = adapter?.isolatedEnv

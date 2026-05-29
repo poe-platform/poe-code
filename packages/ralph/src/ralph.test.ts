@@ -1160,6 +1160,23 @@ describe("createRalphSimulation", () => {
       .resolves.toContain("iteration: 4");
   });
 
+  it("rejects workflow configuration from a symlinked base directory", async () => {
+    const { fs, rawFs } = createRunFs({
+      "/repo/docs/plans/linked.md": "---\nkind: ralph\nextends: true\n---\n",
+      "/outside/linked.md": "---\nkind: ralph\nagent: codex\niterations: 1\n---\n"
+    });
+    await rawFs.mkdir("/repo/.poe-code/ralph", { recursive: true });
+    await rawFs.symlink("/outside", "/repo/.poe-code/ralph/bases");
+
+    await expect(runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "docs/plans/linked.md",
+      fs,
+      runAgent: vi.fn()
+    })).rejects.toThrow(/symbolic link/i);
+  });
+
   it("uses agent-kit path resolution for home-directory docs", async () => {
     const { fs, rawFs } = createRunFs({
       "/home/test/.poe-code/ralph/plans/plan.md": "# Home plan"

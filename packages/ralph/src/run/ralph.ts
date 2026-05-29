@@ -252,6 +252,10 @@ async function resolveDocumentConfigFromContent(
   hooks?: ReturnType<typeof parseFrontmatterData>["hooks"];
   prompt: string;
 }> {
+  const projectBasePath = path.join(options.cwd, ".poe-code/ralph/bases");
+  const homeBasePath = path.join(options.homeDir, ".poe-code/ralph/bases");
+  await rejectSymbolicLinkIfPresent(projectBasePath, fs);
+  await rejectSymbolicLinkIfPresent(homeBasePath, fs);
   const resolved = await resolve(
     [
       {
@@ -265,11 +269,11 @@ async function resolveDocumentConfigFromContent(
       },
       {
         source: "base",
-        path: path.join(options.cwd, ".poe-code/ralph/bases")
+        path: projectBasePath
       },
       {
         source: "base",
-        path: path.join(options.homeDir, ".poe-code/ralph/bases")
+        path: homeBasePath
       },
       {
         source: "defaults",
@@ -462,6 +466,20 @@ function normalizeResolvedPrompt(prompt: unknown): string {
 async function rejectSymbolicLink(filePath: string, fs: Pick<RalphFileSystem, "lstat">): Promise<void> {
   if ((await fs.lstat(filePath)).isSymbolicLink()) {
     throw new Error(`Refusing to run Ralph through symbolic link: ${filePath}`);
+  }
+}
+
+async function rejectSymbolicLinkIfPresent(
+  filePath: string,
+  fs: Pick<RalphFileSystem, "lstat">
+): Promise<void> {
+  try {
+    await rejectSymbolicLink(filePath, fs);
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
   }
 }
 

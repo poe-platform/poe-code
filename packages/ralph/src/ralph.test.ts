@@ -417,6 +417,23 @@ describe("parseFrontmatter", () => {
     expect(() => parseFrontmatter(doc)).toThrow(message);
   });
 
+  it.each([
+    ["unknown agent key", ["agnet: codex"], "agnet"],
+    ["unknown iterations key", ["iteratons: 1"], "iteratons"],
+    ["unknown hook strategy key", ["hooks:", "  from: claude", "  stratgey: transform"], "stratgey"],
+    ["unknown hook scope key", ["hooks:", "  from: claude", "  scoep: user"], "scoep"]
+  ])("rejects $0", (_name, yaml, key) => {
+    const doc = ["---", ...yaml, "---", "Body"].join("\n");
+
+    expect(() => parseFrontmatter(doc)).toThrow(String(key));
+  });
+
+  it("rejects a document declaring a different workflow kind", () => {
+    const doc = ["---", "kind: experiment", "---", "Body"].join("\n");
+
+    expect(() => parseFrontmatter(doc)).toThrow(/kind.*ralph/i);
+  });
+
   it("leaves plans without hooks unchanged", () => {
     const doc = ["---", "agent: codex", "---", "Body"].join("\n");
 

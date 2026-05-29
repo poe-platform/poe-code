@@ -3,6 +3,7 @@ import type { CliContainer } from "../container.js";
 import {
   formatServiceList,
   listIsolatedServiceIds,
+  resolveActiveProviderForService,
   resolveCommandFlags,
   resolveServiceAdapter
 } from "./shared.js";
@@ -61,6 +62,7 @@ export function registerWrapCommand(
           refresh: true
         });
       }
+      const activeProvider = await resolveActiveProviderForService(container, canonicalService);
       await applyIsolatedEnvRepairs({
         fs: container.fs,
         env: container.env,
@@ -73,6 +75,7 @@ export function registerWrapCommand(
         readApiKey: container.readApiKey,
         providerName: adapter.name,
         isolated,
+        activeProvider,
         argv: ["node", "poe-code", ...forwarded]
       });
     });

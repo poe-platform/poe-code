@@ -1128,6 +1128,34 @@ describe("kimi service", () => {
     }
   });
 
+  it("preserves user-created Poe-prefixed models while reconfiguring", async () => {
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.writeFile(
+      configPath,
+      serializeToml({
+        models: {
+          "poe/user-custom": {
+            provider: "custom-poe",
+            model: "user-custom",
+            max_context_size: 12345
+          },
+          "external/keep": {
+            provider: "external",
+            model: "keep",
+            max_context_size: 67890
+          }
+        }
+      })
+    );
+
+    await configureKimi();
+
+    const config = parseToml(await mockFsObj.readFile(configPath, "utf8"));
+    const models = config.models as Record<string, unknown>;
+    expect(models["poe/user-custom"]).toBeDefined();
+    expect(models["external/keep"]).toBeDefined();
+  });
+
   it("replaces the Poe provider entry while keeping other providers", async () => {
     await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
     await mockFsObj.writeFile(

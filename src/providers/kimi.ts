@@ -91,10 +91,9 @@ export const kimiService = createProvider<
           expires_at: Math.floor(Date.now() / 1000) + 86400 * 365 * 10
         })
       }),
-      configMutation.merge({
+      configMutation.transform({
         target: "~/.kimi/config.toml",
-        pruneByPrefix: { models: `${PROVIDER_NAME}/` },
-        value: (ctx) => {
+        transform: (document, ctx) => {
           const { model, provider } = (ctx ?? {}) as {
             model?: string;
             provider?: ActiveProvider;
@@ -110,17 +109,27 @@ export const kimiService = createProvider<
             };
           }
 
-          return {
+          const existingModels = toConfigObject(document.models);
+          const retainedModels = Object.fromEntries(
+            Object.entries(existingModels).filter(([, entry]) => !isPoeModel(entry))
+          );
+          const content: ConfigObject = {
+            ...document,
             default_model: providerModel(selectedModel),
             default_thinking: true,
-            models,
+            models: { ...retainedModels, ...models },
             providers: {
+              ...toConfigObject(document.providers),
               [PROVIDER_NAME]: {
                 type: "openai_legacy",
                 base_url: provider?.baseUrl ?? "",
                 api_key: provider?.credential ?? ""
               }
             }
+          };
+          return {
+            content,
+            changed: JSON.stringify(document) !== JSON.stringify(content)
           };
         }
       })
@@ -162,3 +171,13 @@ export const kimiService = createProvider<
 });
 
 export const provider = kimiService;
+
+function toConfigObject(value: unknown): ConfigObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+    ? (value as ConfigObject)
+    : {};
+}
+
+function isPoeModel(value: unknown): boolean {
+  return toConfigObject(value).provider === PROVIDER_NAME;
+}

@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createLogger } from "@poe-code/design-system";
 import type { McpServerConfig } from "@poe-code/agent-mcp-config";
@@ -246,6 +246,7 @@ async function ensureConnected(connection: HotProxyConnection): Promise<McpClien
 
 async function readCache(cachePath: string): Promise<McpProxyCache | undefined> {
   try {
+    await assertCachePathHasNoSymlinks(cachePath);
     const raw = await readFile(cachePath, "utf8");
     const parsed = JSON.parse(raw) as Partial<McpProxyCache>;
 
@@ -282,8 +283,13 @@ async function writeCache(cachePath: string, cache: McpProxyCache): Promise<void
   const directory = path.dirname(cachePath);
   const tempPath = `${cachePath}.tmp`;
 
+  await assertCachePathHasNoSymlinks(cachePath);
+  await assertCachePathHasNoSymlinks(tempPath);
   await mkdir(directory, { recursive: true });
+  await assertCachePathHasNoSymlinks(directory);
   await writeFile(tempPath, `${JSON.stringify(cache, null, 2)}\n`);
+  await assertCachePathHasNoSymlinks(tempPath);
+  await assertCachePathHasNoSymlinks(cachePath);
   await rename(tempPath, cachePath);
 }
 
@@ -335,6 +341,7 @@ async function fetchCache(
 
 async function deleteCacheIfPresent(cachePath: string): Promise<void> {
   try {
+    await assertCachePathHasNoSymlinks(cachePath);
     await unlink(cachePath);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
@@ -504,7 +511,31 @@ export function resolveCachePath(name: string, projectRoot?: string): string {
     );
   }
 
+  if (name.length === 0 || name === "." || name === ".." || name.includes("/") || name.includes("\\")) {
+    throw new Error(`MCP proxy group name must be a file-safe name: "${name}".`);
+  }
+
   return path.join(resolvedProjectRoot, ".toolcraft", "mcp", `${name}.json`);
+}
+
+async function assertCachePathHasNoSymlinks(filePath: string): Promise<void> {
+  let currentPath = filePath;
+  while (true) {
+    try {
+      if ((await lstat(currentPath)).isSymbolicLink()) {
+        throw new Error(`MCP cache path must not contain symbolic links: ${currentPath}.`);
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+        throw error;
+      }
+    }
+    const parentPath = path.dirname(currentPath);
+    if (parentPath === currentPath) {
+      return;
+    }
+    currentPath = parentPath;
+  }
 }
 
 export function parseRefreshEnv(

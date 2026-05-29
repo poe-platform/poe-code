@@ -242,6 +242,12 @@ describe("resolveCachePath", () => {
       "/cli-package/.toolcraft/mcp/github.json"
     );
   });
+
+  it("rejects cache group names containing path components", () => {
+    expect(() => resolveCachePath("../../../outside/escaped", "/repo")).toThrow(
+      /MCP proxy group name must be a file-safe name/
+    );
+  });
 });
 
 describe("resolveMcpProxies", () => {
@@ -717,6 +723,38 @@ describe("resolveMcpProxies", () => {
       `write:${getCachePath()}.tmp`,
       `rename:${getCachePath()}.tmp->${getCachePath()}`,
     ]);
+  });
+
+  it("rejects symlinked cache directories before writing proxy discovery", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({ name: "root", children: [group] });
+    vol.mkdirSync("/repo/.toolcraft", { recursive: true });
+    vol.mkdirSync("/outside", { recursive: true });
+    vol.symlinkSync("/outside", "/repo/.toolcraft/mcp");
+    setClientPlans({ pages: [{ tools: [tool("create_issue")] }] });
+
+    await expect(resolveMcpProxies(root)).rejects.toThrow(/MCP cache path must not contain symbolic links/);
+    expect(vol.existsSync("/outside/github.json")).toBe(false);
+  });
+
+  it("rejects symlinked cache files before loading external proxy tools", async () => {
+    const group = createProxyGroup({});
+    const root = defineGroup({ name: "root", children: [group] });
+    vol.mkdirSync("/repo/.toolcraft/mcp", { recursive: true });
+    vol.mkdirSync("/outside", { recursive: true });
+    vol.writeFileSync(
+      "/outside/github.json",
+      JSON.stringify({
+        version: 1,
+        upstream: { name: "external", version: "1" },
+        fetchedAt: "2026-01-01T00:00:00.000Z",
+        tools: [tool("external_tool")]
+      })
+    );
+    vol.symlinkSync("/outside/github.json", getCachePath());
+
+    await expect(resolveMcpProxies(root)).rejects.toThrow(/MCP cache path must not contain symbolic links/);
+    expect(group.children).toHaveLength(0);
   });
 
   it("re-fetches when the cache JSON is corrupt", async () => {

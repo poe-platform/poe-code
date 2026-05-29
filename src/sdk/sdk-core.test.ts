@@ -39,6 +39,7 @@ const {
 
 // spawn-core.test.ts
 const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
+const hostRunnerExecMock = vi.hoisted(() => vi.fn(() => ({ pid: 42 })));
 
 // experiment.test.ts
 const runExperimentLoopMock = vi.hoisted(() => vi.fn());
@@ -76,6 +77,14 @@ vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
   return {
     ...actual,
     resolveWorkspace: resolveWorkspaceMock
+  };
+});
+
+vi.mock("@poe-code/process-runner", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@poe-code/process-runner")>();
+  return {
+    ...actual,
+    createHostRunner: () => ({ exec: hostRunnerExecMock })
   };
 });
 
@@ -173,6 +182,7 @@ describe("createSdkContainer", () => {
 describe("launch sdk", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    hostRunnerExecMock.mockReturnValue({ pid: 42 });
   });
 
   it("forwards start options to the process-launcher package", async () => {
@@ -223,6 +233,24 @@ describe("launch sdk", () => {
         })
       })
     );
+  });
+
+  it("preserves prototype-named daemon environment variables", async () => {
+    startManagedProcessMock.mockImplementation(async (options: { spawnDaemon(id: string): Promise<number | null> }) => {
+      await options.spawnDaemon("api");
+      return { id: "api" } as never;
+    });
+
+    await startLaunch({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      variables: JSON.parse('{"__proto__":"visible"}') as Record<string, string>,
+      spec: { id: "api", command: "npm", args: ["start"], restart: "never" }
+    });
+
+    const request = hostRunnerExecMock.mock.calls[0]?.[0];
+    expect(Object.hasOwn(request.env, "__proto__")).toBe(true);
+    expect(request.env.__proto__).toBe("visible");
   });
 
   it("preserves remote workspace locators in the persisted launch spec", async () => {

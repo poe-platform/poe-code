@@ -407,7 +407,7 @@ function resolveReadyCheck(options: StartCommandOptions): ProcessSpec["readyChec
 }
 
 function parseEnvEntries(entries: string[]): Record<string, string> {
-  const env: Record<string, string> = {};
+  const env: Record<string, string> = Object.create(null) as Record<string, string>;
 
   for (const entry of entries) {
     const separator = entry.indexOf("=");

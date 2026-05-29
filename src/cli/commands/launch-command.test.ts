@@ -150,6 +150,19 @@ describe("launch command", () => {
     );
   });
 
+  it("preserves prototype-named launch environment entries", async () => {
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer());
+
+    await program.parseAsync([
+      "node", "cli", "launch", "start", "api", "--env", "__proto__=visible", "--", "node", "server.js"
+    ]);
+
+    const spec = startLaunchMock.mock.calls[0]?.[0].spec;
+    expect(Object.hasOwn(spec.env, "__proto__")).toBe(true);
+    expect(spec.env.__proto__).toBe("visible");
+  });
+
   it("prompts for missing start values and uses --yes defaults for runtime and restart", async () => {
     promptTextMock
       .mockResolvedValueOnce("api")

@@ -2679,6 +2679,21 @@ describe("poe-agent provider", () => {
       baseUrl: "http://proxy.example.com/v1"
     });
   });
+
+  it("preserves prototype-named MCP servers for poe-agent sessions", async () => {
+    const { done } = spawnPoeAgentWithAcp({
+      prompt: "Explain this function",
+      mcpServers: JSON.parse('{"__proto__":{"command":"custom-server"}}'),
+      homeDir,
+      configPath: `${homeDir}/.poe-code/config.json`,
+      projectConfigPath: `${process.cwd()}/.poe-code/config.json`,
+      fs: createMockFs(undefined, homeDir)
+    });
+    await done;
+
+    const options = createAgentSessionMock.mock.calls[0]?.[0] as { mcpServers?: Record<string, unknown> };
+    expect(Object.hasOwn(options.mcpServers ?? {}, "__proto__")).toBe(true);
+  });
 });
 
 describe("determine provider workflow script", () => {

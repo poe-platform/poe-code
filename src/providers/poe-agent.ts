@@ -164,7 +164,15 @@ function toAgentSessionMcpServers(servers: McpSpawnConfig): Record<
       args?: string[];
       env?: Record<string, string>;
     }
-  > = {};
+  > = Object.create(null) as Record<
+    string,
+    {
+      transport: "stdio";
+      command: string;
+      args?: string[];
+      env?: Record<string, string>;
+    }
+  >;
 
   for (const [name, server] of Object.entries(servers)) {
     mappedServers[name] = {

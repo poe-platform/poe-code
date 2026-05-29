@@ -199,4 +199,26 @@ describe("clearCache", () => {
       '"key":"new"'
     );
   });
+
+  it("restores earlier expired entries when a later filtered removal fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/.cache/ingest/a.json`]: JSON.stringify({ ...baseEntry, key: "a", ingestedAt: "2026-04-19T09:00:00.000Z" }),
+      [`${root}/.cache/ingest/b.json`]: JSON.stringify({ ...baseEntry, key: "b", ingestedAt: "2026-04-19T09:00:00.000Z" })
+    });
+    const remove = vol.promises.rm.bind(vol.promises);
+    vi.spyOn(vol.promises, "rm").mockImplementation(async (filePath, options) => {
+      if (String(filePath).endsWith("/b.json")) {
+        throw new Error("injected second removal failure");
+      }
+
+      return remove(filePath, options);
+    });
+
+    await expect(clearCache(root, { olderThanMs: 60 * 60 * 1000 })).rejects.toThrow(
+      "injected second removal failure"
+    );
+    await expect(vol.promises.readFile(`${root}/.cache/ingest/a.json`, "utf8")).resolves.toContain('"key":"a"');
+    await expect(vol.promises.readFile(`${root}/.cache/ingest/b.json`, "utf8")).resolves.toContain('"key":"b"');
+  });
 });

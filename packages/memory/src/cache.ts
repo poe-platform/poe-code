@@ -79,7 +79,7 @@ export async function clearCache(
   }
 
   const cutoff = Date.now() - opts.olderThanMs;
-  let removed = 0;
+  const expiredEntries: Array<{ filePath: string; content: string }> = [];
 
   for (const fileName of fileNames) {
     const key = fileName.slice(0, -".json".length);
@@ -89,14 +89,25 @@ export async function clearCache(
       continue;
     }
 
-    await fs.rm(path.join(ingestDir, fileName), { force: true });
-    removed += 1;
+    const filePath = path.join(ingestDir, fileName);
+    expiredEntries.push({ filePath, content: await fs.readFile(filePath, "utf8") });
+  }
+
+  try {
+    for (const entry of expiredEntries) {
+      await fs.rm(entry.filePath, { force: true });
+    }
+  } catch (error) {
+    await Promise.all(
+      expiredEntries.map((entry) => writeFileAtomically(entry.filePath, entry.content).catch(() => undefined))
+    );
+    throw error;
   }
 
   await removeEmptyDirectory(ingestDir);
   await removeEmptyDirectory(cacheDir);
 
-  return { removed };
+  return { removed: expiredEntries.length };
 }
 
 function parseCacheEntry(value: unknown, _key: string): IngestCacheEntry {

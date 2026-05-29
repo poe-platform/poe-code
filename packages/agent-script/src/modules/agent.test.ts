@@ -164,6 +164,32 @@ describe("makeAgentModule", () => {
     });
   });
 
+  it("rejects without launching another retry after abort during backoff", async () => {
+    vi.useFakeTimers();
+    const controller = new AbortController();
+    const spawnAgent = vi.fn().mockResolvedValue({
+      exitCode: 1,
+      stdout: "",
+      stderr: "retry",
+      summary: "",
+      durationMs: 1
+    });
+    const agent = makeAgentModule(spawnAgent);
+
+    const result = agent.spawn.retry(
+      "codex",
+      { prompt: "Try this.", signal: controller.signal },
+      { maxAttempts: 2, backoffMs: 1_000 }
+    );
+
+    await vi.advanceTimersByTimeAsync(0);
+    controller.abort();
+
+    await expect(result).rejects.toMatchObject({ name: "AbortError" });
+    expect(spawnAgent).toHaveBeenCalledOnce();
+    vi.useRealTimers();
+  });
+
   it("exposes spawn.parallel with agent definitions and preserves non-zero results when failFast is false", async () => {
     const spawnAgent = vi.fn(async (input: { prompt: string }) => ({
       exitCode: input.prompt.includes("Fail") ? 2 : 0,

@@ -143,4 +143,40 @@ describe("editPage", () => {
     ).rejects.toThrow("cannot escape");
     expect(launchEditor).not.toHaveBeenCalled();
   });
+
+  it("rejects a symlinked temporary directory before copying page content", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/pages/note.md`]: "# Secret page\n",
+      "/outside/.keep": ""
+    });
+    await vol.promises.symlink("/outside", `${root}/.tmp`);
+    const launchEditor = vi.fn(async () => {});
+
+    await expect(
+      editPage(root, "pages/note.md", { reason: "read", launchEditor })
+    ).rejects.toThrow(/symbolic link/i);
+    expect(launchEditor).not.toHaveBeenCalled();
+    await expect(vol.promises.readdir("/outside")).resolves.toEqual([".keep"]);
+  });
+
+  it("returns a persisted update even when temporary cleanup fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: "",
+      [`${root}/pages/note.md`]: "---\nname: note\n---\nOriginal\n"
+    });
+    vi.spyOn(vol.promises, "rm").mockRejectedValue(new Error("temp cleanup denied"));
+
+    await expect(
+      editPage(root, "pages/note.md", {
+        reason: "update note",
+        launchEditor: async (filePath) => {
+          await vol.promises.writeFile(filePath, "---\nname: note\n---\nUpdated\n", "utf8");
+        }
+      })
+    ).resolves.toMatchObject({ changed: true });
+    await expect(vol.promises.readFile(`${root}/pages/note.md`, "utf8")).resolves.toContain("Updated");
+  });
 });

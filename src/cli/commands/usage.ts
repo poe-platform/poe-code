@@ -80,14 +80,14 @@ async function executeBalance(
   resources.logger.intro("usage balance");
 
   try {
-    const apiKey = await container.options.resolveApiKey({ dryRun: flags.dryRun });
-
     if (flags.dryRun) {
       resources.logger.dryRun(
         "Dry run: would fetch usage balance from Poe API."
       );
       return;
     }
+
+    const apiKey = await container.options.resolveApiKey({ dryRun: false });
 
     const response = await container.httpClient(
       `${container.env.poeBaseUrl}/usage/current_balance`,
@@ -161,14 +161,14 @@ export function registerUsageCommand(
       resources.logger.intro("usage list");
 
       try {
-        const apiKey = await container.options.resolveApiKey({ dryRun: flags.dryRun });
-
         if (flags.dryRun) {
           resources.logger.dryRun(
             "Dry run: would fetch usage history from Poe API."
           );
           return;
         }
+
+        const apiKey = await container.options.resolveApiKey({ dryRun: false });
 
         const theme = getTheme();
         const filterTerm = commandOptions.filter;

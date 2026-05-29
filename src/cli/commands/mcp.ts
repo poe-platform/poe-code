@@ -130,9 +130,13 @@ export function registerMcpCommand(
       const existingKey = await resolvePoeCredential(container, { readOnly: flags.dryRun });
 
       if (!existingKey) {
-        resources.logger.intro("login");
-        await container.options.resolveApiKey({ dryRun: flags.dryRun });
-        resources.logger.success("Logged in.");
+        if (flags.dryRun) {
+          resources.logger.dryRun("Dry run: would log in to Poe.");
+        } else {
+          resources.logger.intro("login");
+          await container.options.resolveApiKey({ dryRun: false });
+          resources.logger.success("Logged in.");
+        }
       }
 
       const resolvedAgent = support.id ?? agent;

@@ -9,6 +9,7 @@ import { DEFAULT_CLAUDE_CODE_MODEL, stripModelNamespace, DEFAULT_IMAGE_BOT, DEFA
 import { createSecretStore } from "auth-store";
 import * as clientInstance from "../../services/client-instance.js";
 import * as mcpServer from "../mcp-server.js";
+import { resolveApiKeyViaOAuth } from "../oauth-login.js";
 import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 function stripAnsi(value: string): string {
@@ -404,6 +405,7 @@ describe("mcp command", () => {
     resolveAgentSupportMock.mockReset();
     selectMock.mockReset();
     cancelMock.mockReset();
+    vi.mocked(resolveApiKeyViaOAuth).mockClear();
     resolveAgentSupportMock.mockImplementation((input: string) => ({
       status: "supported",
       input,
@@ -574,6 +576,15 @@ describe("mcp command", () => {
 
     expect(configureMock).toHaveBeenCalled();
     await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["credentials.enc"]);
+  });
+
+  it("does not start OAuth while previewing mcp configure without credentials", async () => {
+    const { program } = await createMcpProgram({ storeApiKey: false });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "mcp", "configure", "codex"]);
+
+    expect(resolveApiKeyViaOAuth).not.toHaveBeenCalled();
+    expect(configureMock).toHaveBeenCalled();
   });
 
   it("parses comma-separated --output-format preferences", async () => {

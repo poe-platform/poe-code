@@ -260,6 +260,22 @@ describe("usage balance command", () => {
       logs.some((message) => message.includes("Dry run"))
     ).toBe(true);
   });
+
+  it("does not migrate legacy credentials while previewing balance", async () => {
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "usage"]);
+
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
+  });
 });
 
 describe("usage balance styling", () => {
@@ -533,6 +549,22 @@ describe("usage list command", () => {
     expect(tableOutput).toContain("300");
     expect(tableOutput).toContain("400");
     expect(tableOutput).toContain("100");
+  });
+
+  it("does not migrate legacy credentials while previewing usage history", async () => {
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "usage", "list", "--pages", "1"]);
+
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
   });
 
   it("prompts 'Load more?' when API returns has_more=true", async () => {

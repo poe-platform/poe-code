@@ -613,6 +613,53 @@ describe("dockerExecutionEnvFactory", () => {
       ])
     );
   });
+
+  it("rejects detached log streaming when docker cannot read the log file", async () => {
+    const runner = createCapturingRunner([{ exitCode: 75, stderr: ["container disappeared\n"] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    await expect(async () => {
+      for await (const chunk of job.stream()) {
+        throw new Error(`Unexpected log chunk: ${chunk.data}`);
+      }
+    }).rejects.toThrow("container disappeared");
+  });
+
+  it("filters detached log streaming by modification timestamp", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: [] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    const chunks = [];
+    for await (const chunk of job.stream({ since: new Date("2099-01-01T00:00:00.000Z") })) {
+      chunks.push(chunk);
+    }
+
+    expect(chunks).toEqual([]);
+    expect(runner.specs[0]?.args?.at(-1)).toContain("stat -c %Y");
+    expect(runner.specs[0]?.args?.at(-1)).toContain("4070908800");
+  });
 });
 
 function createOpenSpec(overrides: Partial<OpenSpec> = {}): OpenSpec {

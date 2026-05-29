@@ -514,8 +514,15 @@ function createContainerJob(
       }
       return stdout.trim() === "exited" ? ("exited" as const) : ("running" as const);
     },
-    async *stream(opts?: { sinceByte?: number }) {
-      const handle = runner.exec({
+    async *stream(opts?: { sinceByte?: number; since?: Date }) {
+      const logFile = shellQuote(`/tmp/poe-jobs/${jobId}.log`);
+      const sinceCondition =
+        opts?.since === undefined
+          ? ""
+          : ` && test $(stat -c %Y ${logFile} 2>/dev/null || stat -f %m ${logFile}) -ge ${Math.ceil(
+              opts.since.getTime() / 1000
+            )}`;
+      const stdout = await runAndRead(runner, {
         command: engine,
         args: [
           ...buildContextArgs(engine, context),
@@ -523,13 +530,11 @@ function createContainerJob(
           containerId,
           "sh",
           "-c",
-          `test -f ${shellQuote(`/tmp/poe-jobs/${jobId}.log`)} && tail -c +${(opts?.sinceByte ?? 0) + 1} ${shellQuote(`/tmp/poe-jobs/${jobId}.log`)} || true`
+          `test -f ${logFile}${sinceCondition} && tail -c +${(opts?.sinceByte ?? 0) + 1} ${logFile} || true`
         ],
         stdout: "pipe",
         stderr: "pipe"
       });
-      const stdout = await readStream(handle.stdout);
-      await handle.result;
       if (stdout.length > 0) {
         yield { byteOffset: opts?.sinceByte ?? 0, data: stdout };
       }

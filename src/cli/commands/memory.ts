@@ -6,6 +6,8 @@ import {
   initMemory,
   openMemory,
   resolveConfiguredMemoryRoot,
+  runMemoryCacheClear,
+  runMemoryCacheStatus,
   type MemoryHandle
 } from "@poe-code/memory";
 import type { CliContainer } from "../container.js";
@@ -211,6 +213,30 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
           process.stdout.write(`Missing sources: ${tokens.missingSources.join(", ")}\n`);
         }
       }
+    });
+
+  const cache = memory
+    .command("cache")
+    .description("Inspect or clear ingest cache entries.");
+
+  cache
+    .command("status")
+    .description("Show ingest cache entry count and bytes.")
+    .action(async () => {
+      await runMemoryCacheStatus({ root: await resolveRoot(container) });
+    });
+
+  cache
+    .command("clear")
+    .description("Clear ingest cache entries.")
+    .option("--older-than <duration>", "Clear entries older than the duration.")
+    .action(async (options: { olderThan?: string }) => {
+      const flags = resolveCommandFlags(program);
+      await runMemoryCacheClear({
+        root: await resolveRoot(container),
+        olderThan: options.olderThan,
+        yes: flags.assumeYes
+      });
     });
 
   memory

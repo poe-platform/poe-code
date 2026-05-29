@@ -236,4 +236,27 @@ describe("memory command", () => {
 
     writeSpy.mockRestore();
   });
+
+  it("reports memory cache status", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+    vol.fromJSON({ [`${memoryRoot}/.cache/ingest/one.json`]: "abc" });
+    const log = vi.spyOn(console, "log").mockImplementation(() => {});
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "cache", "status"]);
+
+    expect(log).toHaveBeenCalledWith("1 cache entry (3 bytes)");
+  });
+
+  it("clears memory cache entries when confirmed", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+    vol.fromJSON({ [`${memoryRoot}/.cache/ingest/one.json`]: "abc" });
+
+    await program.parseAsync(["node", "cli", "--yes", "memory", "cache", "clear"]);
+
+    await expect(memfs.promises.stat(`${memoryRoot}/.cache`)).rejects.toMatchObject({ code: "ENOENT" });
+  });
 });

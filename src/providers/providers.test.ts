@@ -1391,6 +1391,19 @@ describe("opencode service", () => {
     expect(config.$schema).toBe("https://opencode.ai/config.json");
   });
 
+  it("preserves existing enabled providers while enabling Poe", async () => {
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.writeFile(
+      configPath,
+      JSON.stringify({ enabled_providers: ["local", "anthropic"] }, null, 2)
+    );
+
+    await configureOpenCode();
+
+    const config = JSON.parse(await mockFsObj.readFile(configPath, "utf8"));
+    expect(config.enabled_providers).toEqual(["local", "anthropic", PROVIDER_NAME]);
+  });
+
   it("replaces the Poe auth entry while keeping other providers", async () => {
     await mockFsObj.mkdir(path.dirname(authPath), { recursive: true });
     await mockFsObj.writeFile(

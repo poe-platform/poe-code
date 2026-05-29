@@ -70,6 +70,18 @@ describe("parseAnsi", () => {
     ]);
   });
 
+  it("preserves reverse video until SGR inverse is reset", () => {
+    const result = parseAnsi("\u001b[7mSELECTED\u001b[27m plain");
+    expect(result).toEqual([
+      {
+        segments: [
+          { text: "SELECTED", style: { inverse: true } },
+          { text: " plain", style: {} }
+        ]
+      }
+    ]);
+  });
+
   it("handles bright foreground colors via 90-97", () => {
     const result = parseAnsi("\u001b[93mbright");
     expect(result).toEqual([

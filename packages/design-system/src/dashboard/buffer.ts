@@ -167,6 +167,10 @@ export function cellToAnsi(cell: Cell): string {
     painter = painter.dim;
   }
 
+  if (style.inverse) {
+    painter = painter.inverse;
+  }
+
   if (style.underline) {
     painter = painter.underline;
   }
@@ -212,6 +216,9 @@ function normalizeStyle(style?: CellStyle): CellStyle {
   if (style?.dim !== undefined) {
     next.dim = style.dim;
   }
+  if (style?.inverse !== undefined) {
+    next.inverse = style.inverse;
+  }
   if (style?.underline !== undefined) {
     next.underline = style.underline;
   }
@@ -229,6 +236,7 @@ function cellsEqual(left: Cell, right: Cell): boolean {
     && left.style.bg === right.style.bg
     && left.style.bold === right.style.bold
     && left.style.dim === right.style.dim
+    && left.style.inverse === right.style.inverse
     && left.style.underline === right.style.underline;
 }
 

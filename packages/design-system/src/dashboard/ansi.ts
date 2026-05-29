@@ -216,6 +216,12 @@ function applySgr(
       continue;
     }
 
+    if (code === 7) {
+      next.inverse = true;
+      index += 1;
+      continue;
+    }
+
     if (code === 22) {
       delete next.bold;
       delete next.dim;
@@ -231,6 +237,12 @@ function applySgr(
 
     if (code === 28) {
       nextConcealed = false;
+      index += 1;
+      continue;
+    }
+
+    if (code === 27) {
+      delete next.inverse;
       index += 1;
       continue;
     }
@@ -363,7 +375,8 @@ function stylesEqual(left: CellStyle, right: CellStyle): boolean {
   return left.fg === right.fg
     && left.bg === right.bg
     && left.bold === right.bold
-    && left.dim === right.dim;
+    && left.dim === right.dim
+    && left.inverse === right.inverse;
 }
 
 function normalizeStyle(style?: CellStyle): CellStyle {
@@ -379,6 +392,9 @@ function normalizeStyle(style?: CellStyle): CellStyle {
   }
   if (style?.dim !== undefined) {
     next.dim = style.dim;
+  }
+  if (style?.inverse !== undefined) {
+    next.inverse = style.inverse;
   }
   return next;
 }

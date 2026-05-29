@@ -320,6 +320,10 @@ describe("cellToAnsi", () => {
       })
     ).toBe("\x1b[38;2;255;0;0m\x1b[48;2;0;0;255mA\x1b[0m");
   });
+
+  it("renders inverse cells using ANSI reverse video", () => {
+    expect(cellToAnsi({ ch: "A", style: { inverse: true } })).toBe("\x1b[7mA\x1b[0m");
+  });
 });
 
 describe("computeDashboardLayout", () => {

@@ -436,6 +436,39 @@ describe("runPoeCommand", () => {
     expect(env.closed).toBe(true);
   });
 
+  it("retries initial workspace upload before reusing a session environment", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    let opens = 0;
+    env.uploadWorkspace = async () => {
+      env.uploads += 1;
+      if (env.uploads === 1) {
+        throw new Error("upload offline");
+      }
+      return { files: 1, bytes: 12, skipped: [] };
+    };
+    const factory: ExecutionEnvFactory = {
+      type: "e2b",
+      async open() {
+        opens += 1;
+        return env;
+      },
+      async attach() {
+        return env;
+      }
+    };
+    const session = createPoeCommandSession({ factory, state });
+
+    await expect(session.run(createOpenSpec())).rejects.toThrow("upload offline");
+    await expect(session.run(createOpenSpec())).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+
+    expect(opens).toBe(1);
+    expect(env.uploads).toBe(2);
+    expect(env.execSpecs).toHaveLength(1);
+
+    await session.close();
+  });
+
   it("syncs a reused session workspace back after each command while keeping remote state for the next command", async () => {
     const { state } = createRecordingState();
     const env = createMockEnv();

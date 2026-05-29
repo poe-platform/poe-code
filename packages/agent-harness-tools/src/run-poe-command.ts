@@ -143,6 +143,7 @@ export function createPoeCommandSession(opts: {
   state: StateManager;
 }): PoeCommandSession {
   let env: OpenedEnv | null = null;
+  let openedEnv: OpenedEnv | null = null;
   let closed = false;
 
   async function getEnv(openSpec: OpenSpec): Promise<OpenedEnv> {
@@ -154,10 +155,14 @@ export function createPoeCommandSession(opts: {
       return env;
     }
 
-    const opened = opts.factory.open(openSpec);
-    env = isPromiseLike(opened) ? await opened : opened;
-    await env.uploadWorkspace();
-    return env;
+    if (openedEnv === null) {
+      const opened = opts.factory.open(openSpec);
+      openedEnv = isPromiseLike(opened) ? await opened : opened;
+    }
+
+    await openedEnv.uploadWorkspace();
+    env = openedEnv;
+    return openedEnv;
   }
 
   return {
@@ -237,7 +242,7 @@ export function createPoeCommandSession(opts: {
         return;
       }
       closed = true;
-      await env?.close();
+      await (env ?? openedEnv)?.close();
     }
   };
 }

@@ -1149,6 +1149,46 @@ describe("logout command", () => {
     expect(logs.some((line) => line.includes("Already logged out."))).toBe(false);
   });
 
+  it("deletes non-Poe provider credentials and provider configuration during logout", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await container.providerRegistry.login("anthropic", { apiKey: "anthropic-secret" });
+    await container.providerRegistry.login("cloudflare", { apiKey: "cloudflare-secret" });
+    await fs.mkdir(`${homeDir}/.config/poe-code`, { recursive: true });
+    await fs.writeFile(
+      container.env.servicesConfigPath,
+      JSON.stringify({
+        providers: {
+          cloudflare: {
+            shapeBaseUrls: { "anthropic-messages": "https://gateway.example.test/anthropic" }
+          }
+        }
+      }),
+      { encoding: "utf8" }
+    );
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "logout"]);
+
+    await expect(container.providerRegistry.isLoggedIn("anthropic")).resolves.toBe(false);
+    await expect(container.providerRegistry.isLoggedIn("cloudflare")).resolves.toBe(false);
+    await expect(fs.readFile(container.env.servicesConfigPath, "utf8")).rejects.toThrow();
+    expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
+  });
+
   it("handles missing config file gracefully", async () => {
     const fs = createMemFs();
     const logs: string[] = [];

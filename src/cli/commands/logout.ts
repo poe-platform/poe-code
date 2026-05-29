@@ -42,12 +42,23 @@ export async function executeLogout(program: Command, container: CliContainer): 
     return;
   }
 
-  const hadStoredCredential = (await container.readApiKey()) !== null;
-  await container.deleteApiKey();
+  const authenticatedProviders = await Promise.all(
+    container.providerRegistry.list().map(async (provider) => ({
+      id: provider.id,
+      authenticated: await container.providerRegistry.isLoggedIn(provider.id)
+    }))
+  );
+  for (const provider of authenticatedProviders) {
+    await container.providerRegistry.logout(provider.id);
+  }
 
   const deleted = await deleteConfig({
     fs: container.fs,
     filePath: container.env.configPath
+  });
+  const deletedServicesConfig = await deleteConfig({
+    fs: container.fs,
+    filePath: container.env.servicesConfigPath
   });
 
   const environmentCredential = container.env.getVariable("POE_API_KEY");
@@ -57,7 +68,9 @@ export async function executeLogout(program: Command, container: CliContainer): 
   resources.context.complete({
     success: hasEnvironmentCredential
       ? "Stored credentials removed, but POE_API_KEY remains set; unset it to log out fully."
-      : deleted || hadStoredCredential ? "Logged out." : "Already logged out.",
+      : deleted || deletedServicesConfig || authenticatedProviders.some((provider) => provider.authenticated)
+        ? "Logged out."
+        : "Already logged out.",
     dry: `Dry run: would delete config at ${container.env.configPath}.`
   });
 

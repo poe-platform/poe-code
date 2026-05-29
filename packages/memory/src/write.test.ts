@@ -78,6 +78,21 @@ describe("clearMemory", () => {
     await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe("- existing audit\n");
     await expect(vol.promises.readFile(`${root}/INDEX.md`, "utf8")).resolves.toBe("# Existing index\n");
   });
+
+  it("clears memory without traversing a symlinked child directory", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Existing index\n",
+      [`${root}/LOG.md`]: "- existing audit\n",
+      "/outside/secret.md": "preserve outside\n"
+    });
+    await vol.promises.mkdir(`${root}/pages`, { recursive: true });
+    await vol.promises.symlink("/outside", `${root}/pages/linked`);
+
+    await expect(clearMemory(root)).resolves.toBeUndefined();
+    await expect(vol.promises.readFile("/outside/secret.md", "utf8")).resolves.toBe("preserve outside\n");
+    await expect(vol.promises.readdir(`${root}/pages`)).resolves.toEqual([]);
+  });
 });
 
 describe("writePage", () => {

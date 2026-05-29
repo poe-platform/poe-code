@@ -3,7 +3,7 @@ import { readFile, writeFile, mkdir, rename, unlink, stat, lstat, readdir } from
 import { S, defineCommand } from "toolcraft";
 import {
   planConfigScope,
-  readMergedDocument,
+  readMergedDocumentReadonly,
   resolveConfigPath,
   resolveProjectConfigPath,
   resolveScope
@@ -31,7 +31,7 @@ export const planPathCommand = defineCommand({
 
     const configPath = resolveConfigPath(homeDir);
     const projectConfigPath = resolveProjectConfigPath(cwd);
-    const document = await readMergedDocument(fs, configPath, projectConfigPath);
+    const document = await readMergedDocumentReadonly(fs, configPath, projectConfigPath);
     const planDirectory = resolveScope(planConfigScope.schema, document.plan, process.env).plan_directory;
 
     return { planDirectory: resolveAbsoluteDirectory(planDirectory, cwd, homeDir) };

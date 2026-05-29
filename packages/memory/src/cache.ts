@@ -57,6 +57,19 @@ export async function writeCacheEntry(root: MemoryRoot, entry: IngestCacheEntry)
   );
 }
 
+export async function cacheStatus(root: MemoryRoot): Promise<{ entries: number; bytes: number }> {
+  const ingestDir = path.join(root, MEMORY_INGEST_CACHE_DIR_RELPATH);
+  const fileNames = await readCacheFileNames(ingestDir);
+  const sizes = await Promise.all(
+    fileNames.map(async (fileName) => (await fs.stat(path.join(ingestDir, fileName))).size)
+  );
+
+  return {
+    entries: fileNames.length,
+    bytes: sizes.reduce((total, size) => total + size, 0)
+  };
+}
+
 export async function clearCache(
   root: MemoryRoot,
   opts: { olderThanMs?: number } = {}

@@ -6,7 +6,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-const { clearCache, computeIngestKey, readCacheEntry, writeCacheEntry } = await import("./cache.js");
+const { cacheStatus, clearCache, computeIngestKey, readCacheEntry, writeCacheEntry } = await import("./cache.js");
 
 const baseEntry = {
   key: "abc123",
@@ -220,5 +220,21 @@ describe("clearCache", () => {
     );
     await expect(vol.promises.readFile(`${root}/.cache/ingest/a.json`, "utf8")).resolves.toContain('"key":"a"');
     await expect(vol.promises.readFile(`${root}/.cache/ingest/b.json`, "utf8")).resolves.toContain('"key":"b"');
+  });
+});
+
+describe("cacheStatus", () => {
+  beforeEach(() => {
+    vol.reset();
+  });
+
+  it("reports ingest cache entry count and total bytes", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/.cache/ingest/a.json": "abc",
+      "/repo/.poe-code/memory/.cache/ingest/b.json": "12345",
+      "/repo/.poe-code/memory/.cache/ingest/ignore.txt": "ignored"
+    });
+
+    await expect(cacheStatus("/repo/.poe-code/memory")).resolves.toEqual({ entries: 2, bytes: 8 });
   });
 });

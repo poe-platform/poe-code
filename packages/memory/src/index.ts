@@ -40,7 +40,7 @@ export { appendToPage, clearMemory, writePage } from "./write.js";
 export { reconcile, snapshot } from "./reconcile.js";
 export { parseClaims, serializeTag } from "./confidence.js";
 export { auditClaims } from "./audit.js";
-export { clearCache, computeIngestKey, readCacheEntry, writeCacheEntry } from "./cache.js";
+export { cacheStatus, clearCache, computeIngestKey, readCacheEntry, writeCacheEntry } from "./cache.js";
 export { runMemoryCacheClear, runMemoryCacheStatus } from "./cache.cli.js";
 export { ingest, INGEST_PROMPT_VERSION } from "./ingest.js";
 export { computeTokenStats } from "./tokens.js";

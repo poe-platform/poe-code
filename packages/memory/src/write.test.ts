@@ -126,6 +126,22 @@ describe("writePage", () => {
       ].join("\n")
     );
   });
+
+  it("rejects writes through symlinked page directories", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: "",
+      "/outside/.keep": ""
+    });
+    await vol.promises.mkdir(`${root}/pages`, { recursive: true });
+    await vol.promises.symlink("/outside", `${root}/pages/linked`);
+
+    await expect(
+      writePage(root, "pages/linked/new.md", "# New outside\n", { reason: "write" })
+    ).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.stat("/outside/new.md")).rejects.toMatchObject({ code: "ENOENT" });
+  });
 });
 
 describe("appendToPage", () => {
@@ -190,5 +206,21 @@ describe("appendToPage", () => {
         ""
       ].join("\n")
     );
+  });
+
+  it("rejects appends through symlinked page directories", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: "",
+      "/outside/existing.md": "# Outside\n"
+    });
+    await vol.promises.mkdir(`${root}/pages`, { recursive: true });
+    await vol.promises.symlink("/outside", `${root}/pages/linked`);
+
+    await expect(
+      appendToPage(root, "pages/linked/existing.md", "appended outside\n", { reason: "append" })
+    ).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.readFile("/outside/existing.md", "utf8")).resolves.toBe("# Outside\n");
   });
 });

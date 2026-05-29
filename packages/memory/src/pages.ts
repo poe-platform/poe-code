@@ -1,7 +1,12 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { parseFrontmatter } from "./frontmatter.js";
-import { assertSafeRelPath, MEMORY_CACHE_DIR_RELPATH, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
+import {
+  assertNoSymlinkSegments,
+  assertSafeRelPath,
+  MEMORY_CACHE_DIR_RELPATH,
+  MEMORY_PAGES_DIR_RELPATH
+} from "./paths.js";
 import type { MemoryPage, MemoryRoot } from "./types.js";
 
 export async function listPages(root: MemoryRoot): Promise<MemoryPage[]> {
@@ -12,6 +17,7 @@ export async function listPages(root: MemoryRoot): Promise<MemoryPage[]> {
 
 export async function readPage(root: MemoryRoot, relPath: string): Promise<MemoryPage> {
   const normalizedRelPath = assertMarkdownRelPath(relPath);
+  await assertNoSymlinkSegments(root, normalizedRelPath);
   const absPath = path.join(root, normalizedRelPath);
   const [content, stat] = await Promise.all([fs.readFile(absPath, "utf8"), fs.stat(absPath)]);
 
@@ -68,7 +74,11 @@ async function collectMarkdownRelPathsInto(
     const entryRelPath =
       currentRelPath.length === 0 ? entryName : path.posix.join(currentRelPath, entryName);
     const entryAbsPath = path.join(root, entryRelPath);
-    const entryStat = await fs.stat(entryAbsPath);
+    const entryStat = await fs.lstat(entryAbsPath);
+
+    if (entryStat.isSymbolicLink()) {
+      continue;
+    }
 
     if (entryStat.isDirectory()) {
       if (entryName === MEMORY_CACHE_DIR_RELPATH) {

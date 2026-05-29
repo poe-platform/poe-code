@@ -2,7 +2,7 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { initMemory } from "./init.js";
-import { assertSafeRelPath, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
+import { assertNoSymlinkSegments, assertSafeRelPath, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
 import { reconcile, snapshot } from "./reconcile.js";
 import type { MemoryDiff, MemoryRoot, PageFrontmatter } from "./types.js";
 
@@ -13,6 +13,7 @@ export async function writePage(
   opts: { frontmatter?: PageFrontmatter; reason: string }
 ): Promise<MemoryDiff> {
   const pageRelPath = assertPageRelPath(relPath);
+  await assertNoSymlinkSegments(root, pageRelPath);
 
   const before = await snapshot(root);
   await fs.mkdir(path.dirname(path.join(root, pageRelPath)), { recursive: true });
@@ -31,6 +32,7 @@ export async function appendToPage(
   opts: { reason: string }
 ): Promise<MemoryDiff> {
   const pageRelPath = assertPageRelPath(relPath);
+  await assertNoSymlinkSegments(root, pageRelPath);
 
   const before = await snapshot(root);
   const pagePath = path.join(root, pageRelPath);

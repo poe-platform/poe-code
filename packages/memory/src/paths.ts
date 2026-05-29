@@ -1,3 +1,4 @@
+import * as fs from "node:fs/promises";
 import path from "node:path";
 import type { MemoryRoot } from "./types.js";
 
@@ -39,4 +40,30 @@ export function assertSafeRelPath(input: string): string {
   }
 
   return normalized;
+}
+
+export async function assertNoSymlinkSegments(root: MemoryRoot, relPath: string): Promise<void> {
+  const normalizedRelPath = assertSafeRelPath(relPath);
+  let currentPath = root;
+
+  for (const segment of normalizedRelPath.split("/")) {
+    currentPath = path.join(currentPath, segment);
+
+    try {
+      const stat = await fs.lstat(currentPath);
+      if (stat.isSymbolicLink()) {
+        throw new MemoryPathError(`Memory path "${relPath}" cannot traverse a symbolic link.`);
+      }
+    } catch (error) {
+      if (isMissing(error)) {
+        return;
+      }
+
+      throw error;
+    }
+  }
+}
+
+function isMissing(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }

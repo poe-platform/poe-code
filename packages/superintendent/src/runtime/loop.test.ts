@@ -389,6 +389,43 @@ describe("runLoop", () => {
     });
   }, 15_000);
 
+  it("wraps each role execution through callbacks", async () => {
+    const docPath = "/repo/docs/plans/plan.md";
+    const { fs } = createFs({
+      [docPath]: createDocument({ withInspectors: true })
+    });
+    const roles: string[] = [];
+    runBuilderMock.mockResolvedValue({ output: "built" });
+    runInspectorMock.mockImplementation(async (name) => ({ name, summary: "ok" }));
+    runSuperintendentMock.mockResolvedValue({
+      summary: "ready",
+      transition: { action: "request_review" }
+    });
+    runOwnerReviewMock.mockResolvedValue({ transition: { action: "approve_completion" } });
+
+    await runLoop({
+      docPath,
+      cwd: "/repo",
+      homeDir: "/home/test",
+      fs,
+      runners,
+      callbacks: {
+        runRole: async (role, name, run) => {
+          roles.push(name === undefined ? role : `${role}:${name}`);
+          return run();
+        }
+      }
+    });
+
+    expect(roles).toEqual([
+      "builder",
+      "inspector:code-quality",
+      "inspector:manual-qa",
+      "superintendent",
+      "owner"
+    ]);
+  });
+
   it("stores owner feedback and passes it to the next builder round", async () => {
     const docPath = "/repo/docs/plans/feature.md";
     const { fs, rawFs } = createFs({ [docPath]: createDocument({ withInspectors: false }) });

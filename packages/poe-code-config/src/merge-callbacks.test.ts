@@ -133,4 +133,33 @@ describe("mergeLoopCallbacks", () => {
     expect(merged?.shouldPause?.()).toBe(true);
     expect(added).toHaveBeenCalledTimes(1);
   });
+
+  it("nests added role wrappers around user role wrappers", async () => {
+    const order: string[] = [];
+    const merged = mergeLoopCallbacks(
+      {
+        runRole: async (_role, _name, run) => {
+          order.push("user:start");
+          const result = await run();
+          order.push("user:end");
+          return result;
+        }
+      },
+      {
+        runRole: async (_role, _name, run) => {
+          order.push("added:start");
+          const result = await run();
+          order.push("added:end");
+          return result;
+        }
+      }
+    );
+
+    await merged?.runRole?.("builder", undefined, async () => {
+      order.push("run");
+      return "result";
+    });
+
+    expect(order).toEqual(["added:start", "user:start", "run", "user:end", "added:end"]);
+  });
 });

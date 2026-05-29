@@ -1,4 +1,9 @@
-import type { AcpSpawnContext as SpawnContext } from "@poe-code/agent-spawn";
+import {
+  applyMiddlewares,
+  sessionCapture,
+  usageCapture,
+  type AcpSpawnContext as SpawnContext
+} from "@poe-code/agent-spawn";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { BraintrustSpanLike } from "@poe-code/acp-telemetry";
 
@@ -67,6 +72,49 @@ describe("createSpawnMiddleware", () => {
       events: [{ event: "agent_message", text: "done" }],
       usage: { inputTokens: 4 },
       sessionResult: { output: "done" }
+    });
+  });
+
+  it("logs streamed output and usage after capture middleware consumes events", async () => {
+    const client = createMockClient();
+    const ctx = {
+      ...createSpawnContext(),
+      eventStream: (async function* () {
+        yield { event: "session_start", threadId: "thread-1" } as never;
+        yield { event: "agent_message", text: "done" } as never;
+        yield { event: "usage", inputTokens: 2, outputTokens: 3 } as never;
+      })()
+    };
+    const parentSpan = new FakeBraintrustSpan("parent");
+    mockBraintrust.currentSpan.mockReturnValue(parentSpan);
+
+    await applyMiddlewares([sessionCapture, usageCapture, createSpawnMiddleware(client)], ctx);
+
+    expect(parentSpan.calls).toEqual([]);
+    const consumerSpan = new FakeBraintrustSpan("consumer");
+    mockBraintrust.currentSpan.mockReturnValue(consumerSpan);
+    for await (const event of ctx.eventStream ?? []) {
+      void event;
+    }
+
+    expect(consumerSpan.calls).toEqual([]);
+    expect(parentSpan.calls).toContainEqual({
+      span: "agent:codex:?",
+      method: "log",
+      args: {
+        input: {
+          cwd: undefined,
+          mode: undefined,
+          prompt: undefined
+        },
+        output: "done",
+        metadata: { sessionId: "thread-1", threadId: "thread-1" },
+        metrics: {
+          prompt_tokens: 2,
+          completion_tokens: 3,
+          tokens: 5
+        }
+      }
     });
   });
 

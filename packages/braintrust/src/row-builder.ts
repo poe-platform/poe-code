@@ -297,7 +297,7 @@ function buildPipelineCompletionLog(
   };
 }
 
-function buildSuperintendentLog(
+export function buildSuperintendentLog(
   role: SuperintendentRole,
   result: unknown,
 ): BraintrustLogEvent {

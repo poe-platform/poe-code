@@ -18,6 +18,11 @@ export type ExperimentCallbackFields = {
 };
 
 export type LoopCallbacks = {
+  runRole?: <T>(
+    role: "builder" | "inspector" | "superintendent" | "owner",
+    name: string | undefined,
+    run: () => Promise<T>
+  ) => Promise<T>;
   onBuilderStart?: () => void;
   onBuilderComplete?: BivariantCallback<[result: unknown]>;
   onBuilderFailed?: BivariantCallback<[error: Error]>;
@@ -56,7 +61,12 @@ export function mergeLoopCallbacks(
   user: LoopCallbacks | undefined,
   added: LoopCallbacks | undefined
 ): LoopCallbacks | undefined {
-  return mergeCallbacks(user, added);
+  const merged = mergeCallbacks(user, added);
+  if (user?.runRole && added?.runRole && merged) {
+    merged.runRole = (role, name, run) =>
+      added.runRole!(role, name, () => user.runRole!(role, name, run));
+  }
+  return merged;
 }
 
 function mergeCallbacks<T extends object>(

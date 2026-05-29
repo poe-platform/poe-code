@@ -13,6 +13,20 @@ function expectSandboxError(action: () => unknown, expected: Partial<SandboxErro
 }
 
 describe("Budget", () => {
+  it.each([
+    { option: "maxSteps", value: Number.NaN },
+    { option: "maxSteps", value: Number.POSITIVE_INFINITY },
+    { option: "maxSteps", value: -1 },
+    { option: "maxSteps", value: 1.5 },
+    { option: "maxCallDepth", value: Number.NaN },
+    { option: "stringLength", value: Number.NaN },
+    { option: "arrayLength", value: Number.NaN }
+  ])("rejects invalid $option limit $value", ({ option, value }) => {
+    expect(() => new Budget({ [option]: value })).toThrow(
+      `${option} must be a non-negative integer.`
+    );
+  });
+
   it("tracks AST step usage and fails once the step limit is exceeded", () => {
     const budget = new Budget({
       maxSteps: 2

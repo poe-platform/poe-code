@@ -539,6 +539,67 @@ describe("runDocumentWorkflow", () => {
     expect(Object.hasOwn(runAgent.mock.calls[1]![0], "hooks")).toBe(false);
   });
 
+  it("rejects an empty setup participant instead of using the default", async () => {
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            setup: {
+              participant: "",
+              prompt: "Prepare workspace"
+            }
+          }
+        })
+      )
+    ).rejects.toThrow('Workflow "setup" participant must define a non-empty string.');
+  });
+
+  it("rejects an empty teardown participant instead of using the default", async () => {
+    await expect(
+      runDocumentWorkflow(
+        createOptions({
+          frontmatter: {
+            participants: {
+              default: {
+                agent: "claude",
+                mode: "edit"
+              }
+            },
+            teardown: {
+              participant: "",
+              prompt: "Clean workspace"
+            }
+          }
+        })
+      )
+    ).rejects.toThrow('Workflow "teardown" participant must define a non-empty string.');
+  });
+
+  it("preserves a prototype-named participant for implicit setup selection", async () => {
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+
+    await runDocumentWorkflow(
+      createOptions({
+        frontmatter: JSON.parse(
+          '{"participants":{"__proto__":{"agent":"codex","mode":"read"}},"setup":{"prompt":"Prepare workspace"}}'
+        ) as Frontmatter,
+        runAgent
+      })
+    );
+
+    expect(runAgent.mock.calls[0]![0]).toMatchObject({
+      agent: "codex",
+      mode: "read",
+      prompt: "Prepare workspace"
+    });
+  });
+
   it("rejects malformed stage skills", async () => {
     await expect(
       runDocumentWorkflow(

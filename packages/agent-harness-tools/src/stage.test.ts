@@ -173,6 +173,20 @@ describe("runWorkflowStage", () => {
     ).rejects.toThrow("Unknown participant: unknown");
   });
 
+  it("throws for an inherited participant name", async () => {
+    await expect(
+      runWorkflowStage(
+        {
+          id: "review",
+          participant: "toString",
+          prompt: "Review the changes",
+          mode: "read"
+        },
+        createContext({ participants: {} })
+      )
+    ).rejects.toThrow("Unknown participant: toString");
+  });
+
   it("throws when neither the stage nor participant define a mode", async () => {
     const context = createContext();
 

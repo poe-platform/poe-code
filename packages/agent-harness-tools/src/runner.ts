@@ -88,6 +88,10 @@ function parseWorkflowHook(value: unknown, fieldName: string): WorkflowHook | un
     throw new Error(`Workflow "${fieldName}" participant must be a string.`);
   }
 
+  if (value.participant === "") {
+    throw new Error(`Workflow "${fieldName}" participant must define a non-empty string.`);
+  }
+
   if (
     value.mode !== undefined &&
     value.mode !== "read" &&
@@ -222,7 +226,7 @@ function parseParticipants(value: unknown): Record<string, WorkflowParticipant> 
     throw new Error('Workflow "participants" must be an object.');
   }
 
-  const participants: Record<string, WorkflowParticipant> = {};
+  const participants: Record<string, WorkflowParticipant> = Object.create(null);
   for (const [participantId, participantConfig] of Object.entries(value)) {
     participants[participantId] = normalizeParticipantConfig(participantId, participantConfig);
   }

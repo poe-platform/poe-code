@@ -92,6 +92,21 @@ describe("normalizeParticipantConfig", () => {
     ).toThrow('Participant "writer" is missing required field: agent.');
   });
 
+  it("throws for a model-only inline agent specifier", () => {
+    expect(() => normalizeParticipantConfig("writer", ":openai/gpt-5.4")).toThrow(
+      'Participant "writer" must define a non-empty agent.'
+    );
+  });
+
+  it("throws for an empty model override", () => {
+    expect(() =>
+      normalizeParticipantConfig("writer", {
+        agent: "claude",
+        model: ""
+      })
+    ).toThrow('Participant "writer" must define a non-empty model.');
+  });
+
   it("throws when the participant config is not a string or object", () => {
     expect(() => normalizeParticipantConfig("writer", 123)).toThrow(
       'Participant "writer" must be a string or object.'

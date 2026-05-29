@@ -834,10 +834,10 @@ describe("configure provider resolution", () => {
     expect(capture.provider()?.baseUrl).toBe("https://shape.example/anth");
   });
 
-  it("does not read base URLs from environment variables", async () => {
+  it("derives Poe provider URLs from POE_BASE_URL", async () => {
     const container = createContainer(fs, {
       POE_API_KEY: "sk-env",
-      POE_BASE_URL: "https://env.example"
+      POE_BASE_URL: "https://env.example/v1"
     });
     mockOptions(container);
     const capture = stubInvokeAndCaptureProvider(container);
@@ -846,7 +846,28 @@ describe("configure provider resolution", () => {
       provider: "poe"
     });
 
-    expect(capture.provider()?.baseUrl).toBe("https://api.poe.com/anthropic");
+    expect(capture.provider()).toMatchObject({
+      baseUrl: "https://env.example/anthropic",
+      agentBaseUrl: "https://env.example"
+    });
+  });
+
+  it("derives Poe OpenAI URLs from POE_BASE_URL", async () => {
+    const container = createContainer(fs, {
+      POE_API_KEY: "sk-env",
+      POE_BASE_URL: "https://env.example/v1"
+    });
+    mockOptions(container);
+    const capture = stubInvokeAndCaptureProvider(container);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "poe"
+    });
+
+    expect(capture.provider()).toMatchObject({
+      baseUrl: "https://env.example/v1",
+      agentBaseUrl: "https://env.example"
+    });
   });
 
   it("rejects unknown configure --shape-base-url shape ids before writing", async () => {

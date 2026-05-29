@@ -70,12 +70,15 @@ export async function buildActiveProvider(input: {
     );
   }
 
+  const providerBaseUrlEnv = resolveProviderBaseUrlEnv(input.container, input.provider);
+  const environmentBaseUrl = resolveBaseUrlRoot(providerBaseUrlEnv, input.provider.baseUrlEnvPath);
+
   const configuredBaseUrl =
     resolveNonEmpty(input.explicitShapeBaseUrls?.[apiShape]) ??
     resolveShapeBaseUrl(resolveNonEmpty(input.explicitBaseUrl), shape.baseUrlPath) ??
     resolveShapeBaseUrl(
-      resolveProviderBaseUrlEnv(input.container, input.provider),
-      shape.baseUrlPath
+      environmentBaseUrl,
+      shape.envBaseUrlPath ?? shape.baseUrlPath
     ) ??
     (await resolveStoredShapeBaseUrl(input.container, input.provider.id, apiShape));
 
@@ -98,7 +101,10 @@ export async function buildActiveProvider(input: {
     );
   }
   assertHttpBaseUrl(input.provider.id, baseUrl);
-  const agentBaseUrl = input.provider.agentBaseUrl ?? baseUrl;
+  const agentBaseUrl =
+    resolveShapeBaseUrl(environmentBaseUrl, input.provider.agentBaseUrlPath) ??
+    input.provider.agentBaseUrl ??
+    baseUrl;
 
   return {
     id: input.provider.id,
@@ -221,6 +227,15 @@ export function resolveShapeBaseUrl(
   }
   const normalizedBaseUrl = stripTrailingPathSegment(trimTrailingSlash(baseUrl), "compat");
   return `${normalizedBaseUrl}/${trimLeadingSlash(suffix)}`;
+}
+
+function resolveBaseUrlRoot(baseUrl: string | undefined, pathSuffix: string | undefined): string | undefined {
+  const normalizedBaseUrl = resolveNonEmpty(baseUrl);
+  const normalizedSuffix = resolveNonEmpty(pathSuffix);
+  if (normalizedBaseUrl === undefined || normalizedSuffix === undefined) {
+    return normalizedBaseUrl;
+  }
+  return stripTrailingPathSegment(trimTrailingSlash(normalizedBaseUrl), trimLeadingSlash(normalizedSuffix));
 }
 
 function trimTrailingSlash(value: string): string {

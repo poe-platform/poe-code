@@ -70,6 +70,17 @@ export async function runPoeCommand(opts: {
           stderr: execution?.stderr ?? "pipe",
           signal: opts.signal
         });
+    const running = opts.detach
+      ? undefined
+      : settleRunSync(runSync({
+          env,
+          handle,
+          jobId,
+          openSpec: opts.openSpec,
+          signal: opts.signal,
+          wrapCommand,
+          closeAfterDownload: false
+        }));
 
     if (execution?.input !== undefined) {
       await writeExecutionInput(handle, execution.input);
@@ -96,15 +107,7 @@ export async function runPoeCommand(opts: {
       return { kind: "detached", jobId, envId: env.id };
     }
 
-    const result = await runSync({
-      env,
-      handle,
-      jobId,
-      openSpec: opts.openSpec,
-      signal: opts.signal,
-      wrapCommand,
-      closeAfterDownload: false
-    });
+    const result = unwrapSettledRun(await running!);
 
     await opts.state.jobs.update(jobId, {
       status: "exited",
@@ -219,6 +222,15 @@ export function createPoeCommandSession(opts: {
             stderr: openSpec.execution?.stderr ?? "pipe",
             signal
           });
+      const running = settleRunSync(runSync({
+        env: currentEnv,
+        handle,
+        jobId,
+        openSpec,
+        signal,
+        wrapCommand,
+        closeAfterDownload: false
+      }));
 
       if (openSpec.execution?.input !== undefined) {
         await writeExecutionInput(handle, openSpec.execution.input);
@@ -230,15 +242,7 @@ export function createPoeCommandSession(opts: {
         started_at: new Date().toISOString()
       });
 
-      const result = await runSync({
-        env: currentEnv,
-        handle,
-        jobId,
-        openSpec,
-        signal,
-        wrapCommand,
-        closeAfterDownload: false
-      });
+      const result = unwrapSettledRun(await running);
 
       await opts.state.jobs.update(jobId, {
         status: "exited",
@@ -426,6 +430,26 @@ async function runSync(opts: {
   }
 }
 
+type SyncRunResult = Awaited<ReturnType<typeof runSync>>;
+type SettledSyncRun =
+  | { status: "fulfilled"; value: SyncRunResult }
+  | { status: "rejected"; reason: unknown };
+
+function settleRunSync(result: Promise<SyncRunResult>): Promise<SettledSyncRun> {
+  return result.then(
+    (value) => ({ status: "fulfilled", value }),
+    (reason: unknown) => ({ status: "rejected", reason })
+  );
+}
+
+function unwrapSettledRun(result: SettledSyncRun): SyncRunResult {
+  if (result.status === "rejected") {
+    throw result.reason;
+  }
+
+  return result.value;
+}
+
 function pipeRunStreams(handle: RunHandle): {
   stdout(): string;
   stderr(): string;
@@ -500,106 +524,79 @@ function createAbortSync(
   dispose(): void;
 } {
   let activityTimer: ReturnType<typeof setTimeout> | undefined;
-  let timedOut = false;
+  let terminationError: Error | undefined;
+  let notifyTermination: (() => void) | undefined;
+  const terminationPromise = new Promise<void>((resolve) => {
+    notifyTermination = resolve;
+  });
+  const exitWaitController = new AbortController();
+  const terminate = (error: Error): void => {
+    if (terminationError !== undefined) return;
+    terminationError = error;
+    notifyTermination?.();
+    handle.kill("SIGTERM");
+  };
   const resetActivityTimer = activityTimeoutMs
     ? () => {
         if (activityTimer) clearTimeout(activityTimer);
         activityTimer = setTimeout(() => {
-          timedOut = true;
-          handle.kill("SIGTERM");
-          notifyAbort?.();
+          terminate(createActivityTimeoutError(activityTimeoutMs));
         }, activityTimeoutMs);
       }
     : () => {};
-  let notifyAbort: (() => void) | undefined;
+  const abort = () => terminate(createAbortError());
 
-  if (signal === undefined) {
-    return {
-      waitForExit: async (env, jobId) => {
-        await handle.result;
-        if (timedOut) {
-          throw createActivityTimeoutError(activityTimeoutMs!);
-        }
-        return waitForExit(toLogStreamEnv(env), jobId);
-      },
-      waitForHandle: async () => {
-        const result = await handle.result;
-        if (timedOut) {
-          throw createActivityTimeoutError(activityTimeoutMs!);
-        }
-        return result;
-      },
-      resetActivityTimer,
-      dispose() {
-        if (activityTimer) clearTimeout(activityTimer);
-      }
-    };
-  }
-
-  let aborted = signal.aborted;
-  const abortedPromise = new Promise<void>((resolve) => {
-    notifyAbort = resolve;
-  });
-  const kill = () => {
-    aborted = true;
-    handle.kill("SIGTERM");
-    notifyAbort?.();
-  };
-
-  if (signal.aborted) {
-    kill();
+  if (signal?.aborted) {
+    abort();
   } else {
-    signal.addEventListener("abort", kill, { once: true });
+    signal?.addEventListener("abort", abort, { once: true });
   }
 
   return {
     async waitForExit(env, jobId) {
-      if (aborted) {
-        return handle.result;
-      }
+      if (terminationError !== undefined) throw terminationError;
 
+      const exit = waitForExit(toLogStreamEnv(env), jobId, {
+        signal: exitWaitController.signal
+      }).then(
+        (value) => ({ kind: "exit" as const, value }),
+        (error: unknown) => ({ kind: "error" as const, error })
+      );
       const result = await Promise.race([
-        handle.result.then((value) => ({ kind: "exit" as const, value })),
-        abortedPromise.then(() => ({ kind: "abort" as const }))
+        exit,
+        terminationPromise.then(() => ({ kind: "terminate" as const }))
       ]);
 
       if (result.kind === "exit") {
-        if (timedOut) {
-          throw createActivityTimeoutError(activityTimeoutMs!);
-        }
-        if (aborted) {
-          return result.value;
-        }
-        return waitForExit(toLogStreamEnv(env), jobId);
-      }
-
-      return handle.result;
-    },
-    async waitForHandle() {
-      const result = await Promise.race([
-        handle.result.then((value) => ({ kind: "exit" as const, value })),
-        abortedPromise.then(() => ({ kind: "abort" as const }))
-      ]);
-
-      if (result.kind === "exit") {
-        if (aborted) {
-          throw createAbortError();
-        }
-        if (timedOut) {
-          throw createActivityTimeoutError(activityTimeoutMs!);
-        }
         return result.value;
       }
 
-      if (timedOut) {
-        throw createActivityTimeoutError(activityTimeoutMs!);
+      if (result.kind === "error") {
+        throw result.error;
       }
-      throw createAbortError();
+
+      exitWaitController.abort();
+      throw terminationError!;
+    },
+    async waitForHandle() {
+      if (terminationError !== undefined) throw terminationError;
+
+      const result = await Promise.race([
+        handle.result.then((value) => ({ kind: "exit" as const, value })),
+        terminationPromise.then(() => ({ kind: "terminate" as const }))
+      ]);
+
+      if (result.kind === "exit") {
+        return result.value;
+      }
+
+      throw terminationError!;
     },
     resetActivityTimer,
     dispose() {
       if (activityTimer) clearTimeout(activityTimer);
-      signal.removeEventListener("abort", kill);
+      exitWaitController.abort();
+      signal?.removeEventListener("abort", abort);
     }
   };
 }

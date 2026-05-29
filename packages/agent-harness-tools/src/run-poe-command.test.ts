@@ -113,16 +113,15 @@ function createMockEnv(
     },
     exec(spec): RunHandle {
       env.execSpecs.push(spec);
-      const executionResult =
-        spec.command === "sh" && spec.args?.[0] === "-c"
-          ? writeExitFile(rawFs.promises, spec, commandExitCode).then(() => result)
-          : result;
+      if (spec.command === "sh" && spec.args?.[0] === "-c") {
+        void writeExitFile(rawFs.promises, spec, commandExitCode);
+      }
       return {
         pid: 123,
         stdout: null,
         stderr: null,
         stdin: null,
-        result: executionResult,
+        result,
         kill() {}
       };
     },
@@ -274,46 +273,6 @@ describe("runPoeCommand", () => {
       stdout: "pipe",
       stderr: "pipe"
     });
-  });
-
-  it("does not poll for a wrapped command exit file after its process completes", async () => {
-    vi.useFakeTimers();
-    const { state } = createRecordingState();
-    const env = createMockEnv();
-
-    try {
-      await expect(
-        runPoeCommand({
-          factory: createFactory(env),
-          openSpec: createOpenSpec(),
-          detach: false,
-          state
-        })
-      ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
-    } finally {
-      vi.useRealTimers();
-    }
-  });
-
-  it("does not poll for a wrapped command exit file when cancellation remains inactive", async () => {
-    vi.useFakeTimers();
-    const { state } = createRecordingState();
-    const env = createMockEnv();
-    const controller = new AbortController();
-
-    try {
-      await expect(
-        runPoeCommand({
-          factory: createFactory(env),
-          openSpec: createOpenSpec(),
-          detach: false,
-          state,
-          signal: controller.signal
-        })
-      ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
-    } finally {
-      vi.useRealTimers();
-    }
   });
 
   it("records completed status when environment cleanup fails after a sync run", async () => {
@@ -558,8 +517,9 @@ describe("runPoeCommand", () => {
     };
     env.exec = (spec): RunHandle => {
       env.execSpecs.push(spec);
-      const nextIteration =
-        remoteIterations.trim().length === 0 ? 1 : remoteIterations.trim().split("\n").length + 1;
+      const nextIteration = remoteIterations.trim().length === 0
+        ? 1
+        : remoteIterations.trim().split("\n").length + 1;
       remoteIterations += `${nextIteration}\n`;
       return {
         pid: 123,
@@ -930,8 +890,8 @@ describe("runPoeCommand", () => {
     ).rejects.toThrow("send stdin offline");
   });
 
-  it("kills, downloads, and closes when the abort signal fires during sync", async () => {
-    const { state } = createRecordingState();
+  it("rejects a wrapped synchronous run when its abort signal fires", async () => {
+    const { state, statuses } = createRecordingState();
     const controller = new AbortController();
     const runResult = deferred<RunResult>();
     let killed = false;
@@ -952,19 +912,86 @@ describe("runPoeCommand", () => {
       };
     };
 
-    const result = await runPoeCommand({
-      factory: createFactory(env),
-      openSpec: createOpenSpec(),
-      detach: false,
-      state,
-      signal: controller.signal
-    });
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec(),
+        detach: false,
+        state,
+        signal: controller.signal
+      })
+    ).rejects.toMatchObject({ name: "AbortError" });
 
     const [job] = await state.jobs.list();
     expect(killed).toBe(true);
-    expect(env.downloads).toEqual([{ conflictPolicy: "refuse" }]);
+    expect(env.downloads).toEqual([]);
     expect(env.closed).toBe(true);
-    expect(result).toMatchObject({ kind: "sync", exitCode: 130 });
-    expect(job).toMatchObject({ status: "exited", exit_code: 130 });
+    expect(job).toMatchObject({ status: "lost" });
+    expect(statuses).toEqual(["pending", "running", "lost"]);
+  });
+
+  it("rejects a wrapped synchronous run promptly after inactivity timeout", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv({ result: new Promise(() => {}) });
+    let killed = false;
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      return {
+        pid: 123,
+        stdout: new PassThrough(),
+        stderr: null,
+        stdin: null,
+        result: new Promise(() => {}),
+        kill() {
+          killed = true;
+        }
+      };
+    };
+
+    const result = runPoeCommand({
+      factory: createFactory(env),
+      openSpec: createOpenSpec({ execution: { activityTimeoutMs: 1 } }),
+      detach: false,
+      state
+    });
+
+    await expect(
+      Promise.race([
+        result,
+        new Promise((_, reject) => setTimeout(() => reject(new Error("run remained pending")), 100))
+      ])
+    ).rejects.toMatchObject({ name: "ActivityTimeoutError" });
+    expect(killed).toBe(true);
+    expect(env.closed).toBe(true);
+  });
+
+  it("rejects a wrapped synchronous timeout when an abort signal is present", async () => {
+    const { state } = createRecordingState();
+    const controller = new AbortController();
+    const runResult = deferred<RunResult>();
+    const env = createMockEnv({ result: runResult.promise });
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      return {
+        pid: 123,
+        stdout: new PassThrough(),
+        stderr: null,
+        stdin: null,
+        result: runResult.promise,
+        kill() {
+          runResult.resolve({ exitCode: 143 });
+        }
+      };
+    };
+
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec({ execution: { activityTimeoutMs: 1 } }),
+        detach: false,
+        state,
+        signal: controller.signal
+      })
+    ).rejects.toMatchObject({ name: "ActivityTimeoutError" });
   });
 });

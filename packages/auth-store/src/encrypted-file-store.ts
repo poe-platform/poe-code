@@ -170,11 +170,9 @@ export class EncryptedFileStore implements SecretStore {
 
   private async assertRegularCredentialPath(): Promise<void> {
     const resolvedPath = path.resolve(this.filePath);
-    const segments = resolvedPath.split(path.sep).filter((segment) => segment.length > 0);
-    let currentPath = path.parse(resolvedPath).root;
+    const protectedPaths = [path.dirname(resolvedPath), resolvedPath];
 
-    for (const segment of segments) {
-      currentPath = path.join(currentPath, segment);
+    for (const currentPath of protectedPaths) {
       try {
         const stats = await this.fs.lstat(currentPath);
         if (stats.isSymbolicLink()) {

@@ -293,6 +293,25 @@ describe("EncryptedFileStore", () => {
     await expect(fs.readFile("/outside/credentials.enc", "utf8")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("allows credentials beneath a symlinked operating-system path ancestor", async () => {
+    const fs = createStatMemFs();
+    await fs.mkdir("/private/var/tmp/home/.app", { recursive: true });
+    await (fs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/private/var",
+      "/var"
+    );
+    const store = new EncryptedFileStore({
+      fs,
+      filePath: "/var/tmp/home/.app/credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await store.set("secret-value");
+
+    await expect(store.get()).resolves.toBe("secret-value");
+  });
+
   it("removes a new credential when permission hardening fails", async () => {
     let storedContent: string | undefined;
     const fs: EncryptedFileStoreFileSystem = {

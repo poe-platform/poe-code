@@ -27,7 +27,7 @@ async function executeBraintrustStatus(
 ): Promise<void> {
   const flags = resolveCommandFlags(program);
   const resources = createExecutionResources(container, flags, "braintrust:status");
-  const config = await resolveMergedDocument(container);
+  const config = await resolveMergedDocument(container, { readOnly: true });
   const braintrust = config.integrations?.braintrust;
 
   resources.logger.intro("braintrust status");

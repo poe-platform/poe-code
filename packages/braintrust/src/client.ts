@@ -62,8 +62,11 @@ export function createClient(opts: {
           return undefined;
         }
       })();
-
-      return rootLoggerPromise;
+      const logger = await rootLoggerPromise;
+      if (logger === undefined) {
+        rootLoggerPromise = undefined;
+      }
+      return logger;
     },
 
     async getExperiment(name: string): Promise<unknown> {
@@ -82,10 +85,17 @@ export function createClient(opts: {
         })());
       }
 
-      return experiments.get(name);
+      const experiment = await experiments.get(name);
+      if (experiment === undefined) {
+        experiments.delete(name);
+      }
+      return experiment;
     },
 
     async flush(timeoutMs: number): Promise<void> {
+      if (!Number.isFinite(timeoutMs) || timeoutMs < 0) {
+        throw new Error("Braintrust flush requires a finite timeout in milliseconds.");
+      }
       const flushAll = (async () => {
         const sdk = await sdkPromise;
         if (sdk === undefined) {
@@ -105,15 +115,20 @@ export function createClient(opts: {
         recordError(err, "flush");
       });
 
+      let timeout: ReturnType<typeof setTimeout> | undefined;
       try {
         await Promise.race([
           flushAll,
           new Promise<void>((resolve) => {
-            setTimeout(resolve, timeoutMs);
+            timeout = setTimeout(resolve, timeoutMs);
           }),
         ]);
       } catch (err) {
         recordError(err, "flush");
+      } finally {
+        if (timeout !== undefined) {
+          clearTimeout(timeout);
+        }
       }
     },
 

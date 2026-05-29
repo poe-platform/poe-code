@@ -143,4 +143,13 @@ describe("braintrust command", () => {
     expect(logs).toContain("enabled, project=poe-code, last error: none, errors: 0");
     expect(braintrustMock.shutdown).toHaveBeenCalledOnce();
   });
+
+  it("does not recover malformed configuration while checking status", async () => {
+    await fs.writeFile(configPath, "{ invalid json\n", "utf8");
+
+    await expect(runBraintrustStatus(fs)).rejects.toThrow();
+
+    expect(await fs.readFile(configPath, "utf8")).toBe("{ invalid json\n");
+    expect(await fs.readdir(`${homeDir}/.poe-code`)).toEqual(["config.json"]);
+  });
 });

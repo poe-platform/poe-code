@@ -122,4 +122,42 @@ describe("createClient", () => {
       project: "project",
     });
   });
+
+  it("retries logger and experiment initialization after transient failures", async () => {
+    const logger = { id: "logger" };
+    const experiment = { id: "experiment" };
+    mockBraintrust.initLogger.mockImplementationOnce(() => {
+      throw new Error("logger unavailable");
+    }).mockReturnValueOnce(logger);
+    mockBraintrust.initExperiment.mockImplementationOnce(() => {
+      throw new Error("experiment unavailable");
+    }).mockReturnValueOnce(experiment);
+    const client = createClient({ apiKey: "key", project: "project" });
+
+    await expect(client.getRootLogger()).resolves.toBeUndefined();
+    await expect(client.getRootLogger()).resolves.toBe(logger);
+    await expect(client.getExperiment("benchmark")).resolves.toBeUndefined();
+    await expect(client.getExperiment("benchmark")).resolves.toBe(experiment);
+
+    expect(mockBraintrust.initLogger).toHaveBeenCalledTimes(2);
+    expect(mockBraintrust.initExperiment).toHaveBeenCalledTimes(2);
+  });
+
+  it("clears a successful flush timeout timer", async () => {
+    vi.useFakeTimers();
+    mockBraintrust.initLogger.mockReturnValue({ id: "logger" });
+    mockBraintrust.flush.mockResolvedValue(undefined);
+    const client = createClient({ apiKey: "key", project: "project" });
+
+    await client.getRootLogger();
+    await client.flush(5000);
+
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("rejects non-finite flush timeouts", async () => {
+    const client = createClient({ apiKey: "key", project: "project" });
+
+    await expect(client.flush(Number.POSITIVE_INFINITY)).rejects.toThrow("finite timeout");
+  });
 });

@@ -74,6 +74,9 @@ function stepKey(
   }
 
   if (target?.type === "action") {
+    if (state.actionState.get(target.id)?.source === "detail" && state.focused !== "detail") {
+      return mark(state, 0);
+    }
     const action = resolveAction(state, key);
     return action === null ? mark(state, 0) : dispatchAction(state, action, false, runtimeHandles);
   }
@@ -235,20 +238,28 @@ function resize(state: ExplorerState, cols: number, rows: number): StepResult {
 }
 
 function rowsLoaded(state: ExplorerState, rows: Row[]): StepResult {
+  const rowIds = new Set<string>();
+  for (const row of rows) {
+    if (rowIds.has(row.id)) {
+      throw new Error(`Duplicate explorer row id: ${row.id}`);
+    }
+    rowIds.add(row.id);
+  }
+
   const matches = filterRows(state.filter, rows);
   const filtered = matches.map((match) => match.index);
   const matchPositions = createMatchPositions(matches);
   const cursor = clamp(state.cursor, 0, Math.max(0, filtered.length - 1));
+  const selected = pruneSelection(state.selected, rows);
+  const detail = resetDetailForCursor(state, rows, filtered, cursor);
+  const modal = modalStillValid(state.modal, rows);
+  if (state.modal?.kind === "confirm" && modal === null) {
+    state.modal.resolver(false);
+  }
+  const nextView = { ...state, rows, filtered, matchPositions, cursor, selected, detail, modal };
   const next = {
-    ...state,
-    rows,
-    filtered,
-    matchPositions,
-    cursor,
-    selected: pruneSelection(state.selected, rows),
-    detail: resetDetailForCursor(state, rows, filtered, cursor),
-    modal: modalStillValid(state.modal, rows),
-    actionState: recomputeActionState({ ...state, rows, filtered, matchPositions, cursor }),
+    ...nextView,
+    actionState: recomputeActionState(nextView),
     dirty: REGION_HEADER | REGION_LIST | REGION_DETAIL | REGION_FOOTER | REGION_MODAL
   };
   const effect = detailEffect(next);
@@ -681,7 +692,7 @@ function dispatchPaletteAction(
 
 function dispatchPrimary(state: ExplorerState, runtimeHandles: ActionRuntimeHandles): StepResult {
   for (const [id, entry] of state.actionState.entries()) {
-    if (entry.action?.primary === true) {
+    if (entry.action?.primary === true && entry.available === true && entry.running !== true) {
       return dispatchActionById(state, id, false, runtimeHandles);
     }
   }

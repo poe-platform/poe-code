@@ -31,7 +31,12 @@ function resolvePageRelPath(input: string): string {
 
   const normalized = trimmed.replaceAll("\\", "/");
   const withExt = path.posix.extname(normalized).length === 0 ? `${normalized}.md` : normalized;
-  return withExt.startsWith("pages/") ? withExt : `pages/${withExt}`;
+  const relPath = path.posix.normalize(withExt.startsWith("pages/") ? withExt : `pages/${withExt}`);
+  if (!relPath.startsWith("pages/") || relPath === "pages/.." || relPath.includes("/../")) {
+    throw new ValidationError("Page path must remain under memory pages/.");
+  }
+
+  return relPath;
 }
 
 function displayPageRelPath(relPath: string): string {
@@ -131,6 +136,7 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
       const absPath = path.join(mem.root, relPath);
 
       try {
+        await mem.readPage(relPath);
         const content = await fs.readFile(absPath, "utf8");
         process.stdout.write(content.endsWith("\n") ? content : `${content}\n`);
       } catch (error) {

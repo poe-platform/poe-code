@@ -168,6 +168,23 @@ describe("memory command", () => {
     writeSpy.mockRestore();
   });
 
+  it("rejects show paths that escape the pages directory", async () => {
+    const container = createContainer();
+    const program = createBaseProgram();
+    registerMemoryCommand(program, container);
+
+    vol.fromJSON({
+      [`${memoryRoot}/INDEX.md`]: "# Memory index\n",
+      [`${memoryRoot}/LOG.md`]: "",
+      [`${memoryRoot}/pages/valid.md`]: "# Valid\n",
+      [`${memoryRoot}/secret.md`]: "outside-page-secret\n"
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "memory", "show", "../secret"])
+    ).rejects.toThrow(/escape|page path/i);
+  });
+
   it("searches memory pages", async () => {
     const container = createContainer();
     const program = createBaseProgram();

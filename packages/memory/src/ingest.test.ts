@@ -102,6 +102,19 @@ describe("ingest", () => {
     expect(result).toMatchObject({ cacheHit: true, exitCode: 0, durationMs: 0 });
   });
 
+  it("loads ingest settings from project configuration", async () => {
+    await ingest(
+      "/repo/.poe-code/memory",
+      { source: { kind: "file", absPath: "/repo/docs/source.md" } },
+      runners
+    );
+
+    expect(resolveAgent.mock.calls[0]?.[0].filePath).toBe("/repo/poe-code.json");
+    expect(resolveAgent.mock.calls[0]?.[0].projectFilePath).toBe("/repo/.poe-code/config.json");
+    expect(cacheEnabled.mock.calls[0]?.[0].projectFilePath).toBe("/repo/.poe-code/config.json");
+    expect(configuredTimeout.mock.calls[0]?.[0].projectFilePath).toBe("/repo/.poe-code/config.json");
+  });
+
   it("prints the prompt and skips spawning in dry-run mode", async () => {
     const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
@@ -214,11 +227,13 @@ describe("ingest", () => {
     expect(writeCacheEntryMock).not.toHaveBeenCalled();
   });
 
-  it("fails on timeout after reconciling", async () => {
+  it("aborts the running agent on timeout before reconciling", async () => {
     configuredTimeout.mockReturnValue(10);
-    mockedAgentSpawn.spawnMock!.spawn.mockImplementationOnce(
-      () => new Promise((resolve) => setTimeout(() => resolve({ exitCode: 0, durationMs: 50 }), 50))
-    );
+    let signal: AbortSignal | undefined;
+    mockedAgentSpawn.spawnMock!.spawn.mockImplementationOnce((_agentId, options) => {
+      signal = options.signal;
+      return new Promise((resolve) => setTimeout(() => resolve({ exitCode: 0, durationMs: 50 }), 50));
+    });
 
     await expect(
       ingest(
@@ -228,6 +243,7 @@ describe("ingest", () => {
       )
     ).rejects.toThrow("ingest timed out after 10ms");
 
+    expect(signal?.aborted).toBe(true);
     expect(reconcileMock).toHaveBeenCalled();
     expect(writeCacheEntryMock).not.toHaveBeenCalled();
   });

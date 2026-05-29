@@ -426,6 +426,7 @@ interface MaestroTickCommandArgs {
   list?: string;
   config?: string;
   name?: string;
+  dryRun?: boolean;
 }
 
 interface MaestroRunCommandArgs {
@@ -655,6 +656,7 @@ function registerMaestroCommand(program: Command, container: CliContainer): void
         list: options.list ?? readCommandTreeOption<string>(command, "list"),
         configPath: options.config,
         name: options.name,
+        dryRun: options.dryRun ?? readCommandTreeOption<boolean>(command, "dryRun"),
         onEvent: writeMaestroEventNdjson
       });
     });

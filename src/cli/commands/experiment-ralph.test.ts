@@ -1873,6 +1873,23 @@ describe("ralph run command", () => {
     );
   });
 
+  it("does not execute Ralph loops during dry-run previews", async () => {
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs({ "/repo/docs/loop.md": "# Loop" }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "ralph", "run", "docs/loop.md"]);
+
+    expect(vi.mocked(sdkRunRalph)).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run: would run Ralph");
+  });
+
   it("passes runtime flags to the Ralph SDK", async () => {
     const container = createCliContainer({
       fs: createMemFs({
@@ -3032,5 +3049,24 @@ describe("ralph init command", () => {
     });
     expect(selectMock).not.toHaveBeenCalled();
     expect(promptTextMock).not.toHaveBeenCalled();
+  });
+
+  it("previews initialization without rewriting the document", async () => {
+    const original = "# A\n";
+    const logs: string[] = [];
+    const fs = createMemFs({ "/repo/docs/loop.md": original });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerRalphCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "ralph", "init", "docs/loop.md"]);
+
+    await expect(fs.readFile("/repo/docs/loop.md", "utf8")).resolves.toBe(original);
+    expect(logs.join("\n")).toContain("Dry run: would save Ralph config.");
   });
 });

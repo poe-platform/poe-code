@@ -557,7 +557,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
   const source =
     "mcpServers" in parsed && isObjectRecord(parsed.mcpServers) ? parsed.mcpServers : parsed;
 
-  const servers: McpSpawnConfig = {};
+  const servers = Object.create(null) as McpSpawnConfig;
   for (const [name, value] of Object.entries(source)) {
     if (!isObjectRecord(value)) {
       throw new ValidationError(
@@ -596,7 +596,7 @@ function parseMcpSpawnConfig(input?: string): McpSpawnConfig | undefined {
           `--mcp-servers entry "${name}".env must be an object of string values`
         );
       }
-      env = {};
+      env = Object.create(null) as Record<string, string>;
       for (const [envKey, envValue] of Object.entries(value.env)) {
         if (typeof envValue !== "string") {
           throw new ValidationError(

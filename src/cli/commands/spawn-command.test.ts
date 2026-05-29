@@ -1196,6 +1196,31 @@ describe("spawn command", () => {
     });
   });
 
+  it("preserves special MCP environment variable names", async () => {
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "spawn",
+      "--mcp-servers",
+      '{"test":{"command":"server","env":{"__proto__":"visible"}}}',
+      "codex",
+      "hello"
+    ]);
+
+    const options = vi.mocked(sdkSpawn).mock.calls.at(-1)?.[1];
+    expect(Object.hasOwn(options?.mcpServers?.test.env ?? {}, "__proto__")).toBe(true);
+    expect(options?.mcpServers?.test.env?.["__proto__"]).toBe("visible");
+  });
+
   it("reads --mcp-servers from an absolute @file path", async () => {
     const { runner } = createCommandRunnerStub();
     const program = createProgram({

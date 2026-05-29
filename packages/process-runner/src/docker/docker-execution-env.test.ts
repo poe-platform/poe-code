@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
 import { detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
@@ -7,7 +7,8 @@ import { createHostRunner } from "../host/host-runner.js";
 import type { OpenSpec, RunHandle, RunSpec, Runner } from "../types.js";
 
 vi.mock("node:fs/promises", () => ({
-  readFile: vi.fn()
+  readFile: vi.fn(),
+  readdir: vi.fn()
 }));
 
 vi.mock("./engine.js", () => ({
@@ -32,6 +33,7 @@ describe("dockerExecutionEnvFactory", () => {
     vi.clearAllMocks();
     vi.mocked(detectEngine).mockReturnValue("docker");
     vi.mocked(detectContext).mockReturnValue(null);
+    vi.mocked(readdir).mockResolvedValue([]);
   });
 
   it("opens a persistent container from a configured image with runtime mounts", async () => {
@@ -207,6 +209,30 @@ describe("dockerExecutionEnvFactory", () => {
     expect(docker.hash).not.toBe(podman.hash);
     expect(podman.cached).toBe(false);
     expect(podmanRunner.specs[0]?.command).toBe("podman");
+  });
+
+  it("changes the dockerfile template cache hash when build context contents change", async () => {
+    const files = new Map([
+      ["/repo/Dockerfile", "FROM scratch\nCOPY app.txt /app.txt\n"],
+      ["/repo/context/app.txt", "one\n"]
+    ]);
+    vi.mocked(readFile).mockImplementation(async (filePath) => Buffer.from(files.get(String(filePath)) ?? ""));
+    vi.mocked(readdir).mockResolvedValue([{ name: "app.txt", isDirectory: () => false, isFile: () => true }] as never);
+    const runner = createCapturingRunner([{ exitCode: 0 }, { exitCode: 0 }]);
+    const state = createState(null);
+    const { buildDockerRuntimeTemplate } = await import("./docker-execution-env.js");
+    const input = {
+      cwd: "/repo",
+      runtime: { type: "docker" as const, dockerfile: "Dockerfile", build_context: "context", build_args: {} },
+      state,
+      runner
+    };
+
+    await buildDockerRuntimeTemplate(input);
+    files.set("/repo/context/app.txt", "two\n");
+    await buildDockerRuntimeTemplate(input);
+
+    expect(state.getCalls[0]?.hash).not.toBe(state.getCalls[1]?.hash);
   });
 
   it("builds and caches a dockerfile image on template cache miss with sorted build args", async () => {

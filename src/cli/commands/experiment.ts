@@ -888,7 +888,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       }>();
 
       try {
-        const commandConfig = await resolveExperimentCommandConfig(container);
+        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: flags.dryRun });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -954,7 +954,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       try {
         resources.logger.intro("experiment validate");
 
-        const commandConfig = await resolveExperimentCommandConfig(container);
+        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: flags.dryRun });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -1034,7 +1034,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       try {
         let agent = options.agent;
         if (!agent) {
-          const fromConfig = await resolveDefaultAgent(container);
+          const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
           if (fromConfig !== null) {
             agent = parseAgentSpecifier(fromConfig).agent;
           } else if (flags.assumeYes) {

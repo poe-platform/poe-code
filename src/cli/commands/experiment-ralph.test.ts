@@ -1316,6 +1316,40 @@ describe("experiment journal command", () => {
     await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
+  it("does not repair invalid project config while previewing a journal entry", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": "# Loop",
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "--dry-run",
+        "experiment",
+        "journal",
+        "log",
+        "docs/loop.md",
+        "--status",
+        "keep",
+        "--commit",
+        "abc123"
+      ])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
+  });
+
   it("discovers the first doc with --yes", async () => {
     const container = createCliContainer({
       fs: createMemFs({
@@ -1380,6 +1414,37 @@ describe("experiment validate command", () => {
     expect(loggerOutput).toContain("claude-code");
     expect(loggerOutput).toContain("tests: npm test (maximize)");
     expect(loggerOutput).toContain("valid");
+  });
+
+  it("does not repair invalid project config while previewing validation", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: tests",
+        "  script: npm test",
+        "  direction: maximize",
+        "---",
+        "# Loop"
+      ].join("\n"),
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "experiment", "validate", "docs/loop.md"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
   it("reports errors for missing required fields", async () => {
@@ -1622,6 +1687,27 @@ describe("experiment install command", () => {
     await expect(fs.readFile("/repo/.poe-code/experiments/run.yaml", "utf8")).resolves.toBe(
       experimentRunYaml
     );
+  });
+
+  it("does not repair invalid global config while previewing experiment installation", async () => {
+    const fs = createMemFs({
+      "/home/test/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "experiment", "install", "--local"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(container.env.configPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["config.json"]);
   });
 
   it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {

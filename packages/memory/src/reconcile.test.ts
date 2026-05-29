@@ -282,6 +282,35 @@ describe("reconcile", () => {
     ).rejects.toThrow("log disk full");
     await expect(vol.promises.readFile(logPath, "utf8")).resolves.toBe(originalLog);
   });
+
+  it("restores generated index when audit publication fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    const originalIndex = "# Memory index\n\n- [page](pages/page.md) — Before\n";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: originalIndex,
+      [`${root}/LOG.md`]: "",
+      [`${root}/pages/page.md`]: ["---", "description: Before", "---", "# Page", "", "old", ""].join("\n")
+    });
+    const before = await snapshot(root);
+    await vol.promises.writeFile(
+      `${root}/pages/page.md`,
+      ["---", "description: After", "---", "# Page", "", "new", ""].join("\n"),
+      "utf8"
+    );
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(`${root}/LOG.md.`)) {
+        throw new Error("injected log publication failure");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(reconcile(root, before, "edit", "updated page")).rejects.toThrow(
+      "injected log publication failure"
+    );
+    await expect(vol.promises.readFile(`${root}/INDEX.md`, "utf8")).resolves.toBe(originalIndex);
+    await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe("");
+  });
 });
 
 function hash(value: string): string {

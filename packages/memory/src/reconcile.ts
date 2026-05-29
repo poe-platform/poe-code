@@ -40,6 +40,10 @@ export async function reconcile(
   _verb: LogVerb,
   detail: string
 ): Promise<MemoryDiff> {
+  await assertNoSymlinkSegments(root, MEMORY_INDEX_RELPATH);
+  await assertNoSymlinkSegments(root, MEMORY_LOG_RELPATH);
+  const originalIndex = await readFileIfPresent(path.join(root, MEMORY_INDEX_RELPATH));
+  const originalLog = await readFileIfPresent(path.join(root, MEMORY_LOG_RELPATH));
   await initMemory(root);
 
   const timestamp = new Date().toISOString();
@@ -70,16 +74,27 @@ export async function reconcile(
     })
   );
 
-  await Promise.all(
-    currentPages
-      .filter((page) => page.currentMarkdown !== page.nextMarkdown)
-      .map((page) => writeFileAtomically(path.join(root, page.relPath), page.nextMarkdown))
-  );
+  try {
+    await Promise.all(
+      currentPages
+        .filter((page) => page.currentMarkdown !== page.nextMarkdown)
+        .map((page) => writeFileAtomically(path.join(root, page.relPath), page.nextMarkdown))
+    );
 
-  const diff = diffSnapshots(before, await snapshot(root));
-  await writeIndex(root);
-  await appendLogEntries(root, diff, detail, timestamp);
-  return diff;
+    const diff = diffSnapshots(before, await snapshot(root));
+    await writeIndex(root);
+    await appendLogEntries(root, diff, detail, timestamp);
+    return diff;
+  } catch (error) {
+    await Promise.all(
+      currentPages
+        .filter((page) => page.currentMarkdown !== page.nextMarkdown)
+        .map((page) => writeFileAtomically(path.join(root, page.relPath), page.currentMarkdown).catch(() => undefined))
+    );
+    await restoreGeneratedFile(path.join(root, MEMORY_INDEX_RELPATH), originalIndex);
+    await restoreGeneratedFile(path.join(root, MEMORY_LOG_RELPATH), originalLog);
+    throw error;
+  }
 }
 
 export function renderIndex(entries: Array<{ relPath: string; description: string }>): string {
@@ -153,6 +168,27 @@ async function writeIndex(root: MemoryRoot): Promise<void> {
   await writeFileAtomically(path.join(root, MEMORY_INDEX_RELPATH), index);
 }
 
+async function readFileIfPresent(filePath: string): Promise<string | undefined> {
+  try {
+    return await fs.readFile(filePath, "utf8");
+  } catch (error) {
+    if (isMissing(error)) {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
+async function restoreGeneratedFile(filePath: string, content: string | undefined): Promise<void> {
+  if (content === undefined) {
+    await fs.unlink(filePath).catch(() => undefined);
+    return;
+  }
+
+  await writeFileAtomically(filePath, content).catch(() => undefined);
+}
+
 function parsePageMarkdown(
   relPath: string,
   markdown: string
@@ -212,4 +248,8 @@ function formatLogLine(
 
 function hashContent(content: string): string {
   return createHash("sha256").update(content).digest("hex");
+}
+
+function isMissing(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }

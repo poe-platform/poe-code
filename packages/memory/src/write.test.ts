@@ -162,6 +162,27 @@ describe("writePage", () => {
     );
   });
 
+  it("removes a newly written page when index publication fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: ""
+    });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(`${root}/INDEX.md.`)) {
+        throw new Error("index offline");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(
+      writePage(root, "pages/new.md", "# New memory\n", { reason: "write" })
+    ).rejects.toThrow("index offline");
+    await expect(vol.promises.stat(`${root}/pages/new.md`)).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(vol.promises.readFile(`${root}/INDEX.md`, "utf8")).resolves.toBe("# Memory index\n");
+  });
+
   it("rejects writes through symlinked page directories", async () => {
     const root = "/repo/.poe-code/memory";
     vol.fromJSON({

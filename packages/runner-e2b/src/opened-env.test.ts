@@ -64,6 +64,44 @@ describe("createOpenedE2bEnv", () => {
     });
   });
 
+  it("does not launch a command when the signal is already aborted", async () => {
+    const sandbox = createSandboxMock();
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+    const controller = new AbortController();
+    controller.abort();
+
+    const handle = env.exec({ command: "node", signal: controller.signal });
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+    expect(sandbox.commands.run).not.toHaveBeenCalled();
+  });
+
+  it("kills an in-flight command when the signal aborts", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockReturnValue(new Promise(() => {})),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+    const controller = new AbortController();
+
+    env.exec({ command: "node", signal: controller.signal });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    controller.abort();
+
+    expect(commandHandle.kill).toHaveBeenCalledOnce();
+  });
+
   it("queues stdin writes until the E2B command handle is ready", async () => {
     const commandHandle = {
       pid: 321,

@@ -136,6 +136,9 @@ export function createOpenedE2bEnv(input: {
       }
     },
     exec(spec) {
+      if (spec.signal?.aborted === true) {
+        return createCancelledRunHandle(spec);
+      }
       const handle = runE2bCommand(input.sandbox, {
         ...spec,
         cwd: mapWorkspaceCwd(spec.cwd),
@@ -217,6 +220,13 @@ function runE2bCommand(
       }
     }
   }) as Promise<E2bCommandHandle>;
+  const cleanupAbort = bindAbortSignal(spec.signal, () => {
+    if (e2bHandle !== null) {
+      void e2bHandle.kill();
+      return;
+    }
+    void started.then((handle) => handle.kill(), () => undefined);
+  });
   const stdin =
     spec.stdin === "pipe"
       ? new Writable({
@@ -248,11 +258,13 @@ function runE2bCommand(
     })
     .then(
       (result) => {
+        cleanupAbort();
         stdout?.end();
         stderr?.end();
         return { exitCode: result.exitCode ?? 0 };
       },
       (error: unknown) => {
+        cleanupAbort();
         stdout?.end();
         stderr?.end();
         if (isExitError(error)) {
@@ -278,6 +290,30 @@ function runE2bCommand(
     },
     started
   };
+}
+
+function createCancelledRunHandle(spec: RunSpec): RunHandle {
+  const stdout = spec.stdout === "inherit" ? null : new PassThrough();
+  const stderr = spec.stderr === "inherit" ? null : new PassThrough();
+  stdout?.end();
+  stderr?.end();
+  return {
+    pid: null,
+    stdin: null,
+    stdout,
+    stderr,
+    result: Promise.resolve({ exitCode: 1 }),
+    kill() {}
+  };
+}
+
+function bindAbortSignal(signal: AbortSignal | undefined, onAbort: () => void): () => void {
+  if (signal === undefined) {
+    return () => {};
+  }
+
+  signal.addEventListener("abort", onAbort, { once: true });
+  return () => signal.removeEventListener("abort", onAbort);
 }
 
 function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {

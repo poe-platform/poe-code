@@ -1,7 +1,8 @@
 import { fileURLToPath } from "node:url";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { realpathMock, runCLIMock, terminalPilotGroupMock } = vi.hoisted(() => ({
+const { createTerminalPilotGroupMock, realpathMock, runCLIMock, terminalPilotGroupMock } = vi.hoisted(() => ({
+  createTerminalPilotGroupMock: vi.fn(),
   realpathMock: vi.fn<(path: string) => Promise<string>>(),
   runCLIMock: vi.fn<() => Promise<void>>(),
   terminalPilotGroupMock: { name: "terminal-pilot" }
@@ -19,7 +20,7 @@ vi.mock("toolcraft/cli", () => ({
 }));
 
 vi.mock("./commands/index.js", () => ({
-  terminalPilotGroup: terminalPilotGroupMock
+  createTerminalPilotGroup: createTerminalPilotGroupMock
 }));
 
 describe("terminal-pilot CLI entry point", () => {
@@ -27,6 +28,7 @@ describe("terminal-pilot CLI entry point", () => {
     process.argv = [...originalArgv];
     realpathMock.mockReset();
     realpathMock.mockImplementation(async (target) => target);
+    createTerminalPilotGroupMock.mockReset().mockReturnValue(terminalPilotGroupMock);
     runCLIMock.mockReset();
     runCLIMock.mockResolvedValue(undefined);
     vi.resetModules();
@@ -37,6 +39,7 @@ describe("terminal-pilot CLI entry point", () => {
 
     await main(["node", "terminal-pilot", "list-sessions"]);
 
+    expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runCLIMock).toHaveBeenCalledTimes(1);
     expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock);
   });
@@ -73,6 +76,7 @@ describe("terminal-pilot CLI entry point", () => {
 
     await import("./cli.js");
 
+    expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runCLIMock).toHaveBeenCalledTimes(1);
     expect(runCLIMock).toHaveBeenCalledWith(terminalPilotGroupMock);
     expect(process.argv).toEqual(["node", "/tmp/terminal-pilot-bin", "--help"]);

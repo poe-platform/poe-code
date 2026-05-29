@@ -7,6 +7,7 @@ import type { FileSystem } from "@poe-code/config-mutations";
 import { UserError } from "toolcraft";
 import {
   closeSession,
+  createTerminalPilotGroup,
   createSession,
   fill,
   getSession,
@@ -194,6 +195,21 @@ describe("terminal-pilot commands", () => {
     expect(closeSession.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(getSession.scope).toEqual(["cli", "mcp", "sdk"]);
     expect(listSessions.scope).toEqual(["cli", "mcp", "sdk"]);
+  });
+
+  it("creates fresh built-in command groups after exported group mutation", () => {
+    const originalChildren = terminalPilotGroup.children;
+    terminalPilotGroup.children = terminalPilotGroup.children.filter(
+      (command) => command.name !== "create-session"
+    ) as typeof terminalPilotGroup.children;
+
+    try {
+      expect(createTerminalPilotGroup().children.map((command) => command.name)).toContain(
+        "create-session"
+      );
+    } finally {
+      terminalPilotGroup.children = originalChildren;
+    }
   });
 
   it("creates sessions with env-backed names and lists them by human-readable session name", async () => {

@@ -3,7 +3,7 @@ import { realpath } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { runCLI } from "toolcraft/cli";
-import { terminalPilotGroup } from "./commands/index.js";
+import { createTerminalPilotGroup } from "./commands/index.js";
 
 function normalizeArgv(argv: string[]): string[] {
   if (
@@ -21,7 +21,7 @@ export async function main(argv: string[] = process.argv): Promise<void> {
   process.argv = normalizeArgv(argv);
 
   try {
-    await runCLI(terminalPilotGroup);
+    await runCLI(createTerminalPilotGroup());
   } finally {
     process.argv = originalArgv;
   }

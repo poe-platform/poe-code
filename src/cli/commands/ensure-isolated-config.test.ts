@@ -5,6 +5,7 @@ import { createCliContainer } from "../container.js";
 import type { FileSystem } from "../../utils/file-system.js";
 import type { CommandFlags } from "./shared.js";
 import { saveConfiguredService } from "../../services/config.js";
+import { parseToml } from "@poe-code/config-mutations/testing";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -138,5 +139,35 @@ describe("ensureIsolatedConfigForService — provider resolution", () => {
     });
 
     await expect(fs.readFile(container.env.configPath, "utf8")).resolves.toBe(legacyConfig);
+  });
+
+  it("recreates missing isolated codex config with its stored model preferences", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
+    vi.spyOn(container.options, "resolveModel").mockImplementation(async ({ value, defaultValue }) => value ?? defaultValue);
+    vi.spyOn(container.options, "resolveReasoning").mockImplementation(async ({ value, defaultValue }) => value ?? defaultValue);
+
+    await saveConfiguredService({
+      fs,
+      filePath: container.env.configPath,
+      service: "codex",
+      metadata: {
+        files: [],
+        provider: "poe",
+        model: "configured-codex",
+        reasoningEffort: "high"
+      }
+    });
+
+    await ensureIsolatedConfigForService({
+      container,
+      adapter: container.registry.require("codex"),
+      service: "codex",
+      flags: defaultFlags
+    });
+
+    const document = parseToml(await fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8"));
+    expect(document.model).toBe("configured-codex");
+    expect(document.model_reasoning_effort).toBe("high");
   });
 });

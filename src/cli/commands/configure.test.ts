@@ -14,6 +14,7 @@ import type { FileSystem } from "../../utils/file-system.js";
 import type { PromptFn } from "../types.js";
 import { PROVIDER_NAME } from "../constants.js";
 import { registerProviderCommand } from "./provider.js";
+import { ensureIsolatedConfigForService } from "./ensure-isolated-config.js";
 import { parseToml } from "@poe-code/config-mutations/testing";
 
 const cwd = "/repo";
@@ -410,6 +411,57 @@ describe("configure provider resolution", () => {
 
     await expect(fs.readFile(`${homeDir}/.codex/config.toml`, "utf8")).rejects.toThrow();
     expect(await loadConfiguredServices({ fs, filePath: configPath })).not.toHaveProperty("codex");
+    await expect(container.providerRegistry.resolveCredential("cloudflare")).rejects.toThrow();
+  });
+
+  it("stores explicit credentials when isolated configuration needs future repair", async () => {
+    const container = createContainer(fs);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      model: "@cf/meta/llama-3.1-8b-instruct",
+      baseUrl: "https://gateway.example.test"
+    });
+
+    await expect(container.providerRegistry.resolveCredential("cloudflare")).resolves.toBe("sk-cloudflare-test");
+  });
+
+  it("stores isolated explicit credentials when no transactional credential store is available", async () => {
+    const container = createContainer(fs);
+    vi.spyOn(container, "createPreviewProviderStore").mockReturnValue(undefined);
+    const loginSpy = vi.spyOn(container.providerRegistry, "login").mockResolvedValue();
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      model: "@cf/meta/llama-3.1-8b-instruct",
+      baseUrl: "https://gateway.example.test"
+    });
+
+    expect(loginSpy).toHaveBeenCalledWith("cloudflare", { apiKey: "sk-cloudflare-test" });
+  });
+
+  it("repairs isolated configuration configured with an explicit provider credential", async () => {
+    const container = createContainer(fs);
+
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "sk-cloudflare-test",
+      model: "@cf/meta/llama-3.1-8b-instruct",
+      baseUrl: "https://gateway.example.test"
+    });
+    await fs.unlink(`${homeDir}/.poe-code/codex/config.toml`);
+
+    await ensureIsolatedConfigForService({
+      container,
+      adapter: container.registry.require("codex"),
+      service: "codex",
+      flags: { dryRun: false, assumeYes: true, verbose: false }
+    });
+
+    const document = parseToml(await fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8"));
+    expect(document.model).toBe("@cf/meta/llama-3.1-8b-instruct");
   });
 
   it("configures chat-completions agents against Cloudflare with a /compat base URL", async () => {

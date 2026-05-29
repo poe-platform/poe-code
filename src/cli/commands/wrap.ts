@@ -60,7 +60,7 @@ export function registerWrapCommand(
           adapter,
           service: canonicalService,
           flags,
-          refresh: true
+          refresh: false
         });
       }
       if (flags.dryRun) {

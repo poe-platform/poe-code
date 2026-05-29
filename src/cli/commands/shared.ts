@@ -263,7 +263,8 @@ export async function resolveActiveProviderForService(
     readOnly: options.readOnly
   });
   const agent = resolveAgentDefinition(serviceName) ?? { id: serviceName };
-  const configuredProviderId = configuredServices[serviceName]?.provider;
+  const metadata = configuredServices[serviceName];
+  const configuredProviderId = metadata?.provider;
   const provider = configuredProviderId
     ? container.providerRegistry.get(configuredProviderId)
     : await resolveSingleProviderCandidate(container, agent, options);
@@ -285,7 +286,9 @@ export async function resolveActiveProviderForService(
     container,
     provider,
     agent,
-    credential
+    credential,
+    explicitBaseUrl: metadata?.baseUrl,
+    explicitShapeBaseUrls: parseProviderShapeBaseUrls(provider, metadata?.shapeBaseUrl ?? [])
   });
 }
 

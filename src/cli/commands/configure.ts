@@ -149,6 +149,9 @@ export async function executeConfigure(
     const executionProviderContext = transaction
       ? { ...providerContext, command: executionCommand }
       : providerContext;
+    let stagedCredentialFallback:
+      | { providerId: string; credential: string; previousCredential?: string }
+      | undefined;
 
     await entry.configure(
       {
@@ -165,6 +168,11 @@ export async function executeConfigure(
     );
 
     if (!flags.dryRun) {
+      const configuredPayload = payload as {
+        model?: unknown;
+        reasoningEffort?: unknown;
+        provider?: { credential?: unknown };
+      };
       await saveConfiguredService({
         fs: executionCommand.fs,
         filePath: providerContext.env.configPath,
@@ -172,9 +180,32 @@ export async function executeConfigure(
         service: canonicalService,
         metadata: {
           files: tracker.files(),
-          provider: providerId ?? "none"
+          provider: providerId ?? "none",
+          model: typeof configuredPayload.model === "string" ? configuredPayload.model : undefined,
+          reasoningEffort:
+            typeof configuredPayload.reasoningEffort === "string"
+              ? configuredPayload.reasoningEffort
+              : undefined,
+          baseUrl: options.baseUrl,
+          shapeBaseUrl: options.shapeBaseUrl
         }
       });
+
+      if (transaction && providerId && options.apiKey !== undefined) {
+        const store = container.createPreviewProviderStore(providerId, transaction.fs);
+        const credential = configuredPayload.provider?.credential;
+        if (store && typeof credential === "string") {
+          await store.set(credential);
+        } else if (typeof credential === "string") {
+          stagedCredentialFallback = {
+            providerId,
+            credential,
+            previousCredential: await container.providerRegistry
+              .resolveCredential(providerId, {}, { envVars: {} })
+              .catch(() => undefined)
+          };
+        }
+      }
     }
 
     if (isolated && isolated.requiresConfig !== false) {
@@ -191,7 +222,25 @@ export async function executeConfigure(
       });
     }
 
-    await transaction?.commit();
+    if (stagedCredentialFallback) {
+      await container.providerRegistry.login(stagedCredentialFallback.providerId, {
+        apiKey: stagedCredentialFallback.credential
+      });
+    }
+    try {
+      await transaction?.commit();
+    } catch (error) {
+      if (stagedCredentialFallback) {
+        if (stagedCredentialFallback.previousCredential === undefined) {
+          await container.providerRegistry.logout(stagedCredentialFallback.providerId);
+        } else {
+          await container.providerRegistry.login(stagedCredentialFallback.providerId, {
+            apiKey: stagedCredentialFallback.previousCredential
+          });
+        }
+      }
+      throw error;
+    }
   });
 
   if (skippedConfigured) {
@@ -267,7 +316,7 @@ function createNoopMutationObservers(): MutationObservers {
   return {};
 }
 
-function createOverlayFileSystem(base: FileSystem): {
+export function createOverlayFileSystem(base: FileSystem): {
   fs: FileSystem;
   hasMaterialChange(): Promise<boolean>;
   commit(): Promise<void>;
@@ -464,27 +513,53 @@ function createOverlayFileSystem(base: FileSystem): {
       return false;
     },
     async commit() {
-      for (const directoryPath of [...directories].sort(
+      const sortedDirectories = [...directories].sort(
         (left, right) => left.split(path.sep).length - right.split(path.sep).length
-      )) {
-        await base.mkdir(directoryPath, { recursive: true });
-      }
-      for (const [filePath, content] of writes) {
-        if (filePath.includes(".mutation-tmp-") && content === null) {
-          continue;
+      );
+      const createdDirectories: string[] = [];
+      const originals = new Map<string, string | null>();
+      const originalModes = new Map<string, number>();
+      try {
+        for (const directoryPath of sortedDirectories) {
+          if (!(await pathExists(base, directoryPath))) {
+            createdDirectories.push(directoryPath);
+          }
+          await base.mkdir(directoryPath, { recursive: true });
         }
-        if (content === null) {
-          await base.unlink(filePath).catch((error) => {
-            if (!isNotFoundError(error)) {
-              throw error;
-            }
-          });
-        } else {
-          await base.writeFile(filePath, content, { encoding: "utf8" });
+        for (const [filePath, content] of writes) {
+          if (filePath.includes(".mutation-tmp-") && content === null) {
+            continue;
+          }
+          originals.set(filePath, await readBaseText(base, filePath));
+          if (content === null) {
+            await base.unlink(filePath).catch((error) => {
+              if (!isNotFoundError(error)) {
+                throw error;
+              }
+            });
+          } else {
+            await base.writeFile(filePath, content, { encoding: "utf8" });
+          }
         }
-      }
-      for (const [filePath, mode] of modes) {
-        await base.chmod?.(filePath, mode);
+        for (const [filePath, mode] of modes) {
+          originalModes.set(filePath, (await base.stat(filePath)).mode);
+          await base.chmod?.(filePath, mode);
+        }
+      } catch (error) {
+        for (const [filePath, mode] of [...originalModes].reverse()) {
+          await base.chmod?.(filePath, mode).catch(() => undefined);
+        }
+        for (const [filePath, original] of [...originals].reverse()) {
+          if (original === null) {
+            await base.unlink(filePath).catch(() => undefined);
+          } else {
+            await base.writeFile(filePath, original, { encoding: "utf8" }).catch(() => undefined);
+          }
+        }
+        for (const directoryPath of createdDirectories.reverse()) {
+          await base.rm?.(directoryPath, { recursive: true, force: true }).catch(() => undefined);
+        }
+        throw error;
       }
     }
   };

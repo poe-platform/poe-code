@@ -24,6 +24,10 @@ export interface ConfiguredServiceMetadata {
   provider: string;
   apiShape?: ApiShapeId;
   files: string[];
+  model?: string;
+  reasoningEffort?: string;
+  baseUrl?: string;
+  shapeBaseUrl?: string[];
 }
 
 interface LegacyConfigDocument {
@@ -226,7 +230,11 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
     defineDataProperty(entries, key, normalizeConfiguredServiceMetadata({
       provider: typeof entry.provider === "string" ? entry.provider : "poe",
       apiShape: isApiShape(entry.apiShape) ? entry.apiShape : undefined,
-      files: Array.isArray(entry.files) ? entry.files : []
+      files: Array.isArray(entry.files) ? entry.files : [],
+      model: typeof entry.model === "string" ? entry.model : undefined,
+      reasoningEffort: typeof entry.reasoningEffort === "string" ? entry.reasoningEffort : undefined,
+      baseUrl: typeof entry.baseUrl === "string" ? entry.baseUrl : undefined,
+      shapeBaseUrl: Array.isArray(entry.shapeBaseUrl) ? entry.shapeBaseUrl : undefined
     }));
   }
 
@@ -252,8 +260,25 @@ function normalizeConfiguredServiceMetadata(
   return omitUndefined({
     provider: metadata.provider,
     apiShape: metadata.apiShape,
-    files
+    files,
+    model: normalizeOptionalText(metadata.model),
+    reasoningEffort: normalizeOptionalText(metadata.reasoningEffort),
+    baseUrl: normalizeOptionalText(metadata.baseUrl),
+    shapeBaseUrl: normalizeOptionalTextList(metadata.shapeBaseUrl)
   });
+}
+
+function normalizeOptionalText(value: string | undefined): string | undefined {
+  const normalized = value?.trim();
+  return normalized && normalized.length > 0 ? normalized : undefined;
+}
+
+function normalizeOptionalTextList(value: string[] | undefined): string[] | undefined {
+  if (!value) {
+    return undefined;
+  }
+  const normalized = value.map((entry) => entry.trim()).filter((entry) => entry.length > 0);
+  return normalized.length > 0 ? normalized : undefined;
 }
 
 async function migrateLegacyCredentialsIfNeeded(fs: FileSystem, filePath: string): Promise<void> {

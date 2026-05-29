@@ -191,7 +191,11 @@ function normalizeConfiguredServiceMetadata(
   return {
     provider: metadata.provider,
     ...(metadata.apiShape ? { apiShape: metadata.apiShape } : {}),
-    files
+    files,
+    ...(metadata.model ? { model: metadata.model } : {}),
+    ...(metadata.reasoningEffort ? { reasoningEffort: metadata.reasoningEffort } : {}),
+    ...(metadata.baseUrl ? { baseUrl: metadata.baseUrl } : {}),
+    ...(metadata.shapeBaseUrl ? { shapeBaseUrl: metadata.shapeBaseUrl } : {})
   };
 }
 
@@ -314,7 +318,13 @@ function normalizeConfiguredServices(value: unknown): Record<string, ConfiguredS
         typeof entry.apiShape === "string"
           ? (entry.apiShape as ConfiguredServiceMetadata["apiShape"])
           : undefined,
-      files: Array.isArray(entry.files) ? entry.files : []
+      files: Array.isArray(entry.files) ? entry.files : [],
+      model: typeof entry.model === "string" ? entry.model : undefined,
+      reasoningEffort: typeof entry.reasoningEffort === "string" ? entry.reasoningEffort : undefined,
+      baseUrl: typeof entry.baseUrl === "string" ? entry.baseUrl : undefined,
+      shapeBaseUrl: Array.isArray(entry.shapeBaseUrl)
+        ? entry.shapeBaseUrl.filter((value): value is string => typeof value === "string")
+        : undefined
     });
   }
 

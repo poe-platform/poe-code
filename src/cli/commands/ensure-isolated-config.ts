@@ -69,10 +69,23 @@ export async function ensureIsolatedConfigForService(input: {
     return;
   }
 
+  const configuredServices = await loadConfiguredServices({
+    fs: container.fs,
+    filePath: container.env.configPath,
+    projectFilePath: container.env.projectConfigPath,
+    readOnly: flags.dryRun
+  });
+  const metadata = configuredServices[canonicalService];
   const payload = await createConfigurePayload({
     container,
     flags: { ...flags, assumeYes: true },
-    options: input.options ?? {},
+    options: {
+      model: metadata?.model,
+      reasoningEffort: metadata?.reasoningEffort,
+      baseUrl: metadata?.baseUrl,
+      shapeBaseUrl: metadata?.shapeBaseUrl,
+      ...input.options
+    },
     context: providerContext,
     adapter,
     logger: resources.logger,

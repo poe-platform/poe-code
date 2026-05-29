@@ -35,6 +35,34 @@ describe("configured services", () => {
     `);
   });
 
+  it("preserves non-secret configuration preferences for isolated repair", async () => {
+    const fs = createMockFs(undefined, homeDir);
+
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "codex",
+      metadata: {
+        provider: "cloudflare",
+        files: ["/home/test/.codex/config.toml"],
+        model: "@cf/meta/llama-3.1-8b-instruct",
+        reasoningEffort: "high",
+        baseUrl: "https://gateway.example.test/",
+        shapeBaseUrl: ["openai-responses=https://responses.example.test"]
+      }
+    });
+
+    await expect(loadConfiguredServices({ fs, filePath: configPath })).resolves.toMatchObject({
+      codex: {
+        provider: "cloudflare",
+        model: "@cf/meta/llama-3.1-8b-instruct",
+        reasoningEffort: "high",
+        baseUrl: "https://gateway.example.test/",
+        shapeBaseUrl: ["openai-responses=https://responses.example.test"]
+      }
+    });
+  });
+
   it("saves a configured service named __proto__", async () => {
     const fs = createMockFs(undefined, homeDir);
 

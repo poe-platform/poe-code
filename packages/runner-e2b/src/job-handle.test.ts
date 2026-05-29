@@ -16,6 +16,11 @@ function createSandbox(): E2bSandbox {
     files: {
       read: vi.fn().mockRejectedValue(Object.assign(new Error("missing"), { code: "ENOENT" })),
       write: vi.fn(),
+      list: vi.fn(),
+      makeDir: vi.fn(),
+      rename: vi.fn(),
+      remove: vi.fn(),
+      getInfo: vi.fn(),
       watchDir: vi.fn().mockResolvedValue({ stop: vi.fn().mockResolvedValue(undefined) })
     },
     pty: {

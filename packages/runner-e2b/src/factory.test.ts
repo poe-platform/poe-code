@@ -189,6 +189,11 @@ function createSandboxMock(id: string) {
     files: {
       read: vi.fn(),
       write: vi.fn(),
+      list: vi.fn(),
+      makeDir: vi.fn(),
+      rename: vi.fn(),
+      remove: vi.fn(),
+      getInfo: vi.fn(),
       watchDir: vi.fn()
     },
     pty: {

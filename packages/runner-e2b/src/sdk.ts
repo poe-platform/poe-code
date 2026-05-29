@@ -29,6 +29,11 @@ export interface E2bFiles {
   read(path: string, opts: { format: "bytes" }): Promise<Uint8Array>;
   read(path: string): Promise<string>;
   write(path: string, data: string | ArrayBuffer | Blob | ReadableStream): Promise<unknown>;
+  list(path: string): Promise<Array<{ name: string; path: string; type?: "file" | "dir"; size: number }>>;
+  makeDir(path: string): Promise<boolean>;
+  rename(oldPath: string, newPath: string): Promise<unknown>;
+  remove(path: string): Promise<void>;
+  getInfo(path: string): Promise<{ type?: "file" | "dir"; size: number }>;
   watchDir(
     path: string,
     onEvent: () => void | Promise<void>,

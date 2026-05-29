@@ -3446,6 +3446,40 @@ describe("createPipelineSimulation", () => {
     expect(runAgent).not.toHaveBeenCalled();
   });
 
+  it("returns cancelled without persisting a final task that aborts while succeeding", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: final",
+        "    title: Final",
+        "    prompt: Finish",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const controller = new AbortController();
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      fs,
+      signal: controller.signal,
+      runAgent: async () => {
+        controller.abort();
+        return { stdout: "", stderr: "", exitCode: 0 };
+      }
+    });
+
+    expect(result.stopReason).toBe("cancelled");
+    expect(await fs.readFile("/repo/docs/plans/plan.md", "utf8")).toContain("status: open");
+  });
+
   it("stops before tasks when setup fails", async () => {
     const sim = createPipelineSimulation({
       plan: {
@@ -3508,6 +3542,45 @@ describe("createPipelineSimulation", () => {
     expect(result.stopReason).toBe("failed");
     expect(result.runsCompleted).toBe(1);
     expect(prompts).toEqual(["Do task 1", "Teardown"]);
+  });
+
+  it("returns cancelled when teardown aborts while resolving successfully", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "teardown:",
+        "  prompt: Clean up",
+        "tasks:",
+        "  - id: task-1",
+        "    title: Task 1",
+        "    prompt: Do task 1",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const controller = new AbortController();
+    const runAgent = vi
+      .fn()
+      .mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0 })
+      .mockImplementationOnce(async () => {
+        controller.abort();
+        return { stdout: "", stderr: "", exitCode: 0 };
+      });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      fs,
+      signal: controller.signal,
+      runAgent
+    });
+
+    expect(result.stopReason).toBe("cancelled");
   });
 
   it("expands {{file '...'}} in task prompts", async () => {

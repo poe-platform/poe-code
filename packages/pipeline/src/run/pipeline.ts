@@ -239,6 +239,9 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       }
       throw error;
     }
+    if (options.signal?.aborted) {
+      return { success: false, cancelled: true };
+    }
     const durationMs = Date.now() - startTime;
     const success = result.exitCode === 0;
     if (result.usage) {
@@ -453,6 +456,18 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
           };
         }
         throw error;
+      }
+
+      if (options.signal?.aborted) {
+        return {
+          stopReason: "cancelled",
+          planPath,
+          runsCompleted,
+          totalDurationMs: Date.now() - pipelineStartTime,
+          metrics,
+          lastTaskId: selection.task.id,
+          ...(selection.stepName ? { lastStepName: selection.stepName } : {})
+        };
       }
 
       const taskDurationMs = Date.now() - taskStartTime;

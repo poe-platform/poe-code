@@ -494,6 +494,16 @@ describe("harness command", () => {
     expect(logs.join("\n")).toContain("Created harness pair");
   });
 
+  it("rejects a basename that escapes the harness directory", async () => {
+    await expect(runHarnessCommand(["--yes", "harness", "new", "demo", "../victim"])).rejects.toThrow(
+      /invalid harness basename/i
+    );
+
+    await expect(memfs.promises.readFile("/repo/.poe-code/victim.md", "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("scaffolds into an explicit directory without prompting", async () => {
     await runHarnessCommand(["harness", "new", "demo", "example", "--dir", "qa/harnesses/demo"]);
 

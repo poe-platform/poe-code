@@ -336,6 +336,10 @@ async function executeHarnessNew(
     throw new ValidationError(`Unknown harness template "${kind}".`);
   }
 
+  if (basename.length === 0 || basename === "." || basename === ".." || path.basename(basename) !== basename) {
+    throw new ValidationError(`Invalid harness basename "${basename}". Use a single directory name.`);
+  }
+
   const defaultDir = path.join(".poe-code", "harnesses", basename);
   const outputDir = options.dir ?? (await resolveOutputDir(defaultDir, flags.assumeYes));
   const resolvedDir = path.resolve(container.env.cwd, outputDir);

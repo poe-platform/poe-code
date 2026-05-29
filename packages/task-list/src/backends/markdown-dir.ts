@@ -678,7 +678,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
     entries: ActiveEntry[],
     desiredOrdersById: ReadonlyMap<string, number>
   ): Promise<void> {
-    const staged: { from: string; to: string }[] = [];
+    const staged: { original: string; staging: string; target: string; finalized: boolean }[] = [];
     const maxOrder = Math.max(...desiredOrdersById.values(), entries.length);
     const width = padWidthForCount(maxOrder);
 
@@ -695,13 +695,31 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
           `${desiredFilename}.staging-${process.pid}-${index}`
         );
         const targetPath = path.join(listDirectoryPath, desiredFilename);
-        await deps.fs.rename(fromPath, stagingPath);
-        staged.push({ from: stagingPath, to: targetPath });
+        try {
+          await deps.fs.rename(fromPath, stagingPath);
+          staged.push({ original: fromPath, staging: stagingPath, target: targetPath, finalized: false });
+        } catch (error) {
+          for (const stagedEntry of staged.reverse()) {
+            await deps.fs.rename(stagedEntry.staging, stagedEntry.original);
+          }
+          throw error;
+        }
       }
     }
 
-    for (const entry of staged) {
-      await deps.fs.rename(entry.from, entry.to);
+    try {
+      for (const entry of staged) {
+        await deps.fs.rename(entry.staging, entry.target);
+        entry.finalized = true;
+      }
+    } catch (error) {
+      for (const entry of staged.filter((stagedEntry) => stagedEntry.finalized).reverse()) {
+        await deps.fs.rename(entry.target, entry.staging);
+      }
+      for (const entry of staged.reverse()) {
+        await deps.fs.rename(entry.staging, entry.original);
+      }
+      throw error;
     }
   }
 
@@ -949,9 +967,14 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
             throw new TaskAlreadyExistsError(`Task "${list}/${id}" already exists in archive.`);
           }
 
-          await writeAtomically(deps.fs, existing.path, serializedTask);
           await deps.fs.mkdir(archiveDirectoryPath(deps.path, layout, list), { recursive: true });
-          await deps.fs.rename(existing.path, targetPath);
+          await writeAtomically(deps.fs, targetPath, serializedTask);
+          try {
+            await deps.fs.unlink(existing.path);
+          } catch (error) {
+            await deps.fs.unlink(targetPath);
+            throw error;
+          }
           const nextTask = createTask(
             list,
             id,

@@ -981,6 +981,74 @@ version: 1
     await expect(readSortedDirectory(rawFs, "/repo/tasks/archive")).resolves.toEqual(["only.md"]);
   });
 
+  it("does not commit archived state when archive relocation fails", async () => {
+    const storage = createFs({ "/repo/tasks/.keep": "" });
+    const fs: TaskListFs = {
+      ...storage.fs,
+      rename: async (fromPath, toPath) => {
+        if (toPath === "/repo/tasks/planning/archive/ship.md") {
+          throw new Error("archive relocation failed");
+        }
+        await storage.fs.rename(fromPath, toPath);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+    await tasks.create({ id: "ship", name: "Ship" });
+
+    await expect(tasks.fire("ship", "archive")).rejects.toThrow("archive relocation failed");
+    await expect(tasks.get("ship")).resolves.toMatchObject({ state: "draft" });
+    await expect(storage.rawFs.readFile("/repo/tasks/planning/01-ship.md", "utf8")).resolves.toContain(
+      "state: draft"
+    );
+  });
+
+  it("restores active task files when a reorder final rename fails", async () => {
+    const storage = createFs({
+      "/repo/tasks/planning/01-alpha.md": `---\nname: Alpha\nstate: draft\n---\n`,
+      "/repo/tasks/planning/02-bravo.md": `---\nname: Bravo\nstate: draft\n---\n`,
+      "/repo/tasks/planning/03-charlie.md": `---\nname: Charlie\nstate: draft\n---\n`
+    });
+    let finalized = 0;
+    const fs: TaskListFs = {
+      ...storage.fs,
+      rename: async (fromPath, toPath) => {
+        if (fromPath.includes(".staging-") && !toPath.includes(".staging-")) {
+          finalized += 1;
+          if (finalized === 2) {
+            throw new Error("simulated rename failure");
+          }
+        }
+        await storage.fs.rename(fromPath, toPath);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("planning").reorder(["charlie", "bravo", "alpha"])).rejects.toThrow(
+      "simulated rename failure"
+    );
+    await expect(taskList.list("planning").all()).resolves.toMatchObject([
+      { id: "alpha" },
+      { id: "bravo" },
+      { id: "charlie" }
+    ]);
+    await expect(readSortedDirectory(storage.rawFs, "/repo/tasks/planning")).resolves.toEqual([
+      "01-alpha.md",
+      "02-bravo.md",
+      "03-charlie.md"
+    ]);
+  });
+
   it("does not contend for updates to different task paths", async () => {
     const baseFs = createFs({
       "/repo/tasks/.keep": ""
@@ -1087,4 +1155,5 @@ state: draft
       description: "Valid body"
     });
   });
+
 });

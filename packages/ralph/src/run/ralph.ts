@@ -47,6 +47,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
     homeDir: options.homeDir
   });
   const config = await resolveDocumentConfig(options, fs, absoluteDocPath);
+  let currentConfig = config;
   const startTime = Date.now();
   let iterationsCompleted = 0;
   let currentIterationStart = 0;
@@ -70,6 +71,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
       signal: options.signal,
       readConfig: async (content) => {
         const fresh = await resolveDocumentConfigFromContent(options, fs, absoluteDocPath, content);
+        currentConfig = fresh;
         return {
           frontmatter: createWorkflowFrontmatter(
             fresh.agents,
@@ -89,7 +91,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
             agent: specifier.agent,
             prompt: interpolateVariables(input.prompt, {
               current_iteration: String(currentIterationNumber),
-              max_iterations: String(config.maxIterations)
+              max_iterations: String(currentConfig.maxIterations)
             }),
             cwd: input.cwd,
             logDir: runLogDir,
@@ -137,8 +139,8 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
           await updateFrontmatter(fs, absoluteDocPath, "in_progress", 0);
         }
 
-        const currentSpecifier = config.agents[iteration % config.agents.length]!;
-        options.onIterationStart?.(iteration + 1, config.maxIterations, currentSpecifier.agent);
+        const currentSpecifier = currentConfig.agents[iteration % currentConfig.agents.length]!;
+        options.onIterationStart?.(iteration + 1, currentConfig.maxIterations, currentSpecifier.agent);
       },
       onIterationEnd: async (iteration, result) => {
         const iterationNumber = iteration + 1;

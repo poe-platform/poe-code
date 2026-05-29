@@ -1004,6 +1004,55 @@ describe("createRalphSimulation", () => {
     expect(result.stopReason).toBe("cancelled");
   });
 
+  it("reports the agent loaded for each live iteration", async () => {
+    const docPath = "/repo/.poe-code/ralph/plans/work.md";
+    const documentFor = (agent: string) => `---\nagent: ${agent}\niterations: 2\n---\nWork`;
+    const { fs } = createRunFs({ [docPath]: documentFor("claude-code") });
+    const announced: string[] = [];
+    const executed: string[] = [];
+
+    await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath,
+      fs,
+      onIterationStart: (_iteration, _maxIterations, agent) => announced.push(agent),
+      runAgent: async (input) => {
+        executed.push(input.agent);
+        if (executed.length === 1) {
+          await fs!.writeFile(docPath, documentFor("codex"));
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      }
+    });
+
+    expect(executed).toEqual(["claude-code", "codex"]);
+    expect(announced).toEqual(executed);
+  });
+
+  it("interpolates the live iteration limit in reloaded prompts", async () => {
+    const docPath = "/repo/.poe-code/ralph/plans/work.md";
+    const documentFor = (iterations: number) => `---\nagent: claude-code\niterations: ${iterations}\n---\nLimit={{ max_iterations }}`;
+    const { fs } = createRunFs({ [docPath]: documentFor(2) });
+    const prompts: string[] = [];
+
+    await runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath,
+      fs,
+      runAgent: async (input) => {
+        prompts.push(input.prompt);
+        if (prompts.length === 1) {
+          await fs!.writeFile(docPath, documentFor(3));
+        }
+        return { stdout: "", stderr: "", exitCode: 0 };
+      }
+    });
+
+    expect(prompts.slice(0, 2)).toEqual(["Limit=2", "Limit=3"]);
+  });
+
   it("strips nested frontmatter from the prompt sent to the agent", async () => {
     const sim = createRalphSimulation({
       docContent: [

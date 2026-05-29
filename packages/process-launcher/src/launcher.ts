@@ -83,6 +83,7 @@ const DEFAULT_STARTUP_TIMEOUT_MS = 30_000;
 const DEFAULT_STOP_TIMEOUT_MS = 5_000;
 
 export async function startManagedProcess(options: StartManagedProcessOptions): Promise<ManagedProcessRecord> {
+  assertOptionalFiniteDuration(options.startupTimeoutMs, "startup timeout");
   const fs = options.fs ?? defaultFs();
   const spec = normalizeSpec(options.spec);
   const existing = await readManagedProcess({
@@ -609,7 +610,16 @@ async function readSpec(
   baseDir: string,
   id: string
 ): Promise<ProcessSpec | null> {
-  return await readJsonFile<ProcessSpec>(fs, resolveSpecPath(baseDir, id));
+  const spec = await readJsonFile<unknown>(fs, resolveSpecPath(baseDir, id));
+  if (spec === null) {
+    return null;
+  }
+
+  if (!isRecord(spec) || typeof spec.id !== "string" || spec.id !== id) {
+    throw new Error(`Invalid managed process specification for "${id}".`);
+  }
+
+  return spec as unknown as ProcessSpec;
 }
 
 async function writeSpec(fs: LauncherFileSystem, baseDir: string, spec: ProcessSpec): Promise<void> {
@@ -633,7 +643,23 @@ async function readMeta(
   baseDir: string,
   id: string
 ): Promise<ManagedProcessMeta | null> {
-  return await readJsonFile<ManagedProcessMeta>(fs, resolveMetaPath(baseDir, id));
+  const meta = await readJsonFile<unknown>(fs, resolveMetaPath(baseDir, id));
+  if (meta === null) {
+    return null;
+  }
+
+  if (
+    !isRecord(meta) ||
+    !(meta.daemonPid === null || (
+      typeof meta.daemonPid === "number" &&
+      Number.isSafeInteger(meta.daemonPid) &&
+      meta.daemonPid > 0
+    ))
+  ) {
+    throw new Error(`Invalid managed process metadata for "${id}".`);
+  }
+
+  return meta as unknown as ManagedProcessMeta;
 }
 
 async function writeMeta(
@@ -690,6 +716,16 @@ async function assertPathNotSymbolicLink(fs: LauncherFileSystem, filePath: strin
 
     throw error;
   }
+}
+
+function assertOptionalFiniteDuration(value: number | undefined, description: string): void {
+  if (value !== undefined && (!Number.isFinite(value) || value < 0)) {
+    throw new Error(`Invalid managed process ${description}: ${value}`);
+  }
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 function resolveProcessDir(baseDir: string, id: string): string {

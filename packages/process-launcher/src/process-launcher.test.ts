@@ -331,6 +331,39 @@ describe("process launcher manager", () => {
     await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid":654');
   });
 
+  it("rejects malformed persisted daemon metadata before signaling", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    await writeRecord(fs, baseDir, spec, createState(spec, { status: "running" }), null);
+    await fs.writeFile(path.join(baseDir, "api", "meta.json"), `${JSON.stringify({ daemonPid: "bad" })}\n`);
+    const signalProcess = vi.fn();
+
+    await expect(
+      stopManagedProcess({ baseDir, fs, id: "api", signalProcess })
+    ).rejects.toThrow(/metadata/i);
+
+    expect(signalProcess).not.toHaveBeenCalled();
+  });
+
+  it("rejects non-finite startup timeout before spawning a daemon", async () => {
+    const fs = createMemFs();
+    const spawnDaemon = vi.fn(async () => 321);
+
+    await expect(
+      startManagedProcess({
+        baseDir: "/state/launch",
+        fs,
+        spec: { id: "api", command: "npm", restart: "never" },
+        spawnDaemon,
+        startupTimeoutMs: Number.NaN
+      })
+    ).rejects.toThrow(/startup timeout/i);
+
+    expect(spawnDaemon).not.toHaveBeenCalled();
+    await expect(fs.readdir("/state/launch")).rejects.toThrow();
+  });
+
   it("lists managed processes with stale daemon processes marked as stopped", async () => {
     const fs = createMemFs();
     const baseDir = "/state/launch";
@@ -393,6 +426,37 @@ describe("process launcher manager", () => {
       })
     );
     await expect(fs.readdir(baseDir)).resolves.toEqual([]);
+  });
+
+  it("rejects malformed persisted specification ids when listing", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/state/launch/alpha", { recursive: true });
+    await fs.mkdir("/state/launch/zulu", { recursive: true });
+    await fs.writeFile("/state/launch/alpha/spec.json", JSON.stringify({ id: "alpha", command: "npm", restart: "never" }));
+    await fs.writeFile("/state/launch/zulu/spec.json", JSON.stringify({ id: 42, command: "npm", restart: "never" }));
+
+    await expect(listManagedProcesses({ baseDir: "/state/launch", fs })).rejects.toThrow(/specification/i);
+  });
+
+  it("rejects restarting a record whose persisted id redirects the launch", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "redirected", command: "npm", restart: "never" };
+    await fs.mkdir(path.join(baseDir, "requested"), { recursive: true });
+    await fs.writeFile(path.join(baseDir, "requested", "spec.json"), `${JSON.stringify(spec)}\n`);
+    await fs.writeFile(
+      path.join(baseDir, "requested", "state.json"),
+      `${JSON.stringify(createState({ ...spec, id: "requested" }, { status: "stopped" }))}\n`
+    );
+    await fs.writeFile(path.join(baseDir, "requested", "meta.json"), `${JSON.stringify({ daemonPid: null })}\n`);
+    const spawnDaemon = vi.fn(async () => null);
+
+    await expect(
+      restartManagedProcess({ baseDir, fs, id: "requested", spawnDaemon })
+    ).rejects.toThrow(/specification/i);
+
+    expect(spawnDaemon).not.toHaveBeenCalled();
+    await expect(fs.readFile(path.join(baseDir, "redirected", "state.json"), "utf8")).rejects.toThrow();
   });
 
   it("rejects path traversal ids for managed process operations", async () => {

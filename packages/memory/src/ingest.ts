@@ -157,7 +157,17 @@ async function materializeSource(source: IngestOptions["source"]): Promise<{
     };
   }
 
-  throw new Error("URL ingest not implemented yet.");
+  const response = await fetch(source.url);
+  if (!response.ok) {
+    throw new Error(`Unable to fetch memory ingest source (${response.status}): ${source.url}`);
+  }
+
+  const bytes = Buffer.from(await response.arrayBuffer());
+  return {
+    label: source.url,
+    bytes,
+    text: bytes.toString("utf8")
+  };
 }
 
 function inferRepoRoot(root: string): string {

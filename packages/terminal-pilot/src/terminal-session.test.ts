@@ -21,6 +21,7 @@ vi.mock("node-pty", () => ({
 
 function createPtyMock() {
   let dataListener: ((chunk: string) => void) | undefined;
+  let exitListener: ((event: { exitCode: number }) => void) | undefined;
   return {
     pid: 123,
     write: vi.fn(),
@@ -30,9 +31,15 @@ function createPtyMock() {
       dataListener = listener;
       return { dispose: vi.fn() };
     }),
-    onExit: vi.fn(() => ({ dispose: vi.fn() })),
+    onExit: vi.fn((listener: (event: { exitCode: number }) => void) => {
+      exitListener = listener;
+      return { dispose: vi.fn() };
+    }),
     emitData(chunk: string) {
       dataListener?.(chunk);
+    },
+    emitExit(exitCode: number) {
+      exitListener?.({ exitCode });
     }
   };
 }
@@ -188,5 +195,49 @@ describe("TerminalSession spawn helper setup", () => {
 
     await expect(secondClose).resolves.toBe(143);
     expect(pty.kill).toHaveBeenCalledTimes(2);
+  });
+
+  it("continues close escalation after an earlier ignored signal", async () => {
+    vi.useFakeTimers();
+    const pty = createPtyMock();
+    spawnMock.mockReturnValue(pty);
+    const { TerminalSession } = await import("./terminal-session.js");
+    const session = new TerminalSession({ id: "session-1", command: process.execPath });
+
+    await session.signal("SIGINT");
+    const closed = session.close();
+    await vi.advanceTimersByTimeAsync(1250);
+    pty.emitExit(137);
+
+    await expect(closed).resolves.toBe(137);
+    expect(pty.kill).toHaveBeenNthCalledWith(1, "SIGINT");
+    expect(pty.kill).toHaveBeenNthCalledWith(2, "SIGTERM");
+    expect(pty.kill).toHaveBeenNthCalledWith(3, "SIGKILL");
+  });
+
+  it("rejects close when the pty never reports exit after sigkill", async () => {
+    vi.useFakeTimers();
+    const pty = createPtyMock();
+    spawnMock.mockReturnValue(pty);
+    const { TerminalSession } = await import("./terminal-session.js");
+    const session = new TerminalSession({ id: "session-1", command: process.execPath });
+
+    const closed = expect(session.close()).rejects.toThrow("SIGKILL");
+    await vi.advanceTimersByTimeAsync(2250);
+
+    await closed;
+    expect(pty.kill).toHaveBeenCalledWith("SIGTERM");
+    expect(pty.kill).toHaveBeenCalledWith("SIGKILL");
+  });
+
+  it("rejects input sent after the terminal has exited", async () => {
+    const pty = createPtyMock();
+    spawnMock.mockReturnValue(pty);
+    const { TerminalSession } = await import("./terminal-session.js");
+    const session = new TerminalSession({ id: "session-1", command: process.execPath });
+    pty.emitExit(0);
+
+    await expect(session.fill("late input")).rejects.toThrow("already exited");
+    expect(pty.write).not.toHaveBeenCalled();
   });
 });

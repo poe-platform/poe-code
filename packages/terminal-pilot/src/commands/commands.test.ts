@@ -506,6 +506,45 @@ describe("terminal-pilot commands", () => {
     });
   });
 
+  it("reserves a requested session name while creation is in progress", async () => {
+    let finishCreate: ((session: SessionMock) => void) | undefined;
+    const pilot = createPilotMock();
+    pilot.newSession.mockImplementationOnce(
+      () => new Promise<SessionMock>((resolve) => {
+        finishCreate = resolve;
+      })
+    );
+    const runtime = createTerminalPilotRuntime({ launchPilot: async () => pilot as never });
+
+    const first = runtime.createSession({ session: "job", command: "one" });
+    await expect(runtime.createSession({ session: "job", command: "two" })).rejects.toThrow(
+      'Session "job" already exists.'
+    );
+    finishCreate?.(createSessionMock({ id: "session-one", command: "one" }));
+
+    await expect(first).resolves.toMatchObject({ name: "job" });
+    expect(pilot.newSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("releases a requested session name after natural exit", async () => {
+    const first = createSessionMock({
+      id: "first"
+    });
+    const second = createSessionMock({ id: "second" });
+    const sessions = [first, second];
+    let created = 0;
+    const pilot = createPilotMock([], () => sessions[created++] as SessionMock);
+    const runtime = createTerminalPilotRuntime({ launchPilot: async () => pilot as never });
+
+    await runtime.createSession({ session: "job", command: "one" });
+    first.exitCode = 0;
+
+    await expect(runtime.createSession({ session: "job", command: "two" })).resolves.toMatchObject({
+      name: "job",
+      session: second
+    });
+  });
+
   it("waits, reads history, returns metadata, and closes named sessions", async () => {
     const session = createSessionMock({
       id: "session-custom",

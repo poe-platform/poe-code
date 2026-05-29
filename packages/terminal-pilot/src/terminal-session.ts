@@ -15,6 +15,7 @@ const WAIT_FOR_POLL_MS = 10;
 const TYPE_DELAY_MS = 15;
 const CLOSE_AFTER_SIGNAL_GRACE_MS = 250;
 const CLOSE_AFTER_SIGTERM_MS = 1000;
+const CLOSE_AFTER_SIGKILL_MS = 1000;
 
 type TerminalSessionOptions = {
   id: string;
@@ -58,8 +59,7 @@ export class TerminalSession {
   private lastDataAt = Date.now();
   private currentCols: number;
   private currentRows: number;
-  private closeRequested = false;
-  private signalRequested = false;
+  private closePromise: Promise<number> | null = null;
 
   constructor({
     id,
@@ -125,7 +125,7 @@ export class TerminalSession {
 
   async send(raw: string): Promise<void> {
     if (this.exitCode !== null) {
-      return;
+      throw new Error(`Terminal session "${this.id}" has already exited.`);
     }
 
     this.pty.write(raw);
@@ -136,7 +136,6 @@ export class TerminalSession {
       return;
     }
 
-    this.signalRequested = true;
     this.pty.kill(sig);
   }
 
@@ -241,36 +240,36 @@ export class TerminalSession {
       return this.exitCode;
     }
 
-    if (!this.closeRequested) {
-      this.closeRequested = true;
-      try {
-        const gracefulExitCode = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGNAL_GRACE_MS);
-        if (gracefulExitCode !== null) {
-          return gracefulExitCode;
-        }
+    this.closePromise ??= this.closeProcess().catch((error: unknown) => {
+      this.closePromise = null;
+      throw error;
+    });
+    return this.closePromise;
+  }
 
-        if (this.signalRequested) {
-          return this.exitPromise;
-        }
+  private async closeProcess(): Promise<number> {
+    const gracefulExitCode = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGNAL_GRACE_MS);
+    if (gracefulExitCode !== null) {
+      return gracefulExitCode;
+    }
 
-        if (this.exitCode === null) {
-          this.pty.kill("SIGTERM");
-          const afterSigterm = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGTERM_MS);
-          if (afterSigterm !== null) {
-            return afterSigterm;
-          }
-        }
-
-        if (this.exitCode === null) {
-          this.pty.kill("SIGKILL");
-        }
-      } catch (error) {
-        this.closeRequested = false;
-        throw error;
+    if (this.exitCode === null) {
+      this.pty.kill("SIGTERM");
+      const afterSigterm = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGTERM_MS);
+      if (afterSigterm !== null) {
+        return afterSigterm;
       }
     }
 
-    return this.exitPromise;
+    if (this.exitCode === null) {
+      this.pty.kill("SIGKILL");
+      const afterSigkill = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGKILL_MS);
+      if (afterSigkill !== null) {
+        return afterSigkill;
+      }
+    }
+
+    throw new Error("Timed out waiting for process to exit after SIGKILL.");
   }
 
   on(event: "exit", cb: (code: number) => void): void {

@@ -50,6 +50,16 @@ describe("createStateStore", () => {
     await expect(store.read(state.id)).resolves.toEqual(state);
   });
 
+  it("rejects persisted null process state documents", async () => {
+    const fs = createMemFs();
+    const store = createStateStore("/state", fs);
+    await fs.mkdir("/state/alpha", { recursive: true });
+    await fs.writeFile("/state/alpha/state.json", "null\n");
+
+    await expect(store.read("alpha")).rejects.toThrow("Invalid process state document: alpha");
+    await expect(store.list()).rejects.toThrow("Invalid process state document: alpha");
+  });
+
   it("read() returns null for non-existent id", async () => {
     const store = createStateStore("/state", createMemFs());
 

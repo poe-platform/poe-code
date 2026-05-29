@@ -72,7 +72,11 @@ export function createStateStore(
 
     try {
       const content = await fs.readFile(statePath, "utf8");
-      return JSON.parse(content) as ProcessState;
+      const parsed: unknown = JSON.parse(content);
+      if (!isProcessState(parsed, id)) {
+        throw new Error(`Invalid process state document: ${id}`);
+      }
+      return parsed;
     } catch (error) {
       if (isNotFoundError(error)) {
         return null;
@@ -144,4 +148,28 @@ export function createStateStore(
   }
 
   return { read, write, list, remove };
+}
+
+function isProcessState(value: unknown, id: string): value is ProcessState {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const state = value as Partial<ProcessState>;
+  return (
+    state.id === id &&
+    (state.pid === null || typeof state.pid === "number") &&
+    (state.status === "running" ||
+      state.status === "stopped" ||
+      state.status === "crashed" ||
+      state.status === "restarting") &&
+    (state.runtime === "host" || state.runtime === "docker") &&
+    typeof state.restartCount === "number" &&
+    (state.lastExitCode === null || typeof state.lastExitCode === "number") &&
+    (state.lastStartedAt === null || typeof state.lastStartedAt === "string") &&
+    (state.lastStoppedAt === null || typeof state.lastStoppedAt === "string") &&
+    typeof state.command === "string" &&
+    Array.isArray(state.args) &&
+    state.args.every((argument) => typeof argument === "string")
+  );
 }

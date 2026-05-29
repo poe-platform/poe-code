@@ -26,6 +26,17 @@ describe("statusOf", () => {
     });
   });
 
+  it("reports an empty memory directory as uninitialized", async () => {
+    vol.mkdirSync("/repo/.poe-code/memory", { recursive: true });
+
+    await expect(statusOf("/repo/.poe-code/memory")).resolves.toEqual({
+      pageCount: 0,
+      totalBytes: 0,
+      lastWriteAt: null,
+      initialized: false
+    });
+  });
+
   it("counts pages, totals markdown bytes, and reports the newest markdown mtime", async () => {
     vi.spyOn(console, "warn").mockImplementation(() => {});
 

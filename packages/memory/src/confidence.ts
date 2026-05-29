@@ -111,7 +111,7 @@ function parseTag(verb: ConfidenceVerb, rest: string): ConfidenceTag {
 }
 
 function parseAttributes(rest: string): TagAttributes {
-  const attrs: TagAttributes = {};
+  const attrs: TagAttributes = Object.create(null) as TagAttributes;
   let index = 0;
 
   while (index < rest.length) {

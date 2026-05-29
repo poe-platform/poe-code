@@ -17,6 +17,14 @@ describe("TAG_RE", () => {
   });
 });
 
+describe("parseClaims unsupported attributes", () => {
+  it("reports constructor as unsupported rather than duplicated", () => {
+    expect(() =>
+      parseClaims("<!-- memory:ambiguous reason=uncertain constructor=visible -->\nClaim body")
+    ).toThrow('ambiguous confidence tags do not support: "constructor"');
+  });
+});
+
 describe("parseClaims", () => {
   it("returns an empty list when there are no confidence tags", () => {
     expect(parseClaims("# Memory\n\nNo tagged claims here.")).toEqual([]);

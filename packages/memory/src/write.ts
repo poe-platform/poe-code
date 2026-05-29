@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import { writeFileAtomically } from "./atomic-write.js";
@@ -57,29 +58,24 @@ export async function appendToPage(
 
 export async function clearMemory(root: MemoryRoot): Promise<void> {
   await assertMemoryRootIsNotSymlink(root);
-  await removeChildren(root);
-  await initMemory(root);
-}
+  const stagedRoot = `${root}.clear-${randomUUID()}`;
+  const backupRoot = `${root}.backup-${randomUUID()}`;
+  let originalMoved = false;
 
-async function removeChildren(directoryPath: string): Promise<void> {
-  for (const entryName of await fs.readdir(directoryPath)) {
-    const entryPath = path.join(directoryPath, entryName);
-    const stat = await fs.stat(entryPath);
-
-    if (stat.isDirectory()) {
-      await removeDirectory(entryPath);
-      continue;
+  try {
+    await initMemory(stagedRoot);
+    await fs.rename(root, backupRoot);
+    originalMoved = true;
+    await fs.rename(stagedRoot, root);
+  } catch (error) {
+    if (originalMoved) {
+      await fs.rename(backupRoot, root).catch(() => undefined);
     }
-
-    if (stat.isFile()) {
-      await fs.unlink(entryPath);
-    }
+    await fs.rm(stagedRoot, { recursive: true, force: true }).catch(() => undefined);
+    throw error;
   }
-}
 
-async function removeDirectory(directoryPath: string): Promise<void> {
-  await removeChildren(directoryPath);
-  await fs.rmdir(directoryPath);
+  await fs.rm(backupRoot, { recursive: true, force: true }).catch(() => undefined);
 }
 
 function assertPageRelPath(relPath: string): string {

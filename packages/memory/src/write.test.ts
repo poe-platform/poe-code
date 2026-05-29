@@ -57,6 +57,27 @@ describe("clearMemory", () => {
     await expect(vol.promises.readFile("/outside/pages/remove.md", "utf8")).resolves.toBe("preserve me\n");
     await expect(vol.promises.readFile("/outside/INDEX.md", "utf8")).resolves.toBe("# external index\n");
   });
+
+  it("preserves existing memory when replacement scaffold initialization fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Existing index\n",
+      [`${root}/LOG.md`]: "- existing audit\n",
+      [`${root}/pages/page.md`]: "# Existing page\n"
+    });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).includes(".clear-") && String(filePath).endsWith("/INDEX.md")) {
+        throw new Error("injected index recreate failure");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(clearMemory(root)).rejects.toThrow("injected index recreate failure");
+    await expect(vol.promises.readFile(`${root}/pages/page.md`, "utf8")).resolves.toBe("# Existing page\n");
+    await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe("- existing audit\n");
+    await expect(vol.promises.readFile(`${root}/INDEX.md`, "utf8")).resolves.toBe("# Existing index\n");
+  });
 });
 
 describe("writePage", () => {

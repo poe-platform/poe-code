@@ -750,6 +750,38 @@ describe("runPoeCommand", () => {
     ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
   });
 
+  it("rejects when execution input cannot be delivered", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv({ result: new Promise(() => {}) });
+
+    env.exec = (spec): RunHandle => {
+      env.execSpecs.push(spec);
+      const stdin = new PassThrough();
+      queueMicrotask(() => {
+        stdin.emit("error", new Error("send stdin offline"));
+      });
+      return {
+        pid: 123,
+        stdout: null,
+        stderr: null,
+        stdin,
+        result: new Promise(() => {}),
+        kill() {}
+      };
+    };
+
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec({
+          execution: { input: "hello", stdin: "pipe", wrapForLogTee: false }
+        }),
+        detach: false,
+        state
+      })
+    ).rejects.toThrow("send stdin offline");
+  });
+
   it("kills, downloads, and closes when the abort signal fires during sync", async () => {
     const { state } = createRecordingState();
     const controller = new AbortController();

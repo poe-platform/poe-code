@@ -68,7 +68,7 @@ export async function runPoeCommand(opts: {
         });
 
     if (execution?.input !== undefined) {
-      writeExecutionInput(handle, execution.input);
+      await writeExecutionInput(handle, execution.input);
     }
 
     const runningJob = opts.state.jobs.update(jobId, {
@@ -194,7 +194,7 @@ export function createPoeCommandSession(opts: {
           });
 
       if (openSpec.execution?.input !== undefined) {
-        writeExecutionInput(handle, openSpec.execution.input);
+        await writeExecutionInput(handle, openSpec.execution.input);
       }
 
       await opts.state.jobs.update(jobId, {
@@ -583,19 +583,23 @@ function setDetachedJobContext(
   candidate.setDetachedJobContext?.(context);
 }
 
-function writeExecutionInput(handle: RunHandle, input: string | Buffer): void {
+async function writeExecutionInput(handle: RunHandle, input: string | Buffer): Promise<void> {
   const stdin = handle.stdin;
   if (stdin === null) {
     return;
   }
 
-  stdin.on("error", (error: NodeJS.ErrnoException) => {
-    if (error.code !== "EPIPE") {
-      throw error;
-    }
+  await new Promise<void>((resolve, reject) => {
+    stdin.on("error", (error: NodeJS.ErrnoException) => {
+      if (error.code === "EPIPE") {
+        resolve();
+        return;
+      }
+      reject(error);
+    });
+    stdin.setDefaultEncoding("utf8");
+    stdin.end(input, resolve);
   });
-  stdin.setDefaultEncoding("utf8");
-  stdin.end(input);
 }
 
 function isPromiseLike<T>(value: T | Promise<T>): value is Promise<T> {

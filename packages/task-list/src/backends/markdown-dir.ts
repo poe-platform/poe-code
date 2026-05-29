@@ -25,6 +25,7 @@ import {
   applyOrder,
   hasErrorCode,
   isRecord,
+  rejectSymbolicLinkComponents,
   sortStrings,
   statIfExists,
   validateTaskId,
@@ -329,6 +330,8 @@ async function readDirectoryNames(fs: TaskListFs, directoryPath: string): Promis
 }
 
 async function ensureRootPath(deps: BackendDeps): Promise<void> {
+  await rejectSymbolicLinkComponents(deps.fs, deps.path);
+
   if (deps.create) {
     await deps.fs.mkdir(deps.path, { recursive: true });
     return;
@@ -346,6 +349,7 @@ async function readTaskFile(
   initialState: string,
   mode: BackendDeps["frontmatterMode"]
 ): Promise<TaskFile> {
+  await rejectSymbolicLinkComponents(fs, filePath);
   const content = await fs.readFile(filePath, "utf8");
   const document = splitTaskDocument(content, filePath, mode);
   const frontmatter =
@@ -404,9 +408,11 @@ async function findTaskLocation(
   id: string
 ): Promise<TaskLocation | undefined> {
   const listDirectoryPath = listPath(rootPath, layout, list);
+  await rejectSymbolicLinkComponents(fs, listDirectoryPath);
   const activeName = await findActiveTaskFilename(fs, listDirectoryPath, id);
   if (activeName) {
     const activePath = path.join(listDirectoryPath, activeName);
+    await rejectSymbolicLinkComponents(fs, activePath);
     const activeStat = await statIfExists(fs, activePath);
     if (activeStat?.isFile()) {
       return { archived: false, path: activePath };
@@ -414,6 +420,8 @@ async function findTaskLocation(
   }
 
   const archivedPath = archivedTaskPath(rootPath, layout, list, id);
+  await rejectSymbolicLinkComponents(fs, archiveDirectoryPath(rootPath, layout, list));
+  await rejectSymbolicLinkComponents(fs, archivedPath);
   const archivedStat = await statIfExists(fs, archivedPath);
   if (archivedStat?.isFile()) {
     return { archived: true, path: archivedPath };
@@ -583,6 +591,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
   const validStates = new Set(stateMachine.states);
 
   async function readActiveEntries(): Promise<ActiveEntry[]> {
+    await rejectSymbolicLinkComponents(deps.fs, listDirectoryPath);
     const entries = await readDirectoryNames(deps.fs, listDirectoryPath);
     const result: ActiveEntry[] = [];
 
@@ -592,6 +601,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       if (!parsed) continue;
 
       const entryPath = path.join(listDirectoryPath, entryName);
+      await rejectSymbolicLinkComponents(deps.fs, entryPath);
       const entryStat = await statIfExists(deps.fs, entryPath);
       if (!entryStat?.isFile()) continue;
 
@@ -634,6 +644,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
   async function readArchivedTasks(): Promise<{ task: Task; raw: TaskRecord }[]> {
     const archivePath = archiveDirectoryPath(deps.path, layout, list);
+    await rejectSymbolicLinkComponents(deps.fs, archivePath);
     const entries = await readDirectoryNames(deps.fs, archivePath);
     const result: { task: Task; raw: TaskRecord }[] = [];
 
@@ -641,6 +652,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       if (isHiddenEntry(entryName) || !isMarkdownFile(entryName)) continue;
 
       const entryPath = path.join(archivePath, entryName);
+      await rejectSymbolicLinkComponents(deps.fs, entryPath);
       const entryStat = await statIfExists(deps.fs, entryPath);
       if (!entryStat?.isFile()) continue;
 
@@ -842,6 +854,7 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       assertCreateDoesNotSetState(input);
       assertCreateHasId(input);
       validateTaskId(input.id);
+      await rejectSymbolicLinkComponents(deps.fs, listDirectoryPath);
       await deps.fs.mkdir(listDirectoryPath, { recursive: true });
 
       const existing = await findTaskLocation(deps.fs, deps.path, layout, list, input.id);
@@ -927,6 +940,10 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
 
         if (event.to === "archived") {
           const targetPath = archivedTaskPath(deps.path, layout, list, id);
+          await rejectSymbolicLinkComponents(
+            deps.fs,
+            archiveDirectoryPath(deps.path, layout, list)
+          );
           const archivedTargetExists = await statIfExists(deps.fs, targetPath);
           if (archivedTargetExists?.isFile()) {
             throw new TaskAlreadyExistsError(`Task "${list}/${id}" already exists in archive.`);
@@ -1085,6 +1102,7 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
       }
 
       const entryPath = path.join(deps.path, entryName);
+      await rejectSymbolicLinkComponents(deps.fs, entryPath);
       const entryStat = await statIfExists(deps.fs, entryPath);
       if (entryStat?.isDirectory()) {
         result.push(entryName);
@@ -1143,6 +1161,7 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
     }
 
     const targetListDir = listPath(deps.path, layout, targetListName);
+    await rejectSymbolicLinkComponents(deps.fs, targetListDir);
     await deps.fs.mkdir(targetListDir, { recursive: true });
 
     const targetEntries = await (async () => {
@@ -1159,6 +1178,7 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
 
     if (sourceLocation.archived) {
       const archivedTargetDir = archiveDirectoryPath(deps.path, layout, targetListName);
+      await rejectSymbolicLinkComponents(deps.fs, archivedTargetDir);
       await deps.fs.mkdir(archivedTargetDir, { recursive: true });
       const archivedTargetPath = archivedTaskPath(deps.path, layout, targetListName, id);
       await deps.fs.rename(sourceLocation.path, archivedTargetPath);

@@ -210,6 +210,83 @@ Body`
     }
   });
 
+  it("rejects task operations through a symlinked list directory", async () => {
+    const { fs, rawFs, volume } = createFs({
+      "/outside/01-external.md": `---
+name: External
+state: draft
+---
+
+Outside`
+    });
+    volume.mkdirSync("/repo/tasks", { recursive: true });
+    volume.symlinkSync("/outside", "/repo/tasks/planning");
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+
+    await expect(tasks.get("external")).rejects.toThrow("symbolic link");
+    await expect(tasks.create({ id: "local", name: "Local" })).rejects.toThrow("symbolic link");
+    await expect(tasks.delete("external")).rejects.toThrow("symbolic link");
+    await expect(rawFs.readdir("/outside")).resolves.toEqual(["01-external.md"]);
+  });
+
+  it("rejects archived task operations through a symlinked archive directory", async () => {
+    const { fs, rawFs, volume } = createFs({
+      "/repo/tasks/planning/01-active.md": `---
+name: Active
+state: draft
+---
+
+Active`,
+      "/outside/external.md": `---
+name: External
+state: archived
+---
+
+Outside`
+    });
+    volume.symlinkSync("/outside", "/repo/tasks/planning/archive");
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    const tasks = taskList.list("planning");
+
+    await expect(tasks.get("external")).rejects.toThrow("symbolic link");
+    await expect(tasks.fire("active", "archive")).rejects.toThrow("symbolic link");
+    await expect(tasks.delete("external")).rejects.toThrow("symbolic link");
+    await expect(rawFs.readdir("/outside")).resolves.toEqual(["external.md"]);
+  });
+
+  it("rejects reading a symlinked markdown task file", async () => {
+    const { fs, volume } = createFs({
+      "/outside/external.md": `---
+name: External
+state: draft
+---
+
+Outside`
+    });
+    volume.mkdirSync("/repo/tasks/planning", { recursive: true });
+    volume.symlinkSync("/outside/external.md", "/repo/tasks/planning/01-linked.md");
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+
+    await expect(taskList.list("planning").get("linked")).rejects.toThrow("symbolic link");
+    await expect(taskList.list("planning").all()).rejects.toThrow("symbolic link");
+  });
+
   it("throws MalformedTaskError with the file path and field name", async () => {
     const { fs } = createFs({
       "/repo/tasks/planning/bad.md": `---

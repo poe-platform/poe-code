@@ -94,7 +94,7 @@ export async function rejectSymbolicLinkComponents(
 
     try {
       if ((await fs.lstat(currentPath)).isSymbolicLink()) {
-        throw new Error(`Task store path "${filePath}" contains a symbolic link.`);
+        throw new Error(`Path "${filePath}" contains a symbolic link.`);
       }
     } catch (error) {
       if (hasErrorCode(error, "ENOENT")) {

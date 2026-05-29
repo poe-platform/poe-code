@@ -53,21 +53,25 @@ export function createCliMain(
         return;
       }
       if (error instanceof Error) {
-        // Log error with full context
-        errorLogger.logErrorWithStackTrace(error, "CLI execution", {
-          component: "main",
-          argv: process.argv
-        });
+        const isDryRun = process.argv.includes("--dry-run");
+        if (!isDryRun) {
+          errorLogger.logErrorWithStackTrace(error, "CLI execution", {
+            component: "main",
+            argv: process.argv
+          });
+        }
 
         // Display user-friendly message
         if (error instanceof CliError && error.isUserError) {
           log.error(error.message);
         } else {
           log.error(`Error: ${error.message}`);
-          log.message(
-            `See logs at ${join(logDir, "errors.log")} for more details.`,
-            { symbol: chalk.magenta("●") }
-          );
+          if (!isDryRun) {
+            log.message(
+              `See logs at ${join(logDir, "errors.log")} for more details.`,
+              { symbol: chalk.magenta("●") }
+            );
+          }
         }
 
         process.exit(1);

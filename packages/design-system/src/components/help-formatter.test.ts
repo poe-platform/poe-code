@@ -120,6 +120,46 @@ describe("formatColumns", () => {
     expect(result).toBe("\u001b[31mred\u001b[39m   colored\nblue  plain");
   });
 
+  it("does not count terminal hyperlinks as visible label width", () => {
+    const linked = "\u001b]8;;https://example.test\u0007go\u001b]8;;\u0007";
+    const result = formatColumns({
+      rows: [
+        { left: linked, right: "linked" },
+        { left: "go", right: "plain" }
+      ],
+      totalWidth: 120,
+      minLeftWidth: 1,
+      maxLeftWidth: 80,
+      gap: 1,
+      indent: 0
+    });
+
+    expect(result).toBe(`${linked} linked\ngo plain`);
+  });
+
+  it("aligns descriptions after wide terminal glyphs", () => {
+    const result = formatColumns({
+      rows: [
+        { left: "界", right: "wide" },
+        { left: "aa", right: "ascii" }
+      ],
+      totalWidth: 40,
+      minLeftWidth: 3,
+      maxLeftWidth: 3,
+      gap: 1,
+      indent: 0
+    });
+
+    expect(result).toBe("界 wide\naa ascii");
+  });
+
+  it("rejects invalid numeric layout options", () => {
+    expect(() => formatColumns({ rows: [{ left: "run", right: "Run" }], maxLeftWidth: Number.NaN }))
+      .toThrow("maxLeftWidth must be a finite non-negative number");
+    expect(() => formatColumns({ rows: [{ left: "run", right: "Run" }], indent: -1 }))
+      .toThrow("indent must be a finite non-negative number");
+  });
+
   it("returns an empty string for an empty rows array", () => {
     expect(formatColumns({ rows: [] })).toBe("");
   });
@@ -138,6 +178,14 @@ describe("help formatter lists", () => {
       "  \`configure\`   Set up provider credentials
         \`run\`         Run an agent"
     `);
+  });
+
+  it("keeps command names on one rendered row", () => {
+    const result = formatCommandList([
+      { name: "safe\n  forged --all", description: "Description" }
+    ]);
+
+    expect(result).not.toContain("\n  forged --all");
   });
 
   it("formats option lists through columns", () => {

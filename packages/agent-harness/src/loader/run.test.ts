@@ -7,10 +7,24 @@ import { vol } from "memfs";
 import { lint, makeAgentModule } from "@poe-code/agent-script";
 import type { Snapshot, SnapshotBackend } from "@poe-code/agent-script";
 
+const mockedFileSystemState = vi.hoisted(() => ({ failingWritePath: undefined as string | undefined }));
+
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
   return {
     ...fs.promises,
+    async writeFile(
+      path: Parameters<typeof fs.promises.writeFile>[0],
+      data: Parameters<typeof fs.promises.writeFile>[1],
+      options?: Parameters<typeof fs.promises.writeFile>[2]
+    ) {
+      if (path === mockedFileSystemState.failingWritePath) {
+        await fs.promises.writeFile(path, "[", options);
+        throw new Error("host call disk full");
+      }
+
+      return fs.promises.writeFile(path, data, options);
+    },
     default: fs.promises
   };
 });
@@ -36,6 +50,7 @@ const expectedCoverageDemoReturnValue = {
 describe("runHarnessPair", () => {
   beforeEach(() => {
     vol.reset();
+    mockedFileSystemState.failingWritePath = undefined;
   });
 
   afterEach(() => {
@@ -123,6 +138,93 @@ describe("runHarnessPair", () => {
         snapshotPath
       })
     ).rejects.toThrow("source changed since snapshot was taken");
+  });
+
+  it("keeps default snapshots isolated for documents sharing a basename", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-25T00:00:00.000Z"));
+    const firstPath = "/repo/a/shared.md";
+    const secondPath = "/repo/b/shared.md";
+    const source = [
+      'import { step } from "host";',
+      "export default async () => {",
+      "  const first = await step('first');",
+      "  const second = await step('second');",
+      "  return first.concat('|').concat(second);",
+      "};"
+    ].join("\n");
+    vol.fromJSON({
+      [firstPath]: "---\nkind: shared\nversion: 1\n---\n",
+      "/repo/a/shared.ajs": source,
+      [secondPath]: "---\nkind: shared\nversion: 1\n---\n",
+      "/repo/b/shared.ajs": source
+    });
+
+    const firstCall = createDeferred<string>();
+    const secondCall = createDeferred<string>();
+    const controller = new AbortController();
+    const firstRun = runHarnessPair(firstPath, {
+      modulesFor: () => ({
+        host: {
+          async step(name: string) {
+            return name === "first" ? firstCall.promise : secondCall.promise;
+          }
+        }
+      }),
+      signal: controller.signal
+    });
+
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(30_000);
+    firstCall.resolve("first-document-secret");
+    await flushMicrotasks();
+    await vi.advanceTimersByTimeAsync(0);
+    controller.abort();
+    secondCall.reject(new Error("aborted"));
+    await expect(firstRun).rejects.toMatchObject({ name: "AbortError" });
+
+    const secondCalls: string[] = [];
+    const secondRun = await runHarnessPair(secondPath, {
+      modulesFor: () => ({
+        host: {
+          async step(name: string) {
+            secondCalls.push(name);
+            return `second-document-${name}`;
+          }
+        }
+      })
+    });
+
+    expect(secondCalls).toEqual(["first", "second"]);
+    expect(secondRun).toMatchObject({
+      ok: true,
+      returnValue: "second-document-first|second-document-second"
+    });
+  });
+
+  it("preserves the replay journal when a new host call write fails", async () => {
+    const mdPath = "/repo/harness/replay.md";
+    const snapshotPath = "/snapshots/replay.json";
+    const storePath = `${snapshotPath}.host-calls.json`;
+    const priorRecords = JSON.stringify([{ key: "host.step", args: ["old"], result: "preserved" }]);
+    vol.fromJSON({
+      [mdPath]: "---\nkind: replay\nversion: 1\n---\n",
+      "/repo/harness/replay.ajs": [
+        'import { step } from "host";',
+        "export default async () => await step('new');"
+      ].join("\n"),
+      [storePath]: priorRecords
+    });
+    mockedFileSystemState.failingWritePath = `${storePath}.tmp`;
+
+    await expect(
+      runHarnessPair(mdPath, {
+        modulesFor: () => ({ host: { async step() { return "new"; } } }),
+        snapshotPath
+      })
+    ).rejects.toThrow("host call disk full");
+
+    expect(vol.readFileSync(storePath, "utf8")).toBe(priorRecords);
   });
 
   it("lints the coverage demo .ajs without diagnostics", () => {

@@ -1,4 +1,5 @@
-import { lstat, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { lstat, mkdir, readFile, rename, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
 import { dirname, join, parse, resolve, sep } from "node:path";
 
@@ -414,6 +415,7 @@ async function createHostCallReplay(
   const storePath = hostCallStorePath(snapshotPath);
   const records = await readHostCallRecords(storePath);
   const pendingWrites = new Set<Promise<void>>();
+  let writeQueue = Promise.resolve();
   let cursor = 0;
 
   return {
@@ -500,7 +502,8 @@ async function createHostCallReplay(
       state: statefulBindings[key]?.snapshot()
     });
     cursor = records.length;
-    const write = writeHostCallRecords(storePath, records);
+    const write = writeQueue.then(() => writeHostCallRecords(storePath, records));
+    writeQueue = write.catch(() => undefined);
     pendingWrites.add(write);
     try {
       await write;
@@ -535,7 +538,14 @@ async function writeHostCallRecords(
   }
 
   await mkdir(dirname(storePath), { recursive: true });
-  await writeFile(storePath, serialized);
+  const temporaryPath = `${storePath}.tmp`;
+  try {
+    await writeFile(temporaryPath, serialized);
+    await rename(temporaryPath, storePath);
+  } catch (error) {
+    await unlinkIfExists(temporaryPath).catch(() => undefined);
+    throw error;
+  }
 }
 
 async function cleanupCompletedSnapshot(
@@ -590,6 +600,7 @@ function listModuleExports(moduleExports: ModuleExports): string[] {
 }
 
 function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined): string {
+  const documentKey = createHash("sha256").update(resolve(mdPath)).digest("hex").slice(0, 12);
   return (
     snapshotPath ??
     join(
@@ -598,7 +609,7 @@ function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined): 
         runner: "harness",
         homeDir: os.homedir()
       }),
-      "snapshot.json"
+      `snapshot-${documentKey}.json`
     )
   );
 }

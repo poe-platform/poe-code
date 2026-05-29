@@ -140,4 +140,19 @@ describe("resolvePair", () => {
       path: "/repo/harness/review.md"
     });
   });
+
+  it("preserves filesystem errors when a pair file cannot be inspected", async () => {
+    const accessError = Object.assign(new Error("permission denied"), { code: "EACCES" });
+    const fs: HarnessFs = {
+      async stat(path) {
+        if (path.endsWith(".ajs")) {
+          throw accessError;
+        }
+
+        return { isFile: () => true };
+      }
+    };
+
+    await expect(resolvePair("/repo/harness/review.md", fs)).rejects.toBe(accessError);
+  });
 });

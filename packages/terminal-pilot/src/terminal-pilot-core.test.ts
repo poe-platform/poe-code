@@ -318,6 +318,30 @@ describe("TerminalBuffer", () => {
       expect(buf.displayBuffer.cursorX).toBe(0);
       expect(buf.displayBuffer.cursorY).toBe(1);
     });
+
+    it("restores auto-wrap saved by DEC cursor state", () => {
+      const buf = new TerminalBuffer(3, 2);
+
+      buf.write("\x1b[?7l\x1b7\x1b[?7h\x1b8abcd");
+
+      expect(readScreen(buf, 2)).toEqual(["abd", ""]);
+    });
+
+    it("restores auto-wrap after full reset", () => {
+      const buf = new TerminalBuffer(3, 2);
+
+      buf.write("\x1b[?7l\x1bcabcd");
+
+      expect(readScreen(buf, 2)).toEqual(["abc", "d"]);
+    });
+
+    it("restores auto-wrap after DEC soft reset", () => {
+      const buf = new TerminalBuffer(3, 2);
+
+      buf.write("\x1b[?7l\x1b[!pabcd");
+
+      expect(readScreen(buf, 2)).toEqual(["abc", "d"]);
+    });
   });
 
   describe("scrolling", () => {
@@ -453,6 +477,14 @@ describe("TerminalBuffer", () => {
       buf.write("\x1b[3;1H"); // row 3
       buf.write("\x1bM"); // reverse index
       expect(buf.displayBuffer.cursorY).toBe(1);
+    });
+
+    it("restores rendition saved by DEC cursor state", () => {
+      const buf = new TerminalBuffer(10, 2);
+
+      buf.write("A\x1b[31m\x1b7\x1b[0m\x1b[1;5HX\x1b8Y");
+
+      expect(buf.renderLine(0)).toContain("\x1b[31mY");
     });
 
     it("scrolls down when at top margin", () => {

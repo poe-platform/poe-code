@@ -12,6 +12,14 @@ interface SgrStyleState {
   bg?: number[];
 }
 
+interface SavedCursorState {
+  x: number;
+  y: number;
+  autoWrap: boolean;
+  style: SgrStyleState;
+  styleSequence: string;
+}
+
 const RESET_SGR = "\x1b[0m";
 
 const enum State {
@@ -30,7 +38,7 @@ export class TerminalBuffer {
   private _screen: Row[];
   private _cursorX = 0;
   private _cursorY = 0;
-  private _savedCursor = { x: 0, y: 0 };
+  private _savedCursor: SavedCursorState;
   private _scrollTop = 0;
   private _scrollBottom: number;
   private _state = State.Normal;
@@ -51,6 +59,7 @@ export class TerminalBuffer {
     this._rows = rows;
     this._scrollBottom = rows - 1;
     this._screen = this._makeScreen(cols, rows);
+    this._savedCursor = this._createSavedCursorState();
 
     this.displayBuffer = Object.defineProperties(
       {} as { readonly cursorX: number; readonly cursorY: number; readonly data: Array<Row | undefined> },
@@ -138,6 +147,37 @@ export class TerminalBuffer {
 
   private _clamp(value: number, min: number, max: number): number {
     return Math.max(min, Math.min(max, value));
+  }
+
+  private _createSavedCursorState(): SavedCursorState {
+    return {
+      x: this._cursorX,
+      y: this._cursorY,
+      autoWrap: this._autoWrap,
+      style: { ...this._style, fg: this._style.fg?.slice(), bg: this._style.bg?.slice() },
+      styleSequence: this._styleSequence
+    };
+  }
+
+  private _saveCursor(): void {
+    this._savedCursor = this._createSavedCursorState();
+  }
+
+  private _restoreCursor(): void {
+    this._cursorX = this._clamp(this._savedCursor.x, 0, this._cols - 1);
+    this._cursorY = this._clamp(this._savedCursor.y, 0, this._rows - 1);
+    this._autoWrap = this._savedCursor.autoWrap;
+    this._style = {
+      ...this._savedCursor.style,
+      fg: this._savedCursor.style.fg?.slice(),
+      bg: this._savedCursor.style.bg?.slice()
+    };
+    this._styleSequence = this._savedCursor.styleSequence;
+  }
+
+  private _resetModes(): void {
+    this._autoWrap = true;
+    this._resetStyle();
   }
 
   private _setChar(y: number, x: number, ch: string): void {
@@ -339,11 +379,15 @@ export class TerminalBuffer {
         break;
       }
       case "s": // save cursor
-        this._savedCursor = { x: this._cursorX, y: this._cursorY };
+        this._saveCursor();
         break;
       case "u": // restore cursor
-        this._cursorX = this._clamp(this._savedCursor.x, 0, this._cols - 1);
-        this._cursorY = this._clamp(this._savedCursor.y, 0, this._rows - 1);
+        this._restoreCursor();
+        break;
+      case "p":
+        if (this._csiPrivate === "!") {
+          this._resetModes();
+        }
         break;
       case "m":
         this._applySgr(params);
@@ -470,11 +514,10 @@ export class TerminalBuffer {
       this._state = State.EscHash;
     } else if (code === 0x37) {
       // ESC 7 = save cursor
-      this._savedCursor = { x: this._cursorX, y: this._cursorY };
+      this._saveCursor();
     } else if (code === 0x38) {
       // ESC 8 = restore cursor
-      this._cursorX = this._clamp(this._savedCursor.x, 0, this._cols - 1);
-      this._cursorY = this._clamp(this._savedCursor.y, 0, this._rows - 1);
+      this._restoreCursor();
     } else if (code === 0x44) {
       // ESC D = index (LF)
       this._newline();
@@ -496,10 +539,10 @@ export class TerminalBuffer {
       this._screen = this._makeScreen(this._cols, this._rows);
       this._cursorX = 0;
       this._cursorY = 0;
-      this._savedCursor = { x: 0, y: 0 };
       this._scrollTop = 0;
       this._scrollBottom = this._rows - 1;
-      this._resetStyle();
+      this._resetModes();
+      this._savedCursor = this._createSavedCursorState();
     }
     // All other ESC sequences: two-char, already consumed — ignore
   }

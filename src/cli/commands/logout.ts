@@ -49,8 +49,14 @@ export async function executeLogout(program: Command, container: CliContainer): 
     filePath: container.env.configPath
   });
 
+  const environmentCredential = container.env.getVariable("POE_API_KEY");
+  const hasEnvironmentCredential = typeof environmentCredential === "string"
+    && environmentCredential.trim().length > 0;
+
   resources.context.complete({
-    success: deleted ? "Logged out." : "Already logged out.",
+    success: hasEnvironmentCredential
+      ? "Stored credentials removed, but POE_API_KEY remains set; unset it to log out fully."
+      : deleted ? "Logged out." : "Already logged out.",
     dry: `Dry run: would delete config at ${container.env.configPath}.`
   });
 

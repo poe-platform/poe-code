@@ -1168,6 +1168,26 @@ describe("logout command", () => {
 
     expect(logs.some((line) => line.includes("Already logged out."))).toBe(true);
   });
+
+  it("warns when POE_API_KEY keeps the session authenticated after logout", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "environment-key" } },
+      logger: (message) => logs.push(message)
+    });
+
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "logout"]);
+
+    expect(logs.some((line) => line.includes("POE_API_KEY"))).toBe(true);
+    expect(logs.some((line) => line.includes("Already logged out."))).toBe(false);
+  });
 });
 
 // ─── skill command ───────────────────────────────────────────────────────────

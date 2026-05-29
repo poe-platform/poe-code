@@ -64,7 +64,7 @@ async function executeStatus(program: Command, container: CliContainer): Promise
   resources.logger.intro("auth status");
 
   try {
-    const apiKey = await container.readApiKey();
+    const apiKey = await resolveAuthCredential(container);
 
     if (!apiKey) {
       resources.logger.info("Not logged in");

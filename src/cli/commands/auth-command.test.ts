@@ -108,6 +108,31 @@ describe("auth command", () => {
     expect(spinnerStopMessages.some((m) => m.includes("Logged in as Kamil Jopek (@kamil)"))).toBe(true);
   });
 
+  it("shows logged-in identity from POE_API_KEY without stored credentials", async () => {
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => createWhoamiResponse({ name: "Environment User", handle: "environment" })
+    });
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "environment-key" } },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+    vi.spyOn(program, "optsWithGlobals").mockReturnValue({ yes: false, dryRun: false } as any);
+
+    await program.parseAsync(["node", "cli", "auth", "status"]);
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/whoami"),
+      expect.objectContaining({ headers: expect.objectContaining({ Authorization: "Bearer environment-key" }) })
+    );
+    expect(spinnerStopMessages.some((message) => message.includes("Environment User (@environment)"))).toBe(true);
+  });
+
   it("shows not logged in when no API key exists", async () => {
     const program = createProgram({
       fs,

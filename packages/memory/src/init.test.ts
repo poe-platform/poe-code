@@ -62,4 +62,17 @@ describe("initMemory", () => {
     await expect(vol.promises.stat("/outside/INDEX.md")).rejects.toMatchObject({ code: "ENOENT" });
     await expect(vol.promises.stat("/outside/LOG.md")).rejects.toMatchObject({ code: "ENOENT" });
   });
+
+  it("removes newly created scaffold artifacts when initialization fails", async () => {
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).endsWith("/LOG.md")) {
+        throw new Error("log scaffold failed");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(initMemory("/repo/.poe-code/memory")).rejects.toThrow("log scaffold failed");
+    await expect(vol.promises.stat("/repo/.poe-code/memory")).rejects.toMatchObject({ code: "ENOENT" });
+  });
 });

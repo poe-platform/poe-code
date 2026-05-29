@@ -42,8 +42,21 @@ async function backupInvalidDocument(
   targetPath: string,
   content: string
 ): Promise<void> {
-  const backupPath = createInvalidDocumentBackupPath(targetPath);
-  await fs.writeFile(backupPath, content, { encoding: "utf8", flag: "wx" });
+  const baseBackupPath = createInvalidDocumentBackupPath(targetPath);
+  let attempt = 0;
+  while (true) {
+    const backupPath = attempt === 0 ? baseBackupPath : `${baseBackupPath}-${attempt}`;
+    await assertRegularWriteTarget(fs, backupPath);
+    try {
+      await fs.writeFile(backupPath, content, { encoding: "utf8", flag: "wx" });
+      return;
+    } catch (error) {
+      if (!isAlreadyExists(error)) {
+        throw error;
+      }
+      attempt += 1;
+    }
+  }
 }
 
 function isAlreadyExists(error: unknown): boolean {

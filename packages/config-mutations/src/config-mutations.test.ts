@@ -829,6 +829,22 @@ describe("runMutations", () => {
       vi.useRealTimers();
       await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe("external");
     });
+
+    it("does not overwrite invalid-document backups created in the same millisecond", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-05-26T12:34:56.789Z"));
+      const targetPath = `${homeDir}/.config.json`;
+      const fs = createMockFs({ "~/.config.json": "{ first" }, homeDir);
+
+      await runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir });
+      await fs.writeFile(targetPath, "{ second", { encoding: "utf8" });
+      await runMutations([configMutation.merge({ target: "~/.config.json", value: { added: true } })], { fs, homeDir });
+      vi.useRealTimers();
+
+      const backups = Object.keys(fs.files).filter((filePath) => filePath.includes(".invalid-"));
+      expect(backups).toHaveLength(2);
+      expect(backups.map((filePath) => fs.files[filePath])).toEqual(["{ first", "{ second"]);
+    });
   });
 
   describe("configMutation.prune", () => {

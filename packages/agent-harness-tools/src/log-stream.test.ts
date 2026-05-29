@@ -59,6 +59,36 @@ describe("streamLogFile", () => {
       vi.useRealTimers();
     }
   });
+
+  it("preserves a UTF-8 code point split across appended read boundaries", async () => {
+    vi.useFakeTimers();
+    const { fs } = createMemFs({});
+    const env = { fs: { promises: fs.promises } };
+    const bytes = Buffer.from("🧪", "utf8");
+    await fs.promises.mkdir("/tmp/poe-jobs", { recursive: true });
+    await fs.promises.writeFile("/tmp/poe-jobs/job-1.log", bytes.subarray(0, 2));
+
+    try {
+      const chunksPromise = takeChunks(streamLogFile(env, "job-1", {}), 1);
+      await vi.advanceTimersByTimeAsync(0);
+      await fs.promises.appendFile("/tmp/poe-jobs/job-1.log", bytes.subarray(2));
+      await vi.advanceTimersByTimeAsync(250);
+
+      await expect(chunksPromise).resolves.toEqual([{ byteOffset: 0, data: "🧪" }]);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("rejects a symlinked log file before reading external content", async () => {
+    const { fs, vol } = createMemFs({ "/outside.log": "external" });
+    vol.mkdirSync("/tmp/poe-jobs", { recursive: true });
+    vol.symlinkSync("/outside.log", "/tmp/poe-jobs/job-1.log");
+
+    await expect(takeChunks(streamLogFile({ fs }, "job-1", {}), 1)).rejects.toThrow(
+      "Managed job file must not be a symbolic link."
+    );
+  });
 });
 
 describe("waitForExit", () => {
@@ -98,23 +128,46 @@ describe("waitForExit", () => {
 
     await expect(waitPromise).rejects.toThrow("waitForExit aborted.");
   });
+
+  it("rejects a symlinked exit file before reading external status", async () => {
+    const { fs, vol } = createMemFs({ "/outside.exit": "7\n" });
+    vol.mkdirSync("/tmp/poe-jobs", { recursive: true });
+    vol.symlinkSync("/outside.exit", "/tmp/poe-jobs/job-1.exit");
+
+    await expect(waitForExit({ fs }, "job-1")).rejects.toThrow(
+      "Managed job file must not be a symbolic link."
+    );
+  });
 });
 
 describe("wrapForLogTee", () => {
   it("wraps argv in a shell-safe tee command and escapes jobId paths", () => {
-    const argv = wrapForLogTee(["printf", "hello ' world"], "job'1; rm -rf /");
+    const argv = wrapForLogTee(["printf", "hello ' world"], "job'1; echo bad");
 
     expect(argv[0]).toBe("sh");
     expect(argv[1]).toBe("-c");
     expect(argv[2]).toContain("mkdir -p '/tmp/poe-jobs'");
     expect(argv[2]).toContain("'printf' 'hello '\\'' world'");
-    expect(argv[2]).toContain("'/tmp/poe-jobs/job'\\''1; rm -rf /.log'");
-    expect(argv[2]).toContain("'/tmp/poe-jobs/job'\\''1; rm -rf /.exit'");
-    expect(argv[2]).not.toContain("/tmp/poe-jobs/job'1; rm -rf /.log");
+    expect(argv[2]).toContain("'/tmp/poe-jobs/job'\\''1; echo bad.log'");
+    expect(argv[2]).toContain("'/tmp/poe-jobs/job'\\''1; echo bad.exit'");
+    expect(argv[2]).toContain("test ! -L '/tmp/poe-jobs/job'\\''1; echo bad.log'");
+    expect(argv[2]).toContain("test ! -L '/tmp/poe-jobs/job'\\''1; echo bad.exit'");
+    expect(argv[2]).not.toContain("/tmp/poe-jobs/job'1; echo bad.log");
   });
 
   it("rejects an empty argv because there is no inner command to tee", () => {
     expect(() => wrapForLogTee([], "job-1")).toThrow("wrapForLogTee requires argv");
+  });
+
+  it("rejects job identifiers that escape the managed job directory", () => {
+    expect(() => wrapForLogTee(["printf", "hello"], "../external")).toThrow(
+      "Invalid job id"
+    );
+  });
+
+  it("rejects traversing job identifiers before log or exit reads", async () => {
+    await expect(takeChunks(streamLogFile({}, "../external", {}), 1)).rejects.toThrow("Invalid job id");
+    await expect(waitForExit({}, "../external")).rejects.toThrow("Invalid job id");
   });
 });
 

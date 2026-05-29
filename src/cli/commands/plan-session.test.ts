@@ -155,6 +155,33 @@ describe("plan <question> root command", () => {
     );
   });
 
+  it("previews a plan session without spawning an agent", async () => {
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "--yes",
+      "plan",
+      "write a small plan",
+      "--agent",
+      "codex"
+    ]);
+
+    expect(sdkSpawnMock).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run");
+    expect(logs.join("\n")).toContain("codex");
+  });
+
   it("does not spawn when no question is given and --yes is passed", async () => {
     sdkSpawnMock.mockReturnValue({
       events: (async function* () {})(),

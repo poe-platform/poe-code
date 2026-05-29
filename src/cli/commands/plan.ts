@@ -32,7 +32,7 @@ import {
 } from "@poe-code/agent-skill-config";
 import { readMarkdown, readSection, runMarkdownReaderMcp } from "@poe-code/markdown-reader";
 import { parseAgentSpecifier } from "@poe-code/agent-defs";
-import { readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
+import { readMergedDocument, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
 import { ValidationError } from "../errors.js";
 import { planConfigScope } from "../../services/config.js";
@@ -428,6 +428,16 @@ async function executePlanAction(options: {
     promptMessage: `Select a plan to ${options.action}`
   });
 
+  if (flags.dryRun) {
+    writeOutput(
+      format,
+      format === "json"
+        ? JSON.stringify({ action: options.action, path: plan.path, dryRun: true }, null, 2)
+        : `Would ${options.action} ${plan.path}`
+    );
+    return;
+  }
+
   if (options.action === "edit") {
     editPlan(plan.absolutePath, {
       env: options.container.env.variables
@@ -501,7 +511,8 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
         await runPlanSession({
           container,
           agent,
-          question
+          question,
+          dryRun: flags.dryRun
         });
         return;
       }
@@ -834,8 +845,12 @@ async function runPlanSessionWithPrompt(
   });
 }
 
-export async function resolvePlanDirectory(container: CliContainer): Promise<string> {
-  const document = await readMergedDocument(
+export async function resolvePlanDirectory(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<string> {
+  const readConfig = options.readOnly ? readMergedDocumentReadonly : readMergedDocument;
+  const document = await readConfig(
     container.fs,
     container.env.configPath,
     container.env.projectConfigPath
@@ -852,15 +867,28 @@ interface RunPlanSessionOptions {
   container: CliContainer;
   agent: string;
   question: string;
+  dryRun?: boolean;
 }
 
 async function runPlanSession(options: RunPlanSessionOptions): Promise<void> {
-  const planDirectory = await resolvePlanDirectory(options.container);
+  const planDirectory = await resolvePlanDirectory(options.container, { readOnly: options.dryRun });
   const prompt = buildPlanPrompt({
     question: options.question,
     planDirectory,
     skillContent: planSkillTemplate
   });
+
+  if (options.dryRun) {
+    const resources = createExecutionResources(
+      options.container,
+      { assumeYes: true, dryRun: true, verbose: false },
+      "plan"
+    );
+    resources.logger.dryRun(
+      `Dry run: would run plan session with ${options.agent} for ${options.question}.`
+    );
+    return;
+  }
 
   const { result } = sdkSpawn(options.agent, prompt, {
     interactive: true,

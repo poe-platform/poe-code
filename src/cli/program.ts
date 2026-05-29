@@ -40,6 +40,7 @@ import { registerRalphCommand } from "./commands/ralph.js";
 import { registerExperimentCommand } from "./commands/experiment.js";
 import { registerLaunchCommand } from "./commands/launch.js";
 import { registerMemoryCommand } from "./commands/memory.js";
+import { registerMemoryMcpCommand } from "./commands/memory-mcp.js";
 import { registerProviderCommand } from "./commands/provider.js";
 import { registerRuntimeCommand } from "./commands/runtime/index.js";
 import { registerHarnessCommand } from "./commands/harness.js";
@@ -849,6 +850,7 @@ function bootstrapProgram(container: CliContainer): Command {
   registerExperimentCommand(program, container);
   registerLaunchCommand(program, container);
   registerMemoryCommand(program, container);
+  registerMemoryMcpCommand(program, container);
   registerProviderCommand(program, container);
   registerRuntimeCommand(program, container);
   registerHarnessCommand(program, container);

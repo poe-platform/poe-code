@@ -29,8 +29,12 @@ export type TruffleHogPrScanCommand =
 export async function runTruffleHogPrScanCommand(
   command: TruffleHogPrScanCommand,
   env: EnvReader,
-  options: { cwd?: string; runner?: CommandRunner } = {}
+  options: { cwd?: string; runner?: CommandRunner; dryRun?: boolean } = {}
 ): Promise<null> {
+  if (options.dryRun === true) {
+    process.stdout.write(`Dry run: would run TruffleHog operation ${command}.\n`);
+    return null;
+  }
   const runner = options.runner ?? runCommand;
   const cwd = options.cwd ?? process.cwd();
 

@@ -3,8 +3,10 @@ import {
   parseTruffleHogFindings,
   renderTruffleHogComment,
   renderTruffleHogFindingsTable,
+  runTruffleHogPrScanCommand,
   uniqueTruffleHogFindings
 } from "./trufflehog-pr-scan.js";
+import { vi } from "vitest";
 
 describe("parseTruffleHogFindings", () => {
   it("parses git metadata and verification status from TruffleHog JSONL", () => {
@@ -89,4 +91,20 @@ describe("renderTruffleHogComment", () => {
       )
     ).toContain("### TruffleHog found 2 possible secrets");
   });
+});
+
+describe("runTruffleHogPrScanCommand", () => {
+  it.each(["scan-for-secrets", "report-advisory-result", "clear-stale-advisory-result"] as const)(
+    "previews %s without executing any runner command",
+    async (command) => {
+      const runner = vi.fn();
+      const stdout = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+
+      await runTruffleHogPrScanCommand(command, { get: () => undefined }, { dryRun: true, runner });
+
+      expect(runner).not.toHaveBeenCalled();
+      expect(stdout).toHaveBeenCalledWith(`Dry run: would run TruffleHog operation ${command}.\n`);
+      stdout.mockRestore();
+    }
+  );
 });

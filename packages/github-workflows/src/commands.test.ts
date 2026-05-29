@@ -172,6 +172,21 @@ describe("ghGroup", () => {
     );
   });
 
+  it("previews direct automation runs without spawning agents", async () => {
+    writeBuiltInPrompt("github-issue-opened", "Fix {{url}}");
+
+    const result = await getCommand(["run"]).handler(
+      createContext(
+        { name: "github-issue-opened", cwd: "/repo", dryRun: true },
+        { GITHUB_REPOSITORY: "acme/app", ISSUE_NUMBER: "42" },
+        { poeApiKey: "poe-key" }
+      )
+    );
+
+    expect(spawnState.spawn).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ dryRun: true, automation: "github-issue-opened", agent: "codex" });
+  });
+
   it("fails the automation when the spawned agent exits non-zero", async () => {
     writeBuiltInPrompt("github-issue-opened", "Fix {{url}}");
     spawnState.spawn.mockResolvedValueOnce({
@@ -649,6 +664,25 @@ describe("ghGroup", () => {
     ).rejects.toThrow('Automation "fix-vulnerabilities" source command must return a JSON array.');
   });
 
+  it("previews sourced automation runs without executing source commands", async () => {
+    writeBuiltInPrompt(
+      "fix-vulnerabilities",
+      ["---", "source: gh api repos/{owner}/{repo}/alerts", "---", "Fix {{item}}"].join("\n")
+    );
+
+    const result = await getCommand(["run"]).handler(
+      createContext(
+        { name: "fix-vulnerabilities", cwd: "/repo", dryRun: true },
+        { GITHUB_REPOSITORY: "acme/app" },
+        { poeApiKey: "poe-key" }
+      )
+    );
+
+    expect(spawnState.runCommand).not.toHaveBeenCalled();
+    expect(spawnState.spawn).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ dryRun: true, automation: "fix-vulnerabilities" });
+  });
+
   it("prepare fails when POE_API_KEY is missing", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
 
@@ -712,6 +746,17 @@ describe("ghGroup", () => {
       ["configure", "codex", "--yes"],
       expect.objectContaining({ cwd: "/repo" })
     );
+  });
+
+  it("previews prepare without installing or configuring an agent", async () => {
+    writeBuiltInPrompt("update-dependencies", "# Prompt");
+
+    const result = await getCommand(["prepare"]).handler(
+      createContext({ name: "update-dependencies", dryRun: true }, { POE_API_KEY: "key" })
+    );
+
+    expect(spawnState.runCommand).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ dryRun: true, agent: "codex", automation: "update-dependencies" });
   });
 
   it("surfaces install failures from prepare with command output", async () => {
@@ -865,6 +910,20 @@ describe("ghGroup", () => {
       readmePath: "/repo/.github/workflows/README.md",
       variablesPath: "/repo/.github/workflows/variables.yaml"
     });
+  });
+
+  it("previews workflow installation without writing files", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+
+    const result = await getCommand(["install"]).handler(
+      createContext({ name: "github-issue-opened", dryRun: true })
+    );
+
+    expect(result).toMatchObject({ dryRun: true });
+    expect(vol.existsSync("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toBe(false);
+    expect(vol.existsSync("/repo/.github/workflows/variables.yaml")).toBe(false);
+    expect(vol.existsSync("/repo/.github/workflows/README.md")).toBe(false);
   });
 
   it("rejects a symlinked workflow install destination", async () => {
@@ -1051,6 +1110,19 @@ describe("ghGroup", () => {
 
     expect(vol.existsSync("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toBe(false);
     expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.md")).toBe("prompt");
+  });
+
+  it("previews workflow uninstall without deleting the workflow", async () => {
+    vol.fromJSON({
+      "/repo/.github/workflows/poe-code-github-issue-opened.yml": "workflow"
+    });
+
+    const result = await getCommand(["uninstall"]).handler(
+      createContext({ name: "github-issue-opened", dryRun: true })
+    );
+
+    expect(result).toMatchObject({ dryRun: true });
+    expect(readRepoFile("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toBe("workflow");
   });
 
   it("treats uninstalling a missing workflow as a no-op", async () => {

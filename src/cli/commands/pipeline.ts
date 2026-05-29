@@ -806,7 +806,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
         }
 
         if (flags.dryRun) {
-          const commandConfig = await resolvePipelineCommandConfig(container);
+          const commandConfig = await resolvePipelineCommandConfig(container, { readOnly: true });
           const planPaths = await resolvePlanPaths({
             cwd: container.env.cwd,
             homeDir: container.env.homeDir,
@@ -849,7 +849,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
         const selectedAgent = await resolvePipelineLoopAgent({
           providedAgent: options.agent,
-          configuredDefaultAgent: await resolveDefaultAgent(container),
+          configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
           assumeYes: flags.assumeYes,
           fallbackAgent: DEFAULT_PIPELINE_AGENT,
           message: "Select agent to run pipeline steps with:",
@@ -1042,7 +1042,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
 
         const selectedAgent = await resolvePipelineLoopAgent({
           providedAgent: options.agent,
-          configuredDefaultAgent: await resolveDefaultAgent(container),
+          configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
           assumeYes: flags.assumeYes,
           fallbackAgent: DEFAULT_PIPELINE_AGENT,
           message: "Select agent to generate pipeline plans with:",
@@ -1099,6 +1099,15 @@ export function registerPipelineCommand(program: Command, container: CliContaine
           if (sources.length === 0) {
             return;
           }
+        }
+
+        if (flags.dryRun) {
+          resources.logger.dryRun(`Would generate pipeline plans with ${agent}.`);
+          for (const source of sources) {
+            resources.logger.dryRun(`Would initialize: ${source.relativePath}`);
+          }
+          resources.logger.dryRun("Would not spawn agents or write plan changes.");
+          return;
         }
 
         const result = await sdkRunPipelineInit({
@@ -1283,7 +1292,7 @@ export function registerPipelineCommand(program: Command, container: CliContaine
       try {
         const selectedAgent = await resolvePipelineLoopAgent({
           providedAgent: options.agent,
-          configuredDefaultAgent: await resolveDefaultAgent(container),
+          configuredDefaultAgent: await resolveDefaultAgent(container, { readOnly: flags.dryRun }),
           assumeYes: flags.assumeYes,
           fallbackAgent: DEFAULT_PIPELINE_AGENT,
           message: "Select agent to install the Pipeline skill for:",

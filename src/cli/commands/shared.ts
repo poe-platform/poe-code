@@ -5,6 +5,7 @@ import {
   deepMergeDocuments,
   loadProviderShapeBaseUrls,
   readMergedDocument,
+  readMergedDocumentReadonly,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
 import type { CliContainer } from "../container.js";
@@ -488,8 +489,11 @@ export async function applyIsolatedConfiguration(input: {
   );
 }
 
-export async function resolveMergedDocument(container: CliContainer): Promise<ConfigDocument> {
-  const mergedDocument = await readMergedDocument(
+export async function resolveMergedDocument(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<ConfigDocument> {
+  const mergedDocument = await (options.readOnly ? readMergedDocumentReadonly : readMergedDocument)(
     container.fs,
     container.env.configPath,
     container.env.projectConfigPath
@@ -498,8 +502,11 @@ export async function resolveMergedDocument(container: CliContainer): Promise<Co
   return deepMergeDocuments(mergedDocument, envOverrides.document);
 }
 
-export async function resolveDefaultAgent(container: CliContainer): Promise<string | null> {
-  const document = await resolveMergedDocument(container);
+export async function resolveDefaultAgent(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<string | null> {
+  const document = await resolveMergedDocument(container, options);
   const value = typeof document.core?.defaultAgent === "string" ? document.core.defaultAgent : "";
   const trimmed = value.trim();
 

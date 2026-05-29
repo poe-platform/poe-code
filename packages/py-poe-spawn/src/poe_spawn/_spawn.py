@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import inspect
 import json
 import os
 import shutil
@@ -362,6 +363,12 @@ def _validate_cancel_event(cancel_event: Any) -> None:
     if not has_wait and not has_is_set:
         raise TypeError("cancel_event must expose wait() or is_set().")
 
+    if has_wait and not has_is_set:
+        try:
+            inspect.signature(cancel_event.wait).bind(0.05)
+        except (TypeError, ValueError):
+            raise TypeError("wait-only cancel_event.wait() must accept a timeout.") from None
+
 def _cancel_event_is_set(cancel_event: Any) -> bool:
     return bool(hasattr(cancel_event, "is_set") and callable(cancel_event.is_set) and cancel_event.is_set())
 
@@ -394,12 +401,7 @@ def _wait_for_cancel_event(
     request_cancel: Any,
 ) -> None:
     while not done.is_set():
-        try:
-            did_cancel = bool(cancel_event.wait(0.05))
-        except TypeError:
-            cancel_event.wait()
-            did_cancel = True
-
+        did_cancel = bool(cancel_event.wait(0.05))
         if did_cancel and not done.is_set():
             request_cancel()
             return

@@ -33,6 +33,19 @@ class FailingSignalProcess(FakeProcess):
         raise PermissionError("signal denied")
 
 
+class TimeoutWaitOnlyCancelEvent:
+    def __init__(self) -> None:
+        self._event = threading.Event()
+
+    def wait(self, timeout=None) -> bool:
+        return self._event.wait(timeout)
+
+
+class BlockingWaitOnlyCancelEvent:
+    def wait(self) -> bool:
+        return False
+
+
 class ResolveCliCommandTest(unittest.TestCase):
     def test_prefers_poe_code_on_path(self) -> None:
         with mock.patch("poe_spawn._spawn.shutil.which") as which:
@@ -218,12 +231,36 @@ class SpawnTest(unittest.TestCase):
         self.assertEqual(events, [AgentMessageEvent(event="agent_message", text="done")])
         self.assertFalse(handle._cancel_watcher.is_alive())
 
+    def test_spawn_stops_timeout_wait_only_cancel_watcher_after_normal_completion(self) -> None:
+        fake_process = FakeProcess('{"event":"agent_message","text":"done"}\n')
+        cancel_event = TimeoutWaitOnlyCancelEvent()
+
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen", return_value=fake_process
+        ):
+            handle = spawn("codex", "Finish normally", cancel_event=cancel_event)
+            self.assertIsNotNone(handle._cancel_watcher)
+
+            events = list(handle.events)
+
+        self.assertEqual(events, [AgentMessageEvent(event="agent_message", text="done")])
+        self.assertFalse(handle._cancel_watcher.is_alive())
+
     def test_spawn_rejects_invalid_cancel_event_before_starting_process(self) -> None:
         with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
             "poe_spawn._spawn.subprocess.Popen"
         ) as popen:
             with self.assertRaises(TypeError):
                 spawn("codex", "Invalid cancellation", cancel_event=object())
+
+        popen.assert_not_called()
+
+    def test_spawn_rejects_blocking_wait_only_cancel_event_before_starting_process(self) -> None:
+        with mock.patch("poe_spawn._spawn._resolve_cli_command", return_value=["poe-code"]), mock.patch(
+            "poe_spawn._spawn.subprocess.Popen"
+        ) as popen:
+            with self.assertRaises(TypeError):
+                spawn("codex", "Invalid cancellation", cancel_event=BlockingWaitOnlyCancelEvent())
 
         popen.assert_not_called()
 

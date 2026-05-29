@@ -26,6 +26,17 @@ async function readSortedDirectory(rawFs: ReturnType<typeof createFs>["rawFs"], 
   return (await rawFs.readdir(directory)).sort();
 }
 
+function ownProtoMetadata(): Record<string, unknown> {
+  const metadata: Record<string, unknown> = {};
+  Object.defineProperty(metadata, "__proto__", {
+    value: { reviewer: "security" },
+    enumerable: true,
+    writable: true,
+    configurable: true
+  });
+  return metadata;
+}
+
 describe("markdownDirBackend", () => {
   afterEach(() => {
     vi.useRealTimers();
@@ -149,6 +160,54 @@ Body`
     expect(task.sourcePath).toBe("/repo/tasks/planning/01-source-path.md");
     expect(path.isAbsolute(task.sourcePath ?? "")).toBe(true);
     expect(listedTask?.sourcePath).toBe(task.sourcePath);
+  });
+
+  it("preserves proto-named frontmatter as own task metadata", async () => {
+    const { fs } = createFs({
+      "/repo/tasks/planning/proto.md": `---
+name: Prototype task
+state: draft
+__proto__:
+  owner: attacker
+---
+
+Body`
+    });
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+
+    const task = await taskList.list("planning").get("proto");
+
+    expect(Object.hasOwn(task.metadata, "__proto__")).toBe(true);
+    expect(task.metadata.__proto__).toEqual({ owner: "attacker" });
+    expect((task.metadata as { owner?: string }).owner).toBeUndefined();
+  });
+
+  it("preserves proto-named metadata through create, update, and fire", async () => {
+    const { fs } = createFs();
+    const taskList = await openTaskList({
+      type: "markdown-dir",
+      path: "/repo/tasks",
+      create: true,
+      fs
+    });
+    const tasks = taskList.list("planning");
+
+    await tasks.create({ id: "create", name: "Create", metadata: ownProtoMetadata() });
+    await tasks.create({ id: "update", name: "Update" });
+    await tasks.update("update", { metadata: ownProtoMetadata() });
+    await tasks.create({ id: "fire", name: "Fire" });
+    await tasks.fire("fire", "plan", { metadataPatch: ownProtoMetadata() });
+
+    for (const id of ["create", "update", "fire"]) {
+      const task = await tasks.get(id);
+      expect(Object.hasOwn(task.metadata, "__proto__")).toBe(true);
+      expect(task.metadata.__proto__).toEqual({ reviewer: "security" });
+    }
   });
 
   it("throws MalformedTaskError with the file path and field name", async () => {

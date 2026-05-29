@@ -267,6 +267,15 @@ function reservedFrontmatterKeys(mode: BackendDeps["frontmatterMode"]): Readonly
   return mode === "passthrough" ? PASSTHROUGH_RESERVED_FRONTMATTER_KEYS : RESERVED_FRONTMATTER_KEYS;
 }
 
+function setOwnValue(record: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(record, key, {
+    value,
+    enumerable: true,
+    writable: true,
+    configurable: true
+  });
+}
+
 function metadataFromFrontmatter(
   frontmatter: TaskRecord,
   mode: BackendDeps["frontmatterMode"]
@@ -276,7 +285,7 @@ function metadataFromFrontmatter(
 
   for (const [key, value] of Object.entries(frontmatter)) {
     if (!reservedKeys.has(key)) {
-      metadata[key] = value;
+      setOwnValue(metadata, key, value);
     }
   }
 
@@ -455,13 +464,13 @@ function createdFrontmatter(
 
   for (const [key, value] of Object.entries(defaults.metadata)) {
     if (!reservedKeys.has(key)) {
-      frontmatter[key] = value;
+      setOwnValue(frontmatter, key, value);
     }
   }
 
   for (const [key, value] of Object.entries(input.metadata ?? {})) {
     if (!reservedKeys.has(key)) {
-      frontmatter[key] = value;
+      setOwnValue(frontmatter, key, value);
     }
   }
 
@@ -494,7 +503,7 @@ function updatedFrontmatter(
 
   for (const [key, value] of Object.entries(patch.metadata ?? {})) {
     if (!reservedKeys.has(key)) {
-      nextFrontmatter[key] = value;
+      setOwnValue(nextFrontmatter, key, value);
     }
   }
 
@@ -535,7 +544,7 @@ function firedFrontmatter(
 
   for (const [key, value] of Object.entries(metadataPatch ?? {})) {
     if (!reservedKeys.has(key)) {
-      nextFrontmatter[key] = value;
+      setOwnValue(nextFrontmatter, key, value);
     }
   }
 

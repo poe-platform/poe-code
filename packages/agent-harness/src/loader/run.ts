@@ -1,6 +1,6 @@
-import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import os from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, parse, resolve, sep } from "node:path";
 
 import { resolveRunLogDir } from "@poe-code/agent-harness-tools";
 import {
@@ -103,6 +103,9 @@ export async function runHarnessPair(
       body
     };
     const snapshotPath = resolveSnapshotPath(pair.mdPath, options.snapshotPath);
+    if (options.snapshotPath === undefined) {
+      await assertDefaultSnapshotPathIsRegular(snapshotPath);
+    }
     const snapshotBackend = options.snapshotBackend ?? new FileSnapshotBackend(snapshotPath);
     const shouldResume = options.resume ?? true;
     if (!shouldResume) {
@@ -598,6 +601,28 @@ function resolveSnapshotPath(mdPath: string, snapshotPath: string | undefined): 
       "snapshot.json"
     )
   );
+}
+
+async function assertDefaultSnapshotPathIsRegular(snapshotPath: string): Promise<void> {
+  const absolutePath = resolve(snapshotPath);
+  const rootPath = parse(absolutePath).root;
+  let currentPath = rootPath;
+
+  for (const segment of absolutePath.slice(rootPath.length).split(sep).filter(Boolean)) {
+    currentPath = join(currentPath, segment);
+
+    try {
+      if ((await lstat(currentPath)).isSymbolicLink()) {
+        throw new Error("Default harness snapshot path must not contain symbolic links.");
+      }
+    } catch (error) {
+      if (hasErrorCode(error, "ENOENT")) {
+        return;
+      }
+
+      throw error;
+    }
+  }
 }
 
 async function readTextFile(path: string): Promise<string> {

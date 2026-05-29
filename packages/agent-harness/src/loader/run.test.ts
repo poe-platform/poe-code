@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import os from "node:os";
 import { dirname } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
@@ -1001,6 +1002,39 @@ describe("runHarnessPair", () => {
     expect(read).toHaveBeenCalledTimes(1);
     expect(vol.existsSync(snapshotPath)).toBe(false);
     expect(vol.existsSync(`${snapshotPath}.host-calls.json`)).toBe(false);
+  });
+
+  it("rejects a symlinked default snapshot directory before writing state", async () => {
+    vi.spyOn(os, "homedir").mockReturnValue("/home/test");
+    const mdPath = "/repo/harness/probe.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
+      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/outside/sentinel.txt": "untouched"
+    });
+    vol.mkdirSync("/home/test/.poe-code/logs/harness", { recursive: true });
+    vol.symlinkSync("/outside", "/home/test/.poe-code/logs/harness/probe");
+
+    await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).rejects.toThrow(
+      "Default harness snapshot path must not contain symbolic links."
+    );
+    expect(vol.existsSync("/outside/snapshot.json")).toBe(false);
+  });
+
+  it("rejects a symlinked default snapshot directory before reading replay state", async () => {
+    vi.spyOn(os, "homedir").mockReturnValue("/home/test");
+    const mdPath = "/repo/harness/probe.md";
+    vol.fromJSON({
+      [mdPath]: "---\nkind: probe\nversion: 1\n---\n",
+      "/repo/harness/probe.ajs": "export default () => 'done';",
+      "/outside/snapshot.json": JSON.stringify({ version: 1, sourceHash: "external" })
+    });
+    vol.mkdirSync("/home/test/.poe-code/logs/harness", { recursive: true });
+    vol.symlinkSync("/outside", "/home/test/.poe-code/logs/harness/probe");
+
+    await expect(runHarnessPair(mdPath, { modulesFor: () => ({}) })).rejects.toThrow(
+      "Default harness snapshot path must not contain symbolic links."
+    );
   });
 
   it("deep-merges frontmatterOverrides into the validated frontmatter before invoking the default export", async () => {

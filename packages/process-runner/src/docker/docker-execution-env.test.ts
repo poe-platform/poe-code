@@ -6,6 +6,11 @@ import { detectEngine } from "./engine.js";
 import { createHostRunner } from "../host/host-runner.js";
 import type { OpenSpec, RunHandle, RunSpec, Runner } from "../types.js";
 
+const workspaceTransferMocks = vi.hoisted(() => ({
+  uploadWorkspace: vi.fn(),
+  downloadWorkspace: vi.fn()
+}));
+
 vi.mock("node:fs/promises", () => ({
   readFile: vi.fn(),
   readdir: vi.fn()
@@ -28,12 +33,20 @@ vi.mock("../host/host-runner.js", () => ({
   createHostRunner: vi.fn()
 }));
 
+vi.mock("../workspace-transfer.js", async (importActual) => ({
+  ...(await importActual<typeof import("../workspace-transfer.js")>()),
+  uploadWorkspace: workspaceTransferMocks.uploadWorkspace,
+  downloadWorkspace: workspaceTransferMocks.downloadWorkspace
+}));
+
 describe("dockerExecutionEnvFactory", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(detectEngine).mockReturnValue("docker");
     vi.mocked(detectContext).mockReturnValue(null);
     vi.mocked(readdir).mockResolvedValue([]);
+    workspaceTransferMocks.uploadWorkspace.mockResolvedValue({ files: 0, bytes: 0, skipped: [] });
+    workspaceTransferMocks.downloadWorkspace.mockResolvedValue({ files: 0, bytes: 0, conflicts: [] });
   });
 
   it("opens a persistent container from a configured image with runtime mounts", async () => {
@@ -433,15 +446,9 @@ describe("dockerExecutionEnvFactory", () => {
     await expect(handle.result).resolves.toEqual({ exitCode: 1 });
   });
 
-  it("uploads and downloads the workspace through docker cp tarballs", async () => {
+  it("delegates workspace synchronization to the shared transfer policy", async () => {
     const runner = createCapturingRunner([
-      { exitCode: 0, stdout: ["container-id\n"] },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 }
+      { exitCode: 0, stdout: ["container-id\n"] }
     ]);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
     const env = await dockerExecutionEnvFactory.open(
@@ -459,15 +466,14 @@ describe("dockerExecutionEnvFactory", () => {
     await env.uploadWorkspace();
     await env.downloadWorkspace({ conflictPolicy: "overwrite" });
 
-    expect(runner.specs.map((spec) => [spec.command, spec.args?.[0], spec.args?.[1]])).toEqual([
-      ["docker", "run", "-d"],
-      ["tar", "-cf", expect.any(String)],
-      ["docker", "cp", expect.stringContaining(".tar")],
-      ["docker", "exec", "container-id"],
-      ["docker", "exec", "container-id"],
-      ["docker", "cp", expect.stringContaining("container-id:")],
-      ["tar", "-xf", expect.any(String)]
-    ]);
+    expect(workspaceTransferMocks.uploadWorkspace).toHaveBeenCalledWith(
+      expect.objectContaining({ cwd: "/repo", workspaceDir: "/repo", remoteFs: expect.any(Object) }),
+      { runner: undefined, workspaceExclude: [] }
+    );
+    expect(workspaceTransferMocks.downloadWorkspace).toHaveBeenCalledWith(
+      expect.objectContaining({ cwd: "/repo", workspaceDir: "/repo", remoteFs: expect.any(Object) }),
+      { conflictPolicy: "overwrite" }
+    );
   });
 
   it("skips workspace transfers when synchronization is disabled", async () => {
@@ -487,6 +493,8 @@ describe("dockerExecutionEnvFactory", () => {
       conflicts: []
     });
     expect(runner.specs).toHaveLength(1);
+    expect(workspaceTransferMocks.uploadWorkspace).not.toHaveBeenCalled();
+    expect(workspaceTransferMocks.downloadWorkspace).not.toHaveBeenCalled();
   });
 
   it("does not download workspace changes in upload-only mode", async () => {
@@ -505,14 +513,12 @@ describe("dockerExecutionEnvFactory", () => {
       conflicts: []
     });
     expect(runner.specs).toHaveLength(1);
+    expect(workspaceTransferMocks.downloadWorkspace).not.toHaveBeenCalled();
   });
 
-  it("passes upload ignore files to the host tar command in configured order", async () => {
+  it("passes upload exclusions to the shared workspace transfer policy", async () => {
     const runner = createCapturingRunner([
-      { exitCode: 0, stdout: ["container-id\n"] },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 }
+      { exitCode: 0, stdout: ["container-id\n"] }
     ]);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
     const env = await dockerExecutionEnvFactory.open(
@@ -530,28 +536,15 @@ describe("dockerExecutionEnvFactory", () => {
 
     await env.uploadWorkspace();
 
-    expect(runner.specs[1]).toMatchObject({
-      command: "tar",
-      args: [
-        "--exclude",
-        "node_modules",
-        "--exclude",
-        "dist",
-        "-cf",
-        expect.any(String),
-        "-C",
-        "/repo",
-        "."
-      ]
-    });
+    expect(workspaceTransferMocks.uploadWorkspace).toHaveBeenCalledWith(
+      expect.any(Object),
+      { runner: undefined, workspaceExclude: ["node_modules", "dist"] }
+    );
   });
 
-  it("refuses local overwrites on download when conflict policy is refuse", async () => {
+  it("passes refusal conflict policy to shared workspace transfer", async () => {
     const runner = createCapturingRunner([
-      { exitCode: 0, stdout: ["container-id\n"] },
-      { exitCode: 0 },
-      { exitCode: 0 },
-      { exitCode: 0 }
+      { exitCode: 0, stdout: ["container-id\n"] }
     ]);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
     const env = await dockerExecutionEnvFactory.open(
@@ -568,10 +561,10 @@ describe("dockerExecutionEnvFactory", () => {
 
     await env.downloadWorkspace({ conflictPolicy: "refuse" });
 
-    expect(runner.specs[3]).toMatchObject({
-      command: "tar",
-      args: ["-xkf", expect.any(String), "-C", "/repo"]
-    });
+    expect(workspaceTransferMocks.downloadWorkspace).toHaveBeenCalledWith(
+      expect.any(Object),
+      { conflictPolicy: "refuse" }
+    );
   });
 
   it("attaches to an existing container id", async () => {

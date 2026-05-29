@@ -1,12 +1,18 @@
 import { createHash, randomBytes } from "node:crypto";
 import { mkdtempSync, rmSync } from "node:fs";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { buildDockerRunArgs } from "./args.js";
 import { buildContextArgs, detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
 import { createHostRunner } from "../host/host-runner.js";
+import {
+  downloadWorkspace as downloadTransferredWorkspace,
+  uploadWorkspace as uploadTransferredWorkspace,
+  type WorkspaceTransferFileSystem,
+  type WorkspaceTransferRunnerOptions
+} from "../workspace-transfer.js";
 import type {
   DockerMount,
   Engine,
@@ -130,6 +136,12 @@ function createDockerEnv(input: {
   attachedJobId?: string;
 }): DockerOpenedEnv {
   const containerRef = input.id;
+  const workspaceTransferEnv = {
+    cwd: input.spec.cwd,
+    uploadDir: "/tmp/poe-workspace-transfer",
+    workspaceDir: input.spec.cwd,
+    remoteFs: createContainerWorkspaceFileSystem(input)
+  };
   let detachedJobContext: DetachedJobContext | null =
     input.attachedJobId === undefined
       ? null
@@ -155,94 +167,17 @@ function createDockerEnv(input: {
       if (readRunnerSync(input.spec.runner) === "none") {
         return { files: 0, bytes: 0, skipped: [] };
       }
-      const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-upload-"));
-      const archivePath = path.join(tempDir, "workspace.tar");
-      try {
-        const excludeArgs = input.spec.uploadIgnoreFiles.flatMap((ignored) => [
-          "--exclude",
-          ignored
-        ]);
-        const tarArgs = [...excludeArgs, "-cf", archivePath, "-C", input.spec.cwd, "."];
-        await runOrThrow(input.runner, {
-          command: "tar",
-          args: tarArgs,
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-        await runOrThrow(input.runner, {
-          command: input.engine,
-          args: [
-            ...buildContextArgs(input.engine, input.context),
-            "cp",
-            archivePath,
-            `${containerRef}:/tmp/poe-workspace-upload.tar`
-          ],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-        await runOrThrow(input.runner, {
-          command: input.engine,
-          args: [
-            ...buildContextArgs(input.engine, input.context),
-            "exec",
-            containerRef,
-            "sh",
-            "-c",
-            `mkdir -p ${shellQuote(input.spec.cwd)} && tar -xf /tmp/poe-workspace-upload.tar -C ${shellQuote(input.spec.cwd)}`
-          ],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-
-        return { files: 0, bytes: 0, skipped: [] };
-      } finally {
-        rmSync(tempDir, { recursive: true, force: true });
-      }
+      return uploadTransferredWorkspace(workspaceTransferEnv, {
+        runner: readWorkspaceTransferRunner(input.spec.runner),
+        workspaceExclude: input.spec.uploadIgnoreFiles
+      });
     },
     async downloadWorkspace(opts) {
       const sync = readRunnerSync(input.spec.runner);
       if (sync === "upload" || sync === "none") {
         return { files: 0, bytes: 0, conflicts: [] };
       }
-      const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-download-"));
-      const archivePath = path.join(tempDir, "workspace.tar");
-      try {
-        await runOrThrow(input.runner, {
-          command: input.engine,
-          args: [
-            ...buildContextArgs(input.engine, input.context),
-            "exec",
-            containerRef,
-            "sh",
-            "-c",
-            `tar -cf /tmp/poe-workspace-download.tar -C ${shellQuote(input.spec.cwd)} .`
-          ],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-        await runOrThrow(input.runner, {
-          command: input.engine,
-          args: [
-            ...buildContextArgs(input.engine, input.context),
-            "cp",
-            `${containerRef}:/tmp/poe-workspace-download.tar`,
-            archivePath
-          ],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-        const extractMode = opts.conflictPolicy === "refuse" ? "-xkf" : "-xf";
-        await runOrThrow(input.runner, {
-          command: "tar",
-          args: [extractMode, archivePath, "-C", input.spec.cwd],
-          stdout: "pipe",
-          stderr: "pipe"
-        });
-
-        return { files: 0, bytes: 0, conflicts: [] };
-      } finally {
-        rmSync(tempDir, { recursive: true, force: true });
-      }
+      return downloadTransferredWorkspace(workspaceTransferEnv, opts);
     },
     exec(spec) {
       return input.runner.exec({
@@ -559,6 +494,98 @@ function readRunnerSync(runner: unknown): "both" | "upload" | "none" | undefined
   }
   const sync = runner.sync;
   return sync === "both" || sync === "upload" || sync === "none" ? sync : undefined;
+}
+
+function readWorkspaceTransferRunner(runner: unknown): WorkspaceTransferRunnerOptions | undefined {
+  if (typeof runner !== "object" || runner === null) {
+    return undefined;
+  }
+  const record = runner as { upload_max_file_mb?: unknown; workspace?: unknown };
+  const uploadMaxFileMb =
+    typeof record.upload_max_file_mb === "number" ? record.upload_max_file_mb : undefined;
+  const workspace =
+    typeof record.workspace === "object" && record.workspace !== null
+      && Array.isArray((record.workspace as { exclude?: unknown }).exclude)
+      ? { exclude: (record.workspace as { exclude: unknown[] }).exclude.filter((value): value is string => typeof value === "string") }
+      : undefined;
+  return { ...(uploadMaxFileMb === undefined ? {} : { upload_max_file_mb: uploadMaxFileMb }), ...(workspace === undefined ? {} : { workspace }) };
+}
+
+function createContainerWorkspaceFileSystem(input: {
+  id: string;
+  runner: Runner;
+  engine: Engine;
+  context: string | null;
+}): WorkspaceTransferFileSystem {
+  const execShell = (command: string): Promise<string> => runAndRead(input.runner, {
+    command: input.engine,
+    args: [...buildContextArgs(input.engine, input.context), "exec", input.id, "sh", "-c", command],
+    stdout: "pipe",
+    stderr: "pipe"
+  });
+  async function readRemoteFile(targetPath: string): Promise<Buffer> {
+    const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-read-"));
+    const destinationPath = path.join(tempDir, "content");
+    try {
+      await runOrThrow(input.runner, {
+        command: input.engine,
+        args: [...buildContextArgs(input.engine, input.context), "cp", `${input.id}:${targetPath}`, destinationPath],
+        stdout: "pipe",
+        stderr: "pipe"
+      });
+      return await readFile(destinationPath);
+    } finally {
+      rmSync(tempDir, { recursive: true, force: true });
+    }
+  }
+  async function readFileFromContainer(targetPath: string): Promise<Buffer>;
+  async function readFileFromContainer(targetPath: string, encoding: BufferEncoding): Promise<string>;
+  async function readFileFromContainer(targetPath: string, encoding?: BufferEncoding): Promise<Buffer | string> {
+    const contents = await readRemoteFile(targetPath);
+    return encoding === undefined ? contents : contents.toString(encoding);
+  }
+  return {
+    async mkdir(targetPath) {
+      await execShell(`mkdir -p ${shellQuote(targetPath)}`);
+    },
+    async readdir(targetPath) {
+      const output = await execShell(`for item in ${shellQuote(targetPath)}/* ${shellQuote(targetPath)}/.[!.]* ${shellQuote(targetPath)}/..?*; do [ -e "$item" ] || continue; if [ -d "$item" ]; then kind=d; size=0; else kind=f; size=$(wc -c < "$item"); fi; printf '%s\\t%s\\t%s\\n' "\${item##*/}" "$kind" "$size"; done`);
+      return output.split("\n").filter(Boolean).map((line) => {
+        const [name = "", kind = "f"] = line.split("\t");
+        return { name, isFile: () => kind === "f", isDirectory: () => kind === "d" };
+      });
+    },
+    readFile: readFileFromContainer,
+    async writeFile(targetPath, data) {
+      const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-write-"));
+      const sourcePath = path.join(tempDir, "content");
+      try {
+        await writeFile(sourcePath, data);
+        await runOrThrow(input.runner, {
+          command: input.engine,
+          args: [...buildContextArgs(input.engine, input.context), "cp", sourcePath, `${input.id}:${targetPath}`],
+          stdout: "pipe",
+          stderr: "pipe"
+        });
+      } finally {
+        rmSync(tempDir, { recursive: true, force: true });
+      }
+    },
+    async stat(targetPath) {
+      const output = await execShell(`if [ -d ${shellQuote(targetPath)} ]; then printf 'd\\t0'; elif [ -f ${shellQuote(targetPath)} ]; then printf 'f\\t'; wc -c < ${shellQuote(targetPath)}; else printf 'missing'; fi`);
+      if (output.trim() === "missing") {
+        throw Object.assign(new Error(`ENOENT: ${targetPath}`), { code: "ENOENT" });
+      }
+      const [kind = "f", rawSize = "0"] = output.trim().split("\t");
+      return { size: Number(rawSize.trim()), isFile: () => kind === "f", isDirectory: () => kind === "d" };
+    },
+    async rename(oldPath, newPath) {
+      await execShell(`mv ${shellQuote(oldPath)} ${shellQuote(newPath)}`);
+    },
+    async rm(targetPath) {
+      await execShell(`rm -rf ${shellQuote(targetPath)}`);
+    }
+  };
 }
 
 function createContainerJob(

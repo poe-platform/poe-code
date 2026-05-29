@@ -1,4 +1,5 @@
 import path from "node:path";
+import { assertContainedPath } from "./path-boundary.js";
 
 export function resolveWorkflowPath(inputPath: string, cwd: string, homeDir: string): string {
   if (inputPath.startsWith("~/")) {
@@ -79,8 +80,21 @@ async function discoverFromDirectory(options: {
 
 export async function discoverWorkflowDocs(options: DiscoverDocsOptions): Promise<string[]> {
   const glob = options.glob ?? defaultGlobForSubDirectory(options.subDirectory);
-  const projectDirectory = path.join(options.cwd, ".poe-code", options.subDirectory);
-  const globalDirectory = path.join(options.homeDir, ".poe-code", options.subDirectory);
+  const projectRoot = path.join(options.cwd, ".poe-code");
+  const globalRoot = path.join(options.homeDir, ".poe-code");
+  const projectDirectory = path.join(projectRoot, options.subDirectory);
+  const globalDirectory = path.join(globalRoot, options.subDirectory);
+
+  assertContainedPath(
+    projectRoot,
+    projectDirectory,
+    "Workflow subdirectory must remain within the state root"
+  );
+  assertContainedPath(
+    globalRoot,
+    globalDirectory,
+    "Workflow subdirectory must remain within the state root"
+  );
 
   const [projectDocs, globalDocs] = await Promise.all([
     discoverFromDirectory({

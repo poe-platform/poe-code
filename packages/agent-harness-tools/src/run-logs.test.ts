@@ -33,6 +33,16 @@ describe("resolveRunLogDir", () => {
       })
     ).toBe("/home/test/.poe-code/logs/superintendent/my-feature");
   });
+
+  it("rejects runner names that escape the log root", () => {
+    expect(() =>
+      resolveRunLogDir({
+        planPath: "/repo/docs/plans/review.md",
+        runner: "../../../outside",
+        homeDir: "/home/test"
+      })
+    ).toThrow("Runner must remain within the log root");
+  });
 });
 
 describe("makeRunLogFileName", () => {

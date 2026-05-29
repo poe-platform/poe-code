@@ -156,4 +156,18 @@ describe("discoverWorkflowDocs", () => {
 
     expect(docs).toEqual([]);
   });
+
+  it("rejects subdirectories that escape the workflow state roots", async () => {
+    await expect(
+      discoverWorkflowDocs({
+        cwd: "/repo/project",
+        homeDir: "/home/test/user",
+        subDirectory: "../../secrets",
+        fs: createFs({
+          "/repo/secrets/outside.md": "# outside",
+          "/home/test/secrets/global.md": "# global"
+        })
+      })
+    ).rejects.toThrow("Workflow subdirectory must remain within the state root");
+  });
 });

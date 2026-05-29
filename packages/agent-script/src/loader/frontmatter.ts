@@ -27,7 +27,7 @@ export function splitFrontmatter(markdown: string): SplitFrontmatterResult {
   };
 }
 
-function readOpeningLineBreak(markdown: string): "\n" | "\r\n" | undefined {
+function readOpeningLineBreak(markdown: string): "\n" | "\r" | "\r\n" | undefined {
   if (!markdown.startsWith("---")) {
     return undefined;
   }
@@ -37,8 +37,8 @@ function readOpeningLineBreak(markdown: string): "\n" | "\r\n" | undefined {
     return "\n";
   }
 
-  if (nextCharacter === "\r" && markdown[4] === "\n") {
-    return "\r\n";
+  if (nextCharacter === "\r") {
+    return markdown[4] === "\n" ? "\r\n" : "\r";
   }
 
   return undefined;

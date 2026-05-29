@@ -233,6 +233,18 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
     if (preserveAfterExitHours < 0 || preserveAfterExitHours > 168) {
       throw new Error("preserve_after_exit_hours: expected a number from 0 to 168.");
     }
+    const cpu = parseOptionalNumber(record.cpu);
+    if (cpu !== undefined && cpu <= 0) {
+      throw new Error("cpu: expected a positive finite number.");
+    }
+    const memoryMb = parseOptionalNumber(record.memory_mb);
+    if (memoryMb !== undefined && memoryMb <= 0) {
+      throw new Error("memory_mb: expected a positive finite number.");
+    }
+    const timeoutMinutes = parseOptionalNumber(record.timeout_minutes);
+    if (timeoutMinutes !== undefined && timeoutMinutes < 0) {
+      throw new Error("timeout_minutes: expected a non-negative finite number.");
+    }
 
     return omitUndefined({
       ...shared,
@@ -242,9 +254,9 @@ export function parseRuntime(raw: unknown): RuntimeConfig {
       dockerfile: parseOptionalString(record.dockerfile),
       build_context: parseOptionalString(record.build_context),
       workspace_dir: parseWorkspaceDir(record.workspace_dir),
-      cpu: parseOptionalNumber(record.cpu),
-      memory_mb: parseOptionalNumber(record.memory_mb),
-      timeout_minutes: parseOptionalNumber(record.timeout_minutes),
+      cpu,
+      memory_mb: memoryMb,
+      timeout_minutes: timeoutMinutes,
       preserve_after_exit_hours: preserveAfterExitHours
     });
   }

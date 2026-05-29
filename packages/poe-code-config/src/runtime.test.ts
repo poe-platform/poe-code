@@ -200,6 +200,15 @@ describe("runtime config", () => {
     expect(() =>
       parseRuntime({ type: "e2b", template_id: "tmpl_123", preserve_after_exit_hours: 169 })
     ).toThrow("preserve_after_exit_hours: expected a number from 0 to 168");
+    expect(() => parseRuntime({ type: "e2b", template_id: "tmpl_123", timeout_minutes: -1 })).toThrow(
+      "timeout_minutes: expected a non-negative finite number."
+    );
+    expect(() => parseRuntime({ type: "e2b", template_id: "tmpl_123", cpu: -1 })).toThrow(
+      "cpu: expected a positive finite number."
+    );
+    expect(() => parseRuntime({ type: "e2b", template_id: "tmpl_123", memory_mb: -128 })).toThrow(
+      "memory_mb: expected a positive finite number."
+    );
     expect(() =>
       parseRuntime({ type: "e2b", template_id: "tmpl_123", workspace_dir: "workspace" })
     ).toThrow("workspace_dir: expected an absolute sandbox path");

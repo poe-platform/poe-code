@@ -2,6 +2,7 @@ import type { Command } from "commander";
 import { selectExecutionEnvFactory, type ExecutionEnvType } from "@poe-code/agent-harness-tools";
 import type { CliContainer } from "../../../container.js";
 import { createExecutionResources, resolveCommandFlags } from "../../shared.js";
+import { createRuntimeState } from "./shared.js";
 
 export function registerRuntimeJobsSandboxCommand(
   jobs: Command,
@@ -23,7 +24,23 @@ export function registerRuntimeJobsSandboxCommand(
         return;
       }
       const factory = selectExecutionEnvFactory(options.runtime as ExecutionEnvType);
-      const env = await factory.attach(envId);
+      const job = (await createRuntimeState(container).jobs.list())
+        .filter((entry) => entry.env_id === envId && entry.env_kind === options.runtime)
+        .sort((left, right) => Date.parse(right.started_at) - Date.parse(left.started_at))[0];
+      const env = await factory.attach(
+        envId,
+        job === undefined
+          ? undefined
+          : {
+              jobId: job.id,
+              tool: job.tool,
+              argv: job.argv,
+              cwd: job.cwd,
+              ...(job.reattach_context === undefined
+                ? {}
+                : { reattachContext: job.reattach_context })
+            }
+      );
       const handle = env.shell();
       process.exitCode = (await handle.result).exitCode;
     });

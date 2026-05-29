@@ -182,7 +182,14 @@ function createTestRuntimeFactory(
           return handle;
         },
         shell() {
-          throw new Error("shell is not used by runtime jobs tests");
+          return {
+            pid: 123,
+            stdin: null,
+            stdout: null,
+            stderr: null,
+            result: Promise.resolve({ exitCode: 0 }),
+            kill() {}
+          };
         },
         async close() {
           events.closed.push(envId);
@@ -775,6 +782,26 @@ describe("runtime command", () => {
 
     expect(runtimeEvents.attached).toEqual([]);
     expect(logs.join("\n")).toContain("Dry run");
+  });
+
+  it("opens a runtime sandbox shell in its saved job working directory", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-sandbox.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-sandbox", env_id: "env-sandbox", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-sandbox", createJobHandle({ status: "running" }));
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "sandbox", "env-sandbox"]);
+
+    expect(runtimeEvents.attached).toEqual([
+      { envId: "env-sandbox", context: expect.objectContaining({ cwd }) }
+    ]);
   });
 
   it("syncs a stopped job by default using conflict protection", async () => {

@@ -1,9 +1,11 @@
 import path from "node:path";
+import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 import {
   resolveGithubWorkflowAssetCopies,
   resolveGithubWorkflowPackageAssetCopies
 } from "../../../scripts/bundle-assets.mjs";
+import { buildGithubWorkflowAssets } from "../scripts/build-assets.js";
 
 describe("resolveGithubWorkflowAssetCopies", () => {
   it("includes variables.yaml alongside prompts and workflow templates", () => {
@@ -51,5 +53,24 @@ describe("resolveGithubWorkflowPackageAssetCopies", () => {
         extension: ".yaml"
       }
     ]);
+  });
+
+  it("rejects a symlinked asset output directory outside package dist", async () => {
+    const packageDir = "/repo/packages/github-workflows";
+    const distDir = path.join(packageDir, "dist");
+    const volume = Volume.fromJSON({
+      [path.join(packageDir, "src/prompts/probe.md")]: "prompt",
+      [path.join(packageDir, "src/workflow-templates/probe.yml")]: "workflow",
+      [path.join(packageDir, "src/variables.yaml")]: "variables",
+      "/outside/probe.md": "sentinel"
+    });
+    volume.mkdirSync(distDir, { recursive: true });
+    volume.symlinkSync("/outside", path.join(distDir, "prompts"));
+    const fs = createFsFromVolume(volume).promises;
+
+    await expect(buildGithubWorkflowAssets({ packageDir, distDir, fs })).rejects.toThrow(
+      "output directory must remain inside the package directory"
+    );
+    await expect(fs.readFile("/outside/probe.md", "utf8")).resolves.toBe("sentinel");
   });
 });

@@ -348,6 +348,25 @@ describe("claude-code service", () => {
     });
   });
 
+  it("restores overwritten Claude Code settings after unconfigure", async () => {
+    const originalSettings = {
+      theme: "dark",
+      env: {
+        ANTHROPIC_API_KEY: "user-key",
+        ANTHROPIC_BASE_URL: "https://user.example.test",
+        CUSTOM: "keep"
+      },
+      model: "user-model"
+    };
+    await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
+    await mockFsObj.writeFile(settingsPath, JSON.stringify(originalSettings, null, 2), { encoding: "utf8" });
+
+    await configureClaude();
+    await expect(unconfigureClaude()).resolves.toBe(true);
+
+    expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toEqual(originalSettings);
+  });
+
   it("runs the Claude CLI health check via runCommand when invoking the provider test", async () => {
     const runCommand = vi.fn().mockResolvedValue({
       stdout: '{"type":"text","text":"CLAUDE_CODE_OK"}\n',
@@ -551,6 +570,29 @@ describe("codex service", () => {
     ).rejects.toThrow();
   });
 
+  it("restores overwritten Codex selection after unconfigure", async () => {
+    const original = 'model_provider = "user-provider"\nmodel = "user-model"\n';
+    await mockFsObj.mkdir(configDir, { recursive: true });
+    await mockFsObj.writeFile(configPath, original, { encoding: "utf8" });
+
+    await configureCodex();
+    await expect(unconfigureCodex()).resolves.toBe(true);
+
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe(original);
+  });
+
+  it("restores the original Codex selection after repeated configure", async () => {
+    const original = 'model_provider = "user-provider"\nmodel = "user-model"\n';
+    await mockFsObj.mkdir(configDir, { recursive: true });
+    await mockFsObj.writeFile(configPath, original, { encoding: "utf8" });
+
+    await configureCodex();
+    await configureCodex({ model: "anthropic/claude-opus-4.7" });
+    await expect(unconfigureCodex()).resolves.toBe(true);
+
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe(original);
+  });
+
   it("writes freeform provider model as the active codex default", async () => {
     await configureCodex({
       provider: {
@@ -623,7 +665,7 @@ describe("codex service", () => {
     expect(poe.base_url).toBe("https://proxy.example.com/v1");
   });
 
-  it("removes generated config without restoring backup", async () => {
+  it("restores the generated backup and ignores legacy backup naming", async () => {
     await mockFsObj.mkdir(configDir, { recursive: true });
     await mockFsObj.writeFile(configPath, "original", { encoding: "utf8" });
 
@@ -637,7 +679,7 @@ describe("codex service", () => {
     const removed = await unconfigureCodex();
     expect(removed).toBe(true);
 
-    await expect(mockFsObj.readFile(configPath, "utf8")).rejects.toThrow();
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe("original");
   });
 
   it("deletes config when content matches template", async () => {
@@ -1993,6 +2035,23 @@ describe("gemini-cli service", () => {
     await expect(unconfigureGemini()).resolves.toBe(false);
   });
 
+  it("restores backed-up Gemini settings after unconfigure", async () => {
+    const originalSettings = {
+      theme: "dark",
+      security: { auth: { selectedType: "oauth-personal" } },
+      model: { name: "user-model" },
+      mcpServers: { local: { command: "node", args: ["server.js"] } }
+    };
+    await mockFsObj.mkdir(path.dirname(settingsPath), { recursive: true });
+    await mockFsObj.writeFile(settingsPath, JSON.stringify(originalSettings, null, 2), { encoding: "utf8" });
+
+    await configureGemini();
+    await expect(unconfigureGemini()).resolves.toBe(true);
+
+    expect(JSON.parse(await mockFsObj.readFile(settingsPath, "utf8"))).toEqual(originalSettings);
+    await expect(unconfigureGemini()).resolves.toBe(false);
+  });
+
   it("leaves unrelated Gemini user settings untouched when unconfiguring", async () => {
     const userSettings = {
       theme: "dark",
@@ -2294,6 +2353,29 @@ describe("goose service", () => {
     await expect(mockFsObj.readFile(configPath, "utf8")).rejects.toThrow();
     await expect(mockFsObj.readFile(providerPath, "utf8")).rejects.toThrow();
     await expect(mockFsObj.readFile(secretsPath, "utf8")).rejects.toThrow();
+  });
+
+  it("restores overwritten Goose settings after unconfigure", async () => {
+    const originalConfig = ["GOOSE_PROVIDER: user_provider", "GOOSE_MODEL: user_model", "theme: dark"].join("\n");
+    const originalProvider = '{"name":"user provider"}\n';
+    const originalSecrets = ["CUSTOM_POE_API_KEY: user-key", "USER_SECRET: keep"].join("\n");
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.mkdir(path.dirname(providerPath), { recursive: true });
+    await mockFsObj.writeFile(configPath, originalConfig, { encoding: "utf8" });
+    await mockFsObj.writeFile(providerPath, originalProvider, { encoding: "utf8" });
+    await mockFsObj.writeFile(secretsPath, originalSecrets, { encoding: "utf8" });
+
+    await configureGoose();
+    await expect(gooseService.gooseService.unconfigure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: {}
+    })).resolves.toBe(true);
+
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe(originalConfig);
+    await expect(mockFsObj.readFile(providerPath, "utf8")).resolves.toBe(originalProvider);
+    await expect(mockFsObj.readFile(secretsPath, "utf8")).resolves.toBe(originalSecrets);
   });
 
   it("only prunes Goose YAML settings when the active provider is Poe-managed", async () => {

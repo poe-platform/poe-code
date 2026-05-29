@@ -121,6 +121,8 @@ function describeMutation(kind: string, targetPath?: string): string {
       return `Remove directory ${displayPath}`;
     case "backup":
       return `Backup ${displayPath}`;
+    case "restoreBackup":
+      return `Restore ${displayPath}`;
     case "templateWrite":
       return `Write ${displayPath}`;
     case "chmod":
@@ -205,6 +207,8 @@ export async function applyMutation(
       return applyChmod(mutation, context, options);
     case "backup":
       return applyBackup(mutation, context, options);
+    case "restoreBackup":
+      return applyRestoreBackup(mutation, context, options);
     case "configMerge":
       return applyConfigMerge(mutation, context, options);
     case "configPrune":
@@ -436,8 +440,15 @@ async function applyBackup(
     targetPath
   };
 
+  if (mutation.once && (await findLatestGeneratedBackup(context.fs, targetPath)) !== null) {
+    return {
+      outcome: { changed: false, effect: "none", detail: "noop" },
+      details
+    };
+  }
+
   const content = await readFileIfExists(context.fs, targetPath);
-  if (content === null) {
+  if (content === null && !mutation.once) {
     return {
       outcome: { changed: false, effect: "none", detail: "noop" },
       details
@@ -445,13 +456,13 @@ async function applyBackup(
   }
 
   if (!context.dryRun) {
-    const baseBackupPath = `${targetPath}.backup-${createTimestamp()}`;
+    const baseBackupPath = `${targetPath}.backup-${createTimestamp()}${content === null ? ".missing" : ""}`;
     let attempt = 0;
     while (true) {
       const backupPath = attempt === 0 ? baseBackupPath : `${baseBackupPath}-${attempt}`;
       try {
         await assertRegularWriteTarget(context.fs, backupPath);
-        await context.fs.writeFile(backupPath, content, { encoding: "utf8", flag: "wx" });
+        await context.fs.writeFile(backupPath, content ?? "", { encoding: "utf8", flag: "wx" });
         break;
       } catch (error) {
         if (!isAlreadyExists(error)) {
@@ -466,6 +477,99 @@ async function applyBackup(
     outcome: { changed: true, effect: "copy", detail: "backup" },
     details
   };
+}
+
+async function applyRestoreBackup(
+  mutation: Extract<Mutation, { kind: "restoreBackup" }>,
+  context: MutationContext,
+  options: MutationOptions
+): Promise<{ outcome: MutationOutcome; details: MutationDetails }> {
+  const rawPath = resolveValue(mutation.target, options);
+  const targetPath = resolvePath(rawPath, context.homeDir, context.pathMapper);
+  const details: MutationDetails = {
+    kind: mutation.kind,
+    label: mutation.label ?? describeMutation(mutation.kind, targetPath),
+    targetPath
+  };
+  const backup = await findLatestGeneratedBackup(context.fs, targetPath);
+
+  if (backup === null) {
+    return { outcome: { changed: false, effect: "none", detail: "noop" }, details };
+  }
+
+  if (!context.dryRun) {
+    await assertRegularWriteTarget(context.fs, backup.path);
+    if (backup.originallyMissing) {
+      try {
+        await context.fs.unlink(targetPath);
+      } catch (error) {
+        if (!isNotFound(error)) {
+          throw error;
+        }
+      }
+    } else {
+      const content = await context.fs.readFile(backup.path, "utf8");
+      await writeAtomically(context.fs, targetPath, content);
+    }
+    await context.fs.unlink(backup.path);
+  }
+
+  return { outcome: { changed: true, effect: "copy", detail: "restore" }, details };
+}
+
+async function findLatestGeneratedBackup(
+  fs: FileSystem,
+  targetPath: string
+): Promise<{ path: string; originallyMissing: boolean } | null> {
+  const separatorIndex = targetPath.lastIndexOf("/");
+  const directoryPath = separatorIndex <= 0 ? "/" : targetPath.slice(0, separatorIndex);
+  const targetName = targetPath.slice(separatorIndex + 1);
+  let entries: string[];
+
+  try {
+    entries = await fs.readdir(directoryPath);
+  } catch (error) {
+    if (isNotFound(error)) {
+      return null;
+    }
+    throw error;
+  }
+
+  const backupName = entries
+    .filter((entry) => isGeneratedBackupName(entry, targetName))
+    .sort()
+    .at(-1);
+  return backupName === undefined
+    ? null
+    : {
+        path: `${directoryPath}/${backupName}`,
+        originallyMissing: backupName.endsWith(".missing")
+      };
+}
+
+function isGeneratedBackupName(entry: string, targetName: string): boolean {
+  const prefix = `${targetName}.backup-`;
+  if (!entry.startsWith(prefix)) {
+    return false;
+  }
+
+  const suffix = entry.slice(prefix.length);
+  const timestamp = suffix.slice(0, 24);
+  if (timestamp.length !== 24 || timestamp[4] !== "-" || timestamp[7] !== "-" || timestamp[10] !== "T" || timestamp[13] !== "-" || timestamp[16] !== "-" || timestamp[19] !== "-" || timestamp[23] !== "Z") {
+    return false;
+  }
+  const parsedTimestamp = `${timestamp.slice(0, 13)}:${timestamp.slice(14, 16)}:${timestamp.slice(17, 19)}.${timestamp.slice(20)}`;
+  if (Number.isNaN(Date.parse(parsedTimestamp))) {
+    return false;
+  }
+  const collisionSuffix = suffix.slice(24);
+  if (collisionSuffix.length === 0) {
+    return true;
+  }
+  if (collisionSuffix === ".missing") {
+    return true;
+  }
+  return collisionSuffix[0] === "-" && collisionSuffix.slice(1).length > 0 && [...collisionSuffix.slice(1)].every((character) => character >= "0" && character <= "9");
 }
 
 // ============================================================================

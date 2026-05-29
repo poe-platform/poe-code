@@ -176,7 +176,7 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.codex" }),
-      fileMutation.backup({ target: "~/.codex/config.toml" }),
+      fileMutation.backup({ target: "~/.codex/config.toml", once: true }),
       configMutation.transform({
         target: "~/.codex/config.toml",
         transform: (document, ctx) => {
@@ -216,7 +216,8 @@ export const codexService = createProvider<CodexConfigureContext, CodexUnconfigu
             content: result.empty ? null : document
           };
         }
-      })
+      }),
+      fileMutation.restoreBackup({ target: "~/.codex/config.toml" })
     ]
   },
   install: CODEX_INSTALL_DEFINITION

@@ -171,6 +171,12 @@ export interface ChmodMutation extends BaseMutation {
 export interface BackupMutation extends BaseMutation {
   kind: "backup";
   target: ValueResolver<string>;
+  once?: boolean;
+}
+
+export interface RestoreBackupMutation extends BaseMutation {
+  kind: "restoreBackup";
+  target: ValueResolver<string>;
 }
 
 // Template mutations
@@ -204,6 +210,7 @@ export type Mutation =
   | RemoveFileMutation
   | ChmodMutation
   | BackupMutation
+  | RestoreBackupMutation
   | TemplateWriteMutation
   | TemplateMergeTomlMutation
   | TemplateMergeJsonMutation;
@@ -225,7 +232,8 @@ export type MutationDetail =
   | "update"
   | "delete"
   | "noop"
-  | "backup";
+  | "backup"
+  | "restore";
 
 export interface MutationOutcome {
   changed: boolean;

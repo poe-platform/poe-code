@@ -4,6 +4,7 @@ import type {
   RemoveFileMutation,
   ChmodMutation,
   BackupMutation,
+  RestoreBackupMutation,
   ValueResolver
 } from "../types.js";
 
@@ -45,6 +46,15 @@ export interface ChmodOptions {
 
 export interface BackupOptions {
   /** Target file path to backup (must start with ~) */
+  target: ValueResolver<string>;
+  /** Keep the first baseline only, including an originally missing target. */
+  once?: boolean;
+  /** Optional human-readable label for logging */
+  label?: string;
+}
+
+export interface RestoreBackupOptions {
+  /** Target file path whose latest generated backup should be restored. */
   target: ValueResolver<string>;
   /** Optional human-readable label for logging */
   label?: string;
@@ -92,6 +102,15 @@ function backup(options: BackupOptions): BackupMutation {
   return {
     kind: "backup",
     target: options.target,
+    once: options.once,
+    label: options.label
+  };
+}
+
+function restoreBackup(options: RestoreBackupOptions): RestoreBackupMutation {
+  return {
+    kind: "restoreBackup",
+    target: options.target,
     label: options.label
   };
 }
@@ -101,5 +120,6 @@ export const fileMutation = {
   remove,
   removeDirectory,
   chmod,
-  backup
+  backup,
+  restoreBackup
 };

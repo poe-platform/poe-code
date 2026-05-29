@@ -141,7 +141,7 @@ export const geminiCliService = createProvider<
   manifest: {
     configure: [
       fileMutation.ensureDirectory({ path: "~/.gemini" }),
-      fileMutation.backup({ target: "~/.gemini/settings.json" }),
+      fileMutation.backup({ target: "~/.gemini/settings.json", once: true }),
       configMutation.transform({
         target: "~/.gemini/settings.json",
         transform: (document) => {
@@ -222,7 +222,8 @@ export const geminiCliService = createProvider<
             content: Object.keys(content).length === 0 ? null : content
           };
         }
-      })
+      }),
+      fileMutation.restoreBackup({ target: "~/.gemini/settings.json" })
     ]
   },
   install: GEMINI_CLI_INSTALL_DEFINITION

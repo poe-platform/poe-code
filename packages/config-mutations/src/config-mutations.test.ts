@@ -1095,6 +1095,55 @@ describe("runMutations", () => {
       expect(backups).toHaveLength(2);
       expect(backups.map((filePath) => fs.files[filePath])).toEqual(["first", "second"]);
     });
+
+    it("restores and consumes the latest generated backup atomically", async () => {
+      vi.useFakeTimers();
+      vi.setSystemTime(new Date("2026-05-25T12:34:56.789Z"));
+      const fs = createMockFs({ "~/.settings.json": "original" }, homeDir);
+
+      await runMutations([fileMutation.backup({ target: "~/.settings.json" })], { fs, homeDir });
+      await fs.writeFile(`${homeDir}/.settings.json`, "managed", { encoding: "utf8" });
+      const result = await runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir });
+      vi.useRealTimers();
+
+      expect(result.changed).toBe(true);
+      expect(fs.files[`${homeDir}/.settings.json`]).toBe("original");
+      expect(Object.keys(fs.files).filter((filePath) => filePath.includes(".backup-"))).toEqual([]);
+      await expect(runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir })).resolves.toMatchObject({ changed: false });
+    });
+
+    it("ignores unrelated backup-prefix siblings during restoration", async () => {
+      const fs = createMockFs({
+        "~/.settings.json": "managed",
+        "~/.settings.json.backup-not-generated": "poison"
+      }, homeDir);
+
+      await runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir });
+
+      expect(fs.files[`${homeDir}/.settings.json`]).toBe("managed");
+    });
+
+    it("keeps the first backup baseline across repeated managed writes", async () => {
+      const fs = createMockFs({ "~/.settings.json": "original" }, homeDir);
+
+      await runMutations([fileMutation.backup({ target: "~/.settings.json", once: true })], { fs, homeDir });
+      await fs.writeFile(`${homeDir}/.settings.json`, "managed one", { encoding: "utf8" });
+      await runMutations([fileMutation.backup({ target: "~/.settings.json", once: true })], { fs, homeDir });
+      await fs.writeFile(`${homeDir}/.settings.json`, "managed two", { encoding: "utf8" });
+      await runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir });
+
+      expect(fs.files[`${homeDir}/.settings.json`]).toBe("original");
+    });
+
+    it("restores an originally absent target by removing the generated file", async () => {
+      const fs = createMockFs({}, homeDir);
+
+      await runMutations([fileMutation.backup({ target: "~/.settings.json", once: true })], { fs, homeDir });
+      await fs.writeFile(`${homeDir}/.settings.json`, "managed", { encoding: "utf8" });
+      await runMutations([fileMutation.restoreBackup({ target: "~/.settings.json" })], { fs, homeDir });
+
+      await expect(fs.readFile(`${homeDir}/.settings.json`, "utf8")).rejects.toThrow();
+    });
   });
 
   describe("templateMutation.write", () => {

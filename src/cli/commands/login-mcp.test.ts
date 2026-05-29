@@ -1049,6 +1049,21 @@ describe("mcp command", () => {
     expect(logs.some((line) => line.includes("No MCP configuration found for codex."))).toBe(true);
     expect(logs.some((line) => line.includes("Removed MCP configuration from codex."))).toBe(false);
   });
+
+  it("unconfigures only the generated Poe Code server definition", async () => {
+    const { program } = await createMcpProgram();
+
+    await program.parseAsync(["node", "cli", "mcp", "unconfigure", "codex"]);
+
+    expect(unconfigureMock).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({
+        name: "poe-code",
+        config: expect.objectContaining({ transport: "stdio" })
+      }),
+      expect.any(Object)
+    );
+  });
 });
 
 describe("mcp server tools", () => {

@@ -186,7 +186,7 @@ export function registerMcpCommand(
 
       const resolvedAgent = support.id ?? agent;
       let removed = false;
-      await unconfigure(resolvedAgent, "poe-code", {
+      await unconfigure(resolvedAgent, createMcpServerEntry(support.config?.mcpOutputFormat), {
         fs: container.fs,
         homeDir: container.env.homeDir,
         platform: process.platform as "darwin" | "linux" | "win32",

@@ -97,6 +97,12 @@ export async function configure(
             return { changed: false, content: document };
           }
 
+          if (existingServer !== undefined && server.enabled !== false) {
+            throw new Error(
+              `MCP server "${server.name}" already exists with different configuration in ${configPath}.`
+            );
+          }
+
           const newServers = {
             ...servers,
             [server.name]: shapedServer
@@ -120,7 +126,7 @@ export async function configure(
 
 export async function unconfigure(
   agentId: string,
-  serverName: string,
+  server: string | McpServerEntry,
   options: ApplyOptions
 ): Promise<void> {
   if (!isSupported(agentId)) {
@@ -129,16 +135,34 @@ export async function unconfigure(
 
   const config = getAgentConfig(agentId)!;
   const configPath = resolveConfigPath(config, options.platform);
+  const serverName = typeof server === "string" ? server : server.name;
+  const expectedServer =
+    typeof server === "string" ? undefined : getShapeTransformer(config.shape)(server);
 
   await runMutations(
     [
-      configMutation.prune({
+      configMutation.transform({
         target: configPath,
         format: config.format,
-        shape: {
-          [config.configKey]: {
-            [serverName]: {}
+        transform: (document) => {
+          const servers = resolveServerMap(document, config.configKey);
+          if (!Object.hasOwn(servers, serverName)) {
+            return { changed: false, content: document };
           }
+          if (expectedServer !== undefined && !isDeepStrictEqual(servers[serverName], expectedServer)) {
+            return { changed: false, content: document };
+          }
+          const newServers = { ...servers };
+          delete newServers[serverName];
+          if (Object.keys(newServers).length === 0) {
+            const newDocument = { ...document };
+            delete newDocument[config.configKey];
+            return { changed: true, content: newDocument };
+          }
+          return {
+            changed: true,
+            content: mergeServerMap(document, config.configKey, newServers)
+          };
         },
         label: `Remove ${serverName} from ${configPath}`
       })

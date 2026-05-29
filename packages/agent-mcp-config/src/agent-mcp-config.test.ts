@@ -47,6 +47,26 @@ describe("configure", () => {
       });
     });
 
+    it("refuses to overwrite a different user-owned server with the same name", async () => {
+      const fs = createMockFs({
+        "~/.claude.json": JSON.stringify({
+          mcpServers: { "poe-code": { command: "user-custom-command" } }
+        })
+      }, HOME_DIR);
+      const server: McpServerEntry = {
+        name: "poe-code",
+        config: { transport: "stdio", command: "npx", args: ["poe-code", "mcp"] }
+      };
+
+      await expect(configure("claude-code", server, createOptions(fs))).rejects.toThrow(
+        'MCP server "poe-code" already exists'
+      );
+
+      expect(JSON.parse(fs.getContent("/home/test/.claude.json")!)).toEqual({
+        mcpServers: { "poe-code": { command: "user-custom-command" } }
+      });
+    });
+
     it("accepts aliases", async () => {
       const fs = createMockFs({}, HOME_DIR);
       const server: McpServerEntry = {
@@ -579,6 +599,27 @@ describe("unconfigure", () => {
     const content = JSON.parse(fs.getContent("/home/test/.claude.json")!);
     expect(content).toEqual({
       mcpServers: { other: { command: "test" } }
+    });
+  });
+
+  it("does not remove a different user-owned server when matching ownership is required", async () => {
+    const fs = createMockFs(
+      {
+        "~/.claude.json": JSON.stringify({
+          mcpServers: { "poe-code": { command: "user-custom-command" } }
+        })
+      },
+      HOME_DIR
+    );
+
+    await unconfigure(
+      "claude-code",
+      { name: "poe-code", config: { transport: "stdio", command: "npx", args: ["poe-code", "mcp"] } },
+      createOptions(fs)
+    );
+
+    expect(JSON.parse(fs.getContent("/home/test/.claude.json")!)).toEqual({
+      mcpServers: { "poe-code": { command: "user-custom-command" } }
     });
   });
 

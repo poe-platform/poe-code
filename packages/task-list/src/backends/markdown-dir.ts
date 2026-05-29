@@ -1160,6 +1160,16 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
       throw new TaskNotFoundError(`Task "${sourceListName}/${id}" not found.`);
     }
 
+    const sourceFile = await readTaskFile(
+      deps.fs,
+      sourceListName,
+      id,
+      sourceLocation.path,
+      validStates,
+      stateMachine.initial,
+      deps.frontmatterMode
+    );
+
     const targetListDir = listPath(deps.path, layout, targetListName);
     await rejectSymbolicLinkComponents(deps.fs, targetListDir);
     await deps.fs.mkdir(targetListDir, { recursive: true });
@@ -1182,16 +1192,14 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
       await deps.fs.mkdir(archivedTargetDir, { recursive: true });
       const archivedTargetPath = archivedTaskPath(deps.path, layout, targetListName, id);
       await deps.fs.rename(sourceLocation.path, archivedTargetPath);
-      const file = await readTaskFile(
-        deps.fs,
+      return createTask(
         targetListName,
         id,
-        archivedTargetPath,
-        validStates,
-        stateMachine.initial,
-        deps.frontmatterMode
+        sourceFile.frontmatter,
+        sourceFile.task.description,
+        deps.frontmatterMode,
+        archivedTargetPath
       );
-      return file.task;
     }
 
     const maxOrder = targetEntries.reduce(
@@ -1203,16 +1211,14 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
     const targetPath = path.join(targetListDir, targetFilename);
 
     await deps.fs.rename(sourceLocation.path, targetPath);
-    const file = await readTaskFile(
-      deps.fs,
+    return createTask(
       targetListName,
       id,
-      targetPath,
-      validStates,
-      stateMachine.initial,
-      deps.frontmatterMode
+      sourceFile.frontmatter,
+      sourceFile.task.description,
+      deps.frontmatterMode,
+      targetPath
     );
-    return file.task;
   };
 
   return {

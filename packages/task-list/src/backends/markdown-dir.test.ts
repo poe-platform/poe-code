@@ -1043,4 +1043,48 @@ version: 1
 
     await Promise.all([alphaUpdate, betaUpdate]);
   });
+
+  it("does not reject a committed cross-list move due to a target read failure", async () => {
+    const storage = createFs({
+      "/repo/tasks/planning/01-shared.md": `---
+name: Shared
+state: draft
+---
+
+Valid body`,
+      "/repo/tasks/doing/01-existing.md": `---
+name: Existing
+state: draft
+---
+`
+    });
+    let moved = false;
+    const fs: TaskListFs = {
+      ...storage.fs,
+      rename: async (fromPath, toPath) => {
+        await storage.fs.rename(fromPath, toPath);
+        if (fromPath === "/repo/tasks/planning/01-shared.md") {
+          moved = true;
+        }
+      },
+      readFile: async (filePath, encoding) => {
+        if (moved && filePath === "/repo/tasks/doing/02-shared.md") {
+          throw new Error("simulated target read failure");
+        }
+        return storage.fs.readFile(filePath, encoding);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+
+    await expect(taskList.moveBetweenLists("planning/shared", "doing")).resolves.toMatchObject({
+      list: "doing",
+      id: "shared",
+      description: "Valid body"
+    });
+  });
 });

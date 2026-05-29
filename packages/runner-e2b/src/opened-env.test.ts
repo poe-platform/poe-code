@@ -37,6 +37,7 @@ describe("createOpenedE2bEnv", () => {
     };
     const sandbox = createSandboxMock();
     sandbox.commands.run.mockResolvedValue(commandHandle);
+    sandbox.commands.sendStdin.mockResolvedValue(undefined);
     const env = createOpenedE2bEnv({
       sandbox,
       runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
@@ -88,6 +89,7 @@ describe("createOpenedE2bEnv", () => {
     };
     const sandbox = createSandboxMock();
     sandbox.commands.run.mockResolvedValue(commandHandle);
+    sandbox.commands.sendStdin.mockResolvedValue(undefined);
     const env = createOpenedE2bEnv({
       sandbox,
       runtime: createRuntime(),
@@ -147,6 +149,45 @@ describe("createOpenedE2bEnv", () => {
     expect(sandbox.commands.closeStdin).toHaveBeenCalledWith(321);
   });
 
+  it("forwards inherited stdin to a running E2B command and cleans up listeners", async () => {
+    let resolveWait!: (result: { exitCode: number }) => void;
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          resolveWait = resolve;
+        })
+      ),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    sandbox.commands.sendStdin.mockResolvedValue(undefined);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+    const listenersBefore = process.stdin.listenerCount("data");
+
+    const handle = env.exec({ command: "cat", stdin: "inherit", stdout: "pipe", stderr: "pipe" });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    expect(process.stdin.listenerCount("data")).toBe(listenersBefore + 1);
+    process.stdin.emit("data", Buffer.from("hello"));
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(sandbox.commands.run).toHaveBeenCalledWith(
+      "'cat'",
+      expect.objectContaining({ stdin: true })
+    );
+    await vi.waitFor(() => {
+      expect(sandbox.commands.sendStdin).toHaveBeenCalledWith(321, Buffer.from("hello"));
+    });
+    resolveWait({ exitCode: 0 });
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(process.stdin.listenerCount("data")).toBe(listenersBefore);
+  });
+
   it("rejects when the remote command API fails before running a command", async () => {
     const sandbox = createSandboxMock();
     sandbox.commands.run.mockRejectedValue(new Error("sandbox transport offline"));
@@ -167,6 +208,7 @@ describe("createOpenedE2bEnv", () => {
     };
     const sandbox = createSandboxMock();
     sandbox.commands.run.mockResolvedValue(commandHandle);
+    sandbox.commands.sendStdin.mockResolvedValue(undefined);
     const env = createOpenedE2bEnv({
       sandbox,
       runtime: createRuntime(),
@@ -549,6 +591,7 @@ describe("createOpenedE2bEnv", () => {
     };
     const sandbox = createSandboxMock();
     sandbox.pty.create.mockResolvedValue(ptyHandle);
+    sandbox.pty.sendInput.mockResolvedValue(undefined);
     const env = createOpenedE2bEnv({
       sandbox,
       runtime: { ...createRuntime(), workspace_dir: "/sandbox/workspace" },
@@ -565,6 +608,34 @@ describe("createOpenedE2bEnv", () => {
       envs: { HOME: "/home/user" },
       onData: expect.any(Function)
     });
+  });
+
+  it("forwards inherited stdin to an E2B PTY and cleans up listeners", async () => {
+    let resolveWait!: (result: { exitCode: number }) => void;
+    const ptyHandle = {
+      pid: 12,
+      wait: vi.fn().mockReturnValue(
+        new Promise((resolve) => {
+          resolveWait = resolve;
+        })
+      ),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockResolvedValue(ptyHandle);
+    sandbox.pty.sendInput.mockResolvedValue(undefined);
+    const env = createOpenedE2bEnv({ sandbox, runtime: createRuntime(), spec: createSpec() });
+    const listenersBefore = process.stdin.listenerCount("data");
+
+    const handle = env.shell();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    process.stdin.emit("data", Buffer.from("hello"));
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(sandbox.pty.sendInput).toHaveBeenCalledWith(12, Buffer.from("hello"));
+    resolveWait({ exitCode: 0 });
+    await expect(handle.result).resolves.toEqual({ exitCode: 0 });
+    expect(process.stdin.listenerCount("data")).toBe(listenersBefore);
   });
 
   it("rejects when the remote PTY API cannot create a shell", async () => {

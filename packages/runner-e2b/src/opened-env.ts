@@ -208,7 +208,7 @@ function runE2bCommand(
     background: true,
     cwd: spec.cwd,
     envs: spec.env,
-    stdin: spec.stdin === "pipe",
+    stdin: spec.stdin === "pipe" || spec.stdin === "inherit",
     onStdout(data) {
       stdout?.write(data);
       if (spec.stdout === "inherit") {
@@ -230,7 +230,7 @@ function runE2bCommand(
     void started.then((handle) => ignoreAsyncFailure(handle.kill()), () => undefined);
   });
   const stdin =
-    spec.stdin === "pipe"
+    spec.stdin === "pipe" || spec.stdin === "inherit"
       ? new Writable({
           write(chunk, _encoding, callback) {
             started
@@ -253,6 +253,21 @@ function runE2bCommand(
           }
         })
       : null;
+  const cleanupInheritedStdin =
+    spec.stdin === "inherit"
+      ? bindInheritedStdin(
+          (chunk) => {
+            void started
+              .then((handle) => sandbox.commands.sendStdin(handle.pid, toInputBuffer(chunk)))
+              .catch(() => undefined);
+          },
+          () => {
+            if (sandbox.commands.closeStdin !== undefined) {
+              void started.then((handle) => sandbox.commands.closeStdin!(handle.pid)).catch(() => undefined);
+            }
+          }
+        )
+      : () => {};
   const result = started
     .then((handle) => {
       e2bHandle = handle;
@@ -261,12 +276,14 @@ function runE2bCommand(
     .then(
       (result) => {
         cleanupAbort();
+        cleanupInheritedStdin();
         stdout?.end();
         stderr?.end();
         return { exitCode: result.exitCode ?? 0 };
       },
       (error: unknown) => {
         cleanupAbort();
+        cleanupInheritedStdin();
         stdout?.end();
         stderr?.end();
         if (isExitError(error)) {
@@ -280,7 +297,7 @@ function runE2bCommand(
     get pid() {
       return e2bHandle?.pid ?? null;
     },
-    stdin,
+    stdin: spec.stdin === "pipe" ? stdin : null,
     stdout,
     stderr,
     result,
@@ -352,6 +369,14 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
       }
     }
   });
+  const cleanupInheritedStdin =
+    spec.stdin === "inherit"
+      ? bindInheritedStdin((chunk) => {
+          void started
+            .then((handle) => sandbox.pty.sendInput(handle.pid, toInputBuffer(chunk)))
+            .catch(() => undefined);
+        })
+      : () => {};
   const result = started
     .then((handle) => {
       handleRef = handle;
@@ -359,10 +384,12 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
     })
     .then(
       (result) => {
+        cleanupInheritedStdin();
         stdout.end();
         return { exitCode: result.exitCode ?? 0 };
       },
       (error: unknown) => {
+        cleanupInheritedStdin();
         stdout.end();
         throw error;
       }
@@ -372,7 +399,7 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
     get pid() {
       return handleRef?.pid ?? null;
     },
-    stdin: spec.stdin === "inherit" ? process.stdin : stdin,
+    stdin,
     stdout: spec.stdout === "inherit" ? null : stdout,
     stderr: null,
     result,
@@ -382,6 +409,23 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
       }
     }
   };
+}
+
+function bindInheritedStdin(onData: (chunk: string | Buffer) => void, onEnd?: () => void): () => void {
+  process.stdin.on("data", onData);
+  if (onEnd !== undefined) {
+    process.stdin.on("end", onEnd);
+  }
+  return () => {
+    process.stdin.off("data", onData);
+    if (onEnd !== undefined) {
+      process.stdin.off("end", onEnd);
+    }
+  };
+}
+
+function toInputBuffer(chunk: string | Buffer): Buffer {
+  return Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
 }
 
 async function runRemoteOrThrow(sandbox: E2bSandbox, command: string): Promise<void> {

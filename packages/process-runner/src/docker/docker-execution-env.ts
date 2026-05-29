@@ -152,6 +152,9 @@ function createDockerEnv(input: {
       detachedJobContext = context;
     },
     async uploadWorkspace() {
+      if (readRunnerSync(input.spec.runner) === "none") {
+        return { files: 0, bytes: 0, skipped: [] };
+      }
       const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-upload-"));
       const archivePath = path.join(tempDir, "workspace.tar");
       try {
@@ -197,6 +200,10 @@ function createDockerEnv(input: {
       }
     },
     async downloadWorkspace(opts) {
+      const sync = readRunnerSync(input.spec.runner);
+      if (sync === "upload" || sync === "none") {
+        return { files: 0, bytes: 0, conflicts: [] };
+      }
       const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-download-"));
       const archivePath = path.join(tempDir, "workspace.tar");
       try {
@@ -544,6 +551,14 @@ function buildEnvArgs(env: RunSpec["env"]): string[] {
 
 function createContainerName(): string {
   return `poe-env-${randomBytes(6).toString("hex")}`;
+}
+
+function readRunnerSync(runner: unknown): "both" | "upload" | "none" | undefined {
+  if (typeof runner !== "object" || runner === null || !("sync" in runner)) {
+    return undefined;
+  }
+  const sync = runner.sync;
+  return sync === "both" || sync === "upload" || sync === "none" ? sync : undefined;
 }
 
 function createContainerJob(

@@ -470,6 +470,43 @@ describe("dockerExecutionEnvFactory", () => {
     ]);
   });
 
+  it("skips workspace transfers when synchronization is disabled", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["container-id\n"] }]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runner: { sync: "none" },
+        hostRunner: runner
+      })
+    );
+
+    await expect(env.uploadWorkspace()).resolves.toEqual({ files: 0, bytes: 0, skipped: [] });
+    await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toEqual({
+      files: 0,
+      bytes: 0,
+      conflicts: []
+    });
+    expect(runner.specs).toHaveLength(1);
+  });
+
+  it("does not download workspace changes in upload-only mode", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["container-id\n"] }]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runner: { sync: "upload" },
+        hostRunner: runner
+      })
+    );
+
+    await expect(env.downloadWorkspace({ conflictPolicy: "overwrite" })).resolves.toEqual({
+      files: 0,
+      bytes: 0,
+      conflicts: []
+    });
+    expect(runner.specs).toHaveLength(1);
+  });
+
   it("passes upload ignore files to the host tar command in configured order", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0, stdout: ["container-id\n"] },

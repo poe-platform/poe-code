@@ -21,6 +21,14 @@ const listParams = S.Object({
 const showParams = S.Object({
   approvalId: S.String()
 });
+const runParams = S.Object({
+  approvalId: S.String(),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview the approval without prompting or executing it",
+    scope: ["cli"],
+    global: true
+  }))
+});
 
 export const approvalsGroup = markApprovalsBuiltIn(
   defineGroup<ApprovalBuiltInServices>({
@@ -88,17 +96,29 @@ export const approvalsGroup = markApprovalsBuiltIn(
       defineCommand<
         ApprovalBuiltInServices,
         "run",
-        typeof showParams,
+        typeof runParams,
         undefined,
-        void,
+        Task | void,
         typeof runScope
       >({
         name: "run",
         description: "Run one queued approval.",
         scope: runScope as unknown as ["cli"],
-        params: showParams,
-        handler: async ({ params, runtimeOptions, root }) =>
-          runApproval(params.approvalId, runtimeOptions, root)
+        params: runParams,
+        handler: async ({ params, runtimeOptions, root }) => {
+          if (params.dryRun === true) {
+            const { tasks } = await ensureApprovalList(runtimeOptions, { create: false });
+            return tasks.get(params.approvalId);
+          }
+          return runApproval(params.approvalId, runtimeOptions, root);
+        },
+        render: {
+          rich: (result, primitives) => {
+            if (result) renderApprovalDetails(result, primitives);
+          },
+          markdown: (result) => result ? renderApprovalDetailsMarkdown(result) : "",
+          json: (result) => result
+        }
       })
     ]
   })

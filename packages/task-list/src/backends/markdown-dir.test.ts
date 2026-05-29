@@ -1156,4 +1156,48 @@ state: draft
     });
   });
 
+  it("rejects a same-id create that races a committed cross-list move", async () => {
+    const storage = createFs({ "/repo/tasks/.keep": "" });
+    const moveAtRename = createDeferred();
+    const releaseMove = createDeferred();
+    let createOutcome = "pending";
+    let holdMove = false;
+    const fs: TaskListFs = {
+      ...storage.fs,
+      rename: async (fromPath, toPath) => {
+        if (holdMove && fromPath === "/repo/tasks/planning/01-shared.md") {
+          moveAtRename.resolve();
+          await releaseMove.promise;
+        }
+        await storage.fs.rename(fromPath, toPath);
+      }
+    };
+    const taskList = await markdownDirBackend({
+      path: "/repo/tasks",
+      defaults: { metadata: {} },
+      create: false,
+      fs
+    });
+    await taskList.list("planning").create({ id: "shared", name: "Moved source" });
+
+    holdMove = true;
+    const moved = taskList.moveBetweenLists("planning/shared", "doing");
+    await moveAtRename.promise;
+    const created = taskList.list("doing").create({ id: "shared", name: "Concurrent target" }).then(
+      () => {
+        createOutcome = "resolved";
+      },
+      () => {
+        createOutcome = "rejected";
+      }
+    );
+    await waitForCondition(() => createOutcome !== "pending").catch(() => undefined);
+
+    releaseMove.resolve();
+    await moved;
+    await created;
+
+    expect(createOutcome).toBe("rejected");
+    await expect(taskList.list("doing").get("shared")).resolves.toMatchObject({ name: "Moved source" });
+  });
 });

@@ -873,34 +873,34 @@ function createTasksView(deps: BackendDeps, layout: ListLayout, list: string): T
       assertCreateHasId(input);
       validateTaskId(input.id);
       await rejectSymbolicLinkComponents(deps.fs, listDirectoryPath);
-      await deps.fs.mkdir(listDirectoryPath, { recursive: true });
+      return withFileLock(deps.fs, path.join(listDirectoryPath, ".transition.lock"), async () => {
+        const existing = await findTaskLocation(deps.fs, deps.path, layout, list, input.id);
+        if (existing) {
+          throw new TaskAlreadyExistsError(`Task "${list}/${input.id}" already exists.`);
+        }
 
-      const existing = await findTaskLocation(deps.fs, deps.path, layout, list, input.id);
-      if (existing) {
-        throw new TaskAlreadyExistsError(`Task "${list}/${input.id}" already exists.`);
-      }
+        const activeEntries = await readActiveEntries();
+        const maxOrder = activeEntries.reduce(
+          (max, entry) => (entry.order !== null && entry.order > max ? entry.order : max),
+          0
+        );
+        const nextOrder = maxOrder + 1;
+        const width = padWidthForCount(activeEntries.length + 1);
+        const filename = activeTaskFilename(input.id, nextOrder, width);
+        const targetPath = path.join(listDirectoryPath, filename);
 
-      const activeEntries = await readActiveEntries();
-      const maxOrder = activeEntries.reduce(
-        (max, entry) => (entry.order !== null && entry.order > max ? entry.order : max),
-        0
-      );
-      const nextOrder = maxOrder + 1;
-      const width = padWidthForCount(activeEntries.length + 1);
-      const filename = activeTaskFilename(input.id, nextOrder, width);
-      const targetPath = path.join(listDirectoryPath, filename);
+        const frontmatter = createdFrontmatter(
+          deps.defaults,
+          input,
+          stateMachine.initial,
+          deps.frontmatterMode
+        );
+        const description = input.description ?? "";
 
-      const frontmatter = createdFrontmatter(
-        deps.defaults,
-        input,
-        stateMachine.initial,
-        deps.frontmatterMode
-      );
-      const description = input.description ?? "";
+        await writeAtomically(deps.fs, targetPath, serializeTaskDocument(frontmatter, description));
 
-      await writeAtomically(deps.fs, targetPath, serializeTaskDocument(frontmatter, description));
-
-      return createTask(list, input.id, frontmatter, description, deps.frontmatterMode, targetPath);
+        return createTask(list, input.id, frontmatter, description, deps.frontmatterMode, targetPath);
+      });
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
       assertUpdateDoesNotSetState(patch);
@@ -1173,75 +1173,74 @@ export async function markdownDirBackend(deps: BackendDeps): Promise<TaskList> {
       return file.task;
     }
 
-    const targetExisting = await findTaskLocation(deps.fs, deps.path, layout, targetListName, id);
-    if (targetExisting) {
-      throw new TaskAlreadyExistsError(`Task "${targetListName}/${id}" already exists.`);
-    }
-
-    const sourceLocation = await findTaskLocation(deps.fs, deps.path, layout, sourceListName, id);
-    if (!sourceLocation) {
-      throw new TaskNotFoundError(`Task "${sourceListName}/${id}" not found.`);
-    }
-
-    const sourceFile = await readTaskFile(
-      deps.fs,
-      sourceListName,
-      id,
-      sourceLocation.path,
-      validStates,
-      stateMachine.initial,
-      deps.frontmatterMode
-    );
-
     const targetListDir = listPath(deps.path, layout, targetListName);
     await rejectSymbolicLinkComponents(deps.fs, targetListDir);
-    await deps.fs.mkdir(targetListDir, { recursive: true });
-
-    const targetEntries = await (async () => {
-      const out: ActiveEntry[] = [];
-      const names = await readDirectoryNames(deps.fs, targetListDir);
-      for (const entryName of names) {
-        if (isHiddenEntry(entryName)) continue;
-        const parsed = parseActiveFilename(entryName);
-        if (!parsed) continue;
-        out.push({ id: parsed.id, order: parsed.order, filename: entryName });
+    return withFileLock(deps.fs, path.join(targetListDir, ".transition.lock"), async () => {
+      const targetExisting = await findTaskLocation(deps.fs, deps.path, layout, targetListName, id);
+      if (targetExisting) {
+        throw new TaskAlreadyExistsError(`Task "${targetListName}/${id}" already exists.`);
       }
-      return out;
-    })();
 
-    if (sourceLocation.archived) {
-      const archivedTargetDir = archiveDirectoryPath(deps.path, layout, targetListName);
-      await rejectSymbolicLinkComponents(deps.fs, archivedTargetDir);
-      await deps.fs.mkdir(archivedTargetDir, { recursive: true });
-      const archivedTargetPath = archivedTaskPath(deps.path, layout, targetListName, id);
-      await deps.fs.rename(sourceLocation.path, archivedTargetPath);
+      const sourceLocation = await findTaskLocation(deps.fs, deps.path, layout, sourceListName, id);
+      if (!sourceLocation) {
+        throw new TaskNotFoundError(`Task "${sourceListName}/${id}" not found.`);
+      }
+
+      const sourceFile = await readTaskFile(
+        deps.fs,
+        sourceListName,
+        id,
+        sourceLocation.path,
+        validStates,
+        stateMachine.initial,
+        deps.frontmatterMode
+      );
+      const targetEntries = await (async () => {
+        const out: ActiveEntry[] = [];
+        const names = await readDirectoryNames(deps.fs, targetListDir);
+        for (const entryName of names) {
+          if (isHiddenEntry(entryName)) continue;
+          const parsed = parseActiveFilename(entryName);
+          if (!parsed) continue;
+          out.push({ id: parsed.id, order: parsed.order, filename: entryName });
+        }
+        return out;
+      })();
+
+      if (sourceLocation.archived) {
+        const archivedTargetDir = archiveDirectoryPath(deps.path, layout, targetListName);
+        await rejectSymbolicLinkComponents(deps.fs, archivedTargetDir);
+        await deps.fs.mkdir(archivedTargetDir, { recursive: true });
+        const archivedTargetPath = archivedTaskPath(deps.path, layout, targetListName, id);
+        await deps.fs.rename(sourceLocation.path, archivedTargetPath);
+        return createTask(
+          targetListName,
+          id,
+          sourceFile.frontmatter,
+          sourceFile.task.description,
+          deps.frontmatterMode,
+          archivedTargetPath
+        );
+      }
+
+      const maxOrder = targetEntries.reduce(
+        (max, entry) => (entry.order !== null && entry.order > max ? entry.order : max),
+        0
+      );
+      const width = padWidthForCount(targetEntries.length + 1);
+      const targetFilename = activeTaskFilename(id, maxOrder + 1, width);
+      const targetPath = path.join(targetListDir, targetFilename);
+
+      await deps.fs.rename(sourceLocation.path, targetPath);
       return createTask(
         targetListName,
         id,
         sourceFile.frontmatter,
         sourceFile.task.description,
         deps.frontmatterMode,
-        archivedTargetPath
+        targetPath
       );
-    }
-
-    const maxOrder = targetEntries.reduce(
-      (max, entry) => (entry.order !== null && entry.order > max ? entry.order : max),
-      0
-    );
-    const width = padWidthForCount(targetEntries.length + 1);
-    const targetFilename = activeTaskFilename(id, maxOrder + 1, width);
-    const targetPath = path.join(targetListDir, targetFilename);
-
-    await deps.fs.rename(sourceLocation.path, targetPath);
-    return createTask(
-      targetListName,
-      id,
-      sourceFile.frontmatter,
-      sourceFile.task.description,
-      deps.frontmatterMode,
-      targetPath
-    );
+    });
   };
 
   return {

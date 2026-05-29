@@ -130,7 +130,7 @@ export async function spawnCore(
       exitCode: result.exitCode
     };
   } finally {
-    await workspace.cleanup?.();
+    await workspace.cleanup?.().catch(() => undefined);
   }
 }
 

@@ -648,6 +648,31 @@ describe("spawnCore", () => {
     expect(calls.at(-1)?.options?.cwd).toBe("/tmp/workspaces/poe-code");
   });
 
+  it("preserves successful provider output when workspace cleanup fails", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      cleanup: vi.fn(async () => {
+        throw new Error("workspace cleanup denied");
+      }),
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    const { runner } = createCommandRunnerStub({
+      stdout: "done",
+      stderr: "",
+      exitCode: 0
+    });
+    const { container } = createContainerWithDependencies({ fs, commandRunner: runner });
+    await ensureIsolatedConfig("opencode");
+
+    await expect(
+      spawnCore(container, "opencode", {
+        prompt: "test",
+        cwd: "github://poe-platform/poe-code",
+        mode: "edit"
+      })
+    ).resolves.toEqual({ stdout: "done", stderr: "", exitCode: 0 });
+  });
+
   it("returns empty result when provider returns void", async () => {
     const { container } = createContainerWithDependencies({ fs });
 

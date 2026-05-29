@@ -361,8 +361,8 @@ export function spawn(
       resolveEventsOnce(emptyEvents);
       throw error;
     } finally {
-      await integrations?.shutdown();
-      await workspace?.cleanup?.();
+      await integrations?.shutdown().catch(() => undefined);
+      await workspace?.cleanup?.().catch(() => undefined);
     }
   })();
 

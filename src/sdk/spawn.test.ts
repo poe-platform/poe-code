@@ -973,6 +973,32 @@ describe("SDK spawn()", () => {
     expect(cleanup).toHaveBeenCalledTimes(1);
   });
 
+  it("preserves successful streaming output when workspace cleanup fails", async () => {
+    vi.mocked(resolveWorkspace).mockResolvedValue({
+      cwd: "/tmp/workspaces/poe-code",
+      cleanup: vi.fn(async () => {
+        throw new Error("workspace cleanup denied");
+      }),
+      locator: { scheme: "github", owner: "poe-platform", repo: "poe-code" }
+    });
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "done", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "inspect the repo", {
+      cwd: "github://poe-platform/poe-code",
+      mode: "edit"
+    });
+
+    await expect(result).resolves.toMatchObject({ stdout: "done", stderr: "", exitCode: 0 });
+  });
+
   it("uses normal spawn flow when interactive is false", async () => {
     vi.mocked(getSpawnConfig).mockReturnValue({
       kind: "cli",
@@ -1343,6 +1369,28 @@ describe("SDK spawn()", () => {
 
     await expect(result).rejects.toThrow("boom");
     expect(shutdown).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves successful streaming output when integration shutdown fails", async () => {
+    loadIntegrationsMock.mockResolvedValue({
+      spawnMiddleware: vi.fn(),
+      shutdown: vi.fn(async () => {
+        throw new Error("integration shutdown denied");
+      })
+    });
+    vi.mocked(getSpawnConfig).mockReturnValue({
+      kind: "cli",
+      agentId: "codex",
+      adapter: "codex"
+    } as any);
+    vi.mocked(spawnStreaming).mockImplementation(() => ({
+      events: (async function* () {})(),
+      done: Promise.resolve({ stdout: "done", stderr: "", exitCode: 0 })
+    }));
+
+    const { result } = spawn("codex", "test prompt");
+
+    await expect(result).resolves.toMatchObject({ stdout: "done", stderr: "", exitCode: 0 });
   });
 
   it("does not modify middleware chain when loadIntegrations returns null", async () => {

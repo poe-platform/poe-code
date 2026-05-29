@@ -63,6 +63,13 @@ describe("parseAnsi", () => {
     ]);
   });
 
+  it("conceals text until SGR conceal is reset", () => {
+    const result = parseAnsi("\u001b[8mtoken=secret\u001b[28m shown");
+    expect(result).toEqual([
+      { segments: [{ text: "             shown", style: {} }] }
+    ]);
+  });
+
   it("handles bright foreground colors via 90-97", () => {
     const result = parseAnsi("\u001b[93mbright");
     expect(result).toEqual([

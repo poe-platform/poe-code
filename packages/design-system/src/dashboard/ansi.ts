@@ -26,6 +26,7 @@ export function hasAnsi(text: string): boolean {
 export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
   const base = normalizeStyle(baseStyle);
   let style: CellStyle = { ...base };
+  let concealed = false;
   const lines: StyledLine[] = [];
   let segments: StyledSegment[] = [];
   let pending = "";
@@ -72,7 +73,9 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
       const finalByte = text[cursor]!;
 
       if (finalByte === "m") {
-        style = applySgr(style, parseParams(params), base);
+        const sgr = applySgr(style, concealed, parseParams(params), base);
+        style = sgr.style;
+        concealed = sgr.concealed;
       }
 
       index = cursor + 1;
@@ -107,7 +110,7 @@ export function parseAnsi(text: string, baseStyle?: CellStyle): StyledLine[] {
       continue;
     }
 
-    pending += ch;
+    pending += concealed ? " " : ch;
     index += 1;
   }
 
@@ -181,8 +184,14 @@ const BRIGHT_COLORS = [
   "whiteBright"
 ];
 
-function applySgr(style: CellStyle, params: number[], base: CellStyle): CellStyle {
+function applySgr(
+  style: CellStyle,
+  concealed: boolean,
+  params: number[],
+  base: CellStyle
+): { style: CellStyle; concealed: boolean } {
   let next: CellStyle = { ...style };
+  let nextConcealed = concealed;
   let index = 0;
 
   while (index < params.length) {
@@ -190,6 +199,7 @@ function applySgr(style: CellStyle, params: number[], base: CellStyle): CellStyl
 
     if (code === 0) {
       next = { ...base };
+      nextConcealed = false;
       index += 1;
       continue;
     }
@@ -209,6 +219,18 @@ function applySgr(style: CellStyle, params: number[], base: CellStyle): CellStyl
     if (code === 22) {
       delete next.bold;
       delete next.dim;
+      index += 1;
+      continue;
+    }
+
+    if (code === 8) {
+      nextConcealed = true;
+      index += 1;
+      continue;
+    }
+
+    if (code === 28) {
+      nextConcealed = false;
       index += 1;
       continue;
     }
@@ -300,7 +322,7 @@ function applySgr(style: CellStyle, params: number[], base: CellStyle): CellStyl
     index += 1;
   }
 
-  return next;
+  return { style: next, concealed: nextConcealed };
 }
 
 function convert256(palette: number): string {

@@ -10,13 +10,6 @@ export interface BinaryExistsDetector {
 }
 
 export function createBinaryExistsDetectors(binaryName: string): BinaryExistsDetector[] {
-  const commonPaths = [
-    `/usr/local/bin/${binaryName}`,
-    `/usr/bin/${binaryName}`,
-    `$HOME/.local/bin/${binaryName}`,
-    `$HOME/.claude/local/bin/${binaryName}`
-  ];
-
   return [
     {
       command: "which",
@@ -30,7 +23,12 @@ export function createBinaryExistsDetectors(binaryName: string): BinaryExistsDet
     },
     {
       command: "sh",
-      args: ["-c", commonPaths.map((p) => `test -f "${p}"`).join(" || ")],
+      args: [
+        "-c",
+        'for directory in /usr/local/bin /usr/bin "$HOME/.local/bin" "$HOME/.claude/local/bin"; do test -f "$directory/$1" && exit 0; done; exit 1',
+        "sh",
+        binaryName
+      ],
       validate: (result) => result.exitCode === 0
     }
   ];

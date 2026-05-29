@@ -158,7 +158,14 @@ export async function writeExperimentFrontmatter(
   const content =
     body.endsWith("\n") || !serialized.endsWith("\n") ? serialized : serialized.slice(0, -1);
 
-  await fs.writeFile(docPath, content);
+  const temporaryPath = `${docPath}.tmp`;
+  try {
+    await fs.writeFile(temporaryPath, content);
+    await fs.rename(temporaryPath, docPath);
+  } catch (error) {
+    await fs.unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
 }
 
 export function parseExperimentFrontmatterData(value: unknown): ExperimentFrontmatter {

@@ -880,6 +880,21 @@ describe("writeExperimentFrontmatter", () => {
     expect(written).not.toContain("max_experiments");
     expect(written).not.toContain("metric_timeout");
   });
+
+  it("preserves the document when frontmatter persistence fails", async () => {
+    const docPath = "/repo/experiment.md";
+    const original = "---\nkind: experiment\nversion: 1\nbaseline: null\n---\n# Keep this plan\n";
+    const fs = createFs({ [docPath]: original });
+    const writeFile = fs.writeFile.bind(fs);
+    fs.writeFile = async (filePath: string, content: string) => {
+      await writeFile(filePath, content.slice(0, 9));
+      throw new Error("plan disk full");
+    };
+
+    await expect(writeExperimentFrontmatter(docPath, { baseline: { tests: 42 } }, "# Keep this plan\n", fs))
+      .rejects.toThrow("plan disk full");
+    await expect(fs.readFile(docPath, "utf8")).resolves.toBe(original);
+  });
 });
 
 describe("createDefaultGit", () => {

@@ -758,6 +758,60 @@ describe("SDK experiment", () => {
       exitCode: 0
     });
   });
+
+  it("preserves a caller-provided experiment agent runner", async () => {
+    const runAgent = vi.fn().mockResolvedValue({ stdout: "custom", stderr: "", exitCode: 0 });
+    runExperimentLoopMock.mockImplementationOnce(async (options: ExperimentRunOptions) => {
+      await options.runAgent?.({ agent: "codex", prompt: "custom", cwd: "/repo" });
+      return {
+        stopReason: "max_experiments",
+        docPath: "docs/loop.md",
+        experimentsCompleted: 1,
+        experimentsKept: 0,
+        totalDurationMs: 1
+      };
+    });
+
+    await runExperiment({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "docs/loop.md",
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledOnce();
+    expect(spawnAutonomousMock).not.toHaveBeenCalled();
+  });
+
+  it("forwards per-attempt log routing to autonomous spawn", async () => {
+    runExperimentLoopMock.mockImplementationOnce(async (options: ExperimentRunOptions) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "log attempt",
+        cwd: "/repo",
+        logDir: "/tmp/experiment/logs",
+        logFileName: "attempt.jsonl"
+      });
+      return {
+        stopReason: "max_experiments",
+        docPath: "docs/loop.md",
+        experimentsCompleted: 1,
+        experimentsKept: 0,
+        totalDurationMs: 1
+      };
+    });
+    spawnAutonomousMock.mockResolvedValue({ stdout: "done", stderr: "", exitCode: 0 });
+
+    await runExperiment({ cwd: "/repo", homeDir: "/home/test", docPath: "docs/loop.md" });
+
+    expect(spawnAutonomousMock).toHaveBeenCalledWith(
+      "codex",
+      expect.objectContaining({
+        logDir: "/tmp/experiment/logs",
+        logFileName: "attempt.jsonl"
+      })
+    );
+  });
 });
 
 // ─── generate.test.ts ─────────────────────────────────────────────────────────

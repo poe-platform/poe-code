@@ -15,6 +15,7 @@ export interface JobEntry {
   exit_code?: number;
   exited_at?: string;
   log_file?: string;
+  reattach_context?: Record<string, unknown>;
 }
 
 export interface JobListFilter {
@@ -110,7 +111,10 @@ export function createJobRegistry(
         continue;
       }
 
-      const job = parseJobEntry(await fs.readFile(filePath, "utf8"), entry.slice(0, -".json".length));
+      const job = parseJobEntry(
+        await fs.readFile(filePath, "utf8"),
+        entry.slice(0, -".json".length)
+      );
       if (job !== null && matchesFilter(job, filter)) {
         jobs.push(job);
       }
@@ -235,9 +239,11 @@ function isJobEntry(value: unknown): value is JobEntry {
     typeof value.cwd === "string" &&
     typeof value.started_at === "string" &&
     isJobStatus(value.status) &&
-    (value.exit_code === undefined || (typeof value.exit_code === "number" && Number.isFinite(value.exit_code))) &&
+    (value.exit_code === undefined ||
+      (typeof value.exit_code === "number" && Number.isFinite(value.exit_code))) &&
     (value.exited_at === undefined || typeof value.exited_at === "string") &&
-    (value.log_file === undefined || typeof value.log_file === "string")
+    (value.log_file === undefined || typeof value.log_file === "string") &&
+    (value.reattach_context === undefined || isRecord(value.reattach_context))
   );
 }
 

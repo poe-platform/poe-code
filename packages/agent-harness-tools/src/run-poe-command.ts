@@ -75,7 +75,10 @@ export async function runPoeCommand(opts: {
     const runningJob = opts.state.jobs.update(jobId, {
       status: "running",
       env_id: env.id,
-      started_at: new Date().toISOString()
+      started_at: new Date().toISOString(),
+      ...(opts.detach && env.reattachContext !== undefined
+        ? { reattach_context: env.reattachContext }
+        : {})
     });
 
     if (opts.detach) {

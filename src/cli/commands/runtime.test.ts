@@ -92,6 +92,7 @@ function createJobEntry(overrides: {
   env_id: string;
   status: "pending" | "running" | "exited" | "killed" | "lost";
   started_at?: string;
+  reattach_context?: Record<string, unknown>;
 }) {
   return {
     id: overrides.id,
@@ -101,7 +102,8 @@ function createJobEntry(overrides: {
     argv: ["codex", "hello"],
     cwd,
     started_at: overrides.started_at ?? "2026-05-03T12:00:00.000Z",
-    status: overrides.status
+    status: overrides.status,
+    ...(overrides.reattach_context === undefined ? {} : { reattach_context: overrides.reattach_context })
   };
 }
 
@@ -512,7 +514,12 @@ describe("runtime command", () => {
   it("syncs with overwrite policy and closes the sandbox when requested", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-sync.json")]: `${JSON.stringify(
-        createJobEntry({ id: "job-sync", env_id: "env-sync", status: "exited" }),
+        createJobEntry({
+          id: "job-sync",
+          env_id: "env-sync",
+          status: "exited",
+          reattach_context: { engine: "podman", context: null }
+        }),
         null,
         2
       )}\n`
@@ -535,6 +542,12 @@ describe("runtime command", () => {
 
     expect(runtimeEvents.downloads).toEqual([
       { envId: "env-sync", conflictPolicy: "overwrite" }
+    ]);
+    expect(runtimeEvents.attached).toEqual([
+      {
+        envId: "env-sync",
+        context: expect.objectContaining({ reattachContext: { engine: "podman", context: null } })
+      }
     ]);
     expect(runtimeEvents.closed).toEqual(["env-sync"]);
   });

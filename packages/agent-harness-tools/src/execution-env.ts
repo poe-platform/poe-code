@@ -63,11 +63,13 @@ export interface AttachedJobContext {
   tool: string;
   argv: string[];
   cwd: string;
+  reattachContext?: Record<string, unknown>;
 }
 
 export interface OpenedEnv {
   readonly id: string;
   readonly job: JobHandle | null;
+  readonly reattachContext?: Record<string, unknown>;
   uploadWorkspace(): Promise<UploadResult>;
   downloadWorkspace(opts: { conflictPolicy: "refuse" | "overwrite" }): Promise<DownloadResult>;
   exec(spec: RunSpec): RunHandle;

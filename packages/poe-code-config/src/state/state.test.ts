@@ -164,6 +164,21 @@ describe("TemplateRegistry", () => {
 });
 
 describe("JobRegistry", () => {
+  it("persists runtime reattach context with a job", async () => {
+    const fs = createMemFs();
+    const registry = createJobRegistry("/home/tester", fs);
+
+    await registry.put(
+      createJob("job-1", {
+        reattach_context: { engine: "docker", context: "colima-profile" }
+      })
+    );
+
+    await expect(registry.get("job-1")).resolves.toMatchObject({
+      reattach_context: { engine: "docker", context: "colima-profile" }
+    });
+  });
+
   it("preserves concurrent updates", async () => {
     const fs = createMemFs();
     const registry = createJobRegistry("/home/tester", fs);

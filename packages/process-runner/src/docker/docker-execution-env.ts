@@ -40,6 +40,11 @@ interface DockerOpenedEnv extends OpenedEnv {
   setDetachedJobContext(context: DetachedJobContext): void;
 }
 
+interface DockerReattachContext {
+  engine: Engine;
+  context: string | null;
+}
+
 export interface BuildDockerRuntimeTemplateInput {
   cwd: string;
   runtime: DockerRuntime;
@@ -103,13 +108,14 @@ export const dockerExecutionEnvFactory: ExecutionEnvFactory = {
     });
   },
   async attach(envId, context): Promise<OpenedEnv> {
-    const engine = detectEngine();
+    const reattachContext = parseDockerReattachContext(context?.reattachContext);
+    const engine = reattachContext?.engine ?? detectEngine();
     return createDockerEnv({
       id: envId,
       spec: createAttachedSpec(context?.cwd),
       runner: createHostRunner(),
       engine,
-      context: detectContext(),
+      context: reattachContext === undefined ? detectContext() : reattachContext.context,
       attachedJobId: context?.jobId
     });
   }
@@ -131,10 +137,17 @@ function createDockerEnv(input: {
 
   return {
     id: containerRef,
+    reattachContext: { engine: input.engine, context: input.context },
     job:
       input.attachedJobId === undefined
         ? null
-        : createContainerJob(containerRef, input.runner, input.engine, input.context, detachedJobContext),
+        : createContainerJob(
+            containerRef,
+            input.runner,
+            input.engine,
+            input.context,
+            detachedJobContext
+          ),
     setDetachedJobContext(context) {
       detachedJobContext = context;
     },
@@ -246,17 +259,23 @@ function createDockerEnv(input: {
       });
     },
     async detach() {
-      return createContainerJob(containerRef, input.runner, input.engine, input.context, detachedJobContext);
+      return createContainerJob(
+        containerRef,
+        input.runner,
+        input.engine,
+        input.context,
+        detachedJobContext
+      );
     },
     shell() {
       const shellSpec = input.spec.shellSpec;
-    return this.exec({
-      command: shellSpec?.command ?? input.spec.env.SHELL ?? "sh",
-      ...(shellSpec?.args ? { args: shellSpec.args } : {}),
-      cwd: shellSpec?.cwd ?? input.spec.cwd,
-      env: shellSpec && "env" in shellSpec ? shellSpec.env : input.spec.env,
-      stdin: "inherit",
-      stdout: "inherit",
+      return this.exec({
+        command: shellSpec?.command ?? input.spec.env.SHELL ?? "sh",
+        ...(shellSpec?.args ? { args: shellSpec.args } : {}),
+        cwd: shellSpec?.cwd ?? input.spec.cwd,
+        env: shellSpec && "env" in shellSpec ? shellSpec.env : input.spec.env,
+        stdin: "inherit",
+        stdout: "inherit",
         stderr: "inherit",
         tty: true
       });
@@ -270,6 +289,20 @@ function createDockerEnv(input: {
       });
     }
   };
+}
+
+function parseDockerReattachContext(
+  value: Record<string, unknown> | undefined
+): DockerReattachContext | undefined {
+  if (
+    value !== undefined &&
+    (value.engine === "docker" || value.engine === "podman") &&
+    (value.context === null || typeof value.context === "string")
+  ) {
+    return { engine: value.engine, context: value.context };
+  }
+
+  return undefined;
 }
 
 async function resolveImage(input: {

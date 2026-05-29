@@ -66,7 +66,8 @@ export async function attachJob(entry: JobEntry): Promise<{ env: OpenedEnv; hand
     jobId: entry.id,
     tool: entry.tool,
     argv: entry.argv,
-    cwd: entry.cwd
+    cwd: entry.cwd,
+    ...(entry.reattach_context === undefined ? {} : { reattachContext: entry.reattach_context })
   });
   const handle = env.job;
   if (handle === null) {

@@ -32,6 +32,7 @@ interface MockEnv extends OpenedEnv {
   fs: LogStreamFs;
   setDetachedJobContext(context: { id: string; tool: string; argv: string[] }): void;
   uploads: number;
+  reattachContext?: Record<string, unknown>;
 }
 
 function createRecordingState(): RecordingState {
@@ -340,6 +341,7 @@ describe("runPoeCommand", () => {
     const { state, statuses } = createRecordingState();
     const runResult = deferred<RunResult>();
     const env = createMockEnv({ result: runResult.promise });
+    env.reattachContext = { engine: "podman", context: null };
 
     const result = await runPoeCommand({
       factory: createFactory(env),
@@ -362,6 +364,9 @@ describe("runPoeCommand", () => {
       argv: ["poe-code", "--help"]
     });
     expect(env.downloads).toEqual([]);
+    await expect(state.jobs.get(result.jobId)).resolves.toMatchObject({
+      reattach_context: { engine: "podman", context: null }
+    });
   });
 
   it("waits for workspace upload before starting the command", async () => {

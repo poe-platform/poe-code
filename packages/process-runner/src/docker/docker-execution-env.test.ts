@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { readFile } from "node:fs/promises";
 import { Readable } from "node:stream";
+import { detectContext } from "./context.js";
 import { detectEngine } from "./engine.js";
 import { createHostRunner } from "../host/host-runner.js";
 import type { OpenSpec, RunHandle, RunSpec, Runner } from "../types.js";
@@ -30,6 +31,7 @@ describe("dockerExecutionEnvFactory", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(detectEngine).mockReturnValue("docker");
+    vi.mocked(detectContext).mockReturnValue(null);
   });
 
   it("opens a persistent container from a configured image with runtime mounts", async () => {
@@ -459,6 +461,68 @@ describe("dockerExecutionEnvFactory", () => {
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
   });
 
+  it("reattaches through the persisted container engine and context", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["attached\n"] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace",
+      reattachContext: { engine: "podman", context: "colima-profile" }
+    });
+
+    env.exec({ command: "printf", args: ["attached"], stdout: "pipe", stderr: "pipe" });
+
+    expect(detectEngine).not.toHaveBeenCalled();
+    expect(runner.specs[0]?.command).toBe("podman");
+    expect(runner.specs[0]?.args).not.toContain("--context");
+  });
+
+  it("reattaches through the persisted docker context", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["attached\n"] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace",
+      reattachContext: { engine: "docker", context: "colima-profile" }
+    });
+
+    env.exec({ command: "printf", args: ["attached"], stdout: "pipe", stderr: "pipe" });
+
+    expect(runner.specs[0]?.command).toBe("docker");
+    expect(runner.specs[0]?.args).toEqual([
+      "--context",
+      "colima-profile",
+      "exec",
+      "container-id",
+      "printf",
+      "attached"
+    ]);
+  });
+
+  it("preserves a persisted absence of docker context", async () => {
+    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["attached\n"] }]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    vi.mocked(detectContext).mockReturnValue("colima-later");
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace",
+      reattachContext: { engine: "docker", context: null }
+    });
+
+    env.exec({ command: "printf", args: ["attached"], stdout: "pipe", stderr: "pipe" });
+
+    expect(runner.specs[0]?.args).toEqual(["exec", "container-id", "printf", "attached"]);
+  });
+
   it("reports paused retained containers as still running", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0, stdout: ["container-id\n"] },
@@ -504,10 +568,22 @@ describe("dockerExecutionEnvFactory", () => {
     await expect(job.status()).resolves.toBe("exited");
     await expect(job.wait()).resolves.toEqual({ exitCode: 0 });
     expect(runner.specs[0]?.args).toEqual(
-      expect.arrayContaining(["exec", "container-id", "sh", "-c", expect.stringContaining("/tmp/poe-jobs/job-1.exit")])
+      expect.arrayContaining([
+        "exec",
+        "container-id",
+        "sh",
+        "-c",
+        expect.stringContaining("/tmp/poe-jobs/job-1.exit")
+      ])
     );
     expect(runner.specs[1]?.args).toEqual(
-      expect.arrayContaining(["exec", "container-id", "sh", "-c", expect.stringContaining("/tmp/poe-jobs/job-1.exit")])
+      expect.arrayContaining([
+        "exec",
+        "container-id",
+        "sh",
+        "-c",
+        expect.stringContaining("/tmp/poe-jobs/job-1.exit")
+      ])
     );
   });
 
@@ -517,7 +593,9 @@ describe("dockerExecutionEnvFactory", () => {
       { exitCode: 0, stdout: ["9\n"] }
     ]);
     const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
-    const env = await dockerExecutionEnvFactory.open(createOpenSpec({ hostRunner: runner })) as Awaited<ReturnType<typeof dockerExecutionEnvFactory.open>> & {
+    const env = (await dockerExecutionEnvFactory.open(
+      createOpenSpec({ hostRunner: runner })
+    )) as Awaited<ReturnType<typeof dockerExecutionEnvFactory.open>> & {
       setDetachedJobContext(context: { id: string; tool: string; argv: string[] }): void;
     };
     env.setDetachedJobContext({ id: "job-new", tool: "node", argv: ["node", "app.js"] });
@@ -526,7 +604,13 @@ describe("dockerExecutionEnvFactory", () => {
     await expect(job.wait()).resolves.toEqual({ exitCode: 9 });
     expect(job).toMatchObject({ id: "job-new", tool: "node", argv: ["node", "app.js"] });
     expect(runner.specs[1]?.args).toEqual(
-      expect.arrayContaining(["exec", "container-id", "sh", "-c", expect.stringContaining("/tmp/poe-jobs/job-new.exit")])
+      expect.arrayContaining([
+        "exec",
+        "container-id",
+        "sh",
+        "-c",
+        expect.stringContaining("/tmp/poe-jobs/job-new.exit")
+      ])
     );
   });
 });

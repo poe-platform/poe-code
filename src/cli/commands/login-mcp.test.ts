@@ -120,6 +120,7 @@ async function createMcpProgram(options?: {
   fs?: FileSystem;
   variables?: Record<string, string | undefined>;
   storeApiKey?: boolean;
+  logger?: (message: string) => void;
 }) {
   const fs = options?.fs ?? createMcpMemfs();
   if (options?.storeApiKey !== false) {
@@ -129,7 +130,7 @@ async function createMcpProgram(options?: {
     fs,
     prompts: vi.fn(),
     env: { cwd: "/repo", homeDir: "/home/test", variables: { POE_CODE_OAUTH_LOGIN: "0", ...options?.variables } },
-    logger: () => {},
+    logger: options?.logger ?? (() => {}),
     suppressCommanderOutput: true
   });
   return { program, fs };
@@ -919,6 +920,22 @@ describe("mcp command", () => {
     ).rejects.toThrow("MCP not supported for claude-code.");
 
     expect(unconfigureMock).not.toHaveBeenCalled();
+  });
+
+  it("reports no configuration when unconfigure makes no changes", async () => {
+    const logs: string[] = [];
+    unconfigureMock.mockImplementation(async (_agent, _name, options) => {
+      options.observers?.onComplete?.(
+        { label: "Remove poe-code" },
+        { changed: false, effect: "none", detail: "noop" }
+      );
+    });
+    const { program } = await createMcpProgram({ logger: (message) => logs.push(message) });
+
+    await program.parseAsync(["node", "cli", "mcp", "unconfigure", "codex"]);
+
+    expect(logs.some((line) => line.includes("No MCP configuration found for codex."))).toBe(true);
+    expect(logs.some((line) => line.includes("Removed MCP configuration from codex."))).toBe(false);
   });
 });
 

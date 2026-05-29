@@ -180,6 +180,7 @@ export function registerMcpCommand(
       }
 
       const resolvedAgent = support.id ?? agent;
+      let removed = false;
       await unconfigure(resolvedAgent, "poe-code", {
         fs: container.fs,
         homeDir: container.env.homeDir,
@@ -192,6 +193,7 @@ export function registerMcpCommand(
             }
           },
           onComplete: (details: { label: string }, outcome: { changed: boolean }) => {
+            removed ||= outcome.changed;
             if (!flags.dryRun && outcome.changed) {
               resources.logger.verbose(details.label);
             }
@@ -200,7 +202,9 @@ export function registerMcpCommand(
       });
 
       resources.context.complete({
-        success: `Removed MCP configuration from ${resolvedAgent}.`,
+        success: removed
+          ? `Removed MCP configuration from ${resolvedAgent}.`
+          : `No MCP configuration found for ${resolvedAgent}.`,
         dry: `Would remove MCP configuration from ${resolvedAgent}.`
       });
       resources.context.finalize();

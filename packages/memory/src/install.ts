@@ -1,3 +1,4 @@
+import path from "node:path";
 import { installSkill } from "@poe-code/agent-skill-config";
 import { configure } from "@poe-code/agent-mcp-config";
 import type { ApplyOptions as McpApplyOptions } from "@poe-code/agent-mcp-config";
@@ -54,24 +55,31 @@ export async function installMemory(
   let mcpConfigPath: string | undefined;
 
   if (!options.skillOnly) {
-    await configure(
-      options.agent,
-      {
-        name: SKILL_NAME,
-        config: {
-          transport: "stdio",
-          command: "poe-code",
-          args: options.allowWrites ? ["memory-mcp", "--allow-writes"] : ["memory-mcp"]
+    try {
+      await configure(
+        options.agent,
+        {
+          name: SKILL_NAME,
+          config: {
+            transport: "stdio",
+            command: "poe-code",
+            args: options.allowWrites ? ["memory-mcp", "--allow-writes"] : ["memory-mcp"]
+          }
+        },
+        {
+          fs: options.fs,
+          homeDir: options.homeDir,
+          platform: options.platform,
+          dryRun: options.dryRun,
+          observers: options.observers
         }
-      },
-      {
-        fs: options.fs,
-        homeDir: options.homeDir,
-        platform: options.platform,
-        dryRun: options.dryRun,
-        observers: options.observers
+      );
+    } catch (error) {
+      if (skillPath !== undefined && options.dryRun !== true) {
+        await removeInstalledSkill(options, skillPath).catch(() => undefined);
       }
-    );
+      throw error;
+    }
 
     mcpConfigPath = options.agent === "codex"
       ? `${options.homeDir}/.config/codex/mcp-config.json`
@@ -84,4 +92,20 @@ export async function installMemory(
     skillPath,
     mcpConfigPath
   };
+}
+
+async function removeInstalledSkill(
+  options: Pick<MemoryInstallOptions, "fs" | "cwd" | "homeDir" | "scope">,
+  skillPath: string
+): Promise<void> {
+  const baseDir = options.scope === "global" ? options.homeDir : options.cwd;
+  const displayPath = skillPath.startsWith("~/") ? skillPath.slice(2) : skillPath;
+  const skillDirectory = path.join(baseDir, path.dirname(displayPath));
+
+  if (options.fs.rm !== undefined) {
+    await options.fs.rm(skillDirectory, { recursive: true, force: true });
+    return;
+  }
+
+  await options.fs.unlink(path.join(skillDirectory, "SKILL.md"));
 }

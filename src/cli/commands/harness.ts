@@ -112,6 +112,12 @@ async function executeHarnessRun(
   const selectedPath = mdPath
     ? path.resolve(container.env.cwd, mdPath)
     : (await resolveDiscoveredHarness(container, flags.assumeYes)).mdPath;
+  if (flags.dryRun) {
+    resources.logger.dryRun(
+      `Dry run: would run ${formatDisplayPath(container, selectedPath)} without executing its script or applying fixes.`
+    );
+    return;
+  }
   const snapshotPath = resolveRunSnapshotPath(container, selectedPath, options.snapshotPath);
   await prepareHarnessSnapshot(container, selectedPath, snapshotPath, Boolean(options.resume));
 

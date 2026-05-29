@@ -194,6 +194,15 @@ describe("harness command", () => {
     );
   });
 
+  it("previews harness runs without executing scripts or applying fixes", async () => {
+    const logs: string[] = [];
+
+    await runHarnessCommand(["--dry-run", "--yes", "harness", "run", "harness.md", "--fix"], logs);
+
+    expect(harnessMocks.runHarnessPairMock).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run: would run harness.md without executing its script or applying fixes.");
+  });
+
   it("forwards --agent/--model/--mode as frontmatterOverrides on the agent block", async () => {
     await runHarnessCommand([
       "harness",

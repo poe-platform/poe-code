@@ -70,7 +70,12 @@ function createReusableE2bRalphRunner(options: RalphRunOptions): {
 
   return {
     async runAgent(input) {
-      if (input.hooks !== undefined) {
+      if (
+        input.hooks !== undefined ||
+        input.skills !== undefined ||
+        input.logDir !== undefined ||
+        input.logFileName !== undefined
+      ) {
         return autonomousRunAgent(input);
       }
 

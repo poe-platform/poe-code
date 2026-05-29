@@ -203,6 +203,36 @@ describe("SDK ralph", () => {
     expect(buildSpawnArgsMock).not.toHaveBeenCalled();
   });
 
+  it.each([
+    {
+      label: "skills",
+      input: { skills: ["foo"] },
+      expected: { skills: ["foo"] }
+    },
+    {
+      label: "log routing",
+      input: { logDir: "/home/test/.poe-code/logs/ralph/plan", logFileName: "iteration.jsonl" },
+      expected: { logDir: "/home/test/.poe-code/logs/ralph/plan", logFileName: "iteration.jsonl" }
+    }
+  ])("uses autonomous spawn for e2b Ralph iterations with $label", async ({ input, expected }) => {
+    spawnAutonomousMock.mockResolvedValue({ stdout: "done", stderr: "", exitCode: 0 });
+    runWorkspaceRalphMock.mockImplementationOnce(async (options: RalphRunOptions) => {
+      await options.runAgent?.({
+        agent: "codex",
+        prompt: "Bridge metadata",
+        cwd: "/tmp/ralph",
+        ...input
+      });
+      return { stopReason: "max_iterations", docPath: "/tmp/ralph/plan.md", iterationsCompleted: 1, totalDurationMs: 1 };
+    });
+
+    await runRalph({ cwd: "/tmp/ralph", homeDir: "/home/test", docPath: "/tmp/ralph/plan.md", runtime: "e2b" });
+
+    expect(spawnAutonomousMock).toHaveBeenCalledWith("codex", expect.objectContaining(expected));
+    expect(createPoeCommandSessionMock).not.toHaveBeenCalled();
+    expect(buildSpawnArgsMock).not.toHaveBeenCalled();
+  });
+
   it("reuses one e2b command session for the default Ralph runner", async () => {
     const run = vi.fn().mockResolvedValue({
       kind: "sync",

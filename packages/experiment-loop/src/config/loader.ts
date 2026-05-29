@@ -5,12 +5,14 @@ import { resolve } from "@poe-code/config-extends";
 import { parse } from "yaml";
 import type { ExperimentFileSystem, RunConfig } from "../types.js";
 
+type RunConfigFileSystem = Pick<ExperimentFileSystem, "readFile" | "lstat">;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 async function readOptionalFile(
-  fs: Pick<ExperimentFileSystem, "readFile">,
+  fs: RunConfigFileSystem,
   filePath: string
 ): Promise<string | null> {
   try {
@@ -26,6 +28,37 @@ async function readOptionalFile(
     }
     throw error;
   }
+}
+
+async function assertNoSymbolicLinks(fs: RunConfigFileSystem, filePath: string): Promise<void> {
+  const absolutePath = path.resolve(filePath);
+  const rootPath = path.parse(absolutePath).root;
+  let currentPath = rootPath;
+
+  for (const segment of absolutePath.slice(rootPath.length).split(path.sep).filter(Boolean)) {
+    currentPath = path.join(currentPath, segment);
+
+    try {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        throw new Error("Experiment run config must not contain symbolic links.");
+      }
+    } catch (error) {
+      if (isMissingPath(error)) {
+        return;
+      }
+
+      throw error;
+    }
+  }
+}
+
+function isMissingPath(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
+}
+
+function isPathInside(rootPath: string, filePath: string): boolean {
+  const relativePath = path.relative(path.resolve(rootPath), path.resolve(filePath));
+  return relativePath === "" || (!relativePath.startsWith(`..${path.sep}`) && relativePath !== ".." && !path.isAbsolute(relativePath));
 }
 
 function parseRunConfigYaml(filePath: string, content: string): unknown {
@@ -80,7 +113,8 @@ async function readDefaultRunConfig(): Promise<RunConfig> {
 }
 
 function createRunConfigResolveFs(
-  fs: Pick<ExperimentFileSystem, "readFile">
+  fs: RunConfigFileSystem,
+  globalConfigDir: string
 ): Pick<ExperimentFileSystem, "readFile"> {
   const bundledRunPath = fileURLToPath(new URL("./run.yaml", import.meta.url));
 
@@ -88,6 +122,10 @@ function createRunConfigResolveFs(
     async readFile(filePath, encoding) {
       if (filePath === bundledRunPath) {
         return readBundledFile("default-run.yaml");
+      }
+
+      if (isPathInside(globalConfigDir, filePath)) {
+        await assertNoSymbolicLinks(fs, filePath);
       }
 
       return fs.readFile(filePath, encoding);
@@ -102,9 +140,10 @@ export async function loadInstructions(): Promise<string> {
 export async function loadRunConfig(options: {
   cwd: string;
   homeDir: string;
-  fs: Pick<ExperimentFileSystem, "readFile">;
+  fs: RunConfigFileSystem;
 }): Promise<RunConfig> {
   const projectPath = path.join(options.cwd, ".poe-code", "experiments", "run.yaml");
+  await assertNoSymbolicLinks(options.fs, projectPath);
   const projectContent = await readOptionalFile(options.fs, projectPath);
   if (projectContent == null) {
     return readDefaultRunConfig();
@@ -123,7 +162,7 @@ export async function loadRunConfig(options: {
       { source: "base", path: globalConfigDir },
       { source: "base", path: bundledConfigDir }
     ],
-    { fs: createRunConfigResolveFs(options.fs) }
+    { fs: createRunConfigResolveFs(options.fs, globalConfigDir) }
   );
   const config = parseRunConfigData(projectPath, resolved.data);
 

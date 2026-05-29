@@ -250,6 +250,33 @@ describe("loadRunConfig", () => {
     expect(config.prompt).toBe("Global: {{body}}\nJournal: {{journal}}\n");
   });
 
+  it("rejects a project run config symlinked outside the project", async () => {
+    const fs = createFs({
+      "/outside/run.yaml": "prompt: External project prompt\n"
+    });
+    await fs.mkdir("/repo/.poe-code/experiments", { recursive: true });
+    await (fs as ExperimentFileSystem & { symlink(target: string, path: string): Promise<void> })
+      .symlink("/outside/run.yaml", "/repo/.poe-code/experiments/run.yaml");
+
+    await expect(loadRunConfig({ cwd: "/repo", homeDir: "/home/test", fs })).rejects.toThrow(
+      "Experiment run config must not contain symbolic links."
+    );
+  });
+
+  it("rejects a global config directory symlinked outside the home directory", async () => {
+    const fs = createFs({
+      "/repo/.poe-code/experiments/run.yaml": "extends: true\n",
+      "/outside/run.yaml": "prompt: External global prompt\n"
+    });
+    await fs.mkdir("/home/test/.poe-code", { recursive: true });
+    await (fs as ExperimentFileSystem & { symlink(target: string, path: string): Promise<void> })
+      .symlink("/outside", "/home/test/.poe-code/experiments");
+
+    await expect(loadRunConfig({ cwd: "/repo", homeDir: "/home/test", fs })).rejects.toThrow(
+      "Experiment run config must not contain symbolic links."
+    );
+  });
+
   it("returns default when run.yaml is comment-only", async () => {
     const config = await loadRunConfig({
       cwd: "/repo",

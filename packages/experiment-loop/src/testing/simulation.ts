@@ -153,6 +153,10 @@ function createSimulationFs(options: ExperimentLoopSimulationOptions): {
         mtimeMs: Number(stat.mtimeMs)
       };
     },
+    lstat: async (filePath) => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     mkdir: async (filePath, mkdirOptions) => {
       await rawFs.mkdir(filePath, mkdirOptions);
     },

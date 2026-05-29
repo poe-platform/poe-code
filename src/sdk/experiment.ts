@@ -47,6 +47,10 @@ function createDefaultFs(): ExperimentFileSystem {
         mtimeMs: stat.mtimeMs
       };
     },
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     mkdir: async (filePath, options) => {
       await fsPromises.mkdir(filePath, options);
     },

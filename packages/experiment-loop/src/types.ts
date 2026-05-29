@@ -6,11 +6,16 @@ export interface ExperimentFileStat extends WorkflowFileStat {
   mtimeMs: number;
 }
 
+export interface ExperimentLinkStat {
+  isSymbolicLink(): boolean;
+}
+
 export interface ExperimentFileSystem extends WorkflowFileSystem {
   writeFile(path: string, content: string): Promise<void>;
   readdir(path: string): Promise<string[]>;
   appendFile(path: string, content: string): Promise<void>;
   stat(path: string): Promise<ExperimentFileStat>;
+  lstat(path: string): Promise<ExperimentLinkStat>;
 }
 
 export interface ExperimentGit {

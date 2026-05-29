@@ -55,6 +55,12 @@ function createDefaultFs(): ExperimentFileSystem {
     },
     appendFile: async (filePath: string, content: string) => {
       await fsPromises.appendFile(filePath, content, "utf8");
+    },
+    rename: async (oldPath: string, newPath: string) => {
+      await fsPromises.rename(oldPath, newPath);
+    },
+    unlink: async (filePath: string) => {
+      await fsPromises.unlink(filePath);
     }
   };
 

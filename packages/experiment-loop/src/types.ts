@@ -16,6 +16,8 @@ export interface ExperimentFileSystem extends WorkflowFileSystem {
   appendFile(path: string, content: string): Promise<void>;
   stat(path: string): Promise<ExperimentFileStat>;
   lstat(path: string): Promise<ExperimentLinkStat>;
+  rename(oldPath: string, newPath: string): Promise<void>;
+  unlink(path: string): Promise<void>;
 }
 
 export interface ExperimentGit {

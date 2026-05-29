@@ -94,6 +94,44 @@ describe("hostExecutionEnvFactory", () => {
       vi.resetModules();
     }
   });
+
+  it("forwards interactive shell cwd and cancellation signal", async () => {
+    const exec = vi.fn(() => createCompletedHandle());
+    const createHostRunner = vi.fn(() => ({
+      name: "host",
+      exec
+    }));
+    const controller = new AbortController();
+    controller.abort();
+
+    vi.resetModules();
+    vi.doMock("./host-runner.js", () => ({
+      createHostRunner
+    }));
+
+    try {
+      const { hostExecutionEnvFactory: mockedFactory } = await import("./host-execution-env.js");
+      const env = await mockedFactory.open(
+        createOpenSpec({
+          cwd: "/workspace/outer",
+          shellSpec: {
+            command: "/bin/custom-shell",
+            cwd: "/workspace/inner",
+            signal: controller.signal
+          }
+        })
+      );
+
+      env.shell();
+
+      expect(exec).toHaveBeenCalledWith(
+        expect.objectContaining({ cwd: "/workspace/inner", signal: controller.signal })
+      );
+    } finally {
+      vi.doUnmock("./host-runner.js");
+      vi.resetModules();
+    }
+  });
 });
 
 function createOpenSpec(overrides: Partial<OpenSpec> = {}): OpenSpec {

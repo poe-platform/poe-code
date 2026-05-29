@@ -33,12 +33,13 @@ export const hostExecutionEnvFactory: ExecutionEnvFactory = {
         return createHostRunner().exec({
           command: shellSpec?.command ?? openSpec.env.SHELL ?? process.env.SHELL ?? "sh",
           ...(shellSpec?.args ? { args: shellSpec.args } : {}),
-          cwd: openSpec.cwd,
+          cwd: shellSpec?.cwd ?? openSpec.cwd,
           env: shellSpec && "env" in shellSpec ? shellSpec.env : openSpec.env,
           stdin: "inherit",
           stdout: "inherit",
           stderr: "inherit",
-          tty: true
+          tty: true,
+          signal: shellSpec?.signal
         });
       },
       async close() {}

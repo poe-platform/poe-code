@@ -322,6 +322,27 @@ describe("experiment run command", () => {
     expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
   });
 
+  it("previews experiment runs without executing the loop", async () => {
+    const logs: string[] = [];
+    const container = createCliContainer({
+      fs: createMemFs({
+        "/repo/docs/loop.md": "# Loop"
+      }),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await program.parseAsync([
+      "node", "cli", "--dry-run", "experiment", "run", "docs/loop.md", "--agent", "claude", "--max-experiments", "0"
+    ]);
+
+    expect(vi.mocked(sdkRunExperiment)).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run: would run experiment doc docs/loop.md with claude-code for up to 0 experiments.");
+  });
+
   it("discovers the first doc and default agent with --yes", async () => {
     const container = createCliContainer({
       fs: createMemFs({

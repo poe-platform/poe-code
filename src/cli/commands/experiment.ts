@@ -691,8 +691,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
 
       let integrations: Integrations | null = null;
       try {
-        const commandConfig = await resolveExperimentCommandConfig(container);
-        integrations = await loadIntegrations(commandConfig.configDoc);
+        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: flags.dryRun });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -717,6 +716,14 @@ export function registerExperimentCommand(program: Command, container: CliContai
         }
 
         const maxExperiments = parseNonNegativeInt(options.maxExperiments, "max-experiments");
+        if (flags.dryRun) {
+          resources.logger.dryRun(
+            `Dry run: would run experiment doc ${docPath} with ${formatExperimentAgentSummary(agent)} for up to ${formatMaxExperimentsLabel(maxExperiments)} experiments.`
+          );
+          return;
+        }
+
+        integrations = await loadIntegrations(commandConfig.configDoc);
         const runOptions: Parameters<typeof sdkRunExperiment>[0] = {
           agent,
           cwd: container.env.cwd,

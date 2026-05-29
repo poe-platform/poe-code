@@ -224,7 +224,8 @@ function createDockerEnv(input: {
         stdin: spec.stdin,
         stdout: spec.stdout,
         stderr: spec.stderr,
-        tty: spec.tty
+        tty: spec.tty,
+        signal: spec.signal
       });
     },
     async detach() {

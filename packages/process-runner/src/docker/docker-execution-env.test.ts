@@ -265,6 +265,32 @@ describe("dockerExecutionEnvFactory", () => {
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
   });
 
+  it("forwards command cancellation signals to docker exec", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 1 }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runtime: {
+          type: "docker",
+          image: "alpine:latest",
+          build_args: {},
+          mounts: []
+        },
+        hostRunner: runner
+      })
+    );
+    const controller = new AbortController();
+    controller.abort();
+
+    const handle = env.exec({ command: "node", signal: controller.signal });
+
+    expect(runner.specs[1]).toMatchObject({ signal: controller.signal });
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+  });
+
   it("uploads and downloads the workspace through docker cp tarballs", async () => {
     const runner = createCapturingRunner([
       { exitCode: 0, stdout: ["container-id\n"] },

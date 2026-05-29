@@ -288,6 +288,55 @@ describe("createDockerRunner", () => {
     });
   });
 
+  it("does not spawn a container command when already aborted", async () => {
+    const { createDockerRunner } = await import("./docker-runner.js");
+    const controller = new AbortController();
+    controller.abort();
+
+    const handle = createDockerRunner({ image: "node:22" }).exec({
+      command: "node",
+      signal: controller.signal
+    });
+
+    expect(vi.mocked(spawn)).not.toHaveBeenCalled();
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+  });
+
+  it("does not report success after an aborted command later exits zero", async () => {
+    const child = createMockChildProcess({ stdout: true, stderr: true, stdin: true });
+    const stopChild = createMockChildProcess({ stdout: false, stderr: false, stdin: false });
+    vi.mocked(spawn).mockReturnValueOnce(child).mockReturnValueOnce(stopChild);
+    const { createDockerRunner } = await import("./docker-runner.js");
+    const controller = new AbortController();
+    const handle = createDockerRunner({ image: "node:22" }).exec({
+      command: "node",
+      signal: controller.signal
+    });
+
+    controller.abort();
+    child.emit("close", 0);
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+  });
+
+  it("contains stop process spawn errors raised while aborting", async () => {
+    const child = createMockChildProcess({ stdout: true, stderr: true, stdin: true });
+    const stopChild = createMockChildProcess({ stdout: false, stderr: false, stdin: false });
+    vi.mocked(spawn).mockReturnValueOnce(child).mockReturnValueOnce(stopChild);
+    const { createDockerRunner } = await import("./docker-runner.js");
+    const controller = new AbortController();
+    const handle = createDockerRunner({ image: "node:22" }).exec({
+      command: "node",
+      signal: controller.signal
+    });
+
+    controller.abort();
+    expect(() => stopChild.emit("error", new Error("spawn docker ENOENT"))).not.toThrow();
+    child.emit("close", 0);
+
+    await expect(handle.result).resolves.toEqual({ exitCode: 1 });
+  });
+
   it("kill with other signals spawns docker kill with a signal override", async () => {
     const child = createMockChildProcess({ stdout: true, stderr: true, stdin: true });
     const killChild = createMockChildProcess({ stdout: false, stderr: false, stdin: false });

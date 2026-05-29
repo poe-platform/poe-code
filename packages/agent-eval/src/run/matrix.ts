@@ -102,7 +102,7 @@ function createErrorResult(
   }
 ): EvalRunResult {
   return {
-    runId: `${context.matrixId}-${opts.evalId}-${opts.agent}-${safePathSegment(
+    runId: `${context.matrixId}-${opts.evalId}-${safePathSegment(opts.agent)}-${safePathSegment(
       opts.model
     )}-r${opts.repeatIndex ?? 0}-error`,
     eval: opts.evalId,
@@ -161,7 +161,10 @@ async function writeAggregate(
   aggregate: unknown
 ): Promise<void> {
   await writeFile(
-    path.join(matrixDir, `aggregate-${evalId}-${agent}-${safePathSegment(model)}.json`),
+    path.join(
+      matrixDir,
+      `aggregate-${evalId}-${safePathSegment(agent)}-${safePathSegment(model)}.json`
+    ),
     `${JSON.stringify(aggregate, null, 2)}\n`,
     "utf8"
   );

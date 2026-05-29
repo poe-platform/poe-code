@@ -1,5 +1,6 @@
 import { S, validate } from "toolcraft-schema";
 import type { Static, ValidationIssue } from "toolcraft-schema";
+import path from "node:path";
 
 const metricEvaluatorSchema = S.OneOf({
   discriminator: "kind",
@@ -99,14 +100,39 @@ export function validateEvalYaml(value: unknown, filePath = "eval.yaml"): EvalYa
   const result = validate(evalYamlSchema, value);
 
   if (result.ok) {
-    const metricIssues = validateMetrics(result.value.metrics);
-    if (metricIssues.length > 0) {
-      throw new EvalYamlValidationError(formatIssues(filePath, metricIssues), metricIssues);
+    const issues = [
+      ...validateTarget(result.value.target),
+      ...validateMetrics(result.value.metrics)
+    ];
+    if (issues.length > 0) {
+      throw new EvalYamlValidationError(formatIssues(filePath, issues), issues);
     }
     return result.value;
   }
 
   throw new EvalYamlValidationError(formatIssues(filePath, result.issues), result.issues);
+}
+
+function validateTarget(target: EvalYaml["target"]): readonly ValidationIssue[] {
+  const destination = target.plan_dest ?? "docs/plans/eval-task.md";
+  if (path.isAbsolute(destination)) {
+    return [invalidPlanDestination(destination)];
+  }
+
+  const resolved = path.resolve("/clone", destination);
+  const relative = path.relative("/clone", resolved);
+  return relative === ".." || relative.startsWith(`..${path.sep}`)
+    ? [invalidPlanDestination(destination)]
+    : [];
+}
+
+function invalidPlanDestination(destination: string): ValidationIssue {
+  return {
+    path: ["target", "plan_dest"],
+    expected: "clone-contained relative path",
+    received: destination,
+    message: "target.plan_dest must stay within the clone directory."
+  };
 }
 
 function validateMetrics(metrics: EvalYaml["metrics"]): readonly ValidationIssue[] {

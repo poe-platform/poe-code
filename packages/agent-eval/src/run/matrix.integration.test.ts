@@ -244,6 +244,31 @@ describe("runMatrix integration", () => {
       model: "model-one"
     });
   });
+
+  it("sanitizes agent names in synthetic run and aggregate artifact paths", async () => {
+    const outDir = await createOutDir();
+    mockedRun.runEval.mockRejectedValue(new Error("missing agent"));
+
+    const [result] = await collectMatrix({
+      sourceDir: sourceFixture("plan"),
+      evalIds: ["task"],
+      agents: ["../../../agent"],
+      models: ["model/one"],
+      repeats: 1,
+      outDir,
+      verifyOracle: false,
+      judge: "off"
+    });
+
+    const [matrixEntry] = await readdirNames(outDir);
+    const matrixDir = path.join(outDir, matrixEntry as string);
+    expect(result?.runId).not.toContain("/");
+    await expect(readFile(path.join(matrixDir, result?.runId as string, "result.json"), "utf8"))
+      .resolves.toContain('"verdict": "error"');
+    await expect(
+      readFile(path.join(matrixDir, "aggregate-task-..-..-..-agent-model-one.json"), "utf8")
+    ).resolves.toBeTruthy();
+  });
 });
 
 async function createOutDir(): Promise<string> {

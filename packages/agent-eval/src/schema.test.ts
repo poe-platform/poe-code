@@ -184,6 +184,15 @@ describe("eval yaml schema", () => {
     expect(result.scorer).toBeUndefined();
   });
 
+  it("rejects plan destinations that escape the clone root", () => {
+    const parsed = parseEvalYaml(validEvalYaml) as Record<string, unknown>;
+    (parsed.target as Record<string, unknown>).plan_dest = "../outside.md";
+
+    expect(() => validateEvalYaml(parsed, "escape/eval.yaml")).toThrow(
+      "escape/eval.yaml (target.plan_dest): target.plan_dest must stay within the clone directory."
+    );
+  });
+
   it("accepts eval.yaml with scorer", () => {
     const result = validateEvalYaml(parseEvalYaml(validEvalYaml), "smoke/eval.yaml");
 

@@ -734,7 +734,7 @@ export function registerPlanCommand(program: Command, container: CliContainer): 
       const resources = createExecutionResources(container, flags, "plan:install");
 
       try {
-        const agent = await resolvePlanAgent(container, options.agent, flags.assumeYes);
+        const agent = await resolvePlanAgent(container, options.agent, flags);
         if (agent === null) {
           return;
         }
@@ -876,18 +876,18 @@ async function runPlanSession(options: RunPlanSessionOptions): Promise<void> {
 async function resolvePlanAgent(
   container: CliContainer,
   value: string | undefined,
-  assumeYes: boolean
+  flags: { assumeYes: boolean; dryRun: boolean }
 ): Promise<string | null> {
   if (value && value.trim().length > 0) {
     return value.trim();
   }
 
-  const fromConfig = await resolveDefaultAgent(container);
+  const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
   if (fromConfig !== null) {
     return parseAgentSpecifier(fromConfig).agent;
   }
 
-  if (assumeYes) {
+  if (flags.assumeYes) {
     return DEFAULT_PLAN_AGENT;
   }
 

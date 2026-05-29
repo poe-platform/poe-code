@@ -92,6 +92,27 @@ describe("skill unconfigure command", () => {
     await expect(fs.stat(`${homeDir}/.codex/skills`)).rejects.toThrow("ENOENT");
   });
 
+  it("does not recover malformed config while previewing skill unconfigure", async () => {
+    const { fs } = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.poe-code/config.json`, malformedConfig, "utf8");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "skill", "unconfigure", "--local"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(`${homeDir}/.poe-code/config.json`, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("uses the default agent for root --yes unconfigure", async () => {
     const { fs } = createMemFs();
     const logs: string[] = [];
@@ -292,6 +313,27 @@ describe("skill configure command", () => {
     expect(selectMock).not.toHaveBeenCalled();
     expect(logs).toContain("Configured skills for codex at ./.codex/skills");
     await expect(fs.stat(`${cwd}/.codex/skills/poe-generate.md`)).resolves.toBeDefined();
+  });
+
+  it("does not recover malformed config while previewing skill configure", async () => {
+    const { fs } = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(`${homeDir}/.poe-code/config.json`, malformedConfig, "utf8");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "skill", "configure", "--local"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(`${homeDir}/.poe-code/config.json`, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
   });
 
   it("uses defaults with --yes and does not prompt", async () => {

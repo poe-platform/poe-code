@@ -94,6 +94,28 @@ describe("plan install command", () => {
     );
   });
 
+  it("does not recover malformed config while previewing plan installation", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(container.env.configPath, malformedConfig, { encoding: "utf8" });
+    const program = createBaseProgram();
+    registerPlanCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "plan", "install", "--local"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(container.env.configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("uses core.defaultAgent for install without prompting and drops the model portion", async () => {
     const fs = createMemFs();
     const container = createCliContainer({

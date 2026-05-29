@@ -50,7 +50,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
 
       let agent: string | undefined = agentArg;
       if (!agent) {
-        const fromConfig = await resolveDefaultAgent(container);
+        const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
         if (fromConfig !== null) {
           agent = parseAgentSpecifier(fromConfig).agent;
         } else if (flags.assumeYes) {
@@ -157,7 +157,7 @@ export function registerSkillCommand(program: Command, container: CliContainer):
 
       let agent: string | undefined = agentArg;
       if (!agent) {
-        const fromConfig = await resolveDefaultAgent(container);
+        const fromConfig = await resolveDefaultAgent(container, { readOnly: flags.dryRun });
         if (fromConfig !== null) {
           agent = parseAgentSpecifier(fromConfig).agent;
         } else if (flags.assumeYes) {

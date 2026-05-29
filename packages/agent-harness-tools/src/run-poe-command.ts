@@ -25,6 +25,7 @@ export async function runPoeCommand(opts: {
     }
   | { kind: "detached"; jobId: string; envId: string }
 > {
+  validateActivityTimeout(opts.openSpec.execution?.activityTimeoutMs);
   const jobId = createUlid();
   const execution = opts.openSpec.execution;
   const wrapCommand = execution?.wrapForLogTee !== false;
@@ -161,6 +162,7 @@ export function createPoeCommandSession(opts: {
 
   return {
     async run(openSpec, signal) {
+      validateActivityTimeout(openSpec.execution?.activityTimeoutMs);
       const jobId = createUlid();
       const pendingJob = opts.state.jobs.put({
         id: jobId,
@@ -238,6 +240,15 @@ export function createPoeCommandSession(opts: {
       await env?.close();
     }
   };
+}
+
+function validateActivityTimeout(activityTimeoutMs: number | undefined): void {
+  if (
+    activityTimeoutMs !== undefined &&
+    (!Number.isFinite(activityTimeoutMs) || activityTimeoutMs <= 0)
+  ) {
+    throw new Error("activityTimeoutMs must be a finite positive number");
+  }
 }
 
 async function configureE2bSpawnAgentIfAvailable(opts: {

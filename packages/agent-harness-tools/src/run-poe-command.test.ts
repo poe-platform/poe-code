@@ -216,6 +216,25 @@ function deferred<T>(): {
 }
 
 describe("runPoeCommand", () => {
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects invalid activity timeout %s before opening an environment",
+    async (activityTimeoutMs) => {
+      const { state } = createRecordingState();
+      const open = vi.fn(() => createMockEnv());
+      const factory: ExecutionEnvFactory = { type: "host", open };
+
+      await expect(
+        runPoeCommand({
+          factory,
+          openSpec: createOpenSpec({ execution: { wrapForLogTee: false, activityTimeoutMs } }),
+          detach: false,
+          state
+        })
+      ).rejects.toThrow("activityTimeoutMs must be a finite positive number");
+      expect(open).not.toHaveBeenCalled();
+    }
+  );
+
   it("records pending, running, and exited statuses for a sync run", async () => {
     const { state, statuses } = createRecordingState();
     const env = createMockEnv();

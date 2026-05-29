@@ -49,6 +49,10 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
   options.signal?.addEventListener("abort", onAbort, { once: true });
 
   async function start(): Promise<void> {
+    if (options.signal?.aborted) {
+      return;
+    }
+
     if (handle !== null || pendingRestart !== null) {
       return;
     }

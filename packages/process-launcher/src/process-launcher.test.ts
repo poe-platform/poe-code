@@ -365,6 +365,23 @@ describe("process launcher manager", () => {
     await expect(removeManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
     await expect(rawFs.readFile("/outside/victim.txt", "utf8")).resolves.toBe("keep-me\n");
   });
+
+  it("does not run a managed process when its signal is already aborted", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    await fs.mkdir(path.join(baseDir, "api"), { recursive: true });
+    await fs.writeFile(
+      path.join(baseDir, "api", "spec.json"),
+      `${JSON.stringify({ id: "api", command: "__must_not_execute__", restart: "never" })}\n`
+    );
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      runManagedProcess({ baseDir, fs, id: "api", signal: controller.signal })
+    ).resolves.toBeUndefined();
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).rejects.toThrow();
+  });
 });
 
 function createMemFs(): LauncherFileSystem {

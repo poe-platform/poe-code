@@ -465,6 +465,24 @@ describe("createSupervisor", () => {
     expect(supervisor.getState().status).toBe("stopped");
   });
 
+  it("does not launch when its signal is already aborted", async () => {
+    const controller = new AbortController();
+    controller.abort();
+    const runner = {
+      name: "unused",
+      exec: vi.fn(() => createControllableHandle())
+    };
+    const supervisor = createTestSupervisor({
+      runner,
+      signal: controller.signal
+    });
+
+    await expect(supervisor.start()).resolves.toBeUndefined();
+
+    expect(runner.exec).not.toHaveBeenCalled();
+    expect(supervisor.getState().status).toBe("stopped");
+  });
+
   it("pipes stdout and stderr to the log writer and onLog callback", async () => {
     vi.useFakeTimers();
     const { fs } = createMemFs();

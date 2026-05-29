@@ -305,6 +305,10 @@ export async function removeManagedProcess(options: RemoveManagedProcessOptions)
 }
 
 export async function runManagedProcess(options: RunManagedProcessOptions): Promise<void> {
+  if (options.signal?.aborted) {
+    return;
+  }
+
   const fs = options.fs ?? defaultFs();
   await assertProcessDirectorySafe(fs, options.baseDir, options.id);
   await assertPathNotSymbolicLink(fs, resolveLogDir(options.baseDir, options.id));

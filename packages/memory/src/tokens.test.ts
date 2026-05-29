@@ -88,4 +88,43 @@ describe("computeTokenStats", () => {
       missingSources: []
     });
   });
+
+  it("does not read absolute source paths outside the repository", async () => {
+    vol.fromJSON({
+      "/outside/private.txt": "hidden external token material",
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/LOG.md": "",
+      "/repo/.poe-code/memory/pages/one.md": [
+        "---",
+        "sources:",
+        "  - /outside/private.txt",
+        "---",
+        "memory"
+      ].join("\n")
+    });
+
+    await expect(computeTokenStats("/repo/.poe-code/memory")).resolves.toMatchObject({
+      sourceTokens: 0,
+      missingSources: ["/outside/private.txt"]
+    });
+  });
+
+  it("does not report URL sources as missing local files", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/memory/INDEX.md": "# Memory index\n",
+      "/repo/.poe-code/memory/LOG.md": "",
+      "/repo/.poe-code/memory/pages/one.md": [
+        "---",
+        "sources:",
+        "  - https://example.test/spec.md",
+        "---",
+        "memory"
+      ].join("\n")
+    });
+
+    await expect(computeTokenStats("/repo/.poe-code/memory")).resolves.toMatchObject({
+      sourceTokens: 0,
+      missingSources: []
+    });
+  });
 });

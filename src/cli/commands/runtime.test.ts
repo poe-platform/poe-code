@@ -419,6 +419,26 @@ describe("runtime command", () => {
     );
   });
 
+  it("rejects attaching to an explicitly selected exited job", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-exited.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-exited", env_id: "env-exited", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-exited", createJobHandle({ status: "exited" }));
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "attach", "job-exited"])
+    ).rejects.toThrow('Runtime job "job-exited" is not available for this command.');
+
+    expect(runtimeEvents.attached).toEqual([]);
+  });
+
   it("syncs with overwrite policy and closes the sandbox when requested", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-sync.json")]: `${JSON.stringify(
@@ -512,6 +532,46 @@ describe("runtime command", () => {
     expect(runtimeEvents.downloads).toEqual([
       { envId: "env-stop", conflictPolicy: "overwrite" }
     ]);
+  });
+
+  it("syncs a stopped job by default using conflict protection", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-stop.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-stop", createJobHandle({ status: "running" }));
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-stop"]);
+
+    expect(runtimeEvents.downloads).toEqual([{ envId: "env-stop", conflictPolicy: "refuse" }]);
+  });
+
+  it("rejects stopping an explicitly selected exited job without replacing its result", async () => {
+    const jobPath = path.join(jobsDir, "job-exited.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        { ...createJobEntry({ id: "job-exited", env_id: "env-exited", status: "exited" }), exit_code: 7 },
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-exited", createJobHandle({ status: "exited" }));
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-exited"])
+    ).rejects.toThrow('Runtime job "job-exited" is not available for this command.');
+
+    expect(runtimeEvents.attached).toEqual([]);
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"exit_code": 7');
   });
 
   it("rejects stopping an explicitly selected pending job without updating state", async () => {

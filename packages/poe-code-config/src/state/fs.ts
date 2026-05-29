@@ -14,6 +14,9 @@ export interface StateFileSystem {
     isFile(): boolean;
     mtimeMs: number;
   }>;
+  lstat?(path: string): Promise<{
+    isSymbolicLink(): boolean;
+  }>;
   unlink(path: string): Promise<void>;
 }
 

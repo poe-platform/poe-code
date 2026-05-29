@@ -132,6 +132,35 @@ describe("TemplateRegistry", () => {
     await expect(registry.get("docker", "alpha")).resolves.toBeNull();
     await expect(registry.list("docker")).resolves.toEqual([]);
   });
+
+  it("stores template hashes that match object prototype property names", async () => {
+    const fs = createMemFs();
+    const registry = createTemplateRegistry("/home/tester", fs);
+    const proto = createTemplate("__proto__");
+
+    await expect(registry.get("docker", "toString")).resolves.toBeNull();
+    await registry.put("docker", proto);
+
+    await expect(registry.get("docker", "__proto__")).resolves.toEqual(proto);
+    await expect(registry.list("docker")).resolves.toEqual([proto]);
+  });
+
+  it("rejects reads and writes through a symlinked template state file", async () => {
+    const templatesPath = path.join("/home/tester", ".poe-code", "state", "templates.json");
+    const outsidePath = "/outside/templates.json";
+    const volume = Volume.fromJSON({
+      [outsidePath]: `${JSON.stringify({ docker: {}, e2b: {} }, null, 2)}\n`
+    }, "/");
+    volume.mkdirSync(path.dirname(templatesPath), { recursive: true });
+    volume.symlinkSync(outsidePath, templatesPath);
+    const fs = createFsFromVolume(volume).promises as unknown as StateFileSystem;
+    const registry = createTemplateRegistry("/home/tester", fs);
+
+    await expect(registry.list("docker")).rejects.toThrow("Refusing template state access through symbolic link");
+    await expect(registry.put("docker", createTemplate("alpha"))).rejects.toThrow(
+      "Refusing template state access through symbolic link"
+    );
+  });
 });
 
 describe("JobRegistry", () => {

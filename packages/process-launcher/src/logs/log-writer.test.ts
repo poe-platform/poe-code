@@ -111,6 +111,12 @@ describe("createLogWriter", () => {
     await expect(fs.readFile("/logs/stdout.1.log", "utf8")).rejects.toThrow();
   });
 
+  it("rejects a non-finite retention count", () => {
+    expect(() => createLogWriter("/logs", Number.POSITIVE_INFINITY, createMemFs())).toThrow(
+      "retainCount must be a finite non-negative integer"
+    );
+  });
+
   it("rotate() is safe when no log files exist", async () => {
     const writer = createLogWriter("/logs", 3, createMemFs());
 
@@ -155,6 +161,16 @@ describe("createLogWriter", () => {
     await writer.write("two", "stdout");
 
     await expect(writer.tail("stdout", 0)).resolves.toEqual([]);
+  });
+
+  it("rejects a non-finite tail line limit", async () => {
+    const fs = createMemFs();
+    const writer = createLogWriter("/logs", 3, fs);
+    await writer.write("one", "stdout");
+
+    await expect(writer.tail("stdout", Number.NaN)).rejects.toThrow(
+      "lines must be a finite non-negative integer"
+    );
   });
 
   it("full lifecycle keeps tail() scoped to the current run", async () => {

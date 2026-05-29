@@ -112,7 +112,10 @@ export function createLogWriter(
   retainCount: number,
   fs: LauncherFileSystem = nodeFs as unknown as LauncherFileSystem
 ): LogWriter {
-  const maxRetainedRuns = Math.max(0, Math.trunc(retainCount));
+  if (!Number.isFinite(retainCount) || !Number.isInteger(retainCount) || retainCount < 0) {
+    throw new Error("retainCount must be a finite non-negative integer");
+  }
+  const maxRetainedRuns = retainCount;
 
   async function write(line: string, stream: "stdout" | "stderr"): Promise<void> {
     await assertPathHasNoSymbolicLinks(fs, logDir);
@@ -149,17 +152,18 @@ export function createLogWriter(
   }
 
   async function tail(stream: "stdout" | "stderr", lines = 50): Promise<string[]> {
+    if (!Number.isFinite(lines) || !Number.isInteger(lines) || lines < 0) {
+      throw new Error("lines must be a finite non-negative integer");
+    }
     try {
       await assertPathHasNoSymbolicLinks(fs, logDir);
       const content = await fs.readFile(getCurrentLogPath(logDir, stream), "utf8");
       const allLines = getLines(content);
-      const lineCount = Math.max(0, Math.trunc(lines));
-
-      if (lineCount === 0) {
+      if (lines === 0) {
         return [];
       }
 
-      return allLines.slice(-lineCount);
+      return allLines.slice(-lines);
     } catch (error) {
       if (isNotFoundError(error)) {
         return [];

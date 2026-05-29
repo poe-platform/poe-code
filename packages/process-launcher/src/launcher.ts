@@ -243,6 +243,7 @@ export async function listManagedProcesses(
 
 export async function readManagedLogs(options: ReadManagedLogsOptions): Promise<string[]> {
   const fs = options.fs ?? defaultFs();
+  await assertProcessDirectorySafe(fs, options.baseDir, options.id);
   const logWriter = createLogWriter(
     resolveLogDir(options.baseDir, options.id),
     5,
@@ -304,6 +305,7 @@ export async function removeManagedProcess(options: RemoveManagedProcessOptions)
 
 export async function runManagedProcess(options: RunManagedProcessOptions): Promise<void> {
   const fs = options.fs ?? defaultFs();
+  await assertProcessDirectorySafe(fs, options.baseDir, options.id);
   const spec = await readSpec(fs, options.baseDir, options.id);
   if (spec === null) {
     throw new Error(`Managed process "${options.id}" was not found.`);
@@ -399,6 +401,7 @@ async function readManagedProcess(options: {
   id: string;
   isPidRunning?: (pid: number) => boolean;
 }): Promise<ManagedProcessRecord> {
+  await assertProcessDirectorySafe(options.fs, options.baseDir, options.id);
   const spec = await readSpec(options.fs, options.baseDir, options.id);
   const state = await readState(options.fs, options.baseDir, options.id);
   const meta = await readMeta(options.fs, options.baseDir, options.id);
@@ -612,6 +615,26 @@ async function writeJsonFile(
 ): Promise<void> {
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
+}
+
+async function assertProcessDirectorySafe(
+  fs: LauncherFileSystem,
+  baseDir: string,
+  id: string
+): Promise<void> {
+  const processDir = resolveProcessDir(baseDir, id);
+
+  try {
+    if ((await fs.lstat(processDir)).isSymbolicLink()) {
+      throw new Error(`Refusing to access managed process through symbolic link: ${processDir}`);
+    }
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return;
+    }
+
+    throw error;
+  }
 }
 
 function resolveProcessDir(baseDir: string, id: string): string {

@@ -6,6 +6,7 @@ export interface LauncherFileSystem {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void>;
   rm(path: string, options?: { force?: boolean }): Promise<void>;
   stat(path: string): Promise<{ isFile(): boolean; mtimeMs: number }>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   readdir(path: string): Promise<string[]>;
   appendFile(path: string, content: string): Promise<void>;
 }

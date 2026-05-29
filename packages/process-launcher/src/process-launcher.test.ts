@@ -297,11 +297,42 @@ describe("process launcher manager", () => {
     await expect(restartManagedProcess({ baseDir, fs, id: "../victim", spawnDaemon: async () => null })).rejects.toThrow(/process id/i);
     await expect(startManagedProcess({ baseDir, fs, spec, spawnDaemon: async () => null })).rejects.toThrow(/process id/i);
   });
+
+  it("rejects a symlinked managed process directory", async () => {
+    const volume = Volume.fromJSON({
+      "/outside/logs/stdout.log": "external-log\n",
+      "/outside/spec.json": JSON.stringify({ id: "api", command: "npm", restart: "never" })
+    }, "/");
+    volume.mkdirSync("/state/launch", { recursive: true });
+    volume.symlinkSync("/outside", "/state/launch/api");
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = createMemFsFromRaw(rawFs);
+
+    await expect(readManagedLogs({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(removeManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(runManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    const spawnDaemon = vi.fn(async () => null);
+    await expect(
+      startManagedProcess({
+        baseDir: "/state/launch",
+        fs,
+        spec: { id: "api", command: "npm", restart: "never" },
+        spawnDaemon
+      })
+    ).rejects.toThrow(/symbolic link/i);
+    expect(spawnDaemon).not.toHaveBeenCalled();
+    await expect(rawFs.readFile("/outside/logs/stdout.log", "utf8")).resolves.toBe("external-log\n");
+  });
 });
 
 function createMemFs(): LauncherFileSystem {
   const volume = new Volume();
   const rawFs = createFsFromVolume(volume).promises;
+
+  return createMemFsFromRaw(rawFs);
+}
+
+function createMemFsFromRaw(rawFs: ReturnType<typeof createFsFromVolume>["promises"]): LauncherFileSystem {
 
   return {
     appendFile: async (filePath, content) => {
@@ -321,6 +352,10 @@ function createMemFs(): LauncherFileSystem {
         isFile: () => stat.isFile(),
         mtimeMs: Number(stat.mtimeMs)
       };
+    },
+    lstat: async filePath => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
     },
     writeFile: async (filePath, content) => {
       await rawFs.writeFile(filePath, content, { encoding: "utf8" });

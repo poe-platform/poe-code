@@ -121,6 +121,10 @@ function createMemFs(): LauncherFileSystem {
         mtimeMs: Number(stat.mtimeMs)
       };
     },
+    lstat: async filePath => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     writeFile: async (filePath, content) => {
       await rawFs.writeFile(filePath, content, { encoding: "utf8" });
     }

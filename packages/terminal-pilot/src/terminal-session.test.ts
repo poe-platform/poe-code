@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { accessSyncMock, chmodSyncMock, spawnMock } = vi.hoisted(() => ({
   accessSyncMock: vi.fn(),
@@ -37,6 +37,10 @@ describe("TerminalSession spawn helper setup", () => {
     spawnMock.mockReset();
     spawnMock.mockReturnValue(createPtyMock());
     vi.resetModules();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("ignores a missing node-pty spawn-helper", async () => {
@@ -134,5 +138,38 @@ describe("TerminalSession spawn helper setup", () => {
       "Terminal columns and rows must be positive integers."
     );
     expect(pty.resize).not.toHaveBeenCalled();
+  });
+
+  it("retries termination after a kill request throws", async () => {
+    vi.useFakeTimers();
+    let emitExit: ((event: { exitCode: number }) => void) | undefined;
+    const pty = {
+      ...createPtyMock(),
+      kill: vi
+        .fn()
+        .mockImplementationOnce(() => {
+          throw new Error("kill temporarily failed");
+        })
+        .mockImplementationOnce(() => {
+          emitExit?.({ exitCode: 143 });
+        }),
+      onExit: vi.fn((listener: (event: { exitCode: number }) => void) => {
+        emitExit = listener;
+        return { dispose: vi.fn() };
+      })
+    };
+    spawnMock.mockReturnValue(pty);
+    const { TerminalSession } = await import("./terminal-session.js");
+    const session = new TerminalSession({ id: "session-1", command: process.execPath });
+
+    const firstClose = expect(session.close()).rejects.toThrow("kill temporarily failed");
+    await vi.advanceTimersByTimeAsync(250);
+    await firstClose;
+
+    const secondClose = session.close();
+    await vi.advanceTimersByTimeAsync(250);
+
+    await expect(secondClose).resolves.toBe(143);
+    expect(pty.kill).toHaveBeenCalledTimes(2);
   });
 });

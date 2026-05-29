@@ -58,10 +58,11 @@ export class TerminalPilot {
   async close(): Promise<void> {
     const sessions = [...this.sessionMap.values()];
 
-    try {
-      await Promise.all(sessions.map((session) => session.close()));
-    } finally {
-      this.sessionMap.clear();
-    }
+    await Promise.all(
+      sessions.map(async (session) => {
+        await session.close();
+        this.sessionMap.delete(session.id);
+      })
+    );
   }
 }

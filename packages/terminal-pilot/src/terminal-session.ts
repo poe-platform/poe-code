@@ -243,26 +243,30 @@ export class TerminalSession {
 
     if (!this.closeRequested) {
       this.closeRequested = true;
-
-      const gracefulExitCode = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGNAL_GRACE_MS);
-      if (gracefulExitCode !== null) {
-        return gracefulExitCode;
-      }
-
-      if (this.signalRequested) {
-        return this.exitPromise;
-      }
-
-      if (this.exitCode === null) {
-        this.pty.kill("SIGTERM");
-        const afterSigterm = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGTERM_MS);
-        if (afterSigterm !== null) {
-          return afterSigterm;
+      try {
+        const gracefulExitCode = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGNAL_GRACE_MS);
+        if (gracefulExitCode !== null) {
+          return gracefulExitCode;
         }
-      }
 
-      if (this.exitCode === null) {
-        this.pty.kill("SIGKILL");
+        if (this.signalRequested) {
+          return this.exitPromise;
+        }
+
+        if (this.exitCode === null) {
+          this.pty.kill("SIGTERM");
+          const afterSigterm = await waitForExit(this.exitPromise, CLOSE_AFTER_SIGTERM_MS);
+          if (afterSigterm !== null) {
+            return afterSigterm;
+          }
+        }
+
+        if (this.exitCode === null) {
+          this.pty.kill("SIGKILL");
+        }
+      } catch (error) {
+        this.closeRequested = false;
+        throw error;
       }
     }
 

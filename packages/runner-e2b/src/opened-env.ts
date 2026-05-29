@@ -38,6 +38,7 @@ export function createOpenedE2bEnv(input: {
   sandbox: E2bSandbox;
   spec: OpenSpec;
   runtime: E2bRuntime;
+  reattachContext?: Record<string, unknown>;
 }): E2bOpenedEnv {
   const hostRunner = input.spec.hostRunner ?? createHostRunner();
   const hostWorkspaceDir = path.resolve(input.spec.cwd);
@@ -57,6 +58,7 @@ export function createOpenedE2bEnv(input: {
   const attachedJobId = (input.spec as OpenSpec & { detachedJobId?: string }).detachedJobId;
   const env: E2bOpenedEnv = {
     id: input.sandbox.sandboxId,
+    ...(input.reattachContext === undefined ? {} : { reattachContext: input.reattachContext }),
     job: attachedJobId
       ? createE2bJobHandle({
           sandbox: input.sandbox,

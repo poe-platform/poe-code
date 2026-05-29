@@ -122,4 +122,18 @@ describe("selectParticipantAgent", () => {
     expect(selectParticipantAgent(participant, 3)).toBe("claude-code");
     expect(selectParticipantAgent(participant, 4)).toBe("codex");
   });
+
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY, 1.5])(
+    "rejects invalid iteration %s",
+    (iteration) => {
+      const participant: WorkflowParticipant = {
+        id: "ensemble",
+        agent: ["claude-code", "codex"]
+      };
+
+      expect(() => selectParticipantAgent(participant, iteration)).toThrow(
+        "Participant iteration must be a non-negative integer."
+      );
+    }
+  );
 });

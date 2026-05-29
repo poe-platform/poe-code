@@ -103,6 +103,10 @@ export function selectParticipantAgent(
   participant: WorkflowParticipant,
   iteration: number
 ): string {
+  if (!Number.isInteger(iteration) || iteration < 0) {
+    throw new Error("Participant iteration must be a non-negative integer.");
+  }
+
   if (typeof participant.agent === "string") {
     return participant.agent;
   }

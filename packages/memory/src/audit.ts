@@ -153,9 +153,9 @@ function readSourceFile(
     return cached;
   }
 
-  const pending = fs
-    .realpath(absPath)
-    .then((realPath) => {
+  const pending = (async (): Promise<SourceFileMeta> => {
+    try {
+      const realPath = await fs.realpath(absPath);
       if (!isWithinRoot(repoRoot, realPath)) {
         return {
           exists: false as const,
@@ -164,18 +164,13 @@ function readSourceFile(
         };
       }
 
-      return fs.readFile(absPath, "utf8");
-    })
-    .then((content) =>
-      typeof content === "string"
-        ? {
-            exists: true as const,
-            absPath,
-            lineCount: countLines(content)
-          }
-        : content
-    )
-    .catch((error: unknown) => {
+      const content = await fs.readFile(absPath, "utf8");
+      return {
+        exists: true as const,
+        absPath,
+        lineCount: countLines(content)
+      };
+    } catch (error) {
       if (isMissing(error)) {
         return {
           exists: false as const,
@@ -184,7 +179,8 @@ function readSourceFile(
       }
 
       throw error;
-    });
+    }
+  })();
 
   sourceCache.set(absPath, pending);
   return pending;

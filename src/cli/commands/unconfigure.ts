@@ -50,7 +50,8 @@ export async function executeUnconfigure(
     service: canonicalService,
     container,
     options,
-    context: providerContext
+    context: providerContext,
+    readOnly: flags.dryRun
   });
 
   const unconfigured = await container.registry.invoke(
@@ -122,14 +123,16 @@ interface UnconfigurePayloadInit {
   container: CliContainer;
   options: UnconfigureCommandOptions;
   context: ProviderContext;
+  readOnly: boolean;
 }
 
 async function createUnconfigurePayload(init: UnconfigurePayloadInit): Promise<unknown> {
-  const { context, container, service } = init;
+  const { context, container, service, readOnly } = init;
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
     filePath: context.env.configPath,
-    projectFilePath: context.env.projectConfigPath
+    projectFilePath: context.env.projectConfigPath,
+    readOnly
   });
   const metadata = configuredServices[service];
   return {

@@ -9,7 +9,7 @@ import {
   resolveApiShape,
   type ApiShapeId
 } from "@poe-code/providers";
-import { readDocument, readMergedDocument, writeScope } from "./store.js";
+import { readDocument, readMergedDocument, readMergedDocumentReadonly, writeScope } from "./store.js";
 
 export interface ConfigStoreOptions {
   fs: FileSystem;
@@ -17,6 +17,7 @@ export interface ConfigStoreOptions {
   projectFilePath?: string;
   providerRegistry?: Pick<ProviderRegistry, "get">;
   warn?: (message: string) => void;
+  readOnly?: boolean;
 }
 
 export interface ConfiguredServiceMetadata {
@@ -43,13 +44,16 @@ export async function loadConfiguredServices(
   options: ConfigStoreOptions
 ): Promise<Record<string, ConfiguredServiceMetadata>> {
   const { fs, filePath, projectFilePath } = options;
-  await migrateLegacyCredentialsIfNeeded(fs, filePath);
-  await migrateConfiguredServiceLayers(options, [
-    filePath,
-    ...(projectFilePath && projectFilePath !== filePath ? [projectFilePath] : [])
-  ]);
+  if (!options.readOnly) {
+    await migrateLegacyCredentialsIfNeeded(fs, filePath);
+    await migrateConfiguredServiceLayers(options, [
+      filePath,
+      ...(projectFilePath && projectFilePath !== filePath ? [projectFilePath] : [])
+    ]);
+  }
 
-  const document = await readMergedDocument(fs, filePath, projectFilePath);
+  const readConfig = options.readOnly ? readMergedDocumentReadonly : readMergedDocument;
+  const document = await readConfig(fs, filePath, projectFilePath);
   return normalizeConfiguredServices(document[configuredServicesScope]);
 }
 

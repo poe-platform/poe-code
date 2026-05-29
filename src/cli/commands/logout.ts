@@ -22,7 +22,8 @@ export async function executeLogout(program: Command, container: CliContainer): 
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
     filePath: container.env.configPath,
-    projectFilePath: container.env.projectConfigPath
+    projectFilePath: container.env.projectConfigPath,
+    readOnly: flags.dryRun
   });
 
   let authenticatedProviders: Array<{ id: string; authenticated: boolean }> = [];

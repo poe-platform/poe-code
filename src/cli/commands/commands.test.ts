@@ -1208,6 +1208,27 @@ describe("logout command", () => {
     expect(logs.some((line) => line.includes("Dry run:"))).toBe(true);
   });
 
+  it("does not recover malformed config while previewing logout", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+    registerLogoutCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "--dry-run", "logout"])).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("deletes stored API key during logout", async () => {
     const fs = createMemFs();
     const logs: string[] = [];
@@ -1486,6 +1507,22 @@ describe("test command", () => {
     expect(logs.some((line) => line.includes("Tested Demo Service"))).toBe(true);
   });
 
+  it("does not recover malformed config while previewing a default test", async () => {
+    const malformedConfig = "{ invalid json\n";
+    const container = createTestContainer();
+    await container.fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await container.fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const program = createBaseProgram();
+    registerTestCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "test"])
+    ).rejects.toThrow();
+
+    await expect(container.fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(container.fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("fails when the provider does not support the test command", async () => {
     const container = createTestContainer();
     container.registry.register(
@@ -1745,6 +1782,28 @@ describe("unconfigure command", () => {
 
     expect(unconfigureSpy).toHaveBeenCalledTimes(1);
     expect(logs.some((line) => line.includes("Removed Test Service configuration."))).toBe(true);
+  });
+
+  it("does not recover malformed config while previewing unconfigure", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "unconfigure", "codex"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
   });
 
   it("logs mutation outcomes when provider reports them", async () => {

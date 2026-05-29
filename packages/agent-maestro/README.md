@@ -19,7 +19,7 @@
 | `states`    | object | required                                                                                      | State map. States with `prompt` are active and dispatched; states with `terminal: true` stop work and clean up workspaces. |
 | `polling`   | object | `{ interval_ms: 30000 }`                                                                      | Polling behavior.                                                                                                          |
 | `workspace` | object | `{ root: "<os tmp>/poe-code-maestro" }`                                                       | Workspace allocation behavior.                                                                                             |
-| `agent`     | object | `{ service: "codex", max_concurrent_agents: 1, max_turns: 20, max_retry_backoff_ms: 300000 }` | Agent dispatch behavior.                                                                                                   |
+| `agent`     | object | `{ service: "codex", max_concurrent_agents: 1, max_retry_backoff_ms: 300000 }` | Agent dispatch behavior.                                                                                                   |
 
 `tasks` fields:
 
@@ -47,7 +47,6 @@
 | `service` for `ralph` tasks | string | ignored   | Ignored by the `ralph` workflow driver; ralph reads its agent from the plan doc frontmatter. |
 | `list`                      | string | required  | Task list to poll. For `gh-issues`, this is `<project.owner>/<project.number>`.              |
 | `max_concurrent_agents`     | number | `1`       | Maximum number of task workers running at once.                                              |
-| `max_turns`                 | number | `20`      | Maximum turns passed to each spawned agent execution.                                        |
 | `max_retry_backoff_ms`      | number | `300000`  | Maximum retry backoff after retryable failures.                                              |
 
 State definition fields:
@@ -159,7 +158,6 @@ agent:
   service: codex
   list: plans
   max_concurrent_agents: 1
-  max_turns: 20
   max_retry_backoff_ms: 300000
 polling:
   interval_ms: 30000
@@ -194,7 +192,6 @@ agent:
   service: codex
   list: backlog
   max_concurrent_agents: 1
-  max_turns: 20
   max_retry_backoff_ms: 300000
 polling:
   interval_ms: 30000
@@ -238,7 +235,6 @@ agent:
   service: codex
   list: octo-org/7
   max_concurrent_agents: 1
-  max_turns: 20
   max_retry_backoff_ms: 300000
 polling:
   interval_ms: 30000

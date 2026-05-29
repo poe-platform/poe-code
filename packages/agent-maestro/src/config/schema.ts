@@ -28,7 +28,6 @@ export interface WorkflowConfig {
     service: string;
     list?: string;
     maxConcurrentAgents: number;
-    maxTurns: number;
     maxRetryBackoffMs: number;
   };
 }
@@ -53,7 +52,6 @@ const maestroConfigScope = {
     default: {
       service: "codex",
       max_concurrent_agents: 1,
-      max_turns: 20,
       max_retry_backoff_ms: 300_000
     },
     parse: parseRecord,
@@ -68,6 +66,10 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
   const polling = scoped.polling;
   const workspace = scoped.workspace;
   const agent = scoped.agent as JsonRecord;
+
+  if (hasOwn(agent, "max_turns")) {
+    throw new Error("agent.max_turns is not supported by agent spawning.");
+  }
 
   return {
     tasks: resolveTasks(rawConfig.tasks, cwd),
@@ -88,7 +90,6 @@ export function resolveConfig(raw: unknown, cwd: string): ResolvedConfig {
       service: readString(agent.service) ?? "codex",
       list: readString(resolveStringValue(agent.list)),
       maxConcurrentAgents: readPositiveInteger(agent.max_concurrent_agents, 1, "agent.max_concurrent_agents"),
-      maxTurns: readPositiveInteger(agent.max_turns, 20, "agent.max_turns"),
       maxRetryBackoffMs: readNonNegativeInteger(agent.max_retry_backoff_ms, 300_000, "agent.max_retry_backoff_ms")
     }
   };

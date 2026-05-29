@@ -105,7 +105,6 @@ function createConfig(): ResolvedConfig {
     agent: {
       service: "codex",
       maxConcurrentAgents: 1,
-      maxTurns: 20,
       maxRetryBackoffMs: 300_000
     }
   };

@@ -40,7 +40,6 @@ function cfg(overrides: Partial<ResolvedConfig> = {}): ResolvedConfig {
       service: "codex",
       list: "backlog",
       maxConcurrentAgents: 1,
-      maxTurns: 20,
       maxRetryBackoffMs: 300_000
     },
     ...overrides

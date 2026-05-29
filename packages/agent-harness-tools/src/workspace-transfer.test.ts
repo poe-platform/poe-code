@@ -258,6 +258,18 @@ describe("workspace transfer", () => {
     expect(tar.subarray(512, 515).toString("utf8")).toBe("app");
   });
 
+  it("stores long tar paths using the USTAR prefix field", async () => {
+    const longPath = `${"segment/".repeat(13)}file.txt`;
+    const env = createEnv({ [`/repo/${longPath}`]: "content" });
+
+    await uploadWorkspace(env, {});
+
+    const tar = await env.remoteFs.readFile("/upload/workspace.tar");
+    const name = tar.subarray(0, 100).toString("utf8").replaceAll("\0", "");
+    const prefix = tar.subarray(345, 500).toString("utf8").replaceAll("\0", "");
+    expect(`${prefix}/${name}`).toBe(longPath);
+  });
+
   it("downloads remote changes over unchanged local files", async () => {
     const env = createEnv({
       "/repo/app.ts": "base"
@@ -335,6 +347,77 @@ describe("workspace transfer", () => {
     });
     await expect(env.fs.readFile("/repo/app.ts", "utf8")).resolves.toBe("local");
     await expect(env.fs.readFile("/repo/clean.ts", "utf8")).resolves.toBe("remote-clean");
+  });
+
+  it("refuses downloads over local files excluded from upload", async () => {
+    const env = createEnv({
+      "/repo/.gitignore": ".env\n",
+      "/repo/.env": "LOCAL_SECRET=keep\n"
+    });
+    await uploadWorkspace(env, {});
+    await env.remoteFs.writeFile("/workspace/.env", "LOCAL_SECRET=remote\n");
+
+    const result = await downloadWorkspace(env, { conflictPolicy: "refuse" });
+
+    expect(result.conflicts).toEqual([{ path: ".env", reason: "local_modified" }]);
+    await expect(env.fs.readFile("/repo/.env", "utf8")).resolves.toBe("LOCAL_SECRET=keep\n");
+  });
+
+  it("preserves an existing local file when a replacement download write fails", async () => {
+    const backingLocal = createFs({ "/repo/app.ts": "base content" });
+    const remoteFs = createFs({ "/workspace/app.ts": "remote content" });
+    const env: WorkspaceTransferEnv = {
+      cwd: "/repo",
+      uploadDir: "/upload",
+      workspaceDir: "/workspace",
+      fs: {
+        ...backingLocal,
+        async writeFile(filePath: string, data: string | Buffer) {
+          if (filePath.endsWith(".download-tmp")) {
+            await backingLocal.writeFile(filePath, Buffer.from(data).subarray(0, 3));
+            throw new Error("disk full");
+          }
+
+          await backingLocal.writeFile(filePath, data);
+        }
+      } as WorkspaceTransferFileSystem,
+      remoteFs
+    };
+
+    await expect(downloadWorkspace(env, { conflictPolicy: "overwrite" })).rejects.toThrow(
+      "disk full"
+    );
+    await expect(backingLocal.readFile("/repo/app.ts", "utf8")).resolves.toBe("base content");
+  });
+
+  it("preserves the prior remote workspace when replacement upload fails", async () => {
+    const backingRemote = createFs({
+      "/workspace/app.ts": "stable remote",
+      "/workspace/keep.ts": "keep"
+    });
+    const env: WorkspaceTransferEnv = {
+      cwd: "/repo",
+      uploadDir: "/upload",
+      workspaceDir: "/workspace",
+      fs: createFs({ "/repo/app.ts": "fresh remote" }),
+      remoteFs: {
+        ...backingRemote,
+        async writeFile(filePath: string, data: string | Buffer) {
+          if (filePath.includes(".upload-tmp") && filePath.endsWith("/app.ts")) {
+            await backingRemote.writeFile(filePath, Buffer.from(data).subarray(0, 5));
+            throw new Error("remote disk full");
+          }
+
+          await backingRemote.writeFile(filePath, data);
+        }
+      } as WorkspaceTransferFileSystem
+    };
+
+    await expect(uploadWorkspace(env, {})).rejects.toThrow("remote disk full");
+    await expect(backingRemote.readFile("/workspace/app.ts", "utf8")).resolves.toBe(
+      "stable remote"
+    );
+    await expect(backingRemote.readFile("/workspace/keep.ts", "utf8")).resolves.toBe("keep");
   });
 
   it("refuses to delete locally modified files removed remotely", async () => {

@@ -25,6 +25,7 @@ export interface WorkspaceTransferFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   writeFile(path: string, data: string | Buffer): Promise<void>;
   stat(path: string): Promise<WorkspaceTransferStats>;
+  rename?(oldPath: string, newPath: string): Promise<void>;
   rm?(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
   unlink?(path: string): Promise<void>;
   rmdir?(path: string): Promise<void>;
@@ -120,15 +121,38 @@ export async function uploadWorkspace(
     });
   }
 
-  await removeTree(remoteFs, workspaceDir);
-  await remoteFs.mkdir(workspaceDir, { recursive: true });
-  await remoteFs.mkdir(env.uploadDir, { recursive: true });
-  await remoteFs.writeFile(path.join(env.uploadDir, "workspace.tar"), createTar(entries));
+  const stagedWorkspaceDir = `${workspaceDir}.upload-tmp`;
+  const priorWorkspaceDir = `${workspaceDir}.upload-backup`;
+  const archivePath = path.join(env.uploadDir, "workspace.tar");
+  const stagedArchivePath = `${archivePath}.upload-tmp`;
+  await removeTree(remoteFs, stagedWorkspaceDir);
+  await removeTree(remoteFs, priorWorkspaceDir);
+  let hadWorkspace = false;
+  try {
+    await remoteFs.mkdir(stagedWorkspaceDir, { recursive: true });
+    await remoteFs.mkdir(env.uploadDir, { recursive: true });
+    await remoteFs.writeFile(stagedArchivePath, createTar(entries));
 
-  for (const entry of entries) {
-    const remotePath = path.join(workspaceDir, entry.path);
-    await remoteFs.mkdir(path.dirname(remotePath), { recursive: true });
-    await remoteFs.writeFile(remotePath, entry.content);
+    for (const entry of entries) {
+      const remotePath = path.join(stagedWorkspaceDir, entry.path);
+      await remoteFs.mkdir(path.dirname(remotePath), { recursive: true });
+      await remoteFs.writeFile(remotePath, entry.content);
+    }
+
+    hadWorkspace = (await statIfExists(remoteFs, workspaceDir)) !== null;
+    if (hadWorkspace) {
+      await renamePath(remoteFs, workspaceDir, priorWorkspaceDir);
+    }
+    await renamePath(remoteFs, stagedWorkspaceDir, workspaceDir);
+    await renamePath(remoteFs, stagedArchivePath, archivePath);
+    await removeTree(remoteFs, priorWorkspaceDir);
+  } catch (error) {
+    if ((await statIfExists(remoteFs, workspaceDir)) === null && hadWorkspace) {
+      await renamePath(remoteFs, priorWorkspaceDir, workspaceDir).catch(() => undefined);
+    }
+    await removeTree(remoteFs, stagedWorkspaceDir).catch(() => undefined);
+    await removeFile(remoteFs, stagedArchivePath).catch(() => undefined);
+    throw error;
   }
 
   uploadState.set(env, state);
@@ -170,8 +194,7 @@ export async function downloadWorkspace(
       continue;
     }
 
-    await localFs.mkdir(path.dirname(localPath), { recursive: true });
-    await localFs.writeFile(localPath, remoteContent);
+    await writeFileAtomically(localFs, localPath, remoteContent, ".download-tmp");
     state.set(remoteFile.path, {
       hash: hashBuffer(remoteContent),
       uploaded: true
@@ -493,6 +516,35 @@ async function removeFile(fs: WorkspaceTransferFileSystem, filePath: string): Pr
   }
 }
 
+async function renamePath(
+  fs: WorkspaceTransferFileSystem,
+  sourcePath: string,
+  destinationPath: string
+): Promise<void> {
+  if (!fs.rename) {
+    throw new Error("Workspace transfer filesystem must support atomic rename.");
+  }
+
+  await fs.rename(sourcePath, destinationPath);
+}
+
+async function writeFileAtomically(
+  fs: WorkspaceTransferFileSystem,
+  destinationPath: string,
+  data: Buffer,
+  temporarySuffix: string
+): Promise<void> {
+  const temporaryPath = `${destinationPath}${temporarySuffix}`;
+  await fs.mkdir(path.dirname(destinationPath), { recursive: true });
+  try {
+    await fs.writeFile(temporaryPath, data);
+    await renamePath(fs, temporaryPath, destinationPath);
+  } catch (error) {
+    await removeFile(fs, temporaryPath).catch(() => undefined);
+    throw error;
+  }
+}
+
 async function statIfExists(
   fs: WorkspaceTransferFileSystem,
   targetPath: string
@@ -520,7 +572,8 @@ function createTar(entries: FileEntry[]): Buffer {
 
 function createTarHeader(name: string, size: number): Buffer {
   const header = Buffer.alloc(512);
-  writeString(header, name, 0, 100);
+  const { entryName, prefix } = splitTarPath(name);
+  writeString(header, entryName, 0, 100);
   writeOctal(header, 0o644, 100, 8);
   writeOctal(header, 0, 108, 8);
   writeOctal(header, 0, 116, 8);
@@ -530,8 +583,28 @@ function createTarHeader(name: string, size: number): Buffer {
   header.write("0", 156, 1, "ascii");
   header.write("ustar", 257, 5, "ascii");
   header.write("00", 263, 2, "ascii");
+  writeString(header, prefix, 345, 155);
   writeOctal(header, checksum(header), 148, 8);
   return header;
+}
+
+function splitTarPath(name: string): { entryName: string; prefix: string } {
+  if (Buffer.byteLength(name) <= 100) {
+    return { entryName: name, prefix: "" };
+  }
+
+  let separatorIndex = name.lastIndexOf("/");
+  while (separatorIndex !== -1) {
+    const prefix = name.slice(0, separatorIndex);
+    const entryName = name.slice(separatorIndex + 1);
+    if (Buffer.byteLength(entryName) <= 100 && Buffer.byteLength(prefix) <= 155) {
+      return { entryName, prefix };
+    }
+
+    separatorIndex = name.lastIndexOf("/", separatorIndex - 1);
+  }
+
+  throw new Error(`Workspace tar path is too long to represent: ${name}`);
 }
 
 function writeString(buffer: Buffer, value: string, offset: number, length: number): void {

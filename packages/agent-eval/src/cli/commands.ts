@@ -42,7 +42,12 @@ const initParams = S.Object({
     default: "plan"
   }),
   targetRepo: S.Optional(S.String({ description: "Target git repository" })),
-  targetRef: S.Optional(S.String({ description: "Target git ref" }))
+  targetRef: S.Optional(S.String({ description: "Target git ref" })),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview scaffold creation without writing files",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 const checkParams = S.Object({
@@ -52,7 +57,12 @@ const checkParams = S.Object({
       description: "Eval source directory",
       short: "C"
     })
-  )
+  ),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview oracle verification without cloning or executing tests",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 const lintParams = S.Object({
@@ -98,7 +108,12 @@ const runParams = S.Object({
     description: "Eval oracle verification",
     default: true
   }),
-  out: S.Optional(S.String({ description: "Output directory" }))
+  out: S.Optional(S.String({ description: "Output directory" })),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview the eval run without executing agents or writing artifacts",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 const reportParams = S.Object({
@@ -124,6 +139,13 @@ export const evalRunCommand = defineCommand({
   params: runParams,
   scope: ["cli", "sdk"],
   handler: async ({ params }) => {
+    if (params.dryRun === true) {
+      const evalIds = params.eval?.join(", ") ?? "configured evals";
+      process.stdout.write(
+        `Dry run: would run eval matrix for ${evalIds} with ${params.agent.join(", ")} on ${params.model.join(", ")}.\n`
+      );
+      return null;
+    }
     const sourceDir = path.resolve(params.cwd ?? process.cwd());
     const source = await openSource(sourceDir);
     const config = await loadSourceConfig(source);
@@ -229,6 +251,10 @@ export const evalInitCommand = defineCommand({
   params: initParams,
   scope: ["cli", "sdk"],
   handler: async ({ params }) => {
+    if (params.dryRun === true) {
+      process.stdout.write(`Dry run: would create ${params.kind} eval scaffold ${params.name}.\n`);
+      return null;
+    }
     const exitCode = await runInitCli({
       name: params.name,
       sourceDir: params.cwd,
@@ -255,6 +281,10 @@ export const evalCheckCommand = defineCommand({
   params: checkParams,
   scope: ["cli", "sdk"],
   handler: async ({ params }) => {
+    if (params.dryRun === true) {
+      process.stdout.write(`Dry run: would verify eval oracle ${params.evalId ?? "the selected eval"}.\n`);
+      return null;
+    }
     const exitCode = await runCheckCli({
       evalId: params.evalId,
       sourceDir: params.cwd

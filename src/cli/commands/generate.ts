@@ -273,7 +273,7 @@ async function resolveClient(container: CliContainer): Promise<LlmClient> {
   try {
     return getGlobalClient();
   } catch {
-    const apiKey = await container.readApiKey();
+    const apiKey = normalizeEnvModel(container.env.getVariable("POE_API_KEY")) ?? await container.readApiKey();
     if (!apiKey) {
       throw new Error("Poe API key not found. Run 'poe-code login' first.");
     }

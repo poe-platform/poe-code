@@ -549,7 +549,7 @@ exports[`ghIssuesBackend > fire("482", "<known-state>") sets the matching Status
 
 exports[`ghIssuesBackend > get("404") throws TaskNotFoundError when the issue does not exist 1`] = `
 {
-  "query": "query Issue($owner: String!, $repo: String!, $number: Int!) {
+  "query": "query Issue($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
       number
@@ -560,7 +560,7 @@ exports[`ghIssuesBackend > get("404") throws TaskNotFoundError when the issue do
       labels(first: 50) { nodes { name } }
       assignees(first: 20) { nodes { login } }
       milestone { title }
-      projectItems(first: 10) {
+      projectItems(first: 100, after: $after) {
         nodes {
           id
           project { id }
@@ -570,6 +570,7 @@ exports[`ghIssuesBackend > get("404") throws TaskNotFoundError when the issue do
             }
           }
         }
+        pageInfo { hasNextPage endCursor }
       }
     }
   }
@@ -584,7 +585,7 @@ exports[`ghIssuesBackend > get("404") throws TaskNotFoundError when the issue do
 
 exports[`ghIssuesBackend > get("482") returns the mapped task 1`] = `
 {
-  "query": "query Issue($owner: String!, $repo: String!, $number: Int!) {
+  "query": "query Issue($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
       number
@@ -595,7 +596,7 @@ exports[`ghIssuesBackend > get("482") returns the mapped task 1`] = `
       labels(first: 50) { nodes { name } }
       assignees(first: 20) { nodes { login } }
       milestone { title }
-      projectItems(first: 10) {
+      projectItems(first: 100, after: $after) {
         nodes {
           id
           project { id }
@@ -605,6 +606,7 @@ exports[`ghIssuesBackend > get("482") returns the mapped task 1`] = `
             }
           }
         }
+        pageInfo { hasNextPage endCursor }
       }
     }
   }
@@ -619,7 +621,7 @@ exports[`ghIssuesBackend > get("482") returns the mapped task 1`] = `
 
 exports[`ghIssuesBackend > get("999") throws TaskNotFoundError when the issue is not in this project 1`] = `
 {
-  "query": "query Issue($owner: String!, $repo: String!, $number: Int!) {
+  "query": "query Issue($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
       number
@@ -630,7 +632,7 @@ exports[`ghIssuesBackend > get("999") throws TaskNotFoundError when the issue is
       labels(first: 50) { nodes { name } }
       assignees(first: 20) { nodes { login } }
       milestone { title }
-      projectItems(first: 10) {
+      projectItems(first: 100, after: $after) {
         nodes {
           id
           project { id }
@@ -640,6 +642,7 @@ exports[`ghIssuesBackend > get("999") throws TaskNotFoundError when the issue is
             }
           }
         }
+        pageInfo { hasNextPage endCursor }
       }
     }
   }

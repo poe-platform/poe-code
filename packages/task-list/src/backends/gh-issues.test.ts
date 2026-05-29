@@ -1260,8 +1260,9 @@ describe("ghIssuesBackend", () => {
   it('move("482", { before: "100" }) positions after the anchor predecessor', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
-      issueProjectItemResponse({
-        issueId: "issue-node-482",
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
         projectItemId: "item-482"
       }),
       issueProjectItemResponse({
@@ -1271,12 +1272,7 @@ describe("ghIssuesBackend", () => {
       itemsResponse({
         nodes: projectOrderingFixture()
       }),
-      updateProjectItemPositionResponse(),
-      issueResponse({
-        number: 482,
-        title: "Issue 482",
-        projectItemId: "item-482"
-      })
+      updateProjectItemPositionResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
 
@@ -1291,20 +1287,16 @@ describe("ghIssuesBackend", () => {
   it('move("482", { after: "100" }) positions after the anchor item', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
-      issueProjectItemResponse({
-        issueId: "issue-node-482",
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
         projectItemId: "item-482"
       }),
       issueProjectItemResponse({
         issueId: "issue-node-100",
         projectItemId: "item-100"
       }),
-      updateProjectItemPositionResponse(),
-      issueResponse({
-        number: 482,
-        title: "Issue 482",
-        projectItemId: "item-482"
-      })
+      updateProjectItemPositionResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
 
@@ -1317,16 +1309,12 @@ describe("ghIssuesBackend", () => {
   it('move("482", { position: "top" }) positions at the top', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
-      issueProjectItemResponse({
-        issueId: "issue-node-482",
-        projectItemId: "item-482"
-      }),
-      updateProjectItemPositionResponse(),
       issueResponse({
         number: 482,
         title: "Issue 482",
         projectItemId: "item-482"
-      })
+      }),
+      updateProjectItemPositionResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
 
@@ -1338,11 +1326,51 @@ describe("ghIssuesBackend", () => {
     expect(readMutationCalls(fetchMock)).toMatchSnapshot();
   });
 
+  it("returns a moved task without a post-position confirmation read", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({ number: 482, title: "Move me", status: "Todo", projectItemId: "item-482" }),
+      updateProjectItemPositionResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").move("482", { position: "top" })).resolves.toMatchObject({
+      id: "482",
+      state: "Todo"
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("moves a task whose configured project membership is on a later page", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Move me",
+        projectId: "other-project",
+        projectItemId: "item-other",
+        hasNextProjectItemPage: true,
+        projectItemEndCursor: "page-one"
+      }),
+      issueResponse({ number: 482, title: "Move me", projectItemId: "item-482" }),
+      updateProjectItemPositionResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").move("482", { position: "top" })).resolves.toMatchObject({
+      id: "482"
+    });
+    expect(readGraphqlCall(fetchMock, 2)).toEqual(
+      expect.objectContaining({ variables: expect.objectContaining({ after: "page-one" }) })
+    );
+  });
+
   it('move("482", { position: "bottom" }) positions after the last item', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
-      issueProjectItemResponse({
-        issueId: "issue-node-482",
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
         projectItemId: "item-482"
       }),
       itemsResponse({
@@ -1352,12 +1380,7 @@ describe("ghIssuesBackend", () => {
           projectIssueItem({ id: "item-100", issue: issue({ number: 100 }) })
         ]
       }),
-      updateProjectItemPositionResponse(),
-      issueResponse({
-        number: 482,
-        title: "Issue 482",
-        projectItemId: "item-482"
-      })
+      updateProjectItemPositionResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
 
@@ -1372,19 +1395,15 @@ describe("ghIssuesBackend", () => {
   it('move("482", { position: "bottom" }) does not position an item after itself', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
-      issueProjectItemResponse({
-        issueId: "issue-node-482",
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
         projectItemId: "item-482"
       }),
       itemsResponse({
         nodes: projectOrderingFixture()
       }),
-      updateProjectItemPositionResponse(),
-      issueResponse({
-        number: 482,
-        title: "Issue 482",
-        projectItemId: "item-482"
-      })
+      updateProjectItemPositionResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
 
@@ -1399,8 +1418,9 @@ describe("ghIssuesBackend", () => {
   it('move("482", { before: "missing" }) throws AnchorNotFoundError', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
-      issueProjectItemResponse({
-        issueId: "issue-node-482",
+      issueResponse({
+        number: 482,
+        title: "Issue 482",
         projectItemId: "item-482"
       })
     ]);
@@ -1409,6 +1429,27 @@ describe("ghIssuesBackend", () => {
     await expect(
       taskList.list("octo-org/7").move("482", { before: "missing" })
     ).rejects.toBeInstanceOf(AnchorNotFoundError);
+  });
+
+  it("removes a task whose configured project membership is on a later page", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueProjectItemResponse({
+        issueId: "issue-node-482",
+        projectItemId: "item-other",
+        projectId: "other-project",
+        hasNextProjectItemPage: true,
+        projectItemEndCursor: "page-one"
+      }),
+      issueProjectItemResponse({ issueId: "issue-node-482", projectItemId: "item-482" }),
+      deleteProjectItemResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").delete("482")).resolves.toBeUndefined();
+    expect(readGraphqlCall(fetchMock, 2)).toEqual(
+      expect.objectContaining({ variables: expect.objectContaining({ after: "page-one" }) })
+    );
   });
 
   it('reorder(["100", "200", "482"]) issues sequential position mutations', async () => {
@@ -1585,6 +1626,8 @@ function issueResponse(options: {
   milestone?: string | null;
   projectId?: string;
   projectItemId?: string;
+  hasNextProjectItemPage?: boolean;
+  projectItemEndCursor?: string | null;
   createdAt?: string;
 }): Response {
   return graphqlResponse({
@@ -1606,7 +1649,11 @@ function issueResponse(options: {
                       name: options.status ?? "Todo"
                     }
             }
-          ]
+          ],
+          pageInfo: {
+            hasNextPage: options.hasNextProjectItemPage ?? false,
+            endCursor: options.projectItemEndCursor ?? null
+          }
         }
       }
     }
@@ -1725,6 +1772,8 @@ function issueProjectItemResponse(options: {
   issueId: string;
   projectItemId: string;
   projectId?: string;
+  hasNextProjectItemPage?: boolean;
+  projectItemEndCursor?: string | null;
 }): Response {
   return graphqlResponse({
     repository: {
@@ -1738,7 +1787,11 @@ function issueProjectItemResponse(options: {
                 id: options.projectId ?? "project-id"
               }
             }
-          ]
+          ],
+          pageInfo: {
+            hasNextPage: options.hasNextProjectItemPage ?? false,
+            endCursor: options.projectItemEndCursor ?? null
+          }
         }
       }
     }

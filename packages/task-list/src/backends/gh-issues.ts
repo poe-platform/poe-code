@@ -119,7 +119,7 @@ const REPOSITORY_ISSUES_QUERY = `query Issues($owner: String!, $repo: String!, $
   }
 }`;
 
-const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!) {
+const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
       number
@@ -130,7 +130,7 @@ const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!)
       labels(first: 50) { nodes { name } }
       assignees(first: 20) { nodes { login } }
       milestone { title }
-      projectItems(first: 10) {
+      projectItems(first: 100, after: $after) {
         nodes {
           id
           project { id }
@@ -140,6 +140,7 @@ const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!)
             }
           }
         }
+        pageInfo { hasNextPage endCursor }
       }
     }
   }
@@ -160,16 +161,17 @@ const REPOSITORY_ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $nu
   }
 }`;
 
-const ISSUE_STATE_LABELS_QUERY = `query IssueStateLabels($owner: String!, $repo: String!, $number: Int!) {
+const ISSUE_STATE_LABELS_QUERY = `query IssueStateLabels($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
       id
       labels(first: 50) { nodes { id name } }
-      projectItems(first: 10) {
+      projectItems(first: 100, after: $after) {
         nodes {
           id
           project { id }
         }
+        pageInfo { hasNextPage endCursor }
       }
     }
   }
@@ -402,6 +404,7 @@ interface IssueStateLabelsResponse {
       labels?: IssueNode["labels"];
       projectItems?: {
         nodes?: ProjectItemMembership[];
+        pageInfo?: PageInfo;
       } | null;
     } | null;
   } | null;
@@ -443,7 +446,13 @@ interface IssueNode {
 interface IssueNodeWithProjectItems extends IssueNode {
   projectItems?: {
     nodes?: ProjectItemMembership[];
+    pageInfo?: PageInfo;
   } | null;
+}
+
+interface PageInfo {
+  hasNextPage?: boolean;
+  endCursor?: string | null;
 }
 
 interface ProjectItemMembership {
@@ -796,12 +805,13 @@ function createTasksView(
     },
     async move(id: string, anchor: MoveAnchor): Promise<Task> {
       assertProjectBacked(session, "move");
-      const projectItemId = await resolveProjectItemId(id, name, session, context);
+      const task = await fetchIssueTask(id, name, session, context);
+      const projectItemId = projectItemIdFromTask(task);
       const afterId = await resolveMoveAfterId(id, anchor, name, session, context);
 
       await updateProjectItemPosition(projectItemId, afterId, session, context);
 
-      return fetchIssueTask(id, name, session, context);
+      return task;
     },
     async reorder(ids: readonly string[]): Promise<readonly Task[]> {
       assertProjectBacked(session, "reorder");
@@ -901,27 +911,37 @@ async function resolveProjectItemId(
 ): Promise<string> {
   assertProjectBacked(session, "resolve project item");
   const issueNumber = parseIssueNumber(id, listName);
-  const result = await context.client.graphql<IssueStateLabelsResponse>(ISSUE_STATE_LABELS_QUERY, {
-    owner: context.repoOwner,
-    repo: context.repoName,
-    number: issueNumber
-  });
-  const issue = result.repository?.issue ?? null;
-  if (issue === null) {
-    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
-  }
+  let after: string | null | undefined;
 
-  if (issue.id !== undefined && issue.id !== null) {
-    context.issueIds.set(issueNumber, issue.id);
-  }
+  while (true) {
+    const result = await context.client.graphql<IssueStateLabelsResponse>(ISSUE_STATE_LABELS_QUERY, {
+      owner: context.repoOwner,
+      repo: context.repoName,
+      number: issueNumber,
+      after
+    });
+    const issue = result.repository?.issue ?? null;
+    if (issue === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+    }
 
-  const projectItem =
-    issue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null;
-  if (projectItem === null) {
-    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
-  }
+    if (issue.id !== undefined && issue.id !== null) {
+      context.issueIds.set(issueNumber, issue.id);
+    }
 
-  return projectItem.id;
+    const projectItem =
+      issue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null;
+    if (projectItem !== null) {
+      return projectItem.id;
+    }
+
+    const pageInfo = issue.projectItems?.pageInfo;
+    if (pageInfo?.hasNextPage !== true || pageInfo.endCursor === undefined || pageInfo.endCursor === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+    }
+
+    after = pageInfo.endCursor;
+  }
 }
 
 async function updateProjectItemStatus(
@@ -974,17 +994,41 @@ async function updateIssueStateLabel(
   context: GhIssuesTasksContext
 ): Promise<void> {
   const issueNumber = parseIssueNumber(id, listName);
-  const result = await context.client.graphql<IssueStateLabelsResponse>(
-    session.projectId === undefined
-      ? REPOSITORY_ISSUE_STATE_LABELS_QUERY
-      : ISSUE_STATE_LABELS_QUERY,
-    {
-      owner: context.repoOwner,
-      repo: context.repoName,
-      number: issueNumber
+  let after: string | null | undefined;
+  let issue: NonNullable<IssueStateLabelsResponse["repository"]>["issue"] = null;
+  let isInProject = session.projectId === undefined;
+
+  while (true) {
+    const result = await context.client.graphql<IssueStateLabelsResponse>(
+      session.projectId === undefined
+        ? REPOSITORY_ISSUE_STATE_LABELS_QUERY
+        : ISSUE_STATE_LABELS_QUERY,
+      {
+        owner: context.repoOwner,
+        repo: context.repoName,
+        number: issueNumber,
+        after
+      }
+    );
+    const currentIssue = result.repository?.issue ?? null;
+    if (currentIssue === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
     }
-  );
-  const issue = result.repository?.issue ?? null;
+    issue ??= currentIssue;
+    if (session.projectId === undefined) {
+      break;
+    }
+    if (currentIssue.projectItems?.nodes?.some((item) => item.project?.id === session.projectId)) {
+      isInProject = true;
+      break;
+    }
+    const pageInfo = currentIssue.projectItems?.pageInfo;
+    if (pageInfo?.hasNextPage !== true || pageInfo.endCursor === undefined || pageInfo.endCursor === null) {
+      break;
+    }
+    after = pageInfo.endCursor;
+  }
+
   if (issue === null) {
     throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
   }
@@ -992,10 +1036,7 @@ async function updateIssueStateLabel(
   if (issueId === null) {
     throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
   }
-  if (
-    session.projectId !== undefined &&
-    !issue.projectItems?.nodes?.some((item) => item.project?.id === session.projectId)
-  ) {
+  if (!isInProject) {
     throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
   }
 
@@ -1206,26 +1247,38 @@ async function fetchIssueTask(
   context: GhIssuesTasksContext
 ): Promise<Task> {
   const issueNumber = parseIssueNumber(id, listName);
+  let after: string | null | undefined;
+  let issue: IssueNodeWithProjectItems | null = null;
+  let projectItem: ProjectItemMembership | null = null;
 
-  const result = await context.client.graphql<IssueResponse>(
-    session.projectId === undefined ? REPOSITORY_ISSUE_QUERY : ISSUE_QUERY,
-    {
-      owner: context.repoOwner,
-      repo: context.repoName,
-      number: issueNumber
+  while (true) {
+    const result = await context.client.graphql<IssueResponse>(
+      session.projectId === undefined ? REPOSITORY_ISSUE_QUERY : ISSUE_QUERY,
+      {
+        owner: context.repoOwner,
+        repo: context.repoName,
+        number: issueNumber,
+        after
+      }
+    );
+    const currentIssue = result.repository?.issue ?? null;
+    if (currentIssue === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
     }
-  );
-  const issue = result.repository?.issue ?? null;
-  if (issue === null) {
-    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
-  }
-
-  const projectItem =
-    session.projectId === undefined
-      ? null
-      : (issue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null);
-  if (session.projectId !== undefined && projectItem === null) {
-    throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+    issue ??= currentIssue;
+    if (session.projectId === undefined) {
+      break;
+    }
+    projectItem =
+      currentIssue.projectItems?.nodes?.find((item) => item.project?.id === session.projectId) ?? null;
+    if (projectItem !== null) {
+      break;
+    }
+    const pageInfo = currentIssue.projectItems?.pageInfo;
+    if (pageInfo?.hasNextPage !== true || pageInfo.endCursor === undefined || pageInfo.endCursor === null) {
+      throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+    }
+    after = pageInfo.endCursor;
   }
 
   return mapIssueToTask({

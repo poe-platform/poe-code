@@ -39,6 +39,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
   }
 
   const absoluteDocPath = resolveWorkflowPath(options.docPath, options.cwd, options.homeDir);
+  await rejectSymbolicLink(absoluteDocPath, fs);
   const planDirectory = path.dirname(options.docPath);
   const runLogDir = resolveRunLogDir({
     planPath: absoluteDocPath,
@@ -364,6 +365,10 @@ function createDefaultFs(): RalphFileSystem {
       fsPromises.writeFile(filePath, content, "utf8"),
     readdir: fsPromises.readdir,
     open: (filePath: string, flags: string) => fsPromises.open(filePath, flags),
+    lstat: async (filePath: string) => {
+      const stat = await fsPromises.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     stat: async (filePath: string) => {
       const stat = await fsPromises.stat(filePath);
       return {
@@ -452,6 +457,12 @@ function normalizeResolvedPrompt(prompt: unknown): string {
   }
 
   return prompt;
+}
+
+async function rejectSymbolicLink(filePath: string, fs: Pick<RalphFileSystem, "lstat">): Promise<void> {
+  if ((await fs.lstat(filePath)).isSymbolicLink()) {
+    throw new Error(`Refusing to run Ralph through symbolic link: ${filePath}`);
+  }
 }
 
 async function updateFrontmatter(

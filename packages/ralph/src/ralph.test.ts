@@ -59,6 +59,10 @@ function createRunFs(files: Record<string, string>) {
       },
       readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
       open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
+      lstat: async (filePath: string) => {
+        const stat = await rawFs.lstat(filePath);
+        return { isSymbolicLink: () => stat.isSymbolicLink() };
+      },
       stat: async (filePath: string) => {
         const stat = await rawFs.stat(filePath);
         return {
@@ -1123,6 +1127,37 @@ describe("createRalphSimulation", () => {
       state: "open",
       iteration: 1
     });
+  });
+
+  it("rejects an aborted run through a symlinked document", async () => {
+    const { fs, rawFs } = createRunFs({
+      "/outside/external-ralph.md": [
+        "---",
+        "kind: ralph",
+        "agent: claude-code",
+        "iterations: 1",
+        "status:",
+        "  state: in_progress",
+        "  iteration: 4",
+        "---",
+        "# External Ralph"
+      ].join("\n")
+    });
+    await rawFs.mkdir("/repo/docs/plans", { recursive: true });
+    await rawFs.symlink("/outside/external-ralph.md", "/repo/docs/plans/linked.md");
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "docs/plans/linked.md",
+      fs,
+      runAgent: vi.fn(),
+      signal: controller.signal
+    })).rejects.toThrow(/symbolic link/i);
+    await expect(rawFs.readFile("/outside/external-ralph.md", "utf8"))
+      .resolves.toContain("iteration: 4");
   });
 
   it("uses agent-kit path resolution for home-directory docs", async () => {

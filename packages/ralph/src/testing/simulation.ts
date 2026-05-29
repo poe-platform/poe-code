@@ -81,6 +81,10 @@ function createSimulationFs(options: SimulationOptions): {
     },
     readdir: (filePath) => rawFs.readdir(filePath) as Promise<string[]>,
     open: (filePath: string, flags: string) => rawFs.open(filePath, flags),
+    lstat: async (filePath: string) => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     stat: async (filePath) => {
       const stat = await rawFs.stat(filePath);
       return {

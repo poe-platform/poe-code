@@ -7,7 +7,7 @@ vi.mock("node:fs/promises", async () => {
   return fs.promises;
 });
 
-const { reconcile, snapshot } = await import("./reconcile.js");
+const { appendLogEntries, reconcile, snapshot } = await import("./reconcile.js");
 
 describe("snapshot", () => {
   beforeEach(() => {
@@ -205,6 +205,33 @@ describe("reconcile", () => {
       )
     );
     await expect(vol.promises.readFile(`${root}/LOG.md`, "utf8")).resolves.toBe("");
+  });
+
+  it("rejects a symlinked generated index before overwriting external content", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/pages/page.md`]: "# Page\n",
+      [`${root}/LOG.md`]: "",
+      "/outside/index.md": "external index\n"
+    });
+    await vol.promises.symlink("/outside/index.md", `${root}/INDEX.md`);
+
+    await expect(reconcile(root, { pages: {} }, "update", "probe")).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.readFile("/outside/index.md", "utf8")).resolves.toBe("external index\n");
+  });
+
+  it("rejects a symlinked log before appending external history", async () => {
+    const root = "/repo/.poe-code/memory";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      "/outside/log.md": "external log\n"
+    });
+    await vol.promises.symlink("/outside/log.md", `${root}/LOG.md`);
+
+    await expect(
+      appendLogEntries(root, { created: ["pages/new.md"], updated: [], deleted: [] }, "probe")
+    ).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.readFile("/outside/log.md", "utf8")).resolves.toBe("external log\n");
   });
 });
 

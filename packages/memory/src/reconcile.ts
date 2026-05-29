@@ -5,7 +5,12 @@ import { parseClaims } from "./confidence.js";
 import { parseFrontmatter, serializeFrontmatter, serializeSourceRef } from "./frontmatter.js";
 import { initMemory } from "./init.js";
 import { collectMarkdownRelPaths, listPages } from "./pages.js";
-import { MEMORY_INDEX_RELPATH, MEMORY_LOG_RELPATH, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
+import {
+  assertNoSymlinkSegments,
+  MEMORY_INDEX_RELPATH,
+  MEMORY_LOG_RELPATH,
+  MEMORY_PAGES_DIR_RELPATH
+} from "./paths.js";
 import type {
   LogVerb,
   MemoryDiff,
@@ -111,6 +116,7 @@ export async function appendLogEntries(
     return;
   }
 
+  await assertNoSymlinkSegments(root, MEMORY_LOG_RELPATH);
   const logPath = path.join(root, MEMORY_LOG_RELPATH);
   const existing = await fs.readFile(logPath, "utf8");
   const separator = existing.length === 0 || existing.endsWith("\n") ? "" : "\n";
@@ -135,6 +141,7 @@ export function denormalizeSources(markdown: string): SourceRef[] {
 }
 
 async function writeIndex(root: MemoryRoot): Promise<void> {
+  await assertNoSymlinkSegments(root, MEMORY_INDEX_RELPATH);
   const index = renderIndex(
     (await listPages(root)).map((page) => ({
       relPath: page.relPath,

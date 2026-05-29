@@ -127,4 +127,24 @@ describe("computeTokenStats", () => {
       missingSources: []
     });
   });
+
+  it("does not count source files reached through repository symlinks", async () => {
+    vol.fromJSON({
+      "/outside/private.md": "external secret material\n",
+      "/repo/docs/.keep": "",
+      "/repo/.poe-code/memory/pages/one.md": [
+        "---",
+        "sources:",
+        "  - docs/linked.md",
+        "---",
+        "memory"
+      ].join("\n")
+    });
+    await vol.promises.symlink("/outside/private.md", "/repo/docs/linked.md");
+
+    await expect(computeTokenStats("/repo/.poe-code/memory")).resolves.toMatchObject({
+      sourceTokens: 0,
+      missingSources: ["docs/linked.md"]
+    });
+  });
 });

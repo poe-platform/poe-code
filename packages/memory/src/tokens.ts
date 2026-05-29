@@ -51,6 +51,11 @@ export async function computeTokenStats(root: MemoryRoot): Promise<TokenStats> {
     }
 
     try {
+      const realPath = await fs.realpath(absPath);
+      if (!isWithinRoot(repoRoot, realPath)) {
+        missingSources.push(sourcePath);
+        continue;
+      }
       const content = await fs.readFile(absPath, "utf8");
       sourceTokens += countTokens(content);
     } catch (error) {

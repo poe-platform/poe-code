@@ -182,6 +182,93 @@ describe("process launcher manager", () => {
     expect(JSON.parse(metaContent)).toMatchObject({ daemonPid: 321 });
   });
 
+  it("persists stopped state when daemon spawning rejects", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+
+    await expect(
+      startManagedProcess({
+        baseDir,
+        fs,
+        spec: { id: "api", command: "npm", restart: "never" },
+        spawnDaemon: async () => {
+          throw new Error("spawn denied");
+        }
+      })
+    ).rejects.toThrow("spawn denied");
+
+    await expect(fs.readFile(path.join(baseDir, "api", "state.json"), "utf8")).resolves.toContain('"status": "stopped"');
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid": null');
+  });
+
+  it("rejects a start without a daemon and persists its stopped state", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+
+    await expect(
+      startManagedProcess({
+        baseDir,
+        fs,
+        pollIntervalMs: 1,
+        spec: { id: "api", command: "npm", restart: "never" },
+        spawnDaemon: async () => null
+      })
+    ).rejects.toThrow(/failed to start/i);
+
+    await expect(fs.readFile(path.join(baseDir, "api", "state.json"), "utf8")).resolves.toContain('"status": "stopped"');
+  });
+
+  it("rejects a process that crashes during startup", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+
+    await expect(
+      startManagedProcess({
+        baseDir,
+        fs,
+        pollIntervalMs: 1,
+        spec,
+        spawnDaemon: async () => {
+          await fs.writeFile(
+            path.join(baseDir, "api", "state.json"),
+            `${JSON.stringify(createState(spec, { lastExitCode: 1, pid: null, status: "crashed" }))}\n`
+          );
+          return null;
+        }
+      })
+    ).rejects.toThrow(/failed to start/i);
+
+    await expect(fs.readFile(path.join(baseDir, "api", "state.json"), "utf8")).resolves.toContain('"status": "crashed"');
+  });
+
+  it("stops a daemon and persists stopped state when startup times out", async () => {
+    const fs = createMemFs();
+    let running = true;
+    const signalProcess = vi.fn((pid: number, signal: NodeJS.Signals) => {
+      expect(pid).toBe(321);
+      expect(signal).toBe("SIGTERM");
+      running = false;
+    });
+
+    await expect(
+      startManagedProcess({
+        baseDir: "/state/launch",
+        fs,
+        isPidRunning: () => running,
+        pollIntervalMs: 1,
+        signalProcess,
+        spec: { id: "api", command: "npm", restart: "never" },
+        spawnDaemon: async () => 321,
+        startupTimeoutMs: 1
+      })
+    ).rejects.toThrow(/timed out/i);
+
+    expect(signalProcess).toHaveBeenCalledOnce();
+    await expect(fs.readFile("/state/launch/api/state.json", "utf8")).resolves.toContain('"status": "stopped"');
+    await expect(fs.readFile("/state/launch/api/meta.json", "utf8")).resolves.toContain('"daemonPid": null');
+  });
+
   it("stops a stale running process and updates the persisted state", async () => {
     const fs = createMemFs();
     const baseDir = "/state/launch";
@@ -220,6 +307,28 @@ describe("process launcher manager", () => {
       pid: null,
       status: "stopped"
     });
+  });
+
+  it("rejects a stop timeout without clearing a running daemon", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 123, status: "running" }), 654);
+
+    await expect(
+      stopManagedProcess({
+        baseDir,
+        fs,
+        id: "api",
+        isPidRunning: () => true,
+        pollIntervalMs: 1,
+        signalProcess: vi.fn(),
+        stopTimeoutMs: 1
+      })
+    ).rejects.toThrow(/timed out/i);
+
+    await expect(fs.readFile(path.join(baseDir, "api", "state.json"), "utf8")).resolves.toContain('"status":"running"');
+    await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).resolves.toContain('"daemonPid":654');
   });
 
   it("lists managed processes with stale daemon processes marked as stopped", async () => {

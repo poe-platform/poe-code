@@ -19,6 +19,7 @@ export interface StartManagedProcessOptions {
   startupTimeoutMs?: number;
   spawnDaemon: (id: string) => Promise<number | null>;
   isPidRunning?: (pid: number) => boolean;
+  signalProcess?: (pid: number, signal: NodeJS.Signals) => void;
 }
 
 export interface StopManagedProcessOptions {
@@ -100,20 +101,31 @@ export async function startManagedProcess(options: StartManagedProcessOptions): 
   await writeState(fs, options.baseDir, createBootstrapState(spec));
   await writeMeta(fs, options.baseDir, spec.id, { daemonPid: null });
 
-  const daemonPid = await options.spawnDaemon(spec.id);
-  await writeMeta(fs, options.baseDir, spec.id, { daemonPid });
+  let daemonPid: number | null = null;
 
-  const started = await waitForRecord({
-    baseDir: options.baseDir,
-    fs,
-    id: spec.id,
-    isPidRunning: options.isPidRunning,
-    pollIntervalMs: options.pollIntervalMs,
-    timeoutMs: options.startupTimeoutMs,
-    ready: (record) => record.state !== null && record.state.status !== "restarting"
-  });
+  try {
+    daemonPid = await options.spawnDaemon(spec.id);
+    await writeMeta(fs, options.baseDir, spec.id, { daemonPid });
 
-  return started;
+    const started = await waitForRecord({
+      baseDir: options.baseDir,
+      fs,
+      id: spec.id,
+      isPidRunning: options.isPidRunning,
+      pollIntervalMs: options.pollIntervalMs,
+      timeoutMs: options.startupTimeoutMs,
+      ready: (record) => record.state !== null && record.state.status !== "restarting"
+    });
+
+    if (started.state?.status !== "running") {
+      throw new Error(`Managed process "${spec.id}" failed to start.`);
+    }
+
+    return started;
+  } catch (error) {
+    await cleanupFailedStart({ ...options, daemonPid, fs, id: spec.id });
+    throw error;
+  }
 }
 
 export async function stopManagedProcess(options: StopManagedProcessOptions): Promise<ManagedProcessRecord | null> {
@@ -155,14 +167,7 @@ export async function stopManagedProcess(options: StopManagedProcessOptions): Pr
   });
 
   if (isActiveRecord(stopped)) {
-    const persisted = createStoppedState(stopped);
-    await writeState(fs, options.baseDir, persisted);
-    await writeMeta(fs, options.baseDir, options.id, { daemonPid: null });
-    return {
-      ...stopped,
-      daemonPid: null,
-      state: persisted
-    };
+    throw new Error(`Timed out waiting for managed process "${options.id}" to stop.`);
   }
 
   if (
@@ -210,10 +215,30 @@ export async function restartManagedProcess(
     fs,
     isPidRunning: options.isPidRunning,
     pollIntervalMs: options.pollIntervalMs,
+    signalProcess: options.signalProcess,
     spawnDaemon: options.spawnDaemon,
     spec: record.spec,
     startupTimeoutMs: options.startupTimeoutMs
   });
+}
+
+async function cleanupFailedStart(options: {
+  baseDir: string;
+  daemonPid: number | null;
+  fs: LauncherFileSystem;
+  id: string;
+  isPidRunning?: (pid: number) => boolean;
+  signalProcess?: (pid: number, signal: NodeJS.Signals) => void;
+}): Promise<void> {
+  if (options.daemonPid !== null && isProcessRunning(options.daemonPid, options.isPidRunning)) {
+    (options.signalProcess ?? defaultSignalProcess)(options.daemonPid, "SIGTERM");
+  }
+
+  const record = await readManagedProcess(options);
+  if (record.state !== null && !isActiveRecord(record)) {
+    await writeState(options.fs, options.baseDir, record.state);
+    await writeMeta(options.fs, options.baseDir, options.id, { daemonPid: record.daemonPid });
+  }
 }
 
 export async function listManagedProcesses(

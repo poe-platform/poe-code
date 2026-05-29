@@ -131,9 +131,9 @@ export class ProviderRegistry {
     });
   }
 
-  async logout(id: string): Promise<void> {
+  async logout(id: string, options: { store?: SecretStore } = {}): Promise<void> {
     this.requireProvider(id);
-    const store = this.requireStore(id);
+    const store = options.store ?? this.requireStore(id);
     await store.delete();
   }
 

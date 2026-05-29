@@ -137,6 +137,39 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
   const writeApiKey = poeAuthStore.set.bind(poeAuthStore);
   const deleteApiKey = poeAuthStore.delete.bind(poeAuthStore);
 
+  const createPreviewProviderStore = (providerId: string, previewFs: FileSystem): SecretStore | undefined => {
+    const createPreviewStore = (defaultFileName: string) =>
+      createSecretStore({
+        backendEnvVar: "POE_AUTH_BACKEND",
+        env: variables,
+        platform: process.platform,
+        fileStore: {
+          fs: {
+            readFile: (filePath: string, encoding: BufferEncoding) => previewFs.readFile(filePath, encoding),
+            writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, writeOptions?: { encoding?: BufferEncoding }) =>
+              previewFs.writeFile(filePath, data, writeOptions),
+            mkdir: (directoryPath: string, mkdirOptions?: { recursive?: boolean }) =>
+              previewFs.mkdir(directoryPath, mkdirOptions).then(() => undefined),
+            lstat: (filePath: string) => previewFs.lstat(filePath),
+            unlink: (filePath: string) => previewFs.unlink(filePath),
+            chmod: (filePath: string, mode: number) =>
+              previewFs.chmod ? previewFs.chmod(filePath, mode) : Promise.resolve()
+          },
+          salt: "poe-code:encrypted-file-auth-store:v1",
+          defaultDirectory: ".poe-code",
+          defaultFileName,
+          getHomeDirectory: () => homeDir
+        }
+      });
+    const store = createPreviewStore(`credentials.${providerId}.enc`);
+    if (store.backend !== "file") {
+      return undefined;
+    }
+    return providerId === "poe"
+      ? new MigratingSecretStore(store.store, createPreviewStore("credentials.enc").store)
+      : store.store;
+  };
+
   // No-op prompts for SDK (non-interactive)
   const noopPrompts = async () => {
     throw new Error("SDK does not support interactive prompts");
@@ -215,7 +248,8 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     },
     readApiKey,
     writeApiKey,
-    deleteApiKey
+    deleteApiKey,
+    createPreviewProviderStore
   };
 
   return container;

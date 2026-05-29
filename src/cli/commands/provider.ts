@@ -125,7 +125,9 @@ async function executeProviderLogin(
     parsedShapeBaseUrls
   });
 
-  if (!flags.dryRun) {
+  if (flags.dryRun) {
+    validateDryRunCredentialAvailability({ provider, options, container, flags });
+  } else {
     await container.providerRegistry.login(
       id,
       { apiKey: options.apiKey },
@@ -143,29 +145,59 @@ async function executeProviderLogin(
       }
     );
 
-    const shapeBaseUrls = await resolveProviderLoginShapeBaseUrls({
-      provider,
-      options,
-      container,
-      flags,
-      logger: resources.logger,
-      parsedShapeBaseUrls
-    });
-
-    await saveProviderShapeBaseUrls({
-      fs: container.fs,
-      filePath: container.env.servicesConfigPath,
-      providerId: id,
-      shapeBaseUrls
-    });
   }
+
+  const shapeBaseUrls = await resolveProviderLoginShapeBaseUrls({
+    provider,
+    options,
+    container,
+    flags,
+    logger: resources.logger,
+    parsedShapeBaseUrls
+  });
+
+  await saveProviderShapeBaseUrls({
+    fs: resources.context.fs,
+    filePath: container.env.servicesConfigPath,
+    providerId: id,
+    shapeBaseUrls
+  });
+
+  const dryMessage =
+    flags.dryRun && provider.auth.kind === "api-key" && provider.auth.preferredLogin === "oauth" &&
+    resolveNonEmpty(options.apiKey) === undefined &&
+    resolveNonEmpty(container.env.getVariable(provider.auth.envVar)) === undefined
+      ? `Dry run: would authenticate with ${provider.label}.`
+      : `Dry run: would save credential for ${id}.`;
 
   resources.context.complete({
     success: `Saved credential for ${id}.`,
-    dry: `Dry run: would save credential for ${id}.`
+    dry: dryMessage
   });
 
   resources.context.finalize();
+}
+
+function validateDryRunCredentialAvailability(input: {
+  provider: AuthProvider;
+  options: ProviderLoginOptions;
+  container: CliContainer;
+  flags: ReturnType<typeof resolveCommandFlags>;
+}): void {
+  if (!input.flags.assumeYes || input.provider.auth.kind !== "api-key") {
+    return;
+  }
+  if (input.provider.auth.preferredLogin === "oauth") {
+    return;
+  }
+  if (
+    resolveNonEmpty(input.options.apiKey) === undefined &&
+    resolveNonEmpty(input.container.env.getVariable(input.provider.auth.envVar)) === undefined
+  ) {
+    throw new Error(
+      `No API key available for provider "${input.provider.id}". Pass --api-key or run interactively.`
+    );
+  }
 }
 
 function validateProviderLoginBaseUrlOptions(input: {
@@ -315,7 +347,12 @@ async function executeProviderLogout(
     );
   }
 
-  if (!flags.dryRun) {
+  if (flags.dryRun) {
+    const previewStore = container.createPreviewProviderStore(id, resources.context.fs);
+    if (previewStore) {
+      await container.providerRegistry.logout(id, { store: previewStore });
+    }
+  } else {
     await container.providerRegistry.logout(id);
   }
 

@@ -277,6 +277,52 @@ describe("provider login", () => {
     expect(loginSpy).not.toHaveBeenCalled();
   });
 
+  it("previews stored base URLs during dry-run provider login", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "--yes",
+      "provider",
+      "login",
+      "cloudflare",
+      "--api-key",
+      "sk-preview",
+      "--base-url",
+      "https://gateway.example.test"
+    ]);
+
+    expect(logs.join("\n")).toContain("services.json");
+    await expect(fs.stat(resolveServicesConfigPath(homeDir))).rejects.toBeTruthy();
+  });
+
+  it("rejects missing required credentials during non-interactive dry-run login", async () => {
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "provider", "login", "cloudflare", "--base-url", "https://gateway.example.test"])
+    ).rejects.toThrow('No API key available for provider "cloudflare"');
+  });
+
+  it("previews preferred authentication instead of claiming a Poe credential was saved", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "provider", "login", "poe"]);
+
+    expect(logs.join("\n")).toContain("Dry run: would authenticate with Poe.");
+    expect(logs.join("\n")).not.toContain("would save credential for poe");
+  });
+
   it("stores per-shape base URLs outside the credential store", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");
@@ -548,7 +594,7 @@ describe("provider logout", () => {
     expect(logoutSpy).toHaveBeenCalledWith("poe");
   });
 
-  it("does not call ProviderRegistry.logout in dry-run mode", async () => {
+  it("uses a preview store when logging out in dry-run mode", async () => {
     const container = createContainer(fs);
     const logoutSpy = vi.spyOn(container.providerRegistry, "logout").mockResolvedValue();
 
@@ -557,7 +603,20 @@ describe("provider logout", () => {
 
     await program.parseAsync(["node", "cli", "--dry-run", "provider", "logout", "poe"]);
 
-    expect(logoutSpy).not.toHaveBeenCalled();
+    expect(logoutSpy).toHaveBeenCalledWith("poe", { store: expect.any(Object) });
+  });
+
+  it("previews stored credential deletion during dry-run logout", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "login", "anthropic", "--api-key", "sk-test"]);
+    await program.parseAsync(["node", "cli", "--dry-run", "provider", "logout", "anthropic"]);
+
+    expect(logs.join("\n")).toContain("credentials.anthropic.enc");
+    await expect(fs.stat(`${homeDir}/.poe-code/credentials.anthropic.enc`)).resolves.toBeTruthy();
   });
 
   it("warns when an environment credential remains after logout", async () => {

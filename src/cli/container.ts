@@ -65,6 +65,7 @@ export interface CliContainer {
   readonly readApiKey: (options?: { readOnly?: boolean }) => Promise<string | null>;
   readonly writeApiKey: (apiKey: string) => Promise<void>;
   readonly deleteApiKey: () => Promise<void>;
+  readonly createPreviewProviderStore: (providerId: string, fs: FileSystem) => SecretStore | undefined;
 }
 
 export function createCliContainer(dependencies: CliDependencies): CliContainer {
@@ -164,6 +165,39 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
   const writeApiKey = poeAuthStore.set.bind(poeAuthStore);
   const deleteApiKey = poeAuthStore.delete.bind(poeAuthStore);
 
+  const createPreviewProviderStore = (providerId: string, fs: FileSystem): SecretStore | undefined => {
+    const createPreviewStore = (defaultFileName: string) =>
+      createSecretStore({
+        backendEnvVar: "POE_AUTH_BACKEND",
+        env: dependencies.env.variables,
+        platform: dependencies.env.platform,
+        fileStore: {
+          fs: {
+            readFile: (filePath: string, encoding: BufferEncoding) => fs.readFile(filePath, encoding),
+            writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, opts?: { encoding?: BufferEncoding }) =>
+              fs.writeFile(filePath, data, opts),
+            mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
+              fs.mkdir(directoryPath, opts).then(() => undefined),
+            lstat: (filePath: string) => fs.lstat(filePath),
+            unlink: (filePath: string) => fs.unlink(filePath),
+            chmod: (filePath: string, mode: number) =>
+              fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()
+          },
+          salt: "poe-code:encrypted-file-auth-store:v1",
+          defaultDirectory: ".poe-code",
+          defaultFileName,
+          getHomeDirectory: () => dependencies.env.homeDir
+        }
+      });
+    const store = createPreviewStore(`credentials.${providerId}.enc`);
+    if (store.backend !== "file") {
+      return undefined;
+    }
+    return providerId === "poe"
+      ? new MigratingSecretStore(store.store, createPreviewStore("credentials.enc").store)
+      : store.store;
+  };
+
   const oauthEnabled = (dependencies.env.variables ?? process.env).POE_CODE_OAUTH_LOGIN !== "0";
 
   const options = createOptionResolvers({
@@ -226,7 +260,8 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
     dependencies,
     readApiKey,
     writeApiKey,
-    deleteApiKey
+    deleteApiKey,
+    createPreviewProviderStore
   };
 
   return container;

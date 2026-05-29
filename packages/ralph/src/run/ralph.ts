@@ -506,5 +506,12 @@ async function updateFrontmatter(
     },
     currentBody
   );
-  await fs.writeFile(absoluteDocPath, content);
+  const temporaryPath = `${absoluteDocPath}.tmp`;
+  try {
+    await fs.writeFile(temporaryPath, content);
+    await fs.rename(temporaryPath, absoluteDocPath);
+  } catch (error) {
+    await fs.unlink(temporaryPath).catch(() => undefined);
+    throw error;
+  }
 }

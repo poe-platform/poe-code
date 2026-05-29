@@ -1177,6 +1177,29 @@ describe("createRalphSimulation", () => {
     })).rejects.toThrow(/symbolic link/i);
   });
 
+  it("preserves the document when cancelled status persistence fails", async () => {
+    const targetPath = "/repo/docs/plans/plan.md";
+    const original = "---\nkind: ralph\nagent: codex\niterations: 1\nstatus:\n  state: open\n  iteration: 0\n---\n# Preserve this Ralph plan\n";
+    const { fs, rawFs } = createRunFs({ [targetPath]: original });
+    const baseWriteFile = fs!.writeFile.bind(fs);
+    fs!.writeFile = async (filePath: string, content: string) => {
+      await baseWriteFile(filePath, content.slice(0, 12));
+      throw new Error("ralph disk full");
+    };
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(runRalph({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: targetPath,
+      fs,
+      runAgent: vi.fn(),
+      signal: controller.signal
+    })).rejects.toThrow("ralph disk full");
+    await expect(rawFs.readFile(targetPath, "utf8")).resolves.toBe(original);
+  });
+
   it("uses agent-kit path resolution for home-directory docs", async () => {
     const { fs, rawFs } = createRunFs({
       "/home/test/.poe-code/ralph/plans/plan.md": "# Home plan"

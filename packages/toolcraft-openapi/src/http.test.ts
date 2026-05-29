@@ -518,6 +518,29 @@ describe("requestJson", () => {
     );
   });
 
+  it("redacts sensitive query values in dry-run output", async () => {
+    const stdout = vi.fn();
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: vi.fn(),
+      query: {
+        api_key: "dry-secret-token",
+        page: 2
+      },
+      dryRun: true,
+      writeStdout: stdout
+    });
+
+    expect(stdout).toHaveBeenCalledWith(
+      "GET https://api.example.com/bots?api_key=****&page=2\n\n"
+    );
+  });
+
   it("does not call fetch during dry runs", async () => {
     const fetchMock = vi.fn();
 

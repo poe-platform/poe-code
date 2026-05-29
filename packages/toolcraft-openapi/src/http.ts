@@ -5,6 +5,18 @@ import { classifyNetworkError } from "./network-error.js";
 
 type QueryScalar = string | number | boolean | null | undefined;
 const TRANSCRIPT_BODY_BYTE_LIMIT = 4 * 1024;
+const SENSITIVE_QUERY_KEYS = new Set([
+  "apikey",
+  "accesstoken",
+  "authtoken",
+  "clientsecret",
+  "key",
+  "password",
+  "secret",
+  "sig",
+  "signature",
+  "token"
+]);
 
 export type QueryValue = QueryScalar | QueryScalar[];
 
@@ -73,7 +85,7 @@ export async function requestJson<TResult = unknown>(
   const headers = createHeaders(token, hasBody);
   const writeStdout = options.writeStdout ?? process.stdout.write.bind(process.stdout);
   const writeStderr = options.writeStderr ?? process.stderr.write.bind(process.stderr);
-  const requestLine = `${method} ${url}`;
+  const requestLine = `${method} ${redactSensitiveQueryValues(url)}`;
 
   if (options.dryRun) {
     writeStdout(formatDryRunOutput(requestLine, headers, options.body));
@@ -260,6 +272,22 @@ function redactHeaderValue(key: string, value: string): string {
   }
 
   return value;
+}
+
+function redactSensitiveQueryValues(url: string): string {
+  const redactedUrl = new URL(url);
+
+  for (const key of redactedUrl.searchParams.keys()) {
+    if (SENSITIVE_QUERY_KEYS.has(normalizeQueryKey(key))) {
+      redactedUrl.searchParams.set(key, "****");
+    }
+  }
+
+  return redactedUrl.toString();
+}
+
+function normalizeQueryKey(key: string): string {
+  return key.toLowerCase().replaceAll("_", "").replaceAll("-", "");
 }
 
 function formatDryRunOutput(

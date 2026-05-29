@@ -2100,6 +2100,35 @@ describe("AcpClient", () => {
     expect(sendNotificationMock).not.toHaveBeenCalled();
     expect(onRequestMock).not.toHaveBeenCalled();
   });
+
+  it("ignores malformed native usage notifications during an active prompt", async () => {
+    const { transport, sendRequestMock, emitNotification } = createTransportMock();
+    const promptResponse = createDeferred<PromptResponse>();
+    sendRequestMock
+      .mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse)
+      .mockReturnValueOnce(promptResponse.promise);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+    const turn = client.prompt("session-1", [{ type: "text", text: "hello" }]);
+    const updates = turn[Symbol.asyncIterator]();
+
+    await emitNotification("session/update", {
+      sessionId: "session-1",
+      update: { sessionUpdate: "usage_update", used: "many", size: 50 },
+    });
+    await emitNotification("session/update", {
+      sessionId: "session-1",
+      update: { sessionUpdate: "usage_update", used: 10, size: 50 },
+    });
+
+    await expect(updates.next()).resolves.toMatchObject({
+      value: {
+        params: { update: { sessionUpdate: "usage_update", used: 10, size: 50 } },
+      },
+    });
+    promptResponse.resolve({ stopReason: "completed" });
+    await turn.response;
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -2992,6 +3021,19 @@ describe("extractMessagesFromSessionUpdateStream", () => {
 
     expect(extracted).toEqual([updates[0], updates[1], updates[2]]);
   });
+
+  it("treats raw updates with envelope-like extension fields as raw updates", async () => {
+    const rawUpdate = {
+      sessionUpdate: "agent_message_chunk" as const,
+      content: { type: "text" as const, text: "still a raw update" },
+      jsonrpc: "2.0",
+      method: "session/update",
+    } satisfies SessionUpdate;
+
+    await expect(extractMessagesFromSessionUpdateStream([rawUpdate])).resolves.toEqual([
+      rawUpdate,
+    ]);
+  });
 });
 
 describe("extractUsageFromSessionUpdateStream", () => {
@@ -3078,6 +3120,17 @@ describe("extractToolCallSummariesFromSessionUpdateStream", () => {
     ];
 
     expect(extracted).toEqual(expected);
+  });
+
+  it("rejects duplicate tool_call start identifiers", async () => {
+    const streamItems: SessionUpdate[] = [
+      { sessionUpdate: "tool_call", toolCallId: "shared-id", title: "Read secrets" },
+      { sessionUpdate: "tool_call", toolCallId: "shared-id", title: "Delete workspace" },
+    ];
+
+    await expect(extractToolCallSummariesFromSessionUpdateStream(streamItems)).rejects.toThrow(
+      'Duplicate tool call identifier "shared-id".'
+    );
   });
 });
 
@@ -3220,5 +3273,28 @@ describe("mapLegacyEventToSessionUpdates", () => {
     ]);
 
     expect(mapLegacyEventToSessionUpdates({ event: "unknown" })).toEqual([]);
+  });
+
+  it("drops legacy tool completion events with invalid explicit statuses", () => {
+    expect(
+      mapLegacyEventToSessionUpdates({
+        event: "tool_complete",
+        id: "tool-1",
+        status: "error",
+        output: "command failed",
+      })
+    ).toEqual([]);
+  });
+
+  it("drops legacy usage events containing non-finite metrics", () => {
+    expect(
+      mapLegacyEventToSessionUpdates({
+        event: "usage",
+        inputTokens: Number.NaN,
+        outputTokens: 4,
+        cachedTokens: Number.POSITIVE_INFINITY,
+        costUsd: Number.NaN,
+      })
+    ).toEqual([]);
   });
 });

@@ -65,11 +65,17 @@ export async function extractToolCallSummariesFromSessionUpdateStream(
   stream: AsyncIterable<SessionUpdateStreamItem> | Iterable<SessionUpdateStreamItem>,
 ): Promise<ToolCallSummary[]> {
   const summaries = new Map<string, ToolCallSummary>();
+  const startedToolCallIds = new Set<string>();
 
   for await (const entry of stream) {
     const update = toSessionUpdate(entry);
 
     if (update.sessionUpdate === "tool_call") {
+      if (startedToolCallIds.has(update.toolCallId)) {
+        throw new Error(`Duplicate tool call identifier "${update.toolCallId}".`);
+      }
+      startedToolCallIds.add(update.toolCallId);
+
       const summary: ToolCallSummary = {
         toolCallId: update.toolCallId,
         title: update.title,
@@ -151,6 +157,10 @@ export function mapLegacyEventToSessionUpdates(
 }
 
 function toSessionUpdate(entry: SessionUpdateStreamItem): SessionUpdate {
+  if (typeof (entry as SessionUpdate).sessionUpdate === "string") {
+    return entry as SessionUpdate;
+  }
+
   if (isSessionUpdateNotification(entry)) {
     return entry.params.update;
   }
@@ -161,7 +171,8 @@ function toSessionUpdate(entry: SessionUpdateStreamItem): SessionUpdate {
 function isSessionUpdateNotification(entry: SessionUpdateStreamItem): entry is SessionUpdateNotification {
   return (
     typeof (entry as SessionUpdateNotification).jsonrpc === "string" &&
-    (entry as SessionUpdateNotification).method === "session/update"
+    (entry as SessionUpdateNotification).method === "session/update" &&
+    typeof (entry as SessionUpdateNotification).params?.update?.sessionUpdate === "string"
   );
 }
 
@@ -241,10 +252,15 @@ function mapToolComplete(event: LegacyInternalEvent): ToolCallUpdate[] {
     return [];
   }
 
+  const status = toToolCallStatus(event.status);
+  if (event.status !== undefined && status === undefined) {
+    return [];
+  }
+
   const toolCallUpdate: ToolCallUpdate = {
     sessionUpdate: "tool_call_update",
     toolCallId,
-    status: toToolCallStatus(event.status) ?? "completed",
+    status: status ?? "completed",
   };
 
   const kind = toToolKind(event.kind);
@@ -264,17 +280,26 @@ function mapToolComplete(event: LegacyInternalEvent): ToolCallUpdate[] {
 }
 
 function mapUsage(event: LegacyInternalEvent): UsageUpdate[] {
-  const inputTokens = readNumber(event.inputTokens) ?? 0;
-  const outputTokens = readNumber(event.outputTokens) ?? 0;
-  const cachedTokens = readNumber(event.cachedTokens) ?? 0;
+  const inputTokens = readTokenCount(event.inputTokens);
+  const outputTokens = readTokenCount(event.outputTokens);
+  const cachedTokens = readTokenCount(event.cachedTokens);
+  const costUsd = readFiniteNumber(event.costUsd);
+
+  if (
+    (event.inputTokens !== undefined && inputTokens === undefined) ||
+    (event.outputTokens !== undefined && outputTokens === undefined) ||
+    (event.cachedTokens !== undefined && cachedTokens === undefined) ||
+    (event.costUsd !== undefined && costUsd === undefined)
+  ) {
+    return [];
+  }
 
   const usage: UsageUpdate = {
     sessionUpdate: "usage_update",
-    used: inputTokens + outputTokens,
-    size: inputTokens + outputTokens + cachedTokens,
+    used: (inputTokens ?? 0) + (outputTokens ?? 0),
+    size: (inputTokens ?? 0) + (outputTokens ?? 0) + (cachedTokens ?? 0),
   };
 
-  const costUsd = readNumber(event.costUsd);
   if (costUsd !== undefined) {
     usage.cost = {
       amount: costUsd,
@@ -325,8 +350,14 @@ function toToolCallStatus(value: unknown): ToolCallStatus | undefined {
   return undefined;
 }
 
-function readNumber(value: unknown): number | undefined {
-  return typeof value === "number" ? value : undefined;
+function readTokenCount(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isInteger(value) && value >= 0
+    ? value
+    : undefined;
+}
+
+function readFiniteNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
 }
 
 function readString(value: unknown): string | undefined {

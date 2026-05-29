@@ -619,6 +619,7 @@ function isUsageUpdate(value: unknown): value is UsageUpdate {
 
     if (
       typeof value.cost.amount !== "number" ||
+      !Number.isFinite(value.cost.amount) ||
       typeof value.cost.currency !== "string"
     ) {
       return false;
@@ -659,7 +660,7 @@ function isSessionUpdate(value: unknown): value is SessionUpdate {
   }
 }
 
-function isSessionNotification(value: unknown): value is SessionNotification {
+export function isSessionNotification(value: unknown): value is SessionNotification {
   if (!isObjectRecord(value) || !hasValidMeta(value)) {
     return false;
   }

@@ -5,6 +5,7 @@ import {
   type AcpTransportOptions,
 } from "./acp-transport.js";
 import type { JsonRpcRequestOptions } from "./jsonrpc-message-layer.js";
+import { isSessionNotification } from "./jsonrpc.js";
 import {
   ACP_ERROR_CODE_INVALID_PARAMS,
   ACP_ERROR_CODE_RESOURCE_NOT_FOUND,
@@ -854,6 +855,10 @@ export class AcpClient {
   }
 
   private handleSessionUpdateNotification(notification: SessionNotification): void {
+    if (!isSessionNotification(notification)) {
+      return;
+    }
+
     const activePrompt = this.activePromptUpdates.get(notification.sessionId);
     if (!activePrompt) {
       return;

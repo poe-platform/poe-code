@@ -1,4 +1,4 @@
-import { dirname } from "node:path";
+import { dirname, join, parse, resolve, sep } from "node:path";
 import type { ExperimentFileSystem, JournalEntry } from "../types.js";
 
 const TSV_HEADER = ["commit", "status", "scores", "durationMs", "timestamp", "output", "agentOutput"].join("\t");
@@ -10,7 +10,9 @@ export class ExperimentJournal {
   ) {}
 
   async init(): Promise<void> {
+    await this.assertRegularPath();
     await this.fs.mkdir(dirname(this.journalPath), { recursive: true });
+    await this.assertRegularPath();
 
     try {
       await this.fs.readFile(this.journalPath, "utf8");
@@ -24,11 +26,14 @@ export class ExperimentJournal {
   }
 
   async log(entry: JournalEntry): Promise<void> {
+    await this.assertRegularPath();
     await this.fs.mkdir(dirname(this.journalPath), { recursive: true });
+    await this.assertRegularPath();
     await this.fs.appendFile(this.journalPath, `${JSON.stringify(entry)}\n`);
   }
 
   async readAll(): Promise<JournalEntry[]> {
+    await this.assertRegularPath();
     let content: string;
 
     try {
@@ -64,6 +69,28 @@ export class ExperimentJournal {
     );
 
     return updated;
+  }
+
+  private async assertRegularPath(): Promise<void> {
+    const absolutePath = resolve(this.journalPath);
+    const rootPath = parse(absolutePath).root;
+    let currentPath = rootPath;
+
+    for (const segment of absolutePath.slice(rootPath.length).split(sep).filter(Boolean)) {
+      currentPath = join(currentPath, segment);
+
+      try {
+        if ((await this.fs.lstat(currentPath)).isSymbolicLink()) {
+          throw new Error("Experiment journal must not contain symbolic links.");
+        }
+      } catch (error) {
+        if (isFileNotFoundError(error)) {
+          return;
+        }
+
+        throw error;
+      }
+    }
   }
 
   async format(): Promise<string> {

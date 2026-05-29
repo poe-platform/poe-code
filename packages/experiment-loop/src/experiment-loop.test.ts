@@ -960,6 +960,24 @@ describe("ExperimentJournal", () => {
     await expect(journal.readAll()).resolves.toEqual([entry]);
   });
 
+  it("rejects a symlinked journal sidecar before reading or appending", async () => {
+    const fs = createFs({
+      "/outside/journal.jsonl": `${JSON.stringify(createJournalEntry())}\n`
+    });
+    await fs.mkdir("/repo", { recursive: true });
+    await (fs as ExperimentFileSystem & { symlink(target: string, path: string): Promise<void> })
+      .symlink("/outside/journal.jsonl", "/repo/experiment.journal.jsonl");
+    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
+
+    await expect(journal.readAll()).rejects.toThrow(
+      "Experiment journal must not contain symbolic links."
+    );
+    await expect(journal.log(createJournalEntry({ commit: "new" }))).rejects.toThrow(
+      "Experiment journal must not contain symbolic links."
+    );
+    await expect(fs.readFile("/outside/journal.jsonl", "utf8")).resolves.not.toContain('"commit":"new"');
+  });
+
   it("logs multiple entries and returns them in order", async () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);

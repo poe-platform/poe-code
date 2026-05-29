@@ -6,9 +6,24 @@ export const TAG_RE = /^<!--\s*memory:(?<verb>extracted|inferred|ambiguous)(?<re
 export function parseClaims(body: string): TaggedClaim[] {
   const lines = normalizeNewlines(body).split("\n");
   const claims: TaggedClaim[] = [];
+  let fenceMarker: string | undefined;
 
   for (let index = 0; index < lines.length; index += 1) {
     const tagLine = lines[index] ?? "";
+    const currentFenceMarker = readFenceMarker(tagLine);
+    if (currentFenceMarker !== undefined) {
+      if (fenceMarker === undefined) {
+        fenceMarker = currentFenceMarker;
+      } else if (currentFenceMarker === fenceMarker) {
+        fenceMarker = undefined;
+      }
+      continue;
+    }
+
+    if (fenceMarker !== undefined) {
+      continue;
+    }
+
     const match = TAG_RE.exec(tagLine);
     if (match?.groups?.verb === undefined) {
       continue;
@@ -36,6 +51,19 @@ export function parseClaims(body: string): TaggedClaim[] {
   }
 
   return claims;
+}
+
+function readFenceMarker(line: string): string | undefined {
+  const trimmed = line.trimStart();
+  if (trimmed.startsWith("```")) {
+    return "```";
+  }
+
+  if (trimmed.startsWith("~~~")) {
+    return "~~~";
+  }
+
+  return undefined;
 }
 
 export function serializeTag(tag: ConfidenceTag): string {

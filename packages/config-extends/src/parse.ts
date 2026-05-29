@@ -10,7 +10,7 @@ export function parseDocument(content: string, filePath: string): ParsedDocument
     format === "markdown"
       ? parseMarkdown(normalizedContent, filePath)
       : toData(
-          format === "json" ? JSON.parse(normalizedContent) : parseYaml(normalizedContent),
+          format === "json" ? JSON.parse(normalizedContent) : (parseYaml(normalizedContent) ?? {}),
           filePath
         );
   const hasExtendsField = Object.hasOwn(data, "extends");

@@ -29,6 +29,15 @@ describe("parseDocument", () => {
     });
   });
 
+  it("parses comment-only yaml as an empty object", () => {
+    expect(parseDocument("# no project overrides\n", "/tmp/config.yaml")).toEqual({
+      data: {},
+      format: "yaml",
+      extends: false,
+      hasExtendsField: false
+    });
+  });
+
   it("parses json and keeps prompt in data", () => {
     expect(
       parseDocument('{"title":"Hello","prompt":"Write something"}', "/tmp/config.json")

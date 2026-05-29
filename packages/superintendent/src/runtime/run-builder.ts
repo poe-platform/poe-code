@@ -46,16 +46,17 @@ export async function runBuilder(
 }
 
 function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig | undefined {
-  const merged = {
-    ...(doc.frontmatter.mcp ?? {}),
-    ...(doc.frontmatter.builder.mcp ?? {})
-  };
+  const merged = Object.assign(
+    Object.create(null) as NonNullable<SuperintendentDoc["frontmatter"]["mcp"]>,
+    doc.frontmatter.mcp,
+    doc.frontmatter.builder.mcp
+  );
 
   if (Object.keys(merged).length === 0) {
     return undefined;
   }
 
-  const servers: McpSpawnConfig = {};
+  const servers = Object.create(null) as McpSpawnConfig;
 
   for (const [name, config] of Object.entries(merged)) {
     servers[name] = {

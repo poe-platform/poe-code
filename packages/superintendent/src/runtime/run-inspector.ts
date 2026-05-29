@@ -64,16 +64,17 @@ function buildMcpServers(
   doc: SuperintendentDoc,
   config: AgentRoleConfig
 ): McpSpawnConfig | undefined {
-  const merged = {
-    ...(doc.frontmatter.mcp ?? {}),
-    ...(config.mcp ?? {})
-  };
+  const merged = Object.assign(
+    Object.create(null) as NonNullable<SuperintendentDoc["frontmatter"]["mcp"]>,
+    doc.frontmatter.mcp,
+    config.mcp
+  );
 
   if (Object.keys(merged).length === 0) {
     return undefined;
   }
 
-  const servers: McpSpawnConfig = {};
+  const servers = Object.create(null) as McpSpawnConfig;
 
   for (const [name, mcpConfig] of Object.entries(merged)) {
     servers[name] = {

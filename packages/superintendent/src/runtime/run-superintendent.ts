@@ -85,14 +85,14 @@ function buildTemplateContext(
 }
 
 function buildMcpServers(doc: SuperintendentDoc): McpSpawnConfig {
-  const servers: McpSpawnConfig = {
-    [SUPERINTENDENT_TOOLS_SERVER_NAME]: createSuperintendentToolsServer(doc)
-  };
+  const servers = Object.create(null) as McpSpawnConfig;
+  servers[SUPERINTENDENT_TOOLS_SERVER_NAME] = createSuperintendentToolsServer(doc);
 
-  const merged = {
-    ...(doc.frontmatter.mcp ?? {}),
-    ...(doc.frontmatter.superintendent.mcp ?? {})
-  };
+  const merged = Object.assign(
+    Object.create(null) as NonNullable<SuperintendentDoc["frontmatter"]["mcp"]>,
+    doc.frontmatter.mcp,
+    doc.frontmatter.superintendent.mcp
+  );
 
   for (const [name, config] of Object.entries(merged)) {
     servers[name] = toSpawnMcpServer(config);

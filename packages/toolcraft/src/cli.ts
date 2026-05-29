@@ -2541,7 +2541,10 @@ function createFixtureFs(definition: unknown): HandlerFs {
       }
 
       return Object.prototype.hasOwnProperty.call(readFileEntries, filePath);
-    }
+    },
+    lstat: async () => ({ isSymbolicLink: () => false }),
+    rename: async () => undefined,
+    unlink: async () => undefined
   };
 }
 

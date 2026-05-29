@@ -21,7 +21,29 @@ interface SavedCursorState {
   styleSequence: string;
 }
 
+interface PrimaryScreenState {
+  screen: Row[];
+  cursorX: number;
+  cursorY: number;
+  pendingWrap: boolean;
+  style: SgrStyleState;
+  styleSequence: string;
+}
+
 const RESET_SGR = "\x1b[0m";
+const DEC_SPECIAL_GRAPHICS: Record<string, string> = {
+  j: "┘",
+  k: "┐",
+  l: "┌",
+  m: "└",
+  n: "┼",
+  q: "─",
+  t: "├",
+  u: "┤",
+  v: "┴",
+  w: "┬",
+  x: "│"
+};
 
 const enum State {
   Normal,
@@ -29,6 +51,7 @@ const enum State {
   Csi,
   Osc,
   Str,
+  StringEscape,
   EscCharset,
   EscHash,
 }
@@ -37,6 +60,7 @@ export class TerminalBuffer {
   private _cols: number;
   private _rows: number;
   private _screen: Row[];
+  private _primaryScreen: PrimaryScreenState | null = null;
   private _cursorX = 0;
   private _cursorY = 0;
   private _savedCursor: SavedCursorState;
@@ -46,12 +70,18 @@ export class TerminalBuffer {
   private _csiParams = "";
   private _csiPrivate = "";
   private _autoWrap = true;
+  private _pendingWrap = false;
   private _originMode = false;
   private _insertMode = false;
   private _tabStops: Set<number>;
   private _lastPrintedChar: string | null = null;
   private _style: SgrStyleState = createDefaultStyleState();
   private _styleSequence = "";
+  private _stringState = State.Normal;
+  private _charsetTarget: "g0" | "g1" | null = null;
+  private _g0Charset: "ascii" | "graphics" = "ascii";
+  private _g1Charset: "ascii" | "graphics" = "ascii";
+  private _shiftOut = false;
 
   readonly displayBuffer: {
     readonly cursorX: number;
@@ -137,8 +167,12 @@ export class TerminalBuffer {
 
     this._cols = cols;
     this._rows = rows;
-    this._scrollTop = 0;
-    this._scrollBottom = rows - 1;
+    this._scrollTop = this._clamp(this._scrollTop, 0, rows - 1);
+    this._scrollBottom = this._clamp(this._scrollBottom, 0, rows - 1);
+    if (this._scrollTop >= this._scrollBottom) {
+      this._scrollTop = 0;
+      this._scrollBottom = rows - 1;
+    }
     this._cursorX = this._clamp(this._cursorX, 0, cols - 1);
     this._cursorY = this._clamp(this._cursorY, 0, rows - 1);
   }
@@ -193,29 +227,75 @@ export class TerminalBuffer {
     this._autoWrap = true;
     this._originMode = false;
     this._insertMode = false;
+    this._pendingWrap = false;
     this._tabStops = this._createDefaultTabStops(this._cols);
+    this._g0Charset = "ascii";
+    this._g1Charset = "ascii";
+    this._shiftOut = false;
     this._resetStyle();
   }
 
   private _writePrintable(ch: string): void {
+    const width = this._cellWidth(ch);
+
+    if (this._autoWrap && this._pendingWrap) {
+      this._cursorX = 0;
+      this._newline();
+    } else if (this._autoWrap && this._cursorX + width > this._cols) {
+      this._cursorX = 0;
+      this._newline();
+    }
+
     if (this._insertMode) {
       const row = this._screen[this._cursorY];
       if (row) {
-        row.splice(this._cursorX, 0, null);
+        row.splice(this._cursorX, 0, ...Array(width).fill(null) as Cell[]);
         row.splice(this._cols);
       }
     }
 
     this._setChar(this._cursorY, this._cursorX, ch);
+    for (let column = 1; column < width && this._cursorX + column < this._cols; column += 1) {
+      const row = this._screen[this._cursorY];
+      if (row) row[this._cursorX + column] = null;
+    }
     this._lastPrintedChar = ch;
-    this._cursorX++;
 
     if (!this._autoWrap) {
-      this._cursorX = Math.min(this._cursorX, this._cols - 1);
-    } else if (this._cursorX >= this._cols) {
-      this._cursorX = 0;
-      this._newline();
+      this._cursorX = Math.min(this._cursorX + width, this._cols - 1);
+      this._pendingWrap = false;
+    } else if (this._cursorX + width >= this._cols) {
+      this._cursorX = this._cols - 1;
+      this._pendingWrap = true;
+    } else {
+      this._cursorX += width;
+      this._pendingWrap = false;
     }
+  }
+
+  private _cellWidth(ch: string): number {
+    const codePoint = ch.codePointAt(0);
+    if (codePoint === undefined) return 0;
+    if (
+      (codePoint >= 0x1100 && codePoint <= 0x115f)
+      || codePoint === 0x2329
+      || codePoint === 0x232a
+      || (codePoint >= 0x2e80 && codePoint <= 0x303e)
+      || (codePoint >= 0x3041 && codePoint <= 0x33bf)
+      || (codePoint >= 0x3400 && codePoint <= 0x4dbf)
+      || (codePoint >= 0x4e00 && codePoint <= 0xa4cf)
+      || (codePoint >= 0xac00 && codePoint <= 0xd7af)
+      || (codePoint >= 0xf900 && codePoint <= 0xfaff)
+      || (codePoint >= 0xfe10 && codePoint <= 0xfe19)
+      || (codePoint >= 0xfe30 && codePoint <= 0xfe6f)
+      || (codePoint >= 0xff00 && codePoint <= 0xff60)
+      || (codePoint >= 0xffe0 && codePoint <= 0xffe6)
+      || (codePoint >= 0x1f200 && codePoint <= 0x1fffd)
+      || (codePoint >= 0x20000 && codePoint <= 0x3fffd)
+    ) {
+      return Math.min(2, this._cols);
+    }
+    return 1;
   }
 
   private _setChar(y: number, x: number, ch: string): void {
@@ -259,6 +339,7 @@ export class TerminalBuffer {
   }
 
   private _newline(): void {
+    this._pendingWrap = false;
     if (this._cursorY === this._scrollBottom) {
       this._scrollUp(1);
     } else {
@@ -297,15 +378,30 @@ export class TerminalBuffer {
 
         if (params.includes(1049)) {
           if (final === "h") {
+            this._primaryScreen = {
+              screen: this._screen,
+              cursorX: this._cursorX,
+              cursorY: this._cursorY,
+              pendingWrap: this._pendingWrap,
+              style: { ...this._style, fg: this._style.fg?.slice(), bg: this._style.bg?.slice() },
+              styleSequence: this._styleSequence
+            };
             this._screen = this._makeScreen(this._cols, this._rows);
             this._cursorX = 0;
             this._cursorY = 0;
+            this._pendingWrap = false;
           } else {
-            this._screen = this._makeScreen(this._cols, this._rows);
-            this._cursorX = 0;
-            this._cursorY = 0;
+            if (this._primaryScreen !== null) {
+              this._screen = this._primaryScreen.screen;
+              this._cursorX = this._primaryScreen.cursorX;
+              this._cursorY = this._primaryScreen.cursorY;
+              this._pendingWrap = this._primaryScreen.pendingWrap;
+              this._style = this._primaryScreen.style;
+              this._styleSequence = this._primaryScreen.styleSequence;
+              this._primaryScreen = null;
+            }
           }
-          this._resetStyle();
+          if (final === "h") this._resetStyle();
         }
       }
       return;
@@ -493,24 +589,30 @@ export class TerminalBuffer {
         this._feedCsi(ch, code);
         break;
       case State.Osc:
-        // consume until BEL or ESC (ESC \ = ST)
+        // consume until BEL or ST
         if (code === 0x07 || code === 0x9c) {
           this._state = State.Normal;
         } else if (code === 0x1b) {
-          // next char should be `\` — just return to normal, it will be consumed
-          this._state = State.Normal;
+          this._stringState = State.Osc;
+          this._state = State.StringEscape;
         }
         break;
       case State.Str:
-        // consume until ST (0x9c) or BEL
-        if (code === 0x9c || code === 0x07) {
+        // consume until ST
+        if (code === 0x9c) {
           this._state = State.Normal;
         } else if (code === 0x1b) {
-          this._state = State.Normal;
+          this._stringState = State.Str;
+          this._state = State.StringEscape;
         }
         break;
+      case State.StringEscape:
+        this._state = ch === "\\" ? State.Normal : this._stringState;
+        break;
       case State.EscCharset:
-        // consume one character for charset designation
+        if (this._charsetTarget === "g0") this._g0Charset = ch === "0" ? "graphics" : "ascii";
+        if (this._charsetTarget === "g1") this._g1Charset = ch === "0" ? "graphics" : "ascii";
+        this._charsetTarget = null;
         this._state = State.Normal;
         break;
       case State.EscHash:
@@ -552,13 +654,10 @@ export class TerminalBuffer {
       // BEL, ENQ, ACK — ignore
     } else if (code === 0x08) {
       // BS
+      this._pendingWrap = false;
       if (this._cursorX > 0) this._cursorX--;
     } else if (code === 0x7f) {
-      // DEL
-      if (this._cursorX > 0) {
-        this._cursorX--;
-        this._setChar(this._cursorY, this._cursorX, " ");
-      }
+      // DEL — ignore in displayed output
     } else if (code === 0x09) {
       // HT
       const nextTabStop = [...this._tabStops]
@@ -570,12 +669,15 @@ export class TerminalBuffer {
       this._newline();
     } else if (code === 0x0d) {
       // CR
+      this._pendingWrap = false;
       this._cursorX = 0;
     } else if (code === 0x0e || code === 0x0f) {
-      // SO, SI — charset switch, ignore
+      // SO, SI — shift between G1 and G0 character sets
+      this._shiftOut = code === 0x0e;
     } else if (code >= 0x20 && code !== 0x7f) {
       // Printable character (including multi-byte Unicode via code points)
-      this._writePrintable(ch);
+      const charset = this._shiftOut ? this._g1Charset : this._g0Charset;
+      this._writePrintable(charset === "graphics" ? DEC_SPECIAL_GRAPHICS[ch] ?? ch : ch);
     }
   }
 
@@ -595,6 +697,7 @@ export class TerminalBuffer {
       this._state = State.Str;
     } else if (code === 0x28 || code === 0x29 || code === 0x2a || code === 0x2b || code === 0x2d || code === 0x2e) {
       // ESC ( ) * + - . = charset designation (consume next char)
+      this._charsetTarget = code === 0x28 ? "g0" : code === 0x29 ? "g1" : null;
       this._state = State.EscCharset;
     } else if (code === 0x23) {
       // ESC # = line attributes (consume next char)

@@ -288,11 +288,24 @@ describe("TerminalBuffer", () => {
   });
 
   describe("auto-wrap", () => {
-    it("wraps cursor to next line when writing past end of column", () => {
+    it("defers wrapping until the next printable character", () => {
       const buf = new TerminalBuffer(5, 5);
       buf.write("ABCDE"); // fills row 0
-      expect(buf.displayBuffer.cursorX).toBe(0);
+      expect(buf.displayBuffer.cursorX).toBe(4);
+      expect(buf.displayBuffer.cursorY).toBe(0);
+
+      buf.write("F");
+      expect(buf.displayBuffer.cursorX).toBe(1);
       expect(buf.displayBuffer.cursorY).toBe(1);
+    });
+
+    it("cancels pending wrap before a carriage return rewrite", () => {
+      const buf = new TerminalBuffer(3, 2);
+
+      buf.write("abc\rX");
+
+      expect(readScreen(buf, 2)).toEqual(["Xbc", ""]);
+      expect(buf.displayBuffer.cursorY).toBe(0);
     });
 
     it("scrolls when wrapping at bottom row", () => {
@@ -321,7 +334,12 @@ describe("TerminalBuffer", () => {
 
       buf.write("\x1b[?7hY");
       expect(readLine(buf, 0).slice(0, 5)).toBe("ABCDY");
-      expect(buf.displayBuffer.cursorX).toBe(0);
+      expect(buf.displayBuffer.cursorX).toBe(4);
+      expect(buf.displayBuffer.cursorY).toBe(0);
+
+      buf.write("Z");
+      expect(readLine(buf, 1).slice(0, 1)).toBe("Z");
+      expect(buf.displayBuffer.cursorX).toBe(1);
       expect(buf.displayBuffer.cursorY).toBe(1);
     });
 
@@ -507,6 +525,18 @@ describe("TerminalBuffer", () => {
       buf.write("A\x1b[3b");
       expect(readLine(buf, 0).trimEnd()).toBe("AAAA");
     });
+
+    it("renders designated DEC special graphics characters", () => {
+      const buf = new TerminalBuffer(8, 2);
+      buf.write("\x1b(0q\x1b(Bq");
+      expect(readLine(buf, 0).trimEnd()).toBe("─q");
+    });
+
+    it("does not replace G0 when designating an inactive charset slot", () => {
+      const buf = new TerminalBuffer(8, 2);
+      buf.write("\x1b(0q\x1b*Bq");
+      expect(readLine(buf, 0).trimEnd()).toBe("──");
+    });
   });
 
   describe("ESC M reverse index", () => {
@@ -579,6 +609,12 @@ describe("TerminalBuffer", () => {
       buf.write("\x1b]0;My Title\x07hello");
       expect(readLine(buf, 0).slice(0, 5)).toBe("hello");
     });
+
+    it("consumes the complete ST terminator for OSC strings", () => {
+      const buf = new TerminalBuffer(20, 2);
+      buf.write("before\x1b]0;title\x1b\\after");
+      expect(readScreen(buf, 2)).toEqual(["beforeafter", ""]);
+    });
   });
 
   describe("control sequence cancellation", () => {
@@ -606,6 +642,14 @@ describe("TerminalBuffer", () => {
       expect(readScreen(buf, 2)).toEqual(["beforeafter!", ""]);
     });
 
+    it("keeps DCS strings active across bell characters", () => {
+      const buf = new TerminalBuffer(20, 2);
+
+      buf.write("before\x1bPsecret\x07leak\x9c!");
+
+      expect(readScreen(buf, 2)).toEqual(["before!", ""]);
+    });
+
     it("starts a replacement escape sequence after ESC inside CSI", () => {
       const buf = new TerminalBuffer(20, 2);
 
@@ -620,6 +664,14 @@ describe("TerminalBuffer", () => {
       buf.write("A\x85B");
 
       expect(readScreen(buf, 2)).toEqual(["A", "B"]);
+    });
+
+    it("ignores DEL bytes in displayed output", () => {
+      const buf = new TerminalBuffer(10, 2);
+
+      buf.write("secret\x7f!");
+
+      expect(readScreen(buf, 2)).toEqual(["secret!", ""]);
     });
   });
 
@@ -820,12 +872,21 @@ describe("TerminalBuffer", () => {
       expect(readLine(buf, 0).slice(0, 5)).toBe("héllo");
     });
 
-    it("writes emoji as a single cell", () => {
+    it("uses two terminal cells for wide emoji", () => {
       const buf = new TerminalBuffer(10, 3);
       buf.write("A😀B");
-      // for...of iterates code points, so emoji is one step
-      expect(buf.displayBuffer.cursorX).toBe(3);
+      expect(buf.displayBuffer.cursorX).toBe(4);
       expect(buf.displayBuffer.data[0]?.[1]?.[1]).toBe("😀");
+      expect(buf.displayBuffer.data[0]?.[3]?.[1]).toBe("B");
+    });
+
+    it("uses two terminal cells for wide CJK glyphs", () => {
+      const buf = new TerminalBuffer(3, 2);
+
+      buf.write("测AB");
+
+      expect(readScreen(buf, 2)).toEqual(["测 A", "B"]);
+      expect(buf.displayBuffer.cursorY).toBe(1);
     });
   });
 
@@ -862,6 +923,14 @@ describe("TerminalBuffer", () => {
       expect(buf.displayBuffer.data[0]?.length).toBe(5);
       expect(readLine(buf, 0)).toBe("ABCDE");
     });
+
+    it("preserves active scrolling margins during resize", () => {
+      const buf = new TerminalBuffer(6, 4);
+      buf.write("head\r\nrow1\r\nrow2\r\nfoot\x1b[2;3r");
+      buf.resize(6, 4);
+      buf.write("\x1b[3;1H\n");
+      expect(readScreen(buf, 4)).toEqual(["head", "row2", "", "foot"]);
+    });
   });
 
   describe("alternate screen", () => {
@@ -874,14 +943,15 @@ describe("TerminalBuffer", () => {
       expect(readScreen(buf, 3)).toEqual(["", "", ""]);
     });
 
-    it("leaving alternate screen also clears and resets cursor", () => {
+    it("restores the primary screen after leaving alternate screen", () => {
       const buf = new TerminalBuffer(10, 3);
+      buf.write("primary");
       buf.write("\x1b[?1049h");
       buf.write("alt content");
       buf.write("\x1b[?1049l"); // leave alt screen
-      expect(buf.displayBuffer.cursorX).toBe(0);
+      expect(buf.displayBuffer.cursorX).toBe(7);
       expect(buf.displayBuffer.cursorY).toBe(0);
-      expect(readScreen(buf, 3)).toEqual(["", "", ""]);
+      expect(readScreen(buf, 3)).toEqual(["primary", "", ""]);
     });
   });
 });

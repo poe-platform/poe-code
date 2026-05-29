@@ -91,12 +91,6 @@ export async function uploadWorkspace(
   const skipped: UploadResult["skipped"] = [];
 
   for (const file of allFiles) {
-    const content = await localFs.readFile(file.absolutePath);
-    state.set(file.path, {
-      hash: hashBuffer(content),
-      uploaded: false
-    });
-
     if (
       isIgnoredByGit(file.path, gitignore) ||
       isIgnoredAdditively(file.path, poeCodeIgnore) ||
@@ -105,13 +99,20 @@ export async function uploadWorkspace(
       continue;
     }
 
-    if (file.bytes > maxBytes) {
-      skipped.push({ path: file.path, bytes: file.bytes, reason: "max_size" });
-      warn(`Skipping ${file.path}: ${file.bytes} bytes exceeds upload_max_file_mb.`);
+    const content = await localFs.readFile(file.absolutePath);
+    const bytes = content.byteLength;
+    state.set(file.path, {
+      hash: hashBuffer(content),
+      uploaded: false
+    });
+
+    if (bytes > maxBytes) {
+      skipped.push({ path: file.path, bytes, reason: "max_size" });
+      warn(`Skipping ${file.path}: ${bytes} bytes exceeds upload_max_file_mb.`);
       continue;
     }
 
-    entries.push({ ...file, content });
+    entries.push({ ...file, bytes, content });
     state.set(file.path, {
       hash: hashBuffer(content),
       uploaded: true

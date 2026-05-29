@@ -113,6 +113,67 @@ describe("workspace transfer", () => {
     await expectNoRemote(env, "large.bin");
   });
 
+  it("checks the bytes read for upload against the size limit", async () => {
+    const baseFs = createFs({ "/repo/growing.bin": "small" });
+    const originalReadFile = baseFs.readFile.bind(baseFs);
+    let didGrow = false;
+    const env: WorkspaceTransferEnv = {
+      cwd: "/repo",
+      uploadDir: "/upload",
+      workspaceDir: "/workspace",
+      fs: {
+        ...baseFs,
+        async readFile(filePath: string, encoding?: BufferEncoding) {
+          if (filePath === "/repo/growing.bin" && !didGrow) {
+            didGrow = true;
+            await baseFs.writeFile(filePath, Buffer.alloc(20));
+          }
+
+          return encoding === undefined
+            ? originalReadFile(filePath)
+            : originalReadFile(filePath, encoding);
+        }
+      } as WorkspaceTransferFileSystem,
+      remoteFs: createFs({})
+    };
+
+    const result = await uploadWorkspace(env, { uploadMaxFileMb: 0.00001, warn: vi.fn() });
+
+    expect(result.skipped).toEqual([{ path: "growing.bin", bytes: 20, reason: "max_size" }]);
+    await expectNoRemote(env, "growing.bin");
+  });
+
+  it("does not read gitignored file content during upload", async () => {
+    const baseFs = createFs({
+      "/repo/.gitignore": "secret.txt\n",
+      "/repo/secret.txt": "secret",
+      "/repo/app.ts": "app"
+    });
+    const originalReadFile = baseFs.readFile.bind(baseFs);
+    const env: WorkspaceTransferEnv = {
+      cwd: "/repo",
+      uploadDir: "/upload",
+      workspaceDir: "/workspace",
+      fs: {
+        ...baseFs,
+        async readFile(filePath: string, encoding?: BufferEncoding) {
+          if (filePath === "/repo/secret.txt") {
+            throw new Error("ignored content should not be read");
+          }
+
+          return encoding === undefined
+            ? originalReadFile(filePath)
+            : originalReadFile(filePath, encoding);
+        }
+      } as WorkspaceTransferFileSystem,
+      remoteFs: createFs({})
+    };
+
+    await expect(uploadWorkspace(env, {})).resolves.toMatchObject({ files: 2 });
+    await expect(readRemote(env, "app.ts")).resolves.toBe("app");
+    await expectNoRemote(env, "secret.txt");
+  });
+
   it("applies runner workspace excludes", async () => {
     const env = createEnv({
       "/repo/src/app.ts": "app",

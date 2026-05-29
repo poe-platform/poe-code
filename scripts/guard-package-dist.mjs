@@ -38,6 +38,27 @@ export async function assertSafeOutputDirectory(
   }
 }
 
+export async function assertSafeBundleOutputs(rootDirectory, fileSystem = { realpath }) {
+  await Promise.all([
+    assertSafeOutputDirectory(rootDirectory, path.join(rootDirectory, "dist"), fileSystem),
+    assertSafeOutputDirectory(
+      rootDirectory,
+      path.join(rootDirectory, "dist", "providers"),
+      fileSystem,
+    ),
+    assertSafeOutputDirectory(
+      rootDirectory,
+      path.join(rootDirectory, "dist", "templates", "skill"),
+      fileSystem,
+    ),
+    assertSafeOutputDirectory(
+      path.join(rootDirectory, "packages", "memory"),
+      path.join(rootDirectory, "packages", "memory", "dist"),
+      fileSystem,
+    ),
+  ]);
+}
+
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   await assertSafeOutputDirectory(process.cwd());
 }

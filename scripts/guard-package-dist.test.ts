@@ -2,7 +2,7 @@ import path from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 
-import { assertSafeOutputDirectory } from "./guard-package-dist.mjs";
+import { assertSafeBundleOutputs, assertSafeOutputDirectory } from "./guard-package-dist.mjs";
 
 describe("assertSafeOutputDirectory", () => {
   it("rejects a dist symlink that escapes the package directory", async () => {
@@ -59,5 +59,27 @@ describe("assertSafeOutputDirectory", () => {
     await expect(
       assertSafeOutputDirectory("/repo", "/repo/dist/bin/poe-codex.js", fileSystem),
     ).rejects.toThrow("output directory must remain inside the package directory");
+  });
+});
+
+describe("assertSafeBundleOutputs", () => {
+  it.each([
+    ["root dist", "/repo/dist"],
+    ["provider bundles", "/repo/dist/providers"],
+    ["skill templates", "/repo/dist/templates/skill"],
+    ["memory dist", "/repo/packages/memory/dist"],
+  ])("rejects a symlinked %s output", async (_name, outputPath) => {
+    const volume = Volume.fromJSON({
+      "/repo/package.json": "{}",
+      "/repo/packages/memory/package.json": "{}",
+      "/outside/marker": "outside",
+    });
+    const fileSystem = createFsFromVolume(volume).promises;
+    volume.mkdirSync(path.dirname(outputPath), { recursive: true });
+    volume.symlinkSync("/outside", outputPath);
+
+    await expect(assertSafeBundleOutputs("/repo", fileSystem)).rejects.toThrow(
+      "output directory must remain inside the package directory",
+    );
   });
 });

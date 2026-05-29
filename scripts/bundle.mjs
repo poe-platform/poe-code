@@ -4,9 +4,12 @@ import { fileURLToPath } from "node:url";
 import { copyFile, cp, mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import { versionGateSnippet } from "./node-version-gate.mjs";
 import { resolveGithubWorkflowAssetCopies } from "./bundle-assets.mjs";
+import { assertSafeBundleOutputs } from "./guard-package-dist.mjs";
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(currentDir, "..");
+
+await assertSafeBundleOutputs(rootDir);
 
 // Read workspace package names and create source aliases
 const packagesDir = path.join(rootDir, "packages");

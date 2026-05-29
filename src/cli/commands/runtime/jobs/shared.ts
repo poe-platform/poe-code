@@ -93,14 +93,19 @@ export async function syncJob(
   opts: { forceSync: boolean; close: boolean }
 ): Promise<void> {
   const { env } = await attachJob(entry);
-  try {
-    await env.downloadWorkspace({
-      conflictPolicy: opts.forceSync ? "overwrite" : "refuse"
-    });
-  } finally {
-    if (opts.close) {
-      await env.close();
-    }
+  const download = await env.downloadWorkspace({
+    conflictPolicy: opts.forceSync ? "overwrite" : "refuse"
+  });
+  if (download.conflicts.length > 0) {
+    throw new Error(
+      [
+        "Runtime workspace sync refused local conflicts:",
+        ...download.conflicts.map((conflict) => `- ${conflict.path}: ${conflict.reason}`)
+      ].join("\n")
+    );
+  }
+  if (opts.close) {
+    await env.close();
   }
 }
 

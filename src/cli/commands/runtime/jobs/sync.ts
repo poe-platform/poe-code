@@ -43,5 +43,8 @@ async function executeRuntimeJobsSync(
     forceSync: options.forceSync === true,
     close: options.close === true
   });
+  if (options.close === true) {
+    await state.jobs.remove(entry.id);
+  }
   resources.logger.success(`Synced runtime job ${entry.id}.`);
 }

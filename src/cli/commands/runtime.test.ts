@@ -141,6 +141,7 @@ function createJobHandle(input: {
 interface RuntimeFactoryEvents {
   attached: Array<{ envId: string; context: unknown }>;
   downloads: Array<{ envId: string; conflictPolicy: "refuse" | "overwrite" }>;
+  downloadConflicts: Map<string, Array<{ path: string; reason: "local_modified" }>>;
   closed: string[];
 }
 
@@ -168,7 +169,11 @@ function createTestRuntimeFactory(
         },
         async downloadWorkspace(options) {
           events.downloads.push({ envId, conflictPolicy: options.conflictPolicy });
-          return { files: 0, bytes: 0, conflicts: [] };
+          return {
+            files: 0,
+            bytes: 0,
+            conflicts: events.downloadConflicts.get(envId) ?? []
+          };
         },
         exec() {
           throw new Error("exec is not used by runtime jobs tests");
@@ -192,6 +197,7 @@ describe("runtime command", () => {
   const runtimeEvents: RuntimeFactoryEvents = {
     attached: [],
     downloads: [],
+    downloadConflicts: new Map(),
     closed: []
   };
 
@@ -200,6 +206,7 @@ describe("runtime command", () => {
     jobHandles.clear();
     runtimeEvents.attached = [];
     runtimeEvents.downloads = [];
+    runtimeEvents.downloadConflicts.clear();
     runtimeEvents.closed = [];
     registerExecutionEnvFactory(createTestRuntimeFactory(jobHandles, runtimeEvents));
   });
@@ -550,6 +557,31 @@ describe("runtime command", () => {
       }
     ]);
     expect(runtimeEvents.closed).toEqual(["env-sync"]);
+    await expect(fs.readFile(path.join(jobsDir, "job-sync.json"), "utf8")).rejects.toThrow();
+  });
+
+  it("rejects refused local conflicts instead of reporting sync success", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-sync.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-sync", env_id: "env-sync", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    runtimeEvents.downloadConflicts.set("env-sync", [
+      { path: "src/index.ts", reason: "local_modified" }
+    ]);
+    jobHandles.set("env-sync", createJobHandle({ status: "exited" }));
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "sync", "job-sync"])
+    ).rejects.toThrow("src/index.ts");
+
+    expect(stripAnsi(logs.join("\n"))).not.toContain("Synced runtime job");
   });
 
   it("previews syncing a runtime job without downloading its workspace", async () => {

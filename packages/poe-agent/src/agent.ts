@@ -443,7 +443,8 @@ function mergeRunProviderOptions(providerOptions: unknown, runOptions: AgentRunO
 
 const defaultTranscriptFs: TranscriptFsApi = {
   mkdir: (dir, options) => fsPromises.mkdir(dir, options).then(() => undefined),
-  appendFile: (filePath, contents) => fsPromises.appendFile(filePath, contents, "utf8")
+  appendFile: (filePath, contents) => fsPromises.appendFile(filePath, contents, "utf8"),
+  lstat: filePath => fsPromises.lstat(filePath)
 };
 
 export function agent(): AgentBuilder {

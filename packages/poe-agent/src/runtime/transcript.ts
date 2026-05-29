@@ -76,6 +76,7 @@ export interface TranscriptWriter {
 export interface TranscriptFsApi {
   mkdir(dir: string, options: { recursive: true }): Promise<void>;
   appendFile(path: string, contents: string): Promise<void>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
 }
 
 export interface CreateTranscriptWriterOptions {
@@ -111,7 +112,9 @@ export function createTranscriptWriter(
       if (updates.length === 0) return;
 
       try {
+        await ensureNoSymbolicLinkPath(options.fs, filePath);
         await ensureDir();
+        await ensureNoSymbolicLinkPath(options.fs, filePath);
         const payload = updates.map(update => `${JSON.stringify(update)}\n`).join("");
         await options.fs.appendFile(filePath, payload);
       } catch {
@@ -122,6 +125,26 @@ export function createTranscriptWriter(
       // No persistent handle: appendFile opens/closes each write. Nothing to do.
     },
   };
+}
+
+async function ensureNoSymbolicLinkPath(fs: TranscriptFsApi, filePath: string): Promise<void> {
+  const absolutePath = path.resolve(filePath);
+  const root = path.parse(absolutePath).root;
+  let inspectedPath = root;
+
+  for (const segment of absolutePath.slice(root.length).split(path.sep).filter(Boolean)) {
+    inspectedPath = path.join(inspectedPath, segment);
+    try {
+      if ((await fs.lstat(inspectedPath)).isSymbolicLink()) {
+        throw new Error(`Transcript log path may not contain symbolic links: ${filePath}`);
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+  }
 }
 
 function resolveTranscriptFilePath(

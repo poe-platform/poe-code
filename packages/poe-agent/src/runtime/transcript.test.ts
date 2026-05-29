@@ -20,6 +20,9 @@ function createMemfs(): {
       },
       async appendFile(filePath: string, contents: string) {
         await memfs.appendFile(filePath, contents, "utf8");
+      },
+      async lstat(filePath: string) {
+        return memfs.lstat(filePath);
       }
     }
   };
@@ -286,6 +289,38 @@ describe("createTranscriptWriter", () => {
     await expect(writer.write({ type: "message.delta", content: "more" })).resolves.toBeUndefined();
 
     expect(appendFileSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not append through a symlinked transcript file", async () => {
+    const { memfs, transcriptFs } = createMemfs();
+    await memfs.mkdir("/logs", { recursive: true });
+    await memfs.mkdir("/outside", { recursive: true });
+    await memfs.writeFile("/outside/transcript.jsonl", "original\n", "utf8");
+    await memfs.symlink("/outside/transcript.jsonl", "/logs/round.jsonl");
+    const writer = createTranscriptWriter({
+      logPath: "/logs/round.jsonl",
+      fs: transcriptFs
+    });
+
+    await writer.write({ type: "message.delta", content: "external transcript" });
+
+    await expect(memfs.readFile("/outside/transcript.jsonl", "utf8")).resolves.toBe("original\n");
+  });
+
+  it("does not append through a symlinked transcript directory", async () => {
+    const { memfs, transcriptFs } = createMemfs();
+    await memfs.mkdir("/logs", { recursive: true });
+    await memfs.mkdir("/outside", { recursive: true });
+    await memfs.symlink("/outside", "/logs/linked");
+    const writer = createTranscriptWriter({
+      logDir: "/logs/linked",
+      logFileName: "round.jsonl",
+      fs: transcriptFs
+    });
+
+    await writer.write({ type: "message.delta", content: "external transcript" });
+
+    await expect(memfs.readdir("/outside")).resolves.toEqual([]);
   });
 
   it("silently disables itself when an event cannot be serialized", async () => {

@@ -316,6 +316,28 @@ describe("superintendent run command", () => {
     );
   });
 
+  it("previews a dry-run loop without invoking runtime agents", async () => {
+    const fs = createFs({ "/repo/docs/plans/plan.md": createDoc("codex") });
+    const runLoopMock = vi.fn();
+    const { runSuperintendentCommand } = await import("./run.js");
+
+    const result = await runSuperintendentCommand({
+      cwd: "/repo",
+      homeDir: "/home/test",
+      docPath: "/repo/docs/plans/plan.md",
+      assumeYes: true,
+      interactive: false,
+      useDashboard: false,
+      dryRun: true,
+      fs,
+      runLoop: runLoopMock,
+      env: {}
+    });
+
+    expect(runLoopMock).not.toHaveBeenCalled();
+    expect(result).toMatchObject({ builderAgent: "codex", stopReason: "dry_run" });
+  });
+
   it("prompts for a builder agent when frontmatter omits builder.agent", async () => {
     const fs = createFs({
       "/repo/docs/plans/plan.md": createDocWithBuilderSection([

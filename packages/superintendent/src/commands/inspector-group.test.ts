@@ -154,6 +154,26 @@ describe("superintendent inspector commands", () => {
     expect(result).toEqual([{ name: "manual-qa", summary: "qa-ok" }]);
   });
 
+  it("previews a dry-run inspector without launching the agent", async () => {
+    const { inspectorRunCommand } = await import("./inspector-group.js");
+
+    const result = await inspectorRunCommand.handler({
+      params: { path: "docs/plans/feature.md", name: "manual-qa", dryRun: true },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: vi.fn(async () => document),
+        writeFile: vi.fn(async () => undefined),
+        exists: vi.fn(async () => true)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    });
+
+    expect(runInspectorMock).not.toHaveBeenCalled();
+    expect(result).toEqual([{ name: "manual-qa", summary: "Would run inspector agent claude-code." }]);
+  });
+
   it("throws a user-facing error when the named inspector does not exist", async () => {
     const { inspectorRunCommand } = await import("./inspector-group.js");
 

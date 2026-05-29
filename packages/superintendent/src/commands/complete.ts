@@ -3,7 +3,12 @@ import { setStatusReason, transitionState } from "../document/write.js";
 
 const completeParams = S.Object({
   path: S.String({ description: "Path to the superintendent markdown document" }),
-  reason: S.Optional(S.String({ description: "Why the loop was force-completed" }))
+  reason: S.Optional(S.String({ description: "Why the loop was force-completed" })),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview completion without writing changes",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 export const completeCommand = defineCommand({
@@ -20,17 +25,24 @@ export const completeCommand = defineCommand({
     const completedContent = transitionState(params.path, content, "completed");
     const updatedContent = setStatusReason(params.path, completedContent, params.reason);
 
-    await writeDocumentAtomically(params.path, updatedContent, fs);
+    if (params.dryRun !== true) {
+      await writeDocumentAtomically(params.path, updatedContent, fs);
+    }
 
     return {
       path: params.path,
       state: "completed" as const,
-      reason: params.reason
+      reason: params.reason,
+      ...(params.dryRun === true ? { dryRun: true as const } : {})
     };
   },
   render: {
     rich: (result, { logger }) => {
-      logger.success(`Marked ${result.path} as completed.`);
+      logger.success(
+        result.dryRun === true
+          ? `Would mark ${result.path} as completed.`
+          : `Marked ${result.path} as completed.`
+      );
 
       if (result.reason !== undefined) {
         logger.message(`Reason: ${result.reason}`);
@@ -42,6 +54,7 @@ export const completeCommand = defineCommand({
         "",
         `- Path: ${result.path}`,
         `- State: ${result.state}`,
+        ...(result.dryRun === true ? ["- Dry run: true"] : []),
         ...(result.reason === undefined ? [] : [`- Reason: ${result.reason}`])
       ].join("\n"),
     json: (result) => result

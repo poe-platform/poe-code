@@ -14,6 +14,7 @@ import { collectReferencedInspectors } from "./templates.js";
 
 export type SuperintendentStopReason =
   | "completed"
+  | "dry_run"
   | "max_rounds"
   | "paused"
   | "stopped"

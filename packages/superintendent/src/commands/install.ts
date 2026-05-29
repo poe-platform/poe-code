@@ -34,6 +34,7 @@ export type InstallResult = {
   skillPath: string;
   planDirectory: string;
   planDirectoryCreated: boolean;
+  dryRun?: true;
 };
 
 const installParams = S.Object({
@@ -44,7 +45,12 @@ const installParams = S.Object({
   scope: S.Enum(["local", "global"] as const, {
     default: "local",
     description: "Install scope"
-  })
+  }),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview install without writing changes",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 export const installCommand = defineCommand({
@@ -74,30 +80,36 @@ export const installCommand = defineCommand({
         fs,
         cwd,
         homeDir,
-        scope
+        scope,
+        ...(params.dryRun === true ? { dryRun: true } : {})
       }
     );
 
     const planDirectory = await resolvePlanDirectory(cwd, homeDir, process.env);
     const absolutePlanDirectory = resolveAbsoluteDirectory(planDirectory, cwd, homeDir);
-    const planDirectoryCreated = await ensurePlanDirectory(absolutePlanDirectory, fs);
+    const planDirectoryCreated = await ensurePlanDirectory(
+      absolutePlanDirectory,
+      fs,
+      params.dryRun === true
+    );
 
     return {
       agent: support.id,
       scope,
       skillPath: skillResult.displayPath,
       planDirectory,
-      planDirectoryCreated
+      planDirectoryCreated,
+      ...(params.dryRun === true ? { dryRun: true as const } : {})
     } satisfies InstallResult;
   },
   render: {
     rich: (result, { logger }) => {
-      logger.success(
-        `Installed Superintendent skill for ${result.agent} (${result.scope}).`
-      );
-      logger.message(`Skill: ${result.skillPath}`);
+      logger.success(result.dryRun === true
+        ? `Would install Superintendent skill for ${result.agent} (${result.scope}).`
+        : `Installed Superintendent skill for ${result.agent} (${result.scope}).`);
+      logger.message(`${result.dryRun === true ? "Would create" : "Skill"}: ${result.skillPath}`);
       if (result.planDirectoryCreated) {
-        logger.message(`Created: ${result.planDirectory}`);
+        logger.message(`${result.dryRun === true ? "Would create" : "Created"}: ${result.planDirectory}`);
       }
     },
     markdown: (result) => {
@@ -106,7 +118,8 @@ export const installCommand = defineCommand({
         "",
         `- Agent: ${result.agent}`,
         `- Scope: ${result.scope}`,
-        `- Skill: ${result.skillPath}`
+        `- Skill: ${result.skillPath}`,
+        ...(result.dryRun === true ? ["- Dry run: true"] : [])
       ];
 
       if (result.planDirectoryCreated) {
@@ -145,7 +158,8 @@ type PlanDirectoryFs = {
 
 export async function ensurePlanDirectory(
   absolutePlanDirectory: string,
-  fileSystem: PlanDirectoryFs
+  fileSystem: PlanDirectoryFs,
+  dryRun = false
 ): Promise<boolean> {
   const missingAncestors: string[] = [];
   let currentPath = absolutePlanDirectory;
@@ -173,7 +187,9 @@ export async function ensurePlanDirectory(
   if (missingAncestors.length === 0) {
     return false;
   }
-  await fileSystem.mkdir(absolutePlanDirectory, { recursive: true });
+  if (!dryRun) {
+    await fileSystem.mkdir(absolutePlanDirectory, { recursive: true });
+  }
   return true;
 }
 

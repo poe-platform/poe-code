@@ -79,6 +79,7 @@ export type RunCommandOptions = {
   assumeYes?: boolean;
   interactive?: boolean;
   useDashboard?: boolean;
+  dryRun?: boolean;
   env?: Record<string, string | undefined>;
   fs?: SuperintendentFileSystem;
   now?: () => number;
@@ -150,7 +151,12 @@ const runParams = S.Object({
   runnerSync: S.Optional(S.Enum(["both", "upload", "none"] as const, {
     description: "Override runner workspace sync: both, upload, or none"
   })),
-  tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" }))
+  tui: S.Optional(S.Boolean({ description: "Show a live dashboard while Superintendent is running" })),
+  dryRun: S.Optional(S.Boolean({
+    description: "Preview the loop without launching agents or writing changes",
+    scope: ["cli", "sdk"],
+    global: true
+  }))
 });
 
 export const runCommand = defineCommand({
@@ -182,6 +188,7 @@ export const runCommand = defineCommand({
         assumeYes: process.argv.includes("--yes"),
         interactive: Boolean(process.stdin.isTTY),
         useDashboard: shouldUseInteractiveDashboard(tuiEnabled) && resolveOutputFormat() === "terminal",
+        dryRun: params.dryRun === true,
         env: process.env,
         integrations,
         ...(commandConfig.planDirectory ? { planDirectory: commandConfig.planDirectory } : {})
@@ -444,6 +451,15 @@ export async function runSuperintendentCommand(
   }
 
   const selectedBuilderAgent = selectedBuilder.agent;
+
+  if (options.dryRun === true) {
+    return {
+      ...createLoopState(document),
+      stopReason: "dry_run",
+      docPath: selectedDocPath,
+      builderAgent: selectedBuilderAgent
+    };
+  }
 
   if (!useDashboard) {
     let activeStage: RunSession["activeStage"] = undefined;

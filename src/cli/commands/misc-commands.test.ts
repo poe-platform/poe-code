@@ -810,8 +810,26 @@ describe("root command", () => {
 
     await program.parseAsync(["node", "cli", "--yes", "github-workflows"]);
 
-    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "--yes", "github-workflows", "--help"]]);
+    expect(runCliState.argvSnapshots).toEqual([["node", "/usr/local/bin/poe-code", "github-workflows", "--help", "--yes"]]);
     expect(process.argv).toEqual(["node", "/usr/local/bin/poe-code", "--yes", "github-workflows"]);
+  });
+
+  it("forwards dry-run into superintendent toolcraft commands", async () => {
+    process.argv = ["node", "/usr/local/bin/poe-code", "--dry-run", "superintendent", "run", "plan.md"];
+
+    const fs = createMemFs();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "superintendent", "run", "plan.md"]);
+
+    expect(runCliState.argvSnapshots).toEqual([
+      ["node", "/usr/local/bin/poe-code", "superintendent", "run", "plan.md", "--dry-run"]
+    ]);
   });
 
   it("shows approvals help when invoked without a subcommand", async () => {

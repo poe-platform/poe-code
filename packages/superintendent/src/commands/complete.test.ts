@@ -138,6 +138,35 @@ describe("superintendent complete command", () => {
     expect(updatedContent).not.toContain("reason:");
   });
 
+  it("previews completion without writing during dry run", async () => {
+    const { completeCommand } = await import("./complete.js");
+    const writeFile = vi.fn(async () => undefined);
+
+    const result = await completeCommand.handler({
+      params: { path: "docs/plans/feature.md", reason: "operator override", dryRun: true },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: vi.fn(async () => document),
+        lstat: vi.fn(async () => ({ isSymbolicLink: () => false })),
+        writeFile,
+        rename: vi.fn(async () => undefined),
+        unlink: vi.fn(async () => undefined),
+        exists: vi.fn(async () => true)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    });
+
+    expect(writeFile).not.toHaveBeenCalled();
+    expect(result).toEqual({
+      path: "docs/plans/feature.md",
+      state: "completed",
+      reason: "operator override",
+      dryRun: true
+    });
+  });
+
   it("rejects a symlinked document path before writing", async () => {
     const { completeCommand } = await import("./complete.js");
     const writeFile = vi.fn(async () => undefined);

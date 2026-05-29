@@ -124,4 +124,19 @@ describe("superintendent install command", () => {
     await expect(fs.stat("/outside/superintendent-new"))
       .rejects.toThrow();
   });
+
+  it("does not create a missing plan directory during dry run", async () => {
+    const mkdir = vi.fn(async () => undefined);
+    const result = await ensurePlanDirectory("/repo/docs/plans", {
+      lstat: async () => {
+        const error = new Error("missing") as Error & { code?: string };
+        error.code = "ENOENT";
+        throw error;
+      },
+      mkdir
+    }, true);
+
+    expect(result).toBe(true);
+    expect(mkdir).not.toHaveBeenCalled();
+  });
 });

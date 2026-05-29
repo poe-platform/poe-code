@@ -379,7 +379,7 @@ function resolveRootHelpHeading(argv: string[]): string {
   return "Poe - poe-code";
 }
 
-const FORWARDABLE_TOOLCRAFT_FLAGS = new Set(["-y", "--yes", "--verbose"]);
+const FORWARDABLE_TOOLCRAFT_FLAGS = new Set(["-y", "--yes", "--dry-run", "--verbose"]);
 
 const maestroCommandSchema = S.Object({
   path: S.String({
@@ -697,10 +697,10 @@ function buildToolcraftArgv(argv: string[], commandNames: readonly string[]): st
   const commandArgs = argv.slice(commandIndex);
 
   if (commandArgs.length === 1) {
-    return [entry, script, ...forwardedFlags, commandArgs[0]!, "--help"];
+    return [entry, script, commandArgs[0]!, "--help", ...forwardedFlags];
   }
 
-  return [entry, script, ...forwardedFlags, ...commandArgs];
+  return [entry, script, ...commandArgs, ...forwardedFlags];
 }
 
 function createToolcraftHumanInLoopOptions(container: CliContainer) {

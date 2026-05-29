@@ -204,8 +204,8 @@ async function resolveProviderLoginShapeBaseUrls(input: {
   if (explicitBaseUrl !== undefined) {
     assertHttpBaseUrl(input.provider.id, explicitBaseUrl);
     return {
-      ...shapeBaseUrls,
-      ...deriveShapeBaseUrls(input.provider, explicitBaseUrl)
+      ...deriveShapeBaseUrls(input.provider, explicitBaseUrl),
+      ...shapeBaseUrls
     };
   }
 

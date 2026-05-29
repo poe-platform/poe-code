@@ -390,6 +390,31 @@ describe("provider login", () => {
     );
   });
 
+  it("preserves explicit shape URLs over Cloudflare --base-url defaults", async () => {
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "provider",
+      "login",
+      "cloudflare",
+      "--api-key",
+      "sk-cloudflare-test",
+      "--base-url",
+      "https://gateway.example.test",
+      "--shape-base-url",
+      "openai-responses=https://specific-responses.example.test/v1"
+    ]);
+
+    const saved = JSON.parse(await fs.readFile(resolveServicesConfigPath(homeDir), "utf8"));
+    expect(saved.providers.cloudflare.shapeBaseUrls["openai-responses"]).toBe(
+      "https://specific-responses.example.test/v1"
+    );
+  });
+
   it("stores repeated per-shape base URLs", async () => {
     const container = createContainer(fs);
     vi.spyOn(container.options, "resolveApiKey").mockResolvedValue("sk-test");

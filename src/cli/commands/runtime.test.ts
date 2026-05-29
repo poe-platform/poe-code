@@ -656,4 +656,19 @@ describe("runtime command", () => {
 
     expect(stripAnsi(logs.join("\n"))).toContain("E2B runtime uses pinned template tmpl_pinned.");
   });
+
+  it("does not recover malformed project config while previewing a runtime build", async () => {
+    const malformedConfig = "{ invalid json\n";
+    const fs = createMemFs({ [projectConfigPath]: malformedConfig });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "runtime", "build", "--runtime", "docker"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(projectConfigPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(path.dirname(projectConfigPath))).resolves.toEqual(["config.json"]);
+  });
 });

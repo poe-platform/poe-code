@@ -4,6 +4,7 @@ import {
   createStateManager,
   parseRuntime,
   readMergedDocument,
+  readMergedDocumentReadonly,
   runtimeConfigScope,
   resolveScope,
   type E2bRuntime
@@ -72,7 +73,8 @@ async function executeRuntimeBuild(
     container.env.homeDir,
     container.fs as unknown as Parameters<typeof createStateManager>[1]
   );
-  const document = await readMergedDocument(
+  const readConfigDocument = flags.dryRun ? readMergedDocumentReadonly : readMergedDocument;
+  const document = await readConfigDocument(
     container.fs,
     container.env.configPath,
     container.env.projectConfigPath

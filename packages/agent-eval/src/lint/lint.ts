@@ -4,6 +4,7 @@ import { parse as parseYaml } from "yaml";
 
 import { EvalYamlValidationError, validateEvalYaml, type EvalYaml } from "../schema.js";
 import type { EvalFs } from "../types.js";
+import { assertFsCanonicalContainedPathIfPresent } from "../path-boundary.js";
 
 export interface LintIssue {
   severity: "error" | "warning";
@@ -114,6 +115,10 @@ async function lintEvalYaml(
   fs: EvalFs
 ): Promise<ParsedEvalYaml> {
   const evalYamlPath = path.join(evalDir, "eval.yaml");
+  if (!(await assertFsCanonicalContainedPathIfPresent(fs, path.dirname(evalDir), evalYamlPath, "eval.yaml"))) {
+    issues.push({ severity: "error", code: "E001", message: "eval.yaml is missing.", path: evalYamlPath });
+    return { raw: undefined, valid: undefined };
+  }
   const content = await readTextIfPresent(evalYamlPath, fs);
 
   if (content === undefined) {
@@ -150,6 +155,10 @@ async function lintPlan(
   fs: EvalFs
 ): Promise<Record<string, unknown> | undefined> {
   const planPath = path.join(evalDir, "plan.md");
+  if (!(await assertFsCanonicalContainedPathIfPresent(fs, path.dirname(evalDir), planPath, "plan.md"))) {
+    issues.push({ severity: "error", code: "E002", message: "plan.md is missing.", path: planPath });
+    return undefined;
+  }
   const content = await readTextIfPresent(planPath, fs);
 
   if (content === undefined) {

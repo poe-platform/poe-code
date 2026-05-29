@@ -40,7 +40,7 @@ const evalYaml = [
   "        max_steps: 12"
 ].join("\n");
 
-function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs {
+function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs & { symlink(target: string, path: string): Promise<void> } {
   const volume = Volume.fromJSON(files, "/");
   const fs = createFsFromVolume(volume).promises;
 
@@ -50,6 +50,12 @@ function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs {
     },
     readFile(path, encoding) {
       return fs.readFile(isAbsolute(path) ? path : resolve(cwd, path), encoding);
+    },
+    realpath(path) {
+      return fs.realpath(isAbsolute(path) ? path : resolve(cwd, path)) as Promise<string>;
+    },
+    symlink(target, path) {
+      return fs.symlink(target, isAbsolute(path) ? path : resolve(cwd, path));
     },
     stat(path) {
       return fs.stat(isAbsolute(path) ? path : resolve(cwd, path));
@@ -148,6 +154,30 @@ describe("eval source registry", () => {
 
     await expect(loadEval(source, "../smoke", fs)).rejects.toThrow(
       'Invalid eval id "../smoke". Eval ids must be first-level directory names.'
+    );
+  });
+
+  it("rejects an eval definition symlinked outside the source directory", async () => {
+    const fs = memfs({
+      "/repo/evals/smoke/plan.md": ["---", "kind: plan", "---", "Run the task."].join("\n"),
+      "/outside/eval.yaml": evalYaml
+    });
+    await fs.symlink("/outside/eval.yaml", "/repo/evals/smoke/eval.yaml");
+
+    await expect(loadEval(source, "smoke", fs)).rejects.toThrow(
+      "eval.yaml must stay within the canonical source directory."
+    );
+  });
+
+  it("rejects a plan symlinked outside the source directory", async () => {
+    const fs = memfs({
+      "/repo/evals/smoke/eval.yaml": evalYaml,
+      "/outside/plan.md": ["---", "kind: plan", "---", "External task."].join("\n")
+    });
+    await fs.symlink("/outside/plan.md", "/repo/evals/smoke/plan.md");
+
+    await expect(loadEval(source, "smoke", fs)).rejects.toThrow(
+      "plan.md must stay within the canonical source directory."
     );
   });
 });

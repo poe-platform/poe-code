@@ -1,6 +1,8 @@
 import { realpath } from "node:fs/promises";
 import path from "node:path";
 
+type CanonicalFs = { realpath(targetPath: string): Promise<string> };
+
 export function resolveContainedPath(
   rootDir: string,
   configuredPath: string,
@@ -20,6 +22,34 @@ export async function assertCanonicalContainedPath(
   const canonicalRoot = await realpath(path.resolve(rootDir));
   const canonicalTarget = await realpath(targetPath);
   assertWithin(canonicalRoot, canonicalTarget, field, true);
+}
+
+export async function assertFsCanonicalContainedPath(
+  fs: CanonicalFs,
+  rootDir: string,
+  targetPath: string,
+  field: string
+): Promise<void> {
+  const canonicalRoot = await fs.realpath(path.resolve(rootDir));
+  const canonicalTarget = await fs.realpath(targetPath);
+  assertWithin(canonicalRoot, canonicalTarget, field, true);
+}
+
+export async function assertFsCanonicalContainedPathIfPresent(
+  fs: CanonicalFs,
+  rootDir: string,
+  targetPath: string,
+  field: string
+): Promise<boolean> {
+  try {
+    await assertFsCanonicalContainedPath(fs, rootDir, targetPath, field);
+    return true;
+  } catch (error) {
+    if (isMissingPath(error)) {
+      return false;
+    }
+    throw error;
+  }
 }
 
 export async function assertCanonicalDestinationPath(
@@ -58,6 +88,9 @@ function assertWithin(rootDir: string, targetPath: string, field: string, canoni
 }
 
 function fieldRootDescription(field: string): string {
+  if (field === "source.config" || field === "eval.yaml" || field === "plan.md") {
+    return "source directory";
+  }
   return field === "oracle.path" ? "eval directory" : "clone directory";
 }
 

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { loadSourceConfig } from "./config.js";
 import type { EvalFs, EvalSource } from "../types.js";
 
-function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs {
+function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs & { symlink(target: string, path: string): Promise<void> } {
   const volume = Volume.fromJSON(files, "/");
   const fs = createFsFromVolume(volume).promises;
 
@@ -15,6 +15,12 @@ function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs {
     },
     readFile(path, encoding) {
       return fs.readFile(isAbsolute(path) ? path : resolve(cwd, path), encoding);
+    },
+    realpath(path) {
+      return fs.realpath(isAbsolute(path) ? path : resolve(cwd, path)) as Promise<string>;
+    },
+    symlink(target, path) {
+      return fs.symlink(target, isAbsolute(path) ? path : resolve(cwd, path));
     },
     stat(path) {
       return fs.stat(isAbsolute(path) ? path : resolve(cwd, path));
@@ -77,6 +83,21 @@ describe("loadSourceConfig", () => {
 
     await expect(loadSourceConfig(source, fs)).rejects.toThrow(
       "Failed to parse /repo/evals/.poe-code-eval.json:"
+    );
+  });
+
+  it("rejects config files symlinked outside the source directory", async () => {
+    const fs = memfs({
+      "/repo/evals": null,
+      "/outside/config.json": JSON.stringify({ out: "external" })
+    });
+    await fs.symlink(
+      "/outside/config.json",
+      "/repo/evals/.poe-code-eval.json"
+    );
+
+    await expect(loadSourceConfig(source, fs)).rejects.toThrow(
+      "source.config must stay within the canonical source directory."
     );
   });
 

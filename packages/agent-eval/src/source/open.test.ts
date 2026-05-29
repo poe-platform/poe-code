@@ -16,6 +16,9 @@ function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs {
     readFile(path, encoding) {
       return fs.readFile(isAbsolute(path) ? path : resolve(cwd, path), encoding);
     },
+    realpath(path) {
+      return fs.realpath(isAbsolute(path) ? path : resolve(cwd, path)) as Promise<string>;
+    },
     stat(path) {
       return fs.stat(isAbsolute(path) ? path : resolve(cwd, path));
     }

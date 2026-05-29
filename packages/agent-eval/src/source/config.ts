@@ -2,6 +2,7 @@ import nodeFs from "node:fs/promises";
 import { join } from "node:path";
 
 import type { EvalFs, EvalSource, SourceConfig } from "../types.js";
+import { assertFsCanonicalContainedPathIfPresent } from "../path-boundary.js";
 
 export const defaultSourceConfig: SourceConfig = {
   judge: {
@@ -23,6 +24,10 @@ export async function loadSourceConfig(
   fs: EvalFs = nodeFs as unknown as EvalFs
 ): Promise<SourceConfig> {
   const configPath = join(source.rootDir, ".poe-code-eval.json");
+
+  if (!(await assertFsCanonicalContainedPathIfPresent(fs, source.rootDir, configPath, "source.config"))) {
+    return cloneDefaultConfig();
+  }
 
   let raw: string;
   try {

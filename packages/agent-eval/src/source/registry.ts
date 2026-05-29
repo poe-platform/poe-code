@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { parse as parseYaml } from "yaml";
 
 import { validateEvalYaml } from "../schema.js";
+import { assertFsCanonicalContainedPath } from "../path-boundary.js";
 import type { EvalDef, EvalFs, EvalSource, PlanKind } from "../types.js";
 
 const allowedPlanKinds = ["plan", "pipeline", "superintendent", "experiment"] as const;
@@ -49,6 +50,8 @@ export async function loadEval(
   const evalDir = join(source.rootDir, id);
   const evalYamlPath = join(evalDir, "eval.yaml");
   const planPath = join(evalDir, "plan.md");
+  await assertFsCanonicalContainedPath(fs, source.rootDir, evalYamlPath, "eval.yaml");
+  await assertFsCanonicalContainedPath(fs, source.rootDir, planPath, "plan.md");
   const evalYaml = validateEvalYaml(
     parseYamlFile(await fs.readFile(evalYamlPath, "utf8"), evalYamlPath),
     evalYamlPath

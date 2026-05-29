@@ -11,7 +11,8 @@ vi.mock("node:fs/promises", () => ({
       mocks.fs.readFile(...(args as Parameters<typeof mocks.fs.readFile>)),
     readdir: (...args: unknown[]) =>
       mocks.fs.readdir(...(args as Parameters<typeof mocks.fs.readdir>)),
-    stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>))
+    stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>)),
+    realpath: (...args: unknown[]) => mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
   }
 }));
 
@@ -27,6 +28,30 @@ describe("evalLint", () => {
       evalId: "smoke",
       issues: []
     });
+  });
+
+  it("does not lint an eval definition symlinked outside the source directory", async () => {
+    mocks.fs = createFsFromVolume(Volume.fromJSON(validFiles(), "/")).promises;
+    await mocks.fs.mkdir("/outside", { recursive: true });
+    await mocks.fs.writeFile("/outside/eval.yaml", evalYaml({ wallClockMs: 1000 }), "utf8");
+    await mocks.fs.unlink("/repo/evals/smoke/eval.yaml");
+    await mocks.fs.symlink("/outside/eval.yaml", "/repo/evals/smoke/eval.yaml");
+
+    await expect(lint()).rejects.toThrow(
+      "eval.yaml must stay within the canonical source directory."
+    );
+  });
+
+  it("does not lint a plan symlinked outside the source directory", async () => {
+    mocks.fs = createFsFromVolume(Volume.fromJSON(validFiles(), "/")).promises;
+    await mocks.fs.mkdir("/outside", { recursive: true });
+    await mocks.fs.writeFile("/outside/plan.md", ["---", "kind: bad", "---", "External"].join("\n"), "utf8");
+    await mocks.fs.unlink("/repo/evals/smoke/plan.md");
+    await mocks.fs.symlink("/outside/plan.md", "/repo/evals/smoke/plan.md");
+
+    await expect(lint()).rejects.toThrow(
+      "plan.md must stay within the canonical source directory."
+    );
   });
 
   it("accepts valid named metric configuration", async () => {

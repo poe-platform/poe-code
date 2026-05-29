@@ -48,7 +48,7 @@ describe("resolveE2bApiKey", () => {
   it("throws when no key is found anywhere", async () => {
     const fs = memFs({});
     await expect(resolveE2bApiKey({ cwd, homeDir, fs, env: {} })).rejects.toThrow(
-      /No E2B API key/
+      "No E2B API key. Set E2B_API_KEY or e2b.api_key in /repo/.poe-code/config.json or ~/.poe-code/config.json."
     );
   });
 });

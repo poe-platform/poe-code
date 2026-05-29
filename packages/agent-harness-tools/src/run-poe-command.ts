@@ -95,16 +95,19 @@ export async function runPoeCommand(opts: {
       jobId,
       openSpec: opts.openSpec,
       signal: opts.signal,
-      wrapCommand
+      wrapCommand,
+      closeAfterDownload: false
     });
     await runningJob;
-    shouldClose = false;
 
     await opts.state.jobs.update(jobId, {
       status: "exited",
       exit_code: result.exitCode,
       exited_at: new Date().toISOString()
     });
+
+    shouldClose = false;
+    await env.close().catch(() => undefined);
 
     return {
       kind: "sync",

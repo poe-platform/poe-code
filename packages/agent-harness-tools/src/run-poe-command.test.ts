@@ -172,8 +172,8 @@ function extractJobId(spec: RunSpec): string {
   const script = spec.args?.[1] ?? "";
   const prefix = "/tmp/poe-jobs/";
   const suffix = ".exit.tmp";
-  const start = script.indexOf(prefix);
-  const end = script.indexOf(suffix, start);
+  const end = script.indexOf(suffix);
+  const start = script.lastIndexOf(prefix, end);
   if (start === -1 || end === -1) {
     throw new Error("Expected wrapped command to include an exit file.");
   }
@@ -294,6 +294,27 @@ describe("runPoeCommand", () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it("records completed status when environment cleanup fails after a sync run", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    env.close = async () => {
+      throw new Error("environment close denied");
+    };
+
+    await expect(
+      runPoeCommand({
+        factory: createFactory(env),
+        openSpec: createOpenSpec(),
+        detach: false,
+        state
+      })
+    ).resolves.toMatchObject({ kind: "sync", exitCode: 0 });
+
+    await expect(state.jobs.list()).resolves.toEqual([
+      expect.objectContaining({ status: "exited", exit_code: 0, env_id: "env-1" })
+    ]);
   });
 
   it("leaves the environment open in detach mode", async () => {
@@ -535,7 +556,9 @@ describe("runPoeCommand", () => {
       [
         "sh",
         "-c",
-        'test -f "/usr/local/bin/codex" || test -f "/usr/bin/codex" || test -f "$HOME/.local/bin/codex" || test -f "$HOME/.claude/local/bin/codex"'
+        'for directory in /usr/local/bin /usr/bin "$HOME/.local/bin" "$HOME/.claude/local/bin"; do test -f "$directory/$1" && exit 0; done; exit 1',
+        "sh",
+        "codex"
       ],
       ["sh", "-c", expect.stringContaining("'codex' 'exec' 'hello'")]
     ]);
@@ -599,7 +622,9 @@ describe("runPoeCommand", () => {
       [
         "sh",
         "-c",
-        'test -f "/usr/local/bin/opencode" || test -f "/usr/bin/opencode" || test -f "$HOME/.local/bin/opencode" || test -f "$HOME/.claude/local/bin/opencode"'
+        'for directory in /usr/local/bin /usr/bin "$HOME/.local/bin" "$HOME/.claude/local/bin"; do test -f "$directory/$1" && exit 0; done; exit 1',
+        "sh",
+        "opencode"
       ],
       ["sh", "-c", expect.stringContaining("'opencode' 'run' 'hello'")]
     ]);

@@ -448,12 +448,12 @@ function parseRequiredRole(value: unknown, roleName: string, filePath: string): 
     agent:
       role.agent === undefined
         ? "claude-code"
-        : expectString(role.agent, `${roleName}.agent`, filePath),
+        : expectNonEmptyString(role.agent, `${roleName}.agent`, filePath),
     mode:
-      role.mode === undefined ? undefined : expectString(role.mode, `${roleName}.mode`, filePath),
-    cwd: role.cwd === undefined ? undefined : expectString(role.cwd, `${roleName}.cwd`, filePath),
+      role.mode === undefined ? undefined : expectNonEmptyString(role.mode, `${roleName}.mode`, filePath),
+    cwd: role.cwd === undefined ? undefined : expectNonEmptyString(role.cwd, `${roleName}.cwd`, filePath),
     mcp,
-    prompt: expectString(role.prompt, `${roleName}.prompt`, filePath)
+    prompt: expectNonEmptyString(role.prompt, `${roleName}.prompt`, filePath)
   };
 }
 
@@ -499,7 +499,7 @@ function parseMcpConfig(value: unknown, fieldName: string, filePath: string): Mc
   assertOnlyKeys(config, fieldName, ["command", "args", "timeout"], filePath);
 
   return {
-    command: expectString(config.command, `${fieldName}.command`, filePath),
+    command: expectNonEmptyString(config.command, `${fieldName}.command`, filePath),
     args:
       config.args === undefined
         ? undefined
@@ -558,6 +558,14 @@ function assertOnlyKeys(
 function expectString(value: unknown, fieldName: string, filePath: string): string {
   if (typeof value !== "string") {
     throw new Error(`${filePath}: ${fieldName} must be a string`);
+  }
+
+  return value;
+}
+
+function expectNonEmptyString(value: unknown, fieldName: string, filePath: string): string {
+  if (typeof value !== "string" || value.length === 0) {
+    throw new Error(`${filePath}: ${fieldName} must be a non-empty string`);
   }
 
   return value;

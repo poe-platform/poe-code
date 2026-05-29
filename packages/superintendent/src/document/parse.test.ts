@@ -180,7 +180,7 @@ status:
 Body
 `;
 
-    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(/builder\.cwd must be a string/i);
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(/builder\.cwd must be a non-empty string/i);
   });
 
   it("parses inline mcp on a role in addition to global mcp", () => {
@@ -731,5 +731,31 @@ Body
     expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(
       `plan.md: unknown field ${fieldName}`
     );
+  });
+
+  it.each([
+    ["agent: ''\n", "builder.agent must be a non-empty string"],
+    ["cwd: ''\n", "builder.cwd must be a non-empty string"],
+    ["prompt: ''\n", "builder.prompt must be a non-empty string"],
+    ["mcp:\n    helper:\n      command: ''\n", "builder.mcp.helper.command must be a non-empty string"]
+  ])("rejects empty role execution configuration", (builderField, message) => {
+    const prompt = builderField.startsWith("prompt:") ? "" : "  prompt: build\n";
+    const content = `---
+kind: superintendent
+version: 1
+builder:
+  ${builderField}${prompt}superintendent:
+  prompt: review
+owner:
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(message);
   });
 });

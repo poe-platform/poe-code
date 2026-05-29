@@ -2157,4 +2157,40 @@ describe("pipeline install command", () => {
       pipelineStepsTemplate
     );
   });
+
+  it("does not install the skill or plans directory when steps creation fails", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerPipelineCommand(program, container);
+    const originalWriteFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath) === "/repo/.poe-code/pipeline/steps.yaml") {
+        throw new Error("injected steps.yaml write failure");
+      }
+      await originalWriteFile(filePath, data, options);
+    });
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "pipeline",
+        "install",
+        "--agent",
+        "claude-code",
+        "--local"
+      ])
+    ).rejects.toThrow("injected steps.yaml write failure");
+
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-pipeline-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/pipeline/plans")).rejects.toThrow();
+  });
 });

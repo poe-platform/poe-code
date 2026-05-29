@@ -84,7 +84,8 @@ export function registerMcpCommand(
     )
     .addHelpText("after", `${buildHelpText()}\n\n${formatMcpToolsDocs()}`)
     .action(async (options: { outputFormat?: string }) => {
-      await runMcpServer(container, { outputFormat: options.outputFormat });
+      const flags = resolveCommandFlags(program);
+      await runMcpServer(container, { outputFormat: options.outputFormat, dryRun: flags.dryRun });
     });
 
   mcp
@@ -126,7 +127,7 @@ export function registerMcpCommand(
         throw new Error(`MCP not supported for ${support.id}.`);
       }
 
-      const existingKey = await resolvePoeCredential(container);
+      const existingKey = await resolvePoeCredential(container, { readOnly: flags.dryRun });
 
       if (!existingKey) {
         resources.logger.intro("login");
@@ -213,11 +214,16 @@ export function registerMcpCommand(
 
 async function runMcpServer(
   container: CliContainer,
-  options: { outputFormat?: string }
+  options: { outputFormat?: string; dryRun?: boolean }
 ): Promise<void> {
   const outputFormatPreferences = parseMcpOutputFormatPreferences(
     options.outputFormat
   );
+
+  if (options.dryRun) {
+    process.stderr.write("Dry run: would start MCP server.\n");
+    return;
+  }
 
   const apiKey = await resolvePoeCredential(container);
   if (!apiKey) {
@@ -234,10 +240,14 @@ async function runMcpServer(
   await runMcpServerWithTransport(outputFormatPreferences);
 }
 
-async function resolvePoeCredential(container: CliContainer): Promise<string | null> {
+async function resolvePoeCredential(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<string | null> {
   try {
     return await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
-      envVars: container.env.variables
+      envVars: container.env.variables,
+      readOnly: options.readOnly
     });
   } catch {
     return null;

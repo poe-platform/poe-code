@@ -73,7 +73,9 @@ async function executeProviderList(program: Command, container: CliContainer): P
 
   const rows = await Promise.all(
     providers.map(async (provider) => {
-      const loggedIn = await container.providerRegistry.isLoggedIn(provider.id);
+      const loggedIn = await container.providerRegistry.isLoggedIn(provider.id, {
+        readOnly: flags.dryRun
+      });
       const apiShapes = provider.apiShapes?.map((shape) => shape.id) ?? [];
       return {
         Provider: theme.accent(provider.id),

@@ -64,7 +64,7 @@ async function executeStatus(program: Command, container: CliContainer): Promise
   resources.logger.intro("auth status");
 
   try {
-    const apiKey = await resolveAuthCredential(container);
+    const apiKey = await resolveAuthCredential(container, { readOnly: flags.dryRun });
 
     if (!apiKey) {
       resources.logger.info("Not logged in");
@@ -118,8 +118,9 @@ async function executeStatus(program: Command, container: CliContainer): Promise
   }
 }
 
-async function executeApiKey(_program: Command, container: CliContainer): Promise<void> {
-  const apiKey = await container.readApiKey();
+async function executeApiKey(program: Command, container: CliContainer): Promise<void> {
+  const flags = resolveCommandFlags(program);
+  const apiKey = await container.readApiKey({ readOnly: flags.dryRun });
   if (!apiKey) {
     process.exitCode = 1;
     return;
@@ -128,15 +129,24 @@ async function executeApiKey(_program: Command, container: CliContainer): Promis
   process.stdout.write(apiKey);
 }
 
-async function resolveAuthCredential(container: CliContainer): Promise<string | null> {
+async function resolveAuthCredential(
+  container: CliContainer,
+  options: { readOnly?: boolean } = {}
+): Promise<string | null> {
   const envKey = container.env.getVariable("POE_API_KEY");
   if (typeof envKey === "string" && envKey.trim().length > 0) {
     return envKey.trim();
   }
-  return container.readApiKey();
+  return container.readApiKey(options);
 }
 
-async function executeWhoami(_program: Command, container: CliContainer): Promise<void> {
+async function executeWhoami(program: Command, container: CliContainer): Promise<void> {
+  const flags = resolveCommandFlags(program);
+  if (flags.dryRun) {
+    process.stdout.write("Dry run: would fetch identity from Poe API.");
+    return;
+  }
+
   const apiKey = await resolveAuthCredential(container);
   if (!apiKey) {
     process.exitCode = 1;

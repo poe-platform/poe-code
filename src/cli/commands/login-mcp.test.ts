@@ -547,6 +547,35 @@ describe("mcp command", () => {
     }
   });
 
+  it("does not start or migrate credentials while previewing mcp serve", async () => {
+    const fs = createMcpMemfs();
+    await storeTestApiKey(fs, "/home/test", "legacy-key");
+    const { program } = await createMcpProgram({ fs, storeApiKey: false });
+    const initSpy = vi.spyOn(clientInstance, "initializeClient").mockResolvedValue(undefined);
+    const transportSpy = vi.spyOn(mcpServer, "runMcpServerWithTransport").mockResolvedValue(undefined);
+
+    try {
+      await program.parseAsync(["node", "cli", "--dry-run", "mcp", "serve"]);
+      expect(initSpy).not.toHaveBeenCalled();
+      expect(transportSpy).not.toHaveBeenCalled();
+      await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["credentials.enc"]);
+    } finally {
+      initSpy.mockRestore();
+      transportSpy.mockRestore();
+    }
+  });
+
+  it("does not migrate legacy credentials while previewing mcp configure", async () => {
+    const fs = createMcpMemfs();
+    await storeTestApiKey(fs, "/home/test", "legacy-key");
+    const { program } = await createMcpProgram({ fs, storeApiKey: false });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "mcp", "configure", "codex"]);
+
+    expect(configureMock).toHaveBeenCalled();
+    await expect(fs.readdir("/home/test/.poe-code")).resolves.toEqual(["credentials.enc"]);
+  });
+
   it("parses comma-separated --output-format preferences", async () => {
     const { program } = await createMcpProgram();
     const initSpy = vi

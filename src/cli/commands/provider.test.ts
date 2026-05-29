@@ -7,6 +7,7 @@ import type { FileSystem } from "../../utils/file-system.js";
 import { resolveServicesConfigPath } from "@poe-code/poe-code-config";
 import type { AuthProvider } from "@poe-code/providers";
 import type { PromptFn } from "../types.js";
+import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -106,6 +107,19 @@ describe("provider list", () => {
     const output = logs.join("\n");
     expect(output).toContain("poe");
     expect(output).toContain("[-]");
+  });
+
+  it("does not migrate legacy credentials while previewing provider list", async () => {
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "provider", "list"]);
+
+    expect(logs.join("\n")).toMatch(/logged in/i);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
   });
 
   it("snapshots provider shape and agent columns", async () => {

@@ -62,7 +62,7 @@ export interface CliContainer {
   readonly commandRunner: CommandRunner;
   readonly providers: ProviderService[];
   readonly dependencies: CliDependencies;
-  readonly readApiKey: () => Promise<string | null>;
+  readonly readApiKey: (options?: { readOnly?: boolean }) => Promise<string | null>;
   readonly writeApiKey: (apiKey: string) => Promise<void>;
   readonly deleteApiKey: () => Promise<void>;
 }

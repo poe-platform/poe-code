@@ -763,6 +763,23 @@ describe("models command", () => {
     expect(logs.some((m) => m.includes("Dry run"))).toBe(true);
   });
 
+  it("does not migrate legacy credentials while previewing models", async () => {
+    fs = createMemfs(homeDir);
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "models"]);
+
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
+  });
+
   it("throws ApiError on non-ok response", async () => {
     fs = await createConfigVolume("test-key");
     (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({

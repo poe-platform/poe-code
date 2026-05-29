@@ -5,6 +5,7 @@ import type { FileSystem } from "../utils/file-system.js";
 import type { HttpClient } from "../http.js";
 import { ApiError } from "../errors.js";
 import { createCliContainer } from "../container.js";
+import { storeTestApiKey } from "../../../tests/test-helpers.js";
 
 const spinnerStopMessages: string[] = [];
 const spinnerMock = vi.hoisted(() => vi.fn());
@@ -168,6 +169,23 @@ describe("auth command", () => {
     expect(logs.some((m) => m.includes("Dry run"))).toBe(true);
   });
 
+  it("does not migrate legacy credentials while previewing auth status", async () => {
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message),
+      exitOverride: true
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "auth", "status"]);
+
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
+  });
+
   it("throws ApiError when whoami request fails", async () => {
     await storeApiKey(fs, "test-key");
 
@@ -275,6 +293,24 @@ describe("auth command", () => {
     stdoutSpy.mockRestore();
   });
 
+  it("does not migrate legacy credentials while previewing auth api-key", async () => {
+    await storeTestApiKey(fs, homeDir, "legacy-key");
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "auth", "api-key"]);
+
+    expect(stdoutSpy).toHaveBeenCalledWith("legacy-key");
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["credentials.enc"]);
+    stdoutSpy.mockRestore();
+  });
+
   it("keeps auth api_key working as a compatibility alias", async () => {
     await storeApiKey(fs, "stored-key");
 
@@ -353,6 +389,23 @@ describe("auth command", () => {
       name: "Kamil Jopek",
       profile_picture: "https://example.com/k.jpg"
     });
+    stdoutSpy.mockRestore();
+  });
+
+  it("does not request identity while previewing auth whoami", async () => {
+    const stdoutSpy = vi.spyOn(process.stdout, "write").mockImplementation(() => true);
+    const program = createProgram({
+      fs,
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: { POE_API_KEY: "env-key" } },
+      httpClient,
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "auth", "whoami"]);
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(stdoutSpy).toHaveBeenCalledWith(expect.stringContaining("Dry run"));
     stdoutSpy.mockRestore();
   });
 

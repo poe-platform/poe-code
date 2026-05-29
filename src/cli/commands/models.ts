@@ -237,7 +237,8 @@ export function registerModelsCommand(
         let apiKey: string | null = null;
         try {
           apiKey = await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
-            envVars: container.env.variables
+            envVars: container.env.variables,
+            readOnly: flags.dryRun
           });
         } catch {
           apiKey = null;

@@ -6,6 +6,7 @@ export type PromptForSecret = (prompt: ApiKeyPrompt) => Promise<string | undefin
 export interface AuthStrategyContext {
   secretStore: SecretStore;
   promptForSecret?: PromptForSecret;
+  readOnly?: boolean;
 }
 
 export interface AuthStrategy<TLoginOptions> {

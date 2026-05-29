@@ -12,14 +12,14 @@ export class MigratingSecretStore implements SecretStore {
     private readonly legacyStore: SecretStore | null = null
   ) {}
 
-  async get(): Promise<string | null> {
+  async get(options: { readOnly?: boolean } = {}): Promise<string | null> {
     const value = await this.store.get();
     if (value !== null || !this.legacyStore) {
       return value;
     }
 
     const legacyValue = await this.legacyStore.get();
-    if (legacyValue !== null) {
+    if (legacyValue !== null && !options.readOnly) {
       await this.mutate(async () => {
         if (await this.store.get() === null) {
           try {

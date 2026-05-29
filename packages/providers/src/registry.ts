@@ -64,7 +64,7 @@ export class ProviderRegistry {
     });
   }
 
-  async isLoggedIn(id: string): Promise<boolean> {
+  async isLoggedIn(id: string, options: { readOnly?: boolean } = {}): Promise<boolean> {
     const provider = this.requireProvider(id);
     if (provider.auth.kind === "api-key") {
       const envValue = this.envVars[provider.auth.envVar];
@@ -73,7 +73,7 @@ export class ProviderRegistry {
       }
     }
     const store = this.requireStore(id);
-    const credential = await store.get();
+    const credential = await store.get({ readOnly: options.readOnly });
     return typeof credential === "string" && credential.trim().length > 0;
   }
 
@@ -107,7 +107,7 @@ export class ProviderRegistry {
   async resolveCredential(
     id: string,
     options: ApiKeyLoginOptions = {},
-    context?: Pick<LoginContext, "envVars">
+    context?: Pick<LoginContext, "envVars"> & { readOnly?: boolean }
   ): Promise<string> {
     const provider = this.requireProvider(id);
     if (provider.auth.kind !== "api-key") {
@@ -125,7 +125,10 @@ export class ProviderRegistry {
     }
 
     const store = this.requireStore(id);
-    return apiKeyAuthStrategy.resolveCredential(provider, { secretStore: store });
+    return apiKeyAuthStrategy.resolveCredential(provider, {
+      secretStore: store,
+      readOnly: context?.readOnly
+    });
   }
 
   async logout(id: string): Promise<void> {

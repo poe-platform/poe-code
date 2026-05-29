@@ -153,6 +153,16 @@ describe("MigratingSecretStore", () => {
       expect(primary.set).toHaveBeenCalledWith("legacy-credential");
     });
 
+    it("reads legacy credentials without migration in read-only mode", async () => {
+      const primary = createMockStore(null);
+      const legacy = createMockStore("legacy-credential");
+      const store = new MigratingSecretStore(primary, legacy);
+
+      await expect(store.get({ readOnly: true })).resolves.toBe("legacy-credential");
+
+      expect(primary.set).not.toHaveBeenCalled();
+    });
+
     it("returns readable legacy credentials when migration persistence fails", async () => {
       const primary = createMockStore(null);
       const legacy = createMockStore("legacy-credential");

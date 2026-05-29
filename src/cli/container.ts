@@ -124,6 +124,7 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
     ) => dependencies.fs.writeFile(filePath, data, opts),
     mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
       dependencies.fs.mkdir(directoryPath, opts).then(() => undefined),
+    lstat: (filePath: string) => dependencies.fs.lstat(filePath),
     unlink: (filePath: string) => dependencies.fs.unlink(filePath),
     chmod: (filePath: string, mode: number) =>
       dependencies.fs.chmod ? dependencies.fs.chmod(filePath, mode) : Promise.resolve()

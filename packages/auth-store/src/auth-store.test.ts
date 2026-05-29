@@ -252,6 +252,47 @@ describe("EncryptedFileStore", () => {
     expect(stats.mode & 0o777).toBe(0o600);
   });
 
+  it("rejects a symlinked credential file before overwriting its target", async () => {
+    const fs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    await fs.mkdir("/home/test/.app", { recursive: true });
+    await fs.writeFile("/outside.enc", "sentinel", { encoding: "utf8" });
+    await (fs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside.enc",
+      filePath
+    );
+    const store = new EncryptedFileStore({
+      fs,
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await expect(store.set("secret-value")).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/outside.enc", "utf8")).resolves.toBe("sentinel");
+  });
+
+  it("rejects reads, writes, and deletes through a symlinked state directory", async () => {
+    const fs = createStatMemFs();
+    await fs.mkdir("/home/test", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await (fs as unknown as { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/home/test/.app"
+    );
+    const store = new EncryptedFileStore({
+      fs,
+      filePath: "/home/test/.app/credentials.enc",
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host-a", username: "user-a" })
+    });
+
+    await expect(store.set("secret-value")).rejects.toThrow(/symbolic link/i);
+    await expect(store.get()).rejects.toThrow(/symbolic link/i);
+    await expect(store.delete()).rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/outside/credentials.enc", "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("removes a new credential when permission hardening fails", async () => {
     let storedContent: string | undefined;
     const fs: EncryptedFileStoreFileSystem = {
@@ -262,6 +303,7 @@ describe("EncryptedFileStore", () => {
         return storedContent;
       }),
       mkdir: vi.fn(async () => undefined),
+      lstat: vi.fn(async () => { throw Object.assign(new Error("missing"), { code: "ENOENT" }); }),
       writeFile: vi.fn(async (_filePath, data) => { storedContent = String(data); }),
       chmod: vi.fn(async () => { throw new Error("chmod denied"); }),
       unlink: vi.fn(async () => { storedContent = undefined; })

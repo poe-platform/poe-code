@@ -98,6 +98,7 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     ) => fs.writeFile(filePath, data, options),
     mkdir: (directoryPath: string, options?: { recursive?: boolean }) =>
       fs.mkdir(directoryPath, options).then(() => undefined),
+    lstat: (filePath: string) => fs.lstat(filePath),
     unlink: (filePath: string) => fs.unlink(filePath),
     chmod: (filePath: string, mode: number) => fs.chmod(filePath, mode)
   };

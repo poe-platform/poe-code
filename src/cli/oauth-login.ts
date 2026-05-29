@@ -3,7 +3,11 @@ import readline from "node:readline";
 import { createOAuthClient } from "poe-oauth";
 import { text, log, spinner } from "@poe-code/design-system";
 
-export async function resolveApiKeyViaOAuth(): Promise<string> {
+export interface OAuthLoginOptions {
+  tokenEndpoint?: string;
+}
+
+export async function resolveApiKeyViaOAuth(options: OAuthLoginOptions = {}): Promise<string> {
   const rl = readline.createInterface({
     input: process.stdin
   });
@@ -11,6 +15,7 @@ export async function resolveApiKeyViaOAuth(): Promise<string> {
   try {
     const client = createOAuthClient({
       clientId: "client_f520ee4d8ca84a13ba876a8731d264d0",
+      tokenEndpoint: options.tokenEndpoint,
       openBrowser: (url) =>
         openInBrowser(url).catch(() => {
           log.warn("Could not open browser automatically.");

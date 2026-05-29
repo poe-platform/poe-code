@@ -183,7 +183,9 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
       }
       return result === true;
     },
-    loginViaOAuth: oauthEnabled ? resolveApiKeyViaOAuth : undefined
+    loginViaOAuth: oauthEnabled
+      ? () => resolveApiKeyViaOAuth({ tokenEndpoint: `${environment.poeBaseUrl}/token` })
+      : undefined
   });
 
   const registry = createServiceRegistry();

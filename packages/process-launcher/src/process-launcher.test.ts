@@ -323,6 +323,48 @@ describe("process launcher manager", () => {
     expect(spawnDaemon).not.toHaveBeenCalled();
     await expect(rawFs.readFile("/outside/logs/stdout.log", "utf8")).resolves.toBe("external-log\n");
   });
+
+  it("rejects a symlinked managed log directory", async () => {
+    const volume = Volume.fromJSON({
+      "/state/launch/api/spec.json": JSON.stringify({ id: "api", command: "npm", restart: "never" }),
+      "/outside/stdout.log": "external-log\n"
+    }, "/");
+    volume.symlinkSync("/outside", "/state/launch/api/logs");
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = createMemFsFromRaw(rawFs);
+
+    await expect(readManagedLogs({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(runManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(rawFs.readFile("/outside/stdout.log", "utf8")).resolves.toBe("external-log\n");
+  });
+
+  it("rejects symlinked managed specification and metadata files", async () => {
+    const volume = Volume.fromJSON({
+      "/outside/spec.json": JSON.stringify({ id: "api", command: "npm", restart: "never" }),
+      "/outside/meta.json": "external-meta\n"
+    }, "/");
+    volume.mkdirSync("/state/launch/api", { recursive: true });
+    volume.symlinkSync("/outside/spec.json", "/state/launch/api/spec.json");
+    volume.symlinkSync("/outside/meta.json", "/state/launch/api/meta.json");
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = createMemFsFromRaw(rawFs);
+
+    await expect(runManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(rawFs.readFile("/outside/meta.json", "utf8")).resolves.toBe("external-meta\n");
+  });
+
+  it("rejects symlinked child directories during managed removal", async () => {
+    const volume = Volume.fromJSON({
+      "/state/launch/api/spec.json": JSON.stringify({ id: "api", command: "npm", restart: "never" }),
+      "/outside/victim.txt": "keep-me\n"
+    }, "/");
+    volume.symlinkSync("/outside", "/state/launch/api/artifacts");
+    const rawFs = createFsFromVolume(volume).promises;
+    const fs = createMemFsFromRaw(rawFs);
+
+    await expect(removeManagedProcess({ baseDir: "/state/launch", fs, id: "api" })).rejects.toThrow(/symbolic link/i);
+    await expect(rawFs.readFile("/outside/victim.txt", "utf8")).resolves.toBe("keep-me\n");
+  });
 });
 
 function createMemFs(): LauncherFileSystem {

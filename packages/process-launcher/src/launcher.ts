@@ -244,6 +244,7 @@ export async function listManagedProcesses(
 export async function readManagedLogs(options: ReadManagedLogsOptions): Promise<string[]> {
   const fs = options.fs ?? defaultFs();
   await assertProcessDirectorySafe(fs, options.baseDir, options.id);
+  await assertPathNotSymbolicLink(fs, resolveLogDir(options.baseDir, options.id));
   const logWriter = createLogWriter(
     resolveLogDir(options.baseDir, options.id),
     5,
@@ -306,6 +307,7 @@ export async function removeManagedProcess(options: RemoveManagedProcessOptions)
 export async function runManagedProcess(options: RunManagedProcessOptions): Promise<void> {
   const fs = options.fs ?? defaultFs();
   await assertProcessDirectorySafe(fs, options.baseDir, options.id);
+  await assertPathNotSymbolicLink(fs, resolveLogDir(options.baseDir, options.id));
   const spec = await readSpec(fs, options.baseDir, options.id);
   if (spec === null) {
     throw new Error(`Managed process "${options.id}" was not found.`);
@@ -597,6 +599,8 @@ async function writeMeta(
 }
 
 async function readJsonFile<T>(fs: LauncherFileSystem, filePath: string): Promise<T | null> {
+  await assertPathNotSymbolicLink(fs, filePath);
+
   try {
     const content = await fs.readFile(filePath, "utf8");
     return JSON.parse(content) as T;
@@ -613,6 +617,7 @@ async function writeJsonFile(
   filePath: string,
   value: object
 ): Promise<void> {
+  await assertPathNotSymbolicLink(fs, filePath);
   await fs.mkdir(path.dirname(filePath), { recursive: true });
   await fs.writeFile(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
@@ -622,11 +627,14 @@ async function assertProcessDirectorySafe(
   baseDir: string,
   id: string
 ): Promise<void> {
-  const processDir = resolveProcessDir(baseDir, id);
+  await assertPathNotSymbolicLink(fs, resolveProcessDir(baseDir, id));
+}
+
+async function assertPathNotSymbolicLink(fs: LauncherFileSystem, filePath: string): Promise<void> {
 
   try {
-    if ((await fs.lstat(processDir)).isSymbolicLink()) {
-      throw new Error(`Refusing to access managed process through symbolic link: ${processDir}`);
+    if ((await fs.lstat(filePath)).isSymbolicLink()) {
+      throw new Error(`Refusing to access managed process through symbolic link: ${filePath}`);
     }
   } catch (error) {
     if (isNotFoundError(error)) {

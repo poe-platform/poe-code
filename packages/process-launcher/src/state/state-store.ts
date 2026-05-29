@@ -7,6 +7,18 @@ function isNotFoundError(error: unknown): boolean {
 }
 
 async function removeDirectory(fs: LauncherFileSystem, directoryPath: string): Promise<void> {
+  try {
+    if ((await fs.lstat(directoryPath)).isSymbolicLink()) {
+      throw new Error(`Refusing to remove managed process through symbolic link: ${directoryPath}`);
+    }
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return;
+    }
+
+    throw error;
+  }
+
   let entries: string[];
 
   try {

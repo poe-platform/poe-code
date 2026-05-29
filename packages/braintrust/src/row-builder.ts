@@ -7,6 +7,15 @@ import type { BraintrustClient } from "./client.js";
 type SuperintendentRole = "builder" | "inspector" | "superintendent" | "owner";
 type EventRecord = Record<string, unknown>;
 
+function defineRecordEntry<T>(record: Record<string, T>, key: string, value: T): void {
+  Object.defineProperty(record, key, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true,
+  });
+}
+
 interface BraintrustSpan {
   startSpan(args: { name: string; type: "task" | "tool" }): BraintrustSpan;
   log(event: BraintrustLogEvent): void;
@@ -31,7 +40,7 @@ type PipelineRowState = {
 };
 
 type ExperimentIteration = {
-  span?: BraintrustSpan;
+  span: Promise<BraintrustSpan | undefined>;
   agent: string;
   iteration: number;
   baseline?: Record<string, number>;
@@ -150,21 +159,31 @@ export function makeExperimentIterationState(
 
   return {
     async start(index: number, agent: string): Promise<void> {
-      try {
-        const experiment = asSpanParent(await client.getExperiment(experimentName));
-        rows.set(index, {
-          span: experiment.startSpan({
-            name: `iteration:${index}`,
-            type: "task",
-          }),
-          agent,
-          iteration: index,
-          baseline: latestBaseline,
-          metrics: {},
-        });
-      } catch (err) {
-        client.recordError(err, `experiment ${experimentName} iteration start`);
+      const previous = rows.get(index);
+      if (previous !== undefined) {
+        const previousSpan = await previous.span;
+        previousSpan?.end();
       }
+      const row: ExperimentIteration = {
+        span: (async () => {
+          try {
+            const experiment = asSpanParent(await client.getExperiment(experimentName));
+            return experiment.startSpan({
+              name: `iteration:${index}`,
+              type: "task",
+            });
+          } catch (err) {
+            client.recordError(err, `experiment ${experimentName} iteration start`);
+            return undefined;
+          }
+        })(),
+        agent,
+        iteration: index,
+        baseline: latestBaseline,
+        metrics: {},
+      };
+      rows.set(index, row);
+      await row.span;
     },
 
     baseline(b: Record<string, number>): void {
@@ -182,7 +201,7 @@ export function makeExperimentIterationState(
       try {
         const row = readLatestRow(rows);
         if (row !== undefined && Number.isFinite(value)) {
-          row.metrics[name] = value;
+          defineRecordEntry(row.metrics, name, value);
         }
       } catch (err) {
         client.recordError(err, `experiment ${experimentName} metric`);
@@ -216,14 +235,17 @@ export function makeExperimentIterationState(
       rows.delete(index);
 
       try {
-        if (row?.span === undefined) {
+        if (row === undefined) {
           return;
         }
 
+        const span = await row.span;
+        if (span === undefined) return;
+
         try {
-          row.span.log(buildExperimentLog(row, entry));
+          span.log(buildExperimentLog(row, entry));
         } finally {
-          row.span.end();
+          span.end();
         }
       } catch (err) {
         client.recordError(err, `experiment ${experimentName} iteration complete`);
@@ -304,7 +326,7 @@ function buildExperimentLog(
   const metrics = { ...row.metrics };
 
   if (Number.isFinite(entry.durationMs)) {
-    metrics.durationMs = entry.durationMs;
+    defineRecordEntry(metrics, "runtime_duration_ms", entry.durationMs);
   }
 
   return {
@@ -351,7 +373,7 @@ function buildExperimentScores(
   const delta = sumDelta(baseline, scores);
 
   if (delta !== undefined) {
-    result.delta = delta;
+    defineRecordEntry(result, "aggregate_delta", delta);
   }
 
   return result;

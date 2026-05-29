@@ -259,11 +259,11 @@ describe("makeExperimentIterationState", () => {
       },
       scores: {
         tests: 15,
-        delta: 5,
+        aggregate_delta: 5,
       },
       metrics: {
         tests: 15,
-        durationMs: 3210,
+        runtime_duration_ms: 3210,
       },
       metadata: {
         commit: "keep-123",
@@ -271,6 +271,97 @@ describe("makeExperimentIterationState", () => {
     });
     expect(iterationSpan.end).toHaveBeenCalledTimes(1);
     expect(client.recordError).not.toHaveBeenCalled();
+  });
+
+  it("logs an experiment completion that arrives before span creation resolves", async () => {
+    let resolveExperiment!: (value: unknown) => void;
+    const pendingExperiment = new Promise<unknown>((resolve) => {
+      resolveExperiment = resolve;
+    });
+    const iterationSpan = createMockSpan();
+    const experiment = { startSpan: vi.fn(() => iterationSpan) };
+    const client = createMockClient();
+    vi.mocked(client.getExperiment).mockReturnValue(pendingExperiment as Promise<never>);
+    const state = makeExperimentIterationState(client, "benchmarks");
+
+    const startPromise = state.start(1, "codex");
+    state.metric("score", 0.9);
+    const completePromise = state.complete(1, {
+      status: "keep",
+      scores: { score: 0.9 },
+      agentOutput: "done",
+      durationMs: 12
+    } as JournalEntry);
+    resolveExperiment(experiment);
+    await Promise.all([startPromise, completePromise]);
+
+    expect(iterationSpan.log).toHaveBeenCalledTimes(1);
+    expect(iterationSpan.end).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes a repeated experiment start before replacing its live span", async () => {
+    const firstSpan = createMockSpan();
+    const secondSpan = createMockSpan();
+    const experiment = { startSpan: vi.fn().mockReturnValueOnce(firstSpan).mockReturnValueOnce(secondSpan) };
+    const state = makeExperimentIterationState(createMockClient({ experiment }), "benchmarks");
+
+    await state.start(1, "codex");
+    await state.start(1, "codex");
+
+    expect(firstSpan.end).toHaveBeenCalledTimes(1);
+  });
+
+  it("preserves prototype-named experiment metrics", async () => {
+    const iterationSpan = createMockSpan();
+    const state = makeExperimentIterationState(
+      createMockClient({ experiment: { startSpan: vi.fn(() => iterationSpan) } }),
+      "benchmarks"
+    );
+
+    await state.start(1, "codex");
+    state.metric("__proto__", 7);
+    await state.complete(1, { status: "keep", scores: {}, agentOutput: "done", durationMs: 12 } as JournalEntry);
+
+    const metrics = vi.mocked(iterationSpan.log).mock.calls[0]?.[0].metrics;
+    expect(metrics && Object.hasOwn(metrics, "__proto__")).toBe(true);
+    expect(metrics?.["__proto__"]).toBe(7);
+  });
+
+  it("preserves a user delta score alongside aggregate score change", async () => {
+    const iterationSpan = createMockSpan();
+    const state = makeExperimentIterationState(
+      createMockClient({ experiment: { startSpan: vi.fn(() => iterationSpan) } }),
+      "benchmarks"
+    );
+
+    state.baseline({ tests: 10, delta: 40 });
+    await state.start(1, "codex");
+    await state.complete(1, {
+      status: "keep",
+      scores: { tests: 15, delta: 42 },
+      agentOutput: "done",
+      durationMs: 12
+    } as JournalEntry);
+
+    expect(iterationSpan.log).toHaveBeenCalledWith(
+      expect.objectContaining({ scores: { tests: 15, delta: 42, aggregate_delta: 7 } })
+    );
+  });
+
+  it("preserves a durationMs metric alongside runtime duration", async () => {
+    const iterationSpan = createMockSpan();
+    const state = makeExperimentIterationState(
+      createMockClient({ experiment: { startSpan: vi.fn(() => iterationSpan) } }),
+      "benchmarks"
+    );
+
+    await state.start(1, "codex");
+    state.metric("durationMs", 77);
+    await state.complete(1, { status: "keep", scores: {}, agentOutput: "done", durationMs: 4321 } as JournalEntry);
+
+    expect(iterationSpan.log).toHaveBeenCalledWith(
+      expect.objectContaining({ metrics: { durationMs: 77, runtime_duration_ms: 4321 } })
+    );
   });
 });
 

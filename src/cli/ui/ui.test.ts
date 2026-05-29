@@ -162,6 +162,17 @@ describe("command help formatting", () => {
     expect(help).toContain(loginCommand?.description() ?? "");
   });
 
+  it("lists supported global options in root help output", () => {
+    const help = stripAnsi(createHelpProgram().helpInformation());
+
+    expect(help).toContain("Options:");
+    expect(help).toContain("-y, --yes");
+    expect(help).toContain("--dry-run");
+    expect(help).toContain("--verbose");
+    expect(help).toContain("-V, --version");
+    expect(help).toContain("-h, --help");
+  });
+
   it("wraps root help rows to the configured terminal width", () => {
     const program = createHelpProgram();
     setHelpWidth(program, 80);

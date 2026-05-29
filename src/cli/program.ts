@@ -266,6 +266,11 @@ function formatHelpText(input: {
   helper: Help;
 }): string {
   const commandRows = buildRootHelpRows(input.command);
+  const optionRows = input.helper.visibleOptions(input.command);
+  const optionWidth = Math.max(
+    0,
+    ...optionRows.map((option) => input.helper.displayWidth(input.helper.optionTerm(option)))
+  );
   const nameWidth = Math.max(0, ...commandRows.map((row) => row.name.length));
   const argsWidth = Math.max(0, ...commandRows.map((row) => row.args.length));
   const termWidth = nameWidth + 1 + argsWidth;
@@ -280,6 +285,13 @@ function formatHelpText(input: {
       helper: input.helper
     });
   };
+  const option = (value: (typeof optionRows)[number]) =>
+    formatHelpItem({
+      term: text.option(input.helper.optionTerm(value)),
+      termWidth: optionWidth,
+      description: input.helper.optionDescription(value),
+      helper: input.helper
+    });
 
   return [
     text.heading(input.heading),
@@ -287,6 +299,9 @@ function formatHelpText(input: {
     "Configure coding agents to use the Poe API.",
     "",
     `${text.section("Usage:")} ${text.usageCommand(input.usageCommand)} ${text.argument("<command> [...args]")}`,
+    "",
+    text.section("Options:"),
+    ...optionRows.map(option),
     "",
     text.section("Commands:"),
     ...commandRows.map(cmd),

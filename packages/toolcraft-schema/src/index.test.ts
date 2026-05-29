@@ -565,6 +565,19 @@ describe("toolcraft-schema", () => {
     );
   });
 
+  it("rejects invalid constraint metadata and non-finite schema values", () => {
+    expect(() => S.String({ minLength: -1 })).toThrow("minLength");
+    expect(() => S.String({ pattern: "[" })).toThrow("pattern");
+    expect(() => S.Array(S.String(), { maxItems: -1 })).toThrow("maxItems");
+    expect(() => S.Number({ minimum: Number.POSITIVE_INFINITY })).toThrow("minimum");
+    expect(() => S.Number({ default: Number.NaN })).toThrow("default");
+  });
+
+  it("rejects invalid integer enum members and non-finite enum values", () => {
+    expect(() => S.Enum([Number.POSITIVE_INFINITY] as const)).toThrow("finite");
+    expect(() => S.Enum([1.5, 2] as const, { jsonType: "integer" })).toThrow("integer");
+  });
+
   it("rejects oneOf schemas without branches at runtime", () => {
     expect(() =>
       S.OneOf({

@@ -353,4 +353,58 @@ describe("validate", () => {
       ]
     });
   });
+
+  it("rejects non-finite numbers and cyclic JSON values without throwing", () => {
+    const cyclic: { self?: unknown } = {};
+    cyclic.self = cyclic;
+
+    expect(validate(S.Number(), Number.POSITIVE_INFINITY).ok).toBe(false);
+    expect(validate(S.Json(), cyclic).ok).toBe(false);
+  });
+
+  it("validates and clones defaults on each optional application", () => {
+    const schema = S.Object({
+      names: S.Optional(S.Array(S.String({ minLength: 2 }), { default: ["x"] }))
+    });
+
+    expect(validate(schema, {}).ok).toBe(false);
+
+    const validSchema = S.Object({
+      names: S.Optional(S.Array(S.String(), { default: ["seed"] }))
+    });
+    const first = validate(validSchema, {});
+    const second = validate(validSchema, {});
+    expect(first.ok && second.ok).toBe(true);
+    if (first.ok && second.ok) {
+      first.value.names?.push("changed");
+      expect(second.value.names).toEqual(["seed"]);
+    }
+  });
+
+  it("preserves explicit proto keys without mutating result prototypes", () => {
+    const input = Object.create(null) as Record<string, unknown>;
+    input.name = "Ada";
+    Object.defineProperty(input, "__proto__", { enumerable: true, value: "declared" });
+    const declaredShape = Object.create(null) as { name: ReturnType<typeof S.String>; __proto__: ReturnType<typeof S.String> };
+    declaredShape.name = S.String();
+    Object.defineProperty(declaredShape, "__proto__", { enumerable: true, value: S.String() });
+    const declared = validate(S.Object(declaredShape), input);
+
+    const additionalInput = Object.create(null) as Record<string, unknown>;
+    additionalInput.name = "Ada";
+    Object.defineProperty(additionalInput, "__proto__", { enumerable: true, value: { polluted: true } });
+    const additional = validate(S.Object({ name: S.String() }, { additionalProperties: true }), additionalInput);
+
+    const recordInput = Object.create(null) as Record<string, unknown>;
+    Object.defineProperty(recordInput, "__proto__", { enumerable: true, value: "value" });
+    const record = validate(S.Record(S.String()), recordInput);
+
+    for (const result of [declared, additional, record]) {
+      expect(result.ok).toBe(true);
+      if (result.ok) {
+        expect(Object.hasOwn(result.value, "__proto__")).toBe(true);
+        expect(Object.getPrototypeOf(result.value)).toBe(Object.prototype);
+      }
+    }
+  });
 });

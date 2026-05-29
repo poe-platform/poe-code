@@ -104,7 +104,7 @@ function walkOptional(
     const defaultValue = getDefault(schema.inner);
 
     if (defaultValue.present) {
-      return { present: true, value: defaultValue.value };
+      return walkSchema(schema.inner, cloneDefault(defaultValue.value), path, state);
     }
 
     return { present: false };
@@ -164,7 +164,7 @@ function walkNumber(
   path: readonly string[],
   state: ValidationState
 ): WalkResult {
-  if (typeof value !== "number" || Number.isNaN(value)) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
     addExpectedIssue(state, path, schema.jsonType === "integer" ? "integer" : "number", value);
     return { present: true, value };
   }
@@ -276,15 +276,15 @@ function walkObject(
     const result = walkSchema(propertySchema, propertyValue, [...path, key], state);
 
     if (result.present) {
-      nextValue[key] = result.value;
+      setOwnValue(nextValue, key, result.value);
     }
   }
 
   for (const [key, injectedValue] of Object.entries(injectedProperties)) {
     if (Object.hasOwn(value, key)) {
-      nextValue[key] = value[key];
+      setOwnValue(nextValue, key, value[key]);
     } else {
-      nextValue[key] = injectedValue;
+      setOwnValue(nextValue, key, injectedValue);
     }
   }
 
@@ -294,7 +294,7 @@ function walkObject(
     }
 
     if (schema.additionalProperties === true) {
-      nextValue[key] = propertyValue;
+      setOwnValue(nextValue, key, propertyValue);
     } else {
       addUnexpectedPropertyIssue(state, [...path, key]);
     }
@@ -427,7 +427,7 @@ function walkRecord(
     const result = walkSchema(schema.value, propertyValue, [...path, key], state);
 
     if (result.present) {
-      nextValue[key] = result.value;
+      setOwnValue(nextValue, key, result.value);
     }
   }
 
@@ -465,7 +465,7 @@ function isPlainRecord(value: unknown): value is Record<string, unknown> {
   return prototype === Object.prototype || prototype === null;
 }
 
-function isJsonValue(value: unknown): boolean {
+function isJsonValue(value: unknown, ancestors: Set<object> = new Set()): boolean {
   if (
     value === null ||
     typeof value === "string" ||
@@ -476,14 +476,39 @@ function isJsonValue(value: unknown): boolean {
   }
 
   if (Array.isArray(value)) {
-    return value.every((item) => isJsonValue(item));
+    if (ancestors.has(value)) {
+      return false;
+    }
+    ancestors.add(value);
+    const result = value.every((item) => isJsonValue(item, ancestors));
+    ancestors.delete(value);
+    return result;
   }
 
   if (isPlainRecord(value)) {
-    return Object.values(value).every((item) => isJsonValue(item));
+    if (ancestors.has(value)) {
+      return false;
+    }
+    ancestors.add(value);
+    const result = Object.values(value).every((item) => isJsonValue(item, ancestors));
+    ancestors.delete(value);
+    return result;
   }
 
   return false;
+}
+
+function cloneDefault(value: unknown): unknown {
+  return structuredClone(value);
+}
+
+function setOwnValue(target: Record<string, unknown>, key: string, value: unknown): void {
+  Object.defineProperty(target, key, {
+    configurable: true,
+    enumerable: true,
+    writable: true,
+    value
+  });
 }
 
 function expectedFor(schema: AnySchema): string {

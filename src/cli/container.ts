@@ -174,7 +174,7 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
       write: writeApiKey
     },
     checkAuth: async (apiKey) =>
-      (await checkAuth({ apiKey, baseUrl: environment.poeBaseUrl })) !== null,
+      (await checkAuth({ apiKey, baseUrl: environment.poeApiBaseUrl })) !== null,
     confirm: async (message) => {
       const result = await dsConfirm({ message });
       if (isCancel(result)) {

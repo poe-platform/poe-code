@@ -1152,10 +1152,8 @@ describe("resolvePlanPaths", () => {
     expect(result).toEqual(["docs/plans/plan-alpha.md", "docs/plans/plan-beta.md"]);
   });
 
-  it("does not count an empty step status map as completed", async () => {
-    const selectPlan = vi.fn().mockResolvedValue("docs/plans/plan.md");
-
-    await resolvePlanPaths({
+  it("rejects a discovered plan with an empty step status map", async () => {
+    await expect(resolvePlanPaths({
       cwd: "/repo",
       homeDir: "/home/test",
       fs: createFs({
@@ -1172,14 +1170,7 @@ describe("resolvePlanPaths", () => {
           ""
         ].join("\n")
       }),
-      selectPlan
-    });
-
-    expect(selectPlan).toHaveBeenCalledWith(
-      expect.objectContaining({
-        options: [{ label: "docs/plans/plan.md (0/1)", value: "docs/plans/plan.md" }]
-      })
-    );
+    })).rejects.toThrow(/status.*at least one step/i);
   });
 });
 
@@ -3473,6 +3464,45 @@ describe("createPipelineSimulation", () => {
     ).rejects.toMatchObject({ name: "AbortError" });
 
     expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("reports cancelled task completion after an in-flight abort", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "tasks:",
+        "  - id: task-1",
+        "    title: Task 1",
+        "    prompt: Do task 1",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const controller = new AbortController();
+    const onTaskComplete = vi.fn();
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      fs,
+      signal: controller.signal,
+      onTaskComplete,
+      runAgent: async () => {
+        controller.abort();
+        const error = new Error("cancelled");
+        error.name = "AbortError";
+        throw error;
+      }
+    });
+
+    expect(result.stopReason).toBe("cancelled");
+    expect(onTaskComplete).toHaveBeenCalledWith(
+      expect.objectContaining({ taskId: "task-1", success: false })
+    );
   });
 
   it("returns cancelled without persisting a final task that aborts while succeeding", async () => {

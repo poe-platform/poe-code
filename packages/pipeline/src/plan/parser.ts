@@ -172,6 +172,12 @@ export const pipelineDocumentSchema: JsonSchema = {
       type: "integer",
       const: 1
     },
+    name: {
+      type: "string"
+    },
+    state: {
+      type: "string"
+    },
     extends: {
       type: "string",
       minLength: 1,
@@ -513,6 +519,8 @@ export function parsePlan(
     "$schema",
     "kind",
     "version",
+    "name",
+    "state",
     "extends",
     "steps",
     "tasks",

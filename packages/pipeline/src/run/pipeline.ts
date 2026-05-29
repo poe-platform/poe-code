@@ -446,6 +446,12 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
         });
       } catch (error) {
         if (isAbortError(error)) {
+          options.onTaskComplete?.({
+            ...taskProgress,
+            durationMs: Date.now() - taskStartTime,
+            success: false,
+            taskCompleted: false
+          });
           return {
             stopReason: "cancelled",
             planPath,
@@ -460,6 +466,13 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
       }
 
       if (options.signal?.aborted) {
+        options.onTaskComplete?.({
+          ...taskProgress,
+          durationMs: Date.now() - taskStartTime,
+          success: false,
+          taskCompleted: false,
+          ...(result.usage ? { usage: result.usage } : {})
+        });
         return {
           stopReason: "cancelled",
           planPath,

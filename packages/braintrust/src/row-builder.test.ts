@@ -88,6 +88,83 @@ describe("makePipelineRowState", () => {
     expect(stepSpan.end).toHaveBeenCalledTimes(1);
     expect(client.recordError).not.toHaveBeenCalled();
   });
+
+  it("does not reopen a span for duplicate pipeline completion", async () => {
+    const firstSpan = createMockSpan();
+    const parentSpan = { startSpan: vi.fn(() => firstSpan) };
+    mockBraintrust.currentSpan.mockReturnValue(parentSpan);
+    const client = createMockClient();
+    const state = makePipelineRowState(client);
+    const started = createPipelineProgress();
+    const completed = { ...started, durationMs: 12, success: true } satisfies TaskCompletion;
+
+    state.start(started);
+    state.complete(completed);
+    state.complete(completed);
+
+    await vi.waitFor(() => expect(firstSpan.end).toHaveBeenCalledTimes(1));
+    expect(parentSpan.startSpan).toHaveBeenCalledTimes(1);
+  });
+
+  it("closes an existing span before replacing a repeated pipeline start", async () => {
+    const firstSpan = createMockSpan();
+    const secondSpan = createMockSpan();
+    const parentSpan = { startSpan: vi.fn().mockReturnValueOnce(firstSpan).mockReturnValueOnce(secondSpan) };
+    mockBraintrust.currentSpan.mockReturnValue(parentSpan);
+    const client = createMockClient();
+    const state = makePipelineRowState(client);
+    const started = createPipelineProgress();
+
+    state.start(started);
+    await vi.waitFor(() => expect(parentSpan.startSpan).toHaveBeenCalledTimes(1));
+    state.start(started);
+
+    await vi.waitFor(() => {
+      expect(parentSpan.startSpan).toHaveBeenCalledTimes(2);
+      expect(firstSpan.end).toHaveBeenCalledTimes(1);
+    });
+    expect(client.recordError).not.toHaveBeenCalled();
+  });
+
+  it("tracks colon-bearing pipeline identities independently", async () => {
+    const firstSpan = createMockSpan();
+    const secondSpan = createMockSpan();
+    const parentSpan = { startSpan: vi.fn().mockReturnValueOnce(firstSpan).mockReturnValueOnce(secondSpan) };
+    mockBraintrust.currentSpan.mockReturnValue(parentSpan);
+    const client = createMockClient();
+    const state = makePipelineRowState(client);
+    const first = { ...createPipelineProgress(), taskId: "task:a", stepName: "b" };
+    const second = { ...createPipelineProgress(), taskId: "task", stepName: "a:b" };
+
+    state.start(first);
+    await vi.waitFor(() => expect(parentSpan.startSpan).toHaveBeenCalledTimes(1));
+    state.start(second);
+    await vi.waitFor(() => expect(parentSpan.startSpan).toHaveBeenCalledTimes(2));
+    state.complete({ ...first, durationMs: 12, success: true });
+    state.complete({ ...second, durationMs: 12, success: true });
+
+    await vi.waitFor(() => {
+      expect(firstSpan.end).toHaveBeenCalledTimes(1);
+      expect(secondSpan.end).toHaveBeenCalledTimes(1);
+    });
+    expect(client.recordError).not.toHaveBeenCalled();
+  });
+
+  it("retries pipeline span creation when the start context is unavailable", async () => {
+    const completedSpan = createMockSpan();
+    const parentSpan = { startSpan: vi.fn(() => completedSpan) };
+    mockBraintrust.currentSpan.mockImplementationOnce(() => {
+      throw new Error("missing span");
+    }).mockReturnValue(parentSpan);
+    const state = makePipelineRowState(createMockClient());
+    const started = createPipelineProgress();
+
+    state.start(started);
+    state.complete({ ...started, durationMs: 12, success: true });
+
+    await vi.waitFor(() => expect(completedSpan.end).toHaveBeenCalledTimes(1));
+    expect(parentSpan.startSpan).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("logSuperintendentRole", () => {
@@ -202,6 +279,18 @@ function createMockSpan() {
     startSpan: vi.fn(),
     log: vi.fn(),
     end: vi.fn(),
+  };
+}
+
+function createPipelineProgress(): TaskProgress {
+  return {
+    taskId: "task-1",
+    taskTitle: "Implement telemetry",
+    stepName: "builder",
+    taskIndex: 2,
+    totalTasks: 5,
+    stepIndex: 1,
+    totalSteps: 2,
   };
 }
 

@@ -45,11 +45,19 @@ export function makePipelineRowState(client: BraintrustClient): {
   complete(progress: TaskCompletion): void;
 } {
   const rows = new Map<string, PipelineRowState>();
+  const completedRows = new Set<string>();
 
   return {
     start(progress: TaskProgress): void {
       try {
         const key = pipelineKey(progress);
+        const previousRow = rows.get(key);
+        if (previousRow?.span) {
+          void previousRow.span.then((span) => span?.end()).catch((err: unknown) => {
+            client.recordError(err, "pipeline step start");
+          });
+        }
+        completedRows.delete(key);
         const row: PipelineRowState = {
           progress,
           span: openCurrentChildSpan(client, {
@@ -66,17 +74,20 @@ export function makePipelineRowState(client: BraintrustClient): {
     complete(progress: TaskCompletion): void {
       try {
         const key = pipelineKey(progress);
+        if (completedRows.has(key)) {
+          return;
+        }
+        completedRows.add(key);
         const row = rows.get(key);
         rows.delete(key);
 
         void (async () => {
           try {
-            const span = row?.span === undefined
-              ? await openCurrentChildSpan(client, {
+            const existingSpan = row?.span === undefined ? undefined : await row.span;
+            const span = existingSpan ?? await openCurrentChildSpan(client, {
                 name: `step:${readPipelineStep(progress)}:${readPipelineIndex(progress)}`,
                 type: "task",
-              }, "pipeline step complete")
-              : await row.span;
+              }, "pipeline step complete");
 
             if (span === undefined) {
               return;
@@ -396,13 +407,13 @@ function readSatisfiedScore(record: EventRecord | undefined): number | undefined
 }
 
 function pipelineKey(progress: TaskProgress): string {
-  return [
+  return JSON.stringify([
     progress.taskId,
     progress.stepName ?? "",
     progress.phase ?? "",
-    String(progress.taskIndex),
-    String(progress.stepIndex ?? ""),
-  ].join(":");
+    progress.taskIndex,
+    progress.stepIndex ?? null,
+  ]);
 }
 
 function readPipelineStep(progress: TaskProgress): string {

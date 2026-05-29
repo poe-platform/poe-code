@@ -508,6 +508,21 @@ describe("provider logout", () => {
     expect(logoutSpy).not.toHaveBeenCalled();
   });
 
+  it("warns when an environment credential remains after logout", async () => {
+    const logs: string[] = [];
+    const container = createContainer(fs, logs, vi.fn().mockResolvedValue({}), {
+      CF_AIG_TOKEN: "environment-secret"
+    });
+
+    const program = createBaseProgram();
+    registerProviderCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "provider", "logout", "cloudflare"]);
+
+    expect(logs.some((line) => line.includes("CF_AIG_TOKEN"))).toBe(true);
+    expect(logs.some((line) => line.includes("Logged out from cloudflare."))).toBe(false);
+  });
+
   it("throws for unknown provider id", async () => {
     const container = createContainer(fs);
 

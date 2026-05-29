@@ -317,8 +317,17 @@ async function executeProviderLogout(
     await container.providerRegistry.logout(id);
   }
 
+  const credentialEnvVar = provider.auth.kind === "api-key" ? provider.auth.envVar : undefined;
+  const environmentCredential = credentialEnvVar
+    ? container.env.getVariable(credentialEnvVar)
+    : undefined;
+  const hasEnvironmentCredential = typeof environmentCredential === "string"
+    && environmentCredential.trim().length > 0;
+
   resources.context.complete({
-    success: `Logged out from ${id}.`,
+    success: hasEnvironmentCredential
+      ? `Stored credential removed, but ${credentialEnvVar} remains set; unset it to log out from ${id}.`
+      : `Logged out from ${id}.`,
     dry: `Dry run: would log out from ${id}.`
   });
 

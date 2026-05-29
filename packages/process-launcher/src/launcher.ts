@@ -282,8 +282,11 @@ export async function* followManagedLogs(
   options: FollowManagedLogsOptions
 ): AsyncIterable<string> {
   const stream = options.stream ?? "stdout";
-  let previous: string[] = await readManagedLogs(options);
   const pollIntervalMs = options.pollIntervalMs ?? DEFAULT_POLL_INTERVAL_MS;
+  if (!Number.isFinite(pollIntervalMs) || pollIntervalMs < 0) {
+    throw new Error(`Invalid managed log poll interval: ${pollIntervalMs}`);
+  }
+  let previous = await readFollowedLogs(options, stream);
 
   while (!options.signal?.aborted) {
     await sleep(pollIntervalMs);
@@ -291,21 +294,36 @@ export async function* followManagedLogs(
       return;
     }
 
-    const next = await readManagedLogs({
-      baseDir: options.baseDir,
-      fs: options.fs,
-      id: options.id,
-      lines: options.lines,
-      stream
-    });
+    const next = await readFollowedLogs(options, stream);
 
-    const delta = next.slice(previous.length);
+    const delta = hasSamePrefix(previous, next) ? next.slice(previous.length) : next;
     previous = next;
 
     for (const line of delta) {
       yield line;
     }
   }
+}
+
+async function readFollowedLogs(
+  options: FollowManagedLogsOptions,
+  stream: "stdout" | "stderr"
+): Promise<string[]> {
+  return await readManagedLogs({
+    baseDir: options.baseDir,
+    fs: options.fs,
+    id: options.id,
+    lines: Number.MAX_SAFE_INTEGER,
+    stream
+  });
+}
+
+function hasSamePrefix(previous: string[], next: string[]): boolean {
+  if (next.length < previous.length) {
+    return false;
+  }
+
+  return previous.every((line, index) => next[index] === line);
 }
 
 export async function removeManagedProcess(options: RemoveManagedProcessOptions): Promise<void> {

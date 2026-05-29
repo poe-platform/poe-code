@@ -491,6 +491,64 @@ describe("process launcher manager", () => {
     ).resolves.toBeUndefined();
     await expect(fs.readFile(path.join(baseDir, "api", "meta.json"), "utf8")).rejects.toThrow();
   });
+
+  it("follows appended output after a bounded initial log window", async () => {
+    const fs = createMemFs();
+    const logPath = "/state/launch/api/logs/stdout.log";
+    await fs.mkdir(path.dirname(logPath), { recursive: true });
+    await fs.writeFile(logPath, "one\ntwo\n");
+    const controller = new AbortController();
+    const iterator = followManagedLogs({
+      baseDir: "/state/launch",
+      fs,
+      id: "api",
+      lines: 2,
+      pollIntervalMs: 1,
+      signal: controller.signal
+    })[Symbol.asyncIterator]();
+
+    const next = iterator.next();
+    await new Promise(resolve => setTimeout(resolve, 2));
+    await fs.appendFile(logPath, "three\n");
+
+    await expect(next).resolves.toEqual({ done: false, value: "three" });
+    controller.abort();
+    await iterator.return?.();
+  });
+
+  it("follows fresh output after current log rotation", async () => {
+    const fs = createMemFs();
+    const logDir = "/state/launch/api/logs";
+    await fs.mkdir(logDir, { recursive: true });
+    await fs.writeFile(path.join(logDir, "stdout.log"), "old-one\nold-two\n");
+    const controller = new AbortController();
+    const iterator = followManagedLogs({
+      baseDir: "/state/launch",
+      fs,
+      id: "api",
+      pollIntervalMs: 1,
+      signal: controller.signal
+    })[Symbol.asyncIterator]();
+
+    const next = iterator.next();
+    await new Promise(resolve => setTimeout(resolve, 2));
+    await fs.writeFile(path.join(logDir, "stdout.log"), "new-one\n");
+
+    await expect(next).resolves.toEqual({ done: false, value: "new-one" });
+    controller.abort();
+    await iterator.return?.();
+  });
+
+  it("rejects an infinite follow polling interval", async () => {
+    const iterator = followManagedLogs({
+      baseDir: "/state/launch",
+      fs: createMemFs(),
+      id: "api",
+      pollIntervalMs: Number.POSITIVE_INFINITY
+    })[Symbol.asyncIterator]();
+
+    await expect(iterator.next()).rejects.toThrow(/poll interval/i);
+  });
 });
 
 function createMemFs(): LauncherFileSystem {

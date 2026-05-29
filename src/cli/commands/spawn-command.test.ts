@@ -613,6 +613,27 @@ describe("spawn command", () => {
     expect(dryRunLog).toContain("Prompt:");
   });
 
+  it("does not recover malformed config during dry run spawn", async () => {
+    const malformedConfig = "{ invalid json\n";
+    const configPath = resolveConfigPath(homeDir);
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const { runner } = createCommandRunnerStub();
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      commandRunner: runner,
+      logger: () => {}
+    });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "spawn", "codex", "hello"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("does not resolve workspace locators during dry run spawn", async () => {
     const logs: string[] = [];
     const { runner, calls } = createCommandRunnerStub();

@@ -196,7 +196,9 @@ export function registerSpawnCommand(
       const cwdOverride = workspace.cwd;
 
       try {
-        integrations = await loadIntegrations(await resolveMergedDocument(container));
+        integrations = await loadIntegrations(
+          await resolveMergedDocument(container, { readOnly: flags.dryRun })
+        );
         if (commandOptions.interactive) {
           const adapter = resolveServiceAdapter(container, service);
           const canonicalService = adapter.name;
@@ -213,7 +215,8 @@ export function registerSpawnCommand(
           const model = await resolveConfiguredModel(
             container,
             canonicalService,
-            commandOptions.model
+            commandOptions.model,
+            { readOnly: flags.dryRun }
           );
           const result = await spawnInteractive(canonicalService, {
             prompt,
@@ -272,7 +275,8 @@ export function registerSpawnCommand(
         const model = await resolveConfiguredModel(
           container,
           canonicalService,
-          commandOptions.model
+          commandOptions.model,
+          { readOnly: flags.dryRun }
         );
         const spawnOptions: SpawnCommandOptions = {
           ...directSpawnOptions,

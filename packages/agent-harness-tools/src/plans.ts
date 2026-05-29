@@ -101,6 +101,10 @@ async function readPlanPaths(fs: TaskListFs, directoryPath: string): Promise<Map
     const absolutePath = path.join(directoryPath, fileName);
     const stat = await fs.stat(absolutePath);
     if (stat.isFile()) {
+      const existingPath = pathsById.get(id);
+      if (existingPath !== undefined) {
+        throw new Error(`Duplicate active plan identifier "${id}": ${existingPath} and ${absolutePath}`);
+      }
       pathsById.set(id, absolutePath);
     }
   }

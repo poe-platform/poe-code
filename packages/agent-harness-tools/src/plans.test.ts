@@ -254,6 +254,16 @@ No frontmatter here.
     expect(plans.map((plan) => plan.id)).toEqual(["active"]);
   });
 
+  it("rejects duplicate normalized active plan identifiers", async () => {
+    const { fs } = createFs({
+      "/repo/.poe-code/plans/01-feature.md": planDoc({ name: "First" }),
+      "/repo/.poe-code/plans/02-feature.md": planDoc({ name: "Second" })
+    });
+
+    await expect(discoverPlans({ cwd, homeDir, planDirectory, fs }))
+      .rejects.toThrow(/duplicate.*feature/i);
+  });
+
   it("archivePlan moves files to archive without renumbering remaining plans", async () => {
     const { fs, rawFs } = createFs({
       "/repo/.poe-code/plans/01-first.md": planDoc({

@@ -69,7 +69,7 @@ describe("createCliMain", () => {
 
     const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
       parseAsync,
-      optsWithGlobals: () => ({ dryRun: true })
+      optsWithGlobals: () => ({ dryRun: false })
     };
 
     const { createCliMain } = await import("./bootstrap.js");
@@ -92,7 +92,8 @@ describe("createCliMain", () => {
       throw new Error("Host runtime has no template to build.");
     });
     const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
-      parseAsync
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: true })
     };
     const { log } = await import("@poe-code/design-system");
     const { createCliMain } = await import("./bootstrap.js");
@@ -127,7 +128,8 @@ describe("createCliMain", () => {
     });
 
     const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
-      parseAsync
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
     };
 
     const { createCliMain } = await import("./bootstrap.js");

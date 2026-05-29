@@ -320,9 +320,14 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
 
       currentWorkflow = iteration === 0 ? initialWorkflow : await readWorkflow();
 
+      if (iteration >= currentWorkflow.maxIterations) {
+        break;
+      }
+
       await options.onIterationStart?.(iteration);
 
-      let iterationResult: IterationResult = "completed";
+      let iterationResult: IterationResult =
+        currentWorkflow.stages.length === 0 ? "nothing_to_run" : "completed";
 
       for (const stage of currentWorkflow.stages) {
         throwIfAborted(options.signal);
@@ -350,6 +355,7 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
         }
       }
 
+      throwIfAborted(options.signal);
       await options.onIterationEnd?.(iteration, iterationResult);
 
       if (shouldStop) {

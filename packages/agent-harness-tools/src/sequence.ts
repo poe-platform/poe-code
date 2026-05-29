@@ -21,7 +21,9 @@ export async function runDocumentWorkflowSequence(
     options.onSequenceProgress?.(index, total, docPath);
 
     let didFail = false;
+    let didReportIteration = false;
     const onIterationEnd = async (iteration: number, result: IterationResult): Promise<void> => {
+      didReportIteration = true;
       if (result === "failed") {
         didFail = true;
       }
@@ -45,6 +47,10 @@ export async function runDocumentWorkflowSequence(
       });
     } catch (error) {
       if (options.signal?.aborted) {
+        throw error;
+      }
+
+      if (!didReportIteration) {
         throw error;
       }
 

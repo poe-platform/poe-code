@@ -167,6 +167,28 @@ describe("runDocumentWorkflowSequence", () => {
     expect(prompts).toEqual(["Doc 1", "Fail", "Doc 3"]);
   });
 
+  it("rejects parse failures that occur before any iteration result", async () => {
+    const { fs } = createFs({
+      "/repo/invalid.md": "not valid json",
+      "/repo/two.md": createWorkflowDocument({
+        stages: [{ id: "two", participant: "default", prompt: "Doc 2" }]
+      })
+    });
+    const runAgent = vi.fn(async (_input: RunAgentInput) => ({ exitCode: 0 }));
+
+    await expect(
+      runDocumentWorkflowSequence(
+        createOptions({
+          fs,
+          docPaths: ["/repo/invalid.md", "/repo/two.md"],
+          runAgent
+        })
+      )
+    ).rejects.toThrow();
+
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
   it("treats continued stage failures as sequence failures", async () => {
     const prompts: string[] = [];
     const { fs } = createFs({

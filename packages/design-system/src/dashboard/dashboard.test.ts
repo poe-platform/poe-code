@@ -657,6 +657,18 @@ describe("output pane", () => {
     ]);
   });
 
+  it("computeVisualLines wraps wide glyphs by terminal display width", () => {
+    const result = computeVisualLines([{ kind: "info", text: "测AB", ts: 1 }], 6);
+
+    expect(result.map((line) => line.text)).toEqual(["测A", "B"]);
+  });
+
+  it("computeVisualLines advances tabs to terminal tab stops", () => {
+    const result = computeVisualLines([{ kind: "info", text: "A\tB", ts: 1 }], 12);
+
+    expect(result.map((line) => line.text)).toEqual(["A       B"]);
+  });
+
   it("renderOutputPane writes segment-specific styles into the screen buffer", () => {
     const buffer = new ScreenBuffer(30, 1);
     const items: OutputItem[] = [
@@ -680,6 +692,19 @@ describe("output pane", () => {
     expect(buffer.get(3, 0)).toEqual({ ch: "o", style: { fg: "magenta" } });
     expect(buffer.get(4, 0)).toEqual({ ch: "X", style: { fg: "magenta" } });
     expect(buffer.get(5, 0).ch).not.toBe("\b");
+  });
+
+  it("renderOutputPane reserves continuation cells for wide glyphs", () => {
+    const buffer = new ScreenBuffer(10, 2);
+
+    renderOutputPane(buffer, { x: 0, y: 0, width: 6, height: 2 }, [
+      { kind: "info", text: "测AB", ts: 1 }
+    ]);
+
+    expect(buffer.get(3, 0).ch).toBe("测");
+    expect(buffer.get(4, 0).ch).toBe("");
+    expect(buffer.get(5, 0).ch).toBe("A");
+    expect(buffer.get(3, 1).ch).toBe("B");
   });
 
   it("renderOutputPane renders the most recent lines when content exceeds pane height", () => {

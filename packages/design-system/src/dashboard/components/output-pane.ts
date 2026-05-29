@@ -1,6 +1,7 @@
 import { resolveThemeName } from "../../internal/theme-detect.js";
 import { hasAnsi, parseAnsi, type StyledSegment } from "../ansi.js";
 import { ScreenBuffer } from "../buffer.js";
+import { displayWidth, expandTabs, graphemes, graphemeWidth } from "../terminal-width.js";
 import type { CellStyle, OutputItem, OutputItemKind, Rect } from "../types.js";
 
 const TEXT_OFFSET = 3;
@@ -61,7 +62,7 @@ export function renderOutputPane(buffer: ScreenBuffer, rect: Rect, items: Output
           segment.text,
           segment.style
         );
-        offsetX += countCells(segment.text);
+        offsetX += displayWidth(segment.text, offsetX);
       }
       continue;
     }
@@ -129,37 +130,38 @@ function hardWrapSegments(segments: StyledSegment[], width: number): StyledSegme
   let rowWidth = 0;
 
   for (const segment of segments) {
-    if (segment.text.length === 0) {
-      continue;
-    }
+    for (const grapheme of graphemes(expandTabs(segment.text, rowWidth))) {
+      const graphemeCells = graphemeWidth(grapheme);
 
-    const chars = [...segment.text];
-    let cursor = 0;
-
-    while (cursor < chars.length) {
-      const space = width - rowWidth;
-      if (space <= 0) {
-        rows.push([]);
-        rowWidth = 0;
-        continue;
-      }
-      const take = chars.slice(cursor, cursor + space).join("");
-      const currentRow = rows[rows.length - 1]!;
-      currentRow.push({ text: take, style: { ...segment.style } });
-      rowWidth += Math.min(space, chars.length - cursor);
-      cursor += space;
-      if (cursor < chars.length) {
+      if (rowWidth > 0 && rowWidth + graphemeCells > width) {
         rows.push([]);
         rowWidth = 0;
       }
+
+      appendSegment(rows[rows.length - 1]!, grapheme, segment.style);
+      rowWidth += graphemeCells;
     }
   }
 
   return rows;
 }
 
-function countCells(text: string): number {
-  return Array.from(text).length;
+function appendSegment(segments: StyledSegment[], text: string, style: CellStyle): void {
+  const last = segments[segments.length - 1];
+  if (last && stylesEqual(last.style, style)) {
+    last.text += text;
+  } else {
+    segments.push({ text, style: { ...style } });
+  }
+}
+
+function stylesEqual(left: CellStyle, right: CellStyle): boolean {
+  return left.fg === right.fg
+    && left.bg === right.bg
+    && left.bold === right.bold
+    && left.dim === right.dim
+    && left.inverse === right.inverse
+    && left.underline === right.underline;
 }
 
 function getPrefix(kind: OutputItemKind): string {
@@ -217,7 +219,7 @@ function wrapText(value: string, width: number): string[] {
     return logicalLines.map(() => "");
   }
 
-  return logicalLines.flatMap((line) => wrapParagraph(line, width));
+  return logicalLines.flatMap((line) => wrapParagraph(expandTabs(line), width));
 }
 
 function wrapParagraph(value: string, width: number): string[] {
@@ -250,7 +252,7 @@ function wrapParagraph(value: string, width: number): string[] {
       const chunk = chunks[index] ?? "";
       const gap = index === 0 ? pendingSpace : "";
 
-      if (currentLine.length > 0 && currentLine.length + gap.length + chunk.length > width) {
+      if (currentLine.length > 0 && displayWidth(`${currentLine}${gap}${chunk}`) > width) {
         flushLine();
       }
 
@@ -275,14 +277,27 @@ function wrapParagraph(value: string, width: number): string[] {
 }
 
 function splitWord(value: string, width: number): string[] {
-  if (value.length <= width) {
+  if (displayWidth(value) <= width) {
     return [value];
   }
 
   const chunks: string[] = [];
+  let chunk = "";
+  let chunkWidth = 0;
 
-  for (let index = 0; index < value.length; index += width) {
-    chunks.push(value.slice(index, index + width));
+  for (const grapheme of graphemes(value)) {
+    const graphemeCells = graphemeWidth(grapheme);
+    if (chunk.length > 0 && chunkWidth + graphemeCells > width) {
+      chunks.push(chunk);
+      chunk = "";
+      chunkWidth = 0;
+    }
+    chunk += grapheme;
+    chunkWidth += graphemeCells;
+  }
+
+  if (chunk.length > 0) {
+    chunks.push(chunk);
   }
 
   return chunks;

@@ -20,7 +20,7 @@ export const completeCommand = defineCommand({
     const completedContent = transitionState(params.path, content, "completed");
     const updatedContent = setStatusReason(params.path, completedContent, params.reason);
 
-    await fs.writeFile(params.path, updatedContent);
+    await writeDocumentAtomically(params.path, updatedContent, fs);
 
     return {
       path: params.path,
@@ -59,6 +59,25 @@ async function readDocument(
       throw new UserError(`Superintendent document not found: ${filePath}`);
     }
 
+    throw error;
+  }
+}
+
+async function writeDocumentAtomically(
+  filePath: string,
+  content: string,
+  fs: {
+    writeFile(path: string, content: string): Promise<void>;
+    rename(fromPath: string, toPath: string): Promise<void>;
+    unlink(path: string): Promise<void>;
+  }
+): Promise<void> {
+  const temporaryPath = `${filePath}.tmp`;
+  try {
+    await fs.writeFile(temporaryPath, content);
+    await fs.rename(temporaryPath, filePath);
+  } catch (error) {
+    await fs.unlink(temporaryPath).catch(() => undefined);
     throw error;
   }
 }

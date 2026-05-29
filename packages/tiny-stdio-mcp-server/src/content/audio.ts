@@ -1,4 +1,4 @@
-import { fileTypeFromBuffer } from "./mime.js";
+import { assertBase64, fileTypeFromBuffer, parseContentType, safeRemoteLabel } from "./mime.js";
 
 export interface AudioContent {
   type: "audio";
@@ -30,7 +30,7 @@ export class Audio {
   static async fromUrl(url: string): Promise<Audio> {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Failed to fetch audio from ${url}: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch audio from ${safeRemoteLabel(url)}: ${response.status} ${response.statusText}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -42,11 +42,11 @@ export class Audio {
     if (detected && SUPPORTED_AUDIO_MIMES.has(detected.mime)) {
       mimeType = detected.mime;
     } else {
-      const contentType = response.headers.get("content-type")?.split(";")[0];
+      const contentType = parseContentType(response.headers.get("content-type")).mimeType;
       if (contentType && SUPPORTED_AUDIO_MIMES.has(contentType)) {
         mimeType = contentType;
       } else {
-        throw new Error(`Unable to detect audio MIME type from ${url}`);
+        throw new Error(`Unable to detect audio MIME type from ${safeRemoteLabel(url)}`);
       }
     }
 
@@ -59,9 +59,12 @@ export class Audio {
 
     if (format) {
       if (format.includes("/")) {
-        mimeType = format;
+        mimeType = format.toLowerCase();
       } else {
         mimeType = AUDIO_FORMAT_MAP[format.toLowerCase()] || `audio/${format}`;
+      }
+      if (!SUPPORTED_AUDIO_MIMES.has(mimeType)) {
+        throw new Error(`Unsupported audio MIME type: ${mimeType}`);
       }
     } else {
       const detected = fileTypeFromBuffer(data);
@@ -76,7 +79,12 @@ export class Audio {
   }
 
   static fromBase64(base64: string, mimeType: string): Audio {
-    return new Audio(base64, mimeType);
+    assertBase64(base64);
+    const normalizedMimeType = mimeType.toLowerCase();
+    if (!SUPPORTED_AUDIO_MIMES.has(normalizedMimeType)) {
+      throw new Error(`Unsupported audio MIME type: ${normalizedMimeType}`);
+    }
+    return new Audio(base64, normalizedMimeType);
   }
 
   toContentBlock(): AudioContent {

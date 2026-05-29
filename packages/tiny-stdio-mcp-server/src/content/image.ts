@@ -1,4 +1,4 @@
-import { fileTypeFromBuffer } from "./mime.js";
+import { assertBase64, fileTypeFromBuffer, parseContentType, safeRemoteLabel } from "./mime.js";
 
 export interface ImageContent {
   type: "image";
@@ -22,7 +22,7 @@ export class Image {
   static async fromUrl(url: string): Promise<Image> {
     const response = await fetch(url);
     if (!response.ok) {
-      throw new Error(`Failed to fetch image from ${url}: ${response.status} ${response.statusText}`);
+      throw new Error(`Failed to fetch image from ${safeRemoteLabel(url)}: ${response.status} ${response.statusText}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
@@ -34,11 +34,11 @@ export class Image {
     if (detected && SUPPORTED_IMAGE_MIMES.has(detected.mime)) {
       mimeType = detected.mime;
     } else {
-      const contentType = response.headers.get("content-type")?.split(";")[0];
+      const contentType = parseContentType(response.headers.get("content-type")).mimeType;
       if (contentType && SUPPORTED_IMAGE_MIMES.has(contentType)) {
         mimeType = contentType;
       } else {
-        throw new Error(`Unable to detect image MIME type from ${url}`);
+        throw new Error(`Unable to detect image MIME type from ${safeRemoteLabel(url)}`);
       }
     }
 
@@ -50,7 +50,10 @@ export class Image {
     let mimeType: string;
 
     if (format) {
-      mimeType = format.includes("/") ? format : `image/${format}`;
+      mimeType = (format.includes("/") ? format : `image/${format}`).toLowerCase();
+      if (!SUPPORTED_IMAGE_MIMES.has(mimeType)) {
+        throw new Error(`Unsupported image MIME type: ${mimeType}`);
+      }
     } else {
       const detected = fileTypeFromBuffer(data);
       if (!detected || !SUPPORTED_IMAGE_MIMES.has(detected.mime)) {
@@ -64,7 +67,12 @@ export class Image {
   }
 
   static fromBase64(base64: string, mimeType: string): Image {
-    return new Image(base64, mimeType);
+    assertBase64(base64);
+    const normalizedMimeType = mimeType.toLowerCase();
+    if (!SUPPORTED_IMAGE_MIMES.has(normalizedMimeType)) {
+      throw new Error(`Unsupported image MIME type: ${normalizedMimeType}`);
+    }
+    return new Image(base64, normalizedMimeType);
   }
 
   toContentBlock(): ImageContent {

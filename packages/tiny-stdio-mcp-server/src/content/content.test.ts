@@ -16,6 +16,27 @@ describe("Audio", () => {
   });
 
   describe("fromUrl", () => {
+    it("normalizes uppercase audio Content-Type values", async () => {
+      const data = new Uint8Array([1, 2, 3]);
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        arrayBuffer: () => Promise.resolve(data.buffer),
+        headers: { get: () => "Audio/MPEG" },
+      } as unknown as Response);
+
+      const block = (await Audio.fromUrl("https://example.com/audio")).toContentBlock();
+
+      expect(block.mimeType).toBe("audio/mpeg");
+    });
+
+    it("redacts query credentials from fetch failures", async () => {
+      vi.mocked(fetch).mockResolvedValue({ ok: false, status: 403, statusText: "Forbidden" } as Response);
+
+      await expect(Audio.fromUrl("https://example.com/sound.mp3?token=secret")).rejects.toThrow(
+        "Failed to fetch audio from https://example.com/sound.mp3: 403 Forbidden"
+      );
+    });
+
     it("fetches and detects MP3 from magic bytes (ID3 tag)", async () => {
       const mp3Data = new Uint8Array([
         0x49, 0x44, 0x33, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -341,6 +362,11 @@ describe("Audio", () => {
   });
 
   describe("fromBase64", () => {
+    it("rejects malformed base64 and incompatible MIME types", () => {
+      expect(() => Audio.fromBase64("not base64!", "audio/mpeg")).toThrow("Invalid base64 content");
+      expect(() => Audio.fromBytes(new Uint8Array([1, 2, 3]), "image/png")).toThrow("Unsupported audio MIME type");
+    });
+
     it("creates audio from base64 with MIME type", () => {
       const base64 = "SUQzBAAAAAA=";
       const mimeType = "audio/mpeg";
@@ -664,6 +690,42 @@ describe("File", () => {
   });
 
   describe("fromUrl", () => {
+    it("uses URL paths without query credentials for resource URIs", async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        arrayBuffer: () => Promise.resolve(new TextEncoder().encode("secret").buffer),
+        headers: { get: () => "text/plain" },
+      } as unknown as Response);
+
+      const block = (await File.fromUrl("https://example.com/report.txt?token=secret#part")).toContentBlock();
+
+      expect(block.resource.uri).toBe("file:///report.txt");
+    });
+
+    it("normalizes text MIME values and preserves declared charset", async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        arrayBuffer: () => Promise.resolve(Uint8Array.from([0x63, 0x61, 0x66, 0xe9]).buffer),
+        headers: { get: () => "Text/Plain; charset=iso-8859-1" },
+      } as unknown as Response);
+
+      const block = (await File.fromUrl("https://example.com/cafe.txt")).toContentBlock();
+
+      expect(block.resource).toMatchObject({ mimeType: "text/plain", text: "café" });
+    });
+
+    it("treats structured JSON media types as text", async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        arrayBuffer: () => Promise.resolve(new TextEncoder().encode('{"title":"failed"}').buffer),
+        headers: { get: () => "application/problem+json" },
+      } as unknown as Response);
+
+      const block = (await File.fromUrl("https://example.com/problem")).toContentBlock();
+
+      expect(block.resource).toMatchObject({ text: '{"title":"failed"}' });
+    });
+
     it("fetches and detects MP4 from magic bytes", async () => {
       const mp4Data = new Uint8Array([
         0x00, 0x00, 0x00, 0x20, 0x66, 0x74, 0x79, 0x70, 0x69, 0x73, 0x6f, 0x6d,
@@ -859,6 +921,12 @@ describe("File", () => {
   });
 
   describe("fromText", () => {
+    it("emits binary MIME text input as a blob", () => {
+      const block = File.fromText("secret", "application/octet-stream").toContentBlock();
+
+      expect(block.resource).toMatchObject({ blob: "c2VjcmV0" });
+    });
+
     it("creates file with text content", () => {
       const file = File.fromText("Hello, world!");
       const block = file.toContentBlock();
@@ -908,6 +976,10 @@ describe("File", () => {
   });
 
   describe("fromBase64", () => {
+    it("rejects malformed base64", () => {
+      expect(() => File.fromBase64("%%%", "application/octet-stream")).toThrow("Invalid base64 content");
+    });
+
     it("creates file from base64 with binary MIME type", () => {
       const base64 = Buffer.from([0x00, 0x01, 0x02, 0x03]).toString("base64");
 
@@ -1045,6 +1117,26 @@ describe("Image", () => {
   });
 
   describe("fromUrl", () => {
+    it("normalizes uppercase image Content-Type values", async () => {
+      vi.mocked(fetch).mockResolvedValue({
+        ok: true,
+        arrayBuffer: () => Promise.resolve(Uint8Array.from([1, 2, 3]).buffer),
+        headers: { get: () => "Image/PNG" },
+      } as unknown as Response);
+
+      const block = (await Image.fromUrl("https://example.com/image")).toContentBlock();
+
+      expect(block.mimeType).toBe("image/png");
+    });
+
+    it("redacts query credentials from fetch failures", async () => {
+      vi.mocked(fetch).mockResolvedValue({ ok: false, status: 403, statusText: "Forbidden" } as Response);
+
+      await expect(Image.fromUrl("https://example.com/picture.png?token=secret")).rejects.toThrow(
+        "Failed to fetch image from https://example.com/picture.png: 403 Forbidden"
+      );
+    });
+
     it("fetches and detects PNG from magic bytes", async () => {
       const pngData = new Uint8Array([
         0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x00,
@@ -1331,6 +1423,11 @@ describe("Image", () => {
   });
 
   describe("fromBase64", () => {
+    it("rejects malformed base64 and incompatible MIME types", () => {
+      expect(() => Image.fromBase64("not base64!", "image/png")).toThrow("Invalid base64 content");
+      expect(() => Image.fromBytes(new Uint8Array([1, 2, 3]), "audio/mpeg")).toThrow("Unsupported image MIME type");
+    });
+
     it("creates image from base64 with MIME type", () => {
       const base64 = "iVBORw0KGgoAAAANSUhEUg==";
       const mimeType = "image/png";

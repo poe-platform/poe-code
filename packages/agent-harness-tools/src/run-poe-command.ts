@@ -40,11 +40,14 @@ export async function runPoeCommand(opts: {
     status: "pending"
   });
 
-  const opened = opts.factory.open(opts.openSpec);
-  const env = isPromiseLike(opened) ? await opened : opened;
-  let shouldClose = true;
+  let env: OpenedEnv | null = null;
+  let jobPhase: "pending" | "running" | "terminal" = "pending";
+  let shouldClose = false;
 
   try {
+    const opened = opts.factory.open(opts.openSpec);
+    env = isPromiseLike(opened) ? await opened : opened;
+    shouldClose = true;
     const upload = env.uploadWorkspace();
     await Promise.all([pendingJob, upload]);
     await configureE2bSpawnAgentIfAvailable({
@@ -72,7 +75,7 @@ export async function runPoeCommand(opts: {
       await writeExecutionInput(handle, execution.input);
     }
 
-    const runningJob = opts.state.jobs.update(jobId, {
+    await opts.state.jobs.update(jobId, {
       status: "running",
       env_id: env.id,
       started_at: new Date().toISOString(),
@@ -80,9 +83,9 @@ export async function runPoeCommand(opts: {
         ? { reattach_context: env.reattachContext }
         : {})
     });
+    jobPhase = "running";
 
     if (opts.detach) {
-      await runningJob;
       setDetachedJobContext(env, {
         id: jobId,
         tool: opts.openSpec.jobLabel.tool,
@@ -102,13 +105,13 @@ export async function runPoeCommand(opts: {
       wrapCommand,
       closeAfterDownload: false
     });
-    await runningJob;
 
     await opts.state.jobs.update(jobId, {
       status: "exited",
       exit_code: result.exitCode,
       exited_at: new Date().toISOString()
     });
+    jobPhase = "terminal";
 
     shouldClose = false;
     await env.close().catch(() => undefined);
@@ -120,8 +123,19 @@ export async function runPoeCommand(opts: {
       ...(result.stdout !== undefined ? { stdout: result.stdout } : {}),
       ...(result.stderr !== undefined ? { stderr: result.stderr } : {})
     };
+  } catch (error) {
+    await pendingJob.catch(() => undefined);
+    if (jobPhase === "pending") {
+      await opts.state.jobs.remove(jobId).catch(() => undefined);
+    } else if (jobPhase === "running") {
+      await opts.state.jobs.update(jobId, {
+        status: "lost",
+        exited_at: new Date().toISOString()
+      }).catch(() => undefined);
+    }
+    throw error;
   } finally {
-    if (shouldClose) {
+    if (shouldClose && env !== null) {
       await env.close();
     }
   }

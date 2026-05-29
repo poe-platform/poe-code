@@ -337,6 +337,72 @@ describe("runPoeCommand", () => {
     ]);
   });
 
+  it("removes a pending job when environment opening fails", async () => {
+    const { state } = createRecordingState();
+    const factory: ExecutionEnvFactory = {
+      type: "host",
+      async open() {
+        throw new Error("open failed");
+      }
+    };
+
+    await expect(
+      runPoeCommand({ factory, openSpec: createOpenSpec(), detach: false, state })
+    ).rejects.toThrow("open failed");
+    await expect(state.jobs.list()).resolves.toEqual([]);
+  });
+
+  it("removes a pending job when initial workspace upload fails", async () => {
+    const { state } = createRecordingState();
+    const env = createMockEnv();
+    env.uploadWorkspace = async () => {
+      throw new Error("upload failed");
+    };
+
+    await expect(
+      runPoeCommand({ factory: createFactory(env), openSpec: createOpenSpec(), detach: false, state })
+    ).rejects.toThrow("upload failed");
+
+    await expect(state.jobs.list()).resolves.toEqual([]);
+    expect(env.closed).toBe(true);
+  });
+
+  it("marks a detached launch lost when detaching fails", async () => {
+    const { state, statuses } = createRecordingState();
+    const env = createMockEnv({ result: new Promise(() => {}) });
+    env.detach = async () => {
+      throw new Error("detach failed");
+    };
+
+    await expect(
+      runPoeCommand({ factory: createFactory(env), openSpec: createOpenSpec(), detach: true, state })
+    ).rejects.toThrow("detach failed");
+
+    await expect(state.jobs.list()).resolves.toEqual([
+      expect.objectContaining({ status: "lost", env_id: "env-1" })
+    ]);
+    expect(statuses).toEqual(["pending", "running", "lost"]);
+    expect(env.closed).toBe(true);
+  });
+
+  it("marks a synchronous launch lost when post-launch download fails", async () => {
+    const { state, statuses } = createRecordingState();
+    const env = createMockEnv();
+    env.downloadWorkspace = async () => {
+      throw new Error("download failed");
+    };
+
+    await expect(
+      runPoeCommand({ factory: createFactory(env), openSpec: createOpenSpec(), detach: false, state })
+    ).rejects.toThrow("download failed");
+
+    await expect(state.jobs.list()).resolves.toEqual([
+      expect.objectContaining({ status: "lost", env_id: "env-1" })
+    ]);
+    expect(statuses).toEqual(["pending", "running", "lost"]);
+    expect(env.closed).toBe(true);
+  });
+
   it("leaves the environment open in detach mode", async () => {
     const { state, statuses } = createRecordingState();
     const runResult = deferred<RunResult>();

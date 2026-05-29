@@ -16,6 +16,7 @@ export interface DetailItem {
   subtitle?: string;
   badge?: { text: string; tone?: Tone };
   render: (ctx: DetailCtx) => string | Promise<string>;
+  renderedContent?: string;
 }
 
 export interface Detail<R> {

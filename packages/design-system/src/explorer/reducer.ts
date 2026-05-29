@@ -45,6 +45,8 @@ export function step(
       return detailLoading(state, event.rowId, event.token);
     case "detailLoaded":
       return detailLoaded(state, event.rowId, event.token, event.items);
+    case "detailItemRendered":
+      return detailItemRendered(state, event.rowId, event.token, event.itemIndex, event.content);
     case "detailError":
       return detailError(state, event.rowId, event.token, event.error);
     case "actionResolved":
@@ -307,6 +309,26 @@ function detailLoaded(
       actionState: recomputeActionState({ ...state, detail }),
       dirty: REGION_DETAIL | REGION_FOOTER
     },
+    effects: NO_EFFECTS
+  };
+}
+
+function detailItemRendered(
+  state: ExplorerState,
+  rowId: string,
+  token: number,
+  itemIndex: number,
+  content: string
+): StepResult {
+  if (state.detail.rowId !== rowId || state.detail.token !== token || state.detail.items?.[itemIndex] === undefined) {
+    return mark(state, 0);
+  }
+
+  const items = state.detail.items.map((item, index) =>
+    index === itemIndex ? { ...item, renderedContent: content } : item
+  );
+  return {
+    state: { ...state, detail: { ...state.detail, items }, dirty: REGION_DETAIL },
     effects: NO_EFFECTS
   };
 }

@@ -13,6 +13,7 @@ export type ExplorerEvent =
   | { type: "rowsLoaded"; rows: Row[] }
   | { type: "detailLoading"; rowId: string; token: number }
   | { type: "detailLoaded"; rowId: string; token: number; items: DetailItem[] }
+  | { type: "detailItemRendered"; rowId: string; token: number; itemIndex: number; content: string }
   | { type: "detailError"; rowId: string; token: number; error: Error }
   | { type: "actionResolved"; actionId: string }
   | { type: "toastExpired" }

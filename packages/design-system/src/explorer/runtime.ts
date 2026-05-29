@@ -39,6 +39,8 @@ class ExplorerRuntime<R> {
   private unsubscribeKeypress: (() => void) | undefined;
   private unsubscribeResize: (() => void) | undefined;
   private toastTimer: ReturnType<typeof setTimeout> | undefined;
+  private rowsRequestToken = 0;
+  private reorderToken = 0;
   private stopped = false;
   private settle:
     | { resolve: (value: R | null) => void; reject: (error: unknown) => void }
@@ -50,6 +52,10 @@ class ExplorerRuntime<R> {
   ) {
     this.state = createInitialState(config, driver.getSize());
     this.detailJobs = createDetailJobs((event) => {
+      if (event.type === "detailLoaded") {
+        this.loadDetailContent(event.rowId, event.token, event.items);
+        return;
+      }
       this.dispatch(event);
     });
     this.runtimeHandles = {
@@ -98,14 +104,17 @@ class ExplorerRuntime<R> {
     });
   }
 
-  private async loadRows(): Promise<void> {
+  private async loadRows(requestToken = ++this.rowsRequestToken): Promise<void> {
     const rows = await this.config.rows();
-    this.dispatch({ type: "rowsLoaded", rows });
+    if (requestToken === this.rowsRequestToken) {
+      this.dispatch({ type: "rowsLoaded", rows });
+    }
   }
 
   private async refreshRowsFromSource(): Promise<void> {
+    const requestToken = ++this.rowsRequestToken;
     await this.config.refresh?.();
-    await this.loadRows();
+    await this.loadRows(requestToken);
   }
 
   private dispatch(event: ExplorerEvent): void {
@@ -128,7 +137,7 @@ class ExplorerRuntime<R> {
       }
 
       if (effect.type === "persistOrder") {
-        this.track(this.persistOrder(effect.orderedIds, previousState.rows));
+        this.track(this.persistOrder(effect.orderedIds, previousState.rows, ++this.reorderToken));
         continue;
       }
 
@@ -163,7 +172,52 @@ class ExplorerRuntime<R> {
     });
   }
 
-  private async persistOrder(orderedIds: string[], previousRows: Row[]): Promise<void> {
+  private loadDetailContent(rowId: string, token: number, items: import("./state.js").DetailItem[]): void {
+    const row = this.state.rows.find((candidate) => candidate.id === rowId);
+    if (row === undefined) {
+      return;
+    }
+
+    const layout = computeExplorerLayout({
+      cols: this.state.size.cols,
+      rows: this.state.size.rows,
+      detailHidden: this.state.layout === "narrow-list-only" || this.state.layout === "too-narrow"
+    });
+    const context = {
+      width: layout.detail.width,
+      height: layout.detail.height,
+      row,
+      signal: new AbortController().signal
+    };
+
+    const preparedItems = items.map((item, itemIndex) => {
+      try {
+        const content = item.render(context);
+        if (typeof content === "string") {
+          return { ...item, renderedContent: content };
+        }
+        this.track(content.then(
+          (resolved) => this.dispatch({ type: "detailItemRendered", rowId, token, itemIndex, content: resolved }),
+          (error) => this.dispatch({
+            type: "detailItemRendered",
+            rowId,
+            token,
+            itemIndex,
+            content: error instanceof Error ? `Error: ${error.message}` : "Error: detail failed"
+          })
+        ));
+        return { ...item, renderedContent: "Loading detail..." };
+      } catch (error) {
+        return {
+          ...item,
+          renderedContent: error instanceof Error ? `Error: ${error.message}` : "Error: detail failed"
+        };
+      }
+    });
+    this.dispatch({ type: "detailLoaded", rowId, token, items: preparedItems });
+  }
+
+  private async persistOrder(orderedIds: string[], previousRows: Row[], token: number): Promise<void> {
     try {
       await this.config.reorder?.onReorder(orderedIds, {
         refresh: this.runtimeHandles.refresh,
@@ -171,7 +225,9 @@ class ExplorerRuntime<R> {
       });
     } catch (error) {
       this.showToast(error instanceof Error ? error.message : "Could not persist order", "error");
-      this.dispatch({ type: "rowsLoaded", rows: previousRows });
+      if (token === this.reorderToken) {
+        this.dispatch({ type: "rowsLoaded", rows: previousRows });
+      }
     }
   }
 

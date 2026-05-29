@@ -124,6 +124,24 @@ describe("readCacheEntry and writeCacheEntry", () => {
       code: "ENOENT"
     });
   });
+
+  it("preserves a prior cache hit when refresh persistence fails", async () => {
+    const cachePath = "/repo/.poe-code/memory/.cache/ingest/abc123.json";
+    vol.fromJSON({ [cachePath]: `${JSON.stringify(baseEntry)}\n` });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(cachePath)) {
+        vol.writeFileSync(String(filePath), "{");
+        throw new Error("cache disk full");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(
+      writeCacheEntry("/repo/.poe-code/memory", { ...baseEntry, sourceLabel: "updated" })
+    ).rejects.toThrow("cache disk full");
+    await expect(readCacheEntry("/repo/.poe-code/memory", "abc123")).resolves.toEqual(baseEntry);
+  });
 });
 
 describe("clearCache", () => {

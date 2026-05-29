@@ -109,6 +109,20 @@ describe("plan actions", () => {
     await expect(fs.readFile("/repo/docs/plans/archive/plan.md", "utf8")).resolves.toBe("# Historic");
   });
 
+  it("rejects a symlinked archive directory", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/docs/plans/plan.md": "# Current",
+      "/outside/.keep": ""
+    }, "/");
+    volume.symlinkSync("/outside", "/repo/docs/plans/archive");
+    const fs = createFsFromVolume(volume).promises as unknown as ActionFs;
+
+    await expect(archivePlan({ absolutePath: "/repo/docs/plans/plan.md" }, fs))
+      .rejects.toThrow(/symbolic link/i);
+    await expect(fs.readFile("/repo/docs/plans/plan.md", "utf8")).resolves.toBe("# Current");
+    await expect(fs.readFile("/outside/plan.md", "utf8")).rejects.toThrow();
+  });
+
   it("removes a newly created archive directory when moving fails", async () => {
     const raw = createMemFs({ "/repo/docs/plans/plan.md": "# Current" });
     const fs: ActionFs = {

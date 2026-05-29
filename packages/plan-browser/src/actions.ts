@@ -51,8 +51,10 @@ async function archiveSelectedPlan(
       throw error;
     }
   }
+  await rejectSymbolicLink(archiveDir, fs);
   const createdDirectory = await fs.mkdir(archiveDir, { recursive: true });
   try {
+    await rejectSymbolicLink(archiveDir, fs);
     await fs.rename(entry.absolutePath, archivedPath);
   } catch (error) {
     if (createdDirectory !== undefined) {
@@ -61,6 +63,19 @@ async function archiveSelectedPlan(
     throw error;
   }
   return archivedPath;
+}
+
+async function rejectSymbolicLink(targetPath: string, fs: Pick<ActionFs, "lstat">): Promise<void> {
+  try {
+    if ((await fs.lstat(targetPath)).isSymbolicLink()) {
+      throw new Error(`Refusing to archive plan through symbolic link: ${targetPath}`);
+    }
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
 }
 
 function parseEditorCommand(command: string): string[] {

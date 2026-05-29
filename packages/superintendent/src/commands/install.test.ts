@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { describe, expect, it, vi } from "vitest";
-import { installCommand, type InstallResult } from "./install.js";
+import { Volume, createFsFromVolume } from "memfs";
+import { ensurePlanDirectory, installCommand, type InstallResult } from "./install.js";
 
 const renderPrimitives = {
   logger: {
@@ -103,5 +104,24 @@ describe("superintendent install command", () => {
     const json = installCommand.render!.json!(result, renderPrimitives);
 
     expect(json).toEqual(result);
+  });
+
+  it("rejects a symlinked parent while scaffolding the plan directory", async () => {
+    const volume = Volume.fromJSON({ "/outside/.keep": "" }, "/");
+    volume.mkdirSync("/repo/docs", { recursive: true });
+    volume.symlinkSync("/outside", "/repo/docs/plans");
+    const fs = createFsFromVolume(volume).promises;
+
+    await expect(ensurePlanDirectory("/repo/docs/plans/superintendent-new", {
+      lstat: async (targetPath) => {
+        const stat = await fs.lstat(targetPath);
+        return { isSymbolicLink: () => stat.isSymbolicLink() };
+      },
+      mkdir: async (targetPath, options) => {
+        await fs.mkdir(targetPath, options);
+      }
+    })).rejects.toThrow(/symbolic link/i);
+    await expect(fs.stat("/outside/superintendent-new"))
+      .rejects.toThrow();
   });
 });

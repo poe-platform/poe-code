@@ -80,12 +80,7 @@ export const installCommand = defineCommand({
 
     const planDirectory = await resolvePlanDirectory(cwd, homeDir, process.env);
     const absolutePlanDirectory = resolveAbsoluteDirectory(planDirectory, cwd, homeDir);
-    let planDirectoryCreated = false;
-
-    if (!(await pathExists(absolutePlanDirectory))) {
-      await mkdir(absolutePlanDirectory, { recursive: true });
-      planDirectoryCreated = true;
-    }
+    const planDirectoryCreated = await ensurePlanDirectory(absolutePlanDirectory, fs);
 
     return {
       agent: support.id,
@@ -141,6 +136,45 @@ function resolveAbsoluteDirectory(dir: string, cwd: string, homeDir: string): st
   }
 
   return path.isAbsolute(dir) ? dir : path.resolve(cwd, dir);
+}
+
+type PlanDirectoryFs = {
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
+  mkdir(path: string, options?: { recursive: boolean }): Promise<void>;
+};
+
+export async function ensurePlanDirectory(
+  absolutePlanDirectory: string,
+  fileSystem: PlanDirectoryFs
+): Promise<boolean> {
+  const missingAncestors: string[] = [];
+  let currentPath = absolutePlanDirectory;
+
+  while (true) {
+    try {
+      if ((await fileSystem.lstat(currentPath)).isSymbolicLink()) {
+        throw new UserError(`Refusing to create superintendent plan directory through symbolic link: ${currentPath}`);
+      }
+      break;
+    } catch (error) {
+      if (!(typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT")) {
+        throw error;
+      }
+      missingAncestors.push(currentPath);
+    }
+
+    const parentPath = path.dirname(currentPath);
+    if (parentPath === currentPath) {
+      break;
+    }
+    currentPath = parentPath;
+  }
+
+  if (missingAncestors.length === 0) {
+    return false;
+  }
+  await fileSystem.mkdir(absolutePlanDirectory, { recursive: true });
+  return true;
 }
 
 async function pathExists(targetPath: string): Promise<boolean> {

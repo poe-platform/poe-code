@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { dirname } from "node:path";
 import { parse, stringify } from "yaml";
 import type {
@@ -12,11 +13,18 @@ export async function readRegistry(
   fs: WorktreeFileSystem
 ): Promise<WorktreeRegistry> {
   try {
+    await assertPathHasNoSymbolicLinks(registryFile, fs);
     const content = await fs.readFile(registryFile, "utf8");
-    const parsed = parse(content) as WorktreeRegistry | null;
-    return parsed?.worktrees ? parsed : { worktrees: [] };
-  } catch {
-    return { worktrees: [] };
+    const parsed: unknown = parse(content);
+    if (!isWorktreeRegistry(parsed)) {
+      throw new Error(`Invalid worktree registry: ${registryFile}`);
+    }
+    return parsed;
+  } catch (error) {
+    if (isNotFound(error)) {
+      return { worktrees: [] };
+    }
+    throw error;
   }
 }
 
@@ -25,9 +33,72 @@ export async function writeRegistry(
   registry: WorktreeRegistry,
   fs: WorktreeFileSystem
 ): Promise<void> {
+  await assertPathHasNoSymbolicLinks(registryFile, fs);
   await fs.mkdir(dirname(registryFile), { recursive: true });
+  await assertPathHasNoSymbolicLinks(registryFile, fs);
   const yaml = stringify(registry, { lineWidth: 0 });
-  await fs.writeFile(registryFile, yaml, { encoding: "utf8" });
+  const temporaryFile = `${registryFile}.tmp-${randomUUID()}`;
+  try {
+    await assertPathHasNoSymbolicLinks(temporaryFile, fs);
+    await fs.writeFile(temporaryFile, yaml, { encoding: "utf8" });
+    await assertPathHasNoSymbolicLinks(registryFile, fs);
+    await fs.rename(temporaryFile, registryFile);
+  } catch (error) {
+    await fs.unlink(temporaryFile).catch(() => undefined);
+    throw error;
+  }
+}
+
+function isNotFound(error: unknown): boolean {
+  return Boolean(error && typeof error === "object" && "code" in error && error.code === "ENOENT");
+}
+
+async function assertPathHasNoSymbolicLinks(
+  targetPath: string,
+  fs: Pick<WorktreeFileSystem, "lstat">
+): Promise<void> {
+  const segments = targetPath.split("/").filter(Boolean);
+  let currentPath = targetPath.startsWith("/") ? "" : ".";
+  for (const segment of segments) {
+    currentPath = `${currentPath}/${segment}`;
+    try {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        throw new Error(`Refusing worktree registry path containing symbolic link: ${currentPath}`);
+      }
+    } catch (error) {
+      if (isNotFound(error)) {
+        return;
+      }
+      throw error;
+    }
+  }
+}
+
+function isWorktreeRegistry(value: unknown): value is WorktreeRegistry {
+  if (typeof value !== "object" || value === null || !Array.isArray((value as { worktrees?: unknown }).worktrees)) {
+    return false;
+  }
+  return (value as { worktrees: unknown[] }).worktrees.every(isWorktree);
+}
+
+function isWorktree(value: unknown): value is Worktree {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const entry = value as Partial<Worktree>;
+  return (
+    typeof entry.name === "string" &&
+    typeof entry.path === "string" &&
+    typeof entry.branch === "string" &&
+    typeof entry.baseBranch === "string" &&
+    typeof entry.createdAt === "string" &&
+    typeof entry.source === "string" &&
+    typeof entry.agent === "string" &&
+    (entry.status === "active" || entry.status === "done" || entry.status === "failed" || entry.status === "removing") &&
+    (entry.storyId === undefined || typeof entry.storyId === "string") &&
+    (entry.planPath === undefined || typeof entry.planPath === "string") &&
+    (entry.prompt === undefined || typeof entry.prompt === "string")
+  );
 }
 
 export async function addWorktreeEntry(

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
-import { parse } from "yaml";
+import { parse, stringify } from "yaml";
 import type { WorktreeFileSystem, ExecFn, Worktree, WorktreeRegistry } from "./types.js";
 import { createWorktree } from "./create.js";
 import { listWorktrees } from "./list.js";
@@ -20,6 +20,13 @@ function createMemFs(files: Record<string, string> = {}): WorktreeFileSystem {
   const vol = Volume.fromJSON(files, "/");
   return createFsFromVolume(vol).promises as unknown as WorktreeFileSystem;
 }
+
+type ExtendedWorktreeFileSystem = WorktreeFileSystem & {
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
+  rename(oldPath: string, newPath: string): Promise<void>;
+  unlink(path: string): Promise<void>;
+  symlink(target: string, path: string): Promise<void>;
+};
 
 function createMockExec(): ExecFn {
   return vi.fn<ExecFn>().mockResolvedValue({ stdout: "", stderr: "" });
@@ -56,7 +63,7 @@ describe("createWorktree", () => {
     });
 
     expect(exec).toHaveBeenCalledWith(
-      `git worktree add -b poe-code/my-feature ${WORKTREE_DIR}/my-feature main`,
+      `git worktree add -b 'poe-code/my-feature' '${WORKTREE_DIR}/my-feature' 'main'`,
       { cwd: "/repo" }
     );
   });
@@ -151,9 +158,9 @@ describe("createWorktree", () => {
     // Should have called worktree remove + branch delete before the second add
     const commands = exec.mock.calls.map((c) => c[0]);
     expect(commands).toContain(
-      `git worktree remove ${WORKTREE_DIR}/my-feature --force`
+      `git worktree remove '${WORKTREE_DIR}/my-feature' --force`
     );
-    expect(commands).toContain("git branch -D poe-code/my-feature");
+    expect(commands).toContain("git branch -D 'poe-code/my-feature'");
 
     // Registry should have exactly one entry (old replaced)
     const registryAfter = await readRegistry(REGISTRY, fs);
@@ -203,6 +210,72 @@ describe("createWorktree", () => {
     expect(result).not.toHaveProperty("storyId");
     expect(result).not.toHaveProperty("planPath");
     expect(result).not.toHaveProperty("prompt");
+  });
+
+  it("quotes untrusted worktree operands in git commands", async () => {
+    const fs = createMemFs();
+    const exec = createMockExec();
+
+    await createWorktree({
+      cwd: "/repo",
+      name: "safe; touch /tmp/injected; #",
+      baseBranch: "main; false",
+      source: "test",
+      agent: "codex",
+      registryFile: REGISTRY,
+      worktreeDir: WORKTREE_DIR,
+      deps: { fs, exec }
+    });
+
+    expect(exec.mock.calls.map(([command]) => command)).toContain(
+      "git branch -D 'poe-code/safe; touch /tmp/injected; #'"
+    );
+    expect(exec.mock.calls.map(([command]) => command)).toContain(
+      `git worktree add -b 'poe-code/safe; touch /tmp/injected; #' '${WORKTREE_DIR}/safe; touch /tmp/injected; #' 'main; false'`
+    );
+  });
+
+  it("retains a failed registry tombstone when replacement checkout creation fails", async () => {
+    const oldEntry = makeEntry({ name: "feature" });
+    const fs = createMemFs({ [REGISTRY]: stringify({ worktrees: [oldEntry] }, { lineWidth: 0 }) });
+    const exec = vi.fn<ExecFn>().mockImplementation(async (command) => {
+      if (command.startsWith("git worktree add")) {
+        throw new Error("replacement failed");
+      }
+      return { stdout: "", stderr: "" };
+    });
+
+    await expect(createWorktree({
+      cwd: "/repo", name: "feature", baseBranch: "main", source: "new", agent: "codex",
+      registryFile: REGISTRY, worktreeDir: WORKTREE_DIR, deps: { fs, exec }
+    })).rejects.toThrow("replacement failed");
+
+    await expect(readRegistry(REGISTRY, fs)).resolves.toEqual({
+      worktrees: [{ ...oldEntry, status: "failed" }]
+    });
+  });
+
+  it("rolls back a created checkout when registry persistence fails", async () => {
+    const base = createMemFs() as ExtendedWorktreeFileSystem;
+    const fs = {
+      ...base,
+      rename: async (oldPath: string, newPath: string) => {
+        if (newPath === REGISTRY) {
+          throw new Error("disk full");
+        }
+        await base.rename(oldPath, newPath);
+      }
+    } as ExtendedWorktreeFileSystem;
+    const exec = createMockExec();
+
+    await expect(createWorktree({
+      cwd: "/repo", name: "feature", baseBranch: "main", source: "test", agent: "codex",
+      registryFile: REGISTRY, worktreeDir: WORKTREE_DIR, deps: { fs, exec }
+    })).rejects.toThrow("disk full");
+
+    const commands = exec.mock.calls.map(([command]) => command);
+    expect(commands.filter((command) => command === `git worktree remove '${WORKTREE_DIR}/feature' --force`)).toHaveLength(2);
+    expect(commands.filter((command) => command === "git branch -D 'poe-code/feature'")).toHaveLength(2);
   });
 });
 
@@ -295,8 +368,35 @@ describe("readRegistry", () => {
     const fs = createMemFs({
       [REGISTRY]: "not-worktrees: true\n"
     });
-    const registry = await readRegistry(REGISTRY, fs);
-    expect(registry).toEqual({ worktrees: [] });
+    await expect(readRegistry(REGISTRY, fs)).rejects.toThrow(/Invalid worktree registry/);
+  });
+
+  it("rejects valid YAML registries containing invalid worktree entries", async () => {
+    const fs = createMemFs({ [REGISTRY]: "worktrees:\n  - null\n" });
+
+    await expect(readRegistry(REGISTRY, fs)).rejects.toThrow(/Invalid worktree registry/);
+    await expect(updateWorktreeStatus(REGISTRY, "missing", "done", { fs })).rejects.toThrow(/Invalid worktree registry/);
+  });
+
+  it("surfaces transient read failures rather than treating them as empty state", async () => {
+    const base = createMemFs({ [REGISTRY]: "worktrees: []\n" });
+    const fs = {
+      ...base,
+      readFile: async () => {
+        throw new Error("disk unavailable");
+      }
+    } as WorktreeFileSystem;
+
+    await expect(readRegistry(REGISTRY, fs)).rejects.toThrow("disk unavailable");
+  });
+
+  it("rejects reads through a symlinked registry file", async () => {
+    const fs = createMemFs() as ExtendedWorktreeFileSystem;
+    await fs.mkdir("/repo/.poe-code", { recursive: true });
+    await fs.writeFile("/outside.yaml", "worktrees: []\n", { encoding: "utf8" });
+    await fs.symlink("/outside.yaml", REGISTRY);
+
+    await expect(readRegistry(REGISTRY, fs)).rejects.toThrow(/symbolic link/);
   });
 });
 
@@ -311,6 +411,34 @@ describe("writeRegistry", () => {
     const parsed = parse(content) as WorktreeRegistry;
     expect(parsed.worktrees).toHaveLength(1);
     expect(parsed.worktrees[0]!.name).toBe("test-worktree");
+  });
+
+  it("preserves the live registry when a staged write fails", async () => {
+    const initial = { worktrees: [makeEntry({ name: "existing" })] };
+    const base = createMemFs({ [REGISTRY]: stringify(initial, { lineWidth: 0 }) }) as ExtendedWorktreeFileSystem;
+    const fs = {
+      ...base,
+      writeFile: async (filePath: string, data: string, options?: { encoding?: BufferEncoding }) => {
+        if (filePath !== REGISTRY) {
+          await base.writeFile(filePath, "partial", options);
+          throw new Error("disk full");
+        }
+        await base.writeFile(filePath, data, options);
+      }
+    } as ExtendedWorktreeFileSystem;
+
+    await expect(writeRegistry(REGISTRY, { worktrees: [makeEntry({ name: "new" })] }, fs)).rejects.toThrow("disk full");
+    await expect(readRegistry(REGISTRY, base)).resolves.toEqual(initial);
+  });
+
+  it("rejects writes through a symlinked registry file", async () => {
+    const fs = createMemFs() as ExtendedWorktreeFileSystem;
+    await fs.mkdir("/repo/.poe-code", { recursive: true });
+    await fs.writeFile("/outside.yaml", "worktrees: []\n", { encoding: "utf8" });
+    await fs.symlink("/outside.yaml", REGISTRY);
+
+    await expect(writeRegistry(REGISTRY, { worktrees: [makeEntry()] }, fs)).rejects.toThrow(/symbolic link/);
+    await expect(fs.readFile("/outside.yaml", "utf8")).resolves.toBe("worktrees: []\n");
   });
 });
 
@@ -379,7 +507,7 @@ describe("removeWorktree", () => {
     await removeWorktree({ cwd: "/repo", name: "wt", registryFile: REGISTRY, deps: { fs, exec } });
 
     expect(exec).toHaveBeenCalledWith(
-      "git worktree remove /repo/.poe-code/worktrees/wt",
+      "git worktree remove '/repo/.poe-code/worktrees/wt'",
       { cwd: "/repo" }
     );
   });
@@ -427,7 +555,7 @@ describe("removeWorktree", () => {
     });
 
     expect(exec).toHaveBeenCalledWith(
-      "git branch -D poe-code/wt",
+      "git branch -D 'poe-code/wt'",
       { cwd: "/repo" }
     );
   });
@@ -458,5 +586,19 @@ describe("removeWorktree", () => {
     await expect(
       removeWorktree({ cwd: "/repo", name: "missing", registryFile: REGISTRY, deps: { fs, exec } })
     ).rejects.toThrow('Worktree "missing" not found in registry');
+  });
+
+  it("removes registry state even when optional branch deletion fails", async () => {
+    const fs = createMemFs();
+    await addWorktreeEntry(REGISTRY, makeEntry({ name: "wt", branch: "poe-code/wt" }), fs);
+    const exec = vi.fn<ExecFn>().mockImplementation(async (command) => {
+      if (command === "git branch -D 'poe-code/wt'") {
+        throw new Error("branch protected");
+      }
+      return { stdout: "", stderr: "" };
+    });
+
+    await expect(removeWorktree({ cwd: "/repo", name: "wt", registryFile: REGISTRY, deleteBranch: true, deps: { fs, exec } })).rejects.toThrow("branch protected");
+    await expect(readRegistry(REGISTRY, fs)).resolves.toEqual({ worktrees: [] });
   });
 });

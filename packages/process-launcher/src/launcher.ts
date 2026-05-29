@@ -615,6 +615,9 @@ async function writeJsonFile(
 }
 
 function resolveProcessDir(baseDir: string, id: string): string {
+  if (id.length === 0 || id === "." || id === ".." || path.basename(id) !== id) {
+    throw new Error(`Invalid managed process id: ${id}`);
+  }
   return path.join(baseDir, id);
 }
 

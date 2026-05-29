@@ -285,6 +285,18 @@ describe("process launcher manager", () => {
     );
     await expect(fs.readdir(baseDir)).resolves.toEqual([]);
   });
+
+  it("rejects path traversal ids for managed process operations", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "../victim", command: "npm", restart: "never" };
+
+    await expect(readManagedLogs({ baseDir, fs, id: "../victim" })).rejects.toThrow(/process id/i);
+    await expect(removeManagedProcess({ baseDir, fs, id: "../victim" })).rejects.toThrow(/process id/i);
+    await expect(runManagedProcess({ baseDir, fs, id: "../victim" })).rejects.toThrow(/process id/i);
+    await expect(restartManagedProcess({ baseDir, fs, id: "../victim", spawnDaemon: async () => null })).rejects.toThrow(/process id/i);
+    await expect(startManagedProcess({ baseDir, fs, spec, spawnDaemon: async () => null })).rejects.toThrow(/process id/i);
+  });
 });
 
 function createMemFs(): LauncherFileSystem {

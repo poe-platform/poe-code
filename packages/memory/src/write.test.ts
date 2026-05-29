@@ -237,4 +237,28 @@ describe("appendToPage", () => {
     ).rejects.toThrow(/symbolic link/i);
     await expect(vol.promises.readFile("/outside/existing.md", "utf8")).resolves.toBe("# Outside\n");
   });
+
+  it("preserves existing authored content when append persistence fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    const pagePath = `${root}/pages/architecture.md`;
+    const originalContent = "---\nname: architecture\n---\n# Existing memory\n";
+    vol.fromJSON({
+      [pagePath]: originalContent,
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [`${root}/LOG.md`]: ""
+    });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(pagePath)) {
+        vol.writeFileSync(String(filePath), "---\nname:");
+        throw new Error("page disk full");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(
+      appendToPage(root, "pages/architecture.md", "\nNew detail.\n", { reason: "probe" })
+    ).rejects.toThrow("page disk full");
+    await expect(vol.promises.readFile(pagePath, "utf8")).resolves.toBe(originalContent);
+  });
 });

@@ -233,6 +233,55 @@ describe("reconcile", () => {
     ).rejects.toThrow(/symbolic link/i);
     await expect(vol.promises.readFile("/outside/log.md", "utf8")).resolves.toBe("external log\n");
   });
+
+  it("preserves a valid index when generated index persistence fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    const indexPath = `${root}/INDEX.md`;
+    const originalIndex = "# Memory index\n\n- [old](pages/old.md) — Existing entry\n";
+    vol.fromJSON({
+      [indexPath]: originalIndex,
+      [`${root}/LOG.md`]: "",
+      [`${root}/pages/architecture.md`]: "# Old memory\n"
+    });
+    const before = await snapshot(root);
+    await vol.promises.writeFile(`${root}/pages/architecture.md`, "# New memory\n", "utf8");
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      const isCreateIfMissing =
+        typeof options === "object" && options !== null && "flag" in options && options.flag === "wx";
+      if (String(filePath).startsWith(`${indexPath}.`) || (String(filePath) === indexPath && !isCreateIfMissing)) {
+        vol.writeFileSync(String(filePath), "# Memory");
+        throw new Error("index disk full");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(reconcile(root, before, "update", "probe")).rejects.toThrow("index disk full");
+    await expect(vol.promises.readFile(indexPath, "utf8")).resolves.toBe(originalIndex);
+  });
+
+  it("preserves audit history when log persistence fails", async () => {
+    const root = "/repo/.poe-code/memory";
+    const logPath = `${root}/LOG.md`;
+    const originalLog = "- prior audit record\n";
+    vol.fromJSON({
+      [`${root}/INDEX.md`]: "# Memory index\n",
+      [logPath]: originalLog
+    });
+    vi.spyOn(vol.promises, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (String(filePath).startsWith(logPath)) {
+        vol.writeFileSync(String(filePath), "- truncated");
+        throw new Error("log disk full");
+      }
+
+      vol.writeFileSync(String(filePath), data as string, options as never);
+    });
+
+    await expect(
+      appendLogEntries(root, { created: ["pages/new.md"], updated: [], deleted: [] }, "probe")
+    ).rejects.toThrow("log disk full");
+    await expect(vol.promises.readFile(logPath, "utf8")).resolves.toBe(originalLog);
+  });
 });
 
 function hash(value: string): string {

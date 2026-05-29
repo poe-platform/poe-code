@@ -1,5 +1,6 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { writeFileAtomically } from "./atomic-write.js";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { initMemory } from "./init.js";
 import {
@@ -22,10 +23,9 @@ export async function writePage(
 
   const before = await snapshot(root);
   await fs.mkdir(path.dirname(path.join(root, pageRelPath)), { recursive: true });
-  await fs.writeFile(
+  await writeFileAtomically(
     path.join(root, pageRelPath),
-    serializeFrontmatter(opts.frontmatter ?? {}, body),
-    "utf8"
+    serializeFrontmatter(opts.frontmatter ?? {}, body)
   );
   return reconcile(root, before, "update", opts.reason);
 }
@@ -47,10 +47,9 @@ export async function appendToPage(
   const parsed =
     existing === undefined ? { frontmatter: {}, body: "" } : parseFrontmatter(existing);
 
-  await fs.writeFile(
+  await writeFileAtomically(
     pagePath,
-    serializeFrontmatter(parsed.frontmatter, `${parsed.body}${content}`),
-    "utf8"
+    serializeFrontmatter(parsed.frontmatter, `${parsed.body}${content}`)
   );
 
   return reconcile(root, before, "update", opts.reason);

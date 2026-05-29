@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { writeFileAtomically } from "./atomic-write.js";
 import { parseClaims } from "./confidence.js";
 import { parseFrontmatter, serializeFrontmatter, serializeSourceRef } from "./frontmatter.js";
 import { initMemory } from "./init.js";
@@ -72,7 +73,7 @@ export async function reconcile(
   await Promise.all(
     currentPages
       .filter((page) => page.currentMarkdown !== page.nextMarkdown)
-      .map((page) => fs.writeFile(path.join(root, page.relPath), page.nextMarkdown, "utf8"))
+      .map((page) => writeFileAtomically(path.join(root, page.relPath), page.nextMarkdown))
   );
 
   const diff = diffSnapshots(before, await snapshot(root));
@@ -120,7 +121,7 @@ export async function appendLogEntries(
   const logPath = path.join(root, MEMORY_LOG_RELPATH);
   const existing = await fs.readFile(logPath, "utf8");
   const separator = existing.length === 0 || existing.endsWith("\n") ? "" : "\n";
-  await fs.writeFile(logPath, `${existing}${separator}${entries.join("\n")}\n`, "utf8");
+  await writeFileAtomically(logPath, `${existing}${separator}${entries.join("\n")}\n`);
 }
 
 export function denormalizeSources(markdown: string): SourceRef[] {
@@ -149,7 +150,7 @@ async function writeIndex(root: MemoryRoot): Promise<void> {
     }))
   );
 
-  await fs.writeFile(path.join(root, MEMORY_INDEX_RELPATH), index, "utf8");
+  await writeFileAtomically(path.join(root, MEMORY_INDEX_RELPATH), index);
 }
 
 function parsePageMarkdown(

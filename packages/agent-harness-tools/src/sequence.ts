@@ -21,12 +21,12 @@ export async function runDocumentWorkflowSequence(
     options.onSequenceProgress?.(index, total, docPath);
 
     let didFail = false;
-    const onIterationEnd = (iteration: number, result: IterationResult): void => {
+    const onIterationEnd = async (iteration: number, result: IterationResult): Promise<void> => {
       if (result === "failed") {
         didFail = true;
       }
 
-      options.onIterationEnd?.(iteration, result);
+      await options.onIterationEnd?.(iteration, result);
     };
 
     try {

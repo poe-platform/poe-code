@@ -31,7 +31,7 @@ export async function runRalph(options: RalphRunOptions): Promise<RalphRunResult
       runAgent
     });
   } finally {
-    await e2bRunner?.close();
+    await e2bRunner?.close().catch(() => undefined);
   }
 }
 
@@ -79,13 +79,13 @@ function createReusableE2bRalphRunner(options: RalphRunOptions): {
         return autonomousRunAgent(input);
       }
 
-      await ensurePoeApiKey();
       const spawnArgs = buildSpawnArgs(input.agent, {
         prompt: input.prompt,
         model: input.model,
         mode: "yolo"
       });
-      const processEnv = spawnArgs.env ? { ...process.env, ...spawnArgs.env } : process.env;
+      const poeApiKey = process.env.POE_API_KEY?.trim() || await getPoeApiKey();
+      const processEnv = { ...process.env, ...spawnArgs.env, POE_API_KEY: poeApiKey };
       const execution = resolvePoeCommandExecution({
         cwd: input.cwd,
         runtimeConfigCwd: options.runtimeConfigCwd,
@@ -146,12 +146,4 @@ function createReusableE2bRalphRunner(options: RalphRunOptions): {
       await session?.close();
     }
   };
-}
-
-async function ensurePoeApiKey(): Promise<void> {
-  if (process.env.POE_API_KEY && process.env.POE_API_KEY.trim().length > 0) {
-    return;
-  }
-
-  process.env.POE_API_KEY = await getPoeApiKey();
 }

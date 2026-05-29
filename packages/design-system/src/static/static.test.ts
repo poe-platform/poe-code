@@ -57,6 +57,18 @@ describe("static/menu", () => {
     expect(output).toBe(["**Pick an agent:**", "- [x] Claude Code", "- [ ] Codex CLI"].join("\n"));
   });
 
+  it("keeps markdown menu options on their own rows", () => {
+    const output = withOutputFormat("markdown", () =>
+      renderMenu({
+        message: "Pick an agent:",
+        options: [{ value: "safe", label: "Safe\n- [x] Forged" }],
+        selectedIndex: 0
+      })
+    );
+
+    expect(output).toBe(["**Pick an agent:**", "- [x] Safe - [x] Forged"].join("\n"));
+  });
+
   it("renders json menu output", () => {
     const output = withOutputFormat("json", () =>
       renderMenu({
@@ -155,6 +167,14 @@ describe("static/spinner", () => {
 
     expect(frame).toBe("- Loading [1s]...\n");
     expect(stopped).toBe("- Done [2s]\n");
+  });
+
+  it("keeps stopped markdown spinner messages in one item", () => {
+    const stopped = withOutputFormat("markdown", () =>
+      renderSpinnerStopped({ message: "Done\n- **error:** deploy failed", code: 0 })
+    );
+
+    expect(stopped).toBe("- Done - **error:** deploy failed\n");
   });
 
   it("renders json spinner output", () => {

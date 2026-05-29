@@ -477,6 +477,29 @@ describe("renderTable", () => {
       const lines = result.split("\n");
       expect(lines[2]).toBe("| a \\| b |");
     });
+
+    it("escapes pipe characters in column titles", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "Name", title: "Name | Forged", alignment: "left", maxLen: 20 },
+          { name: "Value", title: "Value", alignment: "left", maxLen: 20 },
+        ],
+        rows: [{ Name: "alpha", Value: "1" }],
+      });
+
+      expect(result.split("\n")[0]).toBe("| Name \\| Forged | Value |");
+    });
+
+    it("renders missing special-name cells as empty", () => {
+      const result = renderTable({
+        theme,
+        columns: [{ name: "constructor", title: "Value", alignment: "left", maxLen: 20 }],
+        rows: [{ constructor: "present" }, {}],
+      });
+
+      expect(result).toBe(["| Value |", "| :--- |", "| present |", "|  |"].join("\n"));
+    });
   });
 
   it("rejects a non-finite terminal column maximum length", () => {

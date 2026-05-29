@@ -15,6 +15,10 @@ export interface RenderMenuOptions {
   selectedIndex?: number;
 }
 
+function renderMarkdownInline(value: string): string {
+  return value.replaceAll("\r\n", " ").replaceAll("\n", " ").replaceAll("\r", " ");
+}
+
 export function renderMenu(opts: RenderMenuOptions): string {
   const format = resolveOutputFormat();
   const selectedIndex = opts.selectedIndex ?? 0;
@@ -24,9 +28,9 @@ export function renderMenu(opts: RenderMenuOptions): string {
 
   if (format === "markdown") {
     return [
-      `**${opts.message}**`,
+      `**${renderMarkdownInline(opts.message)}**`,
       ...opts.options.map(
-        (option, index) => `- [${index === selectedIndex ? "x" : " "}] ${option.label}`
+        (option, index) => `- [${index === selectedIndex ? "x" : " "}] ${renderMarkdownInline(option.label)}`
       )
     ].join("\n");
   }

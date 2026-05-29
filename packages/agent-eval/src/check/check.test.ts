@@ -18,10 +18,12 @@ vi.mock("node:fs/promises", () => ({
     readdir: (...args: unknown[]) =>
       mocks.fs.readdir(...(args as Parameters<typeof mocks.fs.readdir>)),
     stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>))
+    ,realpath: (...args: unknown[]) => mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
   },
   cp: (...args: unknown[]) => mocks.fs.cp(...(args as Parameters<typeof mocks.fs.cp>)),
   mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
   stat: (...args: unknown[]) => mocks.fs.stat(...(args as Parameters<typeof mocks.fs.stat>))
+  ,realpath: (...args: unknown[]) => mocks.fs.realpath(...(args as Parameters<typeof mocks.fs.realpath>))
 }));
 
 vi.mock("../run/clone.js", () => ({
@@ -155,6 +157,19 @@ describe("evalCheck", () => {
 
     await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
       "oracle.path must stay within the eval directory."
+    );
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+  });
+
+  it("rejects symlinked solution destinations that escape the clone root", async () => {
+    mocks.cloneTarget.mockImplementation(async ({ dest }: { dest: string }) => {
+      await mocks.fs.mkdir(dest, { recursive: true });
+      await mocks.fs.mkdir("/outside", { recursive: true });
+      await mocks.fs.symlink("/outside", path.join(dest, "patched"));
+    });
+
+    await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
+      "oracle.solution_dest must stay within the canonical clone directory."
     );
     expect(mocks.runScorer).not.toHaveBeenCalled();
   });

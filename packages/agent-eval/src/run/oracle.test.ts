@@ -6,7 +6,8 @@ import type { EvalDef, EvalSource } from "../types.js";
 
 const mocks = vi.hoisted(() => ({
   createHostRunner: vi.fn(),
-  loadEval: vi.fn()
+  loadEval: vi.fn(),
+  realpath: vi.fn()
 }));
 
 vi.mock("@poe-code/process-runner", async (importOriginal) => {
@@ -21,6 +22,10 @@ vi.mock("../source/registry.js", () => ({
   loadEval: mocks.loadEval
 }));
 
+vi.mock("node:fs/promises", () => ({
+  realpath: mocks.realpath
+}));
+
 import { verifyOracle } from "./oracle.js";
 
 afterEach(() => {
@@ -32,6 +37,7 @@ describe("verifyOracle", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.realpath.mockImplementation(async (filePath: string) => filePath);
   });
 
   it("passes when no verify block is configured", async () => {
@@ -129,6 +135,20 @@ describe("verifyOracle", () => {
     expect(runner.specs[0]?.env).toMatchObject({
       ORACLE_DIR: path.resolve("evals/smoke/oracle")
     });
+  });
+
+  it("rejects a symlinked oracle directory outside the source root", async () => {
+    mocks.loadEval.mockResolvedValue(
+      createEval({ verify: { command: "npm run verify", timeoutMs: 500 } })
+    );
+    mocks.realpath.mockImplementation(async (filePath: string) =>
+      filePath === "/repo/evals/smoke/oracle" ? "/outside/oracle" : filePath
+    );
+
+    await expect(verifyOracle(source, "smoke")).rejects.toThrow(
+      "oracle.path must stay within the canonical eval directory."
+    );
+    expect(mocks.createHostRunner).not.toHaveBeenCalled();
   });
 });
 

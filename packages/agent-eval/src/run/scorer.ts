@@ -7,7 +7,7 @@ import {
   type RunSpec
 } from "@poe-code/process-runner";
 import { resolveScorer, type EvalDef, type ScorerSpec } from "../types.js";
-import { resolveContainedPath } from "../path-boundary.js";
+import { assertCanonicalContainedPath, resolveContainedPath } from "../path-boundary.js";
 import { runVitest, type CaseResult } from "./vitest-runner.js";
 
 const defaultVitestTimeoutMs = 180_000;
@@ -36,6 +36,7 @@ export async function runScorer(input: {
   const absoluteEvalDir = path.resolve(input.evalDir);
   const absoluteCloneDir = path.resolve(input.cloneDir);
   const oracleDir = resolveContainedPath(absoluteEvalDir, input.evalDef.oracle.path, "oracle.path");
+  await assertCanonicalContainedPath(absoluteEvalDir, oracleDir, "oracle.path");
 
   if (scorer.kind === "vitest") {
     return runVitest({
@@ -67,6 +68,7 @@ async function runCustomScorer(input: {
     input.spec.resultPath,
     "scorer.result_path"
   );
+  await assertCanonicalContainedPath(input.cloneDir, cwd, "scorer.cwd");
   const result = await runScorerCommand(createHostRunner(), {
     command: input.spec.command,
     cwd,
@@ -79,6 +81,7 @@ async function runCustomScorer(input: {
     throw new ScorerTimeoutError(`Scorer timed out after ${input.spec.timeoutMs}ms`);
   }
 
+  await assertCanonicalContainedPath(input.cloneDir, resultPath, "scorer.result_path");
   const rawResult = await readScorerResult(resultPath, result);
   return parseScorerResult(resultPath, rawResult);
 }

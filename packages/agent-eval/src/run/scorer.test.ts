@@ -8,6 +8,7 @@ import type { EvalDef, ScorerSpec } from "../types.js";
 const mocks = vi.hoisted(() => ({
   createHostRunner: vi.fn(),
   readFile: vi.fn(),
+  realpath: vi.fn(),
   runVitest: vi.fn()
 }));
 
@@ -20,7 +21,8 @@ vi.mock("@poe-code/process-runner", async (importOriginal) => {
 });
 
 vi.mock("node:fs/promises", () => ({
-  readFile: mocks.readFile
+  readFile: mocks.readFile,
+  realpath: mocks.realpath
 }));
 
 vi.mock("./vitest-runner.js", () => ({
@@ -36,6 +38,7 @@ afterEach(() => {
 describe("runScorer", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.realpath.mockImplementation(async (filePath: string) => filePath);
   });
 
   it("dispatches to the default vitest scorer when scorer is absent", async () => {
@@ -191,6 +194,59 @@ describe("runScorer", () => {
     ).rejects.toThrow("scorer.result_path must stay within the clone directory.");
 
     expect(mocks.createHostRunner).not.toHaveBeenCalled();
+  });
+
+  it("rejects symlinked oracle directories that escape the eval directory", async () => {
+    mocks.realpath.mockImplementation(async (filePath: string) =>
+      filePath === "/work/eval/oracle" ? "/outside/oracle" : filePath
+    );
+
+    await expect(
+      runScorer({ evalDef: createEvalDef(), evalDir: "/work/eval", cloneDir: "/work/clone" })
+    ).rejects.toThrow("oracle.path must stay within the canonical eval directory.");
+    expect(mocks.createHostRunner).not.toHaveBeenCalled();
+  });
+
+  it("rejects symlinked oracle directories before running the default scorer", async () => {
+    mocks.realpath.mockImplementation(async (filePath: string) =>
+      filePath === "/work/eval/oracle" ? "/outside/oracle" : filePath
+    );
+
+    await expect(
+      runScorer({
+        evalDef: createEvalDef({ scorer: undefined }),
+        evalDir: "/work/eval",
+        cloneDir: "/work/clone"
+      })
+    ).rejects.toThrow("oracle.path must stay within the canonical eval directory.");
+    expect(mocks.runVitest).not.toHaveBeenCalled();
+  });
+
+  it("rejects symlinked custom scorer working directories that escape the clone", async () => {
+    mocks.realpath.mockImplementation(async (filePath: string) =>
+      filePath === "/work/clone/results" ? "/outside/results" : filePath
+    );
+
+    await expect(
+      runScorer({
+        evalDef: createEvalDef({ scorer: createScorerSpec({ cwd: "results" }) }),
+        evalDir: "/work/eval",
+        cloneDir: "/work/clone"
+      })
+    ).rejects.toThrow("scorer.cwd must stay within the canonical clone directory.");
+    expect(mocks.createHostRunner).not.toHaveBeenCalled();
+  });
+
+  it("rejects symlinked custom scorer result files outside the clone", async () => {
+    useMemfs({ "/work/clone/score.json": JSON.stringify({ passed: 1, total: 1 }) });
+    mocks.createHostRunner.mockReturnValue(createRecordingRunner([{ exitCode: 0 }]));
+    mocks.realpath.mockImplementation(async (filePath: string) =>
+      filePath === "/work/clone/score.json" ? "/outside/score.json" : filePath
+    );
+
+    await expect(
+      runScorer({ evalDef: createEvalDef(), evalDir: "/work/eval", cloneDir: "/work/clone" })
+    ).rejects.toThrow("scorer.result_path must stay within the canonical clone directory.");
   });
 
   it("injects absolute clone and oracle dirs for custom scorers", async () => {

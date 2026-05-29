@@ -6,7 +6,7 @@ import { loadEval } from "../source/registry.js";
 import type { CaseResult } from "../run/vitest-runner.js";
 import { cloneTarget } from "../run/clone.js";
 import { runScorer } from "../run/scorer.js";
-import { resolveContainedPath } from "../path-boundary.js";
+import { assertCanonicalDestinationPath, resolveContainedPath } from "../path-boundary.js";
 
 export interface CheckOptions {
   sourceDir: string;
@@ -94,6 +94,7 @@ async function copyOracleSolution(input: {
   solutionDest: string;
 }): Promise<void> {
   const destDir = resolveCloneRelativePath(input.cloneDir, input.solutionDest);
+  await assertCanonicalDestinationPath(input.cloneDir, destDir, "oracle.solution_dest");
   await mkdir(destDir, { recursive: true });
   await cp(input.solutionDir, destDir, {
     recursive: true,

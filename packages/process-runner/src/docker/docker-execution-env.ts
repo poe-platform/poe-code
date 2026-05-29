@@ -30,6 +30,16 @@ interface DockerRuntime {
   extra_args?: string[];
 }
 
+interface DetachedJobContext {
+  id: string;
+  tool: string;
+  argv: string[];
+}
+
+interface DockerOpenedEnv extends OpenedEnv {
+  setDetachedJobContext(context: DetachedJobContext): void;
+}
+
 export interface BuildDockerRuntimeTemplateInput {
   cwd: string;
   runtime: DockerRuntime;
@@ -112,15 +122,22 @@ function createDockerEnv(input: {
   engine: Engine;
   context: string | null;
   attachedJobId?: string;
-}): OpenedEnv {
+}): DockerOpenedEnv {
   const containerRef = input.id;
+  let detachedJobContext: DetachedJobContext | null =
+    input.attachedJobId === undefined
+      ? null
+      : { id: input.attachedJobId, tool: input.spec.jobLabel.tool, argv: input.spec.jobLabel.argv };
 
   return {
     id: containerRef,
     job:
       input.attachedJobId === undefined
         ? null
-        : createContainerJob(containerRef, input.runner, input.engine, input.context, input.attachedJobId),
+        : createContainerJob(containerRef, input.runner, input.engine, input.context, detachedJobContext),
+    setDetachedJobContext(context) {
+      detachedJobContext = context;
+    },
     async uploadWorkspace() {
       const tempDir = mkdtempSync(path.join(tmpdir(), "poe-docker-upload-"));
       const archivePath = path.join(tempDir, "workspace.tar");
@@ -229,7 +246,7 @@ function createDockerEnv(input: {
       });
     },
     async detach() {
-      return createContainerJob(containerRef, input.runner, input.engine, input.context);
+      return createContainerJob(containerRef, input.runner, input.engine, input.context, detachedJobContext);
     },
     shell() {
       const shellSpec = input.spec.shellSpec;
@@ -431,14 +448,20 @@ function createContainerJob(
   runner: Runner,
   engine: Engine,
   context: string | null,
-  jobId = containerId
+  detachedJobContext: DetachedJobContext | null = null
 ) {
+  const jobId = detachedJobContext?.id ?? containerId;
   return {
     id: jobId,
     envId: containerId,
-    tool: "docker",
-    argv: ["attach", containerId],
+    tool: detachedJobContext?.tool ?? "docker",
+    argv: detachedJobContext?.argv ?? ["attach", containerId],
     async status() {
+      if (detachedJobContext !== null) {
+        const exitCode = await readDetachedExitCode(containerId, jobId, runner, engine, context);
+        return exitCode === null ? ("running" as const) : ("exited" as const);
+      }
+
       const handle = runner.exec({
         command: engine,
         args: [
@@ -456,7 +479,7 @@ function createContainerJob(
       if (result.exitCode !== 0) {
         return "lost" as const;
       }
-      return stdout.trim() === "running" ? ("running" as const) : ("exited" as const);
+      return stdout.trim() === "exited" ? ("exited" as const) : ("running" as const);
     },
     async *stream(opts?: { sinceByte?: number }) {
       const handle = runner.exec({
@@ -479,6 +502,16 @@ function createContainerJob(
       }
     },
     async wait() {
+      if (detachedJobContext !== null) {
+        while (true) {
+          const exitCode = await readDetachedExitCode(containerId, jobId, runner, engine, context);
+          if (exitCode !== null) {
+            return { exitCode };
+          }
+          await new Promise<void>((resolve) => setTimeout(resolve, 25));
+        }
+      }
+
       const handle = runner.exec({
         command: engine,
         args: [...buildContextArgs(engine, context), "wait", containerId],
@@ -487,7 +520,8 @@ function createContainerJob(
       });
       const stdout = await readStream(handle.stdout);
       const result = await handle.result;
-      return { exitCode: Number.parseInt(stdout.trim(), 10) || result.exitCode };
+      const exitCode = Number.parseInt(stdout.trim(), 10);
+      return { exitCode: Number.isNaN(exitCode) ? result.exitCode : exitCode };
     },
     async kill(signal?: NodeJS.Signals) {
       const args =
@@ -502,6 +536,36 @@ function createContainerJob(
       });
     }
   };
+}
+
+async function readDetachedExitCode(
+  containerId: string,
+  jobId: string,
+  runner: Runner,
+  engine: Engine,
+  context: string | null
+): Promise<number | null> {
+  const exitFile = shellQuote(`/tmp/poe-jobs/${jobId}.exit`);
+  const handle = runner.exec({
+    command: engine,
+    args: [
+      ...buildContextArgs(engine, context),
+      "exec",
+      containerId,
+      "sh",
+      "-c",
+      `test -f ${exitFile} && cat ${exitFile} || true`
+    ],
+    stdout: "pipe",
+    stderr: "pipe"
+  });
+  const stdout = await readStream(handle.stdout);
+  const result = await handle.result;
+  if (result.exitCode !== 0) {
+    return null;
+  }
+  const exitCode = Number.parseInt(stdout.trim(), 10);
+  return Number.isNaN(exitCode) ? null : exitCode;
 }
 
 function createAttachedSpec(cwd = "/workspace"): OpenSpec {

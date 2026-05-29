@@ -418,6 +418,77 @@ describe("dockerExecutionEnvFactory", () => {
     });
     await expect(handle.result).resolves.toEqual({ exitCode: 0 });
   });
+
+  it("reports paused retained containers as still running", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["paused\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(createOpenSpec({ hostRunner: runner }));
+    const job = await env.detach();
+
+    await expect(job.status()).resolves.toBe("running");
+  });
+
+  it("preserves a successful docker wait exit code of zero", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 7, stdout: ["0\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(createOpenSpec({ hostRunner: runner }));
+    const job = await env.detach();
+
+    await expect(job.wait()).resolves.toEqual({ exitCode: 0 });
+  });
+
+  it("tracks an attached detached command using its completion marker", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["0\n"] },
+      { exitCode: 0, stdout: ["0\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node", "app.js"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    await expect(job.status()).resolves.toBe("exited");
+    await expect(job.wait()).resolves.toEqual({ exitCode: 0 });
+    expect(runner.specs[0]?.args).toEqual(
+      expect.arrayContaining(["exec", "container-id", "sh", "-c", expect.stringContaining("/tmp/poe-jobs/job-1.exit")])
+    );
+    expect(runner.specs[1]?.args).toEqual(
+      expect.arrayContaining(["exec", "container-id", "sh", "-c", expect.stringContaining("/tmp/poe-jobs/job-1.exit")])
+    );
+  });
+
+  it("tracks a newly detached command using its supplied job context", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["container-id\n"] },
+      { exitCode: 0, stdout: ["9\n"] }
+    ]);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.open(createOpenSpec({ hostRunner: runner })) as Awaited<ReturnType<typeof dockerExecutionEnvFactory.open>> & {
+      setDetachedJobContext(context: { id: string; tool: string; argv: string[] }): void;
+    };
+    env.setDetachedJobContext({ id: "job-new", tool: "node", argv: ["node", "app.js"] });
+    const job = await env.detach();
+
+    await expect(job.wait()).resolves.toEqual({ exitCode: 9 });
+    expect(job).toMatchObject({ id: "job-new", tool: "node", argv: ["node", "app.js"] });
+    expect(runner.specs[1]?.args).toEqual(
+      expect.arrayContaining(["exec", "container-id", "sh", "-c", expect.stringContaining("/tmp/poe-jobs/job-new.exit")])
+    );
+  });
 });
 
 function createOpenSpec(overrides: Partial<OpenSpec> = {}): OpenSpec {

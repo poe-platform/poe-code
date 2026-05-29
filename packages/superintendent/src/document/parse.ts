@@ -534,14 +534,6 @@ function expectString(value: unknown, fieldName: string, filePath: string): stri
   return value;
 }
 
-function expectNumber(value: unknown, fieldName: string, filePath: string): number {
-  if (typeof value !== "number" || !Number.isFinite(value)) {
-    throw new Error(`${filePath}: ${fieldName} must be a number`);
-  }
-
-  return value;
-}
-
 function expectPositiveInteger(value: unknown, fieldName: string, filePath: string): number {
   if (!Number.isInteger(value) || (value as number) <= 0) {
     throw new Error(`${filePath}: ${fieldName} must be a positive integer`);

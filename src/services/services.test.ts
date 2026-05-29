@@ -213,6 +213,21 @@ describe("config store", () => {
     await expect(fs.readFile(legacyPath, "utf8")).rejects.toThrow();
   });
 
+  it("rejects a symlinked legacy credentials file before importing external secrets", async () => {
+    const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile("/outside/credentials.json", JSON.stringify({ apiKey: "external-key" }), {
+      encoding: "utf8"
+    });
+    await fs.symlink("/outside/credentials.json", legacyPath);
+
+    await expect(loadConfig({ fs, filePath: configPath })).rejects.toThrow(
+      "Refusing legacy credentials access through symbolic link"
+    );
+    await expect(fs.readFile(configPath, "utf8")).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(fs.readFile("/outside/credentials.json", "utf8")).resolves.toContain("external-key");
+  });
+
   it("backs up and resets invalid json content", async () => {
     await fs.writeFile(configPath, "test\n", { encoding: "utf8" });
 

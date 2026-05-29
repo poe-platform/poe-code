@@ -231,6 +231,16 @@ async function migrateLegacyCredentialsIfNeeded(fs: FileSystem, filePath: string
 
 async function migrateLegacyCredentialsFile(fs: FileSystem, configPath: string): Promise<void> {
   const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+  try {
+    if ((await fs.lstat(legacyPath)).isSymbolicLink()) {
+      throw new Error(`Refusing legacy credentials access through symbolic link: ${legacyPath}`);
+    }
+  } catch (error) {
+    if (!isNotFound(error)) {
+      throw error;
+    }
+  }
+
   const raw = await readFileIfExists(fs, legacyPath);
   if (raw === null) {
     return;

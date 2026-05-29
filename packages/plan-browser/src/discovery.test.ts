@@ -256,6 +256,28 @@ describe("discoverAllPlans", () => {
     ]);
   });
 
+  it("does not repair invalid project configuration while discovering plans", async () => {
+    const volume = Volume.fromJSON({
+      "/repo/.poe-code/config.json": "{ invalid json\n",
+      "/repo/docs/plans/one.md": "# One\n"
+    }, "/");
+    volume.mkdirSync(homeDir, { recursive: true });
+    const fs = createFsFromVolume(volume).promises as unknown as DiscoveryFs;
+
+    await expect(
+      discoverAllPlans({
+        cwd,
+        homeDir,
+        fs,
+        configPath: resolveConfigPath(homeDir),
+        projectConfigPath: resolveProjectConfigPath(cwd)
+      })
+    ).rejects.toThrow(SyntaxError);
+
+    await expect(fs.readFile("/repo/.poe-code/config.json", "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
+  });
+
   it("does not fall back to legacy per-harness directories", async () => {
     const fs = createMemFs({
       "/repo/.poe-code/pipeline/plans/legacy-pipeline.md": [

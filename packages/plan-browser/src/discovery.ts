@@ -1,6 +1,6 @@
 import path from "node:path";
 import * as fsPromises from "node:fs/promises";
-import { planConfigScope, readMergedDocument, resolveScope } from "@poe-code/poe-code-config";
+import { planConfigScope, readMergedDocumentReadonly, resolveScope } from "@poe-code/poe-code-config";
 import { readPlanMetadata, splitFrontmatter } from "./format.js";
 import type { DiscoveryFs, PlanEntry, PlanKind } from "./types.js";
 
@@ -91,8 +91,8 @@ async function resolveSharedPlanDirectory(options: {
     return envValue;
   }
 
-  const document = await readMergedDocument(
-    options.fs as Parameters<typeof readMergedDocument>[0],
+  const document = await readMergedDocumentReadonly(
+    options.fs as Parameters<typeof readMergedDocumentReadonly>[0],
     options.configPath,
     options.projectConfigPath
   );

@@ -83,6 +83,92 @@ describe("createLogWriter", () => {
     await expect(fs.readFile("/logs/stdout.2.log", "utf8")).resolves.toBe("previous\n");
   });
 
+  it("serializes writes with rotation so concurrent appended lines are retained", async () => {
+    const baseFs = createMemFs();
+    let releaseRotation!: () => void;
+    let copiedCurrent!: () => void;
+    const copied = new Promise<void>((resolve) => {
+      copiedCurrent = resolve;
+    });
+    const gate = new Promise<void>((resolve) => {
+      releaseRotation = resolve;
+    });
+    const fs: LauncherFileSystem = {
+      ...baseFs,
+      async writeFile(filePath, content) {
+        await baseFs.writeFile(filePath, content);
+        if (filePath === "/logs/stdout.1.log") {
+          copiedCurrent();
+          await gate;
+        }
+      }
+      ,
+      async appendFile(filePath, content) {
+        await baseFs.appendFile(filePath, content);
+      }
+    };
+    const writer = createLogWriter("/logs", 3, fs);
+    await writer.write("old", "stdout");
+
+    const rotating = writer.rotate();
+    await copied;
+    const writing = writer.write("late", "stdout");
+    const outcomeBeforeRotationCompletes = await Promise.race([
+      writing.then(() => "written"),
+      new Promise<string>((resolve) => setTimeout(() => resolve("pending"), 10))
+    ]);
+    expect(outcomeBeforeRotationCompletes).toBe("pending");
+    releaseRotation();
+    await Promise.all([rotating, writing]);
+
+    await expect(fs.readFile("/logs/stdout.1.log", "utf8")).resolves.toBe("old\n");
+    await expect(writer.tail("stdout")).resolves.toEqual(["late"]);
+  });
+
+  it("preserves prior retained logs if rotating the current log fails", async () => {
+    const baseFs = createMemFs();
+    await baseFs.mkdir("/logs", { recursive: true });
+    await baseFs.writeFile("/logs/stdout.log", "current\n");
+    await baseFs.writeFile("/logs/stdout.1.log", "retained\n");
+    const fs: LauncherFileSystem = {
+      ...baseFs,
+      async rm(filePath, options) {
+        if (filePath === "/logs/stdout.log") {
+          throw new Error("injected rotation failure");
+        }
+        await baseFs.rm(filePath, options);
+      }
+    };
+
+    await expect(createLogWriter("/logs", 1, fs).rotate()).rejects.toThrow(
+      "injected rotation failure"
+    );
+    await expect(baseFs.readFile("/logs/stdout.log", "utf8")).resolves.toBe("current\n");
+    await expect(baseFs.readFile("/logs/stdout.1.log", "utf8")).resolves.toBe("retained\n");
+  });
+
+  it("preserves both streams when zero-retention cleanup cannot finish", async () => {
+    const baseFs = createMemFs();
+    await baseFs.mkdir("/logs", { recursive: true });
+    await baseFs.writeFile("/logs/stdout.log", "stdout current\n");
+    await baseFs.writeFile("/logs/stderr.log", "stderr current\n");
+    const fs: LauncherFileSystem = {
+      ...baseFs,
+      async rm(filePath, options) {
+        if (filePath === "/logs/stderr.log") {
+          throw new Error("injected stderr removal failure");
+        }
+        await baseFs.rm(filePath, options);
+      }
+    };
+
+    await expect(createLogWriter("/logs", 0, fs).rotate()).rejects.toThrow(
+      "injected stderr removal failure"
+    );
+    await expect(baseFs.readFile("/logs/stdout.log", "utf8")).resolves.toBe("stdout current\n");
+    await expect(baseFs.readFile("/logs/stderr.log", "utf8")).resolves.toBe("stderr current\n");
+  });
+
   it("rotate() deletes oldest file beyond retainCount", async () => {
     const fs = createMemFs();
     await fs.mkdir("/logs", { recursive: true });

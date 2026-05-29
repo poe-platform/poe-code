@@ -242,6 +242,13 @@ exports[`ghIssuesBackend > create fetches the repository id lazily and caches it
     issue {
       id
       number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
     }
   }
 }",
@@ -293,6 +300,13 @@ exports[`ghIssuesBackend > create fetches the repository id lazily and caches it
     issue {
       id
       number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
     }
   }
 }",
@@ -349,6 +363,13 @@ exports[`ghIssuesBackend > create ignores a passed id and uses the GitHub-assign
     issue {
       id
       number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
     }
   }
 }",
@@ -405,6 +426,13 @@ exports[`ghIssuesBackend > create({ name, description }) issues the GitHub issue
     issue {
       id
       number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
     }
   }
 }",
@@ -807,6 +835,13 @@ exports[`ghIssuesBackend > update uses the issue id cached by create 1`] = `
     issue {
       id
       number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
     }
   }
 }",

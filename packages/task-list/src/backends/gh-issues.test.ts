@@ -739,14 +739,7 @@ describe("ghIssuesBackend", () => {
         number: 573
       }),
       addProjectItemResponse("item-573"),
-      updateStatusResponse(),
-      issueResponse({
-        number: 573,
-        title: "New issue",
-        body: "Created from task-list.",
-        status: "Todo",
-        projectItemId: "item-573"
-      })
+      updateStatusResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
 
@@ -762,6 +755,69 @@ describe("ghIssuesBackend", () => {
       state: "Todo"
     });
     expect(readMutationCalls(fetchMock)).toMatchSnapshot();
+  });
+
+  it("closes a created issue when project attachment fails", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      repositoryResponse("repo-node"),
+      createIssueResponse({ issueId: "issue-node-573", number: 573 }),
+      graphqlResponse({ addProjectV2ItemById: { item: null } }),
+      updateIssueResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").create({ name: "New issue" })).rejects.toThrow(
+      "did not include project item id"
+    );
+    expect(readMutationCalls(fetchMock).at(-1)).toEqual(
+      expect.objectContaining({
+        query: expect.stringContaining("mutation UpdateIssue"),
+        variables: { input: { id: "issue-node-573", state: "CLOSED" } }
+      })
+    );
+  });
+
+  it("removes an attached item and closes its issue when initial Status fails", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      repositoryResponse("repo-node"),
+      createIssueResponse({ issueId: "issue-node-573", number: 573 }),
+      addProjectItemResponse("item-573"),
+      graphqlErrorResponse("initial status failed"),
+      deleteProjectItemResponse(),
+      updateIssueResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").create({ name: "New issue" })).rejects.toThrow(
+      "initial status failed"
+    );
+    expect(readMutationCalls(fetchMock).slice(-2)).toEqual([
+      expect.objectContaining({ query: expect.stringContaining("mutation DeleteProjectItem") }),
+      expect.objectContaining({
+        query: expect.stringContaining("mutation UpdateIssue"),
+        variables: { input: { id: "issue-node-573", state: "CLOSED" } }
+      })
+    ]);
+  });
+
+  it("returns a fully initialized created task without a confirmation read", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      repositoryResponse("repo-node"),
+      createIssueResponse({ issueId: "issue-node-573", number: 573 }),
+      addProjectItemResponse("item-573"),
+      updateStatusResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").create({ name: "Created" })).resolves.toMatchObject({
+      id: "573",
+      name: "Created",
+      state: "Todo"
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(5);
   });
 
   it("create ignores a passed id and uses the GitHub-assigned issue number", async () => {
@@ -840,24 +896,12 @@ describe("ghIssuesBackend", () => {
       }),
       addProjectItemResponse("item-101"),
       updateStatusResponse(),
-      issueResponse({
-        number: 101,
-        title: "First issue",
-        status: "Todo",
-        projectItemId: "item-101"
-      }),
       createIssueResponse({
         issueId: "issue-node-102",
         number: 102
       }),
       addProjectItemResponse("item-102"),
-      updateStatusResponse(),
-      issueResponse({
-        number: 102,
-        title: "Second issue",
-        status: "Todo",
-        projectItemId: "item-102"
-      })
+      updateStatusResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
     const tasks = taskList.list("octo-org/7");
@@ -1601,9 +1645,23 @@ function createIssueResponse(options: { issueId: string; number: number }): Resp
     createIssue: {
       issue: {
         id: options.issueId,
-        number: options.number
+        number: options.number,
+        title: "Created issue",
+        body: "",
+        url: `https://example.test/issues/${options.number}`,
+        createdAt: "2026-05-26T00:00:00Z",
+        labels: { nodes: [] },
+        assignees: { nodes: [] },
+        milestone: null
       }
     }
+  });
+}
+
+function graphqlErrorResponse(message: string): Response {
+  return new Response(JSON.stringify({ errors: [{ message }] }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
   });
 }
 

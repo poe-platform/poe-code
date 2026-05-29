@@ -211,6 +211,13 @@ const CREATE_ISSUE_MUTATION = `mutation CreateIssue($input: CreateIssueInput!) {
     issue {
       id
       number
+      title
+      body
+      url
+      createdAt
+      labels(first: 50) { nodes { name } }
+      assignees(first: 20) { nodes { login } }
+      milestone { title }
     }
   }
 }`;
@@ -402,10 +409,7 @@ interface IssueStateLabelsResponse {
 
 interface CreateIssueResponse {
   createIssue?: {
-    issue?: {
-      id?: string | null;
-      number?: number | null;
-    } | null;
+    issue?: IssueNode | null;
   } | null;
 }
 
@@ -627,42 +631,77 @@ function createTasksView(
       const issue = created.createIssue?.issue;
       const issueId = issue?.id ?? null;
       const issueNumber = issue?.number ?? null;
-      if (issueId === null || issueNumber === null) {
+      if (issue === undefined || issue === null || issueId === null || issueNumber === null) {
         throw new Error("GitHub createIssue response did not include issue id and number.");
       }
 
       context.issueIds.set(issueNumber, issueId);
       let projectItemId: string | undefined;
-      if (session.projectId !== undefined) {
-        const added = await context.client.graphql<AddProjectItemResponse>(
-          ADD_PROJECT_ITEM_MUTATION,
-          {
-            input: {
-              projectId: session.projectId,
-              contentId: issueId
+      try {
+        if (session.projectId !== undefined) {
+          const added = await context.client.graphql<AddProjectItemResponse>(
+            ADD_PROJECT_ITEM_MUTATION,
+            {
+              input: {
+                projectId: session.projectId,
+                contentId: issueId
+              }
             }
+          );
+          projectItemId = added.addProjectV2ItemById?.item?.id ?? undefined;
+          if (projectItemId === undefined) {
+            throw new Error("GitHub addProjectV2ItemById response did not include project item id.");
           }
-        );
-        projectItemId = added.addProjectV2ItemById?.item?.id ?? undefined;
-        if (projectItemId === undefined) {
-          throw new Error("GitHub addProjectV2ItemById response did not include project item id.");
         }
+
+        if (session.labelPrefix === undefined) {
+          if (projectItemId === undefined) {
+            throw new Error("gh-issues project-backed state requires a project item id.");
+          }
+          await updateProjectItemStatus(
+            projectItemId,
+            session.stateMachine.initial,
+            session,
+            context
+          );
+        } else {
+          await addStateLabel(issueId, session.stateMachine.initial, session, context);
+        }
+      } catch (error) {
+        if (projectItemId !== undefined && session.projectId !== undefined) {
+          await context.client.graphql(DELETE_PROJECT_ITEM_MUTATION, {
+            input: { projectId: session.projectId, itemId: projectItemId }
+          });
+        }
+        await context.client.graphql(UPDATE_ISSUE_MUTATION, {
+          input: { id: issueId, state: "CLOSED" }
+        });
+        throw error;
       }
 
-      if (session.labelPrefix === undefined) {
-        if (projectItemId === undefined) {
-          throw new Error("gh-issues project-backed state requires a project item id.");
-        }
-        await updateProjectItemStatus(
-          projectItemId,
-          session.stateMachine.initial,
-          session,
-          context
-        );
-      } else {
-        await addStateLabel(issueId, session.stateMachine.initial, session, context);
-      }
-      return fetchIssueTask(String(issueNumber), name, session, context);
+      const task = mapIssueToTask({
+        issue: {
+          ...issue,
+          number: issueNumber,
+          title: input.name,
+          body: input.description ?? "",
+          url: issue.url,
+          createdAt: issue.createdAt,
+          labels: {
+            nodes: [
+              ...(context.labels ?? []).map((label) => ({ name: label })),
+              ...(session.labelPrefix === undefined
+                ? []
+                : [{ name: `${session.labelPrefix}${session.stateMachine.initial}` }])
+            ]
+          }
+        },
+        projectItemId,
+        statusName: session.stateMachine.initial,
+        listName: name,
+        session
+      });
+      return session.labelPrefix === undefined ? task : { ...task, state: session.stateMachine.initial };
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
       const task = await fetchIssueTask(id, name, session, context);

@@ -121,4 +121,22 @@ describe("ensureIsolatedConfigForService — provider resolution", () => {
 
     expect(resolveApiKey).not.toHaveBeenCalled();
   });
+
+  it("does not backfill legacy service metadata during dry-run previews", async () => {
+    const container = createContainer(fs);
+    const legacyConfig = JSON.stringify({ configured_services: { codex: { files: [] } } });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(container.env.configPath, legacyConfig, { encoding: "utf8" });
+
+    const adapter = container.registry.require("codex");
+    await ensureIsolatedConfigForService({
+      container,
+      adapter,
+      service: "codex",
+      flags: { ...defaultFlags, dryRun: true },
+      refresh: true
+    });
+
+    await expect(fs.readFile(container.env.configPath, "utf8")).resolves.toBe(legacyConfig);
+  });
 });

@@ -84,6 +84,23 @@ describe("wrap command", () => {
     );
   });
 
+  it("does not execute the wrapped binary during dry-run previews", async () => {
+    const fs = createMemFs();
+    const logs: string[] = [];
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd: "/repo", homeDir: "/home/test" },
+      logger: (message) => logs.push(message),
+      commandRunner: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "wrap", "opencode", "--", "run", "hello"]);
+
+    expect(runner.isolatedEnvRunner).not.toHaveBeenCalled();
+    expect(logs.join("\n")).toContain("Dry run: would run opencode run hello.");
+  });
+
   it.each([
     ["claude-code", "poe", { POE_API_KEY: "sk-wrap" }],
     [

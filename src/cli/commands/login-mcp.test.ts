@@ -430,6 +430,22 @@ describe("login command", () => {
     expect(logs.some((message) => message.includes("Dry run"))).toBe(true);
   });
 
+  it("does not backfill legacy service metadata while previewing login", async () => {
+    const legacyConfig = JSON.stringify({ configured_services: { opencode: { files: [] } } });
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, legacyConfig, "utf8");
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message)
+    });
+
+    await program.parseAsync(["node", "cli", "--dry-run", "--yes", "login", "--api-key", DRY_KEY]);
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(legacyConfig);
+  });
+
   it.each(["goose", "kimi"])("does not expose the API key while previewing login reconfiguration for %s", async (service) => {
     await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
     await fs.writeFile(

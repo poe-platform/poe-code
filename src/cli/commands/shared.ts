@@ -253,18 +253,20 @@ function stripTrailingPathSegment(value: string, segment: string): string {
 
 export async function resolveActiveProviderForService(
   container: CliContainer,
-  serviceName: string
+  serviceName: string,
+  options: { readOnly?: boolean } = {}
 ): Promise<ActiveProvider | undefined> {
   const configuredServices = await loadConfiguredServices({
     fs: container.fs,
     filePath: container.env.configPath,
-    projectFilePath: container.env.projectConfigPath
+    projectFilePath: container.env.projectConfigPath,
+    readOnly: options.readOnly
   });
   const agent = resolveAgentDefinition(serviceName) ?? { id: serviceName };
   const configuredProviderId = configuredServices[serviceName]?.provider;
   const provider = configuredProviderId
     ? container.providerRegistry.get(configuredProviderId)
-    : await resolveSingleProviderCandidate(container, agent);
+    : await resolveSingleProviderCandidate(container, agent, options);
   if (!provider || provider.auth.kind !== "api-key") {
     return undefined;
   }
@@ -272,7 +274,8 @@ export async function resolveActiveProviderForService(
   let credential: string;
   try {
     credential = await container.providerRegistry.resolveCredential(provider.id, undefined, {
-      envVars: container.env.variables
+      envVars: container.env.variables,
+      readOnly: options.readOnly
     });
   } catch {
     return undefined;
@@ -288,7 +291,8 @@ export async function resolveActiveProviderForService(
 
 async function resolveSingleProviderCandidate(
   container: CliContainer,
-  agent: Pick<AgentDefinition, "id" | "apiShapes">
+  agent: Pick<AgentDefinition, "id" | "apiShapes">,
+  options: { readOnly?: boolean }
 ): Promise<AuthProvider | undefined> {
   const candidates = container.providerRegistry.forAgent(agent);
   if (candidates.length === 1) {
@@ -296,7 +300,7 @@ async function resolveSingleProviderCandidate(
   }
   const loggedIn: AuthProvider[] = [];
   for (const candidate of candidates) {
-    if (await container.providerRegistry.isLoggedIn(candidate.id)) {
+    if (await container.providerRegistry.isLoggedIn(candidate.id, options)) {
       loggedIn.push(candidate);
     }
   }

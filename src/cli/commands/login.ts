@@ -60,7 +60,8 @@ export async function executeLogin(
     const configuredServices = await loadConfiguredServices({
       fs: container.fs,
       filePath: container.env.configPath,
-      projectFilePath: container.env.projectConfigPath
+      projectFilePath: container.env.projectConfigPath,
+      readOnly: flags.dryRun
     });
 
     await reconfigureServices({

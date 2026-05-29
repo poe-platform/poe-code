@@ -3,6 +3,7 @@ import type { CliContainer } from "../container.js";
 import {
   formatServiceList,
   listIsolatedServiceIds,
+  createExecutionResources,
   resolveActiveProviderForService,
   resolveCommandFlags,
   resolveServiceAdapter
@@ -61,6 +62,14 @@ export function registerWrapCommand(
           flags,
           refresh: true
         });
+      }
+      if (flags.dryRun) {
+        const resources = createExecutionResources(container, flags, `wrap:${canonicalService}`);
+        resources.logger.dryRun(
+          `Dry run: would run ${[isolated.agentBinary, ...forwarded].join(" ")}.`
+        );
+        resources.context.finalize();
+        return;
       }
       const activeProvider = await resolveActiveProviderForService(container, canonicalService);
       await applyIsolatedEnvRepairs({

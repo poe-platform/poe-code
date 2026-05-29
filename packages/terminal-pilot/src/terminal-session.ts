@@ -71,6 +71,7 @@ export class TerminalSession {
     rows = DEFAULT_ROWS,
     observe = false
   }: TerminalSessionOptions) {
+    assertTerminalGeometry(cols, rows);
     this.id = id;
     this.command = command;
     this.currentCols = cols;
@@ -141,6 +142,7 @@ export class TerminalSession {
 
   async waitFor(pattern: string | RegExp, opts?: WaitForOptions): Promise<string> {
     const timeout = opts?.timeout ?? DEFAULT_TIMEOUT_MS;
+    assertTimeout(timeout);
     const startedAt = Date.now();
 
     while (Date.now() - startedAt <= timeout) {
@@ -156,6 +158,7 @@ export class TerminalSession {
   }
 
   async waitForQuiet(ms: number): Promise<void> {
+    assertQuietPeriod(ms);
     while (true) {
       const remaining = ms - (Date.now() - this.lastDataAt);
       if (remaining <= 0) {
@@ -204,6 +207,7 @@ export class TerminalSession {
   }
 
   async resize(cols: number, rows: number): Promise<void> {
+    assertTerminalGeometry(cols, rows);
     this.currentCols = cols;
     this.currentRows = rows;
     if (this.exitCode === null) {
@@ -213,6 +217,10 @@ export class TerminalSession {
   }
 
   async waitForExit(opts?: { timeout?: number }): Promise<number> {
+    if (opts?.timeout !== undefined) {
+      assertTimeout(opts.timeout);
+    }
+
     if (this.exitCode !== null) {
       return this.exitCode;
     }
@@ -263,6 +271,24 @@ export class TerminalSession {
 
   on(event: "exit", cb: (code: number) => void): void {
     this.emitter.on(event, cb);
+  }
+}
+
+function assertTerminalGeometry(cols: number, rows: number): void {
+  if (!Number.isInteger(cols) || cols <= 0 || !Number.isInteger(rows) || rows <= 0) {
+    throw new Error("Terminal columns and rows must be positive integers.");
+  }
+}
+
+function assertTimeout(timeout: number): void {
+  if (!Number.isFinite(timeout) || timeout < 0) {
+    throw new Error("Timeout must be a finite non-negative number.");
+  }
+}
+
+function assertQuietPeriod(duration: number): void {
+  if (!Number.isFinite(duration) || duration < 0) {
+    throw new Error("Quiet period must be a finite non-negative number.");
   }
 }
 

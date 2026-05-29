@@ -69,7 +69,7 @@ export const installCommand = defineCommand({
       throw new UserError(`Unsupported agent: ${params.agent}`);
     }
 
-    const skillContent = await loadSkillTemplate();
+    const skillContent = params.dryRun === true ? "" : await loadSkillTemplate();
     const skillResult = await installSkill(
       support.id,
       {
@@ -123,7 +123,7 @@ export const installCommand = defineCommand({
       ];
 
       if (result.planDirectoryCreated) {
-        lines.push(`- Created: ${result.planDirectory}`);
+        lines.push(`- ${result.dryRun === true ? "Would create" : "Created"}: ${result.planDirectory}`);
       }
 
       return lines.join("\n");

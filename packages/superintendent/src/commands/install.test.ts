@@ -92,6 +92,23 @@ describe("superintendent install command", () => {
     expect(markdown).toContain("- Created: ~/docs/plans");
   });
 
+  it("renders dry-run install output as a preview", () => {
+    const result: InstallResult = {
+      agent: "claude-code",
+      scope: "local",
+      skillPath: ".claude/skills/poe-code-superintendent-plan/SKILL.md",
+      planDirectory: "docs/plans",
+      planDirectoryCreated: true,
+      dryRun: true
+    };
+
+    const markdown = installCommand.render!.markdown!(result, renderPrimitives);
+
+    expect(markdown).toContain("- Dry run: true");
+    expect(markdown).toContain("- Would create: docs/plans");
+    expect(markdown).not.toContain("- Created: docs/plans");
+  });
+
   it("renders JSON output", () => {
     const result: InstallResult = {
       agent: "codex",

@@ -45,14 +45,21 @@ export function createE2bJobHandle(input: {
       }
       return result;
     },
-    async kill(): Promise<void> {
+    async kill(signal?: NodeJS.Signals): Promise<void> {
       const pids =
         input.pid === undefined
           ? (await input.sandbox.commands.list())
               .filter((process) => processMentionsJob(process, input.jobId))
               .map((process) => process.pid)
           : [input.pid];
-      await Promise.all(pids.map((pid) => input.sandbox.commands.kill(pid)));
+      if (signal === undefined) {
+        await Promise.all(pids.map((pid) => input.sandbox.commands.kill(pid)));
+        return;
+      }
+      const signalName = signal.startsWith("SIG") ? signal.slice(3) : signal;
+      await Promise.all(
+        pids.map((pid) => input.sandbox.commands.run(`kill -s ${shellQuote(signalName)} -- ${shellQuote(String(pid))}`))
+      );
     }
   };
 }

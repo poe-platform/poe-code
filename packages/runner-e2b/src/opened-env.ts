@@ -186,7 +186,7 @@ export function createOpenedE2bEnv(input: {
         stdout: "inherit",
         stderr: "inherit",
         tty: true
-      });
+      }, shellSpec === undefined ? undefined : shellCommand([command, ...(shellSpec.args ?? [])]));
     },
     async close() {
       await input.sandbox.kill();
@@ -343,7 +343,7 @@ function ignoreAsyncFailure(value: unknown): void {
   }
 }
 
-function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
+function runE2bPty(sandbox: E2bSandbox, spec: RunSpec, startupCommand?: string): RunHandle {
   const stdout = new PassThrough();
   let handleRef: E2bCommandHandle | null = null;
   const stdin = new Writable({
@@ -378,8 +378,11 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
         })
       : () => {};
   const result = started
-    .then((handle) => {
+    .then(async (handle) => {
       handleRef = handle;
+      if (startupCommand !== undefined) {
+        await sandbox.pty.sendInput(handle.pid, Buffer.from(`exec ${startupCommand}\r`));
+      }
       return handle.wait();
     })
     .then(

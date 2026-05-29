@@ -610,6 +610,31 @@ describe("createOpenedE2bEnv", () => {
     });
   });
 
+  it("launches an explicitly configured interactive command inside the PTY", async () => {
+    const ptyHandle = {
+      pid: 12,
+      wait: vi.fn().mockResolvedValue({ exitCode: 0 }),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockResolvedValue(ptyHandle);
+    sandbox.pty.sendInput.mockResolvedValue(undefined);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: {
+        ...createSpec(),
+        shellSpec: { command: "node", args: ["interactive-agent.js", "--chat"] }
+      }
+    });
+
+    await expect(env.shell().result).resolves.toEqual({ exitCode: 0 });
+    expect(sandbox.pty.sendInput).toHaveBeenCalledWith(
+      12,
+      Buffer.from("exec 'node' 'interactive-agent.js' '--chat'\r")
+    );
+  });
+
   it("forwards inherited stdin to an E2B PTY and cleans up listeners", async () => {
     let resolveWait!: (result: { exitCode: number }) => void;
     const ptyHandle = {

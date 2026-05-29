@@ -28,7 +28,12 @@ export async function buildE2bRuntimeTemplate(
 ): Promise<BuildE2bRuntimeTemplateResult> {
   const dockerfileBytes = await readFile(input.dockerfilePath);
   const buildContextFiles = await readBuildContextFiles(input.buildContext);
-  const hash = hashTemplate(dockerfileBytes, buildContextFiles, input.runtime.build_args);
+  const hash = hashTemplate(
+    dockerfileBytes,
+    buildContextFiles,
+    input.runtime.build_args,
+    input.runtime.from_template
+  );
   const cached = input.force === true ? null : await input.state?.templates.get("e2b", hash);
 
   if (cached?.template_id !== undefined) {
@@ -85,7 +90,8 @@ function decorateBuildError(error: unknown, tail: string[]): Error {
 function hashTemplate(
   dockerfileBytes: Buffer,
   buildContextFiles: BuildContextFile[],
-  buildArgs: Record<string, string>
+  buildArgs: Record<string, string>,
+  fromTemplate: string | undefined
 ): string {
   const hash = createHash("sha256");
   hash.update(dockerfileBytes);
@@ -104,6 +110,9 @@ function hashTemplate(
     hash.update(value);
     hash.update("\0");
   }
+  hash.update("from-template=");
+  hash.update(fromTemplate ?? "");
+  hash.update("\0");
   return hash.digest("hex");
 }
 

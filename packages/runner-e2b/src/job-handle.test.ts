@@ -55,6 +55,26 @@ describe("createE2bJobHandle", () => {
 
     await expect(createJob(sandbox).status()).rejects.toThrow("temporary file API outage");
   });
+
+  it("sends the requested stop signal to detached processes", async () => {
+    const sandbox = createSandbox();
+    const job = createE2bJobHandle({
+      sandbox,
+      envId: "sb",
+      jobId: "job-1",
+      tool: "node",
+      argv: ["node"],
+      pid: 42,
+      preserveAfterExitHours: 24
+    });
+
+    await job.kill("SIGTERM");
+    await job.kill("SIGKILL");
+
+    expect(sandbox.commands.run).toHaveBeenNthCalledWith(1, "kill -s 'TERM' -- '42'");
+    expect(sandbox.commands.run).toHaveBeenNthCalledWith(2, "kill -s 'KILL' -- '42'");
+    expect(sandbox.commands.kill).not.toHaveBeenCalled();
+  });
 });
 
 describe("createE2bLogStreamFs", () => {

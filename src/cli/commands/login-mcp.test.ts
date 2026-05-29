@@ -88,6 +88,7 @@ function readStoredApiKey(fs: FileSystem, homeDir: string): Promise<string | nul
     ) => fs.writeFile(filePath, data, opts),
     mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
       fs.mkdir(directoryPath, opts).then(() => undefined),
+    lstat: (filePath: string) => fs.lstat(filePath),
     unlink: (filePath: string) => fs.unlink(filePath),
     chmod: (filePath: string, mode: number) =>
       fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()

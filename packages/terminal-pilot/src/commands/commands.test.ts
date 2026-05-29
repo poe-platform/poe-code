@@ -857,4 +857,72 @@ describe("terminal-pilot install/uninstall commands", () => {
       removedSkillPaths: []
     });
   });
+
+  it("preserves local installation when global uninstall staging fails", async () => {
+    const { fs: rawFs, vol } = createMemFs();
+    const localSkill = path.join(CWD, ".claude/skills/terminal-pilot");
+    const globalSkill = path.join(HOME_DIR, ".claude/skills/terminal-pilot");
+    vol.mkdirSync(localSkill, { recursive: true });
+    vol.mkdirSync(globalSkill, { recursive: true });
+    await rawFs.writeFile(path.join(localSkill, "SKILL.md"), "local", { encoding: "utf8" });
+    await rawFs.writeFile(path.join(globalSkill, "SKILL.md"), "global", { encoding: "utf8" });
+    const fs = {
+      ...rawFs,
+      rename: async (fromPath: string, toPath: string) => {
+        if (fromPath === globalSkill) {
+          throw new Error("simulated global staging failure");
+        }
+        await rawFs.rename(fromPath, toPath);
+      }
+    };
+
+    await expect(
+      uninstall.handler({
+        ...createCommandContext(fs),
+        params: { agent: "claude-code" }
+      })
+    ).rejects.toThrow("simulated global staging failure");
+
+    await expect(rawFs.readFile(path.join(localSkill, "SKILL.md"), "utf8")).resolves.toBe(
+      "local"
+    );
+    await expect(rawFs.readFile(path.join(globalSkill, "SKILL.md"), "utf8")).resolves.toBe(
+      "global"
+    );
+  });
+
+  it("deactivates both installations when staged cleanup fails", async () => {
+    const { fs: rawFs, vol } = createMemFs();
+    const localSkill = path.join(CWD, ".claude/skills/terminal-pilot");
+    const globalSkill = path.join(HOME_DIR, ".claude/skills/terminal-pilot");
+    vol.mkdirSync(localSkill, { recursive: true });
+    vol.mkdirSync(globalSkill, { recursive: true });
+    await rawFs.writeFile(path.join(localSkill, "SKILL.md"), "local", { encoding: "utf8" });
+    await rawFs.writeFile(path.join(globalSkill, "SKILL.md"), "global", { encoding: "utf8" });
+    const fs = {
+      ...rawFs,
+      rm: async (folderPath: string, options?: { recursive?: boolean; force?: boolean }) => {
+        if (folderPath.startsWith(`${globalSkill}.removing-`)) {
+          throw new Error("simulated cleanup failure");
+        }
+        await rawFs.rm(folderPath, options);
+      }
+    };
+
+    await expect(
+      uninstall.handler({
+        ...createCommandContext(fs),
+        params: { agent: "claude-code" }
+      })
+    ).resolves.toEqual({
+      agent: "claude-code",
+      removedSkillPaths: [
+        ".claude/skills/terminal-pilot",
+        "~/.claude/skills/terminal-pilot"
+      ]
+    });
+
+    await expect(rawFs.stat(localSkill)).rejects.toThrow("ENOENT");
+    await expect(rawFs.stat(globalSkill)).rejects.toThrow("ENOENT");
+  });
 });

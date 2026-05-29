@@ -84,13 +84,14 @@ export function createE2bLogStreamFs(sandbox: E2bSandbox): LogStreamFs {
         .watchDir(path.dirname(filePath), listener, { recursive: false })
         .then((handle) => {
           if (closed) {
-            void handle.stop();
+            void handle.stop().catch(() => undefined);
             return;
           }
           stop = () => {
-            void handle.stop();
+            void handle.stop().catch(() => undefined);
           };
-        });
+        })
+        .catch(() => undefined);
       return {
         close() {
           closed = true;
@@ -113,9 +114,16 @@ function shellQuote(value: string): string {
 async function readExitCode(sandbox: E2bSandbox, jobId: string): Promise<number | null> {
   try {
     const contents = await sandbox.files.read(`${JOB_DIR}/${jobId}.exit`);
-    const exitCode = Number(contents.trim());
-    return Number.isInteger(exitCode) ? exitCode : null;
-  } catch {
-    return null;
+    const text = contents.trim();
+    const exitCode = Number(text);
+    if (text.length === 0 || !Number.isInteger(exitCode)) {
+      throw new Error(`Invalid exit code in ${JOB_DIR}/${jobId}.exit: ${contents}`);
+    }
+    return exitCode;
+  } catch (error) {
+    if (typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT") {
+      return null;
+    }
+    throw error;
   }
 }

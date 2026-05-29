@@ -1102,6 +1102,17 @@ describe("createRalphSimulation", () => {
     });
   });
 
+  it("rejects a model-only agent specifier", async () => {
+    const sim = createRalphSimulation({
+      agent: ":openai/gpt-5.4",
+      docContent: "# Plan",
+      maxIterations: 1,
+      turns: [successTurn()]
+    });
+
+    await expect(sim.run()).rejects.toThrow(/agent.*non-empty/i);
+  });
+
   it("per-agent inline models work with agent arrays", async () => {
     const sim = createRalphSimulation({
       agent: ["claude-code:anthropic/claude-opus-4.6", "codex:openai/gpt-5.4"],

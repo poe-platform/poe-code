@@ -970,6 +970,29 @@ describe("install command", () => {
     expect(install).toHaveBeenCalledOnce();
     expect(prompts).not.toHaveBeenCalled();
   });
+
+  it("does not recover malformed config while previewing install without an agent", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    const program = createBaseProgram();
+    registerInstallCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "--yes", "install"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
 });
 
 // ─── logout command ──────────────────────────────────────────────────────────

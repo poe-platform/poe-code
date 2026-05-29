@@ -1,14 +1,19 @@
-import { appendFile } from "node:fs/promises";
+import * as fsPromises from "node:fs/promises";
 import type { AgentPlugin } from "../runtime/plugin-types.js";
+import { assertNoSymbolicLinkPath } from "./plugin-args.js";
 
-const auditLog = (logPath: string): AgentPlugin => ({
+type AuditLogFileSystem = Pick<typeof fsPromises, "appendFile" | "lstat">;
+
+const auditLog = (logPath: string, fs: AuditLogFileSystem = fsPromises): AgentPlugin => ({
   name: "audit-log",
   hooks: {
     async postToolUse(ctx) {
-      await appendFile(logPath, `${JSON.stringify({ ts: new Date().toISOString(), tool: ctx.tool })}\n`);
+      await assertNoSymbolicLinkPath(fs, logPath);
+      await fs.appendFile(logPath, `${JSON.stringify({ ts: new Date().toISOString(), tool: ctx.tool })}\n`);
     },
     async postCompaction(ctx) {
-      await appendFile(
+      await assertNoSymbolicLinkPath(fs, logPath);
+      await fs.appendFile(
         logPath,
         `${JSON.stringify({
           ts: new Date().toISOString(),

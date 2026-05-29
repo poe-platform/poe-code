@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import * as fsPromises from "node:fs/promises";
 import path from "node:path";
 import type { SpawnMode } from "@poe-code/agent-spawn";
 import { parse as parseShellCommand } from "shell-quote";
@@ -15,6 +16,7 @@ import {
   getOptionalNumber,
   getOptionalString,
   getRequiredString,
+  assertNoSymbolicLinkPath,
   resolveAllowedPath
 } from "./plugin-args.js";
 import type { PluginSpec } from "./registry.js";
@@ -30,6 +32,7 @@ type RunCommandFn = (command: string, cwd: string, options: RunCommandOptions) =
 type ShellPluginOptions = {
   cwd?: string;
   allowedPaths?: string[];
+  fs?: Pick<typeof fsPromises, "lstat">;
   runCommand?: RunCommandFn;
 };
 
@@ -85,6 +88,7 @@ const shellPlugin = (options: ShellPluginOptions = {}): AgentPlugin => {
     path.resolve(cwd, allowedPath)
   );
   const runCommand = options.runCommand ?? defaultRunCommand;
+  const fs = options.fs ?? fsPromises;
   const backgroundCommands = new Map<string, BackgroundCommand>();
   let nextHandle = 0;
 
@@ -124,6 +128,7 @@ const shellPlugin = (options: ShellPluginOptions = {}): AgentPlugin => {
       const command = getRequiredString(args, "command");
       const commandCwdArg = getOptionalString(args, "cwd");
       const commandCwd = commandCwdArg ? resolveAllowedPath(cwd, allowedPaths, commandCwdArg) : cwd;
+      await assertNoSymbolicLinkPath(fs, commandCwd);
       const timeoutMs = parseTimeoutMs(args);
       const runInBackground = getOptionalBoolean(args, "run_in_background") ?? false;
 

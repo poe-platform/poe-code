@@ -1,5 +1,9 @@
 import path from "node:path";
 
+type PathInspectionFileSystem = {
+  lstat(filePath: string): Promise<{ isSymbolicLink(): boolean }>;
+};
+
 export function isObjectRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -107,4 +111,27 @@ export function resolveAllowedPath(cwd: string, allowedPaths: string[], inputPat
   }
 
   return resolvedPath;
+}
+
+export async function assertNoSymbolicLinkPath(
+  fs: PathInspectionFileSystem,
+  filePath: string
+): Promise<void> {
+  const absolutePath = path.resolve(filePath);
+  const root = path.parse(absolutePath).root;
+  let inspectedPath = root;
+
+  for (const segment of absolutePath.slice(root.length).split(path.sep).filter(Boolean)) {
+    inspectedPath = path.join(inspectedPath, segment);
+    try {
+      if ((await fs.lstat(inspectedPath)).isSymbolicLink()) {
+        throw new Error(`Path may not contain symbolic links: ${filePath}`);
+      }
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        return;
+      }
+      throw error;
+    }
+  }
 }

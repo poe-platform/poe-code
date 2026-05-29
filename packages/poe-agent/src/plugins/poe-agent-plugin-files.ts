@@ -16,13 +16,14 @@ import {
   getOptionalString,
   getRequiredString,
   isObjectRecord,
+  assertNoSymbolicLinkPath,
   resolveAllowedPath
 } from "./plugin-args.js";
 import type { PluginSpec } from "./registry.js";
 
 type PluginFileSystem = Pick<
   typeof fsPromises,
-  "mkdir" | "readFile" | "readdir" | "stat" | "writeFile"
+  "lstat" | "mkdir" | "readFile" | "readdir" | "stat" | "writeFile"
 >;
 
 type GrepOutputMode = "files_with_matches" | "content" | "count";
@@ -97,6 +98,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
     },
     async call(args: unknown) {
       const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"));
+      await assertNoSymbolicLinkPath(fs, filePath);
       const imageMimeType = detectImageMimeType(filePath);
       if (imageMimeType !== undefined) {
         const content = await fs.readFile(filePath);
@@ -160,6 +162,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
       const command = getRequiredString(args, "command");
       const filePath = resolveAllowedPath(cwd, allowedPaths, getRequiredString(args, "path"));
       const displayedPath = formatDisplayPath(cwd, filePath);
+      await assertNoSymbolicLinkPath(fs, filePath);
 
       if (command === "str_replace") {
         const oldStr = getRequiredString(args, "old_str", true);
@@ -197,6 +200,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         }
 
         await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await assertNoSymbolicLinkPath(fs, filePath);
         await fs.writeFile(filePath, fileText, "utf8");
         return `Created file: ${displayedPath}`;
       }
@@ -205,6 +209,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         const fileText = getRequiredString(args, "file_text", true);
 
         await fs.mkdir(path.dirname(filePath), { recursive: true });
+        await assertNoSymbolicLinkPath(fs, filePath);
         await fs.writeFile(filePath, fileText, "utf8");
         return `Overwrote file: ${displayedPath}`;
       }
@@ -232,6 +237,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
     async call(args: unknown): Promise<string> {
       const rawPath = getOptionalString(args, "path") ?? ".";
       const directoryPath = resolveAllowedPath(cwd, allowedPaths, rawPath);
+      await assertNoSymbolicLinkPath(fs, directoryPath);
       const entries = await fs.readdir(directoryPath);
       const names = entries.sort((left, right) => left.localeCompare(right));
 
@@ -288,6 +294,7 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         allowedPaths,
         getOptionalString(args, "path") ?? "."
       );
+      await assertNoSymbolicLinkPath(fs, searchPath);
 
       return searchContent({
         pattern: getRequiredString(args, "pattern"),
@@ -328,15 +335,20 @@ const filesPlugin = (options: FilesPluginOptions = {}): AgentPlugin => {
         allowedPaths,
         getOptionalString(args, "path") ?? "."
       );
+      await assertNoSymbolicLinkPath(fs, searchPath);
       const matches = await globFiles({
         pattern: getRequiredString(args, "pattern"),
         cwd: searchPath
       });
 
-      const sortedMatches = await sortPathsByModifiedTime(
-        matches.map((match) => resolveAllowedPath(cwd, allowedPaths, match)),
-        fs
+      const resolvedMatches = await Promise.all(
+        matches.map(async (match) => {
+          const resolvedMatch = resolveAllowedPath(cwd, allowedPaths, match);
+          await assertNoSymbolicLinkPath(fs, resolvedMatch);
+          return resolvedMatch;
+        })
       );
+      const sortedMatches = await sortPathsByModifiedTime(resolvedMatches, fs);
 
       if (sortedMatches.length === 0) {
         return "(no matches)";

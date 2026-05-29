@@ -191,6 +191,29 @@ describe("poe-agent-plugin-files", () => {
     );
   });
 
+  it("rejects reads and writes through symlinked allowed descendants", async () => {
+    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
+    const volume = Volume.fromJSON({
+      "/workspace/outside/secret.txt": "outside secret\n"
+    }, "/");
+    volume.mkdirSync("/workspace/project", { recursive: true });
+    volume.symlinkSync("/workspace/outside", "/workspace/project/linked");
+    const fs = createFsFromVolume(volume).promises;
+    const plugin = filesPlugin({ cwd: "/workspace/project", fs });
+
+    await expect(callTool(plugin.tools, "read_file", { path: "linked/secret.txt" })).rejects.toThrow(
+      "Path may not contain symbolic links"
+    );
+    await expect(
+      callTool(plugin.tools, "edit_file", {
+        command: "overwrite",
+        path: "linked/new.txt",
+        file_text: "written outside\n"
+      })
+    ).rejects.toThrow("Path may not contain symbolic links");
+    expect(volume.existsSync("/workspace/outside/new.txt")).toBe(false);
+  });
+
   it("returns image tool results for image files", async () => {
     const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const volume = Volume.fromJSON({}, "/");

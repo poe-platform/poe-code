@@ -1,6 +1,7 @@
 import * as fs from "node:fs/promises";
 import path from "node:path";
 import {
+  assertMemoryRootIsNotSymlink,
   MEMORY_INDEX_RELPATH,
   MEMORY_LOG_RELPATH,
   MEMORY_PAGES_DIR_RELPATH
@@ -8,6 +9,7 @@ import {
 import type { MemoryRoot } from "./types.js";
 
 export async function initMemory(root: MemoryRoot): Promise<void> {
+  await assertMemoryRootIsNotSymlink(root);
   await fs.mkdir(path.join(root, MEMORY_PAGES_DIR_RELPATH), { recursive: true });
   await writeFileIfMissing(path.join(root, MEMORY_INDEX_RELPATH), "# Memory index\n");
   await writeFileIfMissing(path.join(root, MEMORY_LOG_RELPATH), "");

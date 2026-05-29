@@ -2,7 +2,12 @@ import * as fs from "node:fs/promises";
 import path from "node:path";
 import { parseFrontmatter, serializeFrontmatter } from "./frontmatter.js";
 import { initMemory } from "./init.js";
-import { assertNoSymlinkSegments, assertSafeRelPath, MEMORY_PAGES_DIR_RELPATH } from "./paths.js";
+import {
+  assertMemoryRootIsNotSymlink,
+  assertNoSymlinkSegments,
+  assertSafeRelPath,
+  MEMORY_PAGES_DIR_RELPATH
+} from "./paths.js";
 import { reconcile, snapshot } from "./reconcile.js";
 import type { MemoryDiff, MemoryRoot, PageFrontmatter } from "./types.js";
 
@@ -52,6 +57,7 @@ export async function appendToPage(
 }
 
 export async function clearMemory(root: MemoryRoot): Promise<void> {
+  await assertMemoryRootIsNotSymlink(root);
   await removeChildren(root);
   await initMemory(root);
 }

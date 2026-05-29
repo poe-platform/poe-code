@@ -43,6 +43,20 @@ describe("clearMemory", () => {
       code: "ENOENT"
     });
   });
+
+  it("rejects a symlinked memory root without deleting external content", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/.keep": "",
+      "/outside/pages/remove.md": "preserve me\n",
+      "/outside/INDEX.md": "# external index\n",
+      "/outside/LOG.md": "external log\n"
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory");
+
+    await expect(clearMemory("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.readFile("/outside/pages/remove.md", "utf8")).resolves.toBe("preserve me\n");
+    await expect(vol.promises.readFile("/outside/INDEX.md", "utf8")).resolves.toBe("# external index\n");
+  });
 });
 
 describe("writePage", () => {

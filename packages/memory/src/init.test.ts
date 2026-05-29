@@ -50,4 +50,16 @@ describe("initMemory", () => {
       vol.promises.readFile("/repo/.poe-code/memory/pages/architecture.md", "utf8")
     ).resolves.toBe("# Architecture\n");
   });
+
+  it("rejects a symlinked memory root before writing scaffold files", async () => {
+    vol.fromJSON({
+      "/repo/.poe-code/.keep": "",
+      "/outside/.keep": ""
+    });
+    await vol.promises.symlink("/outside", "/repo/.poe-code/memory");
+
+    await expect(initMemory("/repo/.poe-code/memory")).rejects.toThrow(/symbolic link/i);
+    await expect(vol.promises.stat("/outside/INDEX.md")).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(vol.promises.stat("/outside/LOG.md")).rejects.toMatchObject({ code: "ENOENT" });
+  });
 });

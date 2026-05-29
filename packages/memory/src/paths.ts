@@ -64,6 +64,21 @@ export async function assertNoSymlinkSegments(root: MemoryRoot, relPath: string)
   }
 }
 
+export async function assertMemoryRootIsNotSymlink(root: MemoryRoot): Promise<void> {
+  try {
+    const stat = await fs.lstat(root);
+    if (stat.isSymbolicLink()) {
+      throw new MemoryPathError(`Memory root "${root}" cannot be a symbolic link.`);
+    }
+  } catch (error) {
+    if (isMissing(error)) {
+      return;
+    }
+
+    throw error;
+  }
+}
+
 function isMissing(error: unknown): boolean {
   return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }

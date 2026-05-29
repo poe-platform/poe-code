@@ -408,7 +408,7 @@ function parseFrontmatter(filePath: string, value: unknown): SuperintendentFront
 
   return {
     kind,
-    version: expectNumber(frontmatter.version, "version", filePath),
+    version: expectPositiveInteger(frontmatter.version, "version", filePath),
     mcp: parseMcpMap(frontmatter.mcp, filePath),
     builder: parseRequiredRole(frontmatter.builder, "builder", filePath),
     inspectors: parseInspectorMap(frontmatter.inspectors, filePath),
@@ -417,7 +417,7 @@ function parseFrontmatter(filePath: string, value: unknown): SuperintendentFront
     max_rounds:
       frontmatter.max_rounds === undefined
         ? 100
-        : expectNumber(frontmatter.max_rounds, "max_rounds", filePath),
+        : expectPositiveInteger(frontmatter.max_rounds, "max_rounds", filePath),
     status: parseStatusBlock(frontmatter.status, filePath)
   };
 }
@@ -509,8 +509,8 @@ function parseStatusBlock(value: unknown, filePath: string): StatusBlock {
 
   return {
     state: parsedState,
-    round: expectNumber(status.round, "status.round", filePath),
-    review_turn: expectNumber(status.review_turn, "status.review_turn", filePath)
+    round: expectNonNegativeInteger(status.round, "status.round", filePath),
+    review_turn: expectNonNegativeInteger(status.review_turn, "status.review_turn", filePath)
   };
 }
 
@@ -540,6 +540,22 @@ function expectNumber(value: unknown, fieldName: string, filePath: string): numb
   }
 
   return value;
+}
+
+function expectPositiveInteger(value: unknown, fieldName: string, filePath: string): number {
+  if (!Number.isInteger(value) || (value as number) <= 0) {
+    throw new Error(`${filePath}: ${fieldName} must be a positive integer`);
+  }
+
+  return value as number;
+}
+
+function expectNonNegativeInteger(value: unknown, fieldName: string, filePath: string): number {
+  if (!Number.isInteger(value) || (value as number) < 0) {
+    throw new Error(`${filePath}: ${fieldName} must be a non-negative integer`);
+  }
+
+  return value as number;
 }
 
 function expectPositiveNumber(value: unknown, fieldName: string, filePath: string): number {

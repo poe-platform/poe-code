@@ -674,4 +674,34 @@ Body
       /mcp\.delegate\.timeout must be a positive number/i
     );
   });
+
+  it.each([
+    ["version", "0", "version must be a positive integer"],
+    ["max_rounds", "0", "max_rounds must be a positive integer"],
+    ["round", "-1", "status.round must be a non-negative integer"],
+    ["review_turn", "-1", "status.review_turn must be a non-negative integer"]
+  ])("rejects invalid bounded integer field %s", (field, value, message) => {
+    let content = `---
+kind: superintendent
+version: 1
+max_rounds: 1
+builder:
+  prompt: build
+superintendent:
+  prompt: review
+owner:
+  prompt: approve
+status:
+  state: in_progress
+  round: 0
+  review_turn: 0
+---
+Body
+`;
+
+    const originalValue = field === "version" || field === "max_rounds" ? "1" : "0";
+    content = content.replace(`${field}: ${originalValue}`, `${field}: ${value}`);
+
+    expect(() => parseSuperintendentDoc("plan.md", content)).toThrow(message);
+  });
 });

@@ -99,7 +99,7 @@ function descriptionFromTaskRecord(taskRecord: TaskRecord): string {
 }
 
 function metadataFromTaskRecord(taskRecord: TaskRecord): Record<string, unknown> {
-  const metadata: Record<string, unknown> = {};
+  const metadata: Record<string, unknown> = Object.create(null);
 
   for (const [key, value] of Object.entries(taskRecord)) {
     if (!RESERVED_TASK_KEYS.has(key)) {
@@ -140,11 +140,11 @@ function createTaskRecord(
   input: TaskCreate,
   initialState: string
 ): TaskRecord {
-  const taskRecord: TaskRecord = {
+  const taskRecord: TaskRecord = Object.assign(Object.create(null), {
     name: input.name,
     state: initialState,
     description: input.description ?? ""
-  };
+  });
 
   for (const [key, value] of Object.entries(defaults.metadata)) {
     if (!RESERVED_TASK_KEYS.has(key)) {
@@ -183,12 +183,12 @@ function assertUpdateDoesNotSetState(patch: TaskUpdate): void {
 }
 
 function buildUpdatedTaskRecord(existing: TaskRecord, patch: TaskUpdate): TaskRecord {
-  const nextTaskRecord: TaskRecord = {
+  const nextTaskRecord: TaskRecord = Object.assign(Object.create(null), existing, {
     ...existing,
     name: patch.name ?? existing.name,
     state: existing.state,
     description: patch.description ?? descriptionFromTaskRecord(existing)
-  };
+  });
 
   for (const [key, value] of Object.entries(patch.metadata ?? {})) {
     if (!RESERVED_TASK_KEYS.has(key)) {
@@ -200,11 +200,11 @@ function buildUpdatedTaskRecord(existing: TaskRecord, patch: TaskUpdate): TaskRe
 }
 
 function buildTransitionedTaskRecord(existing: TaskRecord, to: string): TaskRecord {
-  return {
+  return Object.assign(Object.create(null), existing, {
     ...existing,
     state: to,
     description: descriptionFromTaskRecord(existing)
-  };
+  });
 }
 
 function buildFiredTaskRecord(

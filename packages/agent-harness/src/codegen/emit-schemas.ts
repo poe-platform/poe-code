@@ -9,6 +9,8 @@ import { extractSchema } from "../loader/extract-schema.js";
 interface HarnessSchemaFileSystem {
   mkdir(path: string, options?: { recursive?: boolean }): Promise<unknown>;
   realpath(path: string): Promise<string>;
+  rename(oldPath: string, newPath: string): Promise<unknown>;
+  unlink(path: string): Promise<unknown>;
   writeFile(
     filePath: string,
     data: string,
@@ -40,6 +42,7 @@ export async function runHarnessCodegen(
   const outputDirectory = path.join(repoRoot, "docs", "schemas", "harnesses");
 
   await fs.mkdir(outputDirectory, { recursive: true });
+  const documents: Array<{ outputPath: string; stagedPath: string; serialized: string }> = [];
 
   for (const template of await listBuiltinTemplateSchemaSources()) {
     const ajsSource = await nodeFs.readFile(template.ajsPath, "utf8");
@@ -56,14 +59,39 @@ export async function runHarnessCodegen(
       ...toJsonSchema(schema)
     };
     const outputPath = path.join(outputDirectory, fileName);
+    const stagedPath = path.join(outputDirectory, `.${fileName}.tmp`);
 
     await assertSafeSchemaOutput(repoRoot, outputPath, fs);
+    await assertSafeSchemaOutput(repoRoot, stagedPath, fs);
 
-    await fs.writeFile(
+    documents.push({
       outputPath,
-      serializeJsonDocument(document),
-      "utf8"
-    );
+      stagedPath,
+      serialized: serializeJsonDocument(document)
+    });
+  }
+
+  try {
+    for (const document of documents) {
+      await fs.writeFile(document.stagedPath, document.serialized, "utf8");
+    }
+  } catch (error) {
+    await Promise.all(documents.map((document) => unlinkIfExists(document.stagedPath, fs)));
+    throw error;
+  }
+
+  for (const document of documents) {
+    await fs.rename(document.stagedPath, document.outputPath);
+  }
+}
+
+async function unlinkIfExists(pathToRemove: string, fs: HarnessSchemaFileSystem): Promise<void> {
+  try {
+    await fs.unlink(pathToRemove);
+  } catch (error) {
+    if (!isMissingPathError(error)) {
+      throw error;
+    }
   }
 }
 

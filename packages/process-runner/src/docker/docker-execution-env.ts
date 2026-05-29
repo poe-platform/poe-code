@@ -337,10 +337,10 @@ export async function buildDockerRuntimeTemplate(
   );
   const buildContext = path.resolve(input.cwd, input.runtime.build_context ?? ".");
   const dockerfileBytes = await readFile(dockerfilePath);
-  const hash = hashDockerTemplate(dockerfileBytes, input.runtime.build_args ?? {});
+  const hash = hashDockerTemplate(dockerfileBytes, input.runtime.build_args ?? {}, engine);
   const cached = input.force ? null : await input.state?.templates.get("docker", hash);
 
-  if (cached?.image !== undefined) {
+  if (cached?.image !== undefined && (await imageExists(runner, engine, context, cached.image))) {
     return {
       backend: "docker",
       hash,
@@ -375,9 +375,15 @@ export async function buildDockerRuntimeTemplate(
   };
 }
 
-function hashDockerTemplate(dockerfileBytes: Buffer, buildArgs: Record<string, string>): string {
+function hashDockerTemplate(
+  dockerfileBytes: Buffer,
+  buildArgs: Record<string, string>,
+  engine: Engine
+): string {
   const hash = createHash("sha256");
   hash.update(dockerfileBytes);
+  hash.update("\0");
+  hash.update(engine);
   hash.update("\0");
   for (const [key, value] of sortedBuildArgs(buildArgs)) {
     hash.update(key);
@@ -386,6 +392,22 @@ function hashDockerTemplate(dockerfileBytes: Buffer, buildArgs: Record<string, s
     hash.update("\0");
   }
   return hash.digest("hex");
+}
+
+async function imageExists(
+  runner: Runner,
+  engine: Engine,
+  context: string | null,
+  image: string
+): Promise<boolean> {
+  const handle = runner.exec({
+    command: engine,
+    args: [...buildContextArgs(engine, context), "image", "inspect", image],
+    stdout: "pipe",
+    stderr: "pipe"
+  });
+  const result = await handle.result;
+  return result.exitCode === 0;
 }
 
 async function buildImage(input: {

@@ -103,7 +103,10 @@ describe("dockerExecutionEnvFactory", () => {
   });
 
   it("uses a cached dockerfile image when the template hash exists", async () => {
-    const runner = createCapturingRunner([{ exitCode: 0, stdout: ["cached-container\n"] }]);
+    const runner = createCapturingRunner([
+      { exitCode: 0 },
+      { exitCode: 0, stdout: ["cached-container\n"] }
+    ]);
     vi.mocked(readFile).mockResolvedValue(Buffer.from("FROM alpine\n"));
     const state = createState({
       image: "poe-code/local:cached",
@@ -131,8 +134,79 @@ describe("dockerExecutionEnvFactory", () => {
     expect(env.id).toBe("cached-container");
     expect(state.getCalls).toEqual([{ backend: "docker", hash: expect.any(String) }]);
     expect(state.putCalls).toEqual([]);
-    expect(runner.specs).toHaveLength(1);
-    expect(runner.specs[0]?.args).toContain("poe-code/local:cached");
+    expect(runner.specs).toHaveLength(2);
+    expect(runner.specs[0]?.args).toEqual(["image", "inspect", "poe-code/local:cached"]);
+    expect(runner.specs[1]?.args).toContain("poe-code/local:cached");
+  });
+
+  it("rebuilds a cached dockerfile image that no longer exists", async () => {
+    const runner = createCapturingRunner([
+      { exitCode: 1, stderr: ["missing image\n"] },
+      { exitCode: 0 },
+      { exitCode: 0, stdout: ["rebuilt-container\n"] }
+    ]);
+    vi.mocked(readFile).mockResolvedValue(Buffer.from("FROM alpine\n"));
+    const state = createState({
+      image: "poe-code/local:missing",
+      hash: "unused",
+      runtime_type: "docker",
+      dockerfile_path: "/repo/Dockerfile",
+      built_at: "2026-05-03T00:00:00.000Z"
+    });
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+
+    const env = await dockerExecutionEnvFactory.open(
+      createOpenSpec({
+        runtime: {
+          type: "docker",
+          dockerfile: "Dockerfile",
+          build_context: ".",
+          build_args: {},
+          mounts: []
+        },
+        state,
+        hostRunner: runner
+      })
+    );
+
+    expect(env.id).toBe("rebuilt-container");
+    expect(runner.specs.map((spec) => spec.args?.[0])).toEqual(["image", "build", "run"]);
+    expect(state.putCalls).toHaveLength(1);
+  });
+
+  it("separates dockerfile template cache keys by engine", async () => {
+    vi.mocked(readFile).mockResolvedValue(Buffer.from("FROM alpine\n"));
+    const entries = new Map<string, unknown>();
+    const state = {
+      templates: {
+        async get(_backend: string, hash: string) {
+          return entries.get(hash) ?? null;
+        },
+        async put(_backend: string, entry: { hash: string }) {
+          entries.set(entry.hash, entry);
+        }
+      }
+    };
+    const dockerRunner = createCapturingRunner([{ exitCode: 0 }]);
+    const podmanRunner = createCapturingRunner([{ exitCode: 0 }]);
+    const { buildDockerRuntimeTemplate } = await import("./docker-execution-env.js");
+
+    const docker = await buildDockerRuntimeTemplate({
+      cwd: "/repo",
+      runtime: { type: "docker", dockerfile: "Dockerfile", build_args: {}, engine: "docker" },
+      state,
+      runner: dockerRunner
+    });
+    const podman = await buildDockerRuntimeTemplate({
+      cwd: "/repo",
+      runtime: { type: "docker", dockerfile: "Dockerfile", build_args: {}, engine: "podman" },
+      state,
+      runner: podmanRunner
+    });
+
+    expect(docker.hash).not.toBe(podman.hash);
+    expect(podman.cached).toBe(false);
+    expect(podmanRunner.specs[0]?.command).toBe("podman");
   });
 
   it("builds and caches a dockerfile image on template cache miss with sorted build args", async () => {

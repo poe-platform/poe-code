@@ -2086,4 +2086,27 @@ describe("version command", () => {
     expect(logs.some((log) => log.includes("poe-code"))).toBe(true);
     expect(logs.some((log) => log.includes("Network error"))).toBe(false);
   });
+
+  it("does not check for updates while previewing version output", async () => {
+    const httpClient: HttpClient = vi.fn(async () => ({
+      ok: true,
+      status: 200,
+      json: async () => ({ "dist-tags": { latest: "99.0.0" } })
+    }));
+
+    const program = createProgram({
+      fs,
+      prompts,
+      env: { cwd, homeDir },
+      httpClient,
+      logger: (message) => {
+        logs.push(message);
+      }
+    });
+
+    await parseWithVersionExit(program, ["node", "cli", "--dry-run", "--version"]);
+
+    expect(httpClient).not.toHaveBeenCalled();
+    expect(logs.some((log) => log.includes(packageJson.version))).toBe(true);
+  });
 });

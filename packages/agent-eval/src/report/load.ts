@@ -1,4 +1,4 @@
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, realpath } from "node:fs/promises";
 import path from "node:path";
 import type { Dirent } from "node:fs";
 import type { AggregatedCell, EvalRunResult, RunTraceSummary } from "../types.js";
@@ -20,6 +20,7 @@ export async function loadRunResult(runId: string, outDir = defaultOutDir): Prom
   const directPath = path.join(outDir, runId, resultFileName);
 
   try {
+    await assertCanonicalOutputFile(outDir, directPath);
     return enrichRunResult(
       parseJson<EvalRunResult>(await readFile(directPath, "utf8"), directPath),
       path.dirname(directPath)
@@ -39,6 +40,7 @@ export async function loadRunResult(runId: string, outDir = defaultOutDir): Prom
   }
 
   const match = matches[0] as RunResultLocation;
+  await assertCanonicalOutputFile(outDir, match.resultPath);
   return enrichRunResult(
     parseJson<EvalRunResult>(await readFile(match.resultPath, "utf8"), match.resultPath),
     path.dirname(match.resultPath)
@@ -177,12 +179,13 @@ async function enrichRunResult(result: EvalRunResult, runDir: string): Promise<E
   }
   return {
     ...result,
-    trace: await loadTraceSummary(path.join(runDir, "trace.json"))
+    trace: await loadTraceSummary(path.join(runDir, "trace.json"), path.dirname(runDir))
   };
 }
 
-async function loadTraceSummary(tracePath: string): Promise<RunTraceSummary> {
+async function loadTraceSummary(tracePath: string, outDir: string): Promise<RunTraceSummary> {
   try {
+    await assertCanonicalOutputFile(outDir, tracePath);
     const trace = parseJson<NormalizedTrace>(await readFile(tracePath, "utf8"), tracePath);
     return {
       available: true,
@@ -195,6 +198,15 @@ async function loadTraceSummary(tracePath: string): Promise<RunTraceSummary> {
       return { available: false };
     }
     throw error;
+  }
+}
+
+async function assertCanonicalOutputFile(outDir: string, filePath: string): Promise<void> {
+  const canonicalOutDir = await realpath(path.resolve(outDir));
+  const canonicalFilePath = await realpath(filePath);
+  const relative = path.relative(canonicalOutDir, canonicalFilePath);
+  if (relative === ".." || relative.startsWith(`..${path.sep}`)) {
+    throw new Error("run result must stay within the canonical output directory.");
   }
 }
 

@@ -74,6 +74,34 @@ describe("report loaders", () => {
     );
   });
 
+  it("rejects a run directory symlinked outside the output root", async () => {
+    vol.fromJSON({
+      "/runs/.keep": "",
+      "/outside/result.json": JSON.stringify(runResult({ runId: "run-safe" }))
+    });
+    const { fs } = await import("memfs");
+    await fs.promises.symlink("/outside", "/runs/run-safe");
+
+    await expect(loadRunResult("run-safe", "/runs")).rejects.toThrow(
+      "run result must stay within the canonical output directory."
+    );
+  });
+
+  it("rejects result and trace files symlinked outside the output root", async () => {
+    vol.fromJSON({
+      "/runs/run-safe/.keep": "",
+      "/outside/result.json": JSON.stringify(runResult({ runId: "run-safe" })),
+      "/outside/trace.json": JSON.stringify({ events: [], usage: {} })
+    });
+    const { fs } = await import("memfs");
+    await fs.promises.symlink("/outside/result.json", "/runs/run-safe/result.json");
+    await fs.promises.symlink("/outside/trace.json", "/runs/run-safe/trace.json");
+
+    await expect(loadRunResult("run-safe", "/runs")).rejects.toThrow(
+      "run result must stay within the canonical output directory."
+    );
+  });
+
   it("lists run ids without treating matrix directories as runs", async () => {
     vol.fromJSON({
       "/runs/run-direct/result.json": JSON.stringify(runResult({ runId: "run-direct" })),

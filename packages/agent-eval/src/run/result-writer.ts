@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { mkdir, rename, writeFile } from "node:fs/promises";
+import { lstat, mkdir, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import type { CheatReport, EvalRunResult, SpawnEvent } from "../types.js";
 import type { NormalizedTrace } from "./trace/types.js";
@@ -30,6 +30,7 @@ export async function writeRunEvidence(
     evalYaml: string;
   }
 ): Promise<void> {
+  await assertSafeRunDirectory(runDir);
   await mkdir(runDir, { recursive: true });
 
   await Promise.all([
@@ -42,6 +43,19 @@ export async function writeRunEvidence(
     atomicWrite(path.join(runDir, "plan.md"), parts.planMd),
     atomicWrite(path.join(runDir, "eval.yaml"), parts.evalYaml)
   ]);
+}
+
+async function assertSafeRunDirectory(runDir: string): Promise<void> {
+  try {
+    const runStat = await lstat(runDir);
+    if (runStat.isSymbolicLink()) {
+      throw new Error("Run artifact directory must not be a symbolic link.");
+    }
+  } catch (error) {
+    if (!isMissingPath(error)) {
+      throw error;
+    }
+  }
 }
 
 export async function writeRunCompletion(
@@ -72,4 +86,14 @@ function formatEventsJsonl(events: readonly SpawnEvent[]): string {
     return "";
   }
   return `${events.map((event) => JSON.stringify(event)).join("\n")}\n`;
+}
+
+function isMissingPath(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    ((error as { code?: unknown }).code === "ENOENT" ||
+      (error as { code?: unknown }).code === "ENOTDIR")
+  );
 }

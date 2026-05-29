@@ -56,6 +56,25 @@ describe("writeRunArtifacts", () => {
       mean: 4
     });
   });
+
+  it("rejects an evidence directory symlink before writing artifacts", async () => {
+    const { fs } = await import("memfs");
+    await fs.promises.mkdir("/outside", { recursive: true });
+    await fs.promises.mkdir("/runs", { recursive: true });
+    await fs.promises.symlink("/outside", "/runs/run-1");
+
+    await expect(
+      writeRunArtifacts("/runs/run-1", {
+        result: createResult(),
+        events: [],
+        trace: createTrace(),
+        cheatReport: { cheated: false, violations: [] },
+        planMd: "# Plan\n",
+        evalYaml: "id: task\n"
+      })
+    ).rejects.toThrow("Run artifact directory must not be a symbolic link.");
+    await expect(readText("/outside/plan.md")).rejects.toMatchObject({ code: "ENOENT" });
+  });
 });
 
 async function readText(path: string): Promise<string> {

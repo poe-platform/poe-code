@@ -41,7 +41,7 @@ export function wrapForLogTee(argv: string[], jobId: string): string[] {
 export async function* streamLogFile(
   env: LogStreamEnv,
   jobId: string,
-  opts: { sinceByte?: number; since?: Date }
+  opts: { sinceByte?: number; since?: Date; follow?: boolean }
 ): AsyncIterable<LogChunk> {
   assertSafeJobId(jobId);
 
@@ -71,6 +71,14 @@ export async function* streamLogFile(
         pendingByteOffset += completeLength;
       }
       continue;
+    }
+
+    if ((await readTextFileIfExists(fs, jobExitPath(jobId))) !== null) {
+      return;
+    }
+
+    if (opts.follow === false) {
+      return;
     }
 
     await waitForLogChange(fs, file);

@@ -119,9 +119,11 @@ export async function streamJobLog(
   }
 ): Promise<void> {
   let detaching = false;
-  const iterator = handle.stream({ sinceByte: 0, ...(opts.since ? { since: opts.since } : {}) })[
-    Symbol.asyncIterator
-  ]();
+  const iterator = handle.stream({
+    sinceByte: 0,
+    ...(opts.since ? { since: opts.since } : {}),
+    follow: opts.follow
+  })[Symbol.asyncIterator]();
   const onSigint = opts.onDetach
     ? () => {
         detaching = true;
@@ -135,22 +137,37 @@ export async function streamJobLog(
   }
 
   try {
+    if (!opts.follow) {
+      while (true) {
+        const result = await iterator.next();
+        if (result.done === true) {
+          break;
+        }
+        opts.write(result.value.data);
+      }
+      return;
+    }
+
+    let pendingNext: Promise<IteratorResult<{ byteOffset: number; data: string }>> | undefined;
     while (!detaching) {
+      pendingNext ??= iterator.next();
       const result = await Promise.race([
-        iterator.next(),
+        pendingNext,
         sleep(250).then(() => ({ timedOut: true as const }))
       ]);
 
       if ("timedOut" in result) {
-        if (!opts.follow) {
-          break;
-        }
         if ((await handle.status()) !== "running") {
+          const finalResult = await pendingNext;
+          if (finalResult.done !== true) {
+            opts.write(finalResult.value.data);
+          }
           break;
         }
         continue;
       }
 
+      pendingNext = undefined;
       if (result.done === true) {
         break;
       }

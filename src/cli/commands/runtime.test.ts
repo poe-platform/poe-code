@@ -413,6 +413,31 @@ describe("runtime command", () => {
     expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
   });
 
+  it("waits for delayed log chunks from an exited runtime job", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    jobHandles.set("env-logs", {
+      ...createJobHandle({ status: "exited" }),
+      async *stream() {
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        yield { byteOffset: 0, data: "late line\n" };
+      }
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "logs", "job-logs"]);
+
+    expect(stripAnsi(logs.join("\n"))).toContain("late line");
+  });
+
   it("previews runtime job logs without attaching to the sandbox", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(

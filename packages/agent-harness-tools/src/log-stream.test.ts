@@ -81,6 +81,13 @@ describe("streamLogFile", () => {
     }
   });
 
+  it("finishes an exited empty log stream without waiting for more changes", async () => {
+    const { fs } = createMemFs({ "/tmp/poe-jobs/job-1.exit": "0\n" });
+    const iterator = streamLogFile({ fs }, "job-1", { follow: false })[Symbol.asyncIterator]();
+
+    await expect(iterator.next()).resolves.toEqual({ done: true, value: undefined });
+  });
+
   it("preserves a UTF-8 code point split across appended read boundaries", async () => {
     vi.useFakeTimers();
     const { fs } = createMemFs({});

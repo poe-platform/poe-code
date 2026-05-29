@@ -117,8 +117,10 @@ export function mergeApprovalsGroup<TServices extends object>(
     throw new UserError("'approvals' is reserved for human-in-loop built-ins");
   }
 
-  root.children = [...root.children, approvalsGroup as unknown as CommandNode<TServices>];
-  return root;
+  return {
+    ...root,
+    children: [...root.children, approvalsGroup as unknown as CommandNode<TServices>]
+  };
 }
 
 function markApprovalsBuiltIn<TGroup extends Group<any>>(group: TGroup): TGroup {

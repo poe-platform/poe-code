@@ -197,19 +197,15 @@ describe("terminal-pilot commands", () => {
     expect(listSessions.scope).toEqual(["cli", "mcp", "sdk"]);
   });
 
-  it("creates fresh built-in command groups after exported group mutation", () => {
-    const originalChildren = terminalPilotGroup.children;
-    terminalPilotGroup.children = terminalPilotGroup.children.filter(
-      (command) => command.name !== "create-session"
-    ) as typeof terminalPilotGroup.children;
-
-    try {
-      expect(createTerminalPilotGroup().children.map((command) => command.name)).toContain(
-        "create-session"
-      );
-    } finally {
-      terminalPilotGroup.children = originalChildren;
-    }
+  it("prevents consumers from removing built-in commands", () => {
+    expect(() => {
+      terminalPilotGroup.children = terminalPilotGroup.children.filter(
+        (command) => command.name !== "create-session"
+      ) as typeof terminalPilotGroup.children;
+    }).toThrow();
+    expect(createTerminalPilotGroup().children.map((command) => command.name)).toContain(
+      "create-session"
+    );
   });
 
   it("creates sessions with env-backed names and lists them by human-readable session name", async () => {

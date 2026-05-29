@@ -63,4 +63,4 @@ export function createTerminalPilotGroup() {
   });
 }
 
-export const terminalPilotGroup = createTerminalPilotGroup();
+export const terminalPilotGroup = Object.freeze(createTerminalPilotGroup());

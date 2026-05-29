@@ -6,7 +6,7 @@ import { S } from "toolcraft-schema";
 import { defineCommand, defineGroup } from "../index.js";
 import { enqueueApproval } from "./approval-tasks.js";
 import { approvalStateMachine } from "./state-machine.js";
-import { approvalsGroup } from "./approvals-commands.js";
+import { approvalsGroup, mergeApprovalsGroup } from "./approvals-commands.js";
 
 const loggerState = {
   error: [] as string[]
@@ -130,6 +130,21 @@ describe("approvals built-in commands", () => {
     if (stdinTTY) {
       Object.defineProperty(process.stdin, "isTTY", stdinTTY);
     }
+  });
+
+  it("composes approval commands without mutating a frozen root group", () => {
+    const root = Object.freeze(
+      defineGroup({
+        name: "root",
+        children: []
+      })
+    );
+
+    const merged = mergeApprovalsGroup(root);
+
+    expect(merged).not.toBe(root);
+    expect(merged.children.map((child) => child.name)).toContain("approvals");
+    expect(root.children).toEqual([]);
   });
 
   it("lists approvals and applies single and multiple state filters", async () => {

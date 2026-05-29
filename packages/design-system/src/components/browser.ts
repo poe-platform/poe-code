@@ -3,7 +3,7 @@ import process from "node:process";
 
 interface BrowserProcess {
   once(event: "error", listener: (error: Error) => void): this;
-  once(event: "spawn", listener: () => void): this;
+  once(event: "close", listener: (code: number | null, signal: NodeJS.Signals | null) => void): this;
   unref(): void;
 }
 
@@ -45,7 +45,13 @@ function launchBrowser(
     const child = spawnProcess(command, args, { detached: true, stdio: "ignore" });
 
     child.once("error", reject);
-    child.once("spawn", () => {
+    child.once("close", (code, signal) => {
+      if (code !== 0) {
+        const reason = code === null ? `signal ${signal ?? "unknown"}` : `code ${code}`;
+        reject(new Error(`Browser launcher exited with ${reason}`));
+        return;
+      }
+
       child.unref();
       resolve();
     });

@@ -13,6 +13,7 @@ describe("openExternal", () => {
     });
 
     child.emit("spawn");
+    child.emit("close", 0, null);
     await opened;
 
     expect(spawnProcess).toHaveBeenCalledWith(
@@ -21,5 +22,19 @@ describe("openExternal", () => {
       { detached: true, stdio: "ignore" }
     );
     expect(child.unref).toHaveBeenCalledOnce();
+  });
+
+  it("rejects when the browser launcher exits unsuccessfully", async () => {
+    const child = new EventEmitter() as EventEmitter & { unref: () => void };
+    child.unref = vi.fn();
+    const opened = openExternal("https://github.example.test/octo/repo/issues/1", {
+      platform: "linux",
+      spawnProcess: vi.fn(() => child)
+    });
+
+    child.emit("spawn");
+    child.emit("close", 1, null);
+
+    await expect(opened).rejects.toThrow("Browser launcher exited with code 1");
   });
 });

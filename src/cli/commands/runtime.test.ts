@@ -449,6 +449,26 @@ describe("runtime command", () => {
     expect(runtimeEvents.closed).toEqual(["env-sync"]);
   });
 
+  it("rejects syncing an explicitly selected pending job before attachment", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-pending.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-pending", env_id: "", status: "pending" }),
+        null,
+        2
+      )}\n`
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "sync", "job-pending", "--force-sync"])
+    ).rejects.toThrow('Runtime job "job-pending" is not available for this command.');
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(runtimeEvents.downloads).toEqual([]);
+  });
+
   it("stops a job, marks it killed, and syncs through the shared primitive", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-stop.json")]: `${JSON.stringify(
@@ -492,6 +512,27 @@ describe("runtime command", () => {
     expect(runtimeEvents.downloads).toEqual([
       { envId: "env-stop", conflictPolicy: "overwrite" }
     ]);
+  });
+
+  it("rejects stopping an explicitly selected pending job without updating state", async () => {
+    const jobPath = path.join(jobsDir, "job-pending.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        createJobEntry({ id: "job-pending", env_id: "", status: "pending" }),
+        null,
+        2
+      )}\n`
+    });
+    const container = createContainer(fs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "runtime", "jobs", "stop", "job-pending"])
+    ).rejects.toThrow('Runtime job "job-pending" is not available for this command.');
+
+    expect(runtimeEvents.attached).toEqual([]);
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "pending"');
   });
 
   it("builds docker runtime templates through the exposed helper", async () => {

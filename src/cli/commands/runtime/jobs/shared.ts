@@ -27,17 +27,21 @@ export async function resolveJob(
   jobId: string | undefined,
   intent: JobIntent
 ): Promise<JobEntry> {
+  const allowedStatuses =
+    intent === "running" ? new Set<JobStatus>(["running"]) : new Set<JobStatus>(["running", "exited"]);
   if (jobId !== undefined) {
     const entry = await state.jobs.get(jobId);
     if (entry === null) {
       throw new Error(`No runtime job found for "${jobId}".`);
     }
+    if (!allowedStatuses.has(entry.status) || entry.env_id.trim() === "") {
+      throw new Error(`Runtime job "${jobId}" is not available for this command.`);
+    }
     return entry;
   }
 
-  const allowedStatuses = intent === "running" ? new Set<JobStatus>(["running"]) : new Set<JobStatus>(["running", "exited"]);
   const candidates = (await state.jobs.list())
-    .filter((entry) => allowedStatuses.has(entry.status))
+    .filter((entry) => allowedStatuses.has(entry.status) && entry.env_id.trim() !== "")
     .sort(compareLatestFirst);
 
   if (candidates.length === 1) {

@@ -843,19 +843,38 @@ function createTasksView(
       );
       let afterId: string | null = null;
 
-      for (const id of ids) {
-        const projectItemId = itemIdsByTaskId.get(id);
-        if (projectItemId === undefined) {
-          throw new OrderMismatchError({ missing: [id], extra: [] });
-        }
+      try {
+        for (const id of ids) {
+          const projectItemId = itemIdsByTaskId.get(id);
+          if (projectItemId === undefined) {
+            throw new OrderMismatchError({ missing: [id], extra: [] });
+          }
 
-        await updateProjectItemPosition(projectItemId, afterId, session, context);
-        afterId = projectItemId;
+          await updateProjectItemPosition(projectItemId, afterId, session, context);
+          afterId = projectItemId;
+        }
+      } catch (error) {
+        await restoreProjectOrder(currentTasks, session, context);
+        throw error;
       }
 
       return fetchProjectTasks(name, session, context);
     }
   };
+}
+
+async function restoreProjectOrder(
+  tasks: readonly Task[],
+  session: GhIssuesSession,
+  context: GhIssuesTasksContext
+): Promise<void> {
+  let afterId: string | null = null;
+
+  for (const task of tasks) {
+    const projectItemId = projectItemIdFromTask(task);
+    await updateProjectItemPosition(projectItemId, afterId, session, context);
+    afterId = projectItemId;
+  }
 }
 
 async function resolveRepositoryId(context: GhIssuesTasksContext): Promise<string> {

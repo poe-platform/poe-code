@@ -1477,6 +1477,32 @@ describe("ghIssuesBackend", () => {
     expect(readMutationCalls(fetchMock)).toMatchSnapshot();
   });
 
+  it("restores the previous ordering when a later reorder mutation fails", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      itemsResponse({ nodes: projectOrderingFixture() }),
+      updateProjectItemPositionResponse(),
+      graphqlErrorResponse("position rejected"),
+      updateProjectItemPositionResponse(),
+      updateProjectItemPositionResponse(),
+      updateProjectItemPositionResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").reorder(["100", "200", "482"])).rejects.toThrow(
+      "position rejected"
+    );
+    expect(
+      readMutationCalls(fetchMock).map((call) => call.variables.input)
+    ).toEqual([
+      { projectId: "project-id", itemId: "item-100", afterId: null },
+      { projectId: "project-id", itemId: "item-200", afterId: "item-100" },
+      { projectId: "project-id", itemId: "item-200", afterId: null },
+      { projectId: "project-id", itemId: "item-100", afterId: "item-200" },
+      { projectId: "project-id", itemId: "item-482", afterId: "item-100" }
+    ]);
+  });
+
   it('reorder(["100", "200"]) throws OrderMismatchError for missing items', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),

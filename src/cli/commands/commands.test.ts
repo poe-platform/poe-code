@@ -125,7 +125,8 @@ describe("configure command", () => {
         homeDir + "/.local/share/opencode/auth.json"
       ],
       provider: "poe",
-      apiShape: "openai-chat-completions"
+      apiShape: "openai-chat-completions",
+      model: "anthropic/claude-opus-4.7"
     });
   });
 
@@ -353,7 +354,8 @@ describe("configure command", () => {
         `${homeDir}/.config/goose/secrets.yaml`
       ],
       provider: "poe",
-      apiShape: "openai-chat-completions"
+      apiShape: "openai-chat-completions",
+      model: "openai/gpt-5.5"
     });
     expect(httpClient).toHaveBeenCalledWith(
       "https://api.poe.com/v1/models",
@@ -1899,6 +1901,44 @@ describe("unconfigure command", () => {
 
     await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
     await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
+  it("preserves global and metadata state when isolated unconfigure commit fails", async () => {
+    const fs = createMemFs();
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    await executeConfigure(createTestProgram(["node", "cli", "--yes"]), container, "codex", {
+      provider: "cloudflare",
+      apiKey: "retained-isolated-secret",
+      baseUrl: "https://gateway.example.test",
+      model: "cleanup-model",
+      reasoningEffort: "high"
+    });
+    const originalGlobal = await fs.readFile(`${homeDir}/.codex/config.toml`, "utf8");
+    const originalMetadata = await fs.readFile(configPath, "utf8");
+    const unlink = fs.unlink.bind(fs);
+    vi.spyOn(fs, "unlink").mockImplementation(async (filePath) => {
+      if (filePath === `${homeDir}/.poe-code/codex/config.toml`) {
+        throw new Error("isolated deletion failed");
+      }
+      return unlink(filePath);
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "unconfigure", "codex"])).rejects.toThrow(
+      "isolated deletion failed"
+    );
+
+    await expect(fs.readFile(`${homeDir}/.codex/config.toml`, "utf8")).resolves.toBe(originalGlobal);
+    await expect(fs.readFile(`${homeDir}/.poe-code/codex/config.toml`, "utf8")).resolves.toContain(
+      "retained-isolated-secret"
+    );
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(originalMetadata);
   });
 
   it("logs mutation outcomes when provider reports them", async () => {

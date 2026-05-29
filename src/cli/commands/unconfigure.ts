@@ -12,6 +12,7 @@ import {
   formatServiceList,
   listServiceNames
 } from "./shared.js";
+import { createOverlayFileSystem } from "./configure.js";
 
 export interface UnconfigureCommandOptions {
   configName?: string;
@@ -45,6 +46,16 @@ export async function executeUnconfigure(
 
   const providerContext = buildProviderContext(container, adapter, resources);
   const mutationLogger = createMutationReporter(resources.logger);
+  const transaction = flags.dryRun ? undefined : createOverlayFileSystem(providerContext.command.fs);
+  const executionProviderContext = transaction
+    ? {
+        ...providerContext,
+        command: {
+          ...providerContext.command,
+          fs: transaction.fs
+        }
+      }
+    : providerContext;
 
   const payload = await createUnconfigurePayload({
     service: canonicalService,
@@ -63,9 +74,9 @@ export async function executeUnconfigure(
       }
       const result = await entry.unconfigure(
         {
-          fs: providerContext.command.fs,
-          env: providerContext.env,
-          command: providerContext.command,
+          fs: executionProviderContext.command.fs,
+          env: executionProviderContext.env,
+          command: executionProviderContext.command,
           options: payload
         },
         { observers: mutationLogger }
@@ -75,16 +86,16 @@ export async function executeUnconfigure(
       if (isolated && isolated.requiresConfig !== false) {
         await entry.unconfigure(
           {
-            fs: providerContext.command.fs,
-            env: providerContext.env,
-            command: providerContext.command,
+            fs: executionProviderContext.command.fs,
+            env: executionProviderContext.env,
+            command: executionProviderContext.command,
             options: payload,
             pathMapper: {
               mapTargetDirectory: ({ targetDirectory }: { targetDirectory: string }) =>
                 resolveIsolatedTargetDirectory({
                   targetDirectory,
                   isolated,
-                  env: providerContext.env,
+                  env: executionProviderContext.env,
                   providerName: adapter.name
                 })
             }
@@ -93,18 +104,20 @@ export async function executeUnconfigure(
         );
       }
 
+      if (!flags.dryRun) {
+        await unconfigureService({
+          fs: executionProviderContext.command.fs,
+          filePath: providerContext.env.configPath,
+          projectFilePath: providerContext.env.projectConfigPath,
+          service: canonicalService
+        });
+      }
+
+      await transaction?.commit();
+
       return result;
     }
   );
-
-  if (!flags.dryRun) {
-    await unconfigureService({
-      fs: container.fs,
-      filePath: providerContext.env.configPath,
-      projectFilePath: providerContext.env.projectConfigPath,
-      service: canonicalService
-    });
-  }
 
   const messages = formatUnconfigureMessages(
     canonicalService,

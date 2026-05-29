@@ -358,6 +358,27 @@ describe("runtime command", () => {
     );
   });
 
+  it("previews runtime jobs ls without reconciling live sandbox status", async () => {
+    const jobPath = path.join(jobsDir, "job-missing.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        createJobEntry({ id: "job-missing", env_id: "env-missing", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "runtime", "jobs", "ls"]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
+  });
+
   it("snapshots runtime jobs logs output", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
@@ -381,6 +402,25 @@ describe("runtime command", () => {
     await program.parseAsync(["node", "cli", "runtime", "jobs", "logs"]);
 
     expect(stripAnsi(logs.join("\n"))).toMatchSnapshot();
+  });
+
+  it("previews runtime job logs without attaching to the sandbox", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-logs.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-logs", env_id: "env-logs", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "--dry-run", "runtime", "jobs", "logs", "job-logs"]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
   });
 
   it("errors with candidate jobs when the omitted job id is ambiguous", async () => {
@@ -439,6 +479,36 @@ describe("runtime command", () => {
     expect(runtimeEvents.attached).toEqual([]);
   });
 
+  it("previews attaching and sync-on-exit without attaching to the sandbox", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-attach.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-attach", env_id: "env-attach", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "runtime",
+      "jobs",
+      "attach",
+      "job-attach",
+      "--sync-on-exit",
+      "--force-sync"
+    ]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(runtimeEvents.downloads).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
+  });
+
   it("syncs with overwrite policy and closes the sandbox when requested", async () => {
     const fs = createMemFs({
       [path.join(jobsDir, "job-sync.json")]: `${JSON.stringify(
@@ -467,6 +537,37 @@ describe("runtime command", () => {
       { envId: "env-sync", conflictPolicy: "overwrite" }
     ]);
     expect(runtimeEvents.closed).toEqual(["env-sync"]);
+  });
+
+  it("previews syncing a runtime job without downloading its workspace", async () => {
+    const fs = createMemFs({
+      [path.join(jobsDir, "job-sync.json")]: `${JSON.stringify(
+        createJobEntry({ id: "job-sync", env_id: "env-sync", status: "exited" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "runtime",
+      "jobs",
+      "sync",
+      "job-sync",
+      "--force-sync",
+      "--close"
+    ]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(runtimeEvents.downloads).toEqual([]);
+    expect(runtimeEvents.closed).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
   });
 
   it("rejects syncing an explicitly selected pending job before attachment", async () => {
@@ -532,6 +633,57 @@ describe("runtime command", () => {
     expect(runtimeEvents.downloads).toEqual([
       { envId: "env-stop", conflictPolicy: "overwrite" }
     ]);
+  });
+
+  it("previews stopping a runtime job without killing or rewriting it", async () => {
+    const jobPath = path.join(jobsDir, "job-stop.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        createJobEntry({ id: "job-stop", env_id: "env-stop", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "runtime",
+      "jobs",
+      "stop",
+      "job-stop",
+      "--force-sync"
+    ]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(runtimeEvents.downloads).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
+  });
+
+  it("previews opening a runtime sandbox shell without attaching", async () => {
+    const logs: string[] = [];
+    const container = createContainer(createMemFs(), logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync([
+      "node",
+      "cli",
+      "--dry-run",
+      "runtime",
+      "jobs",
+      "sandbox",
+      "env-sandbox"
+    ]);
+
+    expect(runtimeEvents.attached).toEqual([]);
+    expect(logs.join("\n")).toContain("Dry run");
   });
 
   it("syncs a stopped job by default using conflict protection", async () => {

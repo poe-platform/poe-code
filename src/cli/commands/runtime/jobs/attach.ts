@@ -42,6 +42,11 @@ async function executeRuntimeJobsAttach(
   const resources = createExecutionResources(container, flags, "runtime:jobs:attach");
   const state = createRuntimeState(container);
   const entry = await resolveJob(state, jobId, "running");
+  if (flags.dryRun) {
+    const syncDetail = options.syncOnExit === true ? " and sync its workspace on exit" : "";
+    resources.logger.dryRun(`Dry run: would attach to runtime job ${entry.id}${syncDetail}.`);
+    return;
+  }
   const { handle } = await attachJob(entry);
 
   await streamJobLog(handle, {

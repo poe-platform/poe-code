@@ -346,6 +346,52 @@ describe("process launcher manager", () => {
     expect(signalProcess).not.toHaveBeenCalled();
   });
 
+  it("does not signal a stale host pid from an already stopped state", async () => {
+    const fs = createMemFs();
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never" };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: 4321, status: "stopped" }), null);
+    const signalProcess = vi.fn();
+
+    await expect(
+      stopManagedProcess({ baseDir, fs, id: "api", isPidRunning: () => true, signalProcess })
+    ).resolves.toMatchObject({ state: { status: "stopped" } });
+
+    expect(signalProcess).not.toHaveBeenCalled();
+  });
+
+  it("terminates a spawned daemon if persisting its pid fails", async () => {
+    const rawFs = createFsFromVolume(new Volume()).promises;
+    const baseFs = createMemFsFromRaw(rawFs);
+    let metaWrites = 0;
+    const fs = {
+      ...baseFs,
+      writeFile: async (filePath: string, content: string) => {
+        if (filePath.endsWith("/meta.json")) {
+          metaWrites += 1;
+          if (metaWrites === 2) {
+            throw new Error("meta failed");
+          }
+        }
+        await baseFs.writeFile(filePath, content);
+      }
+    } as LauncherFileSystem;
+    const signalProcess = vi.fn();
+
+    await expect(
+      startManagedProcess({
+        baseDir: "/state/launch",
+        fs,
+        signalProcess,
+        spec: { id: "api", command: "npm", restart: "never" },
+        spawnDaemon: async () => 321
+      })
+    ).rejects.toThrow("meta failed");
+
+    expect(signalProcess).toHaveBeenCalledWith(321, "SIGTERM");
+    await expect(rawFs.readFile("/state/launch/api/state.json", "utf8")).resolves.toContain('"status": "stopped"');
+  });
+
   it("rejects non-finite startup timeout before spawning a daemon", async () => {
     const fs = createMemFs();
     const spawnDaemon = vi.fn(async () => 321);
@@ -426,6 +472,30 @@ describe("process launcher manager", () => {
       })
     );
     await expect(fs.readdir(baseDir)).resolves.toEqual([]);
+  });
+
+  it("does not remove runtime artifacts before managed state removal succeeds", async () => {
+    const rawFs = createFsFromVolume(new Volume()).promises;
+    const baseFs = createMemFsFromRaw(rawFs);
+    const fs = {
+      ...baseFs,
+      rm: async (filePath: string, options?: { force?: boolean }) => {
+        if (filePath.endsWith("/state.json")) {
+          throw new Error("state removal failed");
+        }
+        await baseFs.rm(filePath, options);
+      }
+    } as LauncherFileSystem;
+    const baseDir = "/state/launch";
+    const spec: ProcessSpec = { id: "api", command: "npm", restart: "never", docker: { image: "node:22" } };
+    await writeRecord(fs, baseDir, spec, createState(spec, { pid: null, runtime: "docker", status: "stopped" }), null);
+    const removeRuntimeArtifacts = vi.fn(async () => {});
+
+    await expect(
+      removeManagedProcess({ baseDir, fs, id: "api", removeRuntimeArtifacts })
+    ).rejects.toThrow("state removal failed");
+
+    expect(removeRuntimeArtifacts).not.toHaveBeenCalled();
   });
 
   it("rejects malformed persisted specification ids when listing", async () => {

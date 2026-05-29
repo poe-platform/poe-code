@@ -148,7 +148,7 @@ export async function stopManagedProcess(options: StopManagedProcessOptions): Pr
 
   if (daemonPid !== null && isProcessRunning(daemonPid, options.isPidRunning)) {
     signalProcess(daemonPid, signal);
-  } else if (record.state?.runtime === "host" && record.state.pid !== null) {
+  } else if (record.state !== null && isActiveStatus(record.state.status) && record.state.runtime === "host" && record.state.pid !== null) {
     if (isProcessRunning(record.state.pid, options.isPidRunning)) {
       signalProcess(record.state.pid, signal);
     }
@@ -231,7 +231,7 @@ async function cleanupFailedStart(options: {
   isPidRunning?: (pid: number) => boolean;
   signalProcess?: (pid: number, signal: NodeJS.Signals) => void;
 }): Promise<void> {
-  if (options.daemonPid !== null && isProcessRunning(options.daemonPid, options.isPidRunning)) {
+  if (options.daemonPid !== null && (options.isPidRunning === undefined || isProcessRunning(options.daemonPid, options.isPidRunning))) {
     (options.signalProcess ?? defaultSignalProcess)(options.daemonPid, "SIGTERM");
   }
 
@@ -340,12 +340,12 @@ export async function removeManagedProcess(options: RemoveManagedProcessOptions)
     throw new Error(`Managed process "${options.id}" must be stopped before removal.`);
   }
 
+  const stateStore = createStateStore(options.baseDir, fs);
+  await stateStore.remove(options.id);
+
   if (record.spec !== null && options.removeRuntimeArtifacts) {
     await options.removeRuntimeArtifacts({ record });
   }
-
-  const stateStore = createStateStore(options.baseDir, fs);
-  await stateStore.remove(options.id);
 }
 
 export async function runManagedProcess(options: RunManagedProcessOptions): Promise<void> {

@@ -2,7 +2,7 @@ import { isAbsolute, resolve } from "node:path";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 
-import { loadSourceConfig } from "./config.js";
+import { defaultSourceConfig, loadSourceConfig } from "./config.js";
 import type { EvalFs, EvalSource } from "../types.js";
 
 function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs & { symlink(target: string, path: string): Promise<void> } {
@@ -30,6 +30,13 @@ function memfs(files: Record<string, string | null>, cwd = "/"): EvalFs & { syml
 
 describe("loadSourceConfig", () => {
   const source: EvalSource = { rootDir: "/repo/evals" };
+
+  it("prevents mutation of exported default source settings", () => {
+    expect(() => {
+      defaultSourceConfig.out = "redirected-runs";
+    }).toThrow();
+    expect(defaultSourceConfig.out).toBe("runs");
+  });
 
   it("returns defaults when .poe-code-eval.json is missing", async () => {
     const fs = memfs({

@@ -4,18 +4,18 @@ import { join } from "node:path";
 import type { EvalFs, EvalSource, SourceConfig } from "../types.js";
 import { assertFsCanonicalContainedPathIfPresent } from "../path-boundary.js";
 
-export const defaultSourceConfig: SourceConfig = {
-  judge: {
+export const defaultSourceConfig: SourceConfig = Object.freeze({
+  judge: Object.freeze({
     agent: "claude-code",
     model: "opus-4.7"
-  },
+  }),
   out: "runs",
-  weights: {
+  weights: Object.freeze({
     tests: 0.7,
     judge: 0.3
-  },
+  }),
   clone_cache_dir: null
-};
+});
 
 export async function loadSourceConfig(source: EvalSource): Promise<SourceConfig>;
 export async function loadSourceConfig(source: EvalSource, fs: EvalFs): Promise<SourceConfig>;

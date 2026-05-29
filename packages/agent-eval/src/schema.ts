@@ -83,6 +83,8 @@ export const evalYamlSchema = S.Object({
     })
   )
 });
+Object.freeze(evalYamlSchema.shape);
+Object.freeze(evalYamlSchema);
 
 export type EvalYaml = Static<typeof evalYamlSchema>;
 

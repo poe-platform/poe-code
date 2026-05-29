@@ -68,7 +68,8 @@ describe("createCliMain", () => {
     });
 
     const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
-      parseAsync
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: true })
     };
 
     const { createCliMain } = await import("./bootstrap.js");
@@ -101,6 +102,23 @@ describe("createCliMain", () => {
 
     expect(logErrorWithStackTrace).not.toHaveBeenCalled();
     expect(vi.mocked(log.message)).not.toHaveBeenCalled();
+  });
+
+  it("still persists diagnostics when dry-run is only a forwarded argument", async () => {
+    process.argv = ["node", "poe-code", "wrap", "opencode", "--", "--dry-run"];
+    const parseAsync = vi.fn(async () => {
+      throw new Error("wrapped command failed");
+    });
+    const fakeProgram: Partial<Command> & { parseAsync: () => Promise<void> } = {
+      parseAsync,
+      optsWithGlobals: () => ({ dryRun: false })
+    };
+    const { createCliMain } = await import("./bootstrap.js");
+    const main = createCliMain(() => fakeProgram as Command);
+
+    await expect(main()).rejects.toThrow("exit:1");
+
+    expect(logErrorWithStackTrace).toHaveBeenCalled();
   });
 
   it("does not treat commander version exit as an error", async () => {

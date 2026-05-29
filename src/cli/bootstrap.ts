@@ -53,7 +53,7 @@ export function createCliMain(
         return;
       }
       if (error instanceof Error) {
-        const isDryRun = process.argv.includes("--dry-run");
+        const isDryRun = Boolean(program.optsWithGlobals().dryRun);
         if (!isDryRun) {
           errorLogger.logErrorWithStackTrace(error, "CLI execution", {
             component: "main",

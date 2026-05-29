@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
+import { access, lstat, mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import type { McpSpawnConfig, SpawnResult } from "@poe-code/agent-spawn";
@@ -783,10 +783,12 @@ async function installAutomation(
   const workflowPath = path.join(cwd, ".github", "workflows", `poe-code-${name}.yml`);
 
   await mkdir(path.dirname(workflowPath), { recursive: true });
+  await assertWritableWorkflowDestination(workflowPath);
   await writeFile(workflowPath, workflowTemplate, "utf8");
 
   if (promptPath !== undefined) {
     await mkdir(path.dirname(promptPath), { recursive: true });
+    await assertWritableWorkflowDestination(promptPath);
     await writeFile(promptPath, addPromptHeader(rawPrompt, name), "utf8");
   }
 
@@ -808,6 +810,8 @@ async function ensureProjectSupportFiles(
   const readmePath = path.join(projectDir, "README.md");
 
   await mkdir(projectDir, { recursive: true });
+  await assertWritableWorkflowDestination(variablesPath);
+  await assertWritableWorkflowDestination(readmePath);
   await writeFile(
     variablesPath,
     generateProjectVariablesFile(builtInVariables, await readOptionalFile(variablesPath)),
@@ -816,6 +820,20 @@ async function ensureProjectSupportFiles(
   await writeFile(readmePath, renderProjectReadme(), "utf8");
 
   return { readmePath, variablesPath };
+}
+
+async function assertWritableWorkflowDestination(filePath: string): Promise<void> {
+  try {
+    const destination = await lstat(filePath);
+    if (destination.isSymbolicLink()) {
+      throw new UserError(`Refusing to write GitHub workflow file through symbolic link: ${filePath}`);
+    }
+  } catch (error) {
+    if (isMissingPathError(error)) {
+      return;
+    }
+    throw error;
+  }
 }
 
 async function readOptionalFile(filePath: string): Promise<string | undefined> {

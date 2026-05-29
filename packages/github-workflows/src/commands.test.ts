@@ -867,6 +867,19 @@ describe("ghGroup", () => {
     });
   });
 
+  it("rejects a symlinked workflow install destination", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    vol.mkdirSync("/repo/.github/workflows", { recursive: true });
+    vol.writeFileSync("/outside-workflow.yml", "sentinel");
+    vol.symlinkSync("/outside-workflow.yml", "/repo/.github/workflows/poe-code-github-issue-opened.yml");
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }))
+    ).rejects.toThrow(/symbolic link/i);
+    expect(readRepoFile("/outside-workflow.yml")).toBe("sentinel");
+  });
+
   it("shows the default prompt in a note and suggests eject for customization", async () => {
     writeBuiltInPrompt("github-issue-opened", "# Prompt");
     seedWorkflowTemplate("github-issue-opened", "caller");
@@ -979,6 +992,35 @@ describe("ghGroup", () => {
     expect(workflow).toContain(
       "poe-code github-workflows prepare poe-code-github-issue-comment-created"
     );
+  });
+
+  it("rejects a symlinked ejected prompt destination", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "ejected");
+    vol.mkdirSync("/repo/.github/workflows", { recursive: true });
+    vol.writeFileSync("/outside-prompt.md", "sentinel");
+    vol.symlinkSync("/outside-prompt.md", "/repo/.github/workflows/poe-code-github-issue-opened.md");
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened", eject: true }))
+    ).rejects.toThrow(/symbolic link/i);
+    expect(readRepoFile("/outside-prompt.md")).toBe("sentinel");
+  });
+
+  it("rejects symlinked workflow support destinations", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    vol.mkdirSync("/repo/.github/workflows", { recursive: true });
+    vol.writeFileSync("/outside-variables.yaml", "sentinel variables");
+    vol.writeFileSync("/outside-readme.md", "sentinel readme");
+    vol.symlinkSync("/outside-variables.yaml", "/repo/.github/workflows/variables.yaml");
+    vol.symlinkSync("/outside-readme.md", "/repo/.github/workflows/README.md");
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }))
+    ).rejects.toThrow(/symbolic link/i);
+    expect(readRepoFile("/outside-variables.yaml")).toBe("sentinel variables");
+    expect(readRepoFile("/outside-readme.md")).toBe("sentinel readme");
   });
 
   it("fails to install automations that do not have install templates", async () => {

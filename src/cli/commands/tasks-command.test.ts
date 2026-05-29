@@ -222,6 +222,36 @@ maestro:
     expect(process.exitCode).toBe(1);
   });
 
+  it("verify forwards the workflow's tasks.auth.token after env expansion", async () => {
+    const restoreEnv = process.env.VERIFY_TOKEN_TEST;
+    process.env.VERIFY_TOKEN_TEST = "ghp_verify_token";
+    seedWorkflow(`
+maestro:
+  active_states:
+    - queued
+  terminal_states:
+    - done
+tasks:
+  auth:
+    token: $VERIFY_TOKEN_TEST
+`);
+    taskListMocks.verifyGhProject.mockResolvedValue(createVerifyReport());
+
+    try {
+      await runTasks(["verify", "acme/12"]);
+    } finally {
+      if (restoreEnv === undefined) {
+        delete process.env.VERIFY_TOKEN_TEST;
+      } else {
+        process.env.VERIFY_TOKEN_TEST = restoreEnv;
+      }
+    }
+
+    expect(taskListMocks.verifyGhProject).toHaveBeenCalledWith(
+      expect.objectContaining({ auth: { token: "ghp_verify_token" } })
+    );
+  });
+
   it("sync passes merged frontmatter and flags to the SDK call", async () => {
     seedWorkflow(`
 maestro:
@@ -1027,6 +1057,7 @@ states:
         graphqlResponse({
           repository: {
             issue: {
+              id: "issue-node-42",
               number: 42,
               title: "Issue task",
               body: "Body",
@@ -1052,7 +1083,24 @@ states:
         graphqlResponse({
           repository: {
             issue: {
-              id: "issue-node-42"
+              id: "issue-node-42",
+              number: 42,
+              title: "Issue task",
+              body: "Body",
+              url: "https://github.test/octo/repo/issues/42",
+              createdAt: "2026-01-01T00:00:00Z",
+              labels: { nodes: [] },
+              assignees: { nodes: [] },
+              milestone: null,
+              projectItems: {
+                nodes: [
+                  {
+                    id: "item-42",
+                    project: { id: "project-id" },
+                    fieldValueByName: { name: "Todo" }
+                  }
+                ]
+              }
             }
           }
         })
@@ -1072,7 +1120,12 @@ states:
     try {
       await runTasks(["comment", "octo-org/7#42", "--message", "Ship it"]);
 
-      expect(fetchMock).toHaveBeenCalledTimes(4);
+      expect(fetchMock.mock.calls.map(([, init]) => JSON.parse(String(init?.body)).query)).toEqual([
+        expect.stringContaining("query Project"),
+        expect.stringContaining("query Issue"),
+        expect.stringContaining("query Issue"),
+        expect.stringContaining("mutation AddComment")
+      ]);
       const body = JSON.parse(String(fetchMock.mock.calls[3]?.[1]?.body)) as {
         query: string;
         variables: { input: { subjectId: string; body: string } };

@@ -954,7 +954,6 @@ describe("ghIssuesBackend", () => {
     const fetchMock = createFetchMock([
       projectResponse(),
       issueResponse({ number: 482, title: "Original", status: "Todo" }),
-      issueNodeIdResponse("issue-node-482"),
       updateIssueResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
@@ -972,7 +971,6 @@ describe("ghIssuesBackend", () => {
     const fetchMock = createFetchMock([
       projectResponse(),
       issueResponse({ number: 482, title: "Keep title", body: "before", status: "Todo" }),
-      issueNodeIdResponse("issue-node-482"),
       updateIssueResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
@@ -1036,7 +1034,6 @@ describe("ghIssuesBackend", () => {
     const fetchMock = createFetchMock([
       projectResponse(),
       issueResponse({ number: 482, title: "Original", body: "Before", status: "Todo" }),
-      issueNodeIdResponse("issue-node-482"),
       updateIssueResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
@@ -1044,7 +1041,7 @@ describe("ghIssuesBackend", () => {
     await expect(
       taskList.list("octo-org/7").update("482", { name: "Renamed", description: "After" })
     ).resolves.toMatchObject({ name: "Renamed", description: "After", state: "Todo" });
-    expect(fetchMock).toHaveBeenCalledTimes(4);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it('fire("482", "<known-state>") sets the matching Status option', async () => {

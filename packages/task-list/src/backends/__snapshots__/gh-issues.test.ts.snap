@@ -552,6 +552,7 @@ exports[`ghIssuesBackend > get("404") throws TaskNotFoundError when the issue do
   "query": "query Issue($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
+      id
       number
       title
       body
@@ -588,6 +589,7 @@ exports[`ghIssuesBackend > get("482") returns the mapped task 1`] = `
   "query": "query Issue($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
+      id
       number
       title
       body
@@ -624,6 +626,7 @@ exports[`ghIssuesBackend > get("999") throws TaskNotFoundError when the issue is
   "query": "query Issue($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
+      id
       number
       title
       body

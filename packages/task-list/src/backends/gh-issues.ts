@@ -122,6 +122,7 @@ const REPOSITORY_ISSUES_QUERY = `query Issues($owner: String!, $repo: String!, $
 const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
+      id
       number
       title
       body
@@ -149,6 +150,7 @@ const ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!,
 const REPOSITORY_ISSUE_QUERY = `query Issue($owner: String!, $repo: String!, $number: Int!) {
   repository(owner: $owner, name: $repo) {
     issue(number: $number) {
+      id
       number
       title
       body
@@ -1033,6 +1035,9 @@ async function updateIssueStateLabel(
     if (currentIssue === null) {
       throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
     }
+    if (typeof currentIssue.id === "string") {
+      context.issueIds.set(issueNumber, currentIssue.id);
+    }
     issue ??= currentIssue;
     if (session.projectId === undefined) {
       break;
@@ -1283,6 +1288,9 @@ async function fetchIssueTask(
     const currentIssue = result.repository?.issue ?? null;
     if (currentIssue === null) {
       throw new TaskNotFoundError(`Task "${listName}/${id}" not found.`);
+    }
+    if (currentIssue.id !== undefined) {
+      context.issueIds.set(issueNumber, currentIssue.id);
     }
     issue ??= currentIssue;
     if (session.projectId === undefined) {

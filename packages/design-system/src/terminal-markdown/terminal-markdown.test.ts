@@ -1157,6 +1157,16 @@ describe("extractFrontmatter", () => {
     });
   });
 
+  it("preserves __proto__ frontmatter as own metadata without prototype mutation", () => {
+    const { frontmatter } = extractFrontmatter(
+      ["---", "__proto__:", "  owner: attacker", "---", "Body"].join("\n")
+    );
+
+    expect(Object.hasOwn(frontmatter!, "__proto__")).toBe(true);
+    expect((frontmatter as { owner?: string }).owner).toBeUndefined();
+    expect((frontmatter as Record<string, unknown>)["__proto__"]).toEqual({ owner: "attacker" });
+  });
+
   it("supports quoted values and special characters in scalars (test 73)", () => {
     expect(
       extractFrontmatter(

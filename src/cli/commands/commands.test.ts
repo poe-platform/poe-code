@@ -558,6 +558,36 @@ describe("generate command", () => {
     expect(output).toContain(`model:${DEFAULT_TEXT_MODEL} prompt:What is 2+2?`);
   });
 
+  it("does not recover malformed config while previewing text generation", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const { program } = createGenerateProgram({ fs });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "generate", "text", "hello"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
+  it("does not recover malformed config while previewing media generation", async () => {
+    const fs = createMemFs();
+    const malformedConfig = "{ invalid json\n";
+    await fs.mkdir(`${homeDir}/.poe-code`, { recursive: true });
+    await fs.writeFile(configPath, malformedConfig, { encoding: "utf8" });
+    const { program } = createGenerateProgram({ fs });
+
+    await expect(
+      program.parseAsync(["node", "cli", "--dry-run", "generate", "image", "hello"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(configPath, "utf8")).resolves.toBe(malformedConfig);
+    await expect(fs.readdir(`${homeDir}/.poe-code`)).resolves.toEqual(["config.json"]);
+  });
+
   it("uses explicit text subcommand with params", async () => {
     const { program } = createGenerateProgram();
     const client: LlmClient = {

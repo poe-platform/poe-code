@@ -63,7 +63,7 @@ export function registerGenerateCommand(
 
       const opts = resolveGenerateOptions(this);
       const params = parseParams(normalizeParamList(opts.param));
-      const model = await resolveModel("text", opts, container);
+      const model = await resolveModel("text", opts, container, { readOnly: flags.dryRun });
 
       if (flags.dryRun) {
         resources.logger.dryRun(
@@ -103,7 +103,7 @@ export function registerGenerateCommand(
       const prompt = ensurePrompt(promptArg, { type: "text", isDefault: false });
       const opts = resolveGenerateOptions(this);
       const params = parseParams(normalizeParamList(opts.param));
-      const model = await resolveModel("text", opts, container);
+      const model = await resolveModel("text", opts, container, { readOnly: flags.dryRun });
 
       if (flags.dryRun) {
         resources.logger.dryRun(
@@ -156,7 +156,7 @@ function registerMediaSubcommand(
       const prompt = ensurePrompt(promptArg, { type, isDefault: false });
       const opts = resolveGenerateOptions(this);
       const params = parseParams(normalizeParamList(opts.param));
-      const model = await resolveModel(type, opts, container);
+      const model = await resolveModel(type, opts, container, { readOnly: flags.dryRun });
 
       if (flags.dryRun) {
         resources.logger.dryRun(
@@ -298,7 +298,8 @@ function resolveApiBaseUrl(container: CliContainer): string {
 async function resolveModel(
   type: GenerateType,
   options: GenerateCommandOptions,
-  container: CliContainer
+  container: CliContainer,
+  configOptions: { readOnly?: boolean } = {}
 ): Promise<string> {
   if (options.model) {
     return options.model;
@@ -309,7 +310,7 @@ async function resolveModel(
     return envModel;
   }
   const configModel = await loadAgentModel(
-    { fs: container.fs, filePath: container.env.configPath },
+    { fs: container.fs, filePath: container.env.configPath, readOnly: configOptions.readOnly },
     `generate-${type}`
   );
   if (configModel) {

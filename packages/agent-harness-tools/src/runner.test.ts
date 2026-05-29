@@ -337,6 +337,51 @@ describe("runDocumentWorkflow", () => {
     expect(prompts).toEqual(["Setup workspace", "Abort during stage", "Clean up"]);
   });
 
+  it("does not pass an already aborted execution signal to teardown", async () => {
+    const controller = new AbortController();
+    const cancelled = new Error("cancelled");
+    const prompts: string[] = [];
+    const options = createOptions({
+      signal: controller.signal,
+      frontmatter: {
+        participants: {
+          default: {
+            agent: "claude",
+            mode: "edit"
+          }
+        },
+        stages: [
+          {
+            id: "draft",
+            participant: "default",
+            prompt: "Abort during stage"
+          }
+        ],
+        teardown: {
+          prompt: "Clean up"
+        },
+        max_iterations: 1
+      },
+      runAgent: vi.fn(async (input: RunAgentInput) => {
+        if (input.signal?.aborted) {
+          throw input.signal.reason;
+        }
+
+        prompts.push(input.prompt);
+        if (input.prompt === "Abort during stage") {
+          controller.abort(cancelled);
+          throw cancelled;
+        }
+
+        return { exitCode: 0 };
+      })
+    });
+
+    await expect(runDocumentWorkflow(options)).rejects.toBe(cancelled);
+
+    expect(prompts).toEqual(["Abort during stage", "Clean up"]);
+  });
+
   it("calls onIterationStart and onIterationEnd for each iteration", async () => {
     const iterationStarts: number[] = [];
     const iterationEnds: Array<[number, IterationResult]> = [];

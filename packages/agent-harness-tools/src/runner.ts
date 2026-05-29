@@ -361,7 +361,7 @@ export async function runDocumentWorkflow(options: DocumentWorkflowOptions): Pro
           cwd: options.cwd,
           participants: currentWorkflow.participants,
           runAgent: options.runAgent,
-          ...(options.signal ? { signal: options.signal } : {})
+          ...(options.signal && !options.signal.aborted ? { signal: options.signal } : {})
         });
       }
     } catch (error) {

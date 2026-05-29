@@ -34,7 +34,11 @@ interface RenderContext {
 const lineChar = "─";
 
 export function render(ast: MdNode, options: RenderOptions = {}): string {
-  const width = Math.max(1, options.width ?? process.stdout.columns ?? widths.maxLine);
+  const requestedWidth = options.width ?? process.stdout.columns ?? widths.maxLine;
+  if (!Number.isFinite(requestedWidth) || requestedWidth <= 0) {
+    throw new Error("width must be a positive finite number.");
+  }
+  const width = Math.max(1, requestedWidth);
 
   const context: RenderContext = {
     width,
@@ -335,7 +339,23 @@ function formatFrontmatterValue(value: unknown): string {
     return String(value);
   }
 
-  return JSON.stringify(value);
+  const ancestors: object[] = [];
+  return JSON.stringify(value, function (_key, nestedValue: unknown) {
+    if (typeof nestedValue !== "object" || nestedValue === null) {
+      return nestedValue;
+    }
+
+    while (ancestors.length > 0 && ancestors[ancestors.length - 1] !== this) {
+      ancestors.pop();
+    }
+
+    if (ancestors.includes(nestedValue)) {
+      return "[Circular]";
+    }
+
+    ancestors.push(nestedValue);
+    return nestedValue;
+  });
 }
 
 function renderHtml(node: Extract<MdNode, { type: "html" }>, context: RenderContext): string {

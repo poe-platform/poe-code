@@ -97,6 +97,23 @@ describe("terminal markdown entrypoint", () => {
     expect(renderMarkdown(markdown, options)).toBe(render(parse(markdown).ast, options));
   });
 
+  it("rejects a non-finite render width", () => {
+    expect(() => render({
+      type: "root",
+      children: [{ type: "paragraph", children: [{ type: "text", value: "hello" }] }]
+    }, { width: Number.NaN })).toThrow("width must be a positive finite number");
+  });
+
+  it("renders cyclic frontmatter without throwing", () => {
+    const metadata: { self?: unknown } = {};
+    metadata.self = metadata;
+
+    expect(stripAnsi(render({
+      type: "root",
+      children: [{ type: "frontmatter", data: { metadata } }]
+    }, { showFrontmatter: true }))).toContain('metadata: {"self":"[Circular]"}');
+  });
+
   it("renders malformed markdown inputs as readable literal output without crashing", () => {
     expect(() => renderMarkdown("```js\nconst x = 1;\nno closing fence")).not.toThrow();
     expect(stripAnsi(renderMarkdown("```js\nconst x = 1;\nno closing fence"))).toContain(

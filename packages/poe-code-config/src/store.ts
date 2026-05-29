@@ -4,6 +4,7 @@ import { createTimestamp, isNotFound, type FileSystem } from "@poe-code/config-m
 import type { ConfigDocument } from "./types.js";
 
 export async function readDocument(fs: FileSystem, filePath: string): Promise<ConfigDocument> {
+  await assertConfigPathSafe(fs, filePath);
   const document = await readStoredDocument(fs, filePath);
   return document.data;
 }

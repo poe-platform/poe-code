@@ -1,4 +1,5 @@
 import { createMockFs } from "@poe-code/config-mutations/testing";
+import { Volume, createFsFromVolume } from "memfs";
 import { describe, expect, it } from "vitest";
 import {
   loadProviderShapeBaseUrls,
@@ -87,5 +88,25 @@ describe("provider config", () => {
       "anthropic-messages": "https://example/anth",
       "openai-responses": "https://example/openai"
     });
+  });
+
+  it("rejects provider metadata reads through a symlinked services directory", async () => {
+    const volume = new Volume();
+    volume.mkdirSync(`${homeDir}/.config`, { recursive: true });
+    volume.mkdirSync("/outside", { recursive: true });
+    volume.symlinkSync("/outside", `${homeDir}/.config/poe-code`);
+    volume.writeFileSync(
+      "/outside/services.json",
+      JSON.stringify({ providers: { cloudflare: { shapeBaseUrls: { "openai-responses": "https://outside" } } } })
+    );
+    const fs = createFsFromVolume(volume).promises as any;
+
+    await expect(
+      loadProviderShapeBaseUrls({
+        fs,
+        filePath: servicesConfigPath,
+        providerId: "cloudflare"
+      })
+    ).rejects.toThrow("symbolic link");
   });
 });

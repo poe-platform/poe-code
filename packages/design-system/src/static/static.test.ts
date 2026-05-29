@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { resetOutputFormatCache, withOutputFormat } from "../internal/output-format.js";
 import { renderMenu } from "./menu.js";
-import { renderSpinnerFrame, renderSpinnerStopped } from "./spinner.js";
+import { SPINNER_FRAMES, renderSpinnerFrame, renderSpinnerStopped } from "./spinner.js";
 
 function restoreEnv(name: "FORCE_COLOR" | "NO_COLOR", value: string | undefined): void {
   if (value === undefined) {
@@ -126,6 +126,23 @@ describe("static/spinner", () => {
 
     expect(frame).toContain("◑");
     expect(frame).not.toContain("undefined");
+  });
+
+  it("prevents exported spinner frames from changing terminal renders", () => {
+    const originalFrame = SPINNER_FRAMES[0];
+
+    try {
+      expect(Reflect.set(SPINNER_FRAMES, "0", "UNTRUSTED")).toBe(false);
+
+      const frame = withOutputFormat("terminal", () =>
+        renderSpinnerFrame({ frame: 0, message: "Loading" })
+      );
+
+      expect(frame).toContain(originalFrame);
+      expect(frame).not.toContain("UNTRUSTED");
+    } finally {
+      Reflect.set(SPINNER_FRAMES, "0", originalFrame);
+    }
   });
 
   it("renders markdown spinner output", () => {

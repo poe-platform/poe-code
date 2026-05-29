@@ -2,7 +2,7 @@ import { color } from "../components/color.js";
 import { symbols } from "../components/symbols.js";
 import { resolveOutputFormat } from "../internal/output-format.js";
 
-export const SPINNER_FRAMES = ["◒", "◐", "◓", "◑"] as const;
+export const SPINNER_FRAMES = Object.freeze(["◒", "◐", "◓", "◑"] as const);
 
 export interface SpinnerFrameOptions {
   frame?: number;

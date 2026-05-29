@@ -525,6 +525,18 @@ describe("renderTable", () => {
       expect(parsed[0].Name).toBe("colored");
     });
 
+    it("preserves special column names as json properties", () => {
+      const result = renderTable({
+        theme,
+        columns: [
+          { name: "__proto__", title: "Special", alignment: "left", maxLen: 20 },
+        ],
+        rows: [JSON.parse('{"__proto__":"visible"}')],
+      });
+
+      expect(JSON.parse(result)[0]["__proto__"]).toBe("visible");
+    });
+
     it("returns empty array for no rows", () => {
       const result = renderTable({
         theme,

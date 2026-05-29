@@ -391,7 +391,7 @@ function renderTableJson(options: RenderTableOptions): string {
   const { columns, rows } = options;
 
   const cleaned = rows.map((row) => {
-    const obj: Record<string, string> = {};
+    const obj = Object.create(null) as Record<string, string>;
     for (const col of columns) {
       obj[col.name] = stripAnsi(row[col.name] ?? "");
     }

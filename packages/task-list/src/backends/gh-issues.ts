@@ -665,6 +665,7 @@ function createTasksView(
       return fetchIssueTask(String(issueNumber), name, session, context);
     },
     async update(id: string, patch: TaskUpdate): Promise<Task> {
+      const task = await fetchIssueTask(id, name, session, context);
       const input: Record<string, unknown> = {};
 
       if (patch.name !== undefined) {
@@ -683,7 +684,11 @@ function createTasksView(
         });
       }
 
-      return fetchIssueTask(id, name, session, context);
+      return {
+        ...task,
+        name: patch.name ?? task.name,
+        description: patch.description ?? task.description
+      };
     },
     async fire(id: string, event: string, _opts?: TaskFireOptions): Promise<Task> {
       if (!session.statusOptions.has(event)) {
@@ -707,14 +712,15 @@ function createTasksView(
 
       // opts.metadataPatch writes are out of scope for v1 on gh-issues.
       if (session.labelPrefix === undefined) {
-        const projectItemId = await resolveProjectItemId(id, name, session, context);
+        const projectItemId = projectItemIdFromTask(task);
         await updateProjectItemStatus(projectItemId, event, session, context);
       } else {
         await updateIssueStateLabel(id, name, event, session, context);
       }
-      return fetchIssueTask(id, name, session, context);
+      return { ...task, state: event };
     },
     async comment(id: string, body: string): Promise<void> {
+      await fetchIssueTask(id, name, session, context);
       await context.client.graphql(ADD_COMMENT_MUTATION, {
         input: {
           subjectId: await resolveIssueId(id, name, context),

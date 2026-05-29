@@ -885,13 +885,13 @@ describe("ghIssuesBackend", () => {
         status: "Todo",
         projectItemId: "item-573"
       }),
-      updateIssueResponse(),
       issueResponse({
         number: 573,
-        title: "Renamed",
+        title: "Original",
         status: "Todo",
         projectItemId: "item-573"
-      })
+      }),
+      updateIssueResponse(),
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
     const tasks = taskList.list("octo-org/7");
@@ -909,13 +909,9 @@ describe("ghIssuesBackend", () => {
   it('update("482", { name: "new" }) issues only updateIssue with title', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
+      issueResponse({ number: 482, title: "Original", status: "Todo" }),
       issueNodeIdResponse("issue-node-482"),
-      updateIssueResponse(),
-      issueResponse({
-        number: 482,
-        title: "new",
-        status: "Todo"
-      })
+      updateIssueResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
 
@@ -931,14 +927,9 @@ describe("ghIssuesBackend", () => {
   it('update("482", { description: "new body" }) issues only updateIssue with body', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
+      issueResponse({ number: 482, title: "Keep title", body: "before", status: "Todo" }),
       issueNodeIdResponse("issue-node-482"),
-      updateIssueResponse(),
-      issueResponse({
-        number: 482,
-        title: "Keep title",
-        body: "new body",
-        status: "Todo"
-      })
+      updateIssueResponse()
     ]);
     const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
 
@@ -971,6 +962,45 @@ describe("ghIssuesBackend", () => {
       name: "Read only metadata"
     });
     expect(readMutationCalls(fetchMock)).toEqual([]);
+  });
+
+  it("rejects update and comment mutations for issues outside the configured project", async () => {
+    const updateFetch = createFetchMock([
+      projectResponse(),
+      issueResponse({ number: 999, title: "Outside", projectId: "other-project" })
+    ]);
+    const updateTasks = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: updateFetch });
+
+    await expect(updateTasks.list("octo-org/7").update("999", { name: "Renamed" })).rejects.toBeInstanceOf(
+      TaskNotFoundError
+    );
+    expect(readMutationCalls(updateFetch)).toEqual([]);
+
+    const commentFetch = createFetchMock([
+      projectResponse(),
+      issueResponse({ number: 999, title: "Outside", projectId: "other-project" })
+    ]);
+    const commentTasks = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: commentFetch });
+
+    await expect(commentTasks.list("octo-org/7").comment?.("999", "note")).rejects.toBeInstanceOf(
+      TaskNotFoundError
+    );
+    expect(readMutationCalls(commentFetch)).toEqual([]);
+  });
+
+  it("returns an updated task without a post-mutation confirmation read", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({ number: 482, title: "Original", body: "Before", status: "Todo" }),
+      issueNodeIdResponse("issue-node-482"),
+      updateIssueResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(
+      taskList.list("octo-org/7").update("482", { name: "Renamed", description: "After" })
+    ).resolves.toMatchObject({ name: "Renamed", description: "After", state: "Todo" });
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
   it('fire("482", "<known-state>") sets the matching Status option', async () => {
@@ -1121,6 +1151,22 @@ describe("ghIssuesBackend", () => {
       InvalidTransitionError
     );
     expect(readMutationCalls(fetchMock)).toEqual([]);
+  });
+
+  it("returns a transitioned Status task without a post-mutation confirmation read", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({ number: 482, title: "Move me", status: "Todo", projectItemId: "item-482" }),
+      issueProjectItemResponse({ issueId: "issue-node-482", projectItemId: "item-482" }),
+      updateStatusResponse()
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").fire("482", "Done")).resolves.toMatchObject({
+      id: "482",
+      state: "Done"
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("fire ignores metadataPatch and only writes the Status field", async () => {

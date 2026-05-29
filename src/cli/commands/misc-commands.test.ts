@@ -4,6 +4,7 @@ import { Command, CommanderError } from "commander";
 import { createProgram } from "../program.js";
 import { resolveConfigPath, resolveProjectConfigPath } from "@poe-code/poe-code-config";
 import { createCliContainer } from "../container.js";
+import { DEFAULT_FRONTIER_MODEL } from "../constants.js";
 import { registerUtilsCommand } from "./utils.js";
 import { SilentError } from "../errors.js";
 import type { FileSystem } from "../utils/file-system.js";
@@ -128,6 +129,26 @@ describe("agent command", () => {
     }));
     expect(disposeMock).toHaveBeenCalledTimes(1);
     expect(logs.some((line) => line.includes("Hello from Poe agent"))).toBe(true);
+  });
+
+  it("uses and advertises the default model when omitted", async () => {
+    const program = createProgram({
+      fs: createMemFs(),
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+
+    await program.parseAsync(["node", "cli", "agent", "Say hello"]);
+
+    expect(createAgentSessionMock).toHaveBeenCalledWith({
+      model: DEFAULT_FRONTIER_MODEL,
+      apiKey: undefined,
+      cwd
+    });
+    expect(program.commands.find((command) => command.name() === "agent")?.helpInformation()).toContain(
+      `Model identifier (default: ${DEFAULT_FRONTIER_MODEL})`
+    );
   });
 
   it("supports global dry-run mode", async () => {

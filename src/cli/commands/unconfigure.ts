@@ -45,6 +45,18 @@ export async function executeUnconfigure(
   resources.logger.intro(`unconfigure ${canonicalService}`);
 
   const providerContext = buildProviderContext(container, adapter, resources);
+  const configuredServices = await loadConfiguredServices({
+    fs: container.fs,
+    filePath: providerContext.env.configPath,
+    projectFilePath: providerContext.env.projectConfigPath,
+    readOnly: flags.dryRun
+  });
+  const metadata = configuredServices[canonicalService];
+  if (!metadata) {
+    resources.context.complete(formatUnconfigureMessages(canonicalService, adapter.label, false, {}));
+    resources.context.finalize();
+    return;
+  }
   const mutationLogger = createMutationReporter(resources.logger);
   const transaction = flags.dryRun ? undefined : createOverlayFileSystem(providerContext.command.fs);
   const executionProviderContext = transaction
@@ -62,7 +74,7 @@ export async function executeUnconfigure(
     container,
     options,
     context: providerContext,
-    readOnly: flags.dryRun
+    metadata
   });
 
   const unconfigured = await container.registry.invoke(
@@ -136,21 +148,14 @@ interface UnconfigurePayloadInit {
   container: CliContainer;
   options: UnconfigureCommandOptions;
   context: ProviderContext;
-  readOnly: boolean;
+  metadata: Awaited<ReturnType<typeof loadConfiguredServices>>[string];
 }
 
 async function createUnconfigurePayload(init: UnconfigurePayloadInit): Promise<unknown> {
-  const { context, container, service, readOnly } = init;
-  const configuredServices = await loadConfiguredServices({
-    fs: container.fs,
-    filePath: context.env.configPath,
-    projectFilePath: context.env.projectConfigPath,
-    readOnly
-  });
-  const metadata = configuredServices[service];
+  const { context, metadata } = init;
   return {
     env: context.env,
-    ...(metadata ? { provider: { id: metadata.provider } } : {})
+    provider: { id: metadata.provider }
   };
 }
 

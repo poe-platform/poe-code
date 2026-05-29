@@ -3,6 +3,7 @@ import { Volume, createFsFromVolume } from "memfs";
 import { parse as parseYaml } from "yaml";
 import { Command } from "commander";
 import { resolveConfigPath } from "@poe-code/poe-code-config";
+import { saveConfiguredService } from "../../services/config.js";
 import { executeConfigure, resolveServiceArgument } from "./configure.js";
 import { registerInstallCommand } from "./install.js";
 import { registerLogoutCommand } from "./logout.js";
@@ -986,7 +987,6 @@ describe("install command", () => {
     });
 
     container.registry.register(adapter);
-
     const program = createBaseProgram();
     registerInstallCommand(program, container);
 
@@ -1013,7 +1013,6 @@ describe("install command", () => {
     });
 
     container.registry.register(adapter);
-
     const program = createBaseProgram();
     registerInstallCommand(program, container);
 
@@ -1871,6 +1870,12 @@ describe("unconfigure command", () => {
     });
 
     container.registry.register(adapter);
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "test-service",
+      metadata: { provider: "none", files: [] }
+    });
 
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);
@@ -1879,6 +1884,34 @@ describe("unconfigure command", () => {
 
     expect(unconfigureSpy).toHaveBeenCalledTimes(1);
     expect(logs.some((line) => line.includes("Removed Test Service configuration."))).toBe(true);
+  });
+
+  it("does not remove untracked Claude Code user settings", async () => {
+    const fs = createMemFs();
+    const settingsPath = `${homeDir}/.claude/settings.json`;
+    const original = JSON.stringify({
+      env: {
+        ANTHROPIC_API_KEY: "user-own-key",
+        ANTHROPIC_BASE_URL: "https://user.example.test",
+        USER_SETTING: "keep"
+      },
+      model: "user-model",
+      theme: "keep"
+    });
+    await fs.mkdir(`${homeDir}/.claude`, { recursive: true });
+    await fs.writeFile(settingsPath, original, { encoding: "utf8" });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerUnconfigureCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "unconfigure", "claude-code"]);
+
+    await expect(fs.readFile(settingsPath, "utf8")).resolves.toBe(original);
   });
 
   it("does not recover malformed config while previewing unconfigure", async () => {
@@ -1975,6 +2008,12 @@ describe("unconfigure command", () => {
     });
 
     container.registry.register(adapter);
+    await saveConfiguredService({
+      fs,
+      filePath: configPath,
+      service: "test-service",
+      metadata: { provider: "none", files: [] }
+    });
 
     const program = createBaseProgram();
     registerUnconfigureCommand(program, container);

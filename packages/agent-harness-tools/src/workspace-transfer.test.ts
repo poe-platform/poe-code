@@ -91,6 +91,58 @@ describe("workspace transfer", () => {
     await expect(readRemote(env, "nested/root-only.txt")).resolves.toBe("keep");
   });
 
+  it("honors escaped leading comment markers in gitignore patterns", async () => {
+    const env = createEnv({
+      "/repo/.gitignore": "\\#credentials\n",
+      "/repo/#credentials": "secret",
+      "/repo/app.ts": "app"
+    });
+
+    await uploadWorkspace(env, {});
+
+    await expectNoRemote(env, "#credentials");
+    await expect(readRemote(env, "app.ts")).resolves.toBe("app");
+  });
+
+  it("preserves meaningful leading spaces in gitignore patterns", async () => {
+    const env = createEnv({
+      "/repo/.gitignore": " secret.txt\n",
+      "/repo/ secret.txt": "drop",
+      "/repo/secret.txt": "keep"
+    });
+
+    await uploadWorkspace(env, {});
+
+    await expectNoRemote(env, " secret.txt");
+    await expect(readRemote(env, "secret.txt")).resolves.toBe("keep");
+  });
+
+  it("matches globstar gitignore rules across nested directories", async () => {
+    const env = createEnv({
+      "/repo/.gitignore": "**/.env\n",
+      "/repo/packages/app/config/.env": "secret",
+      "/repo/packages/app/config/app.ts": "app"
+    });
+
+    await uploadWorkspace(env, {});
+
+    await expectNoRemote(env, "packages/app/config/.env");
+    await expect(readRemote(env, "packages/app/config/app.ts")).resolves.toBe("app");
+  });
+
+  it("applies nested gitignore rules within their containing directory", async () => {
+    const env = createEnv({
+      "/repo/packages/app/.gitignore": ".env\n",
+      "/repo/packages/app/.env": "secret",
+      "/repo/packages/other/.env": "keep"
+    });
+
+    await uploadWorkspace(env, {});
+
+    await expectNoRemote(env, "packages/app/.env");
+    await expect(readRemote(env, "packages/other/.env")).resolves.toBe("keep");
+  });
+
   it("skips oversize files and prints one warning per skip", async () => {
     const warn = vi.fn();
     const env = createEnv({

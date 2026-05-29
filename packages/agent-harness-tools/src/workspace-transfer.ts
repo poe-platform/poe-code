@@ -66,6 +66,7 @@ interface IgnoreRule {
   negate: boolean;
   directoryOnly: boolean;
   anchored: boolean;
+  basePath: string;
 }
 
 const uploadState = new WeakMap<object, Map<string, UploadedFileState>>();
@@ -81,7 +82,7 @@ export async function uploadWorkspace(
   const warn = opts.warn ?? console.warn;
   const allFiles = await listFiles(localFs, env.cwd);
   const state = new Map<string, UploadedFileState>();
-  const gitignore = await readIgnoreFile(localFs, env.cwd, ".gitignore", true);
+  const gitignore = await readGitignoreRules(localFs, env.cwd, allFiles);
   const poeCodeIgnore = await readIgnoreFile(localFs, env.cwd, ".poe-code-ignore", false);
   const workspaceExclude = parseIgnoreLines(
     [...(opts.runner?.workspace?.exclude ?? []), ...(opts.workspaceExclude ?? [])],
@@ -256,18 +257,48 @@ async function readIgnoreFile(
   if (content === null) {
     return [];
   }
-  return parseIgnoreLines(content.toString("utf8").split("\n"), allowNegation);
+  return parseIgnoreLines(content.toString("utf8").split("\n"), allowNegation, "");
 }
 
-function parseIgnoreLines(lines: string[], allowNegation: boolean): IgnoreRule[] {
+async function readGitignoreRules(
+  fs: WorkspaceTransferFileSystem,
+  cwd: string,
+  files: Array<Omit<FileEntry, "content">>
+): Promise<IgnoreRule[]> {
+  const rules: IgnoreRule[] = [];
+  for (const file of files) {
+    if (path.basename(file.path) !== ".gitignore") {
+      continue;
+    }
+
+    const content = await fs.readFile(file.absolutePath, "utf8");
+    const containingDirectory = normalizeRelativePath(path.dirname(file.path));
+    rules.push(
+      ...parseIgnoreLines(
+        content.split("\n"),
+        true,
+        containingDirectory === "." ? "" : containingDirectory
+      )
+    );
+  }
+
+  return rules;
+}
+
+function parseIgnoreLines(lines: string[], allowNegation: boolean, basePath = ""): IgnoreRule[] {
   const rules: IgnoreRule[] = [];
   for (const rawLine of lines) {
-    const line = rawLine.trim();
+    let line = rawLine.trimEnd();
     if (line.length === 0 || line.startsWith("#")) {
       continue;
     }
 
-    const negate = allowNegation && line.startsWith("!");
+    const escapedMarker = line.startsWith("\\#") || line.startsWith("\\!");
+    if (escapedMarker) {
+      line = line.slice(1);
+    }
+
+    const negate = !escapedMarker && allowNegation && line.startsWith("!");
     const patternWithMarker = negate ? line.slice(1) : line;
     if (patternWithMarker.length === 0) {
       continue;
@@ -279,7 +310,7 @@ function parseIgnoreLines(lines: string[], allowNegation: boolean): IgnoreRule[]
       directoryOnly ? patternWithMarker.slice(0, -1) : patternWithMarker
     );
     if (pattern.length > 0) {
-      rules.push({ pattern, negate, directoryOnly, anchored });
+      rules.push({ pattern, negate, directoryOnly, anchored, basePath });
     }
   }
   return rules;
@@ -301,16 +332,33 @@ function isIgnoredAdditively(relativePath: string, rules: IgnoreRule[]): boolean
 
 function matchesRule(relativePath: string, rule: IgnoreRule): boolean {
   const normalizedPath = normalizeRelativePath(relativePath);
+  const scopedPath = pathWithinRuleScope(normalizedPath, rule.basePath);
+  if (scopedPath === null) {
+    return false;
+  }
   const normalizedPattern = normalizeRelativePath(rule.pattern);
   if (rule.directoryOnly) {
-    return pathMatchesDirectory(normalizedPath, normalizedPattern, rule.anchored);
+    return pathMatchesDirectory(scopedPath, normalizedPattern, rule.anchored);
   }
 
   if (rule.anchored || normalizedPattern.includes("/")) {
-    return matchPathSegments(normalizedPath.split("/"), normalizedPattern.split("/"));
+    return matchPathSegments(scopedPath.split("/"), normalizedPattern.split("/"));
   }
 
-  return normalizedPath.split("/").some((segment) => matchSegment(segment, normalizedPattern));
+  return scopedPath.split("/").some((segment) => matchSegment(segment, normalizedPattern));
+}
+
+function pathWithinRuleScope(relativePath: string, basePath: string): string | null {
+  if (basePath.length === 0) {
+    return relativePath;
+  }
+
+  if (relativePath === basePath) {
+    return "";
+  }
+
+  const prefix = `${basePath}/`;
+  return relativePath.startsWith(prefix) ? relativePath.slice(prefix.length) : null;
 }
 
 function pathMatchesDirectory(relativePath: string, pattern: string, anchored: boolean): boolean {
@@ -325,13 +373,29 @@ function pathMatchesDirectory(relativePath: string, pattern: string, anchored: b
 }
 
 function matchPathSegments(pathSegments: string[], patternSegments: string[]): boolean {
-  if (pathSegments.length !== patternSegments.length) {
-    return false;
-  }
+  return matchPathFrom(0, 0);
 
-  return patternSegments.every((patternSegment, index) =>
-    matchSegment(pathSegments[index] ?? "", patternSegment)
-  );
+  function matchPathFrom(pathIndex: number, patternIndex: number): boolean {
+    if (patternIndex === patternSegments.length) {
+      return pathIndex === pathSegments.length;
+    }
+
+    const patternSegment = patternSegments[patternIndex] ?? "";
+    if (patternSegment === "**") {
+      for (let nextPathIndex = pathIndex; nextPathIndex <= pathSegments.length; nextPathIndex += 1) {
+        if (matchPathFrom(nextPathIndex, patternIndex + 1)) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    return (
+      pathIndex < pathSegments.length &&
+      matchSegment(pathSegments[pathIndex] ?? "", patternSegment) &&
+      matchPathFrom(pathIndex + 1, patternIndex + 1)
+    );
+  }
 }
 
 function matchSegment(value: string, pattern: string): boolean {

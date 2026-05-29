@@ -813,6 +813,20 @@ describe("runMutations", () => {
       await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe('{"outside":true}\n');
     });
 
+    it("refuses configuration writes through a symlinked parent directory", async () => {
+      const outsidePath = "/outside/config.toml";
+      const volume = Volume.fromJSON({ [outsidePath]: 'user_setting = "keep"\n' });
+      volume.mkdirSync(homeDir, { recursive: true });
+      volume.symlinkSync("/outside", `${homeDir}/.codex`);
+      const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+      await expect(
+        runMutations([configMutation.merge({ target: "~/.codex/config.toml", value: { added: true } })], { fs, homeDir })
+      ).rejects.toThrow("symbolic link");
+      await expect(fs.readFile(outsidePath, "utf8")).resolves.toBe('user_setting = "keep"\n');
+      await expect(fs.readdir("/outside")).resolves.toEqual(["config.toml"]);
+    });
+
     it("refuses a symlinked invalid-document backup destination", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2026-05-26T12:34:56.789Z"));

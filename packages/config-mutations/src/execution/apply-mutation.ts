@@ -64,14 +64,25 @@ function isAlreadyExists(error: unknown): boolean {
 }
 
 async function assertRegularWriteTarget(fs: FileSystem, targetPath: string): Promise<void> {
-  try {
-    if ((await fs.lstat(targetPath)).isSymbolicLink()) {
-      throw new Error(`Refusing mutation write through symbolic link: ${targetPath}`);
+  let currentPath = targetPath;
+  while (true) {
+    try {
+      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+        throw new Error(`Refusing mutation write through symbolic link: ${currentPath}`);
+      }
+    } catch (error) {
+      if (!isNotFound(error)) {
+        throw error;
+      }
     }
-  } catch (error) {
-    if (!isNotFound(error)) {
-      throw error;
+
+    const parentPath = currentPath.includes("/")
+      ? currentPath.slice(0, Math.max(currentPath.lastIndexOf("/"), 1))
+      : currentPath;
+    if (parentPath === currentPath) {
+      return;
     }
+    currentPath = parentPath;
   }
 }
 
@@ -439,6 +450,7 @@ async function applyBackup(
     while (true) {
       const backupPath = attempt === 0 ? baseBackupPath : `${baseBackupPath}-${attempt}`;
       try {
+        await assertRegularWriteTarget(context.fs, backupPath);
         await context.fs.writeFile(backupPath, content, { encoding: "utf8", flag: "wx" });
         break;
       } catch (error) {

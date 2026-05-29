@@ -22,6 +22,7 @@ type SubscribableLog = LogListener & {
 
 export function createSupervisor(options: SupervisorOptions): Supervisor {
   const { spec } = options;
+  assertValidRestartConfig(spec);
   const runner = resolveRunner(options);
   const stateStore = createStateStore(options.stateDir, options.fs);
   const logWriter = createLogWriter(
@@ -353,6 +354,18 @@ function shouldRestart(exitCode: number, policy: SupervisorOptions["spec"]["rest
 
 function getBackoffDelay(restartCount: number, backoffMs: number, maxBackoffMs: number): number {
   return Math.min(backoffMs * 2 ** restartCount, maxBackoffMs);
+}
+
+function assertValidRestartConfig(spec: SupervisorOptions["spec"]): void {
+  if (spec.maxRestarts !== undefined && (!Number.isSafeInteger(spec.maxRestarts) || spec.maxRestarts < 0)) {
+    throw new Error(`Invalid maximum managed process restarts: ${spec.maxRestarts}`);
+  }
+
+  for (const [description, value] of [["backoff", spec.backoffMs], ["maximum backoff", spec.maxBackoffMs]] as const) {
+    if (value !== undefined && (!Number.isFinite(value) || value < 0)) {
+      throw new Error(`Invalid managed process ${description}: ${value}`);
+    }
+  }
 }
 
 function delay(durationMs: number): Promise<void> {

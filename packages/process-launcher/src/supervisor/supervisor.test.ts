@@ -483,6 +483,32 @@ describe("createSupervisor", () => {
     expect(supervisor.getState().status).toBe("stopped");
   });
 
+  it("rejects an infinite restart backoff before launching", async () => {
+    const runner = {
+      name: "unused",
+      exec: vi.fn(() => createControllableHandle())
+    };
+
+    expect(() => createTestSupervisor({
+      runner,
+      spec: { backoffMs: Number.POSITIVE_INFINITY, restart: "on-failure" }
+    })).toThrow(/backoff/i);
+    expect(runner.exec).not.toHaveBeenCalled();
+  });
+
+  it("rejects a non-finite maximum restart count before launching", async () => {
+    const runner = {
+      name: "unused",
+      exec: vi.fn(() => createControllableHandle())
+    };
+
+    expect(() => createTestSupervisor({
+      runner,
+      spec: { maxRestarts: Number.NaN, restart: "on-failure" }
+    })).toThrow(/maximum managed process restarts/i);
+    expect(runner.exec).not.toHaveBeenCalled();
+  });
+
   it("pipes stdout and stderr to the log writer and onLog callback", async () => {
     vi.useFakeTimers();
     const { fs } = createMemFs();

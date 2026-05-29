@@ -60,6 +60,8 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     .option("--network <name>", "Docker network")
     .addOption(createChoiceOption("--engine <engine>", "Container engine", ["docker", "podman"]))
     .action(async function (this: Command, id: string | undefined, commandArgs: string[]) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, "launch:start");
       const spec = await resolveStartSpec({
         commandArgs,
         id,
@@ -67,6 +69,10 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
         program
       });
       if (spec === null) {
+        return;
+      }
+      if (flags.dryRun) {
+        resources.logger.dryRun(`Dry run: would start managed process ${spec.id}.`);
         return;
       }
 
@@ -83,6 +89,12 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     .argument("<id>", "Managed process identifier")
     .option("--force", "Stop immediately with SIGKILL / docker kill")
     .action(async function (this: Command, id: string) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, `launch:stop:${id}`);
+      if (flags.dryRun) {
+        resources.logger.dryRun(`Dry run: would stop managed process ${id}.`);
+        return;
+      }
       const result = await stopLaunch({
         force: Boolean(this.opts<{ force?: boolean }>().force),
         homeDir: container.env.homeDir,
@@ -98,6 +110,12 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     .description("Restart a managed process.")
     .argument("<id>", "Managed process identifier")
     .action(async function (id: string) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, `launch:restart:${id}`);
+      if (flags.dryRun) {
+        resources.logger.dryRun(`Dry run: would restart managed process ${id}.`);
+        return;
+      }
       await restartLaunch({ homeDir: container.env.homeDir, id });
     });
 
@@ -184,6 +202,12 @@ export function registerLaunchCommand(program: Command, container: CliContainer)
     .description("Remove managed process state and logs.")
     .argument("<id>", "Managed process identifier")
     .action(async function (id: string) {
+      const flags = resolveCommandFlags(program);
+      const resources = createExecutionResources(container, flags, `launch:rm:${id}`);
+      if (flags.dryRun) {
+        resources.logger.dryRun(`Dry run: would remove managed process ${id}.`);
+        return;
+      }
       await removeLaunch({ homeDir: container.env.homeDir, id });
     });
 

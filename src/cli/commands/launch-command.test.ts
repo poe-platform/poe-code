@@ -218,6 +218,52 @@ describe("launch command", () => {
     );
   });
 
+  it("previews launch start without executing the managed process", async () => {
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+
+    await program.parseAsync([
+      "node", "cli", "--dry-run", "--yes", "launch", "start", "api", "--", "node", "server.js"
+    ]);
+
+    expect(startLaunchMock).not.toHaveBeenCalled();
+    expect(logs).toContain("Dry run: would start managed process api.");
+  });
+
+  it("previews launch stop without changing running state", async () => {
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+
+    await program.parseAsync(["node", "cli", "--dry-run", "launch", "stop", "api"]);
+
+    expect(stopLaunchMock).not.toHaveBeenCalled();
+    expect(logs).toContain("Dry run: would stop managed process api.");
+  });
+
+  it("previews launch restart without restarting the managed process", async () => {
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+
+    await program.parseAsync(["node", "cli", "--dry-run", "launch", "restart", "api"]);
+
+    expect(restartLaunchMock).not.toHaveBeenCalled();
+    expect(logs).toContain("Dry run: would restart managed process api.");
+  });
+
+  it("previews launch rm without removing managed process data", async () => {
+    const logs: string[] = [];
+    const program = createBaseProgram();
+    registerLaunchCommand(program, createContainer((message) => logs.push(message)));
+
+    await program.parseAsync(["node", "cli", "--dry-run", "launch", "rm", "api"]);
+
+    expect(removeLaunchMock).not.toHaveBeenCalled();
+    expect(logs).toContain("Dry run: would remove managed process api.");
+  });
+
   it("renders launch status as a table", async () => {
     listLaunchesMock.mockResolvedValue([
       {

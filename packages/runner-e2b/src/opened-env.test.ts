@@ -147,6 +147,40 @@ describe("createOpenedE2bEnv", () => {
     expect(sandbox.commands.closeStdin).toHaveBeenCalledWith(321);
   });
 
+  it("rejects when the remote command API fails before running a command", async () => {
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockRejectedValue(new Error("sandbox transport offline"));
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    await expect(env.exec({ command: "node" }).result).rejects.toThrow("sandbox transport offline");
+  });
+
+  it("contains command termination failures from synchronous kill requests", async () => {
+    const commandHandle = {
+      pid: 321,
+      wait: vi.fn().mockReturnValue(new Promise(() => {})),
+      kill: vi.fn().mockRejectedValue(new Error("command kill failed"))
+    };
+    const sandbox = createSandboxMock();
+    sandbox.commands.run.mockResolvedValue(commandHandle);
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    const handle = env.exec({ command: "node" });
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    handle.kill();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(commandHandle.kill).toHaveBeenCalledOnce();
+  });
+
   it("leaves non-workspace command cwd values unchanged", async () => {
     const commandHandle = {
       pid: 321,
@@ -531,6 +565,41 @@ describe("createOpenedE2bEnv", () => {
       envs: { HOME: "/home/user" },
       onData: expect.any(Function)
     });
+  });
+
+  it("rejects when the remote PTY API cannot create a shell", async () => {
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockRejectedValue(new Error("pty service offline"));
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    await expect(env.shell().result).rejects.toThrow("pty service offline");
+  });
+
+  it("contains PTY termination failures from synchronous kill requests", async () => {
+    const ptyHandle = {
+      pid: 12,
+      wait: vi.fn().mockReturnValue(new Promise(() => {})),
+      kill: vi.fn()
+    };
+    const sandbox = createSandboxMock();
+    sandbox.pty.create.mockResolvedValue(ptyHandle);
+    sandbox.pty.kill.mockRejectedValue(new Error("pty kill failed"));
+    const env = createOpenedE2bEnv({
+      sandbox,
+      runtime: createRuntime(),
+      spec: createSpec()
+    });
+
+    const handle = env.shell();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+    handle.kill();
+    await new Promise<void>((resolve) => setImmediate(resolve));
+
+    expect(sandbox.pty.kill).toHaveBeenCalledWith(12);
   });
 
   it("exposes remote job log files for wrapped sync execution", async () => {

@@ -222,10 +222,10 @@ function runE2bCommand(
   }) as Promise<E2bCommandHandle>;
   const cleanupAbort = bindAbortSignal(spec.signal, () => {
     if (e2bHandle !== null) {
-      void e2bHandle.kill();
+      ignoreAsyncFailure(e2bHandle.kill());
       return;
     }
-    void started.then((handle) => handle.kill(), () => undefined);
+    void started.then((handle) => ignoreAsyncFailure(handle.kill()), () => undefined);
   });
   const stdin =
     spec.stdin === "pipe"
@@ -270,7 +270,7 @@ function runE2bCommand(
         if (isExitError(error)) {
           return { exitCode: error.exitCode };
         }
-        return { exitCode: 1 };
+        throw error;
       }
     );
 
@@ -283,7 +283,9 @@ function runE2bCommand(
     stderr,
     result,
     kill() {
-      void e2bHandle?.kill();
+      if (e2bHandle !== null) {
+        ignoreAsyncFailure(e2bHandle.kill());
+      }
     },
     get e2bHandle() {
       return e2bHandle;
@@ -314,6 +316,12 @@ function bindAbortSignal(signal: AbortSignal | undefined, onAbort: () => void): 
 
   signal.addEventListener("abort", onAbort, { once: true });
   return () => signal.removeEventListener("abort", onAbort);
+}
+
+function ignoreAsyncFailure(value: unknown): void {
+  if (value instanceof Promise) {
+    void value.catch(() => undefined);
+  }
 }
 
 function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
@@ -352,9 +360,9 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
         stdout.end();
         return { exitCode: result.exitCode ?? 0 };
       },
-      () => {
+      (error: unknown) => {
         stdout.end();
-        return { exitCode: 1 };
+        throw error;
       }
     );
 
@@ -367,7 +375,9 @@ function runE2bPty(sandbox: E2bSandbox, spec: RunSpec): RunHandle {
     stderr: null,
     result,
     kill() {
-      void (handleRef === null ? undefined : sandbox.pty.kill(handleRef.pid));
+      if (handleRef !== null) {
+        ignoreAsyncFailure(sandbox.pty.kill(handleRef.pid));
+      }
     }
   };
 }

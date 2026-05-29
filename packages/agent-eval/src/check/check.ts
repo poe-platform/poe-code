@@ -6,6 +6,7 @@ import { loadEval } from "../source/registry.js";
 import type { CaseResult } from "../run/vitest-runner.js";
 import { cloneTarget } from "../run/clone.js";
 import { runScorer } from "../run/scorer.js";
+import { resolveContainedPath } from "../path-boundary.js";
 
 export interface CheckOptions {
   sourceDir: string;
@@ -37,9 +38,10 @@ export async function evalCheck(opts: CheckOptions): Promise<CheckResult> {
   });
 
   const evalDir = path.join(source.rootDir, opts.evalId);
+  const oracleDir = resolveContainedPath(evalDir, evalDef.oracle.path, "oracle.path");
   await copyDirectoryIfPresent(path.join(evalDir, "starter"), cloneDir);
   await copyOracleSolution({
-    solutionDir: path.join(evalDir, evalDef.oracle.path, "solution"),
+    solutionDir: path.join(oracleDir, "solution"),
     cloneDir,
     solutionDest: evalDef.oracle.solutionDest
   });

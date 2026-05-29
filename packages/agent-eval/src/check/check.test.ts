@@ -137,6 +137,28 @@ describe("evalCheck", () => {
     expect(mocks.runScorer).not.toHaveBeenCalled();
   });
 
+  it("rejects oracle paths that escape the eval directory", async () => {
+    mocks.fs = createFsFromVolume(
+      Volume.fromJSON(
+        {
+          ...createSourceFiles(),
+          "/repo/evals/outside/solution/answer.txt": "external\n"
+        },
+        "/"
+      )
+    ).promises;
+    await mocks.fs.writeFile(
+      "/repo/evals/smoke/eval.yaml",
+      createEvalYaml("patched").replace("oracle:\n", "oracle:\n  path: ../outside\n"),
+      "utf8"
+    );
+
+    await expect(evalCheck({ sourceDir: "/repo/evals", evalId: "smoke" })).rejects.toThrow(
+      "oracle.path must stay within the eval directory."
+    );
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+  });
+
   it("propagates clone errors", async () => {
     mocks.cloneTarget.mockRejectedValue(new Error("clone failed"));
 

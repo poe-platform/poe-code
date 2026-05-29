@@ -141,6 +141,58 @@ describe("runScorer", () => {
     expect(runner.specs[0]?.cwd).toBe("/work/clone");
   });
 
+  it("rejects oracle paths that escape the eval directory", async () => {
+    await expect(
+      runScorer({
+        evalDef: createEvalDef({ oracle: { path: "../outside", solutionDest: "." } }),
+        evalDir: "/work/eval",
+        cloneDir: "/work/clone"
+      })
+    ).rejects.toThrow("oracle.path must stay within the eval directory.");
+
+    expect(mocks.createHostRunner).not.toHaveBeenCalled();
+    expect(mocks.runVitest).not.toHaveBeenCalled();
+  });
+
+  it("rejects escaping oracle paths before running the default scorer", async () => {
+    await expect(
+      runScorer({
+        evalDef: createEvalDef({
+          scorer: undefined,
+          oracle: { path: "../outside", solutionDest: "." }
+        }),
+        evalDir: "/work/eval",
+        cloneDir: "/work/clone"
+      })
+    ).rejects.toThrow("oracle.path must stay within the eval directory.");
+
+    expect(mocks.runVitest).not.toHaveBeenCalled();
+  });
+
+  it("rejects custom scorer working directories that escape the clone", async () => {
+    await expect(
+      runScorer({
+        evalDef: createEvalDef({ scorer: createScorerSpec({ cwd: "../outside" }) }),
+        evalDir: "/work/eval",
+        cloneDir: "/work/clone"
+      })
+    ).rejects.toThrow("scorer.cwd must stay within the clone directory.");
+
+    expect(mocks.createHostRunner).not.toHaveBeenCalled();
+  });
+
+  it("rejects custom scorer result paths that escape the clone", async () => {
+    await expect(
+      runScorer({
+        evalDef: createEvalDef({ scorer: createScorerSpec({ resultPath: "../outside.json" }) }),
+        evalDir: "/work/eval",
+        cloneDir: "/work/clone"
+      })
+    ).rejects.toThrow("scorer.result_path must stay within the clone directory.");
+
+    expect(mocks.createHostRunner).not.toHaveBeenCalled();
+  });
+
   it("injects absolute clone and oracle dirs for custom scorers", async () => {
     const absoluteCloneDir = path.resolve("relative-clone");
     const absoluteEvalDir = path.resolve("relative-eval");

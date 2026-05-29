@@ -7,6 +7,7 @@ import {
   type RunSpec
 } from "@poe-code/process-runner";
 import { resolveScorer, type EvalDef, type ScorerSpec } from "../types.js";
+import { resolveContainedPath } from "../path-boundary.js";
 import { runVitest, type CaseResult } from "./vitest-runner.js";
 
 const defaultVitestTimeoutMs = 180_000;
@@ -34,9 +35,9 @@ export async function runScorer(input: {
   const scorer = resolveScorer(input.evalDef);
   const absoluteEvalDir = path.resolve(input.evalDir);
   const absoluteCloneDir = path.resolve(input.cloneDir);
+  const oracleDir = resolveContainedPath(absoluteEvalDir, input.evalDef.oracle.path, "oracle.path");
 
   if (scorer.kind === "vitest") {
-    const oracleDir = path.join(absoluteEvalDir, input.evalDef.oracle.path);
     return runVitest({
       testsDir: path.join(oracleDir, "tests"),
       cloneDir: absoluteCloneDir,
@@ -48,7 +49,7 @@ export async function runScorer(input: {
 
   return runCustomScorer({
     cloneDir: absoluteCloneDir,
-    oracleDir: path.join(absoluteEvalDir, input.evalDef.oracle.path),
+    oracleDir,
     spec: scorer.spec,
     signal: input.signal
   });
@@ -60,9 +61,15 @@ async function runCustomScorer(input: {
   spec: ScorerSpec;
   signal?: AbortSignal;
 }): Promise<{ passed: number; total: number; cases: CaseResult[] }> {
+  const cwd = resolveContainedPath(input.cloneDir, input.spec.cwd, "scorer.cwd");
+  const resultPath = resolveContainedPath(
+    input.cloneDir,
+    input.spec.resultPath,
+    "scorer.result_path"
+  );
   const result = await runScorerCommand(createHostRunner(), {
     command: input.spec.command,
-    cwd: path.join(input.cloneDir, input.spec.cwd),
+    cwd,
     env: createScorerEnv(input.cloneDir, input.oracleDir),
     timeoutMs: input.spec.timeoutMs,
     signal: input.signal
@@ -72,7 +79,6 @@ async function runCustomScorer(input: {
     throw new ScorerTimeoutError(`Scorer timed out after ${input.spec.timeoutMs}ms`);
   }
 
-  const resultPath = path.join(input.cloneDir, input.spec.resultPath);
   const rawResult = await readScorerResult(resultPath, result);
   return parseScorerResult(resultPath, rawResult);
 }

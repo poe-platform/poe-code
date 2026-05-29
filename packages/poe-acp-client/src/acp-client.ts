@@ -301,6 +301,8 @@ export class AcpClient {
   private hasRegisteredFsWriteHandler = false;
   private hasRegisteredTerminalHandlers = false;
   private disposed = false;
+  private initializing = false;
+  private authenticating = false;
 
   private lifecycleState: AcpClientState = "uninitialized";
   private negotiatedVersion: ProtocolVersion | null = null;
@@ -373,7 +375,9 @@ export class AcpClient {
   }
 
   get agentCapabilities(): AgentCapabilities | undefined {
-    return this.negotiatedAgentCapabilities;
+    return this.negotiatedAgentCapabilities === undefined
+      ? undefined
+      : structuredClone(this.negotiatedAgentCapabilities);
   }
 
   get agentInfo(): Implementation | null | undefined {
@@ -385,45 +389,64 @@ export class AcpClient {
   }
 
   async initialize(clientCapabilities?: ClientCapabilities): Promise<InitializeResponse> {
-    if (this.lifecycleState !== "uninitialized") {
+    this.assertNotDisposed();
+    if (this.lifecycleState !== "uninitialized" || this.initializing) {
       throw new Error("initialize() can only be called once.");
     }
 
-    if (clientCapabilities !== undefined) {
-      this.clientCapabilities = clientCapabilities;
-      this.registerCapabilityHandlers(clientCapabilities);
+    this.initializing = true;
+
+    try {
+      if (clientCapabilities !== undefined) {
+        this.clientCapabilities = clientCapabilities;
+        this.registerCapabilityHandlers(clientCapabilities);
+      }
+
+      const response = await this.transport.sendRequest("initialize", {
+        protocolVersion: this.clientProtocolVersion,
+        clientInfo: this.clientInfo,
+        clientCapabilities: this.clientCapabilities,
+      });
+
+      if (
+        typeof response.protocolVersion !== "number" ||
+        !Number.isFinite(response.protocolVersion) ||
+        !Number.isInteger(response.protocolVersion) ||
+        response.protocolVersion < 0
+      ) {
+        throw new Error("Agent returned an invalid protocol version.");
+      }
+
+      const negotiatedProtocolVersion = Math.min(
+        this.clientProtocolVersion,
+        response.protocolVersion
+      );
+
+      this.negotiatedVersion = negotiatedProtocolVersion;
+      this.negotiatedAgentCapabilities = response.agentCapabilities
+        ? structuredClone(response.agentCapabilities)
+        : undefined;
+      this.negotiatedAgentInfo = response.agentInfo;
+      this.availableAuthMethods = response.authMethods ? [...response.authMethods] : [];
+
+      const requiresAuth = this.availableAuthMethods.length > 0 && !this.skipAuth;
+      this.lifecycleState = requiresAuth ? "initialized" : "ready";
+
+      return {
+        protocolVersion: negotiatedProtocolVersion,
+        ...(this.negotiatedAgentCapabilities !== undefined
+          ? { agentCapabilities: structuredClone(this.negotiatedAgentCapabilities) }
+          : {}),
+        ...(this.negotiatedAgentInfo !== undefined ? { agentInfo: this.negotiatedAgentInfo } : {}),
+        ...(this.availableAuthMethods.length > 0 ? { authMethods: this.authMethods } : {}),
+      };
+    } finally {
+      this.initializing = false;
     }
-
-    const response = await this.transport.sendRequest("initialize", {
-      protocolVersion: this.clientProtocolVersion,
-      clientInfo: this.clientInfo,
-      clientCapabilities: this.clientCapabilities,
-    });
-
-    const negotiatedProtocolVersion = Math.min(
-      this.clientProtocolVersion,
-      response.protocolVersion
-    );
-
-    this.negotiatedVersion = negotiatedProtocolVersion;
-    this.negotiatedAgentCapabilities = response.agentCapabilities;
-    this.negotiatedAgentInfo = response.agentInfo;
-    this.availableAuthMethods = response.authMethods ? [...response.authMethods] : [];
-
-    const requiresAuth = this.availableAuthMethods.length > 0 && !this.skipAuth;
-    this.lifecycleState = requiresAuth ? "initialized" : "ready";
-
-    return {
-      protocolVersion: negotiatedProtocolVersion,
-      ...(this.negotiatedAgentCapabilities !== undefined
-        ? { agentCapabilities: this.negotiatedAgentCapabilities }
-        : {}),
-      ...(this.negotiatedAgentInfo !== undefined ? { agentInfo: this.negotiatedAgentInfo } : {}),
-      ...(this.availableAuthMethods.length > 0 ? { authMethods: this.authMethods } : {}),
-    };
   }
 
   async authenticate(methodId: string): Promise<AuthenticateResponse> {
+    this.assertNotDisposed();
     if (this.lifecycleState === "uninitialized") {
       throw new Error("Cannot authenticate before initialize().");
     }
@@ -436,12 +459,21 @@ export class AcpClient {
       throw new Error(`Unknown auth method "${methodId}".`);
     }
 
-    const response = await this.transport.sendRequest("authenticate", {
-      methodId,
-    });
+    if (this.authenticating) {
+      throw new Error("Authentication is already in progress.");
+    }
 
-    this.lifecycleState = "ready";
-    return response;
+    this.authenticating = true;
+    try {
+      const response = await this.transport.sendRequest("authenticate", {
+        methodId,
+      });
+
+      this.lifecycleState = "ready";
+      return response;
+    } finally {
+      this.authenticating = false;
+    }
   }
 
   async newSession(cwd: string, mcpServers: McpServer[]): Promise<NewSessionResponse> {
@@ -563,12 +595,14 @@ export class AcpClient {
     params?: unknown,
     options: JsonRpcRequestOptions = {}
   ): Promise<TResult> {
+    this.assertNotDisposed();
     assertExtensionMethod(method);
     return this.transport.sendRequest(method, params, options) as Promise<TResult>;
   }
 
   async sendExtNotification(method: ExtensionMethod, params?: unknown): Promise<void>;
   async sendExtNotification(method: string, params?: unknown): Promise<void> {
+    this.assertNotDisposed();
     assertExtensionMethod(method);
     this.transport.sendNotification(method, params);
   }
@@ -584,6 +618,7 @@ export class AcpClient {
     method: string,
     handler: (params: unknown, context: { id: RequestId; method: string }) => unknown
   ): void {
+    this.assertNotDisposed();
     assertExtensionMethod(method);
     this.transport.onRequest(method, handler);
   }
@@ -596,6 +631,7 @@ export class AcpClient {
     method: string,
     handler: (params: unknown, context: { method: string }) => void | Promise<void>
   ): void {
+    this.assertNotDisposed();
     assertExtensionMethod(method);
     this.transport.onNotification(method, handler);
   }
@@ -625,6 +661,7 @@ export class AcpClient {
   }
 
   assertReady(operation: string): void {
+    this.assertNotDisposed();
     if (this.lifecycleState === "ready") {
       return;
     }
@@ -634,6 +671,12 @@ export class AcpClient {
     }
 
     throw new Error(`Cannot call "${operation}" before authentication completes.`);
+  }
+
+  private assertNotDisposed(): void {
+    if (this.disposed) {
+      throw new Error("ACP client disposed.");
+    }
   }
 
   private registerCapabilityHandlers(capabilities: ClientCapabilities | undefined): void {

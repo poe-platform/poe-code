@@ -555,6 +555,36 @@ describe("AcpClient", () => {
     expect(higherVersionClient.negotiatedProtocolVersion).toBe(4);
   });
 
+  it.each(["invalid", -1, Number.NaN, Number.POSITIVE_INFINITY])(
+    "rejects invalid agent protocol version %s without becoming ready",
+    async (protocolVersion) => {
+      const { transport, sendRequestMock } = createTransportMock();
+      sendRequestMock.mockResolvedValueOnce({ protocolVersion } as unknown as InitializeResponse);
+      const client = new AcpClient({ transport, protocolVersion: 1 });
+
+      await expect(client.initialize()).rejects.toThrow(
+        "Agent returned an invalid protocol version."
+      );
+      expect(client.state).toBe("uninitialized");
+      expect(client.negotiatedProtocolVersion).toBeNull();
+    }
+  );
+
+  it("rejects concurrent initialization before sending a second handshake", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    const initializeResponse = createDeferred<InitializeResponse>();
+    sendRequestMock.mockReturnValueOnce(initializeResponse.promise);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+
+    const pendingInitialize = client.initialize();
+
+    await expect(client.initialize()).rejects.toThrow("initialize() can only be called once.");
+    expect(sendRequestMock).toHaveBeenCalledTimes(1);
+
+    initializeResponse.resolve({ protocolVersion: 1 });
+    await expect(pendingInitialize).resolves.toMatchObject({ protocolVersion: 1 });
+  });
+
   it("requires authentication before becoming ready when auth methods are returned", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     sendRequestMock
@@ -587,6 +617,30 @@ describe("AcpClient", () => {
     });
     expect(client.state).toBe("ready");
     expect(() => client.assertReady("session/new")).not.toThrow();
+  });
+
+  it("rejects concurrent authentication before sending duplicate credentials", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    const authenticateResponse = createDeferred<Record<string, never>>();
+    sendRequestMock
+      .mockResolvedValueOnce({
+        protocolVersion: 1,
+        authMethods: [{ id: "oauth", name: "OAuth" }],
+      } satisfies InitializeResponse)
+      .mockReturnValueOnce(authenticateResponse.promise);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    const pendingAuthenticate = client.authenticate("oauth");
+
+    await expect(client.authenticate("oauth")).rejects.toThrow(
+      "Authentication is already in progress."
+    );
+    expect(sendRequestMock).toHaveBeenCalledTimes(2);
+
+    authenticateResponse.resolve({});
+    await expect(pendingAuthenticate).resolves.toEqual({});
+    expect(client.state).toBe("ready");
   });
 
   it("does not require authenticate when the agent returns no auth methods", async () => {
@@ -1638,6 +1692,23 @@ describe("AcpClient", () => {
     expect(sendRequestMock).toHaveBeenCalledTimes(1);
   });
 
+  it("does not expose mutable agent capabilities used for prompt validation", async () => {
+    const { transport, sendRequestMock } = createTransportMock();
+    sendRequestMock.mockResolvedValueOnce({
+      protocolVersion: 1,
+      agentCapabilities: { promptCapabilities: { image: false } },
+    } satisfies InitializeResponse);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+
+    client.agentCapabilities!.promptCapabilities!.image = true;
+
+    expect(() =>
+      client.prompt("session-1", [{ type: "image", data: "Zm9v", mimeType: "image/png" }])
+    ).toThrow('Agent does not support prompt content type "image".');
+    expect(sendRequestMock).toHaveBeenCalledTimes(1);
+  });
+
   it("supports text and resource_link prompt content without extra capabilities", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     sendRequestMock
@@ -1917,6 +1988,33 @@ describe("AcpClient", () => {
     await client.dispose();
 
     expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects protocol operations after disposal without reaching the transport", async () => {
+    const { transport, sendRequestMock, sendNotificationMock, onRequestMock } =
+      createTransportMock();
+    sendRequestMock.mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse);
+    const client = new AcpClient({ transport, protocolVersion: 1 });
+    await client.initialize();
+    await client.dispose();
+    sendRequestMock.mockClear();
+    sendNotificationMock.mockClear();
+    onRequestMock.mockClear();
+
+    await expect(client.newSession("/workspace", [])).rejects.toThrow("ACP client disposed.");
+    expect(() => client.prompt("session-1", [{ type: "text", text: "hi" }])).toThrow(
+      "ACP client disposed."
+    );
+    await expect(client.sendExtRequest("_custom/ping")).rejects.toThrow("ACP client disposed.");
+    await expect(client.sendExtNotification("_custom/note")).rejects.toThrow(
+      "ACP client disposed."
+    );
+    expect(() => client.onExtRequest("_custom/request", async () => ({}))).toThrow(
+      "ACP client disposed."
+    );
+    expect(sendRequestMock).not.toHaveBeenCalled();
+    expect(sendNotificationMock).not.toHaveBeenCalled();
+    expect(onRequestMock).not.toHaveBeenCalled();
   });
 });
 

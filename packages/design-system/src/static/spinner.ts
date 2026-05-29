@@ -27,7 +27,8 @@ export function renderSpinnerFrame(options: SpinnerFrameOptions): string {
   }
 
   const frame = options.frame ?? 0;
-  const spinnerChar = color.magenta(SPINNER_FRAMES[frame % SPINNER_FRAMES.length]);
+  const index = ((frame % SPINNER_FRAMES.length) + SPINNER_FRAMES.length) % SPINNER_FRAMES.length;
+  const spinnerChar = color.magenta(SPINNER_FRAMES[index]);
   const timerSuffix = options.timer ? color.dim(` [${options.timer}]`) : "";
   const bar = color.gray(symbols.bar);
 
@@ -53,7 +54,9 @@ export function renderSpinnerStopped(options: SpinnerStoppedOptions): string {
       type: "spinner",
       state: "stopped",
       message: options.message,
-      ...(options.timer ? { timer: options.timer } : {})
+      code: options.code ?? 0,
+      ...(options.timer ? { timer: options.timer } : {}),
+      ...(options.subtext ? { subtext: options.subtext } : {})
     })}\n`;
   }
 

@@ -75,6 +75,14 @@ describe("static/menu", () => {
       })
     );
   });
+
+  it("rejects a non-finite menu selection index", () => {
+    expect(() =>
+      withOutputFormat("json", () =>
+        renderMenu({ message: "Pick an agent:", options, selectedIndex: Number.NaN })
+      )
+    ).toThrow("selectedIndex must be a finite integer");
+  });
 });
 
 describe("static/spinner", () => {
@@ -111,6 +119,15 @@ describe("static/spinner", () => {
     );
   });
 
+  it("cycles negative terminal spinner frame indexes", () => {
+    const frame = withOutputFormat("terminal", () =>
+      renderSpinnerFrame({ frame: -1, message: "Loading" })
+    );
+
+    expect(frame).toContain("◑");
+    expect(frame).not.toContain("undefined");
+  });
+
   it("renders markdown spinner output", () => {
     const frame = withOutputFormat("markdown", () =>
       renderSpinnerFrame({ message: "Loading", timer: "1s" })
@@ -144,8 +161,23 @@ describe("static/spinner", () => {
         type: "spinner",
         state: "stopped",
         message: "Done",
+        code: 0,
         timer: "2s"
       })}\n`
     );
+  });
+
+  it("preserves stopped spinner failures in json output", () => {
+    const stopped = withOutputFormat("json", () =>
+      renderSpinnerStopped({ message: "Failed", code: 17, subtext: "command failed" })
+    );
+
+    expect(JSON.parse(stopped)).toEqual({
+      type: "spinner",
+      state: "stopped",
+      message: "Failed",
+      code: 17,
+      subtext: "command failed"
+    });
   });
 });

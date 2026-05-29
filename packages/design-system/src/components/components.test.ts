@@ -479,6 +479,18 @@ describe("renderTable", () => {
     });
   });
 
+  it("rejects a non-finite terminal column maximum length", () => {
+    setFormat("terminal");
+
+    expect(() =>
+      renderTable({
+        theme,
+        columns: [{ name: "Name", title: "Name", alignment: "left", maxLen: Number.NaN }],
+        rows: [{ Name: "visible" }]
+      })
+    ).toThrow("maxLen must be a positive finite number");
+  });
+
   describe("json format", () => {
     beforeEach(() => {
       setFormat("json");

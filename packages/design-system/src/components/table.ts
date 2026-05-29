@@ -209,6 +209,9 @@ function getAlignment(column: TableColumn): TableAlignment {
 }
 
 function getColumnWidth(column: TableColumn): number {
+  if (!Number.isFinite(column.maxLen) || column.maxLen <= 0) {
+    throw new Error("maxLen must be a positive finite number.");
+  }
   const configuredMin = (column as { minLen?: number }).minLen;
   const minWidth = Math.max(1, configuredMin ?? 1);
   return Math.max(minWidth, column.maxLen);

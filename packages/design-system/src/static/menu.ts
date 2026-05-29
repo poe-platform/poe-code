@@ -18,6 +18,9 @@ export interface RenderMenuOptions {
 export function renderMenu(opts: RenderMenuOptions): string {
   const format = resolveOutputFormat();
   const selectedIndex = opts.selectedIndex ?? 0;
+  if (!Number.isInteger(selectedIndex) || !Number.isFinite(selectedIndex)) {
+    throw new Error("selectedIndex must be a finite integer.");
+  }
 
   if (format === "markdown") {
     return [

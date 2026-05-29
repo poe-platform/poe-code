@@ -694,6 +694,17 @@ function createTasksView(
         });
       }
 
+      const task = await fetchIssueTask(id, name, session, context);
+      const transition = findEvent(session.stateMachine, task.state, event);
+      if (transition === undefined) {
+        throw new InvalidTransitionError({
+          task,
+          event,
+          to: event,
+          reason: `Cannot fire event "${event}" from task state "${task.state}".`
+        });
+      }
+
       // opts.metadataPatch writes are out of scope for v1 on gh-issues.
       if (session.labelPrefix === undefined) {
         const projectItemId = await resolveProjectItemId(id, name, session, context);
@@ -712,10 +723,12 @@ function createTasksView(
       });
     },
     async canFire(id: string, event: string): Promise<boolean> {
-      return findEvent(session.stateMachine, id, event) !== undefined;
+      const task = await fetchIssueTask(id, name, session, context);
+      return findEvent(session.stateMachine, task.state, event) !== undefined;
     },
     async events(id: string): Promise<readonly string[]> {
-      return eventsFromState(session.stateMachine, id);
+      const task = await fetchIssueTask(id, name, session, context);
+      return eventsFromState(session.stateMachine, task.state);
     },
     async delete(id: string): Promise<void> {
       if (session.projectId === undefined) {

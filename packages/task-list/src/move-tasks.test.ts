@@ -151,6 +151,7 @@ describe("moveTasks", () => {
       graphqlResponse({ repository: { label: { id: "label-todo" } } }),
       graphqlResponse({ addLabelsToLabelable: { clientMutationId: null } }),
       issueResponse(["status:Todo"]),
+      issueResponse(["status:Todo"]),
       issueStateResponse([{ id: "label-todo", name: "status:Todo" }]),
       graphqlResponse({ repository: { label: { id: "label-done" } } }),
       graphqlResponse({ addLabelsToLabelable: { clientMutationId: null } }),

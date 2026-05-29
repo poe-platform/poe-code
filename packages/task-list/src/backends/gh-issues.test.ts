@@ -64,6 +64,7 @@ describe("ghIssuesBackend", () => {
 
   it("writes repository-only label-backed transitions without a project", async () => {
     const fetchMock = createFetchMock([
+      issueResponse({ number: 482, title: "Label driven", labels: ["status:draft"] }),
       issueResponse({
         number: 482,
         title: "Label driven",
@@ -466,18 +467,23 @@ describe("ghIssuesBackend", () => {
     expect(task.sourcePath).toBeUndefined();
   });
 
-  it("uses the cached state machine for events and canFire without refetching", async () => {
-    const fetchMock = createFetchMock([projectResponse()]);
+  it("loads the current task state for events and canFire", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({ number: 482, title: "Todo task", status: "Todo", projectItemId: "item-482" }),
+      issueResponse({ number: 482, title: "Todo task", status: "Todo", projectItemId: "item-482" }),
+      issueResponse({ number: 482, title: "Todo task", status: "Todo", projectItemId: "item-482" })
+    ]);
     const taskList = await ghIssuesBackend({
       ...DEFAULT_DEPS,
       fetch: fetchMock
     });
     const tasks = taskList.list("octo-org/7");
 
-    await expect(tasks.events("Todo")).resolves.toEqual(["Done"]);
-    await expect(tasks.canFire("Todo", "Done")).resolves.toBe(true);
-    await expect(tasks.canFire("Done", "Done")).resolves.toBe(false);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    await expect(tasks.events("482")).resolves.toEqual(["Done"]);
+    await expect(tasks.canFire("482", "Done")).resolves.toBe(true);
+    await expect(tasks.canFire("482", "Todo")).resolves.toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(4);
   });
 
   it("freezes the derived state machine at open time", async () => {
@@ -970,6 +976,7 @@ describe("ghIssuesBackend", () => {
   it('fire("482", "<known-state>") sets the matching Status option', async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
+      issueResponse({ number: 482, title: "Move me", status: "Todo", projectItemId: "item-482" }),
       issueProjectItemResponse({
         issueId: "issue-node-482",
         projectItemId: "item-482"
@@ -1001,6 +1008,13 @@ describe("ghIssuesBackend", () => {
         labels: ["backend", "status:Todo", "status:Doing"],
         labelIds: ["label-backend", "label-todo", "label-doing"]
       }),
+      issueResponse({
+        number: 482,
+        title: "Move me",
+        status: "Todo",
+        labels: ["backend", "status:Todo", "status:Doing"],
+        labelIds: ["label-backend", "label-todo", "label-doing"]
+      }),
       repositoryLabelResponse("label-done"),
       addLabelsResponse(),
       removeLabelsResponse(),
@@ -1022,7 +1036,7 @@ describe("ghIssuesBackend", () => {
       id: "482",
       state: "Done"
     });
-    expect(readGraphqlCall(fetchMock, 1)).toEqual(
+    expect(readGraphqlCall(fetchMock, 2)).toEqual(
       expect.objectContaining({ query: expect.stringContaining("query IssueStateLabels") })
     );
     expect(readMutationCalls(fetchMock)).toEqual([
@@ -1064,6 +1078,7 @@ describe("ghIssuesBackend", () => {
   it("keeps Status-field transitions when labelPrefix is unset", async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
+      issueResponse({ number: 482, title: "Move me", status: "Todo", projectItemId: "item-482" }),
       issueProjectItemResponse({
         issueId: "issue-node-482",
         projectItemId: "item-482"
@@ -1090,9 +1105,33 @@ describe("ghIssuesBackend", () => {
     );
   });
 
+  it("rejects a Status-field transition to the current state without mutating", async () => {
+    const fetchMock = createFetchMock([
+      projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Already todo",
+        status: "Todo",
+        projectItemId: "item-482"
+      })
+    ]);
+    const taskList = await ghIssuesBackend({ ...DEFAULT_DEPS, fetch: fetchMock });
+
+    await expect(taskList.list("octo-org/7").fire("482", "Todo")).rejects.toBeInstanceOf(
+      InvalidTransitionError
+    );
+    expect(readMutationCalls(fetchMock)).toEqual([]);
+  });
+
   it("fire ignores metadataPatch and only writes the Status field", async () => {
     const fetchMock = createFetchMock([
       projectResponse(),
+      issueResponse({
+        number: 482,
+        title: "Move without metadata writes",
+        status: "Todo",
+        projectItemId: "item-482"
+      }),
       issueProjectItemResponse({
         issueId: "issue-node-482",
         projectItemId: "item-482"

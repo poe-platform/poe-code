@@ -63,8 +63,7 @@ async function reconcileRunningJobs(
       const updated = status === entry.status ? entry : await state.jobs.update(entry.id, { status });
       reconciled.push(updated ?? { ...entry, status });
     } catch {
-      const updated = await state.jobs.update(entry.id, { status: "lost" });
-      reconciled.push(updated ?? { ...entry, status: "lost" });
+      reconciled.push(entry);
     }
   }
   return reconciled;

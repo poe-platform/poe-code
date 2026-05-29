@@ -354,6 +354,7 @@ describe("runtime command", () => {
       )}\n`
     });
     jobHandles.set("env-running", createJobHandle({ status: "running" }));
+    jobHandles.set("env-missing", createJobHandle({ status: "lost" }));
     const logs: string[] = [];
     const container = createContainer(fs, logs);
     const program = createBaseProgram();
@@ -365,6 +366,26 @@ describe("runtime command", () => {
     await expect(fs.readFile(path.join(jobsDir, "job-missing.json"), "utf8")).resolves.toContain(
       '"status": "lost"'
     );
+  });
+
+  it("keeps a running job when status inspection cannot reach its sandbox", async () => {
+    const jobPath = path.join(jobsDir, "job-unreachable.json");
+    const fs = createMemFs({
+      [jobPath]: `${JSON.stringify(
+        createJobEntry({ id: "job-unreachable", env_id: "env-unreachable", status: "running" }),
+        null,
+        2
+      )}\n`
+    });
+    const logs: string[] = [];
+    const container = createContainer(fs, logs);
+    const program = createBaseProgram();
+    registerRuntimeCommand(program, container);
+
+    await program.parseAsync(["node", "cli", "runtime", "jobs", "ls"]);
+
+    expect(stripAnsi(logs.join("\n"))).toContain("running");
+    await expect(fs.readFile(jobPath, "utf8")).resolves.toContain('"status": "running"');
   });
 
   it("previews runtime jobs ls without reconciling live sandbox status", async () => {

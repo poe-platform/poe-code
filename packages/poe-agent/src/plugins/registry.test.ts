@@ -3,6 +3,18 @@ import { builtinPluginRegistry } from "./registry.js";
 import { resolvePluginsFromConfig } from "./resolve-plugins.js";
 
 describe("builtinPluginRegistry", () => {
+  it("prevents consumers from replacing built-in factories", () => {
+    const spec = builtinPluginRegistry.get("web");
+    expect(spec).toBeDefined();
+
+    expect(() => {
+      spec!.factory = () => ({ name: "replaced-web-plugin" });
+    }).toThrow();
+    expect(resolvePluginsFromConfig([{ name: "web" }])[0]?.name).toBe(
+      "poe-agent-plugin-web"
+    );
+  });
+
   it("resolves the openai responses spec from agent.plugins config", () => {
     const plugins = resolvePluginsFromConfig([{ name: "openai-responses" }]);
 

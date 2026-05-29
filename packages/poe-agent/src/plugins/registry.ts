@@ -15,17 +15,21 @@ export type PluginSpec<Options = unknown> = {
   factory: (options: Options) => AgentPlugin;
 };
 
+function immutableSpec<Options>(spec: PluginSpec<Options>): PluginSpec<Options> {
+  return Object.freeze(spec);
+}
+
 export const builtinPluginRegistry: ReadonlyMap<string, PluginSpec<any>> = new Map<
   string,
   PluginSpec<any>
 >([
-  [systemPromptPluginSpec.name, systemPromptPluginSpec],
-  [filesPluginSpec.name, filesPluginSpec],
-  [shellPluginSpec.name, shellPluginSpec],
-  [webPluginSpec.name, webPluginSpec],
-  [memoryPluginSpec.name, memoryPluginSpec],
-  [openaiResponsesSpec.name, openaiResponsesSpec],
-  [openaiChatCompletionsSpec.name, openaiChatCompletionsSpec],
-  [compactionPluginSpec.name, compactionPluginSpec],
-  [policyPluginSpec.name, policyPluginSpec]
+  [systemPromptPluginSpec.name, immutableSpec(systemPromptPluginSpec)],
+  [filesPluginSpec.name, immutableSpec(filesPluginSpec)],
+  [shellPluginSpec.name, immutableSpec(shellPluginSpec)],
+  [webPluginSpec.name, immutableSpec(webPluginSpec)],
+  [memoryPluginSpec.name, immutableSpec(memoryPluginSpec)],
+  [openaiResponsesSpec.name, immutableSpec(openaiResponsesSpec)],
+  [openaiChatCompletionsSpec.name, immutableSpec(openaiChatCompletionsSpec)],
+  [compactionPluginSpec.name, immutableSpec(compactionPluginSpec)],
+  [policyPluginSpec.name, immutableSpec(policyPluginSpec)]
 ]);

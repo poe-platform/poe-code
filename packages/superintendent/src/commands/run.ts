@@ -192,7 +192,7 @@ export const runCommand = defineCommand({
           )
         : await runSuperintendentCommand(runOptions);
     } finally {
-      await integrations?.shutdown();
+      await integrations?.shutdown().catch(() => undefined);
     }
   },
   render: {
@@ -268,7 +268,7 @@ export function createRunMcpCommand(runners?: RunMcpCommandRunners) {
             )
           : await runSuperintendentCommand(runOptions);
       } finally {
-        await integrations?.shutdown();
+        await integrations?.shutdown().catch(() => undefined);
       }
     },
     render: runCommand.render

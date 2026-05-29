@@ -76,6 +76,7 @@ async function runComplete(options: { content?: string; reason?: string } = {}):
         expect(inputPath).toBe(targetPath);
         return options.content ?? document;
       }),
+      lstat: vi.fn(async () => ({ isSymbolicLink: () => false })),
       writeFile,
       exists: vi.fn(async () => true)
     },
@@ -132,5 +133,25 @@ describe("superintendent complete command", () => {
     });
 
     expect(updatedContent).not.toContain("reason:");
+  });
+
+  it("rejects a symlinked document path before writing", async () => {
+    const { completeCommand } = await import("./complete.js");
+    const writeFile = vi.fn(async () => undefined);
+
+    await expect(completeCommand.handler({
+      params: { path: "docs/plans/feature.md" },
+      secrets: {},
+      fetch: globalThis.fetch,
+      fs: {
+        readFile: vi.fn(async () => document),
+        lstat: vi.fn(async () => ({ isSymbolicLink: () => true })),
+        writeFile,
+        exists: vi.fn(async () => true)
+      },
+      env: { get: vi.fn(() => undefined) },
+      progress: vi.fn()
+    })).rejects.toThrow(/symbolic link/i);
+    expect(writeFile).not.toHaveBeenCalled();
   });
 });

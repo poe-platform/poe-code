@@ -13,6 +13,9 @@ export const completeCommand = defineCommand({
   params: completeParams,
   scope: ["cli", "mcp", "sdk"],
   handler: async ({ params, fs }) => {
+    if ((await fs.lstat(params.path)).isSymbolicLink()) {
+      throw new UserError(`Refusing to complete superintendent document through symbolic link: ${params.path}`);
+    }
     const content = await readDocument(params.path, fs);
     const completedContent = transitionState(params.path, content, "completed");
     const updatedContent = setStatusReason(params.path, completedContent, params.reason);

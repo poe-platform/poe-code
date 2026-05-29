@@ -103,11 +103,12 @@ async function runModels(options: {
   httpClient: HttpClient;
   logs: string[];
   args?: string[];
+  variables?: Record<string, string | undefined>;
 }) {
   const program = createProgram({
     fs: options.fs,
     prompts: vi.fn(),
-    env: { cwd, homeDir },
+    env: { cwd, homeDir, variables: options.variables },
     httpClient: options.httpClient,
     logger: (message) => options.logs.push(message)
   });
@@ -721,6 +722,25 @@ describe("models command", () => {
       expect.objectContaining({
         method: "GET",
         headers: { Authorization: "Bearer my-key" }
+      })
+    );
+  });
+
+  it("includes Authorization header when POE_API_KEY is set", async () => {
+    const models = [createModelEntry({ id: "claude-sonnet", owned_by: "Anthropic" })];
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ object: "list", data: models })
+    });
+
+    await runModels({ fs, httpClient, logs, variables: { POE_API_KEY: "environment-key" } });
+
+    expect(httpClient).toHaveBeenCalledWith(
+      expect.stringContaining("/v1/models"),
+      expect.objectContaining({
+        method: "GET",
+        headers: { Authorization: "Bearer environment-key" }
       })
     );
   });

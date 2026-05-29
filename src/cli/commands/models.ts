@@ -5,6 +5,7 @@ import type { CliContainer } from "../container.js";
 import { createExecutionResources, resolveCommandFlags } from "./shared.js";
 import { ApiError, ValidationError } from "../errors.js";
 import { getTheme, renderTable, withSpinner } from "@poe-code/design-system";
+import { POE_PROVIDER_ID } from "@poe-code/providers";
 
 interface ModelParameter {
   name: string;
@@ -233,7 +234,14 @@ export function registerModelsCommand(
       resources.logger.intro("models");
 
       try {
-        const apiKey = await container.readApiKey();
+        let apiKey: string | null = null;
+        try {
+          apiKey = await container.providerRegistry.resolveCredential(POE_PROVIDER_ID, undefined, {
+            envVars: container.env.variables
+          });
+        } catch {
+          apiKey = null;
+        }
 
         if (flags.dryRun) {
           resources.logger.dryRun(

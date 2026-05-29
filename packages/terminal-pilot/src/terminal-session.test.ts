@@ -20,13 +20,20 @@ vi.mock("node-pty", () => ({
 }));
 
 function createPtyMock() {
+  let dataListener: ((chunk: string) => void) | undefined;
   return {
     pid: 123,
     write: vi.fn(),
     resize: vi.fn(),
     kill: vi.fn(),
-    onData: vi.fn(() => ({ dispose: vi.fn() })),
-    onExit: vi.fn(() => ({ dispose: vi.fn() }))
+    onData: vi.fn((listener: (chunk: string) => void) => {
+      dataListener = listener;
+      return { dispose: vi.fn() };
+    }),
+    onExit: vi.fn(() => ({ dispose: vi.fn() })),
+    emitData(chunk: string) {
+      dataListener?.(chunk);
+    }
   };
 }
 
@@ -80,6 +87,16 @@ describe("TerminalSession spawn helper setup", () => {
       );
     }
   );
+
+  it("reports the visible line after carriage-return rewrites", async () => {
+    const { TerminalSession } = await import("./terminal-session.js");
+    const session = new TerminalSession({ id: "session-1", command: process.execPath });
+    const pty = spawnMock.mock.results[0]?.value as ReturnType<typeof createPtyMock>;
+
+    pty.emitData("loading 0%\rloading 100%\n");
+
+    await expect(session.history()).resolves.toEqual(["loading 100%"]);
+  });
 
   it.each([Number.NaN, Number.POSITIVE_INFINITY, 0, -1, 1.5])(
     "rejects invalid terminal geometry %s before spawning",

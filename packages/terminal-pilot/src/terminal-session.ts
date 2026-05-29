@@ -398,16 +398,32 @@ function splitHistoryLines(input: string): string[] {
 
 function normalizeHistoryBuffer(input: string): string {
   let output = "";
+  let line = "";
+  let cursor = 0;
 
   for (const character of input) {
-    if (character === "\r" || character === "\b") {
+    if (character === "\r") {
+      cursor = 0;
       continue;
     }
 
-    output += character;
+    if (character === "\b") {
+      cursor = Math.max(0, cursor - 1);
+      continue;
+    }
+
+    if (character === "\n") {
+      output += `${line}\n`;
+      line = "";
+      cursor = 0;
+      continue;
+    }
+
+    line = `${line.slice(0, cursor)}${character}${line.slice(cursor + 1)}`;
+    cursor += 1;
   }
 
-  return output;
+  return output + line;
 }
 
 function sleep(ms: number): Promise<void> {

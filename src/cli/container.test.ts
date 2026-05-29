@@ -1,8 +1,14 @@
-import { describe, it, expect, vi } from "vitest";
+import { beforeEach, describe, it, expect, vi } from "vitest";
 import { Volume, createFsFromVolume } from "memfs";
 import { createCliContainer } from "./container.js";
 import { ProviderRegistry } from "@poe-code/providers";
 import type { FileSystem } from "../utils/file-system.js";
+
+const checkAuthMock = vi.hoisted(() => vi.fn());
+
+vi.mock("poe-oauth", () => ({
+  checkAuth: checkAuthMock
+}));
 
 const cwd = "/repo";
 const homeDir = "/home/test";
@@ -14,6 +20,10 @@ function createMemfs(): FileSystem {
 }
 
 describe("createCliContainer", () => {
+  beforeEach(() => {
+    checkAuthMock.mockReset();
+    checkAuthMock.mockResolvedValue({ handle: "probe" });
+  });
   it("exposes a ProviderRegistry instance", () => {
     const container = createCliContainer({
       fs: createMemfs(),
@@ -35,5 +45,20 @@ describe("createCliContainer", () => {
       "anthropic",
       "cloudflare"
     ]);
+  });
+
+  it("validates Poe credentials using the configured Poe base URL", async () => {
+    const container = createCliContainer({
+      fs: createMemfs(),
+      prompts: vi.fn(),
+      env: { cwd, homeDir, variables: { POE_BASE_URL: "https://gateway.example.test/v1" } }
+    });
+
+    await container.options.resolveApiKey({ value: "provided-key", dryRun: true });
+
+    expect(checkAuthMock).toHaveBeenCalledWith({
+      apiKey: "provided-key",
+      baseUrl: "https://gateway.example.test/v1"
+    });
   });
 });

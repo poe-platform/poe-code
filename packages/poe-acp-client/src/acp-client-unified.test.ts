@@ -523,6 +523,37 @@ describe("AcpClient", () => {
     expect(response).toEqual({ content: "content-from-fs-handler" });
   });
 
+  it("does not serve capability requests before initialization completes", async () => {
+    const { transport, sendRequestMock, emitRequest } = createTransportMock();
+    const initializeResponse = createDeferred<InitializeResponse>();
+    const readTextFile = vi.fn(async () => "secret");
+    sendRequestMock.mockReturnValueOnce(initializeResponse.promise);
+    const client = new AcpClient({
+      transport,
+      protocolVersion: 1,
+      fsHandler: { readTextFile },
+    });
+
+    const initializing = client.initialize({ fs: { readTextFile: true } });
+
+    await expect(
+      emitRequest("fs/read_text_file", {
+        sessionId: "session-1",
+        path: "/workspace/file.txt",
+      } satisfies ReadTextFileRequest)
+    ).rejects.toMatchObject({ code: -32601 });
+    expect(readTextFile).not.toHaveBeenCalled();
+
+    initializeResponse.resolve({ protocolVersion: 1 });
+    await initializing;
+    await expect(
+      emitRequest("fs/read_text_file", {
+        sessionId: "session-1",
+        path: "/workspace/file.txt",
+      } satisfies ReadTextFileRequest)
+    ).resolves.toEqual({ content: "secret" });
+  });
+
   it("defaults protocolVersion to 1 when omitted", async () => {
     const { transport, sendRequestMock } = createTransportMock();
     sendRequestMock.mockResolvedValueOnce({ protocolVersion: 1 } satisfies InitializeResponse);
@@ -1327,6 +1358,32 @@ describe("AcpClient", () => {
     expect(response).toEqual({ terminalId: "term-1" });
   });
 
+  it("rejects duplicate terminal identifiers without losing the tracked terminal", async () => {
+    const { transport, emitRequest } = createTransportMock();
+    const output = vi.fn(async () => ({ output: "still alive", truncated: false }));
+    new AcpClient({
+      transport,
+      protocolVersion: 1,
+      clientCapabilities: { terminal: true },
+      terminalHandler: {
+        create: async () => "shared-terminal",
+        output,
+        waitForExit: async () => ({ exitCode: 0 }),
+        kill: async () => {},
+        release: async () => {},
+      },
+    });
+
+    await emitRequest("terminal/create", { sessionId: "session-1", command: "first" });
+    await expect(
+      emitRequest("terminal/create", { sessionId: "session-1", command: "second" })
+    ).rejects.toThrow('Terminal identifier "shared-terminal" is already active.');
+    await expect(
+      emitRequest("terminal/output", { sessionId: "session-1", terminalId: "shared-terminal" })
+    ).resolves.toEqual({ output: "still alive", truncated: false });
+    expect(output).toHaveBeenCalledOnce();
+  });
+
   it.each([-1, 1.5, Number.NaN])(
     "returns invalid_params when terminal/create outputByteLimit is %s",
     async (outputByteLimit) => {
@@ -1707,6 +1764,26 @@ describe("AcpClient", () => {
     expect(response).toEqual({ outcome: { outcome: "cancelled" } });
   });
 
+  it("returns invalid_params when autoApprove receives malformed options", async () => {
+    const { transport, emitRequest } = createTransportMock();
+    new AcpClient({ transport, protocolVersion: 1, autoApprove: true });
+
+    await expect(
+      emitRequest("session/request_permission", {
+        sessionId: "session-1",
+        toolCall: {
+          sessionUpdate: "tool_call_update",
+          toolCallId: "tool-1",
+          status: "pending",
+        },
+        options: 7,
+      } as unknown as RequestPermissionRequest)
+    ).rejects.toMatchObject({
+      code: -32602,
+      message: 'Invalid params: "options" must be an array',
+    });
+  });
+
   it("sends session/prompt, streams session/update notifications, and resolves stopReason", async () => {
     const { transport, sendRequestMock, emitNotification, onNotificationMock } =
       createTransportMock();
@@ -2072,6 +2149,28 @@ describe("AcpClient", () => {
     await client.dispose();
 
     expect(dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries transport disposal after a transient dispose failure", async () => {
+    const dispose = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        throw new Error("dispose temporarily failed");
+      })
+      .mockImplementationOnce(() => undefined);
+    const client = new AcpClient({
+      transport: {
+        sendRequest: vi.fn(),
+        sendNotification: vi.fn(),
+        onRequest: vi.fn(),
+        onNotification: vi.fn(),
+        dispose,
+      },
+    });
+
+    await expect(client.dispose()).rejects.toThrow("dispose temporarily failed");
+    await expect(client.dispose()).resolves.toBeUndefined();
+    expect(dispose).toHaveBeenCalledTimes(2);
   });
 
   it("rejects protocol operations after disposal without reaching the transport", async () => {

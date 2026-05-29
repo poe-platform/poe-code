@@ -316,6 +316,7 @@ export class AcpClient {
   private hasRegisteredFsWriteHandler = false;
   private hasRegisteredTerminalHandlers = false;
   private disposed = false;
+  private transportDisposed = false;
   private initializing = false;
   private authenticating = false;
 
@@ -358,6 +359,10 @@ export class AcpClient {
         }
 
         if (autoApprove) {
+          if (!Array.isArray(params.options)) {
+            throw invalidParams('"options" must be an array');
+          }
+
           const allow =
             params.options.find((o: PermissionOption) => o.kind === "allow_always") ??
             params.options.find((o: PermissionOption) => o.kind === "allow_once");
@@ -414,7 +419,6 @@ export class AcpClient {
     try {
       if (clientCapabilities !== undefined) {
         this.clientCapabilities = clientCapabilities;
-        this.registerCapabilityHandlers(clientCapabilities);
       }
 
       const response = await this.transport.sendRequest("initialize", {
@@ -446,6 +450,9 @@ export class AcpClient {
 
       const requiresAuth = this.availableAuthMethods.length > 0 && !this.skipAuth;
       this.lifecycleState = requiresAuth ? "initialized" : "ready";
+      if (clientCapabilities !== undefined) {
+        this.registerCapabilityHandlers(clientCapabilities);
+      }
 
       return {
         protocolVersion: negotiatedProtocolVersion,
@@ -665,22 +672,20 @@ export class AcpClient {
   }
 
   async dispose(): Promise<void> {
-    if (this.disposed) {
-      if (this.transport.closed) {
-        await this.transport.closed;
+    if (!this.disposed) {
+      this.disposed = true;
+      const disposeReason = new Error("ACP client disposed");
+      for (const updates of this.activePromptUpdates.values()) {
+        updates.fail(disposeReason);
       }
-      return;
+      this.activePromptUpdates.clear();
     }
 
-    this.disposed = true;
-    const disposeReason = new Error("ACP client disposed");
-    for (const updates of this.activePromptUpdates.values()) {
-      updates.fail(disposeReason);
-    }
-    this.activePromptUpdates.clear();
-
-    if (typeof this.transport.dispose === "function") {
-      this.transport.dispose(disposeReason);
+    if (!this.transportDisposed) {
+      if (typeof this.transport.dispose === "function") {
+        this.transport.dispose(new Error("ACP client disposed"));
+      }
+      this.transportDisposed = true;
     }
 
     if (this.transport.closed) {
@@ -874,6 +879,9 @@ export class AcpClient {
   private trackTerminal(sessionId: SessionId, terminalId: string): void {
     const sessionTerminals = this.trackedTerminalIds.get(sessionId);
     if (sessionTerminals) {
+      if (sessionTerminals.has(terminalId)) {
+        throw new Error(`Terminal identifier "${terminalId}" is already active.`);
+      }
       sessionTerminals.add(terminalId);
       return;
     }

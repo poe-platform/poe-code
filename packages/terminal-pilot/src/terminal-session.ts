@@ -195,6 +195,10 @@ export class TerminalSession {
       return lines;
     }
 
+    if (!Number.isInteger(opts.last) || opts.last < 0) {
+      throw new Error("History last must be a non-negative integer.");
+    }
+
     const start = Math.max(0, lines.length - opts.last);
     return lines.slice(start);
   }

@@ -64,4 +64,16 @@ describe("TerminalSession spawn helper setup", () => {
     ).not.toThrow();
     expect(spawnMock).toHaveBeenCalledTimes(1);
   });
+
+  it.each([-1, Number.NaN, Number.POSITIVE_INFINITY, 1.5])(
+    "rejects invalid history line limit %s",
+    async (last) => {
+      const { TerminalSession } = await import("./terminal-session.js");
+      const session = new TerminalSession({ id: "session-1", command: process.execPath });
+
+      await expect(session.history({ last })).rejects.toThrow(
+        "History last must be a non-negative integer."
+      );
+    }
+  );
 });

@@ -3101,6 +3101,23 @@ describe("formatRunReportSummary", () => {
     expect(summary).toContain("Token usage: 320/400");
     expect(summary).toContain("Error count: 1");
   });
+
+  it("escapes newline characters in run ids", () => {
+    const summary = formatRunReportSummary({
+      runId: "safe\nExit status: failed",
+      startTime: "2026-05-24T00:00:00.000Z",
+      endTime: "2026-05-24T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 0, size: 0, updates: 0 },
+      errors: [],
+    });
+
+    expect(summary).toContain("Run ID: safe\\nExit status: failed");
+    expect(summary.split("\n").filter((line) => line.startsWith("Exit status:"))).toEqual([
+      "Exit status: success",
+    ]);
+  });
 });
 
 describe("saveRunReport", () => {
@@ -3126,10 +3143,10 @@ describe("saveRunReport", () => {
 
     expect(output.reportsDir).toBe("/home/test/.poe-code/reports");
     expect(output.jsonPath).toBe(
-      "/home/test/.poe-code/reports/20260224-070809-456-run-123.json",
+      "/home/test/.poe-code/reports/20260224-070809-456-run-123-69a94e04b2.json",
     );
     expect(output.summaryPath).toBe(
-      "/home/test/.poe-code/reports/20260224-070809-456-run-123.txt",
+      "/home/test/.poe-code/reports/20260224-070809-456-run-123-69a94e04b2.txt",
     );
 
     const jsonOnDisk = await fs.readFile(output.jsonPath, "utf8");
@@ -3175,6 +3192,48 @@ describe("saveRunReport", () => {
     expect(written).toEqual(new Set());
     expect(remove).toHaveBeenCalledWith(
       "/home/test/.poe-code/reports/20260525-010203-004-run-1.json"
+    );
+  });
+
+  it("uses distinct file paths for run ids that sanitize identically", async () => {
+    const volume = new Volume();
+    const fs = createFsFromVolume(volume).promises;
+    const now = () => new Date("2026-05-24T12:34:56.789Z");
+    const report = (runId: string): RunReport => ({
+      runId,
+      startTime: now().toISOString(),
+      endTime: now().toISOString(),
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 0, size: 0, updates: 0 },
+      errors: [],
+    });
+
+    const first = await saveRunReport(report("run/a"), { fs, homeDir: "/home", now });
+    const second = await saveRunReport(report("run?a"), { fs, homeDir: "/home", now });
+
+    expect(second.jsonPath).not.toBe(first.jsonPath);
+    await expect(fs.readFile(first.jsonPath, "utf8")).resolves.toContain('"runId": "run/a"');
+    await expect(fs.readFile(second.jsonPath, "utf8")).resolves.toContain('"runId": "run?a"');
+  });
+
+  it("rejects a symlinked reports output directory", async () => {
+    const volume = Volume.fromJSON({ "/outside/keep.txt": "outside" });
+    await volume.promises.mkdir("/home/.poe-code", { recursive: true });
+    await volume.promises.symlink("/outside", "/home/.poe-code/reports");
+    const fs = createFsFromVolume(volume).promises;
+    const report: RunReport = {
+      runId: "safe",
+      startTime: "2026-05-24T00:00:00.000Z",
+      endTime: "2026-05-24T00:00:01.000Z",
+      exitStatus: "success",
+      toolCalls: [],
+      usage: { used: 0, size: 0, updates: 0 },
+      errors: [],
+    };
+
+    await expect(saveRunReport(report, { fs, homeDir: "/home" })).rejects.toThrow(
+      "reports directory must remain inside home state"
     );
   });
 });

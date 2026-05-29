@@ -664,8 +664,32 @@ describe("mcp command", () => {
       input: "unknown"
     });
     const { program } = await createMcpProgram();
-    await program.parseAsync(["node", "cli", "mcp", "configure", "unknown"]);
+    await expect(program.parseAsync(["node", "cli", "mcp", "configure", "unknown"])).rejects.toThrow(
+      "Unknown agent: unknown"
+    );
 
+    expect(configureMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid configure agents before starting login", async () => {
+    resolveAgentSupportMock.mockReturnValue({ status: "unknown", input: "unknown" });
+    const volume = new Volume();
+    volume.mkdirSync("/home/test", { recursive: true });
+    volume.mkdirSync("/repo", { recursive: true });
+    const prompts = vi.fn();
+    const program = createProgram({
+      fs: createFsFromVolume(volume).promises as unknown as FileSystem,
+      prompts,
+      env: { cwd: "/repo", homeDir: "/home/test", variables: { POE_CODE_OAUTH_LOGIN: "0" } },
+      logger: () => {},
+      suppressCommanderOutput: true
+    });
+
+    await expect(program.parseAsync(["node", "cli", "mcp", "configure", "unknown"])).rejects.toThrow(
+      "Unknown agent: unknown"
+    );
+
+    expect(prompts).not.toHaveBeenCalled();
     expect(configureMock).not.toHaveBeenCalled();
   });
 
@@ -742,6 +766,18 @@ describe("mcp command", () => {
       expect.any(Object),
       expect.any(Object)
     );
+  });
+
+  it("uses the default agent for root --yes configure", async () => {
+    const { program } = await createMcpProgram();
+    selectMock.mockImplementation(() => {
+      throw new Error("select should not be called");
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "mcp", "configure"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(configureMock).toHaveBeenCalledWith("claude-code", expect.any(Object), expect.any(Object));
   });
 
   it("drops the model portion of core.defaultAgent for configure", async () => {
@@ -852,9 +888,37 @@ describe("mcp command", () => {
     });
     const { program } = await createMcpProgram();
 
-    await program.parseAsync(["node", "cli", "mcp", "configure", "claude-code"]);
+    await expect(
+      program.parseAsync(["node", "cli", "mcp", "configure", "claude-code"])
+    ).rejects.toThrow("MCP not supported for claude-code.");
 
     expect(configureMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects invalid agent names for unconfigure", async () => {
+    resolveAgentSupportMock.mockReturnValue({ status: "unknown", input: "unknown" });
+    const { program } = await createMcpProgram();
+
+    await expect(
+      program.parseAsync(["node", "cli", "mcp", "unconfigure", "unknown"])
+    ).rejects.toThrow("Unknown agent: unknown");
+
+    expect(unconfigureMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects unsupported agents for unconfigure", async () => {
+    resolveAgentSupportMock.mockReturnValue({
+      status: "unsupported",
+      input: "claude-code",
+      id: "claude-code"
+    });
+    const { program } = await createMcpProgram();
+
+    await expect(
+      program.parseAsync(["node", "cli", "mcp", "unconfigure", "claude-code"])
+    ).rejects.toThrow("MCP not supported for claude-code.");
+
+    expect(unconfigureMock).not.toHaveBeenCalled();
   });
 });
 

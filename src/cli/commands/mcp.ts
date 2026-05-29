@@ -96,20 +96,12 @@ export function registerMcpCommand(
       const flags = resolveCommandFlags(program);
       const resources = createExecutionResources(container, flags, "mcp");
 
-      const existingKey = await resolvePoeCredential(container);
-
-      if (!existingKey) {
-        resources.logger.intro("login");
-        await container.options.resolveApiKey({ dryRun: flags.dryRun });
-        resources.logger.success("Logged in.");
-      }
-
       let agent = agentArg;
       if (!agent) {
         const fromConfig = await resolveDefaultAgent(container);
         if (fromConfig !== null) {
           agent = parseAgentSpecifier(fromConfig).agent;
-        } else if (options.yes) {
+        } else if (flags.assumeYes || options.yes) {
           agent = DEFAULT_MCP_AGENT;
         } else {
           const selected = await select({
@@ -128,12 +120,18 @@ export function registerMcpCommand(
 
       const support = resolveAgentSupport(agent);
       if (support.status === "unknown") {
-        resources.logger.error(`Unknown agent: ${agent}`);
-        return;
+        throw new Error(`Unknown agent: ${agent}`);
       }
       if (support.status === "unsupported") {
-        resources.logger.error(`MCP not supported for ${support.id}.`);
-        return;
+        throw new Error(`MCP not supported for ${support.id}.`);
+      }
+
+      const existingKey = await resolvePoeCredential(container);
+
+      if (!existingKey) {
+        resources.logger.intro("login");
+        await container.options.resolveApiKey({ dryRun: flags.dryRun });
+        resources.logger.success("Logged in.");
       }
 
       const resolvedAgent = support.id ?? agent;
@@ -175,12 +173,10 @@ export function registerMcpCommand(
 
       const support = resolveAgentSupport(agent);
       if (support.status === "unknown") {
-        resources.logger.error(`Unknown agent: ${agent}`);
-        return;
+        throw new Error(`Unknown agent: ${agent}`);
       }
       if (support.status === "unsupported") {
-        resources.logger.error(`MCP not supported for ${support.id}.`);
-        return;
+        throw new Error(`MCP not supported for ${support.id}.`);
       }
 
       const resolvedAgent = support.id ?? agent;

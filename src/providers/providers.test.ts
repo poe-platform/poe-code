@@ -1284,6 +1284,12 @@ describe("kimi service", () => {
     const after = parseToml(await mockFsObj.readFile(configPath, "utf8"));
     const afterProviders = after.providers as Record<string, unknown> | undefined;
     expect(afterProviders?.[PROVIDER_NAME]).toBeUndefined();
+    expect(after.default_model).toBeUndefined();
+    expect(after.default_thinking).toBeUndefined();
+    expect(after.models).toBeUndefined();
+    await expect(
+      mockFsObj.readFile(path.join(homeDir, ".kimi", "credentials", "kimi-code.json"), "utf8")
+    ).rejects.toThrow();
   });
 });
 
@@ -1358,6 +1364,15 @@ describe("opencode service", () => {
       env,
       command: createTestCommandContext(mockFsObj),
       options: buildConfigureOptions(overrides)
+    });
+  }
+
+  async function unconfigureOpenCode(): Promise<boolean> {
+    return opencodeService.openCodeService.unconfigure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: { env }
     });
   }
 
@@ -1465,6 +1480,25 @@ describe("opencode service", () => {
         key: "openai-key"
       }
     });
+  });
+
+  it("removes Poe model and auth configuration on remove", async () => {
+    await mockFsObj.mkdir(path.dirname(configPath), { recursive: true });
+    await mockFsObj.writeFile(
+      configPath,
+      JSON.stringify({ theme: "dark", enabled_providers: ["local"] }, null, 2),
+      { encoding: "utf8" }
+    );
+    await configureOpenCode();
+
+    const removed = await unconfigureOpenCode();
+    expect(removed).toBe(true);
+
+    const config = JSON.parse(await mockFsObj.readFile(configPath, "utf8"));
+    expect(config.theme).toBe("dark");
+    expect(config.model).toBeUndefined();
+    expect(config.enabled_providers).toEqual(["local"]);
+    await expect(mockFsObj.readFile(authPath, "utf8")).rejects.toThrow();
   });
 
   it("spawns the opencode CLI with the provided prompt and args", async () => {

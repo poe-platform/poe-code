@@ -135,25 +135,41 @@ export const kimiService = createProvider<
       })
     ],
     unconfigure: [
+      fileMutation.remove({ target: "~/.kimi/credentials/kimi-code.json" }),
       configMutation.transform({
         target: "~/.kimi/config.toml",
         transform: (document) => {
-          const providers = document.providers as ConfigObject | undefined;
-          if (!providers || typeof providers !== "object") {
-            return { changed: false, content: document };
+          const providers = toConfigObject(document.providers);
+          const models = toConfigObject(document.models);
+          const retainedModels = Object.fromEntries(
+            Object.entries(models).filter(([, entry]) => !isPoeModel(entry))
+          );
+          const content: ConfigObject = { ...document };
+          let changed = false;
+          if (PROVIDER_NAME in providers) {
+            const { [PROVIDER_NAME]: ignoredProvider, ...retainedProviders } = providers;
+            void ignoredProvider;
+            if (Object.keys(retainedProviders).length === 0) {
+              delete content.providers;
+            } else {
+              content.providers = retainedProviders;
+            }
+            changed = true;
           }
-          if (!(PROVIDER_NAME in providers)) {
-            return { changed: false, content: document };
+          if (Object.keys(retainedModels).length !== Object.keys(models).length) {
+            if (Object.keys(retainedModels).length === 0) {
+              delete content.models;
+            } else {
+              content.models = retainedModels;
+            }
+            changed = true;
           }
-          const { [PROVIDER_NAME]: ignoredProvider, ...rest } = providers;
-          void ignoredProvider;
-          const updatedProviders = rest as ConfigObject;
-          if (Object.keys(updatedProviders).length === 0) {
-            const { providers: ignoredProviders, ...docWithoutProviders } = document;
-            void ignoredProviders;
-            return { changed: true, content: docWithoutProviders };
+          if (typeof content.default_model === "string" && content.default_model.startsWith(`${PROVIDER_NAME}/`)) {
+            delete content.default_model;
+            delete content.default_thinking;
+            changed = true;
           }
-          return { changed: true, content: { ...document, providers: updatedProviders } };
+          return { changed, content };
         }
       })
     ]

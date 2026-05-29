@@ -113,9 +113,29 @@ export const openCodeService = createProvider({
       })
     ],
     unconfigure: [
-      configMutation.prune({
+      configMutation.transform({
         target: "~/.config/opencode/config.json",
-        shape: { enabled_providers: true }
+        transform: (document) => {
+          const content: ConfigObject = { ...document };
+          const providers = Array.isArray(document.enabled_providers)
+            ? document.enabled_providers.filter((value): value is string => typeof value === "string")
+            : [];
+          const enabledProviders = providers.filter((value) => value !== PROVIDER_NAME);
+          let changed = enabledProviders.length !== providers.length;
+          if (enabledProviders.length === 0) {
+            if ("enabled_providers" in content) {
+              delete content.enabled_providers;
+              changed = true;
+            }
+          } else if (changed) {
+            content.enabled_providers = enabledProviders;
+          }
+          if (typeof content.model === "string" && content.model.startsWith(`${PROVIDER_NAME}/`)) {
+            delete content.model;
+            changed = true;
+          }
+          return { content, changed };
+        }
       }),
       configMutation.prune({
         target: "~/.local/share/opencode/auth.json",

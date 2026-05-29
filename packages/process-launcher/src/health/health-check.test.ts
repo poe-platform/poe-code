@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as net from "node:net";
-import { waitForReady } from "./health-check.js";
+import { waitForReady, type ReadinessLogSource } from "./health-check.js";
 import { waitForReady as waitForReadyFromIndex } from "../index.js";
 import type { ReadyCheck } from "../types.js";
 
 type LogListener = (line: string, stream: "stdout" | "stderr") => void;
-type SubscribableLog = LogListener & {
-  subscribe(listener: LogListener): () => void;
+type SubscribableLog = LogListener & ReadinessLogSource & {
   listenerCount(): number;
 };
 
@@ -101,6 +100,24 @@ describe("waitForReady", () => {
     );
   });
 
+  it("rejects a callback that cannot subscribe to log lines", async () => {
+    await expect(
+      waitForReady(
+        { kind: "log-pattern", pattern: "ready" },
+        { onLog: vi.fn() as unknown as ReadinessLogSource, timeoutMs: 20 }
+      )
+    ).rejects.toThrow(/log source/i);
+  });
+
+  it("rejects an infinite log readiness timeout", async () => {
+    await expect(
+      waitForReady(
+        { kind: "log-pattern", pattern: "ready" },
+        { onLog: createOnLog(), timeoutMs: Number.POSITIVE_INFINITY }
+      )
+    ).rejects.toThrow(/timeout/i);
+  });
+
   it("log-pattern resolves false when signal aborted", async () => {
     const controller = new AbortController();
     const readyCheck: ReadyCheck = { kind: "log-pattern", pattern: "ready" };
@@ -148,6 +165,18 @@ describe("waitForReady", () => {
     await expect(
       waitForReady({ kind: "tcp", host: "192.0.2.1", port: 42_424, timeoutMs: 50 }, {})
     ).resolves.toBe(false);
+  });
+
+  it("tcp honors the shared readiness timeout option", async () => {
+    await expect(
+      waitForReady({ kind: "tcp", host: "192.0.2.1", port: 42_424 }, { timeoutMs: 10 })
+    ).resolves.toBe(false);
+  });
+
+  it("rejects an invalid tcp timeout before opening a socket", async () => {
+    await expect(
+      waitForReady({ kind: "tcp", port: 42, timeoutMs: Number.NaN }, {})
+    ).rejects.toThrow(/timeout/i);
   });
 
   it("tcp resolves false when signal aborted", async () => {

@@ -1,19 +1,24 @@
 import path from "node:path";
 import * as fs from "node:fs/promises";
+import { execSync } from "node:child_process";
 import type { Command } from "commander";
 import { confirmOrCancel } from "@poe-code/design-system";
+import { defaultQueryBudget } from "@poe-code/poe-code-config";
 import {
+  editPage,
   initMemory,
+  installMemory,
   openMemory,
   resolveConfiguredMemoryRoot,
   runMemoryCacheClear,
   runMemoryCacheStatus,
   type MemoryHandle
 } from "@poe-code/memory";
+import memorySkillTemplate from "../../../packages/memory/src/templates/SKILL_memory.md";
 import type { CliContainer } from "../container.js";
 import { throwCommandNotFound } from "../command-not-found.js";
 import { ValidationError } from "../errors.js";
-import { createExecutionResources, resolveCommandFlags } from "./shared.js";
+import { createExecutionResources, resolveCommandFlags, shlexQuote } from "./shared.js";
 
 async function resolveRoot(container: CliContainer): Promise<string> {
   return resolveConfiguredMemoryRoot({
@@ -52,6 +57,59 @@ async function assertInitialized(mem: Pick<MemoryHandle, "statusOf">): Promise<v
       `Memory is not initialized. Run "poe-code memory init" in this project.`
     );
   }
+}
+
+async function queryBudget(container: CliContainer, value: string | undefined): Promise<number> {
+  if (value !== undefined) {
+    const budget = Number(value);
+    if (Number.isFinite(budget) && budget >= 0) {
+      return budget;
+    }
+    throw new ValidationError("Budget must be a finite non-negative number.");
+  }
+
+  return defaultQueryBudget({
+    fs: container.fs,
+    filePath: container.env.configPath,
+    projectFilePath: container.env.projectConfigPath
+  });
+}
+
+async function readCommandContent(content: string | undefined): Promise<string> {
+  if (content !== undefined) {
+    return content;
+  }
+
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  return Buffer.concat(chunks).toString("utf8");
+}
+
+function resolveEditor(container: CliContainer): string {
+  const editor = container.env.getVariable("EDITOR") ?? container.env.getVariable("VISUAL");
+  if (editor === undefined || editor.trim().length === 0) {
+    throw new ValidationError("Set $EDITOR to use this command.");
+  }
+  return editor.trim();
+}
+
+function resolveIngestSource(
+  cwd: string,
+  input: string
+): { kind: "url"; url: string } | { kind: "file"; absPath: string } {
+  try {
+    const url = new URL(input);
+    if (url.protocol === "http:" || url.protocol === "https:") {
+      return { kind: "url", url: url.toString() };
+    }
+  } catch (error) {
+    if (!(error instanceof TypeError)) {
+      throw error;
+    }
+  }
+  return { kind: "file", absPath: path.resolve(cwd, input) };
 }
 
 export function registerMemoryCommand(program: Command, container: CliContainer): void {
@@ -177,6 +235,182 @@ export function registerMemoryCommand(program: Command, container: CliContainer)
         const displayPath = displayPageRelPath(hit.relPath);
         process.stdout.write(`${displayPath}:${hit.lineNumber}: ${hit.line}\n`);
       }
+    });
+
+  memory
+    .command("write")
+    .description("Replace a page with content read from stdin.")
+    .argument("<path>", "Page path (relative to memory pages/)")
+    .requiredOption("--reason <text>", "Reason for the memory update")
+    .option("--content <text>", "Page content instead of stdin")
+    .action(async (pagePath: string, options: { reason: string; content?: string }) => {
+      const flags = resolveCommandFlags(program);
+      const root = await resolveRoot(container);
+      const mem = openMemory({ root });
+      await assertInitialized(mem);
+      const relPath = resolvePageRelPath(pagePath);
+      const content = await readCommandContent(options.content);
+      if (flags.dryRun) {
+        createExecutionResources(container, flags, "memory:write").logger.dryRun(`Would write ${relPath}.`);
+        return;
+      }
+      await mem.writePage(relPath, content, { reason: options.reason });
+    });
+
+  memory
+    .command("append")
+    .description("Append stdin content to a page.")
+    .argument("<path>", "Page path (relative to memory pages/)")
+    .option("--reason <text>", "Reason for the memory update", "append")
+    .option("--content <text>", "Content instead of stdin")
+    .action(async (pagePath: string, options: { reason: string; content?: string }) => {
+      const flags = resolveCommandFlags(program);
+      const root = await resolveRoot(container);
+      const mem = openMemory({ root });
+      await assertInitialized(mem);
+      const relPath = resolvePageRelPath(pagePath);
+      const content = await readCommandContent(options.content);
+      if (flags.dryRun) {
+        createExecutionResources(container, flags, "memory:append").logger.dryRun(`Would append to ${relPath}.`);
+        return;
+      }
+      await mem.appendToPage(relPath, content, { reason: options.reason });
+    });
+
+  memory
+    .command("edit")
+    .description("Open a page in $EDITOR.")
+    .argument("<path>", "Page path (relative to memory pages/)")
+    .option("--reason <text>", "Reason for the memory update", "edit")
+    .action(async (pagePath: string, options: { reason: string }) => {
+      const flags = resolveCommandFlags(program);
+      const root = await resolveRoot(container);
+      const relPath = resolvePageRelPath(pagePath);
+      const editor = resolveEditor(container);
+      if (flags.dryRun) {
+        createExecutionResources(container, flags, "memory:edit").logger.dryRun(`Would open ${relPath} in ${editor}.`);
+        return;
+      }
+      await editPage(root, relPath, {
+        reason: options.reason,
+        launchEditor: async (filePath) => {
+          execSync(`${editor} ${shlexQuote(filePath)}`, { stdio: "inherit" });
+        }
+      });
+    });
+
+  memory
+    .command("ingest")
+    .description("Fold a file or URL into memory through an agent.")
+    .argument("<source>", "Local file path or URL")
+    .option("--agent <agent>", "Agent override")
+    .option("--reason <text>", "Reason for ingest")
+    .option("--timeout-ms <ms>", "Timeout in milliseconds")
+    .option("--force", "Bypass an existing cache hit")
+    .option("--no-cache-write", "Skip cache persistence")
+    .action(async (source: string, options: { agent?: string; reason?: string; timeoutMs?: string; force?: boolean; cacheWrite?: boolean }) => {
+      const flags = resolveCommandFlags(program);
+      const root = await resolveRoot(container);
+      const mem = openMemory({ root });
+      await assertInitialized(mem);
+      const timeoutMs = options.timeoutMs === undefined ? undefined : Number(options.timeoutMs);
+      if (timeoutMs !== undefined && (!Number.isFinite(timeoutMs) || timeoutMs < 0)) {
+        throw new ValidationError("Timeout must be a finite non-negative number.");
+      }
+      const result = await mem.ingest({
+        source: resolveIngestSource(container.env.cwd, source),
+        agent: options.agent,
+        reason: options.reason,
+        timeoutMs,
+        force: options.force,
+        noCacheWrite: options.cacheWrite === false,
+        dryRun: flags.dryRun
+      });
+      process.stdout.write(`${result.cacheHit ? "Cache hit" : "Ingested"}: ${result.diff.created.length} created, ${result.diff.updated.length} updated, ${result.diff.deleted.length} deleted.\n`);
+    });
+
+  memory
+    .command("lint")
+    .description("Audit memory confidence and provenance claims.")
+    .option("--fix", "Reserved for automated repair")
+    .action(async (options: { fix?: boolean }) => {
+      if (options.fix) {
+        throw new ValidationError("Automated memory lint repair is not available yet.");
+      }
+      const root = await resolveRoot(container);
+      const mem = openMemory({ root });
+      await assertInitialized(mem);
+      const audits = await mem.auditClaims({ repoRoot: container.env.cwd });
+      if (audits.length === 0) {
+        process.stdout.write("No memory lint issues.\n");
+        return;
+      }
+      for (const audit of audits) {
+        for (const issue of audit.issues) {
+          process.stdout.write(`${audit.page}: ${issue}\n`);
+        }
+      }
+    });
+
+  memory
+    .command("query")
+    .description("Answer a question using memory-only context.")
+    .argument("<question>", "Question")
+    .option("--budget <tokens>", "Token budget")
+    .option("--agent <agent>", "Agent override")
+    .action(async (question: string, options: { budget?: string; agent?: string }) => {
+      const root = await resolveRoot(container);
+      const mem = openMemory({ root });
+      await assertInitialized(mem);
+      const result = await mem.query({
+        question,
+        budget: await queryBudget(container, options.budget),
+        agent: options.agent
+      });
+      process.stdout.write(`${result.answer}\n`);
+    });
+
+  memory
+    .command("explain")
+    .description("Summarize a memory page and its relationships.")
+    .argument("<path>", "Page path (relative to memory pages/)")
+    .option("--budget <tokens>", "Token budget")
+    .option("--agent <agent>", "Agent override")
+    .action(async (pagePath: string, options: { budget?: string; agent?: string }) => {
+      const root = await resolveRoot(container);
+      const mem = openMemory({ root });
+      await assertInitialized(mem);
+      const result = await mem.explainPage({
+        relPath: resolvePageRelPath(pagePath),
+        budget: await queryBudget(container, options.budget),
+        agent: options.agent
+      });
+      process.stdout.write(`${result.answer}\n`);
+    });
+
+  memory
+    .command("install")
+    .description("Install the memory skill and MCP server configuration.")
+    .requiredOption("--agent <agent>", "Target agent")
+    .option("--global", "Install skill globally")
+    .option("--skill-only", "Install only the skill")
+    .option("--mcp-only", "Configure only the MCP server")
+    .option("--allow-writes", "Allow MCP append writes")
+    .action(async (options: { agent: string; global?: boolean; skillOnly?: boolean; mcpOnly?: boolean; allowWrites?: boolean }) => {
+      const flags = resolveCommandFlags(program);
+      await installMemory({
+        agent: options.agent,
+        skillContent: memorySkillTemplate,
+        fs: container.fs,
+        cwd: container.env.cwd,
+        homeDir: container.env.homeDir,
+        platform: container.env.platform as "darwin" | "linux" | "win32",
+        scope: options.global ? "global" : "local",
+        skillOnly: options.skillOnly,
+        mcpOnly: options.mcpOnly,
+        allowWrites: options.allowWrites,
+        dryRun: flags.dryRun
+      });
     });
 
   memory

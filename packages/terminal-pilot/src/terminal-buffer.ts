@@ -7,6 +7,7 @@ interface SgrStyleState {
   italic: boolean;
   underline: boolean;
   inverse: boolean;
+  conceal: boolean;
   strikethrough: boolean;
   fg?: number[];
   bg?: number[];
@@ -183,7 +184,8 @@ export class TerminalBuffer {
   private _setChar(y: number, x: number, ch: string): void {
     const row = this._screen[y];
     if (row && x >= 0 && x < this._cols) {
-      const cell = [ch.charCodeAt(0), ch] as Exclude<Cell, null>;
+      const renderedChar = this._style.conceal ? " " : ch;
+      const cell = [renderedChar.charCodeAt(0), renderedChar] as Exclude<Cell, null>;
 
       if (this._styleSequence.length > 0) {
         Object.defineProperty(cell, "style", {
@@ -229,7 +231,14 @@ export class TerminalBuffer {
 
   private _parseCsiParams(): number[] {
     if (!this._csiParams) return [];
-    return this._csiParams.split(";").map((s) => (s === "" ? 0 : parseInt(s, 10)));
+    const values = this._csiParams
+      .split(";")
+      .flatMap((segment) => segment.split(":"))
+      .map((segment) => (segment === "" ? 0 : parseInt(segment, 10)));
+    if ((values[0] === 38 || values[0] === 48) && values[1] === 2 && values[2] === 0) {
+      values.splice(2, 1);
+    }
+    return values;
   }
 
   private _execCsi(final: string): void {
@@ -400,6 +409,16 @@ export class TerminalBuffer {
   private _feed(ch: string): void {
     const code = ch.charCodeAt(0);
 
+    if (this._state !== State.Normal && (code === 0x18 || code === 0x1a)) {
+      this._state = State.Normal;
+      return;
+    }
+
+    if (this._state === State.Csi && code === 0x1b) {
+      this._state = State.Escape;
+      return;
+    }
+
     switch (this._state) {
       case State.Normal:
         this._feedNormal(ch, code);
@@ -452,6 +471,12 @@ export class TerminalBuffer {
     } else if (code === 0x90 || code === 0x98 || code === 0x9e || code === 0x9f) {
       // DCS, SOS, PM, APC
       this._state = State.Str;
+    } else if (code === 0x85) {
+      // C1 NEL = next line
+      this._cursorX = 0;
+      this._newline();
+    } else if (code === 0x9c) {
+      // C1 ST outside a string has no visible effect
     } else if (code === 0x07 || code === 0x05 || code === 0x06) {
       // BEL, ENQ, ACK — ignore
     } else if (code === 0x08) {
@@ -555,8 +580,8 @@ export class TerminalBuffer {
     } else if (code === 0x3f || code === 0x21 || code === 0x3e || code === 0x20) {
       // Private/intermediate marker (?, !, >, space)
       this._csiPrivate = ch;
-    } else if ((code >= 0x30 && code <= 0x39) || code === 0x3b) {
-      // Digit or semicolon — parameter byte
+    } else if ((code >= 0x30 && code <= 0x39) || code === 0x3b || code === 0x3a) {
+      // Digit, semicolon, or colon — parameter byte
       this._csiParams += ch;
     }
     // Other bytes ignored
@@ -592,6 +617,9 @@ export class TerminalBuffer {
         case 7:
           this._style.inverse = true;
           break;
+        case 8:
+          this._style.conceal = true;
+          break;
         case 9:
           this._style.strikethrough = true;
           break;
@@ -608,6 +636,9 @@ export class TerminalBuffer {
           break;
         case 27:
           this._style.inverse = false;
+          break;
+        case 28:
+          this._style.conceal = false;
           break;
         case 29:
           this._style.strikethrough = false;
@@ -670,6 +701,7 @@ function createDefaultStyleState(): SgrStyleState {
     italic: false,
     underline: false,
     inverse: false,
+    conceal: false,
     strikethrough: false
   };
 }
@@ -691,6 +723,9 @@ function serializeStyleState(state: SgrStyleState): string {
   }
   if (state.inverse) {
     codes.push(7);
+  }
+  if (state.conceal) {
+    codes.push(8);
   }
   if (state.strikethrough) {
     codes.push(9);

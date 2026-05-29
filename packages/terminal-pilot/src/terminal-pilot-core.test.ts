@@ -520,10 +520,68 @@ describe("TerminalBuffer", () => {
       );
     });
 
+    it("preserves colon-form truecolor styling", () => {
+      const buf = new TerminalBuffer(10, 2);
+
+      buf.write("\x1b[38:2::255:0:0mRED");
+
+      expect(buf.renderLine(0)).toBe("\x1b[38;2;255;0;0mRED\x1b[0m");
+    });
+
+    it("does not expose concealed text in visible output", () => {
+      const buf = new TerminalBuffer(20, 1);
+
+      buf.write("\x1b[8msecret\x1b[28m");
+
+      expect(buf.renderLine(0)).not.toContain("secret");
+    });
+
     it("OSC sequences are consumed without writing characters", () => {
       const buf = new TerminalBuffer(10, 5);
       buf.write("\x1b]0;My Title\x07hello");
       expect(readLine(buf, 0).slice(0, 5)).toBe("hello");
+    });
+  });
+
+  describe("control sequence cancellation", () => {
+    it("cancels incomplete CSI sequences on CAN", () => {
+      const buf = new TerminalBuffer(20, 2);
+
+      buf.write("before\x1b[31\x18afterm!");
+
+      expect(readScreen(buf, 2)).toEqual(["beforeafterm!", ""]);
+    });
+
+    it("cancels OSC strings on CAN", () => {
+      const buf = new TerminalBuffer(20, 2);
+
+      buf.write("before\x1b]0;title\x18after\x07!");
+
+      expect(readScreen(buf, 2)).toEqual(["beforeafter!", ""]);
+    });
+
+    it("cancels DCS strings on CAN", () => {
+      const buf = new TerminalBuffer(20, 2);
+
+      buf.write("before\x1bPpayload\x18after\x9c!");
+
+      expect(readScreen(buf, 2)).toEqual(["beforeafter!", ""]);
+    });
+
+    it("starts a replacement escape sequence after ESC inside CSI", () => {
+      const buf = new TerminalBuffer(20, 2);
+
+      buf.write("before\x1b[31\x1b[1Gafter");
+
+      expect(readScreen(buf, 2)).toEqual(["aftere", ""]);
+    });
+
+    it("handles C1 next-line without rendering a control character", () => {
+      const buf = new TerminalBuffer(10, 2);
+
+      buf.write("A\x85B");
+
+      expect(readScreen(buf, 2)).toEqual(["A", "B"]);
     });
   });
 

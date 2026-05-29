@@ -396,6 +396,18 @@ function parseYamlFrontmatter(filePath: string, frontmatterText: string): unknow
 
 function parseFrontmatter(filePath: string, value: unknown): SuperintendentFrontmatter {
   const frontmatter = expectRecord(value, "frontmatter", filePath);
+  assertOnlyKeys(frontmatter, "frontmatter", [
+    "$schema",
+    "kind",
+    "version",
+    "mcp",
+    "builder",
+    "inspectors",
+    "superintendent",
+    "owner",
+    "max_rounds",
+    "status"
+  ], filePath);
   const kind = frontmatter.kind;
 
   if (kind === undefined) {
@@ -428,6 +440,7 @@ function parseRequiredRole(value: unknown, roleName: string, filePath: string): 
   }
 
   const role = expectRecord(value, roleName, filePath);
+  assertOnlyKeys(role, roleName, ["agent", "mode", "cwd", "mcp", "prompt"], filePath);
   const mcp =
     role.mcp === undefined ? undefined : parseMcpMap(role.mcp, filePath, `${roleName}.mcp`);
 
@@ -483,6 +496,7 @@ function parseMcpMap(
 
 function parseMcpConfig(value: unknown, fieldName: string, filePath: string): McpConfig {
   const config = expectRecord(value, fieldName, filePath);
+  assertOnlyKeys(config, fieldName, ["command", "args", "timeout"], filePath);
 
   return {
     command: expectString(config.command, `${fieldName}.command`, filePath),
@@ -499,6 +513,7 @@ function parseMcpConfig(value: unknown, fieldName: string, filePath: string): Mc
 
 function parseStatusBlock(value: unknown, filePath: string): StatusBlock {
   const status = expectRecord(value, "status", filePath);
+  assertOnlyKeys(status, "status", ["state", "round", "review_turn", "reason"], filePath);
   const state = expectString(status.state, "status.state", filePath);
 
   if (!validStatusStates.has(state as StatusBlock["state"])) {
@@ -524,6 +539,20 @@ function expectRecord(
   }
 
   return value;
+}
+
+function assertOnlyKeys(
+  value: Record<string, unknown>,
+  fieldName: string,
+  allowedKeys: readonly string[],
+  filePath: string
+): void {
+  const allowed = new Set(allowedKeys);
+  for (const key of Object.keys(value)) {
+    if (!allowed.has(key)) {
+      throw new Error(`${filePath}: unknown field ${fieldName}.${key}`);
+    }
+  }
 }
 
 function expectString(value: unknown, fieldName: string, filePath: string): string {

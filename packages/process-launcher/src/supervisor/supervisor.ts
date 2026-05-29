@@ -44,7 +44,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
   let workspaceCleanupPromise: Promise<void> | null = null;
 
   const onAbort = () => {
-    void stop();
+    void stop().catch(reportError);
   };
 
   options.signal?.addEventListener("abort", onAbort, { once: true });
@@ -140,7 +140,7 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     });
 
     scheduleStableReset(nextRunId, nextHandle);
-    void monitorExit(nextHandle, nextRunId, outputSettled);
+    void monitorExit(nextHandle, nextRunId, outputSettled).catch(reportError);
 
     if (readiness !== null) {
       await transitionTo("restarting", true);
@@ -178,7 +178,11 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     outputSettled: Promise<void>
   ): Promise<void> {
     const result = await finishedHandle.result;
-    await outputSettled;
+    try {
+      await outputSettled;
+    } catch (error) {
+      reportError(error);
+    }
 
     if (runId !== finishedRunId) {
       return;
@@ -219,7 +223,14 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     );
 
     state.restartCount += 1;
-    await logWriter.rotate();
+    try {
+      await logWriter.rotate();
+    } catch (error) {
+      await transitionTo("crashed");
+      reportError(error);
+      await cleanupWorkspace();
+      return;
+    }
     await transitionTo("restarting");
 
     const restartToken = Symbol("restart");
@@ -231,7 +242,13 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     }
 
     pendingRestart = null;
-    await launch(true);
+    try {
+      await launch(true);
+    } catch (error) {
+      await transitionTo("crashed");
+      reportError(error);
+      await cleanupWorkspace();
+    }
   }
 
   async function transitionTo(status: ProcessState["status"], force = false): Promise<void> {
@@ -255,8 +272,14 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
         return;
       }
 
-      state.restartCount = 0;
-      void stateStore.write(spec.id, getState());
+      const previousRestartCount = state.restartCount;
+      const resetState = { ...getState(), restartCount: 0 };
+      void stateStore.write(spec.id, resetState).then(() => {
+        state.restartCount = 0;
+      }, error => {
+        state.restartCount = previousRestartCount;
+        reportError(error);
+      });
     }, 60_000);
   }
 
@@ -303,6 +326,10 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     });
 
     await workspaceCleanupPromise;
+  }
+
+  function reportError(error: unknown): void {
+    options.onError?.(error);
   }
 
   return {
@@ -545,7 +572,7 @@ function execWorkspaceCommand(
   return {
     stdout: result.stdout ?? "",
     stderr: result.stderr ?? "",
-    exitCode: result.status ?? 0
+    exitCode: typeof result.status === "number" ? result.status : 1
   };
 }
 

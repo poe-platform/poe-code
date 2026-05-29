@@ -11,6 +11,11 @@ import type {
 } from "../types.js";
 
 const resolveWorkspaceMock = vi.hoisted(() => vi.fn());
+const spawnSyncMock = vi.hoisted(() => vi.fn());
+
+vi.mock("node:child_process", () => ({
+  spawnSync: spawnSyncMock
+}));
 
 vi.mock("@poe-code/workspace-resolver", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@poe-code/workspace-resolver")>();
@@ -26,6 +31,8 @@ import { createSupervisor as createSupervisorFromIndex } from "../index.js";
 afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
+  resolveWorkspaceMock.mockReset();
+  spawnSyncMock.mockReset();
 });
 
 describe("createSupervisor", () => {
@@ -588,6 +595,50 @@ describe("createSupervisor", () => {
     expect(supervisor.getState().status).toBe("stopped");
   });
 
+  it("reports abort-triggered stop persistence failures", async () => {
+    const controller = new AbortController();
+    const handle = createControllableHandle();
+    handle.kill.mockImplementation(() => handle.finish({ exitCode: 0 }));
+    const { fs } = createMemFs();
+    const originalRename = fs.rename.bind(fs);
+    let persistedStates = 0;
+    fs.rename = vi.fn(async (sourcePath: string, destinationPath: string) => {
+      persistedStates += 1;
+      if (persistedStates === 2) {
+        throw new Error("stop state offline");
+      }
+      await originalRename(sourcePath, destinationPath);
+    });
+    const onError = vi.fn();
+    const supervisor = createTestSupervisor({ fs, onError, runner: { name: "controllable", exec: vi.fn(() => handle) }, signal: controller.signal });
+
+    await supervisor.start();
+    controller.abort();
+    await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "stop state offline" })));
+  });
+
+  it("reports terminal-state persistence failure after process exit", async () => {
+    vi.useFakeTimers();
+    const { fs } = createMemFs();
+    const originalRename = fs.rename.bind(fs);
+    let persistedStates = 0;
+    fs.rename = vi.fn(async (sourcePath: string, destinationPath: string) => {
+      persistedStates += 1;
+      if (persistedStates === 2) {
+        throw new Error("exit state offline");
+      }
+      await originalRename(sourcePath, destinationPath);
+    });
+    const onError = vi.fn();
+    const supervisor = createTestSupervisor({ fs, onError, runner: createMockRunner([{ exitCode: 0, exitAfterMs: 1 }]) });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "exit state offline" }));
+    expect(supervisor.getState()).toMatchObject({ pid: null, status: "stopped" });
+  });
+
   it("does not launch when its signal is already aborted", async () => {
     const controller = new AbortController();
     controller.abort();
@@ -663,6 +714,95 @@ describe("createSupervisor", () => {
     expect(await fs.readFile("/state/process/logs/stderr.log", "utf8")).toBe("warn\n");
   });
 
+  it("reports failed log writes while still recording process exit", async () => {
+    vi.useFakeTimers();
+    const { fs } = createMemFs();
+    fs.appendFile = vi.fn(async () => {
+      throw new Error("log disk offline");
+    });
+    const onError = vi.fn();
+    const supervisor = createTestSupervisor({
+      fs,
+      onError,
+      runner: createMockRunner([{ exitCode: 0, exitAfterMs: 5, stdout: ["hello\n"] }])
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(5);
+
+    await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "log disk offline" })));
+    expect(supervisor.getState()).toMatchObject({ pid: null, status: "stopped" });
+  });
+
+  it("reports failed log rotation and records a crashed restart", async () => {
+    vi.useFakeTimers();
+    const { fs } = createMemFs();
+    fs.stat = vi.fn(async () => {
+      throw new Error("log rotation offline");
+    });
+    const onError = vi.fn();
+    const supervisor = createTestSupervisor({
+      fs,
+      onError,
+      runner: createMockRunner([{ exitCode: 1, exitAfterMs: 1 }]),
+      spec: { restart: "on-failure" }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(1);
+
+    expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "log rotation offline" }));
+    expect(supervisor.getState()).toMatchObject({ pid: null, status: "crashed" });
+  });
+
+  it("reports replacement launch failures and records a crash", async () => {
+    vi.useFakeTimers();
+    const onError = vi.fn();
+    const runner = {
+      name: "controllable",
+      exec: vi.fn().mockReturnValueOnce(createMockRunner([{ exitCode: 1, exitAfterMs: 1 }]).exec({ command: "npm" })).mockImplementationOnce(() => {
+        throw new Error("replacement launch failed");
+      })
+    };
+    const supervisor = createTestSupervisor({ onError, runner, spec: { backoffMs: 0, restart: "on-failure" } });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(0);
+
+    await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "replacement launch failed" })));
+    expect(supervisor.getState()).toMatchObject({ pid: null, status: "crashed" });
+  });
+
+  it("keeps restart count when stable-reset persistence fails", async () => {
+    vi.useFakeTimers();
+    const { fs } = createMemFs();
+    const originalRename = fs.rename.bind(fs);
+    fs.rename = vi.fn(async (sourcePath: string, destinationPath: string) => {
+      const content = await fs.readFile(sourcePath, "utf8");
+      if (content.includes('"restartCount": 0') && content.includes('"pid": 2')) {
+        throw new Error("stable reset offline");
+      }
+      await originalRename(sourcePath, destinationPath);
+    });
+    const onError = vi.fn();
+    const supervisor = createTestSupervisor({
+      fs,
+      onError,
+      runner: createMockRunner([{ pid: 1, exitCode: 1, exitAfterMs: 1 }, { pid: 2, exitCode: 0, exitAfterMs: 70_000 }]),
+      spec: { backoffMs: 0, restart: "on-failure" }
+    });
+
+    await supervisor.start();
+    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.waitFor(() => expect(supervisor.getState()).toMatchObject({ pid: 2, restartCount: 1 }));
+    await vi.advanceTimersByTimeAsync(60_000);
+
+    await vi.waitFor(() => expect(onError).toHaveBeenCalledWith(expect.objectContaining({ message: "stable reset offline" })));
+    expect(supervisor.getState().restartCount).toBe(1);
+  });
+
   it("resolves workspace locators once and reuses the resolved cwd across restarts", async () => {
     vi.useFakeTimers();
     const first = createControllableHandle(11);
@@ -736,6 +876,29 @@ describe("createSupervisor", () => {
     await stopPromise;
 
     expect(cleanup).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not launch after workspace preparation is signal terminated", async () => {
+    spawnSyncMock.mockReturnValue({ signal: "SIGTERM", status: null, stderr: "", stdout: "" });
+    resolveWorkspaceMock.mockImplementation(async (_locator: string, options: { exec: (command: string, args: string[]) => Promise<{ exitCode: number }> }) => {
+      const result = await options.exec("git", ["clone"]);
+      if (result.exitCode !== 0) {
+        throw new Error("workspace preparation failed");
+      }
+      return { cwd: "/tmp/workspaces/poe-code" };
+    });
+    const runner = {
+      name: "unused",
+      exec: vi.fn(() => createControllableHandle())
+    };
+    const supervisor = createSupervisor({
+      runner,
+      spec: createSpec({ cwd: "github://poe-platform/poe-code" }),
+      stateDir: "/home/test/.poe-code/launch"
+    });
+
+    await expect(supervisor.start()).rejects.toThrow("workspace preparation failed");
+    expect(runner.exec).not.toHaveBeenCalled();
   });
 });
 

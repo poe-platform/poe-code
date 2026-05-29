@@ -56,6 +56,7 @@ export interface SupervisorOptions {
   signal?: AbortSignal;
   onStatusChange?: (state: ProcessState) => void;
   onLog?: (line: string, stream: "stdout" | "stderr") => void;
+  onError?: (error: unknown) => void;
 }
 
 export interface Supervisor {

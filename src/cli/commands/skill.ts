@@ -160,6 +160,8 @@ export function registerSkillCommand(program: Command, container: CliContainer):
         const fromConfig = await resolveDefaultAgent(container);
         if (fromConfig !== null) {
           agent = parseAgentSpecifier(fromConfig).agent;
+        } else if (flags.assumeYes) {
+          agent = DEFAULT_SKILL_AGENT;
         } else {
           const selected = await select({
             message: "Select agent to unconfigure:",

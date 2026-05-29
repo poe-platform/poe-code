@@ -92,6 +92,24 @@ describe("skill unconfigure command", () => {
     await expect(fs.stat(`${homeDir}/.codex/skills`)).rejects.toThrow("ENOENT");
   });
 
+  it("uses the default agent for root --yes unconfigure", async () => {
+    const { fs } = createMemFs();
+    const logs: string[] = [];
+
+    const program = createProgram({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: (message) => logs.push(message),
+      suppressCommanderOutput: true
+    });
+
+    await program.parseAsync(["node", "cli", "--yes", "--dry-run", "skill", "unconfigure", "--local"]);
+
+    expect(selectMock).not.toHaveBeenCalled();
+    expect(logs).toContain("Would remove skill directory for claude-code at .claude/skills");
+  });
+
   it("warns when directory has files and --force is not set", async () => {
     const { fs, vol } = createMemFs();
     const logs: string[] = [];

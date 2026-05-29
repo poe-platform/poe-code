@@ -54,12 +54,12 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
       return;
     }
 
-    if (handle !== null || pendingRestart !== null) {
+    if (startPromise !== null) {
+      await startPromise;
       return;
     }
 
-    if (startPromise !== null) {
-      await startPromise;
+    if (handle !== null || pendingRestart !== null) {
       return;
     }
 
@@ -127,28 +127,39 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     state.lastExitCode = null;
     state.lastStartedAt = new Date().toISOString();
 
+    if (spec.readyCheck !== undefined) {
+      activeReadyController = new AbortController();
+    }
+
     const stdoutPump = pipeOutput(nextHandle.stdout, "stdout", logWriter.write, logSource);
     const stderrPump = pipeOutput(nextHandle.stderr, "stderr", logWriter.write, logSource);
     const outputSettled = Promise.all([stdoutPump, stderrPump]).then(() => undefined);
+    const readiness = spec.readyCheck === undefined ? null : waitForReady(resolveReadyCheck(spec.readyCheck, spec), {
+      onLog: logSource,
+      signal: activeReadyController?.signal
+    });
 
     scheduleStableReset(nextRunId, nextHandle);
     void monitorExit(nextHandle, nextRunId, outputSettled);
 
-    if (spec.readyCheck !== undefined) {
-      await transitionTo("restarting");
-      activeReadyController = new AbortController();
-      const ready = await waitForReady(resolveReadyCheck(spec.readyCheck, spec), {
-        onLog: logSource,
-        signal: activeReadyController.signal
-      });
+    if (readiness !== null) {
+      await transitionTo("restarting", true);
+      const ready = await readiness;
       activeReadyController = null;
 
-      if (runId !== nextRunId || handle !== nextHandle) {
+      if (!ready) {
+        if (runId === nextRunId && handle === nextHandle) {
+          nextHandle.kill("SIGTERM");
+        }
+
+        if (!isRestart) {
+          throw new Error(`Managed process "${spec.id}" failed readiness during startup.`);
+        }
+
         return;
       }
 
-      if (!ready) {
-        nextHandle.kill("SIGTERM");
+      if (runId !== nextRunId || handle !== nextHandle) {
         return;
       }
     }
@@ -223,8 +234,8 @@ export function createSupervisor(options: SupervisorOptions): Supervisor {
     await launch(true);
   }
 
-  async function transitionTo(status: ProcessState["status"]): Promise<void> {
-    if (state.status === status) {
+  async function transitionTo(status: ProcessState["status"], force = false): Promise<void> {
+    if (!force && state.status === status) {
       return;
     }
 

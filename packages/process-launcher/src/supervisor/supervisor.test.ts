@@ -1,4 +1,5 @@
 import net from "node:net";
+import { PassThrough } from "node:stream";
 import { Volume, createFsFromVolume } from "memfs";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createMockRunner } from "@poe-code/process-runner/testing";
@@ -364,6 +365,128 @@ describe("createSupervisor", () => {
     await startPromise;
 
     expect(supervisor.getState().status).toBe("running");
+
+    await supervisor.stop();
+  });
+
+  it("concurrent start calls wait for the same readiness check", async () => {
+    vi.useFakeTimers();
+    const supervisor = createTestSupervisor({
+      runner: createMockRunner([{ exitCode: 0, exitAfterMs: 10_000, stdout: ["ready\n"], stdoutInterval: 20 }]),
+      spec: { readyCheck: { kind: "log-pattern", pattern: "ready" }, restart: "never" }
+    });
+    let secondSettled = false;
+    const first = supervisor.start();
+    await vi.advanceTimersByTimeAsync(1);
+    const second = supervisor.start().then(() => {
+      secondSettled = true;
+    });
+
+    await vi.advanceTimersByTimeAsync(10);
+    expect(secondSettled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(10);
+    await Promise.all([first, second]);
+    expect(supervisor.getState().status).toBe("running");
+
+    await supervisor.stop();
+  });
+
+  it("observes readiness output emitted while startup state is persisting", async () => {
+    const stdout = new PassThrough();
+    const handle = createControllableHandle();
+    handle.stdout = stdout;
+    const { fs } = createMemFs();
+    const originalWriteFile = fs.writeFile.bind(fs);
+    let releaseWrite: (() => void) | null = null;
+    let blocksFirstState = true;
+    fs.writeFile = vi.fn(async (filePath: string, content: string) => {
+      if (blocksFirstState && filePath.endsWith("state.json.tmp")) {
+        blocksFirstState = false;
+        await new Promise<void>(resolve => {
+          releaseWrite = resolve;
+        });
+      }
+      await originalWriteFile(filePath, content);
+    });
+    const supervisor = createTestSupervisor({
+      fs,
+      runner: { name: "controllable", exec: vi.fn(() => handle) },
+      spec: { readyCheck: { kind: "log-pattern", pattern: "READY" }, restart: "never" }
+    });
+
+    const startPromise = supervisor.start();
+    await vi.waitFor(() => {
+      expect(releaseWrite).not.toBeNull();
+    });
+    stdout.write("READY\n");
+    releaseWrite?.();
+    await expect(startPromise).resolves.toBeUndefined();
+    expect(supervisor.getState().status).toBe("running");
+
+    handle.finish({ exitCode: 0 });
+    await supervisor.stop();
+  });
+
+  it("rejects startup when readiness fails", async () => {
+    const port = await getAvailablePort();
+    const handle = createControllableHandle();
+    handle.kill.mockImplementation(() => {
+      handle.finish({ exitCode: 1 });
+    });
+    const supervisor = createTestSupervisor({
+      runner: { name: "controllable", exec: vi.fn(() => handle) },
+      spec: { readyCheck: { kind: "tcp", port, timeoutMs: 1 }, restart: "never" }
+    });
+
+    await expect(supervisor.start()).rejects.toThrow(/readiness/i);
+    expect(handle.kill).toHaveBeenCalledWith("SIGTERM");
+  });
+
+  it("rejects initial startup when it crashes before readiness", async () => {
+    vi.useFakeTimers();
+    const supervisor = createTestSupervisor({
+      runner: createMockRunner([
+        { pid: 101, exitCode: 1, exitAfterMs: 1 },
+        { pid: 202, exitCode: 0, exitAfterMs: 10_000 }
+      ]),
+      spec: { backoffMs: 0, readyCheck: { kind: "log-pattern", pattern: "READY" }, restart: "on-failure" }
+    });
+    const started = supervisor.start();
+    const startupFailure = expect(started).rejects.toThrow(/readiness/i);
+
+    await vi.advanceTimersByTimeAsync(1);
+    await startupFailure;
+  });
+
+  it("persists replacement pid while restarted readiness is pending", async () => {
+    vi.useFakeTimers();
+    const { fs } = createMemFs();
+    const first = createControllableHandle(101);
+    const second = createControllableHandle(202);
+    second.kill.mockImplementation(() => {
+      second.finish({ exitCode: 0 });
+    });
+    const firstStdout = new PassThrough();
+    first.stdout = firstStdout;
+    second.stdout = new PassThrough();
+    const supervisor = createTestSupervisor({
+      fs,
+      runner: { name: "controllable", exec: vi.fn().mockReturnValueOnce(first).mockReturnValueOnce(second) },
+      spec: { backoffMs: 0, readyCheck: { kind: "log-pattern", pattern: "READY" }, restart: "on-failure" }
+    });
+    const started = supervisor.start();
+    await Promise.resolve();
+    firstStdout.write("READY\n");
+    await started;
+    firstStdout.end();
+    first.finish({ exitCode: 1 });
+    await vi.advanceTimersByTimeAsync(1);
+    await Promise.resolve();
+
+    const persisted = JSON.parse(await fs.readFile("/state/process/state.json", "utf8")) as ProcessState;
+    expect(persisted).toMatchObject({ pid: 202, status: "restarting" });
+    expect(supervisor.getState()).toMatchObject({ pid: 202, status: "restarting" });
 
     await supervisor.stop();
   });

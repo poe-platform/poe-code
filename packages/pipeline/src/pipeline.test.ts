@@ -1748,6 +1748,35 @@ describe("writeTaskStatus", () => {
     await expect(fs.readFile("/outside/plan.md", "utf8")).resolves.toContain("status: open");
   });
 
+  it("preserves the prior plan when a staged status write fails", async () => {
+    const initial = [
+      "tasks:",
+      "  - id: task-1",
+      "    title: One",
+      "    prompt: First",
+      "    status: open",
+      ""
+    ].join("\n");
+    const fs = createFs({ "/repo/plan.yaml": initial });
+    const writeFile = vi.fn(fs.writeFile.bind(fs)).mockImplementation(async (filePath, data, options) => {
+      if (filePath !== "/repo/plan.yaml") {
+        throw new Error("status write failed");
+      }
+      return fs.writeFile(filePath, data, options);
+    });
+
+    await expect(
+      writeTaskStatus({
+        fs: { ...fs, writeFile },
+        planPath: "/repo/plan.yaml",
+        taskId: "task-1",
+        status: "done"
+      })
+    ).rejects.toThrow("status write failed");
+
+    await expect(fs.readFile("/repo/plan.yaml", "utf8")).resolves.toBe(initial);
+  });
+
   it("updates a stepless task status to done", async () => {
     const fs = createFs({
       "/repo/plan.yaml": [
@@ -3542,6 +3571,43 @@ describe("createPipelineSimulation", () => {
     expect(result.stopReason).toBe("failed");
     expect(result.runsCompleted).toBe(1);
     expect(prompts).toEqual(["Do task 1", "Teardown"]);
+  });
+
+  it("does not archive a completed plan when teardown fails", async () => {
+    const fs = createFs({
+      "/repo/docs/plans/plan.md": [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "teardown:",
+        "  prompt: Clean up",
+        "tasks:",
+        "  - id: work",
+        "    title: Work",
+        "    prompt: Do work",
+        "    status: open",
+        "---",
+        ""
+      ].join("\n")
+    });
+    const runAgent = vi
+      .fn()
+      .mockResolvedValueOnce({ stdout: "", stderr: "", exitCode: 0 })
+      .mockResolvedValueOnce({ stdout: "", stderr: "failed", exitCode: 1 });
+
+    const result = await runPipeline({
+      agent: "codex",
+      cwd: "/repo",
+      homeDir: "/home/test",
+      plan: "docs/plans/plan.md",
+      planDirectory: "docs/plans",
+      fs,
+      runAgent
+    });
+
+    expect(result.stopReason).toBe("failed");
+    await expect(fs.readFile("/repo/docs/plans/plan.md", "utf8")).resolves.toContain("status: done");
+    await expect(fs.stat("/repo/docs/plans/archive/plan.md")).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("returns cancelled when teardown aborts while resolving successfully", async () => {

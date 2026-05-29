@@ -130,7 +130,8 @@ function createSimulationFs(options: SimulationOptions): { fs: SimulationFs; pla
     },
     mkdir: (filePath, mkdirOptions) => rawFs.mkdir(filePath, mkdirOptions) as Promise<void>,
     rmdir: (filePath) => rawFs.rmdir(filePath) as Promise<void>,
-    rename: (oldPath, newPath) => rawFs.rename(oldPath, newPath) as Promise<void>
+    rename: (oldPath, newPath) => rawFs.rename(oldPath, newPath) as Promise<void>,
+    unlink: (filePath) => rawFs.unlink(filePath) as Promise<void>
   } as SimulationFs;
 
   return { fs, planPath };

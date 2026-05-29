@@ -51,7 +51,8 @@ function createDefaultFs(): PipelineFileSystem {
       await fsPromises.mkdir(filePath, options);
     },
     rmdir: fsPromises.rmdir,
-    rename: fsPromises.rename
+    rename: fsPromises.rename,
+    unlink: fsPromises.unlink
   };
 
   return fs as PipelineFileSystem;
@@ -353,14 +354,6 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
 
       if (selection.kind === "completed") {
         if (runsCompleted > 0) {
-          const id = planIdFromArchivePath(absolutePlanPath);
-          await archivePlanShared({
-            cwd,
-            homeDir,
-            planDirectory: configuredPlanDirectory ?? "docs/plans",
-            id,
-            fs: fs as unknown as ArchivePlanFs
-          });
           if (resolvedTeardown) {
             const { success, cancelled } = await runPhase(
               resolvedTeardown,
@@ -379,6 +372,14 @@ export async function runPipeline(options: PipelineRunOptions): Promise<Pipeline
               };
             }
           }
+          const id = planIdFromArchivePath(absolutePlanPath);
+          await archivePlanShared({
+            cwd,
+            homeDir,
+            planDirectory: configuredPlanDirectory ?? "docs/plans",
+            id,
+            fs: fs as unknown as ArchivePlanFs
+          });
         }
         return {
           stopReason: runsCompleted === 0 ? "nothing_to_run" : "completed",

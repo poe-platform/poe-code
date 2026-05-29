@@ -96,6 +96,16 @@ describe("acp/components", () => {
     expect(output).toContain("\u001b[33m");
   });
 
+  it("renders inherited-looking custom tool kinds through fallback styling", async () => {
+    const { renderToolComplete, renderToolStart } = await import("./components.js");
+    const output = captureStdout(() => {
+      renderToolStart("toString", "read config");
+      renderToolComplete("toString");
+    });
+
+    expect(stripAnsi(output)).toBe("  → toString: read config\n  ✓ toString\n");
+  });
+
   it("renderReasoning prints a dim checkmark + truncated text (80 chars)", async () => {
     const { renderReasoning } = await import("./components.js");
     const long = "x".repeat(200);

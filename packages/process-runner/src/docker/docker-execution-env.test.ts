@@ -797,6 +797,44 @@ describe("dockerExecutionEnvFactory", () => {
     expect(runner.specs[0]?.args?.at(-1)).toContain("stat -c %Y");
     expect(runner.specs[0]?.args?.at(-1)).toContain("4070908800");
   });
+
+  it("follows appended detached log output until the command exits", async () => {
+    vi.useFakeTimers();
+    const runner = createCapturingRunner([
+      { exitCode: 0, stdout: ["first\n"] },
+      { exitCode: 0, stdout: [] },
+      { exitCode: 0, stdout: ["second\n"] },
+      { exitCode: 0, stdout: ["0\n"] }
+    ]);
+    vi.mocked(createHostRunner).mockReturnValue(runner);
+    const { dockerExecutionEnvFactory } = await import("./docker-execution-env.js");
+    const env = await dockerExecutionEnvFactory.attach("container-id", {
+      jobId: "job-logs",
+      tool: "node",
+      argv: ["node"],
+      cwd: "/workspace"
+    });
+    const job = env.job;
+    if (job === null) {
+      throw new Error("Expected attached Docker job.");
+    }
+
+    try {
+      const chunks: string[] = [];
+      const reading = (async () => {
+        for await (const chunk of job.stream({ follow: true })) {
+          chunks.push(chunk.data);
+        }
+      })();
+      await vi.advanceTimersByTimeAsync(250);
+      await reading;
+
+      expect(chunks).toEqual(["first\n", "second\n"]);
+      expect(runner.specs[2]?.args?.at(-1)).toContain("tail -c +7");
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });
 
 function createOpenSpec(overrides: Partial<OpenSpec> = {}): OpenSpec {

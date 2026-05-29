@@ -1145,6 +1145,8 @@ describe("logout command", () => {
 
     const storedKey = await readStoredApiKey(fs);
     expect(storedKey).toBeNull();
+    expect(logs.some((line) => line.includes("Logged out."))).toBe(true);
+    expect(logs.some((line) => line.includes("Already logged out."))).toBe(false);
   });
 
   it("handles missing config file gracefully", async () => {

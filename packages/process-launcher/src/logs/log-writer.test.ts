@@ -45,6 +45,20 @@ describe("createLogWriter", () => {
     await expect(fs.readFile("/logs/stderr.log", "utf8")).resolves.toBe("err\n");
   });
 
+  it("rejects logging through a symlinked log directory", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/project/logs", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await (fs as LauncherFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/project/logs/linked"
+    );
+    const writer = createLogWriter("/project/logs/linked", 1, fs);
+
+    await expect(writer.write("external write", "stdout")).rejects.toThrow("symbolic link");
+    await expect(fs.readFile("/outside/stdout.log", "utf8")).rejects.toThrow();
+  });
+
   it("rotate() shifts log files from current to .1", async () => {
     const fs = createMemFs();
     const writer = createLogWriter("/logs", 3, fs);

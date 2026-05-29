@@ -560,8 +560,11 @@ describe("createSupervisor", () => {
 
     await supervisor.start();
     await vi.advanceTimersByTimeAsync(5);
+    await vi.waitFor(() => expect(stateWrites).toHaveLength(2));
     await vi.advanceTimersByTimeAsync(1_000);
+    await vi.waitFor(() => expect(stateWrites).toHaveLength(3));
     await supervisor.stop();
+    await vi.waitFor(() => expect(stateWrites).toHaveLength(4));
 
     expect(stateWrites).toHaveLength(4);
     expect(stateWrites.map(content => JSON.parse(content).status)).toEqual([

@@ -172,6 +172,24 @@ describe("createStateStore", () => {
     await expect(store.read(updated.id)).resolves.toEqual(updated);
   });
 
+  it("rejects reads and writes through a symlinked state file", async () => {
+    const fs = createMemFs();
+    const outside = createProcessState("alpha", { status: "stopped" });
+    const updated = createProcessState("alpha", { status: "running", pid: 123 });
+    await fs.mkdir("/state/alpha", { recursive: true });
+    await fs.mkdir("/outside", { recursive: true });
+    await fs.writeFile("/outside/state.json", `${JSON.stringify(outside)}\n`);
+    await (fs as LauncherFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside/state.json",
+      "/state/alpha/state.json"
+    );
+    const store = createStateStore("/state", fs);
+
+    await expect(store.read("alpha")).rejects.toThrow("symbolic link");
+    await expect(store.write("alpha", updated)).rejects.toThrow("symbolic link");
+    await expect(fs.readFile("/outside/state.json", "utf8")).resolves.toBe(`${JSON.stringify(outside)}\n`);
+  });
+
   it("rejects path traversal ids for all state operations", async () => {
     const fs = createMemFs();
     const store = createStateStore("/state", fs);

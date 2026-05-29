@@ -1,6 +1,7 @@
 import path from "node:path";
 import * as nodeFs from "node:fs/promises";
 import type { LauncherFileSystem, LogWriter } from "../types.js";
+import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 
 function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
@@ -114,7 +115,9 @@ export function createLogWriter(
   const maxRetainedRuns = Math.max(0, Math.trunc(retainCount));
 
   async function write(line: string, stream: "stdout" | "stderr"): Promise<void> {
+    await assertPathHasNoSymbolicLinks(fs, logDir);
     await fs.mkdir(logDir, { recursive: true });
+    await assertPathHasNoSymbolicLinks(fs, logDir);
     await fs.appendFile(getCurrentLogPath(logDir, stream), `${line}\n`);
   }
 
@@ -140,12 +143,14 @@ export function createLogWriter(
   }
 
   async function rotate(): Promise<void> {
+    await assertPathHasNoSymbolicLinks(fs, logDir);
     await rotateStream("stdout");
     await rotateStream("stderr");
   }
 
   async function tail(stream: "stdout" | "stderr", lines = 50): Promise<string[]> {
     try {
+      await assertPathHasNoSymbolicLinks(fs, logDir);
       const content = await fs.readFile(getCurrentLogPath(logDir, stream), "utf8");
       const allLines = getLines(content);
       const lineCount = Math.max(0, Math.trunc(lines));

@@ -1,6 +1,7 @@
 import path from "node:path";
 import * as nodeFs from "node:fs/promises";
 import type { LauncherFileSystem, ProcessState, StateStore } from "../types.js";
+import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
 
 function isNotFoundError(error: unknown): boolean {
   return error instanceof Error && "code" in error && error.code === "ENOENT";
@@ -71,6 +72,7 @@ export function createStateStore(
     const statePath = path.join(resolveProcessDir(stateDir, id), "state.json");
 
     try {
+      await assertPathHasNoSymbolicLinks(fs, statePath);
       const content = await fs.readFile(statePath, "utf8");
       const parsed: unknown = JSON.parse(content);
       if (!isProcessState(parsed, id)) {
@@ -90,7 +92,9 @@ export function createStateStore(
     const processDir = resolveProcessDir(stateDir, id);
     const statePath = path.join(processDir, "state.json");
     const temporaryPath = `${statePath}.tmp`;
+    await assertPathHasNoSymbolicLinks(fs, statePath);
     await fs.mkdir(processDir, { recursive: true });
+    await assertPathHasNoSymbolicLinks(fs, statePath);
 
     try {
       await fs.writeFile(temporaryPath, `${JSON.stringify(state, null, 2)}\n`);

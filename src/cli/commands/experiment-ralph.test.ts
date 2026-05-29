@@ -1294,6 +1294,28 @@ describe("experiment journal command", () => {
     expect(loggerOutput).toContain("discard");
   });
 
+  it("does not repair invalid project config while displaying a journal", async () => {
+    const fs = createMemFs({
+      "/repo/docs/loop.md": "# Loop",
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync(["node", "cli", "experiment", "journal", "docs/loop.md"])
+    ).rejects.toThrow();
+
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
+  });
+
   it("discovers the first doc with --yes", async () => {
     const container = createCliContainer({
       fs: createMemFs({
@@ -1512,6 +1534,27 @@ describe("experiment plan-path command", () => {
     await program.parseAsync(["node", "cli", "experiment", "plan-path"]);
 
     expect(writeSpy).toHaveBeenCalledWith("/repo/docs/plans\n");
+  });
+
+  it("does not repair invalid project config while printing the plan path", async () => {
+    const fs = createMemFs({
+      "/repo/.poe-code/config.json": "{ invalid json\n"
+    });
+    const writeSpy = vi.spyOn(process.stdout, "write").mockReturnValue(true);
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(program.parseAsync(["node", "cli", "experiment", "plan-path"])).rejects.toThrow();
+
+    expect(writeSpy).not.toHaveBeenCalled();
+    await expect(fs.readFile(container.env.projectConfigPath, "utf8")).resolves.toBe("{ invalid json\n");
+    await expect(fs.readdir("/repo/.poe-code")).resolves.toEqual(["config.json"]);
   });
 });
 

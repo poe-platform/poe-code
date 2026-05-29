@@ -45,6 +45,7 @@ import { experimentConfigScope, planConfigScope } from "../../services/config.js
 import {
   mergeExperimentCallbacks,
   readMergedDocument,
+  readMergedDocumentReadonly,
   resolveScope,
   type ConfigDocument
 } from "@poe-code/poe-code-config";
@@ -496,12 +497,16 @@ function parseNonNegativeInt(value: string | undefined, fieldName: string): numb
   return Number.parseInt(trimmed, 10);
 }
 
-async function resolveExperimentCommandConfig(container: CliContainer): Promise<{
+async function resolveExperimentCommandConfig(
+  container: CliContainer,
+  options: { readonly?: boolean } = {}
+): Promise<{
   configDoc: ConfigDocument;
   planDirectory: string;
   tui: boolean;
 }> {
-  const configDoc = await readMergedDocument(
+  const readConfig = options.readonly ? readMergedDocumentReadonly : readMergedDocument;
+  const configDoc = await readConfig(
     container.fs,
     container.env.configPath,
     container.env.projectConfigPath
@@ -807,7 +812,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
       resources.logger.intro("experiment journal");
 
       try {
-        const commandConfig = await resolveExperimentCommandConfig(container);
+        const commandConfig = await resolveExperimentCommandConfig(container, { readonly: true });
         const docPath = await resolveDocPath({
           container,
           program,
@@ -999,7 +1004,7 @@ export function registerExperimentCommand(program: Command, container: CliContai
     .command("plan-path")
     .description("Print the directory where experiment plan files should be placed.")
     .action(async function () {
-      const commandConfig = await resolveExperimentCommandConfig(container);
+      const commandConfig = await resolveExperimentCommandConfig(container, { readonly: true });
 
       const resolvedPath = resolvePlanDirectory({
         cwd: container.env.cwd,

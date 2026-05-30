@@ -328,6 +328,22 @@ describe("check eligible user workflow script", () => {
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
+
+  it("refuses to append eligibility output through a symbolic link", async () => {
+    const volume = Volume.fromJSON({ "/outside-output": "sentinel" }, "/");
+    volume.mkdirSync("/github", { recursive: true });
+    volume.symlinkSync("/outside-output", "/github/output");
+    const memoryFs = createFsFromVolume(volume);
+    fetchMock.mockResolvedValueOnce(
+      createResponse({ ok: false, status: 404, statusText: "Not Found" }) satisfies MockResponse
+    );
+    const { appendWorkflowOutput } = await import(scriptPath);
+
+    expect(() => appendWorkflowOutput("/github/output", "allowed=true\n", memoryFs)).toThrow(
+      "symbolic link"
+    );
+    expect(memoryFs.readFileSync("/outside-output", "utf8")).toBe("sentinel");
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -430,6 +446,17 @@ describe("discover models workflow script", () => {
       throw new Error(`Unhandled request in discover-models test: ${method} ${url}`);
     });
   }
+
+  it("refuses to append model output through a symbolic link", async () => {
+    const volume = Volume.fromJSON({ "/outside-output": "sentinel" }, "/");
+    volume.mkdirSync("/github", { recursive: true });
+    volume.symlinkSync("/outside-output", "/github/output");
+    const memoryFs = createFsFromVolume(volume);
+    const { writeWorkflowOutputs } = await import(scriptUrl);
+
+    expect(() => writeWorkflowOutputs("/github/output", [42], memoryFs)).toThrow("symbolic link");
+    expect(memoryFs.readFileSync("/outside-output", "utf8")).toBe("sentinel");
+  });
 
   it("calls poe-code models in json output mode for parse-safe YAML", async () => {
     const { runDiscovery } = await import(scriptUrl);
@@ -1940,6 +1967,19 @@ describe("select service workflow script", () => {
     const output = writes.join("");
     expect(output).toContain("service=codex");
     expect(output).toContain("menu_label=true");
+  });
+
+  it("refuses to append service output through a symbolic link", async () => {
+    const volume = Volume.fromJSON({ "/outside-output": "sentinel" }, "/");
+    volume.mkdirSync("/github", { recursive: true });
+    volume.symlinkSync("/outside-output", "/github/output");
+    const memoryFs = createFsFromVolume(volume);
+    const { appendWorkflowOutput } = await import(scriptPath);
+
+    expect(() => appendWorkflowOutput("/github/output", "service=codex\n", memoryFs)).toThrow(
+      "symbolic link"
+    );
+    expect(memoryFs.readFileSync("/outside-output", "utf8")).toBe("sentinel");
   });
 });
 

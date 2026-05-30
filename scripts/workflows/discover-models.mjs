@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { appendFileSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { appendFileSync, lstatSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { extname, join, relative } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -904,18 +904,36 @@ export function renderIssueBody({
   ].join("\n");
 }
 
-function writeWorkflowOutputs(outputPath, actionableIssueNumbers) {
+export function writeWorkflowOutputs(
+  outputPath,
+  actionableIssueNumbers,
+  fileSystem = { appendFileSync, lstatSync }
+) {
   if (!outputPath) {
     return;
   }
-  appendFileSync(
+  assertNotSymbolicLink(outputPath, fileSystem);
+  fileSystem.appendFileSync(
     outputPath,
     `actionable_issue_numbers=${JSON.stringify(actionableIssueNumbers)}\n`
   );
-  appendFileSync(
+  fileSystem.appendFileSync(
     outputPath,
     `actionable_issue_count=${actionableIssueNumbers.length}\n`
   );
+}
+
+function assertNotSymbolicLink(outputPath, fileSystem) {
+  try {
+    if (fileSystem.lstatSync(outputPath).isSymbolicLink()) {
+      throw new Error(`Refusing to use symbolic link path: ${outputPath}`);
+    }
+  } catch (error) {
+    if (error && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
+  }
 }
 
 async function fetchJson(fetchFn, url) {

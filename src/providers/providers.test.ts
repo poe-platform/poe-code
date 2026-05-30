@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import path from "node:path";
 import fs from "node:fs";
+import { Volume, createFsFromVolume } from "memfs";
 import { parse as parseYaml } from "yaml";
 import type { FileSystem } from "../utils/file-system.js";
 import type { ProviderContext } from "../cli/service-registry.js";
@@ -2890,5 +2891,18 @@ describe("determine provider workflow script", () => {
     expect(output).toContain("service=claude-code");
     expect(output).toContain("branch=agent/claude-code/issue-42");
     expect(output).toContain("pr_label=agent:claude-code");
+  });
+
+  it("refuses to append provider output through a symbolic link", async () => {
+    const volume = Volume.fromJSON({ "/outside-output": "sentinel" }, "/");
+    volume.mkdirSync("/github", { recursive: true });
+    volume.symlinkSync("/outside-output", "/github/output");
+    const memoryFs = createFsFromVolume(volume);
+    const { emitOutputs } = await import(scriptPath);
+
+    expect(() => emitOutputs({ service: "codex" }, "/github/output", memoryFs)).toThrow(
+      "symbolic link"
+    );
+    expect(memoryFs.readFileSync("/outside-output", "utf8")).toBe("sentinel");
   });
 });

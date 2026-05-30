@@ -129,6 +129,29 @@ describe("snapshot pending host-call policy", () => {
     });
   });
 
+  it("registers __proto__ modules without mutating Object.prototype", () => {
+    const operation = "agentScriptPrototypePolicyRegression";
+
+    try {
+      registerPendingHostCallPolicy({
+        moduleId: "__proto__",
+        operation,
+        policy: "read-side-effect"
+      });
+
+      expect((Object.prototype as Record<string, unknown>)[operation]).toBeUndefined();
+      expect(
+        resolvePendingHostCallIssuePolicy({
+          id: "proto-policy-1",
+          moduleId: "__proto__",
+          operation
+        }).kind
+      ).toBe("read-side-effect");
+    } finally {
+      delete (Object.prototype as Record<string, unknown>)[operation];
+    }
+  });
+
   it("defaults to re-issuing operations when a module does not opt out", () => {
     expect(
       resolvePendingHostCallIssuePolicy({

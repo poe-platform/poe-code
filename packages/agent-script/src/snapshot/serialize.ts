@@ -138,7 +138,7 @@ type SerializationState = {
 export function serialize(input: SerializeInput): SerializedSnapshot {
   const state: SerializationState = {
     ancestors: new WeakMap(),
-    heap: {},
+    heap: Object.create(null) as Record<string, SerializedHeapValue>,
     heapIds: indexHeapContainers(input),
     serializedHeapIds: new Set()
   };
@@ -171,7 +171,7 @@ function serializeScopeFrame(
   path: string,
   state: SerializationState
 ): SerializedScopeFrame {
-  const bindings: Record<string, SerializedSnapshotValue> = {};
+  const bindings = Object.create(null) as Record<string, SerializedSnapshotValue>;
 
   for (const [name, value] of Object.entries(scope.bindings)) {
     bindings[name] = serializeValue(value, `${path}.bindings.${name}`, state);
@@ -271,7 +271,7 @@ function serializeValue(
     return reference;
   }
 
-  const serialized: Record<string, SerializedSnapshotValue> = {};
+  const serialized = Object.create(null) as Record<string, SerializedSnapshotValue>;
 
   return withSerializableContainer(value, path, state, () => {
     for (const [key, entry] of Object.entries(value)) {
@@ -301,7 +301,7 @@ function serializeHeapReference(
         items: value.map((entry, index) => serializeValue(entry, `${path}[${index}]`, state))
       };
     } else {
-      const entries: Record<string, SerializedSnapshotValue> = {};
+      const entries = Object.create(null) as Record<string, SerializedSnapshotValue>;
       state.heap[String(id)] = {
         kind: "object",
         entries

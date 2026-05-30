@@ -3130,6 +3130,19 @@ describe("interpret", () => {
     });
   });
 
+  it("preserves an own __proto__ key in catch object rest bindings", async () => {
+    await expect(
+      interpret(parse("try { throw thrown; } catch ({ ...rest }) { return rest['__proto__']; }"), {
+        bindings: {
+          thrown: Object.fromEntries([["__proto__", "preserved"]]) as never
+        }
+      })
+    ).resolves.toMatchObject({
+      ok: true,
+      returnValue: "preserved"
+    });
+  });
+
   it("evaluates a truthy if consequent return", async () => {
     await expect(
       interpret(block(parse("if (true) { return 1; }"), parse("return 2;")))

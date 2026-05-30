@@ -463,6 +463,8 @@ export async function runExperimentLoop(
       const model = currentSpecifier.model;
       options.onExperimentStart?.(experimentIndex, currentSpecifier.agent);
 
+      let journalAfter: JournalEntry[];
+
       try {
         await runAgent({
           agent: currentSpecifier.agent,
@@ -481,7 +483,12 @@ export async function runExperimentLoop(
           ...(model ? { model } : {}),
           ...(options.signal ? { signal: options.signal } : {})
         });
+
+        journalAfter = await journal.readAll();
       } catch (error) {
+        await git.reset(preExperimentHash, options.cwd);
+        options.onReset?.(preExperimentHash);
+
         if (isAbortError(error)) {
           return finalize("cancelled");
         }
@@ -489,7 +496,6 @@ export async function runExperimentLoop(
         throw error;
       }
 
-      const journalAfter = await journal.readAll();
       let newEntry =
         journalAfter.length > journalLengthBefore ? journalAfter[journalAfter.length - 1]! : null;
 

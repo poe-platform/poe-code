@@ -1710,6 +1710,115 @@ describe("runExperimentLoop", () => {
     expect(journalContent).toBe("");
   });
 
+  it("resets candidate edits before returning cancelled from an in-flight agent", async () => {
+    const docPath = "/repo/.poe-code/experiments/cancelled.md";
+    const candidatePath = "/repo/src/candidate.txt";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 }),
+      [candidatePath]: "original\n"
+    });
+    const git = createLoopGit({
+      currentHash: vi.fn(async () => "base-1"),
+      reset: vi.fn(async () => fs.writeFile(candidatePath, "original\n"))
+    });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await fs.writeFile(candidatePath, "changed before cancel\n");
+      throw Object.assign(new Error("cancelled"), { name: "AbortError" });
+    });
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec: createLoopExec([]),
+      runAgent
+    });
+
+    expect(result.stopReason).toBe("cancelled");
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+    await expect(fs.readFile(candidatePath, "utf8")).resolves.toBe("original\n");
+  });
+
+  it("resets candidate edits before propagating an in-flight agent error", async () => {
+    const docPath = "/repo/.poe-code/experiments/failed.md";
+    const candidatePath = "/repo/src/candidate.txt";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 }),
+      [candidatePath]: "original\n"
+    });
+    const git = createLoopGit({
+      currentHash: vi.fn(async () => "base-1"),
+      reset: vi.fn(async () => fs.writeFile(candidatePath, "original\n"))
+    });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await fs.writeFile(candidatePath, "partial agent edit\n");
+      throw new Error("agent crashed");
+    });
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git,
+        exec: createLoopExec([]),
+        runAgent
+      })
+    ).rejects.toThrow("agent crashed");
+
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+    await expect(fs.readFile(candidatePath, "utf8")).resolves.toBe("original\n");
+  });
+
+  it("resets candidate edits before propagating a post-agent journal read error", async () => {
+    const docPath = "/repo/.poe-code/experiments/read-fail.md";
+    const candidatePath = "/repo/src/candidate.txt";
+    const baseFs = createFs({
+      [docPath]: createDoc({ baseline: 1 }),
+      [candidatePath]: "original\n"
+    });
+    let failJournalRead = false;
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async readFile(filePath, encoding) {
+        if (filePath === journalFilePath(docPath) && failJournalRead) {
+          throw new Error("journal temporarily unreadable");
+        }
+        return baseFs.readFile(filePath, encoding);
+      }
+    };
+    const git = createLoopGit({
+      currentHash: vi.fn(async () => "base-1"),
+      reset: vi.fn(async () => baseFs.writeFile(candidatePath, "original\n"))
+    });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await baseFs.writeFile(candidatePath, "candidate edit\n");
+      failJournalRead = true;
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git,
+        exec: createLoopExec([]),
+        runAgent
+      })
+    ).rejects.toThrow("journal temporarily unreadable");
+
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+    await expect(baseFs.readFile(candidatePath, "utf8")).resolves.toBe("original\n");
+  });
+
   it("discards experiments when the agent writes a discard journal entry and resets to pre-experiment hash", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({

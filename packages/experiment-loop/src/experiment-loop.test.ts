@@ -1768,6 +1768,36 @@ describe("runExperimentLoop", () => {
     expect(entry?.agentOutput).toBe("done");
   });
 
+  it("does not reject an accepted keep when the commit observer fails", async () => {
+    const docPath = "/repo/.poe-code/experiments/commit-observer.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 1 }) });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "better",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git: createLoopGit(),
+      exec: createLoopExec([]),
+      runAgent,
+      onCommit: () => { throw new Error("observer failed"); }
+    });
+
+    expect(result.experimentsKept).toBe(1);
+  });
+
   it("resets to pre-experiment hash when agent exits without journaling", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({
@@ -1805,6 +1835,38 @@ describe("runExperimentLoop", () => {
 
     const journalContent = await fs.readFile(journalFilePath(docPath), "utf8");
     expect(journalContent).toBe("");
+  });
+
+  it("does not reject a completed reset when the reset observer fails", async () => {
+    const docPath = "/repo/.poe-code/experiments/reset-observer.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 1 }) });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "discard-1",
+        status: "discard",
+        output: "discard",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec: createLoopExec([]),
+      runAgent,
+      onReset: () => { throw new Error("observer failed"); }
+    });
+
+    expect(result.experimentsCompleted).toBe(1);
+    expect(result.experimentsKept).toBe(0);
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
   });
 
   it("resets candidate edits before returning cancelled from an in-flight agent", async () => {

@@ -930,6 +930,27 @@ describe("terminal-pilot install/uninstall commands", () => {
     );
   });
 
+  it("rejects uninstall through a symlinked local skill directory", async () => {
+    const { fs, vol } = createMemFs();
+    const externalSkill = path.join("/outside/skills", "terminal-pilot");
+    vol.mkdirSync(path.join(CWD, ".codex"), { recursive: true });
+    vol.mkdirSync(externalSkill, { recursive: true });
+    vol.mkdirSync(HOME_DIR, { recursive: true });
+    vol.symlinkSync("/outside/skills", path.join(CWD, ".codex/skills"));
+    await fs.writeFile(path.join(externalSkill, "SKILL.md"), "external", { encoding: "utf8" });
+
+    await expect(
+      uninstall.handler({
+        ...createCommandContext(fs),
+        params: { agent: "codex" }
+      })
+    ).rejects.toThrow("symbolic link");
+
+    await expect(fs.readFile(path.join(externalSkill, "SKILL.md"), "utf8")).resolves.toBe(
+      "external"
+    );
+  });
+
   it("deactivates both installations when staged cleanup fails", async () => {
     const { fs: rawFs, vol } = createMemFs();
     const localSkill = path.join(CWD, ".claude/skills/terminal-pilot");

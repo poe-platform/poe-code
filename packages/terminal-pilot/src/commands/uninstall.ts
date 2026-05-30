@@ -3,6 +3,7 @@ import { defineCommand, S } from "toolcraft";
 import type { TerminalPilotCommandServices } from "./runtime.js";
 import {
   DEFAULT_INSTALL_AGENT,
+  assertNoSymbolicLinkPath,
   getSkillFolderWithHome,
   installableAgents,
   resolveInstallableAgent,
@@ -52,6 +53,8 @@ export const uninstall = defineCommand<
 
     try {
       for (const skill of skills) {
+        await assertNoSymbolicLinkPath(services.fs, skill.fullPath);
+
         if (!(await folderExists(services.fs, skill.fullPath))) {
           continue;
         }

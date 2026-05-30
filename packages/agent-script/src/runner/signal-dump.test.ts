@@ -51,7 +51,10 @@ describe("runner signal dump handling", () => {
   it("writes a dump for each consecutive signal without debouncing", async () => {
     const wait = createDeferred<string>();
     const process = createProcessDouble();
-    const writeFile = vi.fn(async () => undefined);
+    const writeFile = vi.fn(async (filePath: string, content: string) => {
+      const { fs } = await import("memfs");
+      await fs.promises.writeFile(filePath, content, "utf8");
+    });
     const result = run("await wait(); return 'done';", {
       bindings: {
         wait: createWaitBinding(wait)
@@ -72,13 +75,13 @@ describe("runner signal dump handling", () => {
     expect(writeFile).toHaveBeenCalledTimes(2);
     expect(writeFile).toHaveBeenNthCalledWith(
       1,
-      "/dumps/run.json",
+      expect.stringMatching(/^\/dumps\/\.run\.json\..+\.tmp$/),
       expect.stringContaining('"sourceHash"'),
       { encoding: "utf8" }
     );
     expect(writeFile).toHaveBeenNthCalledWith(
       2,
-      "/dumps/run.json",
+      expect.stringMatching(/^\/dumps\/\.run\.json\..+\.tmp$/),
       expect.stringContaining('"sourceHash"'),
       { encoding: "utf8" }
     );
@@ -166,6 +169,38 @@ describe("runner signal dump handling", () => {
       ok: true,
       returnValue: "done"
     });
+  });
+
+  it("preserves a prior dump when replacing it fails", async () => {
+    const wait = createDeferred<string>();
+    const process = createProcessDouble();
+    const stderr = createStreamDouble();
+    const result = run("await wait(); return 'done';", {
+      bindings: { wait: createWaitBinding(wait) }
+    });
+    vol.fromJSON({ "/dumps/run.json": '{"previous":"recoverable"}\n' });
+
+    attachSignalDumpHandler(result, {
+      dumpPath: "/dumps/run.json",
+      process,
+      stderr,
+      writeFile: vi.fn(async (filePath, content) => {
+        await import("memfs").then(({ fs }) => fs.promises.writeFile(filePath, content, "utf8"));
+        throw new Error("dump write interrupted");
+      })
+    });
+
+    await flushMicrotasks();
+    process.emit("SIGUSR1");
+    await flushMicrotasks();
+
+    expect(vol.readFileSync("/dumps/run.json", "utf8")).toBe('{"previous":"recoverable"}\n');
+    await vi.waitFor(() => {
+      expect(stderr.write).toHaveBeenCalledWith(expect.stringContaining("dump write interrupted"));
+    });
+
+    wait.resolve("done");
+    await result;
   });
 
   it("writes parseable JSON", async () => {

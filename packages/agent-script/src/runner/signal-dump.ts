@@ -1,5 +1,6 @@
-import { mkdir, writeFile as nodeWriteFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { randomUUID } from "node:crypto";
+import { mkdir, rename, rm, writeFile as nodeWriteFile } from "node:fs/promises";
+import { basename, dirname, join } from "node:path";
 
 import type { RunResult } from "../run.js";
 import { dumpCurrent } from "../snapshot/dump.js";
@@ -52,8 +53,16 @@ export function attachSignalDumpHandler(
     try {
       const snapshot = await dumpResult(result);
       if (options.dumpPath !== undefined) {
-        await mkdir(dirname(options.dumpPath), { recursive: true });
-        await writeDumpFile(options.dumpPath, snapshot, { encoding: "utf8" });
+        const parentPath = dirname(options.dumpPath);
+        const tempPath = join(parentPath, `.${basename(options.dumpPath)}.${randomUUID()}.tmp`);
+        await mkdir(parentPath, { recursive: true });
+        try {
+          await writeDumpFile(tempPath, snapshot, { encoding: "utf8" });
+          await rename(tempPath, options.dumpPath);
+        } catch (error) {
+          await rm(tempPath, { force: true }).catch(() => undefined);
+          throw error;
+        }
       }
       await options.onSnapshot?.(snapshot, signal);
     } catch (error) {

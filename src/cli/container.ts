@@ -121,11 +121,12 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
     writeFile: (
       filePath: string,
       data: string | NodeJS.ArrayBufferView,
-      opts?: { encoding?: BufferEncoding }
+      opts?: { encoding?: BufferEncoding; flag?: string }
     ) => dependencies.fs.writeFile(filePath, data, opts),
     mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
       dependencies.fs.mkdir(directoryPath, opts).then(() => undefined),
     lstat: (filePath: string) => dependencies.fs.lstat(filePath),
+    rename: (oldPath: string, newPath: string) => dependencies.fs.rename(oldPath, newPath),
     unlink: (filePath: string) => dependencies.fs.unlink(filePath),
     chmod: (filePath: string, mode: number) =>
       dependencies.fs.chmod ? dependencies.fs.chmod(filePath, mode) : Promise.resolve()
@@ -174,11 +175,12 @@ export function createCliContainer(dependencies: CliDependencies): CliContainer 
         fileStore: {
           fs: {
             readFile: (filePath: string, encoding: BufferEncoding) => fs.readFile(filePath, encoding),
-            writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, opts?: { encoding?: BufferEncoding }) =>
+            writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, opts?: { encoding?: BufferEncoding; flag?: string }) =>
               fs.writeFile(filePath, data, opts),
             mkdir: (directoryPath: string, opts?: { recursive?: boolean }) =>
               fs.mkdir(directoryPath, opts).then(() => undefined),
             lstat: (filePath: string) => fs.lstat(filePath),
+            rename: (oldPath: string, newPath: string) => fs.rename(oldPath, newPath),
             unlink: (filePath: string) => fs.unlink(filePath),
             chmod: (filePath: string, mode: number) =>
               fs.chmod ? fs.chmod(filePath, mode) : Promise.resolve()

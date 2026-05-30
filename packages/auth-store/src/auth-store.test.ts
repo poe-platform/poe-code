@@ -322,6 +322,7 @@ describe("EncryptedFileStore", () => {
         return storedContent;
       }),
       mkdir: vi.fn(async () => undefined),
+      rename: vi.fn(async () => undefined),
       lstat: vi.fn(async () => { throw Object.assign(new Error("missing"), { code: "ENOENT" }); }),
       writeFile: vi.fn(async (_filePath, data) => { storedContent = String(data); }),
       chmod: vi.fn(async () => { throw new Error("chmod denied"); }),
@@ -336,7 +337,33 @@ describe("EncryptedFileStore", () => {
 
     await expect(store.set("secret")).rejects.toThrow("chmod denied");
     await expect(store.get()).resolves.toBeNull();
-    expect(fs.unlink).toHaveBeenCalledWith("/credentials.enc");
+    expect(fs.unlink).toHaveBeenCalledWith(expect.stringMatching(/^\/credentials\.enc\..+\.tmp$/));
+  });
+
+  it("preserves the previous credential when a rotation write fails", async () => {
+    const baseFs = createStatMemFs();
+    const filePath = "/home/test/.app/credentials.enc";
+    const common = {
+      filePath,
+      salt: ENCRYPTED_STORE_SALT,
+      getMachineIdentity: () => ({ hostname: "host", username: "user" }),
+      getRandomBytes: () => Buffer.alloc(12, 1)
+    };
+    const original = new EncryptedFileStore({ ...common, fs: baseFs });
+
+    await original.set("old-secret");
+
+    const fs: EncryptedFileStoreFileSystem = {
+      ...baseFs,
+      async writeFile(targetPath, _data, options) {
+        await baseFs.writeFile(targetPath, "{", options);
+        throw new Error("credential disk full");
+      }
+    };
+    const rotating = new EncryptedFileStore({ ...common, fs });
+
+    await expect(rotating.set("new-secret")).rejects.toThrow("credential disk full");
+    await expect(original.get()).resolves.toBe("old-secret");
   });
 
   it("does not share cached keys between ambiguous identity tuples", async () => {

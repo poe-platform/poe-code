@@ -94,11 +94,12 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
     writeFile: (
       filePath: string,
       data: string | NodeJS.ArrayBufferView,
-      options?: { encoding?: BufferEncoding }
+      options?: { encoding?: BufferEncoding; flag?: string }
     ) => fs.writeFile(filePath, data, options),
     mkdir: (directoryPath: string, options?: { recursive?: boolean }) =>
       fs.mkdir(directoryPath, options).then(() => undefined),
     lstat: (filePath: string) => fs.lstat(filePath),
+    rename: (oldPath: string, newPath: string) => fs.rename(oldPath, newPath),
     unlink: (filePath: string) => fs.unlink(filePath),
     chmod: (filePath: string, mode: number) => fs.chmod(filePath, mode)
   };
@@ -146,11 +147,12 @@ export function createSdkContainer(options?: SdkContainerOptions): CliContainer 
         fileStore: {
           fs: {
             readFile: (filePath: string, encoding: BufferEncoding) => previewFs.readFile(filePath, encoding),
-            writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, writeOptions?: { encoding?: BufferEncoding }) =>
+            writeFile: (filePath: string, data: string | NodeJS.ArrayBufferView, writeOptions?: { encoding?: BufferEncoding; flag?: string }) =>
               previewFs.writeFile(filePath, data, writeOptions),
             mkdir: (directoryPath: string, mkdirOptions?: { recursive?: boolean }) =>
               previewFs.mkdir(directoryPath, mkdirOptions).then(() => undefined),
             lstat: (filePath: string) => previewFs.lstat(filePath),
+            rename: (oldPath: string, newPath: string) => previewFs.rename(oldPath, newPath),
             unlink: (filePath: string) => previewFs.unlink(filePath),
             chmod: (filePath: string, mode: number) =>
               previewFs.chmod ? previewFs.chmod(filePath, mode) : Promise.resolve()

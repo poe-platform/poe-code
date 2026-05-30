@@ -13,6 +13,8 @@ const ENCRYPTION_IV_BYTES = 12;
 const ENCRYPTION_AUTH_TAG_BYTES = 16;
 const ENCRYPTION_FILE_MODE = 0o600;
 
+let temporaryFileSequence = 0;
+
 interface EncryptedDocument {
   version: number;
   iv: string;
@@ -30,9 +32,10 @@ export interface EncryptedFileStoreFileSystem {
   writeFile(
     path: string,
     data: string | NodeJS.ArrayBufferView,
-    options?: { encoding?: BufferEncoding; mode?: number }
+    options?: { encoding?: BufferEncoding; flag?: string; mode?: number }
   ): Promise<void>;
   mkdir(path: string, options?: { recursive?: boolean }): Promise<void | string | undefined>;
+  rename(oldPath: string, newPath: string): Promise<void>;
   lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
   unlink(path: string): Promise<void>;
   chmod(path: string, mode: number): Promise<void>;
@@ -127,31 +130,21 @@ export class EncryptedFileStore implements SecretStore {
       ciphertext: ciphertext.toString("base64")
     };
 
-    let previousDocument: string | null = null;
-    try {
-      previousDocument = await this.fs.readFile(this.filePath, "utf8");
-    } catch (error) {
-      if (!isNotFoundError(error)) {
-        throw error;
-      }
-    }
-
     await this.fs.mkdir(path.dirname(this.filePath), { recursive: true });
     await this.assertRegularCredentialPath();
-    await this.fs.writeFile(this.filePath, JSON.stringify(document), {
-      encoding: "utf8",
-      mode: ENCRYPTION_FILE_MODE
-    });
+    const temporaryPath = `${this.filePath}.${process.pid}.${temporaryFileSequence++}.tmp`;
+
     try {
-      await this.fs.chmod(this.filePath, ENCRYPTION_FILE_MODE);
+      await this.fs.writeFile(temporaryPath, JSON.stringify(document), {
+        encoding: "utf8",
+        flag: "wx",
+        mode: ENCRYPTION_FILE_MODE
+      });
+      await this.fs.chmod(temporaryPath, ENCRYPTION_FILE_MODE);
+      await this.fs.rename(temporaryPath, this.filePath);
     } catch (error) {
-      if (previousDocument === null) {
-        await this.fs.unlink(this.filePath);
-      } else {
-        await this.fs.writeFile(this.filePath, previousDocument, {
-          encoding: "utf8",
-          mode: ENCRYPTION_FILE_MODE
-        });
+      if (!isAlreadyExistsError(error)) {
+        await removeIfPresent(this.fs, temporaryPath).catch(() => undefined);
       }
       throw error;
     }
@@ -199,6 +192,25 @@ export class EncryptedFileStore implements SecretStore {
     }
     return this.keyPromise;
   }
+}
+
+async function removeIfPresent(fileSystem: EncryptedFileStoreFileSystem, filePath: string): Promise<void> {
+  try {
+    await fileSystem.unlink(filePath);
+  } catch (error) {
+    if (!isNotFoundError(error)) {
+      throw error;
+    }
+  }
+}
+
+function isAlreadyExistsError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "code" in error &&
+    (error as { code?: unknown }).code === "EEXIST"
+  );
 }
 
 function defaultMachineIdentity(): MachineIdentity {

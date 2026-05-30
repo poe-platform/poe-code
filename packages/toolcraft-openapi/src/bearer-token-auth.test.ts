@@ -230,6 +230,20 @@ describe("bearerTokenAuth", () => {
     await expect(provider.getToken()).resolves.toBe("env-token");
   });
 
+  it("does not delete a stored fallback when an environment token is invalidated", async () => {
+    mocks.reset({ storedToken: "stored-token" });
+    vi.stubEnv("INTERNAL_AGENT_TOKEN", "env-token");
+    const provider = bearerTokenAuth({
+      serviceName: "internal-agent",
+      envVar: "INTERNAL_AGENT_TOKEN",
+    });
+
+    await expect(provider.getToken()).resolves.toBe("env-token");
+    await provider.invalidate?.("env-token");
+
+    expect(mocks.remove).not.toHaveBeenCalled();
+  });
+
   it("throws a UserError after invalidate when neither env nor store has a token", async () => {
     mocks.reset({ storedToken: "stored-token" });
     const provider = bearerTokenAuth({

@@ -1015,6 +1015,80 @@ describe("commandsFromSpec", () => {
     const stderrText = stderrChunks.join("");
     expect(stderrText).not.toContain("POST https://example.com/api/bots/demo/actions/set-official");
   });
+
+  it("preserves a generated __proto__ query parameter during module evaluation and execution", async () => {
+    const document: OpenApiDocument = {
+      paths: {
+        "/search": {
+          get: {
+            tags: ["search"],
+            operationId: "search",
+            parameters: [
+              {
+                name: "__proto__",
+                in: "query",
+                schema: { type: "string" }
+              }
+            ],
+            responses: {
+              "200": { description: "Searched." }
+            }
+          }
+        }
+      }
+    };
+    const generatedFiles = generate(document, { specSha: "spec-sha-123" });
+    const [commandMeta] = collectGeneratedCommands(document);
+
+    if (commandMeta === undefined) {
+      throw new Error("Expected one generated command.");
+    }
+
+    const generatedFile = generatedFiles.find((file) => file.path === commandMeta.filePath);
+
+    if (generatedFile === undefined) {
+      throw new Error("Expected a generated command file.");
+    }
+
+    const command = evaluateGeneratedCommand(generatedFile.contents, commandMeta.exportName);
+
+    if (command.kind !== "command") {
+      throw new Error("Expected a generated command.");
+    }
+
+    expect(Object.hasOwn(command.params.shape, "__proto__")).toBe(true);
+
+    const fetch = vi.fn<typeof globalThis.fetch>().mockImplementation(
+      async () =>
+        new Response(JSON.stringify({ ok: true }), {
+          status: 200,
+          headers: { "content-type": "application/json" }
+        })
+    );
+
+    await command.handler({
+      params: Object.fromEntries([["__proto__", "needle"]]),
+      baseUrl: "https://example.com/api",
+      tokenSource: createAuthProvider([]),
+      fetch
+    });
+
+    expect(fetch).toHaveBeenCalledWith(
+      "https://example.com/api/search?__proto__=needle",
+      expect.any(Object)
+    );
+
+    fetch.mockClear();
+
+    await command.handler({
+      params: {},
+      baseUrl: "https://example.com/api",
+      tokenSource: createAuthProvider([]),
+      fetch
+    });
+
+    expect(fetch).toHaveBeenCalledWith("https://example.com/api/search", expect.any(Object));
+  });
 });
 
 describe("defineClientFromSpec", () => {

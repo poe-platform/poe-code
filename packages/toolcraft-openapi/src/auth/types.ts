@@ -2,7 +2,7 @@ import type { CommandNode } from "toolcraft";
 
 export interface TokenSource {
   getToken(): Promise<string>;
-  invalidate?(): Promise<void>;
+  invalidate?(token?: string): Promise<void>;
 }
 
 export interface CommandContributor {

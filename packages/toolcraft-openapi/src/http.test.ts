@@ -350,6 +350,30 @@ describe("requestJson", () => {
     ).resolves.toEqual({ bots: ["a"] });
   });
 
+  it("throws an HttpError with context for malformed successful JSON responses", async () => {
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        auth: "required",
+        tokenSource: createTokenSource("abc"),
+        fetch: vi.fn(async () =>
+          new Response('{"bots":', {
+            status: 200,
+            statusText: "OK",
+            headers: { "content-type": "application/json" }
+          })
+        )
+      })
+    ).rejects.toMatchObject<HttpError>({
+      status: 200,
+      statusText: "OK",
+      request: { url: "https://api.example.com/bots" },
+      body: '{"bots":'
+    });
+  });
+
   it("returns undefined for successful responses with empty bodies", async () => {
     await expect(
       requestJson({
@@ -375,6 +399,46 @@ describe("requestJson", () => {
       status: 403,
       body: { error: "forbidden" }
     });
+  });
+
+  it("preserves the received 401 when token invalidation fails", async () => {
+    const tokenSource = createTokenSource("expired");
+    tokenSource.invalidate = vi.fn(async () => {
+      throw new Error("credential store unavailable");
+    });
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        auth: "required",
+        tokenSource,
+        fetch: vi.fn(async () => createJsonResponse({ error: "unauthorized" }, 401, "Unauthorized"))
+      })
+    ).rejects.toMatchObject<HttpError>({
+      status: 401,
+      statusText: "Unauthorized",
+      body: { error: "unauthorized" }
+    });
+  });
+
+  it("does not invalidate saved credentials for unauthenticated 401 responses", async () => {
+    const invalidate = vi.fn(async () => undefined);
+    const tokenSource = createTokenSource("stored", { invalidate });
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/status",
+        method: "GET",
+        auth: "none",
+        tokenSource,
+        fetch: vi.fn(async () => createJsonResponse({ error: "unauthorized" }, 401))
+      })
+    ).rejects.toBeInstanceOf(HttpError);
+
+    expect(invalidate).not.toHaveBeenCalled();
   });
 
   it("throws an HttpError with raw text bodies for client errors", async () => {

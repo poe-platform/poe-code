@@ -70,25 +70,29 @@ export function bearerTokenAuth(options: BearerTokenAuthOptions): AuthProvider {
       account: KEYCHAIN_ACCOUNT,
     },
   });
+  let lastResolvedToken: TokenResolution | null = null;
 
   async function resolveToken(): Promise<TokenResolution | null> {
     const envToken = normalizeToken(process.env[options.envVar]);
     if (envToken) {
-      return {
+      lastResolvedToken = {
         token: envToken,
         tokenSource: `env (${options.envVar})`,
       };
+      return lastResolvedToken;
     }
 
     const storedToken = normalizeToken(await store.get());
     if (!storedToken) {
+      lastResolvedToken = null;
       return null;
     }
 
-    return {
+    lastResolvedToken = {
       token: storedToken,
       tokenSource: backend,
     };
+    return lastResolvedToken;
   }
 
   const loginCommand = defineCommand({
@@ -189,7 +193,14 @@ export function bearerTokenAuth(options: BearerTokenAuthOptions): AuthProvider {
 
       throw new UserError(`Run '${commandPrefix} login' first.`);
     },
-    async invalidate(): Promise<void> {
+    async invalidate(token?: string): Promise<void> {
+      if (
+        token !== undefined &&
+        lastResolvedToken?.token === token &&
+        lastResolvedToken.tokenSource.startsWith("env (")
+      ) {
+        return;
+      }
       await store.delete();
     },
     commands: [defineGroup({

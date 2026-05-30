@@ -1966,6 +1966,10 @@ function renderConstArray(values: ReadonlyArray<string | number | boolean>): str
 }
 
 function renderObjectKey(name: string): string {
+  if (name === "__proto__") {
+    return `[${JSON.stringify(name)}]`;
+  }
+
   if (name === normalizeParamName(name) && isIdentifierName(name)) {
     return name;
   }

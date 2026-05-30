@@ -148,7 +148,28 @@ export async function requestJson<TResult = unknown>(
       });
     }
 
-    const body = JSON.parse(text) as TResult;
+    let body: TResult;
+
+    try {
+      body = JSON.parse(text) as TResult;
+    } catch {
+      if (options.verbose) {
+        writeStderr(
+          formatTranscriptLines(formatVerboseResponseTranscript(response, responseHeaders, text))
+        );
+      }
+
+      throw new HttpError({
+        request,
+        response: {
+          status: response.status,
+          statusText: response.statusText,
+          headers: responseHeaders,
+          body: text
+        },
+        message: "Expected a valid JSON response body but received malformed JSON."
+      });
+    }
 
     if (options.verbose) {
       writeStderr(
@@ -159,8 +180,8 @@ export async function requestJson<TResult = unknown>(
     return body;
   }
 
-  if (response.status === 401) {
-    await options.tokenSource.invalidate?.();
+  if (response.status === 401 && options.auth === "required") {
+    await options.tokenSource.invalidate?.(token).catch(() => undefined);
   }
 
   const body = parseResponseBody(text, contentType);

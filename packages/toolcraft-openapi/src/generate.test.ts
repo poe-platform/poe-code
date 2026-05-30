@@ -4559,4 +4559,35 @@ describe("generate", () => {
       )
     );
   });
+
+  it("emits an own schema property for a __proto__ parameter", () => {
+    const files = generate(
+      createDocument({
+        "/search": {
+          get: {
+            tags: ["search"],
+            operationId: "search",
+            parameters: [
+              {
+                name: "__proto__",
+                in: "query",
+                schema: { type: "string" }
+              }
+            ],
+            responses: {
+              "200": { description: "Searched." }
+            }
+          }
+        }
+      }),
+      { specSha: "spec-sha-123" }
+    );
+
+    const commandFile = files.find((file) => file.path === "search/list.ts");
+
+    expect(commandFile?.contents).toContain('["__proto__"]: S.Optional(S.String()),');
+    expect(commandFile?.contents).toContain(
+      '["__proto__"]: (Object.prototype.hasOwnProperty.call(params, "__proto__") ? params["__proto__"] : undefined),'
+    );
+  });
 });

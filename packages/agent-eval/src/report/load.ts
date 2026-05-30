@@ -21,10 +21,7 @@ export async function loadRunResult(runId: string, outDir = defaultOutDir): Prom
 
   try {
     await assertCanonicalOutputFile(outDir, directPath);
-    return enrichRunResult(
-      parseJson<EvalRunResult>(await readFile(directPath, "utf8"), directPath),
-      path.dirname(directPath)
-    );
+    return enrichMatchedRunResult(runId, directPath);
   } catch (error) {
     if (!isMissingPath(error)) {
       throw error;
@@ -41,10 +38,7 @@ export async function loadRunResult(runId: string, outDir = defaultOutDir): Prom
 
   const match = matches[0] as RunResultLocation;
   await assertCanonicalOutputFile(outDir, match.resultPath);
-  return enrichRunResult(
-    parseJson<EvalRunResult>(await readFile(match.resultPath, "utf8"), match.resultPath),
-    path.dirname(match.resultPath)
-  );
+  return enrichMatchedRunResult(runId, match.resultPath);
 }
 
 export async function listRuns(outDir = defaultOutDir): Promise<readonly string[]> {
@@ -96,6 +90,10 @@ export async function loadLatestMatrix(outDir = defaultOutDir): Promise<{
 async function enrichAggregatedCell(cell: AggregatedCell, outDir: string): Promise<AggregatedCell> {
   try {
     const runs = await Promise.all(cell.runIds.map((runId) => loadRunResult(runId, outDir)));
+    const mismatchedRun = runs.find((run) => !matchesCell(run, cell.cell));
+    if (mismatchedRun !== undefined) {
+      throw new Error(`Aggregate cell references run "${mismatchedRun.runId}" from a different cell`);
+    }
     return aggregateRuns(runs);
   } catch (error) {
     if (isRunResultNotFound(error)) {
@@ -103,6 +101,23 @@ async function enrichAggregatedCell(cell: AggregatedCell, outDir: string): Promi
     }
     throw error;
   }
+}
+
+async function enrichMatchedRunResult(runId: string, resultPath: string): Promise<EvalRunResult> {
+  const result = parseJson<EvalRunResult>(await readFile(resultPath, "utf8"), resultPath);
+  if (result.runId !== runId) {
+    throw new Error(`Run result "${runId}" embeds mismatched runId "${result.runId}"`);
+  }
+  return enrichRunResult(result, path.dirname(resultPath));
+}
+
+function matchesCell(result: EvalRunResult, cell: AggregatedCell["cell"]): boolean {
+  return (
+    result.eval === cell.eval &&
+    result.agent === cell.agent &&
+    result.model === cell.model &&
+    result.planKind === cell.planKind
+  );
 }
 
 async function findRunResults(outDir: string): Promise<RunResultLocation[]> {

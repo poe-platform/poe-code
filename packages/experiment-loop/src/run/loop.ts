@@ -134,6 +134,9 @@ function normalizeMetrics(metric: MetricDef | MetricDef[] | undefined): MetricDe
   }
 
   const metrics = Array.isArray(metric) ? metric : [metric];
+  if (metrics.length === 0) {
+    throw new Error("Experiment doc must contain at least one metric.");
+  }
   const names = new Set<string>();
 
   for (const currentMetric of metrics) {
@@ -157,7 +160,13 @@ function normalizeAgents(agent: string | string[] | undefined): AgentSpecifier[]
     throw new Error("agent must contain at least one entry.");
   }
 
-  return raw.map(parseAgentSpecifier);
+  return raw.map((value) => {
+    const specifier = parseAgentSpecifier(value);
+    if (specifier.agent.length === 0) {
+      throw new Error("Agent specifier must include an agent id.");
+    }
+    return specifier;
+  });
 }
 
 function validateMaxExperiments(maxExperiments: number | undefined): number {
@@ -389,8 +398,15 @@ export async function runExperimentLoop(
     // Journal's last keep takes priority; fall back to frontmatter seed if no keeps yet
     baseline = journalState.baseline ?? initialFrontmatter.baseline;
 
+    const initialMaxExperiments = validateMaxExperiments(
+      options.maxExperiments ?? initialFrontmatter.max_experiments
+    );
+    if (experimentsCompleted >= initialMaxExperiments) {
+      return finalize("max_experiments");
+    }
+
     if (baseline === null) {
-      const metricTimeoutMs = initialFrontmatter.metric_timeout
+      const metricTimeoutMs = initialFrontmatter.metric_timeout !== undefined
         ? initialFrontmatter.metric_timeout * 1000
         : undefined;
       const baselineResults = await evaluateChain(
@@ -480,7 +496,7 @@ export async function runExperimentLoop(
       experimentsCompleted += 1;
 
       if (newEntry && !newEntry.scores && metrics.length > 0) {
-        const metricTimeoutMs = frontmatter.metric_timeout
+        const metricTimeoutMs = frontmatter.metric_timeout !== undefined
           ? frontmatter.metric_timeout * 1000
           : undefined;
         const results = await evaluateChain(

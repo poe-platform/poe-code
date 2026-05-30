@@ -641,6 +641,14 @@ describe("parseExperimentFrontmatter", () => {
     expect(result.frontmatter.metric_timeout).toBe(120);
   });
 
+  it("rejects negative metric_timeout frontmatter", () => {
+    const content = ["---", "metric_timeout: -1", "baseline: null", "---", "Body"].join("\n");
+
+    expect(() => parseExperimentFrontmatter(content)).toThrow(
+      "metric_timeout must be a non-negative integer."
+    );
+  });
+
   it("ignores legacy camelCase metricTimeout frontmatter", () => {
     const content = ["---", "metricTimeout: 120", "baseline: null", "---", "Body"].join("\n");
 
@@ -698,6 +706,14 @@ describe("parseExperimentFrontmatter", () => {
     const result = parseExperimentFrontmatter(content);
 
     expect(result.frontmatter.max_experiments).toBe(10);
+  });
+
+  it("rejects negative max_experiments frontmatter", () => {
+    const content = ["---", "max_experiments: -1", "baseline: null", "---", "Body"].join("\n");
+
+    expect(() => parseExperimentFrontmatter(content)).toThrow(
+      "max_experiments must be a non-negative integer."
+    );
   });
 
   it("ignores legacy camelCase maxExperiments frontmatter", () => {
@@ -1282,6 +1298,191 @@ describe("ExperimentJournal", () => {
 });
 
 describe("runExperimentLoop", () => {
+  it("rejects an explicitly wrong document kind before running an agent", async () => {
+    const docPath = "/repo/.poe-code/experiments/not-experiment.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "kind: pipeline",
+        "version: 1",
+        "agent: claude-code",
+        "metric:",
+        "  name: tests",
+        "  script: npm test",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "---",
+        "Wrong workflow kind"
+      ].join("\n")
+    });
+    const runAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git: createLoopGit(),
+        exec: createLoopExec([]),
+        runAgent
+      })
+    ).rejects.toThrow("Experiment document kind must be 'experiment'.");
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("rejects unknown frontmatter keys instead of applying default agents", async () => {
+    const docPath = "/repo/.poe-code/experiments/unknown-key.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agnet: codex",
+        "metric:",
+        "  name: tests",
+        "  script: npm test",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "---",
+        "Wrong key"
+      ].join("\n")
+    });
+    const runAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git: createLoopGit(),
+        exec: createLoopExec([]),
+        runAgent
+      })
+    ).rejects.toThrow('Unknown experiment frontmatter field: "agnet".');
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("rejects empty metric chains before running an agent", async () => {
+    const docPath = "/repo/.poe-code/experiments/empty-metrics.md";
+    const fs = createFs({
+      [docPath]: ["---", "agent: claude-code", "metric: []", "baseline: null", "---", "No metrics"].join("\n")
+    });
+    const runAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git: createLoopGit(),
+        exec: createLoopExec([]),
+        runAgent
+      })
+    ).rejects.toThrow("Experiment doc must contain at least one metric.");
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("rejects model-only agent specifiers before running an agent", async () => {
+    const docPath = "/repo/.poe-code/experiments/model-only.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: ':openai/gpt-5.4'",
+        "metric:",
+        "  name: tests",
+        "  script: npm test",
+        "  direction: maximize",
+        "baseline: { tests: 1 }",
+        "---",
+        "Invalid agent"
+      ].join("\n")
+    });
+    const runAgent = vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }));
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git: createLoopGit(),
+        exec: createLoopExec([]),
+        runAgent
+      })
+    ).rejects.toThrow("Agent specifier must include an agent id.");
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("does not evaluate a baseline when max_experiments is zero", async () => {
+    const docPath = "/repo/.poe-code/experiments/disabled.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: tests",
+        "  script: npm test",
+        "  direction: maximize",
+        "baseline: null",
+        "max_experiments: 0",
+        "---",
+        "Disabled"
+      ].join("\n")
+    });
+    const exec = vi.fn(async () => ({ stdout: "1\n", stderr: "", exitCode: 0 })) as ExecFn;
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      fs,
+      git: createLoopGit(),
+      exec,
+      runAgent: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
+    });
+
+    expect(result.experimentsCompleted).toBe(0);
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it("honors zero metric_timeout when evaluating a baseline", async () => {
+    const docPath = "/repo/.poe-code/experiments/zero-timeout.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: tests",
+        "  script: npm test",
+        "  direction: maximize",
+        "metric_timeout: 0",
+        "baseline: null",
+        "max_experiments: 0",
+        "---",
+        "Measure only"
+      ].join("\n")
+    });
+    const exec = vi.fn(async () => ({ stdout: "1\n", stderr: "", exitCode: 0 })) as ExecFn;
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git: createLoopGit(),
+      exec,
+      runAgent: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
+    });
+
+    expect(exec).toHaveBeenCalledWith("npm test", { cwd: "/repo", timeout: 0 });
+  });
+
   it("rejects duplicate metric names before collecting baselines", async () => {
     const docPath = "/repo/.poe-code/experiments/duplicate.md";
     const fs = createFs({

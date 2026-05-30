@@ -3,6 +3,8 @@ import type { ExperimentFileSystem, JournalEntry } from "../types.js";
 
 const TSV_HEADER = ["commit", "status", "scores", "durationMs", "timestamp", "output", "agentOutput"].join("\t");
 
+let temporaryFileSequence = 0;
+
 export class ExperimentJournal {
   constructor(
     private readonly journalPath: string,
@@ -21,7 +23,7 @@ export class ExperimentJournal {
         throw error;
       }
 
-      await this.fs.writeFile(this.journalPath, "");
+      await this.fs.appendFile(this.journalPath, "");
     }
   }
 
@@ -63,10 +65,18 @@ export class ExperimentJournal {
     const updated = { ...last, ...updates };
     entries[entries.length - 1] = updated;
 
-    await this.fs.writeFile(
-      this.journalPath,
-      entries.map((e) => JSON.stringify(e)).join("\n") + "\n"
-    );
+    const temporaryPath = `${this.journalPath}.${process.pid}.${temporaryFileSequence++}.tmp`;
+
+    try {
+      await this.fs.writeFile(
+        temporaryPath,
+        entries.map((e) => JSON.stringify(e)).join("\n") + "\n"
+      );
+      await this.fs.rename(temporaryPath, this.journalPath);
+    } catch (error) {
+      await this.fs.unlink(temporaryPath).catch(() => undefined);
+      throw error;
+    }
 
     return updated;
   }
@@ -121,25 +131,65 @@ function parseLine(line: string): JournalEntry[] {
   try {
     return [JSON.parse(line) as JournalEntry];
   } catch {
-    // Handle concatenated JSON objects (e.g. {...}{...}) on a single line
     const entries: JournalEntry[] = [];
-    let depth = 0;
-    let start = 0;
+    let searchFrom = 0;
 
-    for (let i = 0; i < line.length; i++) {
-      if (line[i] === "{") {
-        depth++;
-      } else if (line[i] === "}") {
-        depth--;
-        if (depth === 0) {
-          entries.push(JSON.parse(line.slice(start, i + 1)) as JournalEntry);
-          start = i + 1;
-        }
+    while (searchFrom < line.length) {
+      const start = line.indexOf("{", searchFrom);
+      if (start === -1) {
+        break;
+      }
+
+      const end = findObjectEnd(line, start);
+      if (end === -1) {
+        searchFrom = start + 1;
+        continue;
+      }
+
+      try {
+        entries.push(JSON.parse(line.slice(start, end + 1)) as JournalEntry);
+        searchFrom = end + 1;
+      } catch {
+        searchFrom = start + 1;
       }
     }
 
     return entries;
   }
+}
+
+function findObjectEnd(line: string, start: number): number {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+
+  for (let index = start; index < line.length; index++) {
+    const character = line[index];
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (character === "\\") {
+        escaped = true;
+      } else if (character === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (character === '"') {
+      inString = true;
+    } else if (character === "{") {
+      depth++;
+    } else if (character === "}") {
+      depth--;
+      if (depth === 0) {
+        return index;
+      }
+    }
+  }
+
+  return -1;
 }
 
 function formatOutput(output: string): string {

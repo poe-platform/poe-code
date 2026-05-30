@@ -963,6 +963,36 @@ describe("ExperimentJournal", () => {
     await expect(fs.readFile(journalPath, "utf8")).resolves.toBe(`${JSON.stringify(entry)}\n`);
   });
 
+  it("does not erase an entry created while initialization observes a missing journal", async () => {
+    const journalPath = "/repo/experiment.journal.jsonl";
+    const concurrentEntry = createJournalEntry({ commit: "concurrent" });
+    let content: string | undefined;
+    let observedMissingRead = false;
+    const fs = {
+      mkdir: async () => undefined,
+      lstat: async () => { throw Object.assign(new Error("missing"), { code: "ENOENT" }); },
+      readFile: async () => {
+        if (!observedMissingRead) {
+          observedMissingRead = true;
+          content = `${JSON.stringify(concurrentEntry)}\n`;
+          throw Object.assign(new Error("missing"), { code: "ENOENT" });
+        }
+        return content ?? "";
+      },
+      writeFile: async (_path: string, next: string) => {
+        content = next;
+      },
+      appendFile: async (_path: string, next: string) => {
+        content = `${content ?? ""}${next}`;
+      }
+    } as unknown as ExperimentFileSystem;
+    const journal = new ExperimentJournal(journalPath, fs);
+
+    await journal.init();
+
+    await expect(journal.readAll()).resolves.toEqual([concurrentEntry]);
+  });
+
   it("logs a single entry and reads it back", async () => {
     const fs = createFs();
     const journalPath = "/repo/docs/experiment.journal.jsonl";
@@ -1019,6 +1049,42 @@ describe("ExperimentJournal", () => {
     await journal.log(third);
 
     await expect(journal.readAll()).resolves.toEqual([first, second, third]);
+  });
+
+  it("preserves later entries after an interrupted journal log write", async () => {
+    const journalPath = "/repo/experiment.journal.jsonl";
+    const baseFs = createFs();
+    const first = createJournalEntry({ commit: "first" });
+    const failed = createJournalEntry({ commit: "failed" });
+    const later = createJournalEntry({ commit: "later" });
+    let failNextMutation = false;
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async writeFile(filePath, content) {
+        if (failNextMutation) {
+          failNextMutation = false;
+          await baseFs.writeFile(filePath, content.slice(0, 10));
+          throw new Error("journal write interrupted");
+        }
+        await baseFs.writeFile(filePath, content);
+      },
+      async appendFile(filePath, content) {
+        if (failNextMutation) {
+          failNextMutation = false;
+          await baseFs.appendFile(filePath, content.slice(0, 10));
+          throw new Error("journal write interrupted");
+        }
+        await baseFs.appendFile(filePath, content);
+      }
+    };
+    const journal = new ExperimentJournal(journalPath, fs);
+
+    await journal.log(first);
+    failNextMutation = true;
+    await expect(journal.log(failed)).rejects.toThrow("journal write interrupted");
+    await journal.log(later);
+
+    await expect(journal.readAll()).resolves.toEqual([first, later]);
   });
 
   it("returns an empty array when the journal file is missing", async () => {
@@ -1092,6 +1158,17 @@ describe("ExperimentJournal", () => {
     await expect(journal.readAll()).resolves.toEqual([first, second]);
   });
 
+  it("reads concatenated JSON objects containing brace text", async () => {
+    const first = createJournalEntry({ commit: "aaa1111", output: "printed { while debugging" });
+    const second = createJournalEntry({ commit: "bbb2222", output: "done" });
+    const fs = createFs({
+      "/repo/experiment.journal.jsonl": `${JSON.stringify(first)}${JSON.stringify(second)}\n`
+    });
+    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
+
+    await expect(journal.readAll()).resolves.toEqual([first, second]);
+  });
+
   it("updateLast patches the last entry and preserves earlier entries", async () => {
     const fs = createFs();
     const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
@@ -1109,6 +1186,31 @@ describe("ExperimentJournal", () => {
     expect(entries).toHaveLength(2);
     expect(entries[0]).toEqual(first);
     expect(entries[1]!.scores).toEqual({ tests: 42 });
+  });
+
+  it("preserves journal history when updating the last entry cannot be committed", async () => {
+    const journalPath = "/repo/experiment.journal.jsonl";
+    const first = createJournalEntry({ commit: "aaa1111" });
+    const second = createJournalEntry({ commit: "bbb2222", scores: undefined });
+    const baseFs = createFs({
+      [journalPath]: `${JSON.stringify(first)}\n${JSON.stringify(second)}\n`
+    });
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async writeFile(filePath, _content) {
+        await baseFs.writeFile(filePath, "{");
+        throw new Error("journal disk full");
+      }
+    };
+    const journal = new ExperimentJournal(journalPath, fs);
+
+    await expect(journal.updateLast({ scores: { tests: 42 } })).rejects.toThrow(
+      "journal disk full"
+    );
+    await expect(new ExperimentJournal(journalPath, baseFs).readAll()).resolves.toEqual([
+      first,
+      second
+    ]);
   });
 
   it("updateLast returns null on empty journal", async () => {

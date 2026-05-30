@@ -707,6 +707,26 @@ describe("codex service", () => {
     expect(content).toBe('model = "custom"');
   });
 
+  it("does not remove an absent prototype-named provider", async () => {
+    await mockFsObj.mkdir(configDir, { recursive: true });
+    await mockFsObj.writeFile(configPath, "[model_providers]\n", {
+      encoding: "utf8"
+    });
+
+    const removed = await codexService.codexService.unconfigure({
+      fs: mockFsObj,
+      env,
+      command: createTestCommandContext(mockFsObj),
+      options: {
+        env,
+        provider: { id: "constructor" }
+      }
+    });
+
+    expect(removed).toBe(false);
+    await expect(mockFsObj.readFile(configPath, "utf8")).resolves.toBe("[model_providers]\n");
+  });
+
   it("removes codex block with different formatting", async () => {
     await mockFsObj.mkdir(configDir, { recursive: true });
     await mockFsObj.writeFile(

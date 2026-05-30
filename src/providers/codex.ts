@@ -125,7 +125,7 @@ function stripCodexConfiguration(
 
   // Clean up model_providers entry for this provider
   const providers = document["model_providers"];
-  if (isConfigObject(providers) && id in providers) {
+  if (isConfigObject(providers) && Object.hasOwn(providers, id)) {
     delete providers[id];
     if (isTableEmpty(providers)) {
       delete document["model_providers"];

@@ -1,0 +1,91 @@
+import { createFsFromVolume, Volume } from "memfs";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { EvalRunOptions, EvalRunResult } from "../types.js";
+
+const mocks = vi.hoisted(() => ({
+  fs: undefined as unknown as ReturnType<typeof createFsFromVolume>["promises"],
+  failAggregates: false,
+  runEval: vi.fn<[EvalRunOptions], Promise<EvalRunResult>>()
+}));
+
+vi.mock("node:fs/promises", () => ({
+  mkdir: (...args: unknown[]) => mocks.fs.mkdir(...(args as Parameters<typeof mocks.fs.mkdir>)),
+  writeFile: async (...args: unknown[]) => {
+    const [targetPath] = args as Parameters<typeof mocks.fs.writeFile>;
+    if (mocks.failAggregates && String(targetPath).includes("aggregate-")) {
+      throw new Error("aggregate publication failed");
+    }
+    await mocks.fs.writeFile(...(args as Parameters<typeof mocks.fs.writeFile>));
+  }
+}));
+vi.mock("./run.js", () => ({ runEval: mocks.runEval }));
+vi.mock("../source/open.js", () => ({ openSource: vi.fn(async () => ({ rootDir: "/source" })) }));
+vi.mock("../source/registry.js", () => ({
+  listEvals: vi.fn(async () => ["task"]),
+  loadEval: vi.fn(async () => ({ plan: { kind: "plan" }, weights: { tests: 1, judge: 0 } }))
+}));
+
+const { runMatrix } = await import("./matrix.js");
+
+describe("runMatrix publication", () => {
+  beforeEach(() => {
+    mocks.fs = createFsFromVolume(Volume.fromJSON({ "/runs/.keep": "" }, "/")).promises;
+    mocks.failAggregates = false;
+    mocks.runEval.mockReset().mockImplementation(async (opts) => result(opts));
+  });
+
+  it("does not yield completed cell results before aggregate publication succeeds", async () => {
+    mocks.failAggregates = true;
+    const iterator = runMatrix(options(["model-one"]))[Symbol.asyncIterator]();
+
+    await expect(iterator.next()).rejects.toThrow("aggregate publication failed");
+  });
+
+  it("writes distinct aggregates for model identifiers that sanitize alike", async () => {
+    const results: EvalRunResult[] = [];
+    for await (const result of runMatrix(options(["model/a", "model-a"]))) {
+      results.push(result);
+    }
+
+    const [matrixId] = (await mocks.fs.readdir("/runs")).filter((name) => name !== ".keep");
+    const files = await mocks.fs.readdir(`/runs/${String(matrixId)}`);
+    expect(files.filter((name) => String(name).startsWith("aggregate-"))).toHaveLength(2);
+    expect(results.map((result) => result.model)).toEqual(["model/a", "model-a"]);
+  });
+});
+
+function options(models: readonly string[]) {
+  return {
+    sourceDir: "/source",
+    evalIds: ["task"],
+    agents: ["codex"],
+    models,
+    repeats: 1,
+    outDir: "/runs",
+    verifyOracle: false,
+    judge: "off" as const
+  };
+}
+
+function result(opts: EvalRunOptions): EvalRunResult {
+  return {
+    runId: `run-${opts.model}`,
+    eval: opts.evalId,
+    agent: opts.agent,
+    model: opts.model,
+    planKind: "plan",
+    verdict: "pass",
+    correctness: 1,
+    iterations: 1,
+    durationMs: 10,
+    usage: { inputTokens: 1, outputTokens: 1 },
+    tests: { passed: 1, total: 1, pass_rate: 1, cases: [] },
+    scoring: {
+      tests: { configured: true, required: true, configuredWeight: 1, effectiveWeight: 1, status: "executed" },
+      judge: { configured: false, required: false, configuredWeight: 0, effectiveWeight: 0, status: "disabled" }
+    },
+    cheated: false,
+    cheatReport: { cheated: false, violations: [] },
+    trace: { available: false }
+  };
+}

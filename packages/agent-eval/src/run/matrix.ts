@@ -54,11 +54,13 @@ export async function* runMatrix(opts: EvalMatrixOptions): AsyncIterable<EvalRun
             weights: evalDef.weights
           });
           cellRuns.push(result);
-          yield result;
         }
 
         const aggregate = aggregateRuns(cellRuns);
         await writeAggregate(matrixDir, evalId, agent, model, aggregate);
+        for (const result of cellRuns) {
+          yield result;
+        }
       }
     }
   }
@@ -189,7 +191,9 @@ function safePathSegment(value: string): string {
   let safe = "";
 
   for (const char of value) {
-    safe += isSafePathSegmentChar(char) ? char : "-";
+    safe += isSafePathSegmentChar(char) && char !== "~"
+      ? char
+      : `~${(char.codePointAt(0) as number).toString(16).padStart(6, "0")}`;
   }
 
   return safe;

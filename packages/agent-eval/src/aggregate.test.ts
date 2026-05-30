@@ -525,4 +525,21 @@ describe("aggregateRuns", () => {
     expect(dimensions).not.toContain("metric:task_completion");
     expect(dimensions).not.toContain("cost_usd");
   });
+
+  it("does not compare distinct cells containing delimiter characters", () => {
+    const baseline = run({
+      runId: "baseline",
+      eval: "alpha\u0000bravo",
+      agent: "charlie",
+      correctness: 1
+    });
+    const current = run({
+      runId: "current",
+      eval: "alpha",
+      agent: "bravo\u0000charlie",
+      correctness: 0
+    });
+
+    expect(compareResultCollections([baseline], [current])).toEqual([]);
+  });
 });

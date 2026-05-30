@@ -513,6 +513,31 @@ describe("requestJson", () => {
     });
   });
 
+  it("preserves the 401 HttpError when token invalidation fails", async () => {
+    const invalidate = vi.fn(async () => {
+      throw new Error("credential store unavailable");
+    });
+
+    await expect(
+      requestJson({
+        baseUrl: "https://api.example.com",
+        path: "/bots",
+        method: "GET",
+        auth: "required",
+        tokenSource: createTokenSource("abc", { invalidate }),
+        fetch: vi.fn(async () => createJsonResponse({ error: "unauthorized" }, 401, "Unauthorized"))
+      })
+    ).rejects.toMatchObject<HttpError>({
+      status: 401,
+      statusText: "Unauthorized",
+      response: {
+        body: { error: "unauthorized" }
+      }
+    });
+
+    expect(invalidate).toHaveBeenCalledTimes(1);
+  });
+
   it("throws an HttpError when a successful response is not JSON", async () => {
     await expect(
       requestJson({

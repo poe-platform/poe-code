@@ -2,21 +2,10 @@ import { text as designText } from "@poe-code/design-system";
 import { UserError } from "toolcraft";
 import type { TokenSource } from "./auth/types.js";
 import { classifyNetworkError } from "./network-error.js";
+import { redactHeaders, redactHeaderValue, redactSensitiveQueryValues } from "./redaction.js";
 
 type QueryScalar = string | number | boolean | null | undefined;
 const TRANSCRIPT_BODY_BYTE_LIMIT = 4 * 1024;
-const SENSITIVE_QUERY_KEYS = new Set([
-  "apikey",
-  "accesstoken",
-  "authtoken",
-  "clientsecret",
-  "key",
-  "password",
-  "secret",
-  "sig",
-  "signature",
-  "token"
-]);
 
 export type QueryValue = QueryScalar | QueryScalar[];
 
@@ -114,7 +103,7 @@ export async function requestJson<TResult = unknown>(
   const text = await response.text();
   const contentType = response.headers.get("content-type");
   const request = createHttpErrorRequest(method, url, headers, options.body);
-  const responseHeaders = serializeHeaders(response.headers);
+  const responseHeaders = redactHeaders(serializeHeaders(response.headers));
 
   if (response.ok) {
     if (text.length === 0) {
@@ -271,7 +260,7 @@ function createHttpErrorRequest(
 ): HttpErrorRequest {
   return {
     method,
-    url,
+    url: redactSensitiveQueryValues(url),
     headers: redactHeaders(headers),
     ...(body === undefined ? {} : { body })
   };
@@ -279,36 +268,6 @@ function createHttpErrorRequest(
 
 function serializeHeaders(headers: Headers): Record<string, string> {
   return Object.fromEntries(headers.entries());
-}
-
-function redactHeaders(headers: Record<string, string>): Record<string, string> {
-  return Object.fromEntries(
-    Object.entries(headers).map(([key, value]) => [key, redactHeaderValue(key, value)])
-  );
-}
-
-function redactHeaderValue(key: string, value: string): string {
-  if (key.toLowerCase() === "authorization" && value.startsWith("Bearer ")) {
-    return "Bearer ****";
-  }
-
-  return value;
-}
-
-function redactSensitiveQueryValues(url: string): string {
-  const redactedUrl = new URL(url);
-
-  for (const key of redactedUrl.searchParams.keys()) {
-    if (SENSITIVE_QUERY_KEYS.has(normalizeQueryKey(key))) {
-      redactedUrl.searchParams.set(key, "****");
-    }
-  }
-
-  return redactedUrl.toString();
-}
-
-function normalizeQueryKey(key: string): string {
-  return key.toLowerCase().replaceAll("_", "").replaceAll("-", "");
 }
 
 function formatDryRunOutput(
@@ -340,7 +299,7 @@ function formatVerboseRequestTranscript(
   body: unknown
 ): string[] {
   const lines = [
-    `→ ${method} ${url}`,
+    `→ ${method} ${redactSensitiveQueryValues(url)}`,
     ...Object.entries(headers).map(([key, value]) => {
       const headerValue = redactHeaderValue(key, value);
 

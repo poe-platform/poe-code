@@ -74,6 +74,20 @@ describe("classifyNetworkError", () => {
     expect(classified?.cause).toBe(error);
   });
 
+  it.each([
+    [new TypeError("fetch failed", { cause: { code: "ETIMEDOUT", timeout: 5000 } }), "Request timed out after 5000ms: https://api.example.com/items?access_token=****."],
+    [AbortSignal.abort().reason, "Request aborted: https://api.example.com/items?access_token=****."],
+    [new TypeError("fetch failed"), "Network request failed: https://api.example.com/items?access_token=****."]
+  ])("redacts query credentials in request-location network errors", (error, message) => {
+    const classified = classifyNetworkError(
+      error,
+      "https://api.example.com/items?access_token=raw-query-token"
+    );
+
+    expect(classified?.message).toBe(message);
+    expect(classified?.message).not.toContain("raw-query-token");
+  });
+
   it("returns null for unknown error codes", () => {
     const error = new TypeError("fetch failed", {
       cause: { code: "ERR_SOCKET_BAD_PORT" }

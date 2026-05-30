@@ -561,6 +561,57 @@ describe("requestJson", () => {
     expect(JSON.stringify((error as HttpError).request.headers)).not.toContain("raw-token");
   });
 
+  it("redacts sensitive query values in HttpError request URLs and messages", async () => {
+    let error: unknown;
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/bots",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      query: { access_token: "raw-query-token", page: 2 },
+      fetch: vi.fn(async () => createJsonResponse({ error: "boom" }, 500, "Internal Server Error"))
+    }).catch((caught: unknown) => {
+      error = caught;
+    });
+
+    expect(error).toMatchObject<HttpError>({
+      request: { url: "https://api.example.com/bots?access_token=****&page=2" },
+      message: "GET https://api.example.com/bots?access_token=****&page=2 → 500 Internal Server Error"
+    });
+    expect(String((error as Error).message)).not.toContain("raw-query-token");
+  });
+
+  it("redacts credential-bearing response headers in HttpError details", async () => {
+    let error: unknown;
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/session",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: "boom" }), {
+            status: 500,
+            headers: {
+              "content-type": "application/json",
+              "set-cookie": "session=raw-cookie; HttpOnly"
+            }
+          })
+      )
+    }).catch((caught: unknown) => {
+      error = caught;
+    });
+
+    expect(error).toMatchObject<HttpError>({
+      response: { headers: { "set-cookie": "****" } }
+    });
+    expect(JSON.stringify((error as HttpError).response.headers)).not.toContain("raw-cookie");
+  });
+
   it("redacts the bearer token in dry-run output", async () => {
     const stdout = vi.fn();
 
@@ -667,6 +718,37 @@ describe("requestJson", () => {
         ""
       ].join("\n")
     );
+  });
+
+  it("redacts query credentials and response cookies in verbose transcripts", async () => {
+    const stderr = vi.fn();
+
+    await requestJson({
+      baseUrl: "https://api.example.com",
+      path: "/session",
+      method: "GET",
+      auth: "none",
+      tokenSource: createTokenSource("unused"),
+      query: { api_key: "raw-query-token" },
+      fetch: vi.fn(
+        async () =>
+          new Response(JSON.stringify({ ok: true }), {
+            status: 200,
+            headers: {
+              "content-type": "application/json",
+              "set-cookie": "session=raw-cookie; HttpOnly"
+            }
+          })
+      ),
+      verbose: true,
+      writeStderr: stderr
+    });
+
+    const written = stderr.mock.calls.map(([chunk]) => chunk).join("");
+    expect(written).toContain("?api_key=****");
+    expect(written).toContain("    set-cookie: ****");
+    expect(written).not.toContain("raw-query-token");
+    expect(written).not.toContain("raw-cookie");
   });
 
   it("writes a verbose response transcript for successful empty 204 responses without a body section", async () => {

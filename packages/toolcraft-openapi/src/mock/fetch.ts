@@ -604,21 +604,30 @@ function appendHeaders(target: Record<string, string>, source: HeadersInit | und
 
   if (source instanceof Headers) {
     source.forEach((value, key) => {
-      target[key.toLowerCase()] = value;
+      setHeader(target, key, value);
     });
     return;
   }
 
   if (Array.isArray(source)) {
     for (const [key, value] of source) {
-      target[key.toLowerCase()] = value;
+      setHeader(target, key, value);
     }
     return;
   }
 
   for (const [key, value] of Object.entries(source)) {
-    target[key.toLowerCase()] = String(value);
+    setHeader(target, key, String(value));
   }
+}
+
+function setHeader(target: Record<string, string>, key: string, value: string): void {
+  Object.defineProperty(target, key.toLowerCase(), {
+    enumerable: true,
+    configurable: true,
+    writable: true,
+    value
+  });
 }
 
 async function readRequestBody(

@@ -298,6 +298,20 @@ describe("mockFetch", () => {
     expect(record.at.getTime()).toBeLessThanOrEqual(after);
   });
 
+  it("records received __proto__ request headers as own fields", async () => {
+    const { fetch, requests } = await mockFetch({
+      spec: createWhoamiSpec(),
+      onUnmocked: "reply404"
+    });
+
+    await fetch("https://api.example.com/v1/whoami", {
+      headers: new Headers([["__proto__", "visible"]])
+    });
+
+    expect(Object.hasOwn(requests[0]?.headers ?? {}, "__proto__")).toBe(true);
+    expect(requests[0]?.headers["__proto__"]).toBe("visible");
+  });
+
   it("ignores the host portion of baseUrl when matching", async () => {
     const { fetch, requests } = await mockFetch({
       spec: createWhoamiSpec(),

@@ -499,6 +499,33 @@ describe("generate", () => {
     );
   });
 
+  it("rejects inherited document-level security scheme names", () => {
+    expect(() =>
+      generate(
+        {
+          openapi: "3.0.3",
+          info: { title: "Internal Agent API", version: "1.0.0" },
+          components: { securitySchemes: {} },
+          security: [{ constructor: [] }],
+          paths: {
+            "/status": {
+              get: {
+                tags: ["status"],
+                operationId: "getStatus",
+                responses: { "200": { description: "OK." } }
+              }
+            }
+          }
+        },
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(
+      new UserError(
+        'Operation "getStatus" references undefined security scheme "constructor" in document security. Expected components.securitySchemes to define it.'
+      )
+    );
+  });
+
   it("rejects operation-level security that references an undefined scheme", () => {
     expect(() =>
       generate(
@@ -4589,5 +4616,25 @@ describe("generate", () => {
     expect(commandFile?.contents).toContain(
       '["__proto__"]: (Object.prototype.hasOwnProperty.call(params, "__proto__") ? params["__proto__"] : undefined),'
     );
+  });
+
+  it("rejects inherited scalar schema type names with a user-facing error", () => {
+    expect(() =>
+      generate(
+        createDocument({
+          "/search": {
+            get: {
+              tags: ["search"],
+              operationId: "search",
+              parameters: [
+                { name: "term", in: "query", schema: { type: "constructor" as never } }
+              ],
+              responses: { "200": { description: "Searched." } }
+            }
+          }
+        }),
+        { specSha: "spec-sha-123" }
+      )
+    ).toThrowError(/Operation "search" uses unsupported parameter "term"/);
   });
 });

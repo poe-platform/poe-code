@@ -1482,7 +1482,7 @@ function isEnumPrimitiveValue(value: unknown): value is string | number | boolea
 }
 
 function isOpenApiScalarType(type: OpenApiSchemaObject["type"]): type is OpenApiScalarType {
-  return typeof type === "string" && type in SCHEMA_TYPE_TO_KIND;
+  return typeof type === "string" && Object.prototype.hasOwnProperty.call(SCHEMA_TYPE_TO_KIND, type);
 }
 
 function expectRequestBody(
@@ -1839,7 +1839,10 @@ function getOperationAuthMode(
 
   for (const requirement of security ?? []) {
     for (const schemeName of Object.keys(requirement)) {
-      if (definedSchemes !== undefined && schemeName in definedSchemes) {
+      if (
+        definedSchemes !== undefined &&
+        Object.prototype.hasOwnProperty.call(definedSchemes, schemeName)
+      ) {
         continue;
       }
 

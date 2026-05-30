@@ -357,4 +357,10 @@ describe("variables", () => {
       ].join("\n")
     );
   });
+
+  it("preserves a user override named __proto__ when regenerating the project file", () => {
+    const content = generateProjectVariablesFile({}, "__proto__: visible\n");
+
+    expect(content).toContain("__proto__: visible");
+  });
 });

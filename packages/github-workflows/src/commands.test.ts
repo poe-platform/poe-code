@@ -13,6 +13,10 @@ const designSystemState = vi.hoisted(() => ({
   select: vi.fn()
 }));
 
+const fileSystemState = vi.hoisted(() => ({
+  failingWritePath: undefined as string | undefined
+}));
+
 vi.mock("@poe-code/agent-spawn", () => ({
   spawn: spawnState.spawn,
   runCommand: spawnState.runCommand
@@ -30,7 +34,15 @@ vi.mock("@poe-code/design-system", async (importOriginal) => {
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
-  return fs.promises;
+  return {
+    ...fs.promises,
+    async writeFile(targetPath: string, content: string | Uint8Array, encoding?: BufferEncoding) {
+      if (targetPath === fileSystemState.failingWritePath) {
+        throw new Error("injected workflow write failure");
+      }
+      await fs.promises.writeFile(targetPath, content, encoding);
+    }
+  };
 });
 
 const { ghGroup } = await import("./commands.js");
@@ -111,6 +123,7 @@ describe("ghGroup", () => {
       [builtInVariablesPath]: readFileSync(builtInVariablesPath, "utf8")
     });
     vi.clearAllMocks();
+    fileSystemState.failingWritePath = undefined;
     vi.spyOn(process, "cwd").mockReturnValue("/repo");
     spawnState.spawn.mockResolvedValue({
       stdout: "ok",
@@ -990,6 +1003,20 @@ describe("ghGroup", () => {
     expect(result.readmePath).toBe("/repo/.github/workflows/README.md");
   });
 
+  it("rolls back earlier workflows when a later bulk install write fails", async () => {
+    for (const name of installableAutomationNames) {
+      writeBuiltInPrompt(name, `# Prompt for ${name}`);
+      seedWorkflowTemplate(name, "caller");
+    }
+    fileSystemState.failingWritePath = "/repo/.github/workflows/poe-code-github-issue-comment-created.yml";
+
+    await expect(getCommand(["install"]).handler(createContext({}))).rejects.toThrow(
+      "injected workflow write failure"
+    );
+
+    expect(vol.existsSync("/repo/.github/workflows/poe-code-fix-vulnerabilities.yml")).toBe(false);
+  });
+
   it("does not generate a broken workflow_dispatch trigger for pull-request-opened installs", async () => {
     writeBuiltInPrompt("github-pull-request-opened", "# Prompt");
     seedWorkflowTemplate("github-pull-request-opened", "caller");
@@ -1051,6 +1078,30 @@ describe("ghGroup", () => {
     expect(workflow).toContain(
       "poe-code github-workflows prepare poe-code-github-issue-comment-created"
     );
+  });
+
+  it("rolls back an ejected workflow when copying its prompt fails", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "ejected");
+    fileSystemState.failingWritePath = "/repo/.github/workflows/poe-code-github-issue-opened.md";
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened", eject: true }))
+    ).rejects.toThrow("injected workflow write failure");
+
+    expect(vol.existsSync("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toBe(false);
+  });
+
+  it("rolls back a workflow when writing shared support files fails", async () => {
+    writeBuiltInPrompt("github-issue-opened", "# Prompt");
+    seedWorkflowTemplate("github-issue-opened", "caller");
+    fileSystemState.failingWritePath = "/repo/.github/workflows/variables.yaml";
+
+    await expect(
+      getCommand(["install"]).handler(createContext({ name: "github-issue-opened" }))
+    ).rejects.toThrow("injected workflow write failure");
+
+    expect(vol.existsSync("/repo/.github/workflows/poe-code-github-issue-opened.yml")).toBe(false);
   });
 
   it("rejects a symlinked ejected prompt destination", async () => {

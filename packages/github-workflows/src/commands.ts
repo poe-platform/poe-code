@@ -62,6 +62,11 @@ interface InstallCommandResult {
   dryRun?: true;
 }
 
+interface WrittenFileSnapshot {
+  filePath: string;
+  previousContent?: string;
+}
+
 const installableAutomations = [
   "fix-vulnerabilities",
   "github-issue-comment-created",
@@ -273,20 +278,28 @@ const installCommand = defineCommand({
     const cwd = resolveCwd();
     const names = params.name === undefined ? [...installableAutomations] : [params.name];
     const installations: InstalledAutomationResult[] = [];
+    const writtenFiles: WrittenFileSnapshot[] = [];
 
-    for (const name of names) {
-      installations.push(await installAutomation(name, cwd, params.eject === true, params.dryRun === true));
+    try {
+      for (const name of names) {
+        installations.push(
+          await installAutomation(name, cwd, params.eject === true, params.dryRun === true, writtenFiles)
+        );
+      }
+
+      const supportFiles = params.dryRun === true
+        ? resolveProjectSupportFilePaths(cwd)
+        : await ensureProjectSupportFiles(cwd, await loadVariables(await resolveBuiltInAssetsDir()), writtenFiles);
+
+      return {
+        installations,
+        ...supportFiles,
+        ...(params.dryRun === true ? { dryRun: true as const } : {})
+      } satisfies InstallCommandResult;
+    } catch (error) {
+      await rollbackWrittenFiles(writtenFiles);
+      throw error;
     }
-
-    const supportFiles = params.dryRun === true
-      ? resolveProjectSupportFilePaths(cwd)
-      : await ensureProjectSupportFiles(cwd, await loadVariables(await resolveBuiltInAssetsDir()));
-
-    return {
-      installations,
-      ...supportFiles,
-      ...(params.dryRun === true ? { dryRun: true as const } : {})
-    } satisfies InstallCommandResult;
   },
   render: {
     rich: (result: InstallCommandResult, { logger, note }) => {
@@ -841,7 +854,8 @@ async function installAutomation(
   name: string,
   cwd: string,
   isEject: boolean,
-  dryRun: boolean = false
+  dryRun: boolean = false,
+  writtenFiles: WrittenFileSnapshot[] = []
 ): Promise<InstalledAutomationResult> {
   const variant = isEject ? "ejected" : "caller";
   const localAutomationName = isEject ? `poe-code-${name}` : name;
@@ -855,13 +869,13 @@ async function installAutomation(
   if (!dryRun) {
     await mkdir(path.dirname(workflowPath), { recursive: true });
     await assertWritableWorkflowDestination(workflowPath);
-    await writeFile(workflowPath, workflowTemplate, "utf8");
+    await writeTrackedFile(workflowPath, workflowTemplate, writtenFiles);
   }
 
   if (promptPath !== undefined && !dryRun) {
     await mkdir(path.dirname(promptPath), { recursive: true });
     await assertWritableWorkflowDestination(promptPath);
-    await writeFile(promptPath, addPromptHeader(rawPrompt, name), "utf8");
+    await writeTrackedFile(promptPath, addPromptHeader(rawPrompt, name), writtenFiles);
   }
 
   return {
@@ -883,7 +897,8 @@ function resolveProjectSupportFilePaths(cwd: string): { readmePath: string; vari
 
 async function ensureProjectSupportFiles(
   cwd: string,
-  builtInVariables: Record<string, string>
+  builtInVariables: Record<string, string>,
+  writtenFiles: WrittenFileSnapshot[] = []
 ): Promise<{ readmePath: string; variablesPath: string }> {
   const projectDir = projectGitHubWorkflowsDir(cwd);
   const variablesPath = path.join(projectDir, "variables.yaml");
@@ -892,14 +907,40 @@ async function ensureProjectSupportFiles(
   await mkdir(projectDir, { recursive: true });
   await assertWritableWorkflowDestination(variablesPath);
   await assertWritableWorkflowDestination(readmePath);
-  await writeFile(
+  await writeTrackedFile(
     variablesPath,
     generateProjectVariablesFile(builtInVariables, await readOptionalFile(variablesPath)),
-    "utf8"
+    writtenFiles
   );
-  await writeFile(readmePath, renderProjectReadme(), "utf8");
+  await writeTrackedFile(readmePath, renderProjectReadme(), writtenFiles);
 
   return { readmePath, variablesPath };
+}
+
+async function writeTrackedFile(
+  filePath: string,
+  content: string,
+  writtenFiles: WrittenFileSnapshot[]
+): Promise<void> {
+  writtenFiles.push({ filePath, previousContent: await readOptionalFile(filePath) });
+  await writeFile(filePath, content, "utf8");
+}
+
+async function rollbackWrittenFiles(writtenFiles: WrittenFileSnapshot[]): Promise<void> {
+  for (const file of writtenFiles.reverse()) {
+    if (file.previousContent === undefined) {
+      try {
+        await unlink(file.filePath);
+      } catch (error) {
+        if (!isMissingPathError(error)) {
+          throw error;
+        }
+      }
+      continue;
+    }
+
+    await writeFile(file.filePath, file.previousContent, "utf8");
+  }
 }
 
 async function assertWritableWorkflowDestination(filePath: string): Promise<void> {

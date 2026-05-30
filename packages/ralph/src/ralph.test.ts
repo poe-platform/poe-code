@@ -27,6 +27,10 @@ function createFs(files: Record<string, string>) {
     readFile: (filePath: string, encoding: BufferEncoding) =>
       rawFs.readFile(filePath, encoding) as Promise<string>,
     readdir: (filePath: string) => rawFs.readdir(filePath) as Promise<string[]>,
+    lstat: async (filePath: string) => {
+      const stat = await rawFs.lstat(filePath);
+      return { isSymbolicLink: () => stat.isSymbolicLink() };
+    },
     stat: async (filePath: string) => {
       const stat = await rawFs.stat(filePath);
       return {
@@ -996,7 +1000,7 @@ describe("createRalphSimulation", () => {
     const { data } = parseFrontmatter(content);
     expect(data.status).toEqual({
       state: "open",
-      iteration: 1
+      iteration: 0
     });
   });
 

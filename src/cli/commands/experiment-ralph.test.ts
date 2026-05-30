@@ -175,11 +175,27 @@ const expectedTimestamp = (() => {
 })();
 
 function ralphPlanDoc(name: string): string {
-  return ["---", "kind: ralph", `name: ${name}`, "---", `# ${name}`].join("\n");
+  return [
+    "---",
+    "kind: ralph",
+    "version: 1",
+    "status:",
+    "  state: open",
+    "  iteration: 0",
+    "---",
+    `# ${name}`
+  ].join("\n");
 }
 
 function experimentPlanDoc(name: string): string {
-  return ["---", "kind: experiment", `name: ${name}`, "---", `# ${name}`].join("\n");
+  return [
+    "---",
+    "kind: experiment",
+    "version: 1",
+    "baseline: null",
+    "---",
+    `# ${name}`
+  ].join("\n");
 }
 
 describe("experiment run command", () => {

@@ -270,6 +270,27 @@ describe("runScorer", () => {
     });
   });
 
+  it("preserves special-key ambient environment variables for custom scorers", async () => {
+    useMemfs({ "/work/clone/score.json": JSON.stringify({ passed: 1, total: 1 }) });
+    const runner = createRecordingRunner([{ exitCode: 0 }]);
+    mocks.createHostRunner.mockReturnValue(runner);
+    Object.defineProperty(process.env, "__proto__", {
+      value: "visible",
+      configurable: true,
+      enumerable: true,
+      writable: true
+    });
+
+    try {
+      await runScorer({ evalDef: createEvalDef(), evalDir: "/work/eval", cloneDir: "/work/clone" });
+    } finally {
+      delete (process.env as Record<string, string | undefined>)["__proto__"];
+    }
+
+    expect(Object.hasOwn(runner.specs[0]?.env ?? {}, "__proto__")).toBe(true);
+    expect(runner.specs[0]?.env?.["__proto__"]).toBe("visible");
+  });
+
   it("returns the score when a non-zero custom scorer exit still writes a valid result", async () => {
     useMemfs({
       "/work/clone/score.json": JSON.stringify({ passed: 0, total: 3 })

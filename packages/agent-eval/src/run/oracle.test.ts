@@ -81,6 +81,29 @@ describe("verifyOracle", () => {
     });
   });
 
+  it("preserves special-key ambient environment variables for verification", async () => {
+    mocks.loadEval.mockResolvedValue(
+      createEval({ verify: { command: "npm run verify", timeoutMs: 500 } })
+    );
+    const runner = createRecordingRunner([{ exitCode: 0 }]);
+    mocks.createHostRunner.mockReturnValue(runner);
+    Object.defineProperty(process.env, "__proto__", {
+      value: "visible",
+      configurable: true,
+      enumerable: true,
+      writable: true
+    });
+
+    try {
+      await verifyOracle(source, "smoke");
+    } finally {
+      delete (process.env as Record<string, string | undefined>)["__proto__"];
+    }
+
+    expect(Object.hasOwn(runner.specs[0]?.env ?? {}, "__proto__")).toBe(true);
+    expect(runner.specs[0]?.env?.["__proto__"]).toBe("visible");
+  });
+
   it("fails and captures output when the verify command exits non-zero", async () => {
     mocks.loadEval.mockResolvedValue(
       createEval({ verify: { command: "npm run verify", timeoutMs: 500 } })

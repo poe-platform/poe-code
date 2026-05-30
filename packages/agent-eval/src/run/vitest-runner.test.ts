@@ -101,6 +101,33 @@ describe("runVitest", () => {
     });
   });
 
+  it("preserves special-key ambient environment variables for vitest", async () => {
+    const runner = createVitestRunner({
+      json: { testResults: [] }
+    });
+    mocks.createHostRunner.mockReturnValue(runner);
+    Object.defineProperty(process.env, "__proto__", {
+      value: "visible",
+      configurable: true,
+      enumerable: true,
+      writable: true
+    });
+
+    try {
+      await runVitest({
+        testsDir: "/work/eval/oracle/tests",
+        cloneDir: "/work/clone",
+        oracleDir: "/work/eval/oracle",
+        timeoutMs: 1_000
+      });
+    } finally {
+      delete (process.env as Record<string, string | undefined>)["__proto__"];
+    }
+
+    expect(Object.hasOwn(runner.specs[0]?.env ?? {}, "__proto__")).toBe(true);
+    expect(runner.specs[0]?.env?.["__proto__"]).toBe("visible");
+  });
+
   it("deletes the temporary reporter file before returning", async () => {
     const runner = createVitestRunner({
       json: {

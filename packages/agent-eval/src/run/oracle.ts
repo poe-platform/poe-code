@@ -100,13 +100,9 @@ function createShellRunSpec(input: {
 }
 
 function createOracleEnv(oracleDir: string): Record<string, string> {
-  const env: Record<string, string> = {};
-
-  for (const [key, value] of Object.entries(process.env)) {
-    if (value !== undefined) {
-      env[key] = value;
-    }
-  }
+  const env = Object.fromEntries(
+    Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)
+  );
 
   env.ORACLE_DIR = oracleDir;
   return env;

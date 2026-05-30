@@ -69,20 +69,30 @@ function deepMerge(
   base: Record<string, unknown>,
   patch: Record<string, unknown>
 ): Record<string, unknown> {
-  const result: Record<string, unknown> = { ...base };
+  const result = Object.fromEntries(Object.entries(base)) as Record<string, unknown>;
 
   for (const [key, value] of Object.entries(patch)) {
     if (value === undefined) {
       continue;
     }
 
-    const existing = result[key];
+    const existing = Object.hasOwn(result, key) ? result[key] : undefined;
     if (isRecord(existing) && isRecord(value)) {
-      result[key] = deepMerge(existing, value);
+      Object.defineProperty(result, key, {
+        value: deepMerge(existing, value),
+        enumerable: true,
+        configurable: true,
+        writable: true
+      });
       continue;
     }
 
-    result[key] = value;
+    Object.defineProperty(result, key, {
+      value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
   }
 
   return result;

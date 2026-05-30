@@ -83,6 +83,18 @@ describe("loadSourceConfig", () => {
     });
   });
 
+  it("preserves special source config fields as own data properties", async () => {
+    const fs = memfs({
+      "/repo/evals/.poe-code-eval.json": '{"__proto__":{"injected":"yes"}}'
+    });
+
+    const config = await loadSourceConfig(source, fs) as unknown as Record<string, unknown>;
+
+    expect(Object.hasOwn(config, "__proto__")).toBe(true);
+    expect(config["__proto__"]).toEqual({ injected: "yes" });
+    expect((config as { injected?: string }).injected).toBeUndefined();
+  });
+
   it("throws a clear error for bad JSON", async () => {
     const fs = memfs({
       "/repo/evals/.poe-code-eval.json": "{"

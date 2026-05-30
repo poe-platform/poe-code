@@ -297,11 +297,9 @@ function parseJudgeScores(rawOutput: string, rubric: readonly RubricKey[]): Judg
   }
 
   const source = parsed as Record<string, unknown>;
-  const scores: Record<string, number> = {};
-
-  for (const key of rubric) {
-    scores[key] = clampScore(source[key]);
-  }
+  const scores = Object.fromEntries(
+    rubric.map(key => [key, clampScore(source[key])])
+  ) as Record<string, number>;
 
   const values = Object.values(scores);
   const mean =

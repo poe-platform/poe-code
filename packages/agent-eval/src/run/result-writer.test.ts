@@ -1,18 +1,35 @@
-import { vol } from "memfs";
+import { createFsFromVolume, vol } from "memfs";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EvalRunResult } from "../types.js";
 import type { NormalizedTrace } from "./trace/types.js";
 
-vi.mock("node:fs/promises", async () => {
-  const { fs } = await import("memfs");
-  return fs.promises;
+const mocks = vi.hoisted(() => ({
+  failedRenameTarget: undefined as string | undefined
+}));
+
+vi.mock("node:fs/promises", () => {
+  const fs = createFsFromVolume(vol).promises;
+  return {
+    lstat: fs.lstat.bind(fs),
+    mkdir: fs.mkdir.bind(fs),
+    readFile: fs.readFile.bind(fs),
+    rename: async (sourcePath: string, targetPath: string) => {
+      if (targetPath === mocks.failedRenameTarget) {
+        throw new Error("simulated commit failure");
+      }
+      await fs.rename(sourcePath, targetPath);
+    },
+    rm: fs.rm.bind(fs),
+    writeFile: fs.writeFile.bind(fs)
+  };
 });
 
-const { writeRunArtifacts } = await import("./result-writer.js");
+const { writeRunArtifacts, writeRunCompletion, writeRunEvidence } = await import("./result-writer.js");
 
 describe("writeRunArtifacts", () => {
   beforeEach(() => {
     vol.reset();
+    mocks.failedRenameTarget = undefined;
   });
 
   it("writes all required artifacts and omits judge.json when the judge did not run", async () => {
@@ -74,6 +91,78 @@ describe("writeRunArtifacts", () => {
       })
     ).rejects.toThrow("Run artifact directory must not be a symbolic link.");
     await expect(readText("/outside/plan.md")).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("rolls back newly committed evidence when one artifact commit fails", async () => {
+    mocks.failedRenameTarget = "/runs/run-1/trace.json";
+
+    await expect(
+      writeRunEvidence("/runs/run-1", {
+        events: [{ sessionUpdate: "tool_call", toolCall: "read" }],
+        trace: createTrace(),
+        cheatReport: { cheated: false, violations: [] },
+        planMd: "# Plan\n",
+        evalYaml: "id: task\n"
+      })
+    ).rejects.toThrow("simulated commit failure");
+
+    for (const fileName of ["events.jsonl", "trace.json", "cheat-report.json", "plan.md", "eval.yaml"]) {
+      await expect(readText(`/runs/run-1/${fileName}`)).rejects.toMatchObject({ code: "ENOENT" });
+    }
+  });
+
+  it("preserves the prior completion pair when a replacement commit fails", async () => {
+    const { fs } = await import("memfs");
+    await fs.promises.mkdir("/runs/run-1", { recursive: true });
+    await fs.promises.writeFile(
+      "/runs/run-1/result.json",
+      `${JSON.stringify(createResult({ correctness: 0, judge: { completeness: 1, mean: 1 } }))}\n`
+    );
+    await fs.promises.writeFile(
+      "/runs/run-1/judge.json",
+      `${JSON.stringify({ completeness: 1, mean: 1 })}\n`
+    );
+    mocks.failedRenameTarget = "/runs/run-1/result.json";
+
+    await expect(
+      writeRunCompletion("/runs/run-1", {
+        result: createResult({ judge: { completeness: 5, mean: 5 } }),
+        judge: { completeness: 5, mean: 5 }
+      })
+    ).rejects.toThrow("simulated commit failure");
+
+    expect(JSON.parse(await readText("/runs/run-1/judge.json"))).toEqual({ completeness: 1, mean: 1 });
+    expect(JSON.parse(await readText("/runs/run-1/result.json"))).toMatchObject({
+      correctness: 0,
+      judge: { mean: 1 }
+    });
+  });
+
+  it("restores the prior result when the judge replacement fails", async () => {
+    const { fs } = await import("memfs");
+    await fs.promises.mkdir("/runs/run-1", { recursive: true });
+    await fs.promises.writeFile(
+      "/runs/run-1/result.json",
+      `${JSON.stringify(createResult({ correctness: 0, judge: { completeness: 1, mean: 1 } }))}\n`
+    );
+    await fs.promises.writeFile(
+      "/runs/run-1/judge.json",
+      `${JSON.stringify({ completeness: 1, mean: 1 })}\n`
+    );
+    mocks.failedRenameTarget = "/runs/run-1/judge.json";
+
+    await expect(
+      writeRunCompletion("/runs/run-1", {
+        result: createResult({ judge: { completeness: 5, mean: 5 } }),
+        judge: { completeness: 5, mean: 5 }
+      })
+    ).rejects.toThrow("simulated commit failure");
+
+    expect(JSON.parse(await readText("/runs/run-1/judge.json"))).toEqual({ completeness: 1, mean: 1 });
+    expect(JSON.parse(await readText("/runs/run-1/result.json"))).toMatchObject({
+      correctness: 0,
+      judge: { mean: 1 }
+    });
   });
 });
 

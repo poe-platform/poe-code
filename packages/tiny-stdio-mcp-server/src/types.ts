@@ -93,8 +93,9 @@ export interface JSONSchema {
 }
 
 export interface JSONSchemaProperty {
-  type: "string" | "number" | "boolean" | "object" | "array";
+  type: "string" | "number" | "integer" | "boolean" | "object" | "array";
   description?: string;
+  nullable?: boolean;
 }
 
 // Server types

@@ -1977,6 +1977,40 @@ describe("server protocol handlers", () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
+    it("accepts integer and nullable values declared by MCP JSON schemas", async () => {
+      const handler = vi.fn(async () => "validated");
+      const server = createServer({ name: "test", version: "1.0.0" }).tool(
+        "validated",
+        "Validated",
+        {
+          type: "object",
+          properties: {
+            count: { type: "integer" },
+            optionalCount: { type: "integer", nullable: true }
+          },
+          required: ["count"]
+        },
+        handler
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "validated",
+          arguments: { count: 2, optionalCount: null }
+        })
+      ).resolves.toEqual({ result: { content: [{ type: "text", text: "validated" }] } });
+      expect(handler).toHaveBeenCalledWith({ count: 2, optionalCount: null });
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "validated",
+          arguments: { count: 2.5 }
+        })
+      ).resolves.toEqual({ error: { code: -32602, message: "Invalid tool arguments" } });
+    });
+
     it("rejects malformed direct CallToolResult values", async () => {
       const server = createServer({ name: "test", version: "1.0.0" }).tool(
         "malformed",

@@ -490,10 +490,15 @@ function areValidToolArguments(schema: JSONSchema, value: unknown): value is Rec
     }
 
     const argument = argumentsObject[key];
+    if (argument === null && property.nullable === true) {
+      continue;
+    }
+
     if (
       (property.type === "array" && !Array.isArray(argument))
       || (property.type === "object" && (typeof argument !== "object" || argument === null || Array.isArray(argument)))
-      || (property.type !== "array" && property.type !== "object" && typeof argument !== property.type)
+      || (property.type === "integer" && (!Number.isInteger(argument)))
+      || (property.type !== "array" && property.type !== "object" && property.type !== "integer" && typeof argument !== property.type)
     ) {
       return false;
     }

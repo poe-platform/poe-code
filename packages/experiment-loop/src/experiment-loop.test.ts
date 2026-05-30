@@ -969,6 +969,9 @@ describe("writeExperimentFrontmatter", () => {
 describe("createDefaultGit", () => {
   it("reset stashes experiment docs, resets, and restores them", async () => {
     const { exec, commands } = createGitExec([
+      { stdout: "old-stash\n", stderr: "", exitCode: 0 },
+      { stdout: "", stderr: "", exitCode: 0 },
+      { stdout: "new-stash\n", stderr: "", exitCode: 0 },
       { stdout: "", stderr: "", exitCode: 0 },
       { stdout: "", stderr: "", exitCode: 0 },
       { stdout: "", stderr: "", exitCode: 0 }
@@ -978,18 +981,22 @@ describe("createDefaultGit", () => {
     await git.reset("abc123", "/repo");
 
     expect(commands).toEqual([
+      { command: "git rev-parse -q --verify refs/stash", options: { cwd: "/repo" } },
       {
         command: "git stash push -q --include-untracked -- .poe-code/experiments",
         options: { cwd: "/repo" }
       },
+      { command: "git rev-parse -q --verify refs/stash", options: { cwd: "/repo" } },
       { command: "git reset --hard 'abc123'", options: { cwd: "/repo" } },
-      { command: "git stash pop -q", options: { cwd: "/repo" } }
+      { command: "git stash pop -q 'stash@{0}'", options: { cwd: "/repo" } }
     ]);
   });
 
-  it("reset skips stash pop when there was nothing to stash", async () => {
+  it("reset does not restore an existing stash when no scoped stash is created", async () => {
     const { exec, commands } = createGitExec([
-      { stdout: "", stderr: "No local changes to save", exitCode: 1 },
+      { stdout: "existing-stash\n", stderr: "", exitCode: 0 },
+      { stdout: "", stderr: "", exitCode: 0 },
+      { stdout: "existing-stash\n", stderr: "", exitCode: 0 },
       { stdout: "", stderr: "", exitCode: 0 }
     ]);
     const git = createDefaultGit(exec);
@@ -997,20 +1004,46 @@ describe("createDefaultGit", () => {
     await git.reset("abc123", "/repo");
 
     expect(commands).toEqual([
+      { command: "git rev-parse -q --verify refs/stash", options: { cwd: "/repo" } },
       {
         command: "git stash push -q --include-untracked -- .poe-code/experiments",
         options: { cwd: "/repo" }
       },
+      { command: "git rev-parse -q --verify refs/stash", options: { cwd: "/repo" } },
       { command: "git reset --hard 'abc123'", options: { cwd: "/repo" } }
     ]);
   });
 
+  it("refuses default experiment resets with unrelated dirty worktree files", async () => {
+    const { exec, commands } = createGitExec([
+      { stdout: " M src/user-work.ts\n", stderr: "", exitCode: 0 }
+    ]);
+    const git = createDefaultGit(exec);
+
+    await expect(git.currentHash("/repo")).rejects.toThrow(
+      "Experiment loop requires a clean working tree outside .poe-code/experiments."
+    );
+    expect(commands).toEqual([
+      {
+        command: "git status --porcelain --untracked-files=all -- . ':(exclude).poe-code/experiments'",
+        options: { cwd: "/repo" }
+      }
+    ]);
+  });
+
   it("currentHash returns short hash", async () => {
-    const { exec, commands } = createGitExec([{ stdout: "fedcba\n", stderr: "", exitCode: 0 }]);
+    const { exec, commands } = createGitExec([
+      { stdout: "", stderr: "", exitCode: 0 },
+      { stdout: "fedcba\n", stderr: "", exitCode: 0 }
+    ]);
     const git = createDefaultGit(exec);
 
     await expect(git.currentHash("/repo")).resolves.toBe("fedcba");
     expect(commands).toEqual([
+      {
+        command: "git status --porcelain --untracked-files=all -- . ':(exclude).poe-code/experiments'",
+        options: { cwd: "/repo" }
+      },
       { command: "git rev-parse --short HEAD", options: { cwd: "/repo" } }
     ]);
   });

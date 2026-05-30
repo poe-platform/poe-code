@@ -232,7 +232,7 @@ function formatMetrics(metrics: MetricDef[], baseline: Record<string, number> | 
         parts.push(`±${m.delta}`);
       }
       parts.push(`script: \`${m.script}\``);
-      const score = baseline?.[m.name];
+      const score = baseline !== null && Object.hasOwn(baseline, m.name) ? baseline[m.name] : undefined;
       if (score !== undefined) {
         parts.push(`(baseline: ${score})`);
       }

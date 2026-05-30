@@ -129,7 +129,9 @@ export function baselineFromEntry(entry: JournalEntry): Record<string, number> |
 
 function parseLine(line: string): JournalEntry[] {
   try {
-    return [JSON.parse(line) as JournalEntry];
+    const value: unknown = JSON.parse(line);
+
+    return isJournalEntry(value) ? [value] : [];
   } catch {
     const entries: JournalEntry[] = [];
     let searchFrom = 0;
@@ -147,7 +149,10 @@ function parseLine(line: string): JournalEntry[] {
       }
 
       try {
-        entries.push(JSON.parse(line.slice(start, end + 1)) as JournalEntry);
+        const value: unknown = JSON.parse(line.slice(start, end + 1));
+        if (isJournalEntry(value)) {
+          entries.push(value);
+        }
         searchFrom = end + 1;
       } catch {
         searchFrom = start + 1;
@@ -156,6 +161,38 @@ function parseLine(line: string): JournalEntry[] {
 
     return entries;
   }
+}
+
+function isJournalEntry(value: unknown): value is JournalEntry {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  if (
+    typeof value.commit !== "string" ||
+    value.commit.length === 0 ||
+    (value.status !== "keep" && value.status !== "discard") ||
+    typeof value.output !== "string" ||
+    typeof value.agentOutput !== "string" ||
+    typeof value.durationMs !== "number" ||
+    !Number.isFinite(value.durationMs) ||
+    typeof value.timestamp !== "string"
+  ) {
+    return false;
+  }
+
+  if (value.scores === undefined) {
+    return true;
+  }
+
+  return (
+    isRecord(value.scores) &&
+    Object.values(value.scores).every((score) => typeof score === "number" && Number.isFinite(score))
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function findObjectEnd(line: string, start: number): number {

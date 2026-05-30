@@ -400,6 +400,22 @@ describe("evaluate", () => {
     });
   });
 
+  it("does not report stderr-only command failures as timeouts", async () => {
+    const { exec } = createEvalExec([
+      {
+        stdout: "",
+        stderr: "Error: Cannot find module 'missing-script.mjs'\n",
+        exitCode: 1
+      }
+    ]);
+
+    const result = await evaluate("node missing-script.mjs", "/repo", exec, 5000);
+
+    expect(result.passed).toBe(false);
+    expect(result.output).toContain("Cannot find module");
+    expect(result.output).not.toContain("Metric timed out");
+  });
+
   it("parses the score from the last non-empty stdout line", async () => {
     const { exec } = createEvalExec([
       {
@@ -1295,6 +1311,13 @@ describe("ExperimentJournal", () => {
       "d1sc4rd\tdiscard\t-\t102\t2026-03-30T10:05:30.000Z\tno improvement found\toptimized hot path"
     );
   });
+
+  it("ignores journal objects without required experiment fields", async () => {
+    const fs = createFs({ "/repo/experiment.journal.jsonl": "{}\n" });
+    const journal = new ExperimentJournal("/repo/experiment.journal.jsonl", fs);
+
+    await expect(journal.readAll()).resolves.toEqual([]);
+  });
 });
 
 describe("runExperimentLoop", () => {
@@ -1588,6 +1611,80 @@ describe("runExperimentLoop", () => {
     expect(git.currentHash).toHaveBeenCalledWith("/repo");
     expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
     expect(git.reset).not.toHaveBeenCalledWith("", "/repo");
+  });
+
+  it("does not render inherited baseline properties for metric names", async () => {
+    const docPath = "/repo/.poe-code/experiments/constructor.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  name: constructor",
+        "  script: npm test",
+        "  direction: maximize",
+        "baseline: {}",
+        "---",
+        "Improve score"
+      ].join("\n")
+    });
+    const runAgent = vi.fn(async (input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "discard",
+        status: "discard",
+        scores: { constructor: 1 },
+        output: "done",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: input.prompt, stderr: "", exitCode: 0 };
+    });
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git: createLoopGit(),
+      exec: createLoopExec([]),
+      runAgent
+    });
+
+    const metricLine = String(runAgent.mock.calls[0]?.[0].prompt).match(/- constructor:[^\n]*/)?.[0] ?? "";
+    expect(metricLine).not.toContain("baseline:");
+  });
+
+  it("does not count malformed journal objects against the experiment budget", async () => {
+    const docPath = "/repo/.poe-code/experiments/blocked-by-history.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 }),
+      [journalFilePath(docPath)]: "{}\n"
+    });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "discard",
+        status: "discard",
+        scores: { tests: 1 },
+        output: "done",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git: createLoopGit(),
+      exec: createLoopExec([]),
+      runAgent
+    });
+
+    expect(runAgent).toHaveBeenCalledTimes(1);
   });
 
   it("keeps an experiment when the agent writes a keep journal entry", async () => {

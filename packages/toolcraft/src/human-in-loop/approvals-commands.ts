@@ -25,8 +25,7 @@ const runParams = S.Object({
   approvalId: S.String(),
   dryRun: S.Optional(S.Boolean({
     description: "Preview the approval without prompting or executing it",
-    scope: ["cli"],
-    global: true
+    scope: ["cli"]
   }))
 });
 

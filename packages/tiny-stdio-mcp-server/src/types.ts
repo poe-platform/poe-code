@@ -102,6 +102,7 @@ export interface JSONSchemaProperty {
 export interface ServerOptions {
   name: string;
   version: string;
+  validateToolArguments?: boolean;
 }
 
 import type { ToolReturn } from "./content/index.js";

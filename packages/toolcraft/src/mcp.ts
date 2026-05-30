@@ -710,7 +710,11 @@ function createResolvedMCPServer<TServices extends object = Record<string, unkno
     options.omitRootToolNamePrefix ?? false
   );
   const version = resolveMCPVersion(options.version);
-  const server = createServer({ name: options.name, version });
+  const server = createServer({
+    name: options.name,
+    version,
+    validateToolArguments: false
+  });
 
   for (const tool of tools) {
     server.tool(

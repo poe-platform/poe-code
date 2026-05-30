@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
@@ -3496,6 +3497,9 @@ describe("runCLI", () => {
             "https://poe-platform.github.io/poe-code/schemas/toolcraft/mcp-proxy.schema.json",
           version: 1,
           upstream: { name: "mock-upstream", version: "1.0.0" },
+          configFingerprint: createHash("sha256")
+            .update(JSON.stringify({ transport: "stdio", command: "mock-server" }))
+            .digest("hex"),
           fetchedAt: "2026-04-26T12:00:00.000Z",
           tools: [
             {

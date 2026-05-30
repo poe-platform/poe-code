@@ -1977,6 +1977,32 @@ describe("server protocol handlers", () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
+    it("allows handlers to provide detailed validation errors when schema prevalidation is disabled", async () => {
+      const server = createServer({
+        name: "test",
+        version: "1.0.0",
+        validateToolArguments: false
+      }).tool(
+        "validated",
+        "Validated",
+        defineSchema({ name: { type: "string" } }),
+        async () => {
+          throw new ToolError(JSON_RPC_ERROR_CODES.INVALID_PARAMS, 'Missing required parameter "name".');
+        }
+      );
+
+      await server.handleMessage("initialize", {});
+
+      await expect(
+        server.handleMessage("tools/call", {
+          name: "validated",
+          arguments: {}
+        })
+      ).resolves.toEqual({
+        error: { code: JSON_RPC_ERROR_CODES.INVALID_PARAMS, message: 'Missing required parameter "name".' }
+      });
+    });
+
     it("accepts integer and nullable values declared by MCP JSON schemas", async () => {
       const handler = vi.fn(async () => "validated");
       const server = createServer({ name: "test", version: "1.0.0" }).tool(

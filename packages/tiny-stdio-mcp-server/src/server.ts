@@ -184,8 +184,8 @@ export function createServer(options: ServerOptions): Server {
         };
       }
 
-      const toolArgs = params?.arguments ?? {};
-      if (!areValidToolArguments(tool.inputSchema, toolArgs)) {
+      const toolArgs = (params?.arguments ?? {}) as Record<string, unknown>;
+      if (options.validateToolArguments !== false && !areValidToolArguments(tool.inputSchema, toolArgs)) {
         return {
           error: {
             code: JSON_RPC_ERROR_CODES.INVALID_PARAMS,

@@ -394,7 +394,7 @@ function normalizeParams(
   params: Record<string, unknown> | undefined
 ): Record<string, string> | undefined {
   if (!params) return undefined;
-  const result: Record<string, string> = {};
+  const result = Object.create(null) as Record<string, string>;
   for (const [key, value] of Object.entries(params)) {
     if (typeof value === "string") {
       result[key] = value;

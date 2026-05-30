@@ -1112,6 +1112,25 @@ describe("mcp server tools", () => {
     });
   });
 
+  it("generate_text preserves prototype-named tool parameters", async () => {
+    const { createMcpServer } = await import("../mcp-server.js");
+    const server = createMcpServer();
+    await server.handleMessage("initialize", {});
+
+    await server.handleMessage("tools/call", {
+      name: "generate_text",
+      arguments: {
+        bot_name: "test-bot",
+        message: "Test",
+        params: JSON.parse('{"__proto__":"visible"}')
+      }
+    });
+
+    const request = vi.mocked(mockClient.text).mock.calls[0]?.[0];
+    expect(Object.hasOwn(request?.params ?? {}, "__proto__")).toBe(true);
+    expect(request?.params?.["__proto__"]).toBe("visible");
+  });
+
   it("generate_image uses client.media() with default bot", async () => {
     const { generateImage } = await import("../mcp-server.js");
 

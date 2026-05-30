@@ -18,7 +18,10 @@ export interface DiscoverDocsOptions {
   homeDir: string;
   subDirectory: string;
   glob?: string;
-  fs: { readdir: (path: string) => Promise<string[]> };
+  fs: {
+    lstat: (path: string) => Promise<{ isSymbolicLink(): boolean }>;
+    readdir: (path: string) => Promise<string[]>;
+  };
 }
 
 function isMissingDirectory(error: unknown): boolean {
@@ -53,6 +56,9 @@ async function readDirectory(
   directoryPath: string
 ): Promise<string[]> {
   try {
+    if ((await fs.lstat(directoryPath)).isSymbolicLink()) {
+      return [];
+    }
     return await fs.readdir(directoryPath);
   } catch (error) {
     if (isMissingDirectory(error)) {

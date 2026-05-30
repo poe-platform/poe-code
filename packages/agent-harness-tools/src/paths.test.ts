@@ -7,7 +7,7 @@ const homeDir = "/home/test";
 
 type TestFs = DiscoverDocsOptions["fs"];
 
-function createFs(files: Record<string, string>, directories: string[] = []): TestFs {
+function createFs(files: Record<string, string>, directories: string[] = [], links: Record<string, string> = {}): TestFs {
   const volume = Volume.fromJSON(files, "/");
 
   volume.mkdirSync(cwd, { recursive: true });
@@ -15,6 +15,10 @@ function createFs(files: Record<string, string>, directories: string[] = []): Te
 
   for (const directory of directories) {
     volume.mkdirSync(directory, { recursive: true });
+  }
+
+  for (const [linkPath, targetPath] of Object.entries(links)) {
+    volume.symlinkSync(targetPath, linkPath);
   }
 
   return createFsFromVolume(volume).promises as unknown as TestFs;
@@ -152,6 +156,36 @@ describe("discoverWorkflowDocs", () => {
       fs: createFs({
         "/repo/.poe-code/experiments": "not a directory"
       })
+    });
+
+    expect(docs).toEqual([]);
+  });
+
+  it("does not discover documents through a symlinked project directory", async () => {
+    const docs = await discoverWorkflowDocs({
+      cwd,
+      homeDir,
+      subDirectory: "ralph/plans",
+      fs: createFs(
+        { "/outside-docs/external.md": "# external" },
+        ["/repo/.poe-code/ralph", "/outside-docs"],
+        { "/repo/.poe-code/ralph/plans": "/outside-docs" }
+      )
+    });
+
+    expect(docs).toEqual([]);
+  });
+
+  it("does not discover documents through a symlinked global directory", async () => {
+    const docs = await discoverWorkflowDocs({
+      cwd,
+      homeDir,
+      subDirectory: "ralph/plans",
+      fs: createFs(
+        { "/outside-docs/global.md": "# global" },
+        ["/home/test/.poe-code/ralph", "/outside-docs"],
+        { "/home/test/.poe-code/ralph/plans": "/outside-docs" }
+      )
     });
 
     expect(docs).toEqual([]);

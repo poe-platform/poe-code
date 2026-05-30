@@ -448,7 +448,7 @@ export function registerModelsCommand(
           ];
 
           rows = filtered.map((model) => {
-            const row: Record<string, string> = {
+            const row: Record<string, string> = Object.assign(Object.create(null), {
               Model: theme.accent(`${model.owned_by.toLowerCase()}/${model.id}`),
               Date: theme.muted(formatDate(model.created)),
               Modality: model.architecture
@@ -456,7 +456,7 @@ export function registerModelsCommand(
                 : "-",
               Context: model.context_window?.context_length != null ? formatTokenCount(model.context_window.context_length) : "-",
               Reasoning: model.reasoning ? theme.success("✓") : ""
-            };
+            });
             for (const feature of allFeatures) {
               row[feature] = (model.supported_features ?? []).includes(feature)
                 ? theme.success("✓")

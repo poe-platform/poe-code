@@ -212,7 +212,7 @@ function registerMediaSubcommand(
 }
 
 export function parseParams(params: string[]): Record<string, string> {
-  const result: Record<string, string> = {};
+  const result: Record<string, string> = Object.create(null) as Record<string, string>;
   for (const param of params) {
     const eqIndex = param.indexOf("=");
     if (eqIndex === -1) {

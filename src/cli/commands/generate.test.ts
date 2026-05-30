@@ -21,7 +21,16 @@ vi.mock("@poe-code/design-system", () => ({
   withSpinner: vi.fn(async ({ fn }: { fn: () => Promise<unknown> }) => await fn())
 }));
 
-const { registerGenerateCommand } = await import("./generate.js");
+const { parseParams, registerGenerateCommand } = await import("./generate.js");
+
+describe("parseParams", () => {
+  it("preserves prototype-named parameters as request values", () => {
+    const params = parseParams(["__proto__=visible"]);
+
+    expect(Object.hasOwn(params, "__proto__")).toBe(true);
+    expect(params["__proto__"]).toBe("visible");
+  });
+});
 
 describe("generate command authentication", () => {
   beforeEach(() => {

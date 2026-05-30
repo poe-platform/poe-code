@@ -156,6 +156,23 @@ describe("models command", () => {
     expect(output).toContain("openai/gpt-5");
   });
 
+  it("renders prototype-named feature columns as supported", async () => {
+    (httpClient as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        object: "list",
+        data: [createModelEntry({ supported_features: ["__proto__"] })]
+      })
+    });
+
+    const output = await runModels({ fs, httpClient, logs });
+
+    expect(output).toContain("__proto__");
+    expect(output).toContain("✓");
+    expect(output).not.toContain("[object Object]");
+  });
+
   it("sorts models by created date descending (newest first)", async () => {
     fs = await createConfigVolume("test-key");
     const models = [

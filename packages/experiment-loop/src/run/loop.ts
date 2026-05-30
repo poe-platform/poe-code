@@ -19,6 +19,7 @@ import { evaluateChain } from "../evaluator/evaluator.js";
 import { loadInstructions, loadRunConfig } from "../config/loader.js";
 import { parseAgentSpecifier, type AgentSpecifier } from "@poe-code/agent-defs";
 import type {
+  AgentRunResult,
   EvalResult,
   ExecFn,
   ExperimentFileSystem,
@@ -464,9 +465,10 @@ export async function runExperimentLoop(
       options.onExperimentStart?.(experimentIndex, currentSpecifier.agent);
 
       let journalAfter: JournalEntry[];
+      let agentResult: AgentRunResult;
 
       try {
-        await runAgent({
+        agentResult = await runAgent({
           agent: currentSpecifier.agent,
           prompt,
           cwd: options.cwd,
@@ -501,40 +503,62 @@ export async function runExperimentLoop(
 
       experimentsCompleted += 1;
 
-      if (newEntry && !newEntry.scores && metrics.length > 0) {
-        const metricTimeoutMs = frontmatter.metric_timeout !== undefined
-          ? frontmatter.metric_timeout * 1000
-          : undefined;
-        const results = await evaluateChain(
-          metrics,
-          options.cwd,
-          exec,
-          options.onMetricResult,
-          metricTimeoutMs
-        );
-        if (allMetricsPassed(metrics, results)) {
-          const scores = baselineFromResults(metrics, results);
-          newEntry = (await journal.updateLast({ scores })) ?? newEntry;
-        }
-      }
-
-      if (newEntry) {
-        if (newEntry.status === "keep") {
-          experimentsKept += 1;
-          baselineHash = newEntry.commit;
-          baseline = baselineFromEntry(newEntry) ?? baseline;
-          options.onCommit?.(newEntry.commit);
-        } else {
-          await git.reset(preExperimentHash, options.cwd);
-          options.onReset?.(preExperimentHash);
-        }
-
-        options.onExperimentComplete?.(experimentIndex, newEntry);
-      } else {
-        // Agent exited without writing a journal entry — reset silently.
+      if (newEntry === null) {
         await git.reset(preExperimentHash, options.cwd);
         options.onReset?.(preExperimentHash);
+        continue;
       }
+
+      if (agentResult.exitCode !== 0 || newEntry.status === "discard") {
+        await git.reset(preExperimentHash, options.cwd);
+        options.onReset?.(preExperimentHash);
+        if (newEntry.status === "keep") {
+          newEntry = (await journal.updateLast({ status: "discard" })) ?? {
+            ...newEntry,
+            status: "discard"
+          };
+        }
+        options.onExperimentComplete?.(experimentIndex, newEntry);
+        continue;
+      }
+
+      if (!newEntry.scores) {
+        try {
+          const metricTimeoutMs = frontmatter.metric_timeout !== undefined
+            ? frontmatter.metric_timeout * 1000
+            : undefined;
+          const results = await evaluateChain(
+            metrics,
+            options.cwd,
+            exec,
+            options.onMetricResult,
+            metricTimeoutMs
+          );
+          if (!allMetricsPassed(metrics, results)) {
+            await git.reset(preExperimentHash, options.cwd);
+            options.onReset?.(preExperimentHash);
+            newEntry = (await journal.updateLast({ status: "discard" })) ?? {
+              ...newEntry,
+              status: "discard"
+            };
+            options.onExperimentComplete?.(experimentIndex, newEntry);
+            continue;
+          }
+
+          const scores = baselineFromResults(metrics, results);
+          newEntry = (await journal.updateLast({ scores })) ?? newEntry;
+        } catch (error) {
+          await git.reset(preExperimentHash, options.cwd);
+          options.onReset?.(preExperimentHash);
+          throw error;
+        }
+      }
+
+      experimentsKept += 1;
+      baselineHash = newEntry.commit;
+      baseline = baselineFromEntry(newEntry) ?? baseline;
+      options.onCommit?.(newEntry.commit);
+      options.onExperimentComplete?.(experimentIndex, newEntry);
     }
   } catch (error) {
     if (isAbortError(error)) {

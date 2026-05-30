@@ -1913,6 +1913,180 @@ describe("runExperimentLoop", () => {
     );
   });
 
+  it("resets a scoreless keep entry when required scoring fails", async () => {
+    const docPath = "/repo/.poe-code/experiments/evaluate-keep.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 10 }) });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "candidate",
+        status: "keep",
+        output: "candidate",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec: createLoopExec([{ stdout: "failed\n", stderr: "tests failed\n", exitCode: 1 }]),
+      runAgent
+    });
+
+    expect(result.experimentsKept).toBe(0);
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+  });
+
+  it("resets an explicit scoreless discard without executing metrics", async () => {
+    const docPath = "/repo/.poe-code/experiments/discard.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 1 }) });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const exec = vi.fn(async () => { throw new Error("metric runner unavailable"); }) as ExecFn;
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "discard-1",
+        status: "discard",
+        output: "discard",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec,
+      runAgent
+    });
+
+    expect(result.experimentsKept).toBe(0);
+    expect(exec).not.toHaveBeenCalled();
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+  });
+
+  it("resets a scoreless keep when computed score publication fails", async () => {
+    const docPath = "/repo/.poe-code/experiments/score-write.md";
+    const candidatePath = "/repo/src/candidate.txt";
+    const baseFs = createFs({ [docPath]: createDoc({ baseline: 1 }), [candidatePath]: "original\n" });
+    const fs: ExperimentFileSystem = {
+      ...baseFs,
+      async writeFile(filePath, content) {
+        if (filePath.includes(".journal.jsonl.") && filePath.endsWith(".tmp")) {
+          throw new Error("disk full publishing scores");
+        }
+        await baseFs.writeFile(filePath, content);
+      }
+    };
+    const git = createLoopGit({
+      currentHash: vi.fn(async () => "base-1"),
+      reset: vi.fn(async () => baseFs.writeFile(candidatePath, "original\n"))
+    });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await baseFs.writeFile(candidatePath, "kept candidate\n");
+      await baseFs.appendFile(
+        journalFilePath(docPath),
+        `${JSON.stringify({ ...createJournalEntry({ commit: "candidate-1", scores: undefined }) })}\n`
+      );
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git,
+        exec: createLoopExec([{ stdout: "2\n", stderr: "", exitCode: 0 }]),
+        runAgent
+      })
+    ).rejects.toThrow("disk full publishing scores");
+
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+    await expect(baseFs.readFile(candidatePath, "utf8")).resolves.toBe("original\n");
+  });
+
+  it("resets an unvalidated keep when a metric observer fails", async () => {
+    const docPath = "/repo/.poe-code/experiments/metric-observer.md";
+    const candidatePath = "/repo/src/candidate.txt";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 1 }), [candidatePath]: "original\n" });
+    const git = createLoopGit({
+      currentHash: vi.fn(async () => "base-1"),
+      reset: vi.fn(async () => fs.writeFile(candidatePath, "original\n"))
+    });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await fs.writeFile(candidatePath, "unscored candidate\n");
+      await appendJournalEntry(fs, docPath, {
+        commit: "keep-1",
+        status: "keep",
+        output: "candidate",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git,
+        exec: createLoopExec([{ stdout: "2\n", stderr: "", exitCode: 0 }]),
+        runAgent,
+        onMetricResult: () => { throw new Error("metric observer failed"); }
+      })
+    ).rejects.toThrow("metric observer failed");
+
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+    await expect(fs.readFile(candidatePath, "utf8")).resolves.toBe("original\n");
+  });
+
+  it("resets a kept journal entry when the agent process exits non-zero", async () => {
+    const docPath = "/repo/.poe-code/experiments/nonzero.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 1 }) });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "bad-commit",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "tests improved",
+        agentOutput: "failed after writing journal",
+        durationMs: 10
+      });
+      return { stdout: "", stderr: "agent crashed", exitCode: 1 };
+    });
+
+    const result = await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git,
+      exec: createLoopExec([]),
+      runAgent
+    });
+
+    expect(result.experimentsKept).toBe(0);
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+  });
+
   it("skips score computation when agent already provides scores", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({

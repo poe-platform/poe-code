@@ -45,6 +45,13 @@ function createEchoRequestBody(text: string): string {
   });
 }
 
+function createInitializedNotificationBody(): string {
+  return JSON.stringify({
+    jsonrpc: "2.0",
+    method: "notifications/initialized",
+  });
+}
+
 async function initializeSession(input: {
   url: string;
   token?: string;
@@ -226,14 +233,24 @@ describe("createMcpOAuthTestServer", () => {
     expect(initialize.response.status).toBe(200);
     expect(initialize.sessionId).toBeTruthy();
 
+    const sessionHeaders = {
+      Accept: "application/json, text/event-stream",
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      "Mcp-Session-Id": initialize.sessionId ?? "",
+      "MCP-Protocol-Version": "2025-03-26",
+    };
+    const initialized = await nodeFetch(handle.mcpUrl, {
+      method: "POST",
+      headers: sessionHeaders,
+      body: createInitializedNotificationBody(),
+    });
+
+    expect(initialized.status).toBe(202);
+
     const response = await nodeFetch(handle.mcpUrl, {
       method: "POST",
-      headers: {
-        Accept: "application/json, text/event-stream",
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        "Mcp-Session-Id": initialize.sessionId ?? "",
-      },
+      headers: sessionHeaders,
       body: createEchoRequestBody("hello"),
     });
 

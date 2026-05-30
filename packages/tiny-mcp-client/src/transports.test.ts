@@ -2809,7 +2809,7 @@ describe("StdioTransport real process smoke test", () => {
       expect(response.result.protocolVersion).toBe("2025-03-26");
       expect(response.result.serverInfo).toEqual({
         name: "tiny-stdio-mcp-test-server",
-        version: "0.0.1",
+        version: "0.1.0",
       });
       expect(response.result.capabilities.tools.listChanged).toBe(true);
     } finally {

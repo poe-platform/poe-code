@@ -243,9 +243,9 @@ describe("format helpers", () => {
     });
   });
 
-  it("does not count pipeline tasks without any step statuses as done", () => {
+  it("rejects pipeline tasks without any step statuses", () => {
     expect(
-      formatPipelinePlanMarkdown({
+      () => formatPipelinePlanMarkdown({
         title: "Empty steps",
         content: [
           "tasks:",
@@ -255,7 +255,7 @@ describe("format helpers", () => {
           "    status: {}"
         ].join("\n")
       })
-    ).toContain("Status: 0/1 done");
+    ).toThrow('Invalid status for task "feature": expected at least one step status.');
   });
 
   it("reads superintendent metadata from status blocks", async () => {

@@ -17,7 +17,7 @@ describe("McpClient integration tools with tiny-stdio-mcp-test-server", () => {
     try {
       expect(client.serverInfo).toEqual({
         name: "tiny-stdio-mcp-test-server",
-        version: "0.0.1",
+        version: "0.1.0",
       });
 
       const { tools } = await client.listTools();

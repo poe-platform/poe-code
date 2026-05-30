@@ -150,6 +150,29 @@ describe("poe-agent-plugin-audit-log", () => {
 
     expect(volume.readFileSync("/outside/audit.jsonl", "utf8")).toBe("original\n");
   });
+
+  it("does not fail completed tool work when audit append persistence fails", async () => {
+    const volume = Volume.fromJSON({}, "/");
+    const fs = createFsFromVolume(volume).promises;
+    const appendFailureFs = {
+      ...fs,
+      appendFile: vi.fn(async () => {
+        throw new Error("audit disk full");
+      })
+    };
+    const plugin = auditLog("/audit.jsonl", appendFailureFs as never);
+
+    await expect(
+      plugin.hooks?.postToolUse?.({
+        tool: "edit_file",
+        args: { path: "src/app.ts" },
+        intentId: "intent-1",
+        messages: [],
+        result: "changed workspace",
+        signal: new AbortController().signal
+      })
+    ).resolves.toBeUndefined();
+  });
 });
 
 // --- poe-agent-plugin-environment ---

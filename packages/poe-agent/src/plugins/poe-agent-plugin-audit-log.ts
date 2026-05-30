@@ -9,7 +9,9 @@ const auditLog = (logPath: string, fs: AuditLogFileSystem = fsPromises): AgentPl
   hooks: {
     async postToolUse(ctx) {
       await assertNoSymbolicLinkPath(fs, logPath);
-      await fs.appendFile(logPath, `${JSON.stringify({ ts: new Date().toISOString(), tool: ctx.tool })}\n`);
+      await fs.appendFile(logPath, `${JSON.stringify({ ts: new Date().toISOString(), tool: ctx.tool })}\n`).catch(
+        () => undefined
+      );
     },
     async postCompaction(ctx) {
       await assertNoSymbolicLinkPath(fs, logPath);

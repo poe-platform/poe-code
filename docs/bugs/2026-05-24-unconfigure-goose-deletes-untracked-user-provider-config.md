@@ -1,3 +1,7 @@
+---
+name: "Unconfigure Goose deletes untracked user provider config"
+---
+
 # Unconfigure Goose deletes untracked user provider config
 
 ## Summary

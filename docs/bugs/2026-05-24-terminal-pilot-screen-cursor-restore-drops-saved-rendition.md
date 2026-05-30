@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen cursor restore drops saved rendition"
+---
+
 # Terminal pilot screen cursor restore drops saved rendition
 
 ## Summary

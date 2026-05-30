@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI 401 invalidation failure suppresses HTTP error"
+---
+
 # Toolcraft OpenAPI 401 invalidation failure suppresses HTTP error
 
 ## Summary

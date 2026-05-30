@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores CAN while parsing CSI"
+---
+
 # Terminal pilot screen ignores CAN while parsing CSI
 
 ## Summary

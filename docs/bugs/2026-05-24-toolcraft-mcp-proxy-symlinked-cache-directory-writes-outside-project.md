@@ -1,3 +1,7 @@
+---
+name: "Toolcraft MCP proxy follows symlinked cache directory and writes outside the project"
+---
+
 # Toolcraft MCP proxy follows symlinked cache directory and writes outside the project
 
 ## Summary

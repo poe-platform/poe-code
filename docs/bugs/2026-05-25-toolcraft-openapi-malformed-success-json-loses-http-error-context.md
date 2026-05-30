@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI malformed success JSON loses HTTP error context"
+---
+
 # Toolcraft OpenAPI malformed success JSON loses HTTP error context
 
 ## Summary

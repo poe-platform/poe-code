@@ -1,3 +1,7 @@
+---
+name: "Agent-script snapshot temp cleanup failure masks retryable commit error"
+---
+
 # Agent-script snapshot temp cleanup failure masks retryable commit error
 
 ## Summary

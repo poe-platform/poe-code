@@ -1,3 +1,7 @@
+---
+name: "Toolcraft MCP proxy refresh failure deletes usable cache"
+---
+
 # Toolcraft MCP proxy refresh failure deletes usable cache
 
 ## Summary

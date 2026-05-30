@@ -1,3 +1,7 @@
+---
+name: "Experiment loop negative metric timeout is ignored and uses default"
+---
+
 # Experiment loop negative metric timeout is ignored and uses default
 
 ## Summary

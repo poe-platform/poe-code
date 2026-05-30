@@ -1,3 +1,7 @@
+---
+name: "MCP `generate_text` Drops a `__proto__` Tool Parameter Before the LLM Request"
+---
+
 # MCP `generate_text` Drops a `__proto__` Tool Parameter Before the LLM Request
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Worktree Status Update Null Registry Entry Throws Native Property Error"
+---
+
 # Worktree Status Update Null Registry Entry Throws Native Property Error
 
 ## Summary

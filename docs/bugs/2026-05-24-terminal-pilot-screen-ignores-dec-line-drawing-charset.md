@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores DEC line-drawing charset"
+---
+
 # Terminal pilot screen ignores DEC line-drawing charset
 
 ## Summary

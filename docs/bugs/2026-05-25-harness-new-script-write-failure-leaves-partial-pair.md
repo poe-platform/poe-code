@@ -1,3 +1,7 @@
+---
+name: "Harness New Script Write Failure Leaves Partial Pair"
+---
+
 # Harness New Script Write Failure Leaves Partial Pair
 
 ## Summary

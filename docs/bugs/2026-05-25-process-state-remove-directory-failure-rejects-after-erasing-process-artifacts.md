@@ -1,3 +1,7 @@
+---
+name: "Process state remove directory failure rejects after erasing process artifacts"
+---
+
 # Process state remove directory failure rejects after erasing process artifacts
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Local skill configure follows a symlinked skill directory outside the project"
+---
+
 # Local skill configure follows a symlinked skill directory outside the project
 
 ## Summary

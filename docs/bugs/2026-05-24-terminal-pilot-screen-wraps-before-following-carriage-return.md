@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen wraps before following carriage return"
+---
+
 # Terminal pilot screen wraps before following carriage return
 
 ## Summary

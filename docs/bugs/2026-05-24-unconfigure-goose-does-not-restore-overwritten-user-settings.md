@@ -1,3 +1,7 @@
+---
+name: "Unconfigure Goose does not restore overwritten user settings"
+---
+
 # Unconfigure Goose does not restore overwritten user settings
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Agent Eval `verifyOracle()` Drops a `__proto__` Ambient Environment Variable"
+---
+
 # Agent Eval `verifyOracle()` Drops a `__proto__` Ambient Environment Variable
 
 ## Summary

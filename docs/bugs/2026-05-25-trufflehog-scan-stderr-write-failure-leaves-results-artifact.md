@@ -1,3 +1,7 @@
+---
+name: "TruffleHog Scan Stderr Write Failure Leaves Results Artifact"
+---
+
 # TruffleHog Scan Stderr Write Failure Leaves Results Artifact
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Experiment journal concatenated-entry recovery drops valid output containing braces"
+---
+
 # Experiment journal concatenated-entry recovery drops valid output containing braces
 
 ## Summary

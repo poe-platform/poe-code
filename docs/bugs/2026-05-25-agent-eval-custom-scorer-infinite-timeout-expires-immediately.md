@@ -1,3 +1,7 @@
+---
+name: "Agent eval custom scorer infinite timeout expires immediately"
+---
+
 # Agent eval custom scorer infinite timeout expires immediately
 
 ## Summary

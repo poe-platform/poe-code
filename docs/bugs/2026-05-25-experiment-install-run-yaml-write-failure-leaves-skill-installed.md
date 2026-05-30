@@ -1,3 +1,7 @@
+---
+name: "Experiment Install Run YAML Write Failure Leaves Skill Installed"
+---
+
 # Experiment Install Run YAML Write Failure Leaves Skill Installed
 
 ## Summary

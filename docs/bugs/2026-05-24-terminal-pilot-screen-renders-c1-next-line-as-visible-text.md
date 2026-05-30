@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen renders C1 next-line as visible text"
+---
+
 # Terminal pilot screen renders C1 next-line as visible text
 
 ## Summary

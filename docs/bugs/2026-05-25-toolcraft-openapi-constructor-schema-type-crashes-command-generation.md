@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI constructor schema type crashes command generation"
+---
+
 # Toolcraft OpenAPI constructor schema type crashes command generation
 
 ## Summary

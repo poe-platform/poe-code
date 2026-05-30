@@ -1,3 +1,7 @@
+---
+name: "Experiment loop agent cancellation leaves candidate changes unreset"
+---
+
 # Experiment loop agent cancellation leaves candidate changes unreset
 
 ## Summary

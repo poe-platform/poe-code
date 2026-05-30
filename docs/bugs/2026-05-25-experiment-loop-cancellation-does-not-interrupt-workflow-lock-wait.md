@@ -1,3 +1,7 @@
+---
+name: "Experiment Loop Cancellation Does Not Interrupt Workflow Lock Wait"
+---
+
 # Experiment Loop Cancellation Does Not Interrupt Workflow Lock Wait
 
 ## Summary

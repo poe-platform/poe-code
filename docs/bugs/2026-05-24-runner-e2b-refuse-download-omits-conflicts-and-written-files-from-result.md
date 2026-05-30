@@ -1,3 +1,7 @@
+---
+name: "E2B refuse download omits conflicts and written files from its sync result"
+---
+
 # E2B refuse download omits conflicts and written files from its sync result
 
 ## Summary

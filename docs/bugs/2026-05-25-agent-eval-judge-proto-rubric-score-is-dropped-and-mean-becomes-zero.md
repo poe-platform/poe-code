@@ -1,3 +1,7 @@
+---
+name: "Agent Eval Judge `__proto__` Rubric Score Is Dropped and Mean Becomes Zero"
+---
+
 # Agent Eval Judge `__proto__` Rubric Score Is Dropped and Mean Becomes Zero
 
 ## Summary

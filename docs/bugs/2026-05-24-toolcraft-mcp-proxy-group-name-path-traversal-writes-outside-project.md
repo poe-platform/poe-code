@@ -1,3 +1,7 @@
+---
+name: "Toolcraft MCP proxy group name traversal writes cache outside the project"
+---
+
 # Toolcraft MCP proxy group name traversal writes cache outside the project
 
 ## Summary

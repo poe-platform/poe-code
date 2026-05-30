@@ -1,3 +1,7 @@
+---
+name: "Terminal Pilot MCP README advertises prefixed tools that server does not expose"
+---
+
 # Terminal Pilot MCP README advertises prefixed tools that server does not expose
 
 ## Summary

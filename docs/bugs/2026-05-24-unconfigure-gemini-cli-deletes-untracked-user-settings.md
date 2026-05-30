@@ -1,3 +1,7 @@
+---
+name: "Unconfigure Gemini CLI deletes untracked user settings"
+---
+
 # Unconfigure Gemini CLI deletes untracked user settings
 
 ## Summary

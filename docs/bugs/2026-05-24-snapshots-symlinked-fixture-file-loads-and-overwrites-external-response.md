@@ -1,3 +1,7 @@
+---
+name: "Snapshot operations follow a symlinked fixture file and load and overwrite an external response"
+---
+
 # Snapshot operations follow a symlinked fixture file and load and overwrite an external response
 
 ## Summary

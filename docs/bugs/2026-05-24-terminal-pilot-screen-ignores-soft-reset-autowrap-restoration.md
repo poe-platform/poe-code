@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores soft-reset autowrap restoration"
+---
+
 # Terminal pilot screen ignores soft-reset autowrap restoration
 
 ## Summary

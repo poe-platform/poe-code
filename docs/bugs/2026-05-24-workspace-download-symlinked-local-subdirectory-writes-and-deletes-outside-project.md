@@ -1,3 +1,7 @@
+---
+name: "Workspace download follows symlinked local subdirectories outside the project"
+---
+
 # Workspace download follows symlinked local subdirectories outside the project
 
 ## Summary

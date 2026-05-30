@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen renders stray backslash after OSC string terminator"
+---
+
 # Terminal pilot screen renders stray backslash after OSC string terminator
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Provider logout Anthropic leaves Claude Code API key"
+---
+
 # Provider logout Anthropic leaves Claude Code API key
 
 ## Summary

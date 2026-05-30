@@ -1,3 +1,7 @@
+---
+name: "Runtime jobs ls marks an E2B job lost when its API key is unavailable"
+---
+
 # Runtime jobs ls marks an E2B job lost when its API key is unavailable
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen resize discards scrolling region"
+---
+
 # Terminal pilot screen resize discards scrolling region
 
 ## Summary

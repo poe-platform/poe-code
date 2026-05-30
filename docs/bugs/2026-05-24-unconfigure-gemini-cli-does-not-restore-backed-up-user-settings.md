@@ -1,3 +1,7 @@
+---
+name: "Unconfigure Gemini CLI does not restore backed-up user settings"
+---
+
 # Unconfigure Gemini CLI does not restore backed-up user settings
 
 ## Summary

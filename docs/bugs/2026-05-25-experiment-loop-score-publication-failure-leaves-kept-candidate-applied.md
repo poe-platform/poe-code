@@ -1,3 +1,7 @@
+---
+name: "Experiment loop score publication failure leaves kept candidate applied"
+---
+
 # Experiment loop score publication failure leaves kept candidate applied
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Runtime job registry follows a symlinked state directory and reads, writes, or deletes external job files"
+---
+
 # Runtime job registry follows a symlinked state directory and reads, writes, or deletes external job files
 
 ## Summary

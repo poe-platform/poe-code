@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen treats BEL as DCS string terminator"
+---
+
 # Terminal pilot screen treats BEL as DCS string terminator
 
 ## Summary

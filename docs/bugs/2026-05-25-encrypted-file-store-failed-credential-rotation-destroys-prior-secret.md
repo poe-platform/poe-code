@@ -1,3 +1,7 @@
+---
+name: "Encrypted File Store Failed Credential Rotation Destroys Prior Secret"
+---
+
 # Encrypted File Store Failed Credential Rotation Destroys Prior Secret
 
 ## Summary

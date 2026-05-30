@@ -1,3 +1,7 @@
+---
+name: "Experiment metric stderr-only failure is misreported as timeout"
+---
+
 # Experiment metric stderr-only failure is misreported as timeout
 
 ## Summary

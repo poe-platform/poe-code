@@ -1,3 +1,7 @@
+---
+name: "Workflow discover-models follows symlinked GitHub output file and appends outside workflow state"
+---
+
 # Workflow discover-models follows symlinked GitHub output file and appends outside workflow state
 
 ## Summary

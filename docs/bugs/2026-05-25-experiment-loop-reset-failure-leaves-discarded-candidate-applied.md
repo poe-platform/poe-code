@@ -1,3 +1,7 @@
+---
+name: "Experiment loop reset failure leaves discarded candidate applied"
+---
+
 # Experiment loop reset failure leaves discarded candidate applied
 
 ## Summary

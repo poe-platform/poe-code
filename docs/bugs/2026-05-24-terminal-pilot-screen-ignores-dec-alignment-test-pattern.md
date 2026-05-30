@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores DEC alignment test pattern"
+---
+
 # Terminal pilot screen ignores DEC alignment test pattern
 
 ## Summary

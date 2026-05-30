@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen cursor restore drops saved auto-wrap mode"
+---
+
 # Terminal pilot screen cursor restore drops saved auto-wrap mode
 
 ## Summary

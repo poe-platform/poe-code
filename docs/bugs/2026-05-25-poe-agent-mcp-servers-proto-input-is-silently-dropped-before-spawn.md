@@ -1,3 +1,7 @@
+---
+name: "Poe agent mcp servers proto input is silently dropped before spawn"
+---
+
 # Poe agent mcp servers proto input is silently dropped before spawn
 
 ## Summary

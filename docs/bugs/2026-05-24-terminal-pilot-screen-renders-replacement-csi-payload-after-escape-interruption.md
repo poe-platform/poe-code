@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen renders replacement CSI payload after escape interruption"
+---
+
 # Terminal pilot screen renders replacement CSI payload after escape interruption
 
 ## Summary

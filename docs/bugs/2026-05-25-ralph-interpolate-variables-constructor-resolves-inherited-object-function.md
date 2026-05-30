@@ -1,3 +1,7 @@
+---
+name: "Ralph interpolate variables constructor resolves inherited object function"
+---
+
 # Ralph interpolate variables constructor resolves inherited object function
 
 ## Summary

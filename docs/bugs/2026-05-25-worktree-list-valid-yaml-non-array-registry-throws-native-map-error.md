@@ -1,3 +1,7 @@
+---
+name: "Worktree List Valid YAML Non-Array Registry Throws Native Map Error"
+---
+
 # Worktree List Valid YAML Non-Array Registry Throws Native Map Error
 
 ## Summary

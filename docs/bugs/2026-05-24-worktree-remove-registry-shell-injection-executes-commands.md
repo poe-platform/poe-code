@@ -1,3 +1,7 @@
+---
+name: "Worktree remove executes shell commands embedded in registry path and branch fields"
+---
+
 # Worktree remove executes shell commands embedded in registry path and branch fields
 
 ## Summary

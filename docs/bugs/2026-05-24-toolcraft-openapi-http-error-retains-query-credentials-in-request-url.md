@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI HttpError retains query credentials in request URL"
+---
+
 # Toolcraft OpenAPI HttpError retains query credentials in request URL
 
 ## Summary

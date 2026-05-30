@@ -1,3 +1,7 @@
+---
+name: "Provider login key rotation leaves deployed tool credentials stale"
+---
+
 # Provider login key rotation leaves deployed tool credentials stale
 
 ## Summary

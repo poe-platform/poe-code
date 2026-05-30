@@ -1,3 +1,7 @@
+---
+name: "Experiment loop nonzero agent exit can still commit kept experiment"
+---
+
 # Experiment loop nonzero agent exit can still commit kept experiment
 
 ## Summary

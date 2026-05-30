@@ -1,3 +1,7 @@
+---
+name: "Docker workspace upload ignores the configured maximum file-size policy"
+---
+
 # Docker workspace upload ignores the configured maximum file-size policy
 
 ## Summary

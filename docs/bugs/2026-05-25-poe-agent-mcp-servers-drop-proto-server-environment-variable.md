@@ -1,3 +1,7 @@
+---
+name: "Poe Agent `--mcp-servers` Drops a `__proto__` Server Environment Variable"
+---
+
 # Poe Agent `--mcp-servers` Drops a `__proto__` Server Environment Variable
 
 ## Summary

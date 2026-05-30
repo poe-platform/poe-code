@@ -1,3 +1,7 @@
+---
+name: "Agent Script `dump()` Drops a Supported `__proto__` Object Property from a Snapshot"
+---
+
 # Agent Script `dump()` Drops a Supported `__proto__` Object Property from a Snapshot
 
 ## Summary

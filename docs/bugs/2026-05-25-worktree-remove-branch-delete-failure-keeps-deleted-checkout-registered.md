@@ -1,3 +1,7 @@
+---
+name: "Worktree Remove Branch Delete Failure Keeps Deleted Checkout Registered"
+---
+
 # Worktree Remove Branch Delete Failure Keeps Deleted Checkout Registered
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Toolcraft MCP proxy invalid discovery is cached and suppresses healthy refetch"
+---
+
 # Toolcraft MCP proxy invalid discovery is cached and suppresses healthy refetch
 
 ## Summary

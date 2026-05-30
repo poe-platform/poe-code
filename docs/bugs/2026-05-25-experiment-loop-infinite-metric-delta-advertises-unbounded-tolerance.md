@@ -1,3 +1,7 @@
+---
+name: "Experiment loop infinite metric delta advertises unbounded tolerance"
+---
+
 # Experiment loop infinite metric delta advertises unbounded tolerance
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Agent Script Pending Host Policy `__proto__` Module Registration Pollutes `Object.prototype`"
+---
+
 # Agent Script Pending Host Policy `__proto__` Module Registration Pollutes `Object.prototype`
 
 ## Summary

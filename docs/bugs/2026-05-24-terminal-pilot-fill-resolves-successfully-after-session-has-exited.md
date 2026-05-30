@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot fill resolves successfully after session has exited"
+---
+
 # Terminal pilot fill resolves successfully after session has exited
 
 ## Summary

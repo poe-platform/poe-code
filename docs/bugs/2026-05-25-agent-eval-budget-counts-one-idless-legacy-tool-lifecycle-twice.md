@@ -1,3 +1,7 @@
+---
+name: "Agent eval budget counts one idless legacy tool lifecycle twice"
+---
+
 # Agent eval budget counts one idless legacy tool lifecycle twice
 
 ## Summary

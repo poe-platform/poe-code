@@ -1,3 +1,7 @@
+---
+name: "SDK `runExperiment` Replaces Caller-Provided Agent Runner"
+---
+
 # SDK `runExperiment` Replaces Caller-Provided Agent Runner
 
 ## Summary

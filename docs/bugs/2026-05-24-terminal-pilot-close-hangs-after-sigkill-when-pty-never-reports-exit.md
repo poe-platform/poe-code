@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot close hangs after SIGKILL when PTY never reports exit"
+---
+
 # Terminal pilot close hangs after SIGKILL when PTY never reports exit
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Experiment loop empty metric chain runs agent without objective"
+---
+
 # Experiment loop empty metric chain runs agent without objective
 
 ## Summary

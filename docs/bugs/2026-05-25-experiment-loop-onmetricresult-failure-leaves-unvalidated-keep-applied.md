@@ -1,3 +1,7 @@
+---
+name: "Experiment loop onMetricResult failure leaves unvalidated keep applied"
+---
+
 # Experiment loop onMetricResult failure leaves unvalidated keep applied
 
 ## Summary

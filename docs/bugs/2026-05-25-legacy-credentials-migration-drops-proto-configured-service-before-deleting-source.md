@@ -1,3 +1,7 @@
+---
+name: "Legacy Credentials Migration Drops a `__proto__` Configured Service Before Deleting Its Source"
+---
+
 # Legacy Credentials Migration Drops a `__proto__` Configured Service Before Deleting Its Source
 
 ## Summary

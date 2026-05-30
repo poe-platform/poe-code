@@ -1,3 +1,7 @@
+---
+name: "Unknown commands followed by `--help` exit successfully"
+---
+
 # Unknown commands followed by `--help` exit successfully
 
 ## Summary

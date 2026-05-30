@@ -1,3 +1,7 @@
+---
+name: "Workflow select-service follows symlinked GitHub output file and appends outside workflow state"
+---
+
 # Workflow select-service follows symlinked GitHub output file and appends outside workflow state
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "E2B workspace upload ignores the documented maximum file-size policy"
+---
+
 # E2B workspace upload ignores the documented maximum file-size policy
 
 ## Summary

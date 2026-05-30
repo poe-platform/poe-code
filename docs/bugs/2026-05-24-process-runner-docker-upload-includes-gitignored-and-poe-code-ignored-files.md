@@ -1,3 +1,7 @@
+---
+name: "Docker workspace upload includes gitignored and Poe-Code-ignored files"
+---
+
 # Docker workspace upload includes gitignored and Poe-Code-ignored files
 
 ## Summary

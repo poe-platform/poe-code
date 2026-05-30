@@ -1,3 +1,7 @@
+---
+name: "`generate --param` Drops a `__proto__` Option Before the LLM Request"
+---
+
 # `generate --param` Drops a `__proto__` Option Before the LLM Request
 
 ## Summary

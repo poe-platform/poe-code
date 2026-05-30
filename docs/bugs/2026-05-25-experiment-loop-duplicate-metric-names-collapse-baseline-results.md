@@ -1,3 +1,7 @@
+---
+name: "Experiment loop duplicate metric names collapse baseline results"
+---
+
 # Experiment loop duplicate metric names collapse baseline results
 
 ## Summary

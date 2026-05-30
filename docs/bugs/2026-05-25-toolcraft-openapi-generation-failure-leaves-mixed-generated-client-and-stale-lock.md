@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI generation failure leaves mixed generated client and stale lock"
+---
+
 # Toolcraft OpenAPI generation failure leaves mixed generated client and stale lock
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores custom tab stops"
+---
+
 # Terminal pilot screen ignores custom tab stops
 
 ## Summary

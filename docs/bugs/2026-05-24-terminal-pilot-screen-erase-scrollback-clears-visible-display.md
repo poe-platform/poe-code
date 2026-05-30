@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen erase-scrollback clears visible display"
+---
+
 # Terminal pilot screen erase-scrollback clears visible display
 
 ## Summary

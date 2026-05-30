@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores repeat preceding character control"
+---
+
 # Terminal pilot screen ignores repeat preceding character control
 
 ## Summary

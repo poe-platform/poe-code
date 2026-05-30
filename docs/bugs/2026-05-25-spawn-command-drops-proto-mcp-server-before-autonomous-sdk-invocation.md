@@ -1,3 +1,7 @@
+---
+name: "Spawn Command Drops a `__proto__` MCP Server Before Autonomous SDK Invocation"
+---
+
 # Spawn Command Drops a `__proto__` MCP Server Before Autonomous SDK Invocation
 
 ## Summary

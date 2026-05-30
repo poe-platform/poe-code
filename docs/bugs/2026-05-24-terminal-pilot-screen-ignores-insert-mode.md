@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores insert mode"
+---
+
 # Terminal pilot screen ignores insert mode
 
 ## Summary

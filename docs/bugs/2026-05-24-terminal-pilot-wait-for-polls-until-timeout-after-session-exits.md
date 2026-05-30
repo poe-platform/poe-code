@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot wait for polls until timeout after session exits"
+---
+
 # Terminal pilot wait for polls until timeout after session exits
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Superintendent MCP integration shutdown failure rejects a completed run"
+---
+
 # Superintendent MCP integration shutdown failure rejects a completed run
 
 ## Summary

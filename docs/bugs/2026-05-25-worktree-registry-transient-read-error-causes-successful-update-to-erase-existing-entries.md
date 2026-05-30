@@ -1,3 +1,7 @@
+---
+name: "Worktree Registry Transient Read Error Causes Successful Update to Erase Existing Entries"
+---
+
 # Worktree Registry Transient Read Error Causes Successful Update to Erase Existing Entries
 
 ## Summary

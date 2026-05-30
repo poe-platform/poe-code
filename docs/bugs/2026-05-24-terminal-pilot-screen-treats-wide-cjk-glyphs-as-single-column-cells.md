@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen treats wide CJK glyphs as single column cells"
+---
+
 # Terminal pilot screen treats wide CJK glyphs as single column cells
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "SDK `runExperiment` Drops Per-Attempt Log Routing"
+---
+
 # SDK `runExperiment` Drops Per-Attempt Log Routing
 
 ## Summary

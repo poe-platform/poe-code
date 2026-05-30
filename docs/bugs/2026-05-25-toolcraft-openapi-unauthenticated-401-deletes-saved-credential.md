@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI unauthenticated 401 deletes saved credential"
+---
+
 # Toolcraft OpenAPI unauthenticated 401 deletes saved credential
 
 ## Summary

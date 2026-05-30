@@ -1,3 +1,7 @@
+---
+name: "Spawn Command Drops a `__proto__` MCP Server Environment Variable"
+---
+
 # Spawn Command Drops a `__proto__` MCP Server Environment Variable
 
 ## Summary

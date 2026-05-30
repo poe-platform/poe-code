@@ -1,3 +1,7 @@
+---
+name: "Experiment loop failed baseline measurement still runs agent without comparator"
+---
+
 # Experiment loop failed baseline measurement still runs agent without comparator
 
 ## Summary

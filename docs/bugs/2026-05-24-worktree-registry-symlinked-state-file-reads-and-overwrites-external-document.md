@@ -1,3 +1,7 @@
+---
+name: "Worktree registry follows a symlinked state file and reads and overwrites an external document"
+---
+
 # Worktree registry follows a symlinked state file and reads and overwrites an external document
 
 ## Summary

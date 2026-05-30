@@ -1,3 +1,7 @@
+---
+name: "Utils symlink agents link failure leaves legacy instructions renamed away"
+---
+
 # Utils symlink agents link failure leaves legacy instructions renamed away
 
 ## Summary

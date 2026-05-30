@@ -1,3 +1,7 @@
+---
+name: "Agent Script Log Event Drops a `__proto__` Payload Field From JSONL"
+---
+
 # Agent Script Log Event Drops a `__proto__` Payload Field From JSONL
 
 ## Summary

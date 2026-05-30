@@ -1,3 +1,7 @@
+---
+name: "SDK spawnCore workspace cleanup failure rejects successful provider output"
+---
+
 # SDK spawnCore workspace cleanup failure rejects successful provider output
 
 ## Summary

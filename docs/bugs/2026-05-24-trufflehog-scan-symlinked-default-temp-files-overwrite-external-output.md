@@ -1,3 +1,7 @@
+---
+name: "TruffleHog scan follows symlinked default temporary files and overwrites external output"
+---
+
 # TruffleHog scan follows symlinked default temporary files and overwrites external output
 
 ## Summary

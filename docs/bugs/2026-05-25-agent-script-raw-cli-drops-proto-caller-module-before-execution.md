@@ -1,3 +1,7 @@
+---
+name: "Agent Script Raw CLI Drops a `__proto__` Caller Module Before Execution"
+---
+
 # Agent Script Raw CLI Drops a `__proto__` Caller Module Before Execution
 
 ## Summary

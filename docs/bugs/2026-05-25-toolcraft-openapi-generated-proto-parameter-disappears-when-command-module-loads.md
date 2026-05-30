@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI generated proto parameter disappears when command module loads"
+---
+
 # Toolcraft OpenAPI generated proto parameter disappears when command module loads
 
 ## Summary

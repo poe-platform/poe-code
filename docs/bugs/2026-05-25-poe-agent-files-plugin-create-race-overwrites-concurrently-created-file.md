@@ -1,3 +1,7 @@
+---
+name: "Poe Agent Files Plugin Create Race Overwrites Concurrently Created File"
+---
+
 # Poe Agent Files Plugin Create Race Overwrites Concurrently Created File
 
 ## Summary

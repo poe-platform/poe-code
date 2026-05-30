@@ -1,3 +1,7 @@
+---
+name: "`models` Command Renders a `__proto__` Feature Cell as Inherited Object Text"
+---
+
 # `models` Command Renders a `__proto__` Feature Cell as Inherited Object Text
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Experiment loop onReset failure rejects after successful discard rollback"
+---
+
 # Experiment loop onReset failure rejects after successful discard rollback
 
 ## Summary

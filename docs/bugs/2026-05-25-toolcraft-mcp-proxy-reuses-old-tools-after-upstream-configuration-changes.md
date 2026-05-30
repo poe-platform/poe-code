@@ -1,3 +1,7 @@
+---
+name: "Toolcraft MCP proxy reuses old tools after upstream configuration changes"
+---
+
 # Toolcraft MCP proxy reuses old tools after upstream configuration changes
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "E2B interactive spawn ignores the configured agent command and arguments"
+---
+
 # E2B interactive spawn ignores the configured agent command and arguments
 
 ## Summary

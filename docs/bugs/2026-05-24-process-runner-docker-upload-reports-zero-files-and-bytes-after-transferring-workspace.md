@@ -1,3 +1,7 @@
+---
+name: "Docker workspace upload reports zero files and bytes after transferring content"
+---
+
 # Docker workspace upload reports zero files and bytes after transferring content
 
 ## Summary

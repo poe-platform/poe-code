@@ -1,3 +1,7 @@
+---
+name: "TruffleHog scan follows symlinked GitHub output file and appends outside workflow state"
+---
+
 # TruffleHog scan follows symlinked GitHub output file and appends outside workflow state
 
 ## Summary

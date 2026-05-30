@@ -1,3 +1,7 @@
+---
+name: "E2B download does not remove files deleted in the remote workspace"
+---
+
 # E2B download does not remove files deleted in the remote workspace
 
 ## Summary

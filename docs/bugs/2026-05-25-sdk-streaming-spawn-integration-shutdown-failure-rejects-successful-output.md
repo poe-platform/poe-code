@@ -1,3 +1,7 @@
+---
+name: "SDK streaming spawn integration shutdown failure rejects successful output"
+---
+
 # SDK streaming spawn integration shutdown failure rejects successful output
 
 ## Summary

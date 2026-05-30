@@ -1,3 +1,7 @@
+---
+name: "Provider login endpoint update leaves configured tools stale"
+---
+
 # Provider login endpoint update leaves configured tools stale
 
 ## Summary

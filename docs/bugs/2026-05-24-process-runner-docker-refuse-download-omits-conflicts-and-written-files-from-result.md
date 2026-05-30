@@ -1,3 +1,7 @@
+---
+name: "Docker refuse download omits conflicts and written files from its sync result"
+---
+
 # Docker refuse download omits conflicts and written files from its sync result
 
 ## Summary

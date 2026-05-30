@@ -1,3 +1,7 @@
+---
+name: "Superintendent Default Role Runner Does Not Cancel Active Agent Command"
+---
+
 # Superintendent Default Role Runner Does Not Cancel Active Agent Command
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Agent eval runVitest infinite timeout expires immediately"
+---
+
 # Agent eval runVitest infinite timeout expires immediately
 
 ## Summary

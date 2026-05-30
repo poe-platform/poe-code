@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen treats DEL as destructive backspace"
+---
+
 # Terminal pilot screen treats DEL as destructive backspace
 
 ## Summary

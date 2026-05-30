@@ -1,3 +1,7 @@
+---
+name: "Workflow document discovery follows a symlinked project directory and lists external documents"
+---
+
 # Workflow document discovery follows a symlinked project directory and lists external documents
 
 ## Summary

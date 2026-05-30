@@ -1,3 +1,7 @@
+---
+name: "SDK streaming spawn workspace cleanup failure rejects successful output"
+---
+
 # SDK streaming spawn workspace cleanup failure rejects successful output
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Terminal Pilot uninstall follows a symlinked local skill directory and deletes outside the project"
+---
+
 # Terminal Pilot uninstall follows a symlinked local skill directory and deletes outside the project
 
 ## Summary

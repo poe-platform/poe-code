@@ -1,3 +1,7 @@
+---
+name: "Workflow determine-provider follows symlinked GitHub output file and appends outside workflow state"
+---
+
 # Workflow determine-provider follows symlinked GitHub output file and appends outside workflow state
 
 ## Summary

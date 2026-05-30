@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen full reset retains disabled autowrap"
+---
+
 # Terminal pilot screen full reset retains disabled autowrap
 
 ## Summary

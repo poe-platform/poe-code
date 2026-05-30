@@ -1,3 +1,7 @@
+---
+name: "TruffleHog Advisory Summary Write Failure Rejects After Posting Comment"
+---
+
 # TruffleHog Advisory Summary Write Failure Rejects After Posting Comment
 
 ## Summary

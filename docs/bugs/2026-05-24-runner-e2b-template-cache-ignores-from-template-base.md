@@ -1,3 +1,7 @@
+---
+name: "E2B runtime template cache ignores the configured base template"
+---
+
 # E2B runtime template cache ignores the configured base template
 
 ## Summary

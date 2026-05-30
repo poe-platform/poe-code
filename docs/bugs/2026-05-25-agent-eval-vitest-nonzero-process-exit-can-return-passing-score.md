@@ -1,3 +1,7 @@
+---
+name: "Agent-eval Vitest nonzero process exit can return passing score"
+---
+
 # Agent-eval Vitest nonzero process exit can return passing score
 
 ## Summary

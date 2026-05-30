@@ -1,3 +1,7 @@
+---
+name: "Experiment loop multiple journal results consume future attempt budget"
+---
+
 # Experiment loop multiple journal results consume future attempt budget
 
 ## Summary

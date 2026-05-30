@@ -1,3 +1,7 @@
+---
+name: "Experiment loop wrong document kind still runs agent"
+---
+
 # Experiment loop wrong document kind still runs agent
 
 ## Summary

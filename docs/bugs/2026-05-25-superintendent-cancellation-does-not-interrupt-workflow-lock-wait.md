@@ -1,3 +1,7 @@
+---
+name: "Superintendent Cancellation Does Not Interrupt Workflow Lock Wait"
+---
+
 # Superintendent Cancellation Does Not Interrupt Workflow Lock Wait
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot thrown kill poisons subsequent close retries"
+---
+
 # Terminal pilot thrown kill poisons subsequent close retries
 
 ## Summary

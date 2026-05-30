@@ -1,3 +1,7 @@
+---
+name: "TruffleHog Scan Findings Output Failure Leaves Exit Code Published"
+---
+
 # TruffleHog Scan Findings Output Failure Leaves Exit Code Published
 
 ## Summary

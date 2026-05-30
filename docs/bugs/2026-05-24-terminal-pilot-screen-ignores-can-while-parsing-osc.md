@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores CAN while parsing OSC"
+---
+
 # Terminal pilot screen ignores CAN while parsing OSC
 
 ## Summary

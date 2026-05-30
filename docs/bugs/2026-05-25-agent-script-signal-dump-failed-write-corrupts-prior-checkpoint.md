@@ -1,3 +1,7 @@
+---
+name: "Agent-script signal dump failed write corrupts prior checkpoint"
+---
+
 # Agent-script signal dump failed write corrupts prior checkpoint
 
 ## Summary

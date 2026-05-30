@@ -1,3 +1,7 @@
+---
+name: "`restoreLatestBackup()` can corrupt a valid live target when replacement fails"
+---
+
 # `restoreLatestBackup()` can corrupt a valid live target when replacement fails
 
 ## Summary

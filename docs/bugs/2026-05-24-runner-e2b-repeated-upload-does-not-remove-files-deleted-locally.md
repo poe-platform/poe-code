@@ -1,3 +1,7 @@
+---
+name: "E2B repeated upload does not remove files deleted in the local workspace"
+---
+
 # E2B repeated upload does not remove files deleted in the local workspace
 
 ## Summary

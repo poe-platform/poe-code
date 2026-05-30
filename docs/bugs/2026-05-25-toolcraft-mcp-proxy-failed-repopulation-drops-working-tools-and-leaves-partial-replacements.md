@@ -1,3 +1,7 @@
+---
+name: "Toolcraft MCP proxy failed repopulation drops working tools and leaves partial replacements"
+---
+
 # Toolcraft MCP proxy failed repopulation drops working tools and leaves partial replacements
 
 ## Summary

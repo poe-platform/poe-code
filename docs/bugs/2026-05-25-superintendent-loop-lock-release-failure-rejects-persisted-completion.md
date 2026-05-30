@@ -1,3 +1,7 @@
+---
+name: "Superintendent loop lock release failure rejects persisted completion"
+---
+
 # Superintendent loop lock release failure rejects persisted completion
 
 ## Summary

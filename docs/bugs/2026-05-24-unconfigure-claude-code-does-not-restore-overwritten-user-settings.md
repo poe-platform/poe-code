@@ -1,3 +1,7 @@
+---
+name: "Unconfigure Claude Code does not restore overwritten user settings"
+---
+
 # Unconfigure Claude Code does not restore overwritten user settings
 
 ## Summary

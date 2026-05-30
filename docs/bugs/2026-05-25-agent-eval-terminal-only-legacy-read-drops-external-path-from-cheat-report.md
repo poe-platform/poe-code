@@ -1,3 +1,7 @@
+---
+name: "Agent eval terminal only legacy read drops external path from cheat report"
+---
+
 # Agent eval terminal only legacy read drops external path from cheat report
 
 ## Summary

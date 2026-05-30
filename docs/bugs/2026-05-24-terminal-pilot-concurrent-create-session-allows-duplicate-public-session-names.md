@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot concurrent create session allows duplicate public session names"
+---
+
 # Terminal pilot concurrent create session allows duplicate public session names
 
 ## Summary

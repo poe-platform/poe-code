@@ -1,3 +1,7 @@
+---
+name: "Provider logout leaves deployed tool credentials"
+---
+
 # Provider logout leaves deployed tool credentials
 
 ## Summary

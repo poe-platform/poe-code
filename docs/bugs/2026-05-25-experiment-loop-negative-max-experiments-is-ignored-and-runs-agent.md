@@ -1,3 +1,7 @@
+---
+name: "Experiment loop negative max experiments is ignored and runs agent"
+---
+
 # Experiment loop negative max experiments is ignored and runs agent
 
 ## Summary

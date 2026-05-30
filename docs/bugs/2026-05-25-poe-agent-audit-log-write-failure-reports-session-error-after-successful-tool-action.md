@@ -1,3 +1,7 @@
+---
+name: "Poe Agent Audit Log Write Failure Reports Session Error After Successful Tool Action"
+---
+
 # Poe Agent Audit Log Write Failure Reports Session Error After Successful Tool Action
 
 ## Summary

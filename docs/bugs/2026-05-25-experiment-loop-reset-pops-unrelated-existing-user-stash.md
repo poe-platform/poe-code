@@ -1,3 +1,7 @@
+---
+name: "Experiment loop reset pops unrelated existing user stash"
+---
+
 # Experiment loop reset pops unrelated existing user stash
 
 ## Summary

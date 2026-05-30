@@ -1,3 +1,7 @@
+---
+name: "Runtime jobs sync --close leaves a destroyed sandbox selectable for future sync"
+---
+
 # Runtime jobs sync --close leaves a destroyed sandbox selectable for future sync
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Workspace resolver documents SSH and Docker workspaces that runtime rejects"
+---
+
 # Workspace resolver documents SSH and Docker workspaces that runtime rejects
 
 ## Summary

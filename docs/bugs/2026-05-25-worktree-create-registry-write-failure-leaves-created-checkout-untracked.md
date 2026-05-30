@@ -1,3 +1,7 @@
+---
+name: "Worktree Create Registry Write Failure Leaves Created Checkout Untracked"
+---
+
 # Worktree Create Registry Write Failure Leaves Created Checkout Untracked
 
 ## Summary

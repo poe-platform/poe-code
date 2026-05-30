@@ -1,3 +1,7 @@
+---
+name: "TruffleHog advisory follows symlinked default results file and loads external findings"
+---
+
 # TruffleHog advisory follows symlinked default results file and loads external findings
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Worktree Registry Failed Write Hides Prior Entries as Empty State"
+---
+
 # Worktree Registry Failed Write Hides Prior Entries as Empty State
 
 ## Summary

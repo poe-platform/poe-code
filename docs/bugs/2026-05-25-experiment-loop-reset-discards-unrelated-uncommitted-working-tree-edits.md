@@ -1,3 +1,7 @@
+---
+name: "Experiment loop reset discards unrelated uncommitted working tree edits"
+---
+
 # Experiment loop reset discards unrelated uncommitted working tree edits
 
 ## Summary

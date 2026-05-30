@@ -1,3 +1,7 @@
+---
+name: "Agent Script catch object rest converts proto property into inherited state"
+---
+
 # Agent Script catch object rest converts proto property into inherited state
 
 ## Summary

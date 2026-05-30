@@ -1,3 +1,7 @@
+---
+name: "Python spawn wait-only cancel event leaves watcher thread blocked after completion"
+---
+
 # Python spawn wait-only cancel event leaves watcher thread blocked after completion
 
 ## Summary

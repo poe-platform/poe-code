@@ -1,3 +1,7 @@
+---
+name: "Snapshots command follows a symlinked snapshot root and loads and deletes external fixtures"
+---
+
 # Snapshots command follows a symlinked snapshot root and loads and deletes external fixtures
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Agent Eval `runScorer()` Drops a `__proto__` Ambient Environment Variable for Custom Scorers"
+---
+
 # Agent Eval `runScorer()` Drops a `__proto__` Ambient Environment Variable for Custom Scorers
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Agent Eval lock release failure rejects a published passing result"
+---
+
 # Agent Eval lock release failure rejects a published passing result
 
 ## Summary

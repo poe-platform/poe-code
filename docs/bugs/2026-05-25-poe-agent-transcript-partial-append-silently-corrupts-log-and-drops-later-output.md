@@ -1,3 +1,7 @@
+---
+name: "Poe Agent Transcript Partial Append Silently Corrupts Log And Drops Later Output"
+---
+
 # Poe Agent Transcript Partial Append Silently Corrupts Log And Drops Later Output
 
 ## Summary

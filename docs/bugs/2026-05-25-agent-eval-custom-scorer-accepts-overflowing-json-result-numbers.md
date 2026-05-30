@@ -1,3 +1,7 @@
+---
+name: "Agent eval custom scorer accepts overflowing JSON result numbers"
+---
+
 # Agent eval custom scorer accepts overflowing JSON result numbers
 
 ## Summary

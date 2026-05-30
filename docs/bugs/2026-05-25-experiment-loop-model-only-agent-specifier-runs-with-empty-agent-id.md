@@ -1,3 +1,7 @@
+---
+name: "Experiment loop model-only agent specifier runs with empty agent id"
+---
+
 # Experiment loop model-only agent specifier runs with empty agent id
 
 ## Summary

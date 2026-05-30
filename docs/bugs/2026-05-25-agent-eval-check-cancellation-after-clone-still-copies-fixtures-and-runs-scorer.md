@@ -1,3 +1,7 @@
+---
+name: "Agent eval check cancellation after clone still copies fixtures and runs scorer"
+---
+
 # Agent eval check cancellation after clone still copies fixtures and runs scorer
 
 ## Summary

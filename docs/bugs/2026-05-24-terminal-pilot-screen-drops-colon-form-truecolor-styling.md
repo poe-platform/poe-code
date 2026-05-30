@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen drops colon-form truecolor styling"
+---
+
 # Terminal pilot screen drops colon-form truecolor styling
 
 ## Summary

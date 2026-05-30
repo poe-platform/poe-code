@@ -1,3 +1,7 @@
+---
+name: "Experiment loop untyped journal object consumes experiment budget"
+---
+
 # Experiment loop untyped journal object consumes experiment budget
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "GitHub Workflows Ejected Install Prompt Write Failure Leaves Workflow Installed"
+---
+
 # GitHub Workflows Ejected Install Prompt Write Failure Leaves Workflow Installed
 
 ## Summary

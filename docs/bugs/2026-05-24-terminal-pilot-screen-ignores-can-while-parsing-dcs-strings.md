@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores CAN while parsing DCS strings"
+---
+
 # Terminal pilot screen ignores CAN while parsing DCS strings
 
 ## Summary

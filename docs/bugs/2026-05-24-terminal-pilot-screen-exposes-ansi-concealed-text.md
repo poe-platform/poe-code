@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen exposes ANSI concealed text"
+---
+
 # Terminal pilot screen exposes ANSI concealed text
 
 ## Summary

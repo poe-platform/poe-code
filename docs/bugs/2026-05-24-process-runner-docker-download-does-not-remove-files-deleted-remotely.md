@@ -1,3 +1,7 @@
+---
+name: "Docker download does not remove files deleted in the remote workspace"
+---
+
 # Docker download does not remove files deleted in the remote workspace
 
 ## Summary

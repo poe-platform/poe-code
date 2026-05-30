@@ -1,3 +1,7 @@
+---
+name: "E2B workspace upload includes gitignored and Poe-Code-ignored files"
+---
+
 # E2B workspace upload includes gitignored and Poe-Code-ignored files
 
 ## Summary

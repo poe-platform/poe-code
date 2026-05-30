@@ -1,3 +1,7 @@
+---
+name: "Experiment loop malformed journal score is reused as baseline text"
+---
+
 # Experiment loop malformed journal score is reused as baseline text
 
 ## Summary

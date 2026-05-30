@@ -1,3 +1,7 @@
+---
+name: "Experiment loop agent error leaves partial candidate edits unreset"
+---
+
 # Experiment loop agent error leaves partial candidate edits unreset
 
 ## Summary

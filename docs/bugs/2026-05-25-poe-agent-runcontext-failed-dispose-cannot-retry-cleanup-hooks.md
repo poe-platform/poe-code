@@ -1,3 +1,7 @@
+---
+name: "Poe agent RunContext failed dispose cannot retry cleanup hooks"
+---
+
 # Poe agent RunContext failed dispose cannot retry cleanup hooks
 
 ## Summary

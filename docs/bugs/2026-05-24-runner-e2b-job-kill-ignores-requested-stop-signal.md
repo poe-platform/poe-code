@@ -1,3 +1,7 @@
+---
+name: "E2B detached job kill ignores the requested stop signal"
+---
+
 # E2B detached job kill ignores the requested stop signal
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Skill synchronization follows a symlinked global skill directory and writes outside the user home"
+---
+
 # Skill synchronization follows a symlinked global skill directory and writes outside the user home
 
 ## Summary

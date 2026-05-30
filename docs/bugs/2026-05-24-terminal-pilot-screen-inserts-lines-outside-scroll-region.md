@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen inserts lines outside scroll region"
+---
+
 # Terminal pilot screen inserts lines outside scroll region
 
 ## Summary

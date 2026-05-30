@@ -1,3 +1,7 @@
+---
+name: "Worktree Remove Registry Write Failure Keeps Deleted Checkout Listed"
+---
+
 # Worktree Remove Registry Write Failure Keeps Deleted Checkout Listed
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Agent eval pre-aborted check creates output directory before cancellation"
+---
+
 # Agent eval pre-aborted check creates output directory before cancellation
 
 ## Summary

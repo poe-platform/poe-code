@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI Lock Failed Write Corrupts Prior Spec Pin"
+---
+
 # Toolcraft OpenAPI Lock Failed Write Corrupts Prior Spec Pin
 
 ## Summary

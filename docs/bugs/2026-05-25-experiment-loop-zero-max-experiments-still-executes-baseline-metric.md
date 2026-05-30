@@ -1,3 +1,7 @@
+---
+name: "Experiment loop zero max experiments still executes baseline metric"
+---
+
 # Experiment loop zero max experiments still executes baseline metric
 
 ## Summary

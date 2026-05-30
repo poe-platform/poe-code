@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI network errors expose query credentials in user messages"
+---
+
 # Toolcraft OpenAPI network errors expose query credentials in user messages
 
 ## Summary

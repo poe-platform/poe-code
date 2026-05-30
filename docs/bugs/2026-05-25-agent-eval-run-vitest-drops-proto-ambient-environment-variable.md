@@ -1,3 +1,7 @@
+---
+name: "Agent Eval `runVitest()` Drops a `__proto__` Ambient Environment Variable"
+---
+
 # Agent Eval `runVitest()` Drops a `__proto__` Ambient Environment Variable
 
 ## Summary

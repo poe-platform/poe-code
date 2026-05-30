@@ -1,3 +1,7 @@
+---
+name: "Workspace download follows a symlinked remote workspace directory and reads external files"
+---
+
 # Workspace download follows a symlinked remote workspace directory and reads external files
 
 ## Summary

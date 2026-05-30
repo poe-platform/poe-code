@@ -1,3 +1,7 @@
+---
+name: "Experiment loop zero metric timeout silently uses default duration"
+---
+
 # Experiment loop zero metric timeout silently uses default duration
 
 ## Summary

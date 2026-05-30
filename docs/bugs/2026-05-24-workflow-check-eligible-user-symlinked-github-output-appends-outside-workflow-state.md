@@ -1,3 +1,7 @@
+---
+name: "Workflow check-eligible-user follows symlinked GitHub output file and appends outside workflow state"
+---
+
 # Workflow check-eligible-user follows symlinked GitHub output file and appends outside workflow state
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot naturally exited session keeps hidden name reservation"
+---
+
 # Terminal pilot naturally exited session keeps hidden name reservation
 
 ## Summary

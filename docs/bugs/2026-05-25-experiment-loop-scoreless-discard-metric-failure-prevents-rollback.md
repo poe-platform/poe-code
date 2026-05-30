@@ -1,3 +1,7 @@
+---
+name: "Experiment loop scoreless discard metric failure prevents rollback"
+---
+
 # Experiment loop scoreless discard metric failure prevents rollback
 
 ## Summary

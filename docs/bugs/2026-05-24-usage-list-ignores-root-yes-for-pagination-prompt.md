@@ -1,3 +1,7 @@
+---
+name: "Usage list ignores root yes for pagination prompt"
+---
+
 # Usage list ignores root yes for pagination prompt
 
 ## Summary

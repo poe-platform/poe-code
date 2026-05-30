@@ -1,3 +1,7 @@
+---
+name: "Unconfigure OpenCode leaves Poe model configuration"
+---
+
 # Unconfigure OpenCode leaves Poe model configuration
 
 ## Summary

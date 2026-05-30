@@ -1,3 +1,7 @@
+---
+name: "`mockFetch` Drops a `__proto__` Request Header From Recorded Requests"
+---
+
 # `mockFetch` Drops a `__proto__` Request Header From Recorded Requests
 
 ## Summary

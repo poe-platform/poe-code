@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI verbose request transcript exposes query credentials"
+---
+
 # Toolcraft OpenAPI verbose request transcript exposes query credentials
 
 ## Summary

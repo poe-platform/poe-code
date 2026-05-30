@@ -1,3 +1,7 @@
+---
+name: "Unconfigure Codex deletes untracked user provider config"
+---
+
 # Unconfigure Codex deletes untracked user provider config
 
 ## Summary

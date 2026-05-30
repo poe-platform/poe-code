@@ -1,3 +1,7 @@
+---
+name: "Provider login endpoint write failure leaves credential installed"
+---
+
 # Provider login endpoint write failure leaves credential installed
 
 ## Summary

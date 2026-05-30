@@ -1,3 +1,7 @@
+---
+name: "Unconfigure Kimi leaves Poe model and managed token files"
+---
+
 # Unconfigure Kimi leaves Poe model and managed token files
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Agent Eval evidence commit failure leaves partial run artifact bundle"
+---
+
 # Agent Eval evidence commit failure leaves partial run artifact bundle
 
 ## Summary

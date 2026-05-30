@@ -1,3 +1,7 @@
+---
+name: "Workflow generate-pr-metadata follows symlinked GitHub output file and appends outside workflow state"
+---
+
 # Workflow generate-pr-metadata follows symlinked GitHub output file and appends outside workflow state
 
 ## Summary

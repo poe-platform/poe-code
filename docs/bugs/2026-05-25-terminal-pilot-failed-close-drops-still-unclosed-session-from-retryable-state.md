@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot failed close drops a still-unclosed session from retryable state"
+---
+
 # Terminal pilot failed close drops a still-unclosed session from retryable state
 
 ## Summary

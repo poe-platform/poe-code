@@ -1,3 +1,7 @@
+---
+name: "Experiment loop accepts Infinity metric score and persists null baseline"
+---
+
 # Experiment loop accepts Infinity metric score and persists null baseline
 
 ## Summary

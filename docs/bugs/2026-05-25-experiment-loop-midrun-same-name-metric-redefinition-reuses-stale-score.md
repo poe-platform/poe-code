@@ -1,3 +1,7 @@
+---
+name: "Experiment loop midrun same-name metric redefinition reuses stale score"
+---
+
 # Experiment loop midrun same-name metric redefinition reuses stale score
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "`runMatrix()` yields completed cell results before aggregate publication can fail"
+---
+
 # `runMatrix()` yields completed cell results before aggregate publication can fail
 
 ## Summary

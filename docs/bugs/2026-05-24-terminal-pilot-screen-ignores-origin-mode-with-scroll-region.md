@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen ignores origin mode with scroll region"
+---
+
 # Terminal pilot screen ignores origin mode with scroll region
 
 ## Summary

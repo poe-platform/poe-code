@@ -1,3 +1,7 @@
+---
+name: "Workspace upload follows a symlinked upload directory and writes its archive outside the transfer root"
+---
+
 # Workspace upload follows a symlinked upload directory and writes its archive outside the transfer root
 
 ## Summary

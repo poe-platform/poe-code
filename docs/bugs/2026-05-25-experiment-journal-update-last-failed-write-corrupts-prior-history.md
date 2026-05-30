@@ -1,3 +1,7 @@
+---
+name: "Experiment Journal Update Last Failed Write Corrupts Prior History"
+---
+
 # Experiment Journal Update Last Failed Write Corrupts Prior History
 
 ## Summary

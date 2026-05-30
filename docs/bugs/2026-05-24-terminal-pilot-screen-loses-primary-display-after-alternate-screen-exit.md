@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot screen loses primary display after alternate-screen exit"
+---
+
 # Terminal pilot screen loses primary display after alternate-screen exit
 
 ## Summary

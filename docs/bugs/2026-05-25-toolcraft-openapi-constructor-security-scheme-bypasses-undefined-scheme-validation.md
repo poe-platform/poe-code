@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI constructor security scheme bypasses undefined scheme validation"
+---
+
 # Toolcraft OpenAPI constructor security scheme bypasses undefined scheme validation
 
 ## Summary

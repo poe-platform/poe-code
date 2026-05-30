@@ -1,3 +1,7 @@
+---
+name: "E2B workspace upload reports zero files and bytes after transferring content"
+---
+
 # E2B workspace upload reports zero files and bytes after transferring content
 
 ## Summary

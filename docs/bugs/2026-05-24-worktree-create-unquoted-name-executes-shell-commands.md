@@ -1,3 +1,7 @@
+---
+name: "Worktree create executes shell commands embedded in an unquoted worktree name"
+---
+
 # Worktree create executes shell commands embedded in an unquoted worktree name
 
 ## Summary

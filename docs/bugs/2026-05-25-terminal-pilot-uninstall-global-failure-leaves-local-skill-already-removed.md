@@ -1,3 +1,7 @@
+---
+name: "Terminal Pilot uninstall global failure leaves local skill already removed"
+---
+
 # Terminal Pilot uninstall global failure leaves local skill already removed
 
 ## Summary

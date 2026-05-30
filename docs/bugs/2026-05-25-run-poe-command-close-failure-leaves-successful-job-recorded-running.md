@@ -1,3 +1,7 @@
+---
+name: "runPoeCommand close failure leaves a successful job recorded as running"
+---
+
 # runPoeCommand close failure leaves a successful job recorded as running
 
 ## Summary

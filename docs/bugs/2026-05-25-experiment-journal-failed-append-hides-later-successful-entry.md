@@ -1,3 +1,7 @@
+---
+name: "Experiment journal failed append hides later successful entry"
+---
+
 # Experiment journal failed append hides later successful entry
 
 ## Summary

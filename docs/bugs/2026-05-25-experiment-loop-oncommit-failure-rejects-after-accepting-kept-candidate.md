@@ -1,3 +1,7 @@
+---
+name: "Experiment loop onCommit failure rejects after accepting kept candidate"
+---
+
 # Experiment loop onCommit failure rejects after accepting kept candidate
 
 ## Summary

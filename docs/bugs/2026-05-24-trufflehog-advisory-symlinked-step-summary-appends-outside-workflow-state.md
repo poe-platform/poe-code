@@ -1,3 +1,7 @@
+---
+name: "TruffleHog advisory follows symlinked step summary file and appends outside workflow state"
+---
+
 # TruffleHog advisory follows symlinked step summary file and appends outside workflow state
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Terminal pilot close hangs forever after ignored prior signal"
+---
+
 # Terminal pilot close hangs forever after ignored prior signal
 
 ## Summary

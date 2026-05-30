@@ -1,3 +1,7 @@
+---
+name: "Superintendent proto MCP server disappears before agent spawn"
+---
+
 # Superintendent proto MCP server disappears before agent spawn
 
 ## Summary

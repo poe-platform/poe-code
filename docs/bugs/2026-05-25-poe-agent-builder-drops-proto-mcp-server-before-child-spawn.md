@@ -1,3 +1,7 @@
+---
+name: "Poe Agent Builder Drops a `__proto__` MCP Server Before Child Spawn"
+---
+
 # Poe Agent Builder Drops a `__proto__` MCP Server Before Child Spawn
 
 ## Summary

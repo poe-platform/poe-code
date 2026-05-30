@@ -1,3 +1,7 @@
+---
+name: "Snapshots delete key path traversal deletes files outside the snapshot directory"
+---
+
 # Snapshots delete key path traversal deletes files outside the snapshot directory
 
 ## Summary

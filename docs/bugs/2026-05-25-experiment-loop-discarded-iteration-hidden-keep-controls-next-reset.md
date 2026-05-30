@@ -1,3 +1,7 @@
+---
+name: "Experiment loop discarded iteration hidden keep controls next reset"
+---
+
 # Experiment loop discarded iteration hidden keep controls next reset
 
 ## Summary

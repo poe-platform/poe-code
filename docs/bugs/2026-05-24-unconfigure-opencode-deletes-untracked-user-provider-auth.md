@@ -1,3 +1,7 @@
+---
+name: "Unconfigure OpenCode deletes untracked user provider auth"
+---
+
 # Unconfigure OpenCode deletes untracked user provider auth
 
 ## Summary

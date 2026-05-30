@@ -1,3 +1,7 @@
+---
+name: "Experiment loop post-agent journal read failure leaves candidate applied"
+---
+
 # Experiment loop post-agent journal read failure leaves candidate applied
 
 ## Summary

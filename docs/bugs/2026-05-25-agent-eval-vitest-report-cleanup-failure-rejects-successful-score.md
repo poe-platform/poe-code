@@ -1,3 +1,7 @@
+---
+name: "Agent-eval Vitest report cleanup failure rejects successful score"
+---
+
 # Agent-eval Vitest report cleanup failure rejects successful score
 
 ## Summary

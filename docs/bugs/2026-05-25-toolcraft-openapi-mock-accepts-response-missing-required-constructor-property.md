@@ -1,3 +1,7 @@
+---
+name: "OpenAPI Mock Accepts a Response Missing Required `constructor` Property"
+---
+
 # OpenAPI Mock Accepts a Response Missing Required `constructor` Property
 
 ## Summary

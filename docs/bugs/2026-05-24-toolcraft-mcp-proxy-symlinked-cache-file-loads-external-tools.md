@@ -1,3 +1,7 @@
+---
+name: "Toolcraft MCP proxy follows symlinked cache file and loads external tools"
+---
+
 # Toolcraft MCP proxy follows symlinked cache file and loads external tools
 
 ## Summary

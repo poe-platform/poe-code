@@ -1,3 +1,7 @@
+---
+name: "Poe Agent OpenAI Responses Plugin Drops a `__proto__` Default Header"
+---
+
 # Poe Agent OpenAI Responses Plugin Drops a `__proto__` Default Header
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI verbose response transcript exposes Set-Cookie credentials"
+---
+
 # Toolcraft OpenAPI verbose response transcript exposes Set-Cookie credentials
 
 ## Summary

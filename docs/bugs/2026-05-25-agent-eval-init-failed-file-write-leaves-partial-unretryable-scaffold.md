@@ -1,3 +1,7 @@
+---
+name: "Agent Eval Init Failed File Write Leaves Partial Unretryable Scaffold"
+---
+
 # Agent Eval Init Failed File Write Leaves Partial Unretryable Scaffold
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI follows the default lock-file symlink and overwrites a file outside the project"
+---
+
 # Toolcraft OpenAPI follows the default lock-file symlink and overwrites a file outside the project
 
 ## Summary

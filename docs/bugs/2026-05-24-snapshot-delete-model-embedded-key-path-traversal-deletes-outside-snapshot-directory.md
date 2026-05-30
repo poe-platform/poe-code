@@ -1,3 +1,7 @@
+---
+name: "Snapshot model deletion trusts embedded key path traversal and deletes outside the snapshot directory"
+---
+
 # Snapshot model deletion trusts embedded key path traversal and deletes outside the snapshot directory
 
 ## Summary

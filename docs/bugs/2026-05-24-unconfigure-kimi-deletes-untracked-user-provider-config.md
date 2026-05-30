@@ -1,3 +1,7 @@
+---
+name: "Unconfigure Kimi deletes untracked user provider config"
+---
+
 # Unconfigure Kimi deletes untracked user provider config
 
 ## Summary

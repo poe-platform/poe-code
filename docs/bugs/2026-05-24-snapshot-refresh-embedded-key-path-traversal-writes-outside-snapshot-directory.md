@@ -1,3 +1,7 @@
+---
+name: "Snapshot refresh trusts embedded key path traversal and writes outside the snapshot directory"
+---
+
 # Snapshot refresh trusts embedded key path traversal and writes outside the snapshot directory
 
 ## Summary

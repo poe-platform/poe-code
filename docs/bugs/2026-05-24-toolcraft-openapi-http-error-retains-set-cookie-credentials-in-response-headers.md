@@ -1,3 +1,7 @@
+---
+name: "Toolcraft OpenAPI HttpError retains Set-Cookie credentials in response headers"
+---
+
 # Toolcraft OpenAPI HttpError retains Set-Cookie credentials in response headers
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "GitHub Workflows Variables Generation Drops a `__proto__` User Override"
+---
+
 # GitHub Workflows Variables Generation Drops a `__proto__` User Override
 
 ## Summary

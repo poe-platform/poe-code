@@ -1,3 +1,7 @@
+---
+name: "Poe Agent Files Plugin Failed Str Replace Corrupts Prior Workspace File"
+---
+
 # Poe Agent Files Plugin Failed Str Replace Corrupts Prior Workspace File
 
 ## Summary

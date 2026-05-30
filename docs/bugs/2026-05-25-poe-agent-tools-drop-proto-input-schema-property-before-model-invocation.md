@@ -1,3 +1,7 @@
+---
+name: "Poe Agent Tools Drop a `__proto__` Input Schema Property Before Model Invocation"
+---
+
 # Poe Agent Tools Drop a `__proto__` Input Schema Property Before Model Invocation
 
 ## Summary

@@ -1,3 +1,7 @@
+---
+name: "Experiment journal initialization race erases concurrently appended entry"
+---
+
 # Experiment journal initialization race erases concurrently appended entry
 
 ## Summary

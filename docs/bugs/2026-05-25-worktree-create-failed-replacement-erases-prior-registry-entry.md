@@ -1,3 +1,7 @@
+---
+name: "Worktree Create Failed Replacement Erases Prior Registry Entry"
+---
+
 # Worktree Create Failed Replacement Erases Prior Registry Entry
 
 ## Summary

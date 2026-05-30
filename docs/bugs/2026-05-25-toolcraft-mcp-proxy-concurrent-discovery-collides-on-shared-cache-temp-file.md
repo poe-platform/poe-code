@@ -1,3 +1,7 @@
+---
+name: "Toolcraft MCP proxy concurrent discovery collides on shared cache temp file"
+---
+
 # Toolcraft MCP proxy concurrent discovery collides on shared cache temp file
 
 ## Summary

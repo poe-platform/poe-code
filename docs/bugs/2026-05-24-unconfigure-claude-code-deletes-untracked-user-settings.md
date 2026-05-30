@@ -1,3 +1,7 @@
+---
+name: "Unconfigure Claude Code deletes untracked user settings"
+---
+
 # Unconfigure Claude Code deletes untracked user settings
 
 ## Summary

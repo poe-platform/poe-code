@@ -1,4 +1,4 @@
-import { lstat, mkdir, writeFile } from "node:fs/promises";
+import { lstat, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { stringify as stringifyYaml } from "yaml";
 import type { PlanKind } from "../types.js";
@@ -48,16 +48,25 @@ export async function evalInit(opts: InitOptions): Promise<InitResult> {
     throw error;
   }
 
-  await mkdir(path.join(evalDir, "oracle", "tests"), { recursive: true });
-  await mkdir(path.join(evalDir, "oracle", "solution"), { recursive: true });
-  await mkdir(path.join(evalDir, "starter"), { recursive: true });
-  await Promise.all([
-    writeFile(path.join(evalDir, "eval.yaml"), renderEvalYaml(opts)),
-    writeFile(path.join(evalDir, "plan.md"), renderPlanMarkdown(opts.kind)),
-    writeFile(path.join(evalDir, "oracle", "tests", "example.test.ts"), renderExampleTest()),
-    writeFile(path.join(evalDir, "oracle", "solution", "OUTPUT.md"), "ok\n"),
-    writeFile(path.join(evalDir, "starter", ".gitkeep"), "")
-  ]);
+  try {
+    await mkdir(path.join(evalDir, "oracle", "tests"), { recursive: true });
+    await mkdir(path.join(evalDir, "oracle", "solution"), { recursive: true });
+    await mkdir(path.join(evalDir, "starter"), { recursive: true });
+    const writes = await Promise.allSettled([
+      writeFile(path.join(evalDir, "eval.yaml"), renderEvalYaml(opts)),
+      writeFile(path.join(evalDir, "plan.md"), renderPlanMarkdown(opts.kind)),
+      writeFile(path.join(evalDir, "oracle", "tests", "example.test.ts"), renderExampleTest()),
+      writeFile(path.join(evalDir, "oracle", "solution", "OUTPUT.md"), "ok\n"),
+      writeFile(path.join(evalDir, "starter", ".gitkeep"), "")
+    ]);
+    const failedWrite = writes.find((result): result is PromiseRejectedResult => result.status === "rejected");
+    if (failedWrite !== undefined) {
+      throw failedWrite.reason;
+    }
+  } catch (error) {
+    await rm(evalDir, { recursive: true, force: true });
+    throw error;
+  }
 
   return {
     evalDir,

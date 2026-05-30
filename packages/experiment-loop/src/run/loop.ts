@@ -150,6 +150,22 @@ function normalizeMetrics(metric: MetricDef | MetricDef[] | undefined): MetricDe
   return metrics;
 }
 
+function metricsEqual(left: MetricDef[], right: MetricDef[]): boolean {
+  return (
+    left.length === right.length &&
+    left.every((metric, index) => {
+      const other = right[index];
+      return (
+        other !== undefined &&
+        metric.name === other.name &&
+        metric.script === other.script &&
+        metric.direction === other.direction &&
+        metric.delta === other.delta
+      );
+    })
+  );
+}
+
 function normalizeAgents(agent: string | string[] | undefined): AgentSpecifier[] {
   if (!agent) {
     throw new Error("Experiment doc is missing agent frontmatter.");
@@ -366,6 +382,7 @@ export async function runExperimentLoop(
   let experimentsKept = 0;
   let baselineHash: string | undefined;
   let baseline: Record<string, number> | null = null;
+  let baselineMetrics: MetricDef[] = [];
 
   async function finalize(
     stopReason: ExperimentRunResult["stopReason"]
@@ -398,6 +415,7 @@ export async function runExperimentLoop(
     baselineHash = journalState.baselineHash;
     // Journal's last keep takes priority; fall back to frontmatter seed if no keeps yet
     baseline = journalState.baseline ?? initialFrontmatter.baseline;
+    baselineMetrics = initialMetrics;
 
     const initialMaxExperiments = validateMaxExperiments(
       options.maxExperiments ?? initialFrontmatter.max_experiments
@@ -443,6 +461,29 @@ export async function runExperimentLoop(
 
       const metrics = normalizeMetrics(frontmatter.metric);
       const agents = normalizeAgents(options.agent ?? frontmatter.agent);
+
+      if (!metricsEqual(metrics, baselineMetrics)) {
+        if (frontmatter.baseline === null) {
+          const metricTimeoutMs = frontmatter.metric_timeout !== undefined
+            ? frontmatter.metric_timeout * 1000
+            : undefined;
+          const baselineResults = await evaluateChain(
+            metrics,
+            options.cwd,
+            exec,
+            options.onMetricResult,
+            metricTimeoutMs
+          );
+          if (!allMetricsPassed(metrics, baselineResults)) {
+            throw new Error("Unable to collect a passing experiment baseline.");
+          }
+          baseline = baselineFromResults(metrics, baselineResults);
+          options.onBaselineCollected?.(baseline);
+        } else {
+          baseline = frontmatter.baseline;
+        }
+        baselineMetrics = metrics;
+      }
 
       const experimentIndex = experimentsCompleted + 1;
       baselineHash ??= await git.currentHash(options.cwd);
@@ -556,6 +597,7 @@ export async function runExperimentLoop(
       experimentsKept += 1;
       baselineHash = newEntry.commit;
       baseline = baselineFromEntry(newEntry) ?? baseline;
+      baselineMetrics = metrics;
       options.onCommit?.(newEntry.commit);
       options.onExperimentComplete?.(experimentIndex, newEntry);
     }

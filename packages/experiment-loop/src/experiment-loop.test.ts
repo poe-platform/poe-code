@@ -3289,6 +3289,123 @@ describe("runExperimentLoop", () => {
     expect(secondPrompt).toContain("I refactored the parser module to reduce allocations");
   });
 
+  it("collects a fresh baseline when the metric changes between attempts", async () => {
+    const docPath = "/repo/.poe-code/experiments/changing-metric.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 1 }) });
+    const exec = createLoopExec([{ stdout: "25\n", stderr: "", exitCode: 0 }]);
+    let callIndex = 0;
+    const runAgent = vi.fn(async (input: AgentRunInput): Promise<AgentRunResult> => {
+      callIndex += 1;
+      if (callIndex === 1) {
+        await fs.writeFile(
+          docPath,
+          [
+            "---",
+            "agent: claude-code",
+            "metric:",
+            "  name: duration",
+            "  script: node scripts/metric-duration.mjs",
+            "  direction: minimize",
+            "baseline: null",
+            "---",
+            "# Improve the duration"
+          ].join("\n")
+        );
+        await appendJournalEntry(fs, docPath, {
+          commit: "keep-tests",
+          status: "keep",
+          scores: { tests: 2 },
+          output: "tests improved",
+          agentOutput: "done",
+          durationMs: 1
+        });
+      } else {
+        await appendJournalEntry(fs, docPath, {
+          commit: "discard-duration",
+          status: "discard",
+          output: "discard",
+          agentOutput: "done",
+          durationMs: 1
+        });
+      }
+      return { stdout: input.prompt, stderr: "", exitCode: 0 };
+    });
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 2,
+      fs,
+      git: createLoopGit(),
+      exec,
+      runAgent
+    });
+
+    expect(exec).toHaveBeenCalledWith("node scripts/metric-duration.mjs", {
+      cwd: "/repo",
+      timeout: 180_000
+    });
+    expect(String(runAgent.mock.calls[1]?.[0].prompt)).toContain("duration: minimize, script: `node scripts/metric-duration.mjs`, (baseline: 25)");
+  });
+
+  it("does not reuse a baseline when a same-name metric is redefined", async () => {
+    const docPath = "/repo/.poe-code/experiments/redefined-metric.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 1 }) });
+    const exec = createLoopExec([{ stdout: "18\n", stderr: "", exitCode: 0 }]);
+    let callIndex = 0;
+    const runAgent = vi.fn(async (input: AgentRunInput): Promise<AgentRunResult> => {
+      callIndex += 1;
+      if (callIndex === 1) {
+        await fs.writeFile(
+          docPath,
+          [
+            "---",
+            "agent: claude-code",
+            "metric:",
+            "  name: tests",
+            "  script: node scripts/metric-duration.mjs",
+            "  direction: minimize",
+            "baseline: null",
+            "---",
+            "# Improve the duration"
+          ].join("\n")
+        );
+        await appendJournalEntry(fs, docPath, {
+          commit: "keep-quality",
+          status: "keep",
+          scores: { tests: 2 },
+          output: "quality improved",
+          agentOutput: "done",
+          durationMs: 1
+        });
+      } else {
+        await appendJournalEntry(fs, docPath, {
+          commit: "discard-duration",
+          status: "discard",
+          output: "discard",
+          agentOutput: "done",
+          durationMs: 1
+        });
+      }
+      return { stdout: input.prompt, stderr: "", exitCode: 0 };
+    });
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 2,
+      fs,
+      git: createLoopGit(),
+      exec,
+      runAgent
+    });
+
+    expect(String(runAgent.mock.calls[1]?.[0].prompt)).toContain("tests: minimize, script: `node scripts/metric-duration.mjs`, (baseline: 18)");
+    expect(String(runAgent.mock.calls[1]?.[0].prompt)).not.toContain("(baseline: 2)");
+  });
+
   it("uses custom run.yaml prompt template when present", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({

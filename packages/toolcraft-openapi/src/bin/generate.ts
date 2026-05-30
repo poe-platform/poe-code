@@ -140,8 +140,13 @@ export async function syncGeneratedClient(
   const drifted = updatedFiles.length > 0 || deletedFiles.length > 0;
 
   if (!options.check && drifted) {
-    await writeGeneratedFiles(services.fs, outputDir, updatedFiles);
-    await deleteGeneratedFiles(services.fs, deletedFiles);
+    try {
+      await writeGeneratedFiles(services.fs, outputDir, updatedFiles);
+      await deleteGeneratedFiles(services.fs, deletedFiles);
+    } catch (error) {
+      await restoreGeneratedFiles(services.fs, outputDir, currentFiles, updatedFiles, deletedFiles);
+      throw error;
+    }
   }
 
   return {
@@ -350,6 +355,39 @@ async function deleteGeneratedFiles(
 ): Promise<void> {
   for (const filePath of filePaths) {
     await fs.rm(filePath, { force: true });
+  }
+}
+
+async function restoreGeneratedFiles(
+  fs: Pick<GenerateCliFileSystem, "mkdir" | "realpath" | "rm" | "writeFile">,
+  outputDir: string,
+  currentFiles: ReadonlyMap<string, string>,
+  updatedFiles: ReadonlyArray<GeneratedFile>,
+  deletedFiles: ReadonlyArray<string>
+): Promise<void> {
+  for (const file of updatedFiles) {
+    const previousContents = currentFiles.get(file.path);
+
+    if (previousContents === undefined) {
+      await fs.rm(file.path, { force: true });
+      continue;
+    }
+
+    await fs.mkdir(path.dirname(file.path), { recursive: true });
+    await assertSafeOutputPath(fs, outputDir, file.path);
+    await fs.writeFile(file.path, previousContents, "utf8");
+  }
+
+  for (const filePath of deletedFiles) {
+    const previousContents = currentFiles.get(filePath);
+
+    if (previousContents === undefined) {
+      continue;
+    }
+
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+    await assertSafeOutputPath(fs, outputDir, filePath);
+    await fs.writeFile(filePath, previousContents, "utf8");
   }
 }
 

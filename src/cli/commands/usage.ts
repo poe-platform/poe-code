@@ -87,7 +87,11 @@ async function executeBalance(
       return;
     }
 
-    const apiKey = await container.options.resolveApiKey({ dryRun: false });
+    const apiKey = await container.options.resolveApiKey({
+      envValue: container.env.getVariable("POE_API_KEY"),
+      assumeYes: flags.assumeYes,
+      dryRun: false
+    });
 
     const response = await container.httpClient(
       `${container.env.poeBaseUrl}/usage/current_balance`,
@@ -168,7 +172,11 @@ export function registerUsageCommand(
           return;
         }
 
-        const apiKey = await container.options.resolveApiKey({ dryRun: false });
+        const apiKey = await container.options.resolveApiKey({
+          envValue: container.env.getVariable("POE_API_KEY"),
+          assumeYes: flags.assumeYes,
+          dryRun: false
+        });
 
         const theme = getTheme();
         const filterTerm = commandOptions.filter;
@@ -296,7 +304,7 @@ export function registerUsageCommand(
 
           startingAfter = result.data[result.data.length - 1].query_id;
 
-          if (maxPages === undefined) {
+          if (maxPages === undefined && !flags.assumeYes) {
             const shouldContinue = await confirm({ message: "Load more?" });
             if (isCancel(shouldContinue)) {
               throw new OperationCancelledError();

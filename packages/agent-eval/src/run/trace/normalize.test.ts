@@ -383,6 +383,26 @@ describe("normalizeTrace", () => {
     ]);
   });
 
+  it("preserves explicit terminal-only legacy read paths", () => {
+    const trace = normalizeTrace([
+      {
+        event: "tool_complete",
+        title: "Read external",
+        kind: "read",
+        path: "/private/secret.txt"
+      } as SpawnEvent
+    ]);
+
+    expect(trace.events).toEqual([
+      expect.objectContaining({
+        operation: "read",
+        phase: "complete",
+        paths: ["/private/secret.txt"],
+        outcome: "completed"
+      })
+    ]);
+  });
+
   it("preserves evidence when ACP emits only a terminal tool update", () => {
     const trace = normalizeTrace([
       {

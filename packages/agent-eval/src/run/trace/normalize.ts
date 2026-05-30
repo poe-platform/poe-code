@@ -197,7 +197,7 @@ function normalizeTool(
       operation,
       readString(event.kind),
       name,
-      started === undefined && (operation === "edit" || operation === "write")
+      started === undefined && operation !== "exec" && operation !== "mcp"
     )
   );
   const inspection = readInspection(rawArguments, operation, name, paths);

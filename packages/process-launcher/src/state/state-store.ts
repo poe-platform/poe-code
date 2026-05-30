@@ -1,4 +1,5 @@
 import path from "node:path";
+import { randomUUID } from "node:crypto";
 import * as nodeFs from "node:fs/promises";
 import type { LauncherFileSystem, ProcessState, StateStore } from "../types.js";
 import { assertPathHasNoSymbolicLinks } from "../path-safety.js";
@@ -121,6 +122,9 @@ export function createStateStore(
     const states: ProcessState[] = [];
 
     for (const entry of [...entries].sort()) {
+      if (entry.startsWith(".state-removed-")) {
+        continue;
+      }
       const entryPath = path.join(stateDir, entry);
 
       try {
@@ -148,7 +152,32 @@ export function createStateStore(
   }
 
   async function remove(id: string): Promise<void> {
-    await removeDirectory(fs, resolveProcessDir(stateDir, id));
+    const processDir = resolveProcessDir(stateDir, id);
+    const removedDir = path.join(stateDir, `.state-removed-${id}-${randomUUID()}`);
+
+    try {
+      if ((await fs.lstat(processDir)).isSymbolicLink()) {
+        throw new Error(`Refusing to remove managed process through symbolic link: ${processDir}`);
+      }
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return;
+      }
+
+      throw error;
+    }
+
+    try {
+      await fs.rename(processDir, removedDir);
+    } catch (error) {
+      if (isNotFoundError(error)) {
+        return;
+      }
+
+      throw error;
+    }
+
+    await removeDirectory(fs, removedDir).catch(() => undefined);
   }
 
   return { read, write, list, remove };

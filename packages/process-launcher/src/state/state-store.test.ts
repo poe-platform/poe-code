@@ -147,6 +147,35 @@ describe("createStateStore", () => {
     await expect(fs.readdir(path.join(stateDir, state.id))).rejects.toThrow();
   });
 
+  it("remove() commits state removal before best-effort directory cleanup", async () => {
+    const volume = new Volume();
+    const rawFs = createFsFromVolume(volume).promises;
+    const stateDir = "/state";
+    const processDir = path.join(stateDir, "alpha");
+    const base = rawFs as unknown as LauncherFileSystem;
+    const store = createStateStore(stateDir, base);
+    const state = createProcessState("alpha");
+    await store.write(state.id, state);
+    await base.mkdir(path.join(processDir, "logs"), { recursive: true });
+    await base.writeFile(path.join(processDir, "logs", "stdout.log"), "hello\n");
+    const fs = {
+      ...base,
+      rmdir: async (directoryPath: string) => {
+        if (directoryPath.includes(".state-removed-")) {
+          throw new Error("simulated final directory removal failure");
+        }
+        await rawFs.rmdir(directoryPath);
+      }
+    } as LauncherFileSystem;
+
+    await expect(createStateStore(stateDir, fs).remove(state.id)).resolves.toBeUndefined();
+    await expect(store.read(state.id)).resolves.toBeNull();
+    await expect(createStateStore(stateDir, fs).list()).resolves.toEqual([]);
+    await expect(rawFs.readdir(stateDir)).resolves.toEqual(expect.arrayContaining([
+      expect.stringMatching(/^\.state-removed-/)
+    ]));
+  });
+
   it("remove() is safe to call for non-existent id", async () => {
     const store = createStateStore("/state", createMemFs());
 
@@ -188,6 +217,20 @@ describe("createStateStore", () => {
     await expect(store.read("alpha")).rejects.toThrow("symbolic link");
     await expect(store.write("alpha", updated)).rejects.toThrow("symbolic link");
     await expect(fs.readFile("/outside/state.json", "utf8")).resolves.toBe(`${JSON.stringify(outside)}\n`);
+  });
+
+  it("rejects removals through a symlinked process directory", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/outside/alpha", { recursive: true });
+    await fs.writeFile("/outside/alpha/state.json", `${JSON.stringify(createProcessState("alpha"))}\n`);
+    await fs.mkdir("/state", { recursive: true });
+    await (fs as LauncherFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside/alpha",
+      "/state/alpha"
+    );
+
+    await expect(createStateStore("/state", fs).remove("alpha")).rejects.toThrow("symbolic link");
+    await expect(fs.readFile("/outside/alpha/state.json", "utf8")).resolves.toContain('"id":"alpha"');
   });
 
   it("rejects path traversal ids for all state operations", async () => {

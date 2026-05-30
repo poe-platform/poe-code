@@ -384,6 +384,22 @@ describe("evaluate", () => {
     });
   });
 
+  it("treats non-finite metric scores as failures", async () => {
+    const { exec } = createEvalExec([
+      {
+        stdout: "Infinity\n",
+        stderr: "",
+        exitCode: 0
+      }
+    ]);
+
+    await expect(evaluate("node scripts/metric-tests.mjs", "/repo", exec)).resolves.toEqual({
+      score: null,
+      passed: false,
+      output: "Infinity\n"
+    });
+  });
+
   it("parses the score from the last non-empty stdout line", async () => {
     const { exec } = createEvalExec([
       {
@@ -583,6 +599,27 @@ describe("parseExperimentFrontmatter", () => {
       "  name: test_count",
       "  script: node scripts/metric-test-count.mjs",
       "  direction: stable",
+      "---",
+      "Body"
+    ].join("\n");
+
+    const result = parseExperimentFrontmatter(content);
+
+    expect(result.frontmatter.metric).toEqual({
+      name: "test_count",
+      script: "node scripts/metric-test-count.mjs",
+      direction: "stable"
+    });
+  });
+
+  it("omits non-finite stable metric deltas", () => {
+    const content = [
+      "---",
+      "metric:",
+      "  name: test_count",
+      "  script: node scripts/metric-test-count.mjs",
+      "  direction: stable",
+      "  delta: .inf",
       "---",
       "Body"
     ].join("\n");
@@ -1245,6 +1282,113 @@ describe("ExperimentJournal", () => {
 });
 
 describe("runExperimentLoop", () => {
+  it("rejects duplicate metric names before collecting baselines", async () => {
+    const docPath = "/repo/.poe-code/experiments/duplicate.md";
+    const fs = createFs({
+      [docPath]: [
+        "---",
+        "agent: claude-code",
+        "metric:",
+        "  - name: score",
+        "    script: node one.mjs",
+        "    direction: maximize",
+        "  - name: score",
+        "    script: node two.mjs",
+        "    direction: minimize",
+        "baseline: null",
+        "max_experiments: 0",
+        "---",
+        "Measure baselines"
+      ].join("\n")
+    });
+    const exec = vi.fn(async () => ({ stdout: "10\n", stderr: "", exitCode: 0 })) as ExecFn;
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        fs,
+        git: createLoopGit(),
+        exec,
+        runAgent: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
+      })
+    ).rejects.toThrow('Metric names must be unique: "score".');
+    expect(exec).not.toHaveBeenCalled();
+  });
+
+  it("ignores malformed journal scores when formatting a future prompt", async () => {
+    const docPath = "/repo/.poe-code/experiments/reuse.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 }),
+      [journalFilePath(docPath)]: `${JSON.stringify(
+        createJournalEntry({ commit: "bad", scores: { tests: "not-a-number" } as never })
+      )}\n`
+    });
+    const runAgent = vi.fn(async (input: AgentRunInput): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "next",
+        status: "discard",
+        scores: { tests: 1 },
+        output: "done",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: input.prompt, stderr: "", exitCode: 0 };
+    });
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 2,
+      fs,
+      git: createLoopGit(),
+      exec: createLoopExec([]),
+      runAgent
+    });
+
+    const prompt = runAgent.mock.calls[0]?.[0].prompt as string;
+    const metricLine = prompt.match(/- tests:[^\n]*/)?.[0] ?? "";
+    expect(metricLine).toContain("(baseline: 1)");
+    expect(metricLine).not.toContain("not-a-number");
+  });
+
+  it("does not use an empty kept commit as the discard reset target", async () => {
+    const docPath = "/repo/.poe-code/experiments/empty-commit.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 }),
+      [journalFilePath(docPath)]: `${JSON.stringify(createJournalEntry({ commit: "" }))}\n`
+    });
+    const git = createLoopGit({ currentHash: vi.fn(async () => "base-1") });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "discarded",
+        status: "discard",
+        scores: { tests: 1 },
+        output: "done",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 2,
+      fs,
+      git,
+      exec: createLoopExec([]),
+      runAgent
+    });
+
+    expect(git.currentHash).toHaveBeenCalledWith("/repo");
+    expect(git.reset).toHaveBeenCalledWith("base-1", "/repo");
+    expect(git.reset).not.toHaveBeenCalledWith("", "/repo");
+  });
+
   it("keeps an experiment when the agent writes a keep journal entry", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({

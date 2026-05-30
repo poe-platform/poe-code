@@ -133,7 +133,17 @@ function normalizeMetrics(metric: MetricDef | MetricDef[] | undefined): MetricDe
     throw new Error("Experiment doc is missing metric frontmatter.");
   }
 
-  return Array.isArray(metric) ? metric : [metric];
+  const metrics = Array.isArray(metric) ? metric : [metric];
+  const names = new Set<string>();
+
+  for (const currentMetric of metrics) {
+    if (names.has(currentMetric.name)) {
+      throw new Error(`Metric names must be unique: "${currentMetric.name}".`);
+    }
+    names.add(currentMetric.name);
+  }
+
+  return metrics;
 }
 
 function normalizeAgents(agent: string | string[] | undefined): AgentSpecifier[] {
@@ -274,13 +284,32 @@ function deriveStateFromJournal(entries: JournalEntry[]): {
 } {
   const keepEntries = entries.filter((e) => e.status === "keep");
   const lastKeep = keepEntries[keepEntries.length - 1];
+  const baseline = readFiniteScores(lastKeep?.scores);
+  const baselineHash = readNonEmptyString(lastKeep?.commit);
 
   return {
     experimentsCompleted: entries.length,
     experimentsKept: keepEntries.length,
-    baseline: lastKeep ? baselineFromEntry(lastKeep) : null,
-    baselineHash: lastKeep?.commit
+    baseline,
+    baselineHash
   };
+}
+
+function readFiniteScores(scores: unknown): Record<string, number> | null {
+  if (scores === undefined || scores === null || typeof scores !== "object") {
+    return null;
+  }
+
+  const entries = Object.entries(scores);
+  if (entries.length === 0 || entries.some(([, score]) => typeof score !== "number" || !Number.isFinite(score))) {
+    return null;
+  }
+
+  return Object.fromEntries(entries) as Record<string, number>;
+}
+
+function readNonEmptyString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
 }
 
 export async function runExperimentLoop(

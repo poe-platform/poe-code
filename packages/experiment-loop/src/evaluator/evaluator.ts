@@ -18,7 +18,7 @@ function parseScore(stdout: string): number | null {
 
   const score = Number(scoreLine);
 
-  return Number.isNaN(score) ? null : score;
+  return Number.isFinite(score) ? score : null;
 }
 
 const DEFAULT_METRIC_TIMEOUT_MS = 180_000;

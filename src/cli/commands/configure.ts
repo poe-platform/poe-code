@@ -414,6 +414,11 @@ export function createOverlayFileSystem(base: FileSystem): {
       await assertOverlayParentDirectory(to);
       writes.set(to, await readOverlayText(from));
       writes.set(from, null);
+      const mode = modes.get(from);
+      if (mode !== undefined) {
+        modes.set(to, mode);
+        modes.delete(from);
+      }
     },
     async readdir(directoryPath) {
       const entries = new Set(await base.readdir(directoryPath).catch((error) => {

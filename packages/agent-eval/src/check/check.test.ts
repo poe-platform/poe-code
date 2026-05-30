@@ -128,6 +128,41 @@ describe("evalCheck", () => {
     expect(result.cloneDir).toMatch(/^\/repo\/evals\/runs\/\.check\/smoke\/[^/]+\/clone$/);
   });
 
+  it("does not create output for an already aborted check", async () => {
+    const controller = new AbortController();
+    controller.abort(new Error("check cancelled"));
+
+    await expect(
+      evalCheck({ sourceDir: "/repo/evals", evalId: "smoke", signal: controller.signal })
+    ).rejects.toThrow("check cancelled");
+
+    await expect(mocks.fs.stat("/repo/evals/artifacts/.check")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+    expect(mocks.cloneTarget).not.toHaveBeenCalled();
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+  });
+
+  it("stops after cloning when the check is cancelled during clone", async () => {
+    const controller = new AbortController();
+    let clonedDir: string | undefined;
+    mocks.cloneTarget.mockImplementation(async ({ dest }: { dest: string }) => {
+      clonedDir = dest;
+      await mocks.fs.mkdir(dest, { recursive: true });
+      controller.abort(new Error("check cancelled"));
+    });
+
+    await expect(
+      evalCheck({ sourceDir: "/repo/evals", evalId: "smoke", signal: controller.signal })
+    ).rejects.toThrow("check cancelled");
+
+    expect(mocks.runScorer).not.toHaveBeenCalled();
+    expect(clonedDir).toBeDefined();
+    await expect(mocks.fs.readFile(path.join(clonedDir!, "starter.txt"), "utf8")).rejects.toMatchObject({
+      code: "ENOENT"
+    });
+  });
+
   it("rejects oracle.solution_dest values that escape the clone root", async () => {
     mocks.fs = createFsFromVolume(
       Volume.fromJSON(createSourceFiles({ solutionDest: "../outside" }), "/")

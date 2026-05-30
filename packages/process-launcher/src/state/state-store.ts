@@ -154,6 +154,7 @@ export function createStateStore(
   async function remove(id: string): Promise<void> {
     const processDir = resolveProcessDir(stateDir, id);
     const removedDir = path.join(stateDir, `.state-removed-${id}-${randomUUID()}`);
+    await assertPathHasNoSymbolicLinks(fs, processDir);
 
     try {
       if ((await fs.lstat(processDir)).isSymbolicLink()) {

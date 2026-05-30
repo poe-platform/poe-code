@@ -233,6 +233,19 @@ describe("createStateStore", () => {
     await expect(fs.readFile("/outside/alpha/state.json", "utf8")).resolves.toContain('"id":"alpha"');
   });
 
+  it("rejects removals through a symlinked state directory", async () => {
+    const fs = createMemFs();
+    await fs.mkdir("/outside/alpha", { recursive: true });
+    await fs.writeFile("/outside/alpha/state.json", `${JSON.stringify(createProcessState("alpha"))}\n`);
+    await (fs as LauncherFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/state"
+    );
+
+    await expect(createStateStore("/state", fs).remove("alpha")).rejects.toThrow("symbolic link");
+    await expect(fs.readFile("/outside/alpha/state.json", "utf8")).resolves.toContain('"id":"alpha"');
+  });
+
   it("rejects path traversal ids for all state operations", async () => {
     const fs = createMemFs();
     const store = createStateStore("/state", fs);

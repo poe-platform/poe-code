@@ -265,6 +265,17 @@ describe("config store", () => {
     await expect(fs.readFile("/outside/credentials.json", "utf8")).resolves.toContain("external-key");
   });
 
+  it("preserves malformed legacy credentials during a config read", async () => {
+    const legacyPath = path.join(path.dirname(configPath), "credentials.json");
+    await fs.writeFile(legacyPath, "{ malformed-secret", { encoding: "utf8" });
+
+    await expect(loadConfig({ fs, filePath: configPath })).resolves.toBeNull();
+    await expect(fs.readFile(legacyPath, "utf8")).resolves.toBe("{ malformed-secret");
+    await expect(fs.readdir(path.dirname(configPath))).resolves.not.toContainEqual(
+      expect.stringMatching(/^credentials\.json\.invalid-/)
+    );
+  });
+
   it("backs up and resets invalid json content", async () => {
     await fs.writeFile(configPath, "test\n", { encoding: "utf8" });
 

@@ -256,8 +256,6 @@ async function migrateLegacyCredentialsFile(fs: FileSystem, configPath: string):
     legacyDocument = normalizeLegacyConfigDocument(JSON.parse(raw));
   } catch (error) {
     if (error instanceof SyntaxError) {
-      await recoverInvalidConfig(fs, legacyPath, raw);
-      await fs.unlink(legacyPath);
       return;
     }
     throw error;

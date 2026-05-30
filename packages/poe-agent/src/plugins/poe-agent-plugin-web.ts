@@ -25,6 +25,7 @@ interface DuckDuckGoPayload {
 }
 
 const fetchUrlPageSize = 20_000;
+const fetchUrlContentLimit = 200_000;
 const htmlToMarkdown = new TurndownService({
   headingStyle: "atx",
   codeBlockStyle: "fenced"
@@ -156,7 +157,7 @@ async function defaultFetchUrl(
   }
 
   const contentType = normalizeContentType(response.headers.get("content-type"));
-  const rawContent = await response.text();
+  const rawContent = await readFetchedBody(response);
   const content = formatFetchedBody(rawContent, contentType);
   const start = Math.min(offset, content.length);
   const end = Math.min(start + fetchUrlPageSize, content.length);
@@ -173,6 +174,41 @@ async function defaultFetchUrl(
 
   lines.push("", page);
   return lines.join("\n");
+}
+
+async function readFetchedBody(response: Response): Promise<string> {
+  if (response.body === null) {
+    const content = await response.text();
+    assertFetchedBodyLimit(content);
+    return content;
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let content = "";
+
+  try {
+    while (true) {
+      const chunk = await reader.read();
+      if (chunk.done) {
+        content += decoder.decode();
+        assertFetchedBodyLimit(content);
+        return content;
+      }
+
+      content += decoder.decode(chunk.value, { stream: true });
+      assertFetchedBodyLimit(content);
+    }
+  } catch (error) {
+    await reader.cancel().catch(() => undefined);
+    throw error;
+  }
+}
+
+function assertFetchedBodyLimit(content: string): void {
+  if (content.length > fetchUrlContentLimit) {
+    throw new Error(`URL fetch response exceeds ${fetchUrlContentLimit} character limit.`);
+  }
 }
 
 function normalizeContentType(contentType: string | null): string {

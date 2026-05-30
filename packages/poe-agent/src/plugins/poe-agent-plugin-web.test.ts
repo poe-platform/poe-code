@@ -136,6 +136,24 @@ describe("poe-agent-plugin-web", () => {
     expect(secondPage).not.toContain("More content available");
   });
 
+  it("rejects oversized fetch_url bodies while streaming them", async () => {
+    const body = "x".repeat(200_001);
+    const text = vi.fn(async () => body);
+    const plugin = webPlugin({
+      fetch: vi.fn(async () => {
+        const response = new Response(body, {
+          headers: { "content-type": "text/plain; charset=utf-8" }
+        });
+        return Object.assign(response, { text });
+      })
+    });
+
+    await expect(
+      callTool(plugin.tools, "fetch_url", { url: "https://example.com/large" })
+    ).rejects.toThrow("URL fetch response exceeds 200000 character limit.");
+    expect(text).not.toHaveBeenCalled();
+  });
+
   it("passes the tool signal through fetch_url", async () => {
     const controller = new AbortController();
     const fetchMock = vi.fn(

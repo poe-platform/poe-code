@@ -559,7 +559,12 @@ export async function runExperimentLoop(
       }
 
       if (agentResult.exitCode !== 0 || newEntry.status === "discard") {
-        await git.reset(preExperimentHash, options.cwd);
+        try {
+          await git.reset(preExperimentHash, options.cwd);
+        } catch (error) {
+          await journal.removeNewEntries(journalLengthBefore);
+          throw error;
+        }
         notifyCompletedState(options.onReset, preExperimentHash);
         if (newEntry.status === "keep") {
           newEntry = (await journal.updateLast({ status: "discard" })) ?? {

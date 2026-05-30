@@ -85,14 +85,21 @@ export class ExperimentJournal {
     return latest;
   }
 
-  private async publish(entries: JournalEntry[]): Promise<void> {
+  async removeNewEntries(previousLength: number): Promise<void> {
+    const entries = await this.readAll();
 
+    if (entries.length > previousLength) {
+      await this.publish(entries.slice(0, previousLength));
+    }
+  }
+
+  private async publish(entries: JournalEntry[]): Promise<void> {
     const temporaryPath = `${this.journalPath}.${process.pid}.${temporaryFileSequence++}.tmp`;
 
     try {
       await this.fs.writeFile(
         temporaryPath,
-        entries.map((e) => JSON.stringify(e)).join("\n") + "\n"
+        entries.length === 0 ? "" : entries.map((e) => JSON.stringify(e)).join("\n") + "\n"
       );
       await this.fs.rename(temporaryPath, this.journalPath);
     } catch (error) {

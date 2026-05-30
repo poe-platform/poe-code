@@ -2096,6 +2096,40 @@ describe("runExperimentLoop", () => {
     );
   });
 
+  it("removes a discard outcome when its required reset fails", async () => {
+    const docPath = "/repo/.poe-code/experiments/reset-failure.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 1 }) });
+    const git = createLoopGit({
+      currentHash: vi.fn(async () => "base-1"),
+      reset: vi.fn(async () => { throw new Error("reset denied"); })
+    });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "discard-1",
+        status: "discard",
+        output: "worse",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git,
+        exec: createLoopExec([]),
+        runAgent
+      })
+    ).rejects.toThrow("reset denied");
+
+    await expect(new ExperimentJournal(journalFilePath(docPath), fs).readAll()).resolves.toEqual([]);
+  });
+
   it("computes scores via evaluator when agent logs entry without scores", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({

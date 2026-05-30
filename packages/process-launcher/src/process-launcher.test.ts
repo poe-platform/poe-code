@@ -474,16 +474,16 @@ describe("process launcher manager", () => {
     await expect(fs.readdir(baseDir)).resolves.toEqual([]);
   });
 
-  it("does not remove runtime artifacts before managed state removal succeeds", async () => {
+  it("does not remove runtime artifacts before staging managed state removal succeeds", async () => {
     const rawFs = createFsFromVolume(new Volume()).promises;
     const baseFs = createMemFsFromRaw(rawFs);
     const fs = {
       ...baseFs,
-      rm: async (filePath: string, options?: { force?: boolean }) => {
-        if (filePath.endsWith("/state.json")) {
+      rename: async (sourcePath: string, destinationPath: string) => {
+        if (sourcePath === `${baseDir}/api`) {
           throw new Error("state removal failed");
         }
-        await baseFs.rm(filePath, options);
+        await baseFs.rename(sourcePath, destinationPath);
       }
     } as LauncherFileSystem;
     const baseDir = "/state/launch";

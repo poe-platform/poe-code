@@ -65,6 +65,31 @@ async function removeDirectory(fs: LauncherFileSystem, directoryPath: string): P
   await fs.rm(directoryPath, { force: true });
 }
 
+async function assertRemovalTreeHasNoSymbolicLinks(
+  fs: LauncherFileSystem,
+  targetPath: string
+): Promise<void> {
+  try {
+    if ((await fs.lstat(targetPath)).isSymbolicLink()) {
+      throw new Error(`Refusing to remove managed process through symbolic link: ${targetPath}`);
+    }
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return;
+    }
+
+    throw error;
+  }
+
+  if ((await fs.stat(targetPath)).isFile()) {
+    return;
+  }
+
+  for (const entry of await fs.readdir(targetPath)) {
+    await assertRemovalTreeHasNoSymbolicLinks(fs, path.join(targetPath, entry));
+  }
+}
+
 export function createStateStore(
   stateDir: string,
   fs: LauncherFileSystem = nodeFs as unknown as LauncherFileSystem
@@ -155,18 +180,7 @@ export function createStateStore(
     const processDir = resolveProcessDir(stateDir, id);
     const removedDir = path.join(stateDir, `.state-removed-${id}-${randomUUID()}`);
     await assertPathHasNoSymbolicLinks(fs, processDir);
-
-    try {
-      if ((await fs.lstat(processDir)).isSymbolicLink()) {
-        throw new Error(`Refusing to remove managed process through symbolic link: ${processDir}`);
-      }
-    } catch (error) {
-      if (isNotFoundError(error)) {
-        return;
-      }
-
-      throw error;
-    }
+    await assertRemovalTreeHasNoSymbolicLinks(fs, processDir);
 
     try {
       await fs.rename(processDir, removedDir);

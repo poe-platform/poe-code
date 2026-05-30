@@ -65,6 +65,28 @@ export class ExperimentJournal {
     const updated = { ...last, ...updates };
     entries[entries.length - 1] = updated;
 
+    await this.publish(entries);
+
+    return updated;
+  }
+
+  async retainLatestNewEntry(previousLength: number): Promise<JournalEntry | null> {
+    const entries = await this.readAll();
+
+    if (entries.length <= previousLength) {
+      return null;
+    }
+
+    const latest = entries[entries.length - 1]!;
+    if (entries.length > previousLength + 1) {
+      await this.publish([...entries.slice(0, previousLength), latest]);
+    }
+
+    return latest;
+  }
+
+  private async publish(entries: JournalEntry[]): Promise<void> {
+
     const temporaryPath = `${this.journalPath}.${process.pid}.${temporaryFileSequence++}.tmp`;
 
     try {
@@ -77,8 +99,6 @@ export class ExperimentJournal {
       await this.fs.unlink(temporaryPath).catch(() => undefined);
       throw error;
     }
-
-    return updated;
   }
 
   private async assertRegularPath(): Promise<void> {

@@ -420,6 +420,8 @@ export async function runExperimentLoop(
       if (allMetricsPassed(initialMetrics, baselineResults)) {
         baseline = baselineFromResults(initialMetrics, baselineResults);
         options.onBaselineCollected?.(baseline);
+      } else {
+        throw new Error("Unable to collect a passing experiment baseline.");
       }
     }
 
@@ -464,7 +466,7 @@ export async function runExperimentLoop(
       const model = currentSpecifier.model;
       options.onExperimentStart?.(experimentIndex, currentSpecifier.agent);
 
-      let journalAfter: JournalEntry[];
+      let newEntry: JournalEntry | null;
       let agentResult: AgentRunResult;
 
       try {
@@ -486,7 +488,7 @@ export async function runExperimentLoop(
           ...(options.signal ? { signal: options.signal } : {})
         });
 
-        journalAfter = await journal.readAll();
+        newEntry = await journal.retainLatestNewEntry(journalLengthBefore);
       } catch (error) {
         await git.reset(preExperimentHash, options.cwd);
         options.onReset?.(preExperimentHash);
@@ -497,9 +499,6 @@ export async function runExperimentLoop(
 
         throw error;
       }
-
-      let newEntry =
-        journalAfter.length > journalLengthBefore ? journalAfter[journalAfter.length - 1]! : null;
 
       experimentsCompleted += 1;
 

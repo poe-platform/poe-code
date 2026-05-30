@@ -3112,6 +3112,97 @@ describe("runExperimentLoop", () => {
     expect(keepEntry.scores).toEqual({ tests: 7 });
   });
 
+  it("does not run an agent when automatic baseline collection fails", async () => {
+    const docPath = "/repo/.poe-code/experiments/no-baseline.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: null }) });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 1,
+        fs,
+        git: createLoopGit(),
+        exec: createLoopExec([{ stdout: "failed\n", stderr: "", exitCode: 1 }]),
+        runAgent
+      })
+    ).rejects.toThrow("Unable to collect a passing experiment baseline.");
+
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
+  it("persists one authoritative journal result per agent attempt", async () => {
+    const docPath = "/repo/.poe-code/experiments/multiple-results.md";
+    const fs = createFs({ [docPath]: createDoc({ baseline: 1 }) });
+    const firstGit = createLoopGit({ currentHash: vi.fn(async () => "original") });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "hidden-keep",
+        status: "keep",
+        scores: { tests: 2 },
+        output: "keep",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      await appendJournalEntry(fs, docPath, {
+        commit: "discarded",
+        status: "discard",
+        scores: { tests: 0 },
+        output: "discard",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 1,
+      fs,
+      git: firstGit,
+      exec: createLoopExec([]),
+      runAgent
+    });
+
+    const persisted = await new ExperimentJournal(journalFilePath(docPath), fs).readAll();
+    expect(persisted.map((entry) => entry.commit)).toEqual(["discarded"]);
+
+    const secondGit = createLoopGit({ currentHash: vi.fn(async () => "original") });
+    const secondRunAgent = vi.fn(async (): Promise<AgentRunResult> => {
+      await appendJournalEntry(fs, docPath, {
+        commit: "next-discard",
+        status: "discard",
+        output: "discard",
+        agentOutput: "done",
+        durationMs: 1
+      });
+      return { stdout: "", stderr: "", exitCode: 0 };
+    });
+
+    await runExperimentLoop({
+      cwd: "/repo",
+      homeDir: "/home/user",
+      docPath,
+      maxExperiments: 2,
+      fs,
+      git: secondGit,
+      exec: createLoopExec([]),
+      runAgent: secondRunAgent
+    });
+
+    expect(secondRunAgent).toHaveBeenCalledTimes(1);
+    expect(secondGit.reset).toHaveBeenCalledWith("original", "/repo");
+    expect(secondGit.reset).not.toHaveBeenCalledWith("hidden-keep", "/repo");
+  });
+
   it("uses max_experiments from frontmatter when not provided via options", async () => {
     const docPath = "/repo/.poe-code/experiments/test-duration.md";
     const fs = createFs({

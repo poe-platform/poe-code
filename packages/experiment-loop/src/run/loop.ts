@@ -494,7 +494,8 @@ export async function runExperimentLoop(
       }
 
       const experimentIndex = experimentsCompleted + 1;
-      baselineHash ??= await git.currentHash(options.cwd);
+      const currentHash = await git.currentHash(options.cwd);
+      baselineHash ??= currentHash;
       const preExperimentHash = baselineHash;
 
       const journalLengthBefore = (await journal.readAll()).length;

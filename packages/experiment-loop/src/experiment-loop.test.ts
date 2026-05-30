@@ -1646,6 +1646,40 @@ describe("runExperimentLoop", () => {
     expect(git.reset).not.toHaveBeenCalledWith("", "/repo");
   });
 
+  it("validates reset safety before resuming from a kept journal hash", async () => {
+    const docPath = "/repo/.poe-code/experiments/resume-safety.md";
+    const fs = createFs({
+      [docPath]: createDoc({ baseline: 1 }),
+      [journalFilePath(docPath)]: `${JSON.stringify(createJournalEntry({ commit: "kept-base" }))}\n`
+    });
+    const git = createLoopGit({
+      currentHash: vi.fn(async () => {
+        throw new Error("working tree contains user edits");
+      })
+    });
+    const runAgent = vi.fn(async (): Promise<AgentRunResult> => ({
+      stdout: "",
+      stderr: "",
+      exitCode: 0
+    }));
+
+    await expect(
+      runExperimentLoop({
+        cwd: "/repo",
+        homeDir: "/home/user",
+        docPath,
+        maxExperiments: 2,
+        fs,
+        git,
+        exec: createLoopExec([]),
+        runAgent
+      })
+    ).rejects.toThrow("working tree contains user edits");
+
+    expect(git.currentHash).toHaveBeenCalledWith("/repo");
+    expect(runAgent).not.toHaveBeenCalled();
+  });
+
   it("does not render inherited baseline properties for metric names", async () => {
     const docPath = "/repo/.poe-code/experiments/constructor.md";
     const fs = createFs({

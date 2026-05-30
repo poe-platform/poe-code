@@ -1,5 +1,5 @@
 import path from "node:path";
-import { createTimestamp, isNotFound, readFileIfExists } from "@poe-code/config-mutations";
+import { isNotFound, readFileIfExists } from "@poe-code/config-mutations";
 import {
   defineScope,
   loadConfiguredServices,
@@ -340,25 +340,8 @@ function defineDataProperty(object: Record<string, unknown>, key: string, value:
   });
 }
 
-async function recoverInvalidConfig(
-  fs: FileSystem,
-  filePath: string,
-  content: string
-): Promise<void> {
-  const backupPath = createInvalidBackupPath(filePath);
-  await fs.writeFile(backupPath, content, { encoding: "utf8" });
-  await fs.writeFile(filePath, EMPTY_DOCUMENT, { encoding: "utf8" });
-}
-
-function createInvalidBackupPath(filePath: string): string {
-  const directory = path.dirname(filePath);
-  const baseName = path.basename(filePath);
-  return path.join(directory, `${baseName}.invalid-${createTimestamp()}.json`);
-}
-
 function isRecord(value: unknown): value is Record<string, any> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
 }
 
 const configuredServicesScope = "configured_services";
-const EMPTY_DOCUMENT = `${JSON.stringify({}, null, 2)}\n`;

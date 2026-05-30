@@ -191,6 +191,64 @@ describe("poe-agent-plugin-files", () => {
     );
   });
 
+  it("does not overwrite a file concurrently created during create", async () => {
+    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
+    const filePath = "/workspace/project/src/new.ts";
+    const base = createFsFromVolume(Volume.fromJSON({}, "/")).promises;
+    let insertConcurrentFile = true;
+    const fs = {
+      ...base,
+      async mkdir(targetPath: string, options?: Parameters<typeof base.mkdir>[1]) {
+        await base.mkdir(targetPath, options);
+        if (insertConcurrentFile) {
+          insertConcurrentFile = false;
+          await base.writeFile(filePath, "created by another actor\n", "utf8");
+        }
+      }
+    };
+    const plugin = filesPlugin({ cwd: "/workspace/project", fs: fs as never });
+
+    await expect(
+      callTool(plugin.tools, "edit_file", {
+        command: "create",
+        path: "src/new.ts",
+        file_text: "created by agent\n"
+      })
+    ).rejects.toThrow("File already exists");
+    await expect(base.readFile(filePath, "utf8")).resolves.toBe("created by another actor\n");
+  });
+
+  it("preserves prior content when a str_replace persistence write fails", async () => {
+    const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
+    const filePath = "/workspace/project/src/app.ts";
+    const originalContent = "export const value = 'old';\n";
+    const nextContent = "export const value = 'new';\n";
+    const base = createFsFromVolume(Volume.fromJSON({ [filePath]: originalContent }, "/")).promises;
+    const fs = {
+      ...base,
+      async writeFile(targetPath: string, data: Parameters<typeof base.writeFile>[1], options?: Parameters<typeof base.writeFile>[2]) {
+        if (String(data) === nextContent) {
+          if (targetPath === filePath) {
+            await base.writeFile(targetPath, "partial", "utf8");
+          }
+          throw new Error("write failed");
+        }
+        await base.writeFile(targetPath, data, options);
+      }
+    };
+    const plugin = filesPlugin({ cwd: "/workspace/project", fs: fs as never });
+
+    await expect(
+      callTool(plugin.tools, "edit_file", {
+        command: "str_replace",
+        path: "src/app.ts",
+        old_str: "'old'",
+        new_str: "'new'"
+      })
+    ).rejects.toThrow("write failed");
+    await expect(base.readFile(filePath, "utf8")).resolves.toBe(originalContent);
+  });
+
   it("rejects reads and writes through symlinked allowed descendants", async () => {
     const { default: filesPlugin } = await import("./poe-agent-plugin-files.js");
     const volume = Volume.fromJSON({

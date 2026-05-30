@@ -93,11 +93,11 @@ export class RunContext {
 
     try {
       await this.#disposing;
-    } finally {
       this.#disposed = true;
-      this.#disposing = undefined;
       this.#disposeHooks.length = 0;
       this.childRuns.clear();
+    } finally {
+      this.#disposing = undefined;
     }
   }
 
@@ -107,6 +107,7 @@ export class RunContext {
     }
 
     const errors: unknown[] = [];
+    const failedHooks: DisposeHook[] = [];
 
     for (let index = this.#disposeHooks.length - 1; index >= 0; index -= 1) {
       const hook = this.#disposeHooks[index];
@@ -118,9 +119,12 @@ export class RunContext {
         await hook();
       } catch (error) {
         errors.push(error);
+        failedHooks.unshift(hook);
         this.#logger.error("Dispose hook failed.", error);
       }
     }
+
+    this.#disposeHooks.splice(0, this.#disposeHooks.length, ...failedHooks);
 
     if (errors.length > 0) {
       throw new AggregateError(errors, "RunContext disposal failed.");

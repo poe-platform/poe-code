@@ -296,6 +296,23 @@ describe("RunContext", () => {
     expect(disposeHook).toHaveBeenCalledTimes(1);
   });
 
+  it("retries only disposal hooks that failed previously", async () => {
+    const context = createRunContext();
+    const successfulHook = vi.fn(async () => undefined);
+    const retriedHook = vi.fn()
+      .mockRejectedValueOnce(new Error("cleanup temporarily failed"))
+      .mockResolvedValueOnce(undefined);
+
+    context.registerDisposeHook(successfulHook);
+    context.registerDisposeHook(retriedHook);
+
+    await expect(context.dispose()).rejects.toThrow("RunContext disposal failed.");
+    await expect(context.dispose()).resolves.toBeUndefined();
+
+    expect(retriedHook).toHaveBeenCalledTimes(2);
+    expect(successfulHook).toHaveBeenCalledTimes(1);
+  });
+
   it("is safe when dispose is called concurrently", async () => {
     const context = createRunContext();
     const order: string[] = [];

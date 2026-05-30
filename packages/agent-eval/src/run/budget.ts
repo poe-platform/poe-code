@@ -19,6 +19,7 @@ export class BudgetEnforcer {
     outputTokens: 0
   };
   private readonly countedToolIds = new Set<string>();
+  private readonly pendingIdlessTools = new Map<string, number>();
 
   private iterationsTotal = 0;
   private pendingTrip: BudgetKey | undefined;
@@ -98,6 +99,21 @@ export class BudgetEnforcer {
 
   private countToolIteration(event: Extract<NormalizedTraceEvent, { type: "tool" }>): void {
     if (event.id === undefined) {
+      const key = `${event.operation}\u0000${event.name}`;
+      const pendingStarts = this.pendingIdlessTools.get(key) ?? 0;
+      if (event.phase === "complete" && pendingStarts > 0) {
+        if (pendingStarts === 1) {
+          this.pendingIdlessTools.delete(key);
+        } else {
+          this.pendingIdlessTools.set(key, pendingStarts - 1);
+        }
+        return;
+      }
+
+      if (event.phase === "start") {
+        this.pendingIdlessTools.set(key, pendingStarts + 1);
+      }
+
       this.iterationsTotal += 1;
       return;
     }

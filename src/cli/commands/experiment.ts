@@ -1092,53 +1092,76 @@ export function registerExperimentCommand(program: Command, container: CliContai
         resources.logger.intro(`experiment install (${support.id}, ${scope})`);
 
         const templates = await loadExperimentTemplates();
-        const skillResult = await installSkill(
-          support.id,
-          {
-            name: "poe-code-experiment-plan",
-            content: templates.skillPlan + "\n\n" + skillPlanConfigSection("experiment")
-          },
-          {
-            fs: container.fs,
-            cwd: container.env.cwd,
-            homeDir: container.env.homeDir,
-            scope,
-            dryRun: flags.dryRun
-          }
-        );
-
-        if (flags.dryRun) {
-          resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
-        } else {
-          resources.logger.info(`Create: ${skillResult.displayPath}`);
-        }
-
         const experimentPaths = resolveExperimentPaths(
           scope,
           container.env.cwd,
           container.env.homeDir
         );
-
-        if (!(await pathExists(container.fs, experimentPaths.experimentsPath))) {
-          if (flags.dryRun) {
-            resources.logger.dryRun(`Would create: ${experimentPaths.displayExperimentsPath}`);
-          } else {
-            await container.fs.mkdir(experimentPaths.experimentsPath, {
-              recursive: true
-            });
-            resources.logger.info(`Create: ${experimentPaths.displayExperimentsPath}`);
-          }
-        }
-
         const runYamlPath = path.join(experimentPaths.experimentsPath, "run.yaml");
         const runYamlDisplayPath = path.join(experimentPaths.displayExperimentsPath, "run.yaml");
-        if (!(await pathExists(container.fs, runYamlPath))) {
-          if (flags.dryRun) {
-            resources.logger.dryRun(`Would create: ${runYamlDisplayPath}`);
-          } else {
-            await container.fs.writeFile(runYamlPath, templates.runYaml);
-            resources.logger.info(`Create: ${runYamlDisplayPath}`);
+        const experimentsPathExisted = await pathExists(
+          container.fs,
+          experimentPaths.experimentsPath
+        );
+        const runYamlExisted = await pathExists(container.fs, runYamlPath);
+        let createdExperimentsPath = false;
+        let createdRunYaml = false;
+
+        try {
+          if (!experimentsPathExisted) {
+            if (flags.dryRun) {
+              resources.logger.dryRun(`Would create: ${experimentPaths.displayExperimentsPath}`);
+            } else {
+              await container.fs.mkdir(experimentPaths.experimentsPath, {
+                recursive: true
+              });
+              createdExperimentsPath = true;
+              resources.logger.info(`Create: ${experimentPaths.displayExperimentsPath}`);
+            }
           }
+
+          if (!runYamlExisted) {
+            if (flags.dryRun) {
+              resources.logger.dryRun(`Would create: ${runYamlDisplayPath}`);
+            } else {
+              await container.fs.writeFile(runYamlPath, templates.runYaml);
+              createdRunYaml = true;
+              resources.logger.info(`Create: ${runYamlDisplayPath}`);
+            }
+          }
+
+          const skillResult = await installSkill(
+            support.id,
+            {
+              name: "poe-code-experiment-plan",
+              content: templates.skillPlan + "\n\n" + skillPlanConfigSection("experiment")
+            },
+            {
+              fs: container.fs,
+              cwd: container.env.cwd,
+              homeDir: container.env.homeDir,
+              scope,
+              dryRun: flags.dryRun
+            }
+          );
+
+          if (flags.dryRun) {
+            resources.logger.dryRun(`Would create: ${skillResult.displayPath}`);
+          } else {
+            resources.logger.info(`Create: ${skillResult.displayPath}`);
+          }
+        } catch (error) {
+          if (!flags.dryRun) {
+            if (createdRunYaml) {
+              await container.fs.unlink(runYamlPath).catch(() => undefined);
+            }
+            if (createdExperimentsPath) {
+              await container.fs
+                .rm?.(experimentPaths.experimentsPath, { recursive: true, force: true })
+                .catch(() => undefined);
+            }
+          }
+          throw error;
         }
 
         resources.context.complete({

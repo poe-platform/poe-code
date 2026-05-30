@@ -1688,6 +1688,42 @@ describe("experiment install command", () => {
     );
   });
 
+  it("does not install the skill when run.yaml scaffolding fails", async () => {
+    const fs = createMemFs();
+    const writeFile = fs.writeFile.bind(fs);
+    vi.spyOn(fs, "writeFile").mockImplementation(async (filePath, data, options) => {
+      if (filePath === "/repo/.poe-code/experiments/run.yaml") {
+        throw new Error("run.yaml write failed");
+      }
+      await writeFile(filePath, data, options);
+    });
+    const container = createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => {}
+    });
+    const program = createBaseProgram();
+    registerExperimentCommand(program, container);
+
+    await expect(
+      program.parseAsync([
+        "node",
+        "cli",
+        "experiment",
+        "install",
+        "--agent",
+        "claude-code",
+        "--local"
+      ])
+    ).rejects.toThrow("run.yaml write failed");
+
+    await expect(
+      fs.readFile("/repo/.claude/skills/poe-code-experiment-plan/SKILL.md", "utf8")
+    ).rejects.toThrow();
+    await expect(fs.stat("/repo/.poe-code/experiments")).rejects.toThrow();
+  });
+
   it("defaults to claude-code and local scope with --yes", async () => {
     const fs = createMemFs();
     const container = createCliContainer({

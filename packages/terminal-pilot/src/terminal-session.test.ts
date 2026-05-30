@@ -129,6 +129,20 @@ describe("TerminalSession spawn helper setup", () => {
     }
   );
 
+  it("rejects waitFor promptly when the terminal exits before a match", async () => {
+    vi.useFakeTimers();
+    const pty = createPtyMock();
+    spawnMock.mockReturnValue(pty);
+    const { TerminalSession } = await import("./terminal-session.js");
+    const session = new TerminalSession({ id: "session-1", command: process.execPath });
+
+    const waiting = expect(session.waitFor("missing", { timeout: 1000 })).rejects.toThrow("exited");
+    pty.emitExit(0);
+    await vi.advanceTimersByTimeAsync(100);
+
+    await waiting;
+  });
+
   it.each([Number.NaN, Number.POSITIVE_INFINITY, -1])(
     "rejects invalid waitForExit timeout %s",
     async (timeout) => {

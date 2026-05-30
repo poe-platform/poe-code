@@ -150,6 +150,10 @@ export class TerminalSession {
         return matched;
       }
 
+      if (this.exitCode !== null) {
+        throw new Error(`Terminal session "${this.id}" exited before matching pattern: ${String(pattern)}`);
+      }
+
       await sleep(WAIT_FOR_POLL_MS);
     }
 

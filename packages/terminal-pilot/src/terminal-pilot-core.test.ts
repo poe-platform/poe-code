@@ -1345,7 +1345,7 @@ describe("TerminalSession", () => {
     await session.waitFor("Hello, Grace!");
 
     await expect(session.waitFor("This will never appear", { timeout: 150 })).rejects.toThrow(
-      /Timed out waiting for pattern/
+      /exited before matching pattern/
     );
   });
 

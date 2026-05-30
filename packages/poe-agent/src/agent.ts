@@ -560,18 +560,14 @@ function resolveModelName(configModel: string | undefined, model: AcpModel | und
 function toSpawnMcpServers(
   mcpServers: ReadonlyArray<McpServerConfig>
 ): NonNullable<CreateAgentSessionOptions["mcpServers"]> {
-  const byName: NonNullable<CreateAgentSessionOptions["mcpServers"]> = {};
-
-  for (const server of mcpServers) {
-    byName[server.name] = {
+  return Object.fromEntries(
+    mcpServers.map(server => [server.name, {
       transport: "stdio",
       command: server.command,
       ...(server.args === undefined ? {} : { args: [...server.args] }),
       ...(server.env === undefined ? {} : { env: { ...server.env } })
-    };
-  }
-
-  return byName;
+    }])
+  );
 }
 
 function normalizeMcpConfigs(

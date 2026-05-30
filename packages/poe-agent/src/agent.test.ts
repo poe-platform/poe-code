@@ -702,6 +702,30 @@ describe("agent builder", () => {
     });
   });
 
+  it("preserves __proto__ properties in cloned tool schemas", async () => {
+    const capturedSchemas: unknown[] = [];
+
+    await agent()
+      .model("gpt-5")
+      .tools({
+        name: "schema_tool",
+        inputSchema: JSON.parse('{"type":"object","properties":{"__proto__":{"type":"string"}}}'),
+        call: () => "ok"
+      })
+      .run("hello", {
+        acpModel: {
+          complete: vi.fn(async (request) => {
+            capturedSchemas.push(request.tools[0]?.inputSchema);
+            return toAcpModelResponse({ message: { content: "done", toolCalls: [] } });
+          })
+        }
+      });
+
+    const properties = (capturedSchemas[0] as { properties: Record<string, unknown> }).properties;
+    expect(Object.hasOwn(properties, "__proto__")).toBe(true);
+    expect(properties["__proto__"]).toEqual({ type: "string" });
+  });
+
   it("adds inline tools through .tools", async () => {
     const tools: string[] = [];
 

@@ -88,4 +88,15 @@ describe("builtinPluginRegistry", () => {
       maxRetries: 3
     });
   });
+
+  it("preserves special-key default headers for openai providers", () => {
+    for (const pluginName of ["openai-responses", "openai-chat-completions"]) {
+      const options = builtinPluginRegistry.get(pluginName)?.parseOptions({
+        defaultHeaders: JSON.parse('{"__proto__":"visible"}')
+      }) as { defaultHeaders?: Record<string, string> };
+
+      expect(Object.hasOwn(options.defaultHeaders ?? {}, "__proto__")).toBe(true);
+      expect(options.defaultHeaders?.["__proto__"]).toBe("visible");
+    }
+  });
 });

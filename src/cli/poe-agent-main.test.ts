@@ -122,6 +122,21 @@ describe("poe-agent CLI", () => {
     );
   });
 
+  it("preserves special-key --mcp-servers names and environments", async () => {
+    await runProgram([
+      "--mcp-servers",
+      '{"__proto__":{"command":"custom-server","env":{"__proto__":"visible"}}}',
+      "Test prompt"
+    ]);
+
+    const options = spawnPoeAgentWithAcpMock.mock.calls[0]?.[0] as {
+      mcpServers?: Record<string, { env?: Record<string, string> }>;
+    };
+    expect(Object.hasOwn(options.mcpServers ?? {}, "__proto__")).toBe(true);
+    expect(Object.hasOwn(options.mcpServers?.["__proto__"]?.env ?? {}, "__proto__")).toBe(true);
+    expect(options.mcpServers?.["__proto__"]?.env?.["__proto__"]).toBe("visible");
+  });
+
   it("throws on invalid --mcp-servers JSON", async () => {
     await expect(
       runProgram(["--mcp-servers", "not-json", "Test"])

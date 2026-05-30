@@ -740,16 +740,14 @@ function readOptionalStringRecord(
     throw new Error(`${key}: expected an object of string values`);
   }
 
-  const record: Record<string, string> = {};
-  for (const [entryKey, entryValue] of Object.entries(value)) {
+  const entries = Object.entries(value);
+  for (const [, entryValue] of entries) {
     if (typeof entryValue !== "string") {
       throw new Error(`${key}: expected an object of string values`);
     }
-
-    record[entryKey] = entryValue;
   }
 
-  return record;
+  return Object.fromEntries(entries) as Record<string, string>;
 }
 
 function cloneStringRecord(

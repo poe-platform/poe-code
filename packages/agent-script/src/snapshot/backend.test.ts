@@ -1,9 +1,39 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { vol } from "memfs";
 
+const gates = vi.hoisted(() => ({
+  holdFirstRename: false,
+  firstRenameStarted: undefined as undefined | (() => void),
+  releaseFirstRename: undefined as undefined | (() => void),
+  firstRenamePending: undefined as undefined | Promise<void>,
+  renameCalls: 0,
+  cleanupFails: false,
+  lockedRenameFailures: 0
+}));
+
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
-  return fs.promises;
+  return {
+    ...fs.promises,
+    rename: async (fromPath: string, toPath: string) => {
+      gates.renameCalls += 1;
+      if (gates.lockedRenameFailures > 0) {
+        gates.lockedRenameFailures -= 1;
+        throw Object.assign(new Error("locked"), { code: "EBUSY" });
+      }
+      if (gates.holdFirstRename && gates.renameCalls === 1) {
+        gates.firstRenameStarted?.();
+        await gates.firstRenamePending;
+      }
+      await fs.promises.rename(fromPath, toPath);
+    },
+    unlink: async (filePath: string) => {
+      if (gates.cleanupFails && filePath.includes(".tmp")) {
+        throw new Error("temp cleanup denied");
+      }
+      await fs.promises.unlink(filePath);
+    }
+  };
 });
 
 const { FileSnapshotBackend } = await import("./backend.js");
@@ -11,6 +41,13 @@ const { FileSnapshotBackend } = await import("./backend.js");
 describe("FileSnapshotBackend", () => {
   beforeEach(() => {
     vol.reset();
+    gates.holdFirstRename = false;
+    gates.renameCalls = 0;
+    gates.cleanupFails = false;
+    gates.lockedRenameFailures = 0;
+    gates.firstRenamePending = undefined;
+    gates.firstRenameStarted = undefined;
+    gates.releaseFirstRename = undefined;
   });
 
   afterEach(() => {
@@ -67,4 +104,63 @@ describe("FileSnapshotBackend", () => {
 
     await expect(backend.read()).resolves.toBeUndefined();
   });
+
+  it("serializes writes across backend instances targeting the same path", async () => {
+    vol.mkdirSync("/snapshots");
+    gates.holdFirstRename = true;
+    const started = deferred();
+    const released = deferred();
+    gates.firstRenameStarted = started.resolve;
+    gates.firstRenamePending = released.promise;
+    const first = new FileSnapshotBackend("/snapshots/run.json", { writeMaxAttempts: 1 });
+    const second = new FileSnapshotBackend("/snapshots/run.json", { writeMaxAttempts: 1 });
+
+    const firstWrite = first.write({ sourceHash: "first" });
+    await started.promise;
+    const secondWrite = second.write({ sourceHash: "second" });
+    released.resolve();
+
+    await expect(Promise.all([firstWrite, secondWrite])).resolves.toBeDefined();
+    await expect(second.read()).resolves.toMatchObject({ sourceHash: "second" });
+  });
+
+  it("waits for another backend write before removing the snapshot", async () => {
+    vol.mkdirSync("/snapshots");
+    gates.holdFirstRename = true;
+    const started = deferred();
+    const released = deferred();
+    gates.firstRenameStarted = started.resolve;
+    gates.firstRenamePending = released.promise;
+    const writer = new FileSnapshotBackend("/snapshots/run.json");
+    const remover = new FileSnapshotBackend("/snapshots/run.json");
+
+    const writing = writer.write({ sourceHash: "future" });
+    await started.promise;
+    const removing = remover.remove();
+    released.resolve();
+
+    await Promise.all([writing, removing]);
+    await expect(remover.read()).resolves.toBeUndefined();
+  });
+
+  it("retries a locked commit even when temporary cleanup fails", async () => {
+    vol.mkdirSync("/snapshots");
+    gates.cleanupFails = true;
+    gates.lockedRenameFailures = 1;
+    const backend = new FileSnapshotBackend("/snapshots/run.json", {
+      writeMaxAttempts: 2,
+      writeRetryDelayMs: 0
+    });
+
+    await expect(backend.write({ sourceHash: "saved" })).resolves.toBeUndefined();
+    await expect(backend.read()).resolves.toMatchObject({ sourceHash: "saved" });
+  });
 });
+
+function deferred(): { promise: Promise<void>; resolve(): void } {
+  let resolve = () => undefined;
+  const promise = new Promise<void>((nextResolve) => {
+    resolve = nextResolve;
+  });
+  return { promise, resolve };
+}

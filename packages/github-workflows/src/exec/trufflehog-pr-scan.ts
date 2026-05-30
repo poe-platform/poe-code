@@ -1,4 +1,5 @@
-import { appendFile, readFile, writeFile } from "node:fs/promises";
+import { appendFile, lstat, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import { UserError } from "toolcraft";
 import type { CommandRunner } from "@poe-code/agent-spawn";
 import { runCommand } from "@poe-code/agent-spawn";
@@ -21,6 +22,17 @@ interface EnvReader {
   get(key: string): string | undefined;
 }
 
+interface TruffleHogFileSystem {
+  appendFile(path: string, data: string, encoding: BufferEncoding): Promise<void>;
+  lstat(path: string): Promise<{ isSymbolicLink(): boolean }>;
+  readFile(path: string, encoding: BufferEncoding): Promise<string>;
+  rename(oldPath: string, newPath: string): Promise<void>;
+  rm(path: string, options: { force: boolean }): Promise<void>;
+  writeFile(path: string, data: string, encoding: BufferEncoding): Promise<void>;
+}
+
+const defaultFileSystem: TruffleHogFileSystem = { appendFile, lstat, readFile, rename, rm, writeFile };
+
 export type TruffleHogPrScanCommand =
   | "scan-for-secrets"
   | "report-advisory-result"
@@ -29,7 +41,7 @@ export type TruffleHogPrScanCommand =
 export async function runTruffleHogPrScanCommand(
   command: TruffleHogPrScanCommand,
   env: EnvReader,
-  options: { cwd?: string; runner?: CommandRunner; dryRun?: boolean } = {}
+  options: { cwd?: string; runner?: CommandRunner; dryRun?: boolean; fs?: TruffleHogFileSystem } = {}
 ): Promise<null> {
   if (options.dryRun === true) {
     process.stdout.write(`Dry run: would run TruffleHog operation ${command}.\n`);
@@ -37,14 +49,15 @@ export async function runTruffleHogPrScanCommand(
   }
   const runner = options.runner ?? runCommand;
   const cwd = options.cwd ?? process.cwd();
+  const fs = options.fs ?? defaultFileSystem;
 
   if (command === "scan-for-secrets") {
-    await scanForSecrets(env, cwd, runner);
+    await scanForSecrets(env, cwd, runner, fs);
     return null;
   }
 
   if (command === "report-advisory-result") {
-    await reportAdvisoryResult(env, runner);
+    await reportAdvisoryResult(env, runner, fs);
     return null;
   }
 
@@ -131,13 +144,22 @@ export function renderTruffleHogComment(
   ].join("\n");
 }
 
-async function scanForSecrets(env: EnvReader, cwd: string, runner: CommandRunner): Promise<void> {
+async function scanForSecrets(
+  env: EnvReader,
+  cwd: string,
+  runner: CommandRunner,
+  fs: TruffleHogFileSystem
+): Promise<void> {
   const baseSha = requireEnv(env, "BASE_SHA");
   const headSha = requireEnv(env, "HEAD_SHA");
   const results = requireEnv(env, "RESULTS");
   const image = requireEnv(env, "TRUFFLEHOG_IMAGE");
   const resultsFile = env.get("TRUFFLEHOG_RESULTS_FILE") ?? DEFAULT_RESULTS_FILE;
   const stderrFile = env.get("TRUFFLEHOG_STDERR_FILE") ?? DEFAULT_STDERR_FILE;
+
+  await assertNotSymbolicLink(fs, resultsFile);
+  await assertNotSymbolicLink(fs, stderrFile);
+  await assertNotSymbolicLinkIfSet(fs, env.get("GITHUB_OUTPUT"));
 
   const result = await runner(
     "docker",
@@ -163,28 +185,49 @@ async function scanForSecrets(env: EnvReader, cwd: string, runner: CommandRunner
     { cwd }
   );
 
-  await writeFile(resultsFile, result.stdout, "utf8");
-  await writeFile(stderrFile, result.stderr, "utf8");
+  await publishFiles(fs, [
+    { path: resultsFile, content: result.stdout },
+    { path: stderrFile, content: result.stderr }
+  ]);
   process.stderr.write(result.stderr);
 
   const findingsCount = parseTruffleHogFindings(result.stdout).length;
-  await setGitHubOutput(env, "exit_code", String(result.exitCode));
-  await setGitHubOutput(env, "findings_count", String(findingsCount));
+  await appendGitHubOutput(fs, env, [
+    ["exit_code", String(result.exitCode)],
+    ["findings_count", String(findingsCount)]
+  ]);
 
   if (result.exitCode !== 0 && findingsCount === 0) {
     throw new UserError(`TruffleHog exited with ${result.exitCode} without producing findings.`);
   }
 }
 
-async function reportAdvisoryResult(env: EnvReader, runner: CommandRunner): Promise<void> {
+async function reportAdvisoryResult(env: EnvReader, runner: CommandRunner, fs: TruffleHogFileSystem): Promise<void> {
   const githubToken = requireEnv(env, "GH_TOKEN");
   const headSha = requireEnv(env, "HEAD_SHA");
   const maxFindings = numberEnv(env, "MAX_FINDINGS");
   const prNumber = requireEnv(env, "PR_NUMBER");
   const repository = requireEnv(env, "REPOSITORY");
   const resultsFile = env.get("TRUFFLEHOG_RESULTS_FILE") ?? DEFAULT_RESULTS_FILE;
-  const findings = uniqueTruffleHogFindings(parseTruffleHogFindings(await readFile(resultsFile, "utf8")));
+  await assertNotSymbolicLink(fs, resultsFile);
+  await assertNotSymbolicLinkIfSet(fs, env.get("GITHUB_STEP_SUMMARY"));
+  const findings = uniqueTruffleHogFindings(parseTruffleHogFindings(await fs.readFile(resultsFile, "utf8")));
   const body = renderTruffleHogComment(findings, { repository, headSha, maxFindings });
+
+  const heading =
+    findings.length === 1
+      ? "TruffleHog found a possible secret"
+      : `TruffleHog found ${findings.length} possible secrets`;
+  const errorTitle = findings.length === 1 ? "TruffleHog finding" : "TruffleHog findings";
+  const errorMessage = findings.length === 1 ? "Possible secret detected." : "Possible secrets detected.";
+
+  await appendStepSummary(fs, env, [
+    `### ${heading}`,
+    "",
+    renderTruffleHogFindingsTable(findings, { repository, headSha, maxFindings }),
+    "",
+    FIX_MESSAGE
+  ].join("\n"));
 
   emitInlineAnnotations(findings, { maxFindings });
 
@@ -205,21 +248,7 @@ async function reportAdvisoryResult(env: EnvReader, runner: CommandRunner): Prom
     ]);
   }
 
-  const heading =
-    findings.length === 1
-      ? "TruffleHog found a possible secret"
-      : `TruffleHog found ${findings.length} possible secrets`;
-  const errorTitle = findings.length === 1 ? "TruffleHog finding" : "TruffleHog findings";
-  const errorMessage = findings.length === 1 ? "Possible secret detected." : "Possible secrets detected.";
-
   console.log(`::error title=${errorTitle}::${errorMessage}`);
-  await appendStepSummary(env, [
-    `### ${heading}`,
-    "",
-    renderTruffleHogFindingsTable(findings, { repository, headSha, maxFindings }),
-    "",
-    FIX_MESSAGE
-  ].join("\n"));
 }
 
 async function clearStaleAdvisoryResult(env: EnvReader, runner: CommandRunner): Promise<void> {
@@ -283,18 +312,58 @@ async function ghApi(
   return result.stdout;
 }
 
-async function setGitHubOutput(env: EnvReader, key: string, value: string): Promise<void> {
+async function appendGitHubOutput(
+  fs: TruffleHogFileSystem,
+  env: EnvReader,
+  outputs: Array<[key: string, value: string]>
+): Promise<void> {
   const outputPath = env.get("GITHUB_OUTPUT");
   if (outputPath !== undefined && outputPath !== "") {
-    await appendFile(outputPath, `${key}=${value}\n`, "utf8");
+    await fs.appendFile(outputPath, outputs.map(([key, value]) => `${key}=${value}\n`).join(""), "utf8");
   }
 }
 
-async function appendStepSummary(env: EnvReader, content: string): Promise<void> {
+async function appendStepSummary(fs: TruffleHogFileSystem, env: EnvReader, content: string): Promise<void> {
   const summaryPath = env.get("GITHUB_STEP_SUMMARY");
   if (summaryPath !== undefined && summaryPath !== "") {
-    await appendFile(summaryPath, `${content}\n`, "utf8");
+    await fs.appendFile(summaryPath, `${content}\n`, "utf8");
   }
+}
+
+async function publishFiles(fs: TruffleHogFileSystem, files: Array<{ path: string; content: string }>): Promise<void> {
+  const stagedFiles = files.map((file) => ({ ...file, stagedPath: `${file.path}.${randomUUID()}.tmp` }));
+
+  try {
+    await Promise.all(stagedFiles.map((file) => fs.writeFile(file.stagedPath, file.content, "utf8")));
+    for (const file of stagedFiles) {
+      await fs.rename(file.stagedPath, file.path);
+    }
+  } finally {
+    await Promise.all(stagedFiles.map((file) => fs.rm(file.stagedPath, { force: true })));
+  }
+}
+
+async function assertNotSymbolicLinkIfSet(fs: TruffleHogFileSystem, path: string | undefined): Promise<void> {
+  if (path !== undefined && path !== "") {
+    await assertNotSymbolicLink(fs, path);
+  }
+}
+
+async function assertNotSymbolicLink(fs: TruffleHogFileSystem, path: string): Promise<void> {
+  try {
+    if ((await fs.lstat(path)).isSymbolicLink()) {
+      throw new UserError(`Refusing to use symbolic link path: ${path}`);
+    }
+  } catch (error) {
+    if (isMissingFileError(error)) {
+      return;
+    }
+    throw error;
+  }
+}
+
+function isMissingFileError(error: unknown): boolean {
+  return typeof error === "object" && error !== null && "code" in error && error.code === "ENOENT";
 }
 
 function renderLocation(

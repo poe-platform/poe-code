@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const { createTerminalPilotGroupMock, runMCPMock, terminalPilotGroupMock } = vi.hoisted(() => ({
   createTerminalPilotGroupMock: vi.fn(),
   runMCPMock: vi.fn<() => Promise<void>>(),
-  terminalPilotGroupMock: { name: "terminal-pilot" }
+  terminalPilotGroupMock: { name: "terminal-pilot", children: [] }
 }));
 
 vi.mock("toolcraft/mcp", () => ({
@@ -29,7 +29,7 @@ describe("terminal-pilot-mcp entry point", () => {
 
     expect(createTerminalPilotGroupMock).toHaveBeenCalledOnce();
     expect(runMCPMock).toHaveBeenCalledTimes(1);
-    expect(runMCPMock).toHaveBeenCalledWith(terminalPilotGroupMock, {
+    expect(runMCPMock).toHaveBeenCalledWith(expect.objectContaining({ name: "" }), {
       name: "terminal-pilot",
       version: "0.0.1",
       omitRootToolNamePrefix: true

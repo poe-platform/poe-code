@@ -489,4 +489,43 @@ describe("workspace transfer", () => {
     });
     await expect(env.fs.readFile("/repo/app.ts", "utf8")).resolves.toBe("remote");
   });
+
+  it("rejects downloads through a symlinked local parent before writing externally", async () => {
+    const env = createEnv({
+      "/repo/linked/old.txt": "base",
+      "/outside/keep.txt": "keep"
+    });
+    await uploadWorkspace(env, {});
+    await env.fs.rm?.("/repo/linked", { recursive: true, force: true });
+    await (env.fs as WorkspaceTransferFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/repo/linked"
+    );
+    await env.remoteFs.writeFile("/workspace/linked/new.txt", "remote");
+
+    await expect(downloadWorkspace(env, { conflictPolicy: "overwrite" })).rejects.toThrow(
+      "Workspace download must remain inside the local workspace."
+    );
+    await expect(env.fs.readFile("/outside/new.txt", "utf8")).rejects.toThrow();
+    await expect(env.fs.readFile("/outside/keep.txt", "utf8")).resolves.toBe("keep");
+  });
+
+  it("rejects downloads through a symlinked local parent before deleting externally", async () => {
+    const env = createEnv({
+      "/repo/linked/old.txt": "base",
+      "/outside/old.txt": "external"
+    });
+    await uploadWorkspace(env, {});
+    await env.remoteFs.rm?.("/workspace/linked/old.txt", { force: true });
+    await env.fs.rm?.("/repo/linked", { recursive: true, force: true });
+    await (env.fs as WorkspaceTransferFileSystem & { symlink(target: string, path: string): Promise<void> }).symlink(
+      "/outside",
+      "/repo/linked"
+    );
+
+    await expect(downloadWorkspace(env, { conflictPolicy: "overwrite" })).rejects.toThrow(
+      "Workspace download must remain inside the local workspace."
+    );
+    await expect(env.fs.readFile("/outside/old.txt", "utf8")).resolves.toBe("external");
+  });
 });

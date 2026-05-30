@@ -14,6 +14,7 @@ export interface WorkspaceTransferDirent {
 export interface WorkspaceTransferStats {
   isFile(): boolean;
   isDirectory(): boolean;
+  isSymbolicLink?(): boolean;
   size: number;
 }
 
@@ -24,6 +25,7 @@ export interface WorkspaceTransferFileSystem {
   readFile(path: string, encoding: BufferEncoding): Promise<string>;
   writeFile(path: string, data: string | Buffer): Promise<void>;
   stat(path: string): Promise<WorkspaceTransferStats>;
+  lstat?(path: string): Promise<WorkspaceTransferStats>;
   rename?(oldPath: string, newPath: string): Promise<void>;
   rm?(path: string, options?: { recursive?: boolean; force?: boolean }): Promise<void>;
   unlink?(path: string): Promise<void>;
@@ -185,6 +187,7 @@ export async function downloadWorkspace(
   for (const remoteFile of remoteFiles) {
     const remoteContent = await remoteFs.readFile(remoteFile.absolutePath);
     const localPath = path.join(env.cwd, remoteFile.path);
+    await assertSafeLocalDownloadPath(localFs, env.cwd, localPath);
     const conflict = await isDownloadConflict(
       localFs,
       localPath,
@@ -213,6 +216,7 @@ export async function downloadWorkspace(
     }
 
     const localPath = path.join(env.cwd, relativePath);
+    await assertSafeLocalDownloadPath(localFs, env.cwd, localPath);
     const localContent = await readFileIfExists(localFs, localPath);
     if (localContent === null) {
       continue;
@@ -560,6 +564,50 @@ async function statIfExists(
       return null;
     }
     throw error;
+  }
+}
+
+async function assertSafeLocalDownloadPath(
+  fs: WorkspaceTransferFileSystem,
+  workspacePath: string,
+  targetPath: string
+): Promise<void> {
+  const resolvedWorkspacePath = path.resolve(workspacePath);
+  const resolvedTargetPath = path.resolve(targetPath);
+  const relativePath = path.relative(resolvedWorkspacePath, resolvedTargetPath);
+
+  if (
+    relativePath === ".." ||
+    relativePath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativePath)
+  ) {
+    throw new Error("Workspace download must remain inside the local workspace.");
+  }
+
+  if (fs.lstat === undefined) {
+    throw new Error("Workspace transfer filesystem must support symbolic link checks.");
+  }
+
+  let currentPath = resolvedTargetPath;
+
+  while (true) {
+    try {
+      const stats = await fs.lstat(currentPath);
+
+      if (stats.isSymbolicLink?.() === true) {
+        throw new Error("Workspace download must remain inside the local workspace.");
+      }
+    } catch (error) {
+      if (!isNotFoundError(error)) {
+        throw error;
+      }
+    }
+
+    if (currentPath === resolvedWorkspacePath) {
+      return;
+    }
+
+    currentPath = path.dirname(currentPath);
   }
 }
 

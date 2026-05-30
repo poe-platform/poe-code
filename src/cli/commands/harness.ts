@@ -366,10 +366,26 @@ async function executeHarnessNew(
   ]);
 
   await container.fs.mkdir(resolvedDir, { recursive: true });
-  await Promise.all([
-    container.fs.writeFile(mdPath, mdSource, { encoding: "utf8" }),
-    container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8" })
-  ]);
+  try {
+    await Promise.all([
+      container.fs.writeFile(mdPath, mdSource, { encoding: "utf8" }),
+      container.fs.writeFile(ajsPath, ajsSource, { encoding: "utf8" })
+    ]);
+  } catch (error) {
+    await Promise.all([
+      container.fs.unlink(mdPath).catch((cleanupError) => {
+        if (!hasErrorCode(cleanupError, "ENOENT")) {
+          throw cleanupError;
+        }
+      }),
+      container.fs.unlink(ajsPath).catch((cleanupError) => {
+        if (!hasErrorCode(cleanupError, "ENOENT")) {
+          throw cleanupError;
+        }
+      })
+    ]).catch(() => undefined);
+    throw error;
+  }
 
   resources.context.complete({
     success: `Created harness pair at ${formatDisplayPath(container, resolvedDir)}`,

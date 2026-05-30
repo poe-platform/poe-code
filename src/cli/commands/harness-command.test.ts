@@ -503,6 +503,37 @@ describe("harness command", () => {
     expect(logs.join("\n")).toContain("Created harness pair");
   });
 
+  it("removes a partial scaffold when writing the script fails", async () => {
+    const fs = {
+      ...(memfs.promises as unknown as FileSystem),
+      async writeFile(filePath: string, data: string | NodeJS.ArrayBufferView, options?: { encoding?: BufferEncoding; flag?: string }) {
+        if (filePath.endsWith("example.ajs")) {
+          throw new Error("script write failed");
+        }
+        await memfs.promises.writeFile(filePath, data, options);
+      }
+    } as FileSystem;
+    const program = createBaseProgram();
+    registerHarnessCommand(program, createCliContainer({
+      fs,
+      prompts: vi.fn().mockResolvedValue({}),
+      env: { cwd, homeDir },
+      logger: () => undefined,
+      commandRunner: vi.fn().mockResolvedValue({ exitCode: 0, stdout: "", stderr: "" })
+    }));
+
+    await expect(
+      program.parseAsync(["node", "cli", "--yes", "harness", "new", "demo", "example"])
+    ).rejects.toThrow("script write failed");
+
+    await expect(
+      memfs.promises.readFile("/repo/.poe-code/harnesses/example/example.md", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
+    await expect(
+      memfs.promises.readFile("/repo/.poe-code/harnesses/example/example.ajs", "utf8")
+    ).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
   it("rejects a basename that escapes the harness directory", async () => {
     await expect(runHarnessCommand(["--yes", "harness", "new", "demo", "../victim"])).rejects.toThrow(
       /invalid harness basename/i

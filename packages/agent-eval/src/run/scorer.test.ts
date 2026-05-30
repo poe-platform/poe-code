@@ -386,6 +386,29 @@ describe("runScorer", () => {
 
     await expectation;
   });
+
+  it("rejects non-finite custom scorer result numbers", async () => {
+    useMemfs({
+      "/work/clone/score.json": '{"passed":1e309,"total":1e309,"cases":[{"name":"case","passed":true,"durationMs":1e309}]}'
+    });
+    mocks.createHostRunner.mockReturnValue(createRecordingRunner([{ exitCode: 0 }]));
+
+    await expect(
+      runScorer({ evalDef: createEvalDef(), evalDir: "/work/eval", cloneDir: "/work/clone" })
+    ).rejects.toThrow("Malformed scorer result");
+  });
+
+  it("rejects a non-finite custom scorer timeout before execution", async () => {
+    await expect(
+      runScorer({
+        evalDef: createEvalDef({ scorer: createScorerSpec({ timeoutMs: Number.POSITIVE_INFINITY }) }),
+        evalDir: "/work/eval",
+        cloneDir: "/work/clone"
+      })
+    ).rejects.toThrow("Scorer timeout must be a finite non-negative number.");
+
+    expect(mocks.createHostRunner).not.toHaveBeenCalled();
+  });
 });
 
 function createEvalDef(overrides: Partial<EvalDef> = {}): EvalDef {

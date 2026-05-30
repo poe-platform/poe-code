@@ -62,6 +62,7 @@ async function runCustomScorer(input: {
   spec: ScorerSpec;
   signal?: AbortSignal;
 }): Promise<{ passed: number; total: number; cases: CaseResult[] }> {
+  assertValidTimeout(input.spec.timeoutMs);
   const cwd = resolveContainedPath(input.cloneDir, input.spec.cwd, "scorer.cwd");
   const resultPath = resolveContainedPath(
     input.cloneDir,
@@ -206,7 +207,9 @@ function parseScorerResult(
     parsed === null ||
     Array.isArray(parsed) ||
     typeof (parsed as { passed?: unknown }).passed !== "number" ||
-    typeof (parsed as { total?: unknown }).total !== "number"
+    !Number.isFinite((parsed as { passed: number }).passed) ||
+    typeof (parsed as { total?: unknown }).total !== "number" ||
+    !Number.isFinite((parsed as { total: number }).total)
   ) {
     throw new ScorerError(
       `Malformed scorer result ${resultPath}: expected { passed: number, total: number }`
@@ -237,10 +240,17 @@ function isCaseResults(value: unknown): value is CaseResult[] {
         typeof (item as CaseResult).name === "string" &&
         typeof (item as CaseResult).passed === "boolean" &&
         typeof (item as CaseResult).durationMs === "number" &&
+        Number.isFinite((item as CaseResult).durationMs) &&
         ((item as CaseResult).message === undefined ||
           typeof (item as CaseResult).message === "string")
     )
   );
+}
+
+function assertValidTimeout(timeoutMs: number): void {
+  if (!Number.isFinite(timeoutMs) || timeoutMs < 0) {
+    throw new ScorerError("Scorer timeout must be a finite non-negative number.");
+  }
 }
 
 async function waitForResult(

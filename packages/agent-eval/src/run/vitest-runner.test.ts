@@ -5,7 +5,8 @@ import { createMockRunner } from "@poe-code/process-runner/testing";
 import type { Runner, RunSpec } from "@poe-code/process-runner";
 
 const mocks = vi.hoisted(() => ({
-  createHostRunner: vi.fn()
+  createHostRunner: vi.fn(),
+  unlinkFailure: undefined as Error | undefined
 }));
 
 vi.mock("@poe-code/process-runner", async (importOriginal) => {
@@ -18,7 +19,15 @@ vi.mock("@poe-code/process-runner", async (importOriginal) => {
 
 vi.mock("node:fs/promises", async () => {
   const { fs } = await import("memfs");
-  return fs.promises;
+  return {
+    ...fs.promises,
+    unlink: async (filePath: string) => {
+      if (mocks.unlinkFailure !== undefined) {
+        throw mocks.unlinkFailure;
+      }
+      return fs.promises.unlink(filePath);
+    }
+  };
 });
 
 const { runVitest, VitestError, VitestTimeoutError } = await import("./vitest-runner.js");
@@ -28,6 +37,7 @@ describe("runVitest", () => {
     vol.reset();
     vol.mkdirSync(tmpdir(), { recursive: true });
     vi.clearAllMocks();
+    mocks.unlinkFailure = undefined;
   });
 
   afterEach(() => {
@@ -173,6 +183,40 @@ describe("runVitest", () => {
     });
   });
 
+  it("rejects a nonzero vitest process exit even with passing report output", async () => {
+    const runner = createVitestRunner({
+      exitCode: 1,
+      json: {
+        testResults: [{
+          name: "/work/eval/oracle/tests/foo.test.ts",
+          assertionResults: [{ title: "passes", status: "passed", duration: 1 }]
+        }]
+      }
+    });
+    mocks.createHostRunner.mockReturnValue(runner);
+
+    await expect(
+      runVitest({ testsDir: "/work/eval/oracle/tests", cloneDir: "/work/clone", oracleDir: "/work/eval/oracle", timeoutMs: 1_000 })
+    ).rejects.toThrow("Vitest exited with code 1");
+  });
+
+  it("returns scores when temporary report cleanup fails", async () => {
+    const runner = createVitestRunner({
+      json: {
+        testResults: [{
+          name: "/work/eval/oracle/tests/foo.test.ts",
+          assertionResults: [{ title: "passes", status: "passed", duration: 1 }]
+        }]
+      }
+    });
+    mocks.createHostRunner.mockReturnValue(runner);
+    mocks.unlinkFailure = new Error("report cleanup denied");
+
+    await expect(
+      runVitest({ testsDir: "/work/eval/oracle/tests", cloneDir: "/work/clone", oracleDir: "/work/eval/oracle", timeoutMs: 1_000 })
+    ).resolves.toMatchObject({ passed: 1, total: 1 });
+  });
+
   it("rejects with VitestTimeoutError when vitest exceeds the timeout", async () => {
     vi.useFakeTimers();
     const runner = createVitestRunner({
@@ -193,6 +237,30 @@ describe("runVitest", () => {
     await vi.advanceTimersByTimeAsync(25);
 
     await expectation;
+  });
+
+  it("rejects a non-finite vitest timeout before execution", async () => {
+    mocks.createHostRunner.mockReturnValue(createVitestRunner({ json: { testResults: [] } }));
+
+    await expect(
+      runVitest({
+        testsDir: "/work/eval/oracle/tests",
+        cloneDir: "/work/clone",
+        oracleDir: "/work/eval/oracle",
+        timeoutMs: Number.POSITIVE_INFINITY
+      })
+    ).rejects.toThrow("Vitest timeout must be a finite non-negative number.");
+  });
+
+  it("rejects non-finite case durations from reporter output", async () => {
+    const runner = createVitestRunner({
+      rawJson: '{"testResults":[{"name":"/work/eval/oracle/tests/foo.test.ts","assertionResults":[{"title":"passes","status":"passed","duration":1e309}]}]}'
+    });
+    mocks.createHostRunner.mockReturnValue(runner);
+
+    await expect(
+      runVitest({ testsDir: "/work/eval/oracle/tests", cloneDir: "/work/clone", oracleDir: "/work/eval/oracle", timeoutMs: 1_000 })
+    ).rejects.toThrow("Malformed vitest JSON output: case duration must be finite");
   });
 
   it("honors AbortSignal and rejects with the abort reason", async () => {
@@ -223,10 +291,11 @@ function createVitestRunner(input: {
   json?: unknown;
   rawJson?: string;
   exitAfterMs?: number;
+  exitCode?: number;
 }): Runner & { specs: RunSpec[]; outputFile?: string } {
   const mockRunner = createMockRunner([
     {
-      exitCode: 0,
+      exitCode: input.exitCode ?? 0,
       exitAfterMs: input.exitAfterMs
     }
   ]);

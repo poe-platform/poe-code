@@ -54,7 +54,7 @@ describe("createCliContainer", () => {
     ]);
   });
 
-  it("validates Poe credentials using the configured Poe base URL", async () => {
+  it("validates Poe credentials against the base URL without the /v1 API path", async () => {
     const container = createCliContainer({
       fs: createMemfs(),
       prompts: vi.fn(),
@@ -63,9 +63,11 @@ describe("createCliContainer", () => {
 
     await container.options.resolveApiKey({ value: "provided-key", dryRun: true });
 
+    // The credential balance endpoint lives at <base>/usage/current_balance,
+    // a sibling of /v1 — not under it. Validation must use poeBaseUrl.
     expect(checkAuthMock).toHaveBeenCalledWith({
       apiKey: "provided-key",
-      baseUrl: "https://gateway.example.test/v1"
+      baseUrl: "https://gateway.example.test"
     });
   });
 

@@ -1,3 +1,4 @@
+import path from "node:path";
 import { renderTemplate } from "@poe-code/design-system";
 import type {
   Mutation,
@@ -38,7 +39,7 @@ function createInvalidDocumentBackupPath(targetPath: string): string {
 }
 
 async function backupInvalidDocument(
-  fs: FileSystem,
+  context: MutationContext,
   targetPath: string,
   content: string
 ): Promise<void> {
@@ -46,9 +47,9 @@ async function backupInvalidDocument(
   let attempt = 0;
   while (true) {
     const backupPath = attempt === 0 ? baseBackupPath : `${baseBackupPath}-${attempt}`;
-    await assertRegularWriteTarget(fs, backupPath);
+    await assertRegularWriteTarget(context, backupPath);
     try {
-      await fs.writeFile(backupPath, content, { encoding: "utf8", flag: "wx" });
+      await context.fs.writeFile(backupPath, content, { encoding: "utf8", flag: "wx" });
       return;
     } catch (error) {
       if (!isAlreadyExists(error)) {
@@ -63,11 +64,19 @@ function isAlreadyExists(error: unknown): boolean {
   return Boolean(error && typeof error === "object" && "code" in error && error.code === "EEXIST");
 }
 
-async function assertRegularWriteTarget(fs: FileSystem, targetPath: string): Promise<void> {
-  let currentPath = targetPath;
-  while (true) {
+async function assertRegularWriteTarget(
+  context: MutationContext,
+  targetPath: string
+): Promise<void> {
+  // Symlinks inside the managed home directory are untrusted: an attacker could
+  // plant one to redirect a credential/config write outside it. Symlinks at or
+  // above home are legitimate system links (e.g. /tmp -> /private/tmp on macOS,
+  // /var -> /private/var) and must not block writes, so bound the walk at home.
+  const boundary = path.dirname(path.resolve(context.homeDir));
+  let currentPath = path.resolve(targetPath);
+  while (currentPath !== boundary) {
     try {
-      if ((await fs.lstat(currentPath)).isSymbolicLink()) {
+      if ((await context.fs.lstat(currentPath)).isSymbolicLink()) {
         throw new Error(`Refusing mutation write through symbolic link: ${currentPath}`);
       }
     } catch (error) {
@@ -76,9 +85,7 @@ async function assertRegularWriteTarget(fs: FileSystem, targetPath: string): Pro
       }
     }
 
-    const parentPath = currentPath.includes("/")
-      ? currentPath.slice(0, Math.max(currentPath.lastIndexOf("/"), 1))
-      : currentPath;
+    const parentPath = path.dirname(currentPath);
     if (parentPath === currentPath) {
       return;
     }
@@ -86,14 +93,18 @@ async function assertRegularWriteTarget(fs: FileSystem, targetPath: string): Pro
   }
 }
 
-async function writeAtomically(fs: FileSystem, targetPath: string, content: string): Promise<void> {
-  await assertRegularWriteTarget(fs, targetPath);
+async function writeAtomically(
+  context: MutationContext,
+  targetPath: string,
+  content: string
+): Promise<void> {
+  await assertRegularWriteTarget(context, targetPath);
   let attempt = 0;
   while (true) {
     const tempPath = `${targetPath}.mutation-tmp-${attempt}`;
     try {
-      await fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
-      await fs.rename(tempPath, targetPath);
+      await context.fs.writeFile(tempPath, content, { encoding: "utf8", flag: "wx" });
+      await context.fs.rename(tempPath, targetPath);
       return;
     } catch (error) {
       if (isAlreadyExists(error)) {
@@ -101,7 +112,7 @@ async function writeAtomically(fs: FileSystem, targetPath: string, content: stri
         continue;
       }
       try {
-        await fs.unlink(tempPath);
+        await context.fs.unlink(tempPath);
       } catch (cleanupError) {
         if (!isNotFound(cleanupError)) {
           void cleanupError;
@@ -461,7 +472,7 @@ async function applyBackup(
     while (true) {
       const backupPath = attempt === 0 ? baseBackupPath : `${baseBackupPath}-${attempt}`;
       try {
-        await assertRegularWriteTarget(context.fs, backupPath);
+        await assertRegularWriteTarget(context, backupPath);
         await context.fs.writeFile(backupPath, content ?? "", { encoding: "utf8", flag: "wx" });
         break;
       } catch (error) {
@@ -498,7 +509,7 @@ async function applyRestoreBackup(
   }
 
   if (!context.dryRun) {
-    await assertRegularWriteTarget(context.fs, backup.path);
+    await assertRegularWriteTarget(context, backup.path);
     if (backup.originallyMissing) {
       try {
         await context.fs.unlink(targetPath);
@@ -509,7 +520,7 @@ async function applyRestoreBackup(
       }
     } else {
       const content = await context.fs.readFile(backup.path, "utf8");
-      await writeAtomically(context.fs, targetPath, content);
+      await writeAtomically(context, targetPath, content);
     }
     await context.fs.unlink(backup.path);
   }
@@ -605,7 +616,7 @@ async function applyConfigMerge(
   } catch {
     // Invalid file - backup and start fresh
     if (rawContent !== null && !context.dryRun) {
-      await backupInvalidDocument(context.fs, targetPath, rawContent);
+      await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
   }
@@ -624,7 +635,7 @@ async function applyConfigMerge(
   const changed = serialized !== rawContent;
 
   if (changed && !context.dryRun) {
-    await writeAtomically(context.fs, targetPath, serialized);
+    await writeAtomically(context, targetPath, serialized);
   }
 
   return {
@@ -709,7 +720,7 @@ async function applyConfigPrune(
 
   const serialized = format.serialize(result);
   if (!context.dryRun) {
-    await writeAtomically(context.fs, targetPath, serialized);
+    await writeAtomically(context, targetPath, serialized);
   }
 
   return {
@@ -746,7 +757,7 @@ async function applyConfigTransform(
     current = rawContent === null ? {} : format.parse(rawContent);
   } catch {
     if (rawContent !== null && !context.dryRun) {
-      await backupInvalidDocument(context.fs, targetPath, rawContent);
+      await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
   }
@@ -779,7 +790,7 @@ async function applyConfigTransform(
 
   const serialized = format.serialize(transformed);
   if (!context.dryRun) {
-    await writeAtomically(context.fs, targetPath, serialized);
+    await writeAtomically(context, targetPath, serialized);
   }
 
   return {
@@ -827,7 +838,7 @@ async function applyTemplateWrite(
   const changed = current !== rendered;
 
   if (changed && !context.dryRun) {
-    await writeAtomically(context.fs, targetPath, rendered);
+    await writeAtomically(context, targetPath, rendered);
   }
 
   return {
@@ -889,7 +900,7 @@ async function applyTemplateMerge(
     current = rawContent === null ? {} : format.parse(rawContent);
   } catch {
     if (rawContent !== null && !context.dryRun) {
-      await backupInvalidDocument(context.fs, targetPath, rawContent);
+      await backupInvalidDocument(context, targetPath, rawContent);
     }
     current = {};
   }
@@ -900,7 +911,7 @@ async function applyTemplateMerge(
   const changed = serialized !== rawContent;
 
   if (changed && !context.dryRun) {
-    await writeAtomically(context.fs, targetPath, serialized);
+    await writeAtomically(context, targetPath, serialized);
   }
 
   return {

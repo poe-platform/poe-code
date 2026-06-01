@@ -827,6 +827,23 @@ describe("runMutations", () => {
       await expect(fs.readdir("/outside")).resolves.toEqual(["config.toml"]);
     });
 
+    it("allows writes when a system ancestor of the home directory is a symlink", async () => {
+      // Mirrors macOS, where /tmp -> /private/tmp: ancestors above the managed
+      // home are legitimate system symlinks and must not block config writes.
+      const volume = new Volume();
+      volume.mkdirSync("/private/scratch/home", { recursive: true });
+      volume.symlinkSync("/private/scratch", "/scratch");
+      const fs = createFsFromVolume(volume).promises as unknown as FileSystem;
+
+      await runMutations(
+        [configMutation.merge({ target: "~/.config.json", value: { added: true } })],
+        { fs, homeDir: "/scratch/home" }
+      );
+
+      const written = await fs.readFile("/private/scratch/home/.config.json", "utf8");
+      expect(JSON.parse(written)).toEqual({ added: true });
+    });
+
     it("refuses a symlinked invalid-document backup destination", async () => {
       vi.useFakeTimers();
       vi.setSystemTime(new Date("2026-05-26T12:34:56.789Z"));

@@ -94,15 +94,11 @@ export function createServer(options: ServerOptions): Server {
     }
 
     if (method === "initialize") {
-      if (lifecycle.initializeAccepted) {
-        return {
-          error: {
-            code: JSON_RPC_ERROR_CODES.INVALID_REQUEST,
-            message: "Server already initialized",
-          },
-        };
-      }
-
+      // Re-initialize on the same connection is idempotent: real MCP clients
+      // (e.g. kimi-cli via fastmcp) re-send `initialize` on a persistent
+      // connection per tool call, and the official MCP SDK server re-responds
+      // with InitializeResult instead of erroring. Per-connection isolation is
+      // still enforced by the separate lifecycle object given to each connection.
       lifecycle.initializeAccepted = true;
       lifecycle.initialized = true;
       const requestedProtocol =

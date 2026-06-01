@@ -1888,17 +1888,22 @@ describe("server protocol handlers", () => {
       });
     });
 
-    it("rejects a second initialize after acknowledgement", async () => {
+    it("accepts an idempotent re-initialize on the same connection", async () => {
+      // Real MCP clients (e.g. kimi-cli via fastmcp) re-enter the client and
+      // re-send `initialize` on a persistent connection per tool call. The
+      // official MCP SDK server re-responds with InitializeResult rather than
+      // erroring, so this server must do the same.
       const server = createServer({ name: "test", version: "1.0.0" });
 
       await server.handleMessage("initialize", {});
       await server.handleMessage("notifications/initialized", {});
 
-      await expect(server.handleMessage("initialize", {})).resolves.toEqual({
-        error: {
-          code: -32600,
-          message: "Server already initialized",
-        },
+      const response = await server.handleMessage("initialize", {});
+      expect(response.error).toBeUndefined();
+      expect(response.result).toEqual({
+        protocolVersion: expect.any(String),
+        capabilities: { tools: { listChanged: true } },
+        serverInfo: { name: "test", version: "1.0.0" },
       });
     });
 

@@ -1155,8 +1155,7 @@ describe('startProxyServer playback mode', () => {
       settled = true;
       return response;
     });
-    await new Promise((resolve) => setTimeout(resolve, 0));
-    expect(releaseCapture).toEqual(expect.any(Function));
+    await vi.waitFor(() => expect(releaseCapture).toEqual(expect.any(Function)));
     expect(settled).toBe(false);
 
     releaseCapture!();

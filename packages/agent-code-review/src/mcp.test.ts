@@ -3,7 +3,8 @@ import { createCodeReviewState } from "./review-store.js";
 import { spawn } from "@poe-code/agent-spawn";
 import { createCodeReviewAgentMcpConfig, createCodeReviewAgentMcpGroup } from "./mcp.js";
 
-vi.mock("@poe-code/agent-spawn", () => ({
+vi.mock("@poe-code/agent-spawn", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@poe-code/agent-spawn")>()),
   spawn: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
 }));
 
@@ -96,39 +97,43 @@ describe("createCodeReviewAgentMcpConfig", () => {
 });
 
 describe("createCodeReviewAgentMcpGroup orchestrator tools", () => {
-  it("spawns nested reviewers using stdin-safe prompt transport", async () => {
-    const state = createCodeReviewState({
-      sessionId: "session-1",
-      prUrl: "https://github.com/acme/repo/pull/1",
-      selectedAgent: "codex",
-      selectedProfiles: ["generic"]
-    });
-    const group = createCodeReviewAgentMcpGroup(
-      {
-        role: "orchestrator",
-        session: "session-1",
-        actor: "orchestrator",
-        cwd: "/repo",
-        agent: "codex"
-      },
-      {
-        store: {
-          read: vi.fn(async () => state),
-          addSubagent: vi.fn(async () => state),
-          updateSubagent: vi.fn(async () => state),
-          appendOrchestratorAction: vi.fn(async () => state)
-        } as never,
-        fetchPr: vi.fn(async () => ({}))
-      }
-    );
-    const command = group.children.find(({ name }) => name === "code_review_agent_spawn");
+  it.each(["codex", "claude-code", "claude", "CLAUDE"])(
+    "spawns %s nested reviewers using stdin-safe prompt transport",
+    async (agent) => {
+      const state = createCodeReviewState({
+        sessionId: "session-1",
+        prUrl: "https://github.com/acme/repo/pull/1",
+        selectedAgent: agent,
+        selectedProfiles: ["generic"]
+      });
+      const group = createCodeReviewAgentMcpGroup(
+        {
+          role: "orchestrator",
+          session: "session-1",
+          actor: "orchestrator",
+          cwd: "/repo",
+          agent
+        },
+        {
+          store: {
+            read: vi.fn(async () => state),
+            addSubagent: vi.fn(async () => state),
+            updateSubagent: vi.fn(async () => state),
+            appendOrchestratorAction: vi.fn(async () => state)
+          } as never,
+          fetchPr: vi.fn(async () => ({}))
+        }
+      );
+      const command = group.children.find(({ name }) => name === "code_review_agent_spawn");
 
-    await command?.handler({
-      params: { pr: "https://github.com/acme/repo/pull/1", profile: "generic" }
-    } as never);
-    await vi.waitFor(() => expect(spawn).toHaveBeenCalled());
-    expect(spawn).toHaveBeenCalledWith("codex", expect.objectContaining({ useStdin: true }));
-  });
+      vi.mocked(spawn).mockClear();
+      await command?.handler({
+        params: { pr: "https://github.com/acme/repo/pull/1", profile: "generic" }
+      } as never);
+      await vi.waitFor(() => expect(spawn).toHaveBeenCalled());
+      expect(spawn).toHaveBeenCalledWith(agent, expect.objectContaining({ useStdin: true }));
+    }
+  );
 
   it.each(["kimi", "goose"])(
     "does not pass raw text stdin to the %s structured-input protocol",

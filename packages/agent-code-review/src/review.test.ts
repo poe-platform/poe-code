@@ -5,7 +5,8 @@ import { createCodeReviewState } from "./review-store.js";
 import { runCodeReview } from "./review.js";
 import { spawn } from "@poe-code/agent-spawn";
 
-vi.mock("@poe-code/agent-spawn", () => ({
+vi.mock("@poe-code/agent-spawn", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@poe-code/agent-spawn")>()),
   spawn: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
 }));
 
@@ -74,25 +75,29 @@ describe("runCodeReview asset paths", () => {
     expect(assetMocks.loadPrompt).toHaveBeenCalledWith(resolve(cwd, "prompts/review.md"));
   });
 
-  it("pipes text-safe orchestrator prompts through stdin", async () => {
-    await runCodeReview(
-      { prUrl, cwd: "/repo/worktree" },
-      {
-        resolveOptions: async (input) => ({
-          ...input,
-          agent: "codex",
-          draftStore: ".poe-code/code-review/reviews",
-          humanGate: { provider: "none" }
-        }),
-        fetchPr: async () => ({}),
-        fetchDiff: async () => "",
-        fetchComments: async () => ({}),
-        store: createStore()
-      }
-    );
+  it.each(["codex", "claude-code", "claude", "CLAUDE"])(
+    "pipes %s text-safe orchestrator prompts through stdin",
+    async (agent) => {
+      vi.mocked(spawn).mockClear();
+      await runCodeReview(
+        { prUrl, cwd: "/repo/worktree" },
+        {
+          resolveOptions: async (input) => ({
+            ...input,
+            agent,
+            draftStore: ".poe-code/code-review/reviews",
+            humanGate: { provider: "none" }
+          }),
+          fetchPr: async () => ({}),
+          fetchDiff: async () => "",
+          fetchComments: async () => ({}),
+          store: createStore()
+        }
+      );
 
-    expect(spawn).toHaveBeenCalledWith("codex", expect.objectContaining({ useStdin: true }));
-  });
+      expect(spawn).toHaveBeenCalledWith(agent, expect.objectContaining({ useStdin: true }));
+    }
+  );
 
   it.each(["kimi", "goose"])(
     "does not pipe raw text into the %s structured-input orchestrator",

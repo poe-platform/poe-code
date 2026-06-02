@@ -12,6 +12,7 @@ export default tseslint.config(
       'dist/**',
       '**/dist/**',
       '.codex/**',
+      'tmp/**',
       'vscode-extension/out/**',
       'vscode-extension/node_modules/**',
       '**/*.d.ts',

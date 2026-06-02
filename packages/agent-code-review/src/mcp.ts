@@ -491,7 +491,7 @@ async function spawnWithPoeCode(
     mcpServers: Record<string, { command: string; args: string[] }>;
   }
 ): Promise<SpawnResult> {
-  return spawn(agent, { prompt, ...options });
+  return spawn(agent, { prompt, ...options, useStdin: true });
 }
 
 function renderSubagentPrompt(input: {

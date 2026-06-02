@@ -18,6 +18,7 @@ import type {
   CodeReviewDraft,
   CodeReviewInlineComment
 } from "./review-state.js";
+import { shouldUseTextStdinForCodeReview } from "./prompt-transport.js";
 import { CodeReviewYamlStore, resolveCodeReviewStoreDirectory } from "./review-store.js";
 
 export const CODE_REVIEW_AGENT_MCP_ROLES = ["agent", "orchestrator", "subagent"] as const;
@@ -491,7 +492,11 @@ async function spawnWithPoeCode(
     mcpServers: Record<string, { command: string; args: string[] }>;
   }
 ): Promise<SpawnResult> {
-  return spawn(agent, { prompt, ...options, useStdin: true });
+  return spawn(agent, {
+    prompt,
+    ...options,
+    ...(shouldUseTextStdinForCodeReview(agent) ? { useStdin: true } : {})
+  });
 }
 
 function renderSubagentPrompt(input: {

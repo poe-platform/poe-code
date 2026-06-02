@@ -3,6 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import type { CodeReviewYamlStore } from "./review-store.js";
 import { createCodeReviewState } from "./review-store.js";
 import { runCodeReview } from "./review.js";
+import { spawn } from "@poe-code/agent-spawn";
+
+vi.mock("@poe-code/agent-spawn", () => ({
+  spawn: vi.fn(async () => ({ stdout: "", stderr: "", exitCode: 0 }))
+}));
 
 const assetMocks = vi.hoisted(() => ({
   loadProfile: vi.fn(async () => "custom profile"),
@@ -13,11 +18,13 @@ vi.mock("./assets.js", async (importOriginal) => {
   const actual = await importOriginal<typeof import("./assets.js")>();
   return {
     ...actual,
-    discoverCodeReviewProfiles: vi.fn(async () => [{
-      name: "generic",
-      content: "generic profile",
-      source: "built-in" as const
-    }]),
+    discoverCodeReviewProfiles: vi.fn(async () => [
+      {
+        name: "generic",
+        content: "generic profile",
+        source: "built-in" as const
+      }
+    ]),
     loadCodeReviewProfile: assetMocks.loadProfile,
     loadCodeReviewPrompt: assetMocks.loadPrompt
   };
@@ -66,4 +73,48 @@ describe("runCodeReview asset paths", () => {
     expect(assetMocks.loadProfile).toHaveBeenCalledWith(resolve(cwd, "profiles/security.md"));
     expect(assetMocks.loadPrompt).toHaveBeenCalledWith(resolve(cwd, "prompts/review.md"));
   });
+
+  it("pipes text-safe orchestrator prompts through stdin", async () => {
+    await runCodeReview(
+      { prUrl, cwd: "/repo/worktree" },
+      {
+        resolveOptions: async (input) => ({
+          ...input,
+          agent: "codex",
+          draftStore: ".poe-code/code-review/reviews",
+          humanGate: { provider: "none" }
+        }),
+        fetchPr: async () => ({}),
+        fetchDiff: async () => "",
+        fetchComments: async () => ({}),
+        store: createStore()
+      }
+    );
+
+    expect(spawn).toHaveBeenCalledWith("codex", expect.objectContaining({ useStdin: true }));
+  });
+
+  it.each(["kimi", "goose"])(
+    "does not pipe raw text into the %s structured-input orchestrator",
+    async (agent) => {
+      vi.mocked(spawn).mockClear();
+      await runCodeReview(
+        { prUrl, cwd: "/repo/worktree" },
+        {
+          resolveOptions: async (input) => ({
+            ...input,
+            agent,
+            draftStore: ".poe-code/code-review/reviews",
+            humanGate: { provider: "none" }
+          }),
+          fetchPr: async () => ({}),
+          fetchDiff: async () => "",
+          fetchComments: async () => ({}),
+          store: createStore()
+        }
+      );
+
+      expect(spawn).toHaveBeenCalledWith(agent, expect.not.objectContaining({ useStdin: true }));
+    }
+  );
 });

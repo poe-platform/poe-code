@@ -477,17 +477,17 @@ describe("buildSpawnArgs", () => {
     expect(result.args).not.toContain(prompt);
   });
 
-  it("uses stdin args for codex when the prompt is too large for safe argv transport", () => {
+  it("does not silently switch buildSpawnArgs callers to stdin for large prompts", () => {
     const prompt = "x".repeat(128 * 1024);
     const result = buildSpawnArgs("codex", { prompt });
 
     expect(result.args).toEqual([
       codexSpawnConfig.promptFlag,
-      ...codexSpawnConfig.stdinMode!.extraArgs,
+      prompt,
       ...codexSpawnConfig.defaultArgs,
       ...codexSpawnConfig.modes.yolo
     ]);
-    expect(result.args).not.toContain(prompt);
+    expect(result.args).toContain(prompt);
   });
 
   it("ignores useStdin for agents without stdinMode", () => {

@@ -130,6 +130,44 @@ describe("createCodeReviewAgentMcpGroup orchestrator tools", () => {
     expect(spawn).toHaveBeenCalledWith("codex", expect.objectContaining({ useStdin: true }));
   });
 
+  it.each(["kimi", "goose"])(
+    "does not pass raw text stdin to the %s structured-input protocol",
+    async (agent) => {
+      const state = createCodeReviewState({
+        sessionId: "session-1",
+        prUrl: "https://github.com/acme/repo/pull/1",
+        selectedAgent: agent,
+        selectedProfiles: ["generic"]
+      });
+      const group = createCodeReviewAgentMcpGroup(
+        {
+          role: "orchestrator",
+          session: "session-1",
+          actor: "orchestrator",
+          cwd: "/repo",
+          agent
+        },
+        {
+          store: {
+            read: vi.fn(async () => state),
+            addSubagent: vi.fn(async () => state),
+            updateSubagent: vi.fn(async () => state),
+            appendOrchestratorAction: vi.fn(async () => state)
+          } as never,
+          fetchPr: vi.fn(async () => ({}))
+        }
+      );
+      const command = group.children.find(({ name }) => name === "code_review_agent_spawn");
+
+      vi.mocked(spawn).mockClear();
+      await command?.handler({
+        params: { pr: "https://github.com/acme/repo/pull/1", profile: "generic" }
+      } as never);
+      await vi.waitFor(() => expect(spawn).toHaveBeenCalled());
+      expect(spawn).toHaveBeenCalledWith(agent, expect.not.objectContaining({ useStdin: true }));
+    }
+  );
+
   it("exposes local merged-draft edit, delete, and discard commands", async () => {
     const state = createCodeReviewState({
       sessionId: "session-1",

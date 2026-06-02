@@ -21,6 +21,7 @@ import {
   resolveCodeReviewRuntimeOptions
 } from "./config.js";
 import { createCodeReviewAgentMcpConfig } from "./mcp.js";
+import { shouldUseTextStdinForCodeReview } from "./prompt-transport.js";
 import type { CodeReviewState } from "./review-state.js";
 import { CodeReviewYamlStore, resolveCodeReviewStoreDirectory } from "./review-store.js";
 
@@ -236,5 +237,9 @@ async function spawnWithPoeCode(
   prompt: string,
   options: Omit<SpawnOptions, "prompt">
 ): Promise<SpawnResult> {
-  return spawn(agent, { prompt, ...options });
+  return spawn(agent, {
+    prompt,
+    ...options,
+    ...(shouldUseTextStdinForCodeReview(agent) ? { useStdin: true } : {})
+  });
 }

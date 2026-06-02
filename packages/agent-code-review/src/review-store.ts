@@ -613,10 +613,7 @@ async function writeAtomically(filePath: string, content: string): Promise<void>
   );
   let temporary: Awaited<ReturnType<typeof open>> | undefined;
   try {
-    temporary = await open(
-      temporaryPath,
-      constants.O_CREAT | constants.O_EXCL | constants.O_WRONLY
-    );
+    temporary = await open(temporaryPath, "wx");
     await temporary.writeFile(content, "utf8");
     await temporary.sync();
     await temporary.close();

@@ -1,0 +1,46 @@
+import type { BuildView, LintResult, Rule, Violation, WorkspaceModel } from "../model.js";
+import { shippedDistDepsUnresolvable } from "./shipped-dist-deps-unresolvable.js";
+import { noPublishedToPrivateDep } from "./no-published-to-private-dep.js";
+import { publishedDepNeedsVersionRange } from "./published-dep-needs-version-range.js";
+import { publicNeedsPublishWiring } from "./public-needs-publish-wiring.js";
+import { releaseWorkflowMapsToPackage } from "./release-workflow-maps-to-package.js";
+import { noCrossPackageRelativeImport } from "./no-cross-package-relative-import.js";
+import { importedWorkspaceDepUnresolvable } from "./imported-workspace-dep-unresolvable.js";
+import { bundleSelfContained } from "./bundle-self-contained.js";
+
+export const rules: Rule[] = [
+  shippedDistDepsUnresolvable,
+  noPublishedToPrivateDep,
+  publishedDepNeedsVersionRange,
+  publicNeedsPublishWiring,
+  releaseWorkflowMapsToPackage,
+  noCrossPackageRelativeImport,
+  importedWorkspaceDepUnresolvable,
+  bundleSelfContained
+];
+
+export function runRules(model: WorkspaceModel, build?: BuildView, only?: string[]): LintResult {
+  const selected = only && only.length > 0 ? rules.filter((r) => only.includes(r.id)) : rules;
+  const violations: Violation[] = [];
+  const skipped: string[] = [];
+
+  for (const rule of selected) {
+    if (rule.requiresBuild && !build) {
+      skipped.push(rule.id);
+      continue;
+    }
+    violations.push(...rule.run(model, build));
+  }
+
+  return {
+    summary: {
+      packages: model.packages.length,
+      rules: selected.length,
+      violations: violations.length,
+      ok: violations.length === 0
+    },
+    evaluated: selected.map((r) => r.id),
+    violations,
+    skipped
+  };
+}

@@ -48,6 +48,7 @@ The package defines no environment variables of its own. Runtime review does not
 - `runCodeReview` resolves runtime config, session and agent selection; fetches PR metadata, diff, and prior review activity through `github-review`; includes optional external feedback in the orchestrator prompt; initializes YAML state; and spawns the orchestrator through the `poe-code` SDK.
 - `ingestCodeReviewProfile` fetches normalized review-history records through `github-review`, records `.poe-code/code-review/ingest/<profile>/{source.yaml,comments.jsonl,synthesis-prompt.md}`, and spawns the selected agent to write `.poe-code/code-review/profiles/<profile>.md` directly.
 - The orchestrator can call `code_review_agent_spawn` for profile reviewers. Each subagent may override `agent`; omitted overrides inherit the run agent, and each resolved agent is persisted in YAML.
+- Review orchestrator and subagent prompts are sent through stdin for Codex and Claude Code, including aliases that resolve to those spawn configs, so large review contexts do not need to fit in command-line arguments. Other agents keep the normal spawn prompt transport.
 
 ## Recovery and resume
 
@@ -98,7 +99,7 @@ Slack approval, ticketing, or any other human-gate integration belongs outside `
 await runCodeReview({
   prUrl: "https://github.com/acme/widgets/pull/123",
   cwd: process.cwd(),
-  additionalFeedback: "Please verify rollback coverage before approval.",
+  additionalFeedback: "Please verify rollback coverage before approval."
 });
 ```
 

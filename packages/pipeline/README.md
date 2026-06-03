@@ -21,6 +21,12 @@ poe-code pipeline run
 ## Example Plan
 
 ```yaml
+kind: pipeline
+version: 1
+name: session-refresh
+state: in_progress
+extends: default
+
 tasks:
   - id: fix-timeout
     title: Fix timeout bug
@@ -42,7 +48,7 @@ tasks:
       commit: open
 ```
 
-Each step becomes its own agent execution. Steps are resolved from `.poe-code/pipeline/steps.yaml` (or `~/.poe-code/pipeline/steps.yaml`). See [Step Configuration](#step-configuration).
+Each step becomes its own agent execution. `kind`, `version`, `name`, and `state` are optional plan metadata fields; the runner uses `extends`, `tasks`, `vars`, hooks, and MCP config for execution. Steps are resolved from `.poe-code/pipeline/steps.yaml` (or `~/.poe-code/pipeline/steps.yaml`). See [Step Configuration](#step-configuration).
 
 ## Step Configuration
 
@@ -120,8 +126,7 @@ Hooks can be defined in `steps.yaml` (shared defaults) or in the plan file (per-
 
 ```yaml
 setup: false
-tasks:
-  ...
+tasks: ...
 ```
 
 If setup fails, no tasks run. If teardown fails, the pipeline returns `stopReason: "failed"`.
@@ -221,23 +226,21 @@ Exports: `runPipeline`, `resolvePlanPath`, `parsePlan`, `writeTaskStatus`, `load
 ## Testing Helper
 
 ```ts
-import {
-  createPipelineSimulation,
-  successTurn,
-  failTurn
-} from "@poe-code/pipeline/testing";
+import { createPipelineSimulation, successTurn, failTurn } from "@poe-code/pipeline/testing";
 
 const sim = createPipelineSimulation({
   projectSteps: {
     implement: { mode: "yolo", prompt: "Implement {{id}}" }
   },
   plan: {
-    tasks: [{
-      id: "task-1",
-      title: "Demo task",
-      prompt: "Do the thing",
-      status: { implement: "open" }
-    }]
+    tasks: [
+      {
+        id: "task-1",
+        title: "Demo task",
+        prompt: "Do the thing",
+        status: { implement: "open" }
+      }
+    ]
   },
   turns: [successTurn()]
 });

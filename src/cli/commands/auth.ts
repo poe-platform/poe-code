@@ -171,5 +171,5 @@ async function executeWhoami(program: Command, container: CliContainer): Promise
   }
 
   const identity = await response.json();
-  process.stdout.write(JSON.stringify(identity));
+  process.stdout.write(`${JSON.stringify(identity)}\n`);
 }

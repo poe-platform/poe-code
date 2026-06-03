@@ -280,7 +280,7 @@
         "missing": ["release-workflow", "repository.directory"]
       },
       "message": "public package has no publish path (release-workflow, repository.directory); it cannot be published as-is",
-      "fix": "Add release-workflow and repository.directory to publish @poe-code/design-system, or set \"private\": true if it is only vendored into other packages."
+      "fix": "Set \"private\": true — @poe-code/design-system is only vendored into other packages, not published on its own."
     },
     {
       "rule": "public-needs-publish-wiring",
@@ -290,7 +290,7 @@
         "missing": ["release-workflow"]
       },
       "message": "public package has no publish path (release-workflow); it cannot be published as-is",
-      "fix": "Add release-workflow to publish auth-store, or set \"private\": true if it is only vendored into other packages."
+      "fix": "Set \"private\": true — auth-store is only vendored into other packages, not published on its own."
     },
     {
       "rule": "public-needs-publish-wiring",
@@ -300,7 +300,7 @@
         "missing": ["release-workflow"]
       },
       "message": "public package has no publish path (release-workflow); it cannot be published as-is",
-      "fix": "Add release-workflow to publish mcp-oauth, or set \"private\": true if it is only vendored into other packages."
+      "fix": "Set \"private\": true — mcp-oauth is only vendored into other packages, not published on its own."
     },
     {
       "rule": "public-needs-publish-wiring",
@@ -310,7 +310,7 @@
         "missing": ["release-workflow"]
       },
       "message": "public package has no publish path (release-workflow); it cannot be published as-is",
-      "fix": "Add release-workflow to publish tiny-http-mcp-oauth-test-server, or set \"private\": true if it is only vendored into other packages."
+      "fix": "Set \"private\": true — tiny-http-mcp-oauth-test-server is only vendored into other packages, not published on its own."
     },
     {
       "rule": "public-needs-publish-wiring",
@@ -320,7 +320,7 @@
         "missing": ["release-workflow"]
       },
       "message": "public package has no publish path (release-workflow); it cannot be published as-is",
-      "fix": "Add release-workflow to publish tiny-http-mcp-server, or set \"private\": true if it is only vendored into other packages."
+      "fix": "Set \"private\": true — tiny-http-mcp-server is only vendored into other packages, not published on its own."
     },
     {
       "rule": "public-needs-publish-wiring",
@@ -330,7 +330,7 @@
         "missing": ["release-workflow"]
       },
       "message": "public package has no publish path (release-workflow); it cannot be published as-is",
-      "fix": "Add release-workflow to publish tiny-mcp-client, or set \"private\": true if it is only vendored into other packages."
+      "fix": "Set \"private\": true — tiny-mcp-client is only vendored into other packages, not published on its own."
     },
     {
       "rule": "public-needs-publish-wiring",
@@ -340,7 +340,7 @@
         "missing": ["release-workflow"]
       },
       "message": "public package has no publish path (release-workflow); it cannot be published as-is",
-      "fix": "Add release-workflow to publish tiny-oauth-test-server, or set \"private\": true if it is only vendored into other packages."
+      "fix": "Set \"private\": true — tiny-oauth-test-server is only vendored into other packages, not published on its own."
     },
     {
       "rule": "public-needs-publish-wiring",
@@ -350,7 +350,7 @@
         "missing": ["release-workflow", "repository.directory"]
       },
       "message": "public package has no publish path (release-workflow, repository.directory); it cannot be published as-is",
-      "fix": "Add release-workflow and repository.directory to publish toolcraft-codemode, or set \"private\": true if it is only vendored into other packages."
+      "fix": "Set \"private\": true — toolcraft-codemode is only vendored into other packages, not published on its own."
     },
     {
       "rule": "published-dep-needs-version-range",

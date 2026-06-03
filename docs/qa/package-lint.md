@@ -10,7 +10,7 @@ npm run lint:packages
 
 Expect:
 
-- A header: `package-lint · 8 rules · <N> packages`.
+- A header: `package-lint · 9 rules · <N> packages`.
 - Failing rules grouped under a red `■` header with a `(count)`; each violation
   lists the package, the `via` field in parentheses, a one-line message, and a
   `↳ fix:` hint on the following line.
@@ -22,6 +22,9 @@ Expect:
 - `imported-workspace-dep-unresolvable` flags a published package whose shipped
   source imports a workspace package it neither bundles nor publishes (e.g.
   `terminal-pilot` → `@poe-code/agent-skill-config`).
+- `exports-subpath-resolvable` flags a bare subpath import of a workspace package
+  (e.g. `toolcraft/cli`) that the target's `exports` map does not expose (clean
+  today — a regression guard).
 - Rules with no violations render `<rule-id>    ✓`.
 - A summary line: `<n> rules failed · <m> violations` (with `(k warnings)` when any).
 - Exit code is `1` (violations present). Confirm with `echo $?`.

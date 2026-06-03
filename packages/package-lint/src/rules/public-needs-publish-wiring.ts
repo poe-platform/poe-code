@@ -28,7 +28,7 @@ export const publicNeedsPublishWiring: Rule = {
         severity: "warning",
         detail: { missing },
         message: `public package has no publish path (${missing.join(", ")}); it cannot be published as-is`,
-        fix: `Add ${missing.join(" and ")} to publish ${pkg.name}, or set "private": true if it is only vendored into other packages.`
+        fix: `Set "private": true — ${pkg.name} is only vendored into other packages, not published on its own.`
       });
     }
     return violations;

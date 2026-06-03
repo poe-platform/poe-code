@@ -6,6 +6,7 @@ import { publicNeedsPublishWiring } from "./public-needs-publish-wiring.js";
 import { releaseWorkflowMapsToPackage } from "./release-workflow-maps-to-package.js";
 import { noCrossPackageRelativeImport } from "./no-cross-package-relative-import.js";
 import { importedWorkspaceDepUnresolvable } from "./imported-workspace-dep-unresolvable.js";
+import { exportsSubpathResolvable } from "./exports-subpath-resolvable.js";
 import { bundleSelfContained } from "./bundle-self-contained.js";
 
 export const rules: Rule[] = [
@@ -16,6 +17,7 @@ export const rules: Rule[] = [
   releaseWorkflowMapsToPackage,
   noCrossPackageRelativeImport,
   importedWorkspaceDepUnresolvable,
+  exportsSubpathResolvable,
   bundleSelfContained
 ];
 
